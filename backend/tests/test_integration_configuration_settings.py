@@ -11,7 +11,7 @@ from tests import util
 def test_global_user_settings_read(service_client: TestClient) -> None:
     """Test that it is possible to correctly read default global settings."""
     url = "/service/configuration"
-    response = service_client.get(url)
+    response = service_client.request("GET", url)
     assert response.status_code == 200
     user_settings = response.json()
     assert "show_location" in user_settings
@@ -24,19 +24,19 @@ def test_global_user_settings_write(service_client: TestClient) -> None:
     """Test that it is no longer possible to write a global setting."""
     url = "/service/configuration"
     payload = {"org_units": {"show_roles": "False"}}
-    response = service_client.post(url, json=payload)
+    response = service_client.request("POST", url, json=payload)
     assert response.status_code == 410
 
-    response = service_client.get(url)
+    response = service_client.request("GET", url)
     assert response.status_code == 200
     user_settings = response.json()
     assert user_settings["show_roles"] is True
 
     payload = {"org_units": {"show_roles": "True"}}
-    response = service_client.post(url, json=payload)
+    response = service_client.request("POST", url, json=payload)
     assert response.status_code == 410
 
-    response = service_client.get(url)
+    response = service_client.request("GET", url)
     assert response.status_code == 200
     user_settings = response.json()
     assert user_settings["show_roles"] is True
@@ -47,10 +47,10 @@ def test_ou_user_settings(service_client: TestClient) -> None:
     uuid = "b688513d-11f7-4efc-b679-ab082a2055d0"
     url = f"/service/ou/{uuid}/configuration"
     payload = {"org_units": {"show_user_key": "True"}}
-    response = service_client.post(url, json=payload)
+    response = service_client.request("POST", url, json=payload)
     assert response.status_code == 410
 
-    response = service_client.get(url)
+    response = service_client.request("GET", url)
     assert response.status_code == 200
     assert "show_kle" in response.json()
 
@@ -67,15 +67,15 @@ def test_ou_service_response(service_client: TestClient) -> None:
 
     url = f"/service/ou/{uuid}/configuration"
     payload = {"org_units": {"show_user_key": "True"}}
-    response = service_client.post(url, json=payload)
+    response = service_client.request("POST", url, json=payload)
     assert response.status_code == 410
 
     payload = {"org_units": {"show_location": "False"}}
-    response = service_client.post(url, json=payload)
+    response = service_client.request("POST", url, json=payload)
     assert response.status_code == 410
 
     service_url = f"/service/ou/{uuid}/"
-    response = service_client.get(service_url)
+    response = service_client.request("GET", service_url)
     assert response.status_code == 200
     result = response.json()
     user_settings = result["user_settings"]["orgunit"]
@@ -85,7 +85,7 @@ def test_ou_service_response(service_client: TestClient) -> None:
 
 def test_empty_list(service_client: TestClient) -> None:
     url = "/service/navlinks"
-    response = service_client.get(url)
+    response = service_client.request("GET", url)
     assert response.status_code == 200
     assert response.json() == [{}]
 
@@ -96,6 +96,6 @@ async def test_populated_list(service_client: TestClient) -> None:
     text = "Google"
 
     with util.override_config(Settings(navlinks=[NavLink(href=href, text=text)])):
-        response = service_client.get(url)
+        response = service_client.request("GET", url)
         assert response.status_code == 200
         assert response.json() == [{"href": "http://google.com", "text": "Google"}]

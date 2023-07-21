@@ -33,7 +33,7 @@ async def test_edit_leave_no_overwrite(service_client: TestClient) -> None:
         }
     ]
 
-    response = service_client.post("/service/details/edit", json=req)
+    response = service_client.request("POST", "/service/details/edit", json=req)
     # amqp_topics={"employee.leave.update": 1},
     assert response.status_code == 200
     assert response.json() == [leave_uuid]
@@ -194,11 +194,14 @@ def test_create_leave(service_client: TestClient) -> None:
     ]
 
     with patch("uuid.uuid4", new=lambda: mock_uuid):
-        response = service_client.post("/service/details/create", json=payload)
+        response = service_client.request(
+            "POST", "/service/details/create", json=payload
+        )
         # amqp_topics={"employee.leave.create": 1},
         assert response.status_code == 201
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         f"/service/e/{userid}/details/leave?only_primary_uuid=1",
     )
     assert response.status_code == 200
@@ -214,7 +217,7 @@ def test_create_leave_fails_on_empty_payload(service_client: TestClient) -> None
             "type": "leave",
         }
     ]
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == 400
     assert response.json() == {
         "description": "Missing person",
@@ -252,7 +255,7 @@ def test_create_leave_fails_when_no_active_engagement(
         }
     ]
 
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == 400
     assert response.json() == {
         "description": "Employee must have an active engagement.",
@@ -286,12 +289,12 @@ def test_edit_leave(service_client: TestClient) -> None:
         }
     ]
 
-    response = service_client.post("/service/details/edit", json=req)
+    response = service_client.request("POST", "/service/details/edit", json=req)
     assert response.status_code == 200
     # amqp_topics={"employee.leave.update": 1},
 
-    response = service_client.get(
-        f"/service/e/{user_id}/details/leave?only_primary_uuid=1"
+    response = service_client.request(
+        "GET", f"/service/e/{user_id}/details/leave?only_primary_uuid=1"
     )
     assert response.status_code == 200
     assert response.json() == [
@@ -325,7 +328,7 @@ def test_edit_leave_fails_when_no_active_engagement(service_client: TestClient) 
             },
         }
     ]
-    response = service_client.post("/service/details/edit", json=req)
+    response = service_client.request("POST", "/service/details/edit", json=req)
     assert response.status_code == 400
     assert response.json() == {
         "description": "Employee must have an active engagement.",
@@ -344,7 +347,9 @@ def test_terminate_leave(service_client: TestClient) -> None:
 
     payload = {"validity": {"to": "2017-11-30"}}
 
-    response = service_client.post(f"/service/e/{userid}/terminate", json=payload)
+    response = service_client.request(
+        "POST", f"/service/e/{userid}/terminate", json=payload
+    )
     assert response.status_code == 200
     assert response.json() == userid
     #    amqp_topics={
@@ -362,7 +367,8 @@ def test_terminate_leave(service_client: TestClient) -> None:
     #        "org_unit.role.delete": 1,
     #    }
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         f"/service/e/{userid}/details/leave?only_primary_uuid=1",
     )
     assert response.status_code == 200
@@ -389,7 +395,7 @@ def test_create_leave_missing_user(service_client: TestClient) -> None:
             },
         }
     ]
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == 404
     assert response.json() == {
         "description": "User not found.",

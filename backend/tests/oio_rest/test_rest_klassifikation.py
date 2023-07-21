@@ -87,7 +87,8 @@ class TestImportDeletedPassivated(DBTestCase):
             assert result_put.json()["uuid"] == uuid_
 
         with self.subTest("Delete object"):
-            result_delete = self.client.delete(
+            result_delete = self.client.request(
+                "DELETE",
                 "klassifikation/facet/%s" % uuid_,
                 data={
                     "json": util.get_fixture("facet_slet.json", as_text=False),
@@ -161,7 +162,8 @@ class TestFacet(DBTestCase):
             assert result_patch.json()["uuid"] == uuid_
 
         with self.subTest("Delete facet"):
-            result_delete = self.client.delete(
+            result_delete = self.client.request(
+                "DELETE",
                 "klassifikation/facet/%s" % uuid_,
                 data={
                     "json": util.get_fixture("facet_slet.json", as_text=False),

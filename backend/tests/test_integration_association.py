@@ -168,8 +168,8 @@ async def test_create_association(
     )
 
     # Create an "IT User" (aka. "IT system binding")
-    response = service_client.post(
-        "/service/details/create", json=_mo_create_it_user_doc()
+    response = service_client.request(
+        "POST", "/service/details/create", json=_mo_create_it_user_doc()
     )
     assert response.status_code == 201
 
@@ -194,7 +194,9 @@ async def test_create_association(
     payload[0].update(mo_data)
 
     with seed_substitute_roles():
-        response = service_client.post("/service/details/create", json=payload)
+        response = service_client.request(
+            "POST", "/service/details/create", json=payload
+        )
         assert response.status_code == 201
         assert response.json() == [association_uuid]
 
@@ -220,7 +222,7 @@ async def test_create_association(
     }
     expected.update(mo_expected)
     with seed_substitute_roles():
-        response = service_client.get(url(_userid))
+        response = service_client.request("GET", url(_userid))
         assert response.status_code == 200
         assert response.json() == [expected]
 
@@ -242,14 +244,15 @@ async def test_create_association(
     }
     expected.update(mo_expected)
     with seed_substitute_roles():
-        response = service_client.get(
+        response = service_client.request(
+            "GET",
             url(_userid, first_party_perspective="1"),
         )
         assert response.status_code == 200
         assert response.json() == ([expected] if "it" not in mo_data else [])
 
     # Check that we get the expected response from MO, case 3
-    response = service_client.get(url(_substitute_uuid))
+    response = service_client.request("GET", url(_substitute_uuid))
     assert response.status_code == 200
     assert response.json() == []
 
@@ -271,8 +274,8 @@ async def test_create_association(
     }
     expected.update(mo_expected)
     with seed_substitute_roles():
-        response = service_client.get(
-            url(_substitute_uuid, first_party_perspective="1")
+        response = service_client.request(
+            "GET", url(_substitute_uuid, first_party_perspective="1")
         )
         assert response.status_code == 200
         assert response.json() == ([expected] if "it" not in mo_data else [])
@@ -321,13 +324,14 @@ async def test_create_vacant_association(service_client: TestClient) -> None:
     with set_settings_contextmanager(
         confdb_substitute_roles="62ec821f-4179-4758-bfdf-134529d186e9"
     ):
-        response = service_client.post(
-            "/service/details/create", json=payload(association_uuid)
+        response = service_client.request(
+            "POST", "/service/details/create", json=payload(association_uuid)
         )
         assert response.status_code == 201
         assert response.json() == [association_uuid]
 
-        response = service_client.post(
+        response = service_client.request(
+            "POST",
             "/service/details/create",
             json=payload(association_uuid2, include_person=False),
         )
@@ -469,7 +473,8 @@ async def test_create_vacant_association(service_client: TestClient) -> None:
         confdb_substitute_roles="62ec821f-4179-4758-bfdf-134529d186e9"
     ):
         # contains sorting (ie. unordered comparison)
-        response = service_client.get(
+        response = service_client.request(
+            "GET",
             f"/service/ou/{unitid}/details/association",
             params={"validity": "future", "only_primary_uuid": 1},
         )
@@ -507,7 +512,7 @@ async def test_create_association_with_dynamic_classes(
             },
         }
     ]
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == 201
     assert response.json() == [association_uuid]
 
@@ -635,7 +640,8 @@ async def test_create_association_with_dynamic_classes(
             "job_function": None,
         }
     ]
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         f"/service/e/{userid}/details/association",
         params={"validity": "future", "only_primary_uuid": 1},
     )
@@ -666,7 +672,7 @@ async def test_edit_association_with_preexisting(service_client: TestClient) -> 
             "to": "2017-12-01",
         },
     }
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == 201
 
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -691,7 +697,7 @@ async def test_edit_association_with_preexisting(service_client: TestClient) -> 
             },
         }
     ]
-    response = service_client.post("/service/details/edit", json=req)
+    response = service_client.request("POST", "/service/details/edit", json=req)
     assert response.status_code == 200
     assert response.json() == [association_uuid]
 
@@ -708,7 +714,7 @@ async def test_edit_association_with_preexisting(service_client: TestClient) -> 
             },
         }
     ]
-    response = service_client.post("/service/details/edit", json=req)
+    response = service_client.request("POST", "/service/details/edit", json=req)
     assert response.status_code == 200
     assert response.json() == [association_uuid]
 
@@ -734,7 +740,7 @@ async def test_edit_association_move(service_client: TestClient) -> None:
             },
         }
     ]
-    response = service_client.post("/service/details/edit", json=req)
+    response = service_client.request("POST", "/service/details/edit", json=req)
     assert response.status_code == 200
     assert response.json() == [association_uuid]
 
@@ -863,7 +869,8 @@ async def test_edit_association_move(service_client: TestClient) -> None:
             "job_function": None,
         }
     ]
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         f"/service/e/{userid}/details/association",
         params={"at": "2018-06-01", "only_primary_uuid": 1},
     )
@@ -881,7 +888,9 @@ async def test_terminate_association_via_user(service_client: TestClient) -> Non
     userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
     payload = {"validity": {"to": "2017-11-30"}}
-    response = service_client.post(f"/service/e/{userid}/terminate", json=payload)
+    response = service_client.request(
+        "POST", f"/service/e/{userid}/terminate", json=payload
+    )
     assert response.status_code == 200
     assert response.json() == userid
 
@@ -1016,7 +1025,7 @@ def test_create_association_from_missing_unit(service_client: TestClient) -> Non
             },
         }
     ]
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == 404
     assert response.json() == {
         "description": "Org unit not found.",
@@ -1052,7 +1061,7 @@ def test_create_association_succeeds_on_two_associations(
             },
         }
     ]
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == 201
 
 
@@ -1067,7 +1076,8 @@ def test_create_association_with_preexisting(service_client: TestClient) -> None
     userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
     association_uuid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
 
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/terminate",
         json=[
             {
@@ -1080,7 +1090,8 @@ def test_create_association_with_preexisting(service_client: TestClient) -> None
     assert response.status_code == 200
     assert response.json() == [association_uuid]
 
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/create",
         json=[
             {
@@ -1137,7 +1148,7 @@ def test_create_association_no_unit(service_client: TestClient) -> None:
             },
         }
     ]
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == 400
     assert response.json() == {
         "description": "Missing org_unit",
@@ -1158,7 +1169,7 @@ def test_create_association_fails_on_empty_payload(service_client: TestClient) -
             "type": "association",
         }
     ]
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == 400
     assert response.json() == {
         "description": "Missing org_unit",
@@ -1198,12 +1209,14 @@ def test_edit_association(service_client: TestClient) -> None:
             },
         }
     ]
-    response = service_client.post("/service/details/edit", json=req)
+    response = service_client.request("POST", "/service/details/edit", json=req)
     assert response.status_code == 200
     assert response.json() == [association_uuid]
 
-    response = service_client.get(
-        f"/service/ou/{unitid}/details/association", params={"only_primary_uuid": 1}
+    response = service_client.request(
+        "GET",
+        f"/service/ou/{unitid}/details/association",
+        params={"only_primary_uuid": 1},
     )
     assert response.status_code == 200
     assert response.json() == [
@@ -1237,12 +1250,14 @@ def test_edit_association(service_client: TestClient) -> None:
     new_req = copy.deepcopy(req)
     new_req[0]["data"]["person"] = None
 
-    response = service_client.post("/service/details/edit", json=new_req)
+    response = service_client.request("POST", "/service/details/edit", json=new_req)
     assert response.status_code == 200
     assert response.json() == [association_uuid]
 
-    response = service_client.get(
-        f"/service/ou/{unitid}/details/association", params={"only_primary_uuid": 1}
+    response = service_client.request(
+        "GET",
+        f"/service/ou/{unitid}/details/association",
+        params={"only_primary_uuid": 1},
     )
     assert response.status_code == 200
     assert response.json() == [
@@ -1299,7 +1314,7 @@ def test_edit_association_substitute(service_client: TestClient) -> None:
             },
         }
     ]
-    response = service_client.post("/service/details/edit", json=req)
+    response = service_client.request("POST", "/service/details/edit", json=req)
     assert response.status_code == 200
     assert response.json() == [association_uuid]
 
@@ -1316,12 +1331,14 @@ def test_edit_association_substitute(service_client: TestClient) -> None:
             },
         }
     ]
-    response = service_client.post("/service/details/edit", json=req)
+    response = service_client.request("POST", "/service/details/edit", json=req)
     assert response.status_code == 200
     assert response.json() == [association_uuid]
 
-    response = service_client.get(
-        f"/service/ou/{unitid}/details/association", params={"only_primary_uuid": 1}
+    response = service_client.request(
+        "GET",
+        f"/service/ou/{unitid}/details/association",
+        params={"only_primary_uuid": 1},
     )
     assert response.status_code == 200
     assert response.json() == [
@@ -1349,8 +1366,10 @@ def test_edit_association_substitute(service_client: TestClient) -> None:
         }
     ]
 
-    response = service_client.get(
-        f"/service/ou/{subid}/details/association", params={"only_primary_uuid": 1}
+    response = service_client.request(
+        "GET",
+        f"/service/ou/{subid}/details/association",
+        params={"only_primary_uuid": 1},
     )
     assert response.status_code == 200
     assert response.json() == []
@@ -1369,8 +1388,10 @@ def test_terminate_association_directly(service_client: TestClient) -> None:
         "validity": {"to": "2017-11-30"},
     }
 
-    response = service_client.get(
-        f"/service/e/{userid}/details/association", params={"validity": "present"}
+    response = service_client.request(
+        "GET",
+        f"/service/e/{userid}/details/association",
+        params={"validity": "present"},
     )
     assert response.status_code == 200
     orig = response.json()
@@ -1378,27 +1399,30 @@ def test_terminate_association_directly(service_client: TestClient) -> None:
     expected = copy.deepcopy(orig)
     expected[0]["validity"]["to"] = "2017-11-30"
 
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/terminate",
         json=payload,
     )
     assert response.status_code == 200
     assert response.json() == associationid
 
-    response = service_client.get(
-        f"/service/e/{userid}/details/association", params={"validity": "past"}
+    response = service_client.request(
+        "GET", f"/service/e/{userid}/details/association", params={"validity": "past"}
     )
     assert response.status_code == 200
     assert response.json() == []
 
-    response = service_client.get(
-        f"/service/e/{userid}/details/association", params={"validity": "present"}
+    response = service_client.request(
+        "GET",
+        f"/service/e/{userid}/details/association",
+        params={"validity": "present"},
     )
     assert response.status_code == 200
     assert response.json() == expected
 
-    response = service_client.get(
-        f"/service/e/{userid}/details/association", params={"validity": "future"}
+    response = service_client.request(
+        "GET", f"/service/e/{userid}/details/association", params={"validity": "future"}
     )
     assert response.status_code == 200
     assert response.json() == []
@@ -1410,7 +1434,8 @@ def test_terminate_association_directly(service_client: TestClient) -> None:
 def test_terminate_association_in_the_past(service_client: TestClient) -> None:
     associationid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
 
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/terminate",
         json={
             "type": "association",

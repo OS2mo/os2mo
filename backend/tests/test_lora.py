@@ -233,7 +233,8 @@ async def test_get_effects(respx_mock) -> None:
 async def test_errors_json(
     respx_mock, status_in: int, status_out: int, error_key: str
 ) -> None:
-    respx_mock.get(
+    respx_mock.request(
+        "GET",
         "http://localhost/lora/organisation/organisationenhed",
         json={
             "uuid": ["42"],
@@ -276,7 +277,8 @@ async def test_errors_json(
 async def test_errors_text(
     respx_mock, status_in: int, status_out: int, error_key: str
 ) -> None:
-    respx_mock.get(
+    respx_mock.request(
+        "GET",
         "http://localhost/lora/organisation/organisationenhed",
         json={
             "uuid": ["42"],
@@ -305,7 +307,8 @@ async def test_errors_text(
 @pytest.mark.integration_test
 @freezegun.freeze_time("2010-06-01", tz_offset=2)
 async def test_error_debug(respx_mock) -> None:
-    respx_mock.get(
+    respx_mock.request(
+        "GET",
         "http://localhost/lora/organisation/organisationenhed",
         json={
             "uuid": ["42"],
@@ -337,7 +340,8 @@ async def test_error_debug(respx_mock) -> None:
 @pytest.mark.integration_test
 @freezegun.freeze_time("2010-06-01", tz_offset=2)
 async def test_finding_nothing(respx_mock) -> None:
-    respx_mock.get(
+    respx_mock.request(
+        "GET",
         "http://localhost/lora/organisation/organisationenhed",
         json={
             "uuid": ["42"],

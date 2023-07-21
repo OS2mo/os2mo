@@ -22,13 +22,15 @@ org_unit_type_facet = {
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_employee_empty_db(service_client: TestClient) -> None:
     # empty
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/o/00000000-0000-0000-0000-000000000000/e/",
     )
     assert response.status_code == 200
     assert response.json() == {"total": 0, "items": [], "offset": 0}
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/",
     )
     assert response.status_code == 200
@@ -40,7 +42,8 @@ async def test_employee_empty_db(service_client: TestClient) -> None:
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_employee(service_client: TestClient) -> None:
     # invalid
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/?at=1920-01-01T00:00:00Z",
     )
     assert response.status_code == 404
@@ -136,15 +139,20 @@ async def test_employee(service_client: TestClient) -> None:
         "total": 5,
     }
 
-    response = service_client.get("/service/o/00000000-0000-0000-0000-000000000000/e/")
+    response = service_client.request(
+        "GET", "/service/o/00000000-0000-0000-0000-000000000000/e/"
+    )
     assert response.status_code == 200
     assert response.json() == result
 
-    response = service_client.get("/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/")
+    response = service_client.request(
+        "GET", "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/"
+    )
     assert response.status_code == 200
     assert response.json() == result
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/",
     )
     assert response.status_code == 200
@@ -166,7 +174,8 @@ async def test_employee(service_client: TestClient) -> None:
         },
     }
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/",
     )
     assert response.status_code == 200
@@ -189,13 +198,15 @@ async def test_employee(service_client: TestClient) -> None:
     }
 
     with freezegun.freeze_time("1900-01-01"):
-        response = service_client.get(
+        response = service_client.request(
+            "GET",
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/",
         )
         assert response.status_code == 200
         assert response.json() == {"total": 0, "items": [], "offset": 0}
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?at=1900-01-01",
     )
     assert response.status_code == 200
@@ -311,25 +322,29 @@ async def test_employee(service_client: TestClient) -> None:
         },
     ]
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/",
     )
     assert response.status_code == 200
     assert response.json() == {"items": result_list, "offset": 0, "total": 6}
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?limit=1",
     )
     assert response.status_code == 200
     assert response.json() == {"items": result_list[:1], "offset": 0, "total": 6}
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?limit=1&start=1",
     )
     assert response.status_code == 200
     assert response.json() == {"items": result_list[1:][:1], "offset": 1, "total": 6}
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?at=1937-01-01",
     )
     assert response.status_code == 200
@@ -390,7 +405,8 @@ async def test_employee(service_client: TestClient) -> None:
         "total": 3,
     }
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?query=Anders",
     )
     assert response.status_code == 200
@@ -435,7 +451,8 @@ async def test_employee(service_client: TestClient) -> None:
         "total": 2,
     }
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?at=1937-01-01&query=Anders",
     )
     assert response.status_code == 200
@@ -464,7 +481,8 @@ async def test_employee(service_client: TestClient) -> None:
     }
 
     # allow searching by cpr number
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?query=0906340000",
     )
     assert response.status_code == 200
@@ -493,26 +511,30 @@ async def test_employee(service_client: TestClient) -> None:
     }
 
     # disallow partial matches for CPR numbers
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?query=090634",
     )
     assert response.status_code == 200
     assert response.json() == {"items": [], "offset": 0, "total": 0}
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?query=1",
     )
     assert response.status_code == 200
     assert response.json() == {"items": [], "offset": 0, "total": 0}
 
     # bogus
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?query=0000000000",
     )
     assert response.status_code == 200
     assert response.json() == {"items": [], "offset": 0, "total": 0}
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?query=Anders&associated=true",
     )
     assert response.status_code == 200
@@ -545,8 +567,8 @@ async def test_employee(service_client: TestClient) -> None:
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 def test_children(service_client: TestClient) -> None:
-    response = service_client.get(
-        "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children"
+    response = service_client.request(
+        "GET", "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children"
     )
     assert response.status_code == 200
     assert response.json() == [
@@ -591,7 +613,8 @@ def test_children(service_client: TestClient) -> None:
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 def test_facet_create_and_update(service_client: TestClient) -> None:
     # Tests new creation - 200 message
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/f/engagement_job_function/",
         json={
             "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
@@ -634,7 +657,7 @@ def test_facet_create_and_update(service_client: TestClient) -> None:
     ]
 
     # Tests the GET data matches
-    response = service_client.get("/service/f/engagement_job_function/")
+    response = service_client.request("GET", "/service/f/engagement_job_function/")
     assert response.status_code == 200
     actual_get = response.json()
     assert actual_get == {
@@ -662,7 +685,8 @@ def test_facet_create_and_update(service_client: TestClient) -> None:
     }
 
     # Tests PUT on the same class
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/f/engagement_job_function/",
         # Updated payload, same uuid
         json={
@@ -679,7 +703,7 @@ def test_facet_create_and_update(service_client: TestClient) -> None:
     assert actual_put == "18638313-d9e6-4e1d-aea6-67f5fce7a6b0"
 
     # Tests the GET data matches
-    response = service_client.get("/service/f/engagement_job_function/")
+    response = service_client.request("GET", "/service/f/engagement_job_function/")
     assert response.status_code == 200
     actual_get = response.json()
     assert actual_get == {
@@ -938,8 +962,8 @@ def test_orgunit_search(
             },
         },
     ]
-    response = service_client.get(
-        "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/", params=params
+    response = service_client.request(
+        "GET", "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/", params=params
     )
     assert response.status_code == 200
     assert response.json() == expected(result_list)
@@ -1021,8 +1045,8 @@ def test_engagement(
             },
         }
     ]
-    response = service_client.get(
-        f"/service/{type}/{uuid}/details/engagement", params=params
+    response = service_client.request(
+        "GET", f"/service/{type}/{uuid}/details/engagement", params=params
     )
     assert response.status_code == 200
     assert response.json() == (andersand if has_data else [])
@@ -1041,7 +1065,9 @@ def test_engagement(
 def test_engagement_count(
     service_client: TestClient, type: str, uuid: str, count: int
 ) -> None:
-    response = service_client.get(f"/service/{type}/{uuid}/details/engagement")
+    response = service_client.request(
+        "GET", f"/service/{type}/{uuid}/details/engagement"
+    )
     assert response.status_code == 200
     assert len(response.json()) == count
 
@@ -1125,7 +1151,9 @@ def test_role(
             },
         },
     ]
-    response = service_client.get(f"/service/{type}/{uuid}/details/role", params=params)
+    response = service_client.request(
+        "GET", f"/service/{type}/{uuid}/details/role", params=params
+    )
     assert response.status_code == 200
     assert response.json() == (func if has_data else [])
 
@@ -1144,7 +1172,8 @@ def test_leave(service_client: TestClient) -> None:
         }
     ]
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/leave",
         params={"only_primary_uuid": "1"},
     )
@@ -1230,8 +1259,8 @@ def test_manager(
             },
         }
     ]
-    response = service_client.get(
-        f"/service/{type}/{uuid}/details/manager", params=params
+    response = service_client.request(
+        "GET", f"/service/{type}/{uuid}/details/manager", params=params
     )
     assert response.status_code == 200
     assert response.json() == (func if has_data else [])
@@ -1606,7 +1635,7 @@ not_found_error = {
     ],
 )
 def test_facet(service_client: TestClient, url, status_code, expected) -> None:
-    response = service_client.get(url)
+    response = service_client.request("GET", url)
     assert response.status_code == status_code
     assert response.json() == expected
 
@@ -1754,7 +1783,7 @@ def test_facet(service_client: TestClient, url, status_code, expected) -> None:
 def test_detail_list(
     service_client: TestClient, type: str, uuid: str, expected: dict[str, bool]
 ) -> None:
-    response = service_client.get(f"/service/{type}/{uuid}/details/")
+    response = service_client.request("GET", f"/service/{type}/{uuid}/details/")
     assert response.status_code == 200
     assert response.json() == expected
 
@@ -1783,8 +1812,8 @@ def test_facet_children(service_client: TestClient) -> None:
         },
     ]
 
-    response = service_client.get(
-        "/service/f/1a6045a2-7a8e-4916-ab27-b2402e64f2be/children"
+    response = service_client.request(
+        "GET", "/service/f/1a6045a2-7a8e-4916-ab27-b2402e64f2be/children"
     )
     assert response.status_code == 200
     assert response.json() == expected

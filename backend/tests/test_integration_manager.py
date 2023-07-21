@@ -548,7 +548,9 @@ async def test_create_manager(
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
     with patch("uuid.uuid4", new=lambda: UUID(mock_uuid)):
-        response = service_client.post(f"/service/details/{operation}", json=payload)
+        response = service_client.request(
+            "POST", f"/service/details/{operation}", json=payload
+        )
         assert response.status_code == 201 if operation == "create" else 200
         managerid = response.json()
 
@@ -621,8 +623,8 @@ async def test_read_manager_multiple_responsibilities(
         == overwritten_responsibilities
     )
 
-    response = service_client.get(
-        f"/service/e/{userid}/details/manager", params={"only_primary_uuid": 1}
+    response = service_client.request(
+        "GET", f"/service/e/{userid}/details/manager", params={"only_primary_uuid": 1}
     )
     assert response.status_code == 200
     assert response.json() == [
@@ -671,7 +673,7 @@ def test_create_manager_missing_unit(service_client: TestClient) -> None:
         },
     }
 
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == 400
     assert response.json() == {
         "description": "Missing org_unit",
@@ -690,7 +692,7 @@ def test_create_manager_missing_unit(service_client: TestClient) -> None:
 def test_create_vacant_manager(service_client: TestClient) -> None:
     unit_id = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
 
-    response = service_client.get(f"/service/ou/{unit_id}/details/manager")
+    response = service_client.request("GET", f"/service/ou/{unit_id}/details/manager")
     assert response.status_code == 200
     assert response.json() == []
 
@@ -712,7 +714,7 @@ def test_create_vacant_manager(service_client: TestClient) -> None:
         },
     }
 
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == 201
     function_id = response.json()
 
@@ -727,7 +729,7 @@ def test_create_vacant_manager(service_client: TestClient) -> None:
         "uuid": "ef71fe9c-7901-48e2-86d8-84116e210202",
     }
 
-    response = service_client.get(f"/service/ou/{unit_id}/details/manager")
+    response = service_client.request("GET", f"/service/ou/{unit_id}/details/manager")
     assert response.status_code == 200
     assert response.json() == [
         {
@@ -791,7 +793,8 @@ def test_edit_manager_on_unit(service_client: TestClient) -> None:
     unit_id = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
     user_id = "6ee24785-ee9a-4502-81c2-7697009c9053"
 
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/create",
         json={
             "type": "manager",
@@ -840,14 +843,15 @@ def test_edit_manager_on_unit(service_client: TestClient) -> None:
     }
 
     expected["uuid"] = function_id
-    response = service_client.get(
-        f"/service/ou/{unit_id}/details/manager", params={"only_primary_uuid": 1}
+    response = service_client.request(
+        "GET", f"/service/ou/{unit_id}/details/manager", params={"only_primary_uuid": 1}
     )
     assert response.status_code == 200
     assert response.json() == [expected]
 
     # Change to Vacant
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/edit",
         json={
             "type": "manager",
@@ -864,8 +868,8 @@ def test_edit_manager_on_unit(service_client: TestClient) -> None:
     assert response.status_code == 200
     assert response.json() == function_id
 
-    response = service_client.get(
-        f"/service/ou/{unit_id}/details/manager", params={"only_primary_uuid": 1}
+    response = service_client.request(
+        "GET", f"/service/ou/{unit_id}/details/manager", params={"only_primary_uuid": 1}
     )
     assert response.status_code == 200
     assert response.json() == [expected]
@@ -878,7 +882,8 @@ def test_edit_manager_on_unit(service_client: TestClient) -> None:
         "to": "2017-12-20",
     }
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         f"/service/ou/{unit_id}/details/manager",
         params={"only_primary_uuid": 1, "validity": "future"},
     )
@@ -893,7 +898,7 @@ def test_read_no_inherit_manager(service_client: TestClient) -> None:
     # Anders And is manager at humfak
     filins = "85715fc7-925d-401b-822d-467eb4b163b6"
     # We are NOT allowed to inherit Anders And
-    response = service_client.get(f"/service/ou/{filins}/details/manager")
+    response = service_client.request("GET", f"/service/ou/{filins}/details/manager")
     assert response.status_code == 200
     assert response.json() == []
 
@@ -907,8 +912,8 @@ def test_read_inherit_manager_one_level(service_client: TestClient) -> None:
     # There is no manager at filins
     filins = "85715fc7-925d-401b-822d-467eb4b163b6"
     # We must inherit Anders And
-    response = service_client.get(
-        f"/service/ou/{filins}/details/manager", params={"inherit_manager": 1}
+    response = service_client.request(
+        "GET", f"/service/ou/{filins}/details/manager", params={"inherit_manager": 1}
     )
     assert response.status_code == 200
     inherited_manager = one(response.json())
@@ -924,8 +929,8 @@ def test_read_inherit_manager_none_found_all_the_way_up(
     # There is no manager at samfak
     samfak = "b688513d-11f7-4efc-b679-ab082a2055d0"
     # We must not find no managers
-    response = service_client.get(
-        f"/service/ou/{samfak}/details/manager", params={"inherit_manager": 1}
+    response = service_client.request(
+        "GET", f"/service/ou/{samfak}/details/manager", params={"inherit_manager": 1}
     )
     assert response.status_code == 200
     assert response.json() == []

@@ -42,7 +42,8 @@ address_type_facet = {
 async def test_add_org_unit_address(service_client: TestClient) -> None:
     unitid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
 
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/create",
         json=[
             {
@@ -158,7 +159,8 @@ async def test_add_org_unit_address_contact_open_hours(
     addr_value = "Åbningstider:\nMan-tors: 09:00-15:30\nFre: 09:00-13:00"
     addr_value_as_urn = "urn:text:%c3%85bningstider%3a%0a%4dan%2dtors%3a%2009%3a00%2d15%3a30%0a%46re%3a%2009%3a00%2d13%3a00"  # noqa: E501
 
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/create",
         json=[
             {
@@ -266,7 +268,8 @@ async def test_add_org_unit_address_contact_open_hours(
 async def test_add_employee_address(service_client: TestClient) -> None:
     employee_id = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/create",
         json=[
             {
@@ -367,8 +370,9 @@ async def test_add_employee_address(service_client: TestClient) -> None:
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
     assert_registrations_equal(expected, await c.organisationfunktion.get(addr_id))
 
-    response = service_client.get(
-        f"/service/e/{employee_id}/details/address?validity=future&only_primary_uuid=1"
+    response = service_client.request(
+        "GET",
+        f"/service/e/{employee_id}/details/address?validity=future&only_primary_uuid=1",
     )
     assert response.status_code == 200
     assert response.json() == [
@@ -398,7 +402,8 @@ async def test_add_employee_address(service_client: TestClient) -> None:
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_employee_with_address(service_client: TestClient) -> None:
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/e/create",
         json={
             "name": "Torkild Testperson",
@@ -536,7 +541,7 @@ async def test_create_engagement_with_address(service_client: TestClient) -> Non
             ],
         }
     ]
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == 201
     (func_id,) = response.json()
     # amqp_topics={"employee.engagement.create": 1, "org_unit.engagement.create": 1},
@@ -565,7 +570,8 @@ async def test_create_engagement_with_address(service_client: TestClient) -> Non
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_org_unit_with_address(service_client: TestClient) -> None:
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/ou/create",
         json={
             "name": "Fake Corp",
@@ -681,7 +687,8 @@ async def test_create_org_unit_with_address(service_client: TestClient) -> None:
 async def test_edit_address(service_client: TestClient) -> None:
     addr_id = "414044e0-fe5f-4f82-be20-1e107ad50e80"
 
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/edit",
         json=[
             {
@@ -813,7 +820,8 @@ async def test_edit_address(service_client: TestClient) -> None:
 async def test_edit_address_user_key(service_client: TestClient) -> None:
     addr_id = "414044e0-fe5f-4f82-be20-1e107ad50e80"
 
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/edit",
         json=[
             {
@@ -895,7 +903,7 @@ async def test_create_address_related_to_engagement(service_client: TestClient) 
         }
     ]
 
-    response = service_client.post("/service/details/create", json=req)
+    response = service_client.request("POST", "/service/details/create", json=req)
     assert response.status_code == 201
     created = response.json()
 
@@ -1071,7 +1079,7 @@ def test_create_errors(
     if status_code != 404:
         expected.update(obj=req)
 
-    response = service_client.post("/service/details/create", json=[req])
+    response = service_client.request("POST", "/service/details/create", json=[req])
     assert response.status_code == status_code
     assert response.json() == expected
 
@@ -1088,7 +1096,8 @@ def test_create_dar_address_fails_correctly(service_client: TestClient) -> None:
         "value": "4dbf94f1-350f-4f52-bf0f-050b6b1072c0",
     }
     with util.darmock("dawa-addresses.json", allow_mox=True, real_http=True):
-        response = service_client.post(
+        response = service_client.request(
+            "POST",
             "/service/details/create",
             json=[
                 {
@@ -1131,7 +1140,7 @@ def test_edit_errors(service_client: TestClient) -> None:
             "uuid": "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
         }
     ]
-    response = service_client.post("/service/details/edit", json=req)
+    response = service_client.request("POST", "/service/details/edit", json=req)
     assert response.status_code == 400
     assert response.json() == {
         "description": "Must supply at most one of org_unit or person UUID",
@@ -1168,8 +1177,8 @@ async def test_missing_class(service_client: TestClient) -> None:
         assert response.data == {"class_delete": {"uuid": class_uuid}}
 
         with pytest.raises(ValueError, match="too few items in iterable"):
-            service_client.get(
-                "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/address"
+            service_client.request(
+                "GET", "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/address"
             )
 
 
@@ -1209,7 +1218,9 @@ async def test_missing_address(service_client: TestClient) -> None:
             functionid,
         )
 
-        response = service_client.get(f"/service/ou/{unitid}/details/address")
+        response = service_client.request(
+            "GET", f"/service/ou/{unitid}/details/address"
+        )
         assert response.status_code == 200
         assert response.json() == [
             {
@@ -1282,7 +1293,9 @@ async def test_missing_error(service_client: TestClient) -> None:
             functionid,
         )
 
-        response = service_client.get(f"/service/ou/{unitid}/details/address")
+        response = service_client.request(
+            "GET", f"/service/ou/{unitid}/details/address"
+        )
         assert response.status_code == 200
         assert response.json() == [
             {
@@ -1319,7 +1332,8 @@ async def test_missing_error(service_client: TestClient) -> None:
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_reading(service_client: TestClient) -> None:
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/e/6ee24785-ee9a-4502-81c2-7697009c9053"
         "/details/address?validity=present&only_primary_uuid=1",
     )
@@ -1366,9 +1380,10 @@ def test_reading(service_client: TestClient) -> None:
         },
     ]
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/ou/b688513d-11f7-4efc-b679-ab082a2055d0"
-        "/details/address?validity=present"
+        "/details/address?validity=present",
     )
     assert response.status_code == 200
     assert response.json() == []

@@ -381,7 +381,7 @@ async def test_edit_org_unit(
     # Check the POST request
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
-    response = service_client.post("/service/details/edit", json=payload)
+    response = service_client.request("POST", "/service/details/edit", json=payload)
     assert response.status_code == 200
     org_unit_uuid = response.json()
 
@@ -431,7 +431,7 @@ async def test_edit_org_unit_earlier_start_on_created(
         },
     }
 
-    response = service_client.post("/service/ou/create", json=payload)
+    response = service_client.request("POST", "/service/ou/create", json=payload)
     assert response.status_code == 201
     org_unit_uuid = response.json()
 
@@ -446,7 +446,7 @@ async def test_edit_org_unit_earlier_start_on_created(
         },
     }
 
-    response = service_client.post("/service/details/edit", json=req)
+    response = service_client.request("POST", "/service/details/edit", json=req)
     assert response.status_code == 200
 
     expected = {
@@ -577,7 +577,7 @@ async def test_create_org_unit(service_client: TestClient) -> None:
         },
     }
 
-    response = service_client.post("/service/ou/create", json=payload)
+    response = service_client.request("POST", "/service/ou/create", json=payload)
     assert response.status_code == 201
     unitid = response.json()
 
@@ -692,7 +692,7 @@ async def test_create_org_unit(service_client: TestClient) -> None:
     org_unit_type_department_without_published.pop("published")
 
     with set_get_configuration("mora.service.shimmed.org_unit.get_configuration"):
-        response = service_client.get(f"/service/ou/{unitid}/")
+        response = service_client.request("GET", f"/service/ou/{unitid}/")
         assert response.status_code == 200
         assert response.json() == {
             "location": "Overordnet Enhed",
@@ -751,7 +751,7 @@ async def test_rename_root_org_unit(service_client: TestClient) -> None:
         },
     }
 
-    response = service_client.post("/service/details/edit", json=req)
+    response = service_client.request("POST", "/service/details/edit", json=req)
     assert response.status_code == 200
     assert response.json() == org_unit_uuid
 
@@ -857,7 +857,7 @@ async def test_rename_root_org_unit_no_parent(service_client: TestClient) -> Non
         },
     }
 
-    response = service_client.post("/service/details/edit", json=req)
+    response = service_client.request("POST", "/service/details/edit", json=req)
     assert response.status_code == 200
     assert response.json() == org_unit_uuid
 
@@ -963,7 +963,7 @@ async def test_move_org_unit(service_client: TestClient):
         },
     }
 
-    response = service_client.post("/service/details/edit", json=req)
+    response = service_client.request("POST", "/service/details/edit", json=req)
     assert response.status_code == 200
     assert response.json() == org_unit_uuid
 
@@ -1080,7 +1080,8 @@ async def test_move_org_unit_wrong_org(service_client: TestClient) -> None:
 
     other_unit_uuid = await c.organisationenhed.create(other_unit)
 
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/edit",
         json={
             "type": "org_unit",
@@ -1132,7 +1133,8 @@ async def test_edit_parent_reads_from_previous_relation(
     humanistisk_fakultet = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
 
     async def edit_parent(parent, validity):
-        response = service_client.post(
+        response = service_client.request(
+            "POST",
             "/service/details/edit",
             params={"force": 1},
             json={
@@ -1150,7 +1152,9 @@ async def test_edit_parent_reads_from_previous_relation(
 
     async def assert_parent_is(expected_parent, at):
         with freezegun.freeze_time(at):
-            response = service_client.get(f"/service/ou/{humanistisk_fakultet}/")
+            response = service_client.request(
+                "GET", f"/service/ou/{humanistisk_fakultet}/"
+            )
             assert response.status_code == 200
             doc = response.json()
             actual_parent = doc["parent"]["uuid"]
@@ -1177,7 +1181,8 @@ async def test_edit_parent_reads_from_previous_relation(
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2016-01-01")
 async def test_terminate_not_allowed_with_addrs(service_client: TestClient) -> None:
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/ou/f494ad89-039d-478e-91f2-a63566554666/terminate",
         json={"validity": {"to": "2018-09-30"}},
     )
@@ -1352,7 +1357,8 @@ past_org_unit = {
 def test_org_unit_temporality(
     service_client: TestClient, params: dict[str, Any], expected: list[dict[str, Any]]
 ) -> None:
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/org_unit",
         params=params,
     )
@@ -1411,18 +1417,18 @@ def test_create_org_unit_fails_validation_outside_org_unit(
         "wanted_valid_to": "2017-10-21",
     }
 
-    response = service_client.post("/service/ou/create", json=payload)
+    response = service_client.request("POST", "/service/ou/create", json=payload)
     assert response.status_code == 400
     assert response.json() == expected
 
-    response = service_client.post(
-        "/service/ou/create", json=payload, params={"force": 0}
+    response = service_client.request(
+        "POST", "/service/ou/create", json=payload, params={"force": 0}
     )
     assert response.status_code == 400
     assert response.json() == expected
 
-    response = service_client.post(
-        "/service/ou/create", json=payload, params={"force": 1}
+    response = service_client.request(
+        "POST", "/service/ou/create", json=payload, params={"force": 1}
     )
     assert response.status_code == 201
 
@@ -1442,7 +1448,7 @@ def test_edit_missing_org_unit(service_client: TestClient) -> None:
         }
     ]
 
-    response = service_client.post("/service/details/edit", json=req)
+    response = service_client.request("POST", "/service/details/edit", json=req)
     assert response.status_code == 400
     assert response.json() == {
         "description": "Missing uuid",
@@ -1462,7 +1468,8 @@ def test_edit_org_unit_earlier_start(service_client: TestClient) -> None:
 
     org_unit_uuid = "b688513d-11f7-4efc-b679-ab082a2055d0"
 
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/edit",
         json={
             "type": "org_unit",
@@ -1478,13 +1485,13 @@ def test_edit_org_unit_earlier_start(service_client: TestClient) -> None:
     assert response.status_code == 200
     assert response.json() == org_unit_uuid
 
-    response = service_client.get(
-        f"/service/ou/{org_unit_uuid}/", params={"at": "2016-06-01"}
+    response = service_client.request(
+        "GET", f"/service/ou/{org_unit_uuid}/", params={"at": "2016-06-01"}
     )
     assert response.status_code == 200, "should exist on 2016-06-01"
 
-    response = service_client.get(
-        f"/service/ou/{org_unit_uuid}/", params={"at": "2016-05-31"}
+    response = service_client.request(
+        "GET", f"/service/ou/{org_unit_uuid}/", params={"at": "2016-05-31"}
     )
     assert response.status_code == 404, "should not exist before start"
 
@@ -1496,8 +1503,10 @@ def test_edit_org_unit_extending_end(service_client: TestClient) -> None:
     unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
 
     def check_future_names(*names):
-        response = service_client.get(
-            f"/service/ou/{unitid}/details/org_unit", params={"validity": "future"}
+        response = service_client.request(
+            "GET",
+            f"/service/ou/{unitid}/details/org_unit",
+            params={"validity": "future"},
         )
         assert response.status_code == 200
         result = response.json()
@@ -1512,7 +1521,8 @@ def test_edit_org_unit_extending_end(service_client: TestClient) -> None:
         ("Afdeling for Fortidshistorik", "2018-01-01", "2018-12-31"),
     )
 
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/edit",
         json={
             "type": "org_unit",
@@ -1529,7 +1539,8 @@ def test_edit_org_unit_extending_end(service_client: TestClient) -> None:
     assert response.status_code == 200, "Editing with clamp should succeed"
     assert response.json() == unitid
 
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/edit",
         json={
             "type": "org_unit",
@@ -1571,7 +1582,7 @@ def test_create_missing_parent(service_client: TestClient) -> None:
         },
     }
 
-    response = service_client.post("/service/ou/create", json=payload)
+    response = service_client.request("POST", "/service/ou/create", json=payload)
     assert response.status_code == 404
     assert response.json() == {
         "description": "Org unit not found.",
@@ -1587,7 +1598,8 @@ def test_create_missing_parent(service_client: TestClient) -> None:
 def test_edit_time_planning(service_client: TestClient) -> None:
     org_unit_uuid = "85715fc7-925d-401b-822d-467eb4b163b6"
 
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/edit",
         json={
             "type": "org_unit",
@@ -1605,7 +1617,8 @@ def test_edit_time_planning(service_client: TestClient) -> None:
     assert response.status_code == 200
     assert response.json() == org_unit_uuid
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         f"/service/ou/{org_unit_uuid}/details/org_unit",
         params={"validity": "present"},
     )
@@ -1706,7 +1719,7 @@ def test_edit_time_planning(service_client: TestClient) -> None:
 def test_move_fail_validation(
     service_client: TestClient, payload: dict[str, Any], expected: dict[str, Any]
 ) -> None:
-    response = service_client.post("/service/details/edit", json=payload)
+    response = service_client.request("POST", "/service/details/edit", json=payload)
     assert response.status_code == expected["status"]
     assert response.json() == expected
 
@@ -1732,7 +1745,7 @@ def test_edit_org_unit_should_fail_validation_when_end_before_start(
             },
         },
     }
-    response = service_client.post("/service/details/edit", json=req)
+    response = service_client.request("POST", "/service/details/edit", json=req)
     assert response.status_code == 400
     assert response.json() == {
         "description": "End date is before start date.",
@@ -1778,12 +1791,14 @@ def test_terminate_org_unit(
     unitid = "85715fc7-925d-401b-822d-467eb4b163b6"
     payload = {"validity": inactive_validity}
 
-    response = service_client.post(f"/service/ou/{unitid}/terminate", json=payload)
+    response = service_client.request(
+        "POST", f"/service/ou/{unitid}/terminate", json=payload
+    )
     assert response.status_code == 200
     assert response.json() == unitid
 
-    response = service_client.get(
-        f"/service/ou/{unitid}/details/org_unit", params={"validity": "past"}
+    response = service_client.request(
+        "GET", f"/service/ou/{unitid}/details/org_unit", params={"validity": "past"}
     )
     assert response.status_code == 200
     assert response.json() == [
@@ -1804,8 +1819,8 @@ def test_terminate_org_unit(
     ]
 
     # Verify that we are no longer able to see org unit
-    response = service_client.get(
-        f"/service/ou/{unitid}/details/org_unit", params={"validity": "present"}
+    response = service_client.request(
+        "GET", f"/service/ou/{unitid}/details/org_unit", params={"validity": "present"}
     )
     assert response.status_code == 200
     assert response.json() == []
@@ -1827,8 +1842,8 @@ def test_terminate_org_unit_invalid_uuid(
 ) -> None:
     unitid = "00000000-0000-0000-0000-000000000000"
 
-    response = service_client.post(
-        f"/service/ou/{unitid}/terminate", json={"validity": validity}
+    response = service_client.request(
+        "POST", f"/service/ou/{unitid}/terminate", json={"validity": validity}
     )
     assert response.status_code == 404
     assert response.json() == {
@@ -1910,8 +1925,8 @@ def test_terminate_org_unit_active_children_and_roles(
     validity: dict[str, str],
     expected_error_response: dict[str, Any],
 ) -> None:
-    response = service_client.post(
-        f"/service/ou/{org_unit_uuid}/terminate", json={"validity": validity}
+    response = service_client.request(
+        "POST", f"/service/ou/{org_unit_uuid}/terminate", json={"validity": validity}
     )
     assert response.status_code == 400
     assert response.json() == {"error": True, "status": 400, **expected_error_response}
@@ -1923,13 +1938,16 @@ def test_terminate_org_unit_validations_other(service_client: TestClient) -> Non
     unitid_a = "85715fc7-925d-401b-822d-467eb4b163b6"
     unitid_b = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
 
-    response = service_client.post(
-        f"/service/ou/{unitid_a}/terminate", json={"validity": {"to": "2018-12-31"}}
+    response = service_client.request(
+        "POST",
+        f"/service/ou/{unitid_a}/terminate",
+        json={"validity": {"to": "2018-12-31"}},
     )
     assert response.status_code == 200
     assert response.json() == unitid_a
 
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         f"/service/ou/{unitid_b}/terminate",
         json={
             "validity": {
@@ -2011,8 +2029,8 @@ def test_terminate_org_unit_date_outside_org_unit_range(
     expected_error_response: dict[str, Any],
     message: str | None,
 ) -> None:
-    response = service_client.post(
-        f"/service/ou/{org_unit_uuid}/terminate", json={"validity": validity}
+    response = service_client.request(
+        "POST", f"/service/ou/{org_unit_uuid}/terminate", json={"validity": validity}
     )
     assert response.status_code == 400, message
     assert response.json() == {"error": True, "status": 400, **expected_error_response}
@@ -2022,6 +2040,6 @@ def test_terminate_org_unit_date_outside_org_unit_range(
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @pytest.mark.parametrize("path, expected", util.get_fixture("test_trees.json").items())
 def test_tree(service_client: TestClient, path: str, expected: dict[str, Any]) -> None:
-    response = service_client.get(path)
+    response = service_client.request("GET", path)
     assert response.status_code == 200
     assert response.json() == expected

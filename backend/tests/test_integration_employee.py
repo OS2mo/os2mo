@@ -46,7 +46,7 @@ async def test_edit_employee_overwrite(service_client: TestClient) -> None:
         }
     ]
 
-    response = service_client.post("/service/details/edit", json=req)
+    response = service_client.request("POST", "/service/details/edit", json=req)
     assert response.status_code == 200
     assert response.json() == [userid]
 
@@ -178,7 +178,7 @@ async def test_edit_remove_seniority(service_client: TestClient) -> None:
         }
     ]
 
-    response = service_client.post("/service/details/edit", json=req)
+    response = service_client.request("POST", "/service/details/edit", json=req)
     assert response.status_code == 200
     assert response.json() == [userid]
 
@@ -209,7 +209,7 @@ async def test_edit_remove_seniority(service_client: TestClient) -> None:
         }
     ]
 
-    response = service_client.post("/service/details/edit", json=req)
+    response = service_client.request("POST", "/service/details/edit", json=req)
     assert response.status_code == 200
     assert response.json() == [userid]
 
@@ -261,7 +261,7 @@ async def test_create_employee(
     }
 
     with util.override_config(Settings(cpr_validate_birthdate=cpr_validate_birthdate)):
-        response = service_client.post("/service/e/create", json=payload)
+        response = service_client.request("POST", "/service/e/create", json=payload)
         assert response.status_code == 201
         userid = response.json()
 
@@ -275,7 +275,7 @@ async def test_create_employee(
 
     assert_registrations_equal(expected, actual)
 
-    response = service_client.get(f"/service/e/{userid}/")
+    response = service_client.request("GET", f"/service/e/{userid}/")
     assert response.status_code == 200
     assert response.json() == {
         "givenname": first_name,
@@ -402,7 +402,7 @@ async def test_edit_employee(service_client: TestClient) -> None:
         }
     ]
 
-    response = service_client.post("/service/details/edit", json=req)
+    response = service_client.request("POST", "/service/details/edit", json=req)
     assert response.status_code == 200
     assert response.json() == [userid]
 
@@ -525,7 +525,7 @@ async def test_edit_employee_without_cpr(service_client: TestClient) -> None:
         }
     ]
 
-    response = service_client.post("/service/details/edit", json=req)
+    response = service_client.request("POST", "/service/details/edit", json=req)
     assert response.status_code == 200
     assert response.json() == [userid]
 
@@ -675,7 +675,7 @@ def test_create_employee_import_and_errors(
     service_client: TestClient, payload: dict, status_code: int, expected: Any
 ) -> None:
     """Test that creating an employee works as expected."""
-    response = service_client.post("/service/e/create", json=payload)
+    response = service_client.request("POST", "/service/e/create", json=payload)
     assert response.status_code == status_code
     assert response.json() == expected
 
@@ -707,11 +707,11 @@ def test_create_employee_with_details(service_client: TestClient) -> None:
         "uuid": employee_uuid,
     }
 
-    response = service_client.post("/service/e/create", json=payload)
+    response = service_client.request("POST", "/service/e/create", json=payload)
     assert response.status_code == 201
     assert response.json() == employee_uuid
 
-    response = service_client.get(f"/service/e/{employee_uuid}/")
+    response = service_client.request("GET", f"/service/e/{employee_uuid}/")
     assert response.status_code == 200
     assert response.json() == {
         "surname": "Testperson",
@@ -731,7 +731,9 @@ def test_create_employee_with_details(service_client: TestClient) -> None:
         "uuid": employee_uuid,
     }
 
-    response = service_client.get(f"/service/e/{employee_uuid}/details/engagement")
+    response = service_client.request(
+        "GET", f"/service/e/{employee_uuid}/details/engagement"
+    )
     assert response.status_code == 200
     assert len(response.json()) == 1, "One engagement should exist"
 
@@ -826,12 +828,12 @@ def test_create_employee_with_details_fails_atomically(
 ) -> None:
     """Ensure that we only save data when everything validates correctly"""
 
-    response = service_client.post("/service/e/create", json=payload)
+    response = service_client.request("POST", "/service/e/create", json=payload)
     assert response.status_code == 400
     assert response.json() == expected
 
     # Assert that nothing has been written
-    response = service_client.get(f"/service/e/{employee_uuid}/")
+    response = service_client.request("GET", f"/service/e/{employee_uuid}/")
     assert response.status_code == 404
     assert response.json() == {
         "status": 404,
@@ -840,7 +842,9 @@ def test_create_employee_with_details_fails_atomically(
         "error_key": "E_USER_NOT_FOUND",
     }
 
-    response = service_client.get(f"/service/e/{employee_uuid}/details/engagement")
+    response = service_client.request(
+        "GET", f"/service/e/{employee_uuid}/details/engagement"
+    )
     assert response.status_code == 200
     assert response.json() == [], "No engagement should have been created"
 
@@ -857,7 +861,8 @@ def test_cpr_lookup_raises_on_wrong_length(
     service_client: TestClient,
     cpr: str,
 ) -> None:
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         f"/service/e/cpr_lookup/?q={cpr}",
     )
     assert response.status_code == 400

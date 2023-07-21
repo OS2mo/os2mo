@@ -60,7 +60,8 @@ async def test_terminate_employee(
 
     expected_orgfunc = await get_expected(orgfunc_uuid, is_vacant)
 
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         f"/service/e/{userid}/terminate",
         json=payload,
     )
@@ -114,7 +115,8 @@ async def test_terminate_employee_vacatables_full(
 
     expected_orgfunc = await get_expected(orgfunc_uuid)
 
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         f"/service/e/{userid}/terminate",
         json=payload,
     )
@@ -191,7 +193,9 @@ async def test_terminate_via_user(
 
     payload = {"vacate": True, "validity": {"to": "2017-11-30"}}
 
-    response = service_client.post(f"/service/e/{userid}/terminate", json=payload)
+    response = service_client.request(
+        "POST", f"/service/e/{userid}/terminate", json=payload
+    )
     assert response.status_code == 200
     assert response.json() == userid
 
@@ -224,14 +228,16 @@ async def test_terminate_via_user(
 
     assert_registrations_equal(expected_orgfunc, actual_orgfunc)
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         f"/service/e/{userid}/details/{orgfunc}",
         params={"only_primary_uuid": 1},
     )
     assert response.status_code == 200
     assert response.json() == [expected]
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         f"/service/e/{userid}/details/{orgfunc}",
         params={"validity": "future", "only_primary_uuid": 1},
     )
@@ -267,7 +273,9 @@ async def test_terminate_properly_via_user(
 
     payload = {"vacate": False, "validity": {"to": "2017-11-30"}}
 
-    response = service_client.post(f"/service/e/{userid}/terminate", json=payload)
+    response = service_client.request(
+        "POST", f"/service/e/{userid}/terminate", json=payload
+    )
     assert response.status_code == 200
     assert response.json() == userid
 
@@ -326,11 +334,12 @@ async def test_terminate_directly(
     # Check the POST request
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
-    response = service_client.get(f"/service/e/{userid}/details/{orgfunc}")
+    response = service_client.request("GET", f"/service/e/{userid}/details/{orgfunc}")
     assert response.status_code == 200
     original_orgfunc = response.json()
 
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/terminate",
         json={
             "type": orgfunc,
@@ -380,13 +389,13 @@ async def test_terminate_directly(
     current = original_orgfunc
     current[0]["validity"]["to"] = "2017-11-30"
 
-    response = service_client.get(f"/service/e/{userid}/details/{orgfunc}")
+    response = service_client.request("GET", f"/service/e/{userid}/details/{orgfunc}")
     assert response.status_code == 200
     assert response.json() == current
 
     # Future
-    response = service_client.get(
-        f"/service/e/{userid}/details/{orgfunc}", params={"validity": "future"}
+    response = service_client.request(
+        "GET", f"/service/e/{userid}/details/{orgfunc}", params={"validity": "future"}
     )
     assert response.status_code == 200
     assert response.json() == []
@@ -416,7 +425,9 @@ async def test_terminate_directly(
     ],
 )
 def test_validation_missing_validity(service_client: TestClient, payload: dict) -> None:
-    response = service_client.post("/service/details/terminate", json=payload)
+    response = service_client.request(
+        "POST", "/service/details/terminate", json=payload
+    )
     assert response.status_code == 400
     assert response.json() == {
         "description": "Missing required value.",
@@ -431,7 +442,8 @@ def test_validation_missing_validity(service_client: TestClient, payload: dict) 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 def test_validation_missing_validity_invalid_type(service_client: TestClient) -> None:
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/terminate",
         json={
             "type": "association",
@@ -448,7 +460,8 @@ def test_validation_missing_validity_invalid_type(service_client: TestClient) ->
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2018-01-01")
 def test_validation_allow_to_equal_none(service_client: TestClient) -> None:
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/terminate",
         json={
             "type": "address",

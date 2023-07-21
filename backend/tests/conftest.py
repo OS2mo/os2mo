@@ -385,9 +385,9 @@ def serviceapi_post(service_client: TestClient):
         try:
             match (method.lower()):
                 case "get":
-                    response = service_client.get(url, json=variables)
+                    response = service_client.request("GET", url, json=variables)
                 case "post":
-                    response = service_client.post(url, json=variables)
+                    response = service_client.request("POST", url, json=variables)
                 case _:
                     response = None
 

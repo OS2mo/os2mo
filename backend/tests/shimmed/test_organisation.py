@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestOrganisationEndpoints:
     def test_list_organisation(self, service_client: TestClient):
-        response = service_client.get("/service/o/")
+        response = service_client.request("GET", "/service/o/")
         assert response.status_code == 200
         assert response.json() == [
             {
@@ -21,8 +21,8 @@ class TestOrganisationEndpoints:
         ]
 
     def test_get_organisation(self, service_client: TestClient):
-        response = service_client.get(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/"
+        response = service_client.request(
+            "GET", "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/"
         )
         assert response.status_code == 200
         assert response.json() == {
@@ -40,7 +40,8 @@ class TestOrganisationEndpoints:
         }
 
     def test_get_children(self, service_client: TestClient):
-        response = service_client.get(
+        response = service_client.request(
+            "GET",
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/children",
         )
         assert response.status_code == 200
@@ -75,7 +76,8 @@ class TestOrganisationEndpoints:
         ]
 
     def test_get_children_with_counts(self, service_client: TestClient):
-        response = service_client.get(
+        response = service_client.request(
+            "GET",
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/children",
             params={"count": {"engagement", "association"}},
         )
@@ -117,7 +119,8 @@ class TestOrganisationEndpoints:
         ]
 
     def test_get_children_with_hierarchy(self, service_client: TestClient):
-        response = service_client.get(
+        response = service_client.request(
+            "GET",
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/children",
             params={"org_unit_hierarchy": uuid4()},
         )
@@ -127,12 +130,12 @@ class TestOrganisationEndpoints:
 
     def test_get_children_invalid(self, service_client: TestClient):
         # Doesn't exist
-        response = service_client.get(
-            "/service/o/00000000-0000-0000-0000-000000000000/children"
+        response = service_client.request(
+            "GET", "/service/o/00000000-0000-0000-0000-000000000000/children"
         )
         assert response.status_code == 404
         # Is an org unit
-        response = service_client.get(
-            "/service/o/2874e1dc-85e6-4269-823a-e1125484dfd3/children"
+        response = service_client.request(
+            "GET", "/service/o/2874e1dc-85e6-4269-823a-e1125484dfd3/children"
         )
         assert response.status_code == 404

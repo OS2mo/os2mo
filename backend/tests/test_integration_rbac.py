@@ -158,7 +158,7 @@ def test_create_org_unit(
     fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
 
     payload = create_org_unit_payload
-    response = service_client.post("/service/ou/create", json=payload)
+    response = service_client.request("POST", "/service/ou/create", json=payload)
     assert response.status_code == status_code
 
 
@@ -175,7 +175,7 @@ def test_201_when_creating_unit_as_owner_of_parent_unit(
     payload = create_org_unit_payload
     payload["parent"]["uuid"] = HUM_UNIT
 
-    response = service_client.post("/service/ou/create", json=payload)
+    response = service_client.request("POST", "/service/ou/create", json=payload)
     assert response.status_code == 201
 
 
@@ -213,7 +213,7 @@ def test_create_top_level_unit(
     payload = create_org_unit_payload
     payload.pop("parent")
 
-    response = service_client.post("/service/ou/create", json=payload)
+    response = service_client.request("POST", "/service/ou/create", json=payload)
     assert response.status_code == status_code
 
 
@@ -260,7 +260,7 @@ def test_rename_org_unit(
         },
     }
 
-    response = service_client.post("/service/details/edit", json=payload)
+    response = service_client.request("POST", "/service/details/edit", json=payload)
     assert response.status_code == status_code
 
 
@@ -278,7 +278,7 @@ def org_unit_no_details_uuid(
 
     payload = create_org_unit_payload
 
-    response = service_client.post("/service/ou/create", json=payload)
+    response = service_client.request("POST", "/service/ou/create", json=payload)
     assert response.status_code == 201
     return response.json()
 
@@ -321,7 +321,7 @@ def test_terminate_org_unit(
 
     url_terminate = f"/service/ou/{org_unit_no_details_uuid}/terminate"
 
-    response = service_client.post(url_terminate, json=payload)
+    response = service_client.request("POST", url_terminate, json=payload)
     assert response.status_code == status_code
 
 
@@ -359,7 +359,7 @@ def test_create_detail(
     fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
 
     payload = [address_create_payload]
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == status_code
 
 
@@ -375,7 +375,7 @@ def test_201_when_creating_multiple_details_as_owner_of_unit(
     fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
 
     payload = [address_create_payload, address_create_payload]
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == 201
 
 
@@ -397,7 +397,7 @@ def test_400_when_creating_multiple_details_with_different_types(
             "type": "org_unit",
         },
     ]
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == 400
 
 
@@ -510,7 +510,7 @@ def test_edit_detail(
         "org_unit": {"uuid": HUM_UNIT},
     }
 
-    response = service_client.post("/service/details/edit", json=payload)
+    response = service_client.request("POST", "/service/details/edit", json=payload)
     assert response.status_code == status_code
 
 
@@ -548,7 +548,7 @@ def test_rename_subunit(
         },
     }
 
-    response = service_client.post("/service/details/edit", json=payload)
+    response = service_client.request("POST", "/service/details/edit", json=payload)
     assert response.status_code == status_code
 
 
@@ -562,7 +562,7 @@ def org_unit_uuid_1(
 
     payload = create_org_unit_payload
 
-    response = service_client.post("/service/ou/create", json=payload)
+    response = service_client.request("POST", "/service/ou/create", json=payload)
     assert response.status_code == 201
     org_uuid = response.json()
 
@@ -594,7 +594,9 @@ def org_unit_uuid_1(
         "org_unit": {"uuid": org_uuid},
     }
 
-    response = service_client.post("/service/details/create", json=create_owner_payload)
+    response = service_client.request(
+        "POST", "/service/details/create", json=create_owner_payload
+    )
     assert response.status_code == 201
 
     return org_uuid
@@ -612,7 +614,7 @@ def org_unit_uuid_2(
     create_org_unit_payload["parent"]["uuid"] = org_unit_uuid_1
     payload = create_org_unit_payload
 
-    response = service_client.post("/service/ou/create", json=payload)
+    response = service_client.request("POST", "/service/ou/create", json=payload)
     assert response.status_code == 201
     return response.json()
 
@@ -660,7 +662,7 @@ def test_owner_of_unit(
         },
     }
 
-    response = service_client.post("/service/details/edit", json=payload)
+    response = service_client.request("POST", "/service/details/edit", json=payload)
     assert response.status_code == status_code
 
 
@@ -697,6 +699,8 @@ def test_terminate_x_as_owner_of_unit(
 ) -> None:
     fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
 
-    response = service_client.post("/service/details/terminate", json=payload)
+    response = service_client.request(
+        "POST", "/service/details/terminate", json=payload
+    )
     assert response.status_code == 200
     assert response.json() == payload["uuid"]

@@ -22,7 +22,9 @@ async def test_create_employee_itsystem(service_client: TestClient) -> None:
 
     # preconditions
     for validity in ("past", "present", "future"):
-        response = service_client.get(read_url, params={"validity": validity})
+        response = service_client.request(
+            "GET", read_url, params={"validity": validity}
+        )
         assert response.status_code == 200
         assert response.json() == []
 
@@ -35,7 +37,8 @@ async def test_create_employee_itsystem(service_client: TestClient) -> None:
         == []
     )
 
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/create",
         json=[
             {
@@ -53,16 +56,16 @@ async def test_create_employee_itsystem(service_client: TestClient) -> None:
     assert response.status_code == 201
     funcid = one(response.json())
 
-    response = service_client.get(read_url, params={"validity": "past"})
+    response = service_client.request("GET", read_url, params={"validity": "past"})
     assert response.status_code == 200
     assert response.json() == []
 
-    response = service_client.get(read_url, params={"validity": "present"})
+    response = service_client.request("GET", read_url, params={"validity": "present"})
     assert response.status_code == 200
     assert response.json() == []
 
-    response = service_client.get(
-        read_url, params={"validity": "future", "only_primary_uuid": 1}
+    response = service_client.request(
+        "GET", read_url, params={"validity": "future", "only_primary_uuid": 1}
     )
     assert response.status_code == 200
     assert response.json() == [
@@ -92,7 +95,9 @@ async def test_create_unit_itsystem(service_client: TestClient) -> None:
 
     # preconditions
     for validity in ("past", "present", "future"):
-        response = service_client.get(read_url, params={"validity": validity})
+        response = service_client.request(
+            "GET", read_url, params={"validity": validity}
+        )
         assert response.status_code == 200
         assert response.json() == []
 
@@ -105,7 +110,8 @@ async def test_create_unit_itsystem(service_client: TestClient) -> None:
         == []
     )
 
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/create",
         json=[
             {
@@ -122,15 +128,15 @@ async def test_create_unit_itsystem(service_client: TestClient) -> None:
     assert response.status_code == 201
     funcid = one(response.json())
 
-    response = service_client.get(read_url, params={"validity": "past"})
+    response = service_client.request("GET", read_url, params={"validity": "past"})
     assert response.status_code == 200
     assert response.json() == []
 
-    response = service_client.get(read_url, params={"validity": "present"})
+    response = service_client.request("GET", read_url, params={"validity": "present"})
     assert response.status_code == 200
     assert response.json() == []
 
-    response = service_client.get(read_url, params={"validity": "future"})
+    response = service_client.request("GET", read_url, params={"validity": "future"})
     assert response.status_code == 200
     assert response.json() == [
         {
@@ -170,7 +176,8 @@ async def test_edit_itsystem(service_client: TestClient):
     old_it_system_id = "0872fb72-926d-4c5c-a063-ff800b8ee697"
     new_it_system_id = "7e7c4f54-a85c-41fa-bae4-74e410215320"
 
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/edit",
         json=[
             {
@@ -518,7 +525,9 @@ def test_errors(
     payload: dict,
     status_code: int,
 ) -> None:
-    response = service_client.post(f"/service/details/{operation}", json=payload)
+    response = service_client.request(
+        "POST", f"/service/details/{operation}", json=payload
+    )
     assert response.status_code == status_code
     assert response.json() == expected
 
@@ -526,7 +535,8 @@ def test_errors(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 def test_reading_organisation(service_client: TestClient) -> None:
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/it/",
     )
     assert response.status_code == 200
@@ -555,7 +565,8 @@ def test_reading_organisation(service_client: TestClient) -> None:
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 def test_reading_employee(service_client: TestClient) -> None:
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it",
         params={"only_primary_uuid": 1},
     )
@@ -592,8 +603,8 @@ def test_reading_employee(service_client: TestClient) -> None:
 def test_reading_unit_empty(
     service_client: TestClient, unitid: str, validity: str
 ) -> None:
-    response = service_client.get(
-        f"/service/ou/{unitid}/details/it", params={"validity": validity}
+    response = service_client.request(
+        "GET", f"/service/ou/{unitid}/details/it", params={"validity": validity}
     )
     assert response.status_code == 200
     assert response.json() == []
@@ -676,6 +687,8 @@ def test_reading_unit(
     service_client: TestClient, params: dict[str, Any], expected: list[dict]
 ) -> None:
     unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
-    response = service_client.get(f"/service/ou/{unitid}/details/it", params=params)
+    response = service_client.request(
+        "GET", f"/service/ou/{unitid}/details/it", params=params
+    )
     assert response.status_code == 200
     assert response.json() == expected

@@ -19,7 +19,7 @@ def test_candidate_org_unit(mock, service_client):
         "validity": {"from": FROM_DATE, "to": None},
     }
 
-    service_client.post("/service/validate/org-unit/", json=payload)
+    service_client.request("POST", "/service/validate/org-unit/", json=payload)
 
     mock.assert_called_with(
         UUID,
@@ -35,7 +35,7 @@ def test_validate_employee(mock, service_client):
         "validity": {"from": FROM_DATE, "to": None},
     }
 
-    service_client.post("/service/validate/employee/", json=payload)
+    service_client.request("POST", "/service/validate/employee/", json=payload)
 
     mock.assert_called_with(
         UUID,
@@ -51,7 +51,7 @@ def test_cpr(mock, service_client):
     org_uuid = "52e8d1ff-6fe0-4e8a-a19c-8bd8e1154b3b"
     payload = {"cpr_no": cpr_no, "org": {"uuid": org_uuid}}
 
-    service_client.post("/service/validate/cpr/", json=payload)
+    service_client.request("POST", "/service/validate/cpr/", json=payload)
 
     mock.assert_called_with(
         cpr_no, mora_util.NEGATIVE_INFINITY, mora_util.POSITIVE_INFINITY, org_uuid
@@ -65,7 +65,9 @@ def test_employee_engagements(mock, service_client):
         "validity": {"from": FROM_DATE, "to": None},
     }
 
-    service_client.post("/service/validate/active-engagements/", json=payload)
+    service_client.request(
+        "POST", "/service/validate/active-engagements/", json=payload
+    )
     mock.assert_called_with(
         PERSON_UUID,
         mora_util.parsedatetime(FROM_DATE),
@@ -83,7 +85,9 @@ def test_existing_associations(mock, service_client):
         "uuid": association_uuid,
     }
 
-    service_client.post("/service/validate/existing-associations/", json=payload)
+    service_client.request(
+        "POST", "/service/validate/existing-associations/", json=payload
+    )
     mock.assert_called_with(
         PERSON_UUID,
         ORG_UNIT_UUID,
@@ -104,7 +108,9 @@ def test_parent_org_unit(mock, service_client):
         },
     }
 
-    service_client.post("/service/validate/candidate-parent-org-unit/", json=payload)
+    service_client.request(
+        "POST", "/service/validate/candidate-parent-org-unit/", json=payload
+    )
 
     mock.assert_called_with(
         ORG_UNIT_UUID, parent_uuid, mora_util.parsedatetime(FROM_DATE)
@@ -124,7 +130,7 @@ def test_address(get_one_class, get_handler_for_scope, service_client):
     get_one_class.return_value = {"scope": scope}
     get_handler_for_scope.return_value = handler = AsyncMock()
 
-    service_client.post("/service/validate/address/", json=payload)
+    service_client.request("POST", "/service/validate/address/", json=payload)
 
     get_handler_for_scope.assert_called_with(scope)
     handler.validate_value.assert_called_with(value)

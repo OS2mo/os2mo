@@ -374,7 +374,7 @@ async def test_filesystem(service_client: TestClient) -> None:
     filename = f"{uuid}.csv"
 
     # Test that our file does not exist
-    response = service_client.get("/service/exports/")
+    response = service_client.request("GET", "/service/exports/")
     assert response.status_code == HTTP_200_OK
     assert filename not in response.json()
     download_cookie = first(response.headers["set-cookie"].split(";"))
@@ -382,14 +382,14 @@ async def test_filesystem(service_client: TestClient) -> None:
     assert download_cookie_header == "MO_FILE_DOWNLOAD"
 
     # Create a file
-    response = service_client.post(
-        f"/service/exports/{uuid}.csv", files=dict(file=b"bar")
+    response = service_client.request(
+        "POST", f"/service/exports/{uuid}.csv", files=dict(file=b"bar")
     )
     assert response.status_code == HTTP_200_OK
     assert response.json() == "OK"
 
     # Test that our file exists now
-    response = service_client.get("/service/exports/")
+    response = service_client.request("GET", "/service/exports/")
     assert response.status_code == HTTP_200_OK
     assert filename in response.json()
     download_cookie = first(response.headers["set-cookie"].split(";"))
@@ -397,7 +397,8 @@ async def test_filesystem(service_client: TestClient) -> None:
     assert download_cookie_header == "MO_FILE_DOWNLOAD"
 
     # Download our file
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         f"/service/exports/{uuid}.csv",
         cookies={"MO_FILE_DOWNLOAD": download_cookie},
     )
@@ -405,13 +406,13 @@ async def test_filesystem(service_client: TestClient) -> None:
     assert response.text == "bar"
 
     # Error without a cookie
-    response = service_client.get(f"/service/exports/{uuid}.csv")
+    response = service_client.request("GET", f"/service/exports/{uuid}.csv")
     assert response.status_code == HTTP_401_UNAUTHORIZED
     assert response.json() == "Missing download cookie!"
 
     # Error with invalid cookie
-    response = service_client.get(
-        f"/service/exports/{uuid}.csv", cookies={"MO_FILE_DOWNLOAD": "incorrect"}
+    response = service_client.request(
+        "GET", f"/service/exports/{uuid}.csv", cookies={"MO_FILE_DOWNLOAD": "incorrect"}
     )
     assert response.status_code == HTTP_401_UNAUTHORIZED
     assert response.json() == "Invalid download cookie!"
@@ -420,7 +421,8 @@ async def test_filesystem(service_client: TestClient) -> None:
     # Patch time delta to make it seem like the cookie has expired
     with mock.patch("mora.service.shimmed.exports.timedelta") as delta:
         delta.return_value = timedelta(minutes=-1)
-        response = service_client.get(
+        response = service_client.request(
+            "GET",
             f"/service/exports/{uuid}.csv",
             cookies={"MO_FILE_DOWNLOAD": download_cookie},
         )

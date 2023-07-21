@@ -54,8 +54,8 @@ def test_v2_search_employee_by_uuid(mock_get_settings, service_client: TestClien
 
     at = datetime.now().date()
     query = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-    response = service_client.get(
-        f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
+    response = service_client.request(
+        "GET", f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
     )
 
     assert response.status_code == 200
@@ -98,8 +98,8 @@ def test_v2_search_employee_by_uuid(mock_get_settings, service_client: TestClien
 def test_v2_search_employee_by_name(mock_get_settings, service_client: TestClient):
     at = datetime.now().date()
     query = "Anders And"
-    response = service_client.get(
-        f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
+    response = service_client.request(
+        "GET", f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
     )
 
     assert response.status_code == 200
@@ -135,8 +135,8 @@ def test_v2_search_employee_by_name(mock_get_settings, service_client: TestClien
     }
 
     query = "erik"
-    response = service_client.get(
-        f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
+    response = service_client.request(
+        "GET", f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
     )
 
     assert response.status_code == 200
@@ -169,8 +169,8 @@ def test_v2_search_employee_by_name(mock_get_settings, service_client: TestClien
 def test_v2_search_employee_by_email(mock_get_settings, service_client: TestClient):
     at = datetime.now().date()
     query = "bruger@example.com"
-    response = service_client.get(
-        f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
+    response = service_client.request(
+        "GET", f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
     )
 
     assert response.status_code == 200
@@ -206,8 +206,8 @@ def test_v2_search_employee_by_email(mock_get_settings, service_client: TestClie
     }
 
     query = "erik"
-    response = service_client.get(
-        f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
+    response = service_client.request(
+        "GET", f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
     )
 
     assert response.status_code == 200
@@ -240,8 +240,8 @@ def test_v2_search_employee_by_email(mock_get_settings, service_client: TestClie
 def test_v2_search_employee_by_itsystem(mock_get_settings, service_client: TestClient):
     at = datetime.now().date()
     query = "donald"
-    response = service_client.get(
-        f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
+    response = service_client.request(
+        "GET", f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
     )
 
     assert response.status_code == 200
@@ -288,8 +288,8 @@ def test_v2_search_orgunit_by_uuid(mock_get_settings, service_client: TestClient
 
     at = datetime.now().date()
     query = "f494ad89-039d-478e-91f2-a63566554666"
-    response = service_client.get(
-        f"/service/ou/autocomplete/?query={query}&at={at.isoformat()}"
+    response = service_client.request(
+        "GET", f"/service/ou/autocomplete/?query={query}&at={at.isoformat()}"
     )
 
     assert response.status_code == 200
@@ -305,8 +305,8 @@ def test_v2_search_orgunit_by_uuid(mock_get_settings, service_client: TestClient
     }
 
     query = "b688513d-11f7-4efc-b679-ab082a2055d0"
-    response = service_client.get(
-        f"/service/ou/autocomplete/?query={query}&at={at.isoformat()}"
+    response = service_client.request(
+        "GET", f"/service/ou/autocomplete/?query={query}&at={at.isoformat()}"
     )
 
     assert response.status_code == 200
@@ -329,8 +329,8 @@ def test_v2_search_orgunit_by_uuid(mock_get_settings, service_client: TestClient
 def test_v2_search_orgunit_by_name(mock_get_settings, service_client: TestClient):
     at = datetime.now().date()
     query = "Fake Corp"
-    response = service_client.get(
-        f"/service/ou/autocomplete/?query={query}&at={at.isoformat()}"
+    response = service_client.request(
+        "GET", f"/service/ou/autocomplete/?query={query}&at={at.isoformat()}"
     )
 
     assert response.status_code == 200
@@ -346,8 +346,8 @@ def test_v2_search_orgunit_by_name(mock_get_settings, service_client: TestClient
     }
 
     query = "social"
-    response = service_client.get(
-        f"/service/ou/autocomplete/?query={query}&at={at.isoformat()}"
+    response = service_client.request(
+        "GET", f"/service/ou/autocomplete/?query={query}&at={at.isoformat()}"
     )
 
     assert response.status_code == 200
@@ -378,8 +378,8 @@ def test_v2_search_orgunit_by_name_with_custom_fields(
 ):
     at = datetime.now().date()
     query = "Fake Corp"
-    response = service_client.get(
-        f"/service/ou/autocomplete/?query={query}&at={at.isoformat()}"
+    response = service_client.request(
+        "GET", f"/service/ou/autocomplete/?query={query}&at={at.isoformat()}"
     )
 
     assert response.status_code == 200
@@ -410,8 +410,8 @@ def test_v2_search_orgunit_by_addr_afdelingskode(
 ):
     at = datetime.now().date()
     query = "Fake afdelingskode"
-    response = service_client.get(
-        f"/service/ou/autocomplete/?query={query}&at={at.isoformat()}"
+    response = service_client.request(
+        "GET", f"/service/ou/autocomplete/?query={query}&at={at.isoformat()}"
     )
 
     assert response.status_code == 200
@@ -509,8 +509,8 @@ def test_v2_only_gql_decorate_orgunits(
 
     at = datetime.now().date()
     query = "f494ad89-039d-478e-91f2-a63566554666"
-    response = service_client.get(
-        f"/service/ou/autocomplete/?query={query}&at={at.isoformat()}"
+    response = service_client.request(
+        "GET", f"/service/ou/autocomplete/?query={query}&at={at.isoformat()}"
     )
 
     assert response.status_code == 200
@@ -552,8 +552,8 @@ def test_v2_only_gql_decorate_employees(
 
     at = datetime.now().date()
     query = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-    response = service_client.get(
-        f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
+    response = service_client.request(
+        "GET", f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
     )
 
     assert response.status_code == 200

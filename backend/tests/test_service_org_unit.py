@@ -169,7 +169,7 @@ def test_unit_past(respx_mock, service_client: TestClient) -> None:
 
     mo_url = f"/service/ou/{unitid}/details/org_unit?validity=past"
     with util.patch_query_args({"validity": "past"}):
-        response = service_client.get(mo_url)
+        response = service_client.request("GET", mo_url)
         assert response.status_code == 200
         assert response.json() == []
 
@@ -257,8 +257,8 @@ async def test_returns_integration_error_on_wrong_status(
     t_sender_mock.side_effect = response_future
 
     load_org_mock.return_value = [{}]
-    response = service_client.get(
-        "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
+    response = service_client.request(
+        "GET", "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
     )
     assert response.status_code == 400
     result = response.json()
@@ -304,8 +304,8 @@ async def test_returns_message_on_success(
 
     load_org_mock.return_value = [{}]
 
-    response = service_client.get(
-        "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
+    response = service_client.request(
+        "GET", "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
     )
     assert response.status_code == 200
     result = response.json()
@@ -333,8 +333,8 @@ def test_returns_404_on_unknown_unit(service_client: TestClient) -> None:
     with patch("mora.graphapi.versions.latest.org_unit.load_org_unit") as mock:
         mock.return_value = []
 
-        response = service_client.get(
-            "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
+        response = service_client.request(
+            "GET", "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
         )
         assert response.status_code == 404
         result = response.json()

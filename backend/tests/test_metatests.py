@@ -65,7 +65,7 @@ async def test_no_changes_persisted(service_client: TestClient, cpr: str) -> Non
         "cpr_no": cpr,
         "org": {"uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"},
     }
-    response = service_client.post("/service/e/create", json=payload)
+    response = service_client.request("POST", "/service/e/create", json=payload)
     assert response.status_code == 201
     userid = response.json()
 
@@ -99,7 +99,7 @@ async def test_no_changes_persisted(service_client: TestClient, cpr: str) -> Non
         "cpr_no": cpr,
     }
 
-    response = service_client.get(f"/service/e/{userid}/")
+    response = service_client.request("GET", f"/service/e/{userid}/")
     assert response.status_code == 200
     assert response.json() == expected_employee
 
