@@ -40,6 +40,7 @@ from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import authorization_exception_handler
 from mora.auth.keycloak.router import keycloak_router
 from mora.auth.middleware import set_authenticated_user
+from mora.auth.middleware import set_authorization_header
 from mora.common import lora_connector_context
 from mora.graphapi.main import setup_graphql
 from mora.graphapi.middleware import graphql_dates_context
@@ -237,6 +238,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             Depends(is_graphql_context),
             Depends(graphql_dates_context),
             Depends(clear_request_scoped_globals),
+            Depends(set_authorization_header),
         ],
         openapi_tags=list(tags_metadata),
     )

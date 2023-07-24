@@ -45,6 +45,7 @@ from . import util
 from .graphapi.middleware import is_graphql
 from .util import DEFAULT_TIMEZONE
 from .util import from_iso_time
+from mora.auth.middleware import get_authorization_header
 
 T = TypeVar("T")
 V = TypeVar("V")
@@ -431,6 +432,19 @@ class BaseScope:
         self.connector = connector
         self.path = path
 
+    def request_headers(self):
+        headers = {}
+
+        # We forward the authorization header such that LoRa can extract the user
+        # uuid and add it to the user-reference on registrations. This really should
+        # not be necessary but unfortunately the HTTPX client breaks our context
+        # variables, and this is a hack to pass them across that boundary.
+        # In the future when lora.py calls OIOBase directly, this can be removed.
+        if authorization_header := get_authorization_header():
+            headers["Authorization"] = authorization_header
+
+        return headers
+
 
 class Scope(BaseScope):
     def __init__(self, *args, **kwargs):
@@ -613,6 +627,7 @@ class Scope(BaseScope):
             # allow arbitrarily many, as opposed to being limited by the length of a
             # URL if we were using query parameters.
             content=self.encode_params({**self.connector.defaults, **params}),
+            headers=self.request_headers(),
         )
         await _check_response(response)
         with suppress(IndexError):
@@ -773,23 +788,27 @@ class Scope(BaseScope):
 
         if uuid:
             uuid_path = f"{self.path}/{uuid}"
-            response = await client.put(uuid_path, json=obj)
+            response = await client.put(
+                uuid_path, json=obj, headers=self.request_headers()
+            )
             await _check_response(response)
             return response.json()["uuid"]
         else:
-            response = await client.post(self.path, json=obj)
+            response = await client.post(
+                self.path, json=obj, headers=self.request_headers()
+            )
             await _check_response(response)
             return response.json()["uuid"]
 
     async def delete(self, uuid: uuid.UUID) -> uuid.UUID:
         url = f"{self.path}/{uuid}"
-        response = await client.delete(url)
+        response = await client.delete(url, headers=self.request_headers())
         await _check_response(response)
         return response.json().get("uuid", uuid)
 
     async def update(self, obj, uuid):
         url = f"{self.path}/{uuid}"
-        response = await client.patch(url, json=obj)
+        response = await client.patch(url, json=obj, headers=self.request_headers())
         if response.status_code == 404:
             logger.warning("could not update nonexistent LoRa object", url=url)
         else:
@@ -821,6 +840,8 @@ class AutocompleteScope(BaseScope):
         params = {"phrase": phrase}
         if class_uuids:
             params["class_uuids"] = list(map(str, class_uuids))
-        response = await client.get(url=self.path, params=params)
+        response = await client.get(
+            url=self.path, params=params, headers=self.request_headers()
+        )
         await _check_response(response)
         return {"items": response.json()["results"]}
