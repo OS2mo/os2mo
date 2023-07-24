@@ -8,17 +8,18 @@ from inspect import isasyncgen
 from time import monotonic
 from typing import Any
 
-from starlette.requests import HTTPConnection
-from starlette.requests import Request
 from starlette_context import context
-from starlette_context.plugins import Plugin
+from starlette_context import request_cycle_context
 from strawberry.extensions import SchemaExtension
 
 from ramodels.mo import OpenValidity
 
 
-class GraphQLContextPlugin(Plugin):
-    """Starlette Plugin to create the `is_graphql` context variable.
+_IS_GRAPHQL_MIDDLEWARE_KEY = "is_graphql"
+
+
+async def is_graphql_context() -> AsyncIterator[None]:
+    """Application dependency to create the `is_graphql` context variable.
 
     The variable is used to control the details level for various entities deep within
     the application without having to pass a details level variable throughout the
@@ -31,11 +32,9 @@ class GraphQLContextPlugin(Plugin):
     After all reading code is implemented using GraphQL / shimming this plugin and the
     corresponding extension can be eliminated.
     """
-
-    key = "is_graphql"
-
-    async def process_request(self, request: Request | HTTPConnection) -> Any | None:
-        return 0
+    data = {**context, _IS_GRAPHQL_MIDDLEWARE_KEY: 0}
+    with request_cycle_context(data):
+        yield
 
 
 class StarletteContextExtension(SchemaExtension):
@@ -44,12 +43,16 @@ class StarletteContextExtension(SchemaExtension):
         context["query_args"] = {}
         # Store reference counter, instead of simple boolean, to ensure we do not set
         # is_graphql=False as soon as the first nested schema execution exits.
-        context["is_graphql"] = context.get("is_graphql", 0) + 1
+        context[_IS_GRAPHQL_MIDDLEWARE_KEY] = (
+            context.get(_IS_GRAPHQL_MIDDLEWARE_KEY, 0) + 1
+        )
         context["starttime"] = context.get("starttime", monotonic())
 
         yield
 
-        context["is_graphql"] = context.get("is_graphql", 0) - 1
+        context[_IS_GRAPHQL_MIDDLEWARE_KEY] = (
+            context.get(_IS_GRAPHQL_MIDDLEWARE_KEY, 0) - 1
+        )
         context["stoptime"] = monotonic()
 
     # XXX: Required due to trashy test-code in graphapi/test_middleware.py
@@ -83,11 +86,14 @@ class StarletteContextExtension(SchemaExtension):
 
 def is_graphql() -> bool:
     """Determine if we are currently evaluating a GraphQL query."""
-    return context.get("is_graphql", 0) > 0
+    return context.get(_IS_GRAPHQL_MIDDLEWARE_KEY, 0) > 0
 
 
-class GraphQLDatesPlugin(Plugin):
-    """Starlette plugin to create the `graphql_args` context variable.
+_GRAPHQL_DATES_MIDDLEWARE_KEY = "graphql_dates"
+
+
+async def graphql_dates_context() -> AsyncIterator[None]:
+    """Application dependency to create the `graphql_dates` context variable.
 
     The variable is used to store `from_date` and `to_date` and send them
     to the LoRa connector.
@@ -95,17 +101,15 @@ class GraphQLDatesPlugin(Plugin):
     When we regain control of our connectors and dataloaders, this
     should be deleted immediately and with extreme prejudice.
     """
-
-    key: str = "graphql_dates"
-
-    async def process_request(self, request: Request | HTTPConnection) -> Any | None:
-        return None
+    data = {**context, _GRAPHQL_DATES_MIDDLEWARE_KEY: None}
+    with request_cycle_context(data):
+        yield
 
 
 def set_graphql_dates(dates: OpenValidity) -> None:
     """Set GraphQL args directly in the Starlette context."""
-    context["graphql_dates"] = dates
+    context[_GRAPHQL_DATES_MIDDLEWARE_KEY] = dates
 
 
 def get_graphql_dates() -> OpenValidity | None:
-    return context.get("graphql_dates")
+    return context.get(_GRAPHQL_DATES_MIDDLEWARE_KEY)

@@ -29,15 +29,13 @@ from uuid import UUID
 import httpx
 import lora_utils
 from fastapi import FastAPI
+from fastapi import Request
+from fastapi import Response
 from fastapi.encoders import jsonable_encoder
 from httpx import AsyncClient
 from more_itertools import one
-from starlette.datastructures import MutableHeaders
-from starlette.requests import HTTPConnection
-from starlette.requests import Request
-from starlette.types import Message
 from starlette_context import context
-from starlette_context.plugins import Plugin
+from starlette_context import request_cycle_context
 from strawberry.dataloader import DataLoader
 from structlog import get_logger
 
@@ -127,29 +125,20 @@ class LoraObjectType(Enum):
     facet = "klassifikation/facet"
 
 
-class LoRaNOOPChangePlugin(Plugin):
+_MIDDLEWARE_KEY = "lora_noop_change"
+
+
+async def lora_noop_change_context(request: Request, call_next) -> Response:
     """
-    Startlette Context Plugin to expose LoRa "no-op" changes to the frontend in an
-    infuriatingly bad way.
+    Middleware to expose LoRa "no-op" changes to the frontend in an infuriatingly bad way.
     """
+    data = {**context, _MIDDLEWARE_KEY: False}
+    with request_cycle_context(data):
+        response = await call_next(request)
 
-    key = "lora_noop_change"
-
-    async def process_request(self, request: Request | HTTPConnection) -> Any | None:
-        """Make sure the context var defaults to False."""
-        return False
-
-    async def enrich_response(self, message: Message) -> None:
-        """
-        Expose context var through HTTP header. Based on:
-        https://github.com/tomwojcik/starlette-context/blob/c0a67dded42e9f28c252940fc088b0b45761795f/starlette_context/plugins/base.py#L101-L103
-        """
-        if message["type"] != "http.response.start":
-            return
-        if not context.get(LoRaNOOPChangePlugin.key):
-            return
-        headers = MutableHeaders(scope=message)
-        headers.append("X-DEPRECATED-LORA-NOOP-CHANGE-DO-NOT-USE", "1")
+        if context.get(_MIDDLEWARE_KEY):
+            response.headers["X-DEPRECATED-LORA-NOOP-CHANGE-DO-NOT-USE"] = "1"
+        return response
 
 
 def raise_on_status(status_code: int, msg, cause=None) -> None:
@@ -177,7 +166,7 @@ def raise_on_status(status_code: int, msg, cause=None) -> None:
             )
             # Set context var to expose this (otherwise masked) error through an HTTP
             # header.
-            context[LoRaNOOPChangePlugin.key] = True
+            context[_MIDDLEWARE_KEY] = True
         else:
             exceptions.ErrorCodes.E_INVALID_INPUT(message=msg, cause=cause)
     elif status_code == 401:

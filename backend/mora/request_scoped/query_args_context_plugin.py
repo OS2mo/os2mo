@@ -1,14 +1,16 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import Any
+from collections.abc import AsyncIterator
 
-from starlette.requests import HTTPConnection
-from starlette.requests import Request
-from starlette_context.plugins import Plugin
+from fastapi import Request
+from starlette_context import context
+from starlette_context import request_cycle_context
 
 
-class QueryArgContextPlugin(Plugin):
-    key = "query_args"
+_MIDDLEWARE_KEY = "query_args"
 
-    async def process_request(self, request: Request | HTTPConnection) -> Any | None:
-        return request.query_params
+
+async def query_args_context(request: Request) -> AsyncIterator[None]:
+    data = {**context, _MIDDLEWARE_KEY: request.query_params}
+    with request_cycle_context(data):
+        yield

@@ -14,12 +14,10 @@ import copy
 import datetime
 import functools
 import uuid
-from typing import Any
+from collections.abc import AsyncIterator
 
-from starlette.requests import HTTPConnection
-from starlette.requests import Request
 from starlette_context import context
-from starlette_context.plugins import Plugin
+from starlette_context import request_cycle_context
 
 from . import exceptions
 from . import lora
@@ -31,23 +29,21 @@ from mora.graphapi.middleware import get_graphql_dates
 from mora.graphapi.middleware import is_graphql
 
 
-class LoRaConnectorPlugin(Plugin):
-    """
-    Startlette Context Plugin to cache the LoRa Connector on a request-basis.
-    """
+_MIDDLEWARE_KEY = "lora_connector"
 
-    key = "lora_connector"
 
-    async def process_request(self, request: Request | HTTPConnection) -> Any | None:
-        @functools.lru_cache
-        def cached_create_connector(**kwargs):
-            return _create_connector(**kwargs)
+async def lora_connector_context() -> AsyncIterator[None]:
+    @functools.lru_cache
+    def cached_create_connector(**kwargs):
+        return _create_connector(**kwargs)
 
-        return cached_create_connector
+    data = {**context, _MIDDLEWARE_KEY: cached_create_connector}
+    with request_cycle_context(data):
+        yield
 
 
 def get_connector(**loraparams) -> lora.Connector:
-    create_connector = context.get(LoRaConnectorPlugin.key, _create_connector)
+    create_connector = context.get(_MIDDLEWARE_KEY, _create_connector)
     return create_connector(**loraparams)
 
 

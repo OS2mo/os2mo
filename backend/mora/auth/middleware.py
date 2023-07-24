@@ -1,17 +1,16 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Middleware for authentification."""
+from collections.abc import AsyncIterator
 from collections.abc import Awaitable
 from collections.abc import Callable
-from contextvars import ContextVar
-from contextvars import Token as ResetToken
 from uuid import UUID
 
 from fastapi import Depends
+from starlette_context import context
+from starlette_context import request_cycle_context
 
 from mora.auth.keycloak.models import Token
-from mora.auth.keycloak.oidc import LEGACY_AUTH_UUID
-from mora.auth.keycloak.oidc import NO_AUTH_UUID
 from mora.auth.keycloak.oidc import token_getter
 
 # This magical UUID was introduced into LoRas source code back in
@@ -21,7 +20,7 @@ from mora.auth.keycloak.oidc import token_getter
 LORA_USER_UUID = UUID("42c432e8-9c4a-11e6-9f62-873cf34a735f")
 
 
-_authenticated_user: ContextVar[UUID | None] = ContextVar("_authenticated_user")
+_MIDDLEWARE_KEY = "authenticated_user"
 
 
 async def fetch_authenticated_user(
@@ -31,27 +30,17 @@ async def fetch_authenticated_user(
         token = await get_token()
     except Exception:
         return None
-
-    if token.uuid is None:
-        return None
-    if token.uuid in (NO_AUTH_UUID, LEGACY_AUTH_UUID):
-        return None
-    # TODO: Expand this with client-id too for service account changes
     return token.uuid
 
 
 async def set_authenticated_user(
     user_uuid: UUID | None = Depends(fetch_authenticated_user),
-) -> None:
-    if user_uuid is None:
+) -> AsyncIterator[None]:
+    data = {**context, _MIDDLEWARE_KEY: user_uuid}
+    with request_cycle_context(data):
         yield
-        return
-
-    token: ResetToken = _authenticated_user.set(user_uuid)
-    yield
-    _authenticated_user.reset(token)
 
 
 def get_authenticated_user() -> UUID:
     """Return UUID of the authenticated user."""
-    return _authenticated_user.get(LORA_USER_UUID)
+    return context.get(_MIDDLEWARE_KEY) or LORA_USER_UUID
