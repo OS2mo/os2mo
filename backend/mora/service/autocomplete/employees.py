@@ -13,14 +13,8 @@ from sqlalchemy.ext.asyncio.session import async_sessionmaker
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import func
 from sqlalchemy.sql import select
-from sqlalchemy.sql import text
 from sqlalchemy.sql import union
 
-from .shared import get_at_date_sql
-from .shared import get_graphql_equivalent_by_uuid
-from .shared import read_sqlalchemy_result
-from .shared import string_to_urn
-from .shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 from mora import util
 from mora.db import BrugerAttrUdvidelser
 from mora.db import BrugerRegistrering
@@ -29,6 +23,11 @@ from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionRelationKode
 from mora.graphapi.shim import execute_graphql
+from mora.service.autocomplete.shared import get_at_date_sql
+from mora.service.autocomplete.shared import get_graphql_equivalent_by_uuid
+from mora.service.autocomplete.shared import read_sqlalchemy_result
+from mora.service.autocomplete.shared import string_to_urn
+from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 from mora.service.util import handle_gql_error
 
 
@@ -39,11 +38,11 @@ async def search_employees(
 
     async with sessionmaker() as session:
         ctes = await asyncio.gather(
-            _get_cte_uuid_hits(query, at_sql),
-            _get_cte_name_hits(query, at_sql),
-            _get_cte_cpr_hits(query, at_sql),
-            _get_cte_addr_hits(query, at_sql),
-            _get_cte_itsystem_hits(query, at_sql),
+            _get_cte_uuid_hits(query),
+            _get_cte_name_hits(query),
+            _get_cte_cpr_hits(query),
+            _get_cte_addr_hits(query),
+            _get_cte_itsystem_hits(query),
         )
         selects = [select(cte.c.uuid) for cte in ctes]
         all_hits = union(*selects).cte()
@@ -62,70 +61,81 @@ async def search_employees(
 
 
 async def decorate_employee_search_result(search_results: [Row], at: date | None):
+    from mora.graphapi.versions.v8.version import GraphQLVersion
+
     graphql_vars = {"uuids": [str(employee.uuid) for employee in search_results]}
-    if at is not None:
-        graphql_vars["from_date"] = at
-
-    from mora.graphapi.versions.v4.version import GraphQLVersion
-
     employee_decorate_query = """
-        query EmployeeDecorate($uuids: [UUID!], $from_date: DateTime) {
-          employees(uuids: $uuids, from_date: $from_date) {
+        query EmployeeDecorate($uuids: [UUID!]) {
+            employees(uuids: $uuids, from_date: null, to_date: null) {
+                objects {
+                    uuid
+
+                    current {
+                        ...employee_details
+                    }
+
+                    objects {
+                        ...employee_details
+                    }
+                }
+            }
+        }
+
+        fragment employee_details on Employee {
             uuid
-            objects {
-              uuid
-              user_key
-              cpr_no
+            user_key
+            cpr_no
+            name
+            givenname
+            surname
+            nickname
+            nickname_givenname
+            nickname_surname
 
-              name
-              givenname
-              surname
+            validity {
+                from
+                to
+            }
 
-              nickname
-              nickname_givenname
-              nickname_surname
-
-              engagements {
+            engagements {
                 uuid
                 user_key
                 engagement_type {
-                  uuid
-                  name
-                  published
+                    uuid
+                    name
+                    published
                 }
-              }
+            }
 
-              addresses {
+            addresses {
                 uuid
                 user_key
                 value
                 address_type {
-                  uuid
-                  name
-                  published
+                    uuid
+                    name
+                    published
                 }
-              }
+            }
 
-              associations {
+            associations {
                 uuid
                 user_key
                 association_type {
-                  uuid
-                  name
-                  published
+                    uuid
+                    name
+                    published
                 }
-              }
+            }
 
-              itusers {
+            itusers {
                 uuid
                 user_key
                 itsystem {
-                  uuid
-                  name
+                    uuid
+                    name
                 }
-              }
             }
-          }
         }
     """
 
@@ -139,7 +149,7 @@ async def decorate_employee_search_result(search_results: [Row], at: date | None
     decorated_result = []
     for idx, employee in enumerate(search_results):
         graphql_equivalent = get_graphql_equivalent_by_uuid(
-            response.data["employees"], employee.uuid
+            response.data["employees"]["objects"], employee.uuid, at
         )
         if not graphql_equivalent:
             continue
@@ -155,7 +165,7 @@ async def decorate_employee_search_result(search_results: [Row], at: date | None
     return decorated_result
 
 
-async def _get_cte_uuid_hits(query: str, at_sql: str):
+async def _get_cte_uuid_hits(query: str):
     search_phrase = util.query_to_search_phrase(query)
 
     return (
@@ -171,13 +181,12 @@ async def _get_cte_uuid_hits(query: str, at_sql: str):
             func.char_length(search_phrase) > UUID_SEARCH_MIN_PHRASE_LENGTH,
             BrugerRegistrering.bruger_id != None,  # noqa: E711
             cast(BrugerRegistrering.bruger_id, Text).ilike(search_phrase),
-            text(f"(bruger_attr_udvidelser.virkning).timeperiod @> {at_sql}"),
         )
         .cte()
     )
 
 
-async def _get_cte_name_hits(query: str, at_sql: str):
+async def _get_cte_name_hits(query: str):
     search_phrase = util.query_to_search_phrase(query)
 
     name_concated = func.concat(
@@ -199,13 +208,12 @@ async def _get_cte_name_hits(query: str, at_sql: str):
         .where(
             BrugerRegistrering.bruger_id != None,  # noqa: E711
             name_concated.ilike(search_phrase),
-            text(f"(bruger_attr_udvidelser.virkning).timeperiod @> {at_sql}"),
         )
         .cte()
     )
 
 
-async def _get_cte_cpr_hits(query: str, at_sql: str):
+async def _get_cte_cpr_hits(query: str):
     # NOTE: CPR is persisted as a URN in the relation tabel
     query = await string_to_urn(query)
     search_phrase = util.query_to_search_phrase(query)
@@ -219,13 +227,12 @@ async def _get_cte_cpr_hits(query: str, at_sql: str):
         .where(
             BrugerRegistrering.bruger_id != None,  # noqa: E711
             BrugerRelation.rel_maal_urn.ilike(search_phrase),
-            text(f"(bruger_relation.virkning).timeperiod @> {at_sql}"),
         )
         .cte()
     )
 
 
-async def _get_cte_addr_hits(query: str, at_sql: str):
+async def _get_cte_addr_hits(query: str):
     orgfunc_tbl_rels_1 = aliased(OrganisationFunktionRelation)
     orgfunc_tbl_rels_2 = aliased(OrganisationFunktionRelation)
 
@@ -243,7 +250,6 @@ async def _get_cte_addr_hits(query: str, at_sql: str):
             orgfunc_tbl_rels_1.rel_maal_uuid != None,  # noqa: E711
             cast(orgfunc_tbl_rels_1.rel_type, String)
             == OrganisationFunktionRelationKode.tilknyttedebrugere,
-            text(f"(organisationfunktion_relation_1.virkning).timeperiod @> {at_sql}"),
             cast(orgfunc_tbl_rels_2.rel_type, String)
             == OrganisationFunktionRelationKode.adresser,
             orgfunc_tbl_rels_2.rel_maal_urn.ilike(search_phrase),
@@ -252,7 +258,7 @@ async def _get_cte_addr_hits(query: str, at_sql: str):
     )
 
 
-async def _get_cte_itsystem_hits(query: str, at_sql: str):
+async def _get_cte_itsystem_hits(query: str):
     search_phrase = util.query_to_search_phrase(query)
     return (
         select(OrganisationFunktionRelation.rel_maal_uuid.label("uuid"))
@@ -265,7 +271,6 @@ async def _get_cte_itsystem_hits(query: str, at_sql: str):
             OrganisationFunktionRelation.rel_maal_uuid != None,  # noqa: E711
             cast(OrganisationFunktionRelation.rel_type, String)
             == OrganisationFunktionRelationKode.tilknyttedebrugere,
-            text(f"(organisationfunktion_relation.virkning).timeperiod @> {at_sql}"),
             OrganisationFunktionAttrEgenskaber.funktionsnavn == "IT-system",
             OrganisationFunktionAttrEgenskaber.brugervendtnoegle.ilike(search_phrase),
         )
