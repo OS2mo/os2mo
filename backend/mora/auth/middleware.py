@@ -7,6 +7,7 @@ from collections.abc import Callable
 from uuid import UUID
 
 from fastapi import Depends
+from fastapi import Header
 from starlette_context import context
 from starlette_context import request_cycle_context
 
@@ -21,6 +22,7 @@ LORA_USER_UUID = UUID("42c432e8-9c4a-11e6-9f62-873cf34a735f")
 
 
 _MIDDLEWARE_KEY = "authenticated_user"
+_AUTHORIZATION_MIDDLEWARE_KEY = "authorization_header"
 
 
 async def fetch_authenticated_user(
@@ -44,3 +46,16 @@ async def set_authenticated_user(
 def get_authenticated_user() -> UUID:
     """Return UUID of the authenticated user."""
     return context.get(_MIDDLEWARE_KEY) or LORA_USER_UUID
+
+
+async def set_authorization_header(
+    authorization: str | None = Header(None),
+) -> AsyncIterator[None]:
+    data = {**context, _AUTHORIZATION_MIDDLEWARE_KEY: authorization}
+    with request_cycle_context(data):
+        yield
+
+
+def get_authorization_header() -> str | None:
+    """Return the authorization header value."""
+    return context.get(_AUTHORIZATION_MIDDLEWARE_KEY)

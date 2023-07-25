@@ -15,8 +15,8 @@ from urllib.parse import parse_qsl
 import aioresponses
 import jinja2
 import requests_mock
-from starlette_context import _request_scope_context_storage
 from starlette_context import context
+from starlette_context import request_cycle_context
 from strawberry.dataloader import DataLoader
 from yarl import URL
 
@@ -67,7 +67,6 @@ def get_mock_data(mock_name):
 async def load_fixture(path, fixture_name, uuid=None, **kwargs):
     """Load a fixture, i.e. a JSON file with the 'fixtures' directory,
     into LoRA at the given path & UUID.
-
     """
     scope = lora.Scope(lora.Connector(), path)
     r = await scope.create(get_fixture(fixture_name, **kwargs), uuid)
@@ -321,15 +320,6 @@ def override_config(config_obj: Settings):
 
 
 @contextlib.contextmanager
-def starlette_context():
-    token = _request_scope_context_storage.set({})
-    try:
-        yield context
-    finally:
-        _request_scope_context_storage.reset(token)
-
-
-@contextlib.contextmanager
 def patch_query_args(query_args=None):
     if not query_args:
         query_args = {}
@@ -339,7 +329,7 @@ def patch_query_args(query_args=None):
 
 @contextlib.contextmanager
 def dar_loader():
-    with starlette_context() as context:
+    with request_cycle_context({}):
         context["dar_loader"] = DataLoader(load_fn=load_addresses)
         yield context
 
