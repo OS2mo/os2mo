@@ -401,7 +401,7 @@ test = ["objgraph", "psutil"]
 
 [[package]]
 name = "gunicorn"
-version = "21.0.1"
+version = "21.2.0"
 description = "WSGI HTTP Server for UNIX"
 category = "main"
 optional = false
@@ -1490,7 +1490,7 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "1b445207db8aedd2616adf5a243437f1ca3b3eebba2769558498ddfc053a917c"
+content-hash = "79e3d2baed1ee93ed390fe0533779ae6c1c89e444d855d9c368a0bf264c939f1"
 
 [metadata.files]
 aio-pika = [
@@ -1975,8 +1975,8 @@ greenlet = [
     {file = "greenlet-2.0.2.tar.gz", hash = "sha256:e7c8dc13af7db097bed64a051d2dd49e9f0af495c26995c00a9ee842690d34c0"},
 ]
 gunicorn = [
-    {file = "gunicorn-21.0.1-py3-none-any.whl", hash = "sha256:949880781d74f55eda34eb1a552f9c83db6edb42f2bd4f87c09e2a66b13922ea"},
-    {file = "gunicorn-21.0.1.tar.gz", hash = "sha256:b18fa5a9b22becdffc29d2586b914225a69624bb3e3a064cb04decfb2f34bfe8"},
+    {file = "gunicorn-21.2.0-py3-none-any.whl", hash = "sha256:3213aa5e8c24949e792bcacfc176fef362e7aac80b76c56f6b5122bf350722f0"},
+    {file = "gunicorn-21.2.0.tar.gz", hash = "sha256:88ec8bff1d634f98e61b9f65bc4bf3cd918a90806c6f5c48bc5603849ec81033"},
 ]
 h11 = [
     {file = "h11-0.12.0-py3-none-any.whl", hash = "sha256:36a3cb8c0a032f56e2da7084577878a035d3b61d104230d4bd49c0c6b555a9c6"},
