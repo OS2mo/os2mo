@@ -28,7 +28,6 @@ from hypothesis import Verbosity
 from hypothesis.database import InMemoryExampleDatabase
 from more_itertools import last
 from more_itertools import one
-from starlette_context import context
 from starlette_context import request_cycle_context
 
 from mora import lora
@@ -114,15 +113,14 @@ def set_settings(
     get_settings.cache_clear()
 
 
-@pytest.fixture(autouse=True)
-def mocked_context():
+@pytest.fixture(autouse=True, scope="session")
+def mocked_context() -> YieldFixture[None]:
     """
     Testing code that relies on context vars without a full test client / app.
     https://starlette-context.readthedocs.io/en/latest/testing.html
     """
-    context_store = {}
-    with request_cycle_context(context_store):
-        yield context
+    with request_cycle_context({}):
+        yield
 
 
 async def fake_auth() -> Token:
