@@ -665,7 +665,7 @@ setuptools = "*"
 
 [[package]]
 name = "os2mo-dar-client"
-version = "0.1.0"
+version = "0.2.3"
 description = "OS2mo DAR Client is a client for DAWA / DAR"
 category = "main"
 optional = false
@@ -675,7 +675,8 @@ python-versions = ">=3.8,<4.0"
 aiohttp = ">=3.7.4,<4.0.0"
 click = ">=8.0.1,<9.0.0"
 more-itertools = ">=8.8.0,<9.0.0"
-ra-utils = ">=0.4.0,<0.5.0"
+ra-utils = ">=0.4,<0.5"
+tenacity = ">=8.0.1,<9.0.0"
 
 [[package]]
 name = "os2mo-http-trigger-protocol"
@@ -1348,6 +1349,17 @@ python-versions = "*"
 yaml = ["PyYAML (>=5.1)", "more-itertools"]
 
 [[package]]
+name = "tenacity"
+version = "8.2.2"
+description = "Retry code until it succeeds"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.extras]
+doc = ["reno", "sphinx", "tornado (>=4.5)"]
+
+[[package]]
 name = "termcolor"
 version = "2.3.0"
 description = "ANSI color formatting for output in terminal"
@@ -1478,7 +1490,7 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "6531fe29bc0d545ce54477d7ac5786f07a8127836159f89f0ee7dd195fee4eb9"
+content-hash = "1b445207db8aedd2616adf5a243437f1ca3b3eebba2769558498ddfc053a917c"
 
 [metadata.files]
 aio-pika = [
@@ -2156,8 +2168,8 @@ nodeenv = [
     {file = "nodeenv-1.8.0.tar.gz", hash = "sha256:d51e0c37e64fbf47d017feac3145cdbb58836d7eee8c6f6d3b6880c5456227d2"},
 ]
 os2mo-dar-client = [
-    {file = "os2mo-dar-client-0.1.0.tar.gz", hash = "sha256:82a0aa421eaf0f294bfa9fec2d6c360ec2eecc1176144dd932ed6f9b4173e094"},
-    {file = "os2mo_dar_client-0.1.0-py3-none-any.whl", hash = "sha256:50a25ee95c2df2b7f350f7b38ba43d52b2bebf7eb85e303e470d67ea5151e4ae"},
+    {file = "os2mo-dar-client-0.2.3.tar.gz", hash = "sha256:4c9c1bfa106a664b42f9b08e3d606c3e5172a2ab5910fbd63a55aaaf8297c9c6"},
+    {file = "os2mo_dar_client-0.2.3-py3-none-any.whl", hash = "sha256:3db24a3f4391eb60d2665538aa9538b55d3893a585aeacf5a20056dfaccd2845"},
 ]
 os2mo-http-trigger-protocol = [
     {file = "os2mo-http-trigger-protocol-0.0.4.tar.gz", hash = "sha256:2230de18ff4fc24c94b1392a98a23a44414c624250ec7c838680afb018bc93f6"},
@@ -2604,6 +2616,10 @@ structlog = [
 tap-py = [
     {file = "tap.py-3.1-py3-none-any.whl", hash = "sha256:928c852f3361707b796c93730cc5402c6378660b161114461066acf53d65bf5d"},
     {file = "tap.py-3.1.tar.gz", hash = "sha256:3c0cd45212ad5a25b35445964e2517efa000a118a1bfc3437dae828892eaf1e1"},
+]
+tenacity = [
+    {file = "tenacity-8.2.2-py3-none-any.whl", hash = "sha256:2f277afb21b851637e8f52e6a613ff08734c347dc19ade928e519d7d2d8569b0"},
+    {file = "tenacity-8.2.2.tar.gz", hash = "sha256:43af037822bd0029025877f3b2d97cc4d7bb0c2991000a3d59d71517c5c969e0"},
 ]
 termcolor = [
     {file = "termcolor-2.3.0-py3-none-any.whl", hash = "sha256:3afb05607b89aed0ffe25202399ee0867ad4d3cb4180d98aaf8eefa6a5f7d475"},
