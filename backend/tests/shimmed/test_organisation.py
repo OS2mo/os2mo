@@ -79,7 +79,7 @@ class TestOrganisationEndpoints:
         response = service_client.request(
             "GET",
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/children",
-            params={"count": {"engagement", "association"}},
+            params={"count": ["engagement", "association"]},
         )
         assert response.status_code == 200
         assert response.json() == [

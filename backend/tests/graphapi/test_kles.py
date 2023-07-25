@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
 
+import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
@@ -413,6 +414,7 @@ async def test_kle_terminate_unit(given_uuid, given_validity_dts):
 
 
 @pytest.mark.integration_test
+@freezegun.freeze_time("2023-07-13", tz_offset=1)
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @pytest.mark.parametrize(
     "test_data",
@@ -459,7 +461,6 @@ async def test_kle_terminate_integration(test_data, graphapi_post) -> None:
 
     verify_response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert verify_response.errors is None
-    print(verify_response)
     kle_objects_post_terminate = one(
         one(verify_response.data["kles"]["objects"])["objects"]
     )

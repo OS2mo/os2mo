@@ -50,8 +50,9 @@ async def test_invalid_query_no_organisation(graphapi_post, respx_mock):
     query = "query { org { uuid, name, user_key }}"
     result: GQLResponse = graphapi_post(query)
 
-    # We expect only one outgoing request to be done
-    assert respx_mock.calls.call_count == 1
+    # We expect two outgoing request to be done; the GraphQL request and the underlying
+    # (mocked) LoRa organisation call.
+    assert respx_mock.calls.call_count == 2
 
     # We expect one and only one error
     error = one(result.errors)
@@ -87,8 +88,9 @@ async def test_query_all_permutations_of_organisation(
     query = "query { org { %s }}" % combined_fields
     result: GQLResponse = graphapi_post(query)
 
-    # We expect only one outgoing request to be done
-    assert respx_mock.calls.call_count == 1
+    # We expect two outgoing request to be done; the GraphQL request and the underlying
+    # (mocked) LoRa organisation call.
+    assert respx_mock.calls.call_count == 2
 
     assert result.errors is None
     # Check that all expected fields are in output
@@ -109,8 +111,9 @@ async def test_non_existing_field_query(graphapi_post, respx_mock):
     query = "query { org { uuid, non_existing_field }}"
     result: GQLResponse = graphapi_post(query)
 
-    # We expect parsing to have failed, and thus no outgoing request to be done
-    assert respx_mock.calls.call_count == 0
+    # We expect parsing to have failed, and thus only one outgoing request to be done;
+    # the GraphQL query itself, but no call to the underlying LoRa
+    assert respx_mock.calls.call_count == 1
     # We expect one and only one error
     error = one(result.errors)
     assert error["message"] == (
@@ -124,8 +127,9 @@ async def test_no_fields_query(graphapi_post, respx_mock):
     query = "query { org { }}"
     result: GQLResponse = graphapi_post(query)
 
-    # We expect parsing to have failed, and thus no outgoing request to be done
-    assert respx_mock.calls.call_count == 0
+    # We expect parsing to have failed, and thus only one outgoing request to be done;
+    # the GraphQL query itself, but no call to the underlying LoRa
+    assert respx_mock.calls.call_count == 1
     # We expect one and only one error
     error = one(result.errors)
     assert error["message"] == "Syntax Error: Expected Name, found '}'."

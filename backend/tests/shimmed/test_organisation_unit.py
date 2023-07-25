@@ -80,7 +80,7 @@ def test_get_with_counts(service_client: TestClient):
     response = service_client.request(
         "GET",
         "/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e/",
-        params={"count": {"engagement", "association"}},
+        params={"count": ["engagement", "association"]},
     )
     assert response.status_code == 200
     assert response.json()["engagement_count"] == 3
@@ -176,7 +176,7 @@ def test_get_children_with_counts(service_client: TestClient):
     response = service_client.request(
         "GET",
         "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children",
-        params={"count": {"engagement", "association"}},
+        params={"count": ["engagement", "association"]},
     )
     assert response.status_code == 200
     assert response.json() == [
