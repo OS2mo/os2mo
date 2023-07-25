@@ -1244,7 +1244,7 @@ async def test_missing_address(service_client: TestClient) -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
+@freezegun.freeze_time("2017-01-01", tz_offset=1, tick=True)
 async def test_missing_error(service_client: TestClient) -> None:
     unitid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
     addrid = "bd7e5317-4a9e-437b-8923-11156406b117"
@@ -1261,6 +1261,7 @@ async def test_missing_error(service_client: TestClient) -> None:
                 },
             },
             status=500,
+            repeat=True,
         )
 
         await lora.Connector().organisationfunktion.update(
