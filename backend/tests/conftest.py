@@ -8,7 +8,10 @@ from collections.abc import Callable
 from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
+from datetime import datetime
+from datetime import timedelta
 from operator import itemgetter
+from random import randint
 from typing import Any
 from typing import TypeVar
 from unittest.mock import patch
@@ -21,6 +24,7 @@ import requests
 from _pytest.monkeypatch import MonkeyPatch
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from freezegun import freeze_time
 from httpx import Response
 from hypothesis import settings as h_settings
 from hypothesis import strategies as st
@@ -77,6 +81,16 @@ asyncio_mode = "strict"
 def pytest_collection_modifyitems(items):
     for item in items:
         item.add_marker(pytest.mark.respx(using="httpx"))
+
+
+@pytest.fixture(autouse=True)
+def randomise_system_time():
+    """
+    Randomise system time to ensure we do not unintentionally depend on today's date.
+    """
+    random_date = datetime(1900, 1, 1) + timedelta(days=randint(0, 365 * 200))
+    with freeze_time(random_date, tick=True):
+        yield
 
 
 @pytest.fixture(autouse=True, scope="session")

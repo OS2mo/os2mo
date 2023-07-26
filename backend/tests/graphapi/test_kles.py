@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import datetime as dt
-from _datetime import datetime
+from datetime import datetime
+from datetime import time
 from unittest import mock
 from unittest.mock import AsyncMock
 from unittest.mock import patch
@@ -384,7 +384,7 @@ async def test_kle_terminate_unit(given_uuid, given_validity_dts):
     # 00:00:00, to the endpoint.. so if we get one of these from hypothesis, we will
     # expect an exception.
     expect_exception = False
-    if to_date.time() != dt.time.min:
+    if to_date.time() != time.min:
         expect_exception = True
 
     test_data = KLETerminate(
