@@ -96,11 +96,13 @@ def test_create_kle(service_client: TestClient) -> None:
     ]
 
     with patch("uuid.uuid4", new=lambda: UUID("11111111-1111-1111-1111-111111111111")):
-        response = service_client.post("/service/details/create", json=payload)
+        response = service_client.request(
+            "POST", "/service/details/create", json=payload
+        )
         # amqp_topics={"org_unit.kle.create": 1},
         assert response.status_code == 201
 
-    response = service_client.get(f"/service/ou/{org_unit_uuid}/details/kle")
+    response = service_client.request("GET", f"/service/ou/{org_unit_uuid}/details/kle")
     # amqp_topics={"org_unit.kle.create": 1},
     assert response.status_code == 200
     actual = response.json()
@@ -192,12 +194,12 @@ def test_edit_kle_no_overwrite(service_client: TestClient) -> None:
         }
     ]
 
-    response = service_client.post("/service/details/edit", json=req)
+    response = service_client.request("POST", "/service/details/edit", json=req)
     # amqp_topics={"org_unit.kle.update": 1},
     assert response.status_code == 200
     assert response.json() == [kle_uuid]
 
-    response = service_client.get(f"/service/ou/{org_unit_uuid}/details/kle")
+    response = service_client.request("GET", f"/service/ou/{org_unit_uuid}/details/kle")
     # amqp_topics={"org_unit.kle.update": 1},
     assert response.status_code == 200
     assert response.json() == expected

@@ -23,7 +23,7 @@ from mora.graphapi.router import DEPRECATION_NOTICE
 def test_graphiql_overrides(
     service_client: TestClient, url: str, deprecated: bool
 ) -> None:
-    response = service_client.get(url)
+    response = service_client.request("GET", url)
     assert response.status_code == 200
     html_response = response.text
     assert AUTH_SCRIPT in html_response

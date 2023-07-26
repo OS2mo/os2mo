@@ -5,15 +5,18 @@ from enum import Enum
 from functools import lru_cache
 from typing import Any
 
+from pydantic import AmqpDsn
 from pydantic import AnyHttpUrl
 from pydantic import BaseSettings
 from pydantic import Field
+from pydantic import parse_obj_as
 from pydantic import root_validator
 from pydantic import validator
 from pydantic.types import DirectoryPath
 from pydantic.types import FilePath
 from pydantic.types import PositiveInt
 from pydantic.types import UUID
+from ramqp.config import AMQPConnectionSettings
 from structlog import get_logger
 
 logger = get_logger()
@@ -70,8 +73,11 @@ class FileSystemSettings(BaseSettings):
 class Settings(BaseSettings):
     """
     These settings can be overwritten by environment variables
-    The environement variable name is the upper-cased version of the variable name below
+    The environment variable name is the upper-cased version of the variable name below
     """
+
+    class Config:
+        env_nested_delimiter = "__"
 
     commit_tag: str | None
     commit_sha: str | None
@@ -143,8 +149,33 @@ class Settings(BaseSettings):
 
     # AMQP settings
     amqp_enable: bool = False
-    # AMQP connection settings are extracted from environment variables by the RAMQP
-    # library directly.
+    amqp_url: str | None  # DEPRECATED (used in kubernetes)
+    amqp_password: str = "guest"  # DEPRECATED (used in salt)
+    # `amqp` can never be None, but must be set to it to force validation. See:
+    # https://github.com/pydantic/pydantic/issues/3955#issuecomment-1219106307.
+    amqp: AMQPConnectionSettings = None
+
+    @validator("amqp", always=True)
+    def validate_amqp(
+        cls, value: AMQPConnectionSettings | None, values: dict[str, Any]
+    ) -> AMQPConnectionSettings:
+        """AMQP settings migration logic.
+
+        Remove once everyone is using the new `AMQP__URL` syntax.
+        """
+        # Don't do anything if the value is set through the new syntax
+        if value is not None:
+            return value
+        # Otherwise, use the whole URL if set (kubernetes)
+        if (amqp_url := values.get("amqp_url")) is not None:
+            return AMQPConnectionSettings(url=amqp_url)
+        # Otherwise, we know only the password could be set (through salt) with
+        # everything else being the old defaults.
+        amqp_password = values["amqp_password"]
+        return AMQPConnectionSettings(
+            url=parse_obj_as(AmqpDsn, f"amqp://guest:{amqp_password}@msg_broker:5672/")
+        )
+
     amqp_enable_new_subsystem: bool = False
 
     enable_sp: bool = False
@@ -258,8 +289,8 @@ class Settings(BaseSettings):
 
 
 @lru_cache
-def get_settings(*args, **kwargs) -> Settings:
-    return Settings(*args, **kwargs)
+def get_settings(**kwargs) -> Settings:
+    return Settings(**kwargs)
 
 
 def get_public_settings() -> set[str]:

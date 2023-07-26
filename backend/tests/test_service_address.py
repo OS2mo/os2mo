@@ -47,7 +47,7 @@ def test_autocomplete_no_municipality(respx_mock, service_client: TestClient) ->
         "/service/o/00000000-0000-0000-0000-000000000000/address_autocomplete/?q=42"
     )
 
-    response = service_client.get(mo_url)
+    response = service_client.request("GET", mo_url)
     assert response.status_code == 400
     assert response.json() == {
         "error": True,
@@ -120,7 +120,7 @@ def test_autocomplete_invalid_municipality(
         "/service/o/00000000-0000-0000-0000-000000000000/address_autocomplete/?q=42"
     )
 
-    response = service_client.get(mo_url)
+    response = service_client.request("GET", mo_url)
     assert response.status_code == 400
     assert response.json() == {
         "error": True,
@@ -154,7 +154,7 @@ def test_autocomplete_missing_org(respx_mock, service_client: TestClient) -> Non
         "/service/o/00000000-0000-0000-0000-000000000000/address_autocomplete/?q=42"
     )
 
-    response = service_client.get(mo_url)
+    response = service_client.request("GET", mo_url)
     assert response.status_code == 400
     assert response.json() == {
         "error": True,
@@ -260,10 +260,10 @@ def test_autocomplete_global(respx_mock, service_client: TestClient) -> None:
         params={"noformat": 1, "q": "Strandlodsvej 25M", "per_side": 5},
     ).pass_through()
 
-    response = service_client.get(mo_url1)
+    response = service_client.request("GET", mo_url1)
     assert response.status_code == 200
     assert response.json() == found
 
-    response = service_client.get(mo_url2)
+    response = service_client.request("GET", mo_url2)
     assert response.status_code == 200
     assert response.json() == found

@@ -103,7 +103,7 @@ HIST = {
 def test_reading(
     service_client: TestClient, url: str, expected: list, message: str | None
 ) -> None:
-    response = service_client.get(url)
+    response = service_client.request("GET", url)
     assert response.status_code == 200
     assert response.json() == expected, message
 
@@ -215,7 +215,7 @@ def test_validation(
     }
     expected.update(overrides)
     with freezegun.freeze_time(freeze_time or "2017-06-01"):
-        response = service_client.post(url, json=json)
+        response = service_client.request("POST", url, json=json)
         assert response.status_code == status_code
         assert response.json() == expected
 
@@ -223,7 +223,8 @@ def test_validation(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 def test_writing(service_client: TestClient) -> None:
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/map",
         json={
             "destination": [
@@ -272,34 +273,34 @@ def test_writing(service_client: TestClient) -> None:
         },
     }
 
-    response = service_client.get(
-        "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/details/related_unit"
+    response = service_client.request(
+        "GET", "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/details/related_unit"
     )
     assert response.status_code == 200
     r = response.json()
     assert samf in r
     assert HUM in r
 
-    response = service_client.get(
-        "/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e/details/related_unit"
+    response = service_client.request(
+        "GET", "/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e/details/related_unit"
     )
     assert response.status_code == 200
     assert response.json() == [HUM], "Humaninistisk Fakultet"
 
-    response = service_client.get(
-        "/service/ou/b688513d-11f7-4efc-b679-ab082a2055d0/details/related_unit"
+    response = service_client.request(
+        "GET", "/service/ou/b688513d-11f7-4efc-b679-ab082a2055d0/details/related_unit"
     )
     assert response.status_code == 200
     assert response.json() == [samf]
 
-    response = service_client.get(
-        "/service/ou/da77153e-30f3-4dc2-a611-ee912a28d8aa/details/related_unit"
+    response = service_client.request(
+        "GET", "/service/ou/da77153e-30f3-4dc2-a611-ee912a28d8aa/details/related_unit"
     )
     assert response.status_code == 200
     assert response.json() == [], "Historisk Institut"
 
-    response = service_client.get(
-        "/service/ou/da77153e-30f3-4dc2-a611-ee912a28d8aa/details/related_unit"
+    response = service_client.request(
+        "GET", "/service/ou/da77153e-30f3-4dc2-a611-ee912a28d8aa/details/related_unit"
     )
     assert response.status_code == 200
     assert response.json() == []
@@ -307,30 +308,34 @@ def test_writing(service_client: TestClient) -> None:
     # past
     hist = mora_util.set_obj_value(HIST, ("validity", "to"), "2017-05-31")
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3"
-        "/details/related_unit?validity=past"
+        "/details/related_unit?validity=past",
     )
     assert response.status_code == 200
     assert response.json() == [hist], "Overordnet Enhed, past"
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/ou/da77153e-30f3-4dc2-a611-ee912a28d8aa"
-        "/details/related_unit?validity=past"
+        "/details/related_unit?validity=past",
     )
     assert response.status_code == 200
     assert response.json() == [hist], "Historisk Institut, past"
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-        "/details/related_unit?validity=past"
+        "/details/related_unit?validity=past",
     )
     assert response.status_code == 200
     assert response.json() == [], "Humaninistisk Fakultet, past"
 
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/ou/b688513d-11f7-4efc-b679-ab082a2055d0"
-        "/details/related_unit?validity=past"
+        "/details/related_unit?validity=past",
     )
     assert response.status_code == 200
     assert response.json() == []

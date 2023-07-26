@@ -46,7 +46,7 @@ def test_increasing_version_numbers():
 
 def test_unversioned_get_redirects_to_newest(test_client: TestClient):
     newest = graphql_versions[-1]
-    response = test_client.get("/graphql", allow_redirects=False)
+    response = test_client.get("/graphql", follow_redirects=False)
     assert response.is_redirect
     assert response.headers["location"] == f"/graphql/v{newest.version}"
 

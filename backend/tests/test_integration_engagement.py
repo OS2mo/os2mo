@@ -802,7 +802,9 @@ async def test_create_engagement(
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
     with patch("uuid.uuid4", new=lambda: UUID(mock_uuid)):
-        response = service_client.post(f"/service/details/{operation}", json=payload)
+        response = service_client.request(
+            "POST", f"/service/details/{operation}", json=payload
+        )
         assert response.status_code == 201 if operation == "create" else 200
         engagementid = response.json()
 
@@ -820,7 +822,9 @@ async def test_terminate_engagement_via_employee(service_client: TestClient) -> 
 
     payload = {"validity": {"to": "2017-11-30"}}
 
-    response = service_client.post(f"/service/e/{userid2}/terminate", json=payload)
+    response = service_client.request(
+        "POST", f"/service/e/{userid2}/terminate", json=payload
+    )
     assert response.status_code == 200
     assert response.json() == userid2
 
@@ -1034,7 +1038,9 @@ def test_create_engagement_fails(
     status_code: int,
     expected: Callable[[dict[str, Any]], dict[str, Any]],
 ) -> None:
-    response = service_client.post(f"/service/details/{operation}", json=payload)
+    response = service_client.request(
+        "POST", f"/service/details/{operation}", json=payload
+    )
     assert response.status_code == status_code
     assert response.json() == expected(payload)
 
@@ -1052,12 +1058,15 @@ def test_terminate_engagement_with_both_from_and_to_date(
         "uuid": engagement_uuid,
         "validity": {"from": "2018-10-22", "to": "2018-10-25"},
     }
-    response = service_client.post("/service/details/terminate", json=payload)
+    response = service_client.request(
+        "POST", "/service/details/terminate", json=payload
+    )
     assert response.status_code == 200
     assert response.json() == engagement_uuid
 
     # Assert termination request is persisted correctly in the past
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         f"/service/e/{employee_uuid}/details/engagement",
         params={"validity": "past", "at": "2021-10-08"},
     )
@@ -1066,7 +1075,8 @@ def test_terminate_engagement_with_both_from_and_to_date(
     assert validity == {"from": "2017-01-01", "to": "2018-10-21"}
 
     # Assert termination request is persisted correctly in the present
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         f"/service/e/{employee_uuid}/details/engagement",
         params={"validity": "present", "at": "2021-10-08"},
     )
@@ -1078,7 +1088,8 @@ def test_terminate_engagement_with_both_from_and_to_date(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 def test_reading_engagement_only_primary_uuid(service_client: TestClient) -> None:
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/engagement",
         params={"only_primary_uuid": 1},
     )
@@ -1101,7 +1112,8 @@ def test_reading_engagement_only_primary_uuid(service_client: TestClient) -> Non
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 def test_reading_engagement_calculate_primary(service_client: TestClient) -> None:
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/e/236e0a78-11a0-4ed9-8545-6286bb8611c7/details/engagement",
         params={"calculate_primary": 1},
     )

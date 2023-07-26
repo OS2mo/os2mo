@@ -92,7 +92,8 @@ def simplified_owner(
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_inherit_top_level_empty(service_client: TestClient) -> None:
     """When hitting top-level simply return nothing."""
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         f"service/ou/{level2_ou}/details/owner",
         params={"validity": "present", "at": "2017-01-01", "inherit_owner": 1},
     )
@@ -256,15 +257,16 @@ def test_create_org_unit(
     verifying_org_unit: UUID | None,
     verifying_response: dict[str, None] | None,
 ) -> None:
-    response = service_client.post(
-        "/service/details/create", json=jsonable_encoder(payload)
+    response = service_client.request(
+        "POST", "/service/details/create", json=jsonable_encoder(payload)
     )
     assert response.status_code == status_code
 
     # verify
     if verifying_response is not None:
         verifying_org_unit = verifying_org_unit or top_level_ou
-        response = service_client.get(
+        response = service_client.request(
+            "GET",
             f"service/ou/{verifying_org_unit}/details/owner",
             params={"validity": "present", "at": "2017-01-01", "inherit_owner": 1},
         )
@@ -326,8 +328,8 @@ def test_create_person(
     payload: dict[str, Any],
     status_code: int,
 ) -> None:
-    response = service_client.post(
-        "/service/details/create", json=jsonable_encoder(payload)
+    response = service_client.request(
+        "POST", "/service/details/create", json=jsonable_encoder(payload)
     )
     assert response.status_code == status_code
 
@@ -437,7 +439,8 @@ async def test_create_person_extended(
 
     # Set some owners, so we have something to inherit
     # create owner in org_unit so we have something to inherit
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/create",
         json=simplified_owner(
             owner=person1,
@@ -447,7 +450,8 @@ async def test_create_person_extended(
     assert response.status_code == 201
 
     # create owner in level2 org_unit so we can distinguish from top_level
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/details/create",
         json=simplified_owner(
             owner=person3,
@@ -456,14 +460,15 @@ async def test_create_person_extended(
     )
     assert response.status_code == 201
 
-    response = service_client.post(
-        "/service/details/create", json=jsonable_encoder(payload)
+    response = service_client.request(
+        "POST", "/service/details/create", json=jsonable_encoder(payload)
     )
     assert response.status_code == status_code
 
     # verify
     if verifying_response is not None:
-        response = service_client.get(
+        response = service_client.request(
+            "GET",
             f"service/e/{person2}/details/owner",
             params={"validity": "present", "at": "2017-01-01", "inherit_owner": 1},
         )

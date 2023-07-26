@@ -32,7 +32,9 @@ def expire_org_unit(service_client: TestClient, org_unit: dict) -> None:
     # Expire the parent from 2018-01-01
     payload = {"validity": {"to": "2018-01-01"}}
 
-    response = service_client.post(f"/service/ou/{org_unit}/terminate", json=payload)
+    response = service_client.request(
+        "POST", f"/service/ou/{org_unit}/terminate", json=payload
+    )
     # amqp_topics={"org_unit.org_unit.delete": 1},
     assert response.status_code == 200
     assert response.json() == org_unit

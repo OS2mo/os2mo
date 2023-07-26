@@ -301,15 +301,14 @@ async def start_amqp_subsystem(sessionmaker: async_sessionmaker):
 
     logger.info("starting amqp subsystem")
 
-    amqp_system = AMQPSystem()
-    await amqp_system.start()
-
-    while True:
-        # Why sleep for a random duration? Otherwise, developers will build on
-        # the assumption that events arrive instantly. Are you a developer
-        # tired of waiting? See if the mora.cli can help you.
-        await asyncio.sleep(random.randint(5, 45))
-        try:
-            await _emit_events(sessionmaker, amqp_system)
-        except:  # noqa
-            logger.exception("failed to send events")
+    amqp_system = AMQPSystem(mo_settings.amqp)
+    async with amqp_system:
+        while True:
+            # Why sleep for a random duration? Otherwise, developers will build on
+            # the assumption that events arrive instantly. Are you a developer
+            # tired of waiting? See if the mora.cli can help you.
+            await asyncio.sleep(random.randint(5, 45))
+            try:
+                await _emit_events(sessionmaker, amqp_system)
+            except:  # noqa
+                logger.exception("failed to send events")

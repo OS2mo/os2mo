@@ -60,7 +60,7 @@ async def get_navlinks() -> list[dict[str, Any]]:
 
 
 @config_router.get("/ou/{unitid}/configuration")
-async def get_org_unit_configuration(unitid: UUID) -> dict[str, str]:
+async def get_org_unit_configuration(unitid: UUID) -> dict[str, Any]:
     """Read configuration settings for an ou.
 
     Args:

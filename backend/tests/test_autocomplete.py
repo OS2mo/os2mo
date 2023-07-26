@@ -47,8 +47,8 @@ def test_v2_legacy_logic(mock_get_settings, mock_get_results, service_client):
 
     at = datetime.now().date()
     query = "f494ad89-039d-478e-91f2-a63566554666"
-    response = service_client.get(
-        f"/service/ou/autocomplete/?query={query}&at={at.isoformat()}"
+    response = service_client.request(
+        "GET", f"/service/ou/autocomplete/?query={query}&at={at.isoformat()}"
     )
 
     assert response.status_code == 200

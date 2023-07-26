@@ -17,14 +17,17 @@ org_unit_type_facet = {
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 def test_nonexistent(service_client: TestClient):
-    response = service_client.get("/service/ou/00000000-0000-0000-0000-000000000000/")
+    response = service_client.request(
+        "GET", "/service/ou/00000000-0000-0000-0000-000000000000/"
+    )
     assert response.status_code == 404
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 def test_nonexistent_at(service_client: TestClient):
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/",
         params={"at": "2000-01-01T00:00:00Z"},
     )
@@ -35,7 +38,9 @@ def test_nonexistent_at(service_client: TestClient):
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @set_get_configuration("mora.service.shimmed.org_unit.get_configuration")
 def test_get(service_client: TestClient):
-    response = service_client.get("/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/")
+    response = service_client.request(
+        "GET", "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/"
+    )
     assert response.status_code == 200
     assert response.json() == {
         "name": "Overordnet Enhed",
@@ -72,9 +77,10 @@ def test_get(service_client: TestClient):
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 def test_get_with_counts(service_client: TestClient):
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e/",
-        params={"count": {"engagement", "association"}},
+        params={"count": ["engagement", "association"]},
     )
     assert response.status_code == 200
     assert response.json()["engagement_count"] == 3
@@ -85,8 +91,8 @@ def test_get_with_counts(service_client: TestClient):
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @set_get_configuration("mora.service.orgunit.get_configuration")
 def test_ou_details(service_client: TestClient):
-    response = service_client.get(
-        "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/details/org_unit"
+    response = service_client.request(
+        "GET", "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/details/org_unit"
     )
     assert response.status_code == 200
     assert response.json() == [
@@ -128,8 +134,8 @@ def test_ou_details(service_client: TestClient):
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 def test_get_children(service_client: TestClient):
-    response = service_client.get(
-        "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children"
+    response = service_client.request(
+        "GET", "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children"
     )
     assert response.status_code == 200
     assert response.json() == [
@@ -167,9 +173,10 @@ def test_get_children(service_client: TestClient):
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 def test_get_children_with_counts(service_client: TestClient):
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children",
-        params={"count": {"engagement", "association"}},
+        params={"count": ["engagement", "association"]},
     )
     assert response.status_code == 200
     assert response.json() == [
@@ -216,7 +223,8 @@ def test_get_children_with_counts(service_client: TestClient):
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 def test_no_children(service_client: TestClient):
     # b688513d-11f7-4efc-b679-ab082a2055d0 samf has no children
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/ou/b688513d-11f7-4efc-b679-ab082a2055d0/children",
     )
     assert response.status_code == 200
@@ -227,13 +235,13 @@ def test_no_children(service_client: TestClient):
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 def test_get_children_invalid(service_client: TestClient):
     # Doesn't exist
-    response = service_client.get(
-        "/service/ou/00000000-0000-0000-0000-000000000000/children"
+    response = service_client.request(
+        "GET", "/service/ou/00000000-0000-0000-0000-000000000000/children"
     )
     assert response.status_code == 404
     # Is the root org
-    response = service_client.get(
-        "/service/ou/456362c4-0ee4-4e5e-a72c-751239745e62/children"
+    response = service_client.request(
+        "GET", "/service/ou/456362c4-0ee4-4e5e-a72c-751239745e62/children"
     )
     assert response.status_code == 404
 
@@ -242,7 +250,9 @@ def test_get_children_invalid(service_client: TestClient):
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @set_get_configuration("mora.service.shimmed.org_unit.get_configuration")
 def test_read_root(service_client: TestClient):
-    response = service_client.get("/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/")
+    response = service_client.request(
+        "GET", "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/"
+    )
     assert response.status_code == 200
     assert response.json() == {
         "location": "",
@@ -283,7 +293,8 @@ def test_children_filtered(service_client: TestClient):
     # contain org units which have an 'opmærkning' with a UUID of '<uuid>'.
     # With the default test database contents, that means nothing should be
     # returned.
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children",
         params={"org_unit_hierarchy": "321f1a2f-e185-42ef-a5f3-bebb2c69f1ba"},
     )
@@ -296,7 +307,8 @@ def test_children_filtered(service_client: TestClient):
 def test_create_root_unit_without_org_id(service_client: TestClient) -> None:
     unitid = "00000000-0000-0000-0000-000000000000"
     orgid = "456362c4-0ee4-4e5e-a72c-751239745e62"
-    create = service_client.post(
+    create = service_client.request(
+        "POST",
         "/service/ou/create",
         json={
             "name": "Fake Corp",
@@ -315,13 +327,13 @@ def test_create_root_unit_without_org_id(service_client: TestClient) -> None:
     assert create.status_code == 201
     assert create.json() == unitid
 
-    read = service_client.get(f"/service/ou/{unitid}/")
+    read = service_client.request("GET", f"/service/ou/{unitid}/")
     assert read.status_code == 200
     expected_parent = None
     actual_parent = read.json().get("parent")
     assert expected_parent == actual_parent
 
-    org_children = service_client.get(f"/service/o/{orgid}/children")
+    org_children = service_client.request("GET", f"/service/o/{orgid}/children")
     assert {
         "child_count": 0,
         "name": "Fake Corp",

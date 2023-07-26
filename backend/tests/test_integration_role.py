@@ -834,7 +834,9 @@ async def test_create_role(
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
     with patch("uuid.uuid4", new=lambda: UUID(mock_uuid)):
-        response = service_client.post(f"/service/details/{operation}", json=payload)
+        response = service_client.request(
+            "POST", f"/service/details/{operation}", json=payload
+        )
         assert response.status_code == 201 if operation == "create" else 200
         roleid = response.json()
 
@@ -854,7 +856,9 @@ async def test_terminate_role(service_client: TestClient) -> None:
 
     payload = {"validity": {"to": "2017-11-30"}}
 
-    response = service_client.post(f"/service/e/{userid}/terminate", json=payload)
+    response = service_client.request(
+        "POST", f"/service/e/{userid}/terminate", json=payload
+    )
     assert response.status_code == 200
     assert response.json() == userid
 
@@ -954,7 +958,8 @@ async def test_terminate_role(service_client: TestClient) -> None:
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_reading(service_client: TestClient) -> None:
-    response = service_client.get(
+    response = service_client.request(
+        "GET",
         "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/role",
         params={"only_primary_uuid": 1},
     )
@@ -1021,6 +1026,6 @@ def test_create_role_missing(
             "to": "2017-12-01",
         },
     }
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == 404
     assert response.json() == expected

@@ -63,19 +63,19 @@ async def test_dar_returns_true_if_reachable(darmocked) -> None:
 
 
 def test_liveness(service_client: TestClient) -> None:
-    response = service_client.get("/health/live")
+    response = service_client.request("GET", "/health/live")
     assert response.status_code == HTTP_204_NO_CONTENT
 
 
 @patch("mora.health.oio_rest", new_callable=AsyncMock)
 def test_readiness_everything_ready(mock_oio_rest, service_client: TestClient) -> None:
     mock_oio_rest.return_value = True
-    response = service_client.get("/health/ready")
+    response = service_client.request("GET", "/health/ready")
     assert response.status_code == HTTP_204_NO_CONTENT
 
 
 @patch("mora.health.oio_rest", new_callable=AsyncMock)
 def test_readiness_not_ready(mock_oio_rest, service_client: TestClient) -> None:
     mock_oio_rest.return_value = False
-    response = service_client.get("/health/ready")
+    response = service_client.request("GET", "/health/ready")
     assert response.status_code == HTTP_503_SERVICE_UNAVAILABLE

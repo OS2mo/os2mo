@@ -71,7 +71,7 @@ async def create_lis_owner(
     fastapi_test_app.dependency_overrides[auth] = mock_auth(ADMIN, FEDTMULE)
 
     payload = create_employee_owner_payload
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == 201
 
 
@@ -87,7 +87,7 @@ async def create_fedtmule_owner(
     payload = create_employee_owner_payload
     payload[PERSON][UUID] = FEDTMULE
 
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == 201
 
 
@@ -103,7 +103,7 @@ async def create_erik_owner(
     payload = create_employee_owner_payload
     payload[PERSON][UUID] = ERIK_SMIDT_HANSEN
 
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == 201
 
 
@@ -178,7 +178,8 @@ def test_create_employee(
     status_code: int,
 ) -> None:
     fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
-    response = service_client.post(
+    response = service_client.request(
+        "POST",
         "/service/e/create",
         json={
             "name": "Mickey Mouse",
@@ -214,7 +215,7 @@ def test_creating_detail_address(
     )
     payload[PERSON][UUID] = LIS_JENSEN
 
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == status_code
 
 
@@ -231,7 +232,7 @@ def test_201_when_creating_it_system_detail_as_owner_of_employee(
 
     payload = [create_it_system_payload]
 
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == HTTP_201_CREATED
 
 
@@ -248,7 +249,7 @@ def test_201_when_creating_multiple_it_system_details_as_owner_of_employee(
 
     payload = [create_it_system_payload, create_it_system_payload]
 
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == HTTP_201_CREATED
 
 
@@ -273,7 +274,7 @@ def test_create_employment(
 
     payload = create_employment_payload
 
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == status_code
 
 
@@ -288,7 +289,7 @@ def test_create_multiple_employments_owns_one_unit_but_not_the_other(
     fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
 
     payload = jsonfile_to_dict("tests/fixtures/rbac/create_multiple_employments.json")
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == HTTP_403_FORBIDDEN
 
 
@@ -305,7 +306,7 @@ def test_create_multiple_employments_owns_all_units(
 
     payload = [create_employment_payload, create_employment_payload]
 
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == HTTP_201_CREATED
 
 
@@ -324,7 +325,7 @@ def test_create_multiple_associations_owns_one_unit_but_not_the_other(
     )
     payload = create_multiple_associations
 
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == HTTP_403_FORBIDDEN
 
 
@@ -344,7 +345,7 @@ def test_create_multiple_associations_owns_all_units(
     create_multiple_associations[1] = create_multiple_associations[0]
     payload = create_multiple_associations
 
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == HTTP_201_CREATED
 
 
@@ -373,7 +374,7 @@ def test_create_role(
         "owner": None,
     }
 
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == status_code
 
 
@@ -402,7 +403,7 @@ def test_create_association(
         "owner": None,
     }
 
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == status_code
 
 
@@ -449,7 +450,7 @@ def test_create_manager(
         }
     ]
 
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == status_code
 
 
@@ -469,8 +470,8 @@ def test_object_types_in_list_must_be_identical(
     create_multiple_associations[1] = deepcopy(create_multiple_associations[0])
     create_multiple_associations[1]["type"] = "address"
 
-    response = service_client.post(
-        "/service/details/create", json=create_multiple_associations
+    response = service_client.request(
+        "POST", "/service/details/create", json=create_multiple_associations
     )
     assert response.status_code == HTTP_400_BAD_REQUEST
 
@@ -502,7 +503,7 @@ def test_edit(
     fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
 
     payload = jsonfile_to_dict(f"tests/fixtures/rbac/{fixture}.json")
-    response = service_client.post("/service/details/edit", json=payload)
+    response = service_client.request("POST", "/service/details/edit", json=payload)
     assert response.status_code == status_code
 
 
@@ -536,7 +537,9 @@ def test_terminate_details(
     status_code: int,
 ) -> None:
     fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
-    response = service_client.post("/service/details/terminate", json=payload)
+    response = service_client.request(
+        "POST", "/service/details/terminate", json=payload
+    )
     assert response.status_code == status_code
 
 
@@ -552,8 +555,10 @@ def test_terminate_employee(
     status_code: int,
 ) -> None:
     fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
-    response = service_client.post(
-        f"/service/e/{LIS_JENSEN}/terminate", json={"validity": {"to": "2021-08-17"}}
+    response = service_client.request(
+        "POST",
+        f"/service/e/{LIS_JENSEN}/terminate",
+        json={"validity": {"to": "2021-08-17"}},
     )
     assert response.status_code == status_code
 
@@ -571,5 +576,5 @@ def test_employee_leave(
 ) -> None:
     fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
     payload = jsonfile_to_dict("tests/fixtures/rbac/leave.json")
-    response = service_client.post("/service/details/create", json=payload)
+    response = service_client.request("POST", "/service/details/create", json=payload)
     assert response.status_code == status_code

@@ -18,7 +18,7 @@ class TestServiceApp:
         )
 
     def test_failing_service(self, service_client: TestClient):
-        response = service_client.get("/service/kaflaflibob")
+        response = service_client.request("GET", "/service/kaflaflibob")
         assert response.status_code == 404
         assert response.json() == {
             "error": True,

@@ -385,9 +385,9 @@ def serviceapi_post(service_client: TestClient):
         try:
             match (method.lower()):
                 case "get":
-                    response = service_client.get(url, json=variables)
+                    response = service_client.request("GET", url, json=variables)
                 case "post":
-                    response = service_client.post(url, json=variables)
+                    response = service_client.request("POST", url, json=variables)
                 case _:
                     response = None
 
@@ -426,6 +426,31 @@ def gen_organisation(
         ],
     }
     return organisation
+
+
+@pytest.fixture(autouse=True)
+def passthrough_test_app_calls(request, respx_mock) -> None:
+    """
+    By default, RESPX asserts that all HTTPX requests are mocked. This is normally
+    fine, but in many of our tests, we want to _both_ make real calls to the OS2mo
+    FastAPI TestApp while simultaneously mocking the underlying calls to the LoRa app.
+
+    [1] https://lundberg.github.io/respx/api/#configuration
+    """
+    respx_mock.route(name="mo", url__startswith="http://testserver/").pass_through()
+    if "integration_test" in request.keywords:
+        respx_mock.route(
+            name="lora", url__startswith="http://localhost/lora/"
+        ).pass_through()
+
+    yield
+
+    # RESPX asserts that every route - including the pass-through ones - were called.
+    # We don't know if the tests will call MO/LoRa, so we have to remove those routes
+    # before the check.
+    respx_mock.pop("mo")
+    if "integration_test" in request.keywords:
+        respx_mock.pop("lora")
 
 
 @pytest.fixture

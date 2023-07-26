@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
     ],
 )
 def test_create_invalid_type(service_client: TestClient, url: str) -> None:
-    response = service_client.post(url, json=[{"type": "kaflaflibob"}])
+    response = service_client.request("POST", url, json=[{"type": "kaflaflibob"}])
     assert response.status_code == 400
     assert response.json() == {
         "description": "Unknown role type.",
@@ -24,7 +24,9 @@ def test_create_invalid_type(service_client: TestClient, url: str) -> None:
 
 
 def test_invalid_json(service_client: TestClient) -> None:
-    response = service_client.post("/service/details/edit", json="kaflaflibob")
+    response = service_client.request(
+        "POST", "/service/details/edit", json="kaflaflibob"
+    )
     assert response.status_code == 400
     assert response.json() == {
         "description": "Invalid input.",
@@ -48,12 +50,12 @@ def test_invalid_json(service_client: TestClient) -> None:
 
 
 def test_request_invalid_type(service_client: TestClient) -> None:
-    response = service_client.get(
-        "/service/e/00000000-0000-0000-0000-000000000000/details/blyf"
+    response = service_client.request(
+        "GET", "/service/e/00000000-0000-0000-0000-000000000000/details/blyf"
     )
     assert response.status_code == 404
 
-    response = service_client.get(
-        "/service/ou/00000000-0000-0000-0000-000000000000/details/blyf"
+    response = service_client.request(
+        "GET", "/service/ou/00000000-0000-0000-0000-000000000000/details/blyf"
     )
     assert response.status_code == 404

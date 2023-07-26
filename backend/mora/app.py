@@ -13,6 +13,9 @@ from fastapi import HTTPException as FastAPIHTTPException
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from more_itertools import only
+from prometheus_client import Gauge
+from prometheus_client import Info
+from prometheus_fastapi_instrumentator import Instrumentator
 from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
@@ -29,7 +32,6 @@ from .exceptions import ErrorCodes
 from .exceptions import http_exception_to_json_response
 from .exceptions import HTTPException
 from .lora import lora_noop_change_context
-from .metrics import setup_metrics
 from mora import config
 from mora import health
 from mora import log
@@ -167,8 +169,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         if not settings.is_under_test():
-            setup_metrics(app)
-
+            instrumentator.expose(app)
         await triggers.register(app)
         if lora.client is None:
             lora.client = await lora.create_lora_client(app)
@@ -181,11 +182,11 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         yield
 
         amqp_subsystem.cancel("shutting down")
-        await triggers.internal.amqp_trigger.stop_amqp()
         # Leaking intentional so the test suite will re-use the lora.client.
         # await lora.client.aclose()
 
     app = FastAPI(
+        lifespan=lifespan,
         middleware=[
             Middleware(RawContextMiddleware),
             Middleware(BaseHTTPMiddleware, dispatch=lora_noop_change_context),
@@ -242,7 +243,16 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         ],
         openapi_tags=list(tags_metadata),
     )
-    app.router.lifespan_context = lifespan
+
+    if not settings.is_under_test():
+        instrumentator = Instrumentator().instrument(app)
+        Info("os2mo_version", "Current version").info(
+            {
+                "mo_version": settings.commit_tag or "unversioned",
+                "mo_commit_sha": settings.commit_sha or "no sha",
+            }
+        )
+        Gauge("amqp_enabled", "AMQP enabled").set(settings.amqp_enable)
 
     app.include_router(
         health.router,
