@@ -86,7 +86,7 @@ class Settings(BaseSettings):
 
     # Misc OS2mo settings
     environment: Environment = Environment.PRODUCTION
-    os2mo_log_level: str = "WARNING"
+    log_level: LogLevel = LogLevel.INFO
     navlinks: list[NavLink] = []
 
     # File Store settings
@@ -111,8 +111,6 @@ class Settings(BaseSettings):
     # TODO (#55042): Backwards-compatible fix for !1594. Remove when Aarhus is
     # migrated to Azure.
     graphql_rbac_legacy_admin_role: bool = False
-
-    log_level: LogLevel = LogLevel.INFO
 
     @root_validator
     def graphql_rbac_dependencies(cls, values: dict[str, Any]) -> dict[str, Any]:
