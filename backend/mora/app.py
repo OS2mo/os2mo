@@ -123,7 +123,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
     settings = config.get_settings(**settings_overrides)
 
     log.init(
-        log_level=settings.os2mo_log_level,
+        log_level=settings.log_level,
         json=settings.environment is not Environment.DEVELOPMENT,
     )
     tags_metadata = chain(
