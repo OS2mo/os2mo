@@ -58,6 +58,7 @@ from .resolvers import RoleResolver
 from .types import CPRType
 from .validity import OpenValidity
 from .validity import Validity
+from .lazy import *
 from mora import common
 from mora import config
 from mora.service.address_handler import dar

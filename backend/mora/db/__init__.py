@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from ._amqp import AMQPSubsystem
+from ._audit import Audit
 from ._bruger import Bruger
 from ._bruger import BrugerAttrEgenskaber
 from ._bruger import BrugerAttrUdvidelser

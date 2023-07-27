@@ -17,7 +17,7 @@ from sqlalchemy import union
 from starlette_context import context
 from strawberry.types import Info
 
-from .resolvers import CursorType
+from .resolvers import CursorType, EmployeeResolver
 from .resolvers import FromDateFilterType
 from .resolvers import gen_filter_table
 from .resolvers import get_date_interval
@@ -25,6 +25,7 @@ from .resolvers import LimitType
 from .resolvers import PagedResolver
 from .resolvers import ToDateFilterType
 from .resolvers import UUIDsFilterType
+from .lazy import LazyEmployee
 from mora.db import BrugerRegistrering
 from mora.db import FacetRegistrering
 from mora.db import ITSystemRegistrering
@@ -35,6 +36,12 @@ from mora.util import parsedatetime
 
 
 MOObject = TypeVar("MOObject")
+
+
+@strawberry.type
+class Integration:
+    uuid: UUID
+    client: str
 
 
 @strawberry.type(
@@ -104,6 +111,27 @@ class Registration:
         """
         )
     )
+
+    @strawberry.field
+    async def actor_object(self, info: Info) -> LazyEmployee | Integration | None:
+
+        from mora.db import Audit
+
+        query = select(Audit).where(column("id") == self.actor)
+        session = info.context["sessionmaker"]()
+        async with session.begin():
+            result = await session.scalar(query)
+            if result:
+                return Integration(uuid=result.id, client=result.client)
+
+        # If we make it here, it was not an Integration
+        result = await EmployeeResolver().resolve(info=info, uuids=[self.actor])
+        if self.actor in result:
+            return result[self.actor][0]
+
+        # If we make it here, we have no idea what is going on
+        return None
+
 
     # Name of the entity model
     model: str = strawberry.field(
