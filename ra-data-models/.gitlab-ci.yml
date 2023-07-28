@@ -16,6 +16,7 @@
 ####################
 .backend-patterns-ra-data-models: &backend-patterns-ra-data-models
   - ra-data-models/**/*
+  - backend/ramodels/**/*
   - .gitlab-ci.yml
 
 # Reusables
