@@ -94,6 +94,7 @@ default:
   variables:
     PYTHONASYNCIODEBUG: "1"
     ENVIRONMENT: "testing"
+    INSECURE_ENABLE_TESTING_API: "true"
 
     KEYCLOAK_SCHEMA: "http"
     KEYCLOAK_PORT: 8080

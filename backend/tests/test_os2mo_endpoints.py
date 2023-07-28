@@ -114,6 +114,12 @@ lora_endpoints = {
     "/lora",
 }
 
+testing_endpoints = {
+    "/testing/autocommit",
+    "/testing/commit",
+    "/testing/rollback",
+}
+
 all_endpoints = (
     {
         "",
@@ -127,6 +133,7 @@ all_endpoints = (
     | health_endpoints
     | service_api
     | graphql_endpoints
+    | testing_endpoints
 )
 
 
