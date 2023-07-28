@@ -89,6 +89,9 @@ class Settings(BaseSettings):
     log_level: LogLevel = LogLevel.INFO
     navlinks: list[NavLink] = []
 
+    # Testing
+    insecure_enable_testing_api: bool = False
+
     # File Store settings
     file_storage: str = "noop"
     filesystem_settings: FileSystemSettings | None = None
