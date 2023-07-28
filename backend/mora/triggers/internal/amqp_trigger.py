@@ -49,7 +49,15 @@ async def amqp_sender(amqp_system: AMQPSystem, trigger_dict: dict) -> None:
             routing_key=routing_key,
             payload=payload,
         )
-        asyncio.create_task(amqp_system.publish_message(routing_key, payload))
+        asyncio.create_task(
+            amqp_system.publish_message(
+                routing_key,
+                # PayloadType is an Annotated type (to allow dependency injection).
+                # This adds the property __orig_class__ to the dict, for some reason,
+                # but only in pydantic v1.0. Remove when we get pydantic v2.0.
+                payload.dict(exclude={"__orig_class__"}),
+            )
+        )
 
     if trigger_dict.get(triggers.Trigger.EMPLOYEE_UUID):
         dispatch(
