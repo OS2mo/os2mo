@@ -76,8 +76,6 @@ class DataLoader:
             str(v): k for k, v in self.object_type_dict.items()
         }
 
-        self.root_org_uuid = self.get_root_org()
-
     def _check_if_empty(self, result: dict):
         for key, value in result.items():
             if len(value) == 0:
@@ -1518,7 +1516,6 @@ class DataLoader:
               class_create(
                 input: {{name: "{name}",
                         user_key: "{user_key}",
-                        org_uuid: "{self.root_org_uuid}",
                         facet_uuid: "{facet_uuid}",
                         scope: "{scope}"}}
               ) {{
@@ -1592,23 +1589,6 @@ class DataLoader:
         facet_uuid = self.load_mo_facet_uuid("engagement_type")
         user_key = name
         return self.create_mo_class(name, user_key, facet_uuid)
-
-    def get_root_org(self) -> UUID:
-        """
-        Get UUID of the existing root MO organisation.
-        """
-        query = gql(
-            """
-            query RootOrgQuery {
-                org {
-                    uuid
-                }
-            }
-            """
-        )
-
-        result = self.query_mo_sync(query)
-        return UUID(result["org"]["uuid"])
 
     def create_mo_it_system(self, name: str, user_key: str) -> UUID:
         """
