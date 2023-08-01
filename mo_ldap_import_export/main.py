@@ -210,7 +210,7 @@ async def open_ldap_connection(ldap_connection: Connection) -> AsyncIterator[Non
         yield
 
 
-def construct_gql_client(settings: Settings, sync=False, version: str = "v4"):
+def construct_gql_client(settings: Settings, sync=False, version: str = "v5"):
     return PersistentGraphQLClient(
         url=settings.mo_url + "/graphql/" + version,
         client_id=settings.client_id,

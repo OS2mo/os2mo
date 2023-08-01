@@ -48,8 +48,10 @@ class HolstebroEngagementUpdate(CustomerSpecific):
                 """
             query GetEngagementUuids($employees: [UUID!]) {
               engagements(employees: $employees) {
-                current {
-                  uuid
+                objects {
+                  current {
+                    uuid
+                  }
                 }
               }
             }
@@ -64,7 +66,7 @@ class HolstebroEngagementUpdate(CustomerSpecific):
                 ),
             )
 
-            return [res["current"]["uuid"] for res in result["engagements"]]
+            return [res["current"]["uuid"] for res in result["engagements"]["objects"]]
 
         async def set_job_title(engagement_uuids: list):
             query = gql(
