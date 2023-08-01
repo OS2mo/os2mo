@@ -4,20 +4,16 @@ from datetime import date
 from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
-from more_itertools import one
 from sqlalchemy import cast
 from sqlalchemy import String
 from sqlalchemy import Text
-from sqlalchemy.engine.result import Result
 from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio.session import async_sessionmaker
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import func
 from sqlalchemy.sql import select
-from sqlalchemy.sql import text
 from sqlalchemy.sql import union
 
-from .shared import get_at_date_sql
 from mora import config
 from mora import util
 from mora.db import OrganisationEnhedAttrEgenskaber
@@ -26,6 +22,10 @@ from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionRelationKode
 from mora.graphapi.shim import execute_graphql
+from mora.service.autocomplete.shared import get_at_date_sql
+from mora.service.autocomplete.shared import get_graphql_equivalent_by_uuid
+from mora.service.autocomplete.shared import read_sqlalchemy_result
+from mora.service.autocomplete.shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 from mora.service.util import handle_gql_error
 
 
@@ -57,7 +57,7 @@ async def search_orgunits(
         )
 
         # Execute & parse results
-        return _read_sqlalchemy_result(
+        return read_sqlalchemy_result(
             await session.execute(query_final, {**at_sql_bind_params})
         )
 
@@ -69,24 +69,27 @@ async def decorate_orgunit_search_result(
     if at is not None:
         graphql_vars["from_date"] = at
 
-    from mora.graphapi.versions.v4.version import GraphQLVersion
+    from mora.graphapi.versions.v8.version import GraphQLVersion
 
     orgunit_decorate_query = """
-            query OrgUnitDecorate($uuids: [UUID!], $from_date: DateTime) {
-                org_units(uuids: $uuids, from_date: $from_date) {
-                    uuid
+            query OrgUnitDecorate($uuids: [UUID!]) {
+                org_units(uuids: $uuids, from_date: null, to_date: null) {
                     objects {
-                        name
-                        user_key
                         uuid
-                        parent_uuid
-                        validity {
-                            from
-                            to
-                        }
 
-                        ancestors {
+                        objects {
+                            uuid
                             name
+                            user_key
+
+                            validity {
+                                from
+                                to
+                            }
+
+                            ancestors {
+                                name
+                            }
                         }
                     }
                 }
@@ -94,39 +97,42 @@ async def decorate_orgunit_search_result(
             """
     if settings.confdb_autocomplete_attrs_orgunit:
         orgunit_decorate_query = """
-            query OrgUnitDecorate($uuids: [UUID!], $from_date: DateTime) {
-                org_units(uuids: $uuids, from_date: $from_date) {
-                    uuid
+            query OrgUnitDecorate($uuids: [UUID!]) {
+                org_units(uuids: $uuids, from_date: null, to_date: null) {
                     objects {
-                        name
-                        user_key
                         uuid
-                        parent_uuid
-                        validity {
-                            from
-                            to
-                        }
 
-                        ancestors {
-                            name
-                        }
-
-                        addresses {
+                        objects {
                             uuid
                             name
-                            address_type {
-                                uuid
+                            user_key
+
+                            validity {
+                                from
+                                to
+                            }
+
+                            ancestors {
                                 name
                             }
-                        }
 
-                        itusers {
-                            uuid
-                            user_key
-                            itsystem {
-                              uuid
-                              user_key
-                              name
+                            addresses {
+                                uuid
+                                name
+                                address_type {
+                                    uuid
+                                    name
+                                }
+                            }
+
+                            itusers {
+                                uuid
+                                user_key
+                                itsystem {
+                                    uuid
+                                    user_key
+                                    name
+                                }
                             }
                         }
                     }
@@ -143,7 +149,9 @@ async def decorate_orgunit_search_result(
 
     decorated_result = []
     for idx, orgunit in enumerate(search_results):
-        graphql_equivalent = _get_graphql_equivalent(response, orgunit.uuid)
+        graphql_equivalent = get_graphql_equivalent_by_uuid(
+            response.data["org_units"]["objects"], orgunit.uuid, at
+        )
         if not graphql_equivalent:
             continue
 
@@ -153,18 +161,11 @@ async def decorate_orgunit_search_result(
                 "name": graphql_equivalent["name"],
                 "path": _gql_get_orgunit_path(graphql_equivalent),
                 "attrs": _gql_get_orgunit_attrs(settings, graphql_equivalent),
+                "validity": graphql_equivalent["validity"],
             }
         )
 
     return decorated_result
-
-
-def _get_graphql_equivalent(graphql_response, org_unit_uuid: UUID) -> dict | None:
-    for graphql_orgunit in graphql_response.data["org_units"]:
-        if graphql_orgunit["uuid"] == str(org_unit_uuid):
-            return one(graphql_orgunit["objects"])
-
-    return None
 
 
 def _gql_get_orgunit_attrs(settings: config.Settings, org_unit_graphql: dict) -> [dict]:
@@ -212,19 +213,6 @@ def _gql_get_orgunit_path(org_unit_graphql: dict):
     return path + [org_unit_graphql["name"]]
 
 
-def _read_sqlalchemy_result(result: Result) -> [Row]:
-    rows = []
-    while True:
-        chunk = result.fetchmany(1000)
-        if not chunk:
-            break
-
-        for row in chunk:
-            rows.append(row)
-
-    return rows
-
-
 def _get_cte_orgunit_uuid_hits(query: str, at_sql: str):
     search_phrase = util.query_to_search_phrase(query)
     return (
@@ -235,13 +223,10 @@ def _get_cte_orgunit_uuid_hits(query: str, at_sql: str):
             == OrganisationEnhedRegistrering.id,
         )
         .where(
-            func.char_length(search_phrase) > 7,
+            func.char_length(search_phrase) > UUID_SEARCH_MIN_PHRASE_LENGTH,
             OrganisationEnhedRegistrering.organisationenhed_id != None,  # noqa: E711
             cast(OrganisationEnhedRegistrering.organisationenhed_id, Text).ilike(
                 search_phrase
-            ),
-            text(
-                f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {at_sql}"
             ),
         )
         .cte()
@@ -262,9 +247,6 @@ def _get_cte_orgunit_name_hits(query: str, at_sql: str):
             (
                 OrganisationEnhedAttrEgenskaber.enhedsnavn.ilike(search_phrase)
                 | OrganisationEnhedAttrEgenskaber.brugervendtnoegle.ilike(search_phrase)
-            ),
-            text(
-                f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {at_sql}"
             ),
         )
         .cte()
@@ -291,7 +273,6 @@ def _get_cte_orgunit_addr_hits(query: str, at_sql: str):
             orgfunc_tbl_rels_1.rel_maal_uuid != None,  # noqa: E711
             cast(orgfunc_tbl_rels_1.rel_type, String)
             == OrganisationFunktionRelationKode.tilknyttedeenheder,
-            text(f"(organisationfunktion_relation_1.virkning).timeperiod @> {at_sql}"),
             cast(orgfunc_tbl_rels_2.rel_type, String)
             == OrganisationFunktionRelationKode.adresser,
             orgfunc_tbl_rels_2.rel_maal_urn.ilike(search_phrase),
@@ -313,7 +294,6 @@ def _get_cte_orgunit_itsystem_hits(query: str, at_sql: str):
             OrganisationFunktionRelation.rel_maal_uuid != None,  # noqa: E711
             cast(OrganisationFunktionRelation.rel_type, String)
             == OrganisationFunktionRelationKode.tilknyttedeenheder,
-            text(f"(organisationfunktion_relation.virkning).timeperiod @> {at_sql}"),
             OrganisationFunktionAttrEgenskaber.funktionsnavn == "IT-system",
             OrganisationFunktionAttrEgenskaber.brugervendtnoegle.ilike(search_phrase),
         )
