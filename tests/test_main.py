@@ -347,9 +347,6 @@ def test_create_fastramqpi(disable_metrics: None, converter: MagicMock) -> None:
     with patch(
         "mo_ldap_import_export.main.configure_ldap_connection", new_callable=MagicMock()
     ), patch("mo_ldap_import_export.main.LdapConverter", return_value=converter), patch(
-        "mo_ldap_import_export.dataloaders.DataLoader.get_root_org",
-        return_value=uuid4(),
-    ), patch(
         "mo_ldap_import_export.main.InitEngine", return_value=MagicMock()
     ):
         fastramqpi = create_fastramqpi()
@@ -930,7 +927,7 @@ def test_construct_gql_client():
         assert gql_client_sync.sync is True
 
         for client in [gql_client, gql_client_sync]:
-            assert client.url == "mo-url/graphql/v3"
+            assert client.url == "mo-url/graphql/v4"
 
 
 async def test_get_non_existing_objectGUIDs_from_MO(
