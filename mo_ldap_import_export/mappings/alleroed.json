@@ -418,7 +418,9 @@
 
 
      ],
-     "forbidden_usernames":[]
+     "forbidden_usernames":["itsm_brugere.csv",
+                            "CURA-76507-total-brugerliste-fhir.txt"
+                            ]
    }
 }
 

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 from collections.abc import Iterator
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -40,6 +41,12 @@ def context(dataloader: MagicMock, converter: MagicMock) -> Context:
             "settings": settings_mock,
             "dataloader": dataloader,
             "converter": converter,
+            "forbidden_usernames_path": os.path.join(
+                os.path.dirname(os.path.dirname(__file__)),
+                "mo_ldap_import_export",
+                "mappings",
+                "forbidden_usernames",
+            ),
         }
     }
 
@@ -288,6 +295,7 @@ def test_alleroed_username_generator(
     alleroed_username_generator: AlleroedUserNameGenerator,
 ):
 
+    alleroed_username_generator.forbidden_usernames = []
     existing_names: list[str] = []
     expected_usernames = iter(
         [
@@ -354,3 +362,49 @@ def test_alleroed_dn_generator(alleroed_username_generator: AlleroedUserNameGene
     employee = Employee(givenname="Patrick", surname="Bateman")
     dn = alleroed_username_generator.generate_dn(employee)
     assert dn == "CN=Patrick Bateman,DC=bar"
+
+
+def test_read_usernames_from_text_file(username_generator: UserNameGenerator):
+
+    usernames = username_generator.read_usernames_from_text_file("itsm_brugere.csv")
+    assert "anls" in usernames
+
+    usernames = username_generator.read_usernames_from_text_file(
+        "CURA-76507-total-brugerliste-fhir.txt"
+    )
+    assert "abrn" in usernames
+
+
+def test_alleroed_username_generator_forbidden_names_from_files(
+    alleroed_username_generator: AlleroedUserNameGenerator,
+):
+
+    # Try to generate a name that is in CURA-76507-total-brugerliste-fhir.txt
+    name = ["Anders", "Broon"]
+    username = alleroed_username_generator.generate_username(name, [])
+    assert username != "abrn"
+
+    # Try to generate a name that is in itsm_brugere.csv
+    name = ["Anders", "Nolus"]
+    username = alleroed_username_generator.generate_username(name, [])
+    assert username != "anls"
+
+    # Now clean the list of forbidden usernames and try again
+    alleroed_username_generator.forbidden_usernames = []
+
+    name = ["Anders", "Broon"]
+    username = alleroed_username_generator.generate_username(name, [])
+    assert username == "abrn"
+
+    name = ["Anders", "Nolus"]
+    username = alleroed_username_generator.generate_username(name, [])
+    assert username == "anls"
+
+
+def test_is_filename(username_generator: UserNameGenerator):
+
+    assert username_generator.is_filename("foo.txt") is True
+    assert username_generator.is_filename("foo.TXT") is True
+    assert username_generator.is_filename("foo.csv") is True
+    assert username_generator.is_filename("foo.CSV") is True
+    assert username_generator.is_filename("foo") is False

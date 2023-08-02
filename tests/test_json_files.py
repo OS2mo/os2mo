@@ -31,13 +31,17 @@ def json_filenames() -> list[str]:
     """
     Return filenames of all json-formatted mapping files
     """
-    return os.listdir(
-        os.path.join(
-            os.path.dirname(os.path.dirname(__file__)),
-            "mo_ldap_import_export",
-            "mappings",
+    return [
+        f
+        for f in os.listdir(
+            os.path.join(
+                os.path.dirname(os.path.dirname(__file__)),
+                "mo_ldap_import_export",
+                "mappings",
+            )
         )
-    )
+        if f.lower().endswith(".json")
+    ]
 
 
 @pytest.fixture
@@ -60,6 +64,12 @@ def converters(
         user_context["settings"] = settings
         user_context["dataloader"] = dataloader
         user_context["username_generator"] = username_generator
+        user_context["forbidden_usernames_path"] = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            "mo_ldap_import_export",
+            "mappings",
+            "forbidden_usernames",
+        )
         context = Context({"user_context": user_context})
 
         # Patch out mapping checks, most of those require a connection to LDAP/MO

@@ -296,6 +296,8 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     )
 
     logger.info("Loading mapping file")
+    mappings_path = os.path.join(os.path.dirname(__file__), "mappings")
+    forbidden_usernames_path = os.path.join(mappings_path, "forbidden_usernames")
     mappings_file = os.environ.get("CONVERSION_MAP")
     if not mappings_file:
         mappings_file = "magenta_demo.json"
@@ -303,7 +305,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     mappings_file = os.path.normpath(
         mappings_file
         if mappings_file.startswith("/")
-        else os.path.join(os.path.dirname(__file__), "mappings", mappings_file)
+        else os.path.join(mappings_path, mappings_file)
     )
     if not os.path.isfile(mappings_file):
         raise FileNotFoundError(
@@ -312,6 +314,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
         )
     mapping = read_mapping_json(mappings_file)
     fastramqpi.add_context(mapping=mapping)
+    fastramqpi.add_context(forbidden_usernames_path=forbidden_usernames_path)
     logger.info(f"Loaded mapping file {mappings_file}")
 
     logger.info("Initializing dataloader")
