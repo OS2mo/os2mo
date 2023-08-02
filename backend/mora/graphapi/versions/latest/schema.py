@@ -8,6 +8,7 @@ from collections.abc import Awaitable
 from collections.abc import Callable
 from datetime import date
 from datetime import datetime
+from datetime import time
 from functools import partial
 from functools import wraps
 from inspect import Parameter
@@ -2876,7 +2877,15 @@ class OrganisationUnit:
     parent: LazyOrganisationUnit | None = strawberry.field(
         resolver=seed_resolver_only(
             OrganisationUnitResolver(),
-            {"uuids": lambda root: [root.parent_uuid]},
+            {
+                "uuids": lambda root: [root.parent_uuid],
+                "from_date": lambda root: datetime.combine(
+                    root.validity.from_date.date(), time.min
+                ),
+                "to_date": lambda root: datetime.combine(
+                    root.validity.from_date.date(), time.max
+                ),
+            },
         ),
         description=dedent(
             """\

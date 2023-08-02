@@ -33,12 +33,7 @@ _MIDDLEWARE_KEY = "lora_connector"
 
 
 async def lora_connector_context() -> AsyncIterator[None]:
-    @functools.lru_cache
-    def cached_create_connector(**kwargs):
-        return _create_connector(**kwargs)
-
-    data = {**context, _MIDDLEWARE_KEY: cached_create_connector}
-    with request_cycle_context(data):
+    with request_cycle_context(context):
         yield
 
 
