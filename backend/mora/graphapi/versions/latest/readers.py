@@ -4,7 +4,11 @@
 from typing import Any
 from uuid import UUID
 
+from starlette_context import context
+
+from mora import config
 from mora.common import get_connector
+from mora.graphapi.middleware import _GRAPHQL_DATES_MIDDLEWARE_KEY
 from mora.handler.reading import get_handler_for_type
 from mora.mapping import MoOrgFunk
 
@@ -57,6 +61,15 @@ async def get_role_type_by_uuid(
 ) -> list[dict[str, Any]]:
     c = get_connector()
     cls = get_handler_for_type(role_type)
+
+    # HACK: Override lora connector dates with context GQL dates,
+    # but only for autocomplete-v2.2
+    settings = config.get_settings()
+    if not settings.confdb_autocomplete_v2_use_legacy:
+        gql_dates = context.get(_GRAPHQL_DATES_MIDDLEWARE_KEY)
+        if gql_dates and gql_dates.from_date and gql_dates.to_date:
+            c.update_validity_dates(gql_dates.from_date, gql_dates.to_date)
+
     return await cls.get(
         c=c,
         search_fields=_extract_search_params(
