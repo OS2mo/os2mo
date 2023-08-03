@@ -39,6 +39,7 @@ repos:
           - prometheus_client
           - types-python-dateutil
           - sqlalchemy
+          - returns
 
   - repo: https://github.com/pycqa/pydocstyle
     rev: 6.3.0

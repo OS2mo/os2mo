@@ -14,15 +14,19 @@ import io
 import json
 import operator
 import re
+import types
 import typing
 import urllib.parse
 import uuid
 from contextlib import suppress
 from functools import reduce
+from typing import Any
 from zoneinfo import ZoneInfo
 
 import dateutil.parser
 import dateutil.tz
+from returns.pipeline import is_successful
+from returns.result import safe
 from starlette_context import context
 from structlog import get_logger
 
@@ -54,27 +58,20 @@ logger = get_logger()
 def parsedatetime(
     s: str | datetime.date | datetime.datetime, default=_sentinel
 ) -> datetime.datetime:
-    if isinstance(s, datetime.date):
-        dt = s
-
-        if dt in (POSITIVE_INFINITY, NEGATIVE_INFINITY):
+    match s:
+        case datetime.date() if s in (POSITIVE_INFINITY, NEGATIVE_INFINITY):
+            return s
+        case datetime.date():
+            dt = s
+            if not isinstance(dt, datetime.datetime):
+                dt = datetime.datetime.combine(dt, datetime.time())
+            if not dt.tzinfo:
+                dt = dt.replace(tzinfo=DEFAULT_TIMEZONE)
             return dt
-
-        if not isinstance(dt, datetime.datetime):
-            dt = datetime.datetime.combine(
-                dt,
-                datetime.time(),
-            )
-
-        if not dt.tzinfo:
-            dt = dt.replace(tzinfo=DEFAULT_TIMEZONE)
-
-        return dt
-
-    elif s == "infinity":
-        return POSITIVE_INFINITY
-    elif s == "-infinity":
-        return NEGATIVE_INFINITY
+        case "infinity":
+            return POSITIVE_INFINITY
+        case "-infinity":
+            return NEGATIVE_INFINITY
 
     if " " in s:
         # the frontend doesn't escape the 'plus' in ISO 8601 dates, so
@@ -105,13 +102,17 @@ def do_ranges_overlap(first_start, first_end, second_start, second_end):
 
 
 def to_lora_time(s: str | datetime.date | datetime.datetime) -> str:
-    dt = parsedatetime(s)
+    consts = types.SimpleNamespace()
+    consts.POSITIVE_INFINITY = POSITIVE_INFINITY
+    consts.NEGATIVE_INFINITY = NEGATIVE_INFINITY
 
-    if dt == POSITIVE_INFINITY:
-        return "infinity"
-    elif dt == NEGATIVE_INFINITY:
-        return "-infinity"
-    return dt.isoformat()
+    match parsedatetime(s):
+        case consts.POSITIVE_INFINITY:
+            return "infinity"
+        case consts.NEGATIVE_INFINITY:
+            return "-infinity"
+        case dt:
+            return dt.isoformat()
 
 
 def to_iso_date(s, is_end: bool = False):
@@ -177,20 +178,14 @@ def now() -> datetime.datetime:
     return datetime.datetime.now().replace(tzinfo=DEFAULT_TIMEZONE)
 
 
-def is_uuid(v):
-    try:
-        uuid.UUID(v)
-        return True
-    except Exception:
-        return False
+def is_uuid(v: Any) -> bool:
+    safe_uuid = safe(uuid.UUID)
+    return is_successful(safe_uuid(v))
 
 
-def is_cpr_number(v) -> bool:
-    try:
-        CPR.validate(v)
-        return True
-    except ValueError:
-        return False
+def is_cpr_number(v: Any) -> bool:
+    safe_cpr = safe(CPR.validate)
+    return is_successful(safe_cpr(v))
 
 
 class CPR(str):
@@ -257,7 +252,7 @@ def get_cpr_birthdate(number: int | str) -> datetime.datetime:
         raise ValueError(f"invalid CPR number {number}")
 
 
-URN_SAFE = frozenset(b"abcdefghijklmnopqrstuvwxyz" b"0123456789" b"+")
+URN_SAFE = frozenset(b"abcdefghijklmnopqrstuvwxyz0123456789+")
 
 
 def urnquote(s):

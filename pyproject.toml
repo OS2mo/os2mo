@@ -45,6 +45,7 @@ jsonschema = "^4.18.4"
 psycopg2-binary = "~2.9"
 sentry-sdk = {extras = ["fastapi"], version = "^1.28.1"}
 psycopg = "^3.1.8"
+returns = {extras = ["compatible-mypy"], version = "^0.21.0"}
 
 [tool.poetry.dev-dependencies]
 requests-mock = "^1.11.0"
@@ -73,6 +74,7 @@ pytest-timeouts = "^1.2.1"
 commitizen = {git = "https://github.com/noirbizarre/commitizen.git", rev = "feature/template-override"}
 pytest-subtests = "^0.11.0"
 respx = "^0.20.2"
+kwonly-transformer = "^0.0.0"
 
 [tool.commitizen]
 name = "cz_customize"
@@ -132,7 +134,7 @@ cache_dir = ".pytest_cache"
 
 [tool.mypy]
 ignore_errors = true
-plugins = ["pydantic.mypy", "strawberry.ext.mypy_plugin"]
+plugins = ["pydantic.mypy", "strawberry.ext.mypy_plugin", "returns.contrib.mypy.returns_plugin"]
 
 [[tool.mypy.overrides]]
 module = "mora.graphapi.*"
