@@ -73,12 +73,13 @@ client = None
 
 def registration_changed_since(reg: dict[str, Any], since: datetime) -> bool:
     from_time = reg.get("fratidspunkt", {}).get("tidsstempeldatotid", None)
-    if from_time is None:
-        raise ValueError(f"unexpected reg: {reg}")
-    elif from_time == "infinity":
-        return True
-    elif from_time == "-infinity":
-        return False
+    match from_time:
+        case None:
+            raise ValueError(f"unexpected reg: {reg}")
+        case "infinity":
+            return True
+        case "-infinity":
+            return False
 
     # ensure timezone
     if not since.tzinfo:
@@ -156,28 +157,27 @@ def raise_on_status(status_code: int, msg, cause=None) -> None:
         r"Aborted updating \w+ with id \[.*\] as the given data, does not "
         r"give raise to a new registration"
     )
-
-    if status_code == 400:
+    match status_code:
         # If LoRa returns HTTP status code 400, first check if the error
         # reported indicates a "no-op" change (no data was actually changed in
         # the update.)
-        if noop_pattern.search(msg):
+        case 400 if noop_pattern.search(msg):
             logger.info(
                 "detected empty change, not raising E_INVALID_INPUT", message=msg
             )
             # Set context var to expose this (otherwise masked) error through an HTTP
             # header.
             context[_MIDDLEWARE_KEY] = True
-        else:
+        case 400:
             exceptions.ErrorCodes.E_INVALID_INPUT(message=msg, cause=cause)
-    elif status_code == 401:
-        exceptions.ErrorCodes.E_UNAUTHORIZED(message=msg, cause=cause)
-    elif status_code == 403:
-        exceptions.ErrorCodes.E_FORBIDDEN(message=msg, cause=cause)
-    elif status_code == 404:
-        exceptions.ErrorCodes.E_NOT_FOUND(message=msg, cause=cause)
-    else:
-        exceptions.ErrorCodes.E_UNKNOWN(message=msg, cause=cause)
+        case 401:
+            exceptions.ErrorCodes.E_UNAUTHORIZED(message=msg, cause=cause)
+        case 403:
+            exceptions.ErrorCodes.E_FORBIDDEN(message=msg, cause=cause)
+        case 404:
+            exceptions.ErrorCodes.E_NOT_FOUND(message=msg, cause=cause)
+        case _:
+            exceptions.ErrorCodes.E_UNKNOWN(message=msg, cause=cause)
 
 
 async def _check_response(r: httpx.Response) -> httpx.Response:
@@ -196,14 +196,15 @@ async def _check_response(r: httpx.Response) -> httpx.Response:
 
 def uuid_to_str(value):
     """Used to convert UUIDs to str in nested structures"""
-    if isinstance(value, uuid.UUID):
-        return str(value)
-    elif isinstance(value, dict):
-        return {k: uuid_to_str(v) for k, v in value.items()}
-    elif isinstance(value, list):
-        return list(map(uuid_to_str, value))
-    elif isinstance(value, set):
-        return set(map(uuid_to_str, value))
+    match value:
+        case uuid.UUID():
+            return str(value)
+        case dict():
+            return {k: uuid_to_str(v) for k, v in value.items()}
+        case list():
+            return list(map(uuid_to_str, value))
+        case set():
+            return set(map(uuid_to_str, value))
     return value
 
 
@@ -213,12 +214,19 @@ def exotics_to_str(value):
     @param value:
     @return:
     """
-    if isinstance(value, (bool, uuid.UUID)):
-        return str(value)
-    elif isinstance(value, (list, set)):
-        return list(map(exotics_to_str, value))
-    elif isinstance(value, (int, str)):
-        return value
+    match value:
+        case bool():
+            return str(value)
+        case uuid.UUID():
+            return str(value)
+        case list():
+            return list(map(exotics_to_str, value))
+        case set():
+            return list(map(exotics_to_str, value))
+        case str():
+            return value
+        case int():
+            return value
     raise TypeError("Unknown type in exotics_to_str", type(value))
 
 
@@ -244,20 +252,20 @@ def validity_tuple(
     if now is None:
         now = util.parsedatetime(util.now())
 
+
     # NOTE: We must explicitly convert date to datetime since the minimum resolution of date is
     # one day, which means that the addition of timedelta(microseconds=1) later will silently
     # be ignored.
     if type(now) is date:
         now = datetime.combine(now, time.min)
 
-    if validity == "past":
-        return util.NEGATIVE_INFINITY, now
-
-    if validity == "present":
-        return now, now + util.MINIMAL_INTERVAL
-
-    if validity == "future":
-        return now, util.POSITIVE_INFINITY
+    match validity:
+        case "past":
+            return util.NEGATIVE_INFINITY, now
+        case "present":
+            return now, now + util.MINIMAL_INTERVAL
+        case "future":
+            return now, util.POSITIVE_INFINITY
 
     raise TypeError(
         f"Expected validity to be 'past', 'present' or 'future', but was {validity}"
@@ -272,12 +280,11 @@ class Connector:
             defaults.pop("effective_date", None) or util.now(),
         )
 
-        if self.__validity == "present":
+        if self.__validity == "present" and "virkningfra" in defaults:
             # we should probably use 'virkningstid' but that means we
             # have to override each and every single invocation of the
             # accessors later on
-            if "virkningfra" in defaults:
-                self.now = util.parsedatetime(defaults.pop("virkningfra"))
+            self.now = util.parsedatetime(defaults.pop("virkningfra"))
 
         try:
             self.start, self.end = validity_tuple(self.__validity, now=self.now)
