@@ -1,7 +1,9 @@
+import os
 import re
 from copy import deepcopy
 from typing import Union
 
+import pandas as pd
 from fastramqpi.context import Context
 from ramodels.mo.employee import Employee
 
@@ -31,11 +33,53 @@ class UserNameGeneratorBase:
         self.json_inputs = self.mapping["username_generator"]
         self.char_replacement = self.json_inputs["char_replacement"]
         self.forbidden_usernames = [
-            u.lower() for u in self.json_inputs["forbidden_usernames"]
+            u.lower()
+            for u in self.json_inputs["forbidden_usernames"]
+            if not self.is_filename(u)
         ]
         self.combinations = self.json_inputs["combinations_to_try"]
 
         self.dataloader = self.user_context["dataloader"]
+
+        self.files_with_forbidden_usernames = [
+            u for u in self.json_inputs["forbidden_usernames"] if self.is_filename(u)
+        ]
+
+        for file in self.files_with_forbidden_usernames:
+            self.forbidden_usernames.extend(self.read_usernames_from_text_file(file))
+
+        logger.info(f"Found {len(self.forbidden_usernames)} forbidden usernames")
+
+    @staticmethod
+    def is_filename(string):
+        """
+        Return True if the string is a csv-formatted file
+        """
+        if string.lower().endswith(".csv"):
+            return True
+        elif string.lower().endswith(".txt"):
+            return True
+        else:
+            return False
+
+    def read_usernames_from_text_file(self, filename: str) -> list[str]:
+        """
+        Read usernames from a csv-formatted text file.
+
+        Notes
+        ----------
+        - The text file can only contain one column and shall only contain usernames
+        - The text file should not have a header.
+        """
+        logger.info(f"Reading {filename}")
+
+        full_path = os.path.join(
+            self.user_context["forbidden_usernames_path"],
+            filename,
+        )
+        csv = pd.read_csv(full_path, names=["forbidden_usernames"])
+
+        return [name.lower() for name in csv.loc[:, "forbidden_usernames"]]
 
     def _check_key(self, key):
         if key not in self.mapping["username_generator"]:

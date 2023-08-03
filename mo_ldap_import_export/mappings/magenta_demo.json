@@ -524,7 +524,10 @@
             "FFX",
      ],
      "forbidden_usernames":["nazi",
-                            "krig"]
+                            "krig",
+                            "itsm_brugere.csv",
+                            "CURA-76507-total-brugerliste-fhir.txt"
+                             ]
    }
 }
 
