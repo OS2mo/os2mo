@@ -4,6 +4,8 @@ import itertools
 import uuid
 from collections import defaultdict
 
+from returns.maybe import Maybe
+
 from oio_rest.db.db_helpers import DokumentDelEgenskaberType
 from oio_rest.db.db_helpers import DokumentVariantEgenskaberType
 from oio_rest.db.db_helpers import get_attribute_fields
@@ -28,11 +30,11 @@ def is_uuid(s):
             return False
 
 
-def escape_underscores(s):
+def escape_underscores(s: str | None) -> str | None:
     """Return the string with underscores escaped by backslashes."""
-    if s is None:
-        return None
-    return s.replace("_", r"\_")
+    return Maybe.from_optional(s).bind_optional(
+        lambda s: s.replace("_", r"\_")
+    ).value_or(None)
 
 
 def build_relation(value, objekttype=None, virkning=None):
