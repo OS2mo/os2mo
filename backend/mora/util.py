@@ -20,12 +20,12 @@ import urllib.parse
 import uuid
 from contextlib import suppress
 from functools import reduce
-from typing import Any
 from zoneinfo import ZoneInfo
 
 import dateutil.parser
 import dateutil.tz
 from returns.pipeline import is_successful
+from returns.pipeline import pipe
 from returns.result import safe
 from starlette_context import context
 from structlog import get_logger
@@ -178,16 +178,6 @@ def now() -> datetime.datetime:
     return datetime.datetime.now().replace(tzinfo=DEFAULT_TIMEZONE)
 
 
-def is_uuid(v: Any) -> bool:
-    safe_uuid = safe(uuid.UUID)
-    return is_successful(safe_uuid(v))
-
-
-def is_cpr_number(v: Any) -> bool:
-    safe_cpr = safe(CPR.validate)
-    return is_successful(safe_cpr(v))
-
-
 class CPR(str):
     """CPR Validation.
 
@@ -222,6 +212,10 @@ class CPR(str):
 
     def __repr__(self):
         return f"CPR({super().__repr__()})"
+
+
+is_uuid = pipe(safe(uuid.UUID), is_successful)
+is_cpr_number = pipe(safe(CPR.validate), is_successful)
 
 
 def get_cpr_birthdate(number: int | str) -> datetime.datetime:

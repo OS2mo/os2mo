@@ -252,7 +252,6 @@ def validity_tuple(
     if now is None:
         now = util.parsedatetime(util.now())
 
-
     # NOTE: We must explicitly convert date to datetime since the minimum resolution of date is
     # one day, which means that the addition of timedelta(microseconds=1) later will silently
     # be ignored.

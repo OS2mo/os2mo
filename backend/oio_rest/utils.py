@@ -32,9 +32,11 @@ def is_uuid(s):
 
 def escape_underscores(s: str | None) -> str | None:
     """Return the string with underscores escaped by backslashes."""
-    return Maybe.from_optional(s).bind_optional(
-        lambda s: s.replace("_", r"\_")
-    ).value_or(None)
+    return (
+        Maybe.from_optional(s)
+        .bind_optional(lambda s: s.replace("_", r"\_"))
+        .value_or(None)
+    )
 
 
 def build_relation(value, objekttype=None, virkning=None):
