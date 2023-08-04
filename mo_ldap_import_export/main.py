@@ -9,6 +9,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from functools import partial
 from functools import wraps
+from inspect import iscoroutinefunction
 from typing import Any
 from typing import Literal
 from typing import Tuple
@@ -332,6 +333,9 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     if not hasattr(username_generator, "generate_dn"):
         raise AttributeError("Username generator needs to have a generate_dn function")
 
+    if not iscoroutinefunction(getattr(username_generator, "generate_dn")):
+        raise TypeError("generate_dn function needs to be a coroutine")
+
     logger.info("Initializing os2mo-init engine")
     init_engine = InitEngine(fastramqpi.get_context())
     init_engine.create_facets()
@@ -620,7 +624,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         all_objectGUIDs = [
             to_uuid(u) for u in dataloader.load_ldap_attribute_values("objectGUID")
         ]
-        all_it_users = await dataloader.load_all_it_users(it_system_uuid)
+        all_it_users = await dataloader.load_all_current_it_users(it_system_uuid)
 
         # Find objectGUIDs which are stored in MO but do not exist in LDAP
         non_existing_objectGUIDs = []

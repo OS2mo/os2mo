@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from collections.abc import Iterator
+from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
@@ -16,7 +17,9 @@ from mo_ldap_import_export.usernames import UserNameGenerator
 
 @pytest.fixture
 def dataloader() -> MagicMock:
-    return MagicMock()
+    mock = MagicMock()
+    mock.load_all_it_users = AsyncMock()
+    return mock
 
 
 @pytest.fixture
@@ -224,9 +227,9 @@ def test_create_common_name(username_generator: UserNameGenerator):
     assert common_name == ("Nick" + " " + "Johnson" * 40)[:60]
 
 
-def test_generate_dn(username_generator: UserNameGenerator):
+async def test_generate_dn(username_generator: UserNameGenerator):
     employee = Employee(givenname="Patrick", surname="Bateman")
-    dn = username_generator.generate_dn(employee)
+    dn = await username_generator.generate_dn(employee)
     assert dn == "CN=Patrick Bateman,DC=bar"
 
 
@@ -357,10 +360,12 @@ def test_alleroed_username_generator(
         print(f"{full_name} -> '{username}'")
 
 
-def test_alleroed_dn_generator(alleroed_username_generator: AlleroedUserNameGenerator):
+async def test_alleroed_dn_generator(
+    alleroed_username_generator: AlleroedUserNameGenerator,
+):
 
     employee = Employee(givenname="Patrick", surname="Bateman")
-    dn = alleroed_username_generator.generate_dn(employee)
+    dn = await alleroed_username_generator.generate_dn(employee)
     assert dn == "CN=Patrick Bateman,DC=bar"
 
 

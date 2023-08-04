@@ -117,7 +117,7 @@ def converter() -> MagicMock:
 
 @pytest.fixture
 def username_generator() -> MagicMock:
-    return MagicMock()
+    return AsyncMock()
 
 
 @pytest.fixture
@@ -2094,7 +2094,7 @@ def test_ou_in_ous_to_write_to(dataloader: DataLoader):
     assert dataloader.ou_in_ous_to_write_to("CN=Tobias,DC=k") is True
 
 
-async def test_load_all_it_users(dataloader: DataLoader):
+async def test_load_all_current_it_users(dataloader: DataLoader):
 
     itsystem1_uuid = uuid4()
     itsystem2_uuid = uuid4()
@@ -2132,17 +2132,70 @@ async def test_load_all_it_users(dataloader: DataLoader):
     dataloader.query_mo_paged = AsyncMock()  # type: ignore
     dataloader.query_mo_paged.side_effect = object_dicts
 
-    output = await dataloader.load_all_it_users(itsystem1_uuid)
+    output = await dataloader.load_all_current_it_users(itsystem1_uuid)
 
     assert len(output) == 1
     assert output[0]["itsystem_uuid"] == str(itsystem1_uuid)
     assert output[0]["user_key"] == "foo"
 
-    output = await dataloader.load_all_it_users(itsystem2_uuid)
+    output = await dataloader.load_all_current_it_users(itsystem2_uuid)
 
     assert len(output) == 1
     assert output[0]["itsystem_uuid"] == str(itsystem2_uuid)
     assert output[0]["user_key"] == "bar"
+
+
+async def test_load_all_it_users(dataloader: DataLoader):
+
+    itsystem1_uuid = uuid4()
+    itsystem2_uuid = uuid4()
+
+    result = {
+        "itusers": {
+            "objects": [
+                {
+                    "objects": [
+                        {
+                            "itsystem_uuid": str(itsystem1_uuid),
+                            "employee_uuid": str(uuid4()),
+                            "user_key": "mucki",
+                        },
+                        {
+                            "itsystem_uuid": str(itsystem1_uuid),
+                            "employee_uuid": str(uuid4()),
+                            "user_key": "bar",
+                        },
+                    ]
+                },
+                {
+                    "objects": [
+                        {
+                            "itsystem_uuid": str(itsystem2_uuid),
+                            "employee_uuid": str(uuid4()),
+                            "user_key": "foo",
+                        }
+                    ]
+                },
+            ]
+        }
+    }
+
+    dataloader.query_mo_paged = AsyncMock()  # type: ignore
+    dataloader.query_mo_paged.return_value = result
+
+    output = await dataloader.load_all_it_users(itsystem1_uuid)
+
+    assert len(output) == 2
+    assert output[0]["itsystem_uuid"] == str(itsystem1_uuid)
+    assert output[1]["itsystem_uuid"] == str(itsystem1_uuid)
+    assert output[0]["user_key"] == "mucki"
+    assert output[1]["user_key"] == "bar"
+
+    output = await dataloader.load_all_it_users(itsystem2_uuid)
+
+    assert len(output) == 1
+    assert output[0]["itsystem_uuid"] == str(itsystem2_uuid)
+    assert output[0]["user_key"] == "foo"
 
 
 async def test_query_mo_paged(dataloader: DataLoader):

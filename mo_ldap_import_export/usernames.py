@@ -373,7 +373,7 @@ class UserNameGeneratorBase:
 
 
 class UserNameGenerator(UserNameGeneratorBase):
-    def generate_dn(self, employee: Employee) -> str:
+    async def generate_dn(self, employee: Employee) -> str:
         """
         Generates a LDAP DN (Distinguished Name) based on information from a MO Employee
         object.
@@ -406,7 +406,7 @@ class AlleroedUserNameGenerator(UserNameGeneratorBase):
 
         return self._create_username(name, existing_usernames)
 
-    def generate_dn(self, employee: Employee) -> str:
+    async def generate_dn(self, employee: Employee) -> str:
         """
         Generates a LDAP DN (Distinguished Name) based on information from a MO Employee
         object.
@@ -417,6 +417,20 @@ class AlleroedUserNameGenerator(UserNameGeneratorBase):
         """
         existing_usernames, existing_common_names = self._get_existing_names()
 
+        converter = self.user_context["converter"]
+        sAMAccountName_it_users = await self.dataloader.load_all_it_users(
+            converter.get_it_system_uuid("ADSAMA")
+        )
+
+        # "existing_usernames_in_mo" covers all usernames which MO has ever generated.
+        # Because we never delete from MO's database; We just put end-dates on objects.
+        #
+        # We need to block these usernames from being generated, because it is possible
+        # That MO generates a user, which is deleted from AD some years later. In that
+        # Case we should never generate the username of the deleted user.
+        # Ref: https://redmine.magenta-aps.dk/issues/57043
+        existing_usernames_in_mo = [s["user_key"] for s in sAMAccountName_it_users]
+
         givenname = employee.givenname.strip()
         surname = employee.surname
         name = givenname.split(" ")[:4] + [surname]
@@ -424,7 +438,9 @@ class AlleroedUserNameGenerator(UserNameGeneratorBase):
         common_name = self._create_common_name(name, existing_common_names)
         logger.info(f"Generated CommonName for {givenname} {surname}: '{common_name}'")
 
-        username = self.generate_username(name, existing_usernames)
+        username = self.generate_username(
+            name, existing_usernames + existing_usernames_in_mo
+        )
         logger.info(f"Generated username for {givenname} {surname}: '{username}'")
 
         dn = self._make_dn(common_name)
