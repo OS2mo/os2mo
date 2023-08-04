@@ -8,6 +8,7 @@ from typing import cast
 from typing import Union
 from uuid import UUID
 
+from fastapi.encoders import jsonable_encoder
 from gql import gql
 from gql.client import AsyncClientSession
 from gql.client import SyncClientSession
@@ -18,7 +19,6 @@ from ldap3.core.exceptions import LDAPInvalidValueError
 from ldap3.protocol import oid
 from ldap3.utils.dn import safe_dn
 from more_itertools import only
-from raclients.graph.util import execute_paged
 from ramodels.mo._shared import validate_cpr
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
@@ -78,7 +78,7 @@ class DataLoader:
 
     def _check_if_empty(self, result: dict):
         for key, value in result.items():
-            if len(value) == 0:
+            if len(value["objects"]) == 0:
                 raise NoObjectsReturnedException(
                     (
                         f"query_result['{key}'] is empty. "
@@ -156,14 +156,38 @@ class DataLoader:
             )
 
     async def query_mo(
-        self,
-        query: DocumentNode,
-        raise_if_empty: bool = True,
+        self, query: DocumentNode, raise_if_empty: bool = True, variable_values={}
     ):
         graphql_session: AsyncClientSession = self.user_context["gql_client"]
-        result = await graphql_session.execute(query)
+        result = await graphql_session.execute(
+            query, variable_values=jsonable_encoder(variable_values)
+        )
         if raise_if_empty:
             self._check_if_empty(result)
+        return result
+
+    async def query_mo_paged(self, query):
+        result = await self.query_mo(query, raise_if_empty=False)
+
+        for key in result.keys():
+            cursor = result[key]["page_info"]["next_cursor"]
+            page_counter = 0
+
+            while cursor:
+                logger.info(f"[Paged-query] Loading {key} - page {page_counter}")
+                next_result = await self.query_mo(
+                    query,
+                    raise_if_empty=False,
+                    variable_values={"cursor": cursor},
+                )
+
+                # Append next page to result
+                result[key]["objects"] += next_result[key]["objects"]
+
+                # Update cursor and page counter
+                page_counter += 1
+                cursor = next_result[key]["page_info"]["next_cursor"]
+
         return result
 
     async def query_past_future_mo(
@@ -592,20 +616,20 @@ class DataLoader:
         return output
 
     def _return_mo_employee_uuid_result(self, result: dict) -> Union[None, UUID]:
-        number_of_employees = len(result.get("employees", []))
-        number_of_itusers = len(result["itusers"])
+        number_of_employees = len(result.get("employees", {}).get("objects", []))
+        number_of_itusers = len(result["itusers"]["objects"])
         error_message = hide_cpr(f"Multiple matching employees in {result}")
         exception = MultipleObjectsReturnedException(error_message)
 
         if number_of_employees == 1:
             logger.info("Trying to find mo employee UUID using cpr_no")
-            uuid: UUID = result["employees"][0]["uuid"]
+            uuid: UUID = result["employees"]["objects"][0]["uuid"]
             return uuid
 
         elif number_of_itusers >= 1:
             logger.info("Trying to find mo employee UUID using IT system")
             uuids = [
-                result["itusers"][i]["objects"][0]["employee_uuid"]
+                result["itusers"]["objects"][i]["objects"][0]["employee_uuid"]
                 for i in range(number_of_itusers)
             ]
 
@@ -631,7 +655,9 @@ class DataLoader:
         if cpr_field and cpr_no:
             cpr_query = f"""
             employees(cpr_numbers: "{cpr_no}") {{
-              uuid
+              objects {{
+                 uuid
+              }}
             }}
             """
         else:
@@ -641,7 +667,9 @@ class DataLoader:
         ituser_query = f"""
         itusers(user_keys: "{objectGUID}") {{
           objects {{
-            employee_uuid
+            objects {{
+               employee_uuid
+            }}
           }}
         }}
         """
@@ -813,12 +841,14 @@ class DataLoader:
             query SingleEmployee {{
               employees(uuids:"{uuid}") {{
                 objects {{
+                  objects {{
                     uuid
                     cpr_no
                     givenname
                     surname
                     nickname_givenname
                     nickname_surname
+                  }}
                 }}
               }}
             }}
@@ -826,7 +856,7 @@ class DataLoader:
         )
 
         result = await self.query_past_future_mo(query, current_objects_only)
-        entry = result["employees"][0]["objects"][0]
+        entry = result["employees"]["objects"][0]["objects"][0]
 
         return Employee(**entry)
 
@@ -841,8 +871,10 @@ class DataLoader:
             query EmployeeOrgUnitUUIDs {{
               org_units(uuids: "{org_unit_uuid}") {{
                 objects {{
-                  engagements {{
-                    employee_uuid
+                  objects {{
+                    engagements {{
+                      employee_uuid
+                    }}
                   }}
                 }}
               }}
@@ -852,7 +884,10 @@ class DataLoader:
 
         result = await self.query_mo(query)
         output = []
-        for engagement_entry in result["org_units"][0]["objects"][0]["engagements"]:
+        engagement_entries = result["org_units"]["objects"][0]["objects"][0][
+            "engagements"
+        ]
+        for engagement_entry in engagement_entries:
             employee = await self.load_mo_employee(engagement_entry["employee_uuid"])
             output.append(employee)
         return output
@@ -862,11 +897,13 @@ class DataLoader:
             f"""
             query FacetQuery {{
               facets(user_keys: "{user_key}") {{
-                classes {{
-                  user_key
-                  uuid
-                  scope
-                  name
+                objects {{
+                  classes {{
+                    user_key
+                    uuid
+                    scope
+                    name
+                  }}
                 }}
               }}
             }}
@@ -874,10 +911,10 @@ class DataLoader:
         )
         result = self.query_mo_sync(query, raise_if_empty=False)
 
-        if len(result["facets"]) == 0:
+        if len(result["facets"]["objects"]) == 0:
             output = {}
         else:
-            output = {d["uuid"]: d for d in result["facets"][0]["classes"]}
+            output = {d["uuid"]: d for d in result["facets"]["objects"][0]["classes"]}
 
         return output
 
@@ -886,18 +923,20 @@ class DataLoader:
             f"""
             query FacetUUIDQuery {{
               facets(user_keys: "{user_key}") {{
-                uuid
+                objects {{
+                  uuid
+                }}
               }}
             }}
             """
         )
         result = self.query_mo_sync(query)
-        facets = result["facets"]
+        facets = result["facets"]["objects"]
         if len(facets) > 1:
             raise MultipleObjectsReturnedException(
                 f"Found multiple facets with user_key = '{user_key}': {result}"
             )
-        return UUID(result["facets"][0]["uuid"])
+        return UUID(result["facets"]["objects"][0]["uuid"])
 
     def load_mo_employee_address_types(self) -> dict:
         return self.load_mo_facet("employee_address_type")
@@ -928,18 +967,20 @@ class DataLoader:
             """
             query ItSystems {
               itsystems {
-                uuid
-                user_key
+                objects {
+                  uuid
+                  user_key
+                }
               }
             }
             """
         )
         result = self.query_mo_sync(query, raise_if_empty=False)
 
-        if len(result["itsystems"]) == 0:
+        if len(result["itsystems"]["objects"]) == 0:
             output = {}
         else:
-            output = {d["uuid"]: d for d in result["itsystems"]}
+            output = {d["uuid"]: d for d in result["itsystems"]["objects"]}
 
         return output
 
@@ -949,12 +990,14 @@ class DataLoader:
             query OrgUnit {
               org_units {
                 objects {
-                  uuid
-                  name
-                  user_key
-                  parent {
+                  objects {
                     uuid
                     name
+                    user_key
+                    parent {
+                      uuid
+                      name
+                    }
                   }
                 }
               }
@@ -963,11 +1006,12 @@ class DataLoader:
         )
         result = self.query_mo_sync(query, raise_if_empty=False)
 
-        if len(result["org_units"]) == 0:
+        if len(result["org_units"]["objects"]) == 0:
             output = {}
         else:
             output = {
-                d["objects"][0]["uuid"]: d["objects"][0] for d in result["org_units"]
+                d["objects"][0]["uuid"]: d["objects"][0]
+                for d in result["org_units"]["objects"]
             }
 
         return output
@@ -978,13 +1022,15 @@ class DataLoader:
             query MyQuery {{
               itusers(uuids: "{uuid}") {{
                 objects {{
-                  user_key
-                  validity {{
-                    from
-                    to
+                  objects {{
+                    user_key
+                    validity {{
+                      from
+                      to
+                    }}
+                    employee_uuid
+                    itsystem_uuid
                   }}
-                  employee_uuid
-                  itsystem_uuid
                 }}
               }}
             }}
@@ -992,7 +1038,7 @@ class DataLoader:
         )
 
         result = await self.query_past_future_mo(query, current_objects_only)
-        entry = result["itusers"][0]["objects"][0]
+        entry = result["itusers"]["objects"][0]["objects"][0]
         return ITUser.from_simplified_fields(
             user_key=entry["user_key"],
             itsystem_uuid=entry["itsystem_uuid"],
@@ -1017,22 +1063,24 @@ class DataLoader:
             query SingleAddress {{
               addresses(uuids: "{uuid}") {{
                 objects {{
-                  value: name
-                  value2
-                  uuid
-                  visibility_uuid
-                  employee_uuid
-                  org_unit_uuid
-                  person: employee {{
-                    cpr_no
-                  }}
-                  validity {{
-                    from
-                    to
-                  }}
-                  address_type {{
-                    user_key
+                  objects {{
+                    value: name
+                    value2
                     uuid
+                    visibility_uuid
+                    employee_uuid
+                    org_unit_uuid
+                    person: employee {{
+                      cpr_no
+                    }}
+                    validity {{
+                      from
+                      to
+                    }}
+                    address_type {{
+                      user_key
+                      uuid
+                    }}
                   }}
                 }}
               }}
@@ -1043,7 +1091,7 @@ class DataLoader:
         logger.info(f"Loading address={uuid}")
         result = await self.query_past_future_mo(query, current_objects_only)
 
-        entry = result["addresses"][0]["objects"][0]
+        entry = result["addresses"]["objects"][0]["objects"][0]
 
         address = Address.from_simplified_fields(
             value=entry["value"],
@@ -1068,7 +1116,9 @@ class DataLoader:
             query IsPrimary {{
               engagements(uuids: "{engagement_uuid}") {{
                 objects {{
-                  is_primary
+                  objects {{
+                    is_primary
+                  }}
                 }}
               }}
             }}
@@ -1076,7 +1126,11 @@ class DataLoader:
         )
 
         result = await self.query_mo(query)
-        return True if result["engagements"][0]["objects"][0]["is_primary"] else False
+        return (
+            True
+            if result["engagements"]["objects"][0]["objects"][0]["is_primary"]
+            else False
+        )
 
     async def load_mo_engagement(
         self,
@@ -1088,26 +1142,28 @@ class DataLoader:
             query SingleEngagement {{
               engagements(uuids: "{uuid}") {{
                 objects {{
-                  user_key
-                  extension_1
-                  extension_2
-                  extension_3
-                  extension_4
-                  extension_5
-                  extension_6
-                  extension_7
-                  extension_8
-                  extension_9
-                  extension_10
-                  leave_uuid
-                  primary_uuid
-                  job_function_uuid
-                  org_unit_uuid
-                  engagement_type_uuid
-                  employee_uuid
-                  validity {{
-                    from
-                    to
+                  objects {{
+                    user_key
+                    extension_1
+                    extension_2
+                    extension_3
+                    extension_4
+                    extension_5
+                    extension_6
+                    extension_7
+                    extension_8
+                    extension_9
+                    extension_10
+                    leave_uuid
+                    primary_uuid
+                    job_function_uuid
+                    org_unit_uuid
+                    engagement_type_uuid
+                    employee_uuid
+                    validity {{
+                      from
+                      to
+                    }}
                   }}
                 }}
               }}
@@ -1118,7 +1174,7 @@ class DataLoader:
         logger.info(f"Loading engagement={uuid}")
         result = await self.query_past_future_mo(query, current_objects_only)
 
-        entry = result["engagements"][0]["objects"][0]
+        entry = result["engagements"]["objects"][0]["objects"][0]
 
         engagement = Engagement.from_simplified_fields(
             org_unit_uuid=entry["org_unit_uuid"],
@@ -1154,8 +1210,10 @@ class DataLoader:
             query GetEmployeeAddresses {{
               employees(uuids: "{employee_uuid}") {{
                 objects {{
-                  addresses(address_types: "{address_type_uuid}") {{
-                    uuid
+                  objects {{
+                    addresses(address_types: "{address_type_uuid}") {{
+                      uuid
+                    }}
                   }}
                 }}
               }}
@@ -1166,7 +1224,9 @@ class DataLoader:
         result = await self.query_mo(query)
 
         output = []
-        for address_entry in result["employees"][0]["objects"][0]["addresses"]:
+        for address_entry in result["employees"]["objects"][0]["objects"][0][
+            "addresses"
+        ]:
             address = await self.load_mo_address(address_entry["uuid"])
             output.append(address)
         return output
@@ -1182,8 +1242,10 @@ class DataLoader:
             query GetOrgUnitAddresses {{
               org_units(uuids: "{org_unit_uuid}") {{
                 objects {{
-                  addresses(address_types: "{address_type_uuid}") {{
-                    uuid
+                  objects {{
+                    addresses(address_types: "{address_type_uuid}") {{
+                      uuid
+                    }}
                   }}
                 }}
               }}
@@ -1194,7 +1256,9 @@ class DataLoader:
         result = await self.query_mo(query)
 
         output = []
-        for address_entry in result["org_units"][0]["objects"][0]["addresses"]:
+        for address_entry in result["org_units"]["objects"][0]["objects"][0][
+            "addresses"
+        ]:
             address = await self.load_mo_address(address_entry["uuid"])
             output.append(address)
         return output
@@ -1202,25 +1266,32 @@ class DataLoader:
     async def load_all_it_users(self, it_system_uuid: UUID):
         query = gql(
             """
-            query AllEmployees($limit: int, $offset: int) {
-              page: itusers (limit: $limit, offset: $offset) {
-                current {
-                  itsystem_uuid
-                  employee_uuid
-                  user_key
+            query AllEmployees($cursor: Cursor) {
+              itusers (limit: 100, cursor: $cursor) {
+                objects {
+                  current {
+                    itsystem_uuid
+                    employee_uuid
+                    user_key
+                  }
+                }
+                page_info {
+                  next_cursor
                 }
               }
             }
             """
         )
 
-        result = []
-        async for obj in execute_paged(self.user_context["gql_client"], query):
-            current_obj = obj["current"]
-            if current_obj["itsystem_uuid"] == str(it_system_uuid):
-                result.append(current_obj)
+        result = await self.query_mo_paged(query)
 
-        return result
+        # Format output
+        output = []
+        for entry in [r["current"] for r in result["itusers"]["objects"]]:
+            if entry["itsystem_uuid"] == str(it_system_uuid):
+                output.append(entry)
+
+        return output
 
     async def load_mo_employee_it_users(
         self,
@@ -1235,9 +1306,11 @@ class DataLoader:
             query ItUserQuery {{
               employees(uuids: "{employee_uuid}") {{
                 objects {{
-                  itusers {{
-                    uuid
-                    itsystem_uuid
+                  objects {{
+                    itusers {{
+                      uuid
+                      itsystem_uuid
+                    }}
                   }}
                 }}
               }}
@@ -1248,7 +1321,7 @@ class DataLoader:
         result = await self.query_mo(query)
 
         output = []
-        for it_user_dict in result["employees"][0]["objects"][0]["itusers"]:
+        for it_user_dict in result["employees"]["objects"][0]["objects"][0]["itusers"]:
             if it_user_dict["itsystem_uuid"] == str(it_system_uuid):
                 it_user = await self.load_mo_it_user(it_user_dict["uuid"])
                 output.append(it_user)
@@ -1264,13 +1337,15 @@ class DataLoader:
             query EngagementQuery {{
               employees(uuids: "{employee_uuid}") {{
                 objects {{
-                  engagements(user_keys: "{user_key}") {{
-                    uuid
-                    user_key
-                    org_unit_uuid
-                    job_function_uuid
-                    engagement_type_uuid
-                    primary_uuid
+                  objects {{
+                    engagements(user_keys: "{user_key}") {{
+                      uuid
+                      user_key
+                      org_unit_uuid
+                      job_function_uuid
+                      engagement_type_uuid
+                      primary_uuid
+                    }}
                   }}
                 }}
               }}
@@ -1279,7 +1354,9 @@ class DataLoader:
         )
         try:
             result = self.query_mo_sync(query)
-            output: list[dict] = result["employees"][0]["objects"][0]["engagements"]
+            output: list[dict] = result["employees"]["objects"][0]["objects"][0][
+                "engagements"
+            ]
         except NoObjectsReturnedException:
             output = []
         return output
@@ -1295,8 +1372,10 @@ class DataLoader:
             query EngagementQuery {{
               employees(uuids: "{employee_uuid}") {{
                 objects {{
-                  engagements {{
-                    uuid
+                  objects {{
+                    engagements {{
+                      uuid
+                    }}
                   }}
                 }}
               }}
@@ -1307,7 +1386,9 @@ class DataLoader:
         result = await self.query_mo(query)
 
         output = []
-        for engagement_dict in result["employees"][0]["objects"][0]["engagements"]:
+        for engagement_dict in result["employees"]["objects"][0]["objects"][0][
+            "engagements"
+        ]:
             engagement = await self.load_mo_engagement(engagement_dict["uuid"])
             output.append(engagement)
         return output
@@ -1368,12 +1449,17 @@ class DataLoader:
 
             paged_query = gql(
                 f"""
-                query AllObjects($limit: int, $offset: int) {{
-                    page: {object_type} (limit: $limit, offset: $offset) {{
+                query AllObjects($cursor: Cursor) {{
+                    {object_type} (limit: 100, cursor: $cursor) {{
                         objects {{
-                            uuid
-                            {additional_uuids}
-                            {validity_query}
+                            objects {{
+                                uuid
+                                {additional_uuids}
+                                {validity_query}
+                                }}
+                            }}
+                            page_info {{
+                                next_cursor
                             }}
                         }}
                     }}
@@ -1385,9 +1471,11 @@ class DataLoader:
                 query SingleObject {{
                     {object_type} (uuids: "{uuid}") {{
                         objects {{
-                            uuid
-                            {additional_uuids}
-                            {validity_query}
+                            objects {{
+                                uuid
+                                {additional_uuids}
+                                {validity_query}
+                                }}
                             }}
                         }}
                     }}
@@ -1398,10 +1486,7 @@ class DataLoader:
                 if uuid:
                     sub_result: dict = await self.query_mo(query, raise_if_empty=False)
                 else:
-                    sub_result = {object_type: []}
-                    session = self.user_context["gql_client"]
-                    async for obj in execute_paged(session, paged_query):
-                        sub_result[object_type].append(obj)
+                    sub_result = await self.query_mo_paged(paged_query)
 
                 result = result | sub_result
             except TransportQueryError as e:
@@ -1415,7 +1500,7 @@ class DataLoader:
 
         # Determine payload, service type, object type for use in amqp-messages
         for object_type, mo_object_dicts in result.items():
-            for mo_object_dict in mo_object_dicts:
+            for mo_object_dict in mo_object_dicts["objects"]:
                 mo_object = mo_object_dict["objects"][0]
 
                 # Note that engagements have both employee_uuid and org_unit uuid. But

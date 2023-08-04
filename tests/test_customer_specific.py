@@ -50,7 +50,7 @@ async def test_import_holstebroengagementupdate_objects(context: Context):
 
     test_mock = AsyncMock()
     test_mock.execute.return_value = {
-        "engagements": [{"current": {"uuid": str(test_eng_uuid)}}]
+        "engagements": {"objects": [{"current": {"uuid": str(test_eng_uuid)}}]}
     }
 
     context["graphql_session"] = test_mock
