@@ -173,10 +173,29 @@ Lint shell scripts:
     - <<: *if-merge-request
 
 Build OS2mo:
-  extends:
-    - .build-docker
+  stage: build
+  needs: []
+  interruptible: true
+  image: quay.io/buildah/stable:v1.23.3
   variables:
+    CI_IMAGE: ${IMAGE_SHA}
     BUILD_DOCKER_EXTRA_FLAGS: --build-arg=COMMIT_SHA=${CI_COMMIT_SHA} --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
+    TARGET: ""
+    IMAGE_TAG: ${CI_COMMIT_SHORT_SHA}
+  before_script:
+    - export CONTEXT=${CONTEXT:-$CI_PROJECT_DIR}
+    - export DOCKERFILE=${DOCKERFILE:-$CI_PROJECT_DIR/Dockerfile}
+  script:
+    - buildah version
+    - export HOME=${CONTEXT}
+    - buildah login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+    - buildah build
+      ${BUILD_DOCKER_EXTRA_FLAGS}
+      --file ${DOCKERFILE} 
+      --target=${TARGET}
+      --tag=${IMAGE_TAG}
+    - buildah push ${IMAGE_TAG} docker://${CI_IMAGE}
+    - buildah logout ${CI_REGISTRY}
   rules:
     - <<: *if-schedule
       when: never
