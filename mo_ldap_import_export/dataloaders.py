@@ -78,7 +78,7 @@ class DataLoader:
 
     def _check_if_empty(self, result: dict):
         for key, value in result.items():
-            if len(value["objects"]) == 0:
+            if "objects" in value and len(value["objects"]) == 0:
                 raise NoObjectsReturnedException(
                     (
                         f"query_result['{key}'] is empty. "
