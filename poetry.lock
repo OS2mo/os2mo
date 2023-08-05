@@ -1120,18 +1120,14 @@ version = "0.1.1"
 description = ""
 category = "main"
 optional = false
-python-versions = "^3.8"
-files = []
-develop = false
+python-versions = ">=3.8,<4.0"
+files = [
+    {file = "lora_utils-0.1.1-py3-none-any.whl", hash = "sha256:db0c32d91a2941045459878bf82223837f53e9d27c79ce7f83fdac327d11c6ca"},
+    {file = "lora_utils-0.1.1.tar.gz", hash = "sha256:5eea66c5452d396110b17297a99bcc168847abdb7d91d9ed0e06d40a8e0dbe12"},
+]
 
 [package.dependencies]
-python-dateutil = "^2.8.2"
-
-[package.source]
-type = "git"
-url = "https://github.com/magenta-aps/lora-utils"
-reference = "HEAD"
-resolved_reference = "924faf067db69270795e35ff3c973a2a46e7d240"
+python-dateutil = ">=2.8.2,<3.0.0"
 
 [[package]]
 name = "mako"
@@ -2749,4 +2745,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "a42f9fb567999b2517b9466e0f3687a981e222bfd8b639c6dc42fdbb96c759c6"
+content-hash = "a65f398360803c0d46cf8258815a7467a620ab14a7a473de772315cc90667ac6"
