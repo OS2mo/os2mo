@@ -23,6 +23,7 @@ from uuid import UUID
 
 import strawberry
 from fastapi.encoders import jsonable_encoder
+from more_itertools import last
 from more_itertools import one
 from more_itertools import only
 from starlette_context import context
@@ -254,6 +255,12 @@ seed_resolver_only: Callable[..., Any] = partial(
 seed_resolver_one: Callable[..., Any] = partial(
     seed_resolver,
     result_translation=lambda result: one(chain.from_iterable(result.values())),
+)
+seed_resolver_last: Callable[..., Any] = partial(
+    seed_resolver,
+    result_translation=lambda result: last(
+        chain.from_iterable(result.values()), default=None
+    ),
 )
 
 
@@ -2874,7 +2881,7 @@ class Organisation:
 )
 class OrganisationUnit:
     parent: LazyOrganisationUnit | None = strawberry.field(
-        resolver=seed_resolver_only(
+        resolver=seed_resolver_last(
             OrganisationUnitResolver(),
             {"uuids": lambda root: [root.parent_uuid]},
         ),
