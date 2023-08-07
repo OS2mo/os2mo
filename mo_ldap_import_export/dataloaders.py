@@ -1446,6 +1446,7 @@ class DataLoader:
         add_validity: bool = False,
         uuid: str = "",
         object_types_to_try: tuple[str, ...] = (),
+        current_objects_only: bool = True,
     ) -> list[dict]:
         """
         Returns a list of dictionaries. One for each object in MO of one of the
@@ -1486,6 +1487,11 @@ class DataLoader:
         if not object_types_to_try:
             object_types_to_try = tuple(self.object_type_dict.keys())
 
+        if current_objects_only:
+            validity_filter = ""
+        if not current_objects_only:
+            validity_filter = ", to_date: null, from_date: null"
+
         for object_type in object_types_to_try:
             if object_type in ["employees", "org_units"]:
                 additional_uuids = ""
@@ -1498,7 +1504,7 @@ class DataLoader:
             paged_query = gql(
                 f"""
                 query AllObjects($cursor: Cursor) {{
-                    {object_type} (limit: 100, cursor: $cursor) {{
+                    {object_type} (limit: 100, cursor: $cursor {validity_filter}) {{
                         objects {{
                             objects {{
                                 uuid
@@ -1517,7 +1523,7 @@ class DataLoader:
             query = gql(
                 f"""
                 query SingleObject {{
-                    {object_type} (uuids: "{uuid}") {{
+                    {object_type} (uuids: "{uuid}" {validity_filter}) {{
                         objects {{
                             objects {{
                                 uuid
@@ -1597,6 +1603,7 @@ class DataLoader:
         uuid: str,
         object_type: ObjectType,
         add_validity: bool = False,
+        current_objects_only: bool = True,
     ):
         """
         Returns a mo object as dictionary
@@ -1609,6 +1616,7 @@ class DataLoader:
             add_validity=add_validity,
             uuid=str(uuid),
             object_types_to_try=(self.object_type_dict_inv[str(object_type)],),
+            current_objects_only=current_objects_only,
         )
         if mo_objects:
             # Note: load_all_mo_objects checks if len==1

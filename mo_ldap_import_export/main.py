@@ -122,47 +122,27 @@ async def get_delete_flag(
     routing_key: MORoutingKey, payload: PayloadType, context: Context
 ):
     """
-    Determines if an object should be deleted based on the routing key and validity
-    to-date
+    Determines if an object should be deleted based on the validity to-date
     """
     dataloader = context["user_context"]["dataloader"]
 
-    if routing_key.request_type == RequestType.TERMINATE:
+    mo_object = await dataloader.load_mo_object(
+        payload.object_uuid,
+        routing_key.object_type,
+        add_validity=True,
+        current_objects_only=False,
+    )
 
-        mo_object = await dataloader.load_mo_object(
-            payload.object_uuid, routing_key.object_type, add_validity=True
+    now = datetime.datetime.utcnow()
+    validity_to = mo_datestring_to_utc(mo_object["validity"]["to"])
+    if validity_to and validity_to <= now:
+        logger.info(
+            (
+                "[get_delete_flag] Returning delete=True because "
+                f"to-date ({validity_to}) <= current date ({now})"
+            )
         )
-
-        if not mo_object:
-            # The object is not a current object AND request_type==TERMINATE.
-            # Meaning it was deleted and the date was set to a day before today
-            # In any case the object is not in MO and can therefore be deleted from LDAP
-            logger.info(
-                (
-                    "[get_delete_flag] Returning delete=True because "
-                    f"there is no current object with uuid={payload.object_uuid}"
-                )
-            )
-            return True
-
-        now = datetime.datetime.utcnow()
-        validity_to = mo_datestring_to_utc(mo_object["validity"]["to"])
-        if validity_to and validity_to <= now:
-            logger.info(
-                (
-                    "[get_delete_flag] Returning delete=True because "
-                    f"to-date ({validity_to}) <= current date ({now})"
-                )
-            )
-            return True
-        else:
-            logger.info(
-                "[get_delete_flag] RequestType = TERMINATE but to_date is not <= today"
-            )
-            # Abort so we do not risk deleting an object.
-            # This is more safe, than returning 'False' and giving the caller the
-            # responsibility to abort.
-            raise RejectMessage()
+        return True
     else:
         return False
 

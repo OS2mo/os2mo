@@ -560,7 +560,7 @@ async def test_cleanup_no_sync_required(
     # And it is also in LDAP
     dataloader.load_ldap_object.return_value = LdapObject(dn="CN=foo", address="addr1")
 
-    # We would expect that no synchronization is required
+    # We would expect that no cleanup is required
     args = dict(
         json_key="Address",
         mo_dict_key="mo_employee_address",
@@ -575,7 +575,7 @@ async def test_cleanup_no_sync_required(
         await asyncio.gather(cleanup(**args))  # type:ignore
         log_messages = [log for log in cap_logs if log["log_level"] == "info"]
         assert re.match(
-            "No synchronization required",
+            "No cleanup required",
             log_messages[-1]["event"],
         )
 

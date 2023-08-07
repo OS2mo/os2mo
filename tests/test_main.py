@@ -826,27 +826,11 @@ async def test_get_delete_flag(dataloader: AsyncMock):
         time=datetime.datetime.now(),
     )
 
-    # When the routing key != TERMINATE, do not delete anything
-    routing_key = MORoutingKey.build(
-        service_type=ServiceType.EMPLOYEE,
-        object_type=ObjectType.EMPLOYEE,
-        request_type=RequestType.REFRESH,
-    )
-    dataloader.load_mo_object.return_value = None
-    context = Context({"user_context": {"dataloader": dataloader}})
-    flag = await asyncio.gather(get_delete_flag(routing_key, payload, context))
-    assert flag == [False]
-
-    # When there are no matching objects in MO any longer, delete
     routing_key = MORoutingKey.build(
         service_type=ServiceType.EMPLOYEE,
         object_type=ObjectType.EMPLOYEE,
         request_type=RequestType.TERMINATE,
     )
-    dataloader.load_mo_object.return_value = None
-    context = Context({"user_context": {"dataloader": dataloader}})
-    flag = await asyncio.gather(get_delete_flag(routing_key, payload, context))
-    assert flag == [True]
 
     # When there are matching objects in MO, but the to-date is today, delete
     dataloader.load_mo_object.return_value = {
@@ -854,14 +838,21 @@ async def test_get_delete_flag(dataloader: AsyncMock):
     }
 
     context = Context({"user_context": {"dataloader": dataloader}})
-    flag = await asyncio.gather(get_delete_flag(routing_key, payload, context))
-    assert flag == [True]
+    flag = await get_delete_flag(routing_key, payload, context)
+    assert flag is True
 
-    # When there are matching objects in MO, but the to-date is not today, abort
-    dataloader.load_mo_object.return_value = {"validity": {"to": "2200-01-01"}}
+    # When there are matching objects in MO, but the to-date is tomorrow, do not delete
+    dataloader.load_mo_object.return_value = {
+        "validity": {
+            "to": (datetime.datetime.today() + datetime.timedelta(1)).strftime(
+                "%Y-%m-%d"
+            )
+        }
+    }
+
     context = Context({"user_context": {"dataloader": dataloader}})
-    with pytest.raises(RejectMessage):
-        await asyncio.gather(get_delete_flag(routing_key, payload, context))
+    flag = await get_delete_flag(routing_key, payload, context)
+    assert flag is False
 
 
 def test_get_invalid_cpr_numbers_from_LDAP_endpoint(

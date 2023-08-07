@@ -1478,14 +1478,35 @@ async def test_load_all_mo_objects_add_validity(
     dataloader.query_mo = query_mo  # type: ignore
 
     await dataloader.load_all_mo_objects(add_validity=True, uuid=str(uuid4()))
-    query = query_mo.call_args[0][0].to_dict()
+    query = print_ast(query_mo.call_args[0][0])
     assert "validity" in str(query)
 
     query_mo.reset_mock()
 
     await dataloader.load_all_mo_objects(add_validity=False, uuid=str(uuid4()))
-    query = query_mo.call_args[0][0].to_dict()
+    query = print_ast(query_mo.call_args[0][0])
     assert "validity" not in str(query)
+
+
+async def test_load_all_mo_objects_current_objects_only(
+    dataloader: DataLoader, gql_client: AsyncMock
+):
+
+    query_mo = AsyncMock()
+    query_mo.return_value = {}
+    dataloader.query_mo = query_mo  # type: ignore
+
+    await dataloader.load_all_mo_objects(current_objects_only=True, uuid=str(uuid4()))
+    query = print_ast(query_mo.call_args[0][0])
+    assert "to_date: null" not in str(query)
+    assert "from_date: null" not in str(query)
+
+    query_mo.reset_mock()
+
+    await dataloader.load_all_mo_objects(current_objects_only=False, uuid=str(uuid4()))
+    query = print_ast(query_mo.call_args[0][0])
+    assert "to_date: null" in str(query)
+    assert "from_date: null" in str(query)
 
 
 async def test_load_all_mo_objects_specify_uuid(

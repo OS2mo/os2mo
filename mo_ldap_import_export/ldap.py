@@ -503,7 +503,7 @@ async def cleanup(
 
     # Clean from LDAP
     if len(ldap_objects_to_clean) == 0:
-        logger.info("No synchronization required")
+        logger.info("No cleanup required")
     else:
         dataloader.cleanup_attributes_in_ldap(ldap_objects_to_clean)
 
