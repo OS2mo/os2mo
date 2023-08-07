@@ -898,11 +898,13 @@ class DataLoader:
             query FacetQuery {{
               facets(user_keys: "{user_key}") {{
                 objects {{
-                  classes {{
-                    user_key
-                    uuid
-                    scope
-                    name
+                  current {{
+                    classes {{
+                      user_key
+                      uuid
+                      scope
+                      name
+                    }}
                   }}
                 }}
               }}
@@ -914,7 +916,10 @@ class DataLoader:
         if len(result["facets"]["objects"]) == 0:
             output = {}
         else:
-            output = {d["uuid"]: d for d in result["facets"]["objects"][0]["classes"]}
+            output = {
+                d["uuid"]: d
+                for d in result["facets"]["objects"][0]["current"]["classes"]
+            }
 
         return output
 
@@ -924,7 +929,9 @@ class DataLoader:
             query FacetUUIDQuery {{
               facets(user_keys: "{user_key}") {{
                 objects {{
-                  uuid
+                  current {{
+                    uuid
+                  }}
                 }}
               }}
             }}
@@ -936,7 +943,7 @@ class DataLoader:
             raise MultipleObjectsReturnedException(
                 f"Found multiple facets with user_key = '{user_key}': {result}"
             )
-        return UUID(result["facets"]["objects"][0]["uuid"])
+        return UUID(result["facets"]["objects"][0]["current"]["uuid"])
 
     def load_mo_employee_address_types(self) -> dict:
         return self.load_mo_facet("employee_address_type")
@@ -968,8 +975,10 @@ class DataLoader:
             query ItSystems {
               itsystems {
                 objects {
-                  uuid
-                  user_key
+                  current{
+                    uuid
+                    user_key
+                  }
                 }
               }
             }
@@ -980,7 +989,10 @@ class DataLoader:
         if len(result["itsystems"]["objects"]) == 0:
             output = {}
         else:
-            output = {d["uuid"]: d for d in result["itsystems"]["objects"]}
+            output = {
+                d["current"]["uuid"]: d["current"]
+                for d in result["itsystems"]["objects"]
+            }
 
         return output
 
