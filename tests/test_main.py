@@ -676,7 +676,6 @@ async def test_incorrect_ous_to_search_in() -> None:
 async def test_load_faulty_username_generator() -> None:
 
     usernames_mock = MagicMock()
-    usernames_mock.UserNameGenerator.return_value = "foo"
 
     with patch(
         "mo_ldap_import_export.main.configure_ldap_connection", new_callable=MagicMock()
@@ -689,11 +688,16 @@ async def test_load_faulty_username_generator() -> None:
         "mo_ldap_import_export.main.LdapConverter", return_value=MagicMock()
     ), patch(
         "mo_ldap_import_export.main.usernames", usernames_mock
-    ), pytest.raises(
-        AttributeError
     ):
-        fastramqpi = create_fastramqpi()
-        assert isinstance(fastramqpi, FastRAMQPI)
+        with pytest.raises(AttributeError):
+            usernames_mock.UserNameGenerator.return_value = "foo"
+            create_fastramqpi()
+
+        with pytest.raises(TypeError):
+            mock = MagicMock()
+            mock.generate_dn = lambda a: a
+            usernames_mock.UserNameGenerator.return_value = mock
+            create_fastramqpi()
 
 
 async def test_synchronize_todays_events(
@@ -939,7 +943,7 @@ async def test_get_non_existing_objectGUIDs_from_MO(
         {"employee_uuid": str(uuid4()), "user_key": str(uuid4())},
         {"employee_uuid": str(uuid4()), "user_key": "foo"},
     ]
-    dataloader.load_all_it_users.return_value = it_users
+    dataloader.load_all_current_it_users.return_value = it_users
     dataloader.load_ldap_attribute_values.return_value = [
         it_users[0]["user_key"],
         str(uuid4()),

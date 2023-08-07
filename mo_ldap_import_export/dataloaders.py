@@ -790,7 +790,7 @@ class DataLoader:
                     # but also need to store the DN in an it-user object.
                     # This is done below.
                     logger.info("LDAP it-system not found - Generating DN")
-                    dn = username_generator.generate_dn(employee)
+                    dn = await username_generator.generate_dn(employee)
                     await self.sync_tool.import_single_user(
                         dn, force=True, manual_import=True
                     )
@@ -808,7 +808,7 @@ class DataLoader:
         # If there are no LDAP-it-users with valid dns, we generate a dn and create one.
         elif ldap_it_system_exists and len(dns) == 0:
             logger.info("No it-user found. Generating DN and creating it-user")
-            dn = username_generator.generate_dn(employee)
+            dn = await username_generator.generate_dn(employee)
 
             # Get it's objectGUID
             objectGUID = self.get_ldap_objectGUID(dn)
@@ -1263,7 +1263,10 @@ class DataLoader:
             output.append(address)
         return output
 
-    async def load_all_it_users(self, it_system_uuid: UUID):
+    async def load_all_current_it_users(self, it_system_uuid: UUID) -> list[dict]:
+        """
+        Loads all current it-users
+        """
         query = gql(
             """
             query AllEmployees($cursor: Cursor) {
@@ -1290,6 +1293,39 @@ class DataLoader:
         for entry in [r["current"] for r in result["itusers"]["objects"]]:
             if entry["itsystem_uuid"] == str(it_system_uuid):
                 output.append(entry)
+
+        return output
+
+    async def load_all_it_users(self, it_system_uuid: UUID) -> list[dict]:
+        """
+        Loads all it-users in the database. Past, current and future.
+        """
+        query = gql(
+            """
+            query AllEmployees($cursor: Cursor) {
+              itusers (limit: 100, cursor: $cursor, to_date: null, from_date: null) {
+                objects {
+                  objects {
+                    itsystem_uuid
+                    user_key
+                  }
+                }
+                page_info {
+                  next_cursor
+                }
+              }
+            }
+            """
+        )
+
+        result = await self.query_mo_paged(query)
+
+        # Format output
+        output = []
+        for entries in [r["objects"] for r in result["itusers"]["objects"]]:
+            for entry in entries:
+                if entry["itsystem_uuid"] == str(it_system_uuid):
+                    output.append(entry)
 
         return output
 
