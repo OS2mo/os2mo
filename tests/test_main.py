@@ -931,7 +931,7 @@ def test_construct_gql_client():
         assert gql_client_sync.sync is True
 
         for client in [gql_client, gql_client_sync]:
-            assert client.url == "mo-url/graphql/v6"
+            assert client.url == "mo-url/graphql/v7"
 
 
 async def test_get_non_existing_objectGUIDs_from_MO(

@@ -541,7 +541,7 @@ async def test_load_mo_address_types(
     gql_client_sync.execute.return_value = {
         "facets": {
             "objects": [
-                {"classes": [{"uuid": uuid, "name": name}]},
+                {"current": {"classes": [{"uuid": uuid, "name": name}]}},
             ]
         }
     }
@@ -560,7 +560,7 @@ async def test_load_mo_primary_types(
     gql_client_sync.execute.return_value = {
         "facets": {
             "objects": [
-                {"classes": [{"uuid": uuid, "value_key": value_key}]},
+                {"current": {"classes": [{"uuid": uuid, "value_key": value_key}]}},
             ]
         }
     }
@@ -579,7 +579,7 @@ async def test_load_mo_job_functions(
     gql_client_sync.execute.return_value = {
         "facets": {
             "objects": [
-                {"classes": [{"uuid": uuid, "name": name}]},
+                {"current": {"classes": [{"uuid": uuid, "name": name}]}},
             ]
         }
     }
@@ -598,7 +598,7 @@ async def test_load_mo_visibility(
     gql_client_sync.execute.return_value = {
         "facets": {
             "objects": [
-                {"classes": [{"uuid": uuid, "name": name}]},
+                {"current": {"classes": [{"uuid": uuid, "name": name}]}},
             ]
         }
     }
@@ -617,7 +617,7 @@ async def test_load_mo_engagement_types(
     gql_client_sync.execute.return_value = {
         "facets": {
             "objects": [
-                {"classes": [{"uuid": uuid, "name": name}]},
+                {"current": {"classes": [{"uuid": uuid, "name": name}]}},
             ]
         }
     }
@@ -636,7 +636,7 @@ async def test_load_mo_org_unit_types(
     gql_client_sync.execute.return_value = {
         "facets": {
             "objects": [
-                {"classes": [{"uuid": uuid, "name": name}]},
+                {"current": {"classes": [{"uuid": uuid, "name": name}]}},
             ]
         }
     }
@@ -655,7 +655,7 @@ async def test_load_mo_org_unit_levels(
     gql_client_sync.execute.return_value = {
         "facets": {
             "objects": [
-                {"classes": [{"uuid": uuid, "name": name}]},
+                {"current": {"classes": [{"uuid": uuid, "name": name}]}},
             ]
         }
     }
@@ -928,8 +928,8 @@ def test_load_mo_it_systems(dataloader: DataLoader, gql_client_sync: MagicMock):
     return_value = {
         "itsystems": {
             "objects": [
-                {"user_key": "AD", "uuid": uuid1},
-                {"user_key": "Office365", "uuid": uuid2},
+                {"current": {"user_key": "AD", "uuid": uuid1}},
+                {"current": {"user_key": "Office365", "uuid": uuid2}},
             ]
         }
     }
@@ -1965,7 +1965,7 @@ def test_load_mo_facet_uuid(dataloader: DataLoader):
     uuid = uuid4()
     dataloader.query_mo_sync = MagicMock()  # type: ignore
     dataloader.query_mo_sync.return_value = {
-        "facets": {"objects": [{"uuid": str(uuid)}]}
+        "facets": {"objects": [{"current": {"uuid": str(uuid)}}]}
     }
 
     assert dataloader.load_mo_facet_uuid("") == uuid
@@ -1975,7 +1975,12 @@ def test_load_mo_facet_uuid_multiple_facets(dataloader: DataLoader):
 
     dataloader.query_mo_sync = MagicMock()  # type: ignore
     dataloader.query_mo_sync.return_value = {
-        "facets": {"objects": [{"uuid": str(uuid4())}, {"uuid": str(uuid4())}]}
+        "facets": {
+            "objects": [
+                {"current": {"uuid": str(uuid4())}},
+                {"current": {"uuid": str(uuid4())}},
+            ]
+        }
     }
 
     with pytest.raises(MultipleObjectsReturnedException):
