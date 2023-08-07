@@ -24,7 +24,6 @@ from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
-from ramqp.mo.models import PayloadType
 
 from .exceptions import AttributeNotFound
 from .exceptions import DNNotFound
@@ -64,10 +63,10 @@ class DataLoader:
 
         # Relate graphQL object types (left) to AMQP routing key object types (right)
         self.object_type_dict = {
-            "employees": "employee",
+            "employees": "person",
             "org_units": "org_unit",
             "addresses": "address",
-            "itusers": "it",
+            "itusers": "ituser",
             "engagements": "engagement",
         }
 
@@ -1646,11 +1645,8 @@ class DataLoader:
                             )
                         )
 
-                mo_object["payload"] = PayloadType(
-                    uuid=parent_uuid,
-                    object_uuid=mo_object["uuid"],
-                    time=datetime.datetime.now(),
-                )
+                mo_object["payload"] = UUID(mo_object["uuid"])
+                mo_object["parent_uuid"] = UUID(parent_uuid)
 
                 mo_object["object_type"] = self.object_type_dict[object_type]
                 mo_object["service_type"] = service_type

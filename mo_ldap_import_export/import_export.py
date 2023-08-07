@@ -15,11 +15,9 @@ from typing import Union
 from uuid import UUID
 from uuid import uuid4
 
-from fastapi.encoders import jsonable_encoder
 from fastramqpi.context import Context
 from httpx import HTTPStatusError
-from ramqp.mo.models import MORoutingKey
-from ramqp.mo.models import RequestType
+from ramqp.mo import MORoutingKey
 
 from .exceptions import DNNotFound
 from .exceptions import IgnoreChanges
@@ -262,7 +260,7 @@ class SyncTool:
         mo_object_dict: dict[str, Any] = {"mo_employee": changed_employee}
         object_type = get_object_type_from_routing_key(routing_key)
 
-        if object_type == "employee":
+        if object_type == "person":
             logger.info("[MO] Change registered in the employee object type")
 
             # Convert to LDAP
@@ -315,7 +313,7 @@ class SyncTool:
                     dn,
                 )
 
-        elif object_type == "it":
+        elif object_type == "ituser":
             logger.info("[MO] Change registered in the IT object type")
 
             # Get MO IT-user
@@ -459,10 +457,7 @@ class SyncTool:
         # When an org-unit is changed we need to update the org unit info. So we
         # know the new name of the org unit in case it was changed
         object_type = get_object_type_from_routing_key(routing_key)
-        if (
-            object_type == "org_unit"
-            and routing_key.request_type != RequestType.REFRESH
-        ):
+        if object_type == "org_unit":
             logger.info("Updating org unit info")
             self.converter.org_unit_info = self.dataloader.load_mo_org_units()
             self.converter.check_org_unit_info_dict()
@@ -768,23 +763,14 @@ class SyncTool:
         Sends out an AMQP message on the internal AMQP system to refresh an object
         """
         mo_object_dict = await self.dataloader.load_mo_object(str(uuid), object_type)
-        routing_key = MORoutingKey.build(
-            service_type=mo_object_dict["service_type"],
-            object_type=mo_object_dict["object_type"],
-            request_type=RequestType.REFRESH,
-        )
+        routing_key = mo_object_dict["object_type"]
         payload = mo_object_dict["payload"]
 
-        logger.info(f"Publishing {routing_key}")
-        logger.info(f"with payload.uuid = {payload.uuid}")
-        logger.info(f"and payload.object_uuid = {payload.object_uuid}")
-
-        await self.internal_amqpsystem.publish_message(
-            str(routing_key), jsonable_encoder(payload)
-        )
+        logger.info(f"Publishing {routing_key} - {payload}")
+        await self.internal_amqpsystem.publish_message(routing_key, payload)
 
     async def export_org_unit_addresses_on_engagement_change(
-        self, routing_key, object_uuid, **kwargs
+        self, routing_key: MORoutingKey, object_uuid: UUID, **kwargs
     ):
         object_type = get_object_type_from_routing_key(routing_key)
         if object_type == "engagement":
@@ -842,7 +828,7 @@ class SyncTool:
             await self.refresh_object(address.uuid, "address")
 
         for it_user in it_users:
-            await self.refresh_object(it_user.uuid, "it")
+            await self.refresh_object(it_user.uuid, "ituser")
 
         for engagement in engagements:
             await self.refresh_object(engagement.uuid, "engagement")

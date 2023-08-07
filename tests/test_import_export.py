@@ -18,7 +18,7 @@ from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
-from ramqp.mo.models import MORoutingKey
+from ramqp.mo import MORoutingKey
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.customer_specific import HolstebroEngagementUpdate
@@ -70,7 +70,7 @@ async def test_listen_to_changes_in_org_units(
     payload = MagicMock()
     payload.uuid = uuid4()
 
-    mo_routing_key = MORoutingKey.build("org_unit.org_unit.edit")
+    mo_routing_key: MORoutingKey = "org_unit"
 
     await sync_tool.listen_to_changes_in_org_units(
         payload.uuid,
@@ -88,7 +88,7 @@ async def test_listen_to_change_in_org_unit_address(
     converter: MagicMock,
     sync_tool: SyncTool,
 ):
-    mo_routing_key = MORoutingKey.build("org_unit.address.edit")
+    mo_routing_key: MORoutingKey = "address"
 
     address = Address.from_simplified_fields("foo", uuid4(), "2021-01-01")
     employee1 = Employee(cpr_no="0101011234")
@@ -191,7 +191,7 @@ async def test_listen_to_change_in_org_unit_address_not_supported(
     """
     Mapping an organization unit address to non-employee objects is not supported.
     """
-    mo_routing_key = MORoutingKey.build("org_unit.address.edit")
+    mo_routing_key: MORoutingKey = "address"
     payload = MagicMock()
     payload.uuid = uuid4()
 
@@ -251,7 +251,7 @@ async def test_listen_to_changes_in_employees(
     settings.ldap_search_base = "DC=bar"
 
     # Simulate a created employee
-    mo_routing_key = MORoutingKey.build("employee.employee.create")
+    mo_routing_key: MORoutingKey = "person"
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         await asyncio.gather(
             sync_tool.listen_to_changes_in_employees(
@@ -271,7 +271,7 @@ async def test_listen_to_changes_in_employees(
     assert not dataloader.load_mo_address.called
 
     # Simulate a created address
-    mo_routing_key = MORoutingKey.build("employee.address.create")
+    mo_routing_key = "address"
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         await asyncio.gather(
             sync_tool.listen_to_changes_in_employees(
@@ -288,7 +288,7 @@ async def test_listen_to_changes_in_employees(
     )
 
     # Simulate a created IT user
-    mo_routing_key = MORoutingKey.build("employee.it.create")
+    mo_routing_key = "ituser"
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         await asyncio.gather(
             sync_tool.listen_to_changes_in_employees(
@@ -305,7 +305,7 @@ async def test_listen_to_changes_in_employees(
     )
 
     # Simulate a created engagement
-    mo_routing_key = MORoutingKey.build("employee.engagement.create")
+    mo_routing_key = "engagement"
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         await asyncio.gather(
             sync_tool.listen_to_changes_in_employees(
@@ -373,7 +373,7 @@ async def test_listen_to_changes_in_employees_no_dn(
 ) -> None:
     payload = MagicMock()
     payload.uuid = uuid4()
-    mo_routing_key = MORoutingKey.build("employee.employee.create")
+    mo_routing_key: MORoutingKey = "person"
     dataloader.find_or_make_mo_employee_dn.side_effect = DNNotFound("Not found")
 
     with capture_logs() as cap_logs:
@@ -1138,7 +1138,7 @@ async def test_export_org_unit_addresses_on_engagement_change(
     dataloader.load_mo_org_unit_addresses.return_value = [address]
     sync_tool.refresh_object = AsyncMock()  # type: ignore
 
-    routing_key = MORoutingKey.build("employee.engagement.create")
+    routing_key: MORoutingKey = "engagement"
     payload = MagicMock()
     await sync_tool.export_org_unit_addresses_on_engagement_change(routing_key, payload)
 
@@ -1179,7 +1179,7 @@ async def test_refresh_employee(
     await sync_tool.refresh_employee(uuid4())
 
     sync_tool.refresh_object.assert_any_await(address.uuid, "address")
-    sync_tool.refresh_object.assert_any_await(it_user.uuid, "it")
+    sync_tool.refresh_object.assert_any_await(it_user.uuid, "ituser")
     sync_tool.refresh_object.assert_any_await(engagement.uuid, "engagement")
 
     # We expect 5 calls:

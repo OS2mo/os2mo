@@ -10,7 +10,6 @@ import pytest
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
-from ramqp.mo.models import PayloadType
 
 from mo_ldap_import_export.converters import read_mapping_json
 from mo_ldap_import_export.ldap_classes import LdapObject
@@ -33,6 +32,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "LDAP_SEARCH_BASE": "DC=ad,DC=addev",
         "DEFAULT_ORG_UNIT_LEVEL": "foo",
         "DEFAULT_ORG_UNIT_TYPE": "foo",
+        "AMQP__URL": "amqp://guest:guest@msg_broker:5672/",
     }
     yield overrides
 
@@ -73,10 +73,9 @@ def test_mo_objects() -> list:
         {
             "uuid": uuid4(),
             "service_type": "employee",
-            "payload": PayloadType(
-                uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
-            ),
-            "object_type": "employee",
+            "payload": uuid4(),
+            "parent_uuid": uuid4(),
+            "object_type": "person",
             "validity": {
                 "from": datetime.datetime.today().strftime("%Y-%m-%d"),
                 "to": None,
@@ -85,10 +84,9 @@ def test_mo_objects() -> list:
         {
             "uuid": uuid4(),
             "service_type": "employee",
-            "payload": PayloadType(
-                uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
-            ),
-            "object_type": "employee",
+            "payload": uuid4(),
+            "parent_uuid": uuid4(),
+            "object_type": "person",
             "validity": {
                 "from": "2021-01-01",
                 "to": datetime.datetime.today().strftime("%Y-%m-%d"),
@@ -97,10 +95,9 @@ def test_mo_objects() -> list:
         {
             "uuid": uuid4(),
             "service_type": "employee",
-            "payload": PayloadType(
-                uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
-            ),
-            "object_type": "employee",
+            "payload": uuid4(),
+            "parent_uuid": uuid4(),
+            "object_type": "person",
             "validity": {
                 "from": "2021-01-01",
                 "to": "2021-05-01",
@@ -109,10 +106,9 @@ def test_mo_objects() -> list:
         {
             "uuid": uuid4(),
             "service_type": "employee",
-            "payload": PayloadType(
-                uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
-            ),
-            "object_type": "employee",
+            "payload": uuid4(),
+            "parent_uuid": uuid4(),
+            "object_type": "person",
             "validity": {
                 "from": datetime.datetime.today().strftime("%Y-%m-%d"),
                 "to": datetime.datetime.today().strftime("%Y-%m-%d"),

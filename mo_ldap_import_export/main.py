@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 from functools import partial
 from functools import wraps
 from inspect import iscoroutinefunction
+from typing import Annotated
 from typing import Any
 from typing import Literal
 from typing import Tuple
@@ -25,7 +26,6 @@ from fastapi import Request
 from fastapi import Response
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
-from fastramqpi.context import Context
 from fastramqpi.main import FastRAMQPI
 from gql.transport.exceptions import TransportQueryError
 from ldap3 import Connection
@@ -34,10 +34,11 @@ from raclients.graph.client import PersistentGraphQLClient
 from raclients.modelclient.mo import ModelClient
 from ramodels.mo._shared import validate_cpr
 from ramqp import AMQPSystem
+from ramqp.depends import Context
+from ramqp.depends import rate_limit
 from ramqp.mo import MORouter
-from ramqp.mo.models import MORoutingKey
-from ramqp.mo.models import PayloadType
-from ramqp.mo.models import RequestType
+from ramqp.mo import MORoutingKey
+from ramqp.mo import PayloadUUID
 from ramqp.utils import RejectMessage
 from ramqp.utils import RequeueMessage
 from tqdm import tqdm
@@ -77,12 +78,7 @@ amqp_router = MORouter()
 internal_amqp_router = MORouter()
 delay_on_error = 10  # Try errors again after a short period of time
 delay_on_requeue = 60 * 60 * 24  # Requeue messages for tomorrow (or after a reboot)
-
-"""
-Employee.schema()
-help(MORouter)
-help(RequestType)
-"""
+RateLimit = Annotated[None, Depends(rate_limit(delay_on_error))]
 
 
 def reject_on_failure(func):
@@ -107,9 +103,6 @@ def reject_on_failure(func):
         except RequeueMessage:
             await asyncio.sleep(delay_on_requeue)
             raise
-        except Exception:  # pylint: disable=broad-except
-            await asyncio.sleep(delay_on_error)
-            raise
 
     modified_func.__wrapped__ = func  # type: ignore
     return modified_func
@@ -133,21 +126,13 @@ def get_delete_flag(mo_object) -> bool:
         return False
 
 
-def get_service_type(mo_object) -> str:
+async def unpack_payload(
+    context: Context, object_uuid: PayloadUUID, mo_routing_key: MORoutingKey
+):
     """
-    Determine if an object belongs to an employee or to an org-unit and return
-    a string which is either "employee" or "org_unit"
+    Takes the payload of an AMQP message, and returns a set of parameters to be used
+    by export functions in `import_export.py`. Also return the mo object as a dict
     """
-    service_type: str = mo_object["service_type"]
-    return service_type
-
-
-@internal_amqp_router.register("*.*.*")
-@amqp_router.register("*.*.*")
-@reject_on_failure
-async def listen_to_changes(
-    context: Context, payload: PayloadType, mo_routing_key: MORoutingKey
-) -> None:
 
     # If we are not supposed to listen: reject and turn the message into a dead letter.
     if not Settings().listen_to_changes_in_mo:
@@ -155,42 +140,112 @@ async def listen_to_changes(
         raise RejectMessage()
 
     logger.info(f"[MO] Routing key: {mo_routing_key}")
-    logger.info(f"[MO] Payload: {payload}")
+    logger.info(f"[MO] Payload uuid: {object_uuid}")
 
-    sync_tool = context["user_context"]["sync_tool"]
     dataloader = context["user_context"]["dataloader"]
 
     object_type = get_object_type_from_routing_key(mo_routing_key)
     logger.info(f"[MO] Object type: {object_type}")
 
-    if object_type not in dataloader.supported_object_types:
-        logger.info("[MO] Object type is not supported")
-        raise RejectMessage()
-
     mo_object = await dataloader.load_mo_object(
-        payload.object_uuid,
+        object_uuid,
         object_type,
         add_validity=True,
         current_objects_only=False,
     )
 
     delete = get_delete_flag(mo_object)
-    service_type = get_service_type(mo_object)
     current_objects_only = False if delete else True
 
     args = dict(
-        uuid=payload.uuid,
-        object_uuid=payload.object_uuid,
+        uuid=mo_object["parent_uuid"],
+        object_uuid=object_uuid,
         routing_key=mo_routing_key,
         delete=delete,
         current_objects_only=current_objects_only,
     )
 
+    return args, mo_object
+
+
+@internal_amqp_router.register("address")
+@amqp_router.register("address")
+@reject_on_failure
+async def process_address(
+    context: Context,
+    object_uuid: PayloadUUID,
+    mo_routing_key: MORoutingKey,
+    _: RateLimit,
+) -> None:
+    args, mo_object = await unpack_payload(context, object_uuid, mo_routing_key)
+    service_type = mo_object["service_type"]
+
+    sync_tool = context["user_context"]["sync_tool"]
     if service_type == "employee":
         await sync_tool.listen_to_changes_in_employees(**args)
-        await sync_tool.export_org_unit_addresses_on_engagement_change(**args)
     elif service_type == "org_unit":
         await sync_tool.listen_to_changes_in_org_units(**args)
+
+
+@internal_amqp_router.register("engagement")
+@amqp_router.register("engagement")
+@reject_on_failure
+async def process_engagement(
+    context: Context,
+    object_uuid: PayloadUUID,
+    mo_routing_key: MORoutingKey,
+    _: RateLimit,
+) -> None:
+    args, _ = await unpack_payload(context, object_uuid, mo_routing_key)
+
+    sync_tool = context["user_context"]["sync_tool"]
+    await sync_tool.listen_to_changes_in_employees(**args)
+    await sync_tool.export_org_unit_addresses_on_engagement_change(**args)
+
+
+@internal_amqp_router.register("ituser")
+@amqp_router.register("ituser")
+@reject_on_failure
+async def process_ituser(
+    context: Context,
+    object_uuid: PayloadUUID,
+    mo_routing_key: MORoutingKey,
+    _: RateLimit,
+) -> None:
+    args, _ = await unpack_payload(context, object_uuid, mo_routing_key)
+
+    sync_tool = context["user_context"]["sync_tool"]
+    await sync_tool.listen_to_changes_in_employees(**args)
+
+
+@internal_amqp_router.register("person")
+@amqp_router.register("person")
+@reject_on_failure
+async def process_person(
+    context: Context,
+    object_uuid: PayloadUUID,
+    mo_routing_key: MORoutingKey,
+    _: RateLimit,
+) -> None:
+    args, _ = await unpack_payload(context, object_uuid, mo_routing_key)
+
+    sync_tool = context["user_context"]["sync_tool"]
+    await sync_tool.listen_to_changes_in_employees(**args)
+
+
+@internal_amqp_router.register("org_unit")
+@amqp_router.register("org_unit")
+@reject_on_failure
+async def process_org_unit(
+    context: Context,
+    object_uuid: PayloadUUID,
+    mo_routing_key: MORoutingKey,
+    _: RateLimit,
+) -> None:
+    args, _ = await unpack_payload(context, object_uuid, mo_routing_key)
+
+    sync_tool = context["user_context"]["sync_tool"]
+    await sync_tool.listen_to_changes_in_org_units(**args)
 
 
 @asynccontextmanager
@@ -535,21 +590,12 @@ def create_app(**kwargs: Any) -> FastAPI:
         logger.info(f"Found {len(mo_objects)} objects")
 
         for mo_object in mo_objects:
-            routing_key = MORoutingKey.build(
-                service_type=mo_object["service_type"],
-                object_type=mo_object["object_type"],
-                request_type=RequestType.REFRESH,
-            )
+            routing_key = mo_object["object_type"]
             payload = mo_object["payload"]
 
-            logger.info(f"Publishing {routing_key}")
-            logger.info(f"payload.uuid = {payload.uuid}")
-            logger.info(f"payload.object_uuid = {payload.object_uuid}")
-
+            logger.info(f"Publishing {routing_key} - {payload}")
             if params.publish_amqp_messages:
-                await internal_amqpsystem.publish_message(
-                    str(routing_key), jsonable_encoder(payload)
-                )
+                await internal_amqpsystem.publish_message(routing_key, payload)
 
     # Get all objects from LDAP - Converted to MO
     @app.get("/LDAP/{json_key}/converted", status_code=202, tags=["LDAP"])
@@ -821,43 +867,22 @@ def create_app(**kwargs: Any) -> FastAPI:
             from_date = mo_datestring_to_utc(mo_object["validity"]["from"])
             to_date = mo_datestring_to_utc(mo_object["validity"]["to"])
             if from_date and from_date.date() == date:
-                if to_date and to_date.date() == date:
-                    mo_object["request_type"] = RequestType.TERMINATE
-                else:
-                    mo_object["request_type"] = RequestType.REFRESH
                 todays_objects.append(mo_object)
             elif to_date and to_date.date() == date:
-                mo_object["request_type"] = RequestType.TERMINATE
                 todays_objects.append(mo_object)
 
-        def sorting_key(mo_object):
-            return 0 if mo_object["request_type"] == RequestType.TERMINATE else 1
-
-        # Make sure that we send termination messages before other messages
-        # Otherwise we risk that newly exported information gets erased right away
-        todays_objects = sorted(todays_objects, key=sorting_key)
+        todays_objects = todays_objects
 
         logger.info(
             f"Found {len(todays_objects)} objects which are valid from/to today"
         )
 
         for mo_object in todays_objects:
-            routing_key = MORoutingKey.build(
-                service_type=mo_object["service_type"],
-                object_type=mo_object["object_type"],
-                request_type=mo_object["request_type"],
-            )
+            routing_key = mo_object["object_type"]
             payload = mo_object["payload"]
 
-            logger.info(f"Publishing {routing_key}")
-            logger.info(f"payload.uuid = {payload.uuid}")
-            logger.info(f"payload.object_uuid = {payload.object_uuid}")
-
-            # Note: OS2mo does not send out AMQP messages (yet) when objects become
-            # valid. That is why we have to do it ourselves.
+            logger.info(f"Publishing {routing_key} - {payload}")
             if params.publish_amqp_messages and settings.listen_to_changes_in_mo:
-                await internal_amqpsystem.publish_message(
-                    str(routing_key), jsonable_encoder(payload)
-                )
+                await internal_amqpsystem.publish_message(routing_key, payload)
 
     return app
