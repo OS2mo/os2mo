@@ -11,6 +11,7 @@ from gql import gql
 from graphql import print_ast
 from ldap3.core.exceptions import LDAPInvalidDnError
 from ramodels.mo.details.address import Address
+from ramqp.mo.models import MORoutingKey
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.exceptions import InvalidQuery
@@ -20,6 +21,7 @@ from mo_ldap_import_export.utils import countdown
 from mo_ldap_import_export.utils import datetime_to_ldap_timestamp
 from mo_ldap_import_export.utils import delete_keys_from_dict
 from mo_ldap_import_export.utils import extract_ou_from_dn
+from mo_ldap_import_export.utils import get_object_type_from_routing_key
 from mo_ldap_import_export.utils import import_class
 from mo_ldap_import_export.utils import listener
 from mo_ldap_import_export.utils import mo_datestring_to_utc
@@ -194,3 +196,8 @@ def test_extract_ou_from_dn():
 
     with pytest.raises(LDAPInvalidDnError):
         extract_ou_from_dn("")
+
+
+def test_get_object_type_from_routing_key():
+    routing_key = MORoutingKey.build("employee.address.terminate")
+    assert get_object_type_from_routing_key(routing_key) == "address"

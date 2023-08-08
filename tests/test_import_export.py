@@ -19,7 +19,6 @@ from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 from ramqp.mo.models import MORoutingKey
-from ramqp.mo.models import ObjectType
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.customer_specific import HolstebroEngagementUpdate
@@ -1112,7 +1111,7 @@ async def test_wait_for_import_to_finish(sync_tool: SyncTool):
 
 
 async def test_refresh_object(sync_tool: SyncTool):
-    await sync_tool.refresh_object(uuid4(), ObjectType.ADDRESS)
+    await sync_tool.refresh_object(uuid4(), "address")
     sync_tool.internal_amqpsystem.publish_message.assert_awaited_once()
 
 
@@ -1167,9 +1166,9 @@ async def test_refresh_employee(
 
     await sync_tool.refresh_employee(uuid4())
 
-    sync_tool.refresh_object.assert_any_await(address.uuid, ObjectType.ADDRESS)
-    sync_tool.refresh_object.assert_any_await(it_user.uuid, ObjectType.IT)
-    sync_tool.refresh_object.assert_any_await(engagement.uuid, ObjectType.ENGAGEMENT)
+    sync_tool.refresh_object.assert_any_await(address.uuid, "address")
+    sync_tool.refresh_object.assert_any_await(it_user.uuid, "it")
+    sync_tool.refresh_object.assert_any_await(engagement.uuid, "engagement")
 
     # We expect 5 calls:
     # Two for the addresses

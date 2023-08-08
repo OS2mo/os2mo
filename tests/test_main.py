@@ -26,9 +26,7 @@ from ramodels.mo.details.address import Address
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 from ramqp.mo.models import MORoutingKey
-from ramqp.mo.models import ObjectType
 from ramqp.mo.models import PayloadType
-from ramqp.mo.models import RequestType
 from ramqp.mo.models import ServiceType
 from ramqp.utils import RejectMessage
 from ramqp.utils import RequeueMessage
@@ -111,7 +109,7 @@ def test_mo_objects() -> list:
             "payload": PayloadType(
                 uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
             ),
-            "object_type": ObjectType.EMPLOYEE,
+            "object_type": "employee",
             "validity": {
                 "from": datetime.datetime.today().strftime("%Y-%m-%d"),
                 "to": None,
@@ -123,7 +121,7 @@ def test_mo_objects() -> list:
             "payload": PayloadType(
                 uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
             ),
-            "object_type": ObjectType.EMPLOYEE,
+            "object_type": "employee",
             "validity": {
                 "from": "2021-01-01",
                 "to": datetime.datetime.today().strftime("%Y-%m-%d"),
@@ -135,7 +133,7 @@ def test_mo_objects() -> list:
             "payload": PayloadType(
                 uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
             ),
-            "object_type": ObjectType.EMPLOYEE,
+            "object_type": "employee",
             "validity": {
                 "from": "2021-01-01",
                 "to": "2021-05-01",
@@ -147,7 +145,7 @@ def test_mo_objects() -> list:
             "payload": PayloadType(
                 uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
             ),
-            "object_type": ObjectType.EMPLOYEE,
+            "object_type": "employee",
             "validity": {
                 "from": datetime.datetime.today().strftime("%Y-%m-%d"),
                 "to": datetime.datetime.today().strftime("%Y-%m-%d"),
@@ -826,11 +824,7 @@ async def test_get_delete_flag(dataloader: AsyncMock):
         time=datetime.datetime.now(),
     )
 
-    routing_key = MORoutingKey.build(
-        service_type=ServiceType.EMPLOYEE,
-        object_type=ObjectType.EMPLOYEE,
-        request_type=RequestType.TERMINATE,
-    )
+    routing_key = MORoutingKey.build("employee.employee.terminate")
 
     # When there are matching objects in MO, but the to-date is today, delete
     dataloader.load_mo_object.return_value = {

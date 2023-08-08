@@ -19,10 +19,8 @@ from fastapi.encoders import jsonable_encoder
 from fastramqpi.context import Context
 from httpx import HTTPStatusError
 from ramqp.mo.models import MORoutingKey
-from ramqp.mo.models import ObjectType
 from ramqp.mo.models import PayloadType
 from ramqp.mo.models import RequestType
-from ramqp.mo.models import ServiceType
 
 from .exceptions import DNNotFound
 from .exceptions import IgnoreChanges
@@ -30,6 +28,7 @@ from .exceptions import NoObjectsReturnedException
 from .exceptions import NotSupportedException
 from .ldap import cleanup
 from .logging import logger
+from .utils import get_object_type_from_routing_key
 
 
 class IgnoreMe:
@@ -231,8 +230,9 @@ class SyncTool:
         logger.info(f"Found Employee in MO: {changed_employee}")
 
         mo_object_dict: dict[str, Any] = {"mo_employee": changed_employee}
+        object_type = get_object_type_from_routing_key(routing_key)
 
-        if routing_key.object_type == ObjectType.EMPLOYEE:
+        if object_type == "employee":
             logger.info("[MO] Change registered in the employee object type")
 
             # Convert to LDAP
@@ -247,7 +247,7 @@ class SyncTool:
                 delete=delete,
             )
 
-        elif routing_key.object_type == ObjectType.ADDRESS:
+        elif object_type == "address":
             logger.info("[MO] Change registered in the address object type")
 
             # Get MO address
@@ -281,11 +281,11 @@ class SyncTool:
                     addresses_in_mo,
                     self.user_context,
                     changed_employee,
-                    routing_key.object_type,
+                    object_type,
                     dn,
                 )
 
-        elif routing_key.object_type == ObjectType.IT:
+        elif object_type == "it":
             logger.info("[MO] Change registered in the IT object type")
 
             # Get MO IT-user
@@ -318,11 +318,11 @@ class SyncTool:
                     it_users_in_mo,
                     self.user_context,
                     changed_employee,
-                    routing_key.object_type,
+                    object_type,
                     dn,
                 )
 
-        elif routing_key.object_type == ObjectType.ENGAGEMENT:
+        elif object_type == "engagement":
             logger.info("[MO] Change registered in the Engagement object type")
 
             # Get MO Engagement
@@ -355,7 +355,7 @@ class SyncTool:
                     engagements_in_mo,
                     self.user_context,
                     changed_employee,
-                    routing_key.object_type,
+                    object_type,
                     dn,
                 )
 
@@ -413,15 +413,16 @@ class SyncTool:
 
         # When an org-unit is changed we need to update the org unit info. So we
         # know the new name of the org unit in case it was changed
+        object_type = get_object_type_from_routing_key(routing_key)
         if (
-            routing_key.object_type == ObjectType.ORG_UNIT
+            object_type == "org_unit"
             and routing_key.request_type != RequestType.REFRESH
         ):
             logger.info("Updating org unit info")
             self.converter.org_unit_info = self.dataloader.load_mo_org_units()
             self.converter.check_org_unit_info_dict()
 
-        if routing_key.object_type == ObjectType.ADDRESS:
+        if object_type == "address":
             logger.info("[MO] Change registered in the address object type")
 
             # Get MO address
@@ -461,7 +462,7 @@ class SyncTool:
                         changed_address,
                         json_key,
                         delete,
-                        routing_key.object_type,
+                        object_type,
                     )
                 except DNNotFound as e:
                     logger.info(e)
@@ -717,7 +718,7 @@ class SyncTool:
                         for mo_object in converted_objects:
                             self.uuids_to_ignore.remove(mo_object.uuid)
 
-    async def refresh_object(self, uuid: UUID, object_type: ObjectType):
+    async def refresh_object(self, uuid: UUID, object_type: str):
         """
         Sends out an AMQP message on the internal AMQP system to refresh an object
         """
@@ -740,11 +741,8 @@ class SyncTool:
     async def export_org_unit_addresses_on_engagement_change(
         self, routing_key, payload, **kwargs
     ):
-
-        if (
-            routing_key.service_type == ServiceType.EMPLOYEE
-            and routing_key.object_type == ObjectType.ENGAGEMENT
-        ):
+        object_type = get_object_type_from_routing_key(routing_key)
+        if object_type == "engagement":
             changed_engagement = await self.dataloader.load_mo_engagement(
                 payload.object_uuid
             )
@@ -762,7 +760,7 @@ class SyncTool:
 
             # Export this org-unit's addresses to LDAP by publishing to internal AMQP
             for org_unit_address_uuid in org_unit_address_uuids:
-                await self.refresh_object(org_unit_address_uuid, ObjectType.ADDRESS)
+                await self.refresh_object(org_unit_address_uuid, "address")
 
     async def refresh_employee(self, employee_uuid: UUID):
         """
@@ -798,10 +796,10 @@ class SyncTool:
 
         # Publish messages
         for address in addresses:
-            await self.refresh_object(address.uuid, ObjectType.ADDRESS)
+            await self.refresh_object(address.uuid, "address")
 
         for it_user in it_users:
-            await self.refresh_object(it_user.uuid, ObjectType.IT)
+            await self.refresh_object(it_user.uuid, "it")
 
         for engagement in engagements:
-            await self.refresh_object(engagement.uuid, ObjectType.ENGAGEMENT)
+            await self.refresh_object(engagement.uuid, "engagement")
