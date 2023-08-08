@@ -854,6 +854,11 @@ async def test_get_delete_flag(dataloader: AsyncMock):
     flag = await get_delete_flag(routing_key, payload, context)
     assert flag is False
 
+    dataloader.load_mo_object.return_value = None
+    context = Context({"user_context": {"dataloader": dataloader}})
+    flag = await get_delete_flag(routing_key, payload, context)
+    assert flag is False
+
 
 def test_get_invalid_cpr_numbers_from_LDAP_endpoint(
     test_client: TestClient,

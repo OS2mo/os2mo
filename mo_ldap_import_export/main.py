@@ -133,6 +133,9 @@ async def get_delete_flag(
         current_objects_only=False,
     )
 
+    if not mo_object:
+        return False
+
     now = datetime.datetime.utcnow()
     validity_to = mo_datestring_to_utc(mo_object["validity"]["to"])
     if validity_to and validity_to <= now:
