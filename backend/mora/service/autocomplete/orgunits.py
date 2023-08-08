@@ -77,21 +77,29 @@ async def decorate_orgunit_search_result(
                     objects {
                         uuid
 
+                        current {
+                            ...orgunit_details
+                        }
+
                         objects {
-                            uuid
-                            name
-                            user_key
-
-                            validity {
-                                from
-                                to
-                            }
-
-                            ancestors {
-                                name
-                            }
+                            ...orgunit_details
                         }
                     }
+                }
+            }
+
+            fragment orgunit_details on OrganisationUnit {
+                uuid
+                name
+                user_key
+
+                validity {
+                    from
+                    to
+                }
+
+                ancestors {
+                    name
                 }
             }
             """
@@ -102,39 +110,47 @@ async def decorate_orgunit_search_result(
                     objects {
                         uuid
 
-                        objects {
-                            uuid
-                            name
-                            user_key
-
-                            validity {
-                                from
-                                to
-                            }
-
-                            ancestors {
-                                name
-                            }
-
-                            addresses {
-                                uuid
-                                name
-                                address_type {
-                                    uuid
-                                    name
-                                }
-                            }
-
-                            itusers {
-                                uuid
-                                user_key
-                                itsystem {
-                                    uuid
-                                    user_key
-                                    name
-                                }
-                            }
+                        current {
+                            ...orgunit_details
                         }
+
+                        objects {
+                            ...orgunit_details
+                        }
+                    }
+                }
+            }
+
+            fragment orgunit_details on OrganisationUnit {
+                uuid
+                name
+                user_key
+
+                validity {
+                    from
+                    to
+                }
+
+                ancestors {
+                    name
+                }
+
+                addresses {
+                    uuid
+                    name
+                    address_type {
+                        uuid
+                        name
+                    }
+                }
+
+                itusers {
+                    uuid
+                    user_key
+                    itsystem {
+                        uuid
+                        user_key
+                        name
                     }
                 }
             }
