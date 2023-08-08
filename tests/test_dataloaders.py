@@ -1672,6 +1672,11 @@ async def test_load_mo_object(dataloader: DataLoader):
         )
         assert result[0] is None
 
+    # Role is not defined in self.object_type_dict
+    # Hence we will not be able to find the object
+    result = await dataloader.load_mo_object("uuid", ObjectType.ROLE)
+    assert result is None
+
 
 async def test_modify_ldap(
     dataloader: DataLoader,

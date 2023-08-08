@@ -1610,8 +1610,12 @@ class DataLoader:
 
         Notes
         -------
-        returns None if the object is not a current object
+        returns None if the object is not a current object or if the object type is not
+        defined in self.object_type_dict
         """
+        if str(object_type) not in self.object_type_dict_inv:
+            return None
+
         mo_objects = await self.load_all_mo_objects(
             add_validity=add_validity,
             uuid=str(uuid),
