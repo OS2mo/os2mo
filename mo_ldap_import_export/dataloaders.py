@@ -24,7 +24,6 @@ from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
-from ramqp.mo.models import ObjectType
 from ramqp.mo.models import PayloadType
 from ramqp.mo.models import ServiceType
 
@@ -63,13 +62,13 @@ class DataLoader:
         self._mo_to_ldap_attributes = []
         self._sync_tool = None
 
-        # Relate graphQL object type names to AMQP routing key object types
+        # Relate graphQL object types (left) to AMQP routing key object types (right)
         self.object_type_dict = {
-            "employees": ObjectType.EMPLOYEE,
-            "org_units": ObjectType.ORG_UNIT,
-            "addresses": ObjectType.ADDRESS,
-            "itusers": ObjectType.IT,
-            "engagements": ObjectType.ENGAGEMENT,
+            "employees": "employee",
+            "org_units": "org_unit",
+            "addresses": "address",
+            "itusers": "it",
+            "engagements": "engagement",
         }
 
         self.object_type_dict_inv = {
@@ -1601,7 +1600,7 @@ class DataLoader:
     async def load_mo_object(
         self,
         uuid: str,
-        object_type: ObjectType,
+        object_type: str,
         add_validity: bool = False,
         current_objects_only: bool = True,
     ):

@@ -10,7 +10,6 @@ import pytest
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
-from ramqp.mo.models import ObjectType
 from ramqp.mo.models import PayloadType
 from ramqp.mo.models import ServiceType
 
@@ -78,7 +77,7 @@ def test_mo_objects() -> list:
             "payload": PayloadType(
                 uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
             ),
-            "object_type": ObjectType.EMPLOYEE,
+            "object_type": "employee",
             "validity": {
                 "from": datetime.datetime.today().strftime("%Y-%m-%d"),
                 "to": None,
@@ -90,7 +89,7 @@ def test_mo_objects() -> list:
             "payload": PayloadType(
                 uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
             ),
-            "object_type": ObjectType.EMPLOYEE,
+            "object_type": "employee",
             "validity": {
                 "from": "2021-01-01",
                 "to": datetime.datetime.today().strftime("%Y-%m-%d"),
@@ -102,7 +101,7 @@ def test_mo_objects() -> list:
             "payload": PayloadType(
                 uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
             ),
-            "object_type": ObjectType.EMPLOYEE,
+            "object_type": "employee",
             "validity": {
                 "from": "2021-01-01",
                 "to": "2021-05-01",
@@ -114,7 +113,7 @@ def test_mo_objects() -> list:
             "payload": PayloadType(
                 uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
             ),
-            "object_type": ObjectType.EMPLOYEE,
+            "object_type": "employee",
             "validity": {
                 "from": datetime.datetime.today().strftime("%Y-%m-%d"),
                 "to": datetime.datetime.today().strftime("%Y-%m-%d"),

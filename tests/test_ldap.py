@@ -27,7 +27,6 @@ from ldap3 import Server
 from more_itertools import collapse
 from ramodels.mo.details.address import Address
 from ramodels.mo.employee import Employee
-from ramqp.mo.models import ObjectType
 from ramqp.mo.models import PayloadType
 from ramqp.mo.models import ServiceType
 from structlog.testing import capture_logs
@@ -534,7 +533,7 @@ async def test_cleanup(
         mo_objects=mo_objects,
         user_context=user_context,
         employee=Employee(cpr_no="0101011234"),
-        object_type=ObjectType.ADDRESS,
+        object_type="address",
         dn="CN=foo",
     )
 
@@ -567,7 +566,7 @@ async def test_cleanup_no_sync_required(
         mo_objects=mo_objects,
         user_context=user_context,
         employee=Employee(cpr_no="0101011234"),
-        object_type=ObjectType.ADDRESS,
+        object_type="address",
         dn="CN=foo",
     )
 
@@ -600,7 +599,7 @@ async def test_cleanup_refresh_mo_object(
         mo_objects=mo_objects,
         user_context=user_context,
         employee=Employee(cpr_no="0101011234"),
-        object_type=ObjectType.ADDRESS,
+        object_type="address",
         dn="CN=foo",
     )
 
@@ -614,7 +613,7 @@ async def test_cleanup_refresh_mo_object(
             object_uuid=object_uuid,
             time=datetime.datetime.now(),
         ),
-        "object_type": ObjectType.ADDRESS,
+        "object_type": "address",
         "validity": {
             "from": datetime.datetime.today().strftime("%Y-%m-%d"),
             "to": None,
@@ -648,7 +647,7 @@ async def test_cleanup_no_export_False(
         mo_objects=[],
         user_context=user_context,
         employee=Employee(cpr_no="0101011234"),
-        object_type=ObjectType.ADDRESS,
+        object_type="address",
         dn="CN=foo",
     )
 

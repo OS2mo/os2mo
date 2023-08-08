@@ -24,7 +24,6 @@ from ldap3.core.exceptions import LDAPInvalidValueError
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
-from ramqp.mo.models import ObjectType
 from ramqp.mo.models import ServiceType
 from structlog.testing import capture_logs
 
@@ -1413,7 +1412,7 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
     uuid = return_values[0]["employees"]["objects"][0]["objects"][0]["uuid"]
     parent_uuid = uuid
     assert all_objects[0]["uuid"] == uuid
-    assert all_objects[0]["object_type"] == ObjectType.EMPLOYEE
+    assert all_objects[0]["object_type"] == "employee"
     assert all_objects[0]["service_type"] == ServiceType.EMPLOYEE
     assert all_objects[0]["payload"].uuid == parent_uuid
     assert all_objects[0]["payload"].object_uuid == uuid
@@ -1421,7 +1420,7 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
     uuid = return_values[1]["org_units"]["objects"][0]["objects"][0]["uuid"]
     parent_uuid = uuid
     assert all_objects[1]["uuid"] == uuid
-    assert all_objects[1]["object_type"] == ObjectType.ORG_UNIT
+    assert all_objects[1]["object_type"] == "org_unit"
     assert all_objects[1]["service_type"] == ServiceType.ORG_UNIT
     assert all_objects[1]["payload"].uuid == parent_uuid
     assert all_objects[1]["payload"].object_uuid == uuid
@@ -1431,7 +1430,7 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
         "employee_uuid"
     ]
     assert all_objects[2]["uuid"] == uuid
-    assert all_objects[2]["object_type"] == ObjectType.ADDRESS
+    assert all_objects[2]["object_type"] == "address"
     assert all_objects[2]["service_type"] == ServiceType.EMPLOYEE
     assert all_objects[2]["payload"].uuid == parent_uuid
     assert all_objects[2]["payload"].object_uuid == uuid
@@ -1441,7 +1440,7 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
         "org_unit_uuid"
     ]
     assert all_objects[3]["uuid"] == uuid
-    assert all_objects[3]["object_type"] == ObjectType.ADDRESS
+    assert all_objects[3]["object_type"] == "address"
     assert all_objects[3]["service_type"] == ServiceType.ORG_UNIT
     assert all_objects[3]["payload"].uuid == parent_uuid
     assert all_objects[3]["payload"].object_uuid == uuid
@@ -1451,7 +1450,7 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
         "employee_uuid"
     ]
     assert all_objects[4]["uuid"] == uuid
-    assert all_objects[4]["object_type"] == ObjectType.IT
+    assert all_objects[4]["object_type"] == "it"
     assert all_objects[4]["service_type"] == ServiceType.EMPLOYEE
     assert all_objects[4]["payload"].uuid == parent_uuid
     assert all_objects[4]["payload"].object_uuid == uuid
@@ -1461,7 +1460,7 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
         "employee_uuid"
     ]
     assert all_objects[5]["uuid"] == uuid
-    assert all_objects[5]["object_type"] == ObjectType.ENGAGEMENT
+    assert all_objects[5]["object_type"] == "engagement"
     assert all_objects[5]["service_type"] == ServiceType.EMPLOYEE
     assert all_objects[5]["payload"].uuid == parent_uuid
     assert all_objects[5]["payload"].object_uuid == uuid
@@ -1658,23 +1657,19 @@ async def test_load_mo_object(dataloader: DataLoader):
         "mo_ldap_import_export.dataloaders.DataLoader.load_all_mo_objects",
         return_value=["obj1"],
     ):
-        result = await asyncio.gather(
-            dataloader.load_mo_object("uuid", ObjectType.EMPLOYEE)
-        )
+        result = await asyncio.gather(dataloader.load_mo_object("uuid", "employee"))
         assert result[0] == "obj1"
 
     with patch(
         "mo_ldap_import_export.dataloaders.DataLoader.load_all_mo_objects",
         return_value=[],
     ):
-        result = await asyncio.gather(
-            dataloader.load_mo_object("uuid", ObjectType.EMPLOYEE)
-        )
+        result = await asyncio.gather(dataloader.load_mo_object("uuid", "employee"))
         assert result[0] is None
 
     # Role is not defined in self.object_type_dict
     # Hence we will not be able to find the object
-    result = await dataloader.load_mo_object("uuid", ObjectType.ROLE)
+    result = await dataloader.load_mo_object("uuid", "role")
     assert result is None
 
 

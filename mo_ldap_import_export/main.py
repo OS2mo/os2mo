@@ -69,9 +69,9 @@ from .logging import logger
 from .os2mo_init import InitEngine
 from .processors import _hide_cpr as hide_cpr
 from .utils import countdown
+from .utils import get_object_type_from_routing_key
 from .utils import listener
 from .utils import mo_datestring_to_utc
-
 
 fastapi_router = APIRouter()
 amqp_router = MORouter()
@@ -83,7 +83,6 @@ delay_on_requeue = 60 * 60 * 24  # Requeue messages for tomorrow (or after a reb
 Employee.schema()
 help(MORouter)
 help(ServiceType)
-help(ObjectType)
 help(RequestType)
 """
 
@@ -128,7 +127,7 @@ async def get_delete_flag(
 
     mo_object = await dataloader.load_mo_object(
         payload.object_uuid,
-        routing_key.object_type,
+        get_object_type_from_routing_key(routing_key),
         add_validity=True,
         current_objects_only=False,
     )

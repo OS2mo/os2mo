@@ -31,7 +31,6 @@ from ldap3.utils.dn import safe_dn
 from more_itertools import always_iterable
 from more_itertools import only
 from ramodels.mo.employee import Employee
-from ramqp.mo.models import ObjectType
 
 from .config import ServerConfig
 from .config import Settings
@@ -421,7 +420,7 @@ async def cleanup(
     mo_objects: list[Any],
     user_context: dict,
     employee: Employee,
-    object_type: ObjectType,
+    object_type: str,
     dn: str,
 ):
     """
