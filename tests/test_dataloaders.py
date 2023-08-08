@@ -24,7 +24,6 @@ from ldap3.core.exceptions import LDAPInvalidValueError
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
-from ramqp.mo.models import ServiceType
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.config import Settings
@@ -1413,7 +1412,7 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
     parent_uuid = uuid
     assert all_objects[0]["uuid"] == uuid
     assert all_objects[0]["object_type"] == "employee"
-    assert all_objects[0]["service_type"] == ServiceType.EMPLOYEE
+    assert all_objects[0]["service_type"] == "employee"
     assert all_objects[0]["payload"].uuid == parent_uuid
     assert all_objects[0]["payload"].object_uuid == uuid
 
@@ -1421,7 +1420,7 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
     parent_uuid = uuid
     assert all_objects[1]["uuid"] == uuid
     assert all_objects[1]["object_type"] == "org_unit"
-    assert all_objects[1]["service_type"] == ServiceType.ORG_UNIT
+    assert all_objects[1]["service_type"] == "org_unit"
     assert all_objects[1]["payload"].uuid == parent_uuid
     assert all_objects[1]["payload"].object_uuid == uuid
 
@@ -1431,7 +1430,7 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
     ]
     assert all_objects[2]["uuid"] == uuid
     assert all_objects[2]["object_type"] == "address"
-    assert all_objects[2]["service_type"] == ServiceType.EMPLOYEE
+    assert all_objects[2]["service_type"] == "employee"
     assert all_objects[2]["payload"].uuid == parent_uuid
     assert all_objects[2]["payload"].object_uuid == uuid
 
@@ -1441,7 +1440,7 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
     ]
     assert all_objects[3]["uuid"] == uuid
     assert all_objects[3]["object_type"] == "address"
-    assert all_objects[3]["service_type"] == ServiceType.ORG_UNIT
+    assert all_objects[3]["service_type"] == "org_unit"
     assert all_objects[3]["payload"].uuid == parent_uuid
     assert all_objects[3]["payload"].object_uuid == uuid
 
@@ -1451,7 +1450,7 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
     ]
     assert all_objects[4]["uuid"] == uuid
     assert all_objects[4]["object_type"] == "it"
-    assert all_objects[4]["service_type"] == ServiceType.EMPLOYEE
+    assert all_objects[4]["service_type"] == "employee"
     assert all_objects[4]["payload"].uuid == parent_uuid
     assert all_objects[4]["payload"].object_uuid == uuid
 
@@ -1461,7 +1460,7 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
     ]
     assert all_objects[5]["uuid"] == uuid
     assert all_objects[5]["object_type"] == "engagement"
-    assert all_objects[5]["service_type"] == ServiceType.EMPLOYEE
+    assert all_objects[5]["service_type"] == "employee"
     assert all_objects[5]["payload"].uuid == parent_uuid
     assert all_objects[5]["payload"].object_uuid == uuid
 

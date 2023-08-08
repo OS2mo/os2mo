@@ -19,7 +19,6 @@ import pytest
 from fastapi import FastAPI
 from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
-from fastramqpi.context import Context
 from fastramqpi.main import FastRAMQPI
 from gql.transport.exceptions import TransportQueryError
 from ramodels.mo.details.address import Address
@@ -27,7 +26,6 @@ from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 from ramqp.mo.models import MORoutingKey
 from ramqp.mo.models import PayloadType
-from ramqp.mo.models import ServiceType
 from ramqp.utils import RejectMessage
 from ramqp.utils import RequeueMessage
 from structlog.testing import capture_logs
@@ -40,6 +38,7 @@ from mo_ldap_import_export.main import construct_gql_client
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
 from mo_ldap_import_export.main import get_delete_flag
+from mo_ldap_import_export.main import get_service_type
 from mo_ldap_import_export.main import listen_to_changes
 from mo_ldap_import_export.main import open_ldap_connection
 from mo_ldap_import_export.main import reject_on_failure
@@ -105,7 +104,7 @@ def test_mo_objects() -> list:
     return [
         {
             "uuid": uuid4(),
-            "service_type": ServiceType.EMPLOYEE,
+            "service_type": "employee",
             "payload": PayloadType(
                 uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
             ),
@@ -117,7 +116,7 @@ def test_mo_objects() -> list:
         },
         {
             "uuid": uuid4(),
-            "service_type": ServiceType.EMPLOYEE,
+            "service_type": "employee",
             "payload": PayloadType(
                 uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
             ),
@@ -129,7 +128,7 @@ def test_mo_objects() -> list:
         },
         {
             "uuid": uuid4(),
-            "service_type": ServiceType.EMPLOYEE,
+            "service_type": "employee",
             "payload": PayloadType(
                 uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
             ),
@@ -141,7 +140,7 @@ def test_mo_objects() -> list:
         },
         {
             "uuid": uuid4(),
-            "service_type": ServiceType.EMPLOYEE,
+            "service_type": "employee",
             "payload": PayloadType(
                 uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
             ),
@@ -189,6 +188,7 @@ def dataloader(
     dataloader.modify_ldap_object.return_value = [{"description": "success"}]
     dataloader.get_ldap_objectGUID = sync_dataloader
     dataloader.get_ldap_it_system_uuid = sync_dataloader
+    dataloader.supported_object_types = ["address", "employee"]
 
     return dataloader
 
@@ -509,13 +509,20 @@ async def test_listen_to_changes(dataloader: AsyncMock, sync_tool: AsyncMock):
     payload.uuid = uuid4()
     payload.object_uuid = uuid4()
 
-    mo_routing_key = MORoutingKey.build("employee.*.*")
-    await listen_to_changes(context, payload, mo_routing_key=mo_routing_key)
-    sync_tool.listen_to_changes_in_employees.assert_awaited_once()
+    with patch("mo_ldap_import_export.main.get_service_type", return_value="employee"):
+        mo_routing_key = MORoutingKey.build("employee.address.*")
+        await listen_to_changes(context, payload, mo_routing_key=mo_routing_key)
+        sync_tool.listen_to_changes_in_employees.assert_awaited_once()
 
-    mo_routing_key = MORoutingKey.build("org_unit.*.*")
-    await listen_to_changes(context, payload, mo_routing_key=mo_routing_key)
-    sync_tool.listen_to_changes_in_org_units.assert_awaited_once()
+    with patch("mo_ldap_import_export.main.get_service_type", return_value="org_unit"):
+        mo_routing_key = MORoutingKey.build("org_unit.address.*")
+        await listen_to_changes(context, payload, mo_routing_key=mo_routing_key)
+        sync_tool.listen_to_changes_in_org_units.assert_awaited_once()
+
+    with pytest.raises(RejectMessage):
+        # the 'role' object type is not supported
+        mo_routing_key = MORoutingKey.build("employee.role.*")
+        await listen_to_changes(context, payload, mo_routing_key=mo_routing_key)
 
 
 async def test_listen_to_changes_not_listening() -> None:
@@ -818,25 +825,14 @@ async def test_reject_on_failure():
 
 async def test_get_delete_flag(dataloader: AsyncMock):
 
-    payload = PayloadType(
-        uuid=uuid4(),
-        object_uuid=uuid4(),
-        time=datetime.datetime.now(),
-    )
-
-    routing_key = MORoutingKey.build("employee.employee.terminate")
-
     # When there are matching objects in MO, but the to-date is today, delete
-    dataloader.load_mo_object.return_value = {
-        "validity": {"to": datetime.datetime.today().strftime("%Y-%m-%d")}
-    }
+    mo_object = {"validity": {"to": datetime.datetime.today().strftime("%Y-%m-%d")}}
 
-    context = Context({"user_context": {"dataloader": dataloader}})
-    flag = await get_delete_flag(routing_key, payload, context)
+    flag = get_delete_flag(mo_object)
     assert flag is True
 
     # When there are matching objects in MO, but the to-date is tomorrow, do not delete
-    dataloader.load_mo_object.return_value = {
+    mo_object = {
         "validity": {
             "to": (datetime.datetime.today() + datetime.timedelta(1)).strftime(
                 "%Y-%m-%d"
@@ -844,13 +840,7 @@ async def test_get_delete_flag(dataloader: AsyncMock):
         }
     }
 
-    context = Context({"user_context": {"dataloader": dataloader}})
-    flag = await get_delete_flag(routing_key, payload, context)
-    assert flag is False
-
-    dataloader.load_mo_object.return_value = None
-    context = Context({"user_context": {"dataloader": dataloader}})
-    flag = await get_delete_flag(routing_key, payload, context)
+    flag = get_delete_flag(mo_object)
     assert flag is False
 
 
@@ -959,3 +949,7 @@ async def test_get_non_existing_objectGUIDs_from_MO_404(
     dataloader.get_ldap_it_system_uuid.return_value = None
     response = test_client.get("/Inspect/non_existing_objectGUIDs")
     assert response.status_code == 404
+
+
+def test_get_service_type():
+    assert get_service_type({"service_type": "employee"}) == "employee"

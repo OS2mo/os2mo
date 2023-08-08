@@ -38,7 +38,6 @@ from ramqp.mo import MORouter
 from ramqp.mo.models import MORoutingKey
 from ramqp.mo.models import PayloadType
 from ramqp.mo.models import RequestType
-from ramqp.mo.models import ServiceType
 from ramqp.utils import RejectMessage
 from ramqp.utils import RequeueMessage
 from tqdm import tqdm
@@ -82,7 +81,6 @@ delay_on_requeue = 60 * 60 * 24  # Requeue messages for tomorrow (or after a reb
 """
 Employee.schema()
 help(MORouter)
-help(ServiceType)
 help(RequestType)
 """
 
@@ -117,24 +115,10 @@ def reject_on_failure(func):
     return modified_func
 
 
-async def get_delete_flag(
-    routing_key: MORoutingKey, payload: PayloadType, context: Context
-):
+def get_delete_flag(mo_object) -> bool:
     """
     Determines if an object should be deleted based on the validity to-date
     """
-    dataloader = context["user_context"]["dataloader"]
-
-    mo_object = await dataloader.load_mo_object(
-        payload.object_uuid,
-        get_object_type_from_routing_key(routing_key),
-        add_validity=True,
-        current_objects_only=False,
-    )
-
-    if not mo_object:
-        return False
-
     now = datetime.datetime.utcnow()
     validity_to = mo_datestring_to_utc(mo_object["validity"]["to"])
     if validity_to and validity_to <= now:
@@ -147,6 +131,15 @@ async def get_delete_flag(
         return True
     else:
         return False
+
+
+def get_service_type(mo_object) -> str:
+    """
+    Determine if an object belongs to an employee or to an org-unit and return
+    a string which is either "employee" or "org_unit"
+    """
+    service_type: str = mo_object["service_type"]
+    return service_type
 
 
 @internal_amqp_router.register("*.*.*")
@@ -163,9 +156,26 @@ async def listen_to_changes(
 
     logger.info(f"[MO] Routing key: {mo_routing_key}")
     logger.info(f"[MO] Payload: {payload}")
-    sync_tool = context["user_context"]["sync_tool"]
 
-    delete = await get_delete_flag(mo_routing_key, payload, context)
+    sync_tool = context["user_context"]["sync_tool"]
+    dataloader = context["user_context"]["dataloader"]
+
+    object_type = get_object_type_from_routing_key(mo_routing_key)
+    logger.info(f"[MO] Object type: {object_type}")
+
+    if object_type not in dataloader.supported_object_types:
+        logger.info("[MO] Object type is not supported")
+        raise RejectMessage()
+
+    mo_object = await dataloader.load_mo_object(
+        payload.object_uuid,
+        object_type,
+        add_validity=True,
+        current_objects_only=False,
+    )
+
+    delete = get_delete_flag(mo_object)
+    service_type = get_service_type(mo_object)
     current_objects_only = False if delete else True
 
     args = dict(
@@ -175,10 +185,10 @@ async def listen_to_changes(
         current_objects_only=current_objects_only,
     )
 
-    if mo_routing_key.service_type == ServiceType.EMPLOYEE:
+    if service_type == "employee":
         await sync_tool.listen_to_changes_in_employees(**args)
         await sync_tool.export_org_unit_addresses_on_engagement_change(**args)
-    elif mo_routing_key.service_type == ServiceType.ORG_UNIT:
+    elif service_type == "org_unit":
         await sync_tool.listen_to_changes_in_org_units(**args)
 
 
