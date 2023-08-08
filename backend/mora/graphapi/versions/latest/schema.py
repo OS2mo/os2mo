@@ -8,6 +8,7 @@ from collections.abc import Awaitable
 from collections.abc import Callable
 from datetime import date
 from datetime import datetime
+from datetime import time
 from functools import partial
 from functools import wraps
 from inspect import Parameter
@@ -23,7 +24,7 @@ from uuid import UUID
 
 import strawberry
 from fastapi.encoders import jsonable_encoder
-from more_itertools import last
+from more_itertools import first
 from more_itertools import one
 from more_itertools import only
 from starlette_context import context
@@ -256,9 +257,9 @@ seed_resolver_one: Callable[..., Any] = partial(
     seed_resolver,
     result_translation=lambda result: one(chain.from_iterable(result.values())),
 )
-seed_resolver_last: Callable[..., Any] = partial(
+seed_resolver_first: Callable[..., Any] = partial(
     seed_resolver,
-    result_translation=lambda result: last(
+    result_translation=lambda result: first(
         chain.from_iterable(result.values()), default=None
     ),
 )
@@ -2881,9 +2882,19 @@ class Organisation:
 )
 class OrganisationUnit:
     parent: LazyOrganisationUnit | None = strawberry.field(
-        resolver=seed_resolver_last(
+        resolver=seed_resolver_first(
             OrganisationUnitResolver(),
-            {"uuids": lambda root: [root.parent_uuid]},
+            {
+                "uuids": lambda root: [root.parent_uuid],
+                "from_date": lambda root: datetime.combine(
+                    root.validity.from_date.date(), time.min
+                ),
+                "to_date": lambda root: datetime.combine(
+                    root.validity.to_date.date(), time.max
+                )
+                if root.validity.to_date
+                else None,
+            },
         ),
         description=dedent(
             """\
