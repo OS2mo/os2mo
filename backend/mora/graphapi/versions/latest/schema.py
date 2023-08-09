@@ -363,8 +363,8 @@ class Response(Generic[MOObject]):
             try:
                 return (
                     (obj.validity.from_date or datetime_min)
-                    < now
-                    < (obj.validity.to_date or datetime_max)
+                    <= now
+                    <= (obj.validity.to_date or datetime_max)
                 )
             except AttributeError:  # occurs when objects do not contain validity
                 # TODO: Get rid of this entire branch by implementing non-static facet, etc.
