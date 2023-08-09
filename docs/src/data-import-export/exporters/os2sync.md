@@ -6,10 +6,9 @@ Kildekoden kan findes på https://github.com/magenta-aps/os2mo-os2sync-export
 Dockerimage er tilgængeligt fra https://hub.docker.com/r/magentaaps/os2mo-os2sync-export
 ### Indledning
 
-Denne integration gør det muligt at sende data fra OS2MO til
-[OS2Sync](https://www.os2sync.dk/). OS2Sync er i stand til at sende data videre til FK ORG, såfremt det er installeret og konfigureret. Anvend os2sync version 3.0.8 eller derover.
+Denne integration gør det muligt at sende data fra OS2MO til [OS2Sync](https://www.os2sync.dk/). OS2Sync er i stand til at sende data videre til FK ORG. Anvend os2sync version 3.0.8 eller derover.
 
-Integrationen læser flg. oplysninger i OS2MO, og sender dem til OS2Sync:
+Integrationen er eventdrevet hvilket vil sige at det reagerer på ændringer i OS2MO. Ved ændringer læser den følgende informationer fra OS2MO og sender dem til OS2Sync:
 
 
 Organisationsenheder:
@@ -72,6 +71,7 @@ Hvis der er skal sendes flere brugere pr. person til fk-org skal hvert it-system
 Integrationen køres i docker - se docker-compose.yml for et eksempel på opsætning til udviklingsbrug.
 
 Påkrævede:
+
 - `OS2SYNC_API_URL`: Adresse på os2sync-containeres API, fx. "http://os2sync:5000/api"
 - `OS2SYNC_TOP_UNIT_UUID`: UUID på den øverste enhed i os2mo organisation, der skal overføres til fk-org.
 - `AMQP__URL`: Forbindelsesparametre til beskedkøen, fx. "amqp://guest:guest@msg_broker:5672/"
@@ -87,6 +87,7 @@ Autentificering sker vha. af en keycloak client som skal bruge følgende miljøv
 
 
 Valgfri:
+
 - `LOG_LEVEL`: Loglevel, fx. WARNING eller DEBUG. Default er INFO
 - `OS2SYNC_CA_VERIFY_OS2MO`: Angiver om OS2mo serverens certifikat skal checkes. Default er "true"
 - `OS2SYNC_CA_VERIFY_OS2SYNC`: Angiver om Os2Sync containerens certifikat skal checkes. Default er "true"
