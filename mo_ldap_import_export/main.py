@@ -179,7 +179,8 @@ async def listen_to_changes(
     current_objects_only = False if delete else True
 
     args = dict(
-        payload=payload,
+        uuid=payload.uuid,
+        object_uuid=payload.object_uuid,
         routing_key=mo_routing_key,
         delete=delete,
         current_objects_only=current_objects_only,

@@ -19,7 +19,6 @@ from fastapi.encoders import jsonable_encoder
 from fastramqpi.context import Context
 from httpx import HTTPStatusError
 from ramqp.mo.models import MORoutingKey
-from ramqp.mo.models import PayloadType
 from ramqp.mo.models import RequestType
 
 from .exceptions import DNNotFound
@@ -117,6 +116,22 @@ class SyncTool:
         self.internal_amqpsystem = self.user_context["internal_amqpsystem"]
 
     @staticmethod
+    def extract_uuid(obj) -> UUID:
+        """
+        Extract an uuid from an object and return it
+
+        Parameters
+        -------------
+        obj: Any
+            Object which is either an uuid or an object with an uuid attribute
+        """
+        uuid = getattr(obj, "uuid", obj)
+        if type(uuid) is not UUID:
+            raise TypeError(f"{uuid} is not an uuid")
+        else:
+            return uuid
+
+    @staticmethod
     def wait_for_export_to_finish(func: Callable, sleep_time: float = 2):
         """
         Runs the function normally but calls asyncio.sleep in case it is already
@@ -125,7 +140,7 @@ class SyncTool:
 
         @wraps(func)
         async def modified_func(self, *args, **kwargs):
-            uuid = args[0].uuid if args else kwargs["payload"].uuid
+            uuid = self.extract_uuid(args[0] if args else kwargs["uuid"])
 
             while uuid in self.uuids_in_progress:
                 logger.info(f"{uuid} in progress. Trying again in {sleep_time} seconds")
@@ -196,35 +211,50 @@ class SyncTool:
     @wait_for_export_to_finish
     async def listen_to_changes_in_employees(
         self,
-        payload: PayloadType,
+        uuid: UUID,
+        object_uuid: UUID,
         routing_key: MORoutingKey,
         delete: bool,
         current_objects_only: bool,
     ) -> None:
+        """
+        Parameters
+        ---------------
+        uuid: UUID
+            uuid of the changed employee
+        object_uuid: UUID
+            uuid of the changed object, belonging to the changed employee
+        routing_key: MoRoutingKey
+            Routing key of the AMQP message
+        delete: bool
+            Whether to delete the object or not
+        current_objects_only: bool
+            Whether to load currently valid objects only or not
+        """
 
         logger.info("[MO] Registered change in the employee model")
-        logger.info(f"[MO] uuid = {payload.uuid}")
-        logger.info(f"[MO] object_uuid = {payload.object_uuid}")
+        logger.info(f"[MO] uuid = {uuid}")
+        logger.info(f"[MO] object_uuid = {object_uuid}")
 
         # If the object was uploaded by us, it does not need to be synchronized.
         # Note that this is not necessary in listen_to_changes_in_org_units. Because
         # those changes potentially map to multiple employees
         try:
-            self.uuids_to_ignore.check(payload.object_uuid)
+            self.uuids_to_ignore.check(object_uuid)
         except IgnoreChanges as e:
             logger.info(e)
             return
-        await self.perform_export_checks(payload.uuid, payload.object_uuid)
+        await self.perform_export_checks(uuid, object_uuid)
 
         try:
-            dn = await self.dataloader.find_or_make_mo_employee_dn(payload.uuid)
+            dn = await self.dataloader.find_or_make_mo_employee_dn(uuid)
         except DNNotFound:
-            logger.info(f"DN not found for employee with uuid = {payload.uuid}")
+            logger.info(f"DN not found for employee with uuid = {uuid}")
             return
 
         # Get MO employee
         changed_employee = await self.dataloader.load_mo_employee(
-            payload.uuid,
+            uuid,
             current_objects_only=current_objects_only,
         )
         logger.info(f"Found Employee in MO: {changed_employee}")
@@ -252,7 +282,7 @@ class SyncTool:
 
             # Get MO address
             changed_address = await self.dataloader.load_mo_address(
-                payload.object_uuid,
+                object_uuid,
                 current_objects_only=current_objects_only,
             )
             address_type_uuid = str(changed_address.address_type.uuid)
@@ -290,7 +320,7 @@ class SyncTool:
 
             # Get MO IT-user
             changed_it_user = await self.dataloader.load_mo_it_user(
-                payload.object_uuid,
+                object_uuid,
                 current_objects_only=current_objects_only,
             )
             it_system_type_uuid = changed_it_user.itsystem.uuid
@@ -327,7 +357,7 @@ class SyncTool:
 
             # Get MO Engagement
             changed_engagement = await self.dataloader.load_mo_engagement(
-                payload.object_uuid,
+                object_uuid,
                 current_objects_only=current_objects_only,
             )
 
@@ -402,14 +432,29 @@ class SyncTool:
     @wait_for_export_to_finish
     async def listen_to_changes_in_org_units(
         self,
-        payload: PayloadType,
+        uuid: UUID,
+        object_uuid: UUID,
         routing_key: MORoutingKey,
         delete: bool,
         current_objects_only: bool,
     ) -> None:
+        """
+        Parameters
+        ---------------
+        uuid: UUID
+            uuid of the changed org-unit
+        object_uuid: UUID
+            uuid of the changed object, belonging to the changed org-unit
+        routing_key: MoRoutingKey
+            Routing key of the AMQP message
+        delete: bool
+            Whether to delete the object or not
+        current_objects_only: bool
+            Whether to load currently valid objects only or not
+        """
         logger.info("[MO] Registered change in the org_unit model")
-        logger.info(f"[MO] uuid = {payload.uuid}")
-        logger.info(f"[MO] object_uuid = {payload.object_uuid}")
+        logger.info(f"[MO] uuid = {uuid}")
+        logger.info(f"[MO] object_uuid = {object_uuid}")
 
         # When an org-unit is changed we need to update the org unit info. So we
         # know the new name of the org unit in case it was changed
@@ -427,7 +472,7 @@ class SyncTool:
 
             # Get MO address
             changed_address = await self.dataloader.load_mo_address(
-                payload.object_uuid,
+                object_uuid,
                 current_objects_only=current_objects_only,
             )
             address_type_uuid = str(changed_address.address_type.uuid)
@@ -449,7 +494,7 @@ class SyncTool:
                 )
 
             affected_employees = set(
-                await self.dataloader.load_mo_employees_in_org_unit(payload.uuid)
+                await self.dataloader.load_mo_employees_in_org_unit(uuid)
             )
             logger.info(f"[MO] Found {len(affected_employees)} affected employees")
 
@@ -458,7 +503,7 @@ class SyncTool:
                 try:
                     await self.process_employee_address(
                         affected_employee,
-                        payload.uuid,
+                        uuid,
                         changed_address,
                         json_key,
                         delete,
@@ -739,13 +784,11 @@ class SyncTool:
         )
 
     async def export_org_unit_addresses_on_engagement_change(
-        self, routing_key, payload, **kwargs
+        self, routing_key, object_uuid, **kwargs
     ):
         object_type = get_object_type_from_routing_key(routing_key)
         if object_type == "engagement":
-            changed_engagement = await self.dataloader.load_mo_engagement(
-                payload.object_uuid
-            )
+            changed_engagement = await self.dataloader.load_mo_engagement(object_uuid)
             org_unit_uuid = changed_engagement.org_unit.uuid
 
             # Load UUIDs for all addresses in this org-unit
