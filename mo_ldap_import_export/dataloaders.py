@@ -47,6 +47,7 @@ from .processors import _hide_cpr as hide_cpr
 from .utils import add_filter_to_query
 from .utils import combine_dn_strings
 from .utils import extract_ou_from_dn
+from .utils import mo_datestring_to_utc
 
 
 class DataLoader:
@@ -835,6 +836,42 @@ class DataLoader:
                 )
             )
 
+    @staticmethod
+    def extract_current_or_latest_object(objects: list[dict]):
+        """
+        Check the validity in a list of object dictionaries and return the one which
+        is either valid today, or has the latest end-date
+        """
+
+        if len(objects) == 1:
+            return objects[0]
+        elif len(objects) == 0:
+            raise NoObjectsReturnedException("Objects is empty")
+        else:
+            # If any of the objects is valid today, return it
+            for obj in objects:
+                valid_to = obj["validity"]["to"]
+                valid_from = obj["validity"]["from"]
+
+                if valid_to and valid_from:
+                    valid_to_utc = mo_datestring_to_utc(valid_to)
+                    valid_from_utc = mo_datestring_to_utc(valid_from)
+                    now_utc = datetime.datetime.utcnow()
+
+                    if now_utc > valid_from_utc and now_utc < valid_to_utc:
+                        return obj
+
+            # If any of the to-dates is None (i.e. valid forever); Return it
+            for obj in objects:
+                if obj["validity"]["to"] is None:
+                    return obj
+
+            # Otherwise return the latest
+            to_dates = [mo_datestring_to_utc(obj["validity"]["to"]) for obj in objects]
+            sorted_objects = [x for _, x in sorted(zip(to_dates, objects))]
+
+            return sorted_objects[-1]
+
     async def load_mo_employee(self, uuid: UUID, current_objects_only=True) -> Employee:
         query = gql(
             f"""
@@ -848,6 +885,10 @@ class DataLoader:
                     surname
                     nickname_givenname
                     nickname_surname
+                    validity {{
+                      to
+                      from
+                    }}
                   }}
                 }}
               }}
@@ -856,7 +897,11 @@ class DataLoader:
         )
 
         result = await self.query_past_future_mo(query, current_objects_only)
-        entry = result["employees"]["objects"][0]["objects"][0]
+        entry = self.extract_current_or_latest_object(
+            result["employees"]["objects"][0]["objects"]
+        )
+
+        entry.pop("validity")
 
         return Employee(**entry)
 
@@ -1050,7 +1095,9 @@ class DataLoader:
         )
 
         result = await self.query_past_future_mo(query, current_objects_only)
-        entry = result["itusers"]["objects"][0]["objects"][0]
+        entry = self.extract_current_or_latest_object(
+            result["itusers"]["objects"][0]["objects"]
+        )
         return ITUser.from_simplified_fields(
             user_key=entry["user_key"],
             itsystem_uuid=entry["itsystem_uuid"],
@@ -1103,7 +1150,9 @@ class DataLoader:
         logger.info(f"Loading address={uuid}")
         result = await self.query_past_future_mo(query, current_objects_only)
 
-        entry = result["addresses"]["objects"][0]["objects"][0]
+        entry = self.extract_current_or_latest_object(
+            result["addresses"]["objects"][0]["objects"]
+        )
 
         address = Address.from_simplified_fields(
             value=entry["value"],
@@ -1186,7 +1235,9 @@ class DataLoader:
         logger.info(f"Loading engagement={uuid}")
         result = await self.query_past_future_mo(query, current_objects_only)
 
-        entry = result["engagements"]["objects"][0]["objects"][0]
+        entry = self.extract_current_or_latest_object(
+            result["engagements"]["objects"][0]["objects"]
+        )
 
         engagement = Engagement.from_simplified_fields(
             org_unit_uuid=entry["org_unit_uuid"],
@@ -1465,7 +1516,7 @@ class DataLoader:
         matching self.object_type_dict.keys()
         """
 
-        if add_validity:
+        if add_validity or current_objects_only is False:
             validity_query = """
                              validity {
                                  from
@@ -1555,7 +1606,9 @@ class DataLoader:
         # Determine payload, service type, object type for use in amqp-messages
         for object_type, mo_object_dicts in result.items():
             for mo_object_dict in mo_object_dicts["objects"]:
-                mo_object = mo_object_dict["objects"][0]
+                mo_object = self.extract_current_or_latest_object(
+                    mo_object_dict["objects"]
+                )
 
                 # Note that engagements have both employee_uuid and org_unit uuid. But
                 # belong to an employee. We handle that by checking for employee_uuid
