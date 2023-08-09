@@ -25,7 +25,6 @@ from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 from ramqp.mo.models import PayloadType
-from ramqp.mo.models import ServiceType
 
 from .exceptions import AttributeNotFound
 from .exceptions import DNNotFound
@@ -74,6 +73,8 @@ class DataLoader:
         self.object_type_dict_inv = {
             str(v): k for k, v in self.object_type_dict.items()
         }
+
+        self.supported_object_types = list(self.object_type_dict_inv.keys())
 
     def _check_if_empty(self, result: dict):
         for key, value in result.items():
@@ -1561,16 +1562,16 @@ class DataLoader:
                 # first
                 if "employee_uuid" in mo_object and mo_object["employee_uuid"]:
                     parent_uuid = mo_object["employee_uuid"]
-                    service_type = ServiceType.EMPLOYEE
+                    service_type = "employee"
                 elif "org_unit_uuid" in mo_object and mo_object["org_unit_uuid"]:
                     parent_uuid = mo_object["org_unit_uuid"]
-                    service_type = ServiceType.ORG_UNIT
+                    service_type = "org_unit"
                 else:
                     parent_uuid = mo_object["uuid"]
                     if object_type == "employees":
-                        service_type = ServiceType.EMPLOYEE
+                        service_type = "employee"
                     elif object_type == "org_units":
-                        service_type = ServiceType.ORG_UNIT
+                        service_type = "org_unit"
                     else:
                         raise InvalidQueryResponse(
                             (
@@ -1612,7 +1613,7 @@ class DataLoader:
         returns None if the object is not a current object or if the object type is not
         defined in self.object_type_dict
         """
-        if str(object_type) not in self.object_type_dict_inv:
+        if str(object_type) not in self.supported_object_types:
             return None
 
         mo_objects = await self.load_all_mo_objects(

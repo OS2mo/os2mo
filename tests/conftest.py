@@ -11,7 +11,6 @@ from ramodels.mo.details.address import Address
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 from ramqp.mo.models import PayloadType
-from ramqp.mo.models import ServiceType
 
 from mo_ldap_import_export.converters import read_mapping_json
 from mo_ldap_import_export.ldap_classes import LdapObject
@@ -73,7 +72,7 @@ def test_mo_objects() -> list:
     return [
         {
             "uuid": uuid4(),
-            "service_type": ServiceType.EMPLOYEE,
+            "service_type": "employee",
             "payload": PayloadType(
                 uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
             ),
@@ -85,7 +84,7 @@ def test_mo_objects() -> list:
         },
         {
             "uuid": uuid4(),
-            "service_type": ServiceType.EMPLOYEE,
+            "service_type": "employee",
             "payload": PayloadType(
                 uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
             ),
@@ -97,7 +96,7 @@ def test_mo_objects() -> list:
         },
         {
             "uuid": uuid4(),
-            "service_type": ServiceType.EMPLOYEE,
+            "service_type": "employee",
             "payload": PayloadType(
                 uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
             ),
@@ -109,7 +108,7 @@ def test_mo_objects() -> list:
         },
         {
             "uuid": uuid4(),
-            "service_type": ServiceType.EMPLOYEE,
+            "service_type": "employee",
             "payload": PayloadType(
                 uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
             ),

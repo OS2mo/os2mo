@@ -28,7 +28,6 @@ from more_itertools import collapse
 from ramodels.mo.details.address import Address
 from ramodels.mo.employee import Employee
 from ramqp.mo.models import PayloadType
-from ramqp.mo.models import ServiceType
 from structlog.testing import capture_logs
 
 from .test_dataloaders import mock_ldap_response
@@ -607,7 +606,7 @@ async def test_cleanup_refresh_mo_object(
     employee_uuid = str(uuid4())
     dataloader.load_mo_object.return_value = {
         "uuid": object_uuid,
-        "service_type": ServiceType.EMPLOYEE,
+        "service_type": "employee",
         "payload": PayloadType(
             uuid=employee_uuid,
             object_uuid=object_uuid,
