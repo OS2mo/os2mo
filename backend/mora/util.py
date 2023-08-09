@@ -155,8 +155,8 @@ def to_iso_date(s, is_end: bool = False):
     if dt.time() != datetime.time.min:
         dt = datetime.datetime.combine(dt, datetime.time.min)
 
-    if is_end:
-        dt -= ONE_DAY
+    # if is_end:
+    #     dt -= ONE_DAY
 
     return dt.date().isoformat()
 
