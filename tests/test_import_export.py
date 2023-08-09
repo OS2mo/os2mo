@@ -73,7 +73,8 @@ async def test_listen_to_changes_in_org_units(
     mo_routing_key = MORoutingKey.build("org_unit.org_unit.edit")
 
     await sync_tool.listen_to_changes_in_org_units(
-        payload,
+        payload.uuid,
+        payload.object_uuid,
         routing_key=mo_routing_key,
         delete=False,
         current_objects_only=True,
@@ -127,7 +128,8 @@ async def test_listen_to_change_in_org_unit_address(
             await asyncio.gather(
                 employee_in_progress(),
                 sync_tool.listen_to_changes_in_org_units(
-                    payload,
+                    payload.uuid,
+                    payload.object_uuid,
                     routing_key=mo_routing_key,
                     delete=False,
                     current_objects_only=True,
@@ -147,7 +149,8 @@ async def test_listen_to_change_in_org_unit_address(
 
     with capture_logs() as cap_logs:
         await sync_tool.listen_to_changes_in_org_units(
-            payload,
+            payload.uuid,
+            payload.object_uuid,
             routing_key=mo_routing_key,
             delete=False,
             current_objects_only=True,
@@ -164,7 +167,8 @@ async def test_listen_to_change_in_org_unit_address(
 
     with capture_logs() as cap_logs:
         await sync_tool.listen_to_changes_in_org_units(
-            payload,
+            payload.uuid,
+            payload.object_uuid,
             routing_key=mo_routing_key,
             delete=False,
             current_objects_only=True,
@@ -210,7 +214,8 @@ async def test_listen_to_change_in_org_unit_address_not_supported(
 
     with pytest.raises(NotSupportedException):
         await sync_tool.listen_to_changes_in_org_units(
-            payload,
+            payload.uuid,
+            payload.object_uuid,
             routing_key=mo_routing_key,
             delete=False,
             current_objects_only=True,
@@ -250,7 +255,8 @@ async def test_listen_to_changes_in_employees(
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         await asyncio.gather(
             sync_tool.listen_to_changes_in_employees(
-                payload,
+                payload.uuid,
+                payload.object_uuid,
                 routing_key=mo_routing_key,
                 delete=False,
                 current_objects_only=True,
@@ -269,7 +275,8 @@ async def test_listen_to_changes_in_employees(
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         await asyncio.gather(
             sync_tool.listen_to_changes_in_employees(
-                payload,
+                payload.uuid,
+                payload.object_uuid,
                 routing_key=mo_routing_key,
                 delete=False,
                 current_objects_only=True,
@@ -285,7 +292,8 @@ async def test_listen_to_changes_in_employees(
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         await asyncio.gather(
             sync_tool.listen_to_changes_in_employees(
-                payload,
+                payload.uuid,
+                payload.object_uuid,
                 routing_key=mo_routing_key,
                 delete=False,
                 current_objects_only=True,
@@ -301,7 +309,8 @@ async def test_listen_to_changes_in_employees(
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         await asyncio.gather(
             sync_tool.listen_to_changes_in_employees(
-                payload,
+                payload.uuid,
+                payload.object_uuid,
                 routing_key=mo_routing_key,
                 delete=False,
                 current_objects_only=True,
@@ -333,7 +342,8 @@ async def test_listen_to_changes_in_employees(
     with capture_logs() as cap_logs:
         await asyncio.gather(
             sync_tool.listen_to_changes_in_employees(
-                payload,
+                payload.uuid,
+                payload.object_uuid,
                 routing_key=mo_routing_key,
                 delete=False,
                 current_objects_only=True,
@@ -362,13 +372,15 @@ async def test_listen_to_changes_in_employees_no_dn(
     converter: MagicMock,
 ) -> None:
     payload = MagicMock()
+    payload.uuid = uuid4()
     mo_routing_key = MORoutingKey.build("employee.employee.create")
     dataloader.find_or_make_mo_employee_dn.side_effect = DNNotFound("Not found")
 
     with capture_logs() as cap_logs:
         await asyncio.gather(
             sync_tool.listen_to_changes_in_employees(
-                payload,
+                payload.uuid,
+                payload.object_uuid,
                 routing_key=mo_routing_key,
                 delete=False,
                 current_objects_only=True,
@@ -1239,3 +1251,16 @@ async def test_import_holstebroengagementupdate_objects(
         await asyncio.gather(sync_tool.import_single_user("CN=foo"))
         dataloader.upload_mo_objects.assert_called_once()
         assert eng_uuid in sync_tool.uuids_to_ignore.ignore_dict
+
+
+def test_extract_uuid(sync_tool: SyncTool):
+
+    uuid = uuid4()
+    obj1 = uuid
+    obj2 = Employee(uuid=uuid)
+
+    assert sync_tool.extract_uuid(obj1) == uuid
+    assert sync_tool.extract_uuid(obj2) == uuid
+
+    with pytest.raises(TypeError):
+        sync_tool.extract_uuid("foo")
