@@ -362,9 +362,9 @@ class Response(Generic[MOObject]):
             datetime_max = datetime.max.replace(tzinfo=DEFAULT_TIMEZONE)
             try:
                 return (
-                    (obj.validity.from_date or datetime_min)
-                    <= now
-                    <= (obj.validity.to_date or datetime_max)
+                    (obj.validity.from_date.date() or datetime_min)
+                    <= now.date()
+                    <= (obj.validity.to_date.date() or datetime_max)
                 )
             except AttributeError:  # occurs when objects do not contain validity
                 # TODO: Get rid of this entire branch by implementing non-static facet, etc.
