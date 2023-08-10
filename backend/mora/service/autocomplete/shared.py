@@ -42,7 +42,13 @@ def read_sqlalchemy_result(result: Result) -> [Row]:
 def get_graphql_equivalent_by_uuid(
     graphql_data_objects: list[dict], lookup_uuid: UUID, at: date | None
 ) -> dict | None:
+    at = (
+        at
+        if at is not None
+        else datetime.now().astimezone(util.DEFAULT_TIMEZONE).date()
+    )
     at_dt = datetime.combine(at, time.min).astimezone(util.DEFAULT_TIMEZONE)
+
     for gql_data_object in graphql_data_objects:
         if gql_data_object["uuid"] != str(lookup_uuid):
             continue
