@@ -18,6 +18,20 @@ You can get the coverage report like this:
 
 `poetry run pytest -s --cov --cov-report term-missing -vvx`
 
+### Deploying the app using salt
+
+You can deploy using a salt-call from a server:
+
+`salt-call state.apply os2mo.ldap_import_export.init`
+
+Or from the salt master:
+
+`salt 'server_name' state.apply os2mo.ldap_import_export.init`
+
+See [the labs handbook](https://labs.docs.magenta.dk/salt/deployment.html)
+for more details.
+
+
 ### Using the app
 
 First make sure that OS2mo is up and running.
