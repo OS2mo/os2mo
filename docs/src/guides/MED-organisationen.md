@@ -2,6 +2,7 @@
 title: MED-organisationen i OS2mo
 ---
 
+# MED-organisationen i MO
 Nedenfor findes en guide til opbygning og vedligehold af MED-organisationen i OS2mo.
 
 # Formål
