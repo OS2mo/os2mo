@@ -55,6 +55,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
                             primary_uuid
                             substitute_uuid
                             job_function_uuid
+                            primary_uuid
                             it_user_uuid
                             dynamic_class_uuid
                             type
@@ -267,6 +268,7 @@ async def test_create_association_integration_test(
         )
 
     association_type_uuids = fetch_class_uuids(graphapi_post, "association_type")
+    primary_type_uuids = fetch_class_uuids(graphapi_post, "primary_type")
 
     test_data = data.draw(
         st.builds(
@@ -274,6 +276,7 @@ async def test_create_association_integration_test(
             org_unit=st.just(org_uuid),
             employee=st.sampled_from(employee_uuids),
             association_type=st.sampled_from(association_type_uuids),
+            primary=st.sampled_from(primary_type_uuids),
             validity=st.builds(
                 RAValidity,
                 from_date=st.just(test_data_validity_start),
@@ -304,6 +307,7 @@ async def test_create_association_integration_test(
                         org_unit: org_unit_uuid
                         employee: employee_uuid
                         association_type: association_type_uuid
+                        primary: primary_uuid
                         validity {
                             from
                             to
@@ -320,6 +324,7 @@ async def test_create_association_integration_test(
     assert UUID(obj["org_unit"]) == test_data.org_unit
     assert UUID(obj["employee"]) == test_data.employee
     assert UUID(obj["association_type"]) == test_data.association_type
+    assert UUID(obj["primary"]) == test_data.primary
     assert (
         datetime.fromisoformat(obj["validity"]["from"]).date()
         == test_data.validity.from_date.date()
@@ -344,6 +349,7 @@ async def test_create_association_integration_test(
             "org_unit": None,
             "employee": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
             "association_type": "62ec821f-4179-4758-bfdf-134529d186e9",
+            "primary": None,
             "validity": {"to": None, "from": "2017-01-01T00:00:00+01:00"},
         },
         {
@@ -352,6 +358,7 @@ async def test_create_association_integration_test(
             "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
             "employee": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
             "association_type": "ef71fe9c-7901-48e2-86d8-84116e210202",
+            "primary": "89b6cef8-3d03-49ac-816f-f7530b383411",
             "validity": {"to": None, "from": "2017-01-01T00:00:00+01:00"},
         },
         {
@@ -360,6 +367,7 @@ async def test_create_association_integration_test(
             "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
             "employee": None,
             "association_type": "d9387db2-4271-4497-a2ef-50edd6b068b1",
+            "primary": "89b6cef8-3d03-49ac-816f-f7530b383411",
             "validity": {"to": None, "from": "2017-01-12T00:00:00+01:00"},
         },
         {
@@ -368,6 +376,7 @@ async def test_create_association_integration_test(
             "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
             "employee": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
             "association_type": "8eea787c-c2c7-46ca-bd84-2dd50f47801e",
+            "primary": "2f16d140-d743-4c9f-9e0e-361da91a06f6",
             "validity": {
                 "to": "2025-10-02T00:00:00+02:00",
                 "from": "2017-01-01T00:00:00+01:00",
@@ -388,6 +397,7 @@ async def test_update_association_integration_test(graphapi_post, test_data) -> 
                             org_unit: org_unit_uuid
                             employee: employee_uuid
                             association_type: association_type_uuid
+                            primary: primary_uuid
                             validity {
                                 to
                                 from
@@ -431,6 +441,7 @@ async def test_update_association_integration_test(graphapi_post, test_data) -> 
                         org_unit: org_unit_uuid
                         employee: employee_uuid
                         association_type: association_type_uuid
+                        primary: primary_uuid
                         validity {
                             to
                             from

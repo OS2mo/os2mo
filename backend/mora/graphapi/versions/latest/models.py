@@ -328,7 +328,7 @@ class AssociationCreate(UUIDBase):
     org_unit: UUID
     employee: UUID
     association_type: UUID
-
+    primary: UUID | None = Field(description="Primary field of the association")
     validity: RAValidity = Field(description="Validity range for the org-unit.")
 
     def to_handler_dict(self) -> dict:
@@ -343,6 +343,7 @@ class AssociationCreate(UUIDBase):
             "org_unit": gen_uuid(self.org_unit),
             "person": gen_uuid(self.employee),
             "association_type": gen_uuid(self.association_type),
+            "primary": gen_uuid(self.primary),
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()
@@ -360,6 +361,7 @@ class AssociationUpdate(UUIDBase):
     org_unit: UUID | None = Field(description="org-unit uuid.")
     employee: UUID | None = Field(description="Employee uuid.")
     association_type: UUID | None = Field(description="Association type uuid.")
+    primary: UUID | None = Field(description="Primary field of the association")
 
     validity: RAValidity = Field(description="Validity range for the org-unit.")
 
@@ -375,6 +377,7 @@ class AssociationUpdate(UUIDBase):
             "org_unit": gen_uuid(self.org_unit),
             "person": gen_uuid(self.employee),
             "association_type": gen_uuid(self.association_type),
+            "primary": gen_uuid(self.primary),
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()
