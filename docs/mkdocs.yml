@@ -10,21 +10,18 @@ docs_dir: src/
 nav:
   - OS2MO:
       - Velkommen: index.md
-      - Release History: changelog.md
-      - Arkitektur og design:
-          - arkitektur-design/system.md
-          - arkitektur-design/facets.md
-          - arkitektur-design/overview.md
       - API Dokumentation:
                 - api-dokumentation/it-associations.md
                 - api-dokumentation/triggers.md
                 - api-dokumentation/events.md
                 - api-dokumentation/amqp-legacy.md
                 - api-dokumentation/user-configuration.md
+      - Arkitektur og design:
+          - arkitektur-design/system.md
+          - arkitektur-design/facets.md
+          - arkitektur-design/overview.md
       - Drift og support:
           - drift-support/auth.md
-          - drift-support/keycloak.md
-          - drift-support/cookbook.md
           - drift-support/mocloud.md
           - drift-support/manual.md
           - drift-support/settings.md
@@ -32,12 +29,15 @@ nav:
           - graphql/intro.md
           - graphql/migration.md
           - graphql/reads.md
-      - User and developer guides:
-          - Getting started (with Docker): guides/environment/docker.md
-          - ADFS:
+      - Release History: changelog.md
+      - Slutbruger- og udvikler-guides:
+          - Autentifiḱation & Autorisation:
               - guides/adfs-setup.md
               - guides/adfs-rbac-setup.md
+              - drift-support/keycloak.md
           - Conventions: guides/conventions.md
+          - Getting started (with Docker): guides/environment/docker.md
+              - drift-support/cookbook.md
           - Lederhåndtering i MO: guides/Lederhaandtering i MO.md
           - KLE i MO: guides/KLEiMO.md
           - MED-organisation i OS2mo: guides/MED-organisationen.md
