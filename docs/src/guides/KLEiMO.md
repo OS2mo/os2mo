@@ -12,9 +12,9 @@ I MO bruges KLE-numre til at opmærke organisationsenheder og bliver sendt til F
 
 Det er således muligt at vedligeholde KLE-numre i OS2mo samt eksportere dem til andre systemer.
 
-1. **[Importere KLE-numre i MO vha. regneark](##importere-KLE-numre-i-MO-vha.-regneark)**
-2. **[Vedligeholde KLE-numre i MO](##vedligeholde-KLE-numre-i-MO)**
-3. **[Eksportere KLE-numre fra MO](##eksportere-KLE-numre-fra-MO)**
+1. **[Importere KLE-numre i MO vha. regneark](#Importere-KLE-numre-i-MO-vha.-regneark)**
+2. **[Vedligeholde KLE-numre i MO](#vedligeholde-KLE-numre-i-MO)**
+3. **[Eksportere KLE-numre fra MO](#eksportere-KLE-numre-fra-MO)**
 
 ## Importere KLE-numre i MO vha. regneark
 Man kan sagtens oprette KLE-numre i selve MO, men det er oftest nemmere at gøre det i et regnark først og foretage en engangsindlæsning af det i MO.
