@@ -9,7 +9,7 @@ import strawberry
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
-from .address import create as create_address
+from .address import create_address
 from .address import terminate_addr
 from .address import update_address
 from .association import create_association
@@ -169,7 +169,7 @@ class Mutation:
         ],
     )
     async def address_create(self, input: AddressCreateInput) -> Response[Address]:
-        return uuid2response(await create_address(input.to_pydantic()), AddressRead)
+        return uuid2response(await create_address(input.to_pydantic()), AddressRead)  # type: ignore
 
     @strawberry.mutation(
         description="Updates an address.",
@@ -179,7 +179,7 @@ class Mutation:
         ],
     )
     async def address_update(self, input: AddressUpdateInput) -> Response[Address]:
-        return uuid2response(await update_address(input.to_pydantic()), AddressRead)
+        return uuid2response(await update_address(input.to_pydantic()), AddressRead)  # type: ignore
 
     @strawberry.mutation(
         description="Terminates an address.",

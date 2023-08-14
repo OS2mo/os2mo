@@ -3,6 +3,8 @@
 import datetime
 from uuid import UUID
 
+from fastapi.encoders import jsonable_encoder
+
 from ....mapping import RequestType
 from .models import AddressCreate
 from .models import AddressTerminate
@@ -14,13 +16,39 @@ from mora.service.address import AddressRequestHandler
 from mora.triggers import Trigger
 
 
-async def create(address_create: AddressCreate) -> UUID:
-    request_handler_dict = await address_create.to_handler_dict()
-    request_handler = await AddressRequestHandler.construct(
-        request_handler_dict, RequestType.CREATE
+async def create_address(input: AddressCreate) -> UUID:
+    req = jsonable_encoder(input.to_handler_dict())
+
+    request = await AddressRequestHandler.construct(req, RequestType.CREATE)
+    uuid = await request.submit()
+
+    return UUID(uuid)
+
+
+async def update_address(input: AddressUpdate) -> UUID:
+    """Helper function for updating addresses."""
+    input_dict = jsonable_encoder(input.to_handler_dict())
+
+    req = {
+        mapping.TYPE: mapping.ADDRESS,
+        mapping.UUID: str(input.uuid),
+        mapping.DATA: input_dict,
+    }
+
+    request = await AddressRequestHandler.construct(req, mapping.RequestType.EDIT)
+    uuid = await request.submit()
+
+    return UUID(uuid)
+
+
+async def _get_original_addr(
+    addr_uuid: UUID, from_date: datetime.datetime | None
+) -> dict | None:
+    original = await lora.Connector(effective_date=from_date).organisationfunktion.get(
+        str(addr_uuid)
     )
-    new_uuid = await request_handler.submit()
-    return new_uuid
+
+    return original
 
 
 async def terminate_addr(address_terminate: AddressTerminate) -> UUID:
@@ -56,29 +84,3 @@ async def terminate_addr(address_terminate: AddressTerminate) -> UUID:
     _ = await Trigger.run(trigger_dict)
 
     return UUID(lora_result)
-
-
-async def _get_original_addr(
-    addr_uuid: UUID, from_date: datetime.datetime | None
-) -> dict | None:
-    original = await lora.Connector(effective_date=from_date).organisationfunktion.get(
-        str(addr_uuid)
-    )
-
-    return original
-
-
-async def update_address(input: AddressUpdate) -> UUID:
-    """Helper function for updating associations."""
-    input_dict = input.to_handler_dict()
-
-    req = {
-        mapping.TYPE: mapping.ADDRESS,
-        mapping.UUID: str(input.uuid),
-        mapping.DATA: input_dict,
-    }
-
-    request = await AddressRequestHandler.construct(req, mapping.RequestType.EDIT)
-    uuid = await request.submit()
-
-    return UUID(uuid)

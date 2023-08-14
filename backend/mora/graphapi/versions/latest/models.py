@@ -191,18 +191,43 @@ class AddressTrigger(OrgFuncTrigger):
     """Model representing a mora-trigger, specific for addresses."""
 
 
-class AddressCreate(UUIDBase):
-    """Model representing an address creation."""
-
-    value: str = Field(description="The actual address value.")
-    address_type: UUID = Field(description="Type of the address.")
-    visibility: UUID | None = Field(description="Visibility for the address.")
+class AddressUpsert(UUIDBase):
+    """Model representing an address creation/update commonalities."""
 
     # OBS: Only one of the two UUIDs are allowed to be set for the old logic to work
     org_unit: UUID | None = Field(description="UUID for the related org unit.")
     person: UUID | None = Field(description="UUID for the related person.")
+    # TODO: Remove employee in a future version of GraphQL
+    employee: UUID | None = Field(description="UUID for the related person.")
+
     engagement: UUID | None = Field(description="UUID for the related engagement.")
+
+    visibility: UUID | None = Field(description="Visibility for the address.")
     validity: RAValidity = Field(description="Validity range for the org-unit.")
+    user_key: str | None = Field(description="Extra info or uuid.")
+
+    def to_handler_dict(self) -> dict:
+        return {
+            "uuid": self.uuid,
+            "user_key": self.user_key,
+            "visibility": gen_uuid(self.visibility),
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+            "org_unit": gen_uuid(self.org_unit),
+            "person": gen_uuid(self.person) or gen_uuid(self.employee),
+            "engagement": gen_uuid(self.engagement),
+        }
+
+
+class AddressCreate(AddressUpsert):
+    """Model representing an address creation."""
+
+    value: str = Field(description="The actual address value.")
+    address_type: UUID = Field(description="Type of the address.")
 
     @root_validator
     def verify_addr_relation(cls, values: dict[str, Any]) -> dict[str, Any]:
@@ -214,6 +239,7 @@ class AddressCreate(UUIDBase):
                     [
                         values.get("org_unit"),
                         values.get("person"),
+                        values.get("employee"),
                     ],
                 )
             )
@@ -221,28 +247,30 @@ class AddressCreate(UUIDBase):
 
         if number_of_uuids != 1:
             exceptions.ErrorCodes.E_INVALID_INPUT(
-                f"Must supply exactly one {mapping.ORG_UNIT} or {mapping.PERSON} UUID",
-                obj=cls,
+                f"Must supply exactly one {mapping.ORG_UNIT} or {mapping.PERSON} UUID"
             )
 
         return values
 
-    async def to_handler_dict(self) -> dict:
-        return {
-            "uuid": str(self.uuid),
-            "value": self.value,
-            "address_type": gen_uuid(self.address_type),
-            "visibility": gen_uuid(self.visibility),
-            "validity": {
-                "from": self.validity.from_date.date().isoformat(),
-                "to": self.validity.to_date.date().isoformat()
-                if self.validity.to_date
-                else None,
-            },
-            "org_unit": gen_uuid(self.org_unit),
-            "person": gen_uuid(self.person),
-            "engagement": gen_uuid(self.engagement),
-        }
+    def to_handler_dict(self) -> dict:
+        data_dict = super().to_handler_dict()
+        data_dict["value"] = self.value
+        data_dict["address_type"] = gen_uuid(self.address_type)
+        return data_dict
+
+
+class AddressUpdate(AddressUpsert):
+    """Model representing an association update."""
+
+    uuid: UUID = Field(description="UUID of the address we want to update.")
+    value: str | None = Field(description="The actual address value.")
+    address_type: UUID | None = Field(description="Type of the address.")
+
+    def to_handler_dict(self) -> dict:
+        data_dict = super().to_handler_dict()
+        data_dict["value"] = self.value
+        data_dict["address_type"] = gen_uuid(self.address_type)
+        return {k: v for k, v in data_dict.items() if v}
 
 
 class AddressTerminate(ValidityTerminate):
@@ -276,40 +304,6 @@ class AddressTerminate(ValidityTerminate):
             },
             "note": "Afsluttet",
         }
-
-
-class AddressUpdate(UUIDBase):
-    """Model representing an association update."""
-
-    uuid: UUID = Field(description="UUID of the association we want to update.")
-    user_key: str | None = Field(description="Extra info or uuid.")
-    org_unit: UUID | None = Field(description="Org-unit uuid.")
-    employee: UUID | None = Field(description="Employee uuid.")
-    address_type: UUID | None = Field(description="Address type uuid.")
-    engagement: UUID | None = Field(description="Engagement uuid.")
-    value: str | None = Field(description="Info related to the specific addresstype.")
-    visibility: UUID | None = Field(description="UUID for visibility of the address.")
-
-    validity: RAValidity = Field(description="Validity range for the address.")
-
-    def to_handler_dict(self) -> dict:
-        data_dict = {
-            "uuid": self.uuid,
-            "user_key": self.user_key,
-            "org_unit": gen_uuid(self.org_unit),
-            "person": gen_uuid(self.employee),
-            "address_type": gen_uuid(self.address_type),
-            "engagement": gen_uuid(self.engagement),
-            "value": self.value,
-            "visibility": gen_uuid(self.visibility),
-            "validity": {
-                "from": self.validity.from_date.date().isoformat(),
-                "to": self.validity.to_date.date().isoformat()
-                if self.validity.to_date
-                else None,
-            },
-        }
-        return {k: v for k, v in data_dict.items() if v}
 
 
 # Associations
