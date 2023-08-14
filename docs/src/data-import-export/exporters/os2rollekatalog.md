@@ -55,7 +55,7 @@ indeholder følgende data:
 - AD brugernavn
 - Engagementer (Stillingsbetegnelse og Enheds uuid. Optionelt: uuid for stillingsbetegnelse-klassen.)
 
-***Desuden er der mulighed for synkronisering mellem fremtidige og nutidige medarbejdere***
+***Desuden er der mulighed for synkronisering mellem fremtidige og nutidige brugere***
 
 Der gives en advarsel i loggen ved mere end én email adresse på en
 bruger.
