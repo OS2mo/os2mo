@@ -156,7 +156,7 @@ async def terminate_org_unit(
     # Do LoRa update
     lora_conn = lora.Connector()
     lora_result = await lora_conn.organisationenhed.update(
-        ou_terminate.get_lora_payload(), ou_terminate.uuid
+        ou_terminate.get_lora_payload(), str(ou_terminate.uuid)
     )
 
     # ON_AFTER

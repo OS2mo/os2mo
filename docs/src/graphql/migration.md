@@ -11,6 +11,34 @@ code is up-to-date with the latest version.
 
 Below follows the migration guide for each version.
 
+## Version 9
+
+GraphQL version 9 introduces a breaking change to the input variable
+name of the org_unit_terminate-mutator's input-variable, which did
+not align with the other mutators.
+
+To migrate from version 8 to version 9, change the name of
+`org_unit_terminate`'s input-variable from `unit` to `input`.
+
+Version 8:
+```graphql
+mutation TestTerminateOrgUnit($input: OrganisationUnitTerminateInput!) {
+    org_unit_terminate(unit: $input) {
+        uuid
+    }
+}
+```
+
+Version 9:
+```graphql
+mutation TestTerminateOrgUnit($input: OrganisationUnitTerminateInput!) {
+    org_unit_terminate(input: $input) {
+        uuid
+    }
+}
+```
+
+
 ## Version 8
 
 GraphQL version 8 introduces a breaking change to the name of the

@@ -678,10 +678,10 @@ class Mutation:
         ],
     )
     async def org_unit_terminate(
-        self, unit: OrganisationUnitTerminateInput
+        self, input: OrganisationUnitTerminateInput
     ) -> Response[OrganisationUnit]:
         return uuid2response(
-            await terminate_org_unit(unit.to_pydantic()), OrganisationUnitRead
+            await terminate_org_unit(input.to_pydantic()), OrganisationUnitRead
         )
 
     # TODO: org_unit_delete
