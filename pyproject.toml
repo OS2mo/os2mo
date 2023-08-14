@@ -42,7 +42,7 @@ strawberry-graphql = "0.196.1"
 jsonschema = "^4.18.4"
 psycopg2-binary = "~2.9"
 sentry-sdk = {extras = ["fastapi"], version = "^1.28.1"}
-psycopg = "^3.1.8"
+psycopg = "^3.1.10"
 service-person-stamdata-udvidet = "^1.0.3"
 lora-utils = "^0.1.1"
 
