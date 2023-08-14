@@ -462,7 +462,7 @@ socks = ["socksio (>=1.0.0,<2.0.0)"]
 
 [[package]]
 name = "hypothesis"
-version = "6.82.0"
+version = "6.82.4"
 description = "A library for property-based testing"
 category = "dev"
 optional = false
@@ -791,7 +791,7 @@ wcwidth = "*"
 
 [[package]]
 name = "psycopg"
-version = "3.1.10"
+version = "3.1.9"
 description = "PostgreSQL database adapter for Python"
 category = "main"
 optional = false
@@ -802,12 +802,12 @@ typing-extensions = ">=4.1"
 tzdata = {version = "*", markers = "sys_platform == \"win32\""}
 
 [package.extras]
-binary = ["psycopg-binary (==3.1.10)"]
-c = ["psycopg-c (==3.1.10)"]
-dev = ["black (>=23.1.0)", "dnspython (>=2.1)", "flake8 (>=4.0)", "mypy (>=1.4.1)", "types-setuptools (>=57.4)", "wheel (>=0.37)"]
+binary = ["psycopg-binary (==3.1.9)"]
+c = ["psycopg-c (==3.1.9)"]
+dev = ["black (>=23.1.0)", "dnspython (>=2.1)", "flake8 (>=4.0)", "mypy (>=1.2)", "types-setuptools (>=57.4)", "wheel (>=0.37)"]
 docs = ["Sphinx (>=5.0)", "furo (==2022.6.21)", "sphinx-autobuild (>=2021.3.14)", "sphinx-autodoc-typehints (>=1.12)"]
 pool = ["psycopg-pool"]
-test = ["anyio (>=3.6.2)", "mypy (>=1.4.1)", "pproxy (>=2.7)", "pytest (>=6.2.5)", "pytest-cov (>=3.0)", "pytest-randomly (>=3.5)"]
+test = ["anyio (>=3.6.2)", "mypy (>=1.2)", "pproxy (>=2.7)", "pytest (>=6.2.5)", "pytest-cov (>=3.0)", "pytest-randomly (>=3.5)"]
 
 [[package]]
 name = "psycopg2-binary"
@@ -1285,11 +1285,11 @@ starlette = "*"
 
 [[package]]
 name = "strawberry-graphql"
-version = "0.196.1"
+version = "0.203.3"
 description = "A library for creating GraphQL APIs"
 category = "main"
 optional = false
-python-versions = ">=3.7,<4.0"
+python-versions = ">=3.8,<4.0"
 
 [package.dependencies]
 graphql-core = ">=3.2.0,<3.3.0"
@@ -1308,7 +1308,7 @@ django = ["Django (>=3.2)", "asgiref (>=3.2,<4.0)"]
 fastapi = ["fastapi (>=0.65.2)", "python-multipart (>=0.0.5,<0.0.7)"]
 flask = ["flask (>=1.1)"]
 opentelemetry = ["opentelemetry-api (<2)", "opentelemetry-sdk (<2)"]
-pydantic = ["pydantic (<2)"]
+pydantic = ["pydantic (>1.6.1)"]
 pyinstrument = ["pyinstrument (>=4.0.0)"]
 sanic = ["sanic (>=20.12.2)"]
 starlite = ["starlite (>=1.48.0)"]
@@ -1498,7 +1498,7 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "5661828d1ba4cc18e8dfe5b61c75d913b0a7183c16c5980863a504688b0eaad8"
+content-hash = "5642230735998113ad13b268e1009bf5741761bb6d6d7695a13318ecc6ce1b4c"
 
 [metadata.files]
 aio-pika = [
@@ -1986,8 +1986,8 @@ httpx = [
     {file = "httpx-0.24.1.tar.gz", hash = "sha256:5853a43053df830c20f8110c5e69fe44d035d850b2dfe795e196f00fdb774bdd"},
 ]
 hypothesis = [
-    {file = "hypothesis-6.82.0-py3-none-any.whl", hash = "sha256:fa8eee429b99f7d3c953fb2b57de415fd39b472b09328b86c1978f12669ef395"},
-    {file = "hypothesis-6.82.0.tar.gz", hash = "sha256:ffece8e40a34329e7112f7408f2c45fe587761978fdbc6f4f91bf0d683a7d4d9"},
+    {file = "hypothesis-6.82.4-py3-none-any.whl", hash = "sha256:3f1e730ea678d01ad2183325b1350faa6b097b98ced1e97e0ba67bcf5e2439ea"},
+    {file = "hypothesis-6.82.4.tar.gz", hash = "sha256:11f32a66cf361a72f2a36527a15639ea6814d1dbf54782c3a8ea31585d62ab27"},
 ]
 hypothesis-graphql = [
     {file = "hypothesis_graphql-0.10.0-py3-none-any.whl", hash = "sha256:f65895ddc72f9414427268e2b3cc9ffa79aac55e962d69f37be716fa710b02c6"},
@@ -2210,8 +2210,8 @@ prompt-toolkit = [
     {file = "prompt_toolkit-3.0.39.tar.gz", hash = "sha256:04505ade687dc26dc4284b1ad19a83be2f2afe83e7a828ace0c72f3a1df72aac"},
 ]
 psycopg = [
-    {file = "psycopg-3.1.10-py3-none-any.whl", hash = "sha256:8bbeddae5075c7890b2fa3e3553440376d3c5e28418335dee3c3656b06fa2b52"},
-    {file = "psycopg-3.1.10.tar.gz", hash = "sha256:15b25741494344c24066dc2479b0f383dd1b82fa5e75612fa4fa5bb30726e9b6"},
+    {file = "psycopg-3.1.9-py3-none-any.whl", hash = "sha256:fbbac339274d8733ee70ba9822297af3e8871790a26e967b5ea53e30a4b74dcc"},
+    {file = "psycopg-3.1.9.tar.gz", hash = "sha256:ab400f207a8c120bafdd8077916d8f6c0106e809401378708485b016508c30c9"},
 ]
 psycopg2-binary = [
     {file = "psycopg2-binary-2.9.6.tar.gz", hash = "sha256:1f64dcfb8f6e0c014c7f55e51c9759f024f70ea572fbdef123f85318c297947c"},
@@ -2607,8 +2607,8 @@ starlette-context = [
     {file = "starlette_context-0.3.6.tar.gz", hash = "sha256:d361a36ba2d4acca3ab680f917b25e281533d725374752d47607a859041958cb"},
 ]
 strawberry-graphql = [
-    {file = "strawberry_graphql-0.196.1-py3-none-any.whl", hash = "sha256:84a3dde2012395520dab3550996279a2cb3253c244a62946b59215dbbc530eec"},
-    {file = "strawberry_graphql-0.196.1.tar.gz", hash = "sha256:2c9872ef0dae2d5883180b5df95dfa460f1c9485d5b420f6e2a85afac9da9184"},
+    {file = "strawberry_graphql-0.203.3-py3-none-any.whl", hash = "sha256:8d43b3e2cf1f3b99bbcc9bf41a2f1a2581f7abccfe949f2c907ad6720c36a60f"},
+    {file = "strawberry_graphql-0.203.3.tar.gz", hash = "sha256:8f0b861b4d6aed49299c5f3fe9ec0a08d8afb492ab05cc08a21e8605bcd2dabe"},
 ]
 structlog = [
     {file = "structlog-23.1.0-py3-none-any.whl", hash = "sha256:79b9e68e48b54e373441e130fa447944e6f87a05b35de23138e475c05d0f7e0e"},
