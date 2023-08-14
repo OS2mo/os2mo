@@ -6,23 +6,23 @@ title: KLE i MO
 
 ## Formål
 
-Det er muligt at vedligeholde KLE-numre i OS2mo samt eksportere dem til andre systemer.
+KLE står for [Kommunernes Landsforenings Emnesystematik](https://www.kl.dk/okonomi-og-administration/digitalisering-og-teknologi/arbejdsgange-forretningsviden-og-informationshaandtering/kl-emnesystematik-kle/) og er en taksonomi, der bruges til at opmærke enkeltsager med kommunale opgaver.
 
-Du kan læse mere om KLE [her](https://www.kl.dk/okonomi-og-administration/digitalisering-og-teknologi/arbejdsgange-forretningsviden-og-informationshaandtering/kl-emnesystematik-kle/).
+I MO bruges KLE-numre til at opmærke organisationsenheder og bliver sendt til FK Organisation mhp. adgangsstyring. 
 
-Det er muligt at importere , vedligeholde og eksportere KLE-ompærkninger i MO:
+Det er således muligt at vedligeholde KLE-numre i OS2mo samt eksportere dem til andre systemer.
 
-1. **[Importere KLE-numre i MO vha. regneark](##Opret-leder-i-MO)**
-2. **[Vedligeholde KLE-numre i MO](##Vedligeholde-KLE-numre-i-MO)**
-3. **[Eksportere KLE-numre fra MO](##Eksportere-KLE-numre-fra-MO)**
+1. **[Importere KLE-numre i MO vha. regneark](##importere-KLE-numre-i-MO-vha.-regneark)**
+2. **[Vedligeholde KLE-numre i MO](##vedligeholde-KLE-numre-i-MO)**
+3. **[Eksportere KLE-numre fra MO](##eksportere-KLE-numre-fra-MO)**
 
 ## Importere KLE-numre i MO vha. regneark
 Man kan sagtens oprette KLE-numre i selve MO, men det er oftest nemmere at gøre det i et regnark først og foretage en engangsindlæsning af det i MO.
 
-Ønsker man at opmærke med KLE-numre direkte i MO, se [Vedligeholde KLE-numre i MO](##Vedligeholde-KLE-numre-i-MO)
+Ønsker man at opmærke med KLE-numre direkte i MO, se [Vedligeholde KLE-numre i MO](##vedligeholde-KLE-numre-i-MO)
 
 ### Udtræk af organisationen
-Der laves et udtræk af den administrative organisation fra MO, og det sendes det til jer. Det foregår i [dette regneark](/static/kle.xlsx).
+Der laves et udtræk af den administrative organisation fra MO, og det sendes det til jer. Det foregår i [dette regneark](../static/kle.xlsx).
 
 Regnearket indeholder også alle KLE-numre fra [KLE-Online](https://www.kle-online.dk/).
 

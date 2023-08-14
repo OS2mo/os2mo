@@ -39,8 +39,8 @@ nav:
               - guides/adfs-rbac-setup.md
           - Conventions: guides/conventions.md
           - Lederhåndtering i MO: guides/Lederhaandtering i MO.md
-          - MED-organisation i OS2mo: guides/MED-organisationen.md
           - KLE i MO: guides/KLEiMO.md
+          - MED-organisation i OS2mo: guides/MED-organisationen.md
           - Powershell-script til AD-Skriv: guides/powershellscriptAD.md
           - Tests: guides/tests.md
   - Lokal rammearkitektur (LoRa og databasen):
