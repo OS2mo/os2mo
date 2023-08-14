@@ -33,6 +33,7 @@ from .models import OrganisationUnitCreate
 from .models import OrganisationUnitTerminate
 from .models import OrganisationUnitUpdate
 from .models import RoleCreate
+from .models import RoleTerminate
 from .models import RoleUpdate
 from .models import Validity
 from mora.util import CPR
@@ -374,6 +375,14 @@ class RoleCreateInput:
 )
 class RoleUpdateInput:
     """Input model for updating roles."""
+
+
+@strawberry.experimental.pydantic.input(
+    model=RoleTerminate,
+    all_fields=True,
+)
+class RoleTerminateInput:
+    """Input model for terminating roles."""
 
 
 # Health

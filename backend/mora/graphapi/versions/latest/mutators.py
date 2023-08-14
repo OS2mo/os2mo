@@ -57,6 +57,7 @@ from .inputs import OrganisationUnitCreateInput
 from .inputs import OrganisationUnitTerminateInput
 from .inputs import OrganisationUnitUpdateInput
 from .inputs import RoleCreateInput
+from .inputs import RoleTerminateInput
 from .inputs import RoleUpdateInput
 from .it_user import create as create_ituser
 from .it_user import terminate as terminate_ituser
@@ -88,6 +89,7 @@ from .permissions import gen_terminate_permission
 from .permissions import gen_update_permission
 from .permissions import IsAuthenticatedPermission
 from .role import create_role
+from .role import terminate_role
 from .role import update_role
 from .schema import Address
 from .schema import Association
@@ -732,7 +734,16 @@ class Mutation:
     async def role_update(self, input: RoleUpdateInput) -> Response[Role]:
         return uuid2response(await update_role(input.to_pydantic()), RoleRead)
 
-    # TODO: roles_terminate
+    @strawberry.mutation(
+        description="Terminates a role.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("role"),
+        ],
+    )
+    async def role_terminate(self, input: RoleTerminateInput) -> Response[Role]:
+        return uuid2response(await terminate_role(input.to_pydantic()), RoleRead)
+
     # TODO: roles_delete
 
     # Files

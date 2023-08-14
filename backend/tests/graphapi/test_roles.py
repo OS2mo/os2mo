@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
 
+import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
@@ -340,3 +341,58 @@ async def test_update_role_integration_test(test_data, graphapi_post) -> None:
     expected_updated_role = {k: v or pre_update_role[k] for k, v in test_data.items()}
 
     assert expected_updated_role == role_objects_post_update
+
+
+@pytest.mark.integration_test
+@freezegun.freeze_time("2023-07-13", tz_offset=1)
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "test_data",
+    [
+        {
+            "uuid": "1b20d0b9-96a0-42a6-b196-293bb86e62e8",
+            "to": "2023-07-25T00:00:00+02:00",
+        },
+        {
+            "uuid": "1b20d0b9-96a0-42a6-b196-293bb86e62e8",
+            "to": "2040-01-01T00:00:00+01:00",
+        },
+    ],
+)
+async def test_role_terminate_integration(test_data, graphapi_post) -> None:
+    uuid = test_data["uuid"]
+    mutation = """
+        mutation TerminateRole($input: RoleTerminateInput!) {
+            role_terminate(input: $input) {
+                uuid
+            }
+        }
+    """
+    mutation_response: GQLResponse = graphapi_post(
+        mutation, {"input": jsonable_encoder(test_data)}
+    )
+
+    assert mutation_response.errors is None
+
+    verify_query = """
+        query VerifyQuery($uuid: UUID!) {
+            roles(uuids: [$uuid]){
+                objects {
+                    objects {
+                        uuid
+                        validity {
+                            to
+                        }
+                    }
+                }
+            }
+        }
+    """
+
+    verify_response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    assert verify_response.errors is None
+    role_objects_post_terminate = one(
+        one(verify_response.data["roles"]["objects"])["objects"]
+    )
+    assert test_data["uuid"] == role_objects_post_terminate["uuid"]
+    assert test_data["to"] == role_objects_post_terminate["validity"]["to"]
