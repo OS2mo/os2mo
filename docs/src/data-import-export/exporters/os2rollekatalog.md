@@ -17,28 +17,29 @@ der ligger i rollekataloget i forvejen.
 For at anvende eksporten er det nødvendigt at oprette et antal nøgler i
 *settings.json*:
 
--   `exporters.os2rollekatalog.rollekatalog.url`: URL adressen til
-    rollekatalogets organisations api, fx.
-    <https://os2mo.rollekatalog.dk/api/organisation/v3
+- `exporters.os2rollekatalog.rollekatalog.url`: URL adressen til
+  rollekatalogets organisations api, fx.
+  <https://os2mo.rollekatalog.dk/api/organisation/v3
 
--   `exporters.os2rollekatalog.rollekatalog.api_token`: API token til
-    autentificering med rollekataloget
+- `exporters.os2rollekatalog.rollekatalog.api_token`: API token til
+  autentificering med rollekataloget
 
--   `exporters.os2rollekatalog.main_root_org_unit`: UUID på
-    rod-enheden i OS2MO. Bliver også rod i rollekatalog medmindre
-    andet er sat i *rollekatalog_root_uuid*
+- `exporters.os2rollekatalog.main_root_org_unit`: UUID på
+  rod-enheden i OS2MO. Bliver også rod i rollekatalog medmindre
+  andet er sat i *rollekatalog_root_uuid*
 
--   `exporters.os2rollekatalog.ou_filter`: *true* eller *false*.
+- `exporters.os2rollekatalog.ou_filter`: *true* eller *false*.
 
-    Filtrer enheder og engagementer der ikke hører under
-    main_root_org_unit fra. Default er *false*.
+  Filtrer enheder og engagementer der ikke hører under
+  main_root_org_unit fra. Default er *false*.
 
 -
 
-    `exporters.os2rollekatalog.rollekatalog_root_uuid`: Optionelt. Hvis rod-uuid'en i rollekataloget allerede eksisterer kan den sættes ind her.
+`exporters.os2rollekatalog.rollekatalog_root_uuid`: Optionelt. Hvis rod-uuid'en i rollekataloget allerede eksisterer kan
+den sættes ind her.
 
-    Rod-enheden fra OS2MO vil så få overskrevet sit UUID med
-    denne.
+Rod-enheden fra OS2MO vil så få overskrevet sit UUID med
+denne.
 
 ## Eksporteret data
 
@@ -47,22 +48,27 @@ indeholder følgende data:
 
 ### Medarbejdere
 
--   UUID
--   Navn
--   Kaldenavn (optionelt). Hvis Kaldenavn er sat i MO, vil det stå i stedet for navn i rollekataloget.
--   Email
--   AD brugernavn
--   Engagementer (Stillingsbetegnelse og Enheds uuid. Optionelt: uuid for stillingsbetegnelse-klassen.)
+- UUID
+- Navn
+- Kaldenavn (optionelt). Hvis Kaldenavn er sat i MO, vil det stå i stedet for navn i rollekataloget.
+- Email
+- AD brugernavn
+- Engagementer (Stillingsbetegnelse og Enheds uuid. Optionelt: uuid for stillingsbetegnelse-klassen.)
+
+***Desuden er der mulighed for synkronisering mellem fremtidige og nutidige brugere***
 
 Der gives en advarsel i loggen ved mere end én email adresse på en
 bruger.
 
 ### Organisatoriske enheder
 
--   UUID
--   Navn
--   Email
--   Overenhed
--   Leder
+- UUID
+- Navn
+- Email
+- Overenhed
+- Leder
+- KLE - Kommunernes Landsforenings Emnesystematik
+    - Indsigt
+    - Udførende
 
 Der tillades kun én leder pr. Organisatorisk enhed.
