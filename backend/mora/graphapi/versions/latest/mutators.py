@@ -55,6 +55,7 @@ from .inputs import ManagerUpdateInput
 from .inputs import OrganisationUnitCreateInput
 from .inputs import OrganisationUnitTerminateInput
 from .inputs import OrganisationUnitUpdateInput
+from .inputs import RoleCreateInput
 from .it_user import create as create_ituser
 from .it_user import terminate as terminate_ituser
 from .it_user import update as update_ituser
@@ -83,6 +84,7 @@ from .permissions import gen_role_permission
 from .permissions import gen_terminate_permission
 from .permissions import gen_update_permission
 from .permissions import IsAuthenticatedPermission
+from .role import create_role
 from .schema import Address
 from .schema import Association
 from .schema import Class
@@ -97,6 +99,7 @@ from .schema import Organisation
 from .schema import OrganisationUnit
 from .schema import OrganisationUnitRefresh
 from .schema import Response
+from .schema import Role
 from mora.common import get_connector
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
@@ -109,6 +112,7 @@ from ramodels.mo.details import ITSystemRead
 from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead
 from ramodels.mo.details import ManagerRead
+from ramodels.mo.details import RoleRead
 
 logger = logging.getLogger(__name__)
 
@@ -693,7 +697,16 @@ class Mutation:
     # Roles
     # -----
 
-    # TODO: roles_create
+    @strawberry.mutation(
+        description="Creates a role.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("role"),
+        ],
+    )
+    async def role_create(self, input: RoleCreateInput) -> Response[Role]:
+        return uuid2response(await create_role(input.to_pydantic()), RoleRead)
+
     # TODO: roles_update
     # TODO: roles_terminate
     # TODO: roles_delete

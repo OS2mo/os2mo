@@ -1235,6 +1235,39 @@ class OrganisationUnitUpdate(UUIDBase):
         return {k: v for k, v in data_dict.items() if v}
 
 
+# Roles
+# -----
+
+
+class RoleCreate(UUIDBase):
+    """Model for creating role."""
+
+    user_key: str | None = Field(description="Extra info or uuid.")
+    org_unit: UUID = Field(description="UUID of the org_unit")
+    person: UUID = Field(description="UUID of the person")
+    role_type: UUID = Field(description="UUID of the role type")
+    validity: RAValidity = Field(description="Validity range for the role.")
+
+    def to_handler_dict(self) -> dict:
+        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
+            if uuid is None:
+                return None
+            return {"uuid": str(uuid)}
+
+        return {
+            "user_key": self.user_key,
+            "org_unit": gen_uuid(self.org_unit),
+            "person": gen_uuid(self.person),
+            "role_type": gen_uuid(self.role_type),
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+        }
+
+
 # Files
 # -----
 @strawberry.enum(
