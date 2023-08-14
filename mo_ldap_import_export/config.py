@@ -15,7 +15,7 @@ from pydantic import ConstrainedList
 from pydantic import Field
 from pydantic import parse_obj_as
 from pydantic import SecretStr
-from ramqp.config import ConnectionSettings as AMQPConnectionSettings
+from ramqp.config import AMQPConnectionSettings
 
 
 class ServerConfig(BaseModel):
@@ -56,6 +56,13 @@ class InternalAMQPConnectionSettings(AMQPConnectionSettings):
     url: AmqpDsn = parse_obj_as(AmqpDsn, "amqp://guest:guest@msg_broker")
 
 
+class ExternalAMQPConnectionSettings(AMQPConnectionSettings):
+    exchange = "ldap_ie"
+    queue_prefix = "ldap_ie"
+    prefetch_count = 1  # MO cannot handle too many requests
+    url: AmqpDsn = parse_obj_as(AmqpDsn, "amqp://guest:guest@msg_broker")
+
+
 class Settings(BaseSettings):
     class Config:
         frozen = True
@@ -70,8 +77,8 @@ class Settings(BaseSettings):
         default_factory=FastRAMQPISettings, description="FastRAMQPI settings"
     )
 
-    amqp_url: AmqpDsn = parse_obj_as(AmqpDsn, "amqp://guest:guest@msg_broker")
-    amqp_exchange: str = "os2mo"
+    amqp: ExternalAMQPConnectionSettings
+
     listen_to_changes_in_mo: bool = Field(
         True, description="Whether to write to AD, when changes in MO are registered"
     )

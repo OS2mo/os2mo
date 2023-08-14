@@ -100,6 +100,7 @@ def settings(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("DEFAULT_ORG_UNIT_LEVEL", "foo")
     monkeypatch.setenv("DEFAULT_ORG_UNIT_TYPE", "foo")
     monkeypatch.setenv("LDAP_OUS_TO_WRITE_TO", '[""]')
+    monkeypatch.setenv("AMQP__URL", "amqp://guest:guest@msg_broker:5672/")
 
     return Settings()
 
@@ -1350,16 +1351,16 @@ def test_query_mo_sync(dataloader: DataLoader, gql_client_sync: MagicMock):
 async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock):
 
     return_values: list = [
-        {"employees": {"objects": [{"objects": [{"uuid": uuid4()}]}]}},
-        {"org_units": {"objects": [{"objects": [{"uuid": uuid4()}]}]}},
+        {"employees": {"objects": [{"objects": [{"uuid": str(uuid4())}]}]}},
+        {"org_units": {"objects": [{"objects": [{"uuid": str(uuid4())}]}]}},
         {
             "addresses": {
                 "objects": [
                     {
                         "objects": [
                             {
-                                "uuid": uuid4(),
-                                "employee_uuid": uuid4(),
+                                "uuid": str(uuid4()),
+                                "employee_uuid": str(uuid4()),
                                 "org_unit_uuid": None,
                             },
                         ]
@@ -1367,9 +1368,9 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
                     {
                         "objects": [
                             {
-                                "uuid": uuid4(),
+                                "uuid": str(uuid4()),
                                 "employee_uuid": None,
-                                "org_unit_uuid": uuid4(),
+                                "org_unit_uuid": str(uuid4()),
                             },
                         ]
                     },
@@ -1382,8 +1383,8 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
                     {
                         "objects": [
                             {
-                                "uuid": uuid4(),
-                                "employee_uuid": uuid4(),
+                                "uuid": str(uuid4()),
+                                "employee_uuid": str(uuid4()),
                                 "org_unit_uuid": None,
                             }
                         ]
@@ -1397,9 +1398,9 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
                     {
                         "objects": [
                             {
-                                "uuid": uuid4(),
-                                "employee_uuid": uuid4(),
-                                "org_unit_uuid": uuid4(),
+                                "uuid": str(uuid4()),
+                                "employee_uuid": str(uuid4()),
+                                "org_unit_uuid": str(uuid4()),
                             }
                         ]
                     }
@@ -1415,18 +1416,18 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
     uuid = return_values[0]["employees"]["objects"][0]["objects"][0]["uuid"]
     parent_uuid = uuid
     assert all_objects[0]["uuid"] == uuid
-    assert all_objects[0]["object_type"] == "employee"
+    assert all_objects[0]["object_type"] == "person"
     assert all_objects[0]["service_type"] == "employee"
-    assert all_objects[0]["payload"].uuid == parent_uuid
-    assert all_objects[0]["payload"].object_uuid == uuid
+    assert all_objects[0]["parent_uuid"] == UUID(parent_uuid)
+    assert all_objects[0]["payload"] == UUID(uuid)
 
     uuid = return_values[1]["org_units"]["objects"][0]["objects"][0]["uuid"]
     parent_uuid = uuid
     assert all_objects[1]["uuid"] == uuid
     assert all_objects[1]["object_type"] == "org_unit"
     assert all_objects[1]["service_type"] == "org_unit"
-    assert all_objects[1]["payload"].uuid == parent_uuid
-    assert all_objects[1]["payload"].object_uuid == uuid
+    assert all_objects[1]["parent_uuid"] == UUID(parent_uuid)
+    assert all_objects[1]["payload"] == UUID(uuid)
 
     uuid = return_values[2]["addresses"]["objects"][0]["objects"][0]["uuid"]
     parent_uuid = return_values[2]["addresses"]["objects"][0]["objects"][0][
@@ -1435,8 +1436,8 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
     assert all_objects[2]["uuid"] == uuid
     assert all_objects[2]["object_type"] == "address"
     assert all_objects[2]["service_type"] == "employee"
-    assert all_objects[2]["payload"].uuid == parent_uuid
-    assert all_objects[2]["payload"].object_uuid == uuid
+    assert all_objects[2]["parent_uuid"] == UUID(parent_uuid)
+    assert all_objects[2]["payload"] == UUID(uuid)
 
     uuid = return_values[2]["addresses"]["objects"][1]["objects"][0]["uuid"]
     parent_uuid = return_values[2]["addresses"]["objects"][1]["objects"][0][
@@ -1445,18 +1446,18 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
     assert all_objects[3]["uuid"] == uuid
     assert all_objects[3]["object_type"] == "address"
     assert all_objects[3]["service_type"] == "org_unit"
-    assert all_objects[3]["payload"].uuid == parent_uuid
-    assert all_objects[3]["payload"].object_uuid == uuid
+    assert all_objects[3]["parent_uuid"] == UUID(parent_uuid)
+    assert all_objects[3]["payload"] == UUID(uuid)
 
     uuid = return_values[3]["itusers"]["objects"][0]["objects"][0]["uuid"]
     parent_uuid = return_values[3]["itusers"]["objects"][0]["objects"][0][
         "employee_uuid"
     ]
     assert all_objects[4]["uuid"] == uuid
-    assert all_objects[4]["object_type"] == "it"
+    assert all_objects[4]["object_type"] == "ituser"
     assert all_objects[4]["service_type"] == "employee"
-    assert all_objects[4]["payload"].uuid == parent_uuid
-    assert all_objects[4]["payload"].object_uuid == uuid
+    assert all_objects[4]["parent_uuid"] == UUID(parent_uuid)
+    assert all_objects[4]["payload"] == UUID(uuid)
 
     uuid = return_values[4]["engagements"]["objects"][0]["objects"][0]["uuid"]
     parent_uuid = return_values[4]["engagements"]["objects"][0]["objects"][0][
@@ -1465,8 +1466,8 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
     assert all_objects[5]["uuid"] == uuid
     assert all_objects[5]["object_type"] == "engagement"
     assert all_objects[5]["service_type"] == "employee"
-    assert all_objects[5]["payload"].uuid == parent_uuid
-    assert all_objects[5]["payload"].object_uuid == uuid
+    assert all_objects[5]["parent_uuid"] == UUID(parent_uuid)
+    assert all_objects[5]["payload"] == UUID(uuid)
 
     assert len(all_objects) == 6
 
@@ -1515,7 +1516,7 @@ async def test_load_all_mo_objects_specify_uuid(
     dataloader: DataLoader, gql_client: AsyncMock
 ):
 
-    employee_uuid = uuid4()
+    employee_uuid = str(uuid4())
     return_values: list = [
         {"employees": {"objects": [{"objects": [{"uuid": employee_uuid}]}]}},
         {"org_units": {"objects": []}},
@@ -1526,18 +1527,16 @@ async def test_load_all_mo_objects_specify_uuid(
 
     gql_client.execute.side_effect = return_values
 
-    output = await asyncio.gather(
-        dataloader.load_all_mo_objects(uuid=str(employee_uuid))
-    )
-    assert output[0][0]["uuid"] == employee_uuid
-    assert len(output[0]) == 1
+    output = await dataloader.load_all_mo_objects(uuid=employee_uuid)
+    assert output[0]["uuid"] == employee_uuid
+    assert len(output) == 1
 
 
 async def test_load_all_mo_objects_specify_uuid_multiple_results(
     dataloader: DataLoader, gql_client: AsyncMock
 ):
 
-    uuid = uuid4()
+    uuid = str(uuid4())
     return_values: list = [
         {"employees": {"objects": [{"objects": [{"uuid": uuid}]}]}},
         {"org_units": {"objects": [{"objects": [{"uuid": uuid}]}]}},
@@ -1550,7 +1549,7 @@ async def test_load_all_mo_objects_specify_uuid_multiple_results(
     dataloader.query_mo.side_effect = return_values
 
     with pytest.raises(MultipleObjectsReturnedException):
-        await dataloader.load_all_mo_objects(uuid=str(uuid))
+        await dataloader.load_all_mo_objects(uuid=uuid)
 
 
 async def test_load_all_mo_objects_invalid_query(
@@ -1581,8 +1580,8 @@ async def test_load_all_mo_objects_TransportQueryError(
     dataloader: DataLoader, gql_client: AsyncMock
 ):
 
-    employee_uuid = uuid4()
-    org_unit_uuid = uuid4()
+    employee_uuid = str(uuid4())
+    org_unit_uuid = str(uuid4())
     return_values = [
         {"employees": {"objects": [{"objects": [{"uuid": employee_uuid}]}]}},
         {"org_units": {"objects": [{"objects": [{"uuid": org_unit_uuid}]}]}},
@@ -1660,14 +1659,14 @@ async def test_load_mo_object(dataloader: DataLoader):
         "mo_ldap_import_export.dataloaders.DataLoader.load_all_mo_objects",
         return_value=["obj1"],
     ):
-        result = await asyncio.gather(dataloader.load_mo_object("uuid", "employee"))
+        result = await asyncio.gather(dataloader.load_mo_object("uuid", "person"))
         assert result[0] == "obj1"
 
     with patch(
         "mo_ldap_import_export.dataloaders.DataLoader.load_all_mo_objects",
         return_value=[],
     ):
-        result = await asyncio.gather(dataloader.load_mo_object("uuid", "employee"))
+        result = await asyncio.gather(dataloader.load_mo_object("uuid", "person"))
         assert result[0] is None
 
     # Role is not defined in self.object_type_dict

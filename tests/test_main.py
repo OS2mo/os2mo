@@ -4,7 +4,6 @@
 # pylint: disable=redefined-outer-name
 # pylint: disable=unused-argument
 # pylint: disable=protected-access
-import asyncio
 import datetime
 import os
 import re
@@ -17,15 +16,12 @@ from uuid import uuid4
 
 import pytest
 from fastapi import FastAPI
-from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
 from fastramqpi.main import FastRAMQPI
 from gql.transport.exceptions import TransportQueryError
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
-from ramqp.mo.models import MORoutingKey
-from ramqp.mo.models import PayloadType
 from ramqp.utils import RejectMessage
 from ramqp.utils import RequeueMessage
 from structlog.testing import capture_logs
@@ -38,9 +34,12 @@ from mo_ldap_import_export.main import construct_gql_client
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
 from mo_ldap_import_export.main import get_delete_flag
-from mo_ldap_import_export.main import get_service_type
-from mo_ldap_import_export.main import listen_to_changes
 from mo_ldap_import_export.main import open_ldap_connection
+from mo_ldap_import_export.main import process_address
+from mo_ldap_import_export.main import process_engagement
+from mo_ldap_import_export.main import process_ituser
+from mo_ldap_import_export.main import process_org_unit
+from mo_ldap_import_export.main import process_person
 from mo_ldap_import_export.main import reject_on_failure
 
 
@@ -63,6 +62,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "DEFAULT_ORG_UNIT_TYPE": "foo",
         "LDAP_OUS_TO_SEARCH_IN": '["OU=bar"]',
         "LDAP_OU_FOR_NEW_USERS": "OU=foo,OU=bar",
+        "AMQP__URL": "amqp://guest:guest@msg_broker:5672/",
     }
     yield overrides
 
@@ -105,10 +105,9 @@ def test_mo_objects() -> list:
         {
             "uuid": uuid4(),
             "service_type": "employee",
-            "payload": PayloadType(
-                uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
-            ),
-            "object_type": "employee",
+            "payload": uuid4(),
+            "parent_uuid": uuid4(),
+            "object_type": "person",
             "validity": {
                 "from": datetime.datetime.today().strftime("%Y-%m-%d"),
                 "to": None,
@@ -117,10 +116,9 @@ def test_mo_objects() -> list:
         {
             "uuid": uuid4(),
             "service_type": "employee",
-            "payload": PayloadType(
-                uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
-            ),
-            "object_type": "employee",
+            "payload": uuid4(),
+            "parent_uuid": uuid4(),
+            "object_type": "person",
             "validity": {
                 "from": "2021-01-01",
                 "to": datetime.datetime.today().strftime("%Y-%m-%d"),
@@ -129,10 +127,9 @@ def test_mo_objects() -> list:
         {
             "uuid": uuid4(),
             "service_type": "employee",
-            "payload": PayloadType(
-                uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
-            ),
-            "object_type": "employee",
+            "payload": uuid4(),
+            "parent_uuid": uuid4(),
+            "object_type": "person",
             "validity": {
                 "from": "2021-01-01",
                 "to": "2021-05-01",
@@ -141,10 +138,9 @@ def test_mo_objects() -> list:
         {
             "uuid": uuid4(),
             "service_type": "employee",
-            "payload": PayloadType(
-                uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
-            ),
-            "object_type": "employee",
+            "payload": uuid4(),
+            "parent_uuid": uuid4(),
+            "object_type": "person",
             "validity": {
                 "from": datetime.datetime.today().strftime("%Y-%m-%d"),
                 "to": datetime.datetime.today().strftime("%Y-%m-%d"),
@@ -188,7 +184,7 @@ def dataloader(
     dataloader.modify_ldap_object.return_value = [{"description": "success"}]
     dataloader.get_ldap_objectGUID = sync_dataloader
     dataloader.get_ldap_it_system_uuid = sync_dataloader
-    dataloader.supported_object_types = ["address", "employee"]
+    dataloader.supported_object_types = ["address", "person"]
 
     return dataloader
 
@@ -505,24 +501,43 @@ def test_ldap_get_objectGUID_endpoint(test_client: TestClient) -> None:
 async def test_listen_to_changes(dataloader: AsyncMock, sync_tool: AsyncMock):
 
     context = {"user_context": {"dataloader": dataloader, "sync_tool": sync_tool}}
-    payload = MagicMock()
-    payload.uuid = uuid4()
-    payload.object_uuid = uuid4()
+    payload = uuid4()
 
-    with patch("mo_ldap_import_export.main.get_service_type", return_value="employee"):
-        mo_routing_key = MORoutingKey.build("employee.address.*")
-        await listen_to_changes(context, payload, mo_routing_key=mo_routing_key)
-        sync_tool.listen_to_changes_in_employees.assert_awaited_once()
+    dataloader.load_mo_object.return_value = {
+        "service_type": "employee",
+        "validity": {"to": None},
+        "parent_uuid": uuid4(),
+    }
 
-    with patch("mo_ldap_import_export.main.get_service_type", return_value="org_unit"):
-        mo_routing_key = MORoutingKey.build("org_unit.address.*")
-        await listen_to_changes(context, payload, mo_routing_key=mo_routing_key)
-        sync_tool.listen_to_changes_in_org_units.assert_awaited_once()
+    await process_address(context, payload, "address", _=None)
+    sync_tool.listen_to_changes_in_employees.assert_awaited_once()
 
-    with pytest.raises(RejectMessage):
-        # the 'role' object type is not supported
-        mo_routing_key = MORoutingKey.build("employee.role.*")
-        await listen_to_changes(context, payload, mo_routing_key=mo_routing_key)
+    dataloader.load_mo_object.return_value = {
+        "service_type": "org_unit",
+        "validity": {"to": None},
+        "parent_uuid": uuid4(),
+    }
+
+    sync_tool.reset_mock()
+    await process_address(context, payload, "address", _=None)
+    sync_tool.listen_to_changes_in_org_units.assert_awaited_once()
+
+    sync_tool.reset_mock()
+    await process_engagement(context, payload, "engagement", _=None)
+    sync_tool.listen_to_changes_in_employees.assert_awaited_once()
+    sync_tool.export_org_unit_addresses_on_engagement_change.assert_awaited_once()
+
+    sync_tool.reset_mock()
+    await process_ituser(context, payload, "ituser", _=None)
+    sync_tool.listen_to_changes_in_employees.assert_awaited_once()
+
+    sync_tool.reset_mock()
+    await process_person(context, payload, "person", _=None)
+    sync_tool.listen_to_changes_in_employees.assert_awaited_once()
+
+    sync_tool.reset_mock()
+    await process_org_unit(context, payload, "org_unit", _=None)
+    sync_tool.listen_to_changes_in_org_units.assert_awaited_once()
 
 
 async def test_listen_to_changes_not_listening() -> None:
@@ -530,14 +545,12 @@ async def test_listen_to_changes_not_listening() -> None:
     mp = pytest.MonkeyPatch()
     mp.setenv("LISTEN_TO_CHANGES_IN_MO", "False")
 
-    mo_routing_key = MORoutingKey.build("employee.employee.edit")
+    mo_routing_key = "person"
     context: dict = {}
-    payload = MagicMock()
+    payload = uuid4()
 
     with pytest.raises(RejectMessage):
-        await asyncio.gather(
-            listen_to_changes(context, payload, mo_routing_key=mo_routing_key),
-        )
+        await process_person(context, payload, mo_routing_key, _=None)
     mp.setenv("LISTEN_TO_CHANGES_IN_MO", "True")
 
 
@@ -720,18 +733,15 @@ async def test_synchronize_todays_events(
 
     n = 0
     for mo_object in test_mo_objects:
-        payload = jsonable_encoder(mo_object["payload"])
+        payload = mo_object["payload"]
 
         from_date = str(mo_object["validity"]["from"])
         to_date = str(mo_object["validity"]["to"])
 
         if from_date.startswith(today):
-            if to_date.startswith(today):
-                routing_key = "employee.employee.terminate"
-            else:
-                routing_key = "employee.employee.refresh"
+            routing_key = "person"
         elif to_date.startswith(today):
-            routing_key = "employee.employee.terminate"
+            routing_key = "person"
         else:
             routing_key = None
 
@@ -740,16 +750,6 @@ async def test_synchronize_todays_events(
             n += 1
 
     assert internal_amqpsystem.publish_message.await_count == n
-
-    # Test that terminations are published before refreshes
-    refreshes = 0
-    terminations = 0
-    for call in internal_amqpsystem.publish_message.mock_calls:
-        if "terminate" in call.args[0]:
-            terminations += 1
-            assert refreshes == 0
-        else:
-            refreshes += 1
 
 
 async def test_export_endpoint(
@@ -772,10 +772,8 @@ async def test_export_endpoint(
     assert response.status_code == 202
 
     for mo_object in test_mo_objects:
-        payload = jsonable_encoder(mo_object["payload"])
-        internal_amqpsystem.publish_message.assert_any_await(
-            "employee.employee.refresh", payload
-        )
+        payload = mo_object["payload"]
+        internal_amqpsystem.publish_message.assert_any_await("person", payload)
 
     assert (
         internal_amqpsystem.publish_message.await_count
@@ -813,14 +811,12 @@ async def test_reject_on_failure():
             await reject_on_failure(func)()
 
     # But not this one
-    with patch("mo_ldap_import_export.main.delay_on_error", 0.1):
-        with pytest.raises(TypeError):
-            await reject_on_failure(type_error_func)()
-
-    # And not this one either
     with patch("mo_ldap_import_export.main.delay_on_requeue", 0.1):
+        t1 = datetime.datetime.now()
         with pytest.raises(RequeueMessage):
             await reject_on_failure(requeue_error_func)()
+        t2 = datetime.datetime.now()
+        assert (t2 - t1).total_seconds() >= 0.1
 
 
 async def test_get_delete_flag(dataloader: AsyncMock):
@@ -869,7 +865,11 @@ def test_wraps():
     """
     Test that the decorated listen_to_changes function keeps its name
     """
-    assert listen_to_changes.__name__ == "listen_to_changes"
+    assert process_address.__name__ == "process_address"
+    assert process_engagement.__name__ == "process_engagement"
+    assert process_ituser.__name__ == "process_ituser"
+    assert process_person.__name__ == "process_person"
+    assert process_org_unit.__name__ == "process_org_unit"
 
 
 def test_get_duplicate_cpr_numbers_from_LDAP_endpoint_no_cpr_field(
@@ -949,7 +949,3 @@ async def test_get_non_existing_objectGUIDs_from_MO_404(
     dataloader.get_ldap_it_system_uuid.return_value = None
     response = test_client.get("/Inspect/non_existing_objectGUIDs")
     assert response.status_code == 404
-
-
-def test_get_service_type():
-    assert get_service_type({"service_type": "employee"}) == "employee"

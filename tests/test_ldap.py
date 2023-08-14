@@ -17,6 +17,7 @@ from typing import List
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
+from uuid import UUID
 from uuid import uuid4
 
 import pytest
@@ -27,7 +28,6 @@ from ldap3 import Server
 from more_itertools import collapse
 from ramodels.mo.details.address import Address
 from ramodels.mo.employee import Employee
-from ramqp.mo.models import PayloadType
 from structlog.testing import capture_logs
 
 from .test_dataloaders import mock_ldap_response
@@ -86,6 +86,7 @@ def settings(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("LDAP_SEARCH_BASE", "DC=ad,DC=addev")
     monkeypatch.setenv("DEFAULT_ORG_UNIT_LEVEL", "foo")
     monkeypatch.setenv("DEFAULT_ORG_UNIT_TYPE", "foo")
+    monkeypatch.setenv("AMQP__URL", "amqp://guest:guest@msg_broker:5672/")
 
     return Settings()
 
@@ -136,6 +137,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "LDAP_SEARCH_BASE": "DC=ad,DC=addev",
         "DEFAULT_ORG_UNIT_LEVEL": "foo",
         "DEFAULT_ORG_UNIT_TYPE": "foo",
+        "AMQP__URL": "amqp://guest:guest@msg_broker:5672/",
     }
     yield overrides
 
@@ -603,15 +605,10 @@ async def test_cleanup_refresh_mo_object(
     )
 
     object_uuid = str(mo_objects[0].uuid)
-    employee_uuid = str(uuid4())
     dataloader.load_mo_object.return_value = {
         "uuid": object_uuid,
         "service_type": "employee",
-        "payload": PayloadType(
-            uuid=employee_uuid,
-            object_uuid=object_uuid,
-            time=datetime.datetime.now(),
-        ),
+        "payload": UUID(object_uuid),
         "object_type": "address",
         "validity": {
             "from": datetime.datetime.today().strftime("%Y-%m-%d"),

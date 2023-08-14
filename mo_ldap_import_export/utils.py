@@ -13,7 +13,7 @@ from graphql import print_ast
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
-from ramqp.mo.models import MORoutingKey
+from ramqp.mo import MORoutingKey
 
 from .customer_specific import HolstebroEngagementUpdate
 from .exceptions import InvalidQuery
@@ -213,4 +213,4 @@ def extract_ou_from_dn(dn: str) -> str:
 
 
 def get_object_type_from_routing_key(routing_key: MORoutingKey) -> str:
-    return str(routing_key).lower().split(".")[1]
+    return str(routing_key)
