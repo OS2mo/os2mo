@@ -849,28 +849,41 @@ class DataLoader:
             raise NoObjectsReturnedException("Objects is empty")
         else:
             # If any of the objects is valid today, return it
+            latest_object = None
             for obj in objects:
-                valid_to = obj["validity"]["to"]
-                valid_from = obj["validity"]["from"]
+                valid_to = mo_datestring_to_utc(obj["validity"]["to"])
+                valid_from = mo_datestring_to_utc(obj["validity"]["from"])
 
                 if valid_to and valid_from:
-                    valid_to_utc = mo_datestring_to_utc(valid_to)
-                    valid_from_utc = mo_datestring_to_utc(valid_from)
                     now_utc = datetime.datetime.utcnow()
-
-                    if now_utc > valid_from_utc and now_utc < valid_to_utc:
+                    if now_utc > valid_from and now_utc < valid_to:
                         return obj
 
-            # If any of the to-dates is None (i.e. valid forever); Return it
-            for obj in objects:
-                if obj["validity"]["to"] is None:
-                    return obj
+                elif not valid_to and valid_from:
+                    now_utc = datetime.datetime.utcnow()
+                    if now_utc > valid_from:
+                        return obj
+
+                elif valid_to and not valid_from:
+                    now_utc = datetime.datetime.utcnow()
+                    if now_utc < valid_to:
+                        return obj
+
+                # Update latest object
+                if valid_to:
+                    if latest_object:
+                        latest_valid_to = mo_datestring_to_utc(
+                            latest_object["validity"]["to"]
+                        )
+                        if latest_valid_to and valid_to > latest_valid_to:
+                            latest_object = obj
+                    else:
+                        latest_object = obj
+                else:
+                    latest_object = obj
 
             # Otherwise return the latest
-            to_dates = [mo_datestring_to_utc(obj["validity"]["to"]) for obj in objects]
-            sorted_objects = [x for _, x in sorted(zip(to_dates, objects))]
-
-            return sorted_objects[-1]
+            return latest_object
 
     async def load_mo_employee(self, uuid: UUID, current_objects_only=True) -> Employee:
         query = gql(
