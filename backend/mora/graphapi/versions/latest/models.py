@@ -64,7 +64,7 @@ class Validity(OpenValidity):
             return common._create_virkning(
                 self.get_terminate_effect_to_date(), "infinity"
             )
-        raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
+        exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
             key="Organisation unit must be set with either 'to' or both 'from' "
             "and 'to'",
             unit={
@@ -75,7 +75,7 @@ class Validity(OpenValidity):
 
     def get_terminate_effect_from_date(self) -> datetime.datetime:
         if not self.from_date or not isinstance(self.from_date, datetime.datetime):
-            raise exceptions.ErrorCodes.V_MISSING_START_DATE()
+            exceptions.ErrorCodes.V_MISSING_START_DATE()
 
         if self.from_date.time() != datetime.time.min:
             exceptions.ErrorCodes.E_INVALID_INPUT(
@@ -220,7 +220,7 @@ class AddressCreate(UUIDBase):
         )
 
         if number_of_uuids != 1:
-            raise exceptions.ErrorCodes.E_INVALID_INPUT(
+            exceptions.ErrorCodes.E_INVALID_INPUT(
                 f"Must supply exactly one {mapping.ORG_UNIT} or {mapping.PERSON} UUID",
                 obj=cls,
             )
