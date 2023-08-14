@@ -213,6 +213,7 @@ async def load_sample_structures():
             "sekundaer": "2f16d140-d743-4c9f-9e0e-361da91a06f6",
             # role_type
             "tillidsrepraesentant": "0fa6073f-32c0-4f82-865f-adb622ca0b04",
+            "ergonomiambasadoer": "8ca636d8-d70f-4ce4-992b-4bf4dcfc2559",
             # manager_type
             "direktoer": "0d72900a-22a4-4390-a01e-fd65d0e0999d",
             # manager_level

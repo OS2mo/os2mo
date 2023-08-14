@@ -1209,8 +1209,6 @@ class OrganisationUnitUpdate(UUIDBase):
 
 # Roles
 # -----
-
-
 class RoleCreate(UUIDBase):
     """Model for creating role."""
 
@@ -1233,6 +1231,35 @@ class RoleCreate(UUIDBase):
                 else None,
             },
         }
+
+
+class RoleUpdate(UUIDBase):
+    """Model for updating a role annotation."""
+
+    uuid: UUID = Field(description="UUID of the role to be updated.")
+    user_key: str | None = Field(description="Extra info or uuid.")
+    org_unit: UUID | None = Field(
+        description="UUID of the role's organisation unit to be updated."
+    )
+    role_type: UUID | None = Field(description="UUID of the role type")
+    validity: RAValidity = Field(
+        description="Validity range for the role to be updated."
+    )
+
+    def to_handler_dict(self) -> dict:
+        data_dict: dict = {
+            "uuid": str(self.uuid),
+            "user_key": self.user_key,
+            "role_type": gen_uuid(self.role_type),
+            "org_unit": gen_uuid(self.org_unit),
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+        }
+        return {k: v for k, v in data_dict.items() if v}
 
 
 # Files

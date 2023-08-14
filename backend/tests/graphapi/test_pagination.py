@@ -24,7 +24,7 @@ from tests.conftest import GQLResponse
         ("associations", 0, 0, 0),
         ("associations", 1, 0, 1),
         # Classes
-        ("classes", None, None, 39),
+        ("classes", None, None, 40),
         ("classes", 0, 0, 0),
         ("classes", 38, 0, 38),
         ("classes", 10, 0, 10),
@@ -129,7 +129,7 @@ async def test_pagination(
         # Associations
         ("associations", 10, 1),
         # Classes
-        ("classes", 40, 39),
+        ("classes", 41, 40),
         # Employees
         ("employees", 10, 5),
         # Engagement Associations
@@ -193,7 +193,7 @@ async def test_pagination_out_of_range(
     [
         ("addresses", 10),
         ("associations", 1),
-        ("classes", 39),
+        ("classes", 40),
         ("employees", 5),
         ("engagement_associations", 1),
         ("engagements", 3),
