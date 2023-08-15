@@ -1688,7 +1688,9 @@ class DataLoader:
             # Note: load_all_mo_objects checks if len==1
             return mo_objects[0]
         else:
-            return None
+            raise NoObjectsReturnedException(
+                f"{object_type} object with uuid = {uuid} not found"
+            )
 
     async def upload_mo_objects(self, objects: list[Any]):
         """
