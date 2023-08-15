@@ -308,24 +308,15 @@ class AddressTerminate(ValidityTerminate):
 
 # Associations
 # ------------
-class AssociationCreate(UUIDBase):
-    """Model representing an association creation."""
-
+class AssociationUpsert(UUIDBase):
     user_key: str | None = Field(description="Extra info or uuid.")
-    org_unit: UUID
-    employee: UUID
-    association_type: UUID
     primary: UUID | None = Field(description="Primary field of the association")
     validity: RAValidity = Field(description="Validity range for the org-unit.")
 
     def to_handler_dict(self) -> dict:
         return {
-            "uuid": str(self.uuid),
+            "uuid": self.uuid,
             "user_key": self.user_key,
-            "org_unit": gen_uuid(self.org_unit),
-            "person": gen_uuid(self.employee),
-            "association_type": gen_uuid(self.association_type),
-            "primary": gen_uuid(self.primary),
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()
@@ -335,33 +326,51 @@ class AssociationCreate(UUIDBase):
         }
 
 
-class AssociationUpdate(UUIDBase):
+class AssociationCreate(AssociationUpsert):
+    """Model representing an association creation."""
+
+    org_unit: UUID = Field(description="org-unit uuid.")
+    person: UUID | None = Field(description="Employee uuid.")
+    employee: UUID | None = Field(description="Employee uuid.")
+    association_type: UUID = Field(description="Association type uuid.")
+
+    @root_validator
+    def verify_person_or_employee(cls, values: dict[str, Any]) -> dict[str, Any]:
+        """Verifies that either person or employee is set."""
+        person_uuid = values.get("person")
+        employee_uuid = values.get("employee")
+        if person_uuid and employee_uuid:
+            exceptions.ErrorCodes.E_INVALID_INPUT(
+                "Can only set one of 'person' and 'employee'"
+            )
+        if person_uuid is None and employee_uuid is None:
+            exceptions.ErrorCodes.E_INVALID_INPUT(
+                "Must set one of 'person' and 'employee'"
+            )
+        return values
+
+    def to_handler_dict(self) -> dict:
+        data_dict = super().to_handler_dict()
+        data_dict["org_unit"] = gen_uuid(self.org_unit)
+        data_dict["person"] = (gen_uuid(self.person) or gen_uuid(self.employee),)
+        data_dict["association_type"] = gen_uuid(self.association_type)
+        return data_dict
+
+
+class AssociationUpdate(AssociationUpsert):
     """Model representing an association update."""
 
     uuid: UUID = Field(description="UUID of the association we want to update.")
-    user_key: str | None = Field(description="Extra info or uuid.")
     org_unit: UUID | None = Field(description="org-unit uuid.")
+    person: UUID | None = Field(description="Employee uuid.")
     employee: UUID | None = Field(description="Employee uuid.")
     association_type: UUID | None = Field(description="Association type uuid.")
-    primary: UUID | None = Field(description="Primary field of the association")
-
-    validity: RAValidity = Field(description="Validity range for the org-unit.")
 
     def to_handler_dict(self) -> dict:
-        data_dict = {
-            "uuid": self.uuid,
-            "user_key": self.user_key,
-            "org_unit": gen_uuid(self.org_unit),
-            "person": gen_uuid(self.employee),
-            "association_type": gen_uuid(self.association_type),
-            "primary": gen_uuid(self.primary),
-            "validity": {
-                "from": self.validity.from_date.date().isoformat(),
-                "to": self.validity.to_date.date().isoformat()
-                if self.validity.to_date
-                else None,
-            },
-        }
+        data_dict = super().to_handler_dict()
+        data_dict["org_unit"] = gen_uuid(self.org_unit)
+        data_dict["person"] = (gen_uuid(self.person) or gen_uuid(self.employee),)
+        data_dict["association_type"] = gen_uuid(self.association_type)
         return {k: v for k, v in data_dict.items() if v}
 
 
