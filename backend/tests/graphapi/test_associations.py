@@ -9,10 +9,12 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
+from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
 from hypothesis import strategies as st
 from more_itertools import one
+from pydantic import parse_obj_as
 from pytest import MonkeyPatch
 
 from .strategies import graph_data_strat
@@ -547,3 +549,35 @@ async def test_association_terminate(given_uuid, given_validity_dts):
         assert terminate_result_uuid == test_data.uuid
     else:
         assert caught_exception is not None
+
+
+@pytest.mark.parametrize(
+    "person,employee,exception",
+    [
+        (False, False, "Must set one of 'person' and 'employee'"),
+        (True, False, None),
+        (False, True, None),
+        (True, True, "Can only set one of 'person' and 'employee'"),
+    ],
+)
+def test_employee_person_exclusivity(
+    person: bool, employee: bool, exception: str | None
+) -> None:
+    """Test that employee and person are mutually exclusive."""
+
+    input_dict = {
+        "validity": {"from": "2020-01-01"},
+        "org_unit": uuid4(),
+        "association_type": uuid4(),
+    }
+    if person:
+        input_dict["person"] = uuid4()
+    if employee:
+        input_dict["employee"] = uuid4()
+
+    if exception:
+        with pytest.raises(HTTPException) as excinfo:
+            parse_obj_as(AssociationCreate, input_dict)
+        assert exception in str(excinfo.value)
+    else:
+        parse_obj_as(AssociationCreate, input_dict)
