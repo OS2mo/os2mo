@@ -1,8 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import strawberry
+from fastapi.encoders import jsonable_encoder
+from strawberry.types import Info
 
-from ..latest.address import terminate_addr
 from ..latest.inputs import AddressTerminateInput
 from ..latest.mutators import uuid2response
 from ..latest.permissions import gen_terminate_permission
@@ -10,13 +11,12 @@ from ..latest.permissions import IsAuthenticatedPermission
 from ..latest.schema import Address
 from ..latest.schema import Response
 from ..v8.version import GraphQLVersion as NextGraphQLVersion
+from mora.graphapi.shim import execute_graphql  # type: ignore[attr-defined]
 from ramodels.mo.details import AddressRead
 
 
 @strawberry.type
 class Mutation(NextGraphQLVersion.schema.mutation):  # type: ignore[name-defined]
-    # Addresses
-    # -------
     @strawberry.mutation(
         description="Terminates an address.",
         permission_classes=[
@@ -24,8 +24,29 @@ class Mutation(NextGraphQLVersion.schema.mutation):  # type: ignore[name-defined
             gen_terminate_permission("address"),
         ],
     )
-    async def address_terminate(self, at: AddressTerminateInput) -> Response[Address]:
-        return uuid2response(await terminate_addr(at.to_pydantic()), AddressRead)
+    async def address_terminate(
+        self, info: Info, at: AddressTerminateInput
+    ) -> Response[Address]:
+        input = at
+        input_dict = jsonable_encoder(input.to_pydantic().dict(by_alias=True))  # type: ignore
+        input_dict = {k: v for k, v in input_dict.items() if v}
+        response = await execute_graphql(
+            """
+            mutation AddressTerminate($input: AddressTerminateInput!){
+                address_terminate(input: $input) {
+                    uuid
+                }
+            }
+            """,
+            graphql_version=NextGraphQLVersion,
+            context_value=info.context,
+            variable_values={"input": input_dict},
+        )
+        uuid = response.data["address_terminate"]["uuid"]
+        if response.errors:
+            for error in response.errors:
+                raise ValueError(error.message)
+        return uuid2response(uuid, AddressRead)
 
 
 class GraphQLSchema(NextGraphQLVersion.schema):  # type: ignore
