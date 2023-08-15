@@ -317,6 +317,7 @@ class AssociationUpsert(UUIDBase):
         return {
             "uuid": self.uuid,
             "user_key": self.user_key,
+            "primary": gen_uuid(self.primary),
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()
@@ -331,6 +332,7 @@ class AssociationCreate(AssociationUpsert):
 
     org_unit: UUID = Field(description="org-unit uuid.")
     person: UUID | None = Field(description="Employee uuid.")
+    # TODO: Remove employee in a future version of GraphQL
     employee: UUID | None = Field(description="Employee uuid.")
     association_type: UUID = Field(description="Association type uuid.")
 
@@ -352,7 +354,7 @@ class AssociationCreate(AssociationUpsert):
     def to_handler_dict(self) -> dict:
         data_dict = super().to_handler_dict()
         data_dict["org_unit"] = gen_uuid(self.org_unit)
-        data_dict["person"] = (gen_uuid(self.person) or gen_uuid(self.employee),)
+        data_dict["person"] = gen_uuid(self.person) or gen_uuid(self.employee)
         data_dict["association_type"] = gen_uuid(self.association_type)
         return data_dict
 
@@ -363,13 +365,14 @@ class AssociationUpdate(AssociationUpsert):
     uuid: UUID = Field(description="UUID of the association we want to update.")
     org_unit: UUID | None = Field(description="org-unit uuid.")
     person: UUID | None = Field(description="Employee uuid.")
+    # TODO: Remove employee in a future version of GraphQL
     employee: UUID | None = Field(description="Employee uuid.")
     association_type: UUID | None = Field(description="Association type uuid.")
 
     def to_handler_dict(self) -> dict:
         data_dict = super().to_handler_dict()
         data_dict["org_unit"] = gen_uuid(self.org_unit)
-        data_dict["person"] = (gen_uuid(self.person) or gen_uuid(self.employee),)
+        data_dict["person"] = gen_uuid(self.person) or gen_uuid(self.employee)
         data_dict["association_type"] = gen_uuid(self.association_type)
         return {k: v for k, v in data_dict.items() if v}
 

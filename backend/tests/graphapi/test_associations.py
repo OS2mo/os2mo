@@ -215,7 +215,7 @@ async def test_association_filters(graphapi_post, filter_snippet, expected) -> N
     assert len(response.data["associations"]["objects"]) == expected
 
 
-@given(test_data=...)
+@given(test_data=st.builds(AssociationCreate, person=st.uuids(), employee=st.none()))
 @patch(
     "mora.graphapi.versions.latest.mutators.create_association", new_callable=AsyncMock
 )
@@ -274,6 +274,7 @@ async def test_create_association_integration_test(
         st.builds(
             AssociationCreate,
             org_unit=st.just(org_uuid),
+            person=st.none(),
             employee=st.sampled_from(employee_uuids),
             association_type=st.sampled_from(association_type_uuids),
             primary=st.sampled_from(primary_type_uuids),
