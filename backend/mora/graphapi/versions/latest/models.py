@@ -28,6 +28,10 @@ logger = logging.getLogger(__name__)
 
 # Various
 # -------
+def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
+    if uuid is None:
+        return None
+    return {"uuid": str(uuid)}
 
 
 class NonEmptyString(ConstrainedStr):
@@ -60,7 +64,7 @@ class Validity(OpenValidity):
             return common._create_virkning(
                 self.get_terminate_effect_to_date(), "infinity"
             )
-        raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
+        exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
             key="Organisation unit must be set with either 'to' or both 'from' "
             "and 'to'",
             unit={
@@ -71,7 +75,7 @@ class Validity(OpenValidity):
 
     def get_terminate_effect_from_date(self) -> datetime.datetime:
         if not self.from_date or not isinstance(self.from_date, datetime.datetime):
-            raise exceptions.ErrorCodes.V_MISSING_START_DATE()
+            exceptions.ErrorCodes.V_MISSING_START_DATE()
 
         if self.from_date.time() != datetime.time.min:
             exceptions.ErrorCodes.E_INVALID_INPUT(
@@ -187,18 +191,43 @@ class AddressTrigger(OrgFuncTrigger):
     """Model representing a mora-trigger, specific for addresses."""
 
 
-class AddressCreate(UUIDBase):
-    """Model representing an address creation."""
-
-    value: str = Field(description="The actual address value.")
-    address_type: UUID = Field(description="Type of the address.")
-    visibility: UUID | None = Field(description="Visibility for the address.")
+class AddressUpsert(UUIDBase):
+    """Model representing an address creation/update commonalities."""
 
     # OBS: Only one of the two UUIDs are allowed to be set for the old logic to work
     org_unit: UUID | None = Field(description="UUID for the related org unit.")
     person: UUID | None = Field(description="UUID for the related person.")
+    # TODO: Remove employee in a future version of GraphQL
+    employee: UUID | None = Field(description="UUID for the related person.")
+
     engagement: UUID | None = Field(description="UUID for the related engagement.")
+
+    visibility: UUID | None = Field(description="Visibility for the address.")
     validity: RAValidity = Field(description="Validity range for the org-unit.")
+    user_key: str | None = Field(description="Extra info or uuid.")
+
+    def to_handler_dict(self) -> dict:
+        return {
+            "uuid": self.uuid,
+            "user_key": self.user_key,
+            "visibility": gen_uuid(self.visibility),
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+            "org_unit": gen_uuid(self.org_unit),
+            "person": gen_uuid(self.person) or gen_uuid(self.employee),
+            "engagement": gen_uuid(self.engagement),
+        }
+
+
+class AddressCreate(AddressUpsert):
+    """Model representing an address creation."""
+
+    value: str = Field(description="The actual address value.")
+    address_type: UUID = Field(description="Type of the address.")
 
     @root_validator
     def verify_addr_relation(cls, values: dict[str, Any]) -> dict[str, Any]:
@@ -210,41 +239,38 @@ class AddressCreate(UUIDBase):
                     [
                         values.get("org_unit"),
                         values.get("person"),
+                        values.get("employee"),
                     ],
                 )
             )
         )
 
         if number_of_uuids != 1:
-            raise exceptions.ErrorCodes.E_INVALID_INPUT(
-                f"Must supply exactly one {mapping.ORG_UNIT} or {mapping.PERSON} UUID",
-                obj=cls,
+            exceptions.ErrorCodes.E_INVALID_INPUT(
+                f"Must supply exactly one {mapping.ORG_UNIT} or {mapping.PERSON} UUID"
             )
 
         return values
 
-    async def to_handler_dict(self) -> dict:
-        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
-            if uuid is None:
-                return None
+    def to_handler_dict(self) -> dict:
+        data_dict = super().to_handler_dict()
+        data_dict["value"] = self.value
+        data_dict["address_type"] = gen_uuid(self.address_type)
+        return data_dict
 
-            return {"uuid": str(uuid)}
 
-        return {
-            "uuid": str(self.uuid),
-            "value": self.value,
-            "address_type": gen_uuid(self.address_type),
-            "visibility": gen_uuid(self.visibility),
-            "validity": {
-                "from": self.validity.from_date.date().isoformat(),
-                "to": self.validity.to_date.date().isoformat()
-                if self.validity.to_date
-                else None,
-            },
-            "org_unit": gen_uuid(self.org_unit),
-            "person": gen_uuid(self.person),
-            "engagement": gen_uuid(self.engagement),
-        }
+class AddressUpdate(AddressUpsert):
+    """Model representing an association update."""
+
+    uuid: UUID = Field(description="UUID of the address we want to update.")
+    value: str | None = Field(description="The actual address value.")
+    address_type: UUID | None = Field(description="Type of the address.")
+
+    def to_handler_dict(self) -> dict:
+        data_dict = super().to_handler_dict()
+        data_dict["value"] = self.value
+        data_dict["address_type"] = gen_uuid(self.address_type)
+        return {k: v for k, v in data_dict.items() if v}
 
 
 class AddressTerminate(ValidityTerminate):
@@ -280,45 +306,6 @@ class AddressTerminate(ValidityTerminate):
         }
 
 
-class AddressUpdate(UUIDBase):
-    """Model representing an association update."""
-
-    uuid: UUID = Field(description="UUID of the association we want to update.")
-    user_key: str | None = Field(description="Extra info or uuid.")
-    org_unit: UUID | None = Field(description="Org-unit uuid.")
-    employee: UUID | None = Field(description="Employee uuid.")
-    address_type: UUID | None = Field(description="Address type uuid.")
-    engagement: UUID | None = Field(description="Engagement uuid.")
-    value: str | None = Field(description="Info related to the specific addresstype.")
-    visibility: UUID | None = Field(description="UUID for visibility of the address.")
-
-    validity: RAValidity = Field(description="Validity range for the address.")
-
-    def to_handler_dict(self) -> dict:
-        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
-            if uuid is None:
-                return None
-            return {"uuid": str(uuid)}
-
-        data_dict = {
-            "uuid": self.uuid,
-            "user_key": self.user_key,
-            "org_unit": gen_uuid(self.org_unit),
-            "person": gen_uuid(self.employee),
-            "address_type": gen_uuid(self.address_type),
-            "engagement": gen_uuid(self.engagement),
-            "value": self.value,
-            "visibility": gen_uuid(self.visibility),
-            "validity": {
-                "from": self.validity.from_date.date().isoformat(),
-                "to": self.validity.to_date.date().isoformat()
-                if self.validity.to_date
-                else None,
-            },
-        }
-        return {k: v for k, v in data_dict.items() if v}
-
-
 # Associations
 # ------------
 class AssociationCreate(UUIDBase):
@@ -332,11 +319,6 @@ class AssociationCreate(UUIDBase):
     validity: RAValidity = Field(description="Validity range for the org-unit.")
 
     def to_handler_dict(self) -> dict:
-        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
-            if uuid is None:
-                return None
-            return {"uuid": str(uuid)}
-
         return {
             "uuid": str(self.uuid),
             "user_key": self.user_key,
@@ -366,11 +348,6 @@ class AssociationUpdate(UUIDBase):
     validity: RAValidity = Field(description="Validity range for the org-unit.")
 
     def to_handler_dict(self) -> dict:
-        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
-            if uuid is None:
-                return None
-            return {"uuid": str(uuid)}
-
         data_dict = {
             "uuid": self.uuid,
             "user_key": self.user_key,
@@ -652,11 +629,6 @@ class EngagementCreate(UUIDBase):
     extension_10: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
 
     def to_handler_dict(self) -> dict:
-        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
-            if uuid is None:
-                return None
-            return {"uuid": str(uuid)}
-
         return {
             "uuid": str(self.uuid),
             "user_key": self.user_key,
@@ -705,11 +677,6 @@ class EngagementUpdate(UUIDBase):
     extension_10: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
 
     def to_handler_dict(self) -> dict:
-        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
-            if uuid is None:
-                return None
-            return {"uuid": str(uuid)}
-
         data_dict = {
             "user_key": self.user_key,
             "org_unit": gen_uuid(self.org_unit),
@@ -779,11 +746,6 @@ class ITUserCreate(UUIDBase):
         return values
 
     def to_handler_dict(self) -> dict:
-        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
-            if uuid is None:
-                return None
-            return {"uuid": str(uuid)}
-
         return {
             "uuid": str(self.uuid),
             "type": self.type_,
@@ -815,11 +777,6 @@ class ITUserUpdate(UUIDBase):
     validity: RAValidity = Field(description="Validity of the created IT user object.")
 
     def to_handler_dict(self) -> dict:
-        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
-            if uuid is None:
-                return None
-            return {"uuid": str(uuid)}
-
         data_dict = {
             "user_key": self.user_key,
             "primary": gen_uuid(self.primary),
@@ -879,11 +836,6 @@ class KLECreate(UUIDBase):
     validity: RAValidity = Field(description="Validity range for the KLE.")
 
     def to_handler_dict(self) -> dict:
-        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
-            if uuid is None:
-                return None
-            return {"uuid": str(uuid)}
-
         aspects = [{"uuid": str(aspect)} for aspect in self.kle_aspects]
         return {
             "uuid": str(self.uuid),
@@ -924,11 +876,6 @@ class KLEUpdate(UUIDBase):
     )
 
     def to_handler_dict(self) -> dict:
-        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
-            if uuid is None:
-                return None
-            return {"uuid": str(uuid)}
-
         data_dict: dict = {
             "user_key": self.user_key,
             "kle_number": gen_uuid(self.kle_number),
@@ -996,11 +943,6 @@ class ManagerCreate(UUIDBase):
     validity: RAValidity = Field(description="Validity range for the manager.")
 
     def to_handler_dict(self) -> dict:
-        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
-            if uuid is None:
-                return None
-            return {"uuid": str(uuid)}
-
         responsibilities = [
             {"uuid": str(responsib)} for responsib in self.responsibility
         ]
@@ -1054,11 +996,6 @@ class ManagerUpdate(UUIDBase):
     )
 
     def to_handler_dict(self) -> dict:
-        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
-            if uuid is None:
-                return None
-            return {"uuid": str(uuid)}
-
         data_dict: dict = {
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
@@ -1152,11 +1089,6 @@ class OrganisationUnitCreate(UUIDBase):
     validity: RAValidity = Field(description="Validity range for the org-unit.")
 
     def to_handler_dict(self) -> dict:
-        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
-            if uuid is None:
-                return None
-            return {"uuid": str(uuid)}
-
         return {
             "uuid": str(self.uuid),
             "name": self.name,
@@ -1210,11 +1142,6 @@ class OrganisationUnitUpdate(UUIDBase):
     )
 
     def to_handler_dict(self) -> dict:
-        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
-            if uuid is None:
-                return None
-            return {"uuid": str(uuid)}
-
         data_dict: dict = {
             "uuid": str(self.uuid),
             "name": self.name,
@@ -1249,11 +1176,6 @@ class RoleCreate(UUIDBase):
     validity: RAValidity = Field(description="Validity range for the role.")
 
     def to_handler_dict(self) -> dict:
-        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
-            if uuid is None:
-                return None
-            return {"uuid": str(uuid)}
-
         return {
             "user_key": self.user_key,
             "org_unit": gen_uuid(self.org_unit),

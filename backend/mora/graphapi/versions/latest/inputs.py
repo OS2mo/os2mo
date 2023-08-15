@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from uuid import UUID
+
 import strawberry
 
 from .models import AddressCreate
@@ -69,6 +71,10 @@ class OrganisationInput:
 class AddressCreateInput:
     """input model for creating addresses."""
 
+    employee: UUID | None = strawberry.field(
+        deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo."
+    )
+
 
 @strawberry.experimental.pydantic.input(
     model=AddressTerminate,
@@ -84,6 +90,10 @@ class AddressTerminateInput:
 )
 class AddressUpdateInput:
     """input model for updating addresses."""
+
+    employee: UUID | None = strawberry.field(
+        deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo."
+    )
 
 
 # Associations

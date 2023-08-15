@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import traceback
 from enum import Enum
+from typing import NoReturn
 
 from fastapi import HTTPException as fastapiHTTPException
 from starlette.responses import JSONResponse
@@ -34,7 +35,7 @@ class ErrorCodes(Enum):
     def code(self):
         return self.value[0]
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> NoReturn:
         """Raise an :py:class:`HTTPException` for this error code"""
         raise self.to_http_exception(*args, **kwargs)
 
