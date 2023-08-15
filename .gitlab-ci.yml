@@ -13,8 +13,6 @@ stages:
   - docs
 
 variables:
-  KEYCLOAK_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/keycloak:${CI_COMMIT_SHA}
-
   IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
   RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo
 
@@ -168,9 +166,6 @@ Lint shell scripts:
 
 # Build
 ########
-.build:test-image:
-  rules:
-    - <<: *if-merge-request
 
 Build OS2mo:
   extends:
@@ -181,45 +176,6 @@ Build OS2mo:
     - <<: *if-schedule
       when: never
     - when: on_success
-
-Build Keycloak-realm:
-  stage: build
-  needs: []
-  extends: .build:test-image
-  image:
-    # TODO: Use new realm builder
-    name: magentaaps/os2mo-keycloak-realm-builder:2.3.0
-    entrypoint: [""]
-  variables:
-    GIT_STRATEGY: none # We do not need the source code
-    KEYCLOAK_VERSION: 14.0.0
-    KEYCLOAK_SSL_REQUIRED: external # for MO
-    KEYCLOAK_SSL_REQUIRED_MO: external # for realm builder
-    KEYCLOAK_LORA_REALM_ENABLED: "true"
-    KEYCLOAK_LORA_CLIENT_SECRET: 158a2075-aa8a-421c-94a4-2df35377014a
-    KEYCLOAK_DIPEX_CLIENT_ENABLED: "true"
-    KEYCLOAK_DIPEX_CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
-    KEYCLOAK_REALM_USERS: '[{"username": "bruce", "password": "bruce", "firstname": "Bruce", "lastname": "Lee", "email": "bruce@kung.fu", "enabled": true, "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a"}]'
-    KEYCLOAK_MO_CLIENT_REDIRECT_URI: '["*"]'
-    KEYCLOAK_MO_CLIENT_WEB_ORIGIN: '["*"]'
-  script:
-    - export KEYCLOAK_REALM_JSON_PATH=$PWD/keycloak-realm.json
-    - cd /app
-    - python main.py
-  artifacts:
-    paths:
-      - keycloak-realm.json
-    expire_in: 1 day
-
-Build Keycloak:
-  extends:
-    - .build:test-image
-    - .build-docker
-  needs:
-    - Build Keycloak-realm
-  variables:
-    CI_IMAGE: ${KEYCLOAK_IMAGE_SHA}
-    DOCKERFILE: ${CI_PROJECT_DIR}/docker/ci.keycloak.Dockerfile
 
 
 # Tests
@@ -276,7 +232,6 @@ Integration-test:
     - .services:use-mo
   needs:
     - Build OS2mo
-    - Build Keycloak
   variables:
     HYPOTHESIS_PROFILE: "ci"
     FF_NETWORK_PER_BUILD: 1  # activate container-to-container networking
@@ -285,13 +240,55 @@ Integration-test:
     - name: magentaaps/postgres-os2mo:11-11.7-test
       alias: mox-db
       variables:
-        DB_NAME: mox
-        DB_USER: mox
-        DB_PASSWORD: mox
+        DB_NAME: "mox"
+        DB_USER: "mox"
+        DB_PASSWORD: "mox"
     # Keycloak
-    - name: $KEYCLOAK_IMAGE_SHA
+    - name: quay.io/keycloak/keycloak:14.0.0
       alias: keycloak
+      variables:
+        KEYCLOAK_USER: "admin"
+        KEYCLOAK_PASSWORD: "admin"
+    - name: magentaaps/os2mo-keycloak-realm-builder:4.2.0
+      # GitLab CI services are one-shot, without any restart policy, and does
+      # not start in the order they are defined. The only way to ensure that
+      # the realm builder runs after keycloak has started is by overwriting its
+      # entrypoint to retry until it succeeds.
+      entrypoint:
+        - "sh"
+        - "-c"
+        - |
+          while ! sh run.sh; do
+            echo 'Waiting for keycloak...'
+            sleep 1
+          done
+          # GitLab doesn't wait for services without an EXPOSE (port) definition
+          # before starting the main job. This is a problem, since it doesn't
+          # allow the realm builder to create the realm before the integration
+          # tests tries to access it. As a workaround, we touch a sentinel in
+          # /builds, which is shared amongst all jobs, and wait for it in the
+          # main job's before_script.
+          # https://docs.gitlab.com/ee/ci/services/
+          touch /builds/.keycloak-realm-builder-finished
+      variables:
+        # Since GitLab CI doesn't support multiple services on the same port,
+        # we cannot (easily) run a separate postgres for the realm builder's
+        # terraform state.
+        POSTGRES_CONNECTION_STRING: "postgres://mox:mox@mox-db/mox?sslmode=disable"
+        KEYCLOAK_URL: "http://keycloak:8080"
+        KEYCLOAK_ADMIN_USERNAME: "admin"
+        KEYCLOAK_ADMIN_PASSWORD: "admin"
+        KEYCLOAK_SSL_REQUIRED_MO: "external"
+        KEYCLOAK_MO_CLIENT_REDIRECT_URI: '["*"]'
+        KEYCLOAK_MO_CLIENT_WEB_ORIGIN: '["*"]'
+        KEYCLOAK_REALM_USERS: '[{"username": "bruce", "password": "bruce", "firstname": "Bruce", "lastname": "Lee", "email": "bruce@kung.fu", "enabled": true, "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a"}]'
   parallel: 8
+  before_script:
+    - |
+      while [ ! -f /builds/.keycloak-realm-builder-finished ]; do
+        echo 'Waiting for keycloak realm builder...'
+        sleep 1
+      done
   script:
     - pytest backend/tests
       -m "integration_test"
