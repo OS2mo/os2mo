@@ -1,15 +1,17 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import strawberry
+from fastapi.encoders import jsonable_encoder
+from strawberry.types import Info
 
 from ..latest.inputs import OrganisationUnitTerminateInput
 from ..latest.mutators import uuid2response
-from ..latest.org_unit import terminate_org_unit
 from ..latest.permissions import gen_terminate_permission
 from ..latest.permissions import IsAuthenticatedPermission
 from ..latest.schema import OrganisationUnit
 from ..latest.schema import Response
 from ..v9.version import GraphQLVersion as NextGraphQLVersion
+from mora.graphapi.shim import execute_graphql  # type: ignore[attr-defined]
 from ramodels.mo.organisation_unit import OrganisationUnitRead
 
 
@@ -23,11 +25,28 @@ class Mutation(NextGraphQLVersion.schema.mutation):  # type: ignore[name-defined
         ],
     )
     async def org_unit_terminate(
-        self, unit: OrganisationUnitTerminateInput
+        self, info: Info, unit: OrganisationUnitTerminateInput
     ) -> Response[OrganisationUnit]:
-        return uuid2response(
-            await terminate_org_unit(unit.to_pydantic()), OrganisationUnitRead
+        input = unit
+        input_dict = jsonable_encoder(input.to_pydantic().dict(by_alias=True))  # type: ignore
+        input_dict = {k: v for k, v in input_dict.items() if v}
+        response = await execute_graphql(
+            """
+            mutation OrgUnitTerminate($input: OrganisationUnitTerminateInput!){
+                org_unit_terminate(input: $input) {
+                    uuid
+                }
+            }
+            """,
+            graphql_version=NextGraphQLVersion,
+            context_value=info.context,
+            variable_values={"input": input_dict},
         )
+        if response.errors:
+            for error in response.errors:
+                raise ValueError(error.message)
+        uuid = response.data["org_unit_terminate"]["uuid"]
+        return uuid2response(uuid, OrganisationUnitRead)
 
 
 class GraphQLSchema(NextGraphQLVersion.schema):  # type: ignore
