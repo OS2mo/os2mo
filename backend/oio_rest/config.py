@@ -28,11 +28,6 @@ class Settings(BaseSettings):
     keycloak_signing_alg: str = "RS256"
     keycloak_verify_audience: bool = True
 
-    # If enabled, expose /testing/db-* endpoint for setup, reset and teardown of a
-    # test database. Useful for integration tests from other components such as MO.
-    # Does not work when running multi-threaded.
-    testing_api: bool = False
-
     # If enabled, exposes /db/truncate endpoint, for truncating the current
     # database.
     truncate_api: bool = False
