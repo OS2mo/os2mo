@@ -11,6 +11,44 @@ code is up-to-date with the latest version.
 
 Below follows the migration guide for each version.
 
+## Version 10
+
+GraphQL version 10 introduces a breaking change to the input variables taken
+by the `class_update`, `facet_update` and `itsystem_update` mutators.
+These mutators took a separate `uuid` input variable besides the one contained
+within the `input` object itself, leading to potential inconsistencies besides
+the fact that it was not aligned with the other mutators.
+
+In the future all mutators may get a `uuid` selector (and have `uuid` removed
+from within the `input`), but this change, should it occur, will be introduced
+in a new version, and will make the change consistently across all mutators.
+
+This change simply aims to ensure consistency across our existing mutators.
+
+To migrate from version 9 to version 10, remove the `uuid` parameter from
+`class_update` (or `facet_update` / `itsystem_update`) and provide the `uuid`
+inside the `input` object instead.
+
+Version 9:
+```graphql
+mutation TestClassUpdate($input: ClassUpdateInput!, $uuid: UUID!) {
+    class_update(input: $input, uuid: $uuid) {
+        uuid
+    }
+}
+```
+
+Version 10:
+```graphql
+mutation TestClassUpdate($input: ClassUpdateInput!) {
+    class_update(input: $input) {
+        uuid
+    }
+}
+```
+Where `uuid` is now within `input`.
+
+
 ## Version 9
 
 GraphQL version 9 introduces a breaking change to the input variable

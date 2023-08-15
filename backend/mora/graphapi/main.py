@@ -8,6 +8,7 @@ from starlette import status
 from starlette.responses import RedirectResponse
 from starlette.responses import Response
 
+from .versions.v10.version import GraphQLVersion as Version10
 from .versions.v2.version import GraphQLVersion as Version2
 from .versions.v3.version import GraphQLVersion as Version3
 from .versions.v4.version import GraphQLVersion as Version4
@@ -28,6 +29,7 @@ graphql_versions: list[type[BaseGraphQLVersion]] = [
     Version7,
     Version8,
     Version9,
+    Version10,
 ]
 
 
