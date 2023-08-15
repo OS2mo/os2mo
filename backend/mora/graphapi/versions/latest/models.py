@@ -959,7 +959,6 @@ class ManagerCreate(UUIDBase):
     """Model for creating an employee of manager type."""
 
     user_key: str | None = Field(description="Extra info or uuid.")
-    type_: str = Field("manager", alias="type", description="The object type.")
     person: UUID | None = Field(description="UUID of the manager as person.")
     responsibility: list[UUID] = Field(
         description="UUID of the managers responsibilities."
@@ -977,7 +976,7 @@ class ManagerCreate(UUIDBase):
         return {
             "uuid": str(self.uuid),
             "user_key": self.user_key,
-            "type": self.type_,
+            "type": "manager",
             "person": gen_uuid(self.person),
             "responsibility": responsibilities,
             "org_unit": gen_uuid(self.org_unit),
