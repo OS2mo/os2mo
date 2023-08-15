@@ -12,10 +12,7 @@ subchapters reflect these two levels of privilege.
 
 ## Database, user and extensions initialization
 
-`mox` requires a database and a user in that database. You can configure
-the name of the database and user a running `mox` will use in
-[settings](./settings.md) under the
-*[database]* heading. The user should have [all
+`mox` requires a database and a user in that database.The user should have [all
 privileges](https://www.postgresql.org/docs/11.7/sql-grant.html) on the
 database. Furthermore, there should be a schema in the database called
 *actual_state* that the user has authorization over. At

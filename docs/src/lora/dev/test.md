@@ -2,8 +2,7 @@
 title: Testing
 ---
 
-The tests use the database user credentials defined in
-[settings](../user/settings.md). It requires the
+The testing database user requires the
 [CREATEDB](https://www.postgresql.org/docs/11.7/role-attributes.html)
 privilege and
 [OWNER](https://www.postgresql.org/docs/11.7/sql-alterdatabase.html) of
