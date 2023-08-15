@@ -588,32 +588,20 @@ def mockaio():
         yield mock
 
 
-def get_keycloak_token(use_client_secret: bool = False) -> str:
+def get_keycloak_token() -> str:
     """Get OIDC token from Keycloak to send to MOs backend.
-
-    Args:
-        use_client_secret: Whether to use client_secret or password.
 
     Returns:
         Encoded OIDC token from Keycloak
     """
-
-    data = {
-        "grant_type": "password",
-        "client_id": "mo",
-        "username": "bruce",
-        "password": "bruce",
-    }
-    if use_client_secret:
-        data = {
-            "grant_type": "client_credentials",
-            "client_id": "dipex",
-            "client_secret": "603f1c82-d012-4d04-9382-dbe659c533fb",
-        }
-
     r = requests.post(
         "http://keycloak:8080/auth/realms/mo/protocol/openid-connect/token",
-        data=data,
+        data={
+            "grant_type": "password",
+            "client_id": "mo-frontend",
+            "username": "bruce",
+            "password": "bruce",
+        },
     )
     return r.json()["access_token"]
 
