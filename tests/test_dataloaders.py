@@ -1666,8 +1666,8 @@ async def test_load_mo_object(dataloader: DataLoader):
         "mo_ldap_import_export.dataloaders.DataLoader.load_all_mo_objects",
         return_value=[],
     ):
-        result = await asyncio.gather(dataloader.load_mo_object("uuid", "person"))
-        assert result[0] is None
+        with pytest.raises(NoObjectsReturnedException):
+            await dataloader.load_mo_object("uuid", "person")
 
     # Role is not defined in self.object_type_dict
     # Hence we will not be able to find the object
