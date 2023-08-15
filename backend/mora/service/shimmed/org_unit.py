@@ -322,19 +322,19 @@ async def trigger_external_integration(
         404: {"description": "No such unit found"},
         409: {"description": "Validation failed"},
     },
+    dependencies=[Depends(oidc.rbac_owner)],
 )
 async def terminate_org_unit(
     uuid: UUID,
     request: OrganisationUnitTerminate = Body(...),
-    permissions=Depends(oidc.rbac_owner),
-):
-    mutation_func = "org_unit_terminate"
-    query = (
-        f"mutation($uuid: UUID!, $from: DateTime, $to: DateTime!) "
-        f"{{ {mutation_func}"
-        f"(unit: {{uuid: $uuid, from: $from, to: $to}}) "
-        f"{{ uuid }} }}"
-    )
+) -> UUID:
+    query = """
+        mutation($uuid: UUID!, $from: DateTime, $to: DateTime!) {
+            org_unit_terminate(input: {uuid: $uuid, from: $from, to: $to}) {
+                uuid
+            }
+        }
+    """
 
     response = await execute_graphql(
         query,
@@ -351,7 +351,7 @@ async def terminate_org_unit(
     handle_gql_error(response)
 
     # result = response.data[mutation_func]
-    result_uuid = response.data.get(mutation_func, {}).get("uuid", None)
+    result_uuid = response.data.get("org_unit_terminate", {}).get("uuid", None)
     if not result_uuid:
         raise Exception("Did not get a valid UUID from GraphQL response")
 

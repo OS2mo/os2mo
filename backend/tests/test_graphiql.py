@@ -17,7 +17,8 @@ from mora.graphapi.router import DEPRECATION_NOTICE
         ("/graphql/v5", True),
         ("/graphql/v6", True),
         ("/graphql/v7", True),
-        ("/graphql/v8", False),
+        ("/graphql/v8", True),
+        ("/graphql/v9", False),
     ],
 )
 def test_graphiql_overrides(
