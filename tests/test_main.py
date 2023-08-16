@@ -62,7 +62,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "DEFAULT_ORG_UNIT_TYPE": "foo",
         "LDAP_OUS_TO_SEARCH_IN": '["OU=bar"]',
         "LDAP_OU_FOR_NEW_USERS": "OU=foo,OU=bar",
-        "AMQP__URL": "amqp://guest:guest@msg_broker:5672/",
+        "FASTRAMQPI__AMQP__URL": "amqp://guest:guest@msg_broker:5672/",
     }
     yield overrides
 

@@ -32,7 +32,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "LDAP_SEARCH_BASE": "DC=ad,DC=addev",
         "DEFAULT_ORG_UNIT_LEVEL": "foo",
         "DEFAULT_ORG_UNIT_TYPE": "foo",
-        "AMQP__URL": "amqp://guest:guest@msg_broker:5672/",
+        "FASTRAMQPI__AMQP__URL": "amqp://guest:guest@msg_broker:5672/",
     }
     yield overrides
 

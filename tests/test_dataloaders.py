@@ -100,7 +100,7 @@ def settings(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("DEFAULT_ORG_UNIT_LEVEL", "foo")
     monkeypatch.setenv("DEFAULT_ORG_UNIT_TYPE", "foo")
     monkeypatch.setenv("LDAP_OUS_TO_WRITE_TO", '[""]')
-    monkeypatch.setenv("AMQP__URL", "amqp://guest:guest@msg_broker:5672/")
+    monkeypatch.setenv("FASTRAMQPI__AMQP__URL", "amqp://guest:guest@msg_broker:5672/")
 
     return Settings()
 
