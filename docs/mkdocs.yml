@@ -34,7 +34,7 @@ nav:
           - graphql/reads.md
       - User and developer guides:
           - Getting started (with Docker): guides/environment/docker.md
-          - ADFS:
+          - Autentificering og autorisation:
               - guides/adfs-setup.md
               - guides/adfs-rbac-setup.md
           - Conventions: guides/conventions.md
