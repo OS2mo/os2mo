@@ -22,7 +22,10 @@ DATABASE_STRUCTURE = {
         "attributter_metadata": {
             "egenskaber": {"brugervendtnoegle": {"mandatory": True}}
         },
-        "tilstande": {"publiceret": ["Publiceret", "IkkePubliceret"]},
+        "tilstande": {
+            "publiceret": ["Publiceret", "IkkePubliceret"],
+            "gyldighed": ["Aktiv", "Inaktiv"],
+        },
         "relationer_nul_til_en": ["ansvarlig", "ejer", "facettilhoerer"],
         "relationer_nul_til_mange": ["redaktoerer"],
     },
