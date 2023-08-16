@@ -409,17 +409,24 @@ class AssociationTerminate(ValidityTerminate):
 
 # Employees
 # ---------
-class EmployeeCreate(UUIDBase):
-    """Model representing an employee creation."""
-
-    user_key: str | None = Field(description="Extra info or uuid.")
-
-    givenname: NonEmptyString = Field(
-        description="Givenname (firstname) of the employee."
+class EmployeeUpsert(UUIDBase):
+    _ERR_INVALID_NICKNAME = "'nickname' is only allowed to be set, if 'nickname_given_name' & 'nickname_surname' are None."
+    _ERR_INVALID_CPR_NUMBER = (
+        "'cpr_number' is only allowed to be set, if 'cpr_no' is None."
     )
-    surname: NonEmptyString = Field(description="Surname (lastname) of the employee.")
 
-    # givenname is without underscore in name, why underscore here?
+    user_key: str | None = Field(
+        description="Short, unique key for the employee (defaults to object UUID on creation)."
+    )
+
+    # TODO: Remove this in the future
+    name: str | None = Field(None, description="Combined name of the employee")
+
+    # TODO: Remove this in the future
+    nickname: str | None = Field(
+        None,
+        description="Nickname (combined) of the employee.",
+    )
     nickname_given_name: str | None = Field(
         None,
         description="Nickname givenname (firstname) of the employee.",
@@ -429,74 +436,14 @@ class EmployeeCreate(UUIDBase):
         description="Nickname surname (lastname) of the employee.",
     )
 
-    # TODO: This should take the CPR scalar type
-    cpr_number: str | None = Field(
-        None, description="Danish CPR number of the employee."
-    )
+    @root_validator
+    def combined_or_split_nickname(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if values.get("nickname") and (
+            values.get("nickname_given_name") or values.get("nickname_surname")
+        ):
+            raise ValueError(cls._ERR_INVALID_NICKNAME)
 
-    def to_handler_dict(self) -> dict:
-        return {
-            mapping.UUID: str(self.uuid),
-            mapping.USER_KEY: self.user_key,
-            mapping.GIVENNAME: self.givenname,
-            mapping.SURNAME: self.surname,
-            mapping.CPR_NO: self.cpr_number,
-            mapping.NICKNAME_GIVENNAME: self.nickname_given_name,
-            mapping.NICKNAME_SURNAME: self.nickname_surname,
-        }
-
-
-class EmployeeTerminate(ValidityTerminate):
-    """Model representing an employee termination."""
-
-    uuid: UUID = Field(description="UUID for the employee we want to terminate.")
-
-
-class EmployeeUpdate(RAValidity):
-    # Error messages returned by the @root_validator
-    _ERR_INVALID_NAME = (
-        "EmployeeUpdate.name is only allowed to be set, if "
-        '"given_name" & "surname" are None.'
-    )
-    _ERR_INVALID_NICKNAME = (
-        "EmployeeUpdate.nickname is only allowed to be set, if "
-        '"nickname_given_name" & "nickname_surname" are None.'
-    )
-
-    uuid: UUID = Field(description="UUID of the employee to be updated.")
-
-    user_key: str | None = Field(
-        description="Short, unique key for the employee (defaults to object UUID on creation)."
-    )
-
-    # TODO: Remove this in the future
-    name: str | None = Field(None, description="New value for the name of the employee")
-
-    given_name: str | None = Field(
-        None,
-        description="New first-name value of the employee nickname.",
-    )
-
-    surname: str | None = Field(
-        None,
-        description="New last-name value of the employee nickname.",
-    )
-
-    # TODO: Remove this in the future
-    nickname: str | None = Field(
-        None,
-        description="New nickname value of the employee nickname.",
-    )
-
-    nickname_given_name: str | None = Field(
-        None,
-        description="New nickname given-name value of the employee nickname.",
-    )
-
-    nickname_surname: str | None = Field(
-        None,
-        description="New nickname sur-name value of the employee nickname.",
-    )
+        return values
 
     seniority: datetime.date | None = Field(
         # OBS: backend/mora/service/employee.py:96 for why type is datetime.date
@@ -507,55 +454,118 @@ class EmployeeUpdate(RAValidity):
     # TODO: This should fit the create, not cpr_no vs cpr_number
     cpr_no: CPR | None = Field(None, description="New danish CPR No. of the employee.")
 
-    @root_validator
-    def validation(cls, values: dict[str, Any]) -> dict[str, Any]:
-        if values.get("name") and (values.get("given_name") or values.get("surname")):
-            raise ValueError(cls._ERR_INVALID_NAME)
+    # TODO: This should take the CPR scalar type
+    cpr_number: str | None = Field(
+        None, description="Danish CPR number of the employee."
+    )
 
-        if values.get("nickname") and (
-            values.get("nickname_given_name") or values.get("nickname_surname")
-        ):
-            raise ValueError(cls._ERR_INVALID_NICKNAME)
+    @root_validator
+    def combined_or_split_name(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if values.get("cpr_no") and values.get("cpr_number"):
+            raise ValueError(cls._ERR_INVALID_CPR_NUMBER)
 
         return values
 
-    def no_values(self) -> bool:
-        if self.to_date:
-            return False
-
-        if self.name or self.given_name or self.surname:
-            return False
-
-        if self.nickname or self.nickname_given_name or self.nickname_surname:
-            return False
-
-        if self.seniority or self.cpr_no:
-            return False
-
-        return True
-
     def to_handler_dict(self) -> dict:
         data_dict = {
+            mapping.UUID: self.uuid,
             mapping.USER_KEY: self.user_key,
-            mapping.VALIDITY: {
-                mapping.FROM: self.from_date.date().isoformat(),
-                mapping.TO: self.to_date.date().isoformat() if self.to_date else None,
-            },
             mapping.NAME: self.name,
-            mapping.GIVENNAME: self.given_name,
-            mapping.SURNAME: self.surname,
             mapping.NICKNAME: self.nickname,
             mapping.NICKNAME_GIVENNAME: self.nickname_given_name,
             mapping.NICKNAME_SURNAME: self.nickname_surname,
             mapping.SENIORITY: self.seniority.isoformat() if self.seniority else None,
-            mapping.CPR_NO: self.cpr_no,
+            mapping.CPR_NO: self.cpr_number or self.cpr_no,
         }
+        return data_dict
 
-        return {
-            mapping.TYPE: mapping.EMPLOYEE,
-            mapping.UUID: str(self.uuid),
-            mapping.DATA: {k: v for k, v in data_dict.items() if v},
+
+class EmployeeCreate(EmployeeUpsert):
+    """Model representing an employee creation."""
+
+    _ERR_INVALID_GIVEN_NAME = (
+        "'given_name' is only allowed to be set, if 'given_name' is None."
+    )
+    _ERR_INVALID_NAME = (
+        "'name' is only allowed to be set, if 'given_name' & 'surname' are None."
+    )
+
+    given_name: NonEmptyString | None = Field(
+        None, description="Givenname (firstname) of the employee."
+    )
+    # TODO: Remove this in the future
+    givenname: NonEmptyString | None = Field(
+        description="Givenname (firstname) of the employee."
+    )
+    surname: NonEmptyString = Field(description="Surname (lastname) of the employee.")
+
+    @root_validator
+    def only_one_givenname(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if values.get("given_name") and values.get("givenname"):
+            raise ValueError(cls._ERR_INVALID_GIVEN_NAME)
+
+        return values
+
+    @root_validator
+    def combined_or_split_name(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if values.get("name") and (
+            values.get("given_name") or values.get("givenname") or values.get("surname")
+        ):
+            raise ValueError(cls._ERR_INVALID_NAME)
+
+        return values
+
+    def to_handler_dict(self) -> dict:
+        data_dict = super().to_handler_dict()
+        data_dict[mapping.GIVENNAME] = self.given_name or self.givenname
+        data_dict[mapping.SURNAME] = self.surname
+        return data_dict
+
+
+class EmployeeUpdate(EmployeeUpsert, RAValidity):
+    # Error messages returned by the @root_validator
+    _ERR_INVALID_NAME = (
+        "EmployeeUpdate.name is only allowed to be set, if "
+        '"given_name" & "surname" are None.'
+    )
+
+    uuid: UUID = Field(description="UUID of the employee to be updated.")
+
+    given_name: str | None = Field(
+        None,
+        description="New first-name value of the employee nickname.",
+    )
+    # TODO: Remove this in the future
+    givenname: str | None = Field(description="Givenname (firstname) of the employee.")
+    surname: str | None = Field(
+        None,
+        description="New last-name value of the employee nickname.",
+    )
+
+    @root_validator
+    def combined_or_split_name(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if values.get("name") and (
+            values.get("given_name") or values.get("givenname") or values.get("surname")
+        ):
+            raise ValueError(cls._ERR_INVALID_NAME)
+
+        return values
+
+    def to_handler_dict(self) -> dict:
+        data_dict = super().to_handler_dict()
+        data_dict[mapping.GIVENNAME] = self.given_name or self.givenname
+        data_dict[mapping.SURNAME] = self.surname
+        data_dict[mapping.VALIDITY] = {
+            mapping.FROM: self.from_date.date().isoformat(),
+            mapping.TO: self.to_date.date().isoformat() if self.to_date else None,
         }
+        return {k: v for k, v in data_dict.items() if v}
+
+
+class EmployeeTerminate(ValidityTerminate):
+    """Model representing an employee termination."""
+
+    uuid: UUID = Field(description="UUID for the employee we want to terminate.")
 
 
 # Engagements

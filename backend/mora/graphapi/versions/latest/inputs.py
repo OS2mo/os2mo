@@ -26,12 +26,14 @@ from .models import LeaveCreate
 from .models import ManagerCreate
 from .models import ManagerTerminate
 from .models import ManagerUpdate
+from .models import NonEmptyString
 from .models import Organisation
 from .models import OrganisationUnitCreate
 from .models import OrganisationUnitTerminate
 from .models import OrganisationUnitUpdate
 from .models import RoleCreate
 from .models import Validity
+from mora.util import CPR
 from ramodels.mo import Validity as RAValidity
 
 
@@ -140,13 +142,18 @@ class AssociationTerminateInput:
 class EmployeeCreateInput:
     """Input model for creating an employee."""
 
-
-@strawberry.experimental.pydantic.input(
-    model=EmployeeTerminate,
-    all_fields=True,
-)
-class EmployeeTerminateInput:
-    pass
+    name: str | None = strawberry.field(
+        deprecation_reason="Use 'given_name' and 'surname' instead. Will be removed in a future version of OS2mo."
+    )
+    nickname: str | None = strawberry.field(
+        deprecation_reason="Use 'nickname_given_name' and 'nickname_surname' instead. Will be removed in a future version of OS2mo."
+    )
+    cpr_no: CPR | None = strawberry.field(
+        deprecation_reason="Use 'cpr_number' instead. Will be removed in a future version of OS2mo."
+    )
+    givenname: NonEmptyString | None = strawberry.field(
+        deprecation_reason="Use 'given_name' instead. Will be removed in a future version of OS2mo."
+    )
 
 
 @strawberry.experimental.pydantic.input(
@@ -155,6 +162,27 @@ class EmployeeTerminateInput:
 )
 class EmployeeUpdateInput:
     """Input model for updating an employee."""
+
+    name: str | None = strawberry.field(
+        deprecation_reason="Use 'given_name' and 'surname' instead. Will be removed in a future version of OS2mo."
+    )
+    nickname: str | None = strawberry.field(
+        deprecation_reason="Use 'nickname_given_name' and 'nickname_surname' instead. Will be removed in a future version of OS2mo."
+    )
+    cpr_no: CPR | None = strawberry.field(
+        deprecation_reason="Use 'cpr_number' instead. Will be removed in a future version of OS2mo."
+    )
+    givenname: NonEmptyString | None = strawberry.field(
+        deprecation_reason="Use 'given_name' instead. Will be removed in a future version of OS2mo."
+    )
+
+
+@strawberry.experimental.pydantic.input(
+    model=EmployeeTerminate,
+    all_fields=True,
+)
+class EmployeeTerminateInput:
+    pass
 
 
 # Engagements

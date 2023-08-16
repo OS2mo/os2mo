@@ -20,9 +20,9 @@ from .classes import ClassUpdateInput
 from .classes import create_class
 from .classes import delete_class
 from .classes import update_class
-from .employee import create as employee_create
+from .employee import create_employee
 from .employee import terminate as terminate_employee
-from .employee import update as employee_update
+from .employee import update_employee
 from .engagements import create_engagement
 from .engagements import terminate_engagement
 from .engagements import update_engagement
@@ -301,6 +301,7 @@ class Mutation:
 
     # Employees
     # ---------
+    # Rename all 'employee' mutators and objects to 'person'
     @strawberry.mutation(
         description="Creates an employee.",
         permission_classes=[
@@ -309,7 +310,7 @@ class Mutation:
         ],
     )
     async def employee_create(self, input: EmployeeCreateInput) -> Response[Employee]:
-        return uuid2response(await employee_create(input.to_pydantic()), EmployeeRead)
+        return uuid2response(await create_employee(input.to_pydantic()), EmployeeRead)  # type: ignore
 
     @strawberry.mutation(
         description="Updates an employee.",
@@ -319,7 +320,7 @@ class Mutation:
         ],
     )
     async def employee_update(self, input: EmployeeUpdateInput) -> Response[Employee]:
-        return uuid2response(await employee_update(input.to_pydantic()), EmployeeRead)
+        return uuid2response(await update_employee(input.to_pydantic()), EmployeeRead)  # type: ignore
 
     @strawberry.mutation(
         description="Terminates an employee.",

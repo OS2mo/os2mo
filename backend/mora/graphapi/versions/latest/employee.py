@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 from uuid import UUID
 
+from fastapi.encoders import jsonable_encoder
+
 from ....mapping import RequestType
 from .models import EmployeeCreate
 from .models import EmployeeTerminate
@@ -15,14 +17,26 @@ from mora.service.employee import EmployeeRequestHandler
 from mora.triggers import Trigger
 
 
-async def create(input: EmployeeCreate) -> UUID:
-    input_dict = input.to_handler_dict()
+async def create_employee(input: EmployeeCreate) -> UUID:
+    req = jsonable_encoder(input.to_handler_dict())
 
-    # Copied service-logic
-    handler = await EmployeeRequestHandler.construct(
-        input_dict, mapping.RequestType.CREATE
-    )
+    handler = await EmployeeRequestHandler.construct(req, mapping.RequestType.CREATE)
     uuid = await handler.submit()
+
+    return UUID(uuid)
+
+
+async def update_employee(input: EmployeeUpdate) -> UUID:
+    input_dict = jsonable_encoder(input.to_handler_dict())
+
+    req = {
+        mapping.TYPE: mapping.EMPLOYEE,
+        mapping.UUID: str(input.uuid),
+        mapping.DATA: input_dict,
+    }
+
+    request = await EmployeeRequestHandler.construct(req, RequestType.EDIT)
+    uuid = await request.submit()
 
     return UUID(uuid)
 
@@ -87,11 +101,3 @@ async def terminate(termination: EmployeeTerminate) -> UUID:
     await common.add_history_entry(c.bruger, uuid, "Afslut medarbejder")
 
     return UUID(result)
-
-
-async def update(employee_update: EmployeeUpdate) -> UUID:
-    request_handler = await EmployeeRequestHandler.construct(
-        employee_update.to_handler_dict(), RequestType.EDIT
-    )
-    _ = await request_handler.submit()
-    return employee_update.uuid

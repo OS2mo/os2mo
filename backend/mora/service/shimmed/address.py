@@ -60,7 +60,7 @@ async def address_autocomplete(
     orgid: UUID = Path(
         ...,
         description="UUID of the organisation, used for filtering addresses.",
-        example="3b866d97-0b1f-48e0-8078-686d96f430b3",
+        examples="3b866d97-0b1f-48e0-8078-686d96f430b3",
     ),
     q: str = Query(..., description="A query string to be used for lookup"),
     global_lookup: bool
