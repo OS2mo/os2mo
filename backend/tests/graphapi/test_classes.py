@@ -391,8 +391,8 @@ async def test_update_class() -> None:
     }
 
     update_query = """
-        mutation UpdateClass($input: ClassUpdateInput!, $uuid: UUID!) {
-            class_update(input: $input, uuid: $uuid) {
+        mutation UpdateClass($input: ClassUpdateInput!) {
+            class_update(input: $input) {
                 uuid
             }
         }
@@ -400,8 +400,8 @@ async def test_update_class() -> None:
     response = await execute_graphql(
         query=update_query,
         variable_values={
-            "uuid": class_uuid,
             "input": {
+                "uuid": class_uuid,
                 "name": "Postal Address",
                 "user_key": klass["user_key"],
                 "facet_uuid": klass["facet_uuid"],
@@ -447,8 +447,8 @@ async def test_update_class() -> None:
     assert response.data == {"classes": {"objects": []}}
 
     update_query = """
-        mutation UpdateClass($input: ClassUpdateInput!, $uuid: UUID!) {
-            class_update(input: $input, uuid: $uuid) {
+        mutation UpdateClass($input: ClassUpdateInput!) {
+            class_update(input: $input) {
                 uuid
             }
         }
@@ -456,8 +456,8 @@ async def test_update_class() -> None:
     response = await execute_graphql(
         query=update_query,
         variable_values={
-            "uuid": class_uuid,
             "input": {
+                "uuid": class_uuid,
                 "name": "Postal Address",
                 "user_key": klass["user_key"],
                 "facet_uuid": klass["facet_uuid"],

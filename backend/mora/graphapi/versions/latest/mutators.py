@@ -278,11 +278,11 @@ class Mutation:
         ],
     )
     async def class_update(
-        self, info: Info, uuid: UUID, input: ClassUpdateInput
+        self, info: Info, input: ClassUpdateInput
     ) -> Response[Class]:
         note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await update_class(input.to_pydantic(), uuid, org.uuid, note)
+        uuid = await update_class(input.to_pydantic(), input.uuid, org.uuid, note)  # type: ignore
         return uuid2response(uuid, ClassRead)
 
     # TODO: class_terminate
@@ -424,11 +424,11 @@ class Mutation:
         ],
     )
     async def facet_update(
-        self, info: Info, input: FacetUpdateInput, uuid: UUID
+        self, info: Info, input: FacetUpdateInput
     ) -> Response[Facet]:
         note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await update_facet(input.to_pydantic(), uuid, org.uuid, note)
+        uuid = await update_facet(input.to_pydantic(), input.uuid, org.uuid, note)  # type: ignore
         return uuid2response(uuid, FacetRead)
 
     # TODO: facet_update
@@ -471,11 +471,11 @@ class Mutation:
         ],
     )
     async def itsystem_update(
-        self, info: Info, input: ITSystemCreateInput, uuid: UUID
+        self, info: Info, input: ITSystemCreateInput
     ) -> Response[ITSystem]:
         note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await update_itsystem(input.to_pydantic(), uuid, org.uuid, note)
+        uuid = await update_itsystem(input.to_pydantic(), input.uuid, org.uuid, note)  # type: ignore
         return uuid2response(uuid, ITSystemRead)
 
     # TODO: itsystem_terminate

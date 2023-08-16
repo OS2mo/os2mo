@@ -83,8 +83,14 @@ async def create_facet(input: FacetCreate, organisation_uuid: UUID, note: str) -
     return uuid
 
 
+class FacetUpdate(FacetCreate):
+    """Model representing a facet updates."""
+
+    uuid: UUID = Field(description="UUID of the facet to update.")
+
+
 @strawberry.experimental.pydantic.input(
-    model=FacetCreate,
+    model=FacetUpdate,
     all_fields=True,
 )
 class FacetUpdateInput:

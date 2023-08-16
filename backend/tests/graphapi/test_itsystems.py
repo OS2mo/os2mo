@@ -255,8 +255,8 @@ def test_itsystem_update(graphapi_post) -> None:
 
     # Update new itsystem
     mutation = """
-        mutation UpdateITSystem($input: ITSystemCreateInput!, $uuid: UUID!) {
-            itsystem_update(input: $input, uuid: $uuid) {
+        mutation UpdateITSystem($input: ITSystemCreateInput!) {
+            itsystem_update(input: $input) {
                 uuid
             }
         }
@@ -264,8 +264,11 @@ def test_itsystem_update(graphapi_post) -> None:
     response: GQLResponse = graphapi_post(
         mutation,
         {
-            "input": {"user_key": "my_user_key", "name": "my_name"},
-            "uuid": str(existing_itsystem_uuid),
+            "input": {
+                "user_key": "my_user_key",
+                "name": "my_name",
+                "uuid": str(existing_itsystem_uuid),
+            },
         },
     )
     assert response.errors is None
@@ -294,8 +297,8 @@ def test_itsystem_update_mocked(
     existing_itsystem_uuid = UUID("0872fb72-926d-4c5c-a063-ff800b8ee697")
 
     mutation = """
-        mutation UpdateITSystem($input: ITSystemCreateInput!, $uuid: UUID!) {
-            itsystem_update(input: $input, uuid: $uuid) {
+        mutation UpdateITSystem($input: ITSystemCreateInput!) {
+            itsystem_update(input: $input) {
                 uuid
             }
         }
@@ -312,8 +315,11 @@ def test_itsystem_update_mocked(
         response: GQLResponse = graphapi_post(
             mutation,
             {
-                "input": {"user_key": user_key, "name": name},
-                "uuid": str(existing_itsystem_uuid),
+                "input": {
+                    "user_key": user_key,
+                    "name": name,
+                    "uuid": str(existing_itsystem_uuid),
+                },
             },
         )
         assert response.errors is None
@@ -361,8 +367,8 @@ def test_itsystem_update_mocked(
 def test_itsystem_update_non_existent(graphapi_post) -> None:
     """Test that we cannot update non-existent itsystems."""
     mutation = """
-        mutation UpdateITSystem($input: ITSystemCreateInput!, $uuid: UUID!) {
-            itsystem_update(input: $input, uuid: $uuid) {
+        mutation UpdateITSystem($input: ITSystemCreateInput!) {
+            itsystem_update(input: $input) {
                 uuid
             }
         }
@@ -370,8 +376,7 @@ def test_itsystem_update_non_existent(graphapi_post) -> None:
     response: GQLResponse = graphapi_post(
         mutation,
         {
-            "input": {"user_key": "whatever", "name": "whatever"},
-            "uuid": str(uuid4()),
+            "input": {"user_key": "whatever", "name": "whatever", "uuid": str(uuid4())},
         },
     )
     assert response.errors == [
@@ -390,8 +395,8 @@ def test_itsystem_update_non_existent_mocked(
 ) -> None:
     """Test that update_object is called as expected."""
     mutation = """
-        mutation UpdateITSystem($input: ITSystemCreateInput!, $uuid: UUID!) {
-            itsystem_update(input: $input, uuid: $uuid) {
+        mutation UpdateITSystem($input: ITSystemCreateInput!) {
+            itsystem_update(input: $input) {
                 uuid
             }
         }
@@ -402,8 +407,11 @@ def test_itsystem_update_non_existent_mocked(
         response: GQLResponse = graphapi_post(
             mutation,
             {
-                "input": {"user_key": "whatever", "name": "whatever"},
-                "uuid": str(uuid4()),
+                "input": {
+                    "user_key": "whatever",
+                    "name": "whatever",
+                    "uuid": str(uuid4()),
+                },
             },
         )
         assert response.errors == [

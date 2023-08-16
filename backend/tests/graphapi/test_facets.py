@@ -328,8 +328,8 @@ async def test_update_facet() -> None:
     }
 
     update_query = """
-        mutation UpdateFacet($input: FacetUpdateInput!, $uuid: UUID!) {
-            facet_update(input: $input, uuid: $uuid) {
+        mutation UpdateFacet($input: FacetUpdateInput!) {
+            facet_update(input: $input) {
                 uuid
             }
         }
@@ -337,8 +337,7 @@ async def test_update_facet() -> None:
     response = await execute_graphql(
         query=update_query,
         variable_values={
-            "uuid": facet_uuid,
-            "input": {"user_key": "New Value 1"},
+            "input": {"user_key": "New Value 1", "uuid": facet_uuid},
         },
     )
     assert response.errors is None
@@ -378,8 +377,8 @@ async def test_update_facet() -> None:
     assert response.data == {"facets": {"objects": []}}
 
     update_query = """
-        mutation UpdateFacet($input: FacetUpdateInput!, $uuid: UUID!) {
-            facet_update(input: $input, uuid: $uuid) {
+        mutation UpdateFacet($input: FacetUpdateInput!) {
+            facet_update(input: $input) {
                 uuid
             }
         }
@@ -387,9 +386,9 @@ async def test_update_facet() -> None:
     response = await execute_graphql(
         query=update_query,
         variable_values={
-            "uuid": facet_uuid,
             "input": {
                 "user_key": "New Value 2",
+                "uuid": facet_uuid,
             },
         },
     )
