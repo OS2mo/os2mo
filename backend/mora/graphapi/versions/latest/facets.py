@@ -8,9 +8,12 @@ from pydantic import BaseModel
 from pydantic import Extra
 from pydantic import Field
 
+from mora.util import NEGATIVE_INFINITY
+from mora.util import POSITIVE_INFINITY
 from mora.util import to_lora_time
 from oio_rest import db
 from oio_rest import validate
+from ramodels.mo import Validity as RAValidity
 
 
 class FacetCreate(BaseModel):
@@ -21,13 +24,23 @@ class FacetCreate(BaseModel):
         "Publiceret", description="Published state of the facet object."
     )
 
+    validity: RAValidity | None = Field(
+        None,
+        description="Validity range for the facet. Default to ['-infinity', 'infinity']",
+    )
+
     class Config:
         frozen = True
         extra = Extra.forbid
 
     def to_registration(self, organisation_uuid: UUID) -> dict:
-        from_time = to_lora_time("-infinity")
-        to_time = to_lora_time("infinity")
+        from_time = to_lora_time(NEGATIVE_INFINITY)
+        to_time = to_lora_time(POSITIVE_INFINITY)
+
+        if self.validity and self.validity.from_date:
+            from_time = to_lora_time(self.validity.from_date)
+        if self.validity and self.validity.to_date:
+            to_time = to_lora_time(self.validity.to_date)
 
         input = {
             "tilstande": {
@@ -36,7 +49,14 @@ class FacetCreate(BaseModel):
                         "publiceret": self.published,
                         "virkning": {"from": from_time, "to": to_time},
                     }
-                ]
+                ],
+                # TODO: Implement missing custom db-type for below state
+                # "facetgyldighed": [
+                #     {
+                #         "gyldighed": "Aktiv",
+                #         "virkning": {"from": from_time, "to": to_time},
+                #     }
+                # ],
             },
             "attributter": {
                 "facetegenskaber": [
