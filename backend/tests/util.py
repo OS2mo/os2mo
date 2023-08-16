@@ -124,11 +124,11 @@ async def load_sample_structures():
     functions = {
         "engagement_andersand": "d000591f-8705-4324-897a-075e3623f37b",
         "engagement_eriksmidthansen": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab",
-        "engagement_eriksmidthansen_sekundaer": "301a906b-ef51-4d5c-"
-        "9c77-386fb8410459",
+        "engagement_eriksmidthansen_sekundaer": "301a906b-ef51-4d5c-9c77-386fb8410459",
         "tilknytning": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
         "rolle": "1b20d0b9-96a0-42a6-b196-293bb86e62e8",
         "orlov_andersand": "b807628c-030c-4f5f-a438-de41c1f26ba5",
+        "orlov_eriksmidthansen": "0895b7f5-86ac-45c5-8fb1-c3047d45b643",
         "leder": "05609702-977f-4869-9fb4-50ad74c6999a",
         "ejer": "c16ff527-3501-42f7-a942-e606c6c1a0a7",
         "itsystem_user": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
@@ -223,6 +223,7 @@ async def load_sample_structures():
             "beredskabsledelse": "93ea44f9-127c-4465-a34c-77d149e3e928",
             # leave_type
             "barselsorlov": "bf65769c-5227-49b4-97c5-642cfbe41aa1",
+            "foraeldreorlov": "ad1b7d09-5452-4bec-9381-e4c876331ac0",
             # time_planning
             "tjenestetid": "ebce5c35-4e30-4ba8-9a08-c34592650b04",
             # kle_aspect

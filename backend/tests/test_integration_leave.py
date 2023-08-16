@@ -184,13 +184,21 @@ def test_create_leave(service_client: TestClient) -> None:
 
     expected = [
         {
+            "engagement": {"uuid": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab"},
+            "leave_type": {"uuid": "bf65769c-5227-49b4-97c5-642cfbe41aa1"},
+            "person": {"uuid": "236e0a78-11a0-4ed9-8545-6286bb8611c7"},
+            "user_key": "bvn",
+            "uuid": "0895b7f5-86ac-45c5-8fb1-c3047d45b643",
+            "validity": {"from": "2017-01-01", "to": None},
+        },
+        {
             "engagement": {"uuid": "d000591f-8705-4324-897a-075e3623f37b"},
             "leave_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
             "person": {"uuid": "236e0a78-11a0-4ed9-8545-6286bb8611c7"},
             "user_key": "1234",
             "uuid": mock_uuid,
             "validity": {"from": "2017-12-01", "to": None},
-        }
+        },
     ]
 
     with patch("uuid.uuid4", new=lambda: mock_uuid):
@@ -299,13 +307,21 @@ def test_edit_leave(service_client: TestClient) -> None:
     assert response.status_code == 200
     assert response.json() == [
         {
+            "uuid": "0895b7f5-86ac-45c5-8fb1-c3047d45b643",
+            "user_key": "bvn",
+            "validity": {"from": "2017-01-01", "to": None},
+            "person": {"uuid": "236e0a78-11a0-4ed9-8545-6286bb8611c7"},
+            "leave_type": {"uuid": "bf65769c-5227-49b4-97c5-642cfbe41aa1"},
+            "engagement": {"uuid": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab"},
+        },
+        {
             "engagement": {"uuid": "301a906b-ef51-4d5c-9c77-386fb8410459"},
             "leave_type": {"uuid": "3c791935-2cfa-46b5-a12e-66f7f54e70fe"},
             "person": {"uuid": "236e0a78-11a0-4ed9-8545-6286bb8611c7"},
             "user_key": "whatever",
             "uuid": "b807628c-030c-4f5f-a438-de41c1f26ba5",
             "validity": {"from": "2017-01-01", "to": None},
-        }
+        },
     ]
 
 
