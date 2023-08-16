@@ -2044,6 +2044,8 @@ class Facet:
     async def description(self, root: FacetRead) -> str | None:
         return root.description
 
+    validity: Validity | None = strawberry.auto
+
 
 # IT
 # --
