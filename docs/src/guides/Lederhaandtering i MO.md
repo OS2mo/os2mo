@@ -3,66 +3,103 @@ title: Lederhåndtering i MO
 ---
 
 # Lederhåndtering i MO
+
 Nedenfor findes de automatikker, der er udviklet til håndtering af ledere i MO.
 
 Det er muligt, at oprette ledere manuelt i MO, men der er også nogle arbejdsgange, der er automatiseret.
 
 Der er forskel på, om man bruger SD-Løn eller OPUS som lønsystem.
 
-Bruger man OPUS, er lederen opmærket i forvejen i OPUS (med en 'hat') og bliver således automatisk oprettet ved indlæsning i MO.
+Bruger man OPUS, er lederen opmærket i forvejen i OPUS (med en 'hat') og bliver således automatisk oprettet ved
+indlæsning i MO.
 
 Bruger man SD-Løn, skal man enten
 
-1. **oprette lederen i MO**, hvorpå lederens engagement automatisk vil blive flyttet til den enhed, som man har oprettet lederen i. Se afsnittet om [Opret Leder i MO](#Opret-leder-i-MO).
-2. **indplacere en leder i en såkaldt leder-enhed i SD-Løn** og placere ledern deri. Når indlæsningen til MO finder sted, vil lederen automatisk blive indplaceret korrekt i MO. Se afsnittet om [Indplacer leder i leder-enhed i SD-Løn](#Indplacer-leder-i-leder-enhed-i-SD-Løn).
+1. **oprette lederen i MO**, hvorpå lederens engagement automatisk vil blive flyttet til den enhed, som man har oprettet
+   lederen i. Se afsnittet om [Opret Leder i MO](#Opret-leder-i-MO).
+2. **indplacere en leder i en såkaldt leder-enhed i SD-Løn** og placere ledern deri. Når indlæsningen til MO finder
+   sted, vil lederen automatisk blive indplaceret korrekt i MO. Se afsnittet
+   om [Indplacer leder i leder-enhed i SD-Løn](#Indplacer-leder-i-leder-enhed-i-SD-Løn).
 
 ## Opret leder i MO
-Når en leder er manuelt oprettet i MO, vil OS2mo automatisk undersøge, om medarbejderens ansættelse/engagement er i den samme organisationsenhed. Hvis ikke, vil OS2mo flytte medarbejderens engagement, så medarbejderens lederrolle og engagement er placeret i samme enhed.
+
+Når en leder er manuelt oprettet i MO, vil OS2mo automatisk undersøge, om medarbejderens ansættelse/engagement er i den
+samme organisationsenhed. Hvis ikke, vil OS2mo flytte medarbejderens engagement, så medarbejderens lederrolle og
+engagement er placeret i samme enhed.
 
 ![image](../graphics/engagementsflytning.png)
 
-F.eks. Er it-chefens engagement placeret i IT-support, men når en bruger opmærker it-chefen til at være leder for IT og Digitalisering, vil it-chefens engagement automatisk blive flyttet fra IT-support til IT og Digitalisering.
+F.eks. Er it-chefens engagement placeret i IT-support, men når en bruger opmærker it-chefen til at være leder for IT og
+Digitalisering, vil it-chefens engagement automatisk blive flyttet fra IT-support til IT og Digitalisering.
 
 Følgende regler er gældende, emn kan tilpasses:
 
 1. Hvis medarbejderen har et eller flere engagementer i sideordnede enheder, flyttes der ikke på engagementerne.
 
-2. Hvis medarbejderen har et eller flere engagementer i lavereliggende enheder, flyttes engagementet dertil, hvor medarbejderen gøres til leder.
+2. Hvis medarbejderen har et eller flere engagementer i lavereliggende enheder, flyttes engagementet dertil, hvor
+   medarbejderen gøres til leder.
+
+## Afslut ledere automatisk i MO
+
+Når en person ikke længere har et gyldigt engagement, altså at personens engagements gyldighedsdato udløber, og personen
+også er leder i samme organisations enhed, afsluttes personens leder role også automatisk. Hvis personens engagement får
+tildelt en slutdato i fremtiden - uanset om det er en nyoprettet medarbejder, eller om det er en eksisterende
+medarbejders engagement som redigeres - så længe at personen også er leder i samme organisations enhed, vil lederrollen
+også afsluttes på samme dag som det engagement, der har det længste udløbsdato i fremtiden.
+
+Det er med til at give:
+
++ ensrettethed i organisationen
++ automatisere processer
++ optimere jeres arbejdsflow
++ reducere manuelle rettelser
++ minimere risiko for fejl i jeres leder data
++ effektivisere jeres tidsforbrug
+
+###
 
 ## Indplacer leder i leder-enhed i SD-Løn
+
 Når en leder er indplaceret i en leder-enhed i SD-Løn, bliver denne enhed og lederen indlæst i MO.
 
-Automaitkken i MO gør derefter følgende:
+Automatitkken i MO gør derefter følgende:
 
 1. Flytter lederen fra leder-enheden til den enhed, lederen skal være leder af.
-2. Tilføjer evt. manglende ledertype-oplysninger om lederen (om der fx er tale om en Direktør eller en Kommunaldirektør).
+2. Tilføjer evt. manglende ledertype-oplysninger om lederen (om der fx er tale om en Direktør eller en
+   Kommunaldirektør).
 3. Afslutter ledere, der ikke længere har noget engagement i den enhed, de er ledere i.
 
 ### Detaljeret beskrivelse
+
 Dette afsnit beskriver hvordan logikken opfører sig, når den eksekveres:
 
-1. Det tjekkes om alle aktuelle ledere fortsat har engagementer i de organisationsenheder, de er indplacerede i. Hvis det ikke er tilfældet, sættes dags dato som slutdato på lederen.
+1. Det tjekkes om alle aktuelle ledere fortsat har engagementer i de organisationsenheder, de er indplacerede i. Hvis
+   det ikke er tilfældet, sættes dags dato som slutdato på lederen.
 2. For alle organisationsenheder, hvis navn ender med `_leder` og som *ikke* er præfikset med `Ø_`:
 
-    ![_leder org-unit](os2mo_managersync_images/_leder.png)
+   ![_leder org-unit](os2mo_managersync_images/_leder.png)
 
     - Hentes alle ansatte som har en tilknytning til `_leder`-enheden:
 
-    ![Tilknytninger](os2mo_managersync_images/tilknytning.png)
+   ![Tilknytninger](os2mo_managersync_images/tilknytning.png)
 
-    - Tjekkes at hver ansatte har et aktivt engagement i overenheden. Hvis mere end én medarbejder har en tilknytning til `_leder`-enheden, tjekkes hvilken ansættelse der er den seneste startdato: Denne person bliver sat som leder i overenheden.
+    - Tjekkes at hver ansatte har et aktivt engagement i overenheden. Hvis mere end én medarbejder har en tilknytning
+      til `_leder`-enheden, tjekkes hvilken ansættelse der er den seneste startdato: Denne person bliver sat som leder i
+      overenheden.
 
     - Mappes hvert enhedsniveau til et leder-level:
 
-       ![Manager level](os2mo_managersync_images/manager_level.png)
+      ![Manager level](os2mo_managersync_images/manager_level.png)
 
     - Gøres lederen *også* til leder af overenhedens overenhed, hvis overenheden har `_led-adm`i sit navn.
 
-       ![led-adm](os2mo_managersync_images/_led-adm.png)
+      ![led-adm](os2mo_managersync_images/_led-adm.png)
 
-       I eksemplet ovenfor, hvor lederen bliver leder af to enheder, identificeres leder-level fra den øverste enhed, altså fra Borgmesterens Afdeling.
+      I eksemplet ovenfor, hvor lederen bliver leder af to enheder, identificeres leder-level fra den øverste enhed,
+      altså fra Borgmesterens Afdeling.
 
-Når en leder er blevet valgt ud fra de ovenstående kriterier, vil alle tilknytninger i `_leder`-enheden termineres, så kun én tilknytning resterer.
+Når en leder er blevet valgt ud fra de ovenstående kriterier, vil alle tilknytninger i `_leder`-enheden termineres, så
+kun én tilknytning resterer.
 
 ### Teknik
 
@@ -76,7 +113,8 @@ The follow environment variables can be used to configure the application:
 * `ROOT_UUID`: UUID of the root organisation unit. Instance dependant.
 * `MANAGER_TYPE_UUID`: Default UUID for `Manager type`. Instance dependant.
 * `RESPONSIBILITY_UUID`: Default UUID for `Manager type`. Instance dependant.
-* `MANAGER_LEVEL_MAPPING`: Dict with `org-unit level UUID` classes as keys and `manager level UUID` as values. Used to map from `org_unit_level` to `manager_level`.
+* `MANAGER_LEVEL_MAPPING`: Dict with `org-unit level UUID` classes as keys and `manager level UUID` as values. Used to
+  map from `org_unit_level` to `manager_level`.
 
 #### Usage
 
@@ -85,6 +123,7 @@ To start the container using `docker-compose`:
 ```
 $ docker-compose up -d
 ```
+
 After the container is up and running, the script can be run manually by triggering a `FastAPI` endpoint:
 
 * By using the GUI at:<br>
@@ -93,7 +132,8 @@ After the container is up and running, the script can be run manually by trigger
 * Calling the endpoint from terminal: <br>
   ```$ curl -X 'POST' 'http://localhost:8000/trigger/all'```<br>
 
-As it checks and updates managers you will get a lot of output in `docker logs`, especially if you have opted for `debug` information from logs.
+As it checks and updates managers you will get a lot of output in `docker logs`, especially if you have opted
+for `debug` information from logs.
 
 Once the script has finished the last lines will look like this:
 
@@ -171,7 +211,8 @@ UUID passed as an parameter is required password
 
 ##### Development info
 
-Sending and fetching data to/from `OS2MO` is done using a `GraphQL` client imported from `Ra-clients` [repos here](https://git.magenta.dk/rammearkitektur/ra-clients)
+Sending and fetching data to/from `OS2MO` is done using a `GraphQL` client imported
+from `Ra-clients` [repos here](https://git.magenta.dk/rammearkitektur/ra-clients)
 
 ***
 
