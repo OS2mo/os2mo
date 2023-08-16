@@ -3,6 +3,8 @@
 """GraphQL association related helper functions."""
 from uuid import UUID
 
+from fastapi.encoders import jsonable_encoder
+
 from .models import AssociationCreate
 from .models import AssociationTerminate
 from .models import AssociationUpdate
@@ -13,7 +15,7 @@ from mora.triggers import Trigger
 
 
 async def create_association(input: AssociationCreate) -> UUID:
-    input_dict = input.to_handler_dict()
+    input_dict = jsonable_encoder(input.to_handler_dict())
 
     handler = await AssociationRequestHandler.construct(
         input_dict, mapping.RequestType.CREATE
@@ -25,7 +27,7 @@ async def create_association(input: AssociationCreate) -> UUID:
 
 async def update_association(input: AssociationUpdate) -> UUID:
     """Helper function for updating associations."""
-    input_dict = input.to_handler_dict()
+    input_dict = jsonable_encoder(input.to_handler_dict())
 
     req = {
         mapping.TYPE: mapping.ASSOCIATION,

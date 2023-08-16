@@ -106,6 +106,10 @@ class AddressUpdateInput:
 class AssociationCreateInput:
     """input model for creating associations."""
 
+    employee: UUID | None = strawberry.field(
+        deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo."
+    )
+
 
 @strawberry.experimental.pydantic.input(
     model=AssociationUpdate,
@@ -113,6 +117,10 @@ class AssociationCreateInput:
 )
 class AssociationUpdateInput:
     """input model for updating associations."""
+
+    employee: UUID | None = strawberry.field(
+        deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo."
+    )
 
 
 @strawberry.experimental.pydantic.input(

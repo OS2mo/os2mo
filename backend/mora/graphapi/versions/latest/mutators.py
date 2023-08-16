@@ -220,7 +220,7 @@ class Mutation:
         self, input: AssociationCreateInput
     ) -> Response[Association]:
         return uuid2response(
-            await create_association(input.to_pydantic()), AssociationRead
+            await create_association(input.to_pydantic()), AssociationRead  # type: ignore
         )
 
     @strawberry.mutation(
@@ -234,7 +234,7 @@ class Mutation:
         self, input: AssociationUpdateInput
     ) -> Response[Association]:
         return uuid2response(
-            await update_association(input.to_pydantic()), AssociationRead
+            await update_association(input.to_pydantic()), AssociationRead  # type: ignore
         )
 
     @strawberry.mutation(
