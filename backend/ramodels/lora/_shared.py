@@ -250,6 +250,21 @@ class Published(RABase):
     )
 
 
+class FacetValidState(RABase):
+    """
+    State of a facet in LoRa.
+    """
+
+    state: str = Field(
+        "Aktiv",
+        alias="gyldighed",
+        description="String describing the validity of a facet.",
+    )
+    effective_time: EffectiveTime = Field(
+        alias="virkning", description="Effective time of the valid states."
+    )
+
+
 class FacetStates(RABase):
     """
     States of a given LoRa facet.
@@ -260,6 +275,13 @@ class FacetStates(RABase):
         min_items=1,
         max_items=1,
         description="The published state of the facet.",
+    )
+
+    valid_state: list[FacetValidState] = Field(
+        alias="facetgyldighed",
+        min_items=0,  # TODO: when we have fixed "no static objects" this should be set to 1
+        max_items=1,
+        description="Valid states denoting the overall state.",
     )
 
 
