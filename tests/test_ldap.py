@@ -87,6 +87,7 @@ def settings(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("DEFAULT_ORG_UNIT_LEVEL", "foo")
     monkeypatch.setenv("DEFAULT_ORG_UNIT_TYPE", "foo")
     monkeypatch.setenv("FASTRAMQPI__AMQP__URL", "amqp://guest:guest@msg_broker:5672/")
+    monkeypatch.setenv("INTERNAL_AMQP__URL", "amqp://guest:guest@msg_broker:5672/")
 
     return Settings()
 
@@ -138,6 +139,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "DEFAULT_ORG_UNIT_LEVEL": "foo",
         "DEFAULT_ORG_UNIT_TYPE": "foo",
         "FASTRAMQPI__AMQP__URL": "amqp://guest:guest@msg_broker:5672/",
+        "INTERNAL_AMQP__URL": "amqp://guest:guest@msg_broker:5672/",
     }
     yield overrides
 
