@@ -7,7 +7,6 @@ from typing import List
 from typing import Literal
 
 from fastramqpi.config import Settings as FastRAMQPISettings
-from pydantic import AmqpDsn
 from pydantic import AnyHttpUrl
 from pydantic import BaseModel
 from pydantic import BaseSettings
@@ -54,7 +53,6 @@ class InternalAMQPConnectionSettings(AMQPConnectionSettings):
     exchange = "ldap_ie_internal"
     queue_prefix = "ldap_ie_internal"
     prefetch_count = 1  # MO cannot handle too many requests
-    url: AmqpDsn = parse_obj_as(AmqpDsn, "amqp://guest:guest@msg_broker")
 
 
 class ExternalAMQPConnectionSettings(AMQPConnectionSettings):
