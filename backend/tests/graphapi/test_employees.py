@@ -256,8 +256,16 @@ def _get_graphql_query_and_vars(mutation_func: str = "employee_terminate", **kwa
     return query, var_values
 
 
-@given(test_data=...)
-@patch("mora.graphapi.versions.latest.mutators.employee_create", new_callable=AsyncMock)
+@given(
+    test_data=st.builds(
+        EmployeeCreate,
+        name=st.none(),
+        nickname=st.none(),
+        cpr_no=st.none(),
+        givenname=st.none(),
+    )
+)
+@patch("mora.graphapi.versions.latest.mutators.create_employee", new_callable=AsyncMock)
 async def test_create_employee(
     create_employee: AsyncMock, test_data: EmployeeCreate
 ) -> None:
@@ -497,7 +505,7 @@ async def test_update_mutator(
 
     # GraphQL
     with patch(
-        "mora.graphapi.versions.latest.mutators.employee_update"
+        "mora.graphapi.versions.latest.mutators.update_employee"
     ) as mock_employee_update:
         mock_employee_update.return_value = given_uuid
 
@@ -588,7 +596,7 @@ async def test_update_mutator(
         ),
     ],
 )
-@patch("mora.graphapi.versions.latest.mutators.employee_update", new_callable=AsyncMock)
+@patch("mora.graphapi.versions.latest.mutators.update_employee", new_callable=AsyncMock)
 async def test_update_mutator_fails(
     employee_update: AsyncMock,
     given_mutator_args,

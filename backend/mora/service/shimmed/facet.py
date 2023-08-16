@@ -166,7 +166,7 @@ async def list_facets(
     orgid: UUID = Path(
         ...,
         description="UUID of the organisation to retrieve facets from.",
-        example="3b866d97-0b1f-48e0-8078-686d96f430b3",
+        examples="3b866d97-0b1f-48e0-8078-686d96f430b3",
     ),
 ):
     """List the facet types available in a given organisation."""
@@ -572,7 +572,7 @@ async def get_classes(
     orgid: UUID = Path(
         ...,
         description="UUID of the organisation to retrieve facets from.",
-        example="3b866d97-0b1f-48e0-8078-686d96f430b3",
+        examples="3b866d97-0b1f-48e0-8078-686d96f430b3",
     ),
     facet: str | UUID = Path(..., description="UUID or user_key of a facet."),
     start: int = Query(0, description="Index of the first item for paging."),

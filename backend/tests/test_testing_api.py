@@ -14,7 +14,7 @@ def create_employee(graphapi_post: Callable[..., GQLResponse], surname: str) -> 
     employee = graphapi_post(
         """
         mutation Create($surname: String!) {
-          employee_create(input: {givenname: "Foo", surname: $surname}) {
+          employee_create(input: {given_name: "Foo", surname: $surname}) {
             uuid
           }
         }
