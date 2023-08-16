@@ -520,6 +520,41 @@ def fetch_employee_uuids(load_fixture, graphapi_post: Callable) -> list[UUID]:
     return uuids
 
 
+@pytest.fixture(scope="session", name="employee_and_engagement_uuids")
+def fetch_employee_and_engagement_uuids(
+    load_fixture, graphapi_post: Callable
+) -> list[tuple[UUID, UUID]]:
+    employee_and_engagement_uuids_query = """
+        query FetchEmployeeUUIDs {
+            employees {
+                objects {
+                    objects {
+                        uuid
+                        engagements {
+                            uuid
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(employee_and_engagement_uuids_query)
+    assert response.errors is None
+    uuids_and_engagements = [
+        {
+            "uuid": UUID(obj["uuid"]),
+            "engagement_uuids": [
+                UUID(engagement["uuid"]) for engagement in obj.get("engagements", [])
+            ],
+        }
+        for employee in response.data["employees"]["objects"]
+        for obj in employee["objects"]
+        if obj.get("engagements")
+    ]
+
+    return uuids_and_engagements
+
+
 @pytest.fixture(scope="session", name="itsystem_uuids")
 def fetch_itsystem_uuids(load_fixture, graphapi_post: Callable) -> list[UUID]:
     itsystem_uuids_query = """

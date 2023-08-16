@@ -22,6 +22,7 @@ from .models import ITUserUpdate
 from .models import KLECreate
 from .models import KLETerminate
 from .models import KLEUpdate
+from .models import LeaveCreate
 from .models import ManagerCreate
 from .models import ManagerTerminate
 from .models import ManagerUpdate
@@ -238,6 +239,13 @@ class KLETerminateInput:
 
 # Leave
 # -----
+@strawberry.experimental.pydantic.input(
+    model=LeaveCreate,
+    all_fields=True,
+)
+class LeaveCreateInput:
+    """Input model for creating a leave."""
+
 
 # Managers
 # --------
