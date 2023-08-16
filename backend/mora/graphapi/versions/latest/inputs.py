@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from datetime import datetime
 from uuid import UUID
 
 import strawberry
@@ -174,6 +175,13 @@ class EmployeeUpdateInput:
     )
     givenname: NonEmptyString | None = strawberry.field(
         deprecation_reason="Use 'given_name' instead. Will be removed in a future version of OS2mo."
+    )
+
+    from_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'validity.from_date' instead. Will be removed in a future version of OS2mo."
+    )
+    to_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'validity.to_date' instead. Will be removed in a future version of OS2mo."
     )
 
 
