@@ -11,6 +11,22 @@ code is up-to-date with the latest version.
 
 Below follows the migration guide for each version.
 
+## Version 11
+
+GraphQL version 11 introduces a breaking change to the input variables taken
+by the `manager_create`-mutator. Specifically it removes the `type` input
+variable, which was previously an optional argument that should *always* have
+its value set to: `manager`. Setting it to any other value will break
+invariants in the underlying code leading to undefined behavior.
+
+The argument had the default value of `manager` and as such the issue
+only arises if the caller explicitly sends a different value.
+The argument has however been removed entirely in version 11, as it
+is leaking implementation-specific details and should never have been
+exposed.
+
+To migrate from GraphQL version 10, simply stop sending `type` with your queries.
+
 ## Version 10
 
 GraphQL version 10 introduces a breaking change to the input variables taken

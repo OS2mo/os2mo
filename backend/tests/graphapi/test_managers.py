@@ -274,7 +274,6 @@ async def test_create_manager_integration_test(
     assert response.errors is None
     obj = one(one(response.data["managers"]["objects"])["objects"])
 
-    assert obj["type"] == test_data.type_
     responsibility_list = [
         UUID(responsibility) for responsibility in obj["responsibility"]
     ]
