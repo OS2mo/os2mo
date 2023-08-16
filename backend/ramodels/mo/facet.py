@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import Field
 
 from ramodels.mo._shared import MOBase
+from ramodels.mo._shared import Validity
 
 
 class FacetRead(MOBase):
@@ -16,6 +17,7 @@ class FacetRead(MOBase):
     org_uuid: UUID = Field(description="UUID of the related organisation.")
     parent_uuid: UUID | None = Field(description="UUID of the parent facet.")
     description: str = Field(description="Description of the facet object.", default="")
+    validity: Validity | None = Field(None, description="Validity of the facet.")
 
 
 class FacetWrite(MOBase):
