@@ -49,6 +49,7 @@ from .inputs import ITUserUpdateInput
 from .inputs import KLECreateInput
 from .inputs import KLETerminateInput
 from .inputs import KLEUpdateInput
+from .inputs import LeaveCreateInput
 from .inputs import ManagerCreateInput
 from .inputs import ManagerTerminateInput
 from .inputs import ManagerUpdateInput
@@ -66,6 +67,7 @@ from .itsystem import update_itsystem
 from .kle import create_kle
 from .kle import terminate_kle
 from .kle import update_kle
+from .leave import create_leave
 from .manager import create_manager
 from .manager import terminate_manager
 from .manager import update_manager
@@ -94,6 +96,7 @@ from .schema import Facet
 from .schema import ITSystem
 from .schema import ITUser
 from .schema import KLE
+from .schema import Leave
 from .schema import Manager
 from .schema import Organisation
 from .schema import OrganisationUnit
@@ -111,6 +114,7 @@ from ramodels.mo.details import EngagementRead
 from ramodels.mo.details import ITSystemRead
 from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead
+from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import ManagerRead
 from ramodels.mo.details import RoleRead
 
@@ -566,8 +570,16 @@ class Mutation:
 
     # Leave
     # -----
+    @strawberry.mutation(
+        description="Creates a leave.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("leave"),
+        ],
+    )
+    async def leave_create(self, input: LeaveCreateInput) -> Response[Leave]:
+        return uuid2response(await create_leave(input.to_pydantic()), LeaveRead)
 
-    # TODO: leave_create
     # TODO: leave_update
     # TODO: leave_terminate
     # TODO: leave_delete

@@ -71,6 +71,38 @@ def fetch_employee_validity(
     return from_time, to_time
 
 
+def fetch_engagement_validity(
+    graphapi_post: Callable, engagement_uuid: UUID
+) -> tuple[datetime, datetime | None]:
+    validity_query = """
+        query FetchValidity($uuid: UUID!) {
+            engagements(uuids: [$uuid]) {
+                objects {
+                    objects {
+                        uuid
+                        validity {
+                            from
+                            to
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(
+        validity_query, {"uuid": str(engagement_uuid)}
+    )
+    assert response.errors is None
+    validity = one(one(response.data["engagements"]["objects"])["objects"])["validity"]
+    from_time = datetime.fromisoformat(validity["from"]).replace(tzinfo=None)
+    to_time = (
+        datetime.fromisoformat(validity["to"]).replace(tzinfo=None)
+        if validity["to"]
+        else None
+    )
+    return from_time, to_time
+
+
 def fetch_class_uuids(graphapi_post: Callable, facet_name: str) -> list[UUID]:
     class_query = """
         query FetchClassUUIDs($user_key: String!) {

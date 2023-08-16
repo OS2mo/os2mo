@@ -926,6 +926,33 @@ class KLETerminate(ValidityTerminate):
         )
 
 
+# Leaves
+# --------
+class LeaveCreate(UUIDBase):
+    """Model for creating a leave."""
+
+    person: UUID = Field(description="UUID of the person.")
+    # Engagement seems to be optional, but it's not possible to create a Leave without it.
+    # Therefore it's set to required
+    engagement: UUID = Field(description="UUID of the related engagement.")
+    leave_type: UUID = Field(description="UUID of the leave type")
+    validity: RAValidity = Field(description="Validity range for the leave.")
+
+    def to_handler_dict(self) -> dict:
+        return {
+            "uuid": str(self.uuid),
+            "person": gen_uuid(self.person),
+            "engagement": gen_uuid(self.engagement),
+            "leave_type": gen_uuid(self.leave_type),
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+        }
+
+
 # Managers
 # --------
 class ManagerCreate(UUIDBase):
