@@ -19,6 +19,9 @@ variables:
   PRODUCT: os2mo
   COMPONENT: os2mo
 
+  PYTEST_COV_MODULE: mora
+  PYTEST_COV_FAIL_UNDER: 80
+
 # Conditions
 #############
 # Global Conditions
@@ -60,6 +63,7 @@ include:
     file:
       - gitlab-ci-templates/common/no-interrupt-meta.v1.yml
       - gitlab-ci-templates/common/conventional-commits.v1.yml
+      - gitlab-ci-templates/python/pytest-meta.v1.yml
       - gitlab-ci-templates/common/docker-build-meta.v2.yml
       - gitlab-ci-templates/common/docker-release.v1.yml
       - gitlab-ci-templates/common/config-updater-salt.v1.yml
@@ -164,9 +168,9 @@ Lint shell scripts:
   script:
     - git ls-files --exclude='*.sh' --ignored -c | xargs shellcheck
 
+
 # Build
 ########
-
 Build OS2mo:
   extends:
     - .build-docker
@@ -180,61 +184,31 @@ Build OS2mo:
 
 # Tests
 ########
-.test-base:
+.test-rules:
   stage: test
-  variables:
-    # $CI_JOB_ID is unique across parallel jobs, so this works as expected
-    COVERAGE_FILE: $CI_PROJECT_DIR/.coverage.$CI_JOB_ID
   rules:
     - <<: *if-merge-request
       changes: *backend-patterns
 
-# Backend Tests
-################
 Unit-test:
-  image: python:3.10
-  needs: []
   extends:
-    - .test-base
+    - .test-rules
+    - .pytest
     - .mo-variables
   variables:
+    PYPROJECT_PREFIX: "backend/"
     HYPOTHESIS_PROFILE: "ci"
-
-    PIP_CACHE_DIR: ${CI_PROJECT_DIR}/.cache/pip
-
-  parallel: 2
-  script:
-    - pip install poetry==1.3.2
-    - poetry config virtualenvs.in-project true
-    - poetry install --with ci
-    - poetry run pytest backend/tests/
-      -p no:cacheprovider
-      -m "not integration_test"
-      --color=yes
-      --show-capture=stdout
-      --cov=mora
-      --group=$CI_NODE_INDEX
-      --splits=$CI_NODE_TOTAL
-      --splitting-algorithm=least_duration
-      --randomly-seed=$CI_PIPELINE_IID
-  cache:
-    paths:
-      - ${PIP_CACHE_DIR}
-      - ${CI_PROJECT_DIR}/.venv
-  artifacts:
-    when: always
-    paths:
-      - $COVERAGE_FILE
+    PYTEST_ADDOPTS: "-m 'not integration_test' --randomly-seed=$CI_PIPELINE_IID"
 
 Integration-test:
   extends:
-    - .test-base
+    - .test-rules
+    - .pytest
     - .services:use-mo
-  needs:
-    - Build OS2mo
   variables:
+    PYPROJECT_PREFIX: "backend/"
     HYPOTHESIS_PROFILE: "ci"
-    FF_NETWORK_PER_BUILD: 1  # activate container-to-container networking
+    PYTEST_ADDOPTS: "-m 'integration_test' -p no:randomly --cov=oio_rest"  # TODO: enable randomness
   services:
     # mox db
     - name: magentaaps/postgres-os2mo:11-11.7-test
@@ -284,53 +258,29 @@ Integration-test:
         KEYCLOAK_REALM_USERS: '[{"username": "bruce", "password": "bruce", "firstname": "Bruce", "lastname": "Lee", "email": "bruce@kung.fu", "enabled": true, "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a"}]'
   parallel: 8
   before_script:
+    - !reference [.pytest, before_script]
     - |
       while [ ! -f /builds/.keycloak-realm-builder-finished ]; do
         echo 'Waiting for keycloak realm builder...'
         sleep 1
       done
-  script:
-    - pytest backend/tests
-      -m "integration_test"
-      -p no:cacheprovider
-      --color=yes
-      --show-capture=stdout
-      --cov=mora
-      --cov=oio_rest
-      --group=$CI_NODE_INDEX
-      --splits=$CI_NODE_TOTAL
-  artifacts:
-    when: always
-    paths:
-      - $COVERAGE_FILE
 
-Coverage:
-  stage: coverage
-  image: python:3.10
+
+Export coverage:
+  extends:
+    - .test-rules
+    - .export_coverage
   needs:
     - Unit-test
     - Integration-test
-  before_script:
-    - pip install coverage
-    - coverage combine
-  script:
-    - coverage report --fail-under=80 --skip-empty
-  after_script:
-    - coverage html -d $CI_PROJECT_DIR/coverage-html --skip-empty
-    - coverage xml -o $CI_PROJECT_DIR/coverage.xml --skip-empty
-  coverage: '/TOTAL.*\s+(\d+%)$/'
-  artifacts:
-    when: always
-    paths:
-      - coverage-html
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: $CI_PROJECT_DIR/coverage.xml
-  rules:
-    - <<: *if-merge-request
-      changes: *backend-patterns
 
+Check coverage:
+  extends:
+    - .test-rules
+    - .check_coverage
+  needs:
+    - Unit-test
+    - Integration-test
 
 # Docs
 #######
