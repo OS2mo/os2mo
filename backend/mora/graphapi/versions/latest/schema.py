@@ -378,6 +378,18 @@ class Response(Generic[MOObject]):
                     <= (obj.validity.to_date.date() or datetime_max)
                 )
             except AttributeError:  # occurs when objects do not contain validity
+                # HACK: Check if one of the validity fields exists, and if so compare it against now
+                # TODO: Remove hack when non-static objects for facets, etc. have been implemented
+                if (
+                    "validity" in obj
+                    and obj.validity
+                    and ("from_date" in obj.validity or "to_date" in obj.validity)
+                ):
+                    if obj.validity.from_date is None and obj.validity.to_date:
+                        return now.date() < obj.validity.to_date.date()
+                    if obj.validity.to_date is None and obj.validity.from_date:
+                        return now.date() >= obj.validity.from_date.date()
+
                 # TODO: Get rid of this entire branch by implementing non-static facet, etc.
                 return True
 
