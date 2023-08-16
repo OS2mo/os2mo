@@ -56,7 +56,6 @@ class InternalAMQPConnectionSettings(AMQPConnectionSettings):
 
 
 class ExternalAMQPConnectionSettings(AMQPConnectionSettings):
-    exchange = "ldap_ie"
     queue_prefix = "ldap_ie"
     prefetch_count: int = 1  # MO cannot handle too many requests
 
