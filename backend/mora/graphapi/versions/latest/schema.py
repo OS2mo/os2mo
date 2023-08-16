@@ -264,6 +264,17 @@ seed_resolver_first: Callable[..., Any] = partial(
     ),
 )
 
+# seed_resolver options used by multiple
+seed_resolver_options_parent = {
+    "uuids": lambda root: uuid2list(root.parent_uuid),
+    "from_date": lambda root: datetime.combine(root.validity.from_date.date(), time.min)
+    if root.validity.to_date
+    else None,
+    "to_date": lambda root: datetime.combine(root.validity.to_date.date(), time.max)
+    if root.validity.to_date
+    else None,
+}
+
 
 def uuid2list(uuid: UUID | None) -> list[UUID]:
     """Convert an optional uuid to a list.
@@ -1062,6 +1073,8 @@ class Association:
 )
 class Class:
     parent: LazyClass | None = strawberry.field(
+        # TODO: Use seed_resolver_first & seed_resolver_options_parent(), when "no static objects" for classes
+        #  have been implemented
         resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.parent_uuid)}
         ),
@@ -1897,6 +1910,8 @@ class Facet:
     )
 
     parent: LazyFacet | None = strawberry.field(
+        # TODO: Use seed_resolver_first & seed_resolver_options_parent(), when "no static objects" for facets
+        #  have been implemented
         resolver=seed_resolver_only(
             FacetResolver(), {"uuids": lambda root: uuid2list(root.parent_uuid)}
         ),
@@ -2901,18 +2916,7 @@ class Organisation:
 class OrganisationUnit:
     parent: LazyOrganisationUnit | None = strawberry.field(
         resolver=seed_resolver_first(
-            OrganisationUnitResolver(),
-            {
-                "uuids": lambda root: [root.parent_uuid],
-                "from_date": lambda root: datetime.combine(
-                    root.validity.from_date.date(), time.min
-                ),
-                "to_date": lambda root: datetime.combine(
-                    root.validity.to_date.date(), time.max
-                )
-                if root.validity.to_date
-                else None,
-            },
+            OrganisationUnitResolver(), seed_resolver_options_parent
         ),
         description=dedent(
             """\
