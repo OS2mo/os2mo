@@ -1500,7 +1500,13 @@ class Employee:
         return root.type_
 
     # TODO: Document this
-    cpr_no: CPRType | None = strawberry.auto
+    cpr_no: CPRType | None = strawberry.field(
+        deprecation_reason="Use 'cpr_number' instead. Will be removed in a future version of OS2mo."
+    )
+
+    @strawberry.field(description="CPR number of the employee.")
+    async def cpr_number(self, root: EmployeeRead) -> CPRType | None:
+        return cast(CPRType | None, root.cpr_no)
 
     # TODO: Document this
     seniority: date | None = strawberry.auto
@@ -1510,7 +1516,13 @@ class Employee:
     async def name(self, root: EmployeeRead) -> str:
         return f"{root.givenname} {root.surname}".strip()
 
-    givenname: str = strawberry.auto
+    givenname: str = strawberry.field(
+        deprecation_reason="Use 'given_name' instead. Will be removed in a future version of OS2mo."
+    )
+
+    @strawberry.field(description="Given name of the employee.")
+    async def given_name(self, root: EmployeeRead) -> str:
+        return root.givenname
 
     surname: str = strawberry.auto
 
@@ -1519,7 +1531,13 @@ class Employee:
     async def nickname(self, root: EmployeeRead) -> str:
         return f"{root.nickname_givenname} {root.nickname_surname}".strip()
 
-    nickname_givenname: str | None = strawberry.auto
+    nickname_givenname: str | None = strawberry.field(
+        deprecation_reason="Use 'nickname_given_name' instead. Will be removed in a future version of OS2mo."
+    )
+
+    @strawberry.field(description="Given name part of nickname of the employee.")
+    async def nickname_given_name(self, root: EmployeeRead) -> str | None:
+        return root.nickname_givenname
 
     nickname_surname: str | None = strawberry.auto
 
