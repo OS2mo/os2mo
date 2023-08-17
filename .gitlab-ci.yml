@@ -193,7 +193,6 @@ Unit-test:
   extends:
     - .test-rules
     - .pytest
-    - .mo-variables
   variables:
     PYPROJECT_PREFIX: "backend/"
     HYPOTHESIS_PROFILE: "ci"
