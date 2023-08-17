@@ -28,10 +28,6 @@ class Settings(BaseSettings):
     keycloak_signing_alg: str = "RS256"
     keycloak_verify_audience: bool = True
 
-    # If enabled, exposes /db/truncate endpoint, for truncating the current
-    # database.
-    truncate_api: bool = False
-
     # The log level for the Python application
     lora_log_level: str = "WARNING"
 
