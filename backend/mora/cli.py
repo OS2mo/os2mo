@@ -11,13 +11,11 @@ import sys
 import time
 
 import click
-from more_itertools import last
 from ra_utils.async_to_sync import async_to_sync
 from ramqp import AMQPSystem
 from ramqp.mo import MOAMQPSystem
 from sqlalchemy import select
 from sqlalchemy import update
-from strawberry.printer import print_schema
 from structlog import get_logger
 
 from . import amqp as amqp_subsystem
@@ -25,7 +23,6 @@ from . import config
 from . import log
 from mora.db import AMQPSubsystem
 from mora.db import get_sessionmaker
-from mora.graphapi.main import graphql_versions
 from oio_rest.config import get_settings as oio_rest_get_settings
 
 logger = get_logger()
@@ -90,16 +87,6 @@ def wait_for_rabbitmq(seconds):
         seconds,
     )
     return 8
-
-
-@cli.command()
-def export_schema() -> None:
-    """Export GraphQL Schema in the GraphQL schema definition language (SDL).
-
-    See https://strawberry.rocks/docs/guides/schema-export.
-    """
-    latest = last(graphql_versions)
-    print(print_schema(latest.schema.get()))
 
 
 @cli.group()
