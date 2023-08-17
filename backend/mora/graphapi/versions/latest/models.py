@@ -522,7 +522,7 @@ class EmployeeCreate(EmployeeUpsert):
         return data_dict
 
 
-class EmployeeUpdate(EmployeeUpsert, RAValidity):
+class EmployeeUpdate(EmployeeUpsert, OpenValidity):
     # Error messages returned by the @root_validator
     _ERR_INVALID_NAME = (
         "EmployeeUpdate.name is only allowed to be set, if "
@@ -541,6 +541,7 @@ class EmployeeUpdate(EmployeeUpsert, RAValidity):
         None,
         description="New last-name value of the employee nickname.",
     )
+    validity: RAValidity | None = Field(description="Validity range for the change.")
 
     @root_validator
     def combined_or_split_name(cls, values: dict[str, Any]) -> dict[str, Any]:
@@ -551,12 +552,26 @@ class EmployeeUpdate(EmployeeUpsert, RAValidity):
 
         return values
 
+    @root_validator
+    def validity_check(cls, values: dict[str, Any]) -> dict[str, Any]:
+        validity = values.get("validity")
+        dates = values.get("from_date") or values.get("to_date")
+        if validity and dates:
+            exceptions.ErrorCodes.E_INVALID_INPUT(
+                "Can only set one of 'validity' and 'from_date' / 'to_date'"
+            )
+        if validity is None and dates is None:
+            exceptions.ErrorCodes.E_INVALID_INPUT(
+                "Must set one of 'validity' and 'from_date' / 'to_date'"
+            )
+        return values
+
     def to_handler_dict(self) -> dict:
         data_dict = super().to_handler_dict()
         data_dict[mapping.GIVENNAME] = self.given_name or self.givenname
         data_dict[mapping.SURNAME] = self.surname
-        data_dict[mapping.VALIDITY] = {
-            mapping.FROM: self.from_date.date().isoformat(),
+        data_dict[mapping.VALIDITY] = self.validity or {
+            mapping.FROM: self.from_date.date().isoformat() if self.from_date else None,
             mapping.TO: self.to_date.date().isoformat() if self.to_date else None,
         }
         return {k: v for k, v in data_dict.items() if v}
