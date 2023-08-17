@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 
-FROM python:3.11@sha256:e7b98cbd26cbc371e0fdb039f92bb95d566b58296a26ada0fe88b3e24991fcf4
+FROM python:3.11@sha256:85b3d192dddbc96588b719e86991e472b390805a754681a38132de1977d8e429
 
 LABEL org.opencontainers.image.title="OS2mo - Medarbejder og Organisation"
 LABEL org.opencontainers.image.vendor="Magenta ApS"
