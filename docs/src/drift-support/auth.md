@@ -59,12 +59,9 @@ backand and the frontend.
 
 The MO backend needs a few configurations to be able to communicate with
 Keycloak (which is actually only needed when the backend have to fetch
-the public signing key - the public JWK - from Keycloak). These setting
-can be found in the settings TOML files, e.g. the
-`backend/mora/default-settings.toml`:
+the public signing key - the public JWK - from Keycloak):
 
 ``` {.text}
-[auth]
 keycloak_schema = "https"
 keycloak_host = "keycloak"
 keycloak_port = 443

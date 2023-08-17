@@ -168,7 +168,6 @@ export AMQP_ENABLE=false;
 export HYPOTHESIS_PROFILE=ci;
 export QUERY_EXPORT_DIR=/tmp;
 export FF_USE_FASTZIP=false;
-export TESTING_API=true;
 ```
 
 This means that currently only one test fails.
@@ -184,7 +183,6 @@ In docker-compose.override.yml:
 mox:
    environment:
     ENVIRONMENT: testing
-    TESTING_API: "true"
     LORA_AUTH: "false"
     KEYCLOAK_SCHEMA: "http"
 mo:
