@@ -751,12 +751,8 @@ class EngagementUpdate(UUIDBase):
 
 # ITUsers
 # -------
-class ITUserCreate(UUIDBase):
-    """Model representing a IT-user creation."""
-
-    user_key: str = Field(description="The IT user account name.")
+class ITUserUpsert(UUIDBase):
     primary: UUID | None = Field(description="Primary field of the IT user object")
-    itsystem: UUID = Field(description="Reference to the IT system for the IT user.")
     person: UUID | None = Field(
         description="Reference to the employee for the IT user (if any)."
     )
@@ -767,6 +763,28 @@ class ITUserCreate(UUIDBase):
         description="Reference to the engagement of the IT user (if any)."
     )
     validity: RAValidity = Field(description="Validity of the created IT user object.")
+
+    def to_handler_dict(self) -> dict:
+        return {
+            "uuid": self.uuid,
+            "primary": gen_uuid(self.primary),
+            "person": gen_uuid(self.person),
+            "org_unit": gen_uuid(self.org_unit),
+            "engagement": gen_uuid(self.engagement),
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+        }
+
+
+class ITUserCreate(ITUserUpsert):
+    """Model representing a IT-user creation."""
+
+    user_key: str = Field(description="The IT user account name.")
+    itsystem: UUID = Field(description="Reference to the IT system for the IT user.")
 
     @root_validator
     def validation(cls, values: dict[str, Any]) -> dict[str, Any]:
@@ -780,49 +798,27 @@ class ITUserCreate(UUIDBase):
         return values
 
     def to_handler_dict(self) -> dict:
-        return {
-            "uuid": str(self.uuid),
-            "type": "it",
-            "user_key": self.user_key,
-            "primary": gen_uuid(self.primary),
-            "itsystem": gen_uuid(self.itsystem),
-            "person": gen_uuid(self.person),
-            "engagement": gen_uuid(self.engagement),
-            "org_unit": gen_uuid(self.org_unit),
-            "validity": {
-                "from": self.validity.from_date.date().isoformat(),
-                "to": self.validity.to_date.date().isoformat()
-                if self.validity.to_date
-                else None,
-            },
-        }
+        data_dict = super().to_handler_dict()
+        data_dict["type"] = "it"
+        data_dict["user_key"] = self.user_key
+        data_dict["itsystem"] = gen_uuid(self.itsystem)
+        return data_dict
 
 
-class ITUserUpdate(UUIDBase):
+class ITUserUpdate(ITUserUpsert):
     """Model representing a IT-user creation."""
 
     uuid: UUID = Field(description="UUID of the IT-user you want to update.")
+
     user_key: str | None = Field(description="The IT user account name.")
-    engagement: UUID | None = Field(description="Optional reference to an engagement.")
-    primary: UUID | None = Field(description="Primary field of the IT user object")
     itsystem: UUID | None = Field(
         description="Reference to the IT system for the IT user."
     )
-    validity: RAValidity = Field(description="Validity of the created IT user object.")
 
     def to_handler_dict(self) -> dict:
-        data_dict = {
-            "user_key": self.user_key,
-            "primary": gen_uuid(self.primary),
-            "itsystem": gen_uuid(self.itsystem),
-            "engagement": gen_uuid(self.engagement),
-            "validity": {
-                "from": self.validity.from_date.date().isoformat(),
-                "to": self.validity.to_date.date().isoformat()
-                if self.validity.to_date
-                else None,
-            },
-        }
+        data_dict = super().to_handler_dict()
+        data_dict["user_key"] = self.user_key
+        data_dict["itsystem"] = gen_uuid(self.itsystem)
         return {k: v for k, v in data_dict.items() if v}
 
 
