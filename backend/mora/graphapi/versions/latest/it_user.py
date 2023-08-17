@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 from uuid import UUID
 
+from fastapi.encoders import jsonable_encoder
+
 from .models import ITUserCreate
 from .models import ITUserTerminate
 from .models import ITUserUpdate
@@ -12,12 +14,27 @@ from mora.triggers import Trigger
 
 
 async def create(input: ITUserCreate) -> UUID:
-    input_dict = input.to_handler_dict()
+    input_dict = jsonable_encoder(input.to_handler_dict())
 
     handler = await ItsystemRequestHandler.construct(
         input_dict, mapping.RequestType.CREATE
     )
     uuid = await handler.submit()
+
+    return UUID(uuid)
+
+
+async def update(input: ITUserUpdate) -> UUID:
+    input_dict = jsonable_encoder(input.to_handler_dict())
+
+    req = {
+        mapping.TYPE: mapping.IT,
+        mapping.UUID: str(input.uuid),
+        mapping.DATA: input_dict,
+    }
+
+    request = await ItsystemRequestHandler.construct(req, mapping.RequestType.EDIT)
+    uuid = await request.submit()
 
     return UUID(uuid)
 
@@ -46,18 +63,3 @@ async def terminate(input: ITUserTerminate) -> UUID:
     _ = await Trigger.run(trigger_dict)
 
     return UUID(lora_result)
-
-
-async def update(input: ITUserUpdate) -> UUID:
-    input_dict = input.to_handler_dict()
-
-    req = {
-        mapping.TYPE: mapping.IT,
-        mapping.UUID: str(input.uuid),
-        mapping.DATA: input_dict,
-    }
-
-    request = await ItsystemRequestHandler.construct(req, mapping.RequestType.EDIT)
-    uuid = await request.submit()
-
-    return UUID(uuid)
