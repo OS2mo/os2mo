@@ -180,6 +180,10 @@ Integration-test:
   image: $IMAGE_SHA
   variables:
     PYTEST_ADDOPTS: "-m 'integration_test' -p no:randomly --cov=oio_rest"  # TODO: enable randomness
+    # TODO: The new AMQP subsystem is incredible slow; tests take around 10x as long to complete.
+    # This probably isn't a problem with the integration tests, but an underlying performance issue
+    # in the AMQP subsystem.
+    AMQP_ENABLE_NEW_SUBSYSTEM: 'false'
   services:
     - !reference [.services:mo-backing, services]
   before_script:
