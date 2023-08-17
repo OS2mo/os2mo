@@ -174,7 +174,6 @@ async def test_create_ituser_employee_integration_test(
     test_data = data.draw(
         st.builds(
             ITUserCreate,
-            type=st.just("it"),
             uuid=st.none() | st.uuids(),
             user_key=st.text(
                 alphabet=st.characters(whitelist_categories=("L",)), min_size=1
@@ -289,7 +288,6 @@ async def test_create_ituser_org_unit_integration_test(
     test_data = data.draw(
         st.builds(
             ITUserCreate,
-            type=st.just("it"),
             uuid=st.none() | st.uuids(),
             user_key=st.text(
                 alphabet=st.characters(whitelist_categories=("L",)), min_size=1

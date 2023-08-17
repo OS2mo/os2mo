@@ -754,7 +754,6 @@ class EngagementUpdate(UUIDBase):
 class ITUserCreate(UUIDBase):
     """Model representing a IT-user creation."""
 
-    type_: str = Field("it", alias="type", description="The object type.")
     user_key: str = Field(description="The IT user account name.")
     primary: UUID | None = Field(description="Primary field of the IT user object")
     itsystem: UUID = Field(description="Reference to the IT system for the IT user.")
@@ -776,16 +775,14 @@ class ITUserCreate(UUIDBase):
             not values.get("person") and not values.get("org_unit")
         ):
             exceptions.ErrorCodes.E_INVALID_INPUT(
-                f"Exactly 1 of the fields {mapping.ORG_UNIT} or "
-                f"{mapping.PERSON} must be set",
-                obj=cls,
+                "Exactly 1 of the fields {mapping.ORG_UNIT} or {mapping.PERSON} must be set"
             )
         return values
 
     def to_handler_dict(self) -> dict:
         return {
             "uuid": str(self.uuid),
-            "type": self.type_,
+            "type": "it",
             "user_key": self.user_key,
             "primary": gen_uuid(self.primary),
             "itsystem": gen_uuid(self.itsystem),
