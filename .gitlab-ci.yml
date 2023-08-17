@@ -59,6 +59,7 @@ variables:
 
 include:
   - local: ra-data-models/.gitlab-ci.yml
+  - local: gitlab-ci-templates/integration-test-meta.v1.yml
   - project: labs/salt-automation
     file:
       - gitlab-ci-templates/common/no-interrupt-meta.v1.yml
@@ -90,37 +91,6 @@ default:
   # All jobs are interruptible by default
   interruptible: true
 
-# Services
-###########
-.mo-variables:
-  variables:
-    PYTHONASYNCIODEBUG: "1"
-    ENVIRONMENT: "testing"
-    INSECURE_ENABLE_TESTING_API: "true"
-
-    KEYCLOAK_SCHEMA: "http"
-    KEYCLOAK_PORT: 8080
-    KEYCLOAK_AUTH_SERVER_URL: "http://keycloak:8080/auth/"
-    KEYCLOAK_VERIFY_AUDIENCE: "false"
-
-    AMQP_ENABLE: "false"
-    GRAPHQL_AUTH: "false"
-    QUERY_EXPORT_DIR: "/tmp"
-
-    MAX_WORKERS: "1"
-    LORA_AUTH: "false"
-    DB_HOST: mox-db
-    DB_NAME: mox
-    DB_USER: mox
-    DB_PASSWORD: mox
-
-.services:use-mo:
-  # Remember to add `needs: [Build OS2mo]` if you overwrite `needs`.
-  needs:
-    - Build OS2mo
-  image: $IMAGE_SHA
-  extends:
-    - .mo-variables
 
 # Sync
 #######
@@ -183,90 +153,43 @@ Build OS2mo:
 
 # Tests
 ########
-.test-rules:
+.test-base:
   stage: test
+  variables:
+    PYPROJECT_PREFIX: "backend/"
+    HYPOTHESIS_PROFILE: "ci"
   rules:
     - <<: *if-merge-request
       changes: *backend-patterns
 
 Unit-test:
   extends:
-    - .test-rules
+    - .test-base
     - .pytest
   variables:
-    PYPROJECT_PREFIX: "backend/"
-    HYPOTHESIS_PROFILE: "ci"
     PYTEST_ADDOPTS: "-m 'not integration_test' --randomly-seed=$CI_PIPELINE_IID"
 
 Integration-test:
   extends:
-    - .test-rules
+    - .test-base
     - .pytest
-    - .services:use-mo
+    - .variables:mo
+  needs:
+    - Build OS2mo
+  parallel: 8
+  image: $IMAGE_SHA
   variables:
-    PYPROJECT_PREFIX: "backend/"
-    HYPOTHESIS_PROFILE: "ci"
     PYTEST_ADDOPTS: "-m 'integration_test' -p no:randomly --cov=oio_rest"  # TODO: enable randomness
   services:
-    # mox db
-    - name: magentaaps/postgres-os2mo:11-11.7-test
-      alias: mox-db
-      variables:
-        DB_NAME: "mox"
-        DB_USER: "mox"
-        DB_PASSWORD: "mox"
-    # Keycloak
-    - name: quay.io/keycloak/keycloak:14.0.0
-      alias: keycloak
-      variables:
-        KEYCLOAK_USER: "admin"
-        KEYCLOAK_PASSWORD: "admin"
-    - name: magentaaps/os2mo-keycloak-realm-builder:4.2.0
-      # GitLab CI services are one-shot, without any restart policy, and does
-      # not start in the order they are defined. The only way to ensure that
-      # the realm builder runs after keycloak has started is by overwriting its
-      # entrypoint to retry until it succeeds.
-      entrypoint:
-        - "sh"
-        - "-c"
-        - |
-          while ! sh run.sh; do
-            echo 'Waiting for keycloak...'
-            sleep 1
-          done
-          # GitLab doesn't wait for services without an EXPOSE (port) definition
-          # before starting the main job. This is a problem, since it doesn't
-          # allow the realm builder to create the realm before the integration
-          # tests tries to access it. As a workaround, we touch a sentinel in
-          # /builds, which is shared amongst all jobs, and wait for it in the
-          # main job's before_script.
-          # https://docs.gitlab.com/ee/ci/services/
-          touch /builds/.keycloak-realm-builder-finished
-      variables:
-        # Since GitLab CI doesn't support multiple services on the same port,
-        # we cannot (easily) run a separate postgres for the realm builder's
-        # terraform state.
-        POSTGRES_CONNECTION_STRING: "postgres://mox:mox@mox-db/mox?sslmode=disable"
-        KEYCLOAK_URL: "http://keycloak:8080"
-        KEYCLOAK_ADMIN_USERNAME: "admin"
-        KEYCLOAK_ADMIN_PASSWORD: "admin"
-        KEYCLOAK_SSL_REQUIRED_MO: "external"
-        KEYCLOAK_MO_CLIENT_REDIRECT_URI: '["*"]'
-        KEYCLOAK_MO_CLIENT_WEB_ORIGIN: '["*"]'
-        KEYCLOAK_REALM_USERS: '[{"username": "bruce", "password": "bruce", "firstname": "Bruce", "lastname": "Lee", "email": "bruce@kung.fu", "enabled": true, "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a"}]'
-  parallel: 8
+    - !reference [.services:mo-backing, services]
   before_script:
     - !reference [.pytest, before_script]
-    - |
-      while [ ! -f /builds/.keycloak-realm-builder-finished ]; do
-        echo 'Waiting for keycloak realm builder...'
-        sleep 1
-      done
+    - !reference [.services:mo-backing, before_script]
 
 
 Export coverage:
   extends:
-    - .test-rules
+    - .test-base
     - .export_coverage
   needs:
     - Unit-test
@@ -274,11 +197,12 @@ Export coverage:
 
 Check coverage:
   extends:
-    - .test-rules
+    - .test-base
     - .check_coverage
   needs:
     - Unit-test
     - Integration-test
+
 
 # Docs
 #######
@@ -300,7 +224,10 @@ Export GQL Schema:
   stage: docs
   extends:
     - .docs:rules:build-docs
-    - .services:use-mo
+    - .variables:mo
+  needs:
+    - Build OS2mo
+  image: $IMAGE_SHA
   variables:
     OUT: $CI_PROJECT_DIR/docs/src/graphql/voyager.html
     QUERY_EXPORT_DIR: "/tmp"

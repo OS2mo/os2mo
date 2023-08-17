@@ -1,0 +1,109 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+
+include:
+  - project: labs/salt-automation
+    file:
+      - gitlab-ci-templates/python/pytest-meta.v1.yml
+
+# NOTE: These templates are imported and used by our other components to run integration tests
+# against OS2mo. It's very easy to break tests in the other repos by changing something here.
+
+.variables:mo:
+  variables:
+    PYTHONASYNCIODEBUG: "1"
+    MAX_WORKERS: "1"
+
+    DB_HOST: "mox-db"
+    DB_NAME: "mox"
+    DB_USER: "mox"
+    DB_PASSWORD: "mox"
+
+    KEYCLOAK_SCHEMA: "http"
+    KEYCLOAK_PORT: 8080
+    KEYCLOAK_AUTH_SERVER_URL: "http://keycloak:8080/auth/"
+    KEYCLOAK_VERIFY_AUDIENCE: "false"
+
+    ENVIRONMENT: "testing"
+    LORA_AUTH: "false"
+    INSECURE_ENABLE_TESTING_API: "true"
+    AMQP_ENABLE: "true"
+    AMQP_ENABLE_NEW_SUBSYSTEM: "true"
+
+
+.services:mo:
+  services:
+    - name: magentaaps/os2mo:latest
+      alias: mo
+      variables: !reference [ .variables:mo, variables ]
+
+.services:mo-backing:
+  services:
+    # LoRa database
+    - name: magentaaps/postgres-os2mo:11-11.7-test
+      alias: mox-db
+      variables:
+        DB_NAME: "mox"
+        DB_USER: "mox"
+        DB_PASSWORD: "mox"
+    # Keycloak
+    - name: quay.io/keycloak/keycloak:14.0.0
+      alias: keycloak
+      variables:
+        KEYCLOAK_USER: "admin"
+        KEYCLOAK_PASSWORD: "admin"
+    - name: magentaaps/os2mo-keycloak-realm-builder:4
+      # GitLab CI services are one-shot, without any restart policy, and does
+      # not start in the order they are defined. The only way to ensure that
+      # the realm builder runs after keycloak has started is by overwriting its
+      # entrypoint to retry until it succeeds.
+      entrypoint:
+        - "sh"
+        - "-c"
+        - |
+          while ! sh run.sh; do
+            echo 'Waiting for keycloak...'
+            sleep 1
+          done
+          # GitLab doesn't wait for services without an EXPOSE (port) definition
+          # before starting the main job. This is a problem, since it doesn't
+          # allow the realm builder to create the realm before the integration
+          # tests tries to access it. As a workaround, we touch a sentinel in
+          # /builds, which is shared amongst all jobs, and wait for it in the
+          # main job's before_script.
+          # https://docs.gitlab.com/ee/ci/services/
+          touch /builds/.keycloak-realm-builder-finished
+      variables:
+        # Since GitLab CI doesn't support multiple services on the same port,
+        # we cannot (easily) run a separate postgres for the realm builder's
+        # terraform state.
+        POSTGRES_CONNECTION_STRING: "postgres://mox:mox@mox-db/mox?sslmode=disable"
+        KEYCLOAK_URL: "http://keycloak:8080"
+        KEYCLOAK_ADMIN_USERNAME: "admin"
+        KEYCLOAK_ADMIN_PASSWORD: "admin"
+        KEYCLOAK_SSL_REQUIRED_MO: "external"
+        KEYCLOAK_MO_CLIENT_REDIRECT_URI: '["*"]'
+        KEYCLOAK_MO_CLIENT_WEB_ORIGIN: '["*"]'
+        KEYCLOAK_REALM_USERS: '[{"username": "bruce", "password": "bruce", "firstname": "Bruce", "lastname": "Lee", "email": "bruce@kung.fu", "enabled": true, "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a"}]'
+    # AMQP
+    - name: rabbitmq:3
+      alias: msg_broker
+  before_script:
+    - |
+      while [ ! -f /builds/.keycloak-realm-builder-finished ]; do
+        echo 'Waiting for keycloak realm builder...'
+        sleep 1
+      done
+
+.integration-test:mo:
+  extends:
+    - .pytest
+  parallel: 2
+  variables:
+    PYTEST_ADDOPTS: "-m 'integration_test'"
+  services:
+    - !reference [.services:mo, services]
+    - !reference [.services:mo-backing, services]
+  before_script:
+    - !reference [.pytest, before_script]
+    - !reference [.services:mo-backing, before_script]
