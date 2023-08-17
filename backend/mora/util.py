@@ -149,15 +149,11 @@ def to_iso_date(s, is_end: bool = False):
     elif not is_end and dt.year == NEGATIVE_INFINITY.year:
         return None
 
-    if dt.tzinfo != DEFAULT_TIMEZONE and dt != POSITIVE_INFINITY:
+    if dt.tzinfo != DEFAULT_TIMEZONE and dt.year != POSITIVE_INFINITY.year:
         dt = dt.astimezone(DEFAULT_TIMEZONE)
-    rounded = False
-    if dt.time() != datetime.time.min:
-        rounded = True
-        dt = datetime.datetime.combine((dt), datetime.time.min)
 
-    if is_end and not rounded:
-        dt -= ONE_DAY
+    if is_end:
+        dt -= datetime.timedelta(minutes=1)
 
     return dt.date().isoformat()
 
@@ -595,19 +591,6 @@ def get_validities(obj, fallback=None) -> tuple[datetime.datetime, datetime.date
 
 # todo: timezone, quickfix, remove when the timezone mess in 56846 is fixed
 def get_validity_object(start, end):
-    # iso_start_date = to_iso_date(start)
-    # iso_end_date = to_iso_date(end, is_end=True)
-    # if (
-    #     parsedatetime(start).date() <= parsedatetime(end)
-    #     and parsedatetime(iso_start_date).date() > parsedatetime(iso_end_date).date()
-    # ):
-    #     iso_end_datetime = parsedatetime(iso_end_date) + ONE_DAY
-    #     iso_end_date = iso_end_datetime.date().isoformat()
-    #
-    # return {
-    #     mapping.FROM: iso_start_date,
-    #     mapping.TO: iso_end_date,
-    # }
     return {mapping.FROM: to_iso_date(start), mapping.TO: to_iso_date(end, is_end=True)}
 
 
