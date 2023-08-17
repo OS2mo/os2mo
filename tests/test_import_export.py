@@ -139,7 +139,7 @@ async def test_listen_to_change_in_org_unit_address(
 
             # Validate that listen_to_changes_in_org_units had to wait for
             # employee_in_progress to finish
-            assert "in progress" in str(messages)
+            assert "being modified" in str(messages)
 
     # Assert that an address was uploaded to two ldap objects
     # (even though load_mo_employees_in_org_unit returned three employee objects)
@@ -159,8 +159,8 @@ async def test_listen_to_change_in_org_unit_address(
         messages = [w for w in cap_logs if w["log_level"] == "info"]
 
         assert re.match(
-            "DN not found",
-            messages[-1]["event"].detail,
+            ".*DN not found",
+            messages[-1]["event"],
         )
 
     dataloader.find_or_make_mo_employee_dn.side_effect = IgnoreChanges("Ignore this")
@@ -177,8 +177,8 @@ async def test_listen_to_change_in_org_unit_address(
         messages = [w for w in cap_logs if w["log_level"] == "info"]
 
         assert re.match(
-            "Ignore this",
-            messages[-1]["event"].detail,
+            ".*Ignore this",
+            messages[-1]["event"],
         )
 
 
@@ -354,10 +354,9 @@ async def test_listen_to_changes_in_employees(
 
         assert re.match(f".*Ignoring .*{payload.object_uuid}", str(entries))
 
-        assert re.match(
-            f"Removing .* belonging to {old_uuid} from ignore_dict",
-            entries[3]["event"],
-        )
+        assert "Removing entry from ignore-dict" in entries[1]["event"]
+        assert entries[1]["str_to_ignore"] == str(old_uuid)
+
         assert len(uuids_to_ignore) == 2  # Note that the old_uuid is removed by clean()
         assert len(uuids_to_ignore[old_uuid]) == 0
         assert len(uuids_to_ignore[uuid_which_should_remain]) == 1
@@ -389,7 +388,7 @@ async def test_listen_to_changes_in_employees_no_dn(
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
         assert re.match(
-            "DN not found.",
+            ".*DN not found.",
             messages[-1]["event"],
         )
 
@@ -784,10 +783,7 @@ async def test_import_single_object_from_LDAP_ignore_dn(
         await asyncio.gather(sync_tool.import_single_user("CN=foo"))
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
-        assert re.match(
-            f"\\[check_ignore_dict\\] Ignoring {dn_to_ignore.lower()}",
-            messages[-1]["event"].detail,
-        )
+        assert "Ignoring cn=foo" in messages[-1]["event"]
 
 
 async def test_import_single_object_from_LDAP_force(
@@ -822,7 +818,7 @@ async def test_import_single_object_from_LDAP_but_import_equals_false(
         messages = [w for w in cap_logs if w["log_level"] == "info"]
         for message in messages[1:]:
             assert re.match(
-                "_import_to_mo_ == False",
+                ".*_import_to_mo_ == False",
                 message["event"],
             )
 
@@ -866,7 +862,7 @@ async def test_import_address_objects(
             await asyncio.gather(sync_tool.import_single_user("CN=foo"))
 
             messages = [w for w in cap_logs if w["log_level"] == "info"]
-            assert "Could not format converted objects. Moving on." in str(messages)
+            assert "Could not format converted objects." in str(messages)
 
     # Simulate invalid phone number
     dataloader.upload_mo_objects.side_effect = HTTPStatusError(

@@ -117,7 +117,7 @@ def get_delete_flag(mo_object) -> bool:
     if validity_to and validity_to <= now:
         logger.info(
             (
-                "[get_delete_flag] Returning delete=True because "
+                "[Get-delete-flag] Returning delete=True because "
                 f"to-date ({validity_to}) <= current date ({now})"
             )
         )
@@ -136,16 +136,18 @@ async def unpack_payload(
 
     # If we are not supposed to listen: reject and turn the message into a dead letter.
     if not Settings().listen_to_changes_in_mo:
-        logger.info("listen_to_changes_in_mo = False. Aborting.")
+        logger.info("[Unpack-payload] listen_to_changes_in_mo = False. Aborting.")
         raise RejectMessage()
 
-    logger.info(f"[MO] Routing key: {mo_routing_key}")
-    logger.info(f"[MO] Payload uuid: {object_uuid}")
+    logger.info(
+        "[Unpack-payload] Unpacking payload.",
+        mo_routing_key=mo_routing_key,
+        object_uuid=str(object_uuid),
+    )
 
     dataloader = context["user_context"]["dataloader"]
 
     object_type = get_object_type_from_routing_key(mo_routing_key)
-    logger.info(f"[MO] Object type: {object_type}")
 
     mo_object = await dataloader.load_mo_object(
         object_uuid,
@@ -593,7 +595,12 @@ def create_app(**kwargs: Any) -> FastAPI:
             routing_key = mo_object["object_type"]
             payload = mo_object["payload"]
 
-            logger.info(f"Publishing {routing_key} - {payload}")
+            logger.info(
+                "[Export-mo-objects] Publishing.",
+                routing_key=routing_key,
+                payload=payload,
+            )
+
             if params.publish_amqp_messages:
                 await internal_amqpsystem.publish_message(routing_key, payload)
 
@@ -881,7 +888,11 @@ def create_app(**kwargs: Any) -> FastAPI:
             routing_key = mo_object["object_type"]
             payload = mo_object["payload"]
 
-            logger.info(f"Publishing {routing_key} - {payload}")
+            logger.info(
+                "[Sync-todays-events] Publishing.",
+                routing_key=routing_key,
+                payload=payload,
+            )
             if params.publish_amqp_messages and settings.listen_to_changes_in_mo:
                 await internal_amqpsystem.publish_message(routing_key, payload)
 

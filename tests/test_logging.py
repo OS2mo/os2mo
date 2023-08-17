@@ -26,3 +26,28 @@ def test_mask_cpr():
 
         assert messages[0]["event"] == "My cpr no is 010101-xxxx"
         assert messages[1]["event"] == "My telephone no is 6001011234"
+
+    cpr_no = "010101-1234"
+
+    class CprClass:
+        def __init__(self, cpr):
+            self.cpr = cpr
+
+        def __repr__(self):
+            return f"cpr-no = {self.cpr}"
+
+        def __str__(self):
+            return self.cpr
+
+    cpr_obj = CprClass(cpr_no)
+
+    with capture_logs() as cap_logs:
+        logger.info(f"My cpr no is {cpr_no}")
+        logger.info("The cpr attribute is", cpr=cpr_no)
+        logger.info("The cpr-no is hidden in this object", obj=cpr_obj)
+
+        messages = [w for w in cap_logs if w["log_level"] == "info"]
+
+        for message in messages:
+            assert cpr_no not in str(message)
+            assert "010101-xxxx" in str(message)

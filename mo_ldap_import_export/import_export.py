@@ -56,11 +56,10 @@ class IgnoreMe:
             for timestamp in timestamps.copy():
                 if timestamp < cutoff:
                     logger.info(
-                        (
-                            f"Removing {timestamp} belonging to {str_to_ignore} "
-                            "from ignore_dict. "
-                            f"It is more than {max_age} seconds old"
-                        )
+                        "[clean-ignore-dict] Removing entry from ignore-dict.",
+                        timestamp=timestamp,
+                        str_to_ignore=str_to_ignore,
+                        max_age=max_age,
                     )
                     timestamps.remove(timestamp)
 
@@ -93,7 +92,7 @@ class IgnoreMe:
             # Remove timestamp so it does not get ignored twice.
             oldest_timestamp = min(self.ignore_dict[str_to_check])
             self.ignore_dict[str_to_check].remove(oldest_timestamp)
-            raise IgnoreChanges(f"[check_ignore_dict] Ignoring {str_to_check}")
+            raise IgnoreChanges(f"[Check-ignore-dict] Ignoring {str_to_check}")
 
 
 class SyncTool:
@@ -141,7 +140,11 @@ class SyncTool:
             uuid = self.extract_uuid(args[0] if args else kwargs["uuid"])
 
             while uuid in self.uuids_in_progress:
-                logger.info(f"{uuid} in progress. Trying again in {sleep_time} seconds")
+                logger.info(
+                    "[Wait-for-export-to-finish] Object is being modified.",
+                    uuid=str(uuid),
+                    sleep_time=sleep_time,
+                )
                 await asyncio.sleep(sleep_time)
 
             self.uuids_in_progress.append(uuid)
@@ -164,7 +167,11 @@ class SyncTool:
             dn = args[0] if args else kwargs["dn"]
 
             while dn in self.dns_in_progress:
-                logger.info(f"{dn} in progress. Trying again in {sleep_time} seconds")
+                logger.info(
+                    "[Wait-for-import-to-finish] Object is being modified.",
+                    dn=dn,
+                    sleep_time=sleep_time,
+                )
                 await asyncio.sleep(sleep_time)
 
             self.dns_in_progress.append(dn)
@@ -203,7 +210,7 @@ class SyncTool:
             if response and response["description"] == "success":
                 return True
 
-        logger.info("No cleanup needed")
+        logger.info("[Cleanup-needed] No cleanup needed")
         return False
 
     @wait_for_export_to_finish
@@ -229,10 +236,17 @@ class SyncTool:
         current_objects_only: bool
             Whether to load currently valid objects only or not
         """
+        logger_args = {
+            "uuid": str(uuid),
+            "object_uuid": str(object_uuid),
+            "routing_key": routing_key,
+            "delete": delete,
+        }
 
-        logger.info("[MO] Registered change in the employee model")
-        logger.info(f"[MO] uuid = {uuid}")
-        logger.info(f"[MO] object_uuid = {object_uuid}")
+        logger.info(
+            "[Listen-to-changes-in-employees] Registered change in an employee.",
+            **logger_args,
+        )
 
         # If the object was uploaded by us, it does not need to be synchronized.
         # Note that this is not necessary in listen_to_changes_in_org_units. Because
@@ -240,14 +254,14 @@ class SyncTool:
         try:
             self.uuids_to_ignore.check(object_uuid)
         except IgnoreChanges as e:
-            logger.info(e)
+            logger.info("[Listen-to-changes-in-employees] " + str(e))
             return
         await self.perform_export_checks(uuid, object_uuid)
 
         try:
             dn = await self.dataloader.find_or_make_mo_employee_dn(uuid)
         except DNNotFound:
-            logger.info(f"DN not found for employee with uuid = {uuid}")
+            logger.info("[Listen-to-changes-in-employees] DN not found.", **logger_args)
             return
 
         # Get MO employee
@@ -255,14 +269,16 @@ class SyncTool:
             uuid,
             current_objects_only=current_objects_only,
         )
-        logger.info(f"Found Employee in MO: {changed_employee}")
+        logger.info(
+            "[Listen-to-changes-in-employees] Found Employee in MO.",
+            changed_employee=changed_employee,
+            **logger_args,
+        )
 
         mo_object_dict: dict[str, Any] = {"mo_employee": changed_employee}
         object_type = get_object_type_from_routing_key(routing_key)
 
         if object_type == "person":
-            logger.info("[MO] Change registered in the employee object type")
-
             # Convert to LDAP
             ldap_employee = self.converter.to_ldap(mo_object_dict, "Employee", dn)
 
@@ -276,8 +292,6 @@ class SyncTool:
             )
 
         elif object_type == "address":
-            logger.info("[MO] Change registered in the address object type")
-
             # Get MO address
             changed_address = await self.dataloader.load_mo_address(
                 object_uuid,
@@ -288,7 +302,11 @@ class SyncTool:
                 address_type_uuid
             )
 
-            logger.info(f"Obtained address type user key = {json_key}")
+            logger.info(
+                "[Listen-to-changes-in-employees] Obtained address.",
+                user_key=json_key,
+                **logger_args,
+            )
             mo_object_dict["mo_employee_address"] = changed_address
 
             # Convert & Upload to LDAP
@@ -314,8 +332,6 @@ class SyncTool:
                 )
 
         elif object_type == "ituser":
-            logger.info("[MO] Change registered in the IT object type")
-
             # Get MO IT-user
             changed_it_user = await self.dataloader.load_mo_it_user(
                 object_uuid,
@@ -324,7 +340,11 @@ class SyncTool:
             it_system_type_uuid = changed_it_user.itsystem.uuid
             json_key = self.converter.get_it_system_user_key(it_system_type_uuid)
 
-            logger.info(f"Obtained IT system name = {json_key}")
+            logger.info(
+                "[Listen-to-changes-in-employees] Obtained IT system.",
+                user_key=json_key,
+                **logger_args,
+            )
             mo_object_dict["mo_employee_it_user"] = changed_it_user
 
             # Convert & Upload to LDAP
@@ -351,8 +371,6 @@ class SyncTool:
                 )
 
         elif object_type == "engagement":
-            logger.info("[MO] Change registered in the Engagement object type")
-
             # Get MO Engagement
             changed_engagement = await self.dataloader.load_mo_engagement(
                 object_uuid,
@@ -450,21 +468,31 @@ class SyncTool:
         current_objects_only: bool
             Whether to load currently valid objects only or not
         """
-        logger.info("[MO] Registered change in the org_unit model")
-        logger.info(f"[MO] uuid = {uuid}")
-        logger.info(f"[MO] object_uuid = {object_uuid}")
+
+        logger_args = {
+            "uuid": str(uuid),
+            "object_uuid": str(object_uuid),
+            "routing_key": routing_key,
+            "delete": delete,
+        }
+
+        logger.info(
+            "[Listen-to-changes-in-orgs] Registered change in an org_unit.",
+            current_objects_only=current_objects_only,
+            **logger_args,
+        )
 
         # When an org-unit is changed we need to update the org unit info. So we
         # know the new name of the org unit in case it was changed
         object_type = get_object_type_from_routing_key(routing_key)
         if object_type == "org_unit":
-            logger.info("Updating org unit info")
+            logger.info(
+                "[Listen-to-changes-in-orgs] Updating org unit info", **logger_args
+            )
             self.converter.org_unit_info = self.dataloader.load_mo_org_units()
             self.converter.check_org_unit_info_dict()
 
         if object_type == "address":
-            logger.info("[MO] Change registered in the address object type")
-
             # Get MO address
             changed_address = await self.dataloader.load_mo_address(
                 object_uuid,
@@ -475,7 +503,11 @@ class SyncTool:
                 address_type_uuid
             )
 
-            logger.info(f"Obtained address type user key = {json_key}")
+            logger.info(
+                "[Listen-to-changes-in-orgs] Obtained address.",
+                user_key=json_key,
+                **logger_args,
+            )
 
             ldap_object_class = self.converter.find_ldap_object_class(json_key)
             employee_object_class = self.converter.find_ldap_object_class("Employee")
@@ -491,7 +523,11 @@ class SyncTool:
             affected_employees = set(
                 await self.dataloader.load_mo_employees_in_org_unit(uuid)
             )
-            logger.info(f"[MO] Found {len(affected_employees)} affected employees")
+            logger.info(
+                "[Listen-to-changes-in-orgs] Looping over 'n' employees.",
+                n=len(affected_employees),
+                **logger_args,
+            )
 
             for affected_employee in affected_employees:
 
@@ -505,10 +541,10 @@ class SyncTool:
                         object_type,
                     )
                 except DNNotFound as e:
-                    logger.info(e)
+                    logger.info("[Listen-to-changes-in-orgs] " + str(e), **logger_args)
                     continue
                 except IgnoreChanges as e:
-                    logger.info(e)
+                    logger.info("[Listen-to-changes-in-orgs] " + str(e), **logger_args)
                     continue
 
     async def format_converted_objects(self, converted_objects, json_key):
@@ -540,8 +576,8 @@ class SyncTool:
             else:
                 logger.info(
                     (
-                        "Could not format converted objects: "
-                        "An address needs to have either a person uuid "
+                        "[Format-converted-objects] Could not format converted "
+                        "objects: An address needs to have either a person uuid "
                         "OR an org unit uuid"
                     )
                 )
@@ -568,13 +604,16 @@ class SyncTool:
                 if sum(primary) == 1:
                     primary_engagement = objects_in_mo[primary.index(True)]
                     logger.info(
+                        "[Format-converted-objects] Found primary engagement.",
+                        uuid=str(primary_engagement.uuid),
+                        user_key=primary_engagement.user_key,
+                    )
+                    logger.info(
                         (
-                            f"Found primary engagement with "
-                            f"uuid={primary_engagement.uuid},"
-                            f"user_key='{primary_engagement.user_key}'"
+                            "[Format-converted-objects] Removing engagements "
+                            "with identical user keys"
                         )
                     )
-                    logger.info("Removing engagements with identical user keys")
                     objects_in_mo = [
                         o
                         for o in objects_in_mo
@@ -611,10 +650,9 @@ class SyncTool:
 
             if values_in_mo.count(converted_object_value) == 1:
                 logger.info(
-                    (
-                        f"Found matching MO '{json_key}' with "
-                        f"value='{getattr(converted_object, value_key)}'"
-                    )
+                    "[Format-converted-objects] Found matching key.",
+                    json_key=json_key,
+                    value=getattr(converted_object, value_key),
                 )
 
                 for uuid, mo_object in objects_in_mo_dict.items():
@@ -632,7 +670,12 @@ class SyncTool:
                         key not in ["validity", "uuid", "objectClass"]
                         and key in converted_mo_object_dict.keys()
                     ):
-                        logger.info(f"Setting {key} = {converted_mo_object_dict[key]}")
+                        logger.info(
+                            (
+                                "[Format-converted-objects] Setting "
+                                f"{key} = {converted_mo_object_dict[key]}"
+                            )
+                        )
                         mo_object_dict_to_upload[key] = converted_mo_object_dict[key]
 
                 mo_class = self.converter.import_mo_object_class(json_key)
@@ -642,7 +685,10 @@ class SyncTool:
                 # to be uploaded.
                 if converted_object_uuid_checked == matching_object:
                     logger.info(
-                        "Converted object is identical to existing object. Skipping."
+                        (
+                            "[Format-converted-objects] Converted object is identical "
+                            "to existing object. Skipping."
+                        )
                     )
                 else:
                     converted_objects_uuid_checked.append(converted_object_uuid_checked)
@@ -672,10 +718,15 @@ class SyncTool:
             if not force:
                 self.dns_to_ignore.check(dn)
         except IgnoreChanges as e:
-            logger.info(e)
+            logger.info("[Import-single-user]" + str(e), dn=dn)
             return
 
-        logger.info(f"Importing user with dn={dn}")
+        logger.info(
+            "[Import-single-user] Importing user.",
+            dn=dn,
+            force=force,
+            manual_import=manual_import,
+        )
         detected_json_keys = self.converter.get_ldap_to_mo_json_keys()
 
         # Get the employee's uuid (if he exists)
@@ -686,7 +737,11 @@ class SyncTool:
         #   we are waiting for MO's response
         employee_uuid = await self.dataloader.find_mo_employee_uuid(dn)
         if not employee_uuid:
-            logger.info("Employee not found in MO - generating employee uuid")
+            logger.info(
+                "[Import-single-user] Employee not found in MO.",
+                task="generating employee uuid",
+                dn=dn,
+            )
             employee_uuid = uuid4()
 
         # First import the Employee
@@ -695,24 +750,39 @@ class SyncTool:
 
         for json_key in json_keys:
             if not self.converter._import_to_mo_(json_key, manual_import):
-                logger.info(f"_import_to_mo_ == False for json_key = '{json_key}'")
+                logger.info(
+                    "[Import-single-user] _import_to_mo_ == False.",
+                    json_key=json_key,
+                    dn=dn,
+                )
                 continue
-            logger.info(f"Loading {json_key} object")
+            logger.info(
+                "[Import-single-user] Loading object.", dn=dn, json_key=json_key
+            )
             loaded_object = self.dataloader.load_ldap_object(
                 dn,
                 self.converter.get_ldap_attributes(json_key),
             )
-            logger.info(f"Loaded {loaded_object}")
+            logger.info(
+                "[Import-single-user] Loaded object.",
+                dn=dn,
+                json_key=json_key,
+                loaded_object=loaded_object,
+            )
 
             converted_objects = self.converter.from_ldap(
                 loaded_object, json_key, employee_uuid=employee_uuid
             )
 
             if len(converted_objects) == 0:
-                logger.info("No converted objects")
+                logger.info("[Import-single-user] No converted objects", dn=dn)
                 continue
             else:
-                logger.info(f"Successfully converted {len(converted_objects)} objects ")
+                logger.info(
+                    "[Import-single-user] Converted 'n' objects ",
+                    n=len(converted_objects),
+                    dn=dn,
+                )
 
             try:
                 converted_objects = await self.format_converted_objects(
@@ -729,11 +799,19 @@ class SyncTool:
                 # Because an address cannot be imported for an employee that does not
                 # exist. The non-existing employee is also not created because
                 # converter._import_to_mo_('Employee') = False
-                logger.info("Could not format converted objects. Moving on.")
+                logger.info(
+                    "[Import-single-user] Could not format converted objects.",
+                    task="Moving on",
+                    dn=dn,
+                )
                 continue
 
             if len(converted_objects) > 0:
-                logger.info(f"Importing {converted_objects}")
+                logger.info(
+                    "[Import-single-user] Importing objects.",
+                    converted_objects=converted_objects,
+                    dn=dn,
+                )
 
                 if json_key == "Custom":
                     for obj in converted_objects:
@@ -754,7 +832,7 @@ class SyncTool:
                     except HTTPStatusError as e:
                         # This can happen, for example if a phone number in LDAP is
                         # invalid
-                        logger.warning(e)
+                        logger.warning(e, dn=dn)
                         for mo_object in converted_objects:
                             self.uuids_to_ignore.remove(mo_object.uuid)
 
@@ -766,7 +844,11 @@ class SyncTool:
         routing_key = mo_object_dict["object_type"]
         payload = mo_object_dict["payload"]
 
-        logger.info(f"Publishing {routing_key} - {payload}")
+        logger.info(
+            "[Refresh-object] Publishing.",
+            routing_key=routing_key,
+            payload=payload,
+        )
         await self.internal_amqpsystem.publish_message(routing_key, payload)
 
     async def export_org_unit_addresses_on_engagement_change(
@@ -795,7 +877,7 @@ class SyncTool:
         """
         Sends out AMQP-messages for all objects related to an employee
         """
-        logger.info(f"Refreshing employee with uuid = {employee_uuid}")
+        logger.info("[Refresh-employee] Refreshing employee.", uuid=str(employee_uuid))
 
         # Load address types and it-user types
         address_type_uuids = self.converter.employee_address_type_info.keys()

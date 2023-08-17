@@ -364,7 +364,7 @@ async def test_delete_data_from_ldap_object(
     assert ldap_connection.modify.called_once_with(dn, changes)
 
 
-async def test_upoad_ldap_object_invalid_value(
+async def test_upload_ldap_object_invalid_value(
     ldap_connection: MagicMock,
     dataloader: DataLoader,
     cpr_field: str,
@@ -384,7 +384,7 @@ async def test_upoad_ldap_object_invalid_value(
 
         warnings = [w for w in cap_logs if w["log_level"] == "warning"]
         assert re.match(
-            "Invalid value",
+            ".*Invalid value",
             str(warnings[-1]["event"]),
         )
 
@@ -406,7 +406,7 @@ async def test_modify_ldap_object_but_export_equals_false(
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
         assert re.match(
-            "_export_to_ldap_ == False",
+            ".*_export_to_ldap_ == False",
             str(messages[-1]["event"]),
         )
 
@@ -761,7 +761,7 @@ def test_cleanup_attributes_in_ldap(dataloader: DataLoader):
 
         infos = [w for w in cap_logs if w["log_level"] == "info"]
         assert re.match(
-            "No cleanable attributes found",
+            ".*No cleanable attributes",
             infos[-1]["event"],
         )
 
