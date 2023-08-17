@@ -564,6 +564,31 @@ class Address:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    person: list[LazyEmployee] | None = strawberry.field(
+        resolver=force_none_return_wrapper(
+            seed_resolver_list(
+                EmployeeResolver(),
+                {
+                    "uuids": partial(
+                        raise_force_none_return_if_uuid_none,
+                        get_uuid=lambda root: root.employee_uuid,
+                    )
+                },
+            ),
+        ),
+        description=dedent(
+            """\
+            Connected person.
+
+            Note:
+            This field is mutually exclusive with the `org_unit` field.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
     org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
@@ -885,6 +910,20 @@ class Association:
         description=dedent(
             """\
             Associated employee.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    person: list[LazyEmployee] = strawberry.field(
+        resolver=seed_resolver_list(
+            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        ),
+        description=dedent(
+            """\
+            Associated person.
             """
         )
         + list_to_optional_field_warning,
@@ -1671,6 +1710,20 @@ class Engagement:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    person: list[LazyEmployee] = strawberry.field(
+        resolver=seed_resolver_list(
+            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        ),
+        description=dedent(
+            """\
+            The person fulfilling the engagement.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
@@ -2146,6 +2199,31 @@ class ITUser:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    person: list[LazyEmployee] | None = strawberry.field(
+        resolver=force_none_return_wrapper(
+            seed_resolver_list(
+                EmployeeResolver(),
+                {
+                    "uuids": partial(
+                        raise_force_none_return_if_uuid_none,
+                        get_uuid=lambda root: root.employee_uuid,
+                    )
+                },
+            ),
+        ),
+        description=dedent(
+            """\
+            Person using the IT account.
+
+            Note:
+            This field is mutually exclusive with the `org_unit` field.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
     org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
@@ -2500,6 +2578,20 @@ class Leave:
         )
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    person: list[LazyEmployee] = strawberry.field(
+        resolver=seed_resolver_list(
+            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        ),
+        description=dedent(
+            """\
+            The absent person.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
     engagement: LazyEngagement | None = strawberry.field(
@@ -2649,6 +2741,30 @@ class Manager:
         description=dedent(
             """\
             Employee fulfilling the managerial position.
+
+            May be empty in which case the managerial position is unfilfilled (vacant).
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    person: list[LazyEmployee] | None = strawberry.field(
+        resolver=force_none_return_wrapper(
+            seed_resolver_list(
+                EmployeeResolver(),
+                {
+                    "uuids": partial(
+                        raise_force_none_return_if_uuid_none,
+                        get_uuid=lambda root: root.employee_uuid,
+                    )
+                },
+            ),
+        ),
+        description=dedent(
+            """\
+            Person fulfilling the managerial position.
 
             May be empty in which case the managerial position is unfilfilled (vacant).
             """
@@ -3494,6 +3610,20 @@ class Role:
     )
 
     employee: list[LazyEmployee] = strawberry.field(
+        resolver=seed_resolver_list(
+            EmployeeResolver(), {"uuids": lambda root: [root.employee_uuid]}
+        ),
+        description=dedent(
+            """\
+            The person fulfilling the role.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
+    )
+
+    person: list[LazyEmployee] = strawberry.field(
         resolver=seed_resolver_list(
             EmployeeResolver(), {"uuids": lambda root: [root.employee_uuid]}
         ),
