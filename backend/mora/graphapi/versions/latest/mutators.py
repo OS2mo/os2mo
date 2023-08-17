@@ -351,7 +351,7 @@ class Mutation:
         self, input: EngagementCreateInput
     ) -> Response[Engagement]:
         return uuid2response(
-            await create_engagement(input.to_pydantic()), EngagementRead
+            await create_engagement(input.to_pydantic()), EngagementRead  # type: ignore
         )
 
     @strawberry.mutation(
@@ -365,7 +365,7 @@ class Mutation:
         self, input: EngagementUpdateInput
     ) -> Response[Engagement]:
         return uuid2response(
-            await update_engagement(input.to_pydantic()), EngagementRead
+            await update_engagement(input.to_pydantic()), EngagementRead  # type: ignore
         )
 
     @strawberry.mutation(
