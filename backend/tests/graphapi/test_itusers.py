@@ -207,7 +207,6 @@ async def test_create_ituser_employee_integration_test(
             itusers(uuids: [$uuid]) {
                 objects {
                     objects {
-                        type
                         user_key
                         itsystem_uuid
                         employee_uuid
@@ -233,7 +232,6 @@ async def test_create_ituser_employee_integration_test(
     # The test should fail, if any other error is thrown
     if len(response.data["itusers"]["objects"]):
         obj = one(one(response.data["itusers"]["objects"])["objects"])
-        assert obj["type"] == test_data.type_
         assert obj["user_key"] == test_data.user_key
         assert UUID(obj["itsystem_uuid"]) == test_data.itsystem
         assert UUID(obj["employee_uuid"]) == test_data.person
@@ -321,7 +319,6 @@ async def test_create_ituser_org_unit_integration_test(
             itusers(uuids: [$uuid]) {
                 objects {
                     objects {
-                        type
                         user_key
                         itsystem_uuid
                         employee_uuid
@@ -347,7 +344,6 @@ async def test_create_ituser_org_unit_integration_test(
     # The test should fail, if any other error is thrown
     if len(response.data["itusers"]["objects"]):
         obj = one(one(response.data["itusers"]["objects"])["objects"])
-        assert obj["type"] == test_data.type_
         assert obj["user_key"] == test_data.user_key
         assert UUID(obj["itsystem_uuid"]) == test_data.itsystem
         assert UUID(obj["org_unit_uuid"]) == test_data.org_unit
