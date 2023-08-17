@@ -10,6 +10,7 @@ import pytest
 
 from mora import exceptions
 from mora import util
+from mora.util import parsedatetime
 
 
 def get_uuid_test_id():
@@ -439,3 +440,12 @@ def test_checked_get_exception(key, default, required):
     with pytest.raises(exceptions.HTTPException) as err:
         util.checked_get(mapping, key, default, required=required, can_be_empty=False)
     assert output == err.value.detail
+
+
+def test_know_timezone_trigger():
+    start = "2052-06-30 22:00:00+00"
+    end = "2052-06-30 23:00:00+00"
+
+    validity = util.get_validity_object(start, end)
+
+    assert parsedatetime(validity["from"]) <= parsedatetime(validity["to"])
