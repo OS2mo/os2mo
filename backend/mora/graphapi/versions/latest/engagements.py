@@ -3,6 +3,8 @@
 """GraphQL engagement related helper functions."""
 from uuid import UUID
 
+from fastapi.encoders import jsonable_encoder
+
 from .models import EngagementCreate
 from .models import EngagementTerminate
 from .models import EngagementUpdate
@@ -39,7 +41,7 @@ async def terminate_engagement(input: EngagementTerminate) -> UUID:
 
 
 async def create_engagement(input: EngagementCreate) -> UUID:
-    input_dict = input.to_handler_dict()
+    input_dict = jsonable_encoder(input.to_handler_dict())
 
     handler = await EngagementRequestHandler.construct(
         input_dict, mapping.RequestType.CREATE
@@ -50,7 +52,7 @@ async def create_engagement(input: EngagementCreate) -> UUID:
 
 
 async def update_engagement(input: EngagementUpdate) -> UUID:
-    input_dict = input.to_handler_dict()
+    input_dict = jsonable_encoder(input.to_handler_dict())
 
     req = {
         mapping.TYPE: mapping.ENGAGEMENT,

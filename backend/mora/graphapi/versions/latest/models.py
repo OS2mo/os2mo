@@ -313,11 +313,16 @@ class AssociationUpsert(UUIDBase):
     primary: UUID | None = Field(description="Primary field of the association")
     validity: RAValidity = Field(description="Validity range for the org-unit.")
 
+    person: UUID | None = Field(description="Employee uuid.")
+    # TODO: Remove employee in a future version of GraphQL
+    employee: UUID | None = Field(description="Employee uuid.")
+
     def to_handler_dict(self) -> dict:
         return {
             "uuid": self.uuid,
             "user_key": self.user_key,
             "primary": gen_uuid(self.primary),
+            "person": gen_uuid(self.person) or gen_uuid(self.employee),
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()
@@ -331,9 +336,6 @@ class AssociationCreate(AssociationUpsert):
     """Model representing an association creation."""
 
     org_unit: UUID = Field(description="org-unit uuid.")
-    person: UUID | None = Field(description="Employee uuid.")
-    # TODO: Remove employee in a future version of GraphQL
-    employee: UUID | None = Field(description="Employee uuid.")
     association_type: UUID = Field(description="Association type uuid.")
 
     @root_validator
@@ -354,7 +356,6 @@ class AssociationCreate(AssociationUpsert):
     def to_handler_dict(self) -> dict:
         data_dict = super().to_handler_dict()
         data_dict["org_unit"] = gen_uuid(self.org_unit)
-        data_dict["person"] = gen_uuid(self.person) or gen_uuid(self.employee)
         data_dict["association_type"] = gen_uuid(self.association_type)
         return data_dict
 
@@ -364,15 +365,11 @@ class AssociationUpdate(AssociationUpsert):
 
     uuid: UUID = Field(description="UUID of the association we want to update.")
     org_unit: UUID | None = Field(description="org-unit uuid.")
-    person: UUID | None = Field(description="Employee uuid.")
-    # TODO: Remove employee in a future version of GraphQL
-    employee: UUID | None = Field(description="Employee uuid.")
     association_type: UUID | None = Field(description="Association type uuid.")
 
     def to_handler_dict(self) -> dict:
         data_dict = super().to_handler_dict()
         data_dict["org_unit"] = gen_uuid(self.org_unit)
-        data_dict["person"] = gen_uuid(self.person) or gen_uuid(self.employee)
         data_dict["association_type"] = gen_uuid(self.association_type)
         return {k: v for k, v in data_dict.items() if v}
 
@@ -646,14 +643,11 @@ EXTENSION_FIELD_DESCRIPTION: str = dedent(
 )
 
 
-class EngagementCreate(UUIDBase):
+class EngagementUpsert(UUIDBase):
     user_key: str | None = Field(description="Name or UUID of the related engagement.")
-    org_unit: UUID = Field(description="The related org-unit object.")
-    employee: UUID = Field(description="UUID of the related employee.")
-    engagement_type: UUID
-    job_function: UUID
     primary: UUID | None = Field(description="Primary field of the engagement")
     validity: RAValidity = Field(description="Validity of the engagement object.")
+
     extension_1: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
     extension_2: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
     extension_3: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
@@ -664,15 +658,15 @@ class EngagementCreate(UUIDBase):
     extension_8: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
     extension_9: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
     extension_10: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+
+    # TODO: Remove employee in a future version of GraphQL
+    employee: UUID | None = Field(description="UUID of the related employee.")
+    person: UUID | None = Field(description="UUID of the related employee.")
 
     def to_handler_dict(self) -> dict:
         return {
-            "uuid": str(self.uuid),
+            "uuid": self.uuid,
             "user_key": self.user_key,
-            "org_unit": gen_uuid(self.org_unit),
-            "person": gen_uuid(self.employee),
-            "engagement_type": gen_uuid(self.engagement_type),
-            "job_function": gen_uuid(self.job_function),
             "primary": gen_uuid(self.primary),
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
@@ -680,6 +674,7 @@ class EngagementCreate(UUIDBase):
                 if self.validity.to_date
                 else None,
             },
+            "person": gen_uuid(self.person) or gen_uuid(self.employee),
             "extension_1": self.extension_1,
             "extension_2": self.extension_2,
             "extension_3": self.extension_3,
@@ -693,51 +688,45 @@ class EngagementCreate(UUIDBase):
         }
 
 
-class EngagementUpdate(UUIDBase):
-    uuid: UUID = Field(description="UUID of the Engagement you want to update.")
-    user_key: str | None = Field(description="Name or UUID of the related engagement.")
-    org_unit: UUID | None = Field(description="The related org-unit object.")
-    employee: UUID | None = Field(description="UUID of the related employee.")
-    engagement_type: UUID | None = Field(description="UUID of the engagement type.")
-    job_function: UUID | None = Field(description="UUID of the job function.")
-    primary: UUID | None = Field(description="Primary field of the engagement")
-    validity: RAValidity = Field(description="Validity of the engagement object.")
-    extension_1: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_2: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_3: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_4: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_5: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_6: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_7: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_8: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_9: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_10: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+class EngagementCreate(EngagementUpsert):
+    org_unit: UUID = Field(description="The related org-unit object.")
+    engagement_type: UUID
+    job_function: UUID
+
+    @root_validator
+    def verify_person_or_employee(cls, values: dict[str, Any]) -> dict[str, Any]:
+        """Verifies that either person or employee is set."""
+        person_uuid = values.get("person")
+        employee_uuid = values.get("employee")
+        if person_uuid and employee_uuid:
+            exceptions.ErrorCodes.E_INVALID_INPUT(
+                "Can only set one of 'person' and 'employee'"
+            )
+        if person_uuid is None and employee_uuid is None:
+            exceptions.ErrorCodes.E_INVALID_INPUT(
+                "Must set one of 'person' and 'employee'"
+            )
+        return values
 
     def to_handler_dict(self) -> dict:
-        data_dict = {
-            "user_key": self.user_key,
-            "org_unit": gen_uuid(self.org_unit),
-            "person": gen_uuid(self.employee),
-            "engagement_type": gen_uuid(self.engagement_type),
-            "job_function": gen_uuid(self.job_function),
-            "primary": gen_uuid(self.primary),
-            "validity": {
-                "from": self.validity.from_date.date().isoformat(),
-                "to": self.validity.to_date.date().isoformat()
-                if self.validity.to_date
-                else None,
-            },
-            "extension_1": self.extension_1,
-            "extension_2": self.extension_2,
-            "extension_3": self.extension_3,
-            "extension_4": self.extension_4,
-            "extension_5": self.extension_5,
-            "extension_6": self.extension_6,
-            "extension_7": self.extension_7,
-            "extension_8": self.extension_8,
-            "extension_9": self.extension_9,
-            "extension_10": self.extension_10,
-        }
+        data_dict = super().to_handler_dict()
+        data_dict["org_unit"] = gen_uuid(self.org_unit)
+        data_dict["engagement_type"] = gen_uuid(self.engagement_type)
+        data_dict["job_function"] = gen_uuid(self.job_function)
+        return data_dict
+
+
+class EngagementUpdate(EngagementUpsert):
+    uuid: UUID = Field(description="UUID of the Engagement you want to update.")
+    org_unit: UUID | None = Field(description="The related org-unit object.")
+    engagement_type: UUID | None = Field(description="UUID of the engagement type.")
+    job_function: UUID | None = Field(description="UUID of the job function.")
+
+    def to_handler_dict(self) -> dict:
+        data_dict = super().to_handler_dict()
+        data_dict["org_unit"] = gen_uuid(self.org_unit)
+        data_dict["engagement_type"] = gen_uuid(self.engagement_type)
+        data_dict["job_function"] = gen_uuid(self.job_function)
         return {k: v for k, v in data_dict.items() if v}
 
 

@@ -210,6 +210,10 @@ class EngagementTerminateInput:
 class EngagementCreateInput:
     """input model for creating engagements."""
 
+    employee: UUID | None = strawberry.field(
+        deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo."
+    )
+
 
 @strawberry.experimental.pydantic.input(
     model=EngagementUpdate,
@@ -217,6 +221,10 @@ class EngagementCreateInput:
 )
 class EngagementUpdateInput:
     """input model for updating Engagements."""
+
+    employee: UUID | None = strawberry.field(
+        deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo."
+    )
 
 
 # EngagementsAssociations

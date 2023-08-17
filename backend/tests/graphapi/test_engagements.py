@@ -262,7 +262,7 @@ async def test_engagement_filters(graphapi_post, filter_snippet, expected) -> No
     assert len(response.data["engagements"]["objects"]) == expected
 
 
-@given(test_data=...)
+@given(test_data=st.builds(EngagementCreate, employee=st.none(), person=st.uuids()))
 @patch(
     "mora.graphapi.versions.latest.mutators.create_engagement", new_callable=AsyncMock
 )
