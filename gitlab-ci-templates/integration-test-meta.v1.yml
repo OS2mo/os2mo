@@ -27,8 +27,10 @@ include:
     ENVIRONMENT: "testing"
     LORA_AUTH: "false"
     INSECURE_ENABLE_TESTING_API: "true"
+
     AMQP_ENABLE: "true"
     AMQP_ENABLE_NEW_SUBSYSTEM: "true"
+    AMQP_URL: "amqp://guest:guest@msg-broker:5672/"
 
 
 .services:mo:
@@ -87,7 +89,7 @@ include:
         KEYCLOAK_REALM_USERS: '[{"username": "bruce", "password": "bruce", "firstname": "Bruce", "lastname": "Lee", "email": "bruce@kung.fu", "enabled": true, "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a"}]'
     # AMQP
     - name: rabbitmq:3
-      alias: msg_broker
+      alias: msg-broker
   before_script:
     - |
       while [ ! -f /builds/.keycloak-realm-builder-finished ]; do
