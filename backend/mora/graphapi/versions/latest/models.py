@@ -10,6 +10,7 @@ from uuid import UUID
 import strawberry
 from pydantic import BaseModel
 from pydantic import ConstrainedStr
+from pydantic import Extra
 from pydantic import Field
 from pydantic import root_validator
 
@@ -17,8 +18,11 @@ from mora import common
 from mora import exceptions
 from mora import mapping
 from mora.util import CPR
+from mora.util import NEGATIVE_INFINITY
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
+from mora.util import to_lora_time
+from oio_rest import validate as oio_rest_validate
 from ramodels.mo import OpenValidity
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo._shared import UUIDBase
@@ -739,6 +743,83 @@ class EngagementUpdate(UUIDBase):
             "extension_10": self.extension_10,
         }
         return {k: v for k, v in data_dict.items() if v}
+
+
+# Facets
+# -----------------------
+class FacetCreate(BaseModel):
+    """Model representing a facet creation."""
+
+    user_key: str = Field(description="Facet name.")
+    published: str = Field(
+        "Publiceret", description="Published state of the facet object."
+    )
+
+    validity: RAValidity | None = Field(
+        None,
+        description="Validity range for the facet. Default to ['-infinity', 'infinity']",
+    )
+
+    class Config:
+        frozen = True
+        extra = Extra.forbid
+
+    def to_registration(self, organisation_uuid: UUID) -> dict:
+        from_time = to_lora_time(NEGATIVE_INFINITY)
+        to_time = to_lora_time(POSITIVE_INFINITY)
+
+        if self.validity and self.validity.from_date:
+            from_time = to_lora_time(self.validity.from_date)
+        if self.validity and self.validity.to_date:
+            to_time = to_lora_time(self.validity.to_date)
+
+        input = {
+            "tilstande": {
+                "facetpubliceret": [
+                    {
+                        "publiceret": self.published,
+                        "virkning": {"from": from_time, "to": to_time},
+                    }
+                ],
+                # TODO: Implement missing custom db-type for below state
+                # "facetgyldighed": [
+                #     {
+                #         "gyldighed": "Aktiv",
+                #         "virkning": {"from": from_time, "to": to_time},
+                #     }
+                # ],
+            },
+            "attributter": {
+                "facetegenskaber": [
+                    {
+                        "brugervendtnoegle": self.user_key,
+                        "virkning": {"from": from_time, "to": to_time},
+                    }
+                ]
+            },
+            "relationer": {
+                "ansvarlig": [
+                    {
+                        "uuid": str(organisation_uuid),
+                        "virkning": {"from": from_time, "to": to_time},
+                        "objekttype": "Organisation",
+                    }
+                ],
+            },
+        }
+        oio_rest_validate.validate(input, "facet")
+
+        return {
+            "states": input["tilstande"],
+            "attributes": input["attributter"],
+            "relations": input["relationer"],
+        }
+
+
+class FacetUpdate(FacetCreate):
+    """Model representing a facet updates."""
+
+    uuid: UUID = Field(description="UUID of the facet to update.")
 
 
 # EngagementsAssociations
