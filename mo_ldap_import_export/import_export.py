@@ -487,7 +487,7 @@ class SyncTool:
         object_type = get_object_type_from_routing_key(routing_key)
         if object_type == "org_unit":
             logger.info(
-                "[Listen-to-changes-in-orgs] Updating org unit info", **logger_args
+                "[Listen-to-changes-in-orgs] Updating org unit info.", **logger_args
             )
             self.converter.org_unit_info = self.dataloader.load_mo_org_units()
             self.converter.check_org_unit_info_dict()

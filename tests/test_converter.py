@@ -162,6 +162,7 @@ def context() -> Context:
             "settings": settings_mock,
             "dataloader": dataloader,
             "username_generator": MagicMock(),
+            "event_loop": MagicMock(),
         }
     }
 
@@ -1133,10 +1134,12 @@ def test_create_org_unit(converter: LdapConverter):
         {"name": org_units[i], "uuid": uuids[i]} for i in range(len(uuids))
     ]
 
+    root_org_uuid = str(uuid4())
+    converter.dataloader.load_mo_root_org_uuid.return_value = root_org_uuid
+
     converter.org_unit_info = {
-        uuids[0]: {**org_unit_infos[0], "parent": None},
-        uuids[1]: {**org_unit_infos[1], "parent": org_unit_infos[0]},
-        # uuids[2]: {**org_unit_infos[2],"parent":org_unit_infos[1]},
+        uuids[0]: {**org_unit_infos[0], "parent_uuid": root_org_uuid},
+        uuids[1]: {**org_unit_infos[1], "parent_uuid": org_unit_infos[0]["uuid"]},
     }
 
     org_unit_path_string = converter.org_unit_path_string_separator.join(org_units)
@@ -1160,9 +1163,12 @@ def test_create_org_unit(converter: LdapConverter):
 
 def test_get_or_create_org_unit_uuid(converter: LdapConverter):
 
+    root_org_uuid = str(uuid4)
+    converter.dataloader.load_mo_root_org_uuid.return_value = root_org_uuid
+
     uuid = str(uuid4())
     converter.org_unit_info = {
-        uuid: {"name": "Magenta Aps", "uuid": uuid, "parent": None}
+        uuid: {"name": "Magenta Aps", "uuid": uuid, "parent_uuid": root_org_uuid}
     }
 
     # Get an organization UUID

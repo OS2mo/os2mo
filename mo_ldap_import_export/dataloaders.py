@@ -1098,19 +1098,33 @@ class DataLoader:
 
         return output
 
+    def load_mo_root_org_uuid(self) -> str:
+        query = gql(
+            """
+            query RootOrgUnit {
+              org {
+                uuid
+              }
+            }
+            """
+        )
+        uuid: str = self.query_mo_sync(query)["org"]["uuid"]
+        return uuid
+
     def load_mo_org_units(self) -> dict:
         query = gql(
             """
             query OrgUnit {
-              org_units {
+              org_units(from_date: null, to_date: null) {
                 objects {
                   objects {
                     uuid
                     name
                     user_key
-                    parent {
-                      uuid
-                      name
+                    parent_uuid
+                    validity {
+                      to
+                      from
                     }
                   }
                 }
@@ -1124,7 +1138,9 @@ class DataLoader:
             output = {}
         else:
             output = {
-                d["objects"][0]["uuid"]: d["objects"][0]
+                d["objects"][0]["uuid"]: self.extract_current_or_latest_object(
+                    d["objects"]
+                )
                 for d in result["org_units"]["objects"]
             }
 
