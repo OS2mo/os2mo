@@ -10,7 +10,7 @@
       "objectClass": "Custom.HolstebroEngagementUpdate",
       "_import_to_mo_": "true",
       "user": "{{ dict(uuid=(ldap.hkStsuuid)) }}",
-      "job_function": "{{ dict(uuid=get_or_create_job_function_uuid(ldap.title)) }}",
+      "job_function": "{{ dict(uuid=get_or_create_job_function_uuid((ldap.title or 'Medarbejder')))}}",
       "uuid": "{{ employee_uuid or NONE }}"
     }
   },
