@@ -98,6 +98,10 @@ include:
     PYTEST_ADDOPTS: "-m 'integration_test'"
   services:
     - !reference [ .services:mo-backing, services ]
+    # `:latest` here is actually latest and not a cached version because we run
+    # our GitLab runners in Kubernetes, which defaults the imagePullPolicy to
+    # `Always` when the tag is `latest`.
+    # https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting
     - name: magentaaps/os2mo:latest
       alias: mo
       variables: !reference [ .variables:mo, variables ]
