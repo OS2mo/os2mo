@@ -13,6 +13,7 @@ include:
   variables:
     PYTHONASYNCIODEBUG: "1"
     MAX_WORKERS: "1"
+    GUNICORN_WORKERS: "1"
 
     DB_HOST: "mox-db"
     DB_NAME: "mox"
