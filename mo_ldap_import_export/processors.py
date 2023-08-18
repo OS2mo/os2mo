@@ -35,6 +35,9 @@ def mask_cpr(
     """
     Looks for cpr numbers and masks them
     """
-    if type(event_dict["event"]) is str:
-        event_dict["event"] = _hide_cpr(event_dict["event"])
+    for key, value in event_dict.items():
+        if type(value) is str:
+            event_dict[key] = _hide_cpr(value)
+        else:
+            event_dict[key] = _hide_cpr(repr(value))
     return event_dict

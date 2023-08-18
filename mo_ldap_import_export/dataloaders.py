@@ -284,7 +284,7 @@ class DataLoader:
         search_result = single_object_search(searchParameters, self.context)
 
         ldap_object: LdapObject = make_ldap_object(search_result, self.context)
-        logger.info(f"Found {ldap_object.dn}")
+        logger.info("[Load-ldap-cpr-object] Found LDAP object.", dn=ldap_object.dn)
 
         return ldap_object
 
@@ -308,7 +308,7 @@ class DataLoader:
                 # sub-OU inside "OU=foo"
                 return True
 
-        logger.info(f"{ou} is not in {ous_to_write_to}")
+        logger.info(f"[OU-in-OUs-to-write-to] {ou} is not in {ous_to_write_to}")
         return False
 
     def modify_ldap(
@@ -349,10 +349,10 @@ class DataLoader:
 
         # Modify LDAP
         if not value_exists or "DELETE" in ldap_command:
-            logger.info(f"[modify_ldap] Uploading the following changes: {changes}")
+            logger.info(f"[Modify-ldap] Uploading the following changes: {changes}")
             self.ldap_connection.modify(dn, changes)
             response = self.ldap_connection.result
-            logger.info(f"[modify_ldap] Response: {response}")
+            logger.info(f"[Modify-ldap] Response: {response}")
 
             # If successful, the importer should ignore this DN
             if response["description"] == "success":
@@ -371,7 +371,7 @@ class DataLoader:
             return response
         else:
             logger.info(
-                f"[modify_ldap] {attribute}['{value_to_modify}'] already exists"
+                f"[Modify-ldap] {attribute}['{value_to_modify}'] already exists"
             )
 
     def cleanup_attributes_in_ldap(self, ldap_objects: list[LdapObject]):
@@ -385,7 +385,10 @@ class DataLoader:
         to compile an LDAP object of a different type.
         """
         for ldap_object in ldap_objects:
-            logger.info(f"Cleaning up attributes from {ldap_object.dn}")
+            logger.info(
+                "[Cleanup-attributes-in-LDAP] Processing ldap object.",
+                dn=ldap_object.dn,
+            )
             attributes_to_clean = [
                 a
                 for a in ldap_object.dict().keys()
@@ -393,13 +396,17 @@ class DataLoader:
             ]
 
             if not attributes_to_clean:
-                logger.info("No cleanable attributes found")
+                logger.info("[Cleanup-attributes-in-LDAP] No cleanable attributes.")
                 return
 
             dn = ldap_object.dn
             for attribute in attributes_to_clean:
                 value_to_delete = ldap_object.dict()[attribute]
-                logger.info(f"Cleaning {value_to_delete} from '{attribute}'")
+                logger.info(
+                    "[Cleanup-attributes-in-LDAP] Cleaning.",
+                    value_to_delete=value_to_delete,
+                    attribute=attribute,
+                )
 
                 changes = {attribute: [("MODIFY_DELETE", value_to_delete)]}
                 self.modify_ldap(dn, changes)
@@ -448,15 +455,17 @@ class DataLoader:
             See https://ldap3.readthedocs.io/en/latest/add.html for more information
 
         """
-        logger.info(f"Adding user with DN = '{dn}' to LDAP")
-        if attributes:
-            logger.info(f"And the following attributes: {attributes}")
+        logger.info(
+            "[Add-ldap-object] Adding user to LDAP.", dn=dn, attributes=attributes
+        )
         self.ldap_connection.add(
             dn,
             self.user_context["converter"].find_ldap_object_class("Employee"),
             attributes=attributes,
         )
-        logger.info(f"Response: {self.ldap_connection.result}")
+        logger.info(
+            "[Add-ldap-object] Response:", response=self.ldap_connection.result, dn=dn
+        )
 
     async def modify_ldap_object(
         self,
@@ -480,14 +489,16 @@ class DataLoader:
         """
         converter = self.user_context["converter"]
         if not converter._export_to_ldap_(json_key):
-            logger.info(f"_export_to_ldap_ == False for json_key = '{json_key}'")
+            logger.info(
+                "[Modify-ldap-object] _export_to_ldap_ == False.", json_key=json_key
+            )
             return []
         success = 0
         failed = 0
 
         parameters_to_modify = list(object_to_modify.dict().keys())
 
-        logger.info(f"Uploading {object_to_modify}")
+        logger.info(f"[Modify-ldap-object] Uploading {object_to_modify}.")
         parameters_to_modify = [p for p in parameters_to_modify if p != "dn"]
         dn = object_to_modify.dn
         results = []
@@ -517,7 +528,7 @@ class DataLoader:
             try:
                 response = self.modify_ldap(dn, changes)
             except LDAPInvalidValueError as e:
-                logger.warning(e)
+                logger.warning("[Modify-ldap-object] " + str(e))
                 failed += 1
                 continue
 
@@ -529,8 +540,12 @@ class DataLoader:
             if response:
                 results.append(response)
 
-        logger.info(f"Succeeded MODIFY_* operations: {success}")
-        logger.info(f"Failed MODIFY_* operations: {failed}")
+        logger.info(
+            "[Modify-ldap-object] Succeeded/failed MODIFY_* operations:",
+            success=success,
+            failed=failed,
+        )
+
         return results
 
     def make_overview_entry(self, attributes, superiors, example_value_dict=None):
@@ -622,12 +637,12 @@ class DataLoader:
         exception = MultipleObjectsReturnedException(error_message)
 
         if number_of_employees == 1:
-            logger.info("Trying to find mo employee UUID using cpr_no")
+            logger.info("[Return-mo-employee-uuid] Attempting cpr_no lookup.")
             uuid: UUID = result["employees"]["objects"][0]["uuid"]
             return uuid
 
         elif number_of_itusers >= 1:
-            logger.info("Trying to find mo employee UUID using IT system")
+            logger.info("[Return-mo-employee-uuid] Attempting it-system lookup.")
             uuids = [
                 result["itusers"]["objects"][i]["objects"][0]["employee_uuid"]
                 for i in range(number_of_itusers)
@@ -636,7 +651,7 @@ class DataLoader:
             return only(set(uuids), too_long=exception)
 
         elif number_of_itusers == 0 and number_of_employees == 0:
-            logger.info(f"No matching employee in {result}")
+            logger.info(f"[Return-mo-employee-uuid] No matching employee in {result}")
             return None
         else:
             raise exception
@@ -696,14 +711,17 @@ class DataLoader:
         try:
             return converter.get_it_system_uuid(user_key)
         except UUIDNotFoundException:
-            logger.info(f"UUID Not found. Does the '{user_key}' it-system exist?")
+            logger.info(
+                "[Get-ldap-it-system-uuid] UUID Not found.",
+                suggestion=f"Does the '{user_key}' it-system exist?",
+            )
             return None
 
     def get_ldap_dn(self, objectGUID: UUID) -> str:
         """
         Given an objectGUID, find the DistinguishedName
         """
-        logger.info(f"Looking for LDAP object with objectGUID = {objectGUID}")
+        logger.info("[Get-ldap-dn] Looking for LDAP object.", objectGUID=objectGUID)
         searchParameters = {
             "search_base": f"<GUID={objectGUID}>",
             "search_filter": "(objectclass=*)",
@@ -719,7 +737,7 @@ class DataLoader:
         """
         Given a DN, find the objectGUID
         """
-        logger.info(f"Looking for LDAP object with dn = '{dn}'")
+        logger.info("[Get-ldap-objectGUID] Looking for LDAP object.", dn=dn)
         ldap_object = self.load_ldap_object(dn, ["objectGUID"])
         return UUID(ldap_object.objectGUID)
 
@@ -733,7 +751,10 @@ class DataLoader:
             if is_guid(user_key):
                 objectGUIDs.append(UUID(user_key))
             else:
-                logger.info(f"{user_key} is not an objectGUID")
+                logger.info(
+                    "[Extract-unique-objectGUIDs] it-user is not an objectGUID",
+                    user_key=user_key,
+                )
 
         return set(objectGUIDs)
 
@@ -755,7 +776,10 @@ class DataLoader:
         --------
         If a DN could not be found or generated, raises a DNNotFound exception
         """
-        logger.info(f"Attempting to find dn for employee with uuid = {uuid}")
+        logger.info(
+            "[Find-or-make-employee-dn] Attempting to find DN.",
+            employee_uuid=uuid,
+        )
         username_generator = self.user_context["username_generator"]
         it_system_uuid = self.get_ldap_it_system_uuid()
 
@@ -771,17 +795,30 @@ class DataLoader:
         # If we have an it-user (with a valid dn), use that dn
         if ldap_it_system_exists and len(dns) == 1:
             dn = dns[0]
-            logger.info(f"Found DN = '{dn}' using it-user lookup")
+            logger.info(
+                "[Find-or-make-employee-dn] Found DN using it-user lookup",
+                dn=dn,
+                employee_uuid=uuid,
+            )
             return dn
 
         # If the employee has a cpr-no, try using that to find a matching dn
         employee = await self.load_mo_employee(uuid)
         cpr_no = employee.cpr_no
         if cpr_no:
-            logger.info("Attempting to find dn using cpr-lookup")
+            logger.info(
+                "[Find-or-make-employee-dn] Attempting cpr-lookup.",
+                cpr_no=cpr_no,
+                employee_uuid=uuid,
+            )
             try:
                 dn = self.load_ldap_cpr_object(cpr_no, "Employee").dn
-                logger.info(f"Found DN = '{dn}'")
+                logger.info(
+                    "[Find-or-make-employee-dn] Found DN using cpr-lookup.",
+                    dn=dn,
+                    employee_uuid=uuid,
+                    cpr_no=cpr_no,
+                )
                 return dn
             except NoObjectsReturnedException:
                 if not ldap_it_system_exists:
@@ -789,7 +826,11 @@ class DataLoader:
                     # DN and return it. If there is one, we pretty much do the same,
                     # but also need to store the DN in an it-user object.
                     # This is done below.
-                    logger.info("LDAP it-system not found - Generating DN")
+                    logger.info(
+                        "[Find-or-make-employee-dn] LDAP it-system not found.",
+                        task="Generating DN",
+                        employee_uuid=uuid,
+                    )
                     dn = await username_generator.generate_dn(employee)
                     await self.sync_tool.import_single_user(
                         dn, force=True, manual_import=True
@@ -807,7 +848,11 @@ class DataLoader:
             )
         # If there are no LDAP-it-users with valid dns, we generate a dn and create one.
         elif ldap_it_system_exists and len(dns) == 0:
-            logger.info("No it-user found. Generating DN and creating it-user")
+            logger.info(
+                "[Find-or-make-employee-dn] No it-user found.",
+                task="Generating DN and creating it-user",
+                employee_uuid=uuid,
+            )
             dn = await username_generator.generate_dn(employee)
 
             # Get it's objectGUID
@@ -1159,7 +1204,7 @@ class DataLoader:
             """
         )
 
-        logger.info(f"Loading address={uuid}")
+        logger.info("[Load-mo-address] Loading address.", uuid=uuid)
         result = await self.query_past_future_mo(query, current_objects_only)
 
         entry = self.extract_current_or_latest_object(
@@ -1244,7 +1289,7 @@ class DataLoader:
             """
         )
 
-        logger.info(f"Loading engagement={uuid}")
+        logger.info("[Load-mo-engagement] Loading engagement.", uuid=uuid)
         result = await self.query_past_future_mo(query, current_objects_only)
 
         entry = self.extract_current_or_latest_object(
@@ -1611,7 +1656,7 @@ class DataLoader:
 
         if not result:
             for warning in warnings:
-                logger.warning(warning)
+                logger.warning("[Load-all-mo-objects]" + str(warning))
 
         output = []
 
@@ -1718,7 +1763,7 @@ class DataLoader:
         uuid: UUID
             The uuid of the created class
         """
-        logger.info(f"Creating MO class with user_key = '{user_key}'")
+        logger.info("[Create-mo-class] Creating MO class.", user_key=user_key)
         query = gql(
             f"""
             mutation CreateClass {{
@@ -1752,7 +1797,7 @@ class DataLoader:
         uuid: UUID
             The uuid of the updated class
         """
-        logger.info(f"Modifying MO class with user_key = '{user_key}'")
+        logger.info("[Update-mo-class] Modifying MO class.", user_key=user_key)
         query = gql(
             f"""
             mutation UpdateClass {{
@@ -1780,7 +1825,7 @@ class DataLoader:
         uuid: UUID
             The uuid of the created class
         """
-        logger.info(f"Creating MO job function with name = '{name}'")
+        logger.info("[Create-mo-job-function] Creating MO job function.", name=name)
         facet_uuid = self.load_mo_facet_uuid("engagement_job_function")
         user_key = name
         return self.create_mo_class(name, user_key, facet_uuid)
@@ -1794,7 +1839,9 @@ class DataLoader:
         uuid: UUID
             The uuid of the created class
         """
-        logger.info(f"Creating MO engagement type with name = '{name}'")
+        logger.info(
+            "[Create-mo-engagement-type] Creating MO engagement type", name=name
+        )
         facet_uuid = self.load_mo_facet_uuid("engagement_type")
         user_key = name
         return self.create_mo_class(name, user_key, facet_uuid)
@@ -1808,7 +1855,7 @@ class DataLoader:
         uuid: UUID
             The uuid of the created it-system
         """
-        logger.info(f"Creating MO it-system with user_key = '{user_key}'")
+        logger.info("[Create-mo-it-system] Creating MO it-system", user_key=user_key)
         query = gql(
             f"""
             mutation CreateITSystem {{
