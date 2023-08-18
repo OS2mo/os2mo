@@ -46,6 +46,7 @@ async def test_template(sync_tool: SyncTool):
 async def test_import_holstebroengagementupdate_objects(context: Context):
     test_user_uuid = uuid4()
     test_job_function_uuid = uuid4()
+    test_job_function_fallback_uuid = uuid4()
     test_eng_uuid = uuid4()
 
     test_mock = AsyncMock()
@@ -56,7 +57,9 @@ async def test_import_holstebroengagementupdate_objects(context: Context):
     context["graphql_session"] = test_mock
 
     test_object = HolstebroEngagementUpdate.from_simplified_fields(
-        user_uuid=test_user_uuid, job_function_uuid=test_job_function_uuid
+        user_uuid=test_user_uuid,
+        job_function_uuid=test_job_function_uuid,
+        job_function_fallback_uuid=test_job_function_fallback_uuid,
     )
 
     await asyncio.gather(test_object.sync_to_ldap())

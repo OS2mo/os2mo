@@ -1146,7 +1146,6 @@ async def test_refresh_employee(
     dataloader: AsyncMock,
     converter: MagicMock,
 ):
-
     address_types = {
         uuid4(): "address_type 1",
         uuid4(): "address_type 2",
@@ -1199,11 +1198,14 @@ async def test_import_holstebroengagementupdate_objects(
 
     user_uuid = uuid4()
     job_function_uuid = uuid4()
+    job_function_fallback_uuid = uuid4()
     eng_uuid = str(uuid4())
 
     converted_objects = [
         HolstebroEngagementUpdate.from_simplified_fields(
-            user_uuid=user_uuid, job_function_uuid=job_function_uuid
+            user_uuid=user_uuid,
+            job_function_uuid=job_function_uuid,
+            job_function_fallback_uuid=job_function_fallback_uuid,
         ),
     ]
 
@@ -1250,7 +1252,6 @@ async def test_import_holstebroengagementupdate_objects(
 
 
 def test_extract_uuid(sync_tool: SyncTool):
-
     uuid = uuid4()
     obj1 = uuid
     obj2 = Employee(uuid=uuid)

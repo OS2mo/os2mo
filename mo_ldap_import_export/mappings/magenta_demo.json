@@ -105,7 +105,8 @@
       "objectClass": "Custom.HolstebroEngagementUpdate",
       "_import_to_mo_": "true",
       "user": "{{ dict(uuid=employee_uuid) }}",
-      "job_function": "{{ dict(uuid=get_or_create_job_function_uuid(ldap.title)) }}",
+      "job_function": "{{ dict(uuid=get_or_create_job_function_uuid((ldap.title))) or NONE}}",
+      "job_function_fallback": "{{ dict(uuid=get_or_create_job_function_uuid(('Medarbejder')))}}",
       "uuid": "{{ employee_uuid or NONE }}"
     }
   },
@@ -176,6 +177,7 @@
       "_export_to_ldap_": "false",
       "employeeNumber": "{{ mo_holstebro_cust.user.uuid }}",
       "title": "{{ get_job_function_name(mo_holstebro_cust.job_function.uuid) }}",
+      "comment": "{{ get_job_function_name(mo_holstebro_cust.job_function_fallback.uuid) }}"
     },
   },
   "username_generator": {
