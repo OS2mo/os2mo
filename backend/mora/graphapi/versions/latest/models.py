@@ -874,24 +874,20 @@ class KLECreate(UUIDBase):
 class KLEUpdate(UUIDBase):
     """Model for updating a KLE annotation."""
 
-    uuid: UUID = Field(description="UUID of the manager to be updated.")
+    uuid: UUID = Field(description="UUID of the KLE annotation to be updated.")
 
     user_key: str | None = Field(description="Extra info or uuid.")
 
-    kle_number: UUID | None = Field(
-        description="UUID of the manager as person to be updated."
-    )
+    kle_number: UUID | None = Field(description="UUID of the KLE number.")
 
-    kle_aspects: list[UUID] | None = Field(
-        description="UUID of the managers responsibilities to be updated."
-    )
+    kle_aspects: list[UUID] | None = Field(description="UUID of the kle_aspects.")
 
     org_unit: UUID | None = Field(
-        description="UUID of the managers organisation unit to be updated."
+        description="UUID of the KLE's organisation unit to be updated."
     )
 
     validity: RAValidity = Field(
-        description="Validity range for the manager to be updated."
+        description="Validity range for the KLE to be updated."
     )
 
     def to_handler_dict(self) -> dict:
@@ -918,7 +914,7 @@ class KLEUpdate(UUIDBase):
 class KLETerminate(ValidityTerminate):
     """Model representing a KLE termination."""
 
-    uuid: UUID = Field(description="UUID of the manager we want to terminate.")
+    uuid: UUID = Field(description="UUID of the KLE annotation we want to terminate.")
 
     def get_lora_payload(self) -> dict:
         return {
@@ -1260,6 +1256,36 @@ class RoleUpdate(UUIDBase):
             },
         }
         return {k: v for k, v in data_dict.items() if v}
+
+
+class RoleTerminate(ValidityTerminate):
+    """Model representing a role termination."""
+
+    uuid: UUID = Field(description="UUID of the role we want to terminate.")
+
+    def get_lora_payload(self) -> dict:
+        return {
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
+                ]
+            },
+            "note": "Afsluttet",
+        }
+
+    def get_role_trigger(self) -> OrgFuncTrigger:
+        return OrgFuncTrigger(
+            role_type=mapping.ROLE,
+            event_type=mapping.EventType.ON_BEFORE,
+            uuid=self.uuid,
+            org_unit_uuid=self.uuid,
+            request_type=mapping.RequestType.TERMINATE,
+            request=MoraTriggerRequest(
+                type=mapping.ROLE,
+                uuid=self.uuid,
+                validity=Validity(from_date=self.from_date, to_date=self.to_date),
+            ),
+        )
 
 
 # Files

@@ -3,9 +3,12 @@
 from uuid import UUID
 
 from .models import RoleCreate
+from .models import RoleTerminate
 from .models import RoleUpdate
+from mora import lora
 from mora import mapping
 from mora.service.role import RoleRequestHandler
+from mora.triggers import Trigger
 
 
 async def create_role(input: RoleCreate) -> UUID:
@@ -31,3 +34,29 @@ async def update_role(input: RoleUpdate) -> UUID:
     uuid = await request.submit()
 
     return UUID(uuid)
+
+
+async def terminate_role(input: RoleTerminate) -> UUID:
+    trigger = input.get_role_trigger()
+    trigger_dict = trigger.to_trigger_dict()
+
+    # ON_BEFORE
+    _ = await Trigger.run(trigger_dict)
+
+    # Do LoRa update
+    lora_conn = lora.Connector()
+    lora_result = await lora_conn.organisationfunktion.update(
+        input.get_lora_payload(), str(input.uuid)
+    )
+
+    # ON_AFTER
+    trigger_dict.update(
+        {
+            Trigger.RESULT: lora_result,
+            Trigger.EVENT_TYPE: mapping.EventType.ON_AFTER,
+        }
+    )
+
+    _ = await Trigger.run(trigger_dict)
+
+    return UUID(lora_result)
