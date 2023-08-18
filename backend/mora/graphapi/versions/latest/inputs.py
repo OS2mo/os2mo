@@ -33,6 +33,7 @@ from .models import OrganisationUnitCreate
 from .models import OrganisationUnitTerminate
 from .models import OrganisationUnitUpdate
 from .models import RoleCreate
+from .models import RoleUpdate
 from .models import Validity
 from mora.util import CPR
 from ramodels.mo import Validity as RAValidity
@@ -365,6 +366,14 @@ class OrganisationUnitUpdateInput:
 )
 class RoleCreateInput:
     """Input model for creating roles."""
+
+
+@strawberry.experimental.pydantic.input(
+    model=RoleUpdate,
+    all_fields=True,
+)
+class RoleUpdateInput:
+    """Input model for updating roles."""
 
 
 # Health

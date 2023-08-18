@@ -20,6 +20,7 @@ from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.models import RoleCreate
+from mora.graphapi.versions.latest.models import RoleUpdate
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import RoleRead
 from tests.conftest import GQLResponse
@@ -204,3 +205,138 @@ async def test_create_role_integration_test(
         )
     else:
         assert test_data.validity.to_date is None
+
+
+@given(test_data=...)
+@patch("mora.graphapi.versions.latest.mutators.update_role", new_callable=AsyncMock)
+async def test_update_role_unit_test(
+    update_role: AsyncMock, test_data: RoleUpdate
+) -> None:
+    """Tests that the mutator function for updating a role passes through, with the
+    defined pydantic model."""
+
+    mutation = """
+        mutation UpdateRole($input: RoleUpdateInput!) {
+            role_update(input: $input) {
+                uuid
+            }
+        }
+    """
+
+    update_role.return_value = test_data.uuid
+
+    payload = jsonable_encoder(test_data)
+    response = await execute_graphql(query=mutation, variable_values={"input": payload})
+    assert response.errors is None
+    assert response.data == {"role_update": {"uuid": str(test_data.uuid)}}
+
+    update_role.assert_called_with(test_data)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "test_data",
+    [
+        {
+            "uuid": "1b20d0b9-96a0-42a6-b196-293bb86e62e8",
+            "user_key": "random_user_key",
+            "role_type": "8ca636d8-d70f-4ce4-992b-4bf4dcfc2559",
+            "org_unit": "5942ce50-2be8-476f-914b-6769a888a7c8",
+            "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+        },
+        {
+            "uuid": "1b20d0b9-96a0-42a6-b196-293bb86e62e8",
+            "user_key": None,
+            "role_type": "8ca636d8-d70f-4ce4-992b-4bf4dcfc2559",
+            "org_unit": "b688513d-11f7-4efc-b679-ab082a2055d0",
+            "validity": {"from": "2023-01-01T00:00:00+01:00", "to": None},
+        },
+        {
+            "uuid": "1b20d0b9-96a0-42a6-b196-293bb86e62e8",
+            "user_key": "New_cool_user_key",
+            "role_type": None,
+            "org_unit": None,
+            "validity": {"from": "2023-01-01T00:00:00+01:00", "to": None},
+        },
+        {
+            "uuid": "1b20d0b9-96a0-42a6-b196-293bb86e62e8",
+            "user_key": None,
+            "role_type": "8ca636d8-d70f-4ce4-992b-4bf4dcfc2559",
+            "org_unit": None,
+            "validity": {"from": "2023-07-10T00:00:00+02:00", "to": None},
+        },
+    ],
+)
+async def test_update_role_integration_test(test_data, graphapi_post) -> None:
+    """Test that roles can be updated in LoRa via GraphQL."""
+
+    uuid = test_data["uuid"]
+
+    query = """
+        query RoleQuery($uuid: UUID!) {
+            roles(uuids: [$uuid]) {
+                objects {
+                    objects {
+                        uuid
+                        user_key
+                        role_type: role_type_uuid
+                        org_unit: org_unit_uuid
+                        validity {
+                            from
+                            to
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(query, {"uuid": str(uuid)})
+
+    assert response.errors is None
+
+    pre_update_role = one(one(response.data["roles"]["objects"])["objects"])
+
+    mutation = """
+        mutation UpdateRole($input: RoleUpdateInput!) {
+            role_update(input: $input) {
+                uuid
+            }
+        }
+    """
+    mutation_response: GQLResponse = graphapi_post(
+        mutation, {"input": jsonable_encoder(test_data)}
+    )
+
+    assert mutation_response.errors is None
+
+    # Writing verify query to retrieve objects containing data on the desired uuids.
+    verify_query = """
+        query VerifyQuery($uuid: UUID!) {
+            roles(uuids: [$uuid]){
+                objects {
+                    objects {
+                        uuid
+                        user_key
+                        role_type: role_type_uuid
+                        org_unit: org_unit_uuid
+                        validity {
+                            from
+                            to
+                        }
+                    }
+                }
+            }
+        }
+    """
+
+    verify_response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    assert verify_response.errors is None
+
+    role_objects_post_update = one(
+        one(verify_response.data["roles"]["objects"])["objects"]
+    )
+
+    expected_updated_role = {k: v or pre_update_role[k] for k, v in test_data.items()}
+
+    assert expected_updated_role == role_objects_post_update
