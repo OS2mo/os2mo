@@ -20,7 +20,7 @@ class CustomerSpecific(MOBase, extra=Extra.allow):  # type: ignore
         pass
 
 
-class HolstebroEngagementUpdate(CustomerSpecific):
+class JobTitleFromADToMO(CustomerSpecific):
     user: PersonRef = Field(
         description=("Reference to the employee of the created engagement object.")
     )
@@ -35,8 +35,8 @@ class HolstebroEngagementUpdate(CustomerSpecific):
             "Reference to the job function class for the created engagement object."
         )
     )
-    type_: Literal["holstebroengagementupdate"] = Field(
-        "holstebroengagementupdate", alias="type", description="The object type."
+    type_: Literal["jobtitlefromadtomo"] = Field(
+        "jobtitlefromadtomo", alias="type", description="The object type."
     )
 
     @classmethod
@@ -46,8 +46,8 @@ class HolstebroEngagementUpdate(CustomerSpecific):
         job_function_uuid: UUID | None,
         job_function_fallback_uuid: UUID,
         **kwargs
-    ) -> "HolstebroEngagementUpdate":
-        """Create an HolstebroEngagementUpdate from simplified fields."""
+    ) -> "JobTitleFromADToMO":
+        """Create an jobtitlefromadtomo from simplified fields."""
         user = PersonRef(uuid=user_uuid)
         job_function = JobFunction(uuid=job_function_uuid)
         job_function_fallback = JobFunction(uuid=job_function_fallback_uuid)

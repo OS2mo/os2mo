@@ -22,7 +22,7 @@ from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
 from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.converters import read_mapping_json
-from mo_ldap_import_export.customer_specific import HolstebroEngagementUpdate
+from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import InvalidNameException
@@ -290,13 +290,13 @@ def test_ldap_to_mo_dict_validation_error(context: Context) -> None:
 
     converter = LdapConverter(context)
     converter.import_mo_object_class = MagicMock()  # type: ignore
-    converter.import_mo_object_class.return_value = HolstebroEngagementUpdate
+    converter.import_mo_object_class.return_value = JobTitleFromADToMO
 
     converter.mapping = converter._populate_mapping_with_templates(
         {
             "ldap_to_mo": {
                 "Custom": {
-                    "objectClass": "Custom.HolstebroEngagementUpdate",
+                    "objectClass": "Custom.JobTitleFromADToMO",
                     "_import_to_mo_": "true",
                     "user": "{{ dict(uuid=(ldap.hkStsuuid)) }}",
                     "job_function": f"{{ dict(uuid={uuid4()}) }}",
