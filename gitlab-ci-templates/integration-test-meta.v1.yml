@@ -32,13 +32,6 @@ include:
     AMQP_ENABLE_NEW_SUBSYSTEM: "true"
     AMQP_URL: "amqp://guest:guest@msg-broker:5672/"
 
-
-.services:mo:
-  services:
-    - name: magentaaps/os2mo:latest
-      alias: mo
-      variables: !reference [ .variables:mo, variables ]
-
 .services:mo-backing:
   services:
     # LoRa database
@@ -104,8 +97,10 @@ include:
   variables:
     PYTEST_ADDOPTS: "-m 'integration_test'"
   services:
-    - !reference [.services:mo, services]
-    - !reference [.services:mo-backing, services]
+    - !reference [ .services:mo-backing, services ]
+    - name: magentaaps/os2mo:latest
+      alias: mo
+      variables: !reference [ .variables:mo, variables ]
   before_script:
-    - !reference [.pytest, before_script]
-    - !reference [.services:mo-backing, before_script]
+    - !reference [ .pytest, before_script ]
+    - !reference [ .services:mo-backing, before_script ]
