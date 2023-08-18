@@ -299,6 +299,7 @@ def test_ldap_to_mo_dict_validation_error(context: Context) -> None:
                     "_import_to_mo_": "true",
                     "user": "{{ dict(uuid=(ldap.hkStsuuid)) }}",
                     "job_function": f"{{ dict(uuid={uuid4()}) }}",
+                    "job_function_fallback": f"{{ dict(uuid={uuid4()}) }}",
                     "uuid": "{{ employee_uuid or NONE }}",
                 }
             }
@@ -312,6 +313,7 @@ def test_ldap_to_mo_dict_validation_error(context: Context) -> None:
                 dn="",
                 hkStsuuid="not_an_uuid",
                 title="job title",
+                comment="job title default",
             ),
             "Custom",
             employee_uuid=uuid4(),

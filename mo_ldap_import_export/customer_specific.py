@@ -24,7 +24,13 @@ class HolstebroEngagementUpdate(CustomerSpecific):
     user: PersonRef = Field(
         description=("Reference to the employee of the created engagement object.")
     )
-    job_function: JobFunction = Field(
+    job_function: JobFunction | None = Field(
+        description=(
+            "Reference to the job function class for the created engagement object."
+        ),
+        default=None,
+    )
+    job_function_fallback: JobFunction = Field(
         description=(
             "Reference to the job function class for the created engagement object."
         )
@@ -35,12 +41,22 @@ class HolstebroEngagementUpdate(CustomerSpecific):
 
     @classmethod
     def from_simplified_fields(
-        cls, user_uuid: UUID, job_function_uuid: UUID, **kwargs
+        cls,
+        user_uuid: UUID,
+        job_function_uuid: UUID | None,
+        job_function_fallback_uuid: UUID,
+        **kwargs
     ) -> "HolstebroEngagementUpdate":
         """Create an HolstebroEngagementUpdate from simplified fields."""
         user = PersonRef(uuid=user_uuid)
         job_function = JobFunction(uuid=job_function_uuid)
-        return cls(user=user, job_function=job_function, **kwargs)
+        job_function_fallback = JobFunction(uuid=job_function_fallback_uuid)
+        return cls(
+            user=user,
+            job_function=job_function,
+            job_function_fallback=job_function_fallback,
+            **kwargs
+        )
 
     async def sync_to_mo(self, context: Context):
         async def get_engagement_uuids(gql_session, employee_uuid):
@@ -83,8 +99,10 @@ class HolstebroEngagementUpdate(CustomerSpecific):
             """
             )
             jobs = []
+            job_func = self.job_function_fallback.uuid
+            if self.job_function is not None:
+                job_func = self.job_function.uuid
             for uuid in engagement_uuids:
-
                 jobs.append(
                     {
                         "uuid_to_ignore": uuid,
@@ -93,7 +111,7 @@ class HolstebroEngagementUpdate(CustomerSpecific):
                             {
                                 "uuid": uuid,
                                 "from": datetime.datetime.now().date(),
-                                "job_function": self.job_function.uuid,
+                                "job_function": job_func,
                             }
                         ),
                     }

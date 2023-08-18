@@ -246,6 +246,7 @@ def test_back_and_forth_mapping(converters: dict[str, LdapConverter], uuid: UUID
     mo_holstebro_cust = HolstebroEngagementUpdate.from_simplified_fields(
         user_uuid=uuid,
         job_function_uuid=uuid,
+        job_function_fallback_uuid=uuid,
         title=uuid,
     )
 
