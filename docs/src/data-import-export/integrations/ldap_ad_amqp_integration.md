@@ -37,17 +37,17 @@ typisk synkroniseres:
 
 | MO object class | MO attribute | MO-to-AD | AD-to-MO | AD attribute(s)              |
 |-----------------|--------------|----------|----------|------------------------------|
-| Employee        | givenname    | ✓        | ✓        | givenName                    |
-| Employye        | surname      | ✓        | ✓        | sn                           |
-| Employee        | cpr_no       | ✓        | ✓        | employeeID                   |
-| ITUser          | user_key     | ✓        | ✓        | objectGUID                   |
+| Employee        | givenname    | ✓        | %        | givenName                    |
+| Employye        | surname      | ✓        | %        | sn                           |
+| Employee        | cpr_no       | ✓        | %        | employeeID                   |
+| ITUser          | user_key     | %        | ✓        | objectGUID                   |
 | Address         | value        | ✓        | ✓        | mail                         |
-| Address         | value        | ✓        | ✓        | streetAddress, l, postalCode |
-| Address         | value        | ✓        | ✓        | postalAddress                |
-| Engagement      | job_function | ✓        | ✓        | title                        |
-| Engagement      | user_key     | ✓        | ✓        | countryCode                  |
-| Address         | value        | %        | %        | telephoneNumber              |
-| ITUser          | user_key     | X        | %        | sAMAccountName               |
+| Address         | value        | ✓        | %        | streetAddress, l, postalCode |
+| Address         | value        | ✓        | %        | postalAddress                |
+| Engagement      | job_function | %        | ✓        | title                        |
+| Engagement      | user_key     | ✓        | %        | countryCode                  |
+| Address         | value        | ✓        | %        | telephoneNumber              |
+| ITUser          | user_key     | ✓        | %        | sAMAccountName               |
 
 ### Generering af AD-brugernavne
 
