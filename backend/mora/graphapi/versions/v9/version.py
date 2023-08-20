@@ -108,7 +108,7 @@ class Mutation(NextGraphQLVersion.schema.mutation):  # type: ignore[name-defined
 
 
 class GraphQLSchema(NextGraphQLVersion.schema):  # type: ignore
-    """Version 10 of the GraphQL Schema.
+    """Version 9 of the GraphQL Schema.
 
     Version 10 introduced a breaking change to the org_unit_terminate mutator, which
     changes the name of its input from `unit` to `input` to align with other mutators.

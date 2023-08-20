@@ -10,7 +10,7 @@ from ..latest.permissions import gen_create_permission
 from ..latest.permissions import IsAuthenticatedPermission
 from ..latest.schema import ITUser
 from ..latest.schema import Response
-from ..v12.version import GraphQLVersion as NextGraphQLVersion
+from ..v12.version import GraphQLVersion as NextGraphQLVersion  # type: ignore
 from ramodels.mo.details import ITUserRead
 
 
@@ -45,10 +45,10 @@ class Mutation(NextGraphQLVersion.schema.mutation):  # type: ignore[name-defined
 
 
 class GraphQLSchema(NextGraphQLVersion.schema):  # type: ignore
-    """Version 12 of the GraphQL Schema.
+    """Version 11 of the GraphQL Schema.
 
-    Version 11 introduced a breaking change to the `ituser_create` mutator.
-    Version 10 ensures that the old functionality is still available.
+    Version 12 introduced a breaking change to the `ituser_create` mutator.
+    Version 11 ensures that the old functionality is still available.
     """
 
     mutation = Mutation

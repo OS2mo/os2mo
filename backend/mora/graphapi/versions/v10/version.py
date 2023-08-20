@@ -45,10 +45,10 @@ class Mutation(NextGraphQLVersion.schema.mutation):  # type: ignore[name-defined
 
 
 class GraphQLSchema(NextGraphQLVersion.schema):  # type: ignore
-    """Version 11 of the GraphQL Schema.
+    """Version 10 of the GraphQL Schema.
 
-    Version 10 introduced a breaking change to the `manager_create` mutator.
-    Version 9 ensures that the old functionality is still available.
+    Version 11 introduced a breaking change to the `manager_create` mutator.
+    Version 10 ensures that the old functionality is still available.
     """
 
     mutation = Mutation
