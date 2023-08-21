@@ -15,7 +15,7 @@ from ramodels.mo.employee import Employee
 
 from .conftest import read_mapping
 from mo_ldap_import_export.converters import LdapConverter
-from mo_ldap_import_export.customer_specific import HolstebroEngagementUpdate
+from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 
 
 @pytest.fixture
@@ -243,7 +243,7 @@ def test_back_and_forth_mapping(converters: dict[str, LdapConverter], uuid: UUID
         extension_10="10",
     )
 
-    mo_holstebro_cust = HolstebroEngagementUpdate.from_simplified_fields(
+    mo_jobtilte_cust = JobTitleFromADToMO.from_simplified_fields(
         user_uuid=uuid,
         job_function_uuid=uuid,
         job_function_fallback_uuid=uuid,
@@ -256,7 +256,7 @@ def test_back_and_forth_mapping(converters: dict[str, LdapConverter], uuid: UUID
         "mo_employee_address": mo_employee_address,
         "mo_employee_it_user": mo_employee_it_user,
         "mo_employee_engagement": mo_employee_engagement,
-        "mo_holstebro_cust": mo_holstebro_cust,
+        "mo_jobtilte_cust": mo_jobtilte_cust,
     }
 
     for json_file, converter in converters.items():

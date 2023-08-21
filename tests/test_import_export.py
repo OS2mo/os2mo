@@ -21,7 +21,7 @@ from ramodels.mo.employee import Employee
 from ramqp.mo import MORoutingKey
 from structlog.testing import capture_logs
 
-from mo_ldap_import_export.customer_specific import HolstebroEngagementUpdate
+from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.exceptions import DNNotFound
 from mo_ldap_import_export.exceptions import IgnoreChanges
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
@@ -1184,13 +1184,13 @@ async def test_refresh_employee(
     assert sync_tool.refresh_object.await_count == 5
 
 
-async def test_import_holstebroengagementupdate_objects(
+async def test_import_jobtitlefromadtomo_objects(
     context: Context, converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
     converter.find_mo_object_class.return_value = (
-        "mo_ldap_import_export.customer_specific.HolstebroEngagementUpdate"
+        "mo_ldap_import_export.customer_specific.JobTitleFromADToMO"
     )
-    converter.import_mo_object_class.return_value = HolstebroEngagementUpdate
+    converter.import_mo_object_class.return_value = JobTitleFromADToMO
     converter.get_mo_attributes.return_value = ["user", "uuid", "job_function"]
     converter.get_ldap_to_mo_json_keys.return_value = [
         "Custom",
@@ -1202,7 +1202,7 @@ async def test_import_holstebroengagementupdate_objects(
     eng_uuid = str(uuid4())
 
     converted_objects = [
-        HolstebroEngagementUpdate.from_simplified_fields(
+        JobTitleFromADToMO.from_simplified_fields(
             user_uuid=user_uuid,
             job_function_uuid=job_function_uuid,
             job_function_fallback_uuid=job_function_fallback_uuid,
@@ -1243,7 +1243,7 @@ async def test_import_holstebroengagementupdate_objects(
         "mo_ldap_import_export.import_export.SyncTool.format_converted_objects",
         return_value=converted_objects,
     ), patch(
-        "mo_ldap_import_export.customer_specific.HolstebroEngagementUpdate.sync_to_mo",
+        "mo_ldap_import_export.customer_specific.JobTitleFromADToMO.sync_to_mo",
         return_value=job,
     ):
         await asyncio.gather(sync_tool.import_single_user("CN=foo"))

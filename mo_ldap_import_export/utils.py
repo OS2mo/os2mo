@@ -15,7 +15,7 @@ from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
 from ramqp.mo import MORoutingKey
 
-from .customer_specific import HolstebroEngagementUpdate
+from .customer_specific import JobTitleFromADToMO
 from .exceptions import InvalidQuery
 from .logging import logger
 
@@ -25,8 +25,8 @@ def import_class(name):
     components = name.split(".")
     if components[0] == "Custom":
         match components[1]:
-            case "HolstebroEngagementUpdate":
-                return HolstebroEngagementUpdate
+            case "JobTitleFromADToMO":
+                return JobTitleFromADToMO
     else:
         mod = __import__(components[0])
     for comp in components[1:]:
