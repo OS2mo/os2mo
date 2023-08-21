@@ -458,7 +458,7 @@ async def cleanup(
 
     # Convert to LDAP-style to make mo-data comparable to LDAP data.
     converted_mo_objects = [
-        converter.to_ldap(
+        await converter.to_ldap(
             {
                 "mo_employee": employee,
                 mo_dict_key: mo_object,

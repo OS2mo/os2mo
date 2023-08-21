@@ -349,9 +349,11 @@ class UserNameGeneratorBase:
 
         return common_name
 
-    def _get_employee_ldap_attributes(self, employee: Employee, dn: str):
+    async def _get_employee_ldap_attributes(self, employee: Employee, dn: str):
         converter = self.user_context["converter"]
-        employee_ldap = converter.to_ldap({"mo_employee": employee}, "Employee", dn)
+        employee_ldap = await converter.to_ldap(
+            {"mo_employee": employee}, "Employee", dn
+        )
         attributes = employee_ldap.dict()
         attributes.pop("dn")
 
@@ -393,7 +395,7 @@ class UserNameGenerator(UserNameGeneratorBase):
         logger.info(f"Generated CommonName for {givenname} {surname}: '{common_name}'")
 
         dn = self._make_dn(common_name)
-        employee_attributes = self._get_employee_ldap_attributes(employee, dn)
+        employee_attributes = await self._get_employee_ldap_attributes(employee, dn)
         other_attributes = {"sAMAccountName": username}
         self.dataloader.add_ldap_object(dn, employee_attributes | other_attributes)
         return dn
@@ -444,7 +446,7 @@ class AlleroedUserNameGenerator(UserNameGeneratorBase):
         logger.info(f"Generated username for {givenname} {surname}: '{username}'")
 
         dn = self._make_dn(common_name)
-        employee_attributes = self._get_employee_ldap_attributes(employee, dn)
+        employee_attributes = await self._get_employee_ldap_attributes(employee, dn)
         other_attributes = {
             "sAMAccountName": username,
             "userPrincipalName": f"{username}@alleroed.dk",

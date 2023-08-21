@@ -171,7 +171,7 @@ def test_address_types(converters: dict[str, LdapConverter]):
                 assert mapping_dict["itsystem"] == it_system_template
 
 
-def test_back_and_forth_mapping(converters: dict[str, LdapConverter], uuid: UUID):
+async def test_back_and_forth_mapping(converters: dict[str, LdapConverter], uuid: UUID):
 
     mo_employee = Employee(
         givenname="Bill",
@@ -268,8 +268,10 @@ def test_back_and_forth_mapping(converters: dict[str, LdapConverter], uuid: UUID
         for json_key in json_keys:
             print(f"Testing '{json_key}' json_key")
 
-            ldap_object = converter.to_ldap(mo_object_dict, json_key, "CN=foo")
-            converted_mo_object = converter.from_ldap(ldap_object, json_key, uuid)[0]
+            ldap_object = await converter.to_ldap(mo_object_dict, json_key, "CN=foo")
+            converted_mo_object = (
+                await converter.from_ldap(ldap_object, json_key, uuid)
+            )[0]
 
             # Skip validity, because we often set from_date = now()
             attributes_to_skip = ["validity"]
@@ -296,7 +298,7 @@ def test_back_and_forth_mapping(converters: dict[str, LdapConverter], uuid: UUID
                 assert getattr(converted_mo_object, attribute) in original_values
 
 
-def convert_address_to_ldap(address, json_key, converter):
+async def convert_address_to_ldap(address, json_key, converter):
     """
     Convert a MO address to ldap
     """
@@ -311,10 +313,10 @@ def convert_address_to_ldap(address, json_key, converter):
         "mo_org_unit_address": mo_org_unit_address,
     }
 
-    return converter.to_ldap(mo_object_dict, json_key, "CN=foo")
+    return await converter.to_ldap(mo_object_dict, json_key, "CN=foo")
 
 
-def test_alleroed_employee_mapping(converters: dict[str, LdapConverter]):
+async def test_alleroed_employee_mapping(converters: dict[str, LdapConverter]):
     """
     Test that givenname, surname, nickname and so on get combined and split properly.
     """
@@ -331,20 +333,20 @@ def test_alleroed_employee_mapping(converters: dict[str, LdapConverter]):
         "mo_employee": mo_employee,
     }
 
-    ldap_employee = converter.to_ldap(mo_object_dict, "Employee", "CN=foo")
+    ldap_employee = await converter.to_ldap(mo_object_dict, "Employee", "CN=foo")
 
     assert ldap_employee.givenName == "Lukas"  # type: ignore
     assert ldap_employee.sn == "Skywalker"  # type: ignore
     assert ldap_employee.displayName == "Lucky Luke"  # type: ignore
 
-    mo_employee_converted = converter.from_ldap(
-        ldap_employee, "Employee", mo_employee.uuid
+    mo_employee_converted = (
+        await converter.from_ldap(ldap_employee, "Employee", mo_employee.uuid)
     )[0]
 
     assert mo_employee_converted == mo_employee
 
 
-def test_objectguid_mappings(converters: dict[str, LdapConverter]):
+async def test_objectguid_mappings(converters: dict[str, LdapConverter]):
     """
     Validate that objectGUIDs get written to LDAP properly
     """
@@ -371,7 +373,9 @@ def test_objectguid_mappings(converters: dict[str, LdapConverter]):
 
             for attribute in attributes:
                 if attribute.lower() == "objectguid":
-                    ldap_object = converter.to_ldap(mo_object_dict, json_key, "CN=foo")
+                    ldap_object = await converter.to_ldap(
+                        mo_object_dict, json_key, "CN=foo"
+                    )
 
                     objectGUID = getattr(ldap_object, attribute)
                     assert UUID(objectGUID)

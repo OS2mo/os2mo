@@ -496,6 +496,9 @@ def converter() -> MagicMock:
             dn="CN=foo", address=conversion_dict["mo_employee_address"].value
         )
 
+    converter.to_ldap = AsyncMock()
+    converter.from_ldap = AsyncMock()
+
     converter.to_ldap.side_effect = to_ldap
     converter.get_ldap_attributes.return_value = ["address"]
 

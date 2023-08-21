@@ -209,6 +209,10 @@ def converter() -> MagicMock:
     converter._import_to_mo_ = MagicMock()
     converter._import_to_mo_.return_value = True
 
+    converter.to_ldap = AsyncMock()
+    converter.from_ldap = AsyncMock()
+    converter.from_ldap.return_value = Employee(name="Angus")
+
     return converter
 
 
@@ -559,7 +563,7 @@ def test_ldap_get_all_converted_endpoint_failure(
     test_client: TestClient,
     converter: MagicMock,
 ) -> None:
-    def from_ldap(ldap_object, json_key, employee_uuid=None):
+    async def from_ldap(ldap_object, json_key, employee_uuid=None):
         # This will raise a validationError (which is what we want to test)
         return Employee(**{"foo": None})
 

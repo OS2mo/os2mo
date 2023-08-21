@@ -174,10 +174,10 @@ def converter(context: Context) -> LdapConverter:
     return LdapConverter(context)
 
 
-def test_ldap_to_mo(converter: LdapConverter) -> None:
+async def test_ldap_to_mo(converter: LdapConverter) -> None:
     # converter = LdapConverter(context)
     employee_uuid = uuid4()
-    employee = converter.from_ldap(
+    result = await converter.from_ldap(
         LdapObject(
             dn="",
             name="",
@@ -188,12 +188,13 @@ def test_ldap_to_mo(converter: LdapConverter) -> None:
         ),
         "Employee",
         employee_uuid=employee_uuid,
-    )[0]
+    )
+    employee = result[0]
     assert employee.givenname == "Tester"
     assert employee.surname == "Testersen"
     assert employee.uuid == employee_uuid
 
-    mail = converter.from_ldap(
+    result = await converter.from_ldap(
         LdapObject(
             dn="",
             mail="foo@bar.dk",
@@ -201,7 +202,8 @@ def test_ldap_to_mo(converter: LdapConverter) -> None:
         ),
         "Email",
         employee_uuid=employee_uuid,
-    )[0]
+    )
+    mail = result[0]
 
     assert mail.value == "foo@bar.dk"
     assert mail.person.uuid == employee_uuid
@@ -210,7 +212,7 @@ def test_ldap_to_mo(converter: LdapConverter) -> None:
     # Note: Date is always at midnight in MO
     assert from_date == datetime.datetime(2019, 1, 1, 0, 0, 0)
 
-    mail = converter.from_ldap(
+    mail = await converter.from_ldap(
         LdapObject(
             dn="",
             mail=[],
@@ -223,9 +225,9 @@ def test_ldap_to_mo(converter: LdapConverter) -> None:
     assert not mail
 
 
-def test_ldap_to_mo_uuid_not_found(context: Context) -> None:
+async def test_ldap_to_mo_uuid_not_found(context: Context) -> None:
     converter = LdapConverter(context)
-    it_users_with_typo = converter.from_ldap(
+    it_users_with_typo = await converter.from_ldap(
         LdapObject(
             dn="",
             msSFU30Name=["foo", "bar"],
@@ -235,7 +237,7 @@ def test_ldap_to_mo_uuid_not_found(context: Context) -> None:
         employee_uuid=uuid4(),
     )
 
-    it_users = converter.from_ldap(
+    it_users = await converter.from_ldap(
         LdapObject(
             dn="",
             msSFU30Name=["foo", "bar"],
@@ -257,7 +259,7 @@ def test_ldap_to_mo_uuid_not_found(context: Context) -> None:
     assert len(it_users) == 2
 
 
-def test_ldap_to_mo_dict_error(context: Context) -> None:
+async def test_ldap_to_mo_dict_error(context: Context) -> None:
 
     converter = LdapConverter(context)
     converter.mapping = converter._populate_mapping_with_templates(
@@ -271,11 +273,11 @@ def test_ldap_to_mo_dict_error(context: Context) -> None:
                 }
             }
         },
-        Environment(undefined=Undefined),
+        Environment(undefined=Undefined, enable_async=True),
     )
 
     with pytest.raises(IncorrectMapping):
-        converter.from_ldap(
+        await converter.from_ldap(
             LdapObject(
                 dn="",
                 msSFU30Name=["foo", "bar"],
@@ -286,7 +288,7 @@ def test_ldap_to_mo_dict_error(context: Context) -> None:
         )
 
 
-def test_ldap_to_mo_dict_validation_error(context: Context) -> None:
+async def test_ldap_to_mo_dict_validation_error(context: Context) -> None:
 
     converter = LdapConverter(context)
     converter.import_mo_object_class = MagicMock()  # type: ignore
@@ -305,11 +307,11 @@ def test_ldap_to_mo_dict_validation_error(context: Context) -> None:
                 }
             }
         },
-        Environment(undefined=Undefined),
+        Environment(undefined=Undefined, enable_async=True),
     )
 
     with capture_logs() as cap_logs:
-        converter.from_ldap(
+        await converter.from_ldap(
             LdapObject(
                 dn="",
                 hkStsuuid="not_an_uuid",
@@ -324,9 +326,9 @@ def test_ldap_to_mo_dict_validation_error(context: Context) -> None:
         assert "not a valid uuid" in str(info_messages)
 
 
-def test_mo_to_ldap(converter: LdapConverter) -> None:
+async def test_mo_to_ldap(converter: LdapConverter) -> None:
     obj_dict: dict = {"mo_employee": Employee(givenname="Tester", surname="Testersen")}
-    ldap_object: Any = converter.to_ldap(obj_dict, "Employee", "CN=foo")
+    ldap_object: Any = await converter.to_ldap(obj_dict, "Employee", "CN=foo")
     assert ldap_object.givenName == "Tester"
     assert ldap_object.sn == "Testersen"
     assert ldap_object.name == "Tester Testersen"
@@ -334,10 +336,10 @@ def test_mo_to_ldap(converter: LdapConverter) -> None:
 
     with pytest.raises(NotSupportedException):
         obj_dict = {"mo_employee_address": "foo"}
-        converter.to_ldap(obj_dict, "Employee", "CN=foo")
+        await converter.to_ldap(obj_dict, "Employee", "CN=foo")
 
 
-def test_mapping_loader() -> None:
+async def test_mapping_loader() -> None:
     mapping = read_mapping_json(
         os.path.join(os.path.dirname(__file__), "resources", "mapping.json")
     )
@@ -373,7 +375,7 @@ def test_mapping_loader() -> None:
     assert mapping == expected
 
 
-def test_mapping_loader_failure(context: Context) -> None:
+async def test_mapping_loader_failure(context: Context) -> None:
 
     good_context = copy.deepcopy(context)
 
@@ -390,7 +392,7 @@ def test_mapping_loader_failure(context: Context) -> None:
         converter = LdapConverter(context=good_context)
         converter.mapping = bad_mapping
         with pytest.raises(IncorrectMapping):
-            converter.from_ldap(
+            await converter.from_ldap(
                 LdapObject(
                     dn="",
                     name="",
@@ -401,15 +403,15 @@ def test_mapping_loader_failure(context: Context) -> None:
                 ),
                 "Employee",
                 employee_uuid=uuid4(),
-            )[0]
+            )
         with pytest.raises(IncorrectMapping):
             obj_dict = {
                 "mo_employee": Employee(givenname="Tester", surname="Testersen")
             }
-            converter.to_ldap(obj_dict, "Employee", "CN=foo")
+            await converter.to_ldap(obj_dict, "Employee", "CN=foo")
 
 
-def test_find_cpr_field(context: Context) -> None:
+async def test_find_cpr_field(context: Context) -> None:
 
     # This mapping is accepted
     good_mapping = {
@@ -458,7 +460,7 @@ def test_find_cpr_field(context: Context) -> None:
     ):
         context["user_context"]["mapping"] = bad_mapping
         converter = LdapConverter(context)
-        cpr_field = find_cpr_field(converter.mapping)
+        cpr_field = find_cpr_field(converter.sync_mapping)
         assert cpr_field is None
 
     with pytest.raises(IncorrectMapping):
@@ -469,10 +471,10 @@ def test_find_cpr_field(context: Context) -> None:
             # This mapping does not contain the 'Employee' field
             context["user_context"]["mapping"] = {"mo_to_ldap": {}}
             converter = LdapConverter(context)
-            find_cpr_field(converter.mapping)
+            find_cpr_field(converter.sync_mapping)
 
 
-def test_template_lenience(context: Context) -> None:
+async def test_template_lenience(context: Context) -> None:
 
     mapping = {
         "ldap_to_mo": {
@@ -500,14 +502,14 @@ def test_template_lenience(context: Context) -> None:
 
     context["user_context"]["mapping"] = mapping
     converter = LdapConverter(context)
-    converter.from_ldap(
+    await converter.from_ldap(
         LdapObject(
             dn="",
             cpr="1234567890",
         ),
         "Employee",
         employee_uuid=uuid4(),
-    )[0]
+    )
 
 
 def test_find_object_class(converter: LdapConverter):
