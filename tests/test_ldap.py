@@ -729,7 +729,9 @@ def test_poller(
         poll_time=0.1,
     )
     time.sleep(0.15)
-    assert hits == ["010101-1234"]
+
+    assert len(hits) == 1
+    assert hits[0] == "010101-1234"
 
 
 def test_poller_invalidQuery(

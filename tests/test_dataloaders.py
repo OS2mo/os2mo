@@ -958,7 +958,7 @@ def test_load_mo_org_units(dataloader: DataLoader, gql_client_sync: MagicMock):
                         {
                             "name": "Magenta Aarhus",
                             "uuid": uuid2,
-                            "parent": {"uuid": uuid1, "name": "Magenta Aps"},
+                            "parent_uuid": uuid1,
                         }
                     ]
                 },
@@ -971,7 +971,7 @@ def test_load_mo_org_units(dataloader: DataLoader, gql_client_sync: MagicMock):
     output = dataloader.load_mo_org_units()
     assert output[uuid1]["name"] == "Magenta Aps"
     assert output[uuid2]["name"] == "Magenta Aarhus"
-    assert output[uuid2]["parent"]["uuid"] == uuid1
+    assert output[uuid2]["parent_uuid"] == uuid1
 
 
 def test_load_mo_org_units_empty_response(
@@ -2388,3 +2388,13 @@ def test_extract_latest_object(dataloader: DataLoader):
             },
         ]
         assert dataloader.extract_current_or_latest_object(objects)["uuid"] == uuid_obj2
+
+
+def test_load_mo_root_org_uuid(dataloader: DataLoader):
+
+    root_org_uuid = uuid4()
+
+    dataloader.query_mo_sync = MagicMock()  # type: ignore
+    dataloader.query_mo_sync.return_value = {"org": {"uuid": str(root_org_uuid)}}
+
+    assert dataloader.load_mo_root_org_uuid() == str(root_org_uuid)

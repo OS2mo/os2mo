@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from __future__ import annotations
 
-import asyncio
 import datetime
 import json
 import re
@@ -987,6 +986,7 @@ class LdapConverter:
         """
 
         org_unit_path = org_unit_path_string.split(self.org_unit_path_string_separator)
+        event_loop = self.user_context["event_loop"]
 
         for nesting_level in range(len(org_unit_path)):
             partial_path = org_unit_path[: nesting_level + 1]
@@ -998,15 +998,13 @@ class LdapConverter:
                 logger.info(f"Importing {partial_path_string}")
 
                 if nesting_level == 0:
-                    parent_uuid = None
-                    parent = None
+                    parent_uuid = self.dataloader.load_mo_root_org_uuid()
                 else:
                     parent_path = org_unit_path[:nesting_level]
                     parent_path_string = self.org_unit_path_string_separator.join(
                         parent_path
                     )
                     parent_uuid = self.get_org_unit_uuid_from_path(parent_path_string)
-                    parent = {"uuid": str(parent_uuid), "name": parent_path[-1]}
 
                 uuid = uuid4()
                 name = partial_path[-1]
@@ -1027,11 +1025,11 @@ class LdapConverter:
                     uuid=uuid,
                 )
 
-                asyncio.gather(self.dataloader.upload_mo_objects([org_unit]))
+                event_loop.create_task(self.dataloader.upload_mo_objects([org_unit]))
                 self.org_unit_info[str(uuid)] = {
                     "uuid": str(uuid),
                     "name": name,
-                    "parent": parent,
+                    "parent_uuid": parent_uuid,
                 }
 
     def get_org_unit_uuid_from_path(self, org_unit_path_string: str):
@@ -1047,17 +1045,18 @@ class LdapConverter:
         )
 
     def get_org_unit_path_string(self, uuid: str):
+        root_org_uuid: str = self.dataloader.load_mo_root_org_uuid()
         org_unit_info = self.org_unit_info[str(uuid)]
         object_name = org_unit_info["name"].strip()
-        parent = org_unit_info["parent"]
+        parent_uuid: str = org_unit_info["parent_uuid"]
 
         path_string = object_name
-        while parent:
-            parent_object_name = parent["name"].strip()
+        while parent_uuid and parent_uuid != root_org_uuid:
+            parent_object_name = self.org_unit_info[parent_uuid]["name"].strip()
             path_string = (
                 parent_object_name + self.org_unit_path_string_separator + path_string
             )
-            parent = self.org_unit_info[str(parent["uuid"])]["parent"]
+            parent_uuid = self.org_unit_info[parent_uuid]["parent_uuid"]
 
         return path_string.replace(self.imported_org_unit_tag, "")
 
