@@ -985,7 +985,7 @@ class LdapConverter:
     def get_org_unit_name(self, uuid: str) -> str:
         return self.get_object_name_from_uuid(self.org_unit_info, uuid)
 
-    def create_org_unit(self, org_unit_path_string: str):
+    async def create_org_unit(self, org_unit_path_string: str):
         """
         Create the parent org. in the hierarchy (if it does not exist),
         then create the next one and keep doing that
@@ -993,7 +993,6 @@ class LdapConverter:
         """
 
         org_unit_path = org_unit_path_string.split(self.org_unit_path_string_separator)
-        event_loop = self.user_context["event_loop"]
 
         for nesting_level in range(len(org_unit_path)):
             partial_path = org_unit_path[: nesting_level + 1]
@@ -1032,7 +1031,7 @@ class LdapConverter:
                     uuid=uuid,
                 )
 
-                event_loop.create_task(self.dataloader.upload_mo_objects([org_unit]))
+                await self.dataloader.upload_mo_objects([org_unit])
                 self.org_unit_info[str(uuid)] = {
                     "uuid": str(uuid),
                     "name": name,
@@ -1080,7 +1079,7 @@ class LdapConverter:
         sep = self.org_unit_path_string_separator
         return sep.join([s.strip() for s in org_unit_path_string.split(sep)])
 
-    def get_or_create_org_unit_uuid(self, org_unit_path_string: str):
+    async def get_or_create_org_unit_uuid(self, org_unit_path_string: str):
 
         if not org_unit_path_string:
             raise UUIDNotFoundException("Organization unit string is empty")
@@ -1094,7 +1093,7 @@ class LdapConverter:
             logger.info(
                 (f"Could not find '{org_unit_path_string}'. " "Creating organisation.")
             )
-            self.create_org_unit(org_unit_path_string)
+            await self.create_org_unit(org_unit_path_string)
             return self.get_org_unit_uuid_from_path(org_unit_path_string)
 
     @staticmethod
