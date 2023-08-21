@@ -355,17 +355,15 @@ class Response(Generic[MOObject]):
                 True if the object is active right now, False otherwise.
             """
             now = datetime.now().replace(tzinfo=DEFAULT_TIMEZONE)
-            datetime_min = datetime.min.replace(tzinfo=DEFAULT_TIMEZONE)
-            datetime_max = datetime.max.replace(tzinfo=DEFAULT_TIMEZONE)
-            try:
-                return (
-                    (obj.validity.from_date.date() or datetime_min)
-                    <= now.date()
-                    <= (obj.validity.to_date.date() or datetime_max)
-                )
-            except AttributeError:  # occurs when objects do not contain validity
-                # TODO: Get rid of this entire branch by implementing non-static facet, etc.
-                return True
+            from_date = datetime.min.replace(tzinfo=DEFAULT_TIMEZONE)
+            to_date = datetime.max.replace(tzinfo=DEFAULT_TIMEZONE)
+
+            # OBS: if-statement is needed to accomondate non-static objects
+            if hasattr(obj, "validity"):
+                from_date = obj.validity.from_date or to_date
+                to_date = obj.validity.to_date or from_date
+
+            return from_date.date() <= now.date() <= to_date.date()
 
         # TODO: This should really do its own instantaneous query to find whatever is
         #       active right now, regardless of the values in objects.
