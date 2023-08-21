@@ -54,7 +54,7 @@ COPY README.rst .
 COPY docker ./docker
 COPY backend ./backend
 
-# Run the server as the mora user on port 80
+# Run the server as the mora user on port 5000
 USER mora:mora
 
 # Add build version to the environment last to avoid build cache misses
@@ -63,6 +63,6 @@ ARG COMMIT_SHA
 ENV COMMIT_TAG=${COMMIT_TAG:-HEAD} \
     COMMIT_SHA=${COMMIT_SHA}
 
-EXPOSE 80
+EXPOSE 5000
 
 CMD ["./docker/start.sh"]

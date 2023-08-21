@@ -18,7 +18,7 @@ services:
   frontend_static:
     image: magentaaps/os2mo-frontend:12.13.0
     environment:
-      BASE_URL: http://mo:80
+      BASE_URL: http://mo:5000
     restart: unless-stopped
 
   frontend_new_static:
@@ -50,7 +50,7 @@ services:
     entrypoint: ["/wait-for-rabbitmq.sh"]
     command: ["./docker/start.sh"]
     ports:
-      - "127.0.0.1:5002:80"
+      - "127.0.0.1:5002:5000"
     env_file: dev-environment/os2mo.env
     restart: unless-stopped
     depends_on:
