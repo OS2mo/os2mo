@@ -109,3 +109,21 @@ include:
   before_script:
     - !reference [ .pytest, before_script ]
     - !reference [ .services:mo-backing, before_script ]
+    # Using the GitLab Docker executor, the runner waits for every port in each
+    # service's Docker EXPOSE definition to be reachable before starting the main
+    # job. In Kubernetes, however, GitLab only considers the *first* port of each
+    # service's definition.
+    # This is fine for every service except RabbitMQ, which exposes six different
+    # ports; the main AMQP one not being the first.
+    # https://gitlab.com/gitlab-org/gitlab-runner/-/merge_requests/4079
+    # https://docs.gitlab.com/runner/executors/docker.html
+    # https://docs.gitlab.com/runner/executors/kubernetes.html
+    # https://github.com/docker-library/rabbitmq/blob/master/Dockerfile-ubuntu.template
+    #
+    - |
+      # The image doesn't have netcat, so we have to use curl hacks.
+      # https://curl.se/docs/todo.html#exit_immediately_upon_connection
+      while ! curl --silent telnet://msg-broker:5672 --output /dev/null < /dev/zero; do
+        echo 'Waiting for RabbitMQ...'
+        sleep 1
+      done
