@@ -280,7 +280,7 @@ class SyncTool:
 
         if object_type == "person":
             # Convert to LDAP
-            ldap_employee = self.converter.to_ldap(mo_object_dict, "Employee", dn)
+            ldap_employee = await self.converter.to_ldap(mo_object_dict, "Employee", dn)
 
             # Upload to LDAP - overwrite because all employee fields are unique.
             # One person cannot have multiple names.
@@ -311,7 +311,7 @@ class SyncTool:
 
             # Convert & Upload to LDAP
             ldap_modify_responses = await self.dataloader.modify_ldap_object(
-                self.converter.to_ldap(mo_object_dict, json_key, dn),
+                await self.converter.to_ldap(mo_object_dict, json_key, dn),
                 json_key,
                 delete=delete,
             )
@@ -349,7 +349,7 @@ class SyncTool:
 
             # Convert & Upload to LDAP
             ldap_modify_responses = await self.dataloader.modify_ldap_object(
-                self.converter.to_ldap(mo_object_dict, json_key, dn),
+                await self.converter.to_ldap(mo_object_dict, json_key, dn),
                 json_key,
                 delete=delete,
             )
@@ -385,7 +385,7 @@ class SyncTool:
             # Because it looks like you cannot set 'primary' when creating an engagement
             # in the OS2mo GUI.
             ldap_modify_responses = await self.dataloader.modify_ldap_object(
-                self.converter.to_ldap(mo_object_dict, json_key, dn),
+                await self.converter.to_ldap(mo_object_dict, json_key, dn),
                 json_key,
                 delete=delete,
             )
@@ -425,7 +425,7 @@ class SyncTool:
 
         # Convert & Upload to LDAP
         ldap_modify_responses = await self.dataloader.modify_ldap_object(
-            self.converter.to_ldap(mo_object_dict, json_key, dn),
+            await self.converter.to_ldap(mo_object_dict, json_key, dn),
             json_key,
             delete=delete,
         )
@@ -770,7 +770,7 @@ class SyncTool:
                 loaded_object=loaded_object,
             )
 
-            converted_objects = self.converter.from_ldap(
+            converted_objects = await self.converter.from_ldap(
                 loaded_object, json_key, employee_uuid=employee_uuid
             )
 

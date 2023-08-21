@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from __future__ import annotations
 
+import copy
 import datetime
 import json
 import re
@@ -21,6 +22,7 @@ from ramodels.mo.organisation_unit import OrganisationUnit
 from ramqp.utils import RequeueMessage
 
 from .environments import environment
+from .environments import sync_environment
 from .exceptions import IncorrectMapping
 from .exceptions import InvalidNameException
 from .exceptions import NotSupportedException
@@ -127,13 +129,18 @@ class LdapConverter:
         )
 
         self.mapping = self._populate_mapping_with_templates(
-            mapping,
+            copy.deepcopy(mapping),
             environment,
         )
 
+        self.sync_mapping = self._populate_mapping_with_templates(
+            copy.deepcopy(mapping),
+            sync_environment,
+        )
+
         self.check_mapping()
-        self.cpr_field = find_cpr_field(self.mapping)
-        self.ldap_it_system = find_ldap_it_system(self.mapping, self.mo_it_systems)
+        self.cpr_field = find_cpr_field(self.sync_mapping)
+        self.ldap_it_system = find_ldap_it_system(self.sync_mapping, self.mo_it_systems)
 
     def load_info_dicts(self):
         # Note: If new address types or IT systems are added to MO, these dicts need
@@ -663,8 +670,8 @@ class LdapConverter:
         Check that we have either a cpr-field OR an it-system which maps to an LDAP DN
         """
 
-        cpr_field = find_cpr_field(self.mapping)
-        ldap_it_system = find_ldap_it_system(self.mapping, self.mo_it_systems)
+        cpr_field = find_cpr_field(self.sync_mapping)
+        ldap_it_system = find_ldap_it_system(self.sync_mapping, self.mo_it_systems)
         if not cpr_field and not ldap_it_system:
             raise IncorrectMapping(
                 "Neither a cpr-field or an ldap it-system could be found"
@@ -1135,7 +1142,7 @@ class LdapConverter:
                 mapping[key] = self._populate_mapping_with_templates(value, environment)
         return mapping
 
-    def to_ldap(self, mo_object_dict: dict, json_key: str, dn: str) -> LdapObject:
+    async def to_ldap(self, mo_object_dict: dict, json_key: str, dn: str) -> LdapObject:
         """
         mo_object_dict : dict
             dict with mo objects to convert. for example:
@@ -1165,7 +1172,7 @@ class LdapConverter:
             )
 
         for ldap_field_name, template in object_mapping.items():
-            rendered_item = template.render(mo_object_dict)
+            rendered_item = await template.render_async(mo_object_dict)
             if rendered_item:
                 ldap_object[ldap_field_name] = rendered_item
 
@@ -1189,7 +1196,7 @@ class LdapConverter:
         number_of_entries_in_this_ldap_object = max(n)
         return number_of_entries_in_this_ldap_object
 
-    def from_ldap(
+    async def from_ldap(
         self, ldap_object: LdapObject, json_key: str, employee_uuid: UUID
     ) -> Any:
         """
@@ -1226,7 +1233,7 @@ class LdapConverter:
                 raise IncorrectMapping(f"Missing '{json_key}' in mapping 'ldap_to_mo'")
             for mo_field_name, template in object_mapping.items():
                 try:
-                    value = template.render(context).strip()
+                    value = (await template.render_async(context)).strip()
 
                     # Sloppy mapping can lead to the following rendered strings:
                     # - {{ldap.mail or None}} renders as "None"
