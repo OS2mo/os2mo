@@ -1,10 +1,13 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import datetime as dt
 from _datetime import datetime
+from unittest import mock
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
 
+import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
@@ -16,10 +19,13 @@ from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from .utils import fetch_class_uuids
 from .utils import fetch_engagement_validity
+from mora import lora
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
+from mora.graphapi.versions.latest.leave import terminate_leave
 from mora.graphapi.versions.latest.models import LeaveCreate
+from mora.graphapi.versions.latest.models import LeaveTerminate
 from mora.graphapi.versions.latest.models import LeaveUpdate
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import LeaveRead
@@ -339,3 +345,103 @@ async def test_update_leave_integration_test(test_data, graphapi_post) -> None:
         leave_objects_post_update["engagement"] == expected_updated_leave["engagement"]
     )
     assert leave_objects_post_update["validity"] == expected_updated_leave["validity"]
+
+
+@given(
+    given_uuid=st.uuids(),
+    given_validity_dts=st.tuples(st.datetimes() | st.none(), st.datetimes()).filter(
+        lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
+    ),
+)
+async def test_leave_terminate_unit(given_uuid, given_validity_dts):
+    # Around 80% of test-runs ends in `caught_exception` which equals a skip.
+    # This "template" is used on quite a few models and doesn't seem to provide
+    # reliable tests.
+    from_date, to_date = given_validity_dts
+
+    # The terminate logic have a check that verifies we don't use times other than:
+    # 00:00:00, to the endpoint.. so if we get one of these from hypothesis, we will
+    # expect an exception.
+    expect_exception = False
+    if to_date.time() != dt.time.min:
+        expect_exception = True
+
+    test_data = LeaveTerminate(
+        uuid=given_uuid,
+        from_date=from_date,
+        to_date=to_date,
+    )
+
+    # Patching / Mocking
+    async def mock_update(*args):
+        return args[-1]
+
+    terminate_result_uuid = None
+    caught_exception = None
+
+    with mock.patch.object(lora.Scope, "update", new=mock_update):
+        try:
+            terminate_result_uuid = await terminate_leave(input=test_data)
+        except Exception as e:
+            caught_exception = e
+
+    # Assert
+    if not expect_exception:
+        assert terminate_result_uuid == test_data.uuid
+    else:
+        assert caught_exception is not None
+
+
+@pytest.mark.integration_test
+@freezegun.freeze_time("2023-07-13", tz_offset=1)
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "test_data",
+    [
+        {
+            "uuid": "0895b7f5-86ac-45c5-8fb1-c3047d45b643",
+            "to": "2023-07-25T00:00:00+02:00",
+        },
+        {
+            "uuid": "0895b7f5-86ac-45c5-8fb1-c3047d45b643",
+            "to": "2040-01-01T00:00:00+01:00",
+        },
+    ],
+)
+async def test_leave_terminate_integration(test_data, graphapi_post) -> None:
+    uuid = test_data["uuid"]
+    mutation = """
+        mutation TerminateLeave($input: LeaveTerminateInput!) {
+            leave_terminate(input: $input) {
+                uuid
+            }
+        }
+    """
+    mutation_response: GQLResponse = graphapi_post(
+        mutation, {"input": jsonable_encoder(test_data)}
+    )
+
+    assert mutation_response.errors is None
+
+    verify_query = """
+        query VerifyQuery($uuid: UUID!) {
+            leaves(uuids: [$uuid]){
+                objects {
+                    objects {
+                        uuid
+                        validity {
+                            to
+                        }
+                    }
+                }
+            }
+        }
+    """
+
+    verify_response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    assert verify_response.errors is None
+    leave_objects_post_terminate = one(
+        one(verify_response.data["leaves"]["objects"])["objects"]
+    )
+    assert test_data["uuid"] == leave_objects_post_terminate["uuid"]
+    assert test_data["to"] == leave_objects_post_terminate["validity"]["to"]

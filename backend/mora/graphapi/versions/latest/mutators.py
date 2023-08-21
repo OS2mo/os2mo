@@ -50,6 +50,7 @@ from .inputs import KLECreateInput
 from .inputs import KLETerminateInput
 from .inputs import KLEUpdateInput
 from .inputs import LeaveCreateInput
+from .inputs import LeaveTerminateInput
 from .inputs import LeaveUpdateInput
 from .inputs import ManagerCreateInput
 from .inputs import ManagerTerminateInput
@@ -71,6 +72,7 @@ from .kle import create_kle
 from .kle import terminate_kle
 from .kle import update_kle
 from .leave import create_leave
+from .leave import terminate_leave
 from .leave import update_leave
 from .manager import create_manager
 from .manager import terminate_manager
@@ -597,7 +599,16 @@ class Mutation:
     async def leave_update(self, input: LeaveUpdateInput) -> Response[Leave]:
         return uuid2response(await update_leave(input.to_pydantic()), LeaveRead)
 
-    # TODO: leave_terminate
+    @strawberry.mutation(
+        description="Terminates a leave.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_terminate_permission("leave"),
+        ],
+    )
+    async def leave_terminate(self, input: LeaveTerminateInput) -> Response[Leave]:
+        return uuid2response(await terminate_leave(input.to_pydantic()), LeaveRead)
+
     # TODO: leave_delete
 
     # Managers

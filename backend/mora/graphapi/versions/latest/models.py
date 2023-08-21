@@ -895,6 +895,36 @@ class LeaveUpdate(UUIDBase):
         return {k: v for k, v in data_dict.items() if v}
 
 
+class LeaveTerminate(ValidityTerminate):
+    """Model representing a leave termination."""
+
+    uuid: UUID = Field(description="UUID of the leave we want to terminate.")
+
+    def get_lora_payload(self) -> dict:
+        return {
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
+                ]
+            },
+            "note": "Afsluttet",
+        }
+
+    def get_leave_trigger(self) -> OrgFuncTrigger:
+        return OrgFuncTrigger(
+            role_type=mapping.LEAVE,
+            event_type=mapping.EventType.ON_BEFORE,
+            uuid=self.uuid,
+            org_unit_uuid=self.uuid,
+            request_type=mapping.RequestType.TERMINATE,
+            request=MoraTriggerRequest(
+                type=mapping.LEAVE,
+                uuid=self.uuid,
+                validity=Validity(from_date=self.from_date, to_date=self.to_date),
+            ),
+        )
+
+
 # Managers
 # --------
 class ManagerCreate(UUIDBase):
