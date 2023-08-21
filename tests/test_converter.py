@@ -1129,7 +1129,7 @@ def test_get_object_uuid_from_user_key(converter: LdapConverter):
     assert converter.get_object_uuid_from_user_key(info_dict, name) == uuid
 
 
-def test_create_org_unit(converter: LdapConverter):
+async def test_create_org_unit(converter: LdapConverter):
     uuids = [str(uuid4()), str(uuid4()), str(uuid4())]
     org_units = ["Magenta Aps", "Magenta Aarhus", "GrønlandsTeam"]
     org_unit_infos = [
@@ -1152,18 +1152,18 @@ def test_create_org_unit(converter: LdapConverter):
     assert "GrønlandsTeam" not in org_units
 
     # Create a unit with parents
-    converter.create_org_unit(org_unit_path_string)
+    await converter.create_org_unit(org_unit_path_string)
 
     org_units = [info["name"] for info in converter.org_unit_info.values()]
     assert "GrønlandsTeam" in org_units
 
     # Try to create a unit without parents
-    converter.create_org_unit("Ørsted")
+    await converter.create_org_unit("Ørsted")
     org_units = [info["name"] for info in converter.org_unit_info.values()]
     assert "Ørsted" in org_units
 
 
-def test_get_or_create_org_unit_uuid(converter: LdapConverter):
+async def test_get_or_create_org_unit_uuid(converter: LdapConverter):
 
     root_org_uuid = str(uuid4)
     converter.dataloader.load_mo_root_org_uuid.return_value = root_org_uuid
@@ -1174,27 +1174,28 @@ def test_get_or_create_org_unit_uuid(converter: LdapConverter):
     }
 
     # Get an organization UUID
-    assert converter.get_or_create_org_unit_uuid("Magenta Aps") == uuid
+    org_uuid = await converter.get_or_create_org_unit_uuid("Magenta Aps")
+    assert org_uuid == uuid
 
     # Create a new organization and return its UUID
-    uuid_magenta_aarhus = converter.get_or_create_org_unit_uuid(
+    uuid_magenta_aarhus = await converter.get_or_create_org_unit_uuid(
         "Magenta Aps\\Magenta Aarhus"
     )
     org_units = [info["name"] for info in converter.org_unit_info.values()]
     assert "Magenta Aarhus" in org_units
 
     with pytest.raises(UUIDNotFoundException):
-        converter.get_or_create_org_unit_uuid("")
+        await converter.get_or_create_org_unit_uuid("")
 
-    assert (
-        converter.get_or_create_org_unit_uuid("Magenta Aps\\Magenta Aarhus")
-        == uuid_magenta_aarhus
+    org_uuid = await converter.get_or_create_org_unit_uuid(
+        "Magenta Aps\\Magenta Aarhus"
     )
+    assert org_uuid == uuid_magenta_aarhus
 
-    assert (
-        converter.get_or_create_org_unit_uuid("Magenta Aps \\ Magenta Aarhus")
-        == uuid_magenta_aarhus
+    org_uuid = await converter.get_or_create_org_unit_uuid(
+        "Magenta Aps \\ Magenta Aarhus"
     )
+    assert org_uuid == uuid_magenta_aarhus
 
 
 def test_clean_org_unit_path_string(converter: LdapConverter):
