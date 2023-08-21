@@ -121,9 +121,9 @@ include:
     # https://github.com/docker-library/rabbitmq/blob/master/Dockerfile-ubuntu.template
     #
     - |
-      # The image doesn't have netcat, so we have to use curl hacks.
-      # https://curl.se/docs/todo.html#exit_immediately_upon_connection
-      while ! curl --silent telnet://msg-broker:5672 --output /dev/null < /dev/zero; do
+      apt update
+      apt install -y netcat-openbsd
+      while ! nc -z msg-broker 5672; do
         echo 'Waiting for RabbitMQ...'
         sleep 1
       done
