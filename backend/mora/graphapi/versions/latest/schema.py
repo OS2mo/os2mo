@@ -354,15 +354,19 @@ class Response(Generic[MOObject]):
             Returns:
                 True if the object is active right now, False otherwise.
             """
+            if not hasattr(obj, "validity"):
+                return True
+
             now = datetime.now().replace(tzinfo=DEFAULT_TIMEZONE)
-            from_date = datetime.min.replace(tzinfo=DEFAULT_TIMEZONE)
-            to_date = datetime.max.replace(tzinfo=DEFAULT_TIMEZONE)
+            min_datetime = datetime.min.replace(tzinfo=DEFAULT_TIMEZONE)
+            max_datetime = datetime.max.replace(tzinfo=DEFAULT_TIMEZONE)
 
-            # OBS: if-statement is needed to accomondate non-static objects
-            if hasattr(obj, "validity"):
-                from_date = obj.validity.from_date or to_date
-                to_date = obj.validity.to_date or from_date
+            from_date = obj.validity.from_date or min_datetime
+            to_date = obj.validity.to_date or max_datetime
 
+            # TODO: This should just be a normal datetime compare, but due to legacy systems,
+            #       ex dipex, we must use .date() to compare dates instead of datetimes.
+            #       Remove when legacy systems handle datetimes properly.
             return from_date.date() <= now.date() <= to_date.date()
 
         # TODO: This should really do its own instantaneous query to find whatever is
@@ -3055,9 +3059,13 @@ class OrganisationUnit:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
-        deprecation_reason="Should only be used to query ancestors when validity dates have been specified, "
-        "ex from_date & to_date."
-        "Will be removed when sub-query date handling is implemented.",
+        deprecation_reason=dedent(
+            """\
+            Should only be used to query ancestors when validity dates have been specified, "
+            "ex from_date & to_date."
+            "Will be removed when sub-query date handling is implemented.
+            """
+        ),
     )
     async def ancestors_validity(
         self, root: OrganisationUnitRead, info: Info
@@ -3078,21 +3086,22 @@ class OrganisationUnit:
             list[OrganisationUnitRead], potential_parents
         )  # type: ignore
 
-        # find the correct parent
-        parent = None
-        if len(potential_parents_models) == 1:
-            parent = potential_parents_models[0]
-        elif len(potential_parents_models) > 1:
-            for ppm in potential_parents_models:
-                if (
-                    root.validity.to_date
-                    and ppm.validity.from_date > root.validity.to_date
-                ):
-                    continue
+        # if root element have a to_date, exclude all parents where from date is after root.to_date
+        potential_parents_models = list(
+            filter(
+                lambda ppm: (
+                    root.validity.to_date is None
+                    or ppm.validity.from_date <= root.validity.to_date
+                ),
+                potential_parents_models,
+            )
+        )
 
-                if parent is None or ppm.validity.from_date > parent.validity.from_date:
-                    parent = ppm
-
+        parent = max(
+            potential_parents_models,
+            key=lambda ppm: ppm.validity.from_date,
+            default=None,
+        )
         if parent is None:
             return []
 
