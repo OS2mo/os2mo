@@ -111,7 +111,7 @@ async def _set_last_run(date):
 @click.argument("uuid", type=click.UUID)
 def send_event(object_type, uuid) -> None:
     """Send AMQP event with routing_key=object_type and uuid as body."""
-    amqp_system = AMQPSystem()
+    amqp_system = AMQPSystem(settings.amqp)
 
     async def _send_event():
         try:
