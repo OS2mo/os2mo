@@ -40,6 +40,8 @@ nav:
           - Getting started (with Docker): guides/environment/docker.md
           - KLE i MO: guides/KLEiMO.md
           - Lederhåndtering i MO: guides/Lederhaandtering i MO.md
+          - Lederscript:
+              - guides/os2mo-manager-sync.md
           - MED-organisation i OS2mo: guides/MED-organisationen.md
           - Powershell-script til AD-Skriv: guides/powershellscriptAD.md
           - Tests: guides/tests.md
@@ -83,6 +85,7 @@ nav:
       - Integrationer:
           - data-import-export/integrations/aarhus-los.md
           - data-import-export/integrations/ad.md
+          - data-import-export/integrations/ldap_ad_amqp_integration.md
           - data-import-export/integrations/opusloen.md
           - data-import-export/integrations/sdloen.md
           - data-import-export/integrations/Organisationsopmærkning.md

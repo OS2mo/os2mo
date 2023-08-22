@@ -1,4 +1,8 @@
-## Manager Sync in OS2mo
+---
+title: Lederscript
+---
+
+## Manager Synchronisation in OS2mo
 
 ### Overview
 
