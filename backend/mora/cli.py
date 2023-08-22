@@ -21,6 +21,7 @@ from structlog import get_logger
 from . import amqp as amqp_subsystem
 from . import config
 from . import log
+from mora.amqp import start_amqp_subsystem
 from mora.db import AMQPSubsystem
 from mora.db import get_sessionmaker
 from oio_rest.config import get_settings as oio_rest_get_settings
@@ -111,7 +112,7 @@ async def _set_last_run(date):
 @click.argument("uuid", type=click.UUID)
 def send_event(object_type, uuid) -> None:
     """Send AMQP event with routing_key=object_type and uuid as body."""
-    amqp_system = AMQPSystem()
+    amqp_system = AMQPSystem(settings.amqp)
 
     async def _send_event():
         try:
@@ -152,6 +153,12 @@ def last_run() -> None:
                 click.echo(last_run)
 
     asyncio.run(print_last_run())
+
+
+@amqp.command()
+def start() -> None:
+    """Start the AMQP subsystem."""
+    asyncio.run(start_amqp_subsystem(sessionmaker))
 
 
 if __name__ == "__main__":

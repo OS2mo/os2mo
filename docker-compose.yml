@@ -57,6 +57,20 @@ services:
       fixture-loader:
         condition: service_completed_successfully
 
+  amqp-subsystem:
+    tty: true
+    build: .
+    volumes:
+      - ./backend:/app/backend
+      - ./dev-environment/wait-for-rabbitmq.sh:/wait-for-rabbitmq.sh
+    entrypoint: ["/wait-for-rabbitmq.sh"]
+    command: ["python", "-m", "mora.cli", "amqp", "start"]
+    env_file: dev-environment/os2mo.env
+    restart: unless-stopped
+    depends_on:
+      fixture-loader:
+        condition: service_completed_successfully
+
   mox:
     image: nginx:1
     volumes:

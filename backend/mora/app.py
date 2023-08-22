@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from itertools import chain
@@ -36,7 +35,6 @@ from .lora import lora_noop_change_context
 from mora import config
 from mora import health
 from mora import log
-from mora.amqp import start_amqp_subsystem
 from mora.auth.exceptions import AuthenticationError
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.oidc import auth
@@ -174,15 +172,9 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         await triggers.register(app)
         if lora.client is None:
             lora.client = await lora.create_lora_client(app)
-        # Make a strong reference. Otherwise, it can be cleared by the garbage
-        # collector mid-execution as the event loop only keeps weak references.
-        amqp_subsystem = asyncio.create_task(
-            start_amqp_subsystem(app.state.sessionmaker)
-        )
 
         yield
 
-        amqp_subsystem.cancel("shutting down")
         # Leaking intentional so the test suite will re-use the lora.client.
         # await lora.client.aclose()
 
