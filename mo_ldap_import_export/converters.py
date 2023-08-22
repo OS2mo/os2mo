@@ -1043,6 +1043,9 @@ class LdapConverter:
             self.imported_org_unit_tag, ""
         )
         for info in self.org_unit_info.values():
+            clean_name = info["name"].replace(self.imported_org_unit_tag, "").strip()
+            if not clean_org_unit_path_string.strip().endswith(clean_name):
+                continue
             path_string = self.get_org_unit_path_string(info["uuid"])
             if path_string == clean_org_unit_path_string:
                 return info["uuid"]

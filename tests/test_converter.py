@@ -1559,3 +1559,49 @@ def test_clean_calls_to_get_current_method_from_template_string(
     assert "ldap.bar" not in cleaned_template
     assert "or None" in cleaned_template
     assert "ldap.foo" in cleaned_template
+
+
+def test_get_org_unit_uuid_from_path(converter: LdapConverter):
+    uuid_org1 = str(uuid4())
+    uuid_org2 = str(uuid4())
+    uuid_org3 = str(uuid4())
+
+    root_org_uuid = str(uuid4())
+
+    converter.dataloader.load_mo_root_org_uuid.return_value = root_org_uuid
+
+    converter.org_unit_info = {
+        uuid_org1: {"name": "org1", "uuid": uuid_org1, "parent_uuid": root_org_uuid},
+        uuid_org2: {"name": "org2", "uuid": uuid_org2, "parent_uuid": uuid_org1},
+        uuid_org3: {"name": "org3", "uuid": uuid_org3, "parent_uuid": uuid_org2},
+    }
+
+    assert converter.get_org_unit_uuid_from_path("org1\\org2\\org3") == uuid_org3
+    assert converter.get_org_unit_uuid_from_path("org1\\org2") == uuid_org2
+    with pytest.raises(UUIDNotFoundException):
+        converter.get_org_unit_uuid_from_path("org1\\org4")
+    with pytest.raises(UUIDNotFoundException):
+        converter.get_org_unit_uuid_from_path("org1\\org3")
+
+    converter.org_unit_info = {
+        uuid_org1: {
+            "name": "IMPORTED FROM LDAP: org1",
+            "uuid": uuid_org1,
+            "parent_uuid": root_org_uuid,
+        },
+        uuid_org2: {
+            "name": "IMPORTED FROM LDAP: org2",
+            "uuid": uuid_org2,
+            "parent_uuid": uuid_org1,
+        },
+        uuid_org3: {
+            "name": "IMPORTED FROM LDAP: org3",
+            "uuid": uuid_org3,
+            "parent_uuid": uuid_org2,
+        },
+    }
+
+    assert converter.get_org_unit_uuid_from_path("org1\\org2\\org3") == uuid_org3
+    assert converter.get_org_unit_uuid_from_path("org1\\org2") == uuid_org2
+    with pytest.raises(UUIDNotFoundException):
+        converter.get_org_unit_uuid_from_path("org1\\org4")
