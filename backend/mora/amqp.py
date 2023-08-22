@@ -293,12 +293,6 @@ async def _emit_events(
 async def start_amqp_subsystem(sessionmaker: async_sessionmaker):
     mo_settings = get_settings()
 
-    if not mo_settings.amqp_enable_new_subsystem:
-        return
-
-    if not mo_settings.amqp_enable:
-        return
-
     logger.info("starting amqp subsystem")
 
     amqp_system = AMQPSystem(mo_settings.amqp)

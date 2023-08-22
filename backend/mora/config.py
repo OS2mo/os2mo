@@ -177,8 +177,6 @@ class Settings(BaseSettings):
             url=parse_obj_as(AmqpDsn, f"amqp://guest:{amqp_password}@msg_broker:5672/")
         )
 
-    amqp_enable_new_subsystem: bool = False
-
     enable_sp: bool = False
     sp_settings: ServicePlatformenSettings | None = None
 
