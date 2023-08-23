@@ -323,6 +323,7 @@ async def initialize_export_checks(fastramqpi: FastRAMQPI) -> AsyncIterator[None
 async def initialize_converters(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
     logger.info("Initializing converters")
     converter = LdapConverter(fastramqpi.get_context())
+    await converter._init()
     fastramqpi.add_context(cpr_field=converter.cpr_field)
     fastramqpi.add_context(ldap_it_system_user_key=converter.ldap_it_system)
     fastramqpi.add_context(converter=converter)
@@ -491,7 +492,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         up-to-date and represent the information in OS2mo.
         """
         converter = user_context["converter"]
-        converter.load_info_dicts()
+        await converter.load_info_dicts()
 
     # Load all users from LDAP, and import them into MO
     @app.get("/Import", status_code=202, tags=["Import"])

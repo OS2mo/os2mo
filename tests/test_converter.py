@@ -171,8 +171,10 @@ def context() -> Context:
 
 
 @pytest.fixture
-def converter(context: Context) -> LdapConverter:
-    return LdapConverter(context)
+async def converter(context: Context) -> LdapConverter:
+    converter = LdapConverter(context)
+    await converter._init()
+    return converter
 
 
 async def test_ldap_to_mo(converter: LdapConverter) -> None:
@@ -382,11 +384,12 @@ async def test_mapping_loader_failure(context: Context) -> None:
         bad_context["user_context"]["mapping"] = bad_mapping
 
         with pytest.raises(IncorrectMapping):
-            LdapConverter(context=bad_context)
+            await LdapConverter(context=bad_context)._init()
         with pytest.raises(IncorrectMapping):
-            LdapConverter(context=bad_context)
+            await LdapConverter(context=bad_context)._init()
 
         converter = LdapConverter(context=good_context)
+        await converter._init()
         converter.mapping = bad_mapping
         with pytest.raises(IncorrectMapping):
             await converter.from_ldap(
