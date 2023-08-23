@@ -85,6 +85,15 @@ class Settings(BaseSettings):
         True, description="Whether to write to MO, when changes in LDAP are registered"
     )
 
+    add_objects_to_ldap: bool = Field(
+        True,
+        description=(
+            "If True: Adds new objects to LDAP "
+            "when an object is in MO but not in LDAP. "
+            "If False: Only modifies existing objects."
+        ),
+    )
+
     ldap_controllers: ServerList = Field(
         ..., description="List of domain controllers to query"
     )

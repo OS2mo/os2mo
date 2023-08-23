@@ -31,6 +31,7 @@ from .exceptions import InvalidChangeDict
 from .exceptions import InvalidQueryResponse
 from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
+from .exceptions import NotEnabledException
 from .exceptions import UUIDNotFoundException
 from .ldap import get_attribute_types
 from .ldap import get_ldap_attributes
@@ -455,6 +456,11 @@ class DataLoader:
             See https://ldap3.readthedocs.io/en/latest/add.html for more information
 
         """
+        settings = self.user_context["settings"]
+        if not settings.add_objects_to_ldap:
+            logger.info("[Add-ldap-object] add_objects_to_ldap = False. Aborting.")
+            raise NotEnabledException("Adding LDAP objects is disabled")
+
         logger.info(
             "[Add-ldap-object] Adding user to LDAP.", dn=dn, attributes=attributes
         )
