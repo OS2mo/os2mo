@@ -234,18 +234,16 @@ def sync_tool() -> AsyncMock:
 
 
 @pytest.fixture(scope="module")
-def fastramqpi(
+def patch_modules(
     load_settings_overrides: dict[str, str],
     gql_client: AsyncMock,
     dataloader: AsyncMock,
     converter: MagicMock,
     internal_amqpsystem: MagicMock,
     sync_tool: AsyncMock,
-) -> Iterator[FastRAMQPI]:
-    """Fixture to construct a FastRAMQPI system.
-
-    Yields:
-        FastRAMQPI system.
+) -> Iterator[None]:
+    """
+    Fixture to patch modules needed in main.py
     """
     with patch(
         "mo_ldap_import_export.main.configure_ldap_connection", new_callable=MagicMock()
@@ -267,7 +265,7 @@ def fastramqpi(
     ), patch(
         "mo_ldap_import_export.main.asyncio.get_event_loop", return_value=None
     ):
-        yield create_fastramqpi()
+        yield
 
 
 @pytest.fixture(scope="module")
@@ -293,8 +291,8 @@ def test_client(app: FastAPI) -> Iterator[TestClient]:
     yield TestClient(app)
 
 
-# Note: The fastramqpi instance created by this test is used by all other tests
-def test_create_fastramqpi(fastramqpi: FastRAMQPI) -> None:
+# Note: The modules patched by this test are used by all other tests
+def test_create_fastramqpi(patch_modules: None) -> None:
     """Test that we can construct our FastRAMQPI system."""
     fastramqpi = create_fastramqpi()
     assert isinstance(fastramqpi, FastRAMQPI)
