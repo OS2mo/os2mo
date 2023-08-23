@@ -72,12 +72,9 @@ def filter_remove_curly_brackets(text: str) -> str:
 
 
 environment = Environment(undefined=Undefined, enable_async=True)
-sync_environment = Environment(undefined=Undefined)
-
-for env in [environment, sync_environment]:
-    env.filters["splitfirst"] = filter_splitfirst
-    env.filters["splitlast"] = filter_splitlast
-    env.filters["mo_datestring"] = filter_mo_datestring
-    env.filters["parse_datetime"] = filter_parse_datetime
-    env.filters["strip_non_digits"] = filter_strip_non_digits
-    env.filters["remove_curly_brackets"] = filter_remove_curly_brackets
+environment.filters["splitfirst"] = filter_splitfirst
+environment.filters["splitlast"] = filter_splitlast
+environment.filters["mo_datestring"] = filter_mo_datestring
+environment.filters["parse_datetime"] = filter_parse_datetime
+environment.filters["strip_non_digits"] = filter_strip_non_digits
+environment.filters["remove_curly_brackets"] = filter_remove_curly_brackets
