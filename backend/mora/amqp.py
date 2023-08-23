@@ -301,7 +301,11 @@ async def start_amqp_subsystem(sessionmaker: async_sessionmaker):
             # Why sleep for a random duration? Otherwise, developers will build on
             # the assumption that events arrive instantly. Are you a developer
             # tired of waiting? See if the mora.cli can help you.
-            await asyncio.sleep(random.randint(5, 90))
+            if mo_settings.void_warranty_disable_amqp_delay:
+                delay = 5
+            else:
+                delay = random.randint(5, 90)
+            await asyncio.sleep(delay)
             try:
                 await _emit_events(sessionmaker, amqp_system)
             except:  # noqa
