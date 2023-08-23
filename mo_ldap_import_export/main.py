@@ -319,6 +319,16 @@ async def initialize_export_checks(fastramqpi: FastRAMQPI) -> AsyncIterator[None
     yield
 
 
+@asynccontextmanager
+async def initialize_converters(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
+    logger.info("Initializing converters")
+    converter = LdapConverter(fastramqpi.get_context())
+    fastramqpi.add_context(cpr_field=converter.cpr_field)
+    fastramqpi.add_context(ldap_it_system_user_key=converter.ldap_it_system)
+    fastramqpi.add_context(converter=converter)
+    yield
+
+
 def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     """FastRAMQPI factory.
 
@@ -410,11 +420,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     init_engine.create_it_systems()
     fastramqpi.add_context(init_engine=init_engine)
 
-    logger.info("Initializing converters")
-    converter = LdapConverter(fastramqpi.get_context())
-    fastramqpi.add_context(cpr_field=converter.cpr_field)
-    fastramqpi.add_context(ldap_it_system_user_key=converter.ldap_it_system)
-    fastramqpi.add_context(converter=converter)
+    fastramqpi.add_lifespan_manager(initialize_converters(fastramqpi), 2800)
 
     logger.info("Initializing internal AMQP system")
     internal_amqpsystem = AMQPSystem(
@@ -464,18 +470,19 @@ def create_app(**kwargs: Any) -> FastAPI:
     app.include_router(fastapi_router)
 
     user_context = fastramqpi._context["user_context"]
-    converter = user_context["converter"]
     dataloader = user_context["dataloader"]
     ldap_connection = user_context["ldap_connection"]
     internal_amqpsystem = user_context["internal_amqpsystem"]
+    mapping = user_context["mapping"]
 
     attribute_types = get_attribute_types(ldap_connection)
     accepted_attributes = tuple(sorted(attribute_types.keys()))
 
-    ldap_classes = tuple(sorted(converter.overview.keys()))
-    default_ldap_class = converter.raw_mapping["mo_to_ldap"]["Employee"]["objectClass"]
+    overview = dataloader.load_ldap_overview()
+    ldap_classes = tuple(sorted(overview.keys()))
 
-    accepted_json_keys = tuple(sorted(converter.get_mo_to_ldap_json_keys()))
+    default_ldap_class = mapping["mo_to_ldap"]["Employee"]["objectClass"]
+    accepted_json_keys = tuple(sorted(mapping["mo_to_ldap"].keys()))
 
     @app.post("/reload_info_dicts", status_code=202, tags=["Maintenance"])
     async def reload_info_dicts():
@@ -483,6 +490,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         Endpoint to reload info dicts on the converter. To make sure that they are
         up-to-date and represent the information in OS2mo.
         """
+        converter = user_context["converter"]
         converter.load_info_dicts()
 
     # Load all users from LDAP, and import them into MO
@@ -495,6 +503,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         cpr_indexed_entries_only: bool = True,
         search_base: Union[str, None] = None,
     ) -> Any:
+        converter = user_context["converter"]
         cpr_field = converter.cpr_field
         sync_tool = user_context["sync_tool"]
 
@@ -625,6 +634,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     async def convert_all_objects_from_ldap(
         json_key: Literal[accepted_json_keys],  # type: ignore
     ) -> Any:
+        converter = user_context["converter"]
         result = await dataloader.load_ldap_objects(json_key)
         converted_results = []
         for r in result:
@@ -652,6 +662,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         response: Response,
         cpr: str = Depends(valid_cpr),
     ) -> Any:
+        converter = user_context["converter"]
         result = dataloader.load_ldap_cpr_object(cpr, json_key)
         try:
             return await converter.from_ldap(result, json_key, employee_uuid=uuid4())
@@ -705,6 +716,7 @@ def create_app(**kwargs: Any) -> FastAPI:
 
     @app.get("/Inspect/duplicate_cpr_numbers", status_code=202, tags=["LDAP"])
     async def get_duplicate_cpr_numbers_from_LDAP() -> Any:
+        converter = user_context["converter"]
         cpr_field = converter.cpr_field
         if not cpr_field:
             raise CPRFieldNotFound("cpr_field is not configured")
@@ -734,6 +746,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     # Get all objects from LDAP with invalid cpr numbers
     @app.get("/Inspect/invalid_cpr_numbers", status_code=202, tags=["LDAP"])
     async def get_invalid_cpr_numbers_from_LDAP() -> Any:
+        converter = user_context["converter"]
         cpr_field = converter.cpr_field
         if not cpr_field:
             raise CPRFieldNotFound("cpr_field is not configured")
@@ -764,6 +777,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         json_key: Literal[accepted_json_keys],  # type: ignore
         mo_object_json: dict,
     ) -> None:
+        converter = user_context["converter"]
         mo_object = converter.import_mo_object_class(json_key)
         logger.info(f"Posting {mo_object} = {mo_object_json} to MO")
         await dataloader.upload_mo_objects([mo_object(**mo_object_json)])

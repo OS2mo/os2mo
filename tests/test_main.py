@@ -34,6 +34,7 @@ from mo_ldap_import_export.main import construct_gql_client
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
 from mo_ldap_import_export.main import get_delete_flag
+from mo_ldap_import_export.main import initialize_converters
 from mo_ldap_import_export.main import initialize_export_checks
 from mo_ldap_import_export.main import initialize_sync_tool
 from mo_ldap_import_export.main import open_ldap_connection
@@ -208,6 +209,7 @@ def converter() -> MagicMock:
         "EmailEmployee",
     ]
     converter.cpr_field = "EmployeeID"
+    converter.ldap_it_system = "ADGUID"
     converter._import_to_mo_ = MagicMock()
     converter._import_to_mo_.return_value = True
 
@@ -240,7 +242,6 @@ def patch_modules(
     load_settings_overrides: dict[str, str],
     gql_client: AsyncMock,
     dataloader: AsyncMock,
-    converter: MagicMock,
     internal_amqpsystem: MagicMock,
     sync_tool: AsyncMock,
 ) -> Iterator[None]:
@@ -254,8 +255,6 @@ def patch_modules(
         return_value=gql_client,
     ), patch(
         "mo_ldap_import_export.main.DataLoader", return_value=dataloader
-    ), patch(
-        "mo_ldap_import_export.main.LdapConverter", return_value=converter
     ), patch(
         "mo_ldap_import_export.main.get_attribute_types", return_value={"foo": {}}
     ), patch(
@@ -272,9 +271,14 @@ def patch_modules(
 def fastramqpi(
     patch_modules: None,
     sync_tool: AsyncMock,
+    converter: MagicMock,
 ) -> FastRAMQPI:
     fastramqpi = create_fastramqpi()
     fastramqpi.add_context(sync_tool=sync_tool)
+    fastramqpi.add_context(converter=converter)
+    fastramqpi.add_context(cpr_field=converter.cpr_field)
+    fastramqpi.add_context(ldap_it_system_user_key=converter.ldap_it_system)
+
     return fastramqpi
 
 
@@ -938,10 +942,30 @@ async def test_initialize_sync_tool(
             assert user_context.get("sync_tool") is not None
 
 
-async def test_export_checks(fastramqpi: FastRAMQPI) -> None:
+async def test_initialize_export_checks(fastramqpi: FastRAMQPI) -> None:
     user_context = fastramqpi.get_context()["user_context"]
     assert user_context.get("export_checks") is None
 
     with patch("mo_ldap_import_export.main.ExportChecks", return_value=MagicMock()):
         async with initialize_export_checks(fastramqpi):
             assert user_context.get("export_checks") is not None
+
+
+async def test_initialize_converter(
+    fastramqpi: FastRAMQPI, converter: MagicMock
+) -> None:
+
+    fastramqpi._context["user_context"].pop("converter")
+    fastramqpi._context["user_context"].pop("ldap_it_system_user_key")
+    fastramqpi._context["user_context"].pop("cpr_field")
+
+    user_context = fastramqpi.get_context()["user_context"]
+    assert user_context.get("converter") is None
+    assert user_context.get("ldap_it_system_user_key") is None
+    assert user_context.get("cpr_field") is None
+
+    with patch("mo_ldap_import_export.main.LdapConverter", return_value=converter):
+        async with initialize_converters(fastramqpi):
+            assert user_context.get("converter") is not None
+            assert user_context.get("ldap_it_system_user_key") == "ADGUID"
+            assert user_context.get("cpr_field") == "EmployeeID"
