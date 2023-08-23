@@ -636,6 +636,44 @@ class EngagementUpdate(EngagementUpsert):
 # -----------------------
 
 
+# ITAssociations
+# ---------
+class ITAssociationUpsert(UUIDBase):
+    user_key: str | None = Field(description="Extra info or uuid.")
+    primary: UUID | None = Field(description="Primary field of the association")
+    validity: RAValidity = Field(description="Validity range for the org-unit.")
+
+    def to_handler_dict(self) -> dict:
+        return {
+            "uuid": self.uuid,
+            "user_key": self.user_key,
+            "primary": gen_uuid(self.primary),
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+        }
+
+
+class ITAssociationCreate(ITAssociationUpsert):
+    """Model representing an IT-association creation."""
+
+    org_unit: UUID = Field(description="org-unit uuid.")
+    person: UUID = Field(description="UUID of the employee")
+    it_user: UUID = Field(description="IT-user UUID")
+    job_function: UUID = Field(description="Job function UUID")
+
+    def to_handler_dict(self) -> dict:
+        data_dict = super().to_handler_dict()
+        data_dict["org_unit"] = gen_uuid(self.org_unit)
+        data_dict["person"] = gen_uuid(self.person)
+        data_dict["it"] = gen_uuid(self.it_user)
+        data_dict["job_function"] = gen_uuid(self.job_function)
+        return data_dict
+
+
 # ITSystems
 # ---------
 

@@ -570,6 +570,25 @@ def fetch_itsystem_uuids(load_fixture, graphapi_post: Callable) -> list[UUID]:
     return uuids
 
 
+@pytest.fixture(scope="session", name="ituser_uuids")
+def fetch_ituser_uuids(load_fixture, graphapi_post: Callable) -> list[UUID]:
+    ituser_uuids_query = """
+        query FetchITSystemUUIDs {
+            itusers {
+                objects {
+                    uuid
+                }
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(ituser_uuids_query)
+    assert response.errors is None
+    uuids = list(
+        map(UUID, map(itemgetter("uuid"), response.data["itusers"]["objects"]))
+    )
+    return uuids
+
+
 @pytest.fixture(scope="session")
 def patch_loader():
     """Fixture to patch dataloaders for mocks.
