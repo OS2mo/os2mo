@@ -303,6 +303,14 @@ def construct_clients(
     return gql_client, gql_client_sync, model_client
 
 
+@asynccontextmanager
+async def initialize_sync_tool(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
+    logger.info("Initializing Sync tool")
+    sync_tool = SyncTool(fastramqpi.get_context())
+    fastramqpi.add_context(sync_tool=sync_tool)
+    yield
+
+
 def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     """FastRAMQPI factory.
 
@@ -413,9 +421,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     export_checks = ExportChecks(fastramqpi.get_context())
     fastramqpi.add_context(export_checks=export_checks)
 
-    logger.info("Initializing Sync tool")
-    sync_tool = SyncTool(fastramqpi.get_context())
-    fastramqpi.add_context(sync_tool=sync_tool)
+    fastramqpi.add_lifespan_manager(initialize_sync_tool(fastramqpi), 3000)
 
     logger.info("Starting LDAP listener")
     fastramqpi.add_context(event_loop=asyncio.get_event_loop())
@@ -457,7 +463,6 @@ def create_app(**kwargs: Any) -> FastAPI:
     dataloader = user_context["dataloader"]
     ldap_connection = user_context["ldap_connection"]
     internal_amqpsystem = user_context["internal_amqpsystem"]
-    sync_tool = user_context["sync_tool"]
 
     attribute_types = get_attribute_types(ldap_connection)
     accepted_attributes = tuple(sorted(attribute_types.keys()))
@@ -486,6 +491,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         search_base: Union[str, None] = None,
     ) -> Any:
         cpr_field = converter.cpr_field
+        sync_tool = user_context["sync_tool"]
 
         if cpr_indexed_entries_only and not cpr_field:
             raise CPRFieldNotFound("cpr_field is not configured")
@@ -534,6 +540,8 @@ def create_app(**kwargs: Any) -> FastAPI:
     async def import_single_user_from_LDAP(
         objectGUID: UUID,
     ) -> Any:
+        sync_tool = user_context["sync_tool"]
+
         dn = dataloader.get_ldap_dn(objectGUID)
         await sync_tool.import_single_user(dn, manual_import=True)
 
@@ -574,6 +582,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     async def export_mo_employee(
         employee_uuid: UUID,
     ) -> Any:
+        sync_tool = user_context["sync_tool"]
         await sync_tool.refresh_employee(employee_uuid)
 
     # Export object(s) from MO to LDAP

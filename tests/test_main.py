@@ -34,6 +34,7 @@ from mo_ldap_import_export.main import construct_gql_client
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
 from mo_ldap_import_export.main import get_delete_flag
+from mo_ldap_import_export.main import initialize_sync_tool
 from mo_ldap_import_export.main import open_ldap_connection
 from mo_ldap_import_export.main import process_address
 from mo_ldap_import_export.main import process_engagement
@@ -253,8 +254,6 @@ def patch_modules(
     ), patch(
         "mo_ldap_import_export.main.DataLoader", return_value=dataloader
     ), patch(
-        "mo_ldap_import_export.main.SyncTool", return_value=sync_tool
-    ), patch(
         "mo_ldap_import_export.main.LdapConverter", return_value=converter
     ), patch(
         "mo_ldap_import_export.main.get_attribute_types", return_value={"foo": {}}
@@ -269,13 +268,24 @@ def patch_modules(
 
 
 @pytest.fixture(scope="module")
-def app() -> Iterator[FastAPI]:
+def fastramqpi(
+    patch_modules: None,
+    sync_tool: AsyncMock,
+) -> FastRAMQPI:
+    fastramqpi = create_fastramqpi()
+    fastramqpi.add_context(sync_tool=sync_tool)
+    return fastramqpi
+
+
+@pytest.fixture(scope="module")
+def app(fastramqpi: FastRAMQPI) -> Iterator[FastAPI]:
     """Fixture to construct a FastAPI application.
 
     Yields:
         FastAPI application.
     """
-    yield create_app()
+    with patch("mo_ldap_import_export.main.create_fastramqpi", return_value=fastramqpi):
+        yield create_app()
 
 
 @pytest.fixture(scope="module")
@@ -912,3 +922,16 @@ async def test_get_non_existing_objectGUIDs_from_MO_404(
     dataloader.get_ldap_it_system_uuid.return_value = None
     response = test_client.get("/Inspect/non_existing_objectGUIDs")
     assert response.status_code == 404
+
+
+async def test_initialize_sync_tool(
+    fastramqpi: FastRAMQPI, sync_tool: AsyncMock
+) -> None:
+    fastramqpi._context["user_context"].pop("sync_tool")
+
+    user_context = fastramqpi.get_context()["user_context"]
+    assert user_context.get("sync_tool") is None
+
+    with patch("mo_ldap_import_export.main.SyncTool", return_value=sync_tool):
+        async with initialize_sync_tool(fastramqpi):
+            assert user_context.get("sync_tool") is not None
