@@ -200,7 +200,7 @@ def sync_dataloader() -> MagicMock:
 @pytest.fixture(scope="module")
 def converter() -> MagicMock:
     converter = MagicMock()
-    converter.get_accepted_json_keys.return_value = [
+    converter.get_mo_to_ldap_json_keys.return_value = [
         "Employee",
         "Address",
         "EmailEmployee",

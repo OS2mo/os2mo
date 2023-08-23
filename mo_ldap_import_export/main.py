@@ -466,7 +466,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     ldap_classes = tuple(sorted(converter.overview.keys()))
     default_ldap_class = converter.raw_mapping["mo_to_ldap"]["Employee"]["objectClass"]
 
-    accepted_json_keys = tuple(converter.get_accepted_json_keys())
+    accepted_json_keys = tuple(sorted(converter.get_mo_to_ldap_json_keys()))
 
     @app.post("/reload_info_dicts", status_code=202, tags=["Maintenance"])
     async def reload_info_dicts():
