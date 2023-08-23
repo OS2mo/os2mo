@@ -54,6 +54,7 @@ from .exceptions import CPRFieldNotFound
 from .exceptions import IgnoreChanges
 from .exceptions import IncorrectMapping
 from .exceptions import NoObjectsReturnedException
+from .exceptions import NotEnabledException
 from .exceptions import NotSupportedException
 from .exceptions import ObjectGUIDITSystemNotFound
 from .import_export import SyncTool
@@ -97,6 +98,7 @@ def reject_on_failure(func):
             NoObjectsReturnedException,  # In case an object is deleted halfway: Abort
             IgnoreChanges,  # In case changes should be ignored: Abort
             RejectMessage,  # In case we explicitly reject the message: Abort
+            NotEnabledException,  # In case a feature is not enabled: Abort
         ) as e:
             logger.info(e)
             raise RejectMessage()

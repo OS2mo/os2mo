@@ -35,6 +35,7 @@ from mo_ldap_import_export.exceptions import InvalidChangeDict
 from mo_ldap_import_export.exceptions import InvalidQueryResponse
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
+from mo_ldap_import_export.exceptions import NotEnabledException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
 from mo_ldap_import_export.import_export import IgnoreMe
 
@@ -2021,6 +2022,12 @@ def test_create_mo_it_system(dataloader: DataLoader):
 def test_add_ldap_object(dataloader: DataLoader):
     dataloader.add_ldap_object("CN=foo", attributes={"foo": 2})
     dataloader.ldap_connection.add.assert_called_once()
+
+    dataloader.user_context["settings"] = MagicMock()  # type: ignore
+    dataloader.user_context["settings"].add_objects_to_ldap = False
+
+    with pytest.raises(NotEnabledException):
+        dataloader.add_ldap_object("CN=foo")
 
 
 def test_load_mo_employee_engagement_dicts(dataloader: DataLoader):

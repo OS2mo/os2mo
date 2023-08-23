@@ -39,6 +39,11 @@ class NotSupportedException(HTTPException):
         super().__init__(status_code=404, detail=message)
 
 
+class NotEnabledException(HTTPException):
+    def __init__(self, message):
+        super().__init__(status_code=404, detail=message)
+
+
 class InvalidNameException(HTTPException):
     def __init__(self, message):
         super().__init__(status_code=404, detail=message)
