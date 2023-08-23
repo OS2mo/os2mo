@@ -37,6 +37,7 @@ nav:
               - guides/adfs-setup.md
               - guides/adfs-rbac-setup.md
           - Conventions: guides/conventions.md
+          - Email-notifikationer: guides/Emailnotifikationer.md
           - Getting started (with Docker): guides/environment/docker.md
           - KLE i MO: guides/KLEiMO.md
           - Lederhåndtering i MO: guides/Lederhaandtering i MO.md
