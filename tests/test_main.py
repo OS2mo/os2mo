@@ -217,18 +217,6 @@ def converter() -> MagicMock:
 
 
 @pytest.fixture(scope="module")
-def disable_metrics() -> Iterator[None]:
-    """Fixture to set the ENABLE_METRICS environmental variable to False.
-
-    Yields:
-        None
-    """
-    mp = pytest.MonkeyPatch()
-    mp.setenv("ENABLE_METRICS", "False")
-    yield
-
-
-@pytest.fixture(scope="module")
 def gql_client() -> Iterator[AsyncMock]:
     yield AsyncMock()
 
@@ -247,7 +235,6 @@ def sync_tool() -> AsyncMock:
 
 @pytest.fixture(scope="module")
 def fastramqpi(
-    disable_metrics: None,
     load_settings_overrides: dict[str, str],
     gql_client: AsyncMock,
     dataloader: AsyncMock,
@@ -284,7 +271,7 @@ def fastramqpi(
 
 
 @pytest.fixture(scope="module")
-def app(fastramqpi: FastRAMQPI) -> Iterator[FastAPI]:
+def app() -> Iterator[FastAPI]:
     """Fixture to construct a FastAPI application.
 
     Yields:
@@ -306,50 +293,17 @@ def test_client(app: FastAPI) -> Iterator[TestClient]:
     yield TestClient(app)
 
 
-@pytest.fixture
-def test_client_no_cpr(app: FastAPI, converter: MagicMock) -> Iterator[TestClient]:
-    """Fixture to construct a FastAPI test-client. where cpr_field = None
-
-    Note:
-        The app does not do lifecycle management.
-
-    Yields:
-        TestClient for the FastAPI application.
-    """
-    converter.cpr_field = None
-    yield TestClient(create_app())
-
-
-@pytest.fixture
-def ldap_connection() -> Iterator[MagicMock]:
-    """Fixture to construct a mock ldap_connection.
-
-    Yields:
-        A mock for ldap_connection.
-    """
-    yield MagicMock()
-
-
-def test_create_app(
-    fastramqpi: FastRAMQPI,
-) -> None:
-    """Test that we can construct our FastAPI application."""
-
-    with patch("mo_ldap_import_export.main.create_fastramqpi", return_value=fastramqpi):
-        app = create_app()
-    assert isinstance(app, FastAPI)
-
-
-def test_create_fastramqpi(disable_metrics: None, converter: MagicMock) -> None:
+# Note: The fastramqpi instance created by this test is used by all other tests
+def test_create_fastramqpi(fastramqpi: FastRAMQPI) -> None:
     """Test that we can construct our FastRAMQPI system."""
-
-    with patch(
-        "mo_ldap_import_export.main.configure_ldap_connection", new_callable=MagicMock()
-    ), patch("mo_ldap_import_export.main.LdapConverter", return_value=converter), patch(
-        "mo_ldap_import_export.main.InitEngine", return_value=MagicMock()
-    ):
-        fastramqpi = create_fastramqpi()
+    fastramqpi = create_fastramqpi()
     assert isinstance(fastramqpi, FastRAMQPI)
+
+
+def test_create_app() -> None:
+    """Test that we can construct our FastAPI application."""
+    app = create_app()
+    assert isinstance(app, FastAPI)
 
 
 async def test_open_ldap_connection() -> None:
@@ -633,10 +587,12 @@ async def test_import_one_object_from_LDAP(test_client: TestClient) -> None:
 
 
 async def test_import_all_objects_from_LDAP_no_cpr_field(
-    test_client_no_cpr: TestClient,
+    test_client: TestClient, converter: MagicMock
 ) -> None:
-    response = test_client_no_cpr.get("/Import")
+    converter.cpr_field = None
+    response = test_client.get("/Import?cpr_indexed_entries_only=True")
     assert response.status_code == 404
+    converter.cpr_field = "EmployeeID"
 
 
 async def test_import_all_objects_from_LDAP_invalid_cpr(
@@ -860,10 +816,12 @@ def test_get_invalid_cpr_numbers_from_LDAP_endpoint(
 
 
 def test_get_invalid_cpr_numbers_from_LDAP_endpoint_no_cpr_field(
-    test_client_no_cpr: TestClient,
+    test_client: TestClient, converter: MagicMock
 ):
-    response = test_client_no_cpr.get("/Inspect/invalid_cpr_numbers")
+    converter.cpr_field = None
+    response = test_client.get("/Inspect/invalid_cpr_numbers")
     assert response.status_code == 404
+    converter.cpr_field = "EmployeeID"
 
 
 def test_wraps():
@@ -878,10 +836,12 @@ def test_wraps():
 
 
 def test_get_duplicate_cpr_numbers_from_LDAP_endpoint_no_cpr_field(
-    test_client_no_cpr: TestClient,
+    test_client: TestClient, converter: MagicMock
 ):
-    response = test_client_no_cpr.get("/Inspect/duplicate_cpr_numbers")
+    converter.cpr_field = None
+    response = test_client.get("/Inspect/duplicate_cpr_numbers")
     assert response.status_code == 404
+    converter.cpr_field = "EmployeeID"
 
 
 def test_get_duplicate_cpr_numbers_from_LDAP_endpoint(

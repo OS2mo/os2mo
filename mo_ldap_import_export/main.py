@@ -458,7 +458,6 @@ def create_app(**kwargs: Any) -> FastAPI:
     ldap_connection = user_context["ldap_connection"]
     internal_amqpsystem = user_context["internal_amqpsystem"]
     sync_tool = user_context["sync_tool"]
-    cpr_field = user_context["cpr_field"]
 
     attribute_types = get_attribute_types(ldap_connection)
     accepted_attributes = tuple(sorted(attribute_types.keys()))
@@ -486,6 +485,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         cpr_indexed_entries_only: bool = True,
         search_base: Union[str, None] = None,
     ) -> Any:
+        cpr_field = converter.cpr_field
 
         if cpr_indexed_entries_only and not cpr_field:
             raise CPRFieldNotFound("cpr_field is not configured")
@@ -691,6 +691,7 @@ def create_app(**kwargs: Any) -> FastAPI:
 
     @app.get("/Inspect/duplicate_cpr_numbers", status_code=202, tags=["LDAP"])
     async def get_duplicate_cpr_numbers_from_LDAP() -> Any:
+        cpr_field = converter.cpr_field
         if not cpr_field:
             raise CPRFieldNotFound("cpr_field is not configured")
 
@@ -719,6 +720,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     # Get all objects from LDAP with invalid cpr numbers
     @app.get("/Inspect/invalid_cpr_numbers", status_code=202, tags=["LDAP"])
     async def get_invalid_cpr_numbers_from_LDAP() -> Any:
+        cpr_field = converter.cpr_field
         if not cpr_field:
             raise CPRFieldNotFound("cpr_field is not configured")
 
