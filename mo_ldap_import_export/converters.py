@@ -107,7 +107,9 @@ class LdapConverter:
         self.org_unit_path_string_separator: str = (
             self.settings.org_unit_path_string_separator
         )
-        self.load_info_dicts()
+
+    async def _init(self):
+        await self.load_info_dicts()
         self.overview = self.dataloader.load_ldap_overview()
         self.username_generator = self.user_context["username_generator"]
 
@@ -142,7 +144,7 @@ class LdapConverter:
         self.cpr_field = find_cpr_field(self.sync_mapping)
         self.ldap_it_system = find_ldap_it_system(self.sync_mapping, self.mo_it_systems)
 
-    def load_info_dicts(self):
+    async def load_info_dicts(self):
         # Note: If new address types or IT systems are added to MO, these dicts need
         # to be re-initialized
         logger.info("[info dict loader] Loading info dicts")

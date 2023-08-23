@@ -217,6 +217,9 @@ def converter() -> MagicMock:
     converter.from_ldap = AsyncMock()
     converter.from_ldap.return_value = Employee(name="Angus")
 
+    converter.load_info_dicts = AsyncMock()
+    converter._init = AsyncMock()
+
     return converter
 
 

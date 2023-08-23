@@ -45,7 +45,7 @@ def json_filenames() -> list[str]:
 
 
 @pytest.fixture
-def converters(
+async def converters(
     json_filenames: str,
     settings: MagicMock,
     dataloader: MagicMock,
@@ -90,6 +90,7 @@ def converters(
             return_value=str("org/unit/path"),
         ):
             converter = LdapConverter(context)
+            await converter._init()
 
             # Mock basic functions used by our jinja templates
             converter.clean_org_unit_path_string = MagicMock()  # type: ignore
