@@ -29,7 +29,7 @@ class Mutation(NextGraphQLVersion.schema.mutation):  # type: ignore[name-defined
 
 
 class GraphQLSchema(NextGraphQLVersion.schema):  # type: ignore
-    """Version 8 of the GraphQL Schema.
+    """Version 7 of the GraphQL Schema.
 
     Version 8 introduced a breaking change to the address_terminate mutator, which
     changes the name of its input from `at` to `input` to align with other mutators.

@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from datetime import datetime
 from uuid import UUID
 
 import strawberry
@@ -27,7 +26,6 @@ from .models import LeaveCreate
 from .models import ManagerCreate
 from .models import ManagerTerminate
 from .models import ManagerUpdate
-from .models import NonEmptyString
 from .models import Organisation
 from .models import OrganisationUnitCreate
 from .models import OrganisationUnitTerminate
@@ -36,7 +34,6 @@ from .models import RoleCreate
 from .models import RoleTerminate
 from .models import RoleUpdate
 from .models import Validity
-from mora.util import CPR
 from ramodels.mo import Validity as RAValidity
 
 
@@ -145,19 +142,6 @@ class AssociationTerminateInput:
 class EmployeeCreateInput:
     """Input model for creating an employee."""
 
-    name: str | None = strawberry.field(
-        deprecation_reason="Use 'given_name' and 'surname' instead. Will be removed in a future version of OS2mo."
-    )
-    nickname: str | None = strawberry.field(
-        deprecation_reason="Use 'nickname_given_name' and 'nickname_surname' instead. Will be removed in a future version of OS2mo."
-    )
-    cpr_no: CPR | None = strawberry.field(
-        deprecation_reason="Use 'cpr_number' instead. Will be removed in a future version of OS2mo."
-    )
-    givenname: NonEmptyString | None = strawberry.field(
-        deprecation_reason="Use 'given_name' instead. Will be removed in a future version of OS2mo."
-    )
-
 
 @strawberry.experimental.pydantic.input(
     model=EmployeeUpdate,
@@ -165,26 +149,6 @@ class EmployeeCreateInput:
 )
 class EmployeeUpdateInput:
     """Input model for updating an employee."""
-
-    name: str | None = strawberry.field(
-        deprecation_reason="Use 'given_name' and 'surname' instead. Will be removed in a future version of OS2mo."
-    )
-    nickname: str | None = strawberry.field(
-        deprecation_reason="Use 'nickname_given_name' and 'nickname_surname' instead. Will be removed in a future version of OS2mo."
-    )
-    cpr_no: CPR | None = strawberry.field(
-        deprecation_reason="Use 'cpr_number' instead. Will be removed in a future version of OS2mo."
-    )
-    givenname: NonEmptyString | None = strawberry.field(
-        deprecation_reason="Use 'given_name' instead. Will be removed in a future version of OS2mo."
-    )
-
-    from_date: datetime | None = strawberry.field(
-        deprecation_reason="Use 'validity.from_date' instead. Will be removed in a future version of OS2mo."
-    )
-    to_date: datetime | None = strawberry.field(
-        deprecation_reason="Use 'validity.to_date' instead. Will be removed in a future version of OS2mo."
-    )
 
 
 @strawberry.experimental.pydantic.input(

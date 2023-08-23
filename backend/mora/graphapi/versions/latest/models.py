@@ -9,7 +9,6 @@ from uuid import UUID
 
 import strawberry
 from pydantic import BaseModel
-from pydantic import ConstrainedStr
 from pydantic import Field
 from pydantic import root_validator
 
@@ -32,10 +31,6 @@ def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
     if uuid is None:
         return None
     return {"uuid": str(uuid)}
-
-
-class NonEmptyString(ConstrainedStr):
-    min_length: int = 1
 
 
 class Validity(OpenValidity):
@@ -407,23 +402,10 @@ class AssociationTerminate(ValidityTerminate):
 # Employees
 # ---------
 class EmployeeUpsert(UUIDBase):
-    _ERR_INVALID_NICKNAME = "'nickname' is only allowed to be set, if 'nickname_given_name' & 'nickname_surname' are None."
-    _ERR_INVALID_CPR_NUMBER = (
-        "'cpr_number' is only allowed to be set, if 'cpr_no' is None."
-    )
-
     user_key: str | None = Field(
         description="Short, unique key for the employee (defaults to object UUID on creation)."
     )
 
-    # TODO: Remove this in the future
-    name: str | None = Field(None, description="Combined name of the employee")
-
-    # TODO: Remove this in the future
-    nickname: str | None = Field(
-        None,
-        description="Nickname (combined) of the employee.",
-    )
     nickname_given_name: str | None = Field(
         None,
         description="Nickname givenname (firstname) of the employee.",
@@ -433,46 +415,24 @@ class EmployeeUpsert(UUIDBase):
         description="Nickname surname (lastname) of the employee.",
     )
 
-    @root_validator
-    def combined_or_split_nickname(cls, values: dict[str, Any]) -> dict[str, Any]:
-        if values.get("nickname") and (
-            values.get("nickname_given_name") or values.get("nickname_surname")
-        ):
-            raise ValueError(cls._ERR_INVALID_NICKNAME)
-
-        return values
-
     seniority: datetime.date | None = Field(
         # OBS: backend/mora/service/employee.py:96 for why type is datetime.date
         None,
         description="New seniority value of the employee.",
     )
 
-    # TODO: This should fit the create, not cpr_no vs cpr_number
-    cpr_no: CPR | None = Field(None, description="New danish CPR No. of the employee.")
-
-    # TODO: This should take the CPR scalar type
-    cpr_number: str | None = Field(
+    cpr_number: CPR | None = Field(
         None, description="Danish CPR number of the employee."
     )
-
-    @root_validator
-    def combined_or_split_name(cls, values: dict[str, Any]) -> dict[str, Any]:
-        if values.get("cpr_no") and values.get("cpr_number"):
-            raise ValueError(cls._ERR_INVALID_CPR_NUMBER)
-
-        return values
 
     def to_handler_dict(self) -> dict:
         data_dict = {
             mapping.UUID: self.uuid,
             mapping.USER_KEY: self.user_key,
-            mapping.NAME: self.name,
-            mapping.NICKNAME: self.nickname,
             mapping.NICKNAME_GIVENNAME: self.nickname_given_name,
             mapping.NICKNAME_SURNAME: self.nickname_surname,
             mapping.SENIORITY: self.seniority.isoformat() if self.seniority else None,
-            mapping.CPR_NO: self.cpr_number or self.cpr_no,
+            mapping.CPR_NO: self.cpr_number,
         }
         return data_dict
 
@@ -480,96 +440,38 @@ class EmployeeUpsert(UUIDBase):
 class EmployeeCreate(EmployeeUpsert):
     """Model representing an employee creation."""
 
-    _ERR_INVALID_GIVEN_NAME = (
-        "'given_name' is only allowed to be set, if 'given_name' is None."
-    )
-    _ERR_INVALID_NAME = (
-        "'name' is only allowed to be set, if 'given_name' & 'surname' are None."
-    )
-
-    given_name: NonEmptyString | None = Field(
-        None, description="Givenname (firstname) of the employee."
-    )
-    # TODO: Remove this in the future
-    givenname: NonEmptyString | None = Field(
-        description="Givenname (firstname) of the employee."
-    )
-    surname: NonEmptyString = Field(description="Surname (lastname) of the employee.")
-
-    @root_validator
-    def only_one_givenname(cls, values: dict[str, Any]) -> dict[str, Any]:
-        if values.get("given_name") and values.get("givenname"):
-            raise ValueError(cls._ERR_INVALID_GIVEN_NAME)
-
-        return values
-
-    @root_validator
-    def combined_or_split_name(cls, values: dict[str, Any]) -> dict[str, Any]:
-        if values.get("name") and (
-            values.get("given_name") or values.get("givenname") or values.get("surname")
-        ):
-            raise ValueError(cls._ERR_INVALID_NAME)
-
-        return values
+    given_name: str = Field(description="Givenname (firstname) of the employee.")
+    surname: str = Field(description="Surname (lastname) of the employee.")
 
     def to_handler_dict(self) -> dict:
         data_dict = super().to_handler_dict()
-        data_dict[mapping.GIVENNAME] = self.given_name or self.givenname
+        data_dict[mapping.GIVENNAME] = self.given_name
         data_dict[mapping.SURNAME] = self.surname
         return data_dict
 
 
-class EmployeeUpdate(EmployeeUpsert, OpenValidity):
-    # Error messages returned by the @root_validator
-    _ERR_INVALID_NAME = (
-        "EmployeeUpdate.name is only allowed to be set, if "
-        '"given_name" & "surname" are None.'
-    )
-
+class EmployeeUpdate(EmployeeUpsert):
     uuid: UUID = Field(description="UUID of the employee to be updated.")
 
     given_name: str | None = Field(
         None,
         description="New first-name value of the employee nickname.",
     )
-    # TODO: Remove this in the future
-    givenname: str | None = Field(description="Givenname (firstname) of the employee.")
     surname: str | None = Field(
         None,
         description="New last-name value of the employee nickname.",
     )
-    validity: RAValidity | None = Field(description="Validity range for the change.")
-
-    @root_validator
-    def combined_or_split_name(cls, values: dict[str, Any]) -> dict[str, Any]:
-        if values.get("name") and (
-            values.get("given_name") or values.get("givenname") or values.get("surname")
-        ):
-            raise ValueError(cls._ERR_INVALID_NAME)
-
-        return values
-
-    @root_validator
-    def validity_check(cls, values: dict[str, Any]) -> dict[str, Any]:
-        validity = values.get("validity")
-        dates = values.get("from_date") or values.get("to_date")
-        if validity and dates:
-            exceptions.ErrorCodes.E_INVALID_INPUT(
-                "Can only set one of 'validity' and 'from_date' / 'to_date'"
-            )
-        if validity is None and dates is None:
-            exceptions.ErrorCodes.E_INVALID_INPUT(
-                "Must set one of 'validity' and 'from_date' / 'to_date'"
-            )
-        return values
+    validity: RAValidity = Field(description="Validity range for the change.")
 
     def to_handler_dict(self) -> dict:
         data_dict = super().to_handler_dict()
-        data_dict[mapping.GIVENNAME] = self.given_name or self.givenname
+        data_dict[mapping.GIVENNAME] = self.given_name
         data_dict[mapping.SURNAME] = self.surname
-        data_dict[mapping.VALIDITY] = self.validity or {
-            mapping.FROM: self.from_date.date().isoformat() if self.from_date else None,
-            mapping.TO: self.to_date.date().isoformat() if self.to_date else None,
+        data_dict[mapping.VALIDITY] = {
+            "from": self.validity.from_date.date().isoformat(),
+            "to": self.validity.to_date.date().isoformat()
+            if self.validity.to_date
+            else None,
         }
         return {k: v for k, v in data_dict.items() if v}
 

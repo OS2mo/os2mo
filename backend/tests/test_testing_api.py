@@ -33,7 +33,7 @@ def update_employee(
     graphapi_post(
         """
         mutation Update($uuid: UUID!, $surname: String!) {
-          employee_update(input: {uuid: $uuid, from: "2012-03-04", surname: $surname}) {
+          employee_update(input: {uuid: $uuid, validity: {from: "2012-03-04"}, surname: $surname}) {
             uuid
           }
         }

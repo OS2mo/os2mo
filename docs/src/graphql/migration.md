@@ -11,6 +11,30 @@ code is up-to-date with the latest version.
 
 Below follows the migration guide for each version.
 
+## Version 13
+
+GraphQL version 13 introduces a breaking change to the input variables taken
+by the `employee_create` and `employee_update`-mutators. Specifically it
+removes the `name`, `nickname`, `cpr_no`, `givenname`, `from` and `to` input
+variable, which were previously optional arguments.
+
+As such `name` now has to be given using the structured form, using
+`given_name` and `surname`, and correspondingly `nickname` has to be
+given using `nickname_given_name` and `nickname_surname`. `cpr_no`
+should be given using `cpr_number` while `from` and `to` should be given
+via the `validity` argument. All of these arguments have been made
+required and the mutually exclusivity validators have been removed.
+
+To migrate from GraphQL version 12, make the following changes to your code:
+* rename `givenname` to `given_name`
+* rename `cpr_no` to `cpr_number`
+* restructure `from` and `to` to `validity: {from: ..., to: ...}`
+* recode `name` to `given_name` / `surname` as:
+```
+given_name, surname = name.rsplit(" ", 1)
+```
+* recode `nickname` similarly to `name`
+
 ## Version 12
 
 GraphQL version 12 introduces a breaking change to the input variables taken

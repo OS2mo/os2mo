@@ -40,7 +40,6 @@ from mora.config import get_settings
 from mora.db import get_sessionmaker
 from mora.graphapi.main import graphql_versions
 from mora.graphapi.versions.latest.dataloaders import MOModel
-from mora.graphapi.versions.latest.models import NonEmptyString
 from mora.graphapi.versions.latest.permissions import ALL_PERMISSIONS
 from mora.service.org import ConfiguredOrganisation
 from oio_rest.config import get_settings as lora_get_settings
@@ -477,9 +476,6 @@ def mock_get_valid_organisations() -> YieldFixture[UUID]:
     with patch("mora.service.org.get_valid_organisations") as mock:
         mock.return_value = [mocked_organisation]
         yield UUID(mocked_organisation["uuid"])
-
-
-st.register_type_strategy(NonEmptyString, st.text(min_size=1))
 
 
 @pytest.fixture(scope="session", name="org_uuids")
