@@ -24,6 +24,7 @@ from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.converters import read_mapping_json
 from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import LdapObject
+from mo_ldap_import_export.environments import sync_environment
 from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import InvalidNameException
 from mo_ldap_import_export.exceptions import NotSupportedException
@@ -175,7 +176,6 @@ def converter(context: Context) -> LdapConverter:
 
 
 async def test_ldap_to_mo(converter: LdapConverter) -> None:
-    # converter = LdapConverter(context)
     employee_uuid = uuid4()
     result = await converter.from_ldap(
         LdapObject(
@@ -225,8 +225,7 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
     assert not mail
 
 
-async def test_ldap_to_mo_uuid_not_found(context: Context) -> None:
-    converter = LdapConverter(context)
+async def test_ldap_to_mo_uuid_not_found(converter: LdapConverter) -> None:
     it_users_with_typo = await converter.from_ldap(
         LdapObject(
             dn="",
@@ -259,9 +258,8 @@ async def test_ldap_to_mo_uuid_not_found(context: Context) -> None:
     assert len(it_users) == 2
 
 
-async def test_ldap_to_mo_dict_error(context: Context) -> None:
+async def test_ldap_to_mo_dict_error(converter: LdapConverter) -> None:
 
-    converter = LdapConverter(context)
     converter.mapping = converter._populate_mapping_with_templates(
         {
             "ldap_to_mo": {
@@ -288,9 +286,8 @@ async def test_ldap_to_mo_dict_error(context: Context) -> None:
         )
 
 
-async def test_ldap_to_mo_dict_validation_error(context: Context) -> None:
+async def test_ldap_to_mo_dict_validation_error(converter: LdapConverter) -> None:
 
-    converter = LdapConverter(context)
     converter.import_mo_object_class = MagicMock()  # type: ignore
     converter.import_mo_object_class.return_value = JobTitleFromADToMO
 
@@ -411,7 +408,7 @@ async def test_mapping_loader_failure(context: Context) -> None:
             await converter.to_ldap(obj_dict, "Employee", "CN=foo")
 
 
-async def test_find_cpr_field(context: Context) -> None:
+async def test_find_cpr_field(converter: LdapConverter) -> None:
 
     # This mapping is accepted
     good_mapping = {
@@ -450,31 +447,24 @@ async def test_find_cpr_field(context: Context) -> None:
     }
 
     # Test both cases
-    context["user_context"]["mapping"] = good_mapping
-    converter = LdapConverter(context)
-    assert converter.cpr_field == "employeeID"
+    populated_good_mapping = converter._populate_mapping_with_templates(
+        good_mapping, sync_environment
+    )
+    populated_bad_mapping = converter._populate_mapping_with_templates(
+        bad_mapping, sync_environment
+    )
+    populated_incorrect_mapping = converter._populate_mapping_with_templates(
+        {"mo_to_ldap": {}}, sync_environment
+    )
 
-    with patch(
-        "mo_ldap_import_export.converters.LdapConverter.check_mapping",
-        return_value=None,
-    ):
-        context["user_context"]["mapping"] = bad_mapping
-        converter = LdapConverter(context)
-        cpr_field = find_cpr_field(converter.sync_mapping)
-        assert cpr_field is None
+    assert find_cpr_field(populated_good_mapping) == "employeeID"
+    assert find_cpr_field(populated_bad_mapping) is None
 
     with pytest.raises(IncorrectMapping):
-        with patch(
-            "mo_ldap_import_export.converters.LdapConverter.check_mapping",
-            return_value=None,
-        ):
-            # This mapping does not contain the 'Employee' field
-            context["user_context"]["mapping"] = {"mo_to_ldap": {}}
-            converter = LdapConverter(context)
-            find_cpr_field(converter.sync_mapping)
+        find_cpr_field(populated_incorrect_mapping)
 
 
-async def test_template_lenience(context: Context) -> None:
+async def test_template_lenience(context: Context, converter: LdapConverter) -> None:
 
     mapping = {
         "ldap_to_mo": {
@@ -501,7 +491,6 @@ async def test_template_lenience(context: Context) -> None:
     }
 
     context["user_context"]["mapping"] = mapping
-    converter = LdapConverter(context)
     await converter.from_ldap(
         LdapObject(
             dn="",
