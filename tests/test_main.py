@@ -34,6 +34,7 @@ from mo_ldap_import_export.main import construct_gql_client
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
 from mo_ldap_import_export.main import get_delete_flag
+from mo_ldap_import_export.main import initialize_export_checks
 from mo_ldap_import_export.main import initialize_sync_tool
 from mo_ldap_import_export.main import open_ldap_connection
 from mo_ldap_import_export.main import process_address
@@ -935,3 +936,12 @@ async def test_initialize_sync_tool(
     with patch("mo_ldap_import_export.main.SyncTool", return_value=sync_tool):
         async with initialize_sync_tool(fastramqpi):
             assert user_context.get("sync_tool") is not None
+
+
+async def test_export_checks(fastramqpi: FastRAMQPI) -> None:
+    user_context = fastramqpi.get_context()["user_context"]
+    assert user_context.get("export_checks") is None
+
+    with patch("mo_ldap_import_export.main.ExportChecks", return_value=MagicMock()):
+        async with initialize_export_checks(fastramqpi):
+            assert user_context.get("export_checks") is not None

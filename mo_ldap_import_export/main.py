@@ -311,6 +311,14 @@ async def initialize_sync_tool(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
     yield
 
 
+@asynccontextmanager
+async def initialize_export_checks(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
+    logger.info("Initializing Export checks")
+    export_checks = ExportChecks(fastramqpi.get_context())
+    fastramqpi.add_context(export_checks=export_checks)
+    yield
+
+
 def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     """FastRAMQPI factory.
 
@@ -417,10 +425,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     internal_amqpsystem.router.registry.update(internal_amqp_router.registry)
     internal_amqpsystem.context = fastramqpi._context
 
-    logger.info("Starting export checks module")
-    export_checks = ExportChecks(fastramqpi.get_context())
-    fastramqpi.add_context(export_checks=export_checks)
-
+    fastramqpi.add_lifespan_manager(initialize_export_checks(fastramqpi), 2900)
     fastramqpi.add_lifespan_manager(initialize_sync_tool(fastramqpi), 3000)
 
     logger.info("Starting LDAP listener")
