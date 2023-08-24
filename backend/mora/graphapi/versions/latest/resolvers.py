@@ -214,6 +214,20 @@ AssociationTypeUserKeysFilterType = Annotated[
     ),
 ]
 
+ITAssociation = Annotated[
+    bool | None,
+    strawberry.argument(
+        description=dedent(
+            """\
+    Query for either IT-Associations or "normal" Associations. `None` returns all.
+
+    This field is needed to replicate the functionality in the service API:
+    `?it=1`
+    """
+        )
+    ),
+]
+
 CPRNumberFilterType = Annotated[
     list[CPR] | None,
     strawberry.argument(description=gen_filter_string("CPR number", "cpr_numbers")),
@@ -552,6 +566,7 @@ class AssociationResolver(Resolver):
         org_units: OrgUnitUUIDsFilterType = None,
         association_types: AssociationTypeUUIDsFilterType = None,
         association_type_user_keys: AssociationTypeUserKeysFilterType = None,
+        it_association: ITAssociation = None,
     ):
         """Resolve associations."""
         if association_type_user_keys is not None:
@@ -568,7 +583,7 @@ class AssociationResolver(Resolver):
             kwargs["tilknyttedebrugere"] = employees
         if org_units is not None:
             kwargs["tilknyttedeenheder"] = org_units
-        return await super()._resolve(
+        associations = await super()._resolve(
             info=info,
             uuids=uuids,
             user_keys=user_keys,
@@ -578,6 +593,27 @@ class AssociationResolver(Resolver):
             to_date=to_date,
             **kwargs,
         )
+
+        if it_association is not None:
+            filtered_data = {}
+            for uuid, association_fields in associations.items():
+                if it_association:
+                    filtered_associations = [
+                        association
+                        for association in association_fields
+                        if association.it_user_uuid is not None
+                    ]
+                else:
+                    filtered_associations = [
+                        association
+                        for association in association_fields
+                        if association.it_user_uuid is None
+                    ]
+                if filtered_associations:
+                    filtered_data[uuid] = filtered_associations
+            associations = filtered_data
+
+        return associations
 
 
 class EmployeeResolver(Resolver):
