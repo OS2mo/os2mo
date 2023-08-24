@@ -64,7 +64,6 @@ async def test_listen_to_changes_in_org_units(
 ):
     org_unit_info = {uuid4(): {"name": "Magenta Aps"}}
 
-    dataloader.load_mo_org_units = MagicMock()
     dataloader.load_mo_org_units.return_value = org_unit_info
 
     payload = MagicMock()

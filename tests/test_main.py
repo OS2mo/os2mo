@@ -178,10 +178,10 @@ def dataloader(
     dataloader.load_mo_employee.return_value = test_mo_employee
     dataloader.load_mo_address.return_value = test_mo_address
     dataloader.load_mo_it_user.return_value = test_mo_it_user
-    dataloader.load_mo_employee_address_types = sync_dataloader
-    dataloader.load_mo_org_unit_address_types = sync_dataloader
-    dataloader.load_mo_it_systems = sync_dataloader
-    dataloader.load_mo_primary_types = sync_dataloader
+    dataloader.load_mo_employee_address_types.return_value = None
+    dataloader.load_mo_org_unit_address_types.return_value = None
+    dataloader.load_mo_it_systems.return_value = None
+    dataloader.load_mo_primary_types.return_value = None
     dataloader.load_mo_employee_addresses.return_value = [test_mo_address] * 2
     dataloader.load_all_mo_objects.return_value = test_mo_objects
     dataloader.load_mo_object.return_value = test_mo_objects[0]
@@ -354,7 +354,7 @@ async def test_initialize_init_engine(fastramqpi: FastRAMQPI) -> None:
     user_context = fastramqpi.get_context()["user_context"]
     assert user_context.get("init_engine") is None
 
-    init_engine = MagicMock()
+    init_engine = AsyncMock()
 
     with patch("mo_ldap_import_export.main.InitEngine", return_value=init_engine):
         async with initialize_init_engine(fastramqpi):
@@ -909,13 +909,7 @@ def test_construct_gql_client():
 
     with patch("mo_ldap_import_export.main.PersistentGraphQLClient", MagicMock):
         gql_client = construct_gql_client(settings)
-        gql_client_sync = construct_gql_client(settings, sync=True)
-
-        assert gql_client.sync is False
-        assert gql_client_sync.sync is True
-
-        for client in [gql_client, gql_client_sync]:
-            assert client.url == "mo-url/graphql/v7"
+        assert gql_client.url == "mo-url/graphql/v7"
 
 
 async def test_get_non_existing_objectGUIDs_from_MO(

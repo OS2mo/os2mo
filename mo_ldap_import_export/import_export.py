@@ -489,7 +489,7 @@ class SyncTool:
             logger.info(
                 "[Listen-to-changes-in-orgs] Updating org unit info.", **logger_args
             )
-            self.converter.org_unit_info = self.dataloader.load_mo_org_units()
+            self.converter.org_unit_info = await self.dataloader.load_mo_org_units()
             self.converter.check_org_unit_info_dict()
 
         if object_type == "address":

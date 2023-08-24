@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from typing import Any
+from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
 from uuid import UUID
@@ -93,10 +94,10 @@ async def converters(
             await converter._init()
 
             # Mock basic functions used by our jinja templates
-            converter.clean_org_unit_path_string = MagicMock()  # type: ignore
+            converter.clean_org_unit_path_string = AsyncMock()  # type: ignore
             converter.clean_org_unit_path_string.return_value = "org/unit/path"
 
-            converter.get_org_unit_uuid_from_path = MagicMock()  # type: ignore
+            converter.get_org_unit_uuid_from_path = AsyncMock()  # type: ignore
             converter.get_org_unit_uuid_from_path.return_value = str(uuid)
 
             converter.get_object_uuid_from_user_key = MagicMock()  # type: ignore
@@ -112,7 +113,7 @@ async def converters(
             converter.get_object_name_from_uuid.return_value = "object_name"
 
             converter.get_current_engagement_attribute_uuid_dict = (  # type: ignore
-                MagicMock()
+                AsyncMock()
             )
             converter.get_current_engagement_attribute_uuid_dict.return_value = {
                 "uuid": str(uuid)

@@ -98,7 +98,7 @@ def context() -> Context:
     settings_mock.org_unit_path_string_separator = "\\"
     settings_mock.imported_org_unit_tag = "IMPORTED FROM LDAP: "
 
-    dataloader = MagicMock()
+    dataloader = AsyncMock()
     uuid1 = str(uuid4())
     uuid2 = str(uuid4())
     mo_employee_address_types = {
@@ -114,19 +114,11 @@ def context() -> Context:
         ad_uuid: {"uuid": ad_uuid, "user_key": "Active Directory"},
     }
 
-    load_mo_employee_address_types = MagicMock()
-    load_mo_org_unit_address_types = MagicMock()
-    load_mo_it_systems = MagicMock()
+    dataloader.load_mo_employee_address_types.return_value = mo_employee_address_types
+    dataloader.load_mo_org_unit_address_types.return_value = mo_org_unit_address_types
+    dataloader.load_mo_it_systems.return_value = mo_it_systems
+    dataloader.load_mo_org_units.return_value = {}
 
-    load_mo_employee_address_types.return_value = mo_employee_address_types
-    load_mo_org_unit_address_types.return_value = mo_org_unit_address_types
-    load_mo_it_systems.return_value = mo_it_systems
-
-    dataloader.load_mo_employee_address_types = load_mo_employee_address_types
-    dataloader.load_mo_org_unit_address_types = load_mo_org_unit_address_types
-    dataloader.load_mo_it_systems = load_mo_it_systems
-
-    dataloader.upload_mo_objects = AsyncMock()
     dataloader.single_value = {
         "givenName": True,
         "sn": True,
@@ -147,6 +139,7 @@ def context() -> Context:
 
     overview = {"user": {"attributes": attribute_dict}}
 
+    dataloader.load_ldap_overview = MagicMock()
     dataloader.load_ldap_overview.return_value = overview
     org_unit_type_uuid = str(uuid4())
     org_unit_level_uuid = str(uuid4())
@@ -949,23 +942,24 @@ async def test_get_job_function_uuid(converter: LdapConverter):
     }
     converter.job_function_info = job_function_info
 
-    assert converter.get_or_create_job_function_uuid("Major") == uuid1
-    assert converter.get_or_create_job_function_uuid("Secretary") == uuid2
+    assert await converter.get_or_create_job_function_uuid("Major") == uuid1
+    assert await converter.get_or_create_job_function_uuid("Secretary") == uuid2
 
     uuid = uuid4()
 
-    dataloader = MagicMock()
-    dataloader.create_mo_job_function = MagicMock()
+    dataloader = AsyncMock()
     dataloader.create_mo_job_function.return_value = uuid
     converter.dataloader = dataloader
 
-    assert converter.get_or_create_job_function_uuid("non-existing_job") == str(uuid)
+    assert await converter.get_or_create_job_function_uuid("non-existing_job") == str(
+        uuid
+    )
 
     with pytest.raises(UUIDNotFoundException):
-        converter.get_or_create_job_function_uuid("")
+        await converter.get_or_create_job_function_uuid("")
 
     with pytest.raises(UUIDNotFoundException):
-        converter.get_or_create_job_function_uuid([])  # type: ignore
+        await converter.get_or_create_job_function_uuid([])  # type: ignore
 
 
 async def test_get_engagement_type_uuid(converter: LdapConverter):
@@ -977,25 +971,24 @@ async def test_get_engagement_type_uuid(converter: LdapConverter):
     }
     converter.engagement_type_info = engagement_type_info
 
-    assert converter.get_or_create_engagement_type_uuid("Ansat") == uuid1
-    assert converter.get_or_create_engagement_type_uuid("Vikar") == uuid2
+    assert await converter.get_or_create_engagement_type_uuid("Ansat") == uuid1
+    assert await converter.get_or_create_engagement_type_uuid("Vikar") == uuid2
 
     uuid = uuid4()
 
-    dataloader = MagicMock()
-    dataloader.create_mo_engagement_type = MagicMock()
+    dataloader = AsyncMock()
     dataloader.create_mo_engagement_type.return_value = uuid
     converter.dataloader = dataloader
 
-    assert converter.get_or_create_engagement_type_uuid(
+    assert await converter.get_or_create_engagement_type_uuid(
         "non-existing_engagement_type"
     ) == str(uuid)
 
     with pytest.raises(UUIDNotFoundException):
-        converter.get_or_create_engagement_type_uuid("")
+        await converter.get_or_create_engagement_type_uuid("")
 
     with pytest.raises(UUIDNotFoundException):
-        converter.get_or_create_engagement_type_uuid([])  # type: ignore
+        await converter.get_or_create_engagement_type_uuid([])  # type: ignore
 
 
 async def test_get_primary_type_uuid(converter: LdapConverter):
@@ -1437,7 +1430,7 @@ def test_check_info_dicts(converter: LdapConverter):
         converter.check_info_dicts()
 
 
-def test_get_current_engagement_attribute(converter: LdapConverter):
+async def test_get_current_engagement_attribute(converter: LdapConverter):
 
     engagement1 = {
         "uuid": str(uuid4()),
@@ -1466,8 +1459,7 @@ def test_get_current_engagement_attribute(converter: LdapConverter):
         "primary_uuid": None,
     }
 
-    dataloader = MagicMock()
-    dataloader.load_mo_employee_engagement_dicts = MagicMock()  # type: ignore
+    dataloader = AsyncMock()
     dataloader.load_mo_employee_engagement_dicts.return_value = [engagement1]
     converter.dataloader = dataloader
 
@@ -1475,16 +1467,15 @@ def test_get_current_engagement_attribute(converter: LdapConverter):
 
     for attribute in test_attributes:
         assert (
-            converter.get_current_engagement_attribute_uuid_dict(
+            await converter.get_current_engagement_attribute_uuid_dict(
                 attribute, uuid4(), "foo"
-            )["uuid"]
-            == engagement1[attribute]
-        )
+            )
+        )["uuid"] == engagement1[attribute]
 
     # Try for an employee without matching engagements
     with pytest.raises(UUIDNotFoundException):
         dataloader.load_mo_employee_engagement_dicts.return_value = []
-        converter.get_current_engagement_attribute_uuid_dict(
+        await converter.get_current_engagement_attribute_uuid_dict(
             attribute, uuid4(), "mucki"
         )
 
@@ -1494,48 +1485,49 @@ def test_get_current_engagement_attribute(converter: LdapConverter):
             engagement2,
             engagement3,
         ]
-        converter.get_current_engagement_attribute_uuid_dict(
+        await converter.get_current_engagement_attribute_uuid_dict(
             attribute, uuid4(), "duplicate_user_key"
         )
 
     # Try with faulty input
     with pytest.raises(ValueError, match="attribute must be an uuid-string"):
-        converter.get_current_engagement_attribute_uuid_dict(
+        await converter.get_current_engagement_attribute_uuid_dict(
             "user_key", uuid4(), "mucki"
         )
 
 
-def test_get_current_org_unit_uuid(converter: LdapConverter):
+async def test_get_current_org_unit_uuid(converter: LdapConverter):
     uuid = str(uuid4())
-    converter.get_current_engagement_attribute_uuid_dict = MagicMock()  # type: ignore
+    converter.get_current_engagement_attribute_uuid_dict = AsyncMock()  # type: ignore
     converter.get_current_engagement_attribute_uuid_dict.return_value = {"uuid": uuid}
 
-    assert converter.get_current_org_unit_uuid_dict(uuid4(), "foo")["uuid"] == uuid
+    assert (await converter.get_current_org_unit_uuid_dict(uuid4(), "foo"))[
+        "uuid"
+    ] == uuid
 
 
-def test_get_current_engagement_type_uuid(converter: LdapConverter):
+async def test_get_current_engagement_type_uuid(converter: LdapConverter):
     uuid = str(uuid4())
-    converter.get_current_engagement_attribute_uuid_dict = MagicMock()  # type: ignore
+    converter.get_current_engagement_attribute_uuid_dict = AsyncMock()  # type: ignore
     converter.get_current_engagement_attribute_uuid_dict.return_value = {"uuid": uuid}
 
-    assert (
-        converter.get_current_engagement_type_uuid_dict(uuid4(), "foo")["uuid"] == uuid
-    )
+    assert (await converter.get_current_engagement_type_uuid_dict(uuid4(), "foo"))[
+        "uuid"
+    ] == uuid
 
 
-def test_get_current_primary_uuid(converter: LdapConverter):
+async def test_get_current_primary_uuid(converter: LdapConverter):
     uuid = str(uuid4())
-    converter.get_current_engagement_attribute_uuid_dict = MagicMock()  # type: ignore
+    converter.get_current_engagement_attribute_uuid_dict = AsyncMock()  # type: ignore
     converter.get_current_engagement_attribute_uuid_dict.return_value = {"uuid": uuid}
 
-    assert (
-        converter.get_current_primary_uuid_dict(uuid4(), "foo")["uuid"]  # type: ignore
-        == uuid
-    )
+    assert (await converter.get_current_primary_uuid_dict(uuid4(), "foo"))[
+        "uuid"
+    ] == uuid  # type: ignore
 
     converter.get_current_engagement_attribute_uuid_dict.return_value = {"uuid": None}
 
-    assert converter.get_current_primary_uuid_dict(uuid4(), "foo") is None
+    assert await converter.get_current_primary_uuid_dict(uuid4(), "foo") is None
 
 
 def test_clean_calls_to_get_current_method_from_template_string(
@@ -1552,7 +1544,7 @@ def test_clean_calls_to_get_current_method_from_template_string(
     assert "ldap.foo" in cleaned_template
 
 
-def test_get_org_unit_uuid_from_path(converter: LdapConverter):
+async def test_get_org_unit_uuid_from_path(converter: LdapConverter):
     uuid_org1 = str(uuid4())
     uuid_org2 = str(uuid4())
     uuid_org3 = str(uuid4())
@@ -1567,12 +1559,12 @@ def test_get_org_unit_uuid_from_path(converter: LdapConverter):
         uuid_org3: {"name": "org3", "uuid": uuid_org3, "parent_uuid": uuid_org2},
     }
 
-    assert converter.get_org_unit_uuid_from_path("org1\\org2\\org3") == uuid_org3
-    assert converter.get_org_unit_uuid_from_path("org1\\org2") == uuid_org2
+    assert await converter.get_org_unit_uuid_from_path("org1\\org2\\org3") == uuid_org3
+    assert await converter.get_org_unit_uuid_from_path("org1\\org2") == uuid_org2
     with pytest.raises(UUIDNotFoundException):
-        converter.get_org_unit_uuid_from_path("org1\\org4")
+        await converter.get_org_unit_uuid_from_path("org1\\org4")
     with pytest.raises(UUIDNotFoundException):
-        converter.get_org_unit_uuid_from_path("org1\\org3")
+        await converter.get_org_unit_uuid_from_path("org1\\org3")
 
     converter.org_unit_info = {
         uuid_org1: {
@@ -1592,7 +1584,7 @@ def test_get_org_unit_uuid_from_path(converter: LdapConverter):
         },
     }
 
-    assert converter.get_org_unit_uuid_from_path("org1\\org2\\org3") == uuid_org3
-    assert converter.get_org_unit_uuid_from_path("org1\\org2") == uuid_org2
+    assert await converter.get_org_unit_uuid_from_path("org1\\org2\\org3") == uuid_org3
+    assert await converter.get_org_unit_uuid_from_path("org1\\org2") == uuid_org2
     with pytest.raises(UUIDNotFoundException):
-        converter.get_org_unit_uuid_from_path("org1\\org4")
+        await converter.get_org_unit_uuid_from_path("org1\\org4")

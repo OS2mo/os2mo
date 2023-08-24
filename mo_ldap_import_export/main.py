@@ -263,7 +263,7 @@ async def open_ldap_connection(ldap_connection: Connection) -> AsyncIterator[Non
         yield
 
 
-def construct_gql_client(settings: Settings, sync=False, version: str = "v7"):
+def construct_gql_client(settings: Settings, version: str = "v7"):
     return PersistentGraphQLClient(
         url=settings.mo_url + "/graphql/" + version,
         client_id=settings.client_id,
@@ -272,7 +272,6 @@ def construct_gql_client(settings: Settings, sync=False, version: str = "v7"):
         auth_realm=settings.auth_realm,
         execute_timeout=settings.graphql_timeout,
         httpx_client_kwargs={"timeout": settings.graphql_timeout},
-        sync=sync,
     )
 
 
@@ -288,7 +287,7 @@ def construct_model_client(settings: Settings):
 
 def construct_clients(
     settings: Settings,
-) -> Tuple[PersistentGraphQLClient, PersistentGraphQLClient, ModelClient]:
+) -> Tuple[PersistentGraphQLClient, ModelClient]:
     """Construct clients froms settings.
 
     Args:
@@ -298,9 +297,8 @@ def construct_clients(
         Tuple with PersistentGraphQLClient and ModelClient.
     """
     gql_client = construct_gql_client(settings)
-    gql_client_sync = construct_gql_client(settings, sync=True)
     model_client = construct_model_client(settings)
-    return gql_client, gql_client_sync, model_client
+    return gql_client, model_client
 
 
 # https://fastapi.tiangolo.com/advanced/events/
@@ -335,8 +333,8 @@ async def initialize_converters(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
 async def initialize_init_engine(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
     logger.info("Initializing os2mo-init engine")
     init_engine = InitEngine(fastramqpi.get_context())
-    init_engine.create_facets()
-    init_engine.create_it_systems()
+    await init_engine.create_facets()
+    await init_engine.create_it_systems()
     fastramqpi.add_context(init_engine=init_engine)
     yield
 
@@ -372,11 +370,10 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     amqpsystem.router.registry.update(amqp_router.registry)
 
     logger.info("Setting up clients")
-    gql_client, gql_client_sync, model_client = construct_clients(settings)
+    gql_client, model_client = construct_clients(settings)
     fastramqpi.add_context(model_client=model_client)
     fastramqpi.add_context(gql_client=gql_client)
     fastramqpi._context["graphql_client"] = gql_client
-    fastramqpi.add_context(gql_client_sync=gql_client_sync)
 
     logger.info("Configuring LDAP connection")
     ldap_connection = configure_ldap_connection(settings)
@@ -861,25 +858,25 @@ def create_app(**kwargs: Any) -> FastAPI:
     # Get MO address types
     @app.get("/MO/Address_types_org_unit", status_code=202, tags=["MO"])
     async def load_org_unit_address_types_from_MO() -> Any:
-        result = dataloader.load_mo_org_unit_address_types()
+        result = await dataloader.load_mo_org_unit_address_types()
         return result
 
     # Get MO address types
     @app.get("/MO/Address_types_employee", status_code=202, tags=["MO"])
     async def load_employee_address_types_from_MO() -> Any:
-        result = dataloader.load_mo_employee_address_types()
+        result = await dataloader.load_mo_employee_address_types()
         return result
 
     # Get MO IT system types
     @app.get("/MO/IT_systems", status_code=202, tags=["MO"])
     async def load_it_systems_from_MO() -> Any:
-        result = dataloader.load_mo_it_systems()
+        result = await dataloader.load_mo_it_systems()
         return result
 
     # Get MO primary types
     @app.get("/MO/Primary_types", status_code=202, tags=["MO"])
     async def load_primary_types_from_MO() -> Any:
-        return dataloader.load_mo_primary_types()
+        return await dataloader.load_mo_primary_types()
 
     class SyncQueryParams:
         def __init__(

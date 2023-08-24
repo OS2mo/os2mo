@@ -78,13 +78,6 @@ def gql_client() -> Iterator[AsyncMock]:
 
 
 @pytest.fixture
-def gql_client_sync() -> Iterator[MagicMock]:
-    gql_client_sync = MagicMock()
-    gql_client_sync.execute.return_value = {"org": {"uuid": str(uuid4())}}
-    yield gql_client_sync
-
-
-@pytest.fixture
 def model_client() -> Iterator[AsyncMock]:
     yield AsyncMock()
 
@@ -136,7 +129,6 @@ def context(
     settings: Settings,
     cpr_field: str,
     converter: MagicMock,
-    gql_client_sync: MagicMock,
     sync_tool: AsyncMock,
     username_generator: MagicMock,
 ) -> Context:
@@ -149,7 +141,6 @@ def context(
             "model_client": model_client,
             "cpr_field": cpr_field,
             "converter": converter,
-            "gql_client_sync": gql_client_sync,
             "sync_tool": sync_tool,
             "username_generator": username_generator,
             "ldap_it_system_user_key": "Active Directory",
@@ -537,13 +528,13 @@ async def test_get_populated_overview(dataloader: DataLoader):
 
 
 async def test_load_mo_address_types(
-    dataloader: DataLoader, gql_client_sync: MagicMock
+    dataloader: DataLoader, gql_client: AsyncMock
 ) -> None:
 
     uuid = uuid4()
     name = "Email"
 
-    gql_client_sync.execute.return_value = {
+    gql_client.execute.return_value = {
         "facets": {
             "objects": [
                 {"current": {"classes": [{"uuid": uuid, "name": name}]}},
@@ -551,18 +542,18 @@ async def test_load_mo_address_types(
         }
     }
 
-    assert dataloader.load_mo_employee_address_types()[uuid]["name"] == name
-    assert dataloader.load_mo_org_unit_address_types()[uuid]["name"] == name
+    assert (await dataloader.load_mo_employee_address_types())[uuid]["name"] == name
+    assert (await dataloader.load_mo_org_unit_address_types())[uuid]["name"] == name
 
 
 async def test_load_mo_primary_types(
-    dataloader: DataLoader, gql_client_sync: MagicMock
+    dataloader: DataLoader, gql_client: AsyncMock
 ) -> None:
 
     uuid = uuid4()
     value_key = "primary"
 
-    gql_client_sync.execute.return_value = {
+    gql_client.execute.return_value = {
         "facets": {
             "objects": [
                 {"current": {"classes": [{"uuid": uuid, "value_key": value_key}]}},
@@ -570,18 +561,18 @@ async def test_load_mo_primary_types(
         }
     }
 
-    output = dataloader.load_mo_primary_types()
+    output = await dataloader.load_mo_primary_types()
     assert output[uuid]["value_key"] == value_key
 
 
 async def test_load_mo_job_functions(
-    dataloader: DataLoader, gql_client_sync: MagicMock
+    dataloader: DataLoader, gql_client: AsyncMock
 ) -> None:
 
     uuid = uuid4()
     name = "Manager"
 
-    gql_client_sync.execute.return_value = {
+    gql_client.execute.return_value = {
         "facets": {
             "objects": [
                 {"current": {"classes": [{"uuid": uuid, "name": name}]}},
@@ -589,18 +580,18 @@ async def test_load_mo_job_functions(
         }
     }
 
-    output = dataloader.load_mo_job_functions()
+    output = await dataloader.load_mo_job_functions()
     assert output[uuid]["name"] == name
 
 
 async def test_load_mo_visibility(
-    dataloader: DataLoader, gql_client_sync: MagicMock
+    dataloader: DataLoader, gql_client: AsyncMock
 ) -> None:
 
     uuid = uuid4()
     name = "Hemmelig"
 
-    gql_client_sync.execute.return_value = {
+    gql_client.execute.return_value = {
         "facets": {
             "objects": [
                 {"current": {"classes": [{"uuid": uuid, "name": name}]}},
@@ -608,18 +599,18 @@ async def test_load_mo_visibility(
         }
     }
 
-    output = dataloader.load_mo_visibility()
+    output = await dataloader.load_mo_visibility()
     assert output[uuid]["name"] == name
 
 
 async def test_load_mo_engagement_types(
-    dataloader: DataLoader, gql_client_sync: MagicMock
+    dataloader: DataLoader, gql_client: AsyncMock
 ) -> None:
 
     uuid = uuid4()
     name = "Ansat"
 
-    gql_client_sync.execute.return_value = {
+    gql_client.execute.return_value = {
         "facets": {
             "objects": [
                 {"current": {"classes": [{"uuid": uuid, "name": name}]}},
@@ -627,18 +618,18 @@ async def test_load_mo_engagement_types(
         }
     }
 
-    output = dataloader.load_mo_engagement_types()
+    output = await dataloader.load_mo_engagement_types()
     assert output[uuid]["name"] == name
 
 
 async def test_load_mo_org_unit_types(
-    dataloader: DataLoader, gql_client_sync: MagicMock
+    dataloader: DataLoader, gql_client: AsyncMock
 ) -> None:
 
     uuid = uuid4()
     name = "Direktørområde"
 
-    gql_client_sync.execute.return_value = {
+    gql_client.execute.return_value = {
         "facets": {
             "objects": [
                 {"current": {"classes": [{"uuid": uuid, "name": name}]}},
@@ -646,18 +637,18 @@ async def test_load_mo_org_unit_types(
         }
     }
 
-    output = dataloader.load_mo_org_unit_types()
+    output = await dataloader.load_mo_org_unit_types()
     assert output[uuid]["name"] == name
 
 
 async def test_load_mo_org_unit_levels(
-    dataloader: DataLoader, gql_client_sync: MagicMock
+    dataloader: DataLoader, gql_client: AsyncMock
 ) -> None:
 
     uuid = uuid4()
     name = "N1"
 
-    gql_client_sync.execute.return_value = {
+    gql_client.execute.return_value = {
         "facets": {
             "objects": [
                 {"current": {"classes": [{"uuid": uuid, "name": name}]}},
@@ -665,7 +656,7 @@ async def test_load_mo_org_unit_levels(
         }
     }
 
-    output = dataloader.load_mo_org_unit_levels()
+    output = await dataloader.load_mo_org_unit_levels()
     assert output[uuid]["name"] == name
 
 
@@ -817,9 +808,7 @@ async def test_load_mo_employee_addresses_not_found(
         )
 
 
-async def test_find_mo_employee_uuid(
-    dataloader: DataLoader, gql_client: AsyncMock, gql_client_sync: MagicMock
-):
+async def test_find_mo_employee_uuid(dataloader: DataLoader, gql_client: AsyncMock):
     uuid = uuid4()
     objectGUID = uuid4()
     dataloader.user_context["cpr_field"] = "employeeID"
@@ -918,15 +907,15 @@ async def test_load_mo_employee_not_found(
 
 
 async def test_load_mo_address_types_not_found(
-    dataloader: DataLoader, gql_client_sync: MagicMock
+    dataloader: DataLoader, gql_client: AsyncMock
 ):
-    gql_client_sync.execute.return_value = {"facets": {"objects": []}}
+    gql_client.execute.return_value = {"facets": {"objects": []}}
 
-    assert dataloader.load_mo_employee_address_types() == {}
-    assert dataloader.load_mo_org_unit_address_types() == {}
+    assert await dataloader.load_mo_employee_address_types() == {}
+    assert await dataloader.load_mo_org_unit_address_types() == {}
 
 
-def test_load_mo_it_systems(dataloader: DataLoader, gql_client_sync: MagicMock):
+async def test_load_mo_it_systems(dataloader: DataLoader, gql_client: AsyncMock):
     uuid1 = uuid4()
     uuid2 = uuid4()
 
@@ -939,14 +928,14 @@ def test_load_mo_it_systems(dataloader: DataLoader, gql_client_sync: MagicMock):
         }
     }
 
-    gql_client_sync.execute.return_value = return_value
+    gql_client.execute.return_value = return_value
 
-    output = dataloader.load_mo_it_systems()
+    output = await dataloader.load_mo_it_systems()
     assert output[uuid1]["user_key"] == "AD"
     assert output[uuid2]["user_key"] == "Office365"
 
 
-def test_load_mo_org_units(dataloader: DataLoader, gql_client_sync: MagicMock):
+async def test_load_mo_org_units(dataloader: DataLoader, gql_client: AsyncMock):
     uuid1 = str(uuid4())
     uuid2 = str(uuid4())
 
@@ -967,34 +956,34 @@ def test_load_mo_org_units(dataloader: DataLoader, gql_client_sync: MagicMock):
         }
     }
 
-    gql_client_sync.execute.return_value = return_value
+    gql_client.execute.return_value = return_value
 
-    output = dataloader.load_mo_org_units()
+    output = await dataloader.load_mo_org_units()
     assert output[uuid1]["name"] == "Magenta Aps"
     assert output[uuid2]["name"] == "Magenta Aarhus"
     assert output[uuid2]["parent_uuid"] == uuid1
 
 
-def test_load_mo_org_units_empty_response(
-    dataloader: DataLoader, gql_client_sync: MagicMock
+async def test_load_mo_org_units_empty_response(
+    dataloader: DataLoader, gql_client: AsyncMock
 ):
 
     return_value: dict = {"org_units": {"objects": []}}
 
-    gql_client_sync.execute.return_value = return_value
+    gql_client.execute.return_value = return_value
 
-    output = dataloader.load_mo_org_units()
+    output = await dataloader.load_mo_org_units()
     assert output == {}
 
 
-def test_load_mo_it_systems_not_found(
-    dataloader: DataLoader, gql_client_sync: MagicMock
+async def test_load_mo_it_systems_not_found(
+    dataloader: DataLoader, gql_client: AsyncMock
 ):
 
     return_value: dict = {"itsystems": {"objects": []}}
-    gql_client_sync.execute.return_value = return_value
+    gql_client.execute.return_value = return_value
 
-    output = dataloader.load_mo_it_systems()
+    output = await dataloader.load_mo_it_systems()
     assert output == {}
 
 
@@ -1324,30 +1313,6 @@ async def test_query_mo_all_objects(dataloader: DataLoader, gql_client: AsyncMoc
     # If that fails, all objects are requested
     assert "from_date" in query2
     assert "to_date" in query2
-
-
-def test_query_mo_sync(dataloader: DataLoader, gql_client_sync: MagicMock):
-    expected_output: dict = {"objects": {"objects": ["items"]}}
-    gql_client_sync.execute.return_value = expected_output
-
-    query = gql(
-        """
-        query TestQuery {
-          employees {
-            uuid
-          }
-        }
-        """
-    )
-
-    dataloader._check_if_empty = MagicMock()  # type: ignore
-    output = dataloader.query_mo_sync(query, raise_if_empty=False)
-    assert output == expected_output
-    dataloader._check_if_empty.assert_not_called()
-
-    output = dataloader.query_mo_sync(query)
-    assert output == expected_output
-    dataloader._check_if_empty.assert_called_once()
 
 
 async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock):
@@ -1938,39 +1903,39 @@ def test_load_ldap_attribute_values(dataloader: DataLoader):
         assert len(values) == 3
 
 
-def test_create_mo_class(dataloader: DataLoader):
+async def test_create_mo_class(dataloader: DataLoader):
 
     uuid = uuid4()
 
-    dataloader.query_mo_sync = MagicMock()  # type: ignore
-    dataloader.query_mo_sync.return_value = {"class_create": {"uuid": str(uuid)}}
+    dataloader.query_mo = AsyncMock()  # type: ignore
+    dataloader.query_mo.return_value = {"class_create": {"uuid": str(uuid)}}
 
-    assert dataloader.create_mo_class("", "", uuid4()) == uuid
+    assert await dataloader.create_mo_class("", "", uuid4()) == uuid
 
 
-def test_update_mo_class(dataloader: DataLoader):
+async def test_update_mo_class(dataloader: DataLoader):
 
     uuid = uuid4()
 
-    dataloader.query_mo_sync = MagicMock()  # type: ignore
-    dataloader.query_mo_sync.return_value = {"class_update": {"uuid": str(uuid)}}
+    dataloader.query_mo = AsyncMock()  # type: ignore
+    dataloader.query_mo.return_value = {"class_update": {"uuid": str(uuid)}}
 
-    assert dataloader.update_mo_class("", "", uuid4(), uuid4()) == uuid
+    assert await dataloader.update_mo_class("", "", uuid4(), uuid4()) == uuid
 
 
-def test_create_mo_job_function(dataloader: DataLoader):
+async def test_create_mo_job_function(dataloader: DataLoader):
 
     uuid1 = uuid4()
     uuid2 = uuid4()
 
-    dataloader.load_mo_facet_uuid = MagicMock()  # type: ignore
+    dataloader.load_mo_facet_uuid = AsyncMock()  # type: ignore
     dataloader.load_mo_facet_uuid.return_value = uuid1
 
-    dataloader.create_mo_class = MagicMock()  # type: ignore
+    dataloader.create_mo_class = AsyncMock()  # type: ignore
     dataloader.create_mo_class.return_value = uuid2
 
-    assert dataloader.create_mo_job_function("foo") == uuid2
-    assert dataloader.create_mo_engagement_type("bar") == uuid2
+    assert await dataloader.create_mo_job_function("foo") == uuid2
+    assert await dataloader.create_mo_engagement_type("bar") == uuid2
 
     args = dataloader.create_mo_class.call_args_list[0].args
 
@@ -1985,21 +1950,21 @@ def test_create_mo_job_function(dataloader: DataLoader):
     assert args[2] == uuid1
 
 
-def test_load_mo_facet_uuid(dataloader: DataLoader):
+async def test_load_mo_facet_uuid(dataloader: DataLoader):
 
     uuid = uuid4()
-    dataloader.query_mo_sync = MagicMock()  # type: ignore
-    dataloader.query_mo_sync.return_value = {
+    dataloader.query_mo = AsyncMock()  # type: ignore
+    dataloader.query_mo.return_value = {
         "facets": {"objects": [{"current": {"uuid": str(uuid)}}]}
     }
 
-    assert dataloader.load_mo_facet_uuid("") == uuid
+    assert await dataloader.load_mo_facet_uuid("") == uuid
 
 
-def test_load_mo_facet_uuid_multiple_facets(dataloader: DataLoader):
+async def test_load_mo_facet_uuid_multiple_facets(dataloader: DataLoader):
 
-    dataloader.query_mo_sync = MagicMock()  # type: ignore
-    dataloader.query_mo_sync.return_value = {
+    dataloader.query_mo = AsyncMock()  # type: ignore
+    dataloader.query_mo.return_value = {
         "facets": {
             "objects": [
                 {"current": {"uuid": str(uuid4())}},
@@ -2009,14 +1974,14 @@ def test_load_mo_facet_uuid_multiple_facets(dataloader: DataLoader):
     }
 
     with pytest.raises(MultipleObjectsReturnedException):
-        dataloader.load_mo_facet_uuid("")
+        await dataloader.load_mo_facet_uuid("")
 
 
-def test_create_mo_it_system(dataloader: DataLoader):
-    dataloader.query_mo_sync = MagicMock()  # type: ignore
-    dataloader.query_mo_sync.return_value = {"itsystem_create": {"uuid": str(uuid4())}}
+async def test_create_mo_it_system(dataloader: DataLoader):
+    dataloader.query_mo = AsyncMock()  # type: ignore
+    dataloader.query_mo.return_value = {"itsystem_create": {"uuid": str(uuid4())}}
 
-    assert type(dataloader.create_mo_it_system("foo", "bar")) == UUID
+    assert type(await dataloader.create_mo_it_system("foo", "bar")) == UUID
 
 
 def test_add_ldap_object(dataloader: DataLoader):
@@ -2030,8 +1995,8 @@ def test_add_ldap_object(dataloader: DataLoader):
         dataloader.add_ldap_object("CN=foo")
 
 
-def test_load_mo_employee_engagement_dicts(dataloader: DataLoader):
-    dataloader.query_mo_sync = MagicMock()  # type: ignore
+async def test_load_mo_employee_engagement_dicts(dataloader: DataLoader):
+    dataloader.query_mo = AsyncMock()  # type: ignore
     engagement1 = {
         "uuid": uuid4(),
         "user_key": "foo",
@@ -2046,19 +2011,19 @@ def test_load_mo_employee_engagement_dicts(dataloader: DataLoader):
         "job_function_uuid": uuid4(),
         "engagement_type_uuid": uuid4(),
     }
-    dataloader.query_mo_sync.return_value = {
+    dataloader.query_mo.return_value = {
         "employees": {
             "objects": [{"objects": [{"engagements": [engagement1, engagement2]}]}]
         }
     }
 
-    result = dataloader.load_mo_employee_engagement_dicts(uuid4(), "foo")
+    result = await dataloader.load_mo_employee_engagement_dicts(uuid4(), "foo")
 
     assert engagement1 in result
     assert engagement2 in result
 
-    dataloader.query_mo_sync.side_effect = NoObjectsReturnedException("f")
-    result = dataloader.load_mo_employee_engagement_dicts(uuid4(), "foo")
+    dataloader.query_mo.side_effect = NoObjectsReturnedException("f")
+    result = await dataloader.load_mo_employee_engagement_dicts(uuid4(), "foo")
 
     assert type(result) is list
     assert len(result) == 0
@@ -2397,11 +2362,11 @@ def test_extract_latest_object(dataloader: DataLoader):
         assert dataloader.extract_current_or_latest_object(objects)["uuid"] == uuid_obj2
 
 
-def test_load_mo_root_org_uuid(dataloader: DataLoader):
+async def test_load_mo_root_org_uuid(dataloader: DataLoader):
 
     root_org_uuid = uuid4()
 
-    dataloader.query_mo_sync = MagicMock()  # type: ignore
-    dataloader.query_mo_sync.return_value = {"org": {"uuid": str(root_org_uuid)}}
+    dataloader.query_mo = AsyncMock()  # type: ignore
+    dataloader.query_mo.return_value = {"org": {"uuid": str(root_org_uuid)}}
 
-    assert dataloader.load_mo_root_org_uuid() == str(root_org_uuid)
+    assert await dataloader.load_mo_root_org_uuid() == str(root_org_uuid)

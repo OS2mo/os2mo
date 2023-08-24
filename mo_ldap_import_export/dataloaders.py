@@ -11,7 +11,6 @@ from uuid import UUID
 from fastapi.encoders import jsonable_encoder
 from gql import gql
 from gql.client import AsyncClientSession
-from gql.client import SyncClientSession
 from gql.transport.exceptions import TransportQueryError
 from graphql import DocumentNode
 from ldap3 import BASE
@@ -206,13 +205,6 @@ class DataLoader:
             else:
                 query = add_filter_to_query(query, "to_date: null, from_date: null")
                 return await self.query_mo(query)
-
-    def query_mo_sync(self, query, raise_if_empty=True):
-        graphql_session: SyncClientSession = self.user_context["gql_client_sync"]
-        result = graphql_session.execute(query)
-        if raise_if_empty:
-            self._check_if_empty(result)
-        return result
 
     def load_ldap_object(self, dn, attributes, nest=True):
         searchParameters = {
@@ -1000,7 +992,7 @@ class DataLoader:
             output.append(employee)
         return output
 
-    def load_mo_facet(self, user_key) -> dict:
+    async def load_mo_facet(self, user_key) -> dict:
         query = gql(
             f"""
             query FacetQuery {{
@@ -1019,7 +1011,7 @@ class DataLoader:
             }}
             """
         )
-        result = self.query_mo_sync(query, raise_if_empty=False)
+        result = await self.query_mo(query, raise_if_empty=False)
 
         if len(result["facets"]["objects"]) == 0:
             output = {}
@@ -1031,7 +1023,7 @@ class DataLoader:
 
         return output
 
-    def load_mo_facet_uuid(self, user_key: str) -> UUID:
+    async def load_mo_facet_uuid(self, user_key: str) -> UUID:
         query = gql(
             f"""
             query FacetUUIDQuery {{
@@ -1045,7 +1037,7 @@ class DataLoader:
             }}
             """
         )
-        result = self.query_mo_sync(query)
+        result = await self.query_mo(query)
         facets = result["facets"]["objects"]
         if len(facets) > 1:
             raise MultipleObjectsReturnedException(
@@ -1053,31 +1045,31 @@ class DataLoader:
             )
         return UUID(result["facets"]["objects"][0]["current"]["uuid"])
 
-    def load_mo_employee_address_types(self) -> dict:
-        return self.load_mo_facet("employee_address_type")
+    async def load_mo_employee_address_types(self) -> dict:
+        return await self.load_mo_facet("employee_address_type")
 
-    def load_mo_org_unit_address_types(self) -> dict:
-        return self.load_mo_facet("org_unit_address_type")
+    async def load_mo_org_unit_address_types(self) -> dict:
+        return await self.load_mo_facet("org_unit_address_type")
 
-    def load_mo_visibility(self) -> dict:
-        return self.load_mo_facet("visibility")
+    async def load_mo_visibility(self) -> dict:
+        return await self.load_mo_facet("visibility")
 
-    def load_mo_job_functions(self) -> dict:
-        return self.load_mo_facet("engagement_job_function")
+    async def load_mo_job_functions(self) -> dict:
+        return await self.load_mo_facet("engagement_job_function")
 
-    def load_mo_primary_types(self) -> dict:
-        return self.load_mo_facet("primary_type")
+    async def load_mo_primary_types(self) -> dict:
+        return await self.load_mo_facet("primary_type")
 
-    def load_mo_engagement_types(self) -> dict:
-        return self.load_mo_facet("engagement_type")
+    async def load_mo_engagement_types(self) -> dict:
+        return await self.load_mo_facet("engagement_type")
 
-    def load_mo_org_unit_types(self) -> dict:
-        return self.load_mo_facet("org_unit_type")
+    async def load_mo_org_unit_types(self) -> dict:
+        return await self.load_mo_facet("org_unit_type")
 
-    def load_mo_org_unit_levels(self) -> dict:
-        return self.load_mo_facet("org_unit_level")
+    async def load_mo_org_unit_levels(self) -> dict:
+        return await self.load_mo_facet("org_unit_level")
 
-    def load_mo_it_systems(self) -> dict:
+    async def load_mo_it_systems(self) -> dict:
         query = gql(
             """
             query ItSystems {
@@ -1092,7 +1084,7 @@ class DataLoader:
             }
             """
         )
-        result = self.query_mo_sync(query, raise_if_empty=False)
+        result = await self.query_mo(query, raise_if_empty=False)
 
         if len(result["itsystems"]["objects"]) == 0:
             output = {}
@@ -1104,7 +1096,7 @@ class DataLoader:
 
         return output
 
-    def load_mo_root_org_uuid(self) -> str:
+    async def load_mo_root_org_uuid(self) -> str:
         query = gql(
             """
             query RootOrgUnit {
@@ -1114,10 +1106,10 @@ class DataLoader:
             }
             """
         )
-        uuid: str = self.query_mo_sync(query)["org"]["uuid"]
+        uuid: str = (await self.query_mo(query))["org"]["uuid"]
         return uuid
 
-    def load_mo_org_units(self) -> dict:
+    async def load_mo_org_units(self) -> dict:
         query = gql(
             """
             query OrgUnit {
@@ -1138,7 +1130,7 @@ class DataLoader:
             }
             """
         )
-        result = self.query_mo_sync(query, raise_if_empty=False)
+        result = await self.query_mo(query, raise_if_empty=False)
 
         if len(result["org_units"]["objects"]) == 0:
             output = {}
@@ -1505,7 +1497,7 @@ class DataLoader:
                 output.append(it_user)
         return output
 
-    def load_mo_employee_engagement_dicts(
+    async def load_mo_employee_engagement_dicts(
         self,
         employee_uuid: UUID,
         user_key: str,
@@ -1531,7 +1523,7 @@ class DataLoader:
             """
         )
         try:
-            result = self.query_mo_sync(query)
+            result = await self.query_mo(query)
             output: list[dict] = result["employees"]["objects"][0]["objects"][0][
                 "engagements"
             ]
@@ -1770,7 +1762,7 @@ class DataLoader:
         model_client = self.user_context["model_client"]
         return cast(list[Any | None], await model_client.upload(objects))
 
-    def create_mo_class(
+    async def create_mo_class(
         self,
         name: str,
         user_key: str,
@@ -1800,10 +1792,10 @@ class DataLoader:
             }}
             """
         )
-        result = self.query_mo_sync(query)
+        result = await self.query_mo(query)
         return UUID(result["class_create"]["uuid"])
 
-    def update_mo_class(
+    async def update_mo_class(
         self,
         name: str,
         user_key: str,
@@ -1835,10 +1827,10 @@ class DataLoader:
             }}
             """
         )
-        result = self.query_mo_sync(query)
+        result = await self.query_mo(query)
         return UUID(result["class_update"]["uuid"])
 
-    def create_mo_job_function(self, name) -> UUID:
+    async def create_mo_job_function(self, name) -> UUID:
         """
         Creates a job function class in MO
 
@@ -1848,11 +1840,11 @@ class DataLoader:
             The uuid of the created class
         """
         logger.info("[Create-mo-job-function] Creating MO job function.", name=name)
-        facet_uuid = self.load_mo_facet_uuid("engagement_job_function")
+        facet_uuid = await self.load_mo_facet_uuid("engagement_job_function")
         user_key = name
-        return self.create_mo_class(name, user_key, facet_uuid)
+        return await self.create_mo_class(name, user_key, facet_uuid)
 
-    def create_mo_engagement_type(self, name) -> UUID:
+    async def create_mo_engagement_type(self, name) -> UUID:
         """
         Creates an engagement type class in MO
 
@@ -1864,11 +1856,11 @@ class DataLoader:
         logger.info(
             "[Create-mo-engagement-type] Creating MO engagement type", name=name
         )
-        facet_uuid = self.load_mo_facet_uuid("engagement_type")
+        facet_uuid = await self.load_mo_facet_uuid("engagement_type")
         user_key = name
-        return self.create_mo_class(name, user_key, facet_uuid)
+        return await self.create_mo_class(name, user_key, facet_uuid)
 
-    def create_mo_it_system(self, name: str, user_key: str) -> UUID:
+    async def create_mo_it_system(self, name: str, user_key: str) -> UUID:
         """
         Creates an it-system in MO
 
@@ -1890,5 +1882,5 @@ class DataLoader:
             }}
             """
         )
-        result = self.query_mo_sync(query)
+        result = await self.query_mo(query)
         return UUID(result["itsystem_create"]["uuid"])

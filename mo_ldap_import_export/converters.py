@@ -145,22 +145,22 @@ class LdapConverter:
         # to be re-initialized
         logger.info("[info dict loader] Loading info dicts")
         self.employee_address_type_info = (
-            self.dataloader.load_mo_employee_address_types()
+            await self.dataloader.load_mo_employee_address_types()
         )
         self.org_unit_address_type_info = (
-            self.dataloader.load_mo_org_unit_address_types()
+            await self.dataloader.load_mo_org_unit_address_types()
         )
-        self.it_system_info = self.dataloader.load_mo_it_systems()
-        self.visibility_info = self.dataloader.load_mo_visibility()
+        self.it_system_info = await self.dataloader.load_mo_it_systems()
+        self.visibility_info = await self.dataloader.load_mo_visibility()
 
-        self.org_unit_info = self.dataloader.load_mo_org_units()
-        self.org_unit_type_info = self.dataloader.load_mo_org_unit_types()
-        self.org_unit_level_info = self.dataloader.load_mo_org_unit_levels()
+        self.org_unit_info = await self.dataloader.load_mo_org_units()
+        self.org_unit_type_info = await self.dataloader.load_mo_org_unit_types()
+        self.org_unit_level_info = await self.dataloader.load_mo_org_unit_levels()
 
-        self.engagement_type_info = self.dataloader.load_mo_engagement_types()
-        self.job_function_info = self.dataloader.load_mo_job_functions()
+        self.engagement_type_info = await self.dataloader.load_mo_engagement_types()
+        self.job_function_info = await self.dataloader.load_mo_job_functions()
 
-        self.primary_type_info = self.dataloader.load_mo_primary_types()
+        self.primary_type_info = await self.dataloader.load_mo_primary_types()
 
         mo_employee_address_types = [
             a["user_key"] for a in self.employee_address_type_info.values()
@@ -826,14 +826,14 @@ class LdapConverter:
     def get_job_function_uuid(self, job_function: str) -> str:
         return self.get_object_uuid_from_name(self.job_function_info, job_function)
 
-    def get_or_create_job_function_uuid(self, job_function: str) -> str:
+    async def get_or_create_job_function_uuid(self, job_function: str) -> str:
         if not job_function:
             raise UUIDNotFoundException("job_function is empty")
         try:
             return self.get_job_function_uuid(job_function)
         except UUIDNotFoundException:
-            uuid = self.dataloader.create_mo_job_function(job_function)
-            self.job_function_info = self.dataloader.load_mo_job_functions()
+            uuid = await self.dataloader.create_mo_job_function(job_function)
+            self.job_function_info = await self.dataloader.load_mo_job_functions()
             self.check_info_dicts()
             return str(uuid)
 
@@ -845,7 +845,7 @@ class LdapConverter:
             self.engagement_type_info, engagement_type
         )
 
-    def get_current_engagement_attribute_uuid_dict(
+    async def get_current_engagement_attribute_uuid_dict(
         self,
         attribute: str,
         employee_uuid: UUID,
@@ -886,7 +886,7 @@ class LdapConverter:
                 f"and employee_uuid = '{employee_uuid}'"
             )
         )
-        engagement_dicts = self.dataloader.load_mo_employee_engagement_dicts(
+        engagement_dicts = await self.dataloader.load_mo_employee_engagement_dicts(
             employee_uuid, engagement_user_key
         )
 
@@ -909,33 +909,33 @@ class LdapConverter:
             logger.info(f"Match found in engagement with uuid = {engagement['uuid']}")
             return {"uuid": engagement[attribute]}
 
-    def get_current_org_unit_uuid_dict(
+    async def get_current_org_unit_uuid_dict(
         self, employee_uuid: UUID, engagement_user_key: str
     ) -> dict:
         """
         Returns an existing 'org-unit' object formatted as a dict
         """
-        return self.get_current_engagement_attribute_uuid_dict(
+        return await self.get_current_engagement_attribute_uuid_dict(
             "org_unit_uuid", employee_uuid, engagement_user_key
         )
 
-    def get_current_engagement_type_uuid_dict(
+    async def get_current_engagement_type_uuid_dict(
         self, employee_uuid: UUID, engagement_user_key: str
     ) -> dict:
         """
         Returns an existing 'engagement type' object formatted as a dict
         """
-        return self.get_current_engagement_attribute_uuid_dict(
+        return await self.get_current_engagement_attribute_uuid_dict(
             "engagement_type_uuid", employee_uuid, engagement_user_key
         )
 
-    def get_current_primary_uuid_dict(
+    async def get_current_primary_uuid_dict(
         self, employee_uuid: UUID, engagement_user_key: str
     ) -> dict | None:
         """
         Returns an existing 'primary' object formatted as a dict
         """
-        primary_dict = self.get_current_engagement_attribute_uuid_dict(
+        primary_dict = await self.get_current_engagement_attribute_uuid_dict(
             "primary_uuid", employee_uuid, engagement_user_key
         )
 
@@ -944,14 +944,14 @@ class LdapConverter:
         else:
             return primary_dict
 
-    def get_or_create_engagement_type_uuid(self, engagement_type: str) -> str:
+    async def get_or_create_engagement_type_uuid(self, engagement_type: str) -> str:
         if not engagement_type:
             raise UUIDNotFoundException("engagement_type is empty")
         try:
             return self.get_engagement_type_uuid(engagement_type)
         except UUIDNotFoundException:
-            uuid = self.dataloader.create_mo_engagement_type(engagement_type)
-            self.engagement_type_info = self.dataloader.load_mo_engagement_types()
+            uuid = await self.dataloader.create_mo_engagement_type(engagement_type)
+            self.engagement_type_info = await self.dataloader.load_mo_engagement_types()
             self.check_info_dicts()
             return str(uuid)
 
@@ -997,18 +997,20 @@ class LdapConverter:
             partial_path_string = self.org_unit_path_string_separator.join(partial_path)
 
             try:
-                self.get_org_unit_uuid_from_path(partial_path_string)
+                await self.get_org_unit_uuid_from_path(partial_path_string)
             except UUIDNotFoundException:
                 logger.info(f"Importing {partial_path_string}")
 
                 if nesting_level == 0:
-                    parent_uuid = self.dataloader.load_mo_root_org_uuid()
+                    parent_uuid = await self.dataloader.load_mo_root_org_uuid()
                 else:
                     parent_path = org_unit_path[:nesting_level]
                     parent_path_string = self.org_unit_path_string_separator.join(
                         parent_path
                     )
-                    parent_uuid = self.get_org_unit_uuid_from_path(parent_path_string)
+                    parent_uuid = await self.get_org_unit_uuid_from_path(
+                        parent_path_string
+                    )
 
                 uuid = uuid4()
                 name = partial_path[-1]
@@ -1036,7 +1038,7 @@ class LdapConverter:
                     "parent_uuid": parent_uuid,
                 }
 
-    def get_org_unit_uuid_from_path(self, org_unit_path_string: str):
+    async def get_org_unit_uuid_from_path(self, org_unit_path_string: str):
         clean_org_unit_path_string = org_unit_path_string.replace(
             self.imported_org_unit_tag, ""
         )
@@ -1044,15 +1046,15 @@ class LdapConverter:
             clean_name = info["name"].replace(self.imported_org_unit_tag, "").strip()
             if not clean_org_unit_path_string.strip().endswith(clean_name):
                 continue
-            path_string = self.get_org_unit_path_string(info["uuid"])
+            path_string = await self.get_org_unit_path_string(info["uuid"])
             if path_string == clean_org_unit_path_string:
                 return info["uuid"]
         raise UUIDNotFoundException(
             f"'{org_unit_path_string}' not found in self.org_unit_info"
         )
 
-    def get_org_unit_path_string(self, uuid: str):
-        root_org_uuid: str = self.dataloader.load_mo_root_org_uuid()
+    async def get_org_unit_path_string(self, uuid: str):
+        root_org_uuid: str = await self.dataloader.load_mo_root_org_uuid()
         org_unit_info = self.org_unit_info[str(uuid)]
         object_name = org_unit_info["name"].strip()
         parent_uuid: str = org_unit_info["parent_uuid"]
@@ -1089,13 +1091,13 @@ class LdapConverter:
         org_unit_path_string = self.clean_org_unit_path_string(org_unit_path_string)
 
         try:
-            return self.get_org_unit_uuid_from_path(org_unit_path_string)
+            return await self.get_org_unit_uuid_from_path(org_unit_path_string)
         except UUIDNotFoundException:
             logger.info(
                 (f"Could not find '{org_unit_path_string}'. " "Creating organisation.")
             )
             await self.create_org_unit(org_unit_path_string)
-            return self.get_org_unit_uuid_from_path(org_unit_path_string)
+            return await self.get_org_unit_uuid_from_path(org_unit_path_string)
 
     @staticmethod
     def str_to_dict(text):

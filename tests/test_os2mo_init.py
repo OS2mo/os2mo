@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import pytest
@@ -23,16 +23,17 @@ def mapping() -> dict:
         }
     }
     return mapping
-    return {}
 
 
 @pytest.fixture()
-def dataloader() -> MagicMock:
-    return MagicMock()
+def dataloader() -> AsyncMock:
+    dataloader = AsyncMock()
+    dataloader.load_mo_it_systems.return_value = {}
+    return dataloader
 
 
 @pytest.fixture()
-def context(mapping: dict, dataloader: MagicMock) -> dict:
+def context(mapping: dict, dataloader: AsyncMock) -> dict:
 
     user_context = {"mapping": mapping, "dataloader": dataloader}
     return {"user_context": user_context}
@@ -43,18 +44,20 @@ def init_engine(context: dict) -> InitEngine:
     return InitEngine(context)
 
 
-def test_create_facets(dataloader: MagicMock, init_engine: InitEngine):
+async def test_create_facets(dataloader: AsyncMock, init_engine: InitEngine):
     """
     Create a facet
     """
     dataloader.load_mo_facet.return_value = {}
-    init_engine.create_facets()
+    await init_engine.create_facets()
 
     dataloader.create_mo_class.assert_called_once()
     dataloader.create_mo_it_system.assert_not_called()
 
 
-def test_create_facets_facet_exists(dataloader: MagicMock, init_engine: InitEngine):
+async def test_create_facets_facet_exists(
+    dataloader: AsyncMock, init_engine: InitEngine
+):
     """
     Try to create an existing facet. It should be skipped
     """
@@ -67,13 +70,13 @@ def test_create_facets_facet_exists(dataloader: MagicMock, init_engine: InitEngi
             "scope": "TEXT",
         }
     }
-    init_engine.create_facets()
+    await init_engine.create_facets()
 
     dataloader.create_mo_class.assert_not_called()
     dataloader.create_mo_it_system.assert_not_called()
 
 
-def test_modify_facets(dataloader: MagicMock, init_engine: InitEngine):
+async def test_modify_facets(dataloader: AsyncMock, init_engine: InitEngine):
     """
     Try to update an existing facet.
     """
@@ -86,26 +89,26 @@ def test_modify_facets(dataloader: MagicMock, init_engine: InitEngine):
             "scope": "ADDRESS",  # Scope is different here, so a class is updated
         }
     }
-    init_engine.create_facets()
+    await init_engine.create_facets()
 
     dataloader.create_mo_class.assert_not_called()
     dataloader.update_mo_class.assert_called_once()
     dataloader.create_mo_it_system.assert_not_called()
 
 
-def test_create_it_systems(dataloader: MagicMock, init_engine: InitEngine):
+async def test_create_it_systems(dataloader: AsyncMock, init_engine: InitEngine):
     """
     Create an it-system
     """
     dataloader.load_mo_it_systems.return_value = {}
-    init_engine.create_it_systems()
+    await init_engine.create_it_systems()
 
     dataloader.create_mo_it_system.assert_called_once()
     dataloader.create_mo_class.assert_not_called()
 
 
-def test_create_it_systems_system_exists(
-    dataloader: MagicMock, init_engine: InitEngine
+async def test_create_it_systems_system_exists(
+    dataloader: AsyncMock, init_engine: InitEngine
 ):
     """
     Try to create an existing it-system. It should be skipped
@@ -117,32 +120,32 @@ def test_create_it_systems_system_exists(
             "uuid": uuid,
         }
     }
-    init_engine.create_it_systems()
+    await init_engine.create_it_systems()
 
     dataloader.create_mo_it_system.assert_not_called()
     dataloader.create_mo_class.assert_not_called()
 
 
-def test_empty_mapping(dataloader: MagicMock, init_engine: InitEngine):
+async def test_empty_mapping(dataloader: AsyncMock, init_engine: InitEngine):
     """
     If mapping is empty or not specified at all, the init_engine should not crash.
     It should just do nothing.
     """
     init_engine.mapping = {}
-    init_engine.create_it_systems()
-    init_engine.create_facets()
+    await init_engine.create_it_systems()
+    await init_engine.create_facets()
 
     init_engine.mapping = {"init": {}}
-    init_engine.create_it_systems()
-    init_engine.create_facets()
+    await init_engine.create_it_systems()
+    await init_engine.create_facets()
 
     init_engine.mapping = {"init": {"it_systems": {}}}
-    init_engine.create_it_systems()
-    init_engine.create_facets()
+    await init_engine.create_it_systems()
+    await init_engine.create_facets()
 
     init_engine.mapping = {"init": {"facets": {}}}
-    init_engine.create_it_systems()
-    init_engine.create_facets()
+    await init_engine.create_it_systems()
+    await init_engine.create_facets()
 
     dataloader.create_mo_it_system.assert_not_called()
     dataloader.create_mo_class.assert_not_called()

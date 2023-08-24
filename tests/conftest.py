@@ -142,10 +142,10 @@ def dataloader(
     dataloader.load_mo_employee.return_value = test_mo_employee
     dataloader.load_mo_address.return_value = test_mo_address
     dataloader.load_mo_it_user.return_value = test_mo_it_user
-    dataloader.load_mo_employee_address_types = sync_dataloader
-    dataloader.load_mo_org_unit_address_types = sync_dataloader
-    dataloader.load_mo_it_systems = sync_dataloader
-    dataloader.load_mo_primary_types = sync_dataloader
+    dataloader.load_mo_employee_address_types.return_value = {}
+    dataloader.load_mo_org_unit_address_types.return_value = {}
+    dataloader.load_mo_it_systems.return_value = {}
+    dataloader.load_mo_primary_types.return_value = {}
     dataloader.load_mo_employee_addresses.return_value = [test_mo_address] * 2
     dataloader.load_all_mo_objects.return_value = test_mo_objects
     dataloader.load_mo_object.return_value = test_mo_objects[0]
