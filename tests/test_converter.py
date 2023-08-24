@@ -24,7 +24,7 @@ from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.converters import read_mapping_json
 from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import LdapObject
-from mo_ldap_import_export.environments import sync_environment
+from mo_ldap_import_export.environments import environment
 from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import InvalidNameException
 from mo_ldap_import_export.exceptions import NotSupportedException
@@ -451,20 +451,20 @@ async def test_find_cpr_field(converter: LdapConverter) -> None:
 
     # Test both cases
     populated_good_mapping = converter._populate_mapping_with_templates(
-        good_mapping, sync_environment
+        good_mapping, environment
     )
     populated_bad_mapping = converter._populate_mapping_with_templates(
-        bad_mapping, sync_environment
+        bad_mapping, environment
     )
     populated_incorrect_mapping = converter._populate_mapping_with_templates(
-        {"mo_to_ldap": {}}, sync_environment
+        {"mo_to_ldap": {}}, environment
     )
 
-    assert find_cpr_field(populated_good_mapping) == "employeeID"
-    assert find_cpr_field(populated_bad_mapping) is None
+    assert await find_cpr_field(populated_good_mapping) == "employeeID"
+    assert await find_cpr_field(populated_bad_mapping) is None
 
     with pytest.raises(IncorrectMapping):
-        find_cpr_field(populated_incorrect_mapping)
+        await find_cpr_field(populated_incorrect_mapping)
 
 
 async def test_template_lenience(context: Context, converter: LdapConverter) -> None:
@@ -1379,25 +1379,24 @@ def test_check_import_and_export_flags(converter: LdapConverter):
         converter.check_import_and_export_flags()
 
 
-def test_find_ldap_it_system():
-    environment = Environment()
+async def test_find_ldap_it_system():
     template_str = "{{ ldap.objectGUID }}"
     template = environment.from_string(template_str)
 
     mapping = {"ldap_to_mo": {"AD": {"user_key": template}}}
     mo_it_systems = ["AD"]
-    assert find_ldap_it_system(mapping, mo_it_systems) == "AD"
+    assert await find_ldap_it_system(mapping, mo_it_systems) == "AD"
 
     mapping = {"ldap_to_mo": {"Wrong AD user_key": {"user_key": template}}}
     mo_it_systems = ["AD"]
-    assert find_ldap_it_system(mapping, mo_it_systems) is None
+    assert await find_ldap_it_system(mapping, mo_it_systems) is None
 
     mapping = {"ldap_to_mo": {"AD": {"user_key": template}}}
     mo_it_systems = []
-    assert find_ldap_it_system(mapping, mo_it_systems) is None
+    assert await find_ldap_it_system(mapping, mo_it_systems) is None
 
 
-def test_check_cpr_field_or_it_system(converter: LdapConverter):
+async def test_check_cpr_field_or_it_system(converter: LdapConverter):
 
     with patch(
         "mo_ldap_import_export.converters.find_cpr_field",
@@ -1410,7 +1409,7 @@ def test_check_cpr_field_or_it_system(converter: LdapConverter):
             IncorrectMapping,
             match="Neither a cpr-field or an ldap it-system could be found",
         ):
-            converter.check_cpr_field_or_it_system()
+            await converter.check_cpr_field_or_it_system()
 
 
 def test_check_info_dicts(converter: LdapConverter):

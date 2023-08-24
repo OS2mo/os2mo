@@ -22,7 +22,6 @@ from ramodels.mo.organisation_unit import OrganisationUnit
 from ramqp.utils import RequeueMessage
 
 from .environments import environment
-from .environments import sync_environment
 from .exceptions import IncorrectMapping
 from .exceptions import InvalidNameException
 from .exceptions import NotSupportedException
@@ -45,7 +44,7 @@ def read_mapping_json(filename: str) -> Any:
         return json.loads(data)
 
 
-def find_cpr_field(mapping):
+async def find_cpr_field(mapping):
     """
     Get the field which contains the CPR number in LDAP
     """
@@ -63,7 +62,7 @@ def find_cpr_field(mapping):
     mo_dict = {search_field: search_result}
     cpr_field = None
     for ldap_field_name, template in employee_mapping.items():
-        value = template.render({"mo_employee": mo_dict}).strip()
+        value = (await template.render_async({"mo_employee": mo_dict})).strip()
 
         if value == search_result:
             cpr_field = ldap_field_name
@@ -76,7 +75,7 @@ def find_cpr_field(mapping):
     return cpr_field
 
 
-def find_ldap_it_system(mapping, mo_it_system_user_keys):
+async def find_ldap_it_system(mapping, mo_it_system_user_keys):
     """
     Loop over all of MO's IT-systems and determine if one of them contains the AD-DN
     as a user_key
@@ -85,7 +84,7 @@ def find_ldap_it_system(mapping, mo_it_system_user_keys):
     for mo_it_system_user_key in mo_it_system_user_keys:
         if mo_it_system_user_key in mapping["ldap_to_mo"]:
             template = mapping["ldap_to_mo"][mo_it_system_user_key]["user_key"]
-            objectGUID = template.render({"ldap": {"objectGUID": "foo"}})
+            objectGUID = await template.render_async({"ldap": {"objectGUID": "foo"}})
             if objectGUID == "foo":
                 ldap_it_system = mo_it_system_user_key
                 logger.info(f"Found LDAP IT-system: '{ldap_it_system}'")
@@ -135,14 +134,11 @@ class LdapConverter:
             environment,
         )
 
-        self.sync_mapping = self._populate_mapping_with_templates(
-            copy.deepcopy(mapping),
-            sync_environment,
+        await self.check_mapping()
+        self.cpr_field = await find_cpr_field(self.mapping)
+        self.ldap_it_system = await find_ldap_it_system(
+            self.mapping, self.mo_it_systems
         )
-
-        self.check_mapping()
-        self.cpr_field = find_cpr_field(self.sync_mapping)
-        self.ldap_it_system = find_ldap_it_system(self.sync_mapping, self.mo_it_systems)
 
     async def load_info_dicts(self):
         # Note: If new address types or IT systems are added to MO, these dicts need
@@ -667,19 +663,19 @@ class LdapConverter:
                         )
                     )
 
-    def check_cpr_field_or_it_system(self):
+    async def check_cpr_field_or_it_system(self):
         """
         Check that we have either a cpr-field OR an it-system which maps to an LDAP DN
         """
 
-        cpr_field = find_cpr_field(self.sync_mapping)
-        ldap_it_system = find_ldap_it_system(self.sync_mapping, self.mo_it_systems)
+        cpr_field = await find_cpr_field(self.mapping)
+        ldap_it_system = await find_ldap_it_system(self.mapping, self.mo_it_systems)
         if not cpr_field and not ldap_it_system:
             raise IncorrectMapping(
                 "Neither a cpr-field or an ldap it-system could be found"
             )
 
-    def check_mapping(self):
+    async def check_mapping(self):
         logger.info("[json check] Checking json file")
 
         # Check that all mo_to_ldap keys are also in ldap_to_mo
@@ -721,7 +717,7 @@ class LdapConverter:
         self.check_import_and_export_flags()
 
         # Check to see if there is an existing link between LDAP and MO
-        self.check_cpr_field_or_it_system()
+        await self.check_cpr_field_or_it_system()
 
         logger.info("[json check] Attributes OK")
 
