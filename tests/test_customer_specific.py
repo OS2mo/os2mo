@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime
+from datetime import timedelta
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from uuid import uuid4
@@ -48,10 +49,21 @@ async def test_import_jobtitlefromadtomo_objects(context: Context):
     test_job_function_uuid = uuid4()
     test_job_function_fallback_uuid = uuid4()
     test_eng_uuid = uuid4()
+    start_time = str(datetime.now() - timedelta(minutes=10))
+    end_time = str(datetime.now())
 
     test_mock = AsyncMock()
     test_mock.execute.return_value = {
-        "engagements": {"objects": [{"current": {"uuid": str(test_eng_uuid)}}]}
+        "engagements": {
+            "objects": [
+                {
+                    "current": {
+                        "uuid": str(test_eng_uuid),
+                        "validity": {"from": start_time, "to": end_time},
+                    }
+                }
+            ]
+        }
     }
 
     context["graphql_session"] = test_mock
@@ -71,7 +83,8 @@ async def test_import_jobtitlefromadtomo_objects(context: Context):
             "uuid_to_ignore": str(test_eng_uuid),
             "variable_values": {
                 "uuid": str(test_eng_uuid),
-                "from": str(datetime.now().date()),
+                "from": start_time,
+                "to": end_time,
                 "job_function": str(test_job_function_uuid),
             },
         }
