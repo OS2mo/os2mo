@@ -28,6 +28,7 @@ include:
     ENVIRONMENT: "testing"
     LORA_AUTH: "false"
     INSECURE_ENABLE_TESTING_API: "true"
+    VOID_WARRANTY_DISABLE_AMQP_DELAY: "true"
 
     AMQP_ENABLE: "true"
     AMQP_ENABLE_NEW_SUBSYSTEM: "true"
