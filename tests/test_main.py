@@ -264,26 +264,14 @@ def patch_modules(
     ), patch(
         "mo_ldap_import_export.main.AMQPSystem", return_value=internal_amqpsystem
     ), patch(
-        "mo_ldap_import_export.main.InitEngine", return_value=MagicMock()
-    ), patch(
         "mo_ldap_import_export.main.asyncio.get_event_loop", return_value=None
     ):
         yield
 
 
 @pytest.fixture(scope="module")
-def fastramqpi(
-    patch_modules: None,
-    sync_tool: AsyncMock,
-    converter: MagicMock,
-) -> FastRAMQPI:
-    fastramqpi = create_fastramqpi()
-    fastramqpi.add_context(sync_tool=sync_tool)
-    fastramqpi.add_context(converter=converter)
-    fastramqpi.add_context(cpr_field=converter.cpr_field)
-    fastramqpi.add_context(ldap_it_system_user_key=converter.ldap_it_system)
-
-    return fastramqpi
+def fastramqpi(patch_modules: None) -> FastRAMQPI:
+    return create_fastramqpi()
 
 
 @pytest.fixture(scope="module")
@@ -321,6 +309,58 @@ def test_create_app() -> None:
     """Test that we can construct our FastAPI application."""
     app = create_app()
     assert isinstance(app, FastAPI)
+
+
+# Note: The module which is initialized by this test is also used by all other tests
+async def test_initialize_sync_tool(
+    fastramqpi: FastRAMQPI, sync_tool: AsyncMock
+) -> None:
+    user_context = fastramqpi.get_context()["user_context"]
+    assert user_context.get("sync_tool") is None
+
+    with patch("mo_ldap_import_export.main.SyncTool", return_value=sync_tool):
+        async with initialize_sync_tool(fastramqpi):
+            assert user_context.get("sync_tool") is not None
+
+
+# Note: The module which is initialized by this test is also used by all other tests
+async def test_initialize_export_checks(fastramqpi: FastRAMQPI) -> None:
+    user_context = fastramqpi.get_context()["user_context"]
+    assert user_context.get("export_checks") is None
+
+    with patch("mo_ldap_import_export.main.ExportChecks", return_value=MagicMock()):
+        async with initialize_export_checks(fastramqpi):
+            assert user_context.get("export_checks") is not None
+
+
+# Note: The module which is initialized by this test is also used by all other tests
+async def test_initialize_converter(
+    fastramqpi: FastRAMQPI, converter: MagicMock
+) -> None:
+
+    user_context = fastramqpi.get_context()["user_context"]
+    assert user_context.get("converter") is None
+    assert user_context.get("ldap_it_system_user_key") is None
+    assert user_context.get("cpr_field") is None
+
+    with patch("mo_ldap_import_export.main.LdapConverter", return_value=converter):
+        async with initialize_converters(fastramqpi):
+            assert user_context.get("converter") is not None
+            assert user_context.get("ldap_it_system_user_key") == "ADGUID"
+            assert user_context.get("cpr_field") == "EmployeeID"
+
+
+async def test_initialize_init_engine(fastramqpi: FastRAMQPI) -> None:
+    user_context = fastramqpi.get_context()["user_context"]
+    assert user_context.get("init_engine") is None
+
+    init_engine = MagicMock()
+
+    with patch("mo_ldap_import_export.main.InitEngine", return_value=init_engine):
+        async with initialize_init_engine(fastramqpi):
+            assert user_context.get("init_engine") is not None
+            init_engine.create_facets.assert_called_once()
+            init_engine.create_it_systems.assert_called_once()
 
 
 async def test_open_ldap_connection() -> None:
@@ -539,9 +579,8 @@ def test_ldap_get_all_converted_endpoint_failure(
         return Employee(**{"foo": None})
 
     converter.from_ldap = from_ldap
-    with patch("mo_ldap_import_export.main.LdapConverter", return_value=converter):
-        response1 = test_client.get("/LDAP/Employee/converted")
-        response2 = test_client.get("/LDAP/Employee/010101-1234/converted")
+    response1 = test_client.get("/LDAP/Employee/converted")
+    response2 = test_client.get("/LDAP/Employee/010101-1234/converted")
 
     assert response1.status_code == 202
     assert response2.status_code == 404
@@ -635,13 +674,7 @@ async def test_load_mapping_file_environment() -> None:
     mp = pytest.MonkeyPatch()
     mp.setenv("CONVERSION_MAP", "nonexisting_file")
 
-    with patch(
-        "mo_ldap_import_export.main.configure_ldap_connection", new_callable=MagicMock()
-    ), patch(
-        "mo_ldap_import_export.main.LdapConverter", return_value=MagicMock()
-    ), pytest.raises(
-        FileNotFoundError
-    ):
+    with pytest.raises(FileNotFoundError):
         fastramqpi = create_fastramqpi()
         assert isinstance(fastramqpi, FastRAMQPI)
 
@@ -673,18 +706,7 @@ async def test_load_faulty_username_generator() -> None:
 
     usernames_mock = MagicMock()
 
-    with patch(
-        "mo_ldap_import_export.main.configure_ldap_connection", new_callable=MagicMock()
-    ), patch(
-        "mo_ldap_import_export.main.construct_gql_client",
-        return_value=MagicMock(),
-    ), patch(
-        "mo_ldap_import_export.main.DataLoader", return_value=MagicMock()
-    ), patch(
-        "mo_ldap_import_export.main.LdapConverter", return_value=MagicMock()
-    ), patch(
-        "mo_ldap_import_export.main.usernames", usernames_mock
-    ):
+    with patch("mo_ldap_import_export.main.usernames", usernames_mock):
         with pytest.raises(AttributeError):
             usernames_mock.UserNameGenerator.return_value = "foo"
             create_fastramqpi()
@@ -931,58 +953,3 @@ async def test_get_non_existing_objectGUIDs_from_MO_404(
     dataloader.get_ldap_it_system_uuid.return_value = None
     response = test_client.get("/Inspect/non_existing_objectGUIDs")
     assert response.status_code == 404
-
-
-async def test_initialize_sync_tool(
-    fastramqpi: FastRAMQPI, sync_tool: AsyncMock
-) -> None:
-    fastramqpi._context["user_context"].pop("sync_tool")
-
-    user_context = fastramqpi.get_context()["user_context"]
-    assert user_context.get("sync_tool") is None
-
-    with patch("mo_ldap_import_export.main.SyncTool", return_value=sync_tool):
-        async with initialize_sync_tool(fastramqpi):
-            assert user_context.get("sync_tool") is not None
-
-
-async def test_initialize_export_checks(fastramqpi: FastRAMQPI) -> None:
-    user_context = fastramqpi.get_context()["user_context"]
-    assert user_context.get("export_checks") is None
-
-    with patch("mo_ldap_import_export.main.ExportChecks", return_value=MagicMock()):
-        async with initialize_export_checks(fastramqpi):
-            assert user_context.get("export_checks") is not None
-
-
-async def test_initialize_converter(
-    fastramqpi: FastRAMQPI, converter: MagicMock
-) -> None:
-
-    fastramqpi._context["user_context"].pop("converter")
-    fastramqpi._context["user_context"].pop("ldap_it_system_user_key")
-    fastramqpi._context["user_context"].pop("cpr_field")
-
-    user_context = fastramqpi.get_context()["user_context"]
-    assert user_context.get("converter") is None
-    assert user_context.get("ldap_it_system_user_key") is None
-    assert user_context.get("cpr_field") is None
-
-    with patch("mo_ldap_import_export.main.LdapConverter", return_value=converter):
-        async with initialize_converters(fastramqpi):
-            assert user_context.get("converter") is not None
-            assert user_context.get("ldap_it_system_user_key") == "ADGUID"
-            assert user_context.get("cpr_field") == "EmployeeID"
-
-
-async def test_initialize_init_engine(fastramqpi: FastRAMQPI) -> None:
-    user_context = fastramqpi.get_context()["user_context"]
-    assert user_context.get("init_engine") is None
-
-    init_engine = MagicMock()
-
-    with patch("mo_ldap_import_export.main.InitEngine", return_value=init_engine):
-        async with initialize_init_engine(fastramqpi):
-            assert user_context.get("init_engine") is not None
-            init_engine.create_facets.assert_called_once()
-            init_engine.create_it_systems.assert_called_once()
