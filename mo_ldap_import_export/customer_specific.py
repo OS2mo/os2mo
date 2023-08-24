@@ -97,7 +97,10 @@ class JobTitleFromADToMO(CustomerSpecific):
         async def set_job_title(engagement_details: list):
             query = gql(
                 """
-            mutation SetJobtitle($uuid: UUID!, $from: DateTime!, $job_function: UUID!) {
+            mutation SetJobtitle($uuid: UUID!,
+                                 $from: DateTime!,
+                                 $to: DateTime,
+                                 $job_function: UUID) {
               engagement_update(
                 input: {uuid: $uuid,
                         validity: {from: $from, to: $to},
