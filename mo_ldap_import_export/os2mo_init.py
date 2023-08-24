@@ -8,15 +8,15 @@ class InitEngine:
         self.mapping = user_context["mapping"]
         self.dataloader = user_context["dataloader"]
 
-    def create_facets(self):
+    async def create_facets(self):
         facet_mapping = self.mapping.get("init", {}).get("facets", {})
 
         # Loop over facet user_keys. For example "employee_address_type"
         for facet_user_key, class_mapping in facet_mapping.items():
             logger.info(f"[init] Creating facets with user_key = {facet_user_key}")
 
-            facet_info = self.dataloader.load_mo_facet(facet_user_key)
-            facet_uuid = self.dataloader.load_mo_facet_uuid(facet_user_key)
+            facet_info = await self.dataloader.load_mo_facet(facet_user_key)
+            facet_uuid = await self.dataloader.load_mo_facet_uuid(facet_user_key)
             existing_classes = {f["user_key"]: f for f in facet_info.values()}
 
             # Loop over class user_keys. For example "EmailEmployee"
@@ -32,7 +32,7 @@ class InitEngine:
                         logger.info(f"[init] '{class_user_key}' class exists.")
                         continue
                     else:
-                        self.dataloader.update_mo_class(
+                        await self.dataloader.update_mo_class(
                             name=class_details["title"],
                             user_key=class_user_key,
                             facet_uuid=facet_uuid,
@@ -41,17 +41,17 @@ class InitEngine:
                         )
 
                 else:
-                    self.dataloader.create_mo_class(
+                    await self.dataloader.create_mo_class(
                         name=class_details["title"],
                         user_key=class_user_key,
                         facet_uuid=facet_uuid,
                         scope=class_details["scope"],
                     )
 
-    def create_it_systems(self):
+    async def create_it_systems(self):
         logger.info("[init] Creating it systems")
         it_system_mapping = self.mapping.get("init", {}).get("it_systems", {})
-        it_system_info = self.dataloader.load_mo_it_systems()
+        it_system_info = await self.dataloader.load_mo_it_systems()
 
         existing_it_systems = [i["user_key"] for i in it_system_info.values()]
 
@@ -62,7 +62,7 @@ class InitEngine:
                 )
                 continue
             else:
-                self.dataloader.create_mo_it_system(
+                await self.dataloader.create_mo_it_system(
                     name=it_system_name,
                     user_key=it_system_user_key,
                 )
