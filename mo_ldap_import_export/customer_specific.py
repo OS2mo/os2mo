@@ -1,4 +1,3 @@
-import datetime
 from typing import Literal
 
 from fastapi.encoders import jsonable_encoder
@@ -59,7 +58,7 @@ class JobTitleFromADToMO(CustomerSpecific):
         )
 
     async def sync_to_mo(self, context: Context):
-        async def get_engagement_uuids(gql_session, employee_uuid):
+        async def get_engagement_details(gql_session, employee_uuid):
             query = gql(
                 """
             query GetEngagementUuids($employees: [UUID!]) {
@@ -67,6 +66,10 @@ class JobTitleFromADToMO(CustomerSpecific):
                 objects {
                   current {
                     uuid
+                    validity {
+                      from
+                      to
+                    }
                   }
                 }
               }
@@ -82,15 +85,22 @@ class JobTitleFromADToMO(CustomerSpecific):
                 ),
             )
 
-            return [res["current"]["uuid"] for res in result["engagements"]["objects"]]
+            return [
+                {
+                    "uuid": res["current"]["uuid"],
+                    "from": res["current"]["validity"]["from"],
+                    "to": res["current"]["validity"]["to"],
+                }
+                for res in result["engagements"]["objects"]
+            ]
 
-        async def set_job_title(engagement_uuids: list):
+        async def set_job_title(engagement_details: list):
             query = gql(
                 """
             mutation SetJobtitle($uuid: UUID!, $from: DateTime!, $job_function: UUID!) {
               engagement_update(
                 input: {uuid: $uuid,
-                        validity: {from: $from},
+                        validity: {from: $from, to: $to},
                         job_function: $job_function}
               ) {
                 uuid
@@ -102,24 +112,21 @@ class JobTitleFromADToMO(CustomerSpecific):
             job_func = self.job_function_fallback.uuid
             if self.job_function is not None:
                 job_func = self.job_function.uuid
-            for uuid in engagement_uuids:
+            # obj is the dict sent from get engagements
+            for obj in engagement_details:
                 jobs.append(
                     {
-                        "uuid_to_ignore": uuid,
+                        "uuid_to_ignore": obj["uuid"],
                         "document": query,
                         "variable_values": jsonable_encoder(
-                            {
-                                "uuid": uuid,
-                                "from": datetime.datetime.now().date(),
-                                "job_function": job_func,
-                            }
+                            {"job_function": job_func, **obj}
                         ),
                     }
                 )
             return jobs
 
-        engagement_uuids = await get_engagement_uuids(
+        engagement_details = await get_engagement_details(
             gql_session=context["graphql_session"],
             employee_uuid=self.user.uuid,
         )
-        return await set_job_title(engagement_uuids=engagement_uuids)
+        return await set_job_title(engagement_details=engagement_details)
