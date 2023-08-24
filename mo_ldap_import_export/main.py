@@ -303,6 +303,7 @@ def construct_clients(
     return gql_client, gql_client_sync, model_client
 
 
+# https://fastapi.tiangolo.com/advanced/events/
 @asynccontextmanager
 async def initialize_sync_tool(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
     logger.info("Initializing Sync tool")
@@ -327,6 +328,16 @@ async def initialize_converters(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
     fastramqpi.add_context(cpr_field=converter.cpr_field)
     fastramqpi.add_context(ldap_it_system_user_key=converter.ldap_it_system)
     fastramqpi.add_context(converter=converter)
+    yield
+
+
+@asynccontextmanager
+async def initialize_init_engine(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
+    logger.info("Initializing os2mo-init engine")
+    init_engine = InitEngine(fastramqpi.get_context())
+    init_engine.create_facets()
+    init_engine.create_it_systems()
+    fastramqpi.add_context(init_engine=init_engine)
     yield
 
 
@@ -415,12 +426,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     if not iscoroutinefunction(getattr(username_generator, "generate_dn")):
         raise TypeError("generate_dn function needs to be a coroutine")
 
-    logger.info("Initializing os2mo-init engine")
-    init_engine = InitEngine(fastramqpi.get_context())
-    init_engine.create_facets()
-    init_engine.create_it_systems()
-    fastramqpi.add_context(init_engine=init_engine)
-
+    fastramqpi.add_lifespan_manager(initialize_init_engine(fastramqpi), 2700)
     fastramqpi.add_lifespan_manager(initialize_converters(fastramqpi), 2800)
 
     logger.info("Initializing internal AMQP system")
