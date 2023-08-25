@@ -6,12 +6,18 @@ title: Lederhåndtering i MO
 
 Nedenfor findes de automatikker, der er udviklet til håndtering af ledere i MO.
 
-Det er muligt at oprette ledere manuelt i MO, og når det er gjort, er der en række arbejdsgange, der bliver automatiserede:
+Det er muligt at oprette ledere manuelt i MO, og når det er gjort, er der en række arbejdsgange, der bliver
+automatiserede:
 
-(Bemærk, at det udelukkende er SD-kommuner, der har behov for følgende arbejdsgange, idet LOS/OPUS-kommuner selv opmærker ledere i lønsystemet.)
+(Bemærk, at det udelukkende er SD-kommuner, der har behov for følgende arbejdsgange, idet LOS/OPUS-kommuner selv
+opmærker ledere i lønsystemet.)
 
-1. **Automatisk flytning af en leders engagement**: Når en leder bliver opmærket manuelt i MO,  vil lederens engagement automatisk vil blive flyttet til den enhed, som man har oprettet lederen i. Se afsnittet om [Opret Leder i MO](#opret-leder-i-mo).
-3. **Automatisk afslutning af ledere i MO**: Når en leders sidste engagement ophører, vil vedkommendes lederrolle ligeledes blive afsluttet automatisk. Se afsnittet om [Automatisk afslutning af ledere i MO](#automatisk-afslutning-af-ledere-i-mo).
+1. **Automatisk flytning af en leders engagement**: Når en leder bliver opmærket manuelt i MO, vil lederens engagement
+   automatisk vil blive flyttet til den enhed, som man har oprettet lederen i. Se afsnittet
+   om [Opret Leder i MO](#opret-leder-i-mo).
+3. **Automatisk afslutning af ledere i MO**: Når en leders sidste engagement ophører, vil vedkommendes lederrolle
+   ligeledes blive afsluttet automatisk. Se afsnittet
+   om [Automatisk afslutning af ledere i MO](#automatisk-afslutning-af-ledere-i-mo).
 2. **Opret leder i SD** og placere ledern deri. Når indlæsningen til MO finder
    sted, vil lederen automatisk blive indplaceret korrekt i MO. Se afsnittet
    om [Indplacer leder i leder-enhed i SD-Løn](#opret-leder-i-sd).
@@ -44,7 +50,7 @@ samme dag som det engagement, der udløber sidst.
 Hermed
 
 + automatiseres ophør af lederrollen
-+ reduceres antallet af manuelt vedligehold
++ reduceres mængden af manuelt vedligehold
 + minimeres risiko for fejl i lederdata
 + effektiviseres tidsforbruget
 
