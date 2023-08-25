@@ -83,8 +83,6 @@ nav:
           - lora/user/log-haendelse.md
   - Integrationer:
       - data-import-export/intro.md
-      - Automatik til vedligehold:
-          - data-import-export/exporters/maintainer_integrations.md
       - Integrationer:
           - data-import-export/integrations/aarhus-los.md
           - data-import-export/integrations/ad.md
