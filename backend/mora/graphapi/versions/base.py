@@ -3,12 +3,14 @@
 from collections.abc import AsyncIterator
 from collections.abc import Iterable
 from collections.abc import Sequence
+from contextlib import suppress
 from textwrap import dedent
 from typing import Any
 
 from fastapi import APIRouter
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
+from graphql import ExecutionResult
 from graphql.error import GraphQLError
 from starlette.responses import PlainTextResponse
 from strawberry import Schema
@@ -19,6 +21,7 @@ from strawberry.extensions import SchemaExtension
 from strawberry.extensions.tracing import SentryTracingExtension
 from strawberry.printer import print_schema
 from strawberry.schema.config import StrawberryConfig
+from strawberry.utils.await_maybe import AsyncIteratorOrIterator
 
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.router import CustomGraphQLRouter
@@ -48,6 +51,27 @@ class ExtendedErrorFormatExtension(SchemaExtension):
             result.errors = list(map(add_exception_extension, result.errors))
 
 
+class IntrospectionQueryCacheExtension(SchemaExtension):
+    cache: dict[str | None, ExecutionResult | None] = {}
+
+    def on_execute(self) -> AsyncIteratorOrIterator[None]:
+        """Cache GraphQL introspection query, which otherwise takes 5-10s to execute.
+
+        Based on the "In memory cached execution" example from
+        https://strawberry.rocks/docs/guides/custom-extensions.
+        """
+        execution_context = self.execution_context
+        cache_key = execution_context.query
+        if (
+            execution_context.operation_name == "IntrospectionQuery"
+            and not execution_context.variables
+        ):
+            with suppress(KeyError):
+                execution_context.result = self.cache[cache_key]
+        yield
+        self.cache.setdefault(cache_key, execution_context.result)
+
+
 class BaseGraphQLSchema:
     """Base GraphQL Schema wrapper with MO defaults.
 
@@ -65,6 +89,7 @@ class BaseGraphQLSchema:
         StarletteContextExtension,
         SentryTracingExtension,
         ExtendedErrorFormatExtension,
+        IntrospectionQueryCacheExtension,
     ]
 
     # Automatic camelCasing disabled because under_score style is simply better
