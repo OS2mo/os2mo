@@ -2,9 +2,9 @@
 title: Automatik til Vedligeholdelse
 ---
 
-# Håndtering af Arbejdsprocesser gennem Automatisering
+# Håndtering af arbejdsprocesser gennem Automatisering
 
-Nedenfor præsenteres de automatikker, der er udviklet, til at hjælpe med at promovere arbejdsgange.
+Nedenfor præsenteres de automatikker, der er udviklet til at hjælpe med at promovere arbejdsgange.
 
 ## Stillingsbetegnelser
 
@@ -14,16 +14,18 @@ fra AD, hvor stillingsbetegnelserne ikke er synlige, eller at de kan gemmes væk
 koder importeret fra SD løn, og kan indeholde sensitiv information, som i ikke ønsker fremstillet, idet i ser OS2MO
 værende autoritativ for jeres organisation.
 
-### Eventbaseret vedligeholdelse af stillingsbetegnelser
+### Automatisk og eventbaseret vedligeholdelse af stillingsbetegnelser
 
-Applikationen har til formål at håndtere stillingsbetegnelser og eventuelle stillingsbetegnelses koder, som vi
-overskriver, inden jeres organisationsdata bliver eksporteret til andre integrationer. Arbejdsgangen fremmes derfor, ved
-at mindske jeres behov for manuelle rettelser i medarbejderdata.
+Applikationen har til formål at håndtere stillingsbetegnelser og eventuelle stillingsbetegnelses koder.
+Derved mindskes behovet for manuelle rettelser i medarbejderdata.
 
-Der bliver lyttet på ændringer samt oprettelser af nye engagementer, hvor engagementets indhold bliver hevet ud, og
-stillingsbetegnelsen bliver, ud fra forretnings-specifikke ønsker, skrevet til et nyt felt. Den nye felt, som indeholder
-titlen på stillingsbetegnelsen, bliver nu brugt som felt eller attribut, når der skal eksporteres data til andre
-integrationer såsom `plan2learn`, `orgviewer`, `os2sync`, `sqleksport` eller andet som skulle ønskes.
+"Applikationen 'lytter' på ændringer til stillingsbetegnelser, der kommer fra AD'et, samt på oprettelser af nye
+engagementer (ansættelser), som indeholder stillingsbetegnelser. Stillingsbetegnelsen kan herefter eksporteres til andre
+it-systemer, såsom
+[plan2learn](https://rammearkitektur.docs.magenta.dk/os2mo/data-import-export/exporters/plan2learn.html),
+[organisationsdiagrammet](https://rammearkitektur.docs.magenta.dk/os2mo/data-import-export/exporters/org-chart.html),
+[FK Organisation](https://rammearkitektur.docs.magenta.dk/os2mo/data-import-export/exporters/os2sync.html) og
+[SQL-databaser](https://rammearkitektur.docs.magenta.dk/os2mo/data-import-export/exporters/sql_export.html).
 
 ### Filtreringer
 

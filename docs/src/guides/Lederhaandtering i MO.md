@@ -6,7 +6,7 @@ title: Lederhåndtering i MO
 
 Nedenfor findes de automatikker, der er udviklet til håndtering af ledere i MO.
 
-Det er muligt, at oprette ledere manuelt i MO, men der er også nogle arbejdsgange, der er automatiseret.
+Det er muligt at oprette ledere manuelt i MO, men der er også nogle arbejdsgange, der er automatiserede.
 
 Der er forskel på, om man bruger SD-Løn eller OPUS som lønsystem.
 
@@ -41,22 +41,17 @@ Følgende regler er gældende, emn kan tilpasses:
 
 ## Afslut ledere automatisk i MO
 
-Når en person ikke længere har et gyldigt engagement, altså at personens engagements gyldighedsdato udløber, og personen
-også er leder i samme organisations enhed, afsluttes personens leder role også automatisk. Hvis personens engagement får
-tildelt en slutdato i fremtiden - uanset om det er en nyoprettet medarbejder, eller om det er en eksisterende
-medarbejders engagement som redigeres - så længe at personen også er leder i samme organisations enhed, vil lederrollen
-også afsluttes på samme dag som det engagement, der har det længste udløbsdato i fremtiden.
+Når en leder ikke længere har et gyldigt engagement, dvs. når lederens _sidste_ ansættelse stopper, vil personens
+lederrolle ligeledes blive afsluttet automatisk. Hvis personens engagement får tildelt en slutdato i fremtiden - uanset
+om der er tale om en nyoprettet medarbejder eller en eksisterende medarbejder - vil lederrollen også blive afsluttet på
+samme dag som det engagement, der udløber sidst.
 
-Det er med til at give:
+Hermed
 
-+ ensrettethed i organisationen
-+ automatisere processer
-+ optimere jeres arbejdsflow
-+ reducere manuelle rettelser
-+ minimere risiko for fejl i jeres leder data
-+ effektivisere jeres tidsforbrug
-
-###
++ automatiseres ophør af lederrollen
++ reduceres antallet af manuelt vedligehold
++ minimeres risiko for fejl i lederdata
++ effektiviseres tidsforbruget
 
 ## Indplacer leder i leder-enhed i SD-Løn
 
