@@ -14,12 +14,13 @@ fra AD, hvor stillingsbetegnelserne ikke er synlige, eller at de kan gemmes væk
 koder importeret fra SD løn, og kan indeholde sensitiv information, som i ikke ønsker fremstillet, idet i ser OS2MO
 værende autoritativ for jeres organisation.
 
-### Automatisk og eventbaseret vedligeholdelse af stillingsbetegnelser
+### Automatisk (eventbaseret) vedligeholdelse af stillingsbetegnelser
 
-Applikationen har til formål at håndtere stillingsbetegnelser og eventuelle stillingsbetegnelses koder.
+Applikationen har til formål at håndtere stillingsbetegnelser og eventuelle stillingsbetegnelses koder - hverken
+stillingsbetegnelser eller koder bliver overskrevet, der bliver blot læst relevant data ud herfra.
 Derved mindskes behovet for manuelle rettelser i medarbejderdata.
 
-"Applikationen 'lytter' på ændringer til stillingsbetegnelser, der kommer fra AD'et, samt på oprettelser af nye
+"Applikationen reagerer på ændringer til stillingsbetegnelser, der kommer fra AD'et, samt på oprettelser af nye
 engagementer (ansættelser), som indeholder stillingsbetegnelser. Stillingsbetegnelsen kan herefter eksporteres til andre
 it-systemer, såsom
 [plan2learn](https://rammearkitektur.docs.magenta.dk/os2mo/data-import-export/exporters/plan2learn.html),
