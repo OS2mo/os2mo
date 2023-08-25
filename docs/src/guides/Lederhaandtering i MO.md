@@ -6,20 +6,15 @@ title: Lederhåndtering i MO
 
 Nedenfor findes de automatikker, der er udviklet til håndtering af ledere i MO.
 
-Det er muligt at oprette ledere manuelt i MO, men der er også nogle arbejdsgange, der er automatiserede.
+Det er muligt at oprette ledere manuelt i MO, og når det er gjort, er der en række arbejdsgange, der bliver automatiserede:
 
-Der er forskel på, om man bruger SD-Løn eller OPUS som lønsystem.
+(Bemærk, at det udelukkende er SD-kommuner, der har behov for følgende arbejdsgange, idet LOS/OPUS-kommuner selv opmærker ledere i lønsystemet.)
 
-Bruger man OPUS, er lederen opmærket i forvejen i OPUS (med en 'hat') og bliver således automatisk oprettet ved
-indlæsning i MO.
-
-Bruger man SD-Løn, skal man enten
-
-1. **oprette lederen i MO**, hvorpå lederens engagement automatisk vil blive flyttet til den enhed, som man har oprettet
-   lederen i. Se afsnittet om [Opret Leder i MO](#Opret-leder-i-MO).
-2. **indplacere en leder i en såkaldt leder-enhed i SD-Løn** og placere ledern deri. Når indlæsningen til MO finder
+1. **Automatisk flytning af en leders engagement**: Når en leder bliver opmærket manuelt i MO,  vil lederens engagement automatisk vil blive flyttet til den enhed, som man har oprettet lederen i. Se afsnittet om [Opret Leder i MO](#opret-leder-i-mo).
+3. **Automatisk afslutning af ledere i MO**: Når en leders sidste engagement ophører, vil vedkommendes lederrolle ligeledes blive afsluttet automatisk. Se afsnittet om [Automatisk afslutning af ledere i MO](#automatisk-afslutning-af-ledere-i-mo).
+2. **Opret leder i SD** og placere ledern deri. Når indlæsningen til MO finder
    sted, vil lederen automatisk blive indplaceret korrekt i MO. Se afsnittet
-   om [Indplacer leder i leder-enhed i SD-Løn](#Indplacer-leder-i-leder-enhed-i-SD-Løn).
+   om [Indplacer leder i leder-enhed i SD-Løn](#opret-leder-i-sd).
 
 ## Opret leder i MO
 
@@ -39,7 +34,7 @@ Følgende regler er gældende, emn kan tilpasses:
 2. Hvis medarbejderen har et eller flere engagementer i lavereliggende enheder, flyttes engagementet dertil, hvor
    medarbejderen gøres til leder.
 
-## Afslut ledere automatisk i MO
+## Automatisk afslutning af ledere i MO
 
 Når en leder ikke længere har et gyldigt engagement, dvs. når lederens _sidste_ ansættelse stopper, vil personens
 lederrolle ligeledes blive afsluttet automatisk. Hvis personens engagement får tildelt en slutdato i fremtiden - uanset
@@ -53,7 +48,7 @@ Hermed
 + minimeres risiko for fejl i lederdata
 + effektiviseres tidsforbruget
 
-## Indplacer leder i leder-enhed i SD-Løn
+## Opret leder i SD
 
 Når en leder er indplaceret i en leder-enhed i SD-Løn, bliver denne enhed og lederen indlæst i MO.
 
