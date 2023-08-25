@@ -156,6 +156,8 @@ Det er muligt at genere af MED-data i fx en csv-fil som kan hentes inde fra MOs 
 
 ### Organisationsdiagram
 
-Lig den administrative organisation kan MED-organisationen udstilles i et organisationsdiagram på intranettet / internettet:
+Lig den administrative organisation kan MED-organisationen udstilles i et organisationsdiagram på intranettet / internettet.
+
+Du kan læse mere om organisationsdiagrammet [her](https://rammearkitektur.docs.magenta.dk/os2mo/data-import-export/exporters/org-chart.html)
 
 ![image](../graphics/MEDOrgdiagram.png)
