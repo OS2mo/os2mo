@@ -14,48 +14,48 @@ server {
     # * https://git.magenta.dk/rammearkitektur/os2mo-helm-chart/-/blob/master/os2mo/templates/mo/ingress.yaml#L29
     # * All the salt pillar ones
     location /openapi.json {
-        set $mo mo:5000;
-        proxy_pass http://$mo;
+        set $mo mo;
+        proxy_pass http://$mo:5000;
     }
 
     location /graphql {
-        set $mo mo:5000;
-        proxy_pass http://$mo;
+        set $mo mo;
+        proxy_pass http://$mo:5000;
     }
 
     location /metrics {
-        set $mo mo:5000;
-        proxy_pass http://$mo;
+        set $mo mo;
+        proxy_pass http://$mo:5000;
     }
 
     location /docs {
-        set $mo mo:5000;
-        proxy_pass http://$mo;
+        set $mo mo;
+        proxy_pass http://$mo:5000;
     }
 
     location /service/ {
-        set $mo mo:5000;
-        proxy_pass http://$mo;
+        set $mo mo;
+        proxy_pass http://$mo:5000;
     }
 
     location /version/ {
-        set $mo mo:5000;
-        proxy_pass http://$mo;
+        set $mo mo;
+        proxy_pass http://$mo:5000;
     }
 
     location /testing/ {
-        set $mo mo:5000;
-        proxy_pass http://$mo;
+        set $mo mo;
+        proxy_pass http://$mo:5000;
     }
 
     location /lora/ {
-        set $mo mo:5000;
-        proxy_pass http://$mo;
+        set $mo mo;
+        proxy_pass http://$mo:5000;
     }
 
     location /health/ {
-        set $mo mo:5000;
-        proxy_pass http://$mo;
+        set $mo mo;
+        proxy_pass http://$mo:5000;
     }
 
     # Keycloak
