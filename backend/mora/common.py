@@ -25,8 +25,6 @@ from . import mapping
 from . import util
 from .exceptions import ErrorCodes
 from .mapping import OwnerInferencePriority
-from mora import config
-from mora.graphapi.middleware import _GRAPHQL_DATES_MIDDLEWARE_KEY
 from mora.graphapi.middleware import get_graphql_dates
 from mora.graphapi.middleware import is_graphql
 
@@ -46,17 +44,7 @@ async def lora_connector_context() -> AsyncIterator[None]:
 
 def get_connector(**loraparams) -> lora.Connector:
     create_connector = context.get(_MIDDLEWARE_KEY, _create_connector)
-    c = create_connector(**loraparams)
-
-    # HACK: Override lora connector dates with context GQL dates,
-    # but only for autocomplete-v2.2
-    settings = config.get_settings()
-    if not settings.confdb_autocomplete_v2_use_legacy:
-        gql_dates = context.get(_GRAPHQL_DATES_MIDDLEWARE_KEY)
-        if gql_dates and gql_dates.from_date and gql_dates.to_date:
-            c.update_validity_dates(gql_dates.from_date, gql_dates.to_date)
-
-    return c
+    return create_connector(**loraparams)
 
 
 def _create_service_connector(**loraparams) -> lora.Connector:

@@ -98,7 +98,7 @@ async def decorate_orgunit_search_result(
                     to
                 }
 
-                ancestors {
+                ancestors_validity {
                     name
                 }
             }
@@ -131,7 +131,7 @@ async def decorate_orgunit_search_result(
                     to
                 }
 
-                ancestors {
+                ancestors_validity {
                     name
                 }
 
@@ -222,10 +222,10 @@ def _gql_get_orgunit_attrs(settings: config.Settings, org_unit_graphql: dict) ->
 
 
 def _gql_get_orgunit_path(org_unit_graphql: dict):
-    if not org_unit_graphql.get("ancestors", []):
+    if not org_unit_graphql.get("ancestors_validity", []):
         return []
 
-    path = [x["name"] for x in reversed(org_unit_graphql["ancestors"])]
+    path = [x["name"] for x in reversed(org_unit_graphql["ancestors_validity"])]
     return path + [org_unit_graphql["name"]]
 
 

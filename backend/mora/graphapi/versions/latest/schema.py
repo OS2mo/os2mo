@@ -8,7 +8,6 @@ from collections.abc import Awaitable
 from collections.abc import Callable
 from datetime import date
 from datetime import datetime
-from datetime import time
 from functools import partial
 from functools import wraps
 from inspect import Parameter
@@ -24,9 +23,9 @@ from uuid import UUID
 
 import strawberry
 from fastapi.encoders import jsonable_encoder
-from more_itertools import first
 from more_itertools import one
 from more_itertools import only
+from pydantic import parse_obj_as
 from starlette_context import context
 from strawberry import UNSET
 from strawberry.types import Info
@@ -62,6 +61,10 @@ from .validity import OpenValidity
 from .validity import Validity
 from mora import common
 from mora import config
+from mora.common import _create_graphql_connector
+from mora.graphapi.middleware import set_graphql_dates
+from mora.graphapi.versions.latest.readers import _extract_search_params
+from mora.handler.reading import get_handler_for_type
 from mora.service.address_handler import dar
 from mora.service.address_handler import multifield_text
 from mora.service.facet import is_class_uuid_primary
@@ -257,12 +260,6 @@ seed_resolver_one: Callable[..., Any] = partial(
     seed_resolver,
     result_translation=lambda result: one(chain.from_iterable(result.values())),
 )
-seed_resolver_first: Callable[..., Any] = partial(
-    seed_resolver,
-    result_translation=lambda result: first(
-        chain.from_iterable(result.values()), default=None
-    ),
-)
 
 
 def uuid2list(uuid: UUID | None) -> list[UUID]:
@@ -357,18 +354,20 @@ class Response(Generic[MOObject]):
             Returns:
                 True if the object is active right now, False otherwise.
             """
-            now = datetime.now().replace(tzinfo=DEFAULT_TIMEZONE)
-            datetime_min = datetime.min.replace(tzinfo=DEFAULT_TIMEZONE)
-            datetime_max = datetime.max.replace(tzinfo=DEFAULT_TIMEZONE)
-            try:
-                return (
-                    (obj.validity.from_date.date() or datetime_min)
-                    <= now.date()
-                    <= (obj.validity.to_date.date() or datetime_max)
-                )
-            except AttributeError:  # occurs when objects do not contain validity
-                # TODO: Get rid of this entire branch by implementing non-static facet, etc.
+            if not hasattr(obj, "validity"):
                 return True
+
+            now = datetime.now().replace(tzinfo=DEFAULT_TIMEZONE)
+            min_datetime = datetime.min.replace(tzinfo=DEFAULT_TIMEZONE)
+            max_datetime = datetime.max.replace(tzinfo=DEFAULT_TIMEZONE)
+
+            from_date = obj.validity.from_date or min_datetime
+            to_date = obj.validity.to_date or max_datetime
+
+            # TODO: This should just be a normal datetime compare, but due to legacy systems,
+            #       ex dipex, we must use .date() to compare dates instead of datetimes.
+            #       Remove when legacy systems handle datetimes properly.
+            return from_date.date() <= now.date() <= to_date.date()
 
         # TODO: This should really do its own instantaneous query to find whatever is
         #       active right now, regardless of the values in objects.
@@ -3016,19 +3015,9 @@ class Organisation:
 )
 class OrganisationUnit:
     parent: LazyOrganisationUnit | None = strawberry.field(
-        resolver=seed_resolver_first(
+        resolver=seed_resolver_only(
             OrganisationUnitResolver(),
-            {
-                "uuids": lambda root: [root.parent_uuid],
-                "from_date": lambda root: datetime.combine(
-                    root.validity.from_date.date(), time.min
-                ),
-                "to_date": lambda root: datetime.combine(
-                    root.validity.to_date.date(), time.max
-                )
-                if root.validity.to_date
-                else None,
-            },
+            {"uuids": lambda root: uuid2list(root.parent_uuid)},
         ),
         description=dedent(
             """\
@@ -3062,6 +3051,62 @@ class OrganisationUnit:
             return []
         ancestors = await OrganisationUnit.ancestors(self=self, root=parent, info=info)  # type: ignore
         return [parent] + ancestors
+
+    @strawberry.field(
+        description=dedent(
+            """\
+            Same as ancestors(), but with HACKs to enable validities.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+        deprecation_reason=dedent(
+            """\
+            Should only be used to query ancestors when validity dates have been specified, "
+            "ex from_date & to_date."
+            "Will be removed when sub-query date handling is implemented.
+            """
+        ),
+    )
+    async def ancestors_validity(
+        self, root: OrganisationUnitRead, info: Info
+    ) -> list[LazyOrganisationUnit]:
+        # Custom Lora-GraphQL connector - created in order to control dates in sub-queries/recursions
+        set_graphql_dates(root.validity)
+        c = _create_graphql_connector()
+        cls = get_handler_for_type("org_unit")
+
+        # Query LoRa and parse result to read-model
+        potential_parents = await cls.get(
+            c=c,
+            search_fields=_extract_search_params(
+                query_args={"uuid": uuid2list(root.parent_uuid)}
+            ),
+        )
+        potential_parents_models = parse_obj_as(
+            list[OrganisationUnitRead], potential_parents
+        )  # type: ignore
+
+        # if root element have a to_date, exclude all parents where from date is after root.to_date
+        potential_parents_models = list(
+            filter(
+                lambda ppm: (
+                    root.validity.to_date is None
+                    or ppm.validity.from_date <= root.validity.to_date
+                ),
+                potential_parents_models,
+            )
+        )
+
+        parent = max(
+            potential_parents_models,
+            key=lambda ppm: ppm.validity.from_date,
+            default=None,
+        )
+        if parent is None:
+            return []
+
+        parent_ancestors = await OrganisationUnit.ancestors_validity(self=self, root=parent, info=info)  # type: ignore
+        return [parent] + parent_ancestors
 
     children: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_list(

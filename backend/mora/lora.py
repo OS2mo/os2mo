@@ -302,26 +302,6 @@ class Connector:
         self.__defaults = defaults
         self.__scopes = {}
 
-    def update_validity_dates(self, start: datetime | None, end: datetime | None):
-        if self.__validity == "present" and start is not None:
-            # we should probably use 'virkningstid' but that means we
-            # have to override each and every single invocation of the
-            # accessors later on
-            self.now = util.parsedatetime(start)
-
-        try:
-            self.start, self.end = validity_tuple(self.__validity, now=self.now)
-        except TypeError:
-            exceptions.ErrorCodes.V_INVALID_VALIDITY(validity=self.__validity)
-
-        if self.__validity == "present" and end is not None:
-            self.end = util.parsedatetime(end)
-
-        self.__defaults.update(
-            virkningfra=util.to_lora_time(self.start),
-            virkningtil=util.to_lora_time(self.end),
-        )
-
     @property
     def defaults(self):
         return self.__defaults
