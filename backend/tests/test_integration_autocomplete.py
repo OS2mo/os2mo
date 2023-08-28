@@ -580,6 +580,16 @@ def test_v2_only_gql_decorate_employees(
                         "value": "bvn",
                     },
                     {
+                        "uuid": "c89853b8-3da5-4b10-8d87-6ca5b4c9416b",
+                        "title": "Medlem",
+                        "value": "bvn",
+                    },
+                    {
+                        "uuid": "4de484d9-f577-4fe0-965f-2d4be11b348c",
+                        "title": "SAP",
+                        "value": "donald",
+                    },
+                    {
                         "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
                         "title": "Active Directory",
                         "value": "donald",

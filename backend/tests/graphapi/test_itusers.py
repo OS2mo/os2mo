@@ -434,8 +434,8 @@ async def test_update_ituser_integration_test(graphapi_post, test_data) -> None:
     uuid = test_data["uuid"]
 
     query = """
-        query MyQuery {
-            itusers {
+        query MyQuery($uuid: UUID!) {
+            itusers (filter: {uuids: [$uuid]}){
                 objects {
                     objects {
                         uuid

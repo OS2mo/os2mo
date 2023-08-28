@@ -674,6 +674,22 @@ class ITAssociationCreate(ITAssociationUpsert):
         return data_dict
 
 
+class ITAssociationUpdate(ITAssociationUpsert):
+    """Model representing an IT-association creation."""
+
+    uuid: UUID = Field(description="UUID of the ITAssociation you want to update.")
+    org_unit: UUID | None = Field(description="org-unit uuid.")
+    it_user: UUID | None = Field(description="IT-user UUID")
+    job_function: UUID | None = Field(description="Job function UUID")
+
+    def to_handler_dict(self) -> dict:
+        data_dict = super().to_handler_dict()
+        data_dict["org_unit"] = gen_uuid(self.org_unit)
+        data_dict["it"] = gen_uuid(self.it_user)
+        data_dict["job_function"] = gen_uuid(self.job_function)
+        return {k: v for k, v in data_dict.items() if v}
+
+
 # ITSystems
 # ---------
 

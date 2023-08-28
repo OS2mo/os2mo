@@ -4,6 +4,7 @@ from _datetime import datetime
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
+from uuid import uuid4
 
 import pytest
 from fastapi.encoders import jsonable_encoder
@@ -21,8 +22,9 @@ from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.models import ITAssociationCreate
+from mora.graphapi.versions.latest.models import ITAssociationUpdate
+from mora.graphapi.versions.latest.schema import AssociationRead
 from ramodels.mo import Validity as RAValidity
-from ramodels.mo.details import AssociationRead
 from tests.conftest import GQLResponse
 
 
@@ -30,7 +32,7 @@ class ITAssociationRead(AssociationRead):
     # This is needed since these 2 will be `None` otherwise, which would result in
     # 0 ITAssociations created in the MonkeyPatch..
     it_user_uuid: UUID = Field(
-        description="UUID of an 'ITUser' model, only defined for 'IT associations.'"
+        description="UUID of an 'ITAssociation' model, only defined for 'IT associations'."
     )
     job_function_uuid: UUID = Field(description="UUID of the 'job_function'")
 
@@ -78,7 +80,8 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
 @given(test_data=graph_data_strat(ITAssociationRead))
 def test_query_none(test_data, graphapi_post, patch_loader):
-    """Test that we don't get any ITAssociations, when using the `it_association` parameter."""
+    """Test that we don't get any ITAssociations, when setting the `it_association`
+    parameter to "false"."""
     # JSON encode test data
     test_data = jsonable_encoder(test_data)
 
@@ -274,3 +277,157 @@ async def test_create_itassociation_integration_test(
         )
     else:
         assert test_data.validity.to_date is None
+
+
+@given(test_data=...)
+@patch(
+    "mora.graphapi.versions.latest.mutators.update_itassociation",
+    new_callable=AsyncMock,
+)
+async def test_update_itassociation_unit_test(
+    update_itassociation: AsyncMock, test_data: ITAssociationUpdate
+) -> None:
+    """Test that pydantic jsons are passed through to association_update."""
+
+    mutate_query = """
+        mutation UpdateITAssociation($input: ITAssociationUpdateInput!) {
+            itassociation_update(input: $input) {
+                uuid
+            }
+        }
+    """
+
+    itassociation_uuid_to_update = uuid4()
+    update_itassociation.return_value = itassociation_uuid_to_update
+
+    payload = jsonable_encoder(test_data)
+    response = await execute_graphql(
+        query=mutate_query, variable_values={"input": payload}
+    )
+    assert response.errors is None
+    assert response.data == {
+        "itassociation_update": {"uuid": str(itassociation_uuid_to_update)}
+    }
+
+    update_itassociation.assert_called_with(test_data)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "test_data",
+    [
+        {
+            "uuid": "c89853b8-3da5-4b10-8d87-6ca5b4c9416b",
+            "it_user": "4de484d9-f577-4fe0-965f-2d4be11b348c",
+            "primary": "89b6cef8-3d03-49ac-816f-f7530b383411",
+            "job_function": "07cea156-1aaf-4c89-bf1b-8e721f704e22",
+            "validity": {
+                "from": "2017-01-01T00:00:00+01:00",
+                "to": "2025-01-01T00:00:00+01:00",
+            },
+        },
+        {
+            "uuid": "c89853b8-3da5-4b10-8d87-6ca5b4c9416b",
+            "it_user": "4de484d9-f577-4fe0-965f-2d4be11b348c",
+            "primary": None,
+            "job_function": "07cea156-1aaf-4c89-bf1b-8e721f704e22",
+            "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+        },
+        {
+            "uuid": "c89853b8-3da5-4b10-8d87-6ca5b4c9416b",
+            "it_user": None,
+            "primary": None,
+            "job_function": None,
+            "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+        },
+        {
+            "uuid": "c89853b8-3da5-4b10-8d87-6ca5b4c9416b",
+            "it_user": "4de484d9-f577-4fe0-965f-2d4be11b348c",
+            "primary": "89b6cef8-3d03-49ac-816f-f7530b383411",
+            "job_function": "07cea156-1aaf-4c89-bf1b-8e721f704e22",
+            "validity": {
+                "from": "2017-01-01T00:00:00+01:00",
+                "to": "2025-01-01T00:00:00+01:00",
+            },
+        },
+    ],
+)
+async def test_update_itassociation_integration_test(graphapi_post, test_data) -> None:
+    uuid = test_data["uuid"]
+
+    query = """
+        query MyQuery {
+            associations(filter: {it_association: true}) {
+                objects {
+                    objects {
+                        uuid
+                        it_user: it_user_uuid
+                        primary: primary_uuid
+                        job_function: job_function_uuid
+                        validity {
+                            from
+                            to
+                        }
+                    }
+                }
+            }
+        }
+    """
+
+    response: GQLResponse = graphapi_post(query, {"uuid": uuid})
+    assert response.errors is None
+
+    pre_update_it_association = one(
+        one(response.data["associations"]["objects"])["objects"]
+    )
+
+    mutate_query = """
+        mutation UpdateITAssociation($input: ITAssociationUpdateInput!) {
+            itassociation_update(input: $input) {
+                uuid
+            }
+        }
+    """
+    mutation_response: GQLResponse = graphapi_post(
+        mutate_query, {"input": jsonable_encoder(test_data)}
+    )
+    assert mutation_response.errors is None
+
+    """Query data to check that it actually gets written to database"""
+    verify_query = """
+        query VerifyQuery($uuid: [UUID!]!) {
+            associations(filter: {uuids: $uuid, it_association: true}){
+                objects {
+                    objects {
+                        uuid
+                        it_user: it_user_uuid
+                        primary: primary_uuid
+                        job_function: job_function_uuid
+                        validity {
+                            from
+                            to
+                        }
+                    }
+                }
+            }
+        }
+    """
+
+    verify_response: GQLResponse = graphapi_post(
+        query=verify_query, variables={"uuid": uuid}
+    )
+
+    assert verify_response.errors is None
+
+    post_update_it_association = one(
+        one(verify_response.data["associations"]["objects"])["objects"]
+    )
+
+    # If value is None, we use data from our original query
+    # to ensure that the field has not been updated
+    expected_updated_it_association = {
+        k: v or pre_update_it_association[k] for k, v in test_data.items()
+    }
+
+    assert post_update_it_association == expected_updated_it_association

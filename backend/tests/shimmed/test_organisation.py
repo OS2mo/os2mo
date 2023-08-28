@@ -32,7 +32,7 @@ class TestOrganisationEndpoints:
             "unit_count": 10,
             "person_count": 5,
             "engagement_count": 3,
-            "association_count": 1,
+            "association_count": 2,
             "leave_count": 2,
             "role_count": 1,
             "manager_count": 1,

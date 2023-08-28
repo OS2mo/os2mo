@@ -433,7 +433,7 @@ def _assert_matching_ou_has(doc, user_key=None, **attrs):
 @pytest.mark.parametrize(
     "collection,attrs",
     [
-        ("association", {"association_count": 1}),
+        ("association", {"association_count": 2}),
         ("engagement", {"engagement_count": 3}),
     ],
 )

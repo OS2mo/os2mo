@@ -19,7 +19,7 @@ from tests.conftest import GQLResponse
         ("addresses", 4, 0, 4),
         ("addresses", 8, 1, 8),
         # Associations
-        ("associations", None, None, 1),
+        ("associations", None, None, 2),
         ("associations", 0, 0, 0),
         ("associations", 1, 0, 1),
         # Classes
@@ -56,7 +56,7 @@ from tests.conftest import GQLResponse
         ("itsystems", 2, 0, 2),
         ("itsystems", 3, 1, 2),
         # It Users
-        ("itusers", None, None, 1),
+        ("itusers", None, None, 2),
         ("itusers", 0, 0, 0),
         ("itusers", 1, 0, 1),
         # KLEs
@@ -120,7 +120,7 @@ async def test_pagination(
         # Addresses
         ("addresses", 10, 10),
         # Associations
-        ("associations", 10, 1),
+        ("associations", 10, 2),
         # Classes
         ("classes", 42, 41),
         # Employees
@@ -134,7 +134,7 @@ async def test_pagination(
         # It Systems
         ("itsystems", 10, 3),
         # It Users
-        ("itusers", 10, 1),
+        ("itusers", 10, 2),
         # KLEs
         ("kles", 10, 1),
         # Leaves
