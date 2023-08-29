@@ -68,7 +68,9 @@ from mora.handler.reading import get_handler_for_type
 from mora.service.address_handler import dar
 from mora.service.address_handler import multifield_text
 from mora.service.facet import is_class_uuid_primary
-from mora.util import DEFAULT_TIMEZONE
+from mora.util import NEGATIVE_INFINITY
+from mora.util import now
+from mora.util import POSITIVE_INFINITY
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import FacetRead
@@ -357,17 +359,13 @@ class Response(Generic[MOObject]):
             if not hasattr(obj, "validity"):
                 return True
 
-            now = datetime.now().replace(tzinfo=DEFAULT_TIMEZONE)
-            min_datetime = datetime.min.replace(tzinfo=DEFAULT_TIMEZONE)
-            max_datetime = datetime.max.replace(tzinfo=DEFAULT_TIMEZONE)
-
-            from_date = obj.validity.from_date or min_datetime
-            to_date = obj.validity.to_date or max_datetime
+            from_date = obj.validity.from_date or NEGATIVE_INFINITY
+            to_date = obj.validity.to_date or POSITIVE_INFINITY
 
             # TODO: This should just be a normal datetime compare, but due to legacy systems,
             #       ex dipex, we must use .date() to compare dates instead of datetimes.
             #       Remove when legacy systems handle datetimes properly.
-            return from_date.date() <= now.date() <= to_date.date()
+            return from_date.date() <= now().date() <= to_date.date()
 
         # TODO: This should really do its own instantaneous query to find whatever is
         #       active right now, regardless of the values in objects.
