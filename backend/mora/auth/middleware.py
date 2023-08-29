@@ -15,7 +15,7 @@ from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import token_getter
 
 # This magical UUID was introduced into LoRas source code back in
-# December of 2015, it is kept here for backwards compatabiltiy, but should
+# December of 2015, it is kept here for backwards compatibility, but should
 # be eliminated in the future, by ensuring that Keycloak UUIDs are always set.
 # For more information, see the commit messsage of the change introducing this.
 LORA_USER_UUID = UUID("42c432e8-9c4a-11e6-9f62-873cf34a735f")

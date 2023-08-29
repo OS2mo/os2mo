@@ -26,6 +26,7 @@ nav:
       - Drift og support:
           - drift-support/cookbook.md
           - drift-support/mocloud.md
+          - drift-support/audit.md
       - Funktionalitet:
           - Email-notifikationer: guides/Emailnotifikationer.md
           - KLE i MO: guides/KLEiMO.md
