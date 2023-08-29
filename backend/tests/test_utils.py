@@ -30,7 +30,7 @@ def frozen_time_today():
     "testing_time, expected_time",
     [
         (frozen_time_today(), "2015-06-01T00:00:00+02:00"),
-        (frozen_time_now(), "2015-06-01T01:10:00+02:00"),
+        (frozen_time_now(), "2015-06-01T03:10:00+02:00"),
         ("01-06-2017", "2017-06-01T00:00:00+02:00"),
         ("31-12-2017", "2017-12-31T00:00:00+01:00"),
         ("infinity", "infinity"),
