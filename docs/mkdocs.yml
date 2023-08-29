@@ -45,6 +45,7 @@ nav:
               - guides/os2mo-manager-sync.md
           - MED-organisation i OS2mo: guides/MED-organisationen.md
           - Powershell-script til AD-Skriv: guides/powershellscriptAD.md
+          - Stillingsbetegnelser (følsomme): guides/Stillingsbetegnelser.md
           - Tests: guides/tests.md
   - Lokal rammearkitektur (LoRa og databasen):
       - Introduction: lora/index.md
