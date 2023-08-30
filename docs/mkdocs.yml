@@ -10,12 +10,15 @@ docs_dir: src/
 nav:
   - OS2MO:
       - Velkommen: index.md
-      - API Dokumentation:
-                - api-dokumentation/it-associations.md
-                - api-dokumentation/triggers.md
-                - api-dokumentation/events.md
-                - api-dokumentation/amqp-legacy.md
-                - api-dokumentation/user-configuration.md
+      - API dokumentation, herunder GraphQL:
+          - api-dokumentation/it-associations.md
+          - api-dokumentation/triggers.md
+          - api-dokumentation/events.md
+          - api-dokumentation/amqp-legacy.md
+          - api-dokumentation/user-configuration.md
+          - graphql/intro.md
+          - graphql/migration.md
+          - graphql/reads.md
       - Arkitektur og design:
           - arkitektur-design/system.md
           - arkitektur-design/facets.md
@@ -23,11 +26,6 @@ nav:
       - Drift og support:
           - drift-support/cookbook.md
           - drift-support/mocloud.md
-          - drift-support/settings.md
-      - GraphQL:
-          - graphql/intro.md
-          - graphql/migration.md
-          - graphql/reads.md
       - Funktionalitet:
           - Email-notifikationer: guides/Emailnotifikationer.md
           - KLE i MO: guides/KLEiMO.md
@@ -44,6 +42,7 @@ nav:
       - Technician and developer guides:
           - Conventions: guides/conventions.md
           - Getting started (with Docker): guides/environment/docker.md
+          - Settings: drift-support/settings.md
           - Tests: guides/tests.md
   - Lokal rammearkitektur (LoRa og databasen):
       - Introduction: lora/index.md
