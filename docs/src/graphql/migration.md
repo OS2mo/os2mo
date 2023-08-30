@@ -1,5 +1,5 @@
 ---
-title: Migration Guide
+title: GraphQL migration Guide
 ---
 
 This migration guide serves to help integration developers in migrating their

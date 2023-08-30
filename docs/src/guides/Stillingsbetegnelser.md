@@ -2,7 +2,7 @@
 title: Håndtering af følsomme stillingsbetegnelser i MO og aftagersystemer
 ---
 
-# Formål: Håndtering af følsomme stillingsbetegnelser i MO og aftagersystemer
+# Håndtering af følsomme stillingsbetegnelser i MO og aftagersystemer
 
 Formålet er sikring af at MO kan importere stillingsbetegnelser fra Active Directory uden at videresende følsomme stillingsbetegnelser til offentlige aftagersystemer.
 

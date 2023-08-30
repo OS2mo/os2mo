@@ -1,5 +1,5 @@
 ---
-title: MoCloud
+title: MO i skyen: MoCloud
 ---
 ## Forudsætninger for drift af MO i Azure
 ### VPN-enhed

@@ -1,10 +1,10 @@
 ---
-title: Eksport til OS2Phonebook
+title: Eksport til Telefonbogen
 ---
 
-# Indledning
+# Telefonbogen
 
-Dette program eksporterer JSON som kan indlæses i OS2Phonebook.
+Dette program eksporterer JSON som kan indlæses i Telefonbogen, der udstilles på kundens intranet.
 Progammet understøtter også at sende JSON dataen til telefonbogen selv.
 
 # Konfiguration
