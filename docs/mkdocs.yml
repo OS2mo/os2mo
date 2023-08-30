@@ -23,29 +23,27 @@ nav:
       - Drift og support:
           - drift-support/cookbook.md
           - drift-support/mocloud.md
-          - drift-support/manual.md
           - drift-support/settings.md
       - GraphQL:
           - graphql/intro.md
           - graphql/migration.md
           - graphql/reads.md
+      - Funktionalitet:
+          - Email-notifikationer: guides/Emailnotifikationer.md
+          - KLE i MO: guides/KLEiMO.md
+          - Lederhåndtering i MO: guides/Lederhaandtering i MO.md
+          - MED-organisation i OS2mo: guides/MED-organisationen.md
+          - Stillingsbetegnelser (følsomme): guides/Stillingsbetegnelser.md
+      - MO manual: drift-support/manual.md
       - Release History: changelog.md
       - Sikkerhed:
           - ADFS SAML setup for OS2mo: guides/adfs-setup.md
           - ADFS RBAC setup for OS2mo: guides/adfs-rbac-setup.md
           - Autentificering: drift-support/auth.md
           - Roller: drift-support/keycloak.md
-      - User and developer guides:
+      - Technician and developer guides:
           - Conventions: guides/conventions.md
-          - Email-notifikationer: guides/Emailnotifikationer.md
           - Getting started (with Docker): guides/environment/docker.md
-          - KLE i MO: guides/KLEiMO.md
-          - Lederhåndtering i MO: guides/Lederhaandtering i MO.md
-          - Lederscript:
-              - guides/os2mo-manager-sync.md
-          - MED-organisation i OS2mo: guides/MED-organisationen.md
-          - Powershell-script til AD-Skriv: guides/powershellscriptAD.md
-          - Stillingsbetegnelser (følsomme): guides/Stillingsbetegnelser.md
           - Tests: guides/tests.md
   - Lokal rammearkitektur (LoRa og databasen):
       - Introduction: lora/index.md
