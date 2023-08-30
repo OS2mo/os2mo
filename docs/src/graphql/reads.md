@@ -1,5 +1,5 @@
 ---
-title: Reading data
+title: GraphQL - Reading data
 ---
 
 As touched upon briefly in the [introduction](intro.md#quickstart), reading data from a graph API is done through queries. In the following, several example queries in JSON format are presented and compared to the REST API queries needed to obtain the same result.

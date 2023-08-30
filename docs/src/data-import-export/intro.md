@@ -2,13 +2,15 @@
 title: OS2MO Data Import
 ---
 
+# OS2MO Data Import
+
 Magentas officielle repo til integrationer og eksportfunktioner til
 OS2MO.
 
 For spørgsmål til koden eller brug af den, er man velkommen til at
 kontakte Magenta ApS <info@magenta.dk\>
 
-# Usage
+## Usage
 
 Start en OS2mo stak vha. *docker-compose*, [se detaljer her](../guides/environment/docker.md)
 
