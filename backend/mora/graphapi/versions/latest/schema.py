@@ -560,7 +560,19 @@ async def validity_sub_query_hack(
     )
     item_potentials_models = parse_obj_as(list[item_type], item_potentials)  # type: ignore
 
-    # if root element have a to_date, exclude items where from date is earlier than root.to_date
+    item_potentials_models = list(
+        filter(
+            lambda ipm: (  # type: ignore
+                root_validity.from_date is None
+                or (
+                    ipm.validity.to_date is not None  # type: ignore
+                    and ipm.validity.to_date >= root_validity.from_date  # type: ignore
+                )
+            ),
+            item_potentials_models,
+        )
+    )
+
     item_potentials_models = list(
         filter(
             lambda ipm: (  # type: ignore
@@ -3165,38 +3177,19 @@ class OrganisationUnit:
     async def ancestors_validity(
         self, root: OrganisationUnitRead, info: Info
     ) -> list[LazyOrganisationUnit]:
-        # Custom Lora-GraphQL connector - created in order to control dates in sub-queries/recursions
-        set_graphql_dates(root.validity)
-        c = _create_graphql_connector()
-        cls = get_handler_for_type("org_unit")
-
-        # Query LoRa and parse result to read-model
-        potential_parents = await cls.get(
-            c=c,
-            search_fields=_extract_search_params(
-                query_args={"uuid": uuid2list(root.parent_uuid)}
-            ),
-        )
-        potential_parents_models = parse_obj_as(
-            list[OrganisationUnitRead], potential_parents
-        )  # type: ignore
-
-        # if root element have a to_date, exclude all parents where from date is after root.to_date
-        potential_parents_models = list(
-            filter(
-                lambda ppm: (
-                    root.validity.to_date is None
-                    or ppm.validity.from_date <= root.validity.to_date
-                ),
-                potential_parents_models,
-            )
+        parents = await validity_sub_query_hack(
+            root.validity,
+            OrganisationUnitRead,
+            get_handler_for_type("org_unit"),
+            {"uuid": uuid2list(root.parent_uuid)},
         )
 
         parent = max(
-            potential_parents_models,
+            parents,
             key=lambda ppm: ppm.validity.from_date,
             default=None,
         )
+
         if parent is None:
             return []
 
