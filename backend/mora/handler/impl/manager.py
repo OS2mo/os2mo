@@ -4,7 +4,6 @@ from asyncio import create_task
 from asyncio import gather
 from collections.abc import Awaitable
 from collections.abc import Iterable
-from datetime import datetime
 from typing import Any
 
 from structlog import get_logger
@@ -27,9 +26,7 @@ class ManagerReader(reading.OrgFunkReadingHandler):
     function_key = mapping.MANAGER_KEY
 
     @classmethod
-    async def get_from_type(
-        cls, c, type, object_id, changed_since: datetime | None = None
-    ):
+    async def get_from_type(cls, c, type, object_id):
         if util.get_args_flag("inherit_manager"):
             return await cls.get_inherited_manager(c, type, object_id)
 

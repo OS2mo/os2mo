@@ -115,7 +115,7 @@ async def _get_entity_owners(uuid: UUID, entity_type: EntityType) -> set[UUID]:
     )
 
     c = common.get_connector()
-    r = await OwnerReader.get_from_type(c, entity_type.value, uuid, changed_since=None)
+    r = await OwnerReader.get_from_type(c, entity_type.value, uuid)
     logger.debug("OwnerReader.get_from_type", response=r)
 
     # Filter out empty dicts and vacant owners

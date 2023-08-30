@@ -732,12 +732,7 @@ async def list_addresses_ou(
     return list(filter(partial(filter_by_validity, validity), data))
 
 
-async def get_detail(
-    type,
-    id: UUID,
-    function,
-    changed_since: datetime | None = None,
-):
+async def get_detail(type, id: UUID, function):
     """Helper function for fetching details for employees and organisation units.
 
     Args:
@@ -746,7 +741,6 @@ async def get_detail(
             'e' for querying an employees.
         id: UUID of the organisational unit or employee to fetch details for.
         function: The detail handler function name, aka. the details type to fetch.
-        changed_since: ?
 
     Returns:
         A list of detail entities.
@@ -780,13 +774,12 @@ async def get_detail(
     from ..handler import reading
 
     cls = reading.get_handler_for_type(function)
-    return await cls.get_from_type(c, type, id, changed_since=changed_since)
+    return await cls.get_from_type(c, type, id)
 
 
 @router.get("/e/{id}/details/association")
 async def list_associations_employee(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
@@ -830,15 +823,12 @@ async def list_associations_employee(
            }
         ]
     """
-    return await get_detail(
-        type="e", id=id, function="association", changed_since=changed_since
-    )
+    return await get_detail(type="e", id=id, function="association")
 
 
 @router.get("/ou/{id}/details/association")
 async def list_associations_ou(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
@@ -882,15 +872,12 @@ async def list_associations_ou(
            }
         ]
     """
-    return await get_detail(
-        type="ou", id=id, function="association", changed_since=changed_since
-    )
+    return await get_detail(type="ou", id=id, function="association")
 
 
 @router.get("/e/{id}/details/employee")
 async def list_employees_employee(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
@@ -923,15 +910,12 @@ async def list_employees_employee(
            }
         ]
     """
-    return await get_detail(
-        type="e", id=id, function="employee", changed_since=changed_since
-    )
+    return await get_detail(type="e", id=id, function="employee")
 
 
 @router.get("/ou/{id}/details/employee")
 async def list_employees_ou(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
@@ -964,15 +948,12 @@ async def list_employees_ou(
            }
         ]
     """
-    return await get_detail(
-        type="ou", id=id, function="employee", changed_since=changed_since
-    )
+    return await get_detail(type="ou", id=id, function="employee")
 
 
 @router.get("/e/{id}/details/engagement")
 async def list_engagements_employee(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
@@ -1049,15 +1030,12 @@ async def list_engagements_employee(
            }
         ]
     """
-    return await get_detail(
-        type="e", id=id, function="engagement", changed_since=changed_since
-    )
+    return await get_detail(type="e", id=id, function="engagement")
 
 
 @router.get("/ou/{id}/details/engagement")
 async def list_engagements_ou(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
@@ -1134,43 +1112,34 @@ async def list_engagements_ou(
            }
         ]
     """
-    return await get_detail(
-        type="ou", id=id, function="engagement", changed_since=changed_since
-    )
+    return await get_detail(type="ou", id=id, function="engagement")
 
 
 @router.get("/e/{id}/details/engagement_association")
 async def list_engagement_associations_employee(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
 ):
     """Fetch a list of engagement_associations for the employee."""
-    return await get_detail(
-        type="e", id=id, function="engagement_association", changed_since=changed_since
-    )
+    return await get_detail(type="e", id=id, function="engagement_association")
 
 
 @router.get("/ou/{id}/details/engagement_association")
 async def list_engagement_associations_ou(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
 ):
     """Fetch a list of engagement_associations for the organisation unit."""
-    return await get_detail(
-        type="ou", id=id, function="engagement_association", changed_since=changed_since
-    )
+    return await get_detail(type="ou", id=id, function="engagement_association")
 
 
 @router.get("/e/{id}/details/it")
 async def list_its_employee(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
@@ -1207,13 +1176,12 @@ async def list_its_employee(
            }
         ]
     """
-    return await get_detail(type="e", id=id, function="it", changed_since=changed_since)
+    return await get_detail(type="e", id=id, function="it")
 
 
 @router.get("/ou/{id}/details/it")
 async def list_its_ou(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
@@ -1250,71 +1218,56 @@ async def list_its_ou(
            }
         ]
     """
-    return await get_detail(
-        type="ou", id=id, function="it", changed_since=changed_since
-    )
+    return await get_detail(type="ou", id=id, function="it")
 
 
 @router.get("/e/{id}/details/kle")
 async def list_kles_employee(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
 ):
     """Fetch a list of kles for the employee."""
-    return await get_detail(
-        type="e", id=id, function="kle", changed_since=changed_since
-    )
+    return await get_detail(type="e", id=id, function="kle")
 
 
 @router.get("/ou/{id}/details/kle")
 async def list_kles_ou(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
 ):
     """Fetch a list of kles for the organisation unit."""
-    return await get_detail(
-        type="ou", id=id, function="kle", changed_since=changed_since
-    )
+    return await get_detail(type="ou", id=id, function="kle")
 
 
 @router.get("/e/{id}/details/leave")
 async def list_leaves_employee(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
 ):
     """Fetch a list of leaves for the employee."""
-    return await get_detail(
-        type="e", id=id, function="leave", changed_since=changed_since
-    )
+    return await get_detail(type="e", id=id, function="leave")
 
 
 @router.get("/ou/{id}/details/leave")
 async def list_leaves_ou(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
 ):
     """Fetch a list of leaves for the organisation unit."""
-    return await get_detail(
-        type="ou", id=id, function="leave", changed_since=changed_since
-    )
+    return await get_detail(type="ou", id=id, function="leave")
 
 
 @router.get("/e/{id}/details/manager")
 async def list_managers_employee(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
@@ -1393,15 +1346,12 @@ async def list_managers_employee(
            }
          ]
     """
-    return await get_detail(
-        type="e", id=id, function="manager", changed_since=changed_since
-    )
+    return await get_detail(type="e", id=id, function="manager")
 
 
 @router.get("/ou/{id}/details/manager")
 async def list_managers_ou(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
@@ -1480,15 +1430,12 @@ async def list_managers_ou(
            }
          ]
     """
-    return await get_detail(
-        type="ou", id=id, function="manager", changed_since=changed_since
-    )
+    return await get_detail(type="ou", id=id, function="manager")
 
 
 @router.get("/e/{id}/details/org_unit")
 async def list_org_units_employee(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
@@ -1532,15 +1479,12 @@ async def list_org_units_employee(
            }
         ]
     """
-    return await get_detail(
-        type="e", id=id, function="org_unit", changed_since=changed_since
-    )
+    return await get_detail(type="e", id=id, function="org_unit")
 
 
 @router.get("/ou/{id}/details/org_unit")
 async def list_org_units_ou(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
@@ -1584,90 +1528,70 @@ async def list_org_units_ou(
            }
         ]
     """
-    return await get_detail(
-        type="ou", id=id, function="org_unit", changed_since=changed_since
-    )
+    return await get_detail(type="ou", id=id, function="org_unit")
 
 
 @router.get("/e/{id}/details/owner")
 async def list_owners_employee(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
 ):
     """Fetch a list of owners for the employee."""
-    return await get_detail(
-        type="e", id=id, function="owner", changed_since=changed_since
-    )
+    return await get_detail(type="e", id=id, function="owner")
 
 
 @router.get("/ou/{id}/details/owner")
 async def list_owners_ou(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
 ):
     """Fetch a list of owners for the organisation unit."""
-    return await get_detail(
-        type="ou", id=id, function="owner", changed_since=changed_since
-    )
+    return await get_detail(type="ou", id=id, function="owner")
 
 
 @router.get("/e/{id}/details/related_unit")
 async def list_related_units_employee(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
 ):
     """Fetch a list of related_units for the employee."""
-    return await get_detail(
-        type="e", id=id, function="related_unit", changed_since=changed_since
-    )
+    return await get_detail(type="e", id=id, function="related_unit")
 
 
 @router.get("/ou/{id}/details/related_unit")
 async def list_related_units_ou(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
 ):
     """Fetch a list of related_units for the organisation unit."""
-    return await get_detail(
-        type="ou", id=id, function="related_unit", changed_since=changed_since
-    )
+    return await get_detail(type="ou", id=id, function="related_unit")
 
 
 @router.get("/e/{id}/details/role")
 async def list_roles_employee(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
 ):
     """Fetch a list of roles for the employee."""
-    return await get_detail(
-        type="e", id=id, function="role", changed_since=changed_since
-    )
+    return await get_detail(type="e", id=id, function="role")
 
 
 @router.get("/ou/{id}/details/role")
 async def list_roles_ou(
     id: UUID,
-    changed_since: datetime | None = None,
     at: Any | None = None,
     validity: Any | None = None,
     only_primary_uuid: Any | None = None,
 ):
     """Fetch a list of roles for the organisation unit."""
-    return await get_detail(
-        type="ou", id=id, function="role", changed_since=changed_since
-    )
+    return await get_detail(type="ou", id=id, function="role")

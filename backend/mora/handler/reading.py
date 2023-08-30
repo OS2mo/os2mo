@@ -4,7 +4,6 @@ import abc
 from asyncio import create_task
 from asyncio import gather
 from collections.abc import Iterable
-from datetime import datetime
 from inspect import isawaitable
 from typing import Any
 
@@ -42,30 +41,25 @@ class ReadingHandler:
         cls,
         c,
         search_fields,
-        changed_since: datetime | None = None,
         flat: bool = False,
     ) -> list[dict]:
         """
         Read a list of objects based on the given search parameters
 
         :param c: A LoRa connector
-        :param changed_since: Date used to filter registrations from LoRa
         :param search_fields: A dict containing search parameters
         """
         pass
 
     @classmethod
     @abc.abstractmethod
-    async def get_from_type(
-        cls, c, type, obj_uuid, changed_since: datetime | None = None
-    ):
+    async def get_from_type(cls, c, type, obj_uuid):
         """
         Read a list of objects related to a certain object
 
         :param c: A LoRa connector
         :param type: Either 'e' or 'ou' depending on if related to an
             employee or orgunit
-        :param changed_since: Date used to filter registrations from LoRa
 
         :param obj_uuid: The UUID of the related employee/orgunit
         """
@@ -176,12 +170,9 @@ class OrgFunkReadingHandler(ReadingHandler):
         cls,
         c,
         search_fields,
-        changed_since: datetime | None = None,
         flat: bool = False,
     ):
-        object_tuples = await cls._get_lora_object(
-            c, search_fields, changed_since=changed_since
-        )
+        object_tuples = await cls._get_lora_object(c, search_fields)
         mo_objects = await cls._get_obj_effects(c, object_tuples, flat)
 
         # Return MO objects early if they are flat
@@ -204,18 +195,15 @@ class OrgFunkReadingHandler(ReadingHandler):
         return mo_objects
 
     @classmethod
-    async def get_from_type(cls, c, type, objid, changed_since: datetime | None = None):
+    async def get_from_type(cls, c, type, objid):
         """Retrieve a list of MO objects of type 'type' and with object ID
         'objid'.
 
         :param type: str
         :param objid: UUID
-        :param changed_since: Date used to filter registrations from LoRa
         :return: list of matching MO objects
         """
-        return await cls.get(
-            c, cls._get_search_fields(type, objid), changed_since=changed_since
-        )
+        return await cls.get(c, cls._get_search_fields(type, objid))
 
     @classmethod
     async def get_count(cls, c, type, objid):
@@ -241,18 +229,14 @@ class OrgFunkReadingHandler(ReadingHandler):
         return {cls.SEARCH_FIELDS[type]: objid}
 
     @classmethod
-    async def _get_lora_object(
-        cls, c, search_fields, changed_since: datetime | None = None
-    ):
+    async def _get_lora_object(cls, c, search_fields):
         if mapping.UUID in search_fields:
             object_tuples = await c.organisationfunktion.get_all_by_uuid(
                 uuids=search_fields[mapping.UUID],
-                changed_since=changed_since,
             )
         else:
             object_tuples = await c.organisationfunktion.get_all(
                 funktionsnavn=cls.function_key,
-                changed_since=changed_since,
                 **search_fields,
             )
 
