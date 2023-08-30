@@ -21,8 +21,6 @@ nav:
           - arkitektur-design/facets.md
           - arkitektur-design/overview.md
       - Drift og support:
-          - drift-support/auth.md
-          - drift-support/keycloak.md
           - drift-support/cookbook.md
           - drift-support/mocloud.md
           - drift-support/manual.md
@@ -32,10 +30,12 @@ nav:
           - graphql/migration.md
           - graphql/reads.md
       - Release History: changelog.md
+      - Sikkerhed:
+          - ADFS SAML setup for OS2mo: guides/adfs-setup.md
+          - ADFS RBAC setup for OS2mo: guides/adfs-rbac-setup.md
+          - Autentificering: drift-support/auth.md
+          - Roller: drift-support/keycloak.md
       - User and developer guides:
-          - Autentificering og autorisation:
-              - guides/adfs-setup.md
-              - guides/adfs-rbac-setup.md
           - Conventions: guides/conventions.md
           - Email-notifikationer: guides/Emailnotifikationer.md
           - Getting started (with Docker): guides/environment/docker.md
