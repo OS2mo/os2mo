@@ -431,7 +431,9 @@ async def autocomplete_employees(
 
     # Decorate search results with data through GraphQL
     return {
-        "items": await autocomplete.decorate_employee_search_result(search_results, at)
+        "items": await autocomplete.decorate_employee_search_result(
+            settings, search_results, at
+        )
     }
 
 
