@@ -32,7 +32,7 @@ De rapporter, der findes i dag, er beskrevet nedenfor. Ønskes andre sammenstill
 
 [Eksempel](../Reports/OS2mo%20alle%20tilknytninger.xlsx)
 
-- **Medarbejdere, indplacering og start- og stopdatoer**
+- **Den administrative organisation, enhedstyper samt start- og stopdatoer**
     - Org-enhedens UUID
     - Org-enhedens navn
     - Enhedstype Titel
@@ -42,8 +42,8 @@ De rapporter, der findes i dag, er beskrevet nedenfor. Ønskes andre sammenstill
 
 [Eksempel](../Reports/OS2mos%20administrative%20organisation%20inkl.%20start-%20og-%20stopdato%20samt%20enhedstyper.xlsx)
 
-- **Den administrative organisation**
-    - Organistionsenhed
+- **Den administrative organisation og dens ansatte**
+    - Organisationsenhed
     - Navn på medarbejder
     - Brugernavn
     - Telefon
@@ -52,7 +52,7 @@ De rapporter, der findes i dag, er beskrevet nedenfor. Ønskes andre sammenstill
 
 [Eksempel](../Reports/OS2mos%20organisation%20inkl.%20medarbejdere.xlsx)
 
-- **Alle ledere**
+- **Alle ledere og deres lederansvar**
     - Enhed
     - Navn
     - Ansvar
