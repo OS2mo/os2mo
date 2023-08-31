@@ -236,8 +236,8 @@ async def test_errors_json(
         "http://localhost/lora/organisation/organisationenhed",
         json={
             "uuid": ["42"],
-            "virkningfra": "2010-06-01T02:00:00+02:00",
-            "virkningtil": "2010-06-01T02:00:00.000001+02:00",
+            "virkningfra": "2010-06-01T04:00:00+02:00",
+            "virkningtil": "2010-06-01T04:00:00.000001+02:00",
             "konsolider": "True",
         },
     ).mock(
@@ -279,8 +279,8 @@ async def test_errors_text(
         "http://localhost/lora/organisation/organisationenhed",
         json={
             "uuid": ["42"],
-            "virkningfra": "2010-06-01T02:00:00+02:00",
-            "virkningtil": "2010-06-01T02:00:00.000001+02:00",
+            "virkningfra": "2010-06-01T04:00:00+02:00",
+            "virkningtil": "2010-06-01T04:00:00.000001+02:00",
             "konsolider": "True",
         },
     ).mock(
@@ -308,8 +308,8 @@ async def test_error_debug(respx_mock) -> None:
         "http://localhost/lora/organisation/organisationenhed",
         json={
             "uuid": ["42"],
-            "virkningfra": "2010-06-01T02:00:00+02:00",
-            "virkningtil": "2010-06-01T02:00:00.000001+02:00",
+            "virkningfra": "2010-06-01T04:00:00+02:00",
+            "virkningtil": "2010-06-01T04:00:00.000001+02:00",
             "konsolider": "True",
         },
     ).mock(
@@ -340,8 +340,8 @@ async def test_finding_nothing(respx_mock) -> None:
         "http://localhost/lora/organisation/organisationenhed",
         json={
             "uuid": ["42"],
-            "virkningfra": "2010-06-01T02:00:00+02:00",
-            "virkningtil": "2010-06-01T02:00:00.000001+02:00",
+            "virkningfra": "2010-06-01T04:00:00+02:00",
+            "virkningtil": "2010-06-01T04:00:00.000001+02:00",
             "konsolider": "True",
         },
     ).mock(
@@ -354,7 +354,7 @@ async def test_finding_nothing(respx_mock) -> None:
     assert (await lora.Connector().organisationenhed.get("42")) is None
 
 
-@freezegun.freeze_time("2001-01-01", tz_offset=1)
+@freezegun.freeze_time("2001-01-01 15:30:00")
 async def test_get_effects_2(respx_mock) -> None:
     url = "http://localhost/lora/organisation/organisationenhed"
     route = respx_mock.get(url).mock(
@@ -559,7 +559,7 @@ async def test_get_effects_2(respx_mock) -> None:
 
     assert json.loads(route.calls[0].request.read()) == {
         "uuid": ["00000000-0000-0000-0000-000000000000"],
-        "virkningfra": "2001-01-01T01:00:00+01:00",
+        "virkningfra": "2001-01-01T16:30:00+01:00",
         "virkningtil": "infinity",
         "konsolider": "True",
     }

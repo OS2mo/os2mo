@@ -43,9 +43,8 @@ from . import config
 from . import exceptions
 from . import util
 from .graphapi.middleware import is_graphql
-from .util import DEFAULT_TIMEZONE
-from .util import from_iso_time
 from mora.auth.middleware import get_authorization_header
+
 
 T = TypeVar("T")
 V = TypeVar("V")
@@ -71,44 +70,21 @@ async def create_lora_client(app: FastAPI) -> httpx.AsyncClient:
 client = None
 
 
-def registration_changed_since(reg: dict[str, Any], since: datetime) -> bool:
-    from_time = reg.get("fratidspunkt", {}).get("tidsstempeldatotid", None)
-    if from_time is None:
-        raise ValueError(f"unexpected reg: {reg}")
-    elif from_time == "infinity":
-        return True
-    elif from_time == "-infinity":
-        return False
-
-    # ensure timezone
-    if not since.tzinfo:
-        since = since.replace(tzinfo=DEFAULT_TIMEZONE)
-    return from_iso_time(from_time) > since
-
-
 def filter_registrations(
     response: list[dict[str, Any]],
     wantregs: bool,
-    changed_since: datetime | None = None,
 ) -> Iterable[tuple[str, list[dict[str, Any]] | dict[str, Any]]]:
     """
     Helper, to filter registrations
     :param response: Registrations as received from LoRa
     :param wantregs: Determines whether one or more registrations are returned per uuid
-    :param changed_since: datetime to filter by. If None, nothing is filtered
     :return: Iterable of (uuid, registration(s))
     """
-    changed_since_filter = None
-    if changed_since:
-        changed_since_filter = partial(registration_changed_since, since=changed_since)
 
     # funny looking, but keeps api backwards compatible (ie avoiding 'async for')
     def gen():
         for d in response:
-            regs = iter(d["registreringer"])
-            if changed_since_filter is not None:
-                regs = filter(changed_since_filter, regs)
-            regs = list(regs)
+            regs = list(d["registreringer"])
             if regs:
                 yield d["id"], (regs if wantregs else regs[0])
 
@@ -649,7 +625,7 @@ class Scope(BaseScope):
 
         return []
 
-    async def get_all(self, changed_since: datetime | None = None, **params):
+    async def get_all(self, **params):
         """Perform a search on given params and return the result.
 
         As we perform a search in LoRa, using 'uuid' as a parameter is not supported,
@@ -668,23 +644,18 @@ class Scope(BaseScope):
 
         response = await self.load(**params)
         wantregs = not params.keys().isdisjoint({"registreretfra", "registrerettil"})
-        return filter_registrations(
-            response=response, wantregs=wantregs, changed_since=changed_since
-        )
+        return filter_registrations(response=response, wantregs=wantregs)
 
     async def get_all_by_uuid(
         self,
         uuids: list | set,
-        changed_since: datetime | None = None,
     ) -> Iterable[tuple[str, dict[Any, Any]]]:
         """
         Get a list of objects by their UUIDs.
         Returns an iterator of tuples (obj_id, obj) of all matches.
         """
         ret = await self.load(uuid=uuids)
-        return filter_registrations(
-            response=ret, wantregs=False, changed_since=changed_since
-        )
+        return filter_registrations(response=ret, wantregs=False)
 
     async def paged_get(
         self,

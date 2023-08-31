@@ -171,7 +171,7 @@ def from_iso_time(s):
 
 def now() -> datetime.datetime:
     """Get the current time, localized to the current time zone."""
-    return datetime.datetime.now().replace(tzinfo=DEFAULT_TIMEZONE)
+    return datetime.datetime.now(tz=DEFAULT_TIMEZONE)
 
 
 def is_uuid(v):

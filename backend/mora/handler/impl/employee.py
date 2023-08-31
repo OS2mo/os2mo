@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from datetime import datetime
 from typing import Any
 
 from structlog import get_logger
@@ -26,39 +25,24 @@ class EmployeeReader(reading.ReadingHandler):
         cls,
         c: Connector,
         search_fields: dict[Any, Any],
-        changed_since: datetime | None = None,
         flat: bool = False,
     ):
-        object_tuples = await cls._get_lora_object(
-            c=c, search_fields=search_fields, changed_since=changed_since
-        )
+        object_tuples = await cls._get_lora_object(c=c, search_fields=search_fields)
         return await cls._get_obj_effects(c, object_tuples)
 
     @classmethod
-    async def get_from_type(
-        cls, c: Connector, type: str, objid, changed_since: datetime | None = None
-    ):
+    async def get_from_type(cls, c: Connector, type: str, objid):
         if type != "e":
             exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
 
-        object_tuples = await c.bruger.get_all_by_uuid(
-            uuids=[objid], changed_since=changed_since
-        )
+        object_tuples = await c.bruger.get_all_by_uuid(uuids=[objid])
         return await cls._get_obj_effects(c, object_tuples)
 
     @classmethod
-    async def _get_lora_object(
-        cls, c, search_fields, changed_since: datetime | None = None
-    ):
+    async def _get_lora_object(cls, c, search_fields):
         if mapping.UUID in search_fields:
-            return await c.bruger.get_all_by_uuid(
-                uuids=search_fields[mapping.UUID],
-                changed_since=changed_since,
-            )
-        return await c.bruger.get_all(
-            changed_since=changed_since,
-            **search_fields,
-        )
+            return await c.bruger.get_all_by_uuid(uuids=search_fields[mapping.UUID])
+        return await c.bruger.get_all(**search_fields)
 
     @classmethod
     async def _get_effects(cls, c, obj, **params):

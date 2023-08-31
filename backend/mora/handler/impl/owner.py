@@ -2,11 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import create_task
 from collections.abc import Awaitable
-from datetime import datetime
 from functools import partial
 from math import inf
 from typing import Any
-from typing import Optional
 from uuid import UUID
 
 from structlog import get_logger
@@ -44,15 +42,12 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         c,
         type,
         object_id,
-        changed_since=Optional[datetime],
         inherit_owner: bool = False,
     ):
         if inherit_owner or util.get_args_flag("inherit_owner"):
             return await cls.get_inherited_owner(c, type, object_id)
 
-        return await super().get_from_type(
-            c, type, object_id, changed_since=changed_since
-        )
+        return await super().get_from_type(c, type, object_id)
 
     @classmethod
     async def get_inherited_owner(cls, c, type, object_id):

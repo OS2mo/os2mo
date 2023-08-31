@@ -3,7 +3,6 @@
 from asyncio import create_task
 from asyncio import gather
 from collections.abc import Iterable
-from datetime import datetime
 from enum import Enum
 from typing import Any
 
@@ -50,18 +49,16 @@ class AssociationReader(reading.OrgFunkReadingHandler):
     function_key = mapping.ASSOCIATION_KEY
 
     @classmethod
-    async def get_from_type(cls, c, type, objid, changed_since: datetime | None = None):
+    async def get_from_type(cls, c, type, objid):
         search_fields = cls._get_search_fields(type, objid)
 
         # Get *all* associations for this employee or org unit
-        assocs = await cls.get(c, search_fields, changed_since=changed_since)
+        assocs = await cls.get(c, search_fields)
 
         if util.get_args_flag(AssociationSubType.FIRST_PARTY_PERSPECTIVE.value):
             # URL contains "?first_party_perspective=1"
             if type == "e":
-                return await cls._get_first_party_perspective(
-                    c, objid, assocs, changed_since=changed_since
-                )
+                return await cls._get_first_party_perspective(c, objid, assocs)
             else:
                 # "?first_party_perspective=1" is only valid for employees (not org
                 # units.)
@@ -99,14 +96,11 @@ class AssociationReader(reading.OrgFunkReadingHandler):
         c,
         objid,
         assocs: Iterable[dict],
-        changed_since: datetime | None = None,
     ):
         normal_assocs = cls._get_normal_associations(assocs)
         # Fetch associations linked to this employee by the relation
         # 'tilknyttedefunktioner'
-        substitute_assocs = await cls.get(
-            c, {"tilknyttedefunktioner": objid}, changed_since=changed_since
-        )
+        substitute_assocs = await cls.get(c, {"tilknyttedefunktioner": objid})
         substitute_assocs = list(substitute_assocs)
         # Remove any "IT associations"
         substitute_assocs = filter(

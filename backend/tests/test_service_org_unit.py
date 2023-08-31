@@ -176,7 +176,7 @@ def test_unit_past(respx_mock, service_client: TestClient) -> None:
     assert json.loads(route.calls[0].request.read()) == {
         "uuid": [unitid],
         "virkningfra": "-infinity",
-        "virkningtil": "2018-03-15T00:00:00+01:00",
+        "virkningtil": "2018-03-15T01:00:00+01:00",
         "konsolider": "True",
     }
 
