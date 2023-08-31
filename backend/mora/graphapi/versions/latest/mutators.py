@@ -84,6 +84,7 @@ from .inputs import ManagerUpdateInput
 from .inputs import OrganisationUnitCreateInput
 from .inputs import OrganisationUnitTerminateInput
 from .inputs import OrganisationUnitUpdateInput
+from .inputs import RelatedUnitsUpdateInput
 from .inputs import RoleCreateInput
 from .inputs import RoleTerminateInput
 from .inputs import RoleUpdateInput
@@ -121,6 +122,7 @@ from .permissions import gen_terminate_permission
 from .permissions import gen_update_permission
 from .permissions import IsAuthenticatedPermission
 from .query import to_paged_uuids
+from .related_units import update_related_units
 from .resolvers import AddressResolver
 from .resolvers import AssociationResolver
 from .resolvers import ClassResolver
@@ -156,6 +158,7 @@ from .schema import Manager
 from .schema import Organisation
 from .schema import OrganisationUnit
 from .schema import Paged
+from .schema import RelatedUnit
 from .schema import Response
 from .schema import Role
 from mora.audit import audit_log
@@ -170,6 +173,7 @@ from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead
 from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import ManagerRead
+from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
 
 logger = logging.getLogger(__name__)
@@ -1135,10 +1139,19 @@ class Mutation:
     # Related Units
     # -------------
 
-    # TODO: related_create
-    # TODO: related_update
-    # TODO: related_terminate
-    # TODO: related_delete
+    @strawberry.mutation(
+        description="Updates relations for an org_unit.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("related_unit"),
+        ],
+    )
+    async def related_units_update(
+        self, input: RelatedUnitsUpdateInput
+    ) -> Response[RelatedUnit]:
+        return uuid2response(
+            await update_related_units(input.to_pydantic()), RelatedUnitRead
+        )
 
     @strawberry.mutation(
         description="Refresh a related unit.",

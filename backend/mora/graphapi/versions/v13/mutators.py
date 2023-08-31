@@ -55,6 +55,7 @@ from ..latest.inputs import ManagerUpdateInput
 from ..latest.inputs import OrganisationUnitCreateInput
 from ..latest.inputs import OrganisationUnitTerminateInput
 from ..latest.inputs import OrganisationUnitUpdateInput
+from ..latest.inputs import RelatedUnitsUpdateInput
 from ..latest.inputs import RoleCreateInput
 from ..latest.inputs import RoleTerminateInput
 from ..latest.inputs import RoleUpdateInput
@@ -90,6 +91,7 @@ from ..latest.permissions import gen_role_permission
 from ..latest.permissions import gen_terminate_permission
 from ..latest.permissions import gen_update_permission
 from ..latest.permissions import IsAuthenticatedPermission
+from ..latest.related_units import update_related_units
 from ..latest.role import create_role
 from ..latest.role import terminate_role
 from ..latest.role import update_role
@@ -112,6 +114,7 @@ from .schema import Leave
 from .schema import Manager
 from .schema import Organisation
 from .schema import OrganisationUnit
+from .schema import RelatedUnit
 from .schema import Response
 from .schema import Role
 from mora.common import get_connector
@@ -127,6 +130,7 @@ from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead
 from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import ManagerRead
+from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
 
 logger = logging.getLogger(__name__)
@@ -748,10 +752,19 @@ class Mutation:
     # Related Units
     # -------------
 
-    # TODO: related_create
-    # TODO: related_update
-    # TODO: related_terminate
-    # TODO: related_delete
+    @strawberry.mutation(
+        description="Updates relations for an org_unit.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("related_unit"),
+        ],
+    )
+    async def related_units_update(
+        self, input: RelatedUnitsUpdateInput
+    ) -> Response[RelatedUnit]:
+        return uuid2response(
+            await update_related_units(input.to_pydantic()), RelatedUnitRead
+        )
 
     # Roles
     # -----

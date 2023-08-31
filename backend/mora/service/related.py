@@ -107,6 +107,11 @@ async def map_org_units(origin: UUID, req: dict = Body(...)):
     date = util.get_valid_from(req)
     c = lora.Connector(effective_date=date)
     destinations = set(util.checked_get(req, "destination", [], required=True))
+    if origin in destinations:
+        exceptions.ErrorCodes.E_RELATED_TO_SELF(
+            origin=origin,
+            destinations=sorted(destinations),
+        )
 
     wanted_units = {origin} | destinations
     units = dict(await c.organisationenhed.get_all_by_uuid(uuids=sorted(wanted_units)))

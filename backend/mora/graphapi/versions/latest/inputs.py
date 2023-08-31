@@ -44,6 +44,7 @@ from .models import Organisation
 from .models import OrganisationUnitCreate
 from .models import OrganisationUnitTerminate
 from .models import OrganisationUnitUpdate
+from .models import RelatedUnitsUpdate
 from .models import RoleCreate
 from .models import RoleTerminate
 from .models import RoleUpdate
@@ -460,6 +461,14 @@ class OrganisationUnitUpdateInput:
 
 # Related Units
 # -------------
+
+
+@strawberry.experimental.pydantic.input(
+    model=RelatedUnitsUpdate,
+    all_fields=True,
+)
+class RelatedUnitsUpdateInput:
+    """Input model for creating realted_units."""
 
 
 # Roles
