@@ -4,6 +4,18 @@ title: Email-notifikationer i MO
 
 # Email-notifikationer
 
+Når en hændelse indtræffer i MO, kan der automatisk blive sendt email-notifikationer til rette vedkommende.
+
+Eksempler på hændelser:
+
+- en leder stopper, og lederfunktionen bliver vakant (se beskrivelse nedenfor). 
+- en 'MED'-person stopper (TR, AMR, LR, mv.), og positionen bliver vakant
+- en person ansættes, og der skal sendes notifikationer til systemejere, som skal oprette personen manuelt i deres systemer.
+- en person fratræder, og der skal sendes notifikationer til systemejere, som skal nedlægge personen manuelt i deres systemer.
+- der skal straksoprettes en vikar
+
+# Konkret eksempel: En leder stopper
+
 Der kan automatisk blive sendt email-notifikationer , når en leders engagement afsluttes i organisationen. Personens lederrolle bliver fjernet fra lederfanen i OS2mo og flyttet ned under ”Fortid”. Lederfanen i OS2mo ser således ud:
 
 ![image](../graphics/ledere.png)
