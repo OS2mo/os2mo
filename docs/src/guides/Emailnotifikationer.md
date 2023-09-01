@@ -8,7 +8,7 @@ Når en hændelse indtræffer i MO, kan der automatisk blive sendt email-notifik
 
 Eksempler på hændelser:
 
-- en leder stopper, og lederfunktionen bliver vakant (se beskrivelse nedenfor). 
+- en leder stopper, og lederfunktionen bliver vakant (se beskrivelse nedenfor).
 - en 'MED'-person stopper (TR, AMR, LR, mv.), og positionen bliver vakant
 - en person ansættes, og der skal sendes notifikationer til systemejere, som skal oprette personen manuelt i deres systemer.
 - en person fratræder, og der skal sendes notifikationer til systemejere, som skal nedlægge personen manuelt i deres systemer.
