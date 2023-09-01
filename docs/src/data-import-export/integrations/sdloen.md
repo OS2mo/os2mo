@@ -2,17 +2,19 @@
 title: Integration til SD Løn
 ---
 
+# Integration til SD-Løn
+
 Integrationen er delt op i to:
 
 - Integration, der henter data fra SD-Løn
 - Integration, der sender data til SD-Løn
 
-# SD-Læs: Integration, der henter data fra SD-Løn
+## SD-Læs: Integration, der henter data fra SD-Løn
 
 Denne integration gør det muligt at hente og opdatere organisations- og
 medarbejderoplysninger fra SD Løn til OS2MO.
 
-## Opsætning
+### Opsætning
 
 For at kunne afvikle integrationen, kræves loginoplysninger til SD-Løn,
 som angives via `settings.json`, desuden anvendes en række felter som
@@ -69,7 +71,7 @@ variablerne:
 -   `mox.base`
 -   `mora.base`
 
-## Brug af integrationen
+### Brug af integrationen
 
 De forskellige underprogrammer kan alle tilgåes igennem ét hoved
 program, nemlig `sd_cli`, ved kørsel af dette program vises
@@ -79,7 +81,7 @@ underprogrammerne, og deres parametre og formål kan udforskes. Kør blot:
 python integrations/SD_Lon/sd_cli.py --help
 ```
 
-## Detaljer om importen
+### Detaljer om importen
 
 Udtræk fra SD Løn foregår som udgangspunkt via disse webservices:
 
@@ -156,7 +158,7 @@ hvis det bliver nødvendigt at genimporere fra SD. TIl hjælp til dette
 findes et script (`cpr_uuid.py`) under exports som kan lave en sådan
 liste fra en kørende instans af MO.
 
-## Engagementstyper
+### Engagementstyper
 
 Alle medarbejdere som har et ansættelsesnummer udelukkende med tal,
 tildeles en af to ansættelsestyper:
@@ -172,7 +174,7 @@ tal, vil ansættelsestypen blive bestemt fra personens
 til disse værdier. Den tilknyttede tekst til hver klasse kan sættes med
 et hjælpeværktøj (beskrevet nedenfor).
 
-## Primær ansættelse
+### Primær ansættelse
 
 SD Løn har ikke et koncept om primæransættelse, men da AD integrationen
 til MO har behov for at kunne genkende den primære ansættelse til
@@ -211,7 +213,7 @@ længere ansat og vil i MOs gui fremgå i fanen fortid. Er en medarbejers
 startdato i fremtiden, er personen endnu ikke tiltrådt, og fremgår i
 fanen fremtid. .. \_Håndtering af enheder:
 
-## Håndtering af enheder
+### Håndtering af enheder
 
 SDs API til udlæsning af organisationsenheder er desværre meget
 mangelfuldt, og integrationen har derfor en yderst primitiv håndtering
@@ -271,7 +273,7 @@ oprette enheder i SD når de oprettes i MO. Med denne service vil den
 fremadrettede historik for enheder fra idriftsættelsen af servicen,
 blive korrekt.
 
-## Hjælpeværktøjer
+### Hjælpeværktøjer
 
 Udover de direkte værktøjer til import og løbende opdateringer, findes
 et antal hjælpeværktøjer:
@@ -322,7 +324,7 @@ et antal hjælpeværktøjer:
      evenutelle senere forsøg på at lave et fuldt historisk import af
      enhedstræet.
 
-## Tjekliste for fuldt import
+### Tjekliste for fuldt import
 
 Overordnet foregår opstart af en ny SD import efter dette mønster:
 
@@ -333,7 +335,7 @@ Overordnet foregår opstart af en ny SD import efter dette mønster:
 4.  Eventuelt synkronisering af stillingsbetegnelser.
 5.  Eventuelt synkronisering fra AD.
 
-### 1. Kør importværktøjet
+#### 1. Kør importværktøjet
 
 En indledende import køres ved at oprette en instans af ImportHelper
 
@@ -382,7 +384,7 @@ SD.
 Importen vil nu blive afviklet og nogle timer senere vil MO være
 populeret med værdierne fra SD Løn som de ser ud dags dato.
 
-### 2. Kør en indledende ChangedAt
+#### 2. Kør en indledende ChangedAt
 
 I SD Løn importeres i udgangspunktet kun nuværende og forhenværende
 medarbejdere og engagementer, fremtidige ændringer skal hentes i en
@@ -403,7 +405,7 @@ Herefter vil alle kendte fremtidige virkninger blive indlæst til MO.
 Desuden vil der blive oprettet en sqlite database med en oversigt over
 kørsler af [changed_at](#run_dbsqlite).
 
-### 3. Kør sd_changed_at.py periodisk
+#### 3. Kør sd_changed_at.py periodisk
 
 Daglige indlæsninger foregår som nævnt også med programmet
 *sd_changed_at.py*, hvilket foregår ved at sætte
@@ -412,7 +414,7 @@ yderligere parametre. Programmet vil så spørge
 [ChangedAt.db](#run_dbsqlite) om hvorår der sidst blev synkroniseret, og
 vil herefter synkronisere yderligere en dag frem i tiden.
 
-### 4. Eventuelt synkroisering af stillingsbetegnelser
+#### 4. Eventuelt synkroisering af stillingsbetegnelser
 
 Hvis nøglen \* `integrations.SD_Lon.job_function` er valgt til
 *JobPositionIdentifier*, vil alle stillingsbetegnelser nu
@@ -420,7 +422,7 @@ være talværdier fra SD Løns klassificerede stillinger, for at få læsbare
 stillinger skal disse synkroniseres ved hjælp af værktøjet
 `sync_job_id.py` (se ovenfor).
 
-### 5. Eventuelt synkronisering fra AD
+#### 5. Eventuelt synkronisering fra AD
 
 Hvis det ønskes at synkronisere adresser fra AD, skal scriptet
 `ad_sync.py` afvikles, settings til dette er beskrevet i afsnittet
@@ -462,7 +464,7 @@ blive oprettet under facetten `responsibility` i Klassifikation.
 Det er i den nuværende udgave ikke muligt at importere mere end et
 lederansvar pr leder.
 
-#### AD Integration til SD import
+##### AD Integration til SD import
 
 SD Importen understøtter at anvende komponenten
 [Integration til Active Directory]() til at berige objekterne fra SD Løn
@@ -475,7 +477,7 @@ medarbejderobjekt, hvis ikke UUID'en allerede er givet fra en ekstern
 kilde. `SamAccountName` vil blive tilføjet som et brugernavn til IT
 systemet Active Direkctory for den pågældende bruger.
 
-## run_db.sqlite
+### run_db.sqlite
 
 For at holde rede på hvornår MO sidst er opdateret fra SD Løn, findes en
 SQLite database som indeholder to rækker for hver færdiggjort kørsel.
@@ -490,7 +492,7 @@ Ved starten af alle changedAt kørsler, skrives en linje med status
 linje har status `Running`, da dette enten betyder at integrationen
 allerede kører, eller at den seste kørsel fejlede.
 
-# SD-Skriv: Integration, der sender data til SD-Løn
+## SD-Skriv: Integration, der sender data til SD-Løn
 
 SD-Skriv muliggør opdatering af visse felter på organisationsenheder, som findes både i OS2mo og i SD-løn.
 
@@ -503,7 +505,7 @@ Integrationen er synkron, udført med triggere, sådan at man får svar umiddelb
 - flytning af organisatorisk enhed
 - ændring/oprettelse af adresser på en organisatorisk enhed
 
-## Oplysninger
+### Oplysninger
 
 De oplysninger, der potentielt kan sendes om organisationsenhederne til SD-Løn fra OS2mo, er:
 
@@ -524,7 +526,7 @@ De oplysninger, der potentielt kan sendes om organisationsenhederne til SD-Løn 
 -**Skolekode**. Når Skolekode skal oprettes/ændres/nedlægges..
 -**Funktionskode**. Når Funktionskode skal oprettes/ændres/nedlægges.
 
-## Konfiguration
+### Konfiguration
 
 Konfiguration af modulet er fleksibel og dermed lidt kompleks. For det første er der adgangsoplysninger til SD's webinterface som dokumenteret under [SD løn opsætning](https://rammearkitektur.docs.magenta.dk/os2mo/data-import-export/integrations/sdloen.html#opstning) . SD's AMQP-opsætning er derimod specifik og udgøres af disse settings:
 
@@ -543,7 +545,7 @@ integrations.SD_Lon.sd_mox.OU_LEVELKEYS beskriver en liste af NY-niveauer i ræk
 
 Nogle kommuner anvender en facet, der hedder time_planning, og den setting, der hedder integrations.SD_Lon.sd_mox.OU_TIME_PLANNING_MO_VS_SD udgør en mapning imellem brugervendte nøgler for klasserne i time_planning og de strenge, der skal overføres til SD som repræsentation for samme. Den kan se ud som : {..., "DannesIkke": "Normaltjeneste dannes ikke"}.
 
-## Anvendelse af interface mod SD-Løn
+### Anvendelse af interface mod SD-Løn
 
 Når man i OS2mo's grafiske klient arbejder med organisatoriske enheder i et undertræ, der er inkluderet i integrations.SD_Lon.sd_mox.TRIGGERED_UUIDS, vil flytninger, oprettelser, omdøbninger og tilføjelse/ændring af adresser bliver overført til SD. Der er dog visse begrænsninger i input, som gennemgås nedenfor.
 Der er en forsinkelse på 8.5 sekunder i brugerinterfacet mellem afsendelse imod SD og modtagelse af kvitteringen for ændringerne. Det er ikke SD, som har den forsinkelse; Den er indført i OS2mo fordi vi ikke får kvitteringen for ændringen direkte fra SD, men først ser den via at opslag på webinterfacet og er nødt til at vente til vi forventer at SD er faldet til ro efter en ændring.
@@ -557,7 +559,7 @@ Der er en del begrænsninger i input, som er indført enten ud fra viden om SD�
 - Afdelingsnumre skal være 2 til 4 karakterer lange i SD - denne begrænsning understøttes af SD-MOX
 - Ny-Niveauer har ikke-tilladte forældre-barn-relationer, og der valideres inden vi forsøger at sætte noget ind hos SD.
 
-## SD-interface fejlmeddelelser
+### SD-interface fejlmeddelelser
 
 Der er en del mulige fejl, man kan begå, når man anvender OS2MO med denne integration tilkoblet. Der er gjort et stort arbejde for at fange dem, så man ikke kan lave en ændring i OS2mo, der ikke er reflekteret i SD. Der vises fejlmeddelser i OS2mo's brugerinterface for at gøre opmærksom på dem og de er alle foranstillet prefixet Integrationsfejl, SD-Mox:
 
