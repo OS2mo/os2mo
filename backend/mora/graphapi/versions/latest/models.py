@@ -870,6 +870,31 @@ class LeaveCreate(UUIDBase):
         }
 
 
+class LeaveUpdate(UUIDBase):
+    """Model for updating a leave."""
+
+    uuid: UUID = Field(description="UUID of the leave.")
+    person: UUID | None = Field(description="UUID of the person.")
+    engagement: UUID | None = Field(description="UUID of the related engagement.")
+    leave_type: UUID | None = Field(description="UUID of the leave type")
+    validity: RAValidity = Field(description="Validity range for the leave.")
+
+    def to_handler_dict(self) -> dict:
+        data_dict: dict = {
+            "uuid": str(self.uuid),
+            "person": gen_uuid(self.person),
+            "engagement": gen_uuid(self.engagement),
+            "leave_type": gen_uuid(self.leave_type),
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+        }
+        return {k: v for k, v in data_dict.items() if v}
+
+
 # Managers
 # --------
 class ManagerCreate(UUIDBase):

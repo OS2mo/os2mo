@@ -1,0 +1,64 @@
+{
+  "attributter": {
+    "organisationfunktionegenskaber": [
+      {
+        "brugervendtnoegle": "bvn",
+        "funktionsnavn": "Orlov",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "note": "Automatisk indl\u00e6sning",
+  "relationer": {
+    "organisatoriskfunktionstype": [
+      {
+        "uuid": "bf65769c-5227-49b4-97c5-642cfbe41aa1",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ],
+    "tilknyttedebrugere": [
+      {
+        "uuid": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ],
+    "tilknyttedefunktioner": [
+      {
+        "uuid": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ],
+    "tilknyttedeorganisationer": [
+      {
+        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "tilstande": {
+    "organisationfunktiongyldighed": [
+      {
+        "gyldighed": "Aktiv",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  }
+}

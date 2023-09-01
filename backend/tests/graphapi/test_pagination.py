@@ -24,7 +24,7 @@ from tests.conftest import GQLResponse
         ("associations", 0, 0, 0),
         ("associations", 1, 0, 1),
         # Classes
-        ("classes", None, None, 40),
+        ("classes", None, None, 41),
         ("classes", 0, 0, 0),
         ("classes", 38, 0, 38),
         ("classes", 10, 0, 10),
@@ -65,7 +65,7 @@ from tests.conftest import GQLResponse
         ("kles", 0, 0, 0),
         ("kles", 1, 0, 1),
         # Leaves
-        ("leaves", None, None, 1),
+        ("leaves", None, None, 2),
         ("leaves", 0, 0, 0),
         ("leaves", 1, 0, 1),
         # Managers
@@ -129,7 +129,7 @@ async def test_pagination(
         # Associations
         ("associations", 10, 1),
         # Classes
-        ("classes", 41, 40),
+        ("classes", 42, 41),
         # Employees
         ("employees", 10, 5),
         # Engagement Associations
@@ -145,7 +145,7 @@ async def test_pagination(
         # KLEs
         ("kles", 10, 1),
         # Leaves
-        ("leaves", 10, 1),
+        ("leaves", 10, 2),
         # Managers
         ("managers", 10, 1),
         # Org Units
@@ -193,7 +193,7 @@ async def test_pagination_out_of_range(
     [
         ("addresses", 10),
         ("associations", 1),
-        ("classes", 40),
+        ("classes", 41),
         ("employees", 5),
         ("engagement_associations", 1),
         ("engagements", 3),
@@ -201,7 +201,7 @@ async def test_pagination_out_of_range(
         ("itsystems", 3),
         ("itusers", 1),
         ("kles", 1),
-        ("leaves", 1),
+        ("leaves", 2),
         ("managers", 1),
         ("org_units", 10),
         ("related_units", 1),
