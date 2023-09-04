@@ -8,101 +8,64 @@ repo_url: https://github.com/OS2mo/os2mo
 docs_dir: src/
 
 nav:
-  - OS2MO:
-      - Velkommen: index.md
-      - API dokumentation, herunder GraphQL:
-          - api-dokumentation/it-associations.md
-          - api-dokumentation/triggers.md
-          - api-dokumentation/events.md
-          - api-dokumentation/amqp-legacy.md
-          - api-dokumentation/user-configuration.md
-          - graphql/intro.md
-          - graphql/migration.md
-          - graphql/reads.md
-      - Arkitektur og design:
-          - arkitektur-design/system.md
-          - arkitektur-design/facets.md
-          - arkitektur-design/overview.md
-      - Drift og support:
-          - drift-support/cookbook.md
-          - drift-support/mocloud.md
-          - drift-support/audit.md
-      - Funktionalitet:
-          - Email-notifikationer: guides/Emailnotifikationer.md
-          - KLE i MO: guides/KLEiMO.md
-          - Lederhåndtering i MO: guides/Lederhaandtering i MO.md
-          - MED-organisation i OS2mo: guides/MED-organisationen.md
-          - Stillingsbetegnelser (følsomme): guides/Stillingsbetegnelser.md
-      - MO manual: drift-support/manual.md
-      - Release History: changelog.md
-      - Sikkerhed:
-          - ADFS SAML setup for OS2mo: guides/adfs-setup.md
-          - ADFS RBAC setup for OS2mo: guides/adfs-rbac-setup.md
-          - Autentificering: drift-support/auth.md
-          - Roller: drift-support/keycloak.md
-      - Technician and developer guides:
-          - Conventions: guides/conventions.md
-          - Getting started (with Docker): guides/environment/docker.md
-          - Settings: drift-support/settings.md
-          - Tests: guides/tests.md
-  - Lokal rammearkitektur (LoRa og databasen):
-      - Introduction: lora/index.md
-      - Developer Documentation:
-          - lora/dev/building-docs.md
-          - lora/dev/migrations.md
-          - lora/dev/database.md
-          - lora/dev/testing-rest.md
-          - lora/dev/test.md
-          - lora/dev/wildcards.md
-      - User Documentation:
-          - lora/user/auth.md
-          - lora/user/database.md
-          - lora/user/praesentation.md
-          - Objects:
-              - lora/user/objects.md
-          - REST API:
-              - lora/user/api/tutorial.md
-              - lora/user/api.md
-              - lora/user/api/self-documentation.md
-              - Operations:
-                  - Create: lora/user/api/create.md
-                  - Read: lora/user/api/read.md
-                  - Update:
-                      - lora/user/api/update/deleting.md
-                      - lora/user/api/update/merging.md
-                      - lora/user/api/update.md
-                  - Delete: lora/user/api/delete.md
-                  - File operations:
-                      - lora/user/api/advanced/deleting-document.md
-                      - lora/user/api/advanced/file-operations.md
-                  - Import: lora/user/api/import.md
-                  - List: lora/user/api/list.md
-                  - Search: lora/user/api/search.md
-                  - Passivate: lora/user/api/passivate.md
-          - lora/user/log-haendelse.md
-  - Integrationer:
-      - data-import-export/intro.md
-      - Integrationer:
-          - data-import-export/integrations/aarhus-los.md
-          - data-import-export/integrations/ad.md
-          - data-import-export/integrations/ldap_ad_amqp_integration.md
-          - data-import-export/integrations/opusloen.md
-          - data-import-export/integrations/sdloen.md
-          - data-import-export/integrations/Organisationsopmærkning.md
-          - data-import-export/integrations/Omada.md
-      - Exporter:
-          - data-import-export/exporters/plan2learn.md
-          - data-import-export/exporters/sql_export.md
-          - data-import-export/exporters/emus.md
-          - data-import-export/exporters/os2phonebook.md
-          - data-import-export/exporters/os2rollekatalog.md
-          - data-import-export/exporters/os2sync.md
-          - data-import-export/exporters/org-chart.md
-      - OS2MO Data Import:
-          - data-import-export/os2mo_data_import/integration-abstraction.md
-          - data-import-export/os2mo_data_import/import-tool.md
-      - data-import-export/reports.md
-      - data-import-export/tools.md
+  - Home:
+      - home/index.md
+      - home/manual.md
+      - home/architecture.md
+      - home/landscape.md
+      - home/implementeringsguide.md
+  - Features:
+      - features/email-notifikationer.md
+      - features/kle.md
+      - features/lederhaandtering.md
+      - features/med-organisation.md
+      - features/stillingsbetegnelser.md
+  - Integrations:
+      - integrations/aarhus-los.md
+      - integrations/ad.md
+      - integrations/ldap_ad_amqp_integration.md
+      - integrations/opusloen.md
+      - integrations/sdloen.md
+      - integrations/organisationsopmaerkning.md
+      - integrations/omada.md
+      - integrations/plan2learn.md
+      - integrations/sql_export.md
+      - integrations/emus.md
+      - integrations/os2phonebook.md
+      - integrations/os2rollekatalog.md
+      - integrations/os2sync.md
+      - integrations/org-chart.md
+      - integrations/reports.md
+  - MO as a Service:
+      - moaas/cloud.md
+      # - On-prem installation: TODO
+  - Technical Documentation:
+      # - Understanding bitemporality: TODO
+      - tech-docs/development.md
+      - GraphQL / API:
+          - tech-docs/graphql/intro.md
+          - tech-docs/graphql/reads.md
+          # - tech-docs/graphql/pagination.md: TODO
+          - tech-docs/graphql/migration.md
+      - IAM:
+          - tech-docs/iam/auth.md
+          - tech-docs/iam/rbac.md
+          - tech-docs/iam/adfs-setup.md
+          - tech-docs/iam/adfs-rbac-setup.md
+      - tech-docs/events.md
+      - tech-docs/facets.md
+      - tech-docs/audit-log.md
+      # - tech-docs/integration-best-practice.md: TODO
+      - Legacy:
+        - tech-docs/legacy/lora-objects.md
+        - tech-docs/legacy/lora-wildcards.md
+        - tech-docs/legacy/amqp.md
+        - tech-docs/legacy/triggers.md
+        - tech-docs/legacy/log-haendelse-rfc.md
+        - tech-docs/legacy/dipex-tools.md
+        - tech-docs/legacy/data-import-tool.md
+
+  - Release History: changelog.md
 theme:
   name: "material"
   palette:

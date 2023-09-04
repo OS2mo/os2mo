@@ -233,7 +233,7 @@ Export GQL Schema:
     - Build OS2mo
   image: $IMAGE_SHA
   variables:
-    OUT: $CI_PROJECT_DIR/docs/src/graphql/voyager.html
+    OUT: $CI_PROJECT_DIR/docs/src/tech-docs/graphql/voyager.html
     QUERY_EXPORT_DIR: "/tmp"
   script:
     - python docs/schema_to_voyager.py
