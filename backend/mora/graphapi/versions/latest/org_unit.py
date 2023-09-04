@@ -196,7 +196,6 @@ async def update_org_unit(input: OrganisationUnitUpdate) -> UUID:
     }
 
     request = await OrgUnitRequestHandler.construct(req, mapping.RequestType.EDIT)
-
     uuid = await request.submit()
 
     return UUID(uuid)

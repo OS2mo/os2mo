@@ -9,13 +9,16 @@ import unittest
 import uuid
 from contextlib import suppress
 from unittest import mock
+from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
 
 from oio_rest.app import create_app
 from oio_rest.auth.oidc import auth
+from oio_rest.db import dbname_context
 from tests.cases import sort_inner_lists
+from tests.conftest import create_test_database
 from tests.db_testing import reset_testing_database
 
 TESTS_DIR = os.path.dirname(__file__)
@@ -315,11 +318,19 @@ class ExtTestCase(BaseTestCase):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("testing_db")
 class DBTestCase(BaseTestCase):
     """Testcase with database access"""
 
     def setUp(self):
         super().setUp()
+        random_id = str(uuid4())[:8]
+        self.testing_db = create_test_database("empty_" + random_id)
+        db_name = self.testing_db.__enter__()
+
+        self.token = dbname_context.set(db_name)
         # Truncate tables before each test
         reset_testing_database()
+
+    def tearDown(self):
+        dbname_context.reset(self.token)
+        self.testing_db.__exit__(None, None, None)

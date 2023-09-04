@@ -237,7 +237,7 @@ def admin_client(fastapi_admin_test_app: FastAPI) -> YieldFixture[TestClient]:
 
 
 @contextmanager
-def test_database(identifier: str) -> YieldFixture[str]:
+def create_test_database(identifier: str) -> YieldFixture[str]:
     new_db_name = create_new_testing_database(identifier)
     try:
         # Set dbname_context to ensure all coming database connections connect
@@ -258,7 +258,7 @@ def testing_db() -> YieldFixture[str]:
     Yields:
         The newly created databases name.
     """
-    with test_database("empty") as db_name:
+    with create_test_database("empty") as db_name:
         yield db_name
 
 
@@ -269,7 +269,7 @@ def fixture_db() -> YieldFixture[str]:
     Yields:
         The newly created databases name.
     """
-    with test_database("fixture") as db_name:
+    with create_test_database("fixture") as db_name:
         yield db_name
 
 
