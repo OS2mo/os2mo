@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+# TODO: Consider what auditing is still required from shimmed functions
 from . import address
 from . import association
 from . import configuration

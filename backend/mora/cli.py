@@ -4,8 +4,8 @@
 
 Please note that each command below also takes a ``--help`` argument
 which describes its arguments and options.
-
 """
+# TODO: Do we wanna audit-log database access from here?
 import asyncio
 import sys
 import time

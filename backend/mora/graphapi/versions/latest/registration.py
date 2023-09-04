@@ -21,6 +21,7 @@ from .resolvers import CursorType
 from .resolvers import get_date_interval
 from .resolvers import LimitType
 from .resolvers import PagedResolver
+from mora.audit import audit_log
 from mora.db import BrugerRegistrering
 from mora.db import FacetRegistrering
 from mora.db import ITSystemRegistrering
@@ -240,6 +241,21 @@ class RegistrationResolver(PagedResolver):
         session = info.context["sessionmaker"]()
         async with session.begin():
             result = list(await session.execute(query))
+            audit_log(
+                session,
+                "resolve_registrations",
+                "Registration",
+                {
+                    "limit": limit,
+                    "cursor": cursor,
+                    "uuids": filter.uuids,
+                    "actors": filter.actors,
+                    "models": filter.models,
+                    "start": filter.start,
+                    "end": filter.end,
+                },
+                [uuid for _, _, uuid, _, _, _ in result],
+            )
 
             if limit is not None:
                 # Not enough results == no more pages

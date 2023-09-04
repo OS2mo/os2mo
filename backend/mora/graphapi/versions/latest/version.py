@@ -10,6 +10,7 @@ from pydantic import PositiveInt
 
 from ..base import BaseGraphQLSchema
 from ..base import BaseGraphQLVersion
+from .audit import get_audit_loaders
 from .dataloaders import get_loaders
 from .files import get_filestorage
 from .mutators import Mutation as LatestMutation
@@ -68,4 +69,5 @@ class LatestGraphQLVersion(BaseGraphQLVersion):
             "get_token": get_token,
             "filestorage": get_filestorage(),
             "sessionmaker": sessionmaker,
+            **get_audit_loaders(sessionmaker),
         }

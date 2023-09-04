@@ -2,9 +2,11 @@
 # SPDX-License-Identifier: MPL-2.0
 from dataclasses import dataclass
 from datetime import datetime
+from uuid import UUID
 
 from more_itertools import flatten
 
+from mora.audit import audit_log_lora
 from oio_rest.db import get_connection
 from oio_rest.db import Livscyklus
 from oio_rest.db import to_bool
@@ -417,6 +419,12 @@ class SearchQueryBuilder:
         {order_by_stmt} {limit_stmt} {offset_stmt};"""
 
 
+def ensure_uuid(uuid: UUID | str) -> UUID:
+    if isinstance(uuid, UUID):
+        return uuid
+    return UUID(uuid)
+
+
 def quick_search(
     class_name: str,
     uuid: str | None,
@@ -455,6 +463,7 @@ def quick_search(
     """
 
     # Parse input
+    org_class_name = class_name
     class_name = class_name.lower()
     if class_name not in (
         "organisationfunktion",
@@ -523,4 +532,27 @@ def quick_search(
         cursor.execute(sql)
         output = cursor.fetchall()
 
-    return (list(flatten(output)),)  # explicit tuple
+        arguments = {
+            "uuid": uuid,
+            "virkning_fra": virkning_fra,
+            "virkning_til": virkning_til,
+            "registreret_fra": registreret_fra,
+            "registreret_til": registreret_til,
+            "life_cycle_code": life_cycle_code,
+            "user_ref": user_ref,
+            "note": note,
+            "any_attr_value_arr": any_attr_value_arr,
+            "any_rel_uuid_arr": any_rel_uuid_arr,
+            "first_result": first_result,
+            "max_results": max_results,
+        }
+        uuids = list(flatten(output))
+        audit_log_lora(
+            cursor,
+            "quick_search",
+            org_class_name,
+            arguments,
+            list(map(ensure_uuid, uuids)),
+        )
+
+    return (uuids,)  # explicit tuple

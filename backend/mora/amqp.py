@@ -14,6 +14,7 @@ The event is posted to a RabbitMQ topic exchange, where the routing key is the
 object type (e.g. "org_unit") and the content is the UUID of the affected
 object.
 """
+# TODO: Do we wanna audit-log database access from here?
 import asyncio
 import random
 from typing import Literal
