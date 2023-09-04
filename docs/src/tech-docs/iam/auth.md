@@ -14,7 +14,7 @@ mechanisms to a separate component in the tech stack.
 The key parts of the OS2mo infrastructure relevant for the
 authentication flow is shown in the figure below:
 
-![image](../graphics/keycloak.svg)
+![image](../../graphics/keycloak.svg)
 
 The autentication flow is as follows:
 

@@ -24,31 +24,31 @@ If not, we will now create the groups:
 
 Start by opening up the AD Users management application.
 
-![](./img/adfs_rbac/ad_group_1.png)
+![](../../graphics/adfs_rbac/ad_group_1.png)
 
 Select your organisation, and right-click on 'Groups' and select 'New/Group'.
 
-![](./img/adfs_rbac/ad_group_2.png)
+![](../../graphics/adfs_rbac/ad_group_2.png)
 
 We start by creating the admin-group.
 
 Enter a fitting name for the group, select 'Universal' and 'Security' and click 'OK'.
 
-![](./img/adfs_rbac/ad_group_3.png)
+![](../../graphics/adfs_rbac/ad_group_3.png)
 
 Do the same for the owner-group.
 
 To assign membership of these groups, select 'Users' in the tree on the left, and right-click on the user you want to edit, and select 'Properties'.
 
-![](./img/adfs_rbac/ad_group_4.png)
+![](../../graphics/adfs_rbac/ad_group_4.png)
 
 Select 'Member Of' and click on 'Add...'.
 
-![](./img/adfs_rbac/ad_group_5.png)
+![](../../graphics/adfs_rbac/ad_group_5.png)
 
 Enter the name of the group you want to assign membership of, and select "Ok".
 
-![](./img/adfs_rbac/ad_group_6.png)
+![](../../graphics/adfs_rbac/ad_group_6.png)
 
 ## Mapping group membership to SAML claims
 
@@ -56,15 +56,15 @@ In order for the group membership to be available to OS2mo, we need to map this 
 
 Open up the ADFS management application, select "Relying Party Trusts", select the environment you would like to configure, and click on "Edit Claim Issuance Policy...".
 
-![](./img/adfs_rbac/adfs_claim_1.png)
+![](../../graphics/adfs_rbac/adfs_claim_1.png)
 
 Select "Add rule...".
 
-![](./img/adfs_rbac/adfs_claim_2.png)
+![](../../graphics/adfs_rbac/adfs_claim_2.png)
 
 Select "Send Group Membership as a Claim" and click "Next".
 
-![](./img/adfs_rbac/adfs_claim_3.png)
+![](../../graphics/adfs_rbac/adfs_claim_3.png)
 
 We will start by mapping the "admin" role.
 
@@ -82,13 +82,13 @@ As "Outgoing claim value" enter `os2mo-admin`. This is the name of the expected 
 
 Click "Finish".
 
-![](./img/adfs_rbac/adfs_claim_4.png)
+![](../../graphics/adfs_rbac/adfs_claim_4.png)
 
 Do the above steps for the "owner" role.
 
 You should now have added two claim policies, one for each of the admin and owner role.
 
-![](./img/adfs_rbac/adfs_claim_5.png)
+![](../../graphics/adfs_rbac/adfs_claim_5.png)
 
 ## Sending user object GUID
 
@@ -98,19 +98,19 @@ Click "Add Rule..." in the "Edit Claim Issuance Policy" dialogue.
 
 Select "Send LDAP Attributes as Claims".
 
-![](./img/adfs_rbac/adfs_claim_6.png)
+![](../../graphics/adfs_rbac/adfs_claim_6.png)
 
 Enter "objectGUID" as "Claim rule name" and "LDAP Attribute". Enter "object-guid" as "Outgoing Claim Type".
 
 !!! note
     "object-guid" is not available in the dropdown, but must be typed manually.
 
-![](./img/adfs_rbac/adfs_claim_7.png)
+![](../../graphics/adfs_rbac/adfs_claim_7.png)
 
 Click "Finish".
 
 You should now have the following claims configured:
 
-![](./img/adfs_rbac/adfs_claim_8.png)
+![](../../graphics/adfs_rbac/adfs_claim_8.png)
 
 RBAC should now be successfully configured for AD and ADFS! 🎈

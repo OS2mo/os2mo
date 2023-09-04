@@ -1,10 +1,9 @@
 ---
-title: Wildcards
+title: LoRa Wildcards
 ---
 
-When making a [Search operation](../user/api/search.md#search-operation) with
-wildcards, a lot happens. Going from the *bottom* of the stack the
-following happens:
+When making a search operation with wildcards, a lot happens. Going from the
+*bottom* of the stack the following happens:
 
 In SQL the match between two strings is made with [ILIKE from
 PostgresSQL](https://www.postgresql.org/docs/11.7/functions-matching.html#FUNCTIONS-LIKE).

@@ -4,7 +4,7 @@ title: Legacy AMQP Messages
 
 
 !!! warning
-    This system is deprecated for [the new AMQP subsystem](./events.md).
+    This system is deprecated for [the new AMQP subsystem](../events.md).
 
 
 When a MO object is created, modified or deleted, an AMQP message is

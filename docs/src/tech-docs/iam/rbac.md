@@ -27,7 +27,7 @@ The users are the set of people having read and/or write access to OS GIR | OS2m
 be performed, but in most cases this should not be necessary, since the user data (username,
 email, first and last name,...) will be provided from elsewhere.
 
-![image](../graphics/keycloak_use_cases/keycloak_user.png)
+![image](../../graphics/keycloak_use_cases/keycloak_user.png)
 
 ### Roles
 
@@ -88,7 +88,7 @@ administrator username and password.
 role in the search box and clicks the search button.
 3. The administrator selects the relevant user from the list of users in the search results.
 4. The administrator clicks the “Role Mappings” tab in the user manipulation area to the right:
-![image](../graphics/keycloak_use_cases/keycloak_assign_role.png)
+![image](../../graphics/keycloak_use_cases/keycloak_assign_role.png)
 5. The administrator selects the role that the user should be added to in the “Available Roles”
 window and clicks “Add selected”.
 
@@ -162,7 +162,7 @@ When browsing around in the main window in the organization domain, details abou
 currently selected unit are shown. A number of editing buttons appear (marked with red in the
 image below):
 
-![image](../graphics/keycloak_use_cases/edit_unit_1.png)
+![image](../../graphics/keycloak_use_cases/edit_unit_1.png)
 
 If the user has write access to the relevant part of the OS GIR | OS2mo (e.g. in this example to the
 organization unit show), the buttons will enable the user to perform the needed editing
@@ -174,7 +174,7 @@ When performing an action that navigates the user to the employee domain, i.e. b
 a user under the “Employments” or “Affiliation” or by clicking the “Employee” tab directly in the
 main header of the webpage, the user will be able to edit details about the employees:
 
-![image](../graphics/keycloak_use_cases/edit_unit_2.png)
+![image](../../graphics/keycloak_use_cases/edit_unit_2.png)
 
 As in the case of an organization unit, the user will only be allowed to edit details etc. on
 employees of which he or she is the owner.

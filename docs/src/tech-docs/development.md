@@ -1,4 +1,4 @@
-# Docker Environment
+# Development
 
 ## Getting Started
 OS2mo is primarily developed using [Docker](https://www.docker.com/). Follow the

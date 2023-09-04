@@ -1,5 +1,5 @@
 ---
-title: Objects
+title: LoRa Objects
 ---
 
 # Objects
@@ -81,7 +81,7 @@ The fields used in the example `organisation` are the following:
 
 `organisationegenskaber→virkning`
 
-> The period when the above attributes is valid. See [Valid time](./objects.md#valid-time). Required.
+> The period when the above attributes is valid. See [Valid time](#valid-time). Required.
 
 `organisationgyldighed→gyldighed`
 
@@ -89,7 +89,7 @@ The fields used in the example `organisation` are the following:
 
 `organisationgyldighed→virkning`
 
-> The period when the above `gyldighed` is valid. See [Valid time](./objects.md#valid-time). Required.
+> The period when the above `gyldighed` is valid. See [Valid time](#valid-time). Required.
 
 ### `organisationenhed`
 
@@ -161,7 +161,7 @@ The fields used in the example `organisationenhed` are the following:
 
 The database is a [Bitemporal
 Database](https://en.wikipedia.org/wiki/Temporal_database) with
-[valid time](./objects.md#valid-time) and [transaction time](./objects.md#transaction-time).
+[valid time](#valid-time) and [transaction time](#transaction-time).
 
 ### Valid time
 
@@ -206,8 +206,4 @@ The fields used in the example are the following:
 
 All transactions also have a transaction time as `registreret`. This
 records the time period during which a given fact is stored in the
-database. With the query parameters to a
-[Read](./api/read.md#readoperation),
-[List](./api/list.md#listoperation) or
-[Search operation](./api/search.md#searchoperation) it can give you a view
-of the state of the database at given time in the past or future.
+database.

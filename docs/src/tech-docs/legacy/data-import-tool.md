@@ -436,13 +436,6 @@ cd os2mo_data_import
 python import_example.py
 ```
 
-## Reference
-
-For more information on the os2mo project, please refer to the official
-documentation.
-
-[Read the docs](../../index.md)
-
 ## Known Issues
 
 Currently it is not possible to assign "Leave" (e.g. various types of

@@ -73,11 +73,11 @@ Dette afsnit beskriver hvordan logikken opfører sig, når den eksekveres:
    det ikke er tilfældet, sættes dags dato som slutdato på lederen.
 2. For alle organisationsenheder, hvis navn ender med `_leder` og som *ikke* er præfikset med `Ø_`:
 
-   ![_leder org-unit](os2mo_managersync_images/_leder.png)
+   ![_leder org-unit](../graphics/_leder.png)
 
     - Hentes alle ansatte som har en tilknytning til `_leder`-enheden:
 
-   ![Tilknytninger](os2mo_managersync_images/tilknytning.png)
+   ![Tilknytninger](../graphics/tilknytning.png)
 
     - Tjekkes at hver ansatte har et aktivt engagement i overenheden. Hvis mere end én medarbejder har en tilknytning
       til `_leder`-enheden, tjekkes hvilken ansættelse der er den seneste startdato: Denne person bliver sat som leder i
@@ -85,11 +85,11 @@ Dette afsnit beskriver hvordan logikken opfører sig, når den eksekveres:
 
     - Mappes hvert enhedsniveau til et leder-level:
 
-      ![Manager level](os2mo_managersync_images/manager_level.png)
+      ![Manager level](../graphics/manager_level.png)
 
     - Gøres lederen *også* til leder af overenhedens overenhed, hvis overenheden har `_led-adm`i sit navn.
 
-      ![led-adm](os2mo_managersync_images/_led-adm.png)
+      ![led-adm](../graphics/_led-adm.png)
 
       I eksemplet ovenfor, hvor lederen bliver leder af to enheder, identificeres leder-level fra den øverste enhed,
       altså fra Borgmesterens Afdeling.
@@ -209,17 +209,3 @@ UUID passed as an parameter is required password
 
 Sending and fetching data to/from `OS2MO` is done using a `GraphQL` client imported
 from `Ra-clients` [repos here](https://git.magenta.dk/rammearkitektur/ra-clients)
-
-***
-
-## Authors
-
-Magenta ApS <https://magenta.dk>
-***
-
-## License
-
-This project uses: [MPL-2.0](os2mo_managersync_images/LICENSES/MPL-2.0.txt)
-
-This project uses [REUSE](https://reuse.software) for licensing.
-All licenses can be found in the [LICENSES folder](os2mo_managersync_images/LICENSES) of the project.

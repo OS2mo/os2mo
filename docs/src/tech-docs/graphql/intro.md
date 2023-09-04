@@ -2,7 +2,7 @@
 title: OS2mo GraphQL
 ---
 
-[OS2mo version 2.4.0](../changelog.md#240-2021-09-23) introduced a new
+[OS2mo version 2.4.0](../../changelog.md#240-2021-09-23) introduced a new
 endpoint; `/graphql`, which serves a [GraphQL](https://graphql.org/) API.
 
 The goal of this API is to become the standard and only way to to interact with
@@ -56,7 +56,7 @@ same GraphQL endpoint.
 
 To get GraphQL calls executed the caller must include a sufficiently privileged
 access token in the `Authorization` header. For details on how to acquire such
-a token, please read the [Authentication documentation](../drift-support/auth.md).
+a token, please read the [Authentication documentation](../iam/auth.md).
 
 
 ## Versioning
