@@ -10,10 +10,10 @@ Der er behov for tre servere så leverandør og kunde har hver deres testmiljø 
 
 Bestykning og opsætning skal se sådan ud:
 
--   4 cores, 16GB Ram og 60 GB SSD harddisk
--   Ubuntu 20.04
--   Tillade indgående trafik på portene 22, 80, 443
--   Tillade udgående trafik på portene 4505 og 4506
+-   4 cores, 16GB Ram og 100 GB SSD harddisk
+-   Ubuntu 22.04
+-   Tillad indgående trafik på portene 22, 80, 443
+-   Tillad udgående trafik på portene 4505 og 4506
 -   Send den anvendte eksterne IP-adresse til Magenta, så der kan åbnes for adgang.
 
 Vi vil kraftigt anbefale at Magenta hoster OS2mo.
