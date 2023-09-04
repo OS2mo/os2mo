@@ -9,7 +9,7 @@ docs_dir: src/
 
 nav:
   - Home:
-      - home/index.md
+      - index.md
       - home/manual.md
       - home/architecture.md
       - home/landscape.md
