@@ -73,26 +73,26 @@ Dette afsnit beskriver hvordan logikken opfører sig, når den eksekveres:
    det ikke er tilfældet, sættes dags dato som slutdato på lederen.
 2. For alle organisationsenheder, hvis navn ender med `_leder` og som *ikke* er præfikset med `Ø_`:
 
-   ![_leder org-unit](../graphics/_leder.png)
+![_leder org-unit](../graphics/_leder.png)
 
-    - Hentes alle ansatte som har en tilknytning til `_leder`-enheden:
+- Hentes alle ansatte som har en tilknytning til `_leder`-enheden:
 
-   ![Tilknytninger](../graphics/tilknytning.png)
+![Tilknytninger](../graphics/tilknytning.png)
 
-    - Tjekkes at hver ansatte har et aktivt engagement i overenheden. Hvis mere end én medarbejder har en tilknytning
-      til `_leder`-enheden, tjekkes hvilken ansættelse der er den seneste startdato: Denne person bliver sat som leder i
-      overenheden.
+- Tjekkes at hver ansatte har et aktivt engagement i overenheden. Hvis mere end én medarbejder har en tilknytning
+  til `_leder`-enheden, tjekkes hvilken ansættelse der er den seneste startdato: Denne person bliver sat som leder i
+  overenheden.
 
-    - Mappes hvert enhedsniveau til et leder-level:
+- Mappes hvert enhedsniveau til et leder-level:
 
-      ![Manager level](../graphics/manager_level.png)
+  ![Manager level](../graphics/manager_level.png)
 
-    - Gøres lederen *også* til leder af overenhedens overenhed, hvis overenheden har `_led-adm`i sit navn.
+- Gøres lederen *også* til leder af overenhedens overenhed, hvis overenheden har `_led-adm`i sit navn.
 
-      ![led-adm](../graphics/_led-adm.png)
+  ![led-adm](../graphics/_led-adm.png)
 
-      I eksemplet ovenfor, hvor lederen bliver leder af to enheder, identificeres leder-level fra den øverste enhed,
-      altså fra Borgmesterens Afdeling.
+  I eksemplet ovenfor, hvor lederen bliver leder af to enheder, identificeres leder-level fra den øverste enhed,
+  altså fra Borgmesterens Afdeling.
 
 Når en leder er blevet valgt ud fra de ovenstående kriterier, vil alle tilknytninger i `_leder`-enheden termineres, så
 kun én tilknytning resterer.
