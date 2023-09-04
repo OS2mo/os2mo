@@ -1,5 +1,5 @@
 ---
-title: Integration til OPUS Løn
+title: OPUS Løn
 ---
 
 # Integration til OPUS Løn

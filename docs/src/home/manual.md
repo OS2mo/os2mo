@@ -1,5 +1,5 @@
 ---
-title: MO manual
+title: Manual
 ---
 
 ## Introduktion

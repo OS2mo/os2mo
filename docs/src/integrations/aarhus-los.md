@@ -1,5 +1,5 @@
 ---
-title: Integration for Aarhus LOS
+title: Aarhus LOS
 ---
 
 ## Introduction

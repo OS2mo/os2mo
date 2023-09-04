@@ -1,6 +1,5 @@
----
-title: MO i skyen: MoCloud
----
+# Cloud
+
 ## Forudsætninger for drift af MO i Azure
 ### VPN-enhed
 Af sikkerhedshensyn kræver OS2mo-cloud-løsningen at al kommunikation mellem jeres

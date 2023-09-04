@@ -1,6 +1,4 @@
----
-title: GraphQL migration Guide
----
+# Migration Guide
 
 This migration guide serves to help integration developers in migrating their
 GraphQL queries from older versions of OS2mo's GraphQL interface to newer ones.

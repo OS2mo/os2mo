@@ -1,6 +1,5 @@
----
-title: Export til FK-ORG via OS2Sync
----
+# FK-Organisation
+
 Kildekoden kan findes på https://github.com/magenta-aps/os2mo-os2sync-export
 
 Dockerimage er tilgængeligt fra https://hub.docker.com/r/magentaaps/os2mo-os2sync-export

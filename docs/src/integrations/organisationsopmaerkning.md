@@ -1,5 +1,5 @@
 ---
-title: SD-Løn Organisationsopmærkning
+title: Organisationsopmærkning
 ---
 
 # Opmærkning af organisationsenheder

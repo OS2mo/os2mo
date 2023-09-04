@@ -1,5 +1,5 @@
 ---
-title: KLE i MO
+title: KLE
 ---
 
 # KLE i MO

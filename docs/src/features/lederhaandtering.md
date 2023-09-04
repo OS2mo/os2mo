@@ -1,5 +1,5 @@
 ---
-title: Lederhåndtering i MO
+title: Lederhåndtering
 ---
 
 # Lederhåndtering i MO
