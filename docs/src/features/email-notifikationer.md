@@ -1,5 +1,5 @@
 ---
-title: Email-notifikationer i MO
+title: Email-notifikationer
 ---
 
 # Email-notifikationer

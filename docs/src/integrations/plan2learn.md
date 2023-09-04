@@ -1,6 +1,4 @@
----
-title: Eksport til plan2learn
----
+# plan2learn
 
 ## Indledning
 

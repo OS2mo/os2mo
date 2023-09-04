@@ -1,5 +1,5 @@
 ---
-title: Eventbaseret AD-integration (LDAP - Lightweight Directory Access Protocol)
+title: Eventbaseret integration
 ---
 
 # Integration til eventbaseret AD import og eksport

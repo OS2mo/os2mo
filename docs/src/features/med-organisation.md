@@ -1,5 +1,5 @@
 ---
-title: MED-organisationen i OS2mo
+title: MED-organisationen
 ---
 
 # MED-organisationen i MO

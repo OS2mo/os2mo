@@ -1,8 +1,4 @@
----
-title: Eksport til Telefonbogen
----
-
-# Telefonbogen
+# Telefonbog
 
 Dette program eksporterer JSON som kan indlæses i Telefonbogen, der udstilles på kundens intranet.
 Progammet understøtter også at sende JSON dataen til telefonbogen selv.

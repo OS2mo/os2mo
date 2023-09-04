@@ -11,34 +11,38 @@ nav:
   - Home:
       - index.md
       - home/manual.md
-      - home/architecture.md
       - home/landscape.md
-      - home/implementeringsguide.md
   - Features:
       - features/email-notifikationer.md
+      - features/stillingsbetegnelser.md
       - features/kle.md
       - features/lederhaandtering.md
       - features/med-organisation.md
-      - features/stillingsbetegnelser.md
+      - features/org-chart.md
+      - features/reports.md
   - Integrations:
-      - integrations/aarhus-los.md
-      - integrations/ad.md
-      - integrations/ldap_ad_amqp_integration.md
-      - integrations/opusloen.md
-      - integrations/sdloen.md
-      - integrations/organisationsopmaerkning.md
-      - integrations/omada.md
-      - integrations/plan2learn.md
+      - Active Directory:
+        - integrations/ldap_ad_amqp_integration.md
+        - integrations/ad.md
       - integrations/sql_export.md
       - integrations/emus.md
-      - integrations/os2phonebook.md
-      - integrations/os2rollekatalog.md
       - integrations/os2sync.md
-      - integrations/org-chart.md
-      - integrations/reports.md
-  - MO as a Service:
+      - LOS / OPUS:
+        - integrations/aarhus-los.md
+        - integrations/opusloen.md
+      - integrations/omada.md
+      - integrations/os2rollekatalog.md
+      - integrations/plan2learn.md
+      - SD:
+        - integrations/sd-laes.md
+        - integrations/sd-skriv.md
+        - integrations/organisationsopmaerkning.md
+      - integrations/os2phonebook.md
+  - "Implementering & Drift":
+      - moaas/index.md
       - moaas/cloud.md
-      # - On-prem installation: TODO
+      - moaas/on-prem.md
+      - moaas/implementeringsguide.md
   - Technical Documentation:
       # - Understanding bitemporality: TODO
       - tech-docs/development.md
@@ -47,7 +51,7 @@ nav:
           - tech-docs/graphql/reads.md
           # - tech-docs/graphql/pagination.md: TODO
           - tech-docs/graphql/migration.md
-      - IAM:
+      - IAM (Keycloak):
           - tech-docs/iam/auth.md
           - tech-docs/iam/rbac.md
           - tech-docs/iam/adfs-setup.md

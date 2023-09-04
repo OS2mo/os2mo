@@ -1,5 +1,5 @@
 ---
-title: Rapporter i OS2MO
+title: Rapporter
 ---
 
 # Rapporter i OS2MO

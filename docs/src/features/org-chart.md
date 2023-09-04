@@ -1,5 +1,5 @@
 ---
-title: Organisationsdiagram til MO
+title: Organisationsdiagram
 ---
 
 # Organisationsdiagram til MO

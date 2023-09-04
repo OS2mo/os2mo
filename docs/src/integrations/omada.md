@@ -1,8 +1,4 @@
----
-title: Integration til Omadas Identity Management-system
----
-
-# Integration til Omadas Identity Management-system
+# Omada
 
 ## Indledning
 

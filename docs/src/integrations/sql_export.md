@@ -1,6 +1,4 @@
----
-title: Eksport til Actual State SQL database
----
+# Actual State SQL database
 
 ## Indledning
 

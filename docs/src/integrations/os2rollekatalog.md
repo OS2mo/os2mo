@@ -1,6 +1,4 @@
----
-title: Eksport til OS2Rollekatalog
----
+# OS2Rollekatalog
 
 ## Indledning
 

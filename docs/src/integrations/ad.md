@@ -1,5 +1,5 @@
 ---
-title: Integration til Active Directory
+title: Legacy integration
 ---
 
 # Integration til Active Directory

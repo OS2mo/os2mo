@@ -1,6 +1,4 @@
----
-title: Eksport til EMUS
----
+# EMUS
 
 ## Indledning
 

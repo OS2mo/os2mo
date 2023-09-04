@@ -1,5 +1,5 @@
 ---
-title: OS2mo GraphQL
+title: Introduction
 ---
 
 [OS2mo version 2.4.0](../../changelog.md#240-2021-09-23) introduced a new
