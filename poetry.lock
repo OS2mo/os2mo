@@ -1283,11 +1283,11 @@ starlette = "*"
 
 [[package]]
 name = "strawberry-graphql"
-version = "0.196.1"
+version = "0.205.0"
 description = "A library for creating GraphQL APIs"
 category = "main"
 optional = false
-python-versions = ">=3.7,<4.0"
+python-versions = ">=3.8,<4.0"
 
 [package.dependencies]
 graphql-core = ">=3.2.0,<3.3.0"
@@ -1306,7 +1306,7 @@ django = ["Django (>=3.2)", "asgiref (>=3.2,<4.0)"]
 fastapi = ["fastapi (>=0.65.2)", "python-multipart (>=0.0.5,<0.0.7)"]
 flask = ["flask (>=1.1)"]
 opentelemetry = ["opentelemetry-api (<2)", "opentelemetry-sdk (<2)"]
-pydantic = ["pydantic (<2)"]
+pydantic = ["pydantic (>1.6.1)"]
 pyinstrument = ["pyinstrument (>=4.0.0)"]
 sanic = ["sanic (>=20.12.2)"]
 starlite = ["starlite (>=1.48.0)"]
@@ -1496,7 +1496,7 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "abc1ad7dcc3e582b455da418ffcf4ba2fa43865c3676657a9a4a1a27a3c30735"
+content-hash = "a6b8eddec7635eb412e1b1d7d2d96330c58b13616a2bc5b6fe00b96bde1884ae"
 
 [metadata.files]
 aio-pika = [
@@ -2609,8 +2609,8 @@ starlette-context = [
     {file = "starlette_context-0.3.6.tar.gz", hash = "sha256:d361a36ba2d4acca3ab680f917b25e281533d725374752d47607a859041958cb"},
 ]
 strawberry-graphql = [
-    {file = "strawberry_graphql-0.196.1-py3-none-any.whl", hash = "sha256:84a3dde2012395520dab3550996279a2cb3253c244a62946b59215dbbc530eec"},
-    {file = "strawberry_graphql-0.196.1.tar.gz", hash = "sha256:2c9872ef0dae2d5883180b5df95dfa460f1c9485d5b420f6e2a85afac9da9184"},
+    {file = "strawberry_graphql-0.205.0-py3-none-any.whl", hash = "sha256:b666a7b153c4349a82bdaacc92a14d0863466b81e75286c8841ebcb1ba2f5f7f"},
+    {file = "strawberry_graphql-0.205.0.tar.gz", hash = "sha256:7f545441a31d1b528a06183127fe2f09695446d2930964bbc3c5812d7217e719"},
 ]
 structlog = [
     {file = "structlog-23.1.0-py3-none-any.whl", hash = "sha256:79b9e68e48b54e373441e130fa447944e6f87a05b35de23138e475c05d0f7e0e"},
