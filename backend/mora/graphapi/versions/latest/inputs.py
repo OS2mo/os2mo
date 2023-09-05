@@ -17,6 +17,7 @@ from .models import EngagementCreate
 from .models import EngagementTerminate
 from .models import EngagementUpdate
 from .models import ITAssociationCreate
+from .models import ITAssociationTerminate
 from .models import ITAssociationUpdate
 from .models import ITUserCreate
 from .models import ITUserTerminate
@@ -208,7 +209,7 @@ class EngagementUpdateInput:
     all_fields=True,
 )
 class ITAssociationCreateInput:
-    """input model for creating IT-association."""
+    """input model for creating IT-associations."""
 
 
 @strawberry.experimental.pydantic.input(
@@ -216,7 +217,15 @@ class ITAssociationCreateInput:
     all_fields=True,
 )
 class ITAssociationUpdateInput:
-    """input model for updating IT-association."""
+    """input model for updating IT-associations."""
+
+
+@strawberry.experimental.pydantic.input(
+    model=ITAssociationTerminate,
+    all_fields=True,
+)
+class ITAssociationTerminateInput:
+    """input model for terminating IT-associations."""
 
 
 # ITSystems

@@ -6,9 +6,12 @@ from uuid import UUID
 from fastapi.encoders import jsonable_encoder
 
 from .models import ITAssociationCreate
+from .models import ITAssociationTerminate
 from .models import ITAssociationUpdate
+from mora import lora
 from mora import mapping
 from mora.service.association import AssociationRequestHandler
+from mora.triggers import Trigger
 
 
 async def create_itassociation(input: ITAssociationCreate) -> UUID:
@@ -36,3 +39,29 @@ async def update_itassociation(input: ITAssociationUpdate) -> UUID:
     uuid = await request.submit()
 
     return UUID(uuid)
+
+
+async def terminate_itassociation(input: ITAssociationTerminate) -> UUID:
+    trigger = input.get_itassociation_trigger()
+    trigger_dict = trigger.to_trigger_dict()
+
+    # ON_BEFORE
+    _ = await Trigger.run(trigger_dict)
+
+    # Do LoRa update
+    lora_conn = lora.Connector()
+    lora_result = await lora_conn.organisationfunktion.update(
+        input.get_lora_payload(), str(input.uuid)
+    )
+
+    # ON_AFTER
+    trigger_dict.update(
+        {
+            Trigger.RESULT: lora_result,
+            Trigger.EVENT_TYPE: mapping.EventType.ON_AFTER,
+        }
+    )
+
+    _ = await Trigger.run(trigger_dict)
+
+    return UUID(lora_result)

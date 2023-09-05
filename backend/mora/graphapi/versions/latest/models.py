@@ -675,7 +675,7 @@ class ITAssociationCreate(ITAssociationUpsert):
 
 
 class ITAssociationUpdate(ITAssociationUpsert):
-    """Model representing an IT-association creation."""
+    """Model representing an IT-association update."""
 
     uuid: UUID = Field(description="UUID of the ITAssociation you want to update.")
     org_unit: UUID | None = Field(description="org-unit uuid.")
@@ -688,6 +688,36 @@ class ITAssociationUpdate(ITAssociationUpsert):
         data_dict["it"] = gen_uuid(self.it_user)
         data_dict["job_function"] = gen_uuid(self.job_function)
         return {k: v for k, v in data_dict.items() if v}
+
+
+class ITAssociationTerminate(ValidityTerminate):
+    """Model representing an IT-association termination."""
+
+    uuid: UUID = Field(description="UUID for the ITAssociation we want to terminate.")
+
+    def get_lora_payload(self) -> dict:
+        return {
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
+                ]
+            },
+            "note": "Afsluttet",
+        }
+
+    def get_itassociation_trigger(self) -> OrgFuncTrigger:
+        return OrgFuncTrigger(
+            role_type=mapping.ASSOCIATION,
+            event_type=mapping.EventType.ON_BEFORE,
+            uuid=self.uuid,
+            org_unit_uuid=self.uuid,
+            request_type=mapping.RequestType.TERMINATE,
+            request=MoraTriggerRequest(
+                type=mapping.ASSOCIATION,
+                uuid=self.uuid,
+                validity=Validity(from_date=self.from_date, to_date=self.to_date),
+            ),
+        )
 
 
 # ITSystems
