@@ -104,7 +104,7 @@ class TestManagerInheritance:
     query = """
         query TestQuery($uuids: [UUID!], $inherit: Boolean!)
         {
-            org_units (uuids: $uuids) {
+            org_units(filter: {uuids: $uuids}) {
                 objects {
                     objects {
                         managers(inherit: $inherit) {
@@ -139,7 +139,7 @@ class TestManagerInheritance:
 def test_regression_51523_1(graphapi_post):
     query = """
         query TestQuery {
-            org_units(uuids: ["deadbeef-dead-beef-0000-000000000000"]) {
+            org_units(filter: {uuids: ["deadbeef-dead-beef-0000-000000000000"]}) {
                 objects {
                     uuid
                 }
@@ -157,7 +157,7 @@ def test_regression_51523_1(graphapi_post):
 def test_regression_51523_2(graphapi_post):
     query = """
         query TestQuery {
-            org_units(uuids: ["deadbeef-dead-beef-0000-000000000000"]) {
+            org_units(filter: {uuids: ["deadbeef-dead-beef-0000-000000000000"]}) {
                 objects {
                     objects {
                         uuid
@@ -178,7 +178,7 @@ def test_regression_51523_2(graphapi_post):
 def test_regression_51523_generalised(graphapi_post, field):
     query = f"""
         query TestQuery {{
-            {field}(uuids: ["deadbeef-dead-beef-0000-000000000000"]) {{
+            {field}(filter: {{uuids: ["deadbeef-dead-beef-0000-000000000000"]}}) {{
                 objects {{
                     uuid
                 }}

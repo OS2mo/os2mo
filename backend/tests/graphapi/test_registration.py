@@ -51,7 +51,7 @@ async def test_writing_registration(graphapi_post) -> None:
     """Integrationtest for reading and writing registrations."""
     query = """
         query ReadObjectRegistration($uuid: UUID!) {
-          org_units(uuids: [$uuid]) {
+          org_units(filter: {uuids: [$uuid]}) {
             objects {
               uuid
               registrations {
@@ -135,7 +135,7 @@ async def test_read_object_registration(graphapi_post) -> None:
     """Object registration reading integration-test."""
     query = """
         query ReadObjectRegistration($uuid: UUID!) {
-          org_units(uuids: [$uuid]) {
+          org_units(filter: {uuids: [$uuid]}) {
             objects {
               uuid
               registrations {
@@ -173,7 +173,7 @@ async def test_read_top_level_registration(graphapi_post) -> None:
     """Top-level registration reading integration-test."""
     query = """
         query ReadRegistration($uuid: UUID!) {
-          registrations(uuids: [$uuid]) {
+          registrations(filter: {uuids: [$uuid]}) {
             objects {
               actor
               model

@@ -88,7 +88,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
         query = """
                 query TestQuery($uuids: [UUID!]) {
-                    engagements(uuids: $uuids) {
+                    engagements(filter: {uuids: $uuids}) {
                         objects {
                             uuid
                         }
@@ -197,67 +197,65 @@ async def test_terminate_response(given_uuid, given_validity_dts):
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @pytest.mark.parametrize(
-    "filter_snippet,expected",
+    "filter,expected",
     [
-        ("", 3),
+        ({}, 3),
         # Employee filters
-        ('(employees: "236e0a78-11a0-4ed9-8545-6286bb8611c7")', 2),
-        ('(employees: "53181ed2-f1de-4c4a-a8fd-ab358c2c454a")', 1),
-        ('(employees: "6ee24785-ee9a-4502-81c2-7697009c9053")', 0),
+        ({"employees": "236e0a78-11a0-4ed9-8545-6286bb8611c7"}, 2),
+        ({"employees": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"}, 1),
+        ({"employees": "6ee24785-ee9a-4502-81c2-7697009c9053"}, 0),
         (
-            """
-                        (employees: [
-                            "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                            "6ee24785-ee9a-4502-81c2-7697009c9053"
-                        ])
-                    """,
+            {
+                "employees": [
+                    "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                    "6ee24785-ee9a-4502-81c2-7697009c9053",
+                ]
+            },
             1,
         ),
         # Organisation Unit filter
-        ('(org_units: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")', 3),
-        ('(org_units: "2874e1dc-85e6-4269-823a-e1125484dfd3")', 0),
+        ({"org_units": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"}, 3),
+        ({"org_units": "2874e1dc-85e6-4269-823a-e1125484dfd3"}, 0),
         (
-            """
-                        (org_units: [
-                            "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                            "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-                        ])
-                    """,
+            {
+                "org_units": [
+                    "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                    "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                ]
+            },
             3,
         ),
         # Mixed filters
         (
-            """
-                        (
-                            employees: "236e0a78-11a0-4ed9-8545-6286bb8611c7",
-                            org_units: "2874e1dc-85e6-4269-823a-e1125484dfd3"
-                        )
-                    """,
+            {
+                "employees": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                "org_units": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+            },
             0,
         ),
         (
-            """
-                        (
-                            employees: "236e0a78-11a0-4ed9-8545-6286bb8611c7",
-                            org_units: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-                        )
-                    """,
+            {
+                "employees": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                "org_units": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            },
             2,
         ),
     ],
 )
-async def test_engagement_filters(graphapi_post, filter_snippet, expected) -> None:
+async def test_engagement_filters(graphapi_post, filter, expected) -> None:
     """Test filters on engagements."""
-    engagement_query = f"""
-        query Managers {{
-            engagements{filter_snippet} {{
-                objects {{
+    engagement_query = """
+        query Engagements($filter: EngagementFilter!) {
+            engagements(filter: $filter) {
+                objects {
                     uuid
-                }}
-            }}
-        }}
+                }
+            }
+        }
     """
-    response: GQLResponse = graphapi_post(engagement_query)
+    response: GQLResponse = graphapi_post(
+        engagement_query, variables=dict(filter=filter)
+    )
     assert response.errors is None
     assert len(response.data["engagements"]["objects"]) == expected
 
@@ -348,7 +346,7 @@ async def test_create_engagement_integration_test(
 
     verify_query = """
         query VerifyQuery($uuid: UUID!) {
-            engagements(uuids: [$uuid], from_date: null, to_date: null) {
+            engagements(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
                 objects {
                     objects {
                         user_key
@@ -475,7 +473,7 @@ async def test_update_engagement_integration_test(graphapi_post, test_data) -> N
 
     query = """
         query MyQuery($uuid: UUID!) {
-            engagements(uuids: [$uuid]) {
+            engagements(filter: {uuids: [$uuid]}) {
                 objects {
                     objects {
                         user_key
@@ -512,7 +510,7 @@ async def test_update_engagement_integration_test(graphapi_post, test_data) -> N
     """Query data to check that it actually gets written to database"""
     verify_query = """
         query VerifyQuery($uuid: [UUID!]!) {
-            engagements(uuids: $uuid){
+            engagements(filter: {uuids: $uuid}){
                 objects {
                     objects {
                         uuid
@@ -601,7 +599,7 @@ async def test_update_extensions_field_integrations_test(
 
     query = """
         query MyQuery($uuid: [UUID!]) {
-          engagements(uuids: $uuid) {
+          engagements(filter: {uuids: $uuid}) {
             objects {
               objects {
                 extension_1
@@ -634,7 +632,7 @@ async def test_update_extensions_field_integrations_test(
 
     verify_query = """
         query MyVerifyQuery($uuid: [UUID!]!) {
-          engagements(uuids: $uuid) {
+          engagements(filter: {uuids: $uuid}) {
             objects {
               objects {
                 extension_1
@@ -730,7 +728,7 @@ async def test_create_engagement_with_extensions_fields_integrations_test(
 
     verify_query = """
         query VerifyQuery($uuid: [UUID!]!) {
-            engagements(uuids: $uuid, from_date: null, to_date: null) {
+            engagements(filter: {uuids: $uuid, from_date: null, to_date: null}) {
                 objects {
                     objects {
                         user_key

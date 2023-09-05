@@ -73,7 +73,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
         query = """
                 query TestQuery($uuids: [UUID!]) {
-                    leaves(uuids: $uuids) {
+                    leaves(filter: {uuids: $uuids}) {
                         objects {
                             uuid
                         }
@@ -175,7 +175,7 @@ async def test_create_leave_integration_test(
 
     verify_query = """
         query VerifyQuery($uuid: UUID!) {
-            leaves(uuids: [$uuid], from_date: null, to_date: null) {
+            leaves(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
                 objects {
                     objects {
                         employee: employee_uuid
@@ -273,7 +273,7 @@ async def test_update_leave_integration_test(test_data, graphapi_post) -> None:
 
     query = """
         query LeaveQuery($uuid: UUID!) {
-            leaves(uuids: [$uuid]) {
+            leaves(filter: {uuids: [$uuid]}) {
                 objects {
                     objects {
                         uuid
@@ -311,7 +311,7 @@ async def test_update_leave_integration_test(test_data, graphapi_post) -> None:
     # Writing verify query to retrieve objects containing data on the desired uuids.
     verify_query = """
         query VerifyQuery($uuid: UUID!) {
-            leaves(uuids: [$uuid]){
+            leaves(filter: {uuids: [$uuid]}){
                 objects {
                     objects {
                         uuid
@@ -425,7 +425,7 @@ async def test_leave_terminate_integration(test_data, graphapi_post) -> None:
 
     verify_query = """
         query VerifyQuery($uuid: UUID!) {
-            leaves(uuids: [$uuid]){
+            leaves(filter: {uuids: [$uuid]}){
                 objects {
                     objects {
                         uuid

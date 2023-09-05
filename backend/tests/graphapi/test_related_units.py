@@ -49,13 +49,13 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     with MonkeyPatch.context() as patch:
         patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
         query = """
-                query TestQuery($uuids: [UUID!]) {
-                    related_units(uuids: $uuids) {
-                        objects {
-                            uuid
-                        }
+            query TestQuery($uuids: [UUID!]) {
+                related_units(filter: {uuids: $uuids}) {
+                    objects {
+                        uuid
                     }
                 }
+            }
             """
         response = graphapi_post(query, {"uuids": test_uuids})
 

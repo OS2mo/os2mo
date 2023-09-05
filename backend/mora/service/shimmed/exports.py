@@ -103,7 +103,7 @@ async def list_export_files(
                 ],
             )
 
-    query = "query FilesQuery { files(file_store: EXPORTS) { objects { file_name } } }"
+    query = "query FilesQuery { files(filter: {file_store: EXPORTS}) { objects { file_name } } }"
     gql_response = await execute_graphql(query)
     handle_gql_error(gql_response)
     files = gql_response.data["files"]["objects"]
@@ -196,7 +196,7 @@ async def download_export_file(
     }
     query = """
     query FileQuery($file_name: String!) {
-      files(file_store: EXPORTS, file_names: [$file_name]) {
+      files(filter: {file_store: EXPORTS, file_names: [$file_name]}) {
         objects {
           base64_contents
         }

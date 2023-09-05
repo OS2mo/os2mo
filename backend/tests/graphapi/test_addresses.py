@@ -77,7 +77,7 @@ def async_lora_return(*args):
 def _get_address_query():
     return """
         query VerifyQuery($uuid: UUID!) {
-          addresses(uuids: [$uuid], from_date: null, to_date: null) {
+          addresses(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
             objects {
               uuid
               objects {
@@ -252,7 +252,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
         query = """
                 query TestQuery($uuids: [UUID!]) {
-                    addresses(uuids: $uuids) {
+                    addresses(filter: {uuids: $uuids}) {
                         objects {
                             uuid
                         }
@@ -633,81 +633,75 @@ async def test_terminate(given_uuid, given_validity_dts):
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @pytest.mark.parametrize(
-    "filter_snippet,expected",
+    "filter,expected",
     [
-        ("", 10),
+        ({}, 10),
         # Address Type filters
-        ('(address_type_user_keys: "BrugerPostadresse")', 3),
-        ('(address_types: "4e337d8e-1fd2-4449-8110-e0c8a22958ed")', 3),
-        ('(address_type_user_keys: "BrugerEmail")', 2),
-        ('(address_types: "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0")', 2),
-        ('(address_type_user_keys: ["BrugerPostadresse", "BrugerEmail"])', 5),
+        ({"address_type_user_keys": "BrugerPostadresse"}, 3),
+        ({"address_types": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"}, 3),
+        ({"address_type_user_keys": "BrugerEmail"}, 2),
+        ({"address_types": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"}, 2),
+        ({"address_type_user_keys": ["BrugerPostadresse", "BrugerEmail"]}, 5),
         (
-            """
-            (address_types: [
-                "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-                "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
-            ])
-        """,
+            {
+                "address_types": [
+                    "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
+                    "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
+                ]
+            },
             5,
         ),
         (
-            """
-            (
-                address_type_user_keys: "BrugerPostadresse"
-                address_types: "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
-            )
-        """,
+            {
+                "address_type_user_keys": "BrugerPostadresse",
+                "address_types": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
+            },
             5,
         ),
         # Employee filters
-        ('(employees: "53181ed2-f1de-4c4a-a8fd-ab358c2c454a")', 1),
-        ('(employees: "6ee24785-ee9a-4502-81c2-7697009c9053")', 2),
+        ({"employees": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"}, 1),
+        ({"employees": "6ee24785-ee9a-4502-81c2-7697009c9053"}, 2),
         (
-            """
-            (employees: [
-                "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                "6ee24785-ee9a-4502-81c2-7697009c9053"
-            ])
-        """,
+            {
+                "employees": [
+                    "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                    "6ee24785-ee9a-4502-81c2-7697009c9053",
+                ]
+            },
             3,
         ),
         # Engagement filters
-        ('(engagements: "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab")', 0),
-        ('(engagements: "d000591f-8705-4324-897a-075e3623f37b")', 1),
+        ({"engagements": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab"}, 0),
+        ({"engagements": "d000591f-8705-4324-897a-075e3623f37b"}, 1),
         # Mixed filters
         (
-            """
-            (
-                employees: "6ee24785-ee9a-4502-81c2-7697009c9053",
-                address_types: "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
-            )
-        """,
+            {
+                "employees": "6ee24785-ee9a-4502-81c2-7697009c9053",
+                "address_types": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
+            },
             1,
         ),
         (
-            """
-            (
-                employees: "6ee24785-ee9a-4502-81c2-7697009c9053",
-                address_type_user_keys: "BrugerEmail"
-            )
-        """,
+            {
+                "employees": "6ee24785-ee9a-4502-81c2-7697009c9053",
+                "address_type_user_keys": "BrugerEmail",
+            },
             1,
         ),
     ],
 )
-async def test_address_filters(graphapi_post, filter_snippet, expected) -> None:
+async def test_address_filters(graphapi_post, filter, expected) -> None:
     """Test filters on addresses."""
-    address_query = f"""
-        query Addresses {{
-            addresses{filter_snippet} {{
-                objects {{
+    address_query = """
+        query Addresses($filter: AddressFilter!) {
+            addresses(filter: $filter) {
+                objects {
                   uuid
-                }}
-            }}
-        }}
+                }
+            }
+        }
     """
-    response: GQLResponse = graphapi_post(address_query)
+    response: GQLResponse = graphapi_post(address_query, variables=dict(filter=filter))
     assert response.errors is None
     assert len(response.data["addresses"]["objects"]) == expected
 
@@ -779,7 +773,7 @@ async def test_update_address_integration_test(test_data, graphapi_post) -> None
         query = """
             query ($uuid: [UUID!]!){
                 __typename
-                addresses(uuids: $uuid){
+                addresses(filter: {uuids: $uuid}){
                     objects {
                         objects {
                             uuid

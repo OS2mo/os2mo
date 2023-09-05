@@ -71,7 +71,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
         query = """
                 query TestQuery($uuids: [UUID!]) {
-                    org_units(uuids: $uuids) {
+                    org_units(filter: {uuids: $uuids}) {
                         objects {
                             uuid
                         }
@@ -179,7 +179,7 @@ def test_create_org_unit_integration_test(data, graphapi_post, org_uuids) -> Non
 
     verify_query = """
         query VerifyQuery($uuid: UUID!) {
-            org_units(uuids: [$uuid], from_date: null, to_date: null) {
+            org_units(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
                 objects {
                     objects {
                         uuid
@@ -228,37 +228,37 @@ def test_create_org_unit_integration_test(data, graphapi_post, org_uuids) -> Non
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @pytest.mark.parametrize(
-    "filter_snippet,expected",
+    "filter,expected",
     [
-        ("", 10),
+        ({}, 10),
         # Filter roots
-        ("(parents: null)", 3),
+        ({"parents": None}, 3),
         # Filter under node
-        ('(parents: "2874e1dc-85e6-4269-823a-e1125484dfd3")', 4),
-        ('(parents: "b1f69701-86d8-496e-a3f1-ccef18ac1958")', 1),
+        ({"parents": "2874e1dc-85e6-4269-823a-e1125484dfd3"}, 4),
+        ({"parents": "b1f69701-86d8-496e-a3f1-ccef18ac1958"}, 1),
         (
-            """(
-                                parents: [
-                                "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                                "b1f69701-86d8-496e-a3f1-ccef18ac1958"
-                                ]
-                                )""",
+            {
+                "parents": [
+                    "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                    "b1f69701-86d8-496e-a3f1-ccef18ac1958",
+                ]
+            },
             5,
         ),
     ],
 )
-async def test_org_unit_parent_filter(graphapi_post, filter_snippet, expected) -> None:
+async def test_org_unit_parent_filter(graphapi_post, filter, expected) -> None:
     """Test parent filter on organisation units."""
-    org_unit_query = f"""
-        query OrgUnit {{
-            org_units{filter_snippet} {{
-                objects {{
+    org_unit_query = """
+        query OrgUnit($filter: OrganisationUnitFilter!) {
+            org_units(filter: $filter) {
+                objects {
                     uuid
-                }}
-            }}
-        }}
+                }
+            }
+        }
     """
-    response: GQLResponse = graphapi_post(org_unit_query)
+    response: GQLResponse = graphapi_post(org_unit_query, variables=dict(filter=filter))
     assert response.errors is None
     assert len(response.data["org_units"]["objects"]) == expected
 
@@ -266,43 +266,41 @@ async def test_org_unit_parent_filter(graphapi_post, filter_snippet, expected) -
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @pytest.mark.parametrize(
-    "filter_snippet,expected",
+    "filter,expected",
     [
         # Filter none
-        ("", 10),
-        ("(hierarchies: null)", 10),
+        ({}, 10),
+        ({"hierarchies": None}, 10),
         # Filter 'linjeorg'
-        ('(hierarchies: "f805eb80-fdfe-8f24-9367-68ea955b9b9b")', 2),
+        ({"hierarchies": "f805eb80-fdfe-8f24-9367-68ea955b9b9b"}, 2),
         # Filter 'hidden'
-        ('(hierarchies: "8c30ab5a-8c3a-566c-bf12-790bdd7a9fef")', 1),
+        ({"hierarchies": "8c30ab5a-8c3a-566c-bf12-790bdd7a9fef"}, 1),
         # Filter 'selvejet'
-        ('(hierarchies: "69de6410-bfe7-bea5-e6cc-376b3302189c")', 1),
+        ({"hierarchies": "69de6410-bfe7-bea5-e6cc-376b3302189c"}, 1),
         # Filter 'linjeorg' + 'hidden'
         (
-            """(
-                                hierarchies: [
-                                "f805eb80-fdfe-8f24-9367-68ea955b9b9b"
-                                "8c30ab5a-8c3a-566c-bf12-790bdd7a9fef",
-                                ]
-                                )""",
+            {
+                "hierarchies": [
+                    "f805eb80-fdfe-8f24-9367-68ea955b9b9b",
+                    "8c30ab5a-8c3a-566c-bf12-790bdd7a9fef",
+                ]
+            },
             3,
         ),
     ],
 )
-async def test_org_unit_hierarchy_filter(
-    graphapi_post, filter_snippet, expected
-) -> None:
+async def test_org_unit_hierarchy_filter(graphapi_post, filter, expected) -> None:
     """Test hierarchies filter on organisation units."""
-    org_unit_query = f"""
-        query OrgUnit {{
-            org_units{filter_snippet} {{
-                objects {{
+    org_unit_query = """
+        query OrgUnit($filter: OrganisationUnitFilter!) {
+            org_units(filter: $filter) {
+                objects {
                     uuid
-                }}
-            }}
-        }}
+                }
+            }
+        }
     """
-    response: GQLResponse = graphapi_post(org_unit_query)
+    response: GQLResponse = graphapi_post(org_unit_query, variables=dict(filter=filter))
     assert response.errors is None
     assert len(response.data["org_units"]["objects"]) == expected
 
@@ -367,7 +365,7 @@ async def test_update_org_unit_mutation_integration_test(
 
     query = """
         query MyQuery($uuid: UUID!) {
-            org_units(uuids: [$uuid]) {
+            org_units(filter: {uuids: [$uuid]}) {
                 objects {
                     objects {
                         user_key
@@ -406,7 +404,7 @@ async def test_update_org_unit_mutation_integration_test(
 
     verify_query = """
         query VerifyQuery($uuid: [UUID!]!) {
-            org_units(uuids: $uuid){
+            org_units(filter: {uuids: $uuid}){
                 objects {
                     objects {
                         uuid
@@ -539,7 +537,7 @@ async def test_get_org_unit_ancestors(graphapi_post, expected):
 
     graphql_query = """
         query MyAncestorQuery($uuid: UUID!) {
-          org_units(uuids: [$uuid]) {
+          org_units(filter: {uuids: [$uuid]}) {
             objects {
               objects {
                 user_key

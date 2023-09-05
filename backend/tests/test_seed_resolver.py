@@ -1,23 +1,18 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Test the seed_resolver function."""
+import dataclasses
+import typing
 from collections.abc import Callable
-from functools import partial
 from inspect import Parameter
 from inspect import signature
 from typing import Any
 
 import pytest
-from strawberry import UNSET
-from strawberry.types.info import Info
+from more_itertools import first
 
-from mora.graphapi.versions.latest.resolvers import CursorType
-from mora.graphapi.versions.latest.resolvers import FromDateFilterType
-from mora.graphapi.versions.latest.resolvers import LimitType
+from mora.graphapi.versions.latest.resolvers import BaseFilter
 from mora.graphapi.versions.latest.resolvers import Resolver
-from mora.graphapi.versions.latest.resolvers import ToDateFilterType
-from mora.graphapi.versions.latest.resolvers import UserKeysFilterType
-from mora.graphapi.versions.latest.resolvers import UUIDsFilterType
 from mora.graphapi.versions.latest.schema import seed_resolver
 
 
@@ -39,38 +34,24 @@ class DummyResolver(Resolver):
         return {}
 
 
-def dict_remove_keys(
-    dictionary: dict[str, Any], remove_keys: list[str]
-) -> dict[str, Any]:
-    """Returns a dictionary with the provided keys removed.
-
-    Note:
-        The returned dictionary is a shallow-copy of the original dictionary.
-
-    Args:
-        dictionary: The dictionary to remove keys from.
-        remove_keys: The list of keys to remove.
-
-    Return:
-        New dictionary with keys removed.
-    """
-    return {key: value for key, value in dictionary.items() if key not in remove_keys}
-
-
 @pytest.mark.parametrize(
-    "seeds",
+    "seeds,expected_filter_fields",
     [
-        {},
-        {"limit": lambda _: 1},
-        {"cursor": lambda _: 2},
-        {
-            "user_keys": lambda _: ["test"],
-            "limit": lambda _: 1,
-            "cursor": lambda _: 2,
-        },
+        ({}, {"uuids", "user_keys", "from_date", "to_date"}),
+        ({"uuids": lambda _: 1}, {"user_keys", "from_date", "to_date"}),
+        (
+            {
+                "user_keys": lambda _: ["test"],
+                "from_date": lambda _: 1,
+                "to_date": lambda _: 2,
+            },
+            {"uuids"},
+        ),
     ],
 )
-async def test_signature_changes(seeds: dict[str, Any]) -> None:
+async def test_signature_changes(
+    seeds: dict[str, Any], expected_filter_fields: set[str]
+) -> None:
     """Test that seed_resolver changes the call signature as expected.
 
     The signature is important as it used by strawberry to generate the GraphQL schema.
@@ -78,99 +59,50 @@ async def test_signature_changes(seeds: dict[str, Any]) -> None:
     Args:
         seeds: The seeds to set on seed_resolver.
     """
-    pos_parameter = partial(Parameter, kind=Parameter.POSITIONAL_OR_KEYWORD)
-    resolver_params = {
-        "info": pos_parameter("info", annotation=Info),
-        "uuids": pos_parameter("uuids", annotation=UUIDsFilterType, default=None),
-        "user_keys": pos_parameter(
-            "user_keys", annotation=UserKeysFilterType, default=None
-        ),
-        "limit": pos_parameter("limit", annotation=LimitType, default=None),
-        "cursor": pos_parameter("cursor", annotation=CursorType, default=None),
-        "from_date": pos_parameter(
-            "from_date", annotation=FromDateFilterType, default=UNSET
-        ),
-        "to_date": pos_parameter("to_date", annotation=ToDateFilterType, default=UNSET),
-    }
+    # Check the original signature
+    original_resolver = DummyResolver()
+    original_parameters = signature(original_resolver.resolve).parameters
+    assert original_parameters["filter"] == Parameter(
+        "filter",
+        kind=Parameter.POSITIONAL_OR_KEYWORD,
+        annotation=BaseFilter | None,
+        default=None,
+    )
 
-    # Check the signature
-    resolver = DummyResolver()
-    resolve = signature(resolver.resolve)
-    assert list(resolve.parameters.values()) == list(resolver_params.values())
-
-    # Seeding the resolver, adds a root parameter and removes the seeded keys
-    resolver_params = {
-        "root": pos_parameter("root", annotation=Any),
-        **dict_remove_keys(resolver_params, list(seeds.keys())),
-    }
-    seeded = signature(seed_resolver(resolver, seeds))
-    assert list(seeded.parameters.values()) == list(resolver_params.values())
-
-
-@pytest.mark.parametrize(
-    "seeds,expected",
-    [
-        ({"__non_existing_key": lambda _: ["failure"]}, "'__non_existing_key'"),
-        (
-            {
-                "__non_existing_key1": lambda _: ["failure"],
-                "__non_existing_key2": lambda _: ["failure"],
-            },
-            "'__non_existing_key1'",
-        ),
-        (
-            {"limit": lambda _: 1, "__non_existing_key2": lambda _: ["failure"]},
-            "'__non_existing_key2'",
-        ),
-    ],
-)
-async def test_signature_invalid_key(seeds: dict[str, Callable], expected: str) -> None:
-    """Test that seeding a function with illegal seeds throw an exception.
-
-    Args:
-        seeds: The seeds to set on seed_resolver.
-        expected: The expected error message.
-    """
-    resolver = DummyResolver()
-
-    with pytest.raises(KeyError) as exc_info:
-        seed_resolver(resolver, seeds)
-    assert expected in str(exc_info.value)
+    # Seeding the resolver adds a root parameter and removes the seeded keys from the
+    # filter.
+    seeded_resolver = seed_resolver(original_resolver, seeds)
+    seeded_paramters = signature(seeded_resolver).parameters
+    assert seeded_paramters["root"] == Parameter(
+        "root",
+        kind=Parameter.POSITIONAL_OR_KEYWORD,
+        annotation=Any,
+    )
+    seeded_filter_type = typing.get_args(seeded_paramters["filter"].annotation)
+    seeded_filter_class = first(seeded_filter_type)  # strip `| None`
+    seeded_filter_fields = {f.name for f in dataclasses.fields(seeded_filter_class)}
+    assert seeded_filter_fields == expected_filter_fields
 
 
 @pytest.mark.parametrize(
     "seeds,expected",
     [
         ({}, {}),
-        ({"limit": lambda _: 1}, {"limit": 1}),
-        ({"cursor": lambda _: 2}, {"cursor": 2}),
         ({"user_keys": lambda _: ["test"]}, {"user_keys": ["test"]}),
         (
             {"user_keys": lambda root: list(root.values())},
             {"user_keys": ["val1", "val2"]},
-        ),
-        (
-            {
-                "user_keys": lambda _: ["test"],
-                "limit": lambda _: 1,
-                "cursor": lambda _: 2,
-            },
-            {
-                "limit": 1,
-                "cursor": 2,
-                "user_keys": ["test"],
-            },
         ),
     ],
 )
 async def test_call_values(
     seeds: dict[str, Callable], expected: dict[str, Any]
 ) -> None:
-    """Test that calling a seeded function actually calls with seeded values.
+    """Test that calling a seeded function actually calls with a seeded filter.
 
     Args:
         seeds: The seeds to set on seed_resolver.
-        expected: The expected kwargs overrides when _resolve is called.
+        expected: The expected filter arguments when _resolve is called.
     """
     info = object()
     root = {
@@ -179,27 +111,20 @@ async def test_call_values(
     }
     resolver = DummyResolver()
 
-    # Calling resolve calls _resolve with expected parameters
-    _resolver_kwargs = {
-        "info": info,
-        "uuids": None,
-        "user_keys": None,
-        "limit": None,
-        "cursor": None,
-        "from_date": UNSET,
-        "to_date": UNSET,
-    }
-
+    # Calling unseeded sets the expected kwargs
     assert resolver.args == ()
     assert resolver.kwargs == {}
-
-    # Calling unseeded sets the expected kwargs
     await resolver.resolve(info)
     assert resolver.args == ()
-    assert resolver.kwargs == _resolver_kwargs
+    assert resolver.kwargs == {
+        "info": info,
+        "filter": None,
+        "limit": None,
+        "cursor": None,
+    }
 
     # Calling a seeded function sets the value to the seed result
     seeded = seed_resolver(resolver, seeds=seeds)
     await seeded(info, root=root)
     assert resolver.args == ()
-    assert resolver.kwargs == {**_resolver_kwargs, **expected}
+    assert resolver.kwargs["filter"] == BaseFilter(**expected)

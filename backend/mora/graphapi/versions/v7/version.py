@@ -5,11 +5,11 @@ from fastapi.encoders import jsonable_encoder
 from strawberry.types import Info
 
 from ..latest.inputs import AddressTerminateInput
-from ..latest.mutators import uuid2response
 from ..latest.permissions import gen_terminate_permission
 from ..latest.permissions import IsAuthenticatedPermission
-from ..latest.schema import Address
-from ..latest.schema import Response
+from ..v13.mutators import uuid2response
+from ..v13.schema import Address
+from ..v13.schema import Response
 from ..v8.version import GraphQLVersion as NextGraphQLVersion
 from mora.graphapi.shim import execute_graphql  # type: ignore[attr-defined]
 from ramodels.mo.details import AddressRead

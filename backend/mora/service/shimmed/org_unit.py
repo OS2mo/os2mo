@@ -67,7 +67,7 @@ async def get_orgunit(
         query = """
         query OrganisationUnitQuery($uuid: UUID!)
         {
-            org_units(uuids: [$uuid]) {
+            org_units(filter: {uuids: [$uuid]}) {
                 objects {
                     objects {
                         uuid
@@ -84,7 +84,7 @@ async def get_orgunit(
             $engagements: Boolean!,
             $associations: Boolean!,
         ) {
-            org_units(uuids: [$uuid], from_date: $from_date) {
+            org_units(filter: {uuids: [$uuid], from_date: $from_date}) {
                 objects {
                     objects {
                         name
@@ -236,12 +236,12 @@ async def get_org_unit_children(
         $associations: Boolean!,
         $hierarchies: [UUID!]
     ) {
-        org_units(uuids: [$uuid], from_date: $from_date, hierarchies: $hierarchies) {
+        org_units(filter: {uuids: [$uuid], from_date: $from_date, hierarchies: $hierarchies}) {
             objects {
                 objects {
-                    children(hierarchies: $hierarchies) {
+                    children(filter: {hierarchies: $hierarchies}) {
                         uuid
-                        child_count(hierarchies: $hierarchies)
+                        child_count(filter: {hierarchies: $hierarchies})
                         name
                         user_key
                         associations @include(if: $associations) {

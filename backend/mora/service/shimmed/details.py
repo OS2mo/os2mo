@@ -114,31 +114,31 @@ async def list_employee_details(id: UUID) -> dict[str, bool]:
     #      You have stood the test of LoRa and won against its evils!
     query = """
         query GetEmployeeDetails($uuid: UUID!) {
-          employees(uuids: [$uuid], from_date: null, to_date: null) {
+          employees(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
             objects {
               objects {
-                address: addresses(from_date: null, to_date: null) {
+                address: addresses(filter: {from_date: null, to_date: null}) {
                   uuid
                 }
-                association: associations(from_date: null, to_date: null) {
+                association: associations(filter: {from_date: null, to_date: null}) {
                   uuid
                 }
-                engagement: engagements(from_date: null, to_date: null) {
+                engagement: engagements(filter: {from_date: null, to_date: null}) {
                   uuid
                 }
-                engagement_association: engagement_associations(from_date: null, to_date: null) {
+                engagement_association: engagement_associations(filter: {from_date: null, to_date: null}) {
                   uuid
                 }
-                it: itusers(from_date: null, to_date: null) {
+                it: itusers(filter: {from_date: null, to_date: null}) {
                   uuid
                 }
-                leave: leaves(from_date: null, to_date: null) {
+                leave: leaves(filter: {from_date: null, to_date: null}) {
                   uuid
                 }
-                manager: manager_roles(from_date: null, to_date: null) {
+                manager: manager_roles(filter: {from_date: null, to_date: null}) {
                   uuid
                 }
-                role: roles(from_date: null, to_date: null) {
+                role: roles(filter: {from_date: null, to_date: null}) {
                   uuid
                 }
               }
@@ -210,28 +210,28 @@ async def list_org_unit_details(id: UUID) -> dict[str, bool]:
     #      You have stood the test of LoRa and won against its evils!
     query = """
         query GetOrganisationUnitDetails($uuid: UUID!) {
-          org_units(uuids: [$uuid], from_date: null, to_date: null) {
+          org_units(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
             objects {
               objects {
-                address: addresses(from_date: null, to_date: null) {
+                address: addresses(filter: {from_date: null, to_date: null}) {
                   uuid
                 }
-                association: associations(from_date: null, to_date: null) {
+                association: associations(filter: {from_date: null, to_date: null}) {
                   uuid
                 }
-                engagement: engagements(from_date: null, to_date: null) {
+                engagement: engagements(filter: {from_date: null, to_date: null}) {
                   uuid
                 }
-                engagement_association: engagement_associations(from_date: null, to_date: null) {
+                engagement_association: engagement_associations(filter: {from_date: null, to_date: null}) {
                   uuid
                 }
-                it: itusers(from_date: null, to_date: null) {
+                it: itusers(filter: {from_date: null, to_date: null}) {
                   uuid
                 }
-                kle: kles(from_date: null, to_date: null) {
+                kle: kles(filter: {from_date: null, to_date: null}) {
                   uuid
                 }
-                leave: leaves(from_date: null, to_date: null) {
+                leave: leaves(filter: {from_date: null, to_date: null}) {
                   uuid
                 }
                 manager: managers {
@@ -240,10 +240,10 @@ async def list_org_unit_details(id: UUID) -> dict[str, bool]:
                 owner: owners {
                   uuid
                 }
-                related_unit: related_units(from_date: null, to_date: null) {
+                related_unit: related_units(filter: {from_date: null, to_date: null}) {
                   uuid
                 }
-                role: roles(from_date: null, to_date: null) {
+                role: roles(filter: {from_date: null, to_date: null}) {
                   uuid
                 }
               }

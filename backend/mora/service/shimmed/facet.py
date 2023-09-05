@@ -79,7 +79,7 @@ async def get_class(
         query = """
         query ClassQuery($uuid: UUID!)
         {
-          classes(uuids: [$uuid]) {
+          classes(filter: {uuids: [$uuid]}) {
             objects {
               current {
                 uuid
@@ -96,7 +96,7 @@ async def get_class(
           $top_level_facet: Boolean!,
           $facet: Boolean!,
         ) {
-          classes(uuids: [$uuid]) {
+          classes(filter: {uuids: [$uuid]}) {
             objects {
               current {
                 uuid
@@ -325,7 +325,7 @@ async def get_all_classes(
       $uuid: UUID!,
       $only_primary_uuid: Boolean!
     ) {
-      facets(uuids: [$uuid]) {
+      facets(filter: {uuids: [$uuid]}) {
         objects {
           current {
             uuid
@@ -431,7 +431,7 @@ async def get_all_classes_children(
       $uuid: UUID!,
       $only_primary_uuid: Boolean!
     ) {
-      facets(uuids: [$uuid]) {
+      facets(filter: {uuids: [$uuid]}) {
         objects {
           current {
             classes @include(if: $only_primary_uuid) {
@@ -493,7 +493,7 @@ async def get_all_class_children(
       $uuid: UUID!,
       $only_primary_uuid: Boolean!
     ) {
-      classes(uuids: [$uuid]) {
+      classes(filter: {uuids: [$uuid]}) {
         objects {
           current {
             children @include(if: $only_primary_uuid) {
@@ -604,7 +604,7 @@ async def get_classes(
       $top_level_facet: Boolean!,
       $facet: Boolean!,
     ) {
-      facets(uuids: [$uuid]) {
+      facets(filter: {uuids: [$uuid]}) {
         objects {
           current {
             ...facet_fields

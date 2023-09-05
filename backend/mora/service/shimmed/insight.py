@@ -30,7 +30,7 @@ from mora.service.insight import router as insight_router
 )
 async def get_insight_filenames() -> list[str]:
     """Lists all available files."""
-    query = "query FilesQuery { files(file_store: INSIGHT) { objects { file_name } } }"
+    query = "query FilesQuery { files(filter: {file_store: INSIGHT}) { objects { file_name } } }"
     gql_response = await execute_graphql(query)
     handle_gql_error(gql_response)
     files = gql_response.data["files"]["objects"]
@@ -66,7 +66,7 @@ async def get_insight_data(q: list[str] | None = Query(["all"])) -> list[Insight
     if q == ["all"]:
         query = """
         query FileQuery {
-          files(file_store: INSIGHTS) {
+          files(filter: {file_store: INSIGHTS}) {
             objects {
               text_contents
             }
@@ -77,7 +77,7 @@ async def get_insight_data(q: list[str] | None = Query(["all"])) -> list[Insight
     else:
         query = """
         query FileQuery($file_names: [String!]) {
-          files(file_store: INSIGHTS, file_names: $file_names) {
+          files(filter: {file_store: INSIGHTS, file_names: $file_names}) {
             objects {
               text_contents
             }
@@ -116,7 +116,7 @@ async def download_csv() -> StreamingResponse:
     """Exports locally stored JSONs as a streamed ZIP of CSVs."""
     query = """
     query FileQuery {
-      files(file_store: INSIGHTS) {
+      files(filter: {file_store: INSIGHTS}) {
         objects {
           file_name
           text_contents

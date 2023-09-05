@@ -52,7 +52,7 @@ class ExtendedErrorFormatExtension(SchemaExtension):
 
 
 class IntrospectionQueryCacheExtension(SchemaExtension):
-    cache: dict[str | None, ExecutionResult | None] = {}
+    cache: dict[tuple[Schema, str | None], ExecutionResult | None] = {}
 
     def on_execute(self) -> AsyncIteratorOrIterator[None]:
         """Cache GraphQL introspection query, which otherwise takes 5-10s to execute.
@@ -61,7 +61,7 @@ class IntrospectionQueryCacheExtension(SchemaExtension):
         https://strawberry.rocks/docs/guides/custom-extensions.
         """
         execution_context = self.execution_context
-        cache_key = execution_context.query
+        cache_key = (execution_context.schema, execution_context.query)
         if (
             execution_context.operation_name == "IntrospectionQuery"
             and not execution_context.variables

@@ -73,7 +73,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
         query = """
                 query TestQuery($uuids: [UUID!]) {
-                    kles(uuids: $uuids) {
+                    kles(filter: {uuids: $uuids}) {
                         objects {
                             uuid
                         }
@@ -172,7 +172,7 @@ async def test_create_kle_integration_test(data, graphapi_post, org_uuids) -> No
 
     verify_query = """
         query VerifyQuery($uuid: UUID!) {
-            kles(uuids: [$uuid], from_date: null, to_date: null) {
+            kles(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
                 objects {
                     objects {
                         user_key
@@ -293,7 +293,7 @@ async def test_update_kle_integration_test(test_data, graphapi_post) -> None:
 
     query = """
         query KleQuery($uuid: UUID!) {
-            kles(uuids: [$uuid]) {
+            kles(filter: {uuids: [$uuid]}) {
                 objects {
                     objects {
                         uuid
@@ -332,7 +332,7 @@ async def test_update_kle_integration_test(test_data, graphapi_post) -> None:
     # Writing verify query to retrieve objects containing data on the desired uuids.
     verify_query = """
         query VerifyQuery($uuid: UUID!) {
-            kles(uuids: [$uuid]){
+            kles(filter: {uuids: [$uuid]}){
                 objects {
                     objects {
                         uuid
@@ -446,7 +446,7 @@ async def test_kle_terminate_integration(test_data, graphapi_post) -> None:
 
     verify_query = """
         query VerifyQuery($uuid: UUID!) {
-            kles(uuids: [$uuid]){
+            kles(filter: {uuids: [$uuid]}){
                 objects {
                     objects {
                         uuid

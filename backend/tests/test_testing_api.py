@@ -49,7 +49,7 @@ def read_employee_surname(graphapi_post: Callable[..., GQLResponse], uuid: str) 
     employee = graphapi_post(
         """
         query Read($uuid: UUID!) {
-          employees(uuids: [$uuid]) {
+          employees(filter: {uuids: [$uuid]}) {
             objects {
               current {
                 surname

@@ -163,9 +163,11 @@ async def get_org_children(
         $associations: Boolean!,
         $hierarchies: [UUID!]) {
             org_units(
-                parents: $parents,
-                hierarchies: $hierarchies,
-                from_date: $from_date
+                filter: {
+                    parents: $parents,
+                    hierarchies: $hierarchies,
+                    from_date: $from_date,
+                },
             ) {
                 objects {
                     objects {
@@ -176,7 +178,7 @@ async def get_org_children(
                             from
                             to
                         }
-                        child_count(hierarchies: $hierarchies)
+                        child_count(filter: {hierarchies: $hierarchies})
                         associations @include(if: $associations) {
                             uuid
                         }

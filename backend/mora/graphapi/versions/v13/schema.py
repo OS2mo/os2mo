@@ -1,22 +1,17 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-"""Strawberry types describing the MO graph."""
-import dataclasses
+"""Like latest's schema, but with the old, arguments-based resolvers."""
 import json
 import re
-import typing
 from base64 import b64encode
 from collections.abc import Awaitable
 from collections.abc import Callable
 from datetime import date
-from functools import cache
 from functools import partial
-from functools import wraps
 from inspect import Parameter
 from inspect import signature
 from itertools import chain
 from textwrap import dedent
-from types import NoneType
 from typing import Annotated
 from typing import Any
 from typing import cast
@@ -33,14 +28,25 @@ from starlette_context import context
 from strawberry import UNSET
 from strawberry.types import Info
 
-from .health import health_map
-from .models import FileStore
-from .models import OrganisationUnitRefreshRead
-from .permissions import gen_read_permission
-from .permissions import IsAuthenticatedPermission
+from ..latest.health import health_map
+from ..latest.models import FileStore
+from ..latest.models import OrganisationUnitRefreshRead
+from ..latest.permissions import gen_read_permission
+from ..latest.permissions import IsAuthenticatedPermission
+from ..latest.resolver_map import resolver_map
+from ..latest.resolvers import Resolver
+from ..latest.schema import force_none_return_wrapper
+from ..latest.schema import identity
+from ..latest.schema import model2name
+from ..latest.schema import MOObject
+from ..latest.schema import R
+from ..latest.schema import raise_force_none_return_if_uuid_none
+from ..latest.schema import uuid2list
+from ..latest.types import CPRType
+from ..latest.validity import OpenValidity
+from ..latest.validity import Validity
 from .registration import Registration
 from .registration import RegistrationResolver
-from .resolver_map import resolver_map
 from .resolvers import AddressResolver
 from .resolvers import AssociationResolver
 from .resolvers import ClassResolver
@@ -53,16 +59,11 @@ from .resolvers import ITSystemResolver
 from .resolvers import ITUserResolver
 from .resolvers import KLEResolver
 from .resolvers import LeaveResolver
-from .resolvers import ManagerFilter
 from .resolvers import ManagerResolver
 from .resolvers import OrganisationUnitResolver
 from .resolvers import OwnerResolver
 from .resolvers import RelatedUnitResolver
-from .resolvers import Resolver
 from .resolvers import RoleResolver
-from .types import CPRType
-from .validity import OpenValidity
-from .validity import Validity
 from mora import common
 from mora import config
 from mora.common import _create_graphql_connector
@@ -93,227 +94,39 @@ from ramodels.mo.details import OwnerRead
 from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
 
-# TODO: Remove RAModels dependency, be purely Strawberry models
-# TODO: Deprecate all _uuid / _uuids relation fields in favor of relation objects
-# TODO: Remove resolver filter parameters for single-object UUID-selected fields?
-# TODO: Document everything about engagement associations
-# TODO: Document everything fields on org-units
-
-
-MOObject = TypeVar("MOObject")
-R = TypeVar("R")
-
-
-def identity(x: R) -> R:
-    """Identity function.
-
-    Args:
-        x: Random argument.
-
-    Returns:
-        `x` completely unmodified.
-    """
-    return x
-
-
-def raise_force_none_return_if_uuid_none(
-    root: Any, get_uuid: Callable[[Any], UUID | None]
-) -> list[UUID]:
-    """Raise ForceNoneReturnError if uuid is None, a list with the uuid otherwise.
-
-    Args:
-        root: The root object from which the UUID will be extracted.
-        get_uuid: Extractor function used to extract a UUID from root.
-
-    Raises:
-        ForceNonReturnError: If the extracted uuid is None.
-
-    Returns:
-        A list containing the UUID if the extracted uuid is not None.
-    """
-    uuid = get_uuid(root)
-    if uuid is None:
-        raise ForceNoneReturnError
-    return uuid2list(uuid)
-
-
-class ForceNoneReturnError(Exception):
-    """Error to be raised to forcefully return None from decorated function.
-
-    Note: The function that should forcefully return None must be decorated with
-          `force_none_return_wrapper`.
-    """
-
-    pass
-
-
-def force_none_return_wrapper(func: Callable) -> Callable:
-    """Decorate a function to react to ForceNonReturnError.
-
-    Args:
-        func: The function to be decorated.
-
-    Returns:
-        A decorated function that returns None whenever ForceNonReturnError is raised.
-    """
-
-    @wraps(func)
-    async def wrapper(*args: Any, **kwargs: Any) -> R | None:
-        try:
-            return await func(*args, **kwargs)
-        except ForceNoneReturnError:
-            return None
-
-    return wrapper
-
-
-@cache
-def get_bound_filter(
-    filter_class: type,
-    seeds: frozenset[str],
-) -> type:
-    """Construct a bound Filter Strawberry input type with the seeded fields removed.
-
-    The function's return is @cached since Strawberry exposes the type in the GraphQL
-    schema, so each unique original filter and seeds combination has to refer to the
-    same python object.
-
-    Args:
-        filter_class: The class of the original, unseeded filter.
-        seeds: Seed keys. Passed as a frozenset to be hashable.
-
-    Returns:
-        A copy of the given filter class with the seeded fields removed.
-    """
-    # Examples: UuidBoundEmployeeFilter, FacetsBoundClassFilter
-    cls_name = "{seeds}Bound{original_filter}".format(
-        seeds="".join(s.title() for s in sorted(seeds)),
-        original_filter=filter_class.__name__,
-    )
-    # Strawberry.input is incredibly badly typed; runtime check is better than nothing
-    assert dataclasses.is_dataclass(filter_class)
-    bound_filter_class = dataclasses.make_dataclass(
-        cls_name=cls_name,
-        fields=[
-            (f.name, f.type, f)
-            for f in dataclasses.fields(filter_class)
-            if f.name not in seeds
-        ],
-    )
-    return strawberry.input(bound_filter_class)
-
 
 def seed_resolver(
     resolver: Resolver,
     seeds: dict[str, Callable[[Any], Any]] | None = None,
     result_translation: Callable[[Any], R] | None = None,
 ) -> Callable[..., Awaitable[R]]:
-    """Seed the provided top-level resolver to be used in a field-level context.
-
-    This function serves to create a new function which calls the `resolver.resolve`
-    method with seeded `filter` values from the field-context in which it is called.
-
-    Example:
-        A resolver exists to load organisation units, namely `OrganisationUnitResolver`.
-        This resolver accepts a `filter` parameter with a `parents` field, which, given
-        a UUID of an existing organisation unit, loads all of its children.
-
-        From our top-level `Query` object context, the caller can set this field
-        explicitly, however on the OrganisationUnit field-level, we would like this
-        field to be given by the context, i.e. when asking for `children` on an
-        organisation unit, we expect the `parent` field on the filter to be set
-        to the object we call `children` on.
-
-        This can be achieved by setting `seeds` to a dictionary that sets `parents` to
-        a callable that extracts the root object's `uuid` from the object itself:
-        ```
-        child_count: int = strawberry.field(
-            description="Children count of the organisation unit.",
-            resolver=seed_resolver(
-                OrganisationUnitResolver(),
-                {"parents": lambda root: [root.uuid]},
-                lambda result: len(result.keys()),
-            ),
-            ...
-        )
-        ```
-        In this example a `result_translation` lambda is also used to map from the list
-        of OrganisationUnits returned by the resolver to the number of children found.
-
-    Args:
-        resolver: The top-level resolver to seed arguments to.
-        seeds:
-            A dictionary mapping from parameter name to callables resolving the argument
-            values from the root object.
-        result_translation:
-            A result translation callable translating the resolver return value
-            from one type to another. Uses the identity function if not provided.
-
-    Returns:
-        A seeded resolver function that accepts the same parameters as the
-        `resolver.resolve` function, except with a new `filter` object type with the
-        `seeds` keys removed as fields, and a `root` parameter with the 'any' type
-        added.
-    """
     # If no seeds was provided, default to the empty dict
     seeds = seeds or {}
     # If no result_translation function was provided, default to the identity function
     result_translation = result_translation or identity
 
-    # Extract the original `filter` class from the provided resolver
-    sig = signature(resolver.resolve)
-    parameters = sig.parameters.copy()
-    original_filter_parameter = parameters.pop("filter")
-    original_filter_type = typing.get_args(original_filter_parameter.annotation)
-    original_filter_class, none = original_filter_type
-    # For now, seeding is limited to resolvers which define their filter as
-    # filter: SomeFilter | None
-    # Assert that this is indeed what was passed.
-    assert none is NoneType
-
-    # Create a new filter class with the seeded fields removed. Strawberry exposes the
-    # type in the GraphQL schema, so each one has to be named uniquely and refer to the
-    # same python object instance. We use a function with @cache to achieve this.
-    bound_filter_class = get_bound_filter(
-        original_filter_class, frozenset(seeds.keys())
-    )
-    bound_filter_type = bound_filter_class | None
-
-    # Wrap the original resolver to instead accept a bound filter with the seeded
-    # field(s) removed. At call-time, we construct an instance of the original filter
-    # class with the user-provided and seeded values combined and pass it to the
-    # resolver.
-    async def seeded_resolver(
-        *args: Any,
-        root: Any,
-        filter: bound_filter_type = None,  # type: ignore[valid-type]
-        **kwargs: Any,
-    ) -> R:
-        assert seeds is not None
-        filter_args = {}
-        # Pass user-provided filters from the bound filter
-        if filter is not None:
-            filter_args.update(dataclasses.asdict(filter))
+    async def seeded_resolver(*args: Any, root: Any, **kwargs: Any) -> R:
         # Resolve arguments from the root object
+        assert seeds is not None
         for key, argument_callable in seeds.items():
-            filter_args[key] = argument_callable(root)
-        # Create an instance of the original filter, as expected by the resolver
-        filter = original_filter_class(**filter_args)
-        assert "filter" not in kwargs
-        result = await resolver.resolve(*args, filter=filter, **kwargs)  # type: ignore[misc]
+            kwargs[key] = argument_callable(root)
+        result = await resolver.resolve(*args, **kwargs)
         assert result_translation is not None
         return result_translation(result)
 
-    # Generate and apply our new signature to the seeded_resolver function. The `root`
-    # parameter is required for all the `seeds` resolvers to determine call-time
-    # parameters.
+    sig = signature(resolver.resolve)
+    parameters = sig.parameters.copy()
+    # Remove the `seeds` parameters from the parameter list, as these will be resolved
+    # from the root object on call-time instead.
+    for key in seeds.keys():
+        del parameters[key]
+    # Add the `root` parameter to the parameter list, as it is required for all the
+    # `seeds` resolvers to determine call-time parameters.
     parameter_list = list(parameters.values())
     parameter_list = [
-        Parameter("root", Parameter.POSITIONAL_OR_KEYWORD, annotation=Any),
-        Parameter(
-            "filter", Parameter.POSITIONAL_OR_KEYWORD, annotation=bound_filter_type
-        ),
+        Parameter("root", Parameter.POSITIONAL_OR_KEYWORD, annotation=Any)
     ] + parameter_list
+    # Generate and apply our new signature to the seeded_resolver function
     new_sig = sig.replace(parameters=parameter_list)
     seeded_resolver.__signature__ = new_sig  # type: ignore[attr-defined]
 
@@ -335,40 +148,6 @@ seed_resolver_one: Callable[..., Any] = partial(
     seed_resolver,
     result_translation=lambda result: one(chain.from_iterable(result.values())),
 )
-
-
-def uuid2list(uuid: UUID | None) -> list[UUID]:
-    """Convert an optional uuid to a list.
-
-    Args:
-        uuid: Optional uuid to wrap in a list.
-
-    Return:
-        Empty list if uuid was none, single element list containing the uuid otherwise.
-    """
-    if uuid is None:
-        return []
-    return [uuid]
-
-
-def model2name(model: Any) -> Any:
-    mapping = {
-        ClassRead: "class",
-        EmployeeRead: "employee",
-        FacetRead: "facet",
-        OrganisationUnitRead: "org_unit",
-        AddressRead: "address",
-        AssociationRead: "association",
-        EngagementAssociationRead: "engagement_association",
-        EngagementRead: "engagement",
-        ITSystemRead: "itsystem",
-        ITUserRead: "ituser",
-        KLERead: "kle",
-        LeaveRead: "leave",
-        RoleRead: "role",
-        ManagerRead: "manager",
-    }
-    return mapping[model]
 
 
 @strawberry.type(
@@ -3406,9 +3185,7 @@ class OrganisationUnit:
         ] = False,
     ) -> list["Manager"]:
         resolver = seed_resolver_list(ManagerResolver())
-        result = await resolver(
-            root=root, info=info, filter=ManagerFilter(org_units=[root.uuid])
-        )
+        result = await resolver(root=root, info=info, org_units=[root.uuid])
         if result:
             return result  # type: ignore
         if not inherit:

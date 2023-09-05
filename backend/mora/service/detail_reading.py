@@ -283,7 +283,7 @@ async def list_addresses_employee(
     if only_primary_uuid:
         query = """
             query GetAddress($uuid: UUID!, $from_date: DateTime, $to_date: DateTime) {
-              employees(uuids: [$uuid], from_date: $from_date, to_date: $to_date) {
+              employees(filter: {uuids: [$uuid], from_date: $from_date, to_date: $to_date}) {
                 objects {
                   objects {
                     addresses {
@@ -309,7 +309,7 @@ async def list_addresses_employee(
     else:
         query = """
             query GetAddress($uuid: UUID!, $from_date: DateTime, $to_date: DateTime) {
-              employees(uuids: [$uuid], from_date: $from_date, to_date: $to_date) {
+              employees(filter: {uuids: [$uuid], from_date: $from_date, to_date: $to_date}) {
                 objects {
                   objects {
                     addresses {
@@ -616,7 +616,7 @@ async def list_addresses_ou(
     if only_primary_uuid:
         query = """
             query GetAddress($uuid: UUID!, $from_date: DateTime, $to_date: DateTime) {
-              org_units(uuids: [$uuid], from_date: $from_date, to_date: $to_date) {
+              org_units(filter: {uuids: [$uuid], from_date: $from_date, to_date: $to_date}) {
                 objects {
                   objects {
                     addresses {
@@ -641,7 +641,7 @@ async def list_addresses_ou(
     else:
         query = """
             query GetAddress($uuid: UUID!, $from_date: DateTime, $to_date: DateTime) {
-              org_units(uuids: [$uuid], from_date: $from_date, to_date: $to_date) {
+              org_units(filter: {uuids: [$uuid], from_date: $from_date, to_date: $to_date}) {
                 objects {
                   objects {
                     addresses {

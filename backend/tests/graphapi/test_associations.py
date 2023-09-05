@@ -85,7 +85,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
         query = """
                 query TestQuery($uuids: [UUID!]) {
-                    associations(uuids: $uuids) {
+                    associations(filter: {uuids: $uuids}) {
                         objects {
                             uuid
                         }
@@ -108,111 +108,103 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @pytest.mark.parametrize(
-    "filter_snippet,expected",
+    "filter,expected",
     [
-        ("", 1),
+        ({}, 1),
         # Employee filters
-        ('(employees: "53181ed2-f1de-4c4a-a8fd-ab358c2c454a")', 1),
-        ('(employees: "6ee24785-ee9a-4502-81c2-7697009c9053")', 0),
+        ({"employees": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"}, 1),
+        ({"employees": "6ee24785-ee9a-4502-81c2-7697009c9053"}, 0),
         (
-            """
-            (employees: [
-                "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                "6ee24785-ee9a-4502-81c2-7697009c9053"
-            ])
-        """,
+            {
+                "employees": [
+                    "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                    "6ee24785-ee9a-4502-81c2-7697009c9053",
+                ]
+            },
             1,
         ),
         # Organisation Unit filter
-        ('(org_units: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")', 1),
-        ('(org_units: "2874e1dc-85e6-4269-823a-e1125484dfd3")', 0),
+        ({"org_units": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"}, 1),
+        ({"org_units": "2874e1dc-85e6-4269-823a-e1125484dfd3"}, 0),
         (
-            """
-            (org_units: [
-                "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-            ])
-        """,
+            {
+                "org_units": [
+                    "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                    "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                ]
+            },
             1,
         ),
         # Association type filter
-        ('(association_types: "62ec821f-4179-4758-bfdf-134529d186e9")', 1),
-        ('(association_type_user_keys: "medl")', 1),
-        ('(association_types: "8eea787c-c2c7-46ca-bd84-2dd50f47801e")', 0),
-        ('(association_type_user_keys: "projektleder")', 0),
-        ('(association_types: "45751985-321f-4d4f-ae16-847f0a633360")', 0),
-        ('(association_type_user_keys: "teammedarbejder")', 0),
+        ({"association_types": "62ec821f-4179-4758-bfdf-134529d186e9"}, 1),
+        ({"association_type_user_keys": "medl"}, 1),
+        ({"association_types": "8eea787c-c2c7-46ca-bd84-2dd50f47801e"}, 0),
+        ({"association_type_user_keys": "projektleder"}, 0),
+        ({"association_types": "45751985-321f-4d4f-ae16-847f0a633360"}, 0),
+        ({"association_type_user_keys": "teammedarbejder"}, 0),
         (
-            """
-            (association_types: [
-                "62ec821f-4179-4758-bfdf-134529d186e9",
-                "8eea787c-c2c7-46ca-bd84-2dd50f47801e"
-            ])
-        """,
+            {
+                "association_types": [
+                    "62ec821f-4179-4758-bfdf-134529d186e9",
+                    "8eea787c-c2c7-46ca-bd84-2dd50f47801e",
+                ]
+            },
             1,
         ),
         (
-            """
-            (
-                association_type_user_keys: "medl",
-                association_types: "8eea787c-c2c7-46ca-bd84-2dd50f47801e"
-            )
-        """,
+            {
+                "association_type_user_keys": "medl",
+                "association_types": "8eea787c-c2c7-46ca-bd84-2dd50f47801e",
+            },
             1,
         ),
         # Mixed filters
         (
-            """
-            (
-                employees: "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                org_units: "2874e1dc-85e6-4269-823a-e1125484dfd3"
-            )
-        """,
+            {
+                "employees": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "org_units": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+            },
             0,
         ),
         (
-            """
-            (
-                employees: "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                org_units: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-            )
-        """,
+            {
+                "employees": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "org_units": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            },
             1,
         ),
         (
-            """
-            (
-                employees: "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                org_units: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-                association_type_user_keys: "medl",
-            )
-        """,
+            {
+                "employees": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "org_units": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                "association_type_user_keys": "medl",
+            },
             1,
         ),
         (
-            """
-            (
-                employees: "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                org_units: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-                association_types: "8eea787c-c2c7-46ca-bd84-2dd50f47801e"
-            )
-        """,
+            {
+                "employees": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "org_units": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                "association_types": "8eea787c-c2c7-46ca-bd84-2dd50f47801e",
+            },
             0,
         ),
     ],
 )
-async def test_association_filters(graphapi_post, filter_snippet, expected) -> None:
+async def test_association_filters(graphapi_post, filter, expected) -> None:
     """Test filters on associations."""
-    association_query = f"""
-        query Managers {{
-            associations{filter_snippet} {{
-                objects {{
+    association_query = """
+        query Associations($filter: AssociationFilter!) {
+            associations(filter: $filter) {
+                objects {
                     uuid
-                }}
-            }}
-        }}
+                }
+            }
+        }
     """
-    response: GQLResponse = graphapi_post(association_query)
+    response: GQLResponse = graphapi_post(
+        association_query, variables=dict(filter=filter)
+    )
     assert response.errors is None
     assert len(response.data["associations"]["objects"]) == expected
 
@@ -303,7 +295,7 @@ async def test_create_association_integration_test(
 
     verify_query = """
         query VerifyQuery($uuid: UUID!) {
-            associations(uuids: [$uuid], from_date: null, to_date: null) {
+            associations(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
                 objects {
                     objects {
                         user_key
@@ -392,7 +384,7 @@ async def test_update_association_integration_test(graphapi_post, test_data) -> 
         query = """
             query ($uuid: [UUID!]!) {
                 __typename
-                associations(uuids: $uuid){
+                associations(filter: {uuids: $uuid}){
                     objects {
                         objects {
                             uuid
@@ -436,7 +428,7 @@ async def test_update_association_integration_test(graphapi_post, test_data) -> 
     query_query = """
         query ($uuid: [UUID!]!){
             __typename
-            associations(uuids: $uuid){
+            associations(filter: {uuids: $uuid}){
                 objects {
                     objects {
                         uuid

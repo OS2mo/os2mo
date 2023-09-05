@@ -1,42 +1,35 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
-from functools import partial
-from functools import wraps
+"""Like latest, but with schema models from this version, with old resolvers."""
 from textwrap import dedent
-from typing import Any
-from uuid import UUID
 
 import strawberry
-from starlette_context import context
 from strawberry.types import Info
 
-from .health import health_map
-from .models import FileStore
-from .permissions import gen_read_permission
-from .permissions import IsAuthenticatedPermission
+from ..latest.permissions import gen_read_permission
+from ..latest.permissions import IsAuthenticatedPermission
+from ..latest.query import to_paged
+from ..latest.query import to_paged_response
 from .registration import Registration
 from .registration import RegistrationResolver
 from .resolvers import AddressResolver
 from .resolvers import AssociationResolver
 from .resolvers import ClassResolver
-from .resolvers import CursorType
+from .resolvers import ConfigurationResolver
 from .resolvers import EmployeeResolver
 from .resolvers import EngagementAssociationResolver
 from .resolvers import EngagementResolver
 from .resolvers import FacetResolver
-from .resolvers import gen_filter_string
+from .resolvers import FileResolver
+from .resolvers import HealthResolver
 from .resolvers import ITSystemResolver
 from .resolvers import ITUserResolver
 from .resolvers import KLEResolver
 from .resolvers import LeaveResolver
-from .resolvers import LimitType
 from .resolvers import ManagerResolver
 from .resolvers import OrganisationUnitResolver
 from .resolvers import OwnerResolver
-from .resolvers import PagedResolver
 from .resolvers import RelatedUnitResolver
-from .resolvers import Resolver
 from .resolvers import RoleResolver
 from .schema import Address
 from .schema import Association
@@ -57,146 +50,10 @@ from .schema import Organisation
 from .schema import OrganisationUnit
 from .schema import Owner
 from .schema import Paged
-from .schema import PageInfo
 from .schema import RelatedUnit
 from .schema import Response
 from .schema import Role
 from .schema import Version
-from mora.config import get_public_settings
-
-
-@strawberry.input(description="Health filter.")
-class HealthFilter:
-    identifiers: list[str] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Healthcheck identifiers", "identifiers"),
-    )
-
-
-class HealthResolver(PagedResolver):
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        filter: HealthFilter | None = None,
-        limit: LimitType = None,
-        cursor: CursorType = None,
-    ):
-        if filter is None:
-            filter = HealthFilter()
-
-        healthchecks = set(health_map.keys())
-        if filter.identifiers is not None:
-            healthchecks = healthchecks.intersection(set(filter.identifiers))
-
-        healths = list(healthchecks)
-        healths = healths[cursor:][:limit]
-        if not healths:
-            context["lora_page_out_of_range"] = True
-        return [
-            Health(identifier=identifier)  # type: ignore[call-arg]
-            for identifier in healths
-        ]
-
-
-@strawberry.input(description="File filter.")
-class FileFilter:
-    file_store: FileStore = strawberry.field(
-        description="File Store enum deciding which file-store to fetch files from.",
-    )
-    file_names: list[str] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Filename", "file_names"),
-    )
-
-
-class FileResolver(PagedResolver):
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        filter: FileFilter,
-        limit: LimitType = None,
-        cursor: CursorType = None,
-    ):
-        if filter is None:
-            filter = FileFilter()
-
-        filestorage = info.context["filestorage"]
-        found_files = filestorage.list_files(filter.file_store)
-        if filter.file_names is not None:
-            found_files = found_files.intersection(set(filter.file_names))
-
-        files = list(found_files)
-        files = files[cursor:][:limit]
-        if not files:
-            context["lora_page_out_of_range"] = True
-
-        return [
-            File(file_store=filter.file_store, file_name=file_name)  # type: ignore[call-arg]
-            for file_name in files
-        ]
-
-
-@strawberry.input(description="Configuration filter.")
-class ConfigurationFilter:
-    identifiers: list[str] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Key", "identifiers"),
-    )
-
-
-class ConfigurationResolver(PagedResolver):
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        filter: ConfigurationFilter | None = None,
-        limit: LimitType = None,
-        cursor: CursorType = None,
-    ):
-        if filter is None:
-            filter = ConfigurationFilter()
-
-        settings_keys = get_public_settings()
-        if filter.identifiers is not None:
-            settings_keys = settings_keys.intersection(set(filter.identifiers))
-
-        settings = list(settings_keys)
-        settings = settings[cursor:][:limit]
-        if not settings:
-            context["lora_page_out_of_range"] = True
-
-        return [Configuration(key=key) for key in settings]  # type: ignore[call-arg]
-
-
-def to_response(resolver: Resolver, result: dict[UUID, list[dict]]) -> list[Response]:
-    return [
-        Response(uuid=uuid, model=resolver.model, object_cache=objects)  # type: ignore[call-arg]
-        for uuid, objects in result.items()
-    ]
-
-
-def to_paged(resolver: PagedResolver, result_transformer: Callable[[PagedResolver, Any], list[Any]] | None = None):  # type: ignore
-    result_transformer = result_transformer or (lambda _, x: x)
-
-    @wraps(resolver.resolve)
-    async def resolve_response(*args, limit: LimitType, cursor: CursorType, **kwargs):  # type: ignore
-        result = await resolver.resolve(*args, limit=limit, cursor=cursor, **kwargs)
-
-        end_cursor: int | None = None
-        if limit:
-            end_cursor = (cursor or 0) + limit
-        if context.get("lora_page_out_of_range"):
-            end_cursor = None
-
-        assert result_transformer is not None
-        return Paged(  # type: ignore[call-arg]
-            objects=result_transformer(resolver, result),
-            page_info=PageInfo(next_cursor=end_cursor),  # type: ignore[call-arg]
-        )
-
-    return resolve_response
-
-
-to_paged_response = partial(to_paged, result_transformer=to_response)
 
 
 @strawberry.type(description="Entrypoint for all read-operations")

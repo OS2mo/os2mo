@@ -16,7 +16,7 @@ def fetch_org_unit_validity(
 ) -> tuple[datetime, datetime | None]:
     validity_query = """
         query FetchValidity($uuid: UUID!) {
-            org_units(uuids: [$uuid]) {
+            org_units(filter: {uuids: [$uuid]}) {
                 objects {
                     objects {
                         uuid
@@ -46,7 +46,7 @@ def fetch_employee_validity(
 ) -> tuple[datetime, datetime | None]:
     validity_query = """
         query FetchValidity($uuid: UUID!) {
-            employees(uuids: [$uuid]) {
+            employees(filter: {uuids: [$uuid]}) {
                 objects {
                     objects {
                         uuid
@@ -76,7 +76,7 @@ def fetch_engagement_validity(
 ) -> tuple[datetime, datetime | None]:
     validity_query = """
         query FetchValidity($uuid: UUID!) {
-            engagements(uuids: [$uuid]) {
+            engagements(filter: {uuids: [$uuid]}) {
                 objects {
                     objects {
                         uuid
@@ -106,7 +106,7 @@ def fetch_engagement_validity(
 def fetch_class_uuids(graphapi_post: Callable, facet_name: str) -> list[UUID]:
     class_query = """
         query FetchClassUUIDs($user_key: String!) {
-            facets(user_keys: [$user_key]) {
+            facets(filter: {user_keys: [$user_key]}) {
                 objects {
                     current {
                         classes {

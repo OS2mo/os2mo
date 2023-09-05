@@ -58,7 +58,7 @@ async def test_dangling_foreign_key(graphapi_post: Callable) -> None:
     # Check that we can read out the address as ẃe expect
     address_read_query = """
         query ReadAddress($uuid: UUID!) {
-          addresses(uuids: [$uuid]) {
+          addresses(filter: {uuids: [$uuid]}) {
             objects {
               current {
                 engagement_uuid

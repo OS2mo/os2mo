@@ -9,6 +9,42 @@ code is up-to-date with the latest version.
 
 Below follows the migration guide for each version.
 
+## Version 14
+
+GraphQL version 14 introduces a breaking change to the filter variables
+taken by the resolvers. Specifically, it moves them from the top-level
+to a `Filter` object.
+
+To migrate from GraphQL v13, nest your filtering parameters in the
+`filter` object, e.g. from:
+```graphql
+query AddressQuery {
+  addresses(
+    from_date: "2023-09-01",
+    address_type_user_keys: "EmailEmployee",
+  ) {
+    objects {
+      uuid
+    }
+  }
+}
+```
+to
+```graphql
+query AddressQuery {
+  addresses(
+    filter: {
+      from_date: "2023-09-01",
+      address_type_user_keys: "EmailEmployee",
+    },
+  ) {
+    objects {
+      uuid
+    }
+  }
+}
+```
+
 ## Version 13
 
 GraphQL version 13 introduces a breaking change to the input variables taken

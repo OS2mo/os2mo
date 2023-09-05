@@ -79,7 +79,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         )
         query = """
                 query TestQuery($uuids: [UUID!]) {
-                    facets(uuids: $uuids) {
+                    facets(filter: {uuids: $uuids}) {
                         objects {
                             current {
                                 uuid
@@ -182,7 +182,7 @@ async def test_create_facet(test_data, graphapi_post):
     """Query data to check that it actually gets written to database"""
     query_query = """
         query ($uuid: [UUID!]!) {
-            facets(uuids: $uuid) {
+            facets(filter: {uuids: $uuid}) {
                 objects {
                     current {
                         uuid
@@ -250,7 +250,7 @@ async def test_unit_create_class(create_facet: AsyncMock, test_data: Any):
 async def test_integration_delete_facet() -> None:
     read_query = """
         query ($uuid: [UUID!]!) {
-          facets(uuids: $uuid) {
+          facets(filter: {uuids: $uuid}) {
             objects {
               current {
                 uuid
@@ -303,7 +303,7 @@ async def test_update_facet() -> None:
     """Unit test for create facet mutator."""
     read_query = """
         query ($uuid: [UUID!]!) {
-          facets(uuids: $uuid) {
+          facets(filter: {uuids: $uuid}) {
             objects {
               current {
                 uuid

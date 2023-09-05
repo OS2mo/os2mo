@@ -12,6 +12,7 @@ from .versions.v10.version import GraphQLVersion as Version10
 from .versions.v11.version import GraphQLVersion as Version11
 from .versions.v12.version import GraphQLVersion as Version12  # type: ignore
 from .versions.v13.version import GraphQLVersion as Version13
+from .versions.v14.version import GraphQLVersion as Version14
 from .versions.v2.version import GraphQLVersion as Version2
 from .versions.v3.version import GraphQLVersion as Version3
 from .versions.v4.version import GraphQLVersion as Version4
@@ -36,6 +37,7 @@ graphql_versions: list[type[BaseGraphQLVersion]] = [
     Version11,
     Version12,
     Version13,
+    Version14,
 ]
 
 

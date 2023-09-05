@@ -9,14 +9,14 @@ from strawberry.types import Info
 from ..latest.classes import ClassUpdateInput
 from ..latest.facets import FacetUpdateInput
 from ..latest.itsystem import ITSystemCreateInput
-from ..latest.mutators import uuid2response
 from ..latest.permissions import gen_update_permission
 from ..latest.permissions import IsAuthenticatedPermission
-from ..latest.schema import Class
-from ..latest.schema import Facet
-from ..latest.schema import ITSystem
-from ..latest.schema import Response
 from ..v10.version import GraphQLVersion as NextGraphQLVersion
+from ..v13.mutators import uuid2response
+from ..v13.schema import Class
+from ..v13.schema import Facet
+from ..v13.schema import ITSystem
+from ..v13.schema import Response
 from mora.graphapi.shim import execute_graphql  # type: ignore[attr-defined]
 from ramodels.mo import ClassRead
 from ramodels.mo import FacetRead

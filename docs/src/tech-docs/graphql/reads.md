@@ -26,7 +26,7 @@ In the graph API, however, you can do all this with a single query
 
 ```graphql
 query Managers {
-  org_units(uuids: ["uuid1", "uuid2", "uuid3"]) {
+  org_units(filter: {uuids: ["uuid1", "uuid2", "uuid3"]}) {
     objects [
       name
       managers {
