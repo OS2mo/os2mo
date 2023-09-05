@@ -3,8 +3,11 @@
 from logging.config import fileConfig
 
 from alembic import context
+from alembic_helpers import register_helpers
 from oio_rest.db.engine import get_engine
 from oio_rest.db.metadata import metadata
+
+register_helpers()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

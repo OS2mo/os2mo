@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import os
 import pathlib
-import unittest
 from contextlib import suppress
 
 import pytest
@@ -11,15 +9,28 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from tap.parser import Parser
 
 from oio_rest import config
-from oio_rest.db import db_templating
+from oio_rest.db import dbname_context
 from oio_rest.db import get_connection
 from oio_rest.db import get_new_connection
+from tests.conftest import create_test_database
+from tests.db_testing import reset_testing_database
 from tests.oio_rest import util
 
 
 @pytest.fixture(scope="session")
-def setup_pgsql_test(testing_db: str):
-    with get_new_connection(testing_db) as connection:
+def pgsql_testing_db():
+    """Setup a new empty database.
+
+    Yields:
+        The newly created databases name.
+    """
+    with create_test_database("pgsql_empty") as db_name:
+        yield db_name
+
+
+@pytest.fixture(scope="session")
+def setup_pgsql_test(pgsql_testing_db: str):
+    with get_new_connection(pgsql_testing_db) as connection:
         connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         with connection.cursor() as cursor:
             cursor.execute('CREATE EXTENSION "pgtap";')
@@ -29,9 +40,9 @@ def setup_pgsql_test(testing_db: str):
                 )
             )
 
-    yield
+    yield pgsql_testing_db
 
-    with get_new_connection(testing_db) as connection:
+    with get_new_connection(pgsql_testing_db) as connection:
         connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         with connection.cursor() as cursor:
             with suppress():
@@ -39,8 +50,20 @@ def setup_pgsql_test(testing_db: str):
                 cursor.execute('DROP EXTENSION IF EXISTS "pgtap" CASCADE;')
 
 
+@pytest.fixture
+def pgsql_empty_db(setup_pgsql_test: str):
+    # Set dbname_context again, as we are just about to run a test,
+    # and as it may be set to another testing database
+    token = dbname_context.set(setup_pgsql_test)
+    reset_testing_database()
+    try:
+        yield setup_pgsql_test
+    finally:
+        dbname_context.reset(token)
+
+
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("setup_pgsql_test", "empty_db")
+@pytest.mark.usefixtures("pgsql_empty_db")
 @pytest.mark.parametrize("dbfile", pathlib.Path(util.TESTS_DIR).glob("sql/*.sql"))
 def test_pgsql(subtests, dbfile):
     with get_connection() as conn, conn.cursor() as curs:
@@ -62,21 +85,3 @@ def test_pgsql(subtests, dbfile):
                 pytest.skip()
             elif not test.ok:
                 pytest.fail(test.diagnostics or test.description)
-
-
-@unittest.expectedFailure
-class TextTests(unittest.TestCase):
-    # TODO: Remove
-    def test_sql_unchanged(self):
-        schema_path = os.path.join(
-            util.BASE_DIR, "..", "alembic", "versions", "initial_schema.sql"
-        )
-        expected_path = pathlib.Path(schema_path)
-        expected = expected_path.read_text()
-        actual = "\n".join(db_templating.get_sql()) + "\n"
-        actual = actual.replace("OWNER TO mox", "OWNER TO {{ mox_user }}")
-        assert expected == actual, (
-            "SQL changed unexpectedly!"
-            "We are using Alembic to manage database changes from now on."
-            "Please don't introduce database schema changes in other ways."
-        )

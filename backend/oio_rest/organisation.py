@@ -12,15 +12,6 @@ class Bruger(OIORestObject):
     pass
 
 
-class InteresseFaellesskab(OIORestObject):
-    """
-    Implement an InteresseFaellesskab - manage access to database layer from
-    the API.
-    """
-
-    pass
-
-
 class ItSystem(OIORestObject):
     """
     Implement an ItSystem  - manage access to database from the API.
@@ -59,7 +50,6 @@ class OrganisationsHierarki(OIOStandardHierarchy):
     _name = "Organisation"
     _classes = [
         Bruger,
-        InteresseFaellesskab,
         ItSystem,
         Organisation,
         OrganisationEnhed,

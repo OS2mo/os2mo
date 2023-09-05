@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from more_itertools import one
 from psycopg2.errors import UndefinedTable
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
@@ -92,7 +93,7 @@ def _check_current_database_is_testing() -> None:
     # Check that we are operating on the testing database
     with get_connection().cursor() as cursor:
         cursor.execute("select current_database()")
-        current_database = cursor.fetchone()[0]
+        current_database = one(cursor.fetchone())
         assert current_database.endswith("_test")
 
 
@@ -104,4 +105,4 @@ def _is_alembic_installed() -> bool:
         except UndefinedTable:
             return False
         else:
-            return cursor.fetchone()[0] > 0
+            return one(cursor.fetchone()) > 0
