@@ -16,9 +16,8 @@ from sqlalchemy import union
 from starlette_context import context
 from strawberry.types import Info
 
+from .filters import RegistrationFilter
 from .resolvers import CursorType
-from .resolvers import gen_filter_string
-from .resolvers import gen_filter_table
 from .resolvers import get_date_interval
 from .resolvers import LimitType
 from .resolvers import PagedResolver
@@ -154,43 +153,6 @@ def row2registration(
         start=start,
         end=end,
         actor=actor,
-    )
-
-
-@strawberry.input(description="Registration filter.")
-class RegistrationFilter:
-    uuids: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("UUID", "uuids")
-    )
-    actors: list[UUID] | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-        Filter registrations by their changing actor.
-
-        Can be used to select all changes made by a particular user or integration.
-        """
-        )
-        + gen_filter_table("actors"),
-    )
-    models: list[str] | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-        Filter registrations by their model type.
-
-        Can be used to select all changes of a type.
-        """
-        )
-        + gen_filter_table("models"),
-    )
-    start: datetime | None = strawberry.field(
-        default=None,
-        description="Limit the elements returned by their starting validity.",
-    )
-    end: datetime | None = strawberry.field(
-        default=None,
-        description="Limit the elements returned by their ending validity.",
     )
 
 

@@ -10,50 +10,50 @@ import strawberry
 from strawberry import UNSET
 from strawberry.types import Info
 
+from ..latest.filters import AddressFilter
+from ..latest.filters import AssociationFilter
+from ..latest.filters import BaseFilter
+from ..latest.filters import ClassFilter
+from ..latest.filters import ConfigurationFilter
+from ..latest.filters import EmployeeFilter
+from ..latest.filters import EngagementAssociationFilter
+from ..latest.filters import EngagementFilter
+from ..latest.filters import FacetFilter
+from ..latest.filters import FileFilter
+from ..latest.filters import gen_filter_string
+from ..latest.filters import gen_filter_table
+from ..latest.filters import HealthFilter
+from ..latest.filters import ITUserFilter
+from ..latest.filters import KLEFilter
+from ..latest.filters import LeaveFilter
+from ..latest.filters import ManagerFilter
+from ..latest.filters import OrganisationUnitFilter
+from ..latest.filters import OwnerFilter
+from ..latest.filters import RelatedUnitFilter
+from ..latest.filters import RoleFilter
 from ..latest.models import FileStore
-from ..latest.query import ConfigurationFilter
 from ..latest.query import ConfigurationResolver as NextConfigurationResolver
-from ..latest.query import FileFilter
 from ..latest.query import FileResolver as NextFileResolver
-from ..latest.query import HealthFilter
 from ..latest.query import HealthResolver as NextHealthResolver
-from ..latest.resolvers import AddressFilter
 from ..latest.resolvers import AddressResolver as NextAddressResolver
-from ..latest.resolvers import AssociationFilter
 from ..latest.resolvers import AssociationResolver as NextAssociationResolver
-from ..latest.resolvers import BaseFilter
-from ..latest.resolvers import ClassFilter
 from ..latest.resolvers import ClassResolver as NextClassResolver
 from ..latest.resolvers import CursorType
-from ..latest.resolvers import EmployeeFilter
 from ..latest.resolvers import EmployeeResolver as NextEmployeeResolver
-from ..latest.resolvers import EngagementAssociationFilter
 from ..latest.resolvers import (
     EngagementAssociationResolver as NextEngagementAssociationResolver,
 )
-from ..latest.resolvers import EngagementFilter
 from ..latest.resolvers import EngagementResolver as NextEngagementResolver
-from ..latest.resolvers import FacetFilter
 from ..latest.resolvers import FacetResolver as NextFacetResolver
-from ..latest.resolvers import gen_filter_string
-from ..latest.resolvers import gen_filter_table
 from ..latest.resolvers import ITSystemResolver as NextITSystemResolver
-from ..latest.resolvers import ITUserFilter
 from ..latest.resolvers import ITUserResolver as NextITUserResolver
-from ..latest.resolvers import KLEFilter
 from ..latest.resolvers import KLEResolver as NextKLEResolver
-from ..latest.resolvers import LeaveFilter
 from ..latest.resolvers import LeaveResolver as NextLeaveResolver
 from ..latest.resolvers import LimitType
-from ..latest.resolvers import ManagerFilter
 from ..latest.resolvers import ManagerResolver as NextManagerResolver
-from ..latest.resolvers import OrganisationUnitFilter
 from ..latest.resolvers import OrganisationUnitResolver as NextOrganisationUnitResolver
-from ..latest.resolvers import OwnerFilter
 from ..latest.resolvers import OwnerResolver as NextOwnerResolver
-from ..latest.resolvers import RelatedUnitFilter
 from ..latest.resolvers import RelatedUnitResolver as NextRelatedUnitResolver
-from ..latest.resolvers import RoleFilter
 from ..latest.resolvers import RoleResolver as NextRoleResolver
 from mora.util import CPR
 

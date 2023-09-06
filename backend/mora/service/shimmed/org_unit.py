@@ -21,7 +21,6 @@ from mora.graphapi.shim import flatten_data
 from mora.graphapi.shim import MOOrgUnit
 from mora.graphapi.shim import OrganisationUnitCount
 from mora.graphapi.shim import UUIDObject
-from mora.graphapi.versions.latest.models import OrganisationUnitRefreshRead
 from mora.service.orgunit import router as org_unit_router
 from mora.service.util import get_configuration
 from ramodels.mo.organisation_unit import OrganisationUnitTerminate
@@ -288,28 +287,6 @@ async def get_org_unit_children(
             child["association_count"] = len(child.pop("associations"))
 
     return ou_children
-
-
-@org_unit_router.get(
-    "/ou/{unitid}/refresh",
-    response_model=OrganisationUnitRefreshRead,
-    response_model_exclude_unset=True,
-    responses={"404": {"description": "Org unit not found"}},
-)
-async def trigger_external_integration(
-    unitid: UUID = Path(..., description="UUID of the org unit to trigger for."),
-    only_primary_uuid: bool = Query(False, description="Unused argument"),
-) -> OrganisationUnitRefreshRead:
-    """Trigger external integration for a given org unit UUID."""
-    query = """
-    mutation($uuid: UUID!) {
-      org_unit_refresh(uuid: $uuid) { message }
-    }
-    """
-    response = await execute_graphql(query, variable_values={"uuid": str(unitid)})
-    handle_gql_error(response)
-    result = response.data["org_unit_refresh"]
-    return OrganisationUnitRefreshRead(**result)
 
 
 @org_unit_router.post(

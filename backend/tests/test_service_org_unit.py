@@ -228,13 +228,13 @@ def t_fetch_mock():
 
 
 @pytest.fixture
-def load_org_mock():
-    with patch("mora.graphapi.versions.latest.org_unit.load_org_unit") as mock:
+def get_one_org_mock():
+    with patch("mora.service.orgunit.get_one_orgunit") as mock:
         yield mock
 
 
 async def test_returns_integration_error_on_wrong_status(
-    service_client: TestClient, load_org_mock, t_sender_mock, t_fetch_mock
+    service_client: TestClient, get_one_org_mock, t_sender_mock, t_fetch_mock
 ):
     with util.override_config(Settings(http_endpoints=["http://whatever"])):
         t_fetch_mock.return_value = [
@@ -256,7 +256,7 @@ async def test_returns_integration_error_on_wrong_status(
     response_future.set_exception(HTTPTriggerException(error_msg))
     t_sender_mock.side_effect = response_future
 
-    load_org_mock.return_value = [{}]
+    get_one_org_mock.return_value = {"whatever": 123}
     response = service_client.request(
         "GET", "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
     )
@@ -280,7 +280,7 @@ async def test_returns_integration_error_on_wrong_status(
 
 
 async def test_returns_message_on_success(
-    service_client: TestClient, load_org_mock, t_sender_mock, t_fetch_mock
+    service_client: TestClient, get_one_org_mock, t_sender_mock, t_fetch_mock
 ):
     with util.override_config(Settings(http_endpoints=["http://whatever"])):
         t_fetch_mock.return_value = [
@@ -302,7 +302,7 @@ async def test_returns_message_on_success(
     response_future.set_result(response_msg)
     t_sender_mock.return_value = response_future
 
-    load_org_mock.return_value = [{}]
+    get_one_org_mock.return_value = {"whatever": 123}
 
     response = service_client.request(
         "GET", "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
@@ -329,16 +329,17 @@ async def test_returns_message_on_success(
     )
 
 
-def test_returns_404_on_unknown_unit(service_client: TestClient) -> None:
-    with patch("mora.graphapi.versions.latest.org_unit.load_org_unit") as mock:
-        mock.return_value = []
+def test_returns_404_on_unknown_unit(
+    service_client: TestClient, get_one_org_mock
+) -> None:
+    get_one_org_mock.return_value = {}
 
-        response = service_client.request(
-            "GET", "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
-        )
-        assert response.status_code == 404
-        result = response.json()
-        assert "NOT_FOUND" in result.get("error_key")
+    response = service_client.request(
+        "GET", "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
+    )
+    assert response.status_code == 404
+    result = response.json()
+    assert "NOT_FOUND" in result.get("error_key")
 
 
 @pytest.mark.integration_test

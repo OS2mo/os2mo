@@ -33,9 +33,9 @@ from starlette_context import context
 from strawberry import UNSET
 from strawberry.types import Info
 
+from .filters import ManagerFilter
 from .health import health_map
 from .models import FileStore
-from .models import OrganisationUnitRefreshRead
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
 from .registration import Registration
@@ -53,7 +53,6 @@ from .resolvers import ITSystemResolver
 from .resolvers import ITUserResolver
 from .resolvers import KLEResolver
 from .resolvers import LeaveResolver
-from .resolvers import ManagerFilter
 from .resolvers import ManagerResolver
 from .resolvers import OrganisationUnitResolver
 from .resolvers import OwnerResolver
@@ -4043,23 +4042,6 @@ class File:
         )
         data = b64encode(data)
         return data.decode("ascii")
-
-
-# Organisation Unit Refresh
-# -------------------------
-@strawberry.experimental.pydantic.type(
-    model=OrganisationUnitRefreshRead,
-    description="Response model for Organisation Unit refresh event.",
-)
-class OrganisationUnitRefresh:
-    # TODO: Document this
-    uuid: UUID = strawberry.auto
-
-    # TODO: Document this
-    user_key: str = strawberry.auto
-
-    # TODO: Document this
-    message: str = strawberry.auto
 
 
 # Configuration
