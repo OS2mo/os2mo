@@ -434,7 +434,8 @@ async def test_update_manager_integration_test(test_data, graphapi_post) -> None
     )
 
     expected_updated_manager = {
-        k: v or pre_update_manager[k] for k, v in test_data.items()
+        k: v if v is not None or k == "person" else pre_update_manager[k]
+        for k, v in test_data.items()
     }
     assert manager_objects_post_update == expected_updated_manager
 
