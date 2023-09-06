@@ -1013,7 +1013,7 @@ class ManagerUpdate(UUIDBase):
                 {"uuid": str(responsib)} for responsib in self.responsibility
             ]
 
-        return {k: v for k, v in data_dict.items() if v}
+        return {k: v for k, v in data_dict.items() if v or k == "person"}
 
 
 class ManagerTerminate(ValidityTerminate):
