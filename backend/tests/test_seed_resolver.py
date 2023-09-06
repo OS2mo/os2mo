@@ -11,7 +11,7 @@ from typing import Any
 import pytest
 from more_itertools import first
 
-from mora.graphapi.versions.latest.resolvers import BaseFilter
+from mora.graphapi.versions.latest.filters import BaseFilter
 from mora.graphapi.versions.latest.resolvers import Resolver
 from mora.graphapi.versions.latest.schema import seed_resolver
 

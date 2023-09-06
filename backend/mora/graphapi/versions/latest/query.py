@@ -11,8 +11,10 @@ import strawberry
 from starlette_context import context
 from strawberry.types import Info
 
+from .filters import ConfigurationFilter
+from .filters import FileFilter
+from .filters import HealthFilter
 from .health import health_map
-from .models import FileStore
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
 from .registration import Registration
@@ -25,7 +27,6 @@ from .resolvers import EmployeeResolver
 from .resolvers import EngagementAssociationResolver
 from .resolvers import EngagementResolver
 from .resolvers import FacetResolver
-from .resolvers import gen_filter_string
 from .resolvers import ITSystemResolver
 from .resolvers import ITUserResolver
 from .resolvers import KLEResolver
@@ -65,14 +66,6 @@ from .schema import Version
 from mora.config import get_public_settings
 
 
-@strawberry.input(description="Health filter.")
-class HealthFilter:
-    identifiers: list[str] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Healthcheck identifiers", "identifiers"),
-    )
-
-
 class HealthResolver(PagedResolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
@@ -96,17 +89,6 @@ class HealthResolver(PagedResolver):
             Health(identifier=identifier)  # type: ignore[call-arg]
             for identifier in healths
         ]
-
-
-@strawberry.input(description="File filter.")
-class FileFilter:
-    file_store: FileStore = strawberry.field(
-        description="File Store enum deciding which file-store to fetch files from.",
-    )
-    file_names: list[str] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Filename", "file_names"),
-    )
 
 
 class FileResolver(PagedResolver):
@@ -134,14 +116,6 @@ class FileResolver(PagedResolver):
             File(file_store=filter.file_store, file_name=file_name)  # type: ignore[call-arg]
             for file_name in files
         ]
-
-
-@strawberry.input(description="Configuration filter.")
-class ConfigurationFilter:
-    identifiers: list[str] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Key", "identifiers"),
-    )
 
 
 class ConfigurationResolver(PagedResolver):

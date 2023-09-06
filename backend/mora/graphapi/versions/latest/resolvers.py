@@ -18,10 +18,25 @@ from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 
 from ...middleware import set_graphql_dates
+from .filters import AddressFilter
+from .filters import AssociationFilter
+from .filters import BaseFilter
+from .filters import ClassFilter
+from .filters import EmployeeFilter
+from .filters import EngagementAssociationFilter
+from .filters import EngagementFilter
+from .filters import FacetFilter
+from .filters import ITUserFilter
+from .filters import KLEFilter
+from .filters import LeaveFilter
+from .filters import ManagerFilter
+from .filters import OrganisationUnitFilter
+from .filters import OwnerFilter
+from .filters import RelatedUnitFilter
+from .filters import RoleFilter
 from .resolver_map import resolver_map
 from .types import Cursor
 from .validity import OpenValidityModel
-from mora.util import CPR
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import FacetRead
@@ -89,34 +104,6 @@ CursorType = Annotated[
 ]
 
 
-def gen_filter_string(title: str, key: str) -> str:
-    return (
-        dedent(
-            f"""\
-        {title} filter limiting which entries are returned.
-        """
-        )
-        + gen_filter_table(key)
-    )
-
-
-def gen_filter_table(key: str) -> str:
-    return dedent(
-        f"""\
-
-        | `{key}`      | Elements returned                            |
-        |--------------|----------------------------------------------|
-        | not provided | All                                          |
-        | `null`       | All                                          |
-        | `[]`         | None                                         |
-        | `"x"`        | `["x"]` or `[]` (`*`)                        |
-        | `["x", "y"]` | `["x", "y"]`, `["x"]`, `["y"]` or `[]` (`*`) |
-
-        `*`: Elements returned depends on which elements were found.
-        """
-    )
-
-
 class PagedResolver:
     async def resolve(
         self,
@@ -126,26 +113,6 @@ class PagedResolver:
         **kwargs: Any,
     ) -> Any:
         raise NotImplementedError
-
-
-@strawberry.input
-class BaseFilter:
-    uuids: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("UUID", "uuids")
-    )
-    user_keys: list[str] | None = strawberry.field(
-        default=None, description=gen_filter_string("User-key", "user_keys")
-    )
-
-    from_date: datetime | None = strawberry.field(
-        default=UNSET,
-        description="Limit the elements returned by their starting validity.",
-    )
-
-    to_date: datetime | None = strawberry.field(
-        default=UNSET,
-        description="Limit the elements returned by their ending validity.",
-    )
 
 
 class Resolver(PagedResolver):
@@ -292,25 +259,6 @@ async def filter2uuids(
     return [UUID("00000000-baad-1dea-ca11-fa11fa11c0de")]
 
 
-@strawberry.input(description="Facet filter.")
-class FacetFilter:
-    # TODO: inherit these from BaseFilter when the object is non-static
-    uuids: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("UUID", "uuids")
-    )
-    user_keys: list[str] | None = strawberry.field(
-        default=None, description=gen_filter_string("User-key", "user_keys")
-    )
-
-    parents: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Parent UUID", "parents")
-    )
-    parent_user_keys: list[str] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Parent user-key", "parent_user_keys"),
-    )
-
-
 class FacetResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(FacetRead)
@@ -355,34 +303,6 @@ class FacetResolver(Resolver):
             cursor=cursor,
             **kwargs,
         )
-
-
-@strawberry.input(description="Class filter.")
-class ClassFilter:
-    # TODO: inherit these from BaseFilter when the object is non-static
-    uuids: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("UUID", "uuids")
-    )
-    user_keys: list[str] | None = strawberry.field(
-        default=None, description=gen_filter_string("User-key", "user_keys")
-    )
-
-    facets: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Facet UUID", "facets")
-    )
-
-    facet_user_keys: list[str] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Facet user-key", "facet_user_keys"),
-    )
-
-    parents: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Parent UUID", "parents")
-    )
-    parent_user_keys: list[str] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Parent user-key", "parent_user_keys"),
-    )
 
 
 class ClassResolver(Resolver):
@@ -444,30 +364,6 @@ class ClassResolver(Resolver):
         )
 
 
-@strawberry.input(description="Address filter.")
-class AddressFilter(BaseFilter):
-    address_types: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Address type UUID", "address_types"),
-    )
-    address_type_user_keys: list[str] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string(
-            "Address type user-key", "address_type_user_keys"
-        ),
-    )
-    employees: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Employee UUID", "employees")
-    )
-    engagements: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Engagement UUID", "engagements")
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-    )
-
-
 class AddressResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(AddressRead)
@@ -511,38 +407,6 @@ class AddressResolver(Resolver):
             cursor=cursor,
             **kwargs,
         )
-
-
-@strawberry.input(description="Association filter.")
-class AssociationFilter(BaseFilter):
-    employees: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Employee UUID", "employees")
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-    )
-    association_types: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Association type UUID", "association_types"),
-    )
-    association_type_user_keys: list[str] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string(
-            "Association type user-key", "association_type_user_keys"
-        ),
-    )
-    it_association: bool | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-    Query for either IT-Associations or "normal" Associations. `None` returns all.
-
-    This field is needed to replicate the functionality in the service API:
-    `?it=1`
-    """
-        ),
-    )
 
 
 class AssociationResolver(Resolver):
@@ -608,13 +472,6 @@ class AssociationResolver(Resolver):
         return associations
 
 
-@strawberry.input(description="Employee filter.")
-class EmployeeFilter(BaseFilter):
-    cpr_numbers: list[CPR] | None = strawberry.field(
-        default=None, description=gen_filter_string("CPR number", "cpr_numbers")
-    )
-
-
 class EmployeeResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(EmployeeRead)
@@ -642,17 +499,6 @@ class EmployeeResolver(Resolver):
             cursor=cursor,
             **kwargs,
         )
-
-
-@strawberry.input(description="Engagement filter.")
-class EngagementFilter(BaseFilter):
-    employees: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Employee UUID", "employees")
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-    )
 
 
 class EngagementResolver(Resolver):
@@ -684,17 +530,6 @@ class EngagementResolver(Resolver):
         )
 
 
-@strawberry.input(description="Manager filter.")
-class ManagerFilter(BaseFilter):
-    employees: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Employee UUID", "employees")
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-    )
-
-
 class ManagerResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(ManagerRead)
@@ -722,17 +557,6 @@ class ManagerResolver(Resolver):
             cursor=cursor,
             **kwargs,
         )
-
-
-@strawberry.input(description="Owner filter.")
-class OwnerFilter(BaseFilter):
-    employees: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Employee UUID", "employees")
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-    )
 
 
 class OwnerResolver(Resolver):
@@ -763,33 +587,6 @@ class OwnerResolver(Resolver):
             cursor=cursor,
             **kwargs,
         )
-
-
-@strawberry.input(description="Organisation unit filter.")
-class OrganisationUnitFilter(BaseFilter):
-    parents: list[UUID] | None = strawberry.field(
-        default=UNSET, description=gen_filter_string("Parent UUID", "parents")
-    )
-    hierarchies: list[UUID] | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-        Filter organisation units by their organisational hierarchy labels.
-
-        Can be used to extract a subset of the organisational structure.
-
-        Examples of user-keys:
-        * `"Line-management"`
-        * `"Self-owned institution"`
-        * `"Outside organisation"`
-        * `"Hidden"`
-
-        Note:
-        The organisation-gatekeeper integration is one option to keep hierarchy labels up-to-date.
-        """
-        )
-        + gen_filter_table("hierarchies"),
-    )
 
 
 class OrganisationUnitResolver(Resolver):
@@ -825,20 +622,6 @@ class OrganisationUnitResolver(Resolver):
             cursor=cursor,
             **kwargs,
         )
-
-
-@strawberry.input(description="Engagement association filter.")
-class EngagementAssociationFilter(BaseFilter):
-    employees: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Employee UUID", "employees")
-    )
-    engagements: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Engagement UUID", "engagements")
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-    )
 
 
 class EngagementAssociationResolver(Resolver):
@@ -877,17 +660,6 @@ class ITSystemResolver(Resolver):
         super().__init__(ITSystemRead)
 
 
-@strawberry.input(description="IT user filter.")
-class ITUserFilter(BaseFilter):
-    employees: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Employee UUID", "employees")
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-    )
-
-
 class ITUserResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(ITUserRead)
@@ -917,14 +689,6 @@ class ITUserResolver(Resolver):
         )
 
 
-@strawberry.input(description="KLE filter.")
-class KLEFilter(BaseFilter):
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-    )
-
-
 class KLEResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(KLERead)
@@ -950,17 +714,6 @@ class KLEResolver(Resolver):
             cursor=cursor,
             **kwargs,
         )
-
-
-@strawberry.input(description="Leave filter.")
-class LeaveFilter(BaseFilter):
-    employees: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Employee UUID", "employees")
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-    )
 
 
 class LeaveResolver(Resolver):
@@ -992,14 +745,6 @@ class LeaveResolver(Resolver):
         )
 
 
-@strawberry.input(description="Related unit filter.")
-class RelatedUnitFilter(BaseFilter):
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-    )
-
-
 class RelatedUnitResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(RelatedUnitRead)
@@ -1025,17 +770,6 @@ class RelatedUnitResolver(Resolver):
             cursor=cursor,
             **kwargs,
         )
-
-
-@strawberry.input(description="Role filter.")
-class RoleFilter(BaseFilter):
-    employees: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Employee UUID", "employees")
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-    )
 
 
 class RoleResolver(Resolver):

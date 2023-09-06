@@ -33,6 +33,7 @@ from starlette_context import context
 from strawberry import UNSET
 from strawberry.types import Info
 
+from .filters import ManagerFilter
 from .health import health_map
 from .models import FileStore
 from .models import OrganisationUnitRefreshRead
@@ -53,7 +54,6 @@ from .resolvers import ITSystemResolver
 from .resolvers import ITUserResolver
 from .resolvers import KLEResolver
 from .resolvers import LeaveResolver
-from .resolvers import ManagerFilter
 from .resolvers import ManagerResolver
 from .resolvers import OrganisationUnitResolver
 from .resolvers import OwnerResolver
