@@ -78,16 +78,13 @@ from .manager import create_manager
 from .manager import terminate_manager
 from .manager import update_manager
 from .models import FileStore
-from .models import OrganisationUnitRefreshRead
 from .org import create_org
 from .org import OrganisationCreate
 from .org_unit import create_org_unit
 from .org_unit import terminate_org_unit
-from .org_unit import trigger_org_unit_refresh
 from .org_unit import update_org_unit
 from .permissions import gen_create_permission
 from .permissions import gen_delete_permission
-from .permissions import gen_refresh_permission
 from .permissions import gen_role_permission
 from .permissions import gen_terminate_permission
 from .permissions import gen_update_permission
@@ -108,7 +105,6 @@ from .schema import Leave
 from .schema import Manager
 from .schema import Organisation
 from .schema import OrganisationUnit
-from .schema import OrganisationUnitRefresh
 from .schema import Response
 from .schema import Role
 from mora.common import get_connector
@@ -668,19 +664,6 @@ class Mutation:
 
     # Organisational Units
     # --------------------
-    @strawberry.mutation(
-        description="Trigger refresh for an organisation unit",
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_refresh_permission("org_unit"),
-        ],
-        deprecation_reason="The mutator will be removed in a future version of OS2mo",
-    )
-    async def org_unit_refresh(self, uuid: UUID) -> OrganisationUnitRefresh:
-        result = await trigger_org_unit_refresh(uuid)
-        organisation_unit_refresh = OrganisationUnitRefreshRead(**result)
-        return OrganisationUnitRefresh.from_pydantic(organisation_unit_refresh)
-
     @strawberry.mutation(
         description="Creates an organisation unit.",
         permission_classes=[

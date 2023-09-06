@@ -36,7 +36,6 @@ from strawberry.types import Info
 from .filters import ManagerFilter
 from .health import health_map
 from .models import FileStore
-from .models import OrganisationUnitRefreshRead
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
 from .registration import Registration
@@ -4043,23 +4042,6 @@ class File:
         )
         data = b64encode(data)
         return data.decode("ascii")
-
-
-# Organisation Unit Refresh
-# -------------------------
-@strawberry.experimental.pydantic.type(
-    model=OrganisationUnitRefreshRead,
-    description="Response model for Organisation Unit refresh event.",
-)
-class OrganisationUnitRefresh:
-    # TODO: Document this
-    uuid: UUID = strawberry.auto
-
-    # TODO: Document this
-    user_key: str = strawberry.auto
-
-    # TODO: Document this
-    message: str = strawberry.auto
 
 
 # Configuration

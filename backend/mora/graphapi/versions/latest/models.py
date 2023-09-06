@@ -1048,12 +1048,6 @@ class ManagerTerminate(ValidityTerminate):
 
 # Organisational Units
 # --------------------
-class OrganisationUnitRefreshRead(BaseModel):
-    """Payload model for organisation unit refresh mutation."""
-
-    message: str = Field(description="Refresh message containing trigger responses.")
-
-
 class OrgUnitTrigger(OrgFuncTrigger):
     """Model representing a mora-trigger, specific for organisation units."""
 
