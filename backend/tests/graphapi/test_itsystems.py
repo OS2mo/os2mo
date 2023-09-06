@@ -77,7 +77,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         )
         query = """
                 query TestQuery($uuids: [UUID!]) {
-                    itsystems(uuids: $uuids) {
+                    itsystems(filter: {uuids: $uuids}) {
                         objects {
                             current {
                                 uuid
@@ -236,7 +236,7 @@ def test_itsystem_update(graphapi_post) -> None:
     # Verify existing state
     query = """
         query ReadITSystems($uuids: [UUID!]) {
-            itsystems(uuids: $uuids) {
+            itsystems(filter: {uuids: $uuids}) {
                 objects {
                     current {
                         uuid

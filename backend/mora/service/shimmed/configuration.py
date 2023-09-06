@@ -35,7 +35,7 @@ async def get_navlinks() -> list[dict[str, Any]]:
     """
     query = """
     query NavlinksQuery {
-      configuration(identifiers: ["navlinks"]) {
+      configuration(filter: {identifiers: ["navlinks"]}) {
         objects {
           jsonified_value
         }

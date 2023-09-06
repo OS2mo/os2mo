@@ -9,14 +9,14 @@ from more_itertools import flatten
 from ..latest.permissions import gen_read_permission
 from ..latest.permissions import IsAuthenticatedPermission
 from ..latest.query import to_paged
-from ..latest.resolvers import ClassResolver
-from ..latest.resolvers import FacetResolver
-from ..latest.resolvers import ITSystemResolver
 from ..latest.resolvers import Resolver
-from ..latest.schema import Class
-from ..latest.schema import Facet
-from ..latest.schema import ITSystem
-from ..latest.schema import Paged
+from ..v13.resolvers import ClassResolver
+from ..v13.resolvers import FacetResolver
+from ..v13.resolvers import ITSystemResolver
+from ..v13.schema import Class
+from ..v13.schema import Facet
+from ..v13.schema import ITSystem
+from ..v13.schema import Paged
 from ..v7.version import GraphQLVersion as NextGraphQLVersion
 
 

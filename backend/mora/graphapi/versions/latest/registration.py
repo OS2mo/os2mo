@@ -4,7 +4,6 @@ from datetime import date
 from datetime import datetime
 from itertools import starmap
 from textwrap import dedent
-from typing import Annotated
 from typing import Any
 from typing import TypeVar
 from uuid import UUID
@@ -18,13 +17,11 @@ from starlette_context import context
 from strawberry.types import Info
 
 from .resolvers import CursorType
-from .resolvers import FromDateFilterType
+from .resolvers import gen_filter_string
 from .resolvers import gen_filter_table
 from .resolvers import get_date_interval
 from .resolvers import LimitType
 from .resolvers import PagedResolver
-from .resolvers import ToDateFilterType
-from .resolvers import UUIDsFilterType
 from mora.db import BrugerRegistrering
 from mora.db import FacetRegistrering
 from mora.db import ITSystemRegistrering
@@ -32,7 +29,6 @@ from mora.db import KlasseRegistrering
 from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationFunktionRegistrering
 from mora.util import parsedatetime
-
 
 MOObject = TypeVar("MOObject")
 
@@ -161,9 +157,13 @@ def row2registration(
     )
 
 
-ActorUUIDsFilterType = Annotated[
-    list[UUID] | None,
-    strawberry.argument(
+@strawberry.input(description="Registration filter.")
+class RegistrationFilter:
+    uuids: list[UUID] | None = strawberry.field(
+        default=None, description=gen_filter_string("UUID", "uuids")
+    )
+    actors: list[UUID] | None = strawberry.field(
+        default=None,
         description=dedent(
             """\
         Filter registrations by their changing actor.
@@ -171,12 +171,10 @@ ActorUUIDsFilterType = Annotated[
         Can be used to select all changes made by a particular user or integration.
         """
         )
-        + gen_filter_table("actors")
-    ),
-]
-ModelFilterType = Annotated[
-    list[str] | None,
-    strawberry.argument(
+        + gen_filter_table("actors"),
+    )
+    models: list[str] | None = strawberry.field(
+        default=None,
         description=dedent(
             """\
         Filter registrations by their model type.
@@ -184,9 +182,16 @@ ModelFilterType = Annotated[
         Can be used to select all changes of a type.
         """
         )
-        + gen_filter_table("models")
-    ),
-]
+        + gen_filter_table("models"),
+    )
+    start: datetime | None = strawberry.field(
+        default=None,
+        description="Limit the elements returned by their starting validity.",
+    )
+    end: datetime | None = strawberry.field(
+        default=None,
+        description="Limit the elements returned by their ending validity.",
+    )
 
 
 class RegistrationResolver(PagedResolver):
@@ -194,14 +199,13 @@ class RegistrationResolver(PagedResolver):
     async def resolve(  # type: ignore[override]
         self,
         info: Info,
+        filter: RegistrationFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        uuids: UUIDsFilterType = None,
-        actors: ActorUUIDsFilterType = None,
-        models: ModelFilterType = None,
-        start: FromDateFilterType = None,
-        end: ToDateFilterType = None,
     ) -> list[Registration]:
+        if filter is None:
+            filter = RegistrationFilter()
+
         tables = {
             "class": KlasseRegistrering,
             "employee": BrugerRegistrering,
@@ -219,8 +223,10 @@ class RegistrationResolver(PagedResolver):
             "manager": OrganisationFunktionRegistrering,
         }
 
-        if models is not None:
-            tables = {key: value for key, value in tables.items() if key in models}
+        if filter.models is not None:
+            tables = {
+                key: value for key, value in tables.items() if key in filter.models
+            }
 
         # Query all requested registation tables using a big union query
         union_query = union(
@@ -243,14 +249,14 @@ class RegistrationResolver(PagedResolver):
         # Note: I have no idea why mypy dislikes this.
         query = select("*").select_from(union_query)  # type: ignore
 
-        if uuids is not None:
-            query = query.where(column("uuid").in_(uuids))
+        if filter.uuids is not None:
+            query = query.where(column("uuid").in_(filter.uuids))
 
-        if actors is not None:
-            query = query.where(column("actor").in_(actors))
+        if filter.actors is not None:
+            query = query.where(column("actor").in_(filter.actors))
 
-        if start is not None or end is not None:
-            dates = get_date_interval(start, end)
+        if filter.start is not None or filter.end is not None:
+            dates = get_date_interval(filter.start, filter.end)
             query = query.where(
                 column("start").between(
                     dates.from_date or datetime(1, 1, 1),

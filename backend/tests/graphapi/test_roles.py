@@ -68,7 +68,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
         query = """
                 query TestQuery($uuids: [UUID!]) {
-                    roles(uuids: $uuids) {
+                    roles(filter: {uuids: $uuids}) {
                         objects {
                             uuid
                         }
@@ -169,7 +169,7 @@ async def test_create_role_integration_test(
 
     verify_query = """
         query VerifyQuery($uuid: UUID!) {
-            roles(uuids: [$uuid], from_date: null, to_date: null) {
+            roles(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
                 objects {
                     objects {
                         user_key
@@ -276,7 +276,7 @@ async def test_update_role_integration_test(test_data, graphapi_post) -> None:
 
     query = """
         query RoleQuery($uuid: UUID!) {
-            roles(uuids: [$uuid]) {
+            roles(filter: {uuids: [$uuid]}) {
                 objects {
                     objects {
                         uuid
@@ -314,7 +314,7 @@ async def test_update_role_integration_test(test_data, graphapi_post) -> None:
     # Writing verify query to retrieve objects containing data on the desired uuids.
     verify_query = """
         query VerifyQuery($uuid: UUID!) {
-            roles(uuids: [$uuid]){
+            roles(filter: {uuids: [$uuid]}){
                 objects {
                     objects {
                         uuid
@@ -376,7 +376,7 @@ async def test_role_terminate_integration(test_data, graphapi_post) -> None:
 
     verify_query = """
         query VerifyQuery($uuid: UUID!) {
-            roles(uuids: [$uuid]){
+            roles(filter: {uuids: [$uuid]}){
                 objects {
                     objects {
                         uuid

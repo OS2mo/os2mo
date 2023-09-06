@@ -39,7 +39,6 @@ from ramodels.mo.details import OwnerRead
 from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
 
-
 LimitType = Annotated[
     PositiveInt | None,
     strawberry.argument(
@@ -118,145 +117,6 @@ def gen_filter_table(key: str) -> str:
     )
 
 
-UUIDsFilterType = Annotated[
-    list[UUID] | None,
-    strawberry.argument(description=gen_filter_string("UUID", "uuids")),
-]
-UserKeysFilterType = Annotated[
-    list[str] | None,
-    strawberry.argument(description=gen_filter_string("User-key", "user_keys")),
-]
-
-FromDateFilterType = Annotated[
-    datetime | None,
-    strawberry.argument(
-        description=dedent(
-            """\
-    Limit the elements returned by their starting validity.
-    """
-        )
-    ),
-]
-ToDateFilterType = Annotated[
-    datetime | None,
-    strawberry.argument(
-        description=dedent(
-            """\
-    Limit the elements returned by their ending validity.
-    """
-        )
-    ),
-]
-
-FacetUUIDsFilterType = Annotated[
-    list[UUID] | None,
-    strawberry.argument(description=gen_filter_string("Facet UUID", "facets")),
-]
-FacetUserKeysFilterType = Annotated[
-    list[str] | None,
-    strawberry.argument(
-        description=gen_filter_string("Facet user-key", "facet_user_keys")
-    ),
-]
-
-ParentUUIDsFilterType = Annotated[
-    list[UUID] | None,
-    strawberry.argument(description=gen_filter_string("Parent UUID", "parents")),
-]
-ParentUserKeysFilterType = Annotated[
-    list[str] | None,
-    strawberry.argument(
-        description=gen_filter_string("Parent user-key", "parent_user_keys")
-    ),
-]
-
-AddressTypeUUIDsFilterType = Annotated[
-    list[UUID] | None,
-    strawberry.argument(
-        description=gen_filter_string("Address type UUID", "address_types")
-    ),
-]
-AddressTypeUserKeysFilterType = Annotated[
-    list[str] | None,
-    strawberry.argument(
-        description=gen_filter_string("Address type user-key", "address_type_user_keys")
-    ),
-]
-EmployeeUUIDsFilterType = Annotated[
-    list[UUID] | None,
-    strawberry.argument(description=gen_filter_string("Employee UUID", "employees")),
-]
-EngagementUUIDsFilterType = Annotated[
-    list[UUID] | None,
-    strawberry.argument(
-        description=gen_filter_string("Engagement UUID", "engagements")
-    ),
-]
-OrgUnitUUIDsFilterType = Annotated[
-    list[UUID] | None,
-    strawberry.argument(
-        description=gen_filter_string("Organisational Unit UUID", "org_units")
-    ),
-]
-
-AssociationTypeUUIDsFilterType = Annotated[
-    list[UUID] | None,
-    strawberry.argument(
-        description=gen_filter_string("Association type UUID", "association_types")
-    ),
-]
-AssociationTypeUserKeysFilterType = Annotated[
-    list[str] | None,
-    strawberry.argument(
-        description=gen_filter_string(
-            "Association type user-key", "association_type_user_keys"
-        )
-    ),
-]
-
-ITAssociation = Annotated[
-    bool | None,
-    strawberry.argument(
-        description=dedent(
-            """\
-    Query for either IT-Associations or "normal" Associations. `None` returns all.
-
-    This field is needed to replicate the functionality in the service API:
-    `?it=1`
-    """
-        )
-    ),
-]
-
-CPRNumberFilterType = Annotated[
-    list[CPR] | None,
-    strawberry.argument(description=gen_filter_string("CPR number", "cpr_numbers")),
-]
-
-HierarchiesUUIDsFilterType = Annotated[
-    list[UUID] | None,
-    strawberry.argument(
-        description=dedent(
-            """\
-        Filter organisation units by their organisational hierarchy labels.
-
-        Can be used to extract a subset of the organisational structure.
-
-        Examples of user-keys:
-        * `"Line-management"`
-        * `"Self-owned institution"`
-        * `"Outside organisation"`
-        * `"Hidden"`
-
-        Note:
-        The organisation-gatekeeper integration is one option to keep hierarchy labels up-to-date.
-        """
-        )
-        + gen_filter_table("hierarchies")
-    ),
-]
-
-
 class PagedResolver:
     async def resolve(
         self,
@@ -266,6 +126,26 @@ class PagedResolver:
         **kwargs: Any,
     ) -> Any:
         raise NotImplementedError
+
+
+@strawberry.input
+class BaseFilter:
+    uuids: list[UUID] | None = strawberry.field(
+        default=None, description=gen_filter_string("UUID", "uuids")
+    )
+    user_keys: list[str] | None = strawberry.field(
+        default=None, description=gen_filter_string("User-key", "user_keys")
+    )
+
+    from_date: datetime | None = strawberry.field(
+        default=UNSET,
+        description="Limit the elements returned by their starting validity.",
+    )
+
+    to_date: datetime | None = strawberry.field(
+        default=UNSET,
+        description="Limit the elements returned by their ending validity.",
+    )
 
 
 class Resolver(PagedResolver):
@@ -282,12 +162,9 @@ class Resolver(PagedResolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: UUIDsFilterType = None,
-        user_keys: UserKeysFilterType = None,
+        filter: BaseFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        from_date: FromDateFilterType = UNSET,
-        to_date: ToDateFilterType = UNSET,
     ):
         """Resolve a query using the specified arguments.
 
@@ -315,44 +192,42 @@ class Resolver(PagedResolver):
         """
         return await self._resolve(
             info=info,
-            uuids=uuids,
-            user_keys=user_keys,
+            filter=filter,
             limit=limit,
             cursor=cursor,
-            from_date=from_date,
-            to_date=to_date,
         )
 
     async def _resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: UUIDsFilterType = None,
-        user_keys: UserKeysFilterType = None,
+        filter: BaseFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        from_date: FromDateFilterType = UNSET,
-        to_date: ToDateFilterType = UNSET,
         **kwargs: Any,
     ):
         """The internal resolve interface, allowing for kwargs."""
+        # Filter
+        if filter is None:
+            filter = BaseFilter()
+
         # Dates
-        dates = get_date_interval(from_date, to_date)
+        dates = get_date_interval(filter.from_date, filter.to_date)
         set_graphql_dates(dates)
 
         # UUIDs
-        if uuids is not None:
+        if filter.uuids is not None:
             if limit is not None or cursor is not None:
                 raise ValueError("Cannot filter 'uuid' with 'limit' or 'cursor'")
             # Early return on empty UUID list
-            if not uuids:
+            if not filter.uuids:
                 return self.neutral_element_constructor()
             resolver_name = resolver_map[self.model]["loader"]
-            return await self.get_by_uuid(info.context[resolver_name], uuids)
+            return await self.get_by_uuid(info.context[resolver_name], filter.uuids)
 
         # User keys
-        if user_keys is not None:
+        if filter.user_keys is not None:
             # Early return on empty user-key list
-            if not user_keys:
+            if not filter.user_keys:
                 return self.neutral_element_constructor()
             # We need to explicitly use a 'SIMILAR TO' search in LoRa, as the default is
             # to 'AND' filters of the same name, i.e. 'http://lora?bvn=x&bvn=y' means
@@ -364,7 +239,7 @@ class Resolver(PagedResolver):
             # Additionally, the values are regex-escaped since the joined string will be
             # interpreted as one big regular expression in LoRa's SQL.
             use_is_similar_sentinel = "|LORA-PLEASE-USE-IS-SIMILAR|"
-            escaped_user_keys = (re.escape(k) for k in user_keys)
+            escaped_user_keys = (re.escape(k) for k in filter.user_keys)
             kwargs["bvn"] = use_is_similar_sentinel + "|".join(escaped_user_keys)
 
         # Pagination
@@ -389,20 +264,22 @@ class Resolver(PagedResolver):
         }
 
 
-async def user_keys2uuids(
-    resolver: Resolver, info: Info, user_keys: list[str]
+async def filter2uuids(
+    resolver: Resolver,
+    info: Info,
+    filter: BaseFilter,
 ) -> list[UUID]:
-    """Translate a list of user-keys into a list of UUIDs.
+    """Resolve into a list of UUIDs with the given filter.
 
     Args:
         resolver: The resolver used to resolve user-keys to UUIDs.
         info: The strawberry execution context.
-        user_keys: The user-keys to resolve.
+        filter: Filter instance passed to the resolver.
 
     Returns:
-        A list of UUIDs resolved from the user-keys.
+        A list of UUIDs.
     """
-    objects = await resolver.resolve(info, user_keys=user_keys)
+    objects = await resolver.resolve(info, filter=filter)
     uuids = list(objects.keys())
     if uuids:
         return uuids
@@ -415,6 +292,25 @@ async def user_keys2uuids(
     return [UUID("00000000-baad-1dea-ca11-fa11fa11c0de")]
 
 
+@strawberry.input(description="Facet filter.")
+class FacetFilter:
+    # TODO: inherit these from BaseFilter when the object is non-static
+    uuids: list[UUID] | None = strawberry.field(
+        default=None, description=gen_filter_string("UUID", "uuids")
+    )
+    user_keys: list[str] | None = strawberry.field(
+        default=None, description=gen_filter_string("User-key", "user_keys")
+    )
+
+    parents: list[UUID] | None = strawberry.field(
+        default=None, description=gen_filter_string("Parent UUID", "parents")
+    )
+    parent_user_keys: list[str] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Parent user-key", "parent_user_keys"),
+    )
+
+
 class FacetResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(FacetRead)
@@ -422,19 +318,24 @@ class FacetResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: UUIDsFilterType = None,
-        user_keys: UserKeysFilterType = None,
+        filter: FacetFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        parents: ParentUUIDsFilterType = None,
-        parent_user_keys: ParentUserKeysFilterType = None,
     ):
         """Resolve facets."""
-        if parent_user_keys is not None:
+        if filter is None:
+            filter = FacetFilter()
+
+        parents = filter.parents
+        if filter.parent_user_keys is not None:
             # Convert user-keys to UUIDs for the UUID filtering
-            parents = parents or []
+            parents = filter.parents or []
             parents.extend(
-                await user_keys2uuids(FacetResolver(), info, parent_user_keys)
+                await filter2uuids(
+                    FacetResolver(),
+                    info,
+                    FacetFilter(user_keys=filter.parent_user_keys),  # type: ignore[arg-type]
+                )
             )
 
         kwargs = {}
@@ -443,14 +344,45 @@ class FacetResolver(Resolver):
 
         return await super()._resolve(
             info=info,
-            uuids=uuids,
-            user_keys=user_keys,
+            # TODO: pass filter=filter directly when the object is non-static
+            filter=BaseFilter(
+                uuids=filter.uuids,
+                user_keys=filter.user_keys,
+                from_date=None,  # from -inf
+                to_date=None,  # to inf
+            ),
             limit=limit,
             cursor=cursor,
-            from_date=None,  # from -inf
-            to_date=None,  # to inf
             **kwargs,
         )
+
+
+@strawberry.input(description="Class filter.")
+class ClassFilter:
+    # TODO: inherit these from BaseFilter when the object is non-static
+    uuids: list[UUID] | None = strawberry.field(
+        default=None, description=gen_filter_string("UUID", "uuids")
+    )
+    user_keys: list[str] | None = strawberry.field(
+        default=None, description=gen_filter_string("User-key", "user_keys")
+    )
+
+    facets: list[UUID] | None = strawberry.field(
+        default=None, description=gen_filter_string("Facet UUID", "facets")
+    )
+
+    facet_user_keys: list[str] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Facet user-key", "facet_user_keys"),
+    )
+
+    parents: list[UUID] | None = strawberry.field(
+        default=None, description=gen_filter_string("Parent UUID", "parents")
+    )
+    parent_user_keys: list[str] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Parent user-key", "parent_user_keys"),
+    )
 
 
 class ClassResolver(Resolver):
@@ -460,26 +392,36 @@ class ClassResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: UUIDsFilterType = None,
-        user_keys: UserKeysFilterType = None,
+        filter: ClassFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        facets: FacetUUIDsFilterType = None,
-        facet_user_keys: FacetUserKeysFilterType = None,
-        parents: ParentUUIDsFilterType = None,
-        parent_user_keys: ParentUserKeysFilterType = None,
     ):
         """Resolve classes."""
-        if facet_user_keys is not None:
+        if filter is None:
+            filter = ClassFilter()
+
+        facets = filter.facets
+        if filter.facet_user_keys is not None:
             # Convert user-keys to UUIDs for the UUID filtering
             facets = facets or []
-            facets.extend(await user_keys2uuids(FacetResolver(), info, facet_user_keys))
+            facets.extend(
+                await filter2uuids(
+                    FacetResolver(),
+                    info,
+                    FacetFilter(user_keys=filter.facet_user_keys),  # type: ignore[arg-type]
+                )
+            )
 
-        if parent_user_keys is not None:
+        parents = filter.parents
+        if filter.parent_user_keys is not None:
             # Convert user-keys to UUIDs for the UUID filtering
             parents = parents or []
             parents.extend(
-                await user_keys2uuids(ClassResolver(), info, parent_user_keys)
+                await filter2uuids(
+                    ClassResolver(),
+                    info,
+                    ClassFilter(user_keys=filter.parent_user_keys),  # type: ignore[arg-type]
+                )
             )
 
         kwargs = {}
@@ -490,14 +432,40 @@ class ClassResolver(Resolver):
 
         return await super()._resolve(
             info=info,
-            uuids=uuids,
-            user_keys=user_keys,
+            filter=BaseFilter(
+                uuids=filter.uuids,
+                user_keys=filter.user_keys,
+                from_date=None,  # from -inf
+                to_date=None,  # to inf
+            ),
             limit=limit,
             cursor=cursor,
-            from_date=None,  # from -inf
-            to_date=None,  # to inf
             **kwargs,
         )
+
+
+@strawberry.input(description="Address filter.")
+class AddressFilter(BaseFilter):
+    address_types: list[UUID] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Address type UUID", "address_types"),
+    )
+    address_type_user_keys: list[str] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string(
+            "Address type user-key", "address_type_user_keys"
+        ),
+    )
+    employees: list[UUID] | None = strawberry.field(
+        default=None, description=gen_filter_string("Employee UUID", "employees")
+    )
+    engagements: list[UUID] | None = strawberry.field(
+        default=None, description=gen_filter_string("Engagement UUID", "engagements")
+    )
+    org_units: list[UUID] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Organisational Unit UUID", "org_units"),
+    )
 
 
 class AddressResolver(Resolver):
@@ -507,46 +475,74 @@ class AddressResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: UUIDsFilterType = None,
-        user_keys: UserKeysFilterType = None,
+        filter: AddressFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        from_date: FromDateFilterType = UNSET,
-        to_date: ToDateFilterType = UNSET,
-        address_types: AddressTypeUUIDsFilterType = None,
-        address_type_user_keys: AddressTypeUserKeysFilterType = None,
-        employees: EmployeeUUIDsFilterType = None,
-        engagements: EngagementUUIDsFilterType = None,
-        org_units: OrgUnitUUIDsFilterType = None,
     ):
         """Resolve addresses."""
-        if address_type_user_keys is not None:
+        if filter is None:
+            filter = AddressFilter()
+
+        address_types = filter.address_types or []
+        if filter.address_type_user_keys is not None:
             # Convert user-keys to UUIDs for the UUID filtering
-            address_types = address_types or []
             address_types.extend(
-                await user_keys2uuids(ClassResolver(), info, address_type_user_keys)
+                await filter2uuids(
+                    ClassResolver(),
+                    info,
+                    ClassFilter(user_keys=filter.address_type_user_keys),  # type: ignore[arg-type]
+                )
             )
 
         kwargs = {}
         if address_types is not None:
             kwargs["organisatoriskfunktionstype"] = address_types
-        if employees is not None:
-            kwargs["tilknyttedebrugere"] = employees
-        if engagements is not None:
-            kwargs["tilknyttedefunktioner"] = engagements
-        if org_units is not None:
-            kwargs["tilknyttedeenheder"] = org_units
+        if filter.employees is not None:
+            kwargs["tilknyttedebrugere"] = filter.employees
+        if filter.engagements is not None:
+            kwargs["tilknyttedefunktioner"] = filter.engagements
+        if filter.org_units is not None:
+            kwargs["tilknyttedeenheder"] = filter.org_units
 
         return await super()._resolve(
             info=info,
-            uuids=uuids,
-            user_keys=user_keys,
+            filter=filter,
             limit=limit,
             cursor=cursor,
-            from_date=from_date,
-            to_date=to_date,
             **kwargs,
         )
+
+
+@strawberry.input(description="Association filter.")
+class AssociationFilter(BaseFilter):
+    employees: list[UUID] | None = strawberry.field(
+        default=None, description=gen_filter_string("Employee UUID", "employees")
+    )
+    org_units: list[UUID] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Organisational Unit UUID", "org_units"),
+    )
+    association_types: list[UUID] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Association type UUID", "association_types"),
+    )
+    association_type_user_keys: list[str] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string(
+            "Association type user-key", "association_type_user_keys"
+        ),
+    )
+    it_association: bool | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+    Query for either IT-Associations or "normal" Associations. `None` returns all.
+
+    This field is needed to replicate the functionality in the service API:
+    `?it=1`
+    """
+        ),
+    )
 
 
 class AssociationResolver(Resolver):
@@ -556,48 +552,44 @@ class AssociationResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: UUIDsFilterType = None,
-        user_keys: UserKeysFilterType = None,
+        filter: AssociationFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        from_date: FromDateFilterType = UNSET,
-        to_date: ToDateFilterType = UNSET,
-        employees: EmployeeUUIDsFilterType = None,
-        org_units: OrgUnitUUIDsFilterType = None,
-        association_types: AssociationTypeUUIDsFilterType = None,
-        association_type_user_keys: AssociationTypeUserKeysFilterType = None,
-        it_association: ITAssociation = None,
     ):
         """Resolve associations."""
-        if association_type_user_keys is not None:
+        if filter is None:
+            filter = AssociationFilter()
+
+        association_types = filter.association_types or []
+        if filter.association_type_user_keys is not None:
             # Convert user-keys to UUIDs for the UUID filtering
-            association_types = association_types or []
             association_types.extend(
-                await user_keys2uuids(ClassResolver(), info, association_type_user_keys)
+                await filter2uuids(
+                    ClassResolver(),
+                    info,
+                    ClassFilter(user_keys=filter.association_type_user_keys),  # type: ignore[arg-type]
+                )
             )
 
         kwargs = {}
         if association_types is not None:
             kwargs["organisatoriskfunktionstype"] = association_types
-        if employees is not None:
-            kwargs["tilknyttedebrugere"] = employees
-        if org_units is not None:
-            kwargs["tilknyttedeenheder"] = org_units
+        if filter.employees is not None:
+            kwargs["tilknyttedebrugere"] = filter.employees
+        if filter.org_units is not None:
+            kwargs["tilknyttedeenheder"] = filter.org_units
         associations = await super()._resolve(
             info=info,
-            uuids=uuids,
-            user_keys=user_keys,
+            filter=filter,
             limit=limit,
             cursor=cursor,
-            from_date=from_date,
-            to_date=to_date,
             **kwargs,
         )
 
-        if it_association is not None:
+        if filter.it_association is not None:
             filtered_data = {}
             for uuid, association_fields in associations.items():
-                if it_association:
+                if filter.it_association:
                     filtered_associations = [
                         association
                         for association in association_fields
@@ -616,6 +608,13 @@ class AssociationResolver(Resolver):
         return associations
 
 
+@strawberry.input(description="Employee filter.")
+class EmployeeFilter(BaseFilter):
+    cpr_numbers: list[CPR] | None = strawberry.field(
+        default=None, description=gen_filter_string("CPR number", "cpr_numbers")
+    )
+
+
 class EmployeeResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(EmployeeRead)
@@ -623,30 +622,37 @@ class EmployeeResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: UUIDsFilterType = None,
-        user_keys: UserKeysFilterType = None,
+        filter: EmployeeFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        from_date: FromDateFilterType = UNSET,
-        to_date: ToDateFilterType = UNSET,
-        cpr_numbers: CPRNumberFilterType = None,
     ):
         """Resolve employees."""
+        if filter is None:
+            filter = EmployeeFilter()
+
         kwargs = {}
-        if cpr_numbers is not None:
+        if filter.cpr_numbers is not None:
             kwargs["tilknyttedepersoner"] = [
-                f"urn:dk:cpr:person:{c}" for c in cpr_numbers
+                f"urn:dk:cpr:person:{c}" for c in filter.cpr_numbers
             ]
         return await super()._resolve(
             info=info,
-            uuids=uuids,
-            user_keys=user_keys,
+            filter=filter,
             limit=limit,
             cursor=cursor,
-            from_date=from_date,
-            to_date=to_date,
             **kwargs,
         )
+
+
+@strawberry.input(description="Engagement filter.")
+class EngagementFilter(BaseFilter):
+    employees: list[UUID] | None = strawberry.field(
+        default=None, description=gen_filter_string("Employee UUID", "employees")
+    )
+    org_units: list[UUID] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Organisational Unit UUID", "org_units"),
+    )
 
 
 class EngagementResolver(Resolver):
@@ -656,31 +662,37 @@ class EngagementResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: UUIDsFilterType = None,
-        user_keys: UserKeysFilterType = None,
+        filter: EngagementFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        from_date: FromDateFilterType = UNSET,
-        to_date: ToDateFilterType = UNSET,
-        employees: EmployeeUUIDsFilterType = None,
-        org_units: OrgUnitUUIDsFilterType = None,
     ):
         """Resolve engagements."""
+        if filter is None:
+            filter = EngagementFilter()
+
         kwargs = {}
-        if employees is not None:
-            kwargs["tilknyttedebrugere"] = employees
-        if org_units is not None:
-            kwargs["tilknyttedeenheder"] = org_units
+        if filter.employees is not None:
+            kwargs["tilknyttedebrugere"] = filter.employees
+        if filter.org_units is not None:
+            kwargs["tilknyttedeenheder"] = filter.org_units
         return await super()._resolve(
             info=info,
-            uuids=uuids,
-            user_keys=user_keys,
+            filter=filter,
             limit=limit,
             cursor=cursor,
-            from_date=from_date,
-            to_date=to_date,
             **kwargs,
         )
+
+
+@strawberry.input(description="Manager filter.")
+class ManagerFilter(BaseFilter):
+    employees: list[UUID] | None = strawberry.field(
+        default=None, description=gen_filter_string("Employee UUID", "employees")
+    )
+    org_units: list[UUID] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Organisational Unit UUID", "org_units"),
+    )
 
 
 class ManagerResolver(Resolver):
@@ -690,31 +702,37 @@ class ManagerResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: UUIDsFilterType = None,
-        user_keys: UserKeysFilterType = None,
+        filter: ManagerFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        from_date: FromDateFilterType = UNSET,
-        to_date: ToDateFilterType = UNSET,
-        employees: EmployeeUUIDsFilterType = None,
-        org_units: OrgUnitUUIDsFilterType = None,
     ):
         """Resolve managers."""
+        if filter is None:
+            filter = ManagerFilter()
+
         kwargs = {}
-        if employees is not None:
-            kwargs["tilknyttedebrugere"] = employees
-        if org_units is not None:
-            kwargs["tilknyttedeenheder"] = org_units
+        if filter.employees is not None:
+            kwargs["tilknyttedebrugere"] = filter.employees
+        if filter.org_units is not None:
+            kwargs["tilknyttedeenheder"] = filter.org_units
         return await super()._resolve(
             info=info,
-            uuids=uuids,
-            user_keys=user_keys,
+            filter=filter,
             limit=limit,
             cursor=cursor,
-            from_date=from_date,
-            to_date=to_date,
             **kwargs,
         )
+
+
+@strawberry.input(description="Owner filter.")
+class OwnerFilter(BaseFilter):
+    employees: list[UUID] | None = strawberry.field(
+        default=None, description=gen_filter_string("Employee UUID", "employees")
+    )
+    org_units: list[UUID] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Organisational Unit UUID", "org_units"),
+    )
 
 
 class OwnerResolver(Resolver):
@@ -724,32 +742,54 @@ class OwnerResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: UUIDsFilterType = None,
-        user_keys: UserKeysFilterType = None,
+        filter: OwnerFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        from_date: FromDateFilterType = UNSET,
-        to_date: ToDateFilterType = UNSET,
-        employees: EmployeeUUIDsFilterType = None,
-        org_units: OrgUnitUUIDsFilterType = None,
     ):
         """Resolve owners."""
+        if filter is None:
+            filter = OwnerFilter()
+
         kwargs = {}
-        if employees is not None:
+        if filter.employees is not None:
             # TODO: Figure out why this uses personer instead of brugere
-            kwargs["tilknyttedepersoner"] = employees
-        if org_units is not None:
-            kwargs["tilknyttedeenheder"] = org_units
+            kwargs["tilknyttedepersoner"] = filter.employees
+        if filter.org_units is not None:
+            kwargs["tilknyttedeenheder"] = filter.org_units
         return await super()._resolve(
             info=info,
-            uuids=uuids,
-            user_keys=user_keys,
+            filter=filter,
             limit=limit,
             cursor=cursor,
-            from_date=from_date,
-            to_date=to_date,
             **kwargs,
         )
+
+
+@strawberry.input(description="Organisation unit filter.")
+class OrganisationUnitFilter(BaseFilter):
+    parents: list[UUID] | None = strawberry.field(
+        default=UNSET, description=gen_filter_string("Parent UUID", "parents")
+    )
+    hierarchies: list[UUID] | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+        Filter organisation units by their organisational hierarchy labels.
+
+        Can be used to extract a subset of the organisational structure.
+
+        Examples of user-keys:
+        * `"Line-management"`
+        * `"Self-owned institution"`
+        * `"Outside organisation"`
+        * `"Hidden"`
+
+        Note:
+        The organisation-gatekeeper integration is one option to keep hierarchy labels up-to-date.
+        """
+        )
+        + gen_filter_table("hierarchies"),
+    )
 
 
 class OrganisationUnitResolver(Resolver):
@@ -759,37 +799,46 @@ class OrganisationUnitResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: UUIDsFilterType = None,
-        user_keys: UserKeysFilterType = None,
+        filter: OrganisationUnitFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        from_date: FromDateFilterType = UNSET,
-        to_date: ToDateFilterType = UNSET,
-        parents: ParentUUIDsFilterType = UNSET,
-        hierarchies: HierarchiesUUIDsFilterType = None,
     ):
         """Resolve organisation units."""
+        if filter is None:
+            filter = OrganisationUnitFilter()
+
         kwargs = {}
         # Parents
-        if parents is None:
+        if filter.parents is None:
             org = await info.context["org_loader"].load(0)
             kwargs["overordnet"] = org.uuid
-        elif parents is not UNSET:
-            kwargs["overordnet"] = parents
+        elif filter.parents is not UNSET:
+            kwargs["overordnet"] = filter.parents
         # Hierarchy
-        if hierarchies is not None:
-            kwargs["opmærkning"] = hierarchies
+        if filter.hierarchies is not None:
+            kwargs["opmærkning"] = filter.hierarchies
 
         return await super()._resolve(
             info=info,
-            uuids=uuids,
-            user_keys=user_keys,
+            filter=filter,
             limit=limit,
             cursor=cursor,
-            from_date=from_date,
-            to_date=to_date,
             **kwargs,
         )
+
+
+@strawberry.input(description="Engagement association filter.")
+class EngagementAssociationFilter(BaseFilter):
+    employees: list[UUID] | None = strawberry.field(
+        default=None, description=gen_filter_string("Employee UUID", "employees")
+    )
+    engagements: list[UUID] | None = strawberry.field(
+        default=None, description=gen_filter_string("Engagement UUID", "engagements")
+    )
+    org_units: list[UUID] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Organisational Unit UUID", "org_units"),
+    )
 
 
 class EngagementAssociationResolver(Resolver):
@@ -799,32 +848,26 @@ class EngagementAssociationResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: UUIDsFilterType = None,
-        user_keys: UserKeysFilterType = None,
+        filter: EngagementAssociationFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        from_date: FromDateFilterType = UNSET,
-        to_date: ToDateFilterType = UNSET,
-        employees: EmployeeUUIDsFilterType = None,
-        engagements: EngagementUUIDsFilterType = None,
-        org_units: OrgUnitUUIDsFilterType = None,
     ):
         """Resolve engagement-associations."""
+        if filter is None:
+            filter = EngagementAssociationFilter()
+
         kwargs = {}
-        if employees is not None:
-            kwargs["tilknyttedebrugere"] = employees
-        if engagements is not None:
-            kwargs["tilknyttedefunktioner"] = engagements
-        if org_units is not None:
-            kwargs["tilknyttedeenheder"] = org_units
+        if filter.employees is not None:
+            kwargs["tilknyttedebrugere"] = filter.employees
+        if filter.engagements is not None:
+            kwargs["tilknyttedefunktioner"] = filter.engagements
+        if filter.org_units is not None:
+            kwargs["tilknyttedeenheder"] = filter.org_units
         return await super()._resolve(
             info=info,
-            uuids=uuids,
-            user_keys=user_keys,
+            filter=filter,
             limit=limit,
             cursor=cursor,
-            from_date=from_date,
-            to_date=to_date,
             **kwargs,
         )
 
@@ -834,6 +877,17 @@ class ITSystemResolver(Resolver):
         super().__init__(ITSystemRead)
 
 
+@strawberry.input(description="IT user filter.")
+class ITUserFilter(BaseFilter):
+    employees: list[UUID] | None = strawberry.field(
+        default=None, description=gen_filter_string("Employee UUID", "employees")
+    )
+    org_units: list[UUID] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Organisational Unit UUID", "org_units"),
+    )
+
+
 class ITUserResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(ITUserRead)
@@ -841,31 +895,34 @@ class ITUserResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: UUIDsFilterType = None,
-        user_keys: UserKeysFilterType = None,
+        filter: ITUserFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        from_date: FromDateFilterType = UNSET,
-        to_date: ToDateFilterType = UNSET,
-        employees: EmployeeUUIDsFilterType = None,
-        org_units: OrgUnitUUIDsFilterType = None,
     ):
         """Resolve it-users."""
+        if filter is None:
+            filter = ITUserFilter()
+
         kwargs = {}
-        if employees is not None:
-            kwargs["tilknyttedebrugere"] = employees
-        if org_units is not None:
-            kwargs["tilknyttedeenheder"] = org_units
+        if filter.employees is not None:
+            kwargs["tilknyttedebrugere"] = filter.employees
+        if filter.org_units is not None:
+            kwargs["tilknyttedeenheder"] = filter.org_units
         return await super()._resolve(
             info=info,
-            uuids=uuids,
-            user_keys=user_keys,
+            filter=filter,
             limit=limit,
             cursor=cursor,
-            from_date=from_date,
-            to_date=to_date,
             **kwargs,
         )
+
+
+@strawberry.input(description="KLE filter.")
+class KLEFilter(BaseFilter):
+    org_units: list[UUID] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Organisational Unit UUID", "org_units"),
+    )
 
 
 class KLEResolver(Resolver):
@@ -875,28 +932,35 @@ class KLEResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: UUIDsFilterType = None,
-        user_keys: UserKeysFilterType = None,
+        filter: KLEFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        from_date: FromDateFilterType = UNSET,
-        to_date: ToDateFilterType = UNSET,
-        org_units: OrgUnitUUIDsFilterType = None,
     ):
         """Resolve kle."""
+        if filter is None:
+            filter = KLEFilter()
+
         kwargs = {}
-        if org_units is not None:
-            kwargs["tilknyttedeenheder"] = org_units
+        if filter.org_units is not None:
+            kwargs["tilknyttedeenheder"] = filter.org_units
         return await super()._resolve(
             info=info,
-            uuids=uuids,
-            user_keys=user_keys,
+            filter=filter,
             limit=limit,
             cursor=cursor,
-            from_date=from_date,
-            to_date=to_date,
             **kwargs,
         )
+
+
+@strawberry.input(description="Leave filter.")
+class LeaveFilter(BaseFilter):
+    employees: list[UUID] | None = strawberry.field(
+        default=None, description=gen_filter_string("Employee UUID", "employees")
+    )
+    org_units: list[UUID] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Organisational Unit UUID", "org_units"),
+    )
 
 
 class LeaveResolver(Resolver):
@@ -906,31 +970,34 @@ class LeaveResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: UUIDsFilterType = None,
-        user_keys: UserKeysFilterType = None,
+        filter: LeaveFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        from_date: FromDateFilterType = UNSET,
-        to_date: ToDateFilterType = UNSET,
-        employees: EmployeeUUIDsFilterType = None,
-        org_units: OrgUnitUUIDsFilterType = None,
     ):
         """Resolve leaves."""
+        if filter is None:
+            filter = LeaveFilter()
+
         kwargs = {}
-        if employees is not None:
-            kwargs["tilknyttedebrugere"] = employees
-        if org_units is not None:
-            kwargs["tilknyttedeenheder"] = org_units
+        if filter.employees is not None:
+            kwargs["tilknyttedebrugere"] = filter.employees
+        if filter.org_units is not None:
+            kwargs["tilknyttedeenheder"] = filter.org_units
         return await super()._resolve(
             info=info,
-            uuids=uuids,
-            user_keys=user_keys,
+            filter=filter,
             limit=limit,
             cursor=cursor,
-            from_date=from_date,
-            to_date=to_date,
             **kwargs,
         )
+
+
+@strawberry.input(description="Related unit filter.")
+class RelatedUnitFilter(BaseFilter):
+    org_units: list[UUID] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Organisational Unit UUID", "org_units"),
+    )
 
 
 class RelatedUnitResolver(Resolver):
@@ -940,28 +1007,35 @@ class RelatedUnitResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: UUIDsFilterType = None,
-        user_keys: UserKeysFilterType = None,
+        filter: RelatedUnitFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        from_date: FromDateFilterType = UNSET,
-        to_date: ToDateFilterType = UNSET,
-        org_units: OrgUnitUUIDsFilterType = None,
     ):
-        """Resolve leaves."""
+        """Resolve related units."""
+        if filter is None:
+            filter = RelatedUnitFilter()
+
         kwargs = {}
-        if org_units is not None:
-            kwargs["tilknyttedeenheder"] = org_units
+        if filter.org_units is not None:
+            kwargs["tilknyttedeenheder"] = filter.org_units
         return await super()._resolve(
             info=info,
-            uuids=uuids,
-            user_keys=user_keys,
+            filter=filter,
             limit=limit,
             cursor=cursor,
-            from_date=from_date,
-            to_date=to_date,
             **kwargs,
         )
+
+
+@strawberry.input(description="Role filter.")
+class RoleFilter(BaseFilter):
+    employees: list[UUID] | None = strawberry.field(
+        default=None, description=gen_filter_string("Employee UUID", "employees")
+    )
+    org_units: list[UUID] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Organisational Unit UUID", "org_units"),
+    )
 
 
 class RoleResolver(Resolver):
@@ -971,35 +1045,30 @@ class RoleResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: UUIDsFilterType = None,
-        user_keys: UserKeysFilterType = None,
+        filter: RoleFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        from_date: FromDateFilterType = UNSET,
-        to_date: ToDateFilterType = UNSET,
-        employees: EmployeeUUIDsFilterType = None,
-        org_units: OrgUnitUUIDsFilterType = None,
     ):
         """Resolve roles."""
+        if filter is None:
+            filter = RoleFilter()
+
         kwargs = {}
-        if employees is not None:
-            kwargs["tilknyttedebrugere"] = employees
-        if org_units is not None:
-            kwargs["tilknyttedeenheder"] = org_units
+        if filter.employees is not None:
+            kwargs["tilknyttedebrugere"] = filter.employees
+        if filter.org_units is not None:
+            kwargs["tilknyttedeenheder"] = filter.org_units
         return await super()._resolve(
             info=info,
-            uuids=uuids,
-            user_keys=user_keys,
+            filter=filter,
             limit=limit,
             cursor=cursor,
-            from_date=from_date,
-            to_date=to_date,
             **kwargs,
         )
 
 
 def get_date_interval(
-    from_date: FromDateFilterType = UNSET, to_date: ToDateFilterType = UNSET
+    from_date: datetime | None = UNSET, to_date: datetime | None = UNSET
 ) -> OpenValidityModel:
     """Get the date interval for GraphQL queries to support bitemporal lookups.
 

@@ -5,12 +5,12 @@ from pydantic import Field
 
 from ..latest.manager import create_manager
 from ..latest.models import ManagerCreate
-from ..latest.mutators import uuid2response
 from ..latest.permissions import gen_create_permission
 from ..latest.permissions import IsAuthenticatedPermission
-from ..latest.schema import Manager
-from ..latest.schema import Response
 from ..v11.version import GraphQLVersion as NextGraphQLVersion
+from ..v13.mutators import uuid2response
+from ..v13.schema import Manager
+from ..v13.schema import Response
 from ramodels.mo.details import ManagerRead
 
 

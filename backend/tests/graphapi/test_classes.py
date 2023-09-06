@@ -84,7 +84,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         )
         query = """
                 query TestQuery($uuids: [UUID!]) {
-                    classes(uuids: $uuids) {
+                    classes(filter: {uuids: $uuids}) {
                         objects {
                             current {
                                 uuid
@@ -190,7 +190,7 @@ async def test_integration_create_class(test_data, graphapi_post) -> None:
     """Query data to check that it actually gets written to database"""
     query_query = """
         query ($uuid: [UUID!]!) {
-          classes(uuids: $uuid) {
+          classes(filter: {uuids: $uuid}) {
             objects {
               current {
                 uuid
@@ -260,48 +260,46 @@ async def test_unit_create_class(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @pytest.mark.parametrize(
-    "filter_snippet,expected",
+    "filter,expected",
     [
-        ("", 41),
-        ('(facet_user_keys: "employee_address_type")', 3),
-        ('(facets: "baddc4eb-406e-4c6b-8229-17e4a21d3550")', 3),
-        ('(facet_user_keys: "org_unit_address_type")', 6),
-        ('(facets: "3c44e5d2-7fef-4448-9bf6-449bf414ec49")', 6),
-        ('(facet_user_keys: ["employee_address_type", "org_unit_address_type"])', 9),
+        ({}, 41),
+        ({"facet_user_keys": "employee_address_type"}, 3),
+        ({"facets": "baddc4eb-406e-4c6b-8229-17e4a21d3550"}, 3),
+        ({"facet_user_keys": "org_unit_address_type"}, 6),
+        ({"facets": "3c44e5d2-7fef-4448-9bf6-449bf414ec49"}, 6),
+        ({"facet_user_keys": ["employee_address_type", "org_unit_address_type"]}, 9),
         (
-            """
-            (facets: [
-                "baddc4eb-406e-4c6b-8229-17e4a21d3550",
-                "3c44e5d2-7fef-4448-9bf6-449bf414ec49"
-            ])
-        """,
+            {
+                "facets": [
+                    "baddc4eb-406e-4c6b-8229-17e4a21d3550",
+                    "3c44e5d2-7fef-4448-9bf6-449bf414ec49",
+                ]
+            },
             9,
         ),
         (
-            """
-            (
-                facet_user_keys: "employee_address_type"
-                facets: "3c44e5d2-7fef-4448-9bf6-449bf414ec49"
-            )
-        """,
+            {
+                "facet_user_keys": "employee_address_type",
+                "facets": "3c44e5d2-7fef-4448-9bf6-449bf414ec49",
+            },
             9,
         ),
     ],
 )
-async def test_class_facet_filter(graphapi_post, filter_snippet, expected) -> None:
+async def test_class_facet_filter(graphapi_post, filter, expected) -> None:
     """Test facet filters on classes."""
-    class_query = f"""
-        query Classes {{
-            classes{filter_snippet} {{
-                objects {{
-                    current {{
+    class_query = """
+        query Classes($filter: ClassFilter!) {
+            classes(filter: $filter) {
+                objects {
+                    current {
                         uuid
-                    }}
-                }}
-            }}
-        }}
+                    }
+                }
+            }
+        }
     """
-    response: GQLResponse = graphapi_post(class_query)
+    response: GQLResponse = graphapi_post(class_query, variables=dict(filter=filter))
     assert response.errors is None
     assert len(response.data["classes"]["objects"]) == expected
 
@@ -311,7 +309,7 @@ async def test_class_facet_filter(graphapi_post, filter_snippet, expected) -> No
 async def test_integration_delete_class() -> None:
     read_query = """
         query ($uuid: [UUID!]!) {
-          classes(uuids: $uuid) {
+          classes(filter: {uuids: $uuid}) {
             objects {
               current {
                 uuid
@@ -362,7 +360,7 @@ async def test_update_class() -> None:
     """Unit test for create class mutator."""
     read_query = """
         query ($uuid: [UUID!]!) {
-          classes(uuids: $uuid) {
+          classes(filter: {uuids: $uuid}) {
             objects {
               current {
                 uuid

@@ -74,7 +74,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
         query = """
                 query TestQuery($uuids: [UUID!]) {
-                    managers(uuids: $uuids) {
+                    managers(filter: {uuids: $uuids}) {
                         objects {
                             uuid
                         }
@@ -97,68 +97,62 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @pytest.mark.parametrize(
-    "filter_snippet,expected",
+    "filter,expected",
     [
-        ("", 1),
+        ({}, 1),
         # Employee filters
-        ('(employees: "53181ed2-f1de-4c4a-a8fd-ab358c2c454a")', 1),
-        ('(employees: "6ee24785-ee9a-4502-81c2-7697009c9053")', 0),
+        ({"employees": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"}, 1),
+        ({"employees": "6ee24785-ee9a-4502-81c2-7697009c9053"}, 0),
         (
-            """
-            (employees: [
-                "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                "6ee24785-ee9a-4502-81c2-7697009c9053"
-            ])
-        """,
+            {
+                "employees": [
+                    "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                    "6ee24785-ee9a-4502-81c2-7697009c9053",
+                ]
+            },
             1,
         ),
         # Organisation Unit filter
-        ('(org_units: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")', 1),
-        ('(org_units: "2874e1dc-85e6-4269-823a-e1125484dfd3")', 0),
+        ({"org_units": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"}, 1),
+        ({"org_units": "2874e1dc-85e6-4269-823a-e1125484dfd3"}, 0),
         (
-            """
-            (org_units: [
-                "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-            ])
-        """,
+            {
+                "org_units": [
+                    "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                    "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                ]
+            },
             1,
         ),
         # Mixed filters
         (
-            """
-            (
-                employees: "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                org_units: "2874e1dc-85e6-4269-823a-e1125484dfd3"
-            )
-        """,
+            {
+                "employees": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "org_units": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+            },
             0,
         ),
         (
-            """
-            (
-                employees: "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                org_units: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-            )
-        """,
+            {
+                "employees": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "org_units": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            },
             1,
         ),
     ],
 )
-async def test_manager_employees_filters(
-    graphapi_post, filter_snippet, expected
-) -> None:
+async def test_manager_employees_filters(graphapi_post, filter, expected) -> None:
     """Test filters on managers."""
-    manager_query = f"""
-        query Managers {{
-            managers{filter_snippet} {{
-                objects {{
+    manager_query = """
+        query Managers($filter: ManagerFilter!) {
+            managers(filter: $filter) {
+                objects {
                     uuid
-                }}
-            }}
-        }}
+                }
+            }
+        }
     """
-    response: GQLResponse = graphapi_post(manager_query)
+    response: GQLResponse = graphapi_post(manager_query, variables=dict(filter=filter))
     assert response.errors is None
     assert len(response.data["managers"]["objects"]) == expected
 
@@ -250,7 +244,7 @@ async def test_create_manager_integration_test(
 
     verify_query = """
         query VerifyQuery($uuid: UUID!) {
-            managers(uuids: [$uuid], from_date: null, to_date: null) {
+            managers(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
                 objects {
                     objects {
                         user_key
@@ -372,7 +366,7 @@ async def test_update_manager_integration_test(test_data, graphapi_post) -> None
 
     query = """
         query MyQuery($uuid: UUID!) {
-            managers(uuids: [$uuid]) {
+            managers(filter: {uuids: [$uuid]}) {
                 objects {
                     objects {
                         uuid
@@ -412,7 +406,7 @@ async def test_update_manager_integration_test(test_data, graphapi_post) -> None
     # Writing verify query to retrieve objects containing data on the desired uuids.
     verify_query = """
         query VerifyQuery($uuid: UUID!) {
-            managers(uuids: [$uuid]){
+            managers(filter: {uuids: [$uuid]}){
                 objects {
                     objects {
                         uuid

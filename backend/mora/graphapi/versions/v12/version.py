@@ -14,12 +14,12 @@ from pydantic import root_validator
 from strawberry.types import Info
 
 from ..latest.models import EmployeeUpsert
-from ..latest.mutators import uuid2response
 from ..latest.permissions import gen_create_permission
 from ..latest.permissions import gen_update_permission
 from ..latest.permissions import IsAuthenticatedPermission
-from ..latest.schema import Employee
-from ..latest.schema import Response
+from ..v13.mutators import uuid2response
+from ..v13.schema import Employee
+from ..v13.schema import Response
 from ..v13.version import GraphQLVersion as NextGraphQLVersion
 from mora import exceptions
 from mora.graphapi.shim import execute_graphql  # type: ignore

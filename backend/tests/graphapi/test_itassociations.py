@@ -32,7 +32,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
         patch.setattr(dataloaders, "search_role_type", patch_loader(test_data))
         query = """
             query {
-                associations(it_association: true) {
+                associations(filter: {it_association: true}) {
                     objects {
                         uuid
                         objects {
@@ -73,7 +73,7 @@ def test_query_none(test_data, graphapi_post, patch_loader):
         patch.setattr(dataloaders, "search_role_type", patch_loader(test_data))
         query = """
             query {
-                associations(it_association: false) {
+                associations(filter: {it_association: false}) {
                     objects {
                         uuid
                         objects {
@@ -114,7 +114,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
         query = """
                 query TestQuery($uuids: [UUID!]) {
-                    associations(uuids: $uuids, it_association: true) {
+                    associations(filter: {uuids: $uuids, it_association: true}) {
                         objects {
                             uuid
                         }

@@ -76,7 +76,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
         query = """
                 query TestQuery($uuids: [UUID!]) {
-                    itusers(uuids: $uuids) {
+                    itusers(filter: {uuids: $uuids}) {
                         objects {
                             uuid
                         }
@@ -204,7 +204,7 @@ async def test_create_ituser_employee_integration_test(
     uuid = UUID(response.data["ituser_create"]["uuid"])
     verify_query = """
         query VerifyQuery($uuid: UUID!) {
-            itusers(uuids: [$uuid]) {
+            itusers(filter: {uuids: [$uuid]}) {
                 objects {
                     objects {
                         user_key
@@ -316,7 +316,7 @@ async def test_create_ituser_org_unit_integration_test(
     uuid = UUID(response.data["ituser_create"]["uuid"])
     verify_query = """
         query VerifyQuery($uuid: UUID!) {
-            itusers(uuids: [$uuid]) {
+            itusers(filter: {uuids: [$uuid]}) {
                 objects {
                     objects {
                         user_key
@@ -471,7 +471,7 @@ async def test_update_ituser_integration_test(graphapi_post, test_data) -> None:
     """Query data to check that it actually gets written to database"""
     verify_query = """
         query VerifyQuery($uuid: [UUID!]!) {
-            itusers(uuids: $uuid){
+            itusers(filter: {uuids: $uuid}){
                 objects {
                     objects {
                         uuid

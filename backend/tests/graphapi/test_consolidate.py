@@ -49,7 +49,7 @@ async def test_consolidate_feature_flag(
     # Check that response is consolidated if enabled
     org_unit_read_query = """
         query OrgUnitRead($uuids: [UUID!]) {
-          org_units(uuids: $uuids, from_date: null, to_date: null) {
+          org_units(filter: {uuids: $uuids, from_date: null, to_date: null}) {
             objects {
               objects {
                 name

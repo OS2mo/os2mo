@@ -5,12 +5,12 @@ from pydantic import Field
 
 from ..latest.it_user import create as create_ituser
 from ..latest.models import ITUserCreate
-from ..latest.mutators import uuid2response
 from ..latest.permissions import gen_create_permission
 from ..latest.permissions import IsAuthenticatedPermission
-from ..latest.schema import ITUser
-from ..latest.schema import Response
 from ..v12.version import GraphQLVersion as NextGraphQLVersion  # type: ignore
+from ..v13.mutators import uuid2response
+from ..v13.schema import ITUser
+from ..v13.schema import Response
 from ramodels.mo.details import ITUserRead
 
 

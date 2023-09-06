@@ -90,7 +90,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
         query = """
                 query TestQuery($uuids: [UUID!]) {
-                    employees(uuids: $uuids) {
+                    employees(filter: {uuids: $uuids}) {
                         objects {
                             uuid
                         }
@@ -356,7 +356,7 @@ async def test_create_employee_integration_test(
 
     verify_query = """
         query VerifyQuery($uuid: UUID!) {
-            employees(uuids: [$uuid], from_date: null, to_date: null) {
+            employees(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
                 objects {
                     objects {
                         user_key
@@ -759,7 +759,7 @@ def _get_lora_mutator_arg(mutator_key: str, lora_employee: dict):
 def _get_employee_verify_query():
     return """
         query VerifyQuery($uuid: UUID!) {
-          employees(uuids: [$uuid], from_date: null, to_date: null) {
+          employees(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
             objects {
               uuid,
               objects {

@@ -4,7 +4,7 @@ import strawberry
 from strawberry.types import Info
 
 from ..latest.permissions import gen_read_permission
-from ..latest.schema import Health
+from ..v13.schema import Health
 from ..v3.version import GraphQLVersion as NextGraphQLVersion
 from mora.graphapi.shim import execute_graphql  # type: ignore[attr-defined]
 

@@ -33,7 +33,7 @@ def setup_data(graphapi_post: Any) -> None:
     response = graphapi_post(
         """
             query ReadHistory($uuid: UUID!) {
-              org_units(uuids: [$uuid], from_date: null, to_date: null) {
+              org_units(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
                 objects {
                   objects {
                     name
@@ -154,7 +154,7 @@ def test_read_current(
                 query ReadCurrent(
                     $uuid: UUID!, $from_date: DateTime, $to_date: DateTime
                 ) {
-                  org_units(uuids: [$uuid], from_date: $from_date, to_date: $to_date) {
+                  org_units(filter: {uuids: [$uuid], from_date: $from_date, to_date: $to_date}) {
                     objects {
                       uuid
                       current {
