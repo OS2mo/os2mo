@@ -35,11 +35,10 @@ def read_strat(draw):
     required = {
         "employee_uuid": st.uuids(),
         "leave_type_uuid": st.uuids(),
+        "engagement_uuid": st.uuids(),
     }
-    optional = {
-        "engagement_uuid": st.none() | st.uuids(),
-    }
-    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
+
+    st_dict = draw(st.fixed_dictionaries(required))  # type: ignore
     return {**base_dict, **st_dict}
 
 
@@ -49,11 +48,10 @@ def write_strat(draw):
     required = {
         "employee": st.builds(EmployeeRef),
         "leave_type": st.builds(LeaveType),
+        "engagement": st.builds(EngagementRef),
     }
-    optional = {
-        "engagement": st.none() | st.builds(EngagementRef),
-    }
-    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
+
+    st_dict = draw(st.fixed_dictionaries(required))  # type: ignore
     return {**base_dict, **st_dict}
 
 
@@ -64,8 +62,9 @@ def leave_strat(draw):
         "leave_type": st.builds(LeaveType),
         "validity": st.builds(Validity),
         "person": st.builds(PersonRef),
+        "engagement": st.builds(EngagementRef),
     }
-    optional = {"type": st.just("leave"), "engagement": st.builds(EngagementRef)}
+    optional = {"type": st.just("leave")}
 
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return st_dict

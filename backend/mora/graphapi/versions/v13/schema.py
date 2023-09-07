@@ -2415,8 +2415,8 @@ class Leave:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    employee: list[LazyEmployee] = strawberry.field(
-        resolver=seed_resolver_list(
+    employee: LazyEmployee = strawberry.field(
+        resolver=seed_resolver_only(
             EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
         ),
         description=dedent(
@@ -2429,8 +2429,8 @@ class Leave:
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
-    person: list[LazyEmployee] = strawberry.field(
-        resolver=seed_resolver_list(
+    person: LazyEmployee = strawberry.field(
+        resolver=seed_resolver_only(
             EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
         ),
         description=dedent(
@@ -2442,7 +2442,7 @@ class Leave:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
-    engagement: LazyEngagement | None = strawberry.field(
+    engagement: LazyEngagement = strawberry.field(
         resolver=seed_resolver_only(
             EngagementResolver(),
             {"uuids": lambda root: [root.engagement_uuid]},
@@ -2502,7 +2502,7 @@ class Leave:
         description="UUID of the KLE number.",
         deprecation_reason=gen_uuid_field_deprecation("engagement"),
     )
-    async def engagement_uuid(self, root: LeaveRead) -> UUID | None:
+    async def engagement_uuid(self, root: LeaveRead) -> UUID:
         return root.engagement_uuid
 
     validity: Validity = strawberry.auto
