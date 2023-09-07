@@ -43,6 +43,7 @@ from .inputs import EmployeeUpdateInput
 from .inputs import EngagementCreateInput
 from .inputs import EngagementTerminateInput
 from .inputs import EngagementUpdateInput
+from .inputs import ITAssociationCreateInput
 from .inputs import ITUserCreateInput
 from .inputs import ITUserTerminateInput
 from .inputs import ITUserUpdateInput
@@ -61,6 +62,7 @@ from .inputs import OrganisationUnitUpdateInput
 from .inputs import RoleCreateInput
 from .inputs import RoleTerminateInput
 from .inputs import RoleUpdateInput
+from .it_association import create_itassociation
 from .it_user import create as create_ituser
 from .it_user import terminate as terminate_ituser
 from .it_user import update as update_ituser
@@ -450,6 +452,22 @@ class Mutation:
         note = ""
         uuid = await delete_facet(uuid, note)
         return uuid2response(uuid, FacetRead)
+
+    # ITAssociations
+    # ---------
+    @strawberry.mutation(
+        description="Creates an IT-Association.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("association"),
+        ],
+    )
+    async def itassociation_create(
+        self, input: ITAssociationCreateInput
+    ) -> Response[Association]:
+        return uuid2response(
+            await create_itassociation(input.to_pydantic()), AssociationRead
+        )
 
     # ITSystems
     # ---------
