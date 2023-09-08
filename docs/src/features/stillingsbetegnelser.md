@@ -1,5 +1,5 @@
 ---
-title: Håndtering af følsomme stillingsbetegnelser i MO og aftagersystemer
+title: Stillingsbetegnelser
 ---
 
 # Håndtering af følsomme stillingsbetegnelser i MO og aftagersystemer
