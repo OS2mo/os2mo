@@ -5,6 +5,7 @@ from functools import partial
 from functools import wraps
 from textwrap import dedent
 from typing import Any
+from typing import TypeVar
 from uuid import UUID
 
 import strawberry
@@ -63,8 +64,19 @@ from .schema import RelatedUnit
 from .schema import Response
 from .schema import Role
 from .schema import Version
+from .types import Cursor
 from mora.audit import audit_log
 from mora.config import get_public_settings
+from mora.util import now
+
+
+T = TypeVar("T")
+
+
+def paginate(obj: list[T], cursor: CursorType, limit: LimitType) -> list[T]:
+    if cursor is None:
+        return obj[:limit]
+    return obj[cursor.offset :][:limit]
 
 
 class HealthResolver(PagedResolver):
@@ -82,8 +94,7 @@ class HealthResolver(PagedResolver):
         if filter.identifiers is not None:
             healthchecks = healthchecks.intersection(set(filter.identifiers))
 
-        healths = list(healthchecks)
-        healths = healths[cursor:][:limit]
+        healths = paginate(list(healthchecks), cursor, limit)
         if not healths:
             context["lora_page_out_of_range"] = True
         return [
@@ -122,8 +133,7 @@ class FileResolver(PagedResolver):
         if filter.file_names is not None:
             found_files = found_files.intersection(set(filter.file_names))
 
-        files = list(found_files)
-        files = files[cursor:][:limit]
+        files = paginate(list(found_files), cursor, limit)
         if not files:
             context["lora_page_out_of_range"] = True
 
@@ -148,8 +158,7 @@ class ConfigurationResolver(PagedResolver):
         if filter.identifiers is not None:
             settings_keys = settings_keys.intersection(set(filter.identifiers))
 
-        settings = list(settings_keys)
-        settings = settings[cursor:][:limit]
+        settings = paginate(list(settings_keys), cursor, limit)
         if not settings:
             context["lora_page_out_of_range"] = True
 
@@ -168,11 +177,20 @@ def to_paged(resolver: PagedResolver, result_transformer: Callable[[PagedResolve
 
     @wraps(resolver.resolve)
     async def resolve_response(*args, limit: LimitType, cursor: CursorType, **kwargs):  # type: ignore
+        if limit and cursor is None:
+            cursor = Cursor(
+                offset=0,
+                registration_time=str(now()),
+            )
+
         result = await resolver.resolve(*args, limit=limit, cursor=cursor, **kwargs)
 
-        end_cursor: int | None = None
-        if limit:
-            end_cursor = (cursor or 0) + limit
+        end_cursor: CursorType = None
+        if limit and cursor is not None:
+            end_cursor = Cursor(
+                offset=cursor.offset + limit,
+                registration_time=cursor.registration_time,
+            )
         if context.get("lora_page_out_of_range"):
             end_cursor = None
 

@@ -5,7 +5,11 @@ from collections.abc import Callable
 import pytest
 
 from mora.graphapi.versions.latest.types import Cursor
+from mora.util import now
 from tests.conftest import GQLResponse
+
+
+serialize_cursor = Cursor._scalar_definition.serialize
 
 
 @pytest.mark.integration_test
@@ -108,7 +112,9 @@ async def test_pagination(
           }}
         }}
     """
-    cursor = Cursor._scalar_definition.serialize(offset) if offset is not None else None
+    cursor = None
+    if offset is not None:
+        cursor = serialize_cursor(Cursor(offset=offset, registration_time=now()))
     variables = dict(limit=limit, cursor=cursor)
     response: GQLResponse = graphapi_post(query, variables)
     assert response.errors is None
@@ -168,7 +174,9 @@ async def test_pagination_out_of_range(
           }}
         }}
     """
-    cursor = Cursor._scalar_definition.serialize(offset)
+    cursor = None
+    if offset is not None:
+        cursor = serialize_cursor(Cursor(offset=offset, registration_time=now()))
     variables = dict(limit=limit, cursor=cursor)
     response: GQLResponse = graphapi_post(query, variables)
     assert response.errors is None
@@ -236,3 +244,79 @@ async def test_cursor_based_pagination(
     assert response.extensions == {
         "__page_out_of_range": True,
     }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_cursor_stable_registration(
+    graphapi_post: Callable,
+) -> None:
+    """Test that pagination results in a consistent view."""
+    query = """
+        query PaginationTestQuery($limit: int, $cursor: Cursor) {
+          facets(limit: $limit, cursor: $cursor) {
+            objects {
+                uuid
+            }
+            page_info {
+                next_cursor
+            }
+          }
+        }
+    """
+    create_facet_query = """
+        mutation CreateFacet($input: FacetCreateInput!) {
+          facet_create(input: $input) {
+            uuid
+          }
+        }
+    """
+
+    def fetch(cursor):
+        variables = dict(limit=5, cursor=cursor)
+        response: GQLResponse = graphapi_post(query, variables)
+        assert response.errors is None
+        uuids = {obj["uuid"] for obj in response.data["facets"]["objects"]}
+        cursor = response.data["facets"]["page_info"]["next_cursor"]
+        return uuids, cursor
+
+    # First, get all facet uuids and store them in original
+    original = set()
+    cursor = None
+    while True:
+        uuids, cursor = fetch(cursor)
+        original |= uuids
+        if cursor is None:
+            break
+
+    # Start new pagination, but don't finish
+    stable_pagination_result, stable_pagination_cursor = fetch(cursor)
+    assert stable_pagination_cursor is not None
+
+    # Add new facet
+    response: GQLResponse = graphapi_post(
+        create_facet_query, {"input": {"user_key": "TestFacet"}}
+    )
+    assert response.errors is None
+    new_uuid = response.data["facet_create"]["uuid"]
+
+    # Do yet another fresh pagination, this time we expect the "original" uuids
+    # _and_ the `new_uuid`
+    final_facets = set()
+    cursor = None
+    while True:
+        uuids, cursor = fetch(cursor)
+        final_facets |= uuids
+        if cursor is None:
+            break
+    assert final_facets - original == {
+        new_uuid,
+    }
+
+    # Finish the "stable" pagination, where we do not expect the new facet
+    while True:
+        uuids, stable_pagination_cursor = fetch(stable_pagination_cursor)
+        stable_pagination_result |= uuids
+        if stable_pagination_cursor is None:
+            break
+    assert original == stable_pagination_result

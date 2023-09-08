@@ -79,9 +79,7 @@ LimitType = Annotated[
         )
     ),
 ]
-# Cursor's input is a Base64 encoded string eg. `Mw==`, but is parsed as an int
-# and returned again as a Base64 encoded string.
-# This way we can use it for indexing and calculations
+
 CursorType = Annotated[
     Cursor | None,
     strawberry.argument(
@@ -211,7 +209,8 @@ class Resolver(PagedResolver):
         if limit is not None:
             kwargs["maximalantalresultater"] = limit
         if cursor is not None:
-            kwargs["foersteresultat"] = cursor
+            kwargs["foersteresultat"] = cursor.offset
+            kwargs["registreringstid"] = str(cursor.registration_time)
 
         resolver_name = resolver_map[self.model]["getter"]
         return await info.context[resolver_name](**kwargs)
