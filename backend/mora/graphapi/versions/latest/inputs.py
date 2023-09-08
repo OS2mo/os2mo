@@ -17,6 +17,7 @@ from .models import EngagementCreate
 from .models import EngagementTerminate
 from .models import EngagementUpdate
 from .models import ITAssociationCreate
+from .models import ITAssociationUpdate
 from .models import ITUserCreate
 from .models import ITUserTerminate
 from .models import ITUserUpdate
@@ -208,6 +209,14 @@ class EngagementUpdateInput:
 )
 class ITAssociationCreateInput:
     """input model for creating IT-association."""
+
+
+@strawberry.experimental.pydantic.input(
+    model=ITAssociationUpdate,
+    all_fields=True,
+)
+class ITAssociationUpdateInput:
+    """input model for updating IT-association."""
 
 
 # ITSystems

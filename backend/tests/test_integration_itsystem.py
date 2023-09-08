@@ -573,6 +573,16 @@ def test_reading_employee(service_client: TestClient) -> None:
     assert response.status_code == 200
     assert response.json() == [
         {
+            "itsystem": {"uuid": "14466fb0-f9de-439c-a6c2-b3262c367da7"},
+            "org_unit": None,
+            "person": {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"},
+            "engagement": None,
+            "user_key": "donald",
+            "uuid": "4de484d9-f577-4fe0-965f-2d4be11b348c",
+            "validity": {"from": "2017-01-01", "to": None},
+            "primary": None,
+        },
+        {
             "itsystem": {
                 "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
             },

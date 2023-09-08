@@ -110,9 +110,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
 @pytest.mark.parametrize(
     "filter,expected",
     [
-        ({}, 1),
+        ({}, 2),
         # Employee filters
-        ({"employees": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"}, 1),
+        ({"employees": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"}, 2),
         ({"employees": "6ee24785-ee9a-4502-81c2-7697009c9053"}, 0),
         (
             {
@@ -121,10 +121,10 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
                     "6ee24785-ee9a-4502-81c2-7697009c9053",
                 ]
             },
-            1,
+            2,
         ),
         # Organisation Unit filter
-        ({"org_units": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"}, 1),
+        ({"org_units": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"}, 2),
         ({"org_units": "2874e1dc-85e6-4269-823a-e1125484dfd3"}, 0),
         (
             {
@@ -133,11 +133,11 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
                     "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
                 ]
             },
-            1,
+            2,
         ),
         # Association type filter
-        ({"association_types": "62ec821f-4179-4758-bfdf-134529d186e9"}, 1),
-        ({"association_type_user_keys": "medl"}, 1),
+        ({"association_types": "62ec821f-4179-4758-bfdf-134529d186e9"}, 2),
+        ({"association_type_user_keys": "medl"}, 2),
         ({"association_types": "8eea787c-c2c7-46ca-bd84-2dd50f47801e"}, 0),
         ({"association_type_user_keys": "projektleder"}, 0),
         ({"association_types": "45751985-321f-4d4f-ae16-847f0a633360"}, 0),
@@ -149,14 +149,14 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
                     "8eea787c-c2c7-46ca-bd84-2dd50f47801e",
                 ]
             },
-            1,
+            2,
         ),
         (
             {
                 "association_type_user_keys": "medl",
                 "association_types": "8eea787c-c2c7-46ca-bd84-2dd50f47801e",
             },
-            1,
+            2,
         ),
         # Mixed filters
         (
@@ -171,7 +171,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
                 "employees": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
                 "org_units": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
             },
-            1,
+            2,
         ),
         (
             {
@@ -179,7 +179,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
                 "org_units": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
                 "association_type_user_keys": "medl",
             },
-            1,
+            2,
         ),
         (
             {

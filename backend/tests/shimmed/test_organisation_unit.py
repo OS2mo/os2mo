@@ -84,7 +84,7 @@ def test_get_with_counts(service_client: TestClient):
     )
     assert response.status_code == 200
     assert response.json()["engagement_count"] == 3
-    assert response.json()["association_count"] == 1
+    assert response.json()["association_count"] == 2
 
 
 @pytest.mark.integration_test
@@ -190,7 +190,7 @@ def test_get_children_with_counts(service_client: TestClient):
             "validity": {"from": "2017-01-01", "to": None},
         },
         {
-            "association_count": 1,
+            "association_count": 2,
             "child_count": 1,
             "engagement_count": 3,
             "name": "Humanistisk fakultet",
