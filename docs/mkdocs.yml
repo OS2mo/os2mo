@@ -8,19 +8,20 @@ repo_url: https://github.com/OS2mo/os2mo
 docs_dir: src/
 
 nav:
-  - Home:
+  - Velkommen:
       - index.md
       - home/manual.md
       - home/landscape.md
-  - Features:
+  - Funktionalitet:
       - features/email-notifikationer.md
       - features/stillingsbetegnelser.md
       - features/kle.md
       - features/lederhaandtering.md
       - features/med-organisation.md
       - features/org-chart.md
+      - features/organisationsopmaerkning.md
       - features/reports.md
-  - Integrations:
+  - Integrationer:
       - Active Directory:
         - integrations/ldap_ad_amqp_integration.md
         - integrations/ad.md
@@ -36,14 +37,13 @@ nav:
       - SD:
         - integrations/sd-laes.md
         - integrations/sd-skriv.md
-        - integrations/organisationsopmaerkning.md
       - integrations/os2phonebook.md
   - "Implementering & Drift":
       - moaas/index.md
       - moaas/cloud.md
       - moaas/on-prem.md
       - moaas/implementeringsguide.md
-  - Technical Documentation:
+  - Teknisk dokumentation:
       # - Understanding bitemporality: TODO
       - tech-docs/development.md
       - GraphQL / API:
