@@ -32,7 +32,6 @@ def audit_log_lora(
         arguments: Arguments provided to operation.
         uuids: UUIDs read by the operation.
     """
-
     if not get_settings().audit_readlog_enable:
         return
 
