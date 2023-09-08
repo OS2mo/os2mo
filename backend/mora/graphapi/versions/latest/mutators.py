@@ -44,6 +44,7 @@ from .inputs import EngagementCreateInput
 from .inputs import EngagementTerminateInput
 from .inputs import EngagementUpdateInput
 from .inputs import ITAssociationCreateInput
+from .inputs import ITAssociationTerminateInput
 from .inputs import ITAssociationUpdateInput
 from .inputs import ITUserCreateInput
 from .inputs import ITUserTerminateInput
@@ -64,6 +65,7 @@ from .inputs import RoleCreateInput
 from .inputs import RoleTerminateInput
 from .inputs import RoleUpdateInput
 from .it_association import create_itassociation
+from .it_association import terminate_itassociation
 from .it_association import update_itassociation
 from .it_user import create as create_ituser
 from .it_user import terminate as terminate_ituser
@@ -483,6 +485,20 @@ class Mutation:
     ) -> Response[Association]:
         return uuid2response(
             await update_itassociation(input.to_pydantic()), AssociationRead
+        )
+
+    @strawberry.mutation(
+        description="Terminates an ITAssociation.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_terminate_permission("association"),
+        ],
+    )
+    async def itassociation_terminate(
+        self, input: ITAssociationTerminateInput
+    ) -> Response[Association]:
+        return uuid2response(
+            await terminate_itassociation(input.to_pydantic()), AssociationRead
         )
 
     # ITSystems

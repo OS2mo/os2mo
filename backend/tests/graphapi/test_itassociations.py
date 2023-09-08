@@ -6,6 +6,7 @@ from unittest.mock import patch
 from uuid import UUID
 from uuid import uuid4
 
+import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
@@ -431,3 +432,58 @@ async def test_update_itassociation_integration_test(graphapi_post, test_data) -
     }
 
     assert post_update_it_association == expected_updated_it_association
+
+
+@pytest.mark.integration_test
+@freezegun.freeze_time("2023-07-13", tz_offset=1)
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "test_data",
+    [
+        {
+            "uuid": "c89853b8-3da5-4b10-8d87-6ca5b4c9416b",
+            "to": "2023-07-25T00:00:00+02:00",
+        },
+        {
+            "uuid": "c89853b8-3da5-4b10-8d87-6ca5b4c9416b",
+            "to": "2040-01-01T00:00:00+01:00",
+        },
+    ],
+)
+async def test_itassociation_terminate_integration(test_data, graphapi_post) -> None:
+    uuid = test_data["uuid"]
+    mutation = """
+        mutation TerminateITAssociation($input: ITAssociationTerminateInput!) {
+            itassociation_terminate(input: $input) {
+                uuid
+            }
+        }
+    """
+    mutation_response: GQLResponse = graphapi_post(
+        mutation, {"input": jsonable_encoder(test_data)}
+    )
+
+    assert mutation_response.errors is None
+
+    verify_query = """
+        query VerifyQuery($uuid: UUID!) {
+            associations(filter: {uuids: [$uuid], it_association: true}){
+                objects {
+                    objects {
+                        uuid
+                        validity {
+                            to
+                        }
+                    }
+                }
+            }
+        }
+    """
+
+    verify_response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    assert verify_response.errors is None
+    it_association_objects_post_terminate = one(
+        one(verify_response.data["associations"]["objects"])["objects"]
+    )
+    assert test_data["uuid"] == it_association_objects_post_terminate["uuid"]
+    assert test_data["to"] == it_association_objects_post_terminate["validity"]["to"]
