@@ -16,6 +16,7 @@ from sqlalchemy.sql import union
 
 from mora import config
 from mora import util
+from mora.audit import audit_log
 from mora.db import OrganisationEnhedAttrEgenskaber
 from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationFunktionAttrEgenskaber
@@ -34,32 +35,40 @@ async def search_orgunits(
 ) -> [Row]:
     at_sql, at_sql_bind_params = get_at_date_sql(at)
 
+    selects = [
+        select(cte.c.uuid)
+        for cte in (
+            _get_cte_orgunit_uuid_hits(query, at_sql),
+            _get_cte_orgunit_name_hits(query, at_sql),
+            _get_cte_orgunit_addr_hits(query, at_sql),
+            _get_cte_orgunit_itsystem_hits(query, at_sql),
+        )
+    ]
+    all_hits = union(*selects).cte()
+
+    query_final = (
+        select(
+            OrganisationEnhedRegistrering.organisationenhed_id.label("uuid"),
+        )
+        .where(OrganisationEnhedRegistrering.organisationenhed_id == all_hits.c.uuid)
+        .group_by(OrganisationEnhedRegistrering.organisationenhed_id)
+    )
+
     async with sessionmaker() as session:
-        selects = [
-            select(cte.c.uuid)
-            for cte in (
-                _get_cte_orgunit_uuid_hits(query, at_sql),
-                _get_cte_orgunit_name_hits(query, at_sql),
-                _get_cte_orgunit_addr_hits(query, at_sql),
-                _get_cte_orgunit_itsystem_hits(query, at_sql),
+        with session.begin():
+            # Execute & parse results
+            result = read_sqlalchemy_result(
+                await session.execute(query_final, {**at_sql_bind_params})
             )
-        ]
-        all_hits = union(*selects).cte()
-
-        query_final = (
-            select(
-                OrganisationEnhedRegistrering.organisationenhed_id.label("uuid"),
+            uuids = [orgunit.uuid for orgunit in result]
+            audit_log(
+                session,
+                "search_orgunits",
+                "OrganisationEnhed",
+                {"query": query, "at": at},
+                uuids,
             )
-            .where(
-                OrganisationEnhedRegistrering.organisationenhed_id == all_hits.c.uuid
-            )
-            .group_by(OrganisationEnhedRegistrering.organisationenhed_id)
-        )
-
-        # Execute & parse results
-        return read_sqlalchemy_result(
-            await session.execute(query_final, {**at_sql_bind_params})
-        )
+        return result
 
 
 async def decorate_orgunit_search_result(

@@ -113,6 +113,7 @@ from .schema import Organisation
 from .schema import OrganisationUnit
 from .schema import Response
 from .schema import Role
+from mora.audit import audit_log
 from mora.common import get_connector
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
@@ -868,6 +869,21 @@ class Mutation:
             strawberry.argument(description="Whether to override pre-existing files."),
         ] = False,
     ) -> str:
+        # TODO: This logging should be superfluous with files in the database
+        session = info.context["sessionmaker"]()
+        async with session.begin():
+            audit_log(
+                session,
+                "upload_file",
+                "File",
+                {
+                    "file_store": file_store,
+                    "file": file.filename,
+                    "force": force,
+                },
+                [],
+            )
+
         filestorage = info.context["filestorage"]
 
         file_name = file.filename

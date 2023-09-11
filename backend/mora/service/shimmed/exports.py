@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+# TODO: How do we wanna audit file-access? - Files in Postgres would make it simple
 import io
 from base64 import b64decode
 from datetime import timedelta

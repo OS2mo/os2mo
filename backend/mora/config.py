@@ -149,6 +149,11 @@ class Settings(BaseSettings):
     # HTTPX
     httpx_timeout: PositiveInt = 60
 
+    # AuditLog settings
+    # Disabled by default due to performance considerations
+    # The compliant default would be True
+    audit_readlog_enable: bool = False
+
     # AMQP settings
     amqp_enable: bool = False
     amqp_url: str | None  # DEPRECATED (used in kubernetes)

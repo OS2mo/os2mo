@@ -11,6 +11,8 @@ import strawberry
 from starlette_context import context
 from strawberry.types import Info
 
+from .audit import AuditLog
+from .audit import AuditLogResolver
 from .filters import ConfigurationFilter
 from .filters import FileFilter
 from .filters import HealthFilter
@@ -63,6 +65,7 @@ from .schema import RelatedUnit
 from .schema import Response
 from .schema import Role
 from .schema import Version
+from mora.audit import audit_log
 from mora.config import get_public_settings
 
 
@@ -101,6 +104,20 @@ class FileResolver(PagedResolver):
     ):
         if filter is None:
             filter = FileFilter()
+
+        session = info.context["sessionmaker"]()
+        async with session.begin():
+            audit_log(
+                session,
+                "file_resolver",
+                "File",
+                {
+                    "filter": filter,
+                    "limit": limit,
+                    "cursor": cursor,
+                },
+                [],
+            )
 
         filestorage = info.context["filestorage"]
         found_files = filestorage.list_files(filter.file_store)
@@ -363,7 +380,27 @@ class Query:
             Such integration should rather utilize the AMQP-based event-system.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission],
+        permission_classes=[
+            IsAuthenticatedPermission
+            # TODO: Introduce this later
+            # gen_read_permission("auditlog"),
+        ],
+    )
+
+    auditlog: Paged[AuditLog] = strawberry.field(
+        resolver=to_paged(AuditLogResolver()),
+        description=dedent(
+            """\
+            Get a list of audit events.
+
+            Mostly useful for auditing purposes seeing when data was read and by whom.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission
+            # TODO: Introduce this later
+            # gen_read_permission("auditlog"),
+        ],
     )
 
     # Root Organisation

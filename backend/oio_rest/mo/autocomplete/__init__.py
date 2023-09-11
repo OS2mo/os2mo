@@ -10,12 +10,14 @@ from sqlalchemy import cast
 from sqlalchemy import Table
 from sqlalchemy import Text
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 from sqlalchemy.sql import literal_column
 from sqlalchemy.sql import select
 from sqlalchemy.sql import text
 from sqlalchemy.sql import union
 
+from mora.audit import audit_log
 from oio_rest.db.engine import get_engine
 from oio_rest.db.metadata import metadata
 
@@ -29,19 +31,6 @@ def get_table(name):
     """Return SQLAlchemy `Table` instance of SQL table called `name`"""
     engine = get_engine()
     return Table(name, metadata, autoload_with=engine)
-
-
-def execute_query(query, limit=1000):
-    """Execute SQLAlchemy query `query`.
-
-    Result set is limited to 1000 hits to avoid exhausting database resources
-    (memory.)
-    """
-    engine = get_engine()
-    with engine.connect() as conn:
-        result = conn.execute(query.limit(limit))
-        rows = result.mappings().fetchall()
-        return rows
 
 
 def find_users_matching(phrase: str, class_uuids: list[UUID] | None = None):
@@ -185,7 +174,24 @@ def find_users_matching(phrase: str, class_uuids: list[UUID] | None = None):
         .group_by(bruger_uuid)
     )
 
-    return execute_query(decorated_hits)
+    engine = get_engine()
+    session = Session(bind=engine)
+    with session.begin():
+        query = decorated_hits
+        limit = 1000
+        result = session.execute(query.limit(limit))
+        rows = result.mappings().fetchall()
+        uuids = [x["uuid"] for x in rows]
+        # TODO: Log org-funk lookups
+        # TODO: Log class lookups
+        audit_log(
+            session,
+            "find_users_matching",
+            "Bruger",
+            {"phrase": phrase, "class_uuids": class_uuids},
+            uuids,
+        )
+        return rows
 
 
 def find_org_units_matching(phrase: str, class_uuids: list[UUID] | None = None):
@@ -334,7 +340,24 @@ def find_org_units_matching(phrase: str, class_uuids: list[UUID] | None = None):
         .group_by(enhed_uuid)
     )
 
-    return execute_query(decorated_hits)
+    engine = get_engine()
+    session = Session(bind=engine)
+    with session.begin():
+        query = decorated_hits
+        limit = 1000
+        result = session.execute(query.limit(limit))
+        rows = result.mappings().fetchall()
+        uuids = [x["uuid"] for x in rows]
+        # TODO: Log org-funk lookups
+        # TODO: Log class lookups
+        audit_log(
+            session,
+            "find_org_units_matching",
+            "OrganisationEnhed",
+            {"phrase": phrase, "class_uuids": class_uuids},
+            uuids,
+        )
+        return rows
 
 
 def _org_unit_path(all_hits, enhed_uuid):

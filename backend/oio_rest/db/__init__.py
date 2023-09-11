@@ -9,18 +9,25 @@ import pathlib
 from contextlib import suppress
 from contextvars import ContextVar
 from typing import Any
+from uuid import UUID
 
 import dateutil
 import psycopg2
 from dateutil import parser as date_parser
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
+from more_itertools import one
 from psycopg2.extensions import adapt as psyco_adapt
 from psycopg2.extensions import AsIs
 from psycopg2.extensions import Boolean
 from psycopg2.extensions import QuotedString
+from psycopg2.extensions import register_adapter
 from psycopg2.extensions import TRANSACTION_STATUS_INERROR
 from psycopg2.extras import DateTimeTZRange
+from psycopg2.extras import Json
+from psycopg2.extras import register_uuid
+from psycopg2.sql import Identifier
+from psycopg2.sql import SQL
 
 from ..custom_exceptions import BadRequestException
 from ..custom_exceptions import DBException
@@ -41,6 +48,7 @@ from .db_helpers import OffentlighedUndtaget
 from .db_helpers import Soegeord
 from .db_helpers import to_bool
 from .db_helpers import VaerdiRelationAttr
+from mora.audit import audit_log_lora
 from mora.auth.middleware import get_authenticated_user
 from oio_rest import config
 
@@ -65,6 +73,9 @@ def adapt(value):
 
 
 jinja_env.filters["adapt"] = adapt
+
+register_adapter(dict, Json)
+register_uuid()
 
 # We only have one connection, so we cannot benefit from the gunicorn gthread
 # worker class, which is intended to reduce memory footprint anyway. This
@@ -394,17 +405,22 @@ def get_restrictions_as_sql(user, class_name, operation):
 """
 
 
-def object_exists(class_name, uuid):
+def object_exists(class_name: str, uuid: str) -> bool:
     """Check if an object with this class name and UUID exists already."""
-    sql = f"""
-    select exists(
-        select 1 from {class_name}_registrering where {class_name}_id = %s
-    )
+    sql = SQL(
+        """
+    SELECT EXISTS( SELECT 1 FROM {registration_table} WHERE {id_column} = %(uuid)s )
     """
+    ).format(
+        registration_table=Identifier(class_name.lower() + "_registrering"),
+        id_column=Identifier(class_name.lower() + "_id"),
+    )
 
     with get_connection().cursor() as cursor:
         try:
-            cursor.execute(sql, (uuid,))
+            arguments = {"uuid": uuid}
+            audit_log_lora(cursor, "object_exists", class_name, arguments, [UUID(uuid)])
+            cursor.execute(sql, arguments)
         except psycopg2.Error as e:
             if e.pgcode is not None and e.pgcode[:2] == "MO":
                 status_code = int(e.pgcode[2:])
@@ -412,8 +428,9 @@ def object_exists(class_name, uuid):
             else:
                 raise
 
-        result = cursor.fetchone()[0]
+        result = one(cursor.fetchone())
 
+    assert isinstance(result, bool)
     return result
 
 
@@ -621,7 +638,12 @@ def list_and_consolidate_objects(
 
 
 def list_objects(
-    class_name, uuid, virkning_fra, virkning_til, registreret_fra, registreret_til
+    class_name: str,
+    uuid: list | None,
+    virkning_fra,
+    virkning_til,
+    registreret_fra,
+    registreret_til,
 ):
     """List objects with the given uuids, optionally filtering by the given
     virkning and registering periods."""
@@ -641,14 +663,12 @@ def list_objects(
 
     with get_connection().cursor() as cursor:
         try:
-            cursor.execute(
-                sql,
-                {
-                    "uuid": uuid,
-                    "registrering_tstzrange": registration_period,
-                    "virkning_tstzrange": DateTimeTZRange(virkning_fra, virkning_til),
-                },
-            )
+            arguments = {
+                "uuid": uuid,
+                "registrering_tstzrange": registration_period,
+                "virkning_tstzrange": DateTimeTZRange(virkning_fra, virkning_til),
+            }
+            cursor.execute(sql, arguments)
         except psycopg2.Error as e:
             if e.pgcode is not None and e.pgcode[:2] == "MO":
                 status_code = int(e.pgcode[2:])
@@ -656,12 +676,15 @@ def list_objects(
             else:
                 raise
 
-        output = cursor.fetchone()
+        output = one(cursor.fetchone())
+        uuids = []
+        if output is not None:
+            uuids = [entry["id"] for entry in output]
+        audit_log_lora(
+            cursor, "list_objects", class_name, arguments, list(map(UUID, uuids))
+        )
 
-    if not output:
-        # nothing found
-        raise NotFoundException(f"{class_name} with UUID {uuid} not found.")
-    ret = filter_json_output(output)
+    ret = filter_json_output((output,))
     with suppress(IndexError):
         repair_relation_nul_til_mange(ret[0])
 
@@ -996,7 +1019,6 @@ def search_objects(
     sql_restrictions = get_restrictions_as_sql(
         str(get_authenticated_user()), class_name, Operation.READ
     )
-
     sql = sql_template.render(
         first_result=first_result,
         uuid=uuid,
@@ -1019,9 +1041,26 @@ def search_objects(
             else:
                 raise
 
-        output = cursor.fetchone()
+        arguments = {
+            "uuid": uuid,
+            "virkning_fra": virkning_fra,
+            "virkning_til": virkning_til,
+            "registreret_fra": registreret_fra,
+            "registreret_til": registreret_til,
+            "life_cycle_code": life_cycle_code,
+            "user_ref": user_ref,
+            "note": note,
+            "any_attr_value_arr": any_attr_value_arr,
+            "any_rel_uuid_arr": any_rel_uuid_arr,
+            "first_result": first_result,
+            "max_results": max_results,
+        }
+        uuids = one(cursor.fetchone())
+        audit_log_lora(
+            cursor, "search_objects", class_name, arguments, list(map(UUID, uuids))
+        )
 
-    return output
+    return (uuids,)
 
 
 def get_life_cycle_code(class_name, uuid):

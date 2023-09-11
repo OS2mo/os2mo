@@ -16,6 +16,7 @@ from sqlalchemy.sql import select
 from sqlalchemy.sql import union
 
 from mora import util
+from mora.audit import audit_log
 from mora.db import BrugerAttrUdvidelser
 from mora.db import BrugerRegistrering
 from mora.db import BrugerRelation
@@ -36,28 +37,32 @@ async def search_employees(
 ) -> [Row]:
     at_sql, at_sql_bind_params = get_at_date_sql(at)
 
+    ctes = await asyncio.gather(
+        _get_cte_uuid_hits(query),
+        _get_cte_name_hits(query),
+        _get_cte_cpr_hits(query),
+        _get_cte_addr_hits(query),
+        _get_cte_itsystem_hits(query),
+    )
+    selects = [select(cte.c.uuid) for cte in ctes]
+    all_hits = union(*selects).cte()
+
+    employee_id = BrugerRegistrering.bruger_id.label("uuid")
+    query_final = (
+        select(employee_id).where(employee_id == all_hits.c.uuid).group_by(employee_id)
+    )
+
     async with sessionmaker() as session:
-        ctes = await asyncio.gather(
-            _get_cte_uuid_hits(query),
-            _get_cte_name_hits(query),
-            _get_cte_cpr_hits(query),
-            _get_cte_addr_hits(query),
-            _get_cte_itsystem_hits(query),
-        )
-        selects = [select(cte.c.uuid) for cte in ctes]
-        all_hits = union(*selects).cte()
-
-        employee_id = BrugerRegistrering.bruger_id.label("uuid")
-        query_final = (
-            select(employee_id)
-            .where(employee_id == all_hits.c.uuid)
-            .group_by(employee_id)
-        )
-
-        # Execute & parse results
-        return read_sqlalchemy_result(
-            await session.execute(query_final, {**at_sql_bind_params})
-        )
+        with session.begin():
+            # Execute & parse results
+            result = read_sqlalchemy_result(
+                await session.execute(query_final, {**at_sql_bind_params})
+            )
+            uuids = [employee.uuid for employee in result]
+            audit_log(
+                session, "search_employees", "Bruger", {"query": query, "at": at}, uuids
+            )
+        return result
 
 
 async def decorate_employee_search_result(search_results: [Row], at: date | None):
