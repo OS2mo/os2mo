@@ -6,8 +6,8 @@ import strawberry
 from fastapi.encoders import jsonable_encoder
 from strawberry.types import Info
 
-from ..latest.classes import ClassUpdateInput
 from ..latest.facets import FacetUpdateInput
+from ..latest.inputs import ClassUpdateInput
 from ..latest.itsystem import ITSystemCreateInput
 from ..latest.permissions import gen_update_permission
 from ..latest.permissions import IsAuthenticatedPermission

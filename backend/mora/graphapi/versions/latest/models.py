@@ -9,6 +9,7 @@ from uuid import UUID
 
 import strawberry
 from pydantic import BaseModel
+from pydantic import Extra
 from pydantic import Field
 from pydantic import root_validator
 
@@ -18,6 +19,8 @@ from mora import mapping
 from mora.util import CPR
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
+from mora.util import to_lora_time
+from oio_rest import validate
 from ramodels.mo import OpenValidity
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo._shared import UUIDBase
@@ -397,6 +400,101 @@ class AssociationTerminate(ValidityTerminate):
                 validity=Validity(from_date=self.from_date, to_date=self.to_date),
             ),
         )
+
+
+# Classes
+# ---------
+class ClassCreate(UUIDBase):
+    """Model representing a Class creation."""
+
+    name: str = Field(description="Mo-class name.")
+    user_key: str = Field(description="Extra info or uuid")
+    facet_uuid: UUID = Field(description="UUID of the related facet.")
+    scope: str | None = Field(description="Scope of the class.")
+    published: str = Field(
+        "Publiceret", description="Published state of the class object."
+    )
+    parent_uuid: UUID | None = Field(description="UUID of the parent class.")
+    example: str | None = Field(description="Example usage.")
+    owner: UUID | None = Field(description="Owner of class")
+
+    class Config:
+        frozen = True
+        allow_population_by_field_name = True
+        extra = Extra.forbid
+
+    def to_registration(self, organisation_uuid: UUID) -> dict:
+        from_time = to_lora_time("-infinity")
+        to_time = to_lora_time("infinity")
+
+        klasseegenskaber = {
+            "brugervendtnoegle": self.user_key,
+            "titel": self.name,
+            "virkning": {"from": from_time, "to": to_time},
+        }
+        if self.example is not None:
+            klasseegenskaber["eksempel"] = self.example
+        if self.scope is not None:
+            klasseegenskaber["omfang"] = self.scope
+
+        relations = {
+            "facet": [
+                {
+                    "uuid": str(self.facet_uuid),
+                    "virkning": {"from": from_time, "to": to_time},
+                    "objekttype": "Facet",
+                }
+            ],
+            "ansvarlig": [
+                {
+                    "uuid": str(organisation_uuid),
+                    "virkning": {"from": from_time, "to": to_time},
+                    "objekttype": "Organisation",
+                }
+            ],
+        }
+        if self.parent_uuid is not None:
+            relations["overordnetklasse"] = [
+                {
+                    "uuid": str(self.parent_uuid),
+                    "virkning": {"from": from_time, "to": to_time},
+                    "objekttype": "klasse",
+                }
+            ]
+        if self.owner is not None:
+            relations["ejer"] = [
+                {
+                    "uuid": str(self.owner),
+                    "virkning": {"from": from_time, "to": to_time},
+                    "objekttype": "organisationenhed",
+                }
+            ]
+
+        input = {
+            "tilstande": {
+                "klassepubliceret": [
+                    {
+                        "publiceret": self.published,
+                        "virkning": {"from": from_time, "to": to_time},
+                    }
+                ]
+            },
+            "attributter": {"klasseegenskaber": [klasseegenskaber]},
+            "relationer": relations,
+        }
+        validate.validate(input, "klasse")
+
+        return {
+            "states": input["tilstande"],
+            "attributes": input["attributter"],
+            "relations": input["relationer"],
+        }
+
+
+class ClassUpdate(ClassCreate):
+    """Model representing a class update."""
+
+    uuid: UUID = Field(description="UUID of the class to update.")
 
 
 # Employees
