@@ -3,6 +3,7 @@
 """Loaders for translating LoRa data to MO data to be returned from the GraphAPI."""
 from collections.abc import Callable
 from collections.abc import Iterable
+from datetime import datetime
 from functools import partial
 from itertools import starmap
 from typing import Any
@@ -167,7 +168,7 @@ def lora_class_to_mo_class(lora_tuple: tuple[UUID, KlasseRead]) -> ClassRead:
     uuid, lora_class = lora_tuple
 
     class_attributes = one(lora_class.attributes.properties)
-    class_state = one(lora_class.states.published_state)
+    class_state_published = one(lora_class.states.published_state)
     class_relations = lora_class.relations
 
     mo_class = {
@@ -176,13 +177,23 @@ def lora_class_to_mo_class(lora_tuple: tuple[UUID, KlasseRead]) -> ClassRead:
         "user_key": class_attributes.user_key,
         "scope": class_attributes.scope,
         "example": class_attributes.example,
-        "published": class_state.published,
+        "published": class_state_published.published,
         "facet_uuid": one(class_relations.facet).uuid,
         "org_uuid": one(class_relations.responsible).uuid,
         "parent_uuid": one(class_relations.parent).uuid
         if class_relations.parent
         else None,
         "owner": one(class_relations.owner).uuid if class_relations.owner else None,
+        "validity": {
+            "from": datetime.fromisoformat(
+                class_state_published.effective_time.from_date
+            )
+            if class_state_published.effective_time.from_date != "-infinity"
+            else None,
+            "to": datetime.fromisoformat(class_state_published.effective_time.to_date)
+            if class_state_published.effective_time.to_date != "infinity"
+            else None,
+        },
     }
     return ClassRead(**mo_class)
 

@@ -417,6 +417,7 @@ class ClassCreate(UUIDBase):
     parent_uuid: UUID | None = Field(description="UUID of the parent class.")
     example: str | None = Field(description="Example usage.")
     owner: UUID | None = Field(description="Owner of class")
+    validity: RAValidity = Field(description="Validity range for the class.")
 
     class Config:
         frozen = True

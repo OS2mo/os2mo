@@ -1494,6 +1494,13 @@ class Class:
     async def parent_uuid(self, root: ClassRead) -> UUID | None:
         return root.parent_uuid
 
+    @strawberry.field(description="Validity of the class.")
+    async def validity(self, root: ClassRead) -> Validity:
+        return Validity(
+            from_date=root.validity.from_date,
+            to_date=root.validity.to_date,
+        )
+
 
 # Employee
 # --------
