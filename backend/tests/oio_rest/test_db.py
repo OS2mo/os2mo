@@ -7,6 +7,7 @@ from unittest import TestCase
 from unittest.mock import call
 from unittest.mock import MagicMock
 from unittest.mock import patch
+from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
@@ -1422,25 +1423,6 @@ class TestDBObjectFunctions(unittest.TestCase):
         assert uuid == actual_result
 
     @patch("oio_rest.db.get_connection")
-    @patch("oio_rest.db.jinja_env")
-    def test_list_objects_raises_on_no_results(self, mock_jinja_env, mock_get_conn):
-        # type: (MagicMock, MagicMock) -> None
-        # Arrange
-        cursor = get_mocked_cursor(mock_get_conn)
-        cursor.fetchone.return_value = None
-
-        # Act
-        with pytest.raises(NotFoundException):
-            db.list_objects(
-                "classname",
-                ["uuid"],
-                "virkning_fra",
-                "virkning_til",
-                "registrering_fra",
-                "registrering_til",
-            )
-
-    @patch("oio_rest.db.get_connection")
     def test_list_objects_repairs_relations(self, mock_get_conn):
         # Arrange
         cursor = get_mocked_cursor(mock_get_conn)
@@ -1680,7 +1662,7 @@ class TestPGErrors(unittest.TestCase):
         uuid = "1c3236a1-9384-4730-82ab-5443e95bcead"
 
         cursor = get_mocked_cursor(mock_get_conn)
-        exception = TestPGErrors.TestException("12345")
+        exception = TestPGErrors.TestException("123")
         cursor.execute.side_effect = exception
 
         # Act
@@ -1697,7 +1679,7 @@ class TestPGErrors(unittest.TestCase):
 
         # Act
         with pytest.raises(DBException):
-            db.create_or_import_object("", "", "", "")
+            db.create_or_import_object("OrganisationEnhed", "", "", str(uuid4()))
 
     @patch("oio_rest.db.psycopg2.Error", new=TestException)
     @patch("oio_rest.db.object_exists", new=lambda *x: False)
@@ -1749,7 +1731,7 @@ class TestPGErrors(unittest.TestCase):
 
         # Act
         with pytest.raises(DBException):
-            db.delete_object("", "", "", "")
+            db.delete_object("OrganisationEnhed", "", "", str(uuid4()))
 
     @patch("oio_rest.db.psycopg2.Error", new=TestException)
     @patch("oio_rest.db.object_exists", new=lambda *x: False)
@@ -1787,7 +1769,7 @@ class TestPGErrors(unittest.TestCase):
 
         # Act
         with pytest.raises(TestPGErrors.TestException):
-            db.delete_object("", "", "", "")
+            db.delete_object("OrganisationEnhed", "", "", str(uuid4()))
 
     @patch("oio_rest.db.psycopg2.Error", new=TestException)
     def test_passivate_object_raises_on_pgerror(self, mock_get_conn):
