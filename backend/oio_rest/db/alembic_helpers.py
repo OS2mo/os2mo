@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import os
+from contextlib import closing
 
 from psycopg2.errors import UndefinedTable
 from sqlalchemy import text
@@ -10,6 +11,8 @@ from . import get_connection
 from alembic import command
 from alembic import op
 from alembic.config import Config
+from mora.db._common import metadata
+from oio_rest.db.engine import get_engine
 
 
 def get_alembic_cfg() -> Config:
@@ -73,26 +76,20 @@ def setup_database():
 def truncate_all_tables():
     """Truncate all tables in the 'actual_state' schema"""
 
-    schema_name = "actual_state"
-    truncate_all = """
-        do
-        $func$
-        begin
-        execute (
-            select
-                'truncate table ' || string_agg(oid::regclass::text, ', ') || ' cascade'
-            from
-                pg_class
-            where
-                relkind = 'r'  -- only tables
-                and
-                relnamespace = %s::regnamespace
-        );
-        end
-        $func$;
-    """
-    with get_connection().cursor() as cursor:
-        return cursor.execute(truncate_all, (schema_name,))
+    # XXX: Truncate now leaks the following tables
+    # "klassifikation",
+    # "klassifikation_attr_egenskaber",
+    # "klassifikation_registrering",
+    # "klassifikation_relation",
+    # "klassifikation_tils_publiceret",
+    # This can be remidied by adding models to the DB module or by dropping them
+
+    engine = get_engine()
+    with closing(engine.connect()) as con:
+        trans = con.begin()
+        for table in reversed(metadata.sorted_tables):
+            con.execute(table.delete())
+        trans.commit()
 
 
 def apply_sql_from_file(relpath: str):
