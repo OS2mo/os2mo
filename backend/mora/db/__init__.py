@@ -53,7 +53,6 @@ from ._organisationsfunktion import OrganisationFunktionRegistrering
 from ._organisationsfunktion import OrganisationFunktionRelation
 from ._organisationsfunktion import OrganisationFunktionRelationKode
 from ._organisationsfunktion import OrganisationFunktionTilsGyldighed
-from oio_rest.config import get_settings as oio_rest_get_settings
 
 
 def get_sessionmaker(user, password, host, name):
