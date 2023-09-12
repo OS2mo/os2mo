@@ -8,6 +8,7 @@ from uuid import UUID
 
 from fastapi import Depends
 from fastapi import Header
+from fastapi import Request
 from starlette_context import context
 from starlette_context import request_cycle_context
 
@@ -39,6 +40,15 @@ async def set_authenticated_user(
     user_uuid: UUID | None = Depends(fetch_authenticated_user),
 ) -> AsyncIterator[None]:
     data = {**context, _MIDDLEWARE_KEY: user_uuid}
+    with request_cycle_context(data):
+        yield
+
+
+async def set_authenticated_user_from_header(request: Request) -> AsyncIterator[None]:
+    user_uuid = request.headers.get("X-Authenticated-User")
+    data = {**context}
+    if user_uuid:
+        data[_MIDDLEWARE_KEY] = UUID(user_uuid)
     with request_cycle_context(data):
         yield
 
