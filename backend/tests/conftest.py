@@ -97,7 +97,7 @@ def clear_configured_organisation():
     ConfiguredOrganisation.clear()
 
 
-@pytest.fixture()
+@pytest.fixture
 def set_settings(
     monkeypatch: MonkeyPatch,
 ) -> YieldFixture[Callable[..., None]]:
@@ -106,6 +106,30 @@ def set_settings(
     def _inner(**kwargs: Any) -> None:
         for key, value in kwargs.items():
             monkeypatch.setenv(key, value)
+        get_settings.cache_clear()
+
+    yield _inner
+    get_settings.cache_clear()
+
+
+@pytest.fixture(scope="session")
+def monkeysession(request):
+    from pytest import MonkeyPatch
+
+    mpatch = MonkeyPatch()
+    yield mpatch
+    mpatch.undo()
+
+
+@pytest.fixture(scope="session")
+def set_session_settings(
+    monkeysession: MonkeyPatch,
+) -> YieldFixture[Callable[..., None]]:
+    """Set settings via kwargs callback."""
+
+    def _inner(**kwargs: Any) -> None:
+        for key, value in kwargs.items():
+            monkeysession.setenv(key, value)
         get_settings.cache_clear()
 
     yield _inner
