@@ -2415,8 +2415,8 @@ class Leave:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    employee: LazyEmployee = strawberry.field(
-        resolver=seed_resolver_only(
+    employee: list[LazyEmployee] = strawberry.field(
+        resolver=seed_resolver_list(
             EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
         ),
         description=dedent(
@@ -2429,8 +2429,8 @@ class Leave:
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
     )
 
-    person: LazyEmployee = strawberry.field(
-        resolver=seed_resolver_only(
+    person: list[LazyEmployee] = strawberry.field(
+        resolver=seed_resolver_list(
             EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
         ),
         description=dedent(
