@@ -11,6 +11,7 @@ from fastapi import Request
 from fastapi.security import OAuth2PasswordBearer
 from starlette.responses import JSONResponse
 from starlette.status import HTTP_403_FORBIDDEN
+from starlette_context import context
 from structlog import get_logger
 
 from mora import config
@@ -254,11 +255,17 @@ def token_getter(request: Request) -> Callable[[], Awaitable[Token]]:
     """
 
     async def get_token():
-        if auth == noauth:
-            return await noauth()
+        if token := context.get("token", False):
+            return token
 
-        if auth == legacy_auth_adapter:
-            return await legacy_auth_adapter(request)
-        return await fetch_keycloak_token(request)
+        if auth == noauth:
+            result = await noauth()
+        elif auth == legacy_auth_adapter:
+            result = await legacy_auth_adapter(request)
+        else:
+            result = await fetch_keycloak_token(request)
+
+        context["token"] = result
+        return result
 
     return get_token
