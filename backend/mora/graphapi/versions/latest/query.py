@@ -381,9 +381,8 @@ class Query:
             """
         ),
         permission_classes=[
-            IsAuthenticatedPermission
-            # TODO: Introduce this later
-            # gen_read_permission("auditlog"),
+            IsAuthenticatedPermission,
+            gen_read_permission("registration"),
         ],
     )
 
@@ -396,11 +395,7 @@ class Query:
             Mostly useful for auditing purposes seeing when data was read and by whom.
             """
         ),
-        permission_classes=[
-            IsAuthenticatedPermission
-            # TODO: Introduce this later
-            # gen_read_permission("auditlog"),
-        ],
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("auditlog")],
     )
 
     # Root Organisation

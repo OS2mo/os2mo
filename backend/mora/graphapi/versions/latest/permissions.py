@@ -19,6 +19,7 @@ rbac_counter = Counter("graphql_rbac", "Number of RBAC checks", ["role", "allowe
 Collections = Literal[
     "address",
     "association",
+    "auditlog",
     "class",
     "configuration",
     "employee",
