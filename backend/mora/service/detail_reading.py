@@ -34,7 +34,6 @@ from mora.graphapi.shim import MOAddress
 from mora.lora import validity_tuple
 from mora.lora import ValidityLiteral
 
-
 router = APIRouter()
 
 DetailType = collections.namedtuple(
@@ -826,13 +825,12 @@ async def list_associations_employee(
     return await get_detail(type="e", id=id, function="association")
 
 
-@router.get("/ou/{id}/details/association")
+@router.get("/ou/{orgid}/details/association")
 async def list_associations_ou(
-    id: UUID,
-    at: Any | None = None,
-    validity: Any | None = None,
-    only_primary_uuid: Any | None = None,
-    first_party_perspective: Any | None = None,
+    orgid: UUID,
+    only_primary_uuid: bool | None = None,
+    at: date | datetime = None,
+    validity: ValidityLiteral | None = None,
 ):
     """Fetch a list of associations for the organisation unit.
 
@@ -872,7 +870,146 @@ async def list_associations_ou(
            }
         ]
     """
-    return await get_detail(type="ou", id=id, function="association")
+    if only_primary_uuid:
+        query = """
+            query GetAssociations($uuid: UUID!, $from_date: DateTime, $to_date: DateTime) {
+              org_units(filter: {uuids: [$uuid], from_date: $from_date, to_date: $to_date}) {
+                objects {
+                  objects {
+                    associations {
+                      uuid
+                      user_key
+                      validity {
+                        from
+                        to
+                      }
+                      association_type {
+                        uuid
+                      }
+                      org_unit {
+                        uuid
+                      }
+                    }
+                  }
+                }
+              }
+            }
+        """
+    else:
+        query = """
+            query GetAssociations($uuid: UUID!, $from_date: DateTime, $to_date: DateTime) {
+              org_units(filter: {uuids: [$uuid], from_date: $from_date, to_date: $to_date}) {
+                objects {
+                  objects {
+                    associations {
+                      uuid
+                      user_key
+                      validity {
+                        from
+                        to
+                      }
+                      person {
+                        given_name
+                        surname
+                        name
+                        nickname_given_name
+                        nickname_surname
+                        nickname
+                        user_key
+                        uuid
+                        seniority
+                        cpr_number
+                      }
+                      org_unit {
+                        name
+                        user_key
+                        uuid
+                        validity {
+                          from
+                          to
+                        }
+                      }
+                      association_type {
+                        uuid
+                        name
+                        user_key
+                        scope
+                        owner
+                        published
+                        facet {
+                          uuid
+                          user_key
+                        }
+                      }
+                      primary {
+                        name
+                        user_key
+                        published
+                        scope
+                        uuid
+                      }
+                      substitute {
+                        given_name
+                        surname
+                        name
+                        nickname_given_name
+                        nickname_surname
+                        nickname
+                        user_key
+                        uuid
+                        seniority
+                        cpr_number
+                      }
+                      job_function {
+                        name
+                        user_key
+                        uuid
+                      }
+                      it_user {
+                        user_key
+                        uuid
+                      }
+                    }
+                  }
+                }
+              }
+            }
+        """
+    args = {"uuid": orgid}
+    if at:
+        args["from_date"] = at
+    if validity:
+        start, end = validity_tuple(validity, now=at)
+
+        args["from_date"] = start
+        args["to_date"] = end
+
+    response = await execute_graphql(
+        query,
+        variable_values=jsonable_encoder(args),
+    )
+    if response.errors:
+        raise ValueError(response.errors)
+
+    flat = flatten_data(response.data["org_units"]["objects"])
+    if len(flat) == 0:
+        return []
+
+    # Due to the nature of our query, the length of flat will sometimes be > 1
+    # when querying historical data. However, the historical associations reported will be
+    # correct and identical for all elements, and as such we simply return the first one
+    data = first(flat)["associations"]
+
+    for element in data:
+        if only_primary_uuid:
+            element["association_type"] = first(
+                element.get("association_type").get("uuid")
+            )
+            element["org_unit"] = first(element.get("org_unit").get("uuid"))
+        else:
+            element["org_unit"] = first(element["org_unit"])
+
+    return list(filter(partial(filter_by_validity, validity), data))
 
 
 @router.get("/e/{id}/details/employee")
