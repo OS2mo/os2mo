@@ -43,7 +43,7 @@ from . import config
 from . import exceptions
 from . import util
 from .graphapi.middleware import is_graphql
-from mora.auth.middleware import get_authorization_header
+from mora.auth.middleware import get_authenticated_user
 
 
 T = TypeVar("T")
@@ -411,13 +411,8 @@ class BaseScope:
     def request_headers(self):
         headers = {}
 
-        # We forward the authorization header such that LoRa can extract the user
-        # uuid and add it to the user-reference on registrations. This really should
-        # not be necessary but unfortunately the HTTPX client breaks our context
-        # variables, and this is a hack to pass them across that boundary.
-        # In the future when lora.py calls OIOBase directly, this can be removed.
-        if authorization_header := get_authorization_header():
-            headers["Authorization"] = authorization_header
+        # LoRa needs the user to keep the audit log
+        headers["X-Authenticated-User"] = str(get_authenticated_user())
 
         return headers
 
