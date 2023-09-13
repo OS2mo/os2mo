@@ -43,7 +43,7 @@ async def test_from_request():
     assert VALUE == actual_value
 
 
-@patch("mora.service.facet.get_one_class", new=async_facet_get_one_class)
+@patch("mora.service.clazz.get_one_class", new=async_facet_get_one_class)
 async def test_get_mo_address():
     # Arrange
     address_handler = EmailAddressHandler(VALUE, VISIBILITY)

@@ -118,7 +118,7 @@ def test_parent_org_unit(mock, service_client):
 
 
 @patch("mora.service.address_handler.base.get_handler_for_scope")
-@patch("mora.service.facet.get_one_class")
+@patch("mora.service.clazz.get_one_class")
 def test_address(get_one_class, get_handler_for_scope, service_client):
     value = "12341234"
     scope = "SCOPE"

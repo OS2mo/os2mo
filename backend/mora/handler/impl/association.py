@@ -15,6 +15,7 @@ from ... import mapping
 from ... import util
 from ...common import get_connector
 from ...graphapi.middleware import is_graphql
+from ...service import clazz
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
@@ -269,7 +270,7 @@ class AssociationReader(reading.OrgFunkReadingHandler):
 
         if extra == ResponseExtraField.JOB_FUNCTION and associated_function_uuid:
             c = get_connector()
-            job_function_task = facet.get_one_class(
+            job_function_task = clazz.get_one_class(
                 c,
                 classid=associated_function_uuid,
                 details=set(),

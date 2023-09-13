@@ -31,7 +31,7 @@ class TestITUserGroupValidationBase:
         )
     )
     async def test_get_validation_item_from_mo_object(self, mo_object: dict):
-        with mock.patch("mora.service.facet.get_one_class", mock.AsyncMock()):
+        with mock.patch("mora.service.clazz.get_one_class", mock.AsyncMock()):
             items = await _ITUserGroupValidation.get_validation_items_from_mo_object(
                 mo_object
             )

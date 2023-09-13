@@ -54,7 +54,7 @@ async def test_get_mo_address():
     }
 
     # Act
-    with patch("mora.service.facet.get_one_class", new=async_facet_get_one_class):
+    with patch("mora.service.clazz.get_one_class", new=async_facet_get_one_class):
         actual = await address_handler.get_mo_address_and_properties()
 
         # Assert

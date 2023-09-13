@@ -4,7 +4,7 @@ import uuid
 
 from fastapi import APIRouter
 
-from . import facet
+from . import clazz
 from . import handlers
 from . import org
 from .. import common
@@ -61,7 +61,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
         c = lora.Connector()
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
-        type_obj = await facet.get_one_class(
+        type_obj = await clazz.get_one_class(
             c, address_type_uuid, only_primary_uuid=only_primary_uuid
         )
 
@@ -230,7 +230,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
             )
             only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
-            type_obj = await facet.get_one_class(
+            type_obj = await clazz.get_one_class(
                 c, address_type_uuid, only_primary_uuid=only_primary_uuid
             )
             scope = util.checked_get(type_obj, "scope", "", required=True)

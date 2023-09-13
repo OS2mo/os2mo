@@ -58,7 +58,7 @@ async def test_get_mo_address():
         "value2": None,
         "visibility": {"uuid": UUID("dd5699af-b233-44ef-9107-7a37016b2ed1")},
     }
-    with patch("mora.service.facet.get_one_class", new=async_facet_get_one_class):
+    with patch("mora.service.clazz.get_one_class", new=async_facet_get_one_class):
         # Act
         actual = await address_handler.get_mo_address_and_properties()
 

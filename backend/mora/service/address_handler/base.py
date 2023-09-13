@@ -7,7 +7,7 @@ from ... import common
 from ... import exceptions
 from ... import mapping
 from ... import util
-from ...service import facet
+from ...service import clazz
 
 ADDRESS_HANDLERS = {}
 
@@ -149,7 +149,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
             c = common.get_connector()
             properties.update(
                 {
-                    mapping.VISIBILITY: await facet.get_one_class(
+                    mapping.VISIBILITY: await clazz.get_one_class(
                         c,
                         self.visibility,
                         only_primary_uuid=only_primary_uuid,

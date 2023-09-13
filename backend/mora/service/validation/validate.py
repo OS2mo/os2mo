@@ -4,7 +4,7 @@ from fastapi import APIRouter
 from fastapi import Body
 
 from . import validator
-from .. import facet
+from .. import clazz
 from ... import exceptions
 from ... import lora
 from ... import mapping
@@ -306,7 +306,7 @@ async def address_value(req: dict = Body(...), only_primary_uuid: bool | None = 
 
     c = lora.Connector()
 
-    type_obj = await facet.get_one_class(
+    type_obj = await clazz.get_one_class(
         c, address_type_uuid, only_primary_uuid=only_primary_uuid
     )
 
