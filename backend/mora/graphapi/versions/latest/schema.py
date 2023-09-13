@@ -3684,7 +3684,7 @@ class OrganisationUnit:
         ),
     )
     async def itusers_validity(
-        self, root: EmployeeRead, info: Info
+        self, root: OrganisationUnitRead, info: Info
     ) -> list[LazyITUser]:
         return await validity_sub_query_hack(
             root.validity,

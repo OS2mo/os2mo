@@ -69,12 +69,12 @@ async def search_employees(
 async def decorate_employee_search_result(
     settings: config.Settings, search_results: [Row], at: date | None
 ):
-    from mora.graphapi.versions.v8.version import GraphQLVersion
+    from mora.graphapi.versions.v14.version import GraphQLVersion
 
     graphql_vars = {"uuids": [str(employee.uuid) for employee in search_results]}
     employee_decorate_query = """
         query EmployeeDecorate($uuids: [UUID!]) {
-            employees(uuids: $uuids, from_date: null, to_date: null) {
+            employees(filter: { uuids: $uuids, from_date: null, to_date: null }) {
                 objects {
                     uuid
 
@@ -110,7 +110,7 @@ async def decorate_employee_search_result(
     if settings.confdb_autocomplete_attrs_employee:
         employee_decorate_query = """
             query EmployeeDecorate($uuids: [UUID!]) {
-                employees(uuids: $uuids, from_date: null, to_date: null) {
+                employees(filter: { uuids: $uuids, from_date: null, to_date: null }) {
                     objects {
                         uuid
 
@@ -325,7 +325,7 @@ async def _get_cte_itsystem_hits(query: str):
 def _gql_get_employee_attrs(settings: config.Settings, gql_employee: dict):
     attrs = []
 
-    for engagement in gql_employee.get("engagements", []):
+    for engagement in gql_employee.get("engagements_validity", []):
         uuid = engagement["uuid"]
         value = engagement["user_key"]
         engagement_type = engagement.get("engagement_type")
@@ -349,7 +349,7 @@ def _gql_get_employee_attrs(settings: config.Settings, gql_employee: dict):
             }
         )
 
-    for address in gql_employee.get("addresses", []):
+    for address in gql_employee.get("addresses_validity", []):
         uuid = address["uuid"]
         value = address["value"]
         addr_type = address.get("address_type")
@@ -373,7 +373,7 @@ def _gql_get_employee_attrs(settings: config.Settings, gql_employee: dict):
             }
         )
 
-    for assoc in gql_employee.get("associations", []):
+    for assoc in gql_employee.get("associations_validity", []):
         uuid = assoc["uuid"]
         value = assoc["user_key"]
         assoc_type = assoc.get("association_type")
@@ -397,7 +397,7 @@ def _gql_get_employee_attrs(settings: config.Settings, gql_employee: dict):
             }
         )
 
-    for ituser in gql_employee.get("itusers", []):
+    for ituser in gql_employee.get("itusers_validity", []):
         uuid = ituser["uuid"]
         value = ituser["user_key"]
         itsystem = ituser.get("itsystem")

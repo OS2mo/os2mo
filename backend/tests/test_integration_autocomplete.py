@@ -51,6 +51,7 @@ def mock_get_settings_custom_attrs():
                 uuid.UUID(
                     "59c135c9-2b15-41cc-97c8-b5dff7180beb"
                 ),  # itsystem = Active Directory
+                uuid.UUID("14466fb0-f9de-439c-a6c2-b3262c367da7"),  # itsystem = SAP
             ],
         ),
     ) as mock_get_settings:
