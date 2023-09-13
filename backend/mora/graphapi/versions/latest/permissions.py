@@ -23,7 +23,6 @@ Collections = Literal[
     "class",
     "configuration",
     "employee",
-    "engagement_association",
     "engagement",
     "facet",
     "file",

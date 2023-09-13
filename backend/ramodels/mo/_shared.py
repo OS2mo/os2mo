@@ -88,10 +88,6 @@ class EmployeeRef(MORef):
     """Employee reference."""
 
 
-class EngagementAssociationType(MORef):
-    """Engagement Association type reference."""
-
-
 class EngagementRef(MORef):
     """Engagement reference."""
 

@@ -126,9 +126,6 @@ async def list_employee_details(id: UUID) -> dict[str, bool]:
                 engagement: engagements(filter: {from_date: null, to_date: null}) {
                   uuid
                 }
-                engagement_association: engagement_associations(filter: {from_date: null, to_date: null}) {
-                  uuid
-                }
                 it: itusers(filter: {from_date: null, to_date: null}) {
                   uuid
                 }
@@ -220,9 +217,6 @@ async def list_org_unit_details(id: UUID) -> dict[str, bool]:
                   uuid
                 }
                 engagement: engagements(filter: {from_date: null, to_date: null}) {
-                  uuid
-                }
-                engagement_association: engagement_associations(filter: {from_date: null, to_date: null}) {
                   uuid
                 }
                 it: itusers(filter: {from_date: null, to_date: null}) {

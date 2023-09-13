@@ -13,8 +13,6 @@ from .engagement import Engagement
 from .engagement import EngagementDetail
 from .engagement import EngagementRead
 from .engagement import EngagementWrite
-from .engagement_association import EngagementAssociation
-from .engagement_association import EngagementAssociationRead
 from .it_system import ITSystemRead
 from .it_system import ITUser
 from .it_system import ITUserDetail
@@ -50,7 +48,6 @@ from .role import RoleWrite
 Details = (
     AssociationDetail
     | EngagementDetail
-    | EngagementAssociation
     | KLEDetail
     | ManagerDetail
     | ITUserDetail
@@ -72,8 +69,6 @@ __all__ = [
     "Engagement",
     "EngagementRead",
     "EngagementWrite",
-    "EngagementAssociation",
-    "EngagementAssociationRead",
     "ITSystemRead",
     "ITUser",
     "ITUserRead",

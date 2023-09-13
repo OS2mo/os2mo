@@ -21,7 +21,6 @@ from ..v13.resolvers import AddressResolver
 from ..v13.resolvers import AssociationResolver
 from ..v13.resolvers import ClassResolver
 from ..v13.resolvers import EmployeeResolver
-from ..v13.resolvers import EngagementAssociationResolver
 from ..v13.resolvers import EngagementResolver
 from ..v13.resolvers import FacetResolver
 from ..v13.resolvers import ITSystemResolver
@@ -38,7 +37,6 @@ from ..v13.schema import Class
 from ..v13.schema import Configuration
 from ..v13.schema import Employee
 from ..v13.schema import Engagement
-from ..v13.schema import EngagementAssociation
 from ..v13.schema import Facet
 from ..v13.schema import File
 from ..v13.schema import Health
@@ -151,17 +149,6 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
-        ],
-    )
-
-    # EngagementsAssociations
-    # -----------
-    engagement_associations: list[Response[EngagementAssociation]] = strawberry.field(
-        resolver=offset2cursor(to_response(EngagementAssociationResolver())),
-        description="Get a list of engagement associations",
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("engagement_association"),
         ],
     )
 

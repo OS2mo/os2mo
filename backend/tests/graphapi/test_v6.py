@@ -13,8 +13,8 @@ from tests.conftest import GQLResponse
 @pytest.mark.parametrize(
     "resolver,expected_length",
     [
-        ("classes", 41),
-        ("facets", 19),
+        ("classes", 39),
+        ("facets", 18),
         ("itsystems", 3),
     ],
 )

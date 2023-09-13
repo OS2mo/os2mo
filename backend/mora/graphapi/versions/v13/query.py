@@ -17,7 +17,6 @@ from .resolvers import AssociationResolver
 from .resolvers import ClassResolver
 from .resolvers import ConfigurationResolver
 from .resolvers import EmployeeResolver
-from .resolvers import EngagementAssociationResolver
 from .resolvers import EngagementResolver
 from .resolvers import FacetResolver
 from .resolvers import FileResolver
@@ -37,7 +36,6 @@ from .schema import Class
 from .schema import Configuration
 from .schema import Employee
 from .schema import Engagement
-from .schema import EngagementAssociation
 from .schema import Facet
 from .schema import File
 from .schema import Health
@@ -108,17 +106,6 @@ class Query:
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
-        ],
-    )
-
-    # EngagementsAssociations
-    # -----------
-    engagement_associations: Paged[Response[EngagementAssociation]] = strawberry.field(
-        resolver=to_paged_response(EngagementAssociationResolver()),
-        description="Get engagement associations.",
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("engagement_association"),
         ],
     )
 

@@ -169,20 +169,6 @@ class EngagementFilter(BaseFilter):
     )
 
 
-@strawberry.input(description="Engagement association filter.")
-class EngagementAssociationFilter(BaseFilter):
-    employees: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Employee UUID", "employees")
-    )
-    engagements: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Engagement UUID", "engagements")
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-    )
-
-
 @strawberry.input(description="Facet filter.")
 class FacetFilter:
     # TODO: inherit these from BaseFilter when the object is non-static

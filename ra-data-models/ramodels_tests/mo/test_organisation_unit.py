@@ -4,9 +4,6 @@ from hypothesis import given
 from hypothesis import strategies as st
 from ramodels_tests.conftest import from_date_strat
 from ramodels_tests.conftest import to_date_strat
-from ramodels_tests.mo.details.test_engagement_association import (
-    engagement_assoc_strat,
-)
 
 from ramodels.mo._shared import OrgUnitHierarchy
 from ramodels.mo._shared import OrgUnitLevel
@@ -29,7 +26,6 @@ from ramodels.mo.organisation_unit import OrganisationUnitWrite
 def valid_details(draw):
     details_strat = (
         st.builds(AssociationDetail)
-        | engagement_assoc_strat()
         | st.builds(EngagementDetail)
         | st.builds(ManagerDetail)
         | st.builds(ITUserDetail)
