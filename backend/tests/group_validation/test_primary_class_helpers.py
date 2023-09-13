@@ -7,9 +7,9 @@ import pytest
 from parameterized import parameterized
 
 from mora import mapping
-from mora.service.facet import get_mo_object_primary_value
-from mora.service.facet import is_class_primary
-from mora.service.facet import is_class_uuid_primary
+from mora.service.clazz import get_mo_object_primary_value
+from mora.service.clazz import is_class_primary
+from mora.service.clazz import is_class_uuid_primary
 
 BELOW_MINIMUM_SCOPE = str(int(mapping.MINIMUM_PRIMARY_SCOPE_VALUE) - 1)
 
@@ -79,4 +79,4 @@ class TestPrimaryClassHelpers:
         mock_get = mock.AsyncMock(
             return_value={mapping.USER_KEY: "dummy_user_key", mapping.SCOPE: scope}
         )
-        return mock.patch("mora.service.facet.get_one_class", mock_get)
+        return mock.patch("mora.service.clazz.get_one_class", mock_get)
