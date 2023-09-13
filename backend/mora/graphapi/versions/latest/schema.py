@@ -9,9 +9,9 @@ from base64 import b64encode
 from collections.abc import Awaitable
 from collections.abc import Callable
 from datetime import date
-from functools import cache
 from datetime import datetime
 from datetime import time
+from functools import cache
 from functools import partial
 from functools import wraps
 from inspect import Parameter
@@ -3614,6 +3614,34 @@ class OrganisationUnit:
 
         parent_ancestors = await OrganisationUnit.ancestors_validity(self=self, root=parent, info=info)  # type: ignore
         return [parent] + parent_ancestors
+
+    @strawberry.field(
+        description=dedent(
+            """\
+            Same as associations(), but with HACKs to enable validities.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("association"),
+        ],
+        deprecation_reason=dedent(
+            """\
+            Should only be used to query associations when validity dates have been specified, "
+            "ex from_date & to_date."
+            "Will be removed when sub-query date handling is implemented.
+            """
+        ),
+    )
+    async def associations_validity(
+        self, root: OrganisationUnitRead, info: Info
+    ) -> list[LazyAssociation]:
+        return await validity_sub_query_hack(
+            root.validity,
+            AssociationRead,
+            get_handler_for_type("association"),
+            {"tilknyttedeenheder": uuid2list(root.uuid)},
+        )
 
     @strawberry.field(
         description=dedent(
