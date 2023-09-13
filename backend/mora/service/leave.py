@@ -54,7 +54,7 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
             brugervendtnoegle=bvn,
             tilknyttedebrugere=[employee_uuid],
             tilknyttedeorganisationer=[org_uuid],
-            tilknyttedefunktioner=[engagement_uuid] if engagement_uuid else None,
+            tilknyttedefunktioner=[engagement_uuid],
             funktionstype=leave_type_uuid,
         )
 

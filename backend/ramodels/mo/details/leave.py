@@ -28,7 +28,7 @@ class LeaveRead(LeaveBase):
         description="UUID of the employee related to the leave."
     )
     leave_type_uuid: UUID = Field(description="UUID of the leave type klasse.")
-    engagement_uuid: UUID | None = Field(
+    engagement_uuid: UUID = Field(
         description="UUID of the engagement related to the leave."
     )
 

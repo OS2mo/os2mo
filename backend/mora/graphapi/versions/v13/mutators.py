@@ -44,6 +44,9 @@ from ..latest.inputs import EmployeeUpdateInput
 from ..latest.inputs import EngagementCreateInput
 from ..latest.inputs import EngagementTerminateInput
 from ..latest.inputs import EngagementUpdateInput
+from ..latest.inputs import ITAssociationCreateInput
+from ..latest.inputs import ITAssociationTerminateInput
+from ..latest.inputs import ITAssociationUpdateInput
 from ..latest.inputs import ITUserCreateInput
 from ..latest.inputs import ITUserTerminateInput
 from ..latest.inputs import ITUserUpdateInput
@@ -62,6 +65,9 @@ from ..latest.inputs import OrganisationUnitUpdateInput
 from ..latest.inputs import RoleCreateInput
 from ..latest.inputs import RoleTerminateInput
 from ..latest.inputs import RoleUpdateInput
+from ..latest.it_association import create_itassociation
+from ..latest.it_association import terminate_itassociation
+from ..latest.it_association import update_itassociation
 from ..latest.it_user import create as create_ituser
 from ..latest.it_user import terminate as terminate_ituser
 from ..latest.it_user import update as update_ituser
@@ -451,6 +457,50 @@ class Mutation:
         note = ""
         uuid = await delete_facet(uuid, note)
         return uuid2response(uuid, FacetRead)
+
+    # ITAssociations
+    # ---------
+    @strawberry.mutation(
+        description="Creates an IT-Association.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("association"),
+        ],
+    )
+    async def itassociation_create(
+        self, input: ITAssociationCreateInput
+    ) -> Response[Association]:
+        return uuid2response(
+            await create_itassociation(input.to_pydantic()), AssociationRead
+        )
+
+    @strawberry.mutation(
+        description="Updates an IT-Association.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("association"),
+        ],
+    )
+    async def itassociation_update(
+        self, input: ITAssociationUpdateInput
+    ) -> Response[Association]:
+        return uuid2response(
+            await update_itassociation(input.to_pydantic()), AssociationRead
+        )
+
+    @strawberry.mutation(
+        description="Terminates an ITAssociation.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_terminate_permission("association"),
+        ],
+    )
+    async def itassociation_terminate(
+        self, input: ITAssociationTerminateInput
+    ) -> Response[Association]:
+        return uuid2response(
+            await terminate_itassociation(input.to_pydantic()), AssociationRead
+        )
 
     # ITSystems
     # ---------

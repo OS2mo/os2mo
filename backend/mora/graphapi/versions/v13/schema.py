@@ -2442,7 +2442,7 @@ class Leave:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
-    engagement: LazyEngagement | None = strawberry.field(
+    engagement: LazyEngagement = strawberry.field(
         resolver=seed_resolver_only(
             EngagementResolver(),
             {"uuids": lambda root: [root.engagement_uuid]},
@@ -2502,7 +2502,7 @@ class Leave:
         description="UUID of the KLE number.",
         deprecation_reason=gen_uuid_field_deprecation("engagement"),
     )
-    async def engagement_uuid(self, root: LeaveRead) -> UUID | None:
+    async def engagement_uuid(self, root: LeaveRead) -> UUID:
         return root.engagement_uuid
 
     validity: Validity = strawberry.auto
