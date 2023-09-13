@@ -79,3 +79,26 @@ def test_readiness_not_ready(mock_oio_rest, service_client: TestClient) -> None:
     mock_oio_rest.return_value = False
     response = service_client.request("GET", "/health/ready")
     assert response.status_code == HTTP_503_SERVICE_UNAVAILABLE
+
+
+@pytest.mark.integration_test
+async def test_healths(service_client: TestClient) -> None:
+    response = service_client.request("GET", "/health/")
+    assert response.status_code == 200
+    assert response.json() == {
+        "amqp": True,
+        "dar": True,
+        "dataset": True,
+        "keycloak": True,
+        "oio_rest": True,
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.parametrize(
+    "identifier", ["amqp", "dar", "dataset", "keycloak", "oio_rest"]
+)
+async def test_healthidentifier(service_client: TestClient, identifier: str) -> None:
+    response = service_client.request("GET", f"/health/{identifier}")
+    assert response.status_code == 200
+    assert response.json() is True

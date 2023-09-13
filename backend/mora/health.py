@@ -71,7 +71,7 @@ async def root() -> dict[str, bool]:
 async def healthcheck(identifier: str) -> bool | None:
     query = """
     query HealthQuery($identifier: String!) {
-      healths(identifiers: [$identifier]) {
+      healths(filter: {identifiers: [$identifier]}) {
         objects {
           status
         }
