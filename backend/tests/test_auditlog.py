@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
+from datetime import timedelta
+from typing import Any
 from uuid import UUID
 from uuid import uuid4
 
@@ -13,26 +15,25 @@ from mora.audit import audit_log
 from mora.db import AuditLogOperation as AuditLogOperation
 from mora.db import AuditLogRead
 from mora.db import get_sessionmaker
+from mora.service.autocomplete.employees import search_employees
+from mora.service.autocomplete.orgunits import search_orgunits
 from mora.util import DEFAULT_TIMEZONE
 from oio_rest.config import get_settings as lora_get_settings
 from oio_rest.db import _get_dbname
 from tests.conftest import admin_auth_uuid
 
 
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("empty_db")
-async def test_auditlog_database(set_settings: MonkeyPatch) -> None:
-    """Integrationtest for reading and writing the auditlog."""
-
-    set_settings(AUDIT_READLOG_ENABLE="True")
-
+def create_sessionmaker():
     lora_settings = lora_get_settings()
-    sessionmaker = get_sessionmaker(
+    return get_sessionmaker(
         user=lora_settings.db_user,
         password=lora_settings.db_password,
         host=lora_settings.db_host,
         name=_get_dbname(),
     )
+
+
+async def ensure_empty_audit_tables(sessionmaker) -> None:
     session = sessionmaker()
     async with session.begin():
         query = select(AuditLogOperation)
@@ -43,26 +44,60 @@ async def test_auditlog_database(set_settings: MonkeyPatch) -> None:
         result = list(await session.scalars(query))
         assert result == []
 
+
+async def assert_one_audit_entry(
+    sessionmaker,
+    model: str,
+    operation: str,
+    uuids: list[UUID] | None = None,
+    actor: UUID | None = None,
+    arguments: dict[str, Any] | None = None,
+    now: datetime | None = None,
+) -> None:
+    actor = actor or UUID("42c432e8-9c4a-11e6-9f62-873cf34a735f")
+    arguments = arguments or {}
+    now = now or (datetime.now(tz=DEFAULT_TIMEZONE) - timedelta(minutes=1))
+    uuids = uuids or []
+
+    session = sessionmaker()
+    async with session.begin():
+        query = select(AuditLogOperation)
+        audit_operation = one(await session.scalars(query))
+
+        assert audit_operation.time > now
+        assert audit_operation.actor == actor
+        assert audit_operation.model == model
+
+        assert audit_operation.operation == operation
+        assert audit_operation.arguments == arguments
+
+        query = select(AuditLogRead)
+        reads = list(await session.scalars(query))
+        read_uuids = []
+        for read in reads:
+            assert read.operation_id == audit_operation.id
+            read_uuids.append(read.uuid)
+
+        assert read_uuids == uuids
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_auditlog_database(set_settings: MonkeyPatch) -> None:
+    """Integrationtest for reading and writing the auditlog."""
+
+    set_settings(AUDIT_READLOG_ENABLE="True")
+
+    sessionmaker = create_sessionmaker()
+    await ensure_empty_audit_tables(sessionmaker)
+
     uuid = uuid4()
-    now = datetime.now(tz=DEFAULT_TIMEZONE)
+
+    session = sessionmaker()
     async with session.begin():
         audit_log(session, "test_auditlog", "AuditLog", {}, [uuid])
 
-    async with session.begin():
-        query = select(AuditLogOperation)
-        operation = one(await session.scalars(query))
-
-        assert operation.time > now
-        assert operation.actor == UUID("42c432e8-9c4a-11e6-9f62-873cf34a735f")
-        assert operation.model == "AuditLog"
-
-        assert operation.operation == "test_auditlog"
-        assert operation.arguments == {}
-
-        query = select(AuditLogRead)
-        read = one(await session.scalars(query))
-        assert read.operation_id == operation.id
-        assert read.uuid == uuid
+    await assert_one_audit_entry(sessionmaker, "AuditLog", "test_auditlog", [uuid])
 
 
 @pytest.mark.integration_test
@@ -116,3 +151,38 @@ async def test_auditlog_graphql_self(set_settings: MonkeyPatch, graphapi_post) -
     assert new_result["actor"] == str(await admin_auth_uuid())
     assert new_result["model"] == "AuditLog"
     assert new_result["uuids"] == [old_result["id"]]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_search_employees(set_settings: MonkeyPatch) -> None:
+    set_settings(AUDIT_READLOG_ENABLE="True")
+
+    sessionmaker = create_sessionmaker()
+    await ensure_empty_audit_tables(sessionmaker)
+
+    results = await search_employees(sessionmaker, "")
+    assert results == []
+
+    await assert_one_audit_entry(
+        sessionmaker, "Bruger", "search_employees", arguments={"at": None, "query": ""}
+    )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_search_orgunits(set_settings: MonkeyPatch) -> None:
+    set_settings(AUDIT_READLOG_ENABLE="True")
+
+    sessionmaker = create_sessionmaker()
+    await ensure_empty_audit_tables(sessionmaker)
+
+    results = await search_orgunits(sessionmaker, "")
+    assert results == []
+
+    await assert_one_audit_entry(
+        sessionmaker,
+        "OrganisationEnhed",
+        "search_orgunits",
+        arguments={"at": None, "query": ""},
+    )

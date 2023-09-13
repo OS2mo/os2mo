@@ -53,7 +53,7 @@ async def search_employees(
     )
 
     async with sessionmaker() as session:
-        with session.begin():
+        async with session.begin():
             # Execute & parse results
             result = read_sqlalchemy_result(
                 await session.execute(query_final, {**at_sql_bind_params})

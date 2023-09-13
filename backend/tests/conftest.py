@@ -291,14 +291,14 @@ async def load_fixture(fixture_db: str) -> AsyncYieldFixture[str]:
 
 
 @pytest.fixture
-def empty_db(testing_db: str) -> YieldFixture[None]:
+def empty_db(testing_db: str) -> YieldFixture[str]:
     """Ensure an empty testing database is available."""
     # Set dbname_context again, as we are just about to run a test,
     # and as it may be set to another testing database
     token = dbname_context.set(testing_db)
     reset_testing_database()
     try:
-        yield
+        yield testing_db
     finally:
         dbname_context.reset(token)
 
