@@ -21,7 +21,6 @@ from tests.conftest import GQLResponse
         ("associations", "c2153d5d-4a2b-492d-a18c-c498f7bb6221", "bvn"),
         ("classes", "06f95678-166a-455a-a2ab-121a8d92ea23", "ansat"),
         ("employees", "236e0a78-11a0-4ed9-8545-6286bb8611c7", "eriksmidthansen"),
-        ("engagement_associations", "a0fe7d43-1e0d-4232-a220-87009134b45e", "bvn"),
         ("engagements", "301a906b-ef51-4d5c-9c77-386fb8410459", "bvn"),
         ("facets", "1a6045a2-7a8e-4916-ab27-b2402e64f2be", "engagement_job_function"),
         ("itsystems", "59c135c9-2b15-41cc-97c8-b5dff7180beb", "AD"),

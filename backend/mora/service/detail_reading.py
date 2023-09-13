@@ -1115,28 +1115,6 @@ async def list_engagements_ou(
     return await get_detail(type="ou", id=id, function="engagement")
 
 
-@router.get("/e/{id}/details/engagement_association")
-async def list_engagement_associations_employee(
-    id: UUID,
-    at: Any | None = None,
-    validity: Any | None = None,
-    only_primary_uuid: Any | None = None,
-):
-    """Fetch a list of engagement_associations for the employee."""
-    return await get_detail(type="e", id=id, function="engagement_association")
-
-
-@router.get("/ou/{id}/details/engagement_association")
-async def list_engagement_associations_ou(
-    id: UUID,
-    at: Any | None = None,
-    validity: Any | None = None,
-    only_primary_uuid: Any | None = None,
-):
-    """Fetch a list of engagement_associations for the organisation unit."""
-    return await get_detail(type="ou", id=id, function="engagement_association")
-
-
 @router.get("/e/{id}/details/it")
 async def list_its_employee(
     id: UUID,

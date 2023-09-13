@@ -53,8 +53,7 @@ def expected_error_response(error_key, **overrides):
         },
         "V_TERMINATE_UNIT_WITH_ROLES": {
             "description": "Cannot terminate unit with active roles.",
-            "roles": "Adresse, Engagement, Leder, Relateret Enhed, Rolle, Tilknytning, "
-            "engagement_association",
+            "roles": "Adresse, Engagement, Leder, Relateret Enhed, Rolle, Tilknytning",
         },
         "V_DATE_OUTSIDE_ORG_UNIT_RANGE": {
             "description": "Date range exceeds validity range of associated org unit.",
@@ -1877,8 +1876,7 @@ def test_terminate_org_unit_invalid_uuid(
             # expected error response
             expected_error_response(
                 "V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES",
-                roles="Adresse, Engagement, Leder, Relateret Enhed, Rolle, Tilknytning, "
-                "engagement_association",
+                roles="Adresse, Engagement, Leder, Relateret Enhed, Rolle, Tilknytning",
                 child_count=2,
             ),
         ),
@@ -1899,8 +1897,7 @@ def test_terminate_org_unit_invalid_uuid(
             # expected error response
             expected_error_response(
                 "V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES",
-                roles="Adresse, Engagement, Leder, Relateret Enhed, Rolle, Tilknytning, "
-                "engagement_association",
+                roles="Adresse, Engagement, Leder, Relateret Enhed, Rolle, Tilknytning",
                 child_count=2,
             ),
         ),
@@ -1912,8 +1909,7 @@ def test_terminate_org_unit_invalid_uuid(
             # expected error response
             expected_error_response(
                 "V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES",
-                roles="Adresse, Engagement, Leder, Relateret Enhed, Rolle, Tilknytning, "
-                "engagement_association",
+                roles="Adresse, Engagement, Leder, Relateret Enhed, Rolle, Tilknytning",
                 child_count=1,
             ),
         ),

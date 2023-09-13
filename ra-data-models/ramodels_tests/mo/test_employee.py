@@ -3,9 +3,6 @@
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
-from ramodels_tests.mo.details.test_engagement_association import (
-    engagement_assoc_strat,
-)
 
 from ramodels.mo._shared import OpenValidity
 from ramodels.mo._shared import OrganisationRef
@@ -34,7 +31,6 @@ def valid_details(draw):
     details_strat = (
         st.builds(AddressDetail)
         | st.builds(AssociationDetail)
-        | engagement_assoc_strat()
         | st.builds(EngagementDetail)
         | st.builds(ManagerDetail)
         | st.builds(ITUserDetail)

@@ -21,7 +21,6 @@ from .schema import AddressRead
 from .schema import AssociationRead
 from .schema import ClassRead
 from .schema import EmployeeRead
-from .schema import EngagementAssociationRead
 from .schema import EngagementRead
 from .schema import FacetRead
 from .schema import ITSystemRead
@@ -47,7 +46,6 @@ MOModel = TypeVar(
     ClassRead,
     EmployeeRead,
     EngagementRead,
-    EngagementAssociationRead,
     FacetRead,
     ITSystemRead,
     ITUserRead,
@@ -121,7 +119,6 @@ async def load_mo(uuids: list[UUID], model: MOModel) -> list[list[MOModel]]:
 get_org_units = partial(get_mo, model=OrganisationUnitRead)
 get_employees = partial(get_mo, model=EmployeeRead)
 get_engagements = partial(get_mo, model=EngagementRead)
-get_engagement_associations = partial(get_mo, model=EngagementAssociationRead)
 get_kles = partial(get_mo, model=KLERead)
 get_addresses = partial(get_mo, model=AddressRead)
 get_leaves = partial(get_mo, model=LeaveRead)
@@ -342,10 +339,6 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
         "facet_getter": get_facets,
         "itsystem_loader": DataLoader(load_fn=load_itsystems),
         "itsystem_getter": get_itsystems,
-        "engagement_association_loader": DataLoader(
-            load_fn=partial(load_mo, model=EngagementAssociationRead)
-        ),
-        "engagement_association_getter": get_engagement_associations,
     }
 
 

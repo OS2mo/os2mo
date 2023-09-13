@@ -176,7 +176,6 @@ class RegistrationResolver(PagedResolver):
             "org_unit": OrganisationEnhedRegistrering,
             "address": OrganisationFunktionRegistrering,
             "association": OrganisationFunktionRegistrering,
-            "engagement_association": OrganisationFunktionRegistrering,
             "engagement": OrganisationFunktionRegistrering,
             "itsystem": ITSystemRegistrering,
             "ituser": OrganisationFunktionRegistrering,

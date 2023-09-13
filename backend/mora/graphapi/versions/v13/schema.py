@@ -51,7 +51,6 @@ from .resolvers import AssociationResolver
 from .resolvers import ClassResolver
 from .resolvers import CursorType
 from .resolvers import EmployeeResolver
-from .resolvers import EngagementAssociationResolver
 from .resolvers import EngagementResolver
 from .resolvers import FacetResolver
 from .resolvers import ITSystemResolver
@@ -82,7 +81,6 @@ from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead
 from ramodels.mo.details import AssociationRead
-from ramodels.mo.details import EngagementAssociationRead
 from ramodels.mo.details import EngagementRead
 from ramodels.mo.details import ITSystemRead
 from ramodels.mo.details import ITUserRead
@@ -285,7 +283,6 @@ LazyAssociation = Annotated["Association", LazySchema]
 LazyClass = Annotated["Class", LazySchema]
 LazyEmployee = Annotated["Employee", LazySchema]
 LazyEngagement = Annotated["Engagement", LazySchema]
-LazyEngagementAssociation = Annotated["EngagementAssociation", LazySchema]
 LazyFacet = Annotated["Facet", LazySchema]
 LazyITSystem = Annotated["ITSystem", LazySchema]
 LazyITUser = Annotated["ITUser", LazySchema]
@@ -1354,19 +1351,6 @@ class Employee:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
-    engagement_associations: list[LazyEngagementAssociation] = strawberry.field(
-        resolver=seed_resolver_list(
-            EngagementAssociationResolver(),
-            {"employees": lambda root: [root.uuid]},
-        ),
-        # TODO: Document this
-        description="Engagement associations",
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("engagement_association"),
-        ],
-    )
-
     @strawberry.field(
         description=dedent(
             """\
@@ -1588,18 +1572,6 @@ class Engagement:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    engagement_associations: list[LazyEngagementAssociation] = strawberry.field(
-        resolver=seed_resolver_list(
-            EngagementAssociationResolver(),
-            {"engagements": lambda root: [root.uuid]},
-        ),
-        description="Engagement associations",
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("engagement_association"),
-        ],
-    )
-
     @strawberry.field(
         description=dedent(
             """\
@@ -1675,107 +1647,6 @@ class Engagement:
     extension_8: str | None = strawberry.auto
     extension_9: str | None = strawberry.auto
     extension_10: str | None = strawberry.auto
-
-    validity: Validity = strawberry.auto
-
-
-# Engagement Association
-# ----------
-
-
-@strawberry.experimental.pydantic.type(
-    model=EngagementAssociationRead,
-    description="Employee engagement in an organisation unit",
-)
-class EngagementAssociation:
-    @strawberry.field(description="UUID of the entity")
-    async def uuid(self, root: EngagementAssociationRead) -> UUID:
-        return root.uuid
-
-    # TODO: Document this
-    user_key: str = strawberry.auto
-
-    org_unit: list[LazyOrganisationUnit] = strawberry.field(
-        resolver=seed_resolver_list(
-            OrganisationUnitResolver(),
-            {"uuids": lambda root: [root.org_unit_uuid]},
-        ),
-        description=dedent(
-            """\
-            Connected organisation unit.
-            """
-        )
-        + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
-    )
-
-    engagement: list[LazyEngagement] = strawberry.field(
-        resolver=seed_resolver_list(
-            EngagementResolver(),
-            {"uuids": lambda root: [root.engagement_uuid]},
-        ),
-        description=dedent(
-            """\
-            Related engagement.
-            """
-        )
-        + list_to_optional_field_warning,
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("engagement"),
-        ],
-    )
-
-    engagement_association_type: LazyClass = strawberry.field(
-        resolver=seed_resolver_one(
-            ClassResolver(),
-            {"uuids": lambda root: [root.engagement_association_type_uuid]},
-        ),
-        description="Related engagement association type",
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
-    )
-
-    @strawberry.field(
-        description=dedent(
-            """\
-            The object type.
-
-            Always contains the string `engagement_association`.
-            """
-        ),
-        deprecation_reason=dedent(
-            """\
-            Unintentionally exposed implementation detail.
-            Provides no value whatsoever.
-            """
-        ),
-    )
-    async def type(self, root: EngagementAssociationRead) -> str:
-        """Implemented for backwards compatability."""
-        return root.type_
-
-    @strawberry.field(
-        description="UUID of the organisation unit related to the engagement association.",
-        deprecation_reason=gen_uuid_field_deprecation("org_unit"),
-    )
-    async def org_unit_uuid(self, root: EngagementAssociationRead) -> UUID:
-        return root.org_unit_uuid
-
-    @strawberry.field(
-        description="UUID of the engagement related to the engagement association.",
-        deprecation_reason=gen_uuid_field_deprecation("engagement"),
-    )
-    async def engagement_uuid(self, root: EngagementAssociationRead) -> UUID:
-        return root.engagement_uuid
-
-    @strawberry.field(
-        description="UUID of the engagement association type class.",
-        deprecation_reason=gen_uuid_field_deprecation("engagement_association_type"),
-    )
-    async def engagement_association_type_uuid(
-        self, root: EngagementAssociationRead
-    ) -> UUID:
-        return root.engagement_association_type_uuid
 
     validity: Validity = strawberry.auto
 
@@ -3319,19 +3190,6 @@ class OrganisationUnit:
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("related_unit"),
-        ],
-    )
-
-    engagement_associations: list[LazyEngagementAssociation] = strawberry.field(
-        resolver=seed_resolver_list(
-            EngagementAssociationResolver(),
-            {"org_units": lambda root: [root.uuid]},
-        ),
-        # TODO: Document this
-        description="Engagement associations for the organisational unit",
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_read_permission("engagement_association"),
         ],
     )
 

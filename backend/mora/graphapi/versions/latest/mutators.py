@@ -403,14 +403,6 @@ class Mutation:
     async def engagement_delete(self, uuid: UUID) -> Response[Engagement]:
         return uuid2response(await delete_organisationfunktion(uuid), EngagementRead)
 
-    # EngagementsAssociations
-    # -----------------------
-
-    # TODO: engagement_association_create
-    # TODO: engagement_association_update
-    # TODO: engagement_association_terminate
-    # TODO: engagement_association_delete
-
     # Facets
     # ------
     @strawberry.mutation(

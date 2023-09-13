@@ -16,7 +16,6 @@ from ..latest.filters import BaseFilter
 from ..latest.filters import ClassFilter
 from ..latest.filters import ConfigurationFilter
 from ..latest.filters import EmployeeFilter
-from ..latest.filters import EngagementAssociationFilter
 from ..latest.filters import EngagementFilter
 from ..latest.filters import FacetFilter
 from ..latest.filters import FileFilter
@@ -40,9 +39,6 @@ from ..latest.resolvers import AssociationResolver as NextAssociationResolver
 from ..latest.resolvers import ClassResolver as NextClassResolver
 from ..latest.resolvers import CursorType
 from ..latest.resolvers import EmployeeResolver as NextEmployeeResolver
-from ..latest.resolvers import (
-    EngagementAssociationResolver as NextEngagementAssociationResolver,
-)
 from ..latest.resolvers import EngagementResolver as NextEngagementResolver
 from ..latest.resolvers import FacetResolver as NextFacetResolver
 from ..latest.resolvers import ITSystemResolver as NextITSystemResolver
@@ -560,37 +556,6 @@ class OrganisationUnitResolver(NextOrganisationUnitResolver):
             to_date=to_date,
             parents=parents,
             hierarchies=hierarchies,
-        )
-        return await super().resolve(
-            info=info,
-            filter=filter,
-            limit=limit,
-            cursor=cursor,
-        )
-
-
-class EngagementAssociationResolver(NextEngagementAssociationResolver):
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        uuids: UUIDsFilterType = None,
-        user_keys: UserKeysFilterType = None,
-        limit: LimitType = None,
-        cursor: CursorType = None,
-        from_date: FromDateFilterType = UNSET,
-        to_date: ToDateFilterType = UNSET,
-        employees: EmployeeUUIDsFilterType = None,
-        engagements: EngagementUUIDsFilterType = None,
-        org_units: OrgUnitUUIDsFilterType = None,
-    ):
-        filter = EngagementAssociationFilter(
-            uuids=uuids,
-            user_keys=user_keys,
-            from_date=from_date,
-            to_date=to_date,
-            employees=employees,
-            engagements=engagements,
-            org_units=org_units,
         )
         return await super().resolve(
             info=info,

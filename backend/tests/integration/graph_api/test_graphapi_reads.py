@@ -30,7 +30,6 @@ UUID_SEARCHABLE_FIELDS = [
     "associations",
     "classes",
     "employees",
-    "engagement_associations",
     "engagements",
     "facets",
     "itsystems",

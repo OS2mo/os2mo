@@ -23,7 +23,6 @@ from .filters import AssociationFilter
 from .filters import BaseFilter
 from .filters import ClassFilter
 from .filters import EmployeeFilter
-from .filters import EngagementAssociationFilter
 from .filters import EngagementFilter
 from .filters import FacetFilter
 from .filters import ITUserFilter
@@ -43,7 +42,6 @@ from ramodels.mo import FacetRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead
 from ramodels.mo.details import AssociationRead
-from ramodels.mo.details import EngagementAssociationRead
 from ramodels.mo.details import EngagementRead
 from ramodels.mo.details import ITSystemRead
 from ramodels.mo.details import ITUserRead
@@ -615,37 +613,6 @@ class OrganisationUnitResolver(Resolver):
         if filter.hierarchies is not None:
             kwargs["opmærkning"] = filter.hierarchies
 
-        return await super()._resolve(
-            info=info,
-            filter=filter,
-            limit=limit,
-            cursor=cursor,
-            **kwargs,
-        )
-
-
-class EngagementAssociationResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(EngagementAssociationRead)
-
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        filter: EngagementAssociationFilter | None = None,
-        limit: LimitType = None,
-        cursor: CursorType = None,
-    ):
-        """Resolve engagement-associations."""
-        if filter is None:
-            filter = EngagementAssociationFilter()
-
-        kwargs = {}
-        if filter.employees is not None:
-            kwargs["tilknyttedebrugere"] = filter.employees
-        if filter.engagements is not None:
-            kwargs["tilknyttedefunktioner"] = filter.engagements
-        if filter.org_units is not None:
-            kwargs["tilknyttedeenheder"] = filter.org_units
         return await super()._resolve(
             info=info,
             filter=filter,

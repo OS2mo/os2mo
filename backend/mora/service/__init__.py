@@ -9,7 +9,6 @@ from . import detail_reading
 from . import detail_writing
 from . import employee
 from . import engagement
-from . import engagement_association
 from . import exports
 from . import facet
 from . import insight
@@ -34,7 +33,6 @@ __all__ = [
     "detail_writing",
     "employee",
     "engagement",
-    "engagement_association",
     "exports",
     "facet",
     "insight",

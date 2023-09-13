@@ -9,7 +9,6 @@ from ramodels.mo import FacetRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead
 from ramodels.mo.details import AssociationRead
-from ramodels.mo.details import EngagementAssociationRead
 from ramodels.mo.details import EngagementRead
 from ramodels.mo.details import ITSystemRead
 from ramodels.mo.details import ITUserRead
@@ -34,11 +33,6 @@ _resolver_tuples = [
     (ManagerRead, "manager_getter", "manager_loader"),
     (OwnerRead, "owner_getter", "owner_loader"),
     (OrganisationUnitRead, "org_unit_getter", "org_unit_loader"),
-    (
-        EngagementAssociationRead,
-        "engagement_association_getter",
-        "engagement_association_loader",
-    ),
     (ITSystemRead, "itsystem_getter", "itsystem_loader"),
     (ITUserRead, "ituser_getter", "ituser_loader"),
     (KLERead, "kle_getter", "kle_loader"),

@@ -376,31 +376,6 @@ async def does_employee_have_existing_association(
 
 
 @forceable
-async def does_engagement_have_existing_association(
-    engagement_uuid: str, org_unit_uuid: str, valid_from: str, association_uuid=None
-):
-    """
-    Check if an employee already has an active association for a given org
-    unit on a given date
-
-    :param engagement_uuid: UUID of the engagement
-    :param org_unit_uuid: UUID of the org unit
-    :param valid_from: The date to check
-    :param association_uuid: An optional uuid of an organisation
-        being edited to be exempt from validation.
-    :return:
-    """
-    return await does_uuid_have_existing_association(
-        uuid=engagement_uuid,
-        uuid_search_key="tilknyttedefunktioner",
-        org_unit_uuid=org_unit_uuid,
-        valid_from=valid_from,
-        association_function_key=mapping.ENGAGEMENT_ASSOCIATION_KEY,
-        association_uuid=association_uuid,
-    )
-
-
-@forceable
 async def does_uuid_have_existing_association(
     uuid: str,
     uuid_search_key: str,

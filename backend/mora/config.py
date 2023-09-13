@@ -237,7 +237,6 @@ class Settings(BaseSettings):
     )
     confdb_show_user_key_in_search: bool = False
     confdb_extension_field_ui_labels: str = ""
-    confdb_show_engagement_hyperlink: bool = False
     confdb_show_seniority: bool = False
     confdb_show_custom_logo: str = ""
 
