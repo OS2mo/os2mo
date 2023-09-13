@@ -141,7 +141,7 @@ async def decorate_employee_search_result(
                     to
                 }
 
-                engagements {
+                engagements_validity {
                     uuid
                     user_key
                     engagement_type {
@@ -151,7 +151,7 @@ async def decorate_employee_search_result(
                     }
                 }
 
-                addresses {
+                addresses_validity {
                     uuid
                     user_key
                     value
@@ -162,7 +162,7 @@ async def decorate_employee_search_result(
                     }
                 }
 
-                associations {
+                associations_validity {
                     uuid
                     user_key
                     association_type {
@@ -172,7 +172,7 @@ async def decorate_employee_search_result(
                     }
                 }
 
-                itusers {
+                itusers_validity {
                     uuid
                     user_key
                     itsystem {

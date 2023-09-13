@@ -144,7 +144,7 @@ async def decorate_orgunit_search_result(
                     name
                 }
 
-                addresses {
+                addresses_validity {
                     uuid
                     name
                     address_type {
@@ -153,7 +153,7 @@ async def decorate_orgunit_search_result(
                     }
                 }
 
-                itusers {
+                itusers_validity {
                     uuid
                     user_key
                     itsystem {
