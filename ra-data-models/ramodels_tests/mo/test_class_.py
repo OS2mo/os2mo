@@ -3,12 +3,12 @@
 from hypothesis import given
 from hypothesis import strategies as st
 
+from ramodels.mo import Validity
 from ramodels.mo.class_ import ClassRead
 from ramodels.mo.class_ import ClassWrite
 
 
 OPTIONAL = {
-    "published": st.none() | st.text(),
     "scope": st.none() | st.text(),
     "parent_uuid": st.none() | st.uuids(),
     "example": st.none() | st.text(),
@@ -25,6 +25,12 @@ def read_strat(draw):
         "name": st.text(),
         "facet_uuid": st.uuids(),
         "org_uuid": st.uuids(),
+        "published": st.text(),
+        "validity": st.builds(Validity).filter(
+            lambda validity: validity.from_date <= validity.to_date
+            if validity.from_date and validity.to_date
+            else True
+        ),
     }
     st_dict = draw(st.fixed_dictionaries(required, optional=OPTIONAL))  # type: ignore
     return st_dict
@@ -39,6 +45,12 @@ def write_strat(draw):
         "name": st.text(),
         "facet_uuid": st.uuids(),
         "org_uuid": st.uuids(),
+        "published": st.text(),
+        "validity": st.builds(Validity).filter(
+            lambda validity: validity.from_date <= validity.to_date
+            if validity.from_date and validity.to_date
+            else True
+        ),
     }
 
     st_dict = draw(st.fixed_dictionaries(required, optional=OPTIONAL))  # type: ignore
