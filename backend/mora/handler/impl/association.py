@@ -17,7 +17,6 @@ from ...common import get_connector
 from ...graphapi.middleware import is_graphql
 from ...service import clazz
 from ...service import employee
-from ...service import facet
 from ...service import orgunit
 from .it import ItSystemBindingReader
 from mora import exceptions
@@ -153,7 +152,7 @@ class AssociationReader(reading.OrgFunkReadingHandler):
 
         return await gather(
             *[
-                await facet.request_bulked_get_one_class_full(
+                await clazz.request_bulked_get_one_class_full(
                     cla, only_primary_uuid=only_primary_uuid
                 )
                 for cla in classes
@@ -239,14 +238,14 @@ class AssociationReader(reading.OrgFunkReadingHandler):
 
         if association_type:
             association_type_task = create_task(
-                facet.request_bulked_get_one_class_full(
+                clazz.request_bulked_get_one_class_full(
                     association_type, only_primary_uuid=only_primary_uuid
                 )
             )
 
         if primary:
             primary_task = create_task(
-                facet.request_bulked_get_one_class_full(
+                clazz.request_bulked_get_one_class_full(
                     primary, only_primary_uuid=only_primary_uuid
                 )
             )

@@ -8,8 +8,8 @@ from .. import reading
 from ... import mapping
 from ...graphapi.middleware import is_graphql
 from ...lora import LoraObjectType
+from ...service import clazz
 from ...service import employee
-from ...service import facet
 from ...service import orgunit
 from .engagement import get_engagement
 from mora import util
@@ -109,7 +109,7 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
             engagement_task = noop_task()
 
         if primary_uuid:
-            primary_task = facet.request_bulked_get_one_class_full(
+            primary_task = clazz.request_bulked_get_one_class_full(
                 primary_uuid, only_primary_uuid=only_primary_uuid
             )
         else:

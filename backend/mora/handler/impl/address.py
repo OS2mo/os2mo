@@ -8,8 +8,8 @@ from .. import reading
 from ... import mapping
 from ...graphapi.middleware import is_graphql
 from ...request_scoped.bulking import request_wide_bulk
+from ...service import clazz
 from ...service import employee
-from ...service import facet
 from ...service import orgunit
 from ...service.address_handler import base
 from .engagement import get_engagement
@@ -64,7 +64,7 @@ class AddressReader(reading.OrgFunkReadingHandler):
             }
 
         facet_task = create_task(
-            facet.request_bulked_get_one_class_full(
+            clazz.request_bulked_get_one_class_full(
                 address_type_uuid, only_primary_uuid=only_primary_uuid
             )
         )

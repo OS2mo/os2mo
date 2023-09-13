@@ -33,7 +33,7 @@ from more_itertools import last
 from more_itertools import unzip
 
 from . import autocomplete
-from . import facet
+from . import clazz
 from . import handlers
 from . import org
 from .. import common
@@ -482,28 +482,28 @@ async def get_one_orgunit(
 
             if unittype:
                 org_unit_type_task = create_task(
-                    await facet.request_bulked_get_one_class_full(
+                    await clazz.request_bulked_get_one_class_full(
                         classid=unittype, only_primary_uuid=only_primary_uuid
                     )
                 )
 
             if timeplanning:
                 time_planning_task = create_task(
-                    await facet.request_bulked_get_one_class_full(
+                    await clazz.request_bulked_get_one_class_full(
                         classid=timeplanning, only_primary_uuid=only_primary_uuid
                     )
                 )
 
             if org_unit_level:
                 org_unit_level_task = create_task(
-                    await facet.request_bulked_get_one_class_full(
+                    await clazz.request_bulked_get_one_class_full(
                         classid=org_unit_level, only_primary_uuid=only_primary_uuid
                     )
                 )
 
             if org_unit_hierarchy:
                 org_unit_hierarchy_task = create_task(
-                    await facet.request_bulked_get_one_class_full(
+                    await clazz.request_bulked_get_one_class_full(
                         classid=org_unit_hierarchy, only_primary_uuid=only_primary_uuid
                     )
                 )
@@ -569,28 +569,28 @@ async def get_one_orgunit(
 
         if unittype:
             org_unit_type_task = create_task(
-                await facet.request_bulked_get_one_class_full(
+                await clazz.request_bulked_get_one_class_full(
                     classid=unittype, only_primary_uuid=only_primary_uuid
                 )
             )
 
         if timeplanning:
             time_planning_task = create_task(
-                await facet.request_bulked_get_one_class_full(
+                await clazz.request_bulked_get_one_class_full(
                     classid=timeplanning, only_primary_uuid=only_primary_uuid
                 )
             )
 
         if org_unit_level:
             org_unit_level_task = create_task(
-                await facet.request_bulked_get_one_class_full(
+                await clazz.request_bulked_get_one_class_full(
                     classid=org_unit_level, only_primary_uuid=only_primary_uuid
                 )
             )
 
         if org_unit_hierarchy:
             org_unit_hierarchy_task = create_task(
-                await facet.request_bulked_get_one_class_full(
+                await clazz.request_bulked_get_one_class_full(
                     classid=org_unit_hierarchy, only_primary_uuid=only_primary_uuid
                 )
             )

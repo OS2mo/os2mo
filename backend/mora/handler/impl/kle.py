@@ -8,7 +8,7 @@ from structlog import get_logger
 from .. import reading
 from ... import mapping
 from ...graphapi.middleware import is_graphql
-from ...service import facet
+from ...service import clazz
 from ...service import orgunit
 from mora import util
 
@@ -49,7 +49,7 @@ class KLEReader(reading.OrgFunkReadingHandler):
             *await gather(
                 *[
                     create_task(
-                        facet.request_bulked_get_one_class_full(
+                        clazz.request_bulked_get_one_class_full(
                             obj_uuid, only_primary_uuid=only_primary_uuid
                         )
                     )
@@ -58,7 +58,7 @@ class KLEReader(reading.OrgFunkReadingHandler):
             )
         )
         kle_number_task = create_task(
-            facet.request_bulked_get_one_class_full(
+            clazz.request_bulked_get_one_class_full(
                 kle_number_uuid, only_primary_uuid=only_primary_uuid
             )
         )

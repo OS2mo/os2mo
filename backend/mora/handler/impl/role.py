@@ -7,8 +7,8 @@ from structlog import get_logger
 from .. import reading
 from ... import mapping
 from ...graphapi.middleware import is_graphql
+from ...service import clazz
 from ...service import employee
-from ...service import facet
 from ...service import orgunit
 from mora import util
 
@@ -56,7 +56,7 @@ class RoleReader(reading.OrgFunkReadingHandler):
             )
         )
         role_type_task = create_task(
-            facet.request_bulked_get_one_class_full(
+            clazz.request_bulked_get_one_class_full(
                 role_type_uuid, only_primary_uuid=only_primary_uuid
             )
         )

@@ -12,8 +12,8 @@ from .. import reading
 from ... import mapping
 from ... import util
 from ...graphapi.middleware import is_graphql
+from ...service import clazz
 from ...service import employee
-from ...service import facet
 from ...service import orgunit
 
 ROLE_TYPE = "manager"
@@ -90,14 +90,14 @@ class ManagerReader(reading.OrgFunkReadingHandler):
 
         if manager_type:
             manager_type_task = create_task(
-                facet.request_bulked_get_one_class_full(
+                clazz.request_bulked_get_one_class_full(
                     manager_type, only_primary_uuid=only_primary_uuid
                 )
             )
 
         if manager_level:
             manager_level_task = create_task(
-                facet.request_bulked_get_one_class_full(
+                clazz.request_bulked_get_one_class_full(
                     manager_level, only_primary_uuid=only_primary_uuid
                 )
             )
@@ -105,7 +105,7 @@ class ManagerReader(reading.OrgFunkReadingHandler):
         resp_tasks: Iterable[Awaitable] = await gather(
             *[
                 create_task(
-                    facet.request_bulked_get_one_class_full(
+                    clazz.request_bulked_get_one_class_full(
                         obj_uuid, only_primary_uuid=only_primary_uuid
                     )
                 )
