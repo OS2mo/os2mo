@@ -17,6 +17,7 @@ from mora import common
 from mora import exceptions
 from mora import mapping
 from mora.util import CPR
+from mora.util import NEGATIVE_INFINITY
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from mora.util import to_lora_time
@@ -425,8 +426,13 @@ class ClassCreate(UUIDBase):
         extra = Extra.forbid
 
     def to_registration(self, organisation_uuid: UUID) -> dict:
-        from_time = to_lora_time("-infinity")
-        to_time = to_lora_time("infinity")
+        from_time = to_lora_time(NEGATIVE_INFINITY)
+        to_time = to_lora_time(POSITIVE_INFINITY)
+
+        if self.validity and self.validity.from_date:
+            from_time = to_lora_time(self.validity.from_date)
+        if self.validity and self.validity.to_date:
+            to_time = to_lora_time(self.validity.to_date)
 
         klasseegenskaber = {
             "brugervendtnoegle": self.user_key,
@@ -471,7 +477,7 @@ class ClassCreate(UUIDBase):
                 }
             ]
 
-        input = {
+        lora_registration = {
             "tilstande": {
                 "klassepubliceret": [
                     {
@@ -483,19 +489,16 @@ class ClassCreate(UUIDBase):
             "attributter": {"klasseegenskaber": [klasseegenskaber]},
             "relationer": relations,
         }
-        validate.validate(input, "klasse")
+        validate.validate(lora_registration, "klasse")
 
-        return {
-            "states": input["tilstande"],
-            "attributes": input["attributter"],
-            "relations": input["relationer"],
-        }
+        return lora_registration
 
 
 class ClassUpdate(ClassCreate):
     """Model representing a class update."""
 
     uuid: UUID = Field(description="UUID of the class to update.")
+    facet_uuid: UUID | None = Field(None, description="UUID of the related facet.")  # type: ignore
 
 
 # Employees

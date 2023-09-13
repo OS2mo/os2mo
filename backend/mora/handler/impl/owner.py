@@ -21,7 +21,7 @@ from ...mapping import PRIMARY
 from ...request_scoped.bulking import request_wide_bulk
 from ...service import employee
 from ...service import orgunit
-from ...service.facet import get_sorted_primary_class_list
+from ...service.clazz import get_sorted_primary_class_list
 from ...util import get_uuid
 from ...util import get_valid_from
 from .association import AssociationReader

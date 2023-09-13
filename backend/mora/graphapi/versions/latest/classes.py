@@ -2,59 +2,32 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 from uuid import UUID
+from uuid import uuid4
 
 from .models import ClassCreate
+from .models import ClassUpdate
+from mora import lora
+from mora.util import get_uuid
 from oio_rest import db
 
 
-async def create_class(input: ClassCreate, organisation_uuid: UUID, note: str) -> UUID:
-    # Construct a LoRa registration object from our input arguments
+async def create_class(input: ClassCreate, organisation_uuid: UUID) -> UUID:
     registration = input.to_registration(organisation_uuid=organisation_uuid)
-    # Let LoRa's SQL templates do their magic
-    uuid = await asyncio.to_thread(
-        db.create_or_import_object,
-        "klasse",
-        note,
-        registration,
-        str(input.uuid) if input.uuid else None,
+    new_uuid = get_uuid(registration, required=False) or str(uuid4())
+
+    c = lora.Connector()
+    return await c.klasse.create(registration, new_uuid)
+
+
+async def update_class(input: ClassUpdate, organisation_uuid: UUID) -> UUID:
+    c = lora.Connector()
+    result = await c.klasse.update(
+        input.to_registration(organisation_uuid=organisation_uuid), input.uuid
     )
-    return uuid
-
-
-async def update_class(
-    input: ClassCreate, class_uuid: UUID, organisation_uuid: UUID, note: str
-) -> UUID:
-    exists = await asyncio.to_thread(db.object_exists, "klasse", str(class_uuid))
-    if not exists:
-        raise ValueError("Cannot update a non-existent object")
-
-    # Construct a LoRa registration object from our input arguments
-    registration = input.to_registration(organisation_uuid=organisation_uuid)
-
-    # Let LoRa's SQL templates do their magic
-    life_cycle_code = await asyncio.to_thread(
-        db.get_life_cycle_code, "klasse", str(class_uuid)
-    )
-    if life_cycle_code in (db.Livscyklus.SLETTET.value, db.Livscyklus.PASSIVERET.value):
-        # Reactivate and update
-        uuid = await asyncio.to_thread(
-            db.update_object,
-            "klasse",
-            note,
-            registration,
-            uuid=str(class_uuid),
-            life_cycle_code=db.Livscyklus.IMPORTERET.value,
-        )
-    else:
-        # Update
-        uuid = await asyncio.to_thread(
-            db.create_or_import_object,
-            "klasse",
-            note,
-            registration,
-            str(class_uuid),
-        )
-    return uuid
+    return result
+    # return await c.facet.update(
+    #     input.to_registration(organisation_uuid=organisation_uuid), input.uuid
+    # )
 
 
 async def delete_class(class_uuid: UUID, note: str) -> UUID:

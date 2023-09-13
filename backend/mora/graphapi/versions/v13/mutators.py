@@ -276,9 +276,8 @@ class Mutation:
     async def class_create(
         self, info: Info, input: ClassCreateInput
     ) -> Response[Class]:
-        note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await create_class(input.to_pydantic(), org.uuid, note)
+        uuid = await create_class(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, ClassRead)
 
     @strawberry.mutation(

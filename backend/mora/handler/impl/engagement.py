@@ -15,7 +15,7 @@ from ...graphapi.middleware import is_graphql
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
-from ...service.facet import get_sorted_primary_class_list
+from ...service.clazz import get_sorted_primary_class_list
 from mora.request_scoped.bulking import request_wide_bulk
 
 ROLE_TYPE = "engagement"

@@ -36,6 +36,7 @@ from .schema import RelatedUnitRead
 from .schema import RoleRead
 from mora.common import get_connector
 from mora.service import org
+from mora.util import NEGATIVE_INFINITY
 from mora.util import parsedatetime
 from ramodels.lora.facet import FacetRead as LFacetRead
 from ramodels.lora.klasse import KlasseRead
@@ -189,7 +190,7 @@ def lora_class_to_mo_class(lora_tuple: tuple[UUID, KlasseRead]) -> ClassRead:
                 class_state_published.effective_time.from_date
             )
             if class_state_published.effective_time.from_date != "-infinity"
-            else None,
+            else NEGATIVE_INFINITY,
             "to": datetime.fromisoformat(class_state_published.effective_time.to_date)
             if class_state_published.effective_time.to_date != "infinity"
             else None,
@@ -224,6 +225,7 @@ async def get_classes(**kwargs: Any) -> dict[UUID, list[ClassRead]]:
     return uuid_map
 
 
+# TODO: Remove this, when load_mo have been implemented for classes
 async def load_classes(uuids: list[UUID]) -> list[list[ClassRead]]:
     """Load MO models from LoRa by UUID.
 
@@ -342,7 +344,7 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
         "manager_getter": get_managers,
         "owner_loader": DataLoader(load_fn=partial(load_mo, model=OwnerRead)),
         "owner_getter": get_owners,
-        "class_loader": DataLoader(load_fn=load_classes),
+        "class_loader": DataLoader(load_fn=partial(load_mo, model=ClassRead)),
         "class_getter": get_classes,
         "rel_unit_loader": DataLoader(load_fn=partial(load_mo, model=RelatedUnitRead)),
         "rel_unit_getter": get_related_units,

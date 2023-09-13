@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from .impl import address  # noqa
 from .impl import association  # noqa
+from .impl import clazz  # noqa
 from .impl import employee  # noqa
 from .impl import engagement  # noqa
 from .impl import it  # noqa

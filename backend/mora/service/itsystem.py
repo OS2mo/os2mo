@@ -22,8 +22,8 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
-from ..service.facet import get_mo_object_primary_value
-from ..service.facet import is_class_uuid_primary
+from ..service.clazz import get_mo_object_primary_value
+from ..service.clazz import is_class_uuid_primary
 from ..triggers import Trigger
 from .validation import validator
 from .validation.models import GroupValidation

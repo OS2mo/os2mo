@@ -17,8 +17,6 @@ from .address import update_address
 from .association import create_association
 from .association import terminate_association
 from .association import update_association
-from .classes import ClassCreateInput
-from .classes import ClassUpdateInput
 from .classes import create_class
 from .classes import delete_class
 from .classes import update_class
@@ -54,6 +52,8 @@ from .inputs import AddressUpdateInput
 from .inputs import AssociationCreateInput
 from .inputs import AssociationTerminateInput
 from .inputs import AssociationUpdateInput
+from .inputs import ClassCreateInput
+from .inputs import ClassUpdateInput
 from .inputs import EmployeeCreateInput
 from .inputs import EmployeeTerminateInput
 from .inputs import EmployeeUpdateInput
@@ -154,6 +154,7 @@ from mora.audit import audit_log
 from mora.common import get_connector
 from mora.config import get_settings
 from ramodels.mo import ClassRead
+from ramodels.mo import ClassWrite
 from ramodels.mo import EmployeeRead
 from ramodels.mo import FacetRead
 from ramodels.mo import OrganisationUnitRead
@@ -362,10 +363,13 @@ class Mutation:
     async def class_create(
         self, info: Info, input: ClassCreateInput
     ) -> Response[Class]:
-        note = ""
+        # note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await create_class(input.to_pydantic(), org.uuid, note)
-        return uuid2response(uuid, ClassRead)
+        # uuid = await create_class(input.to_pydantic(), org.uuid, note)
+        # return uuid2response(uuid, ClassRead)
+        return uuid2response(
+            await create_class(input.to_pydantic(), org.uuid), ClassRead  # type: ignore
+        )
 
     @strawberry.mutation(
         description="Updates a class.",
@@ -377,10 +381,14 @@ class Mutation:
     async def class_update(
         self, info: Info, input: ClassUpdateInput
     ) -> Response[Class]:
-        note = ""
+        # note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await update_class(input.to_pydantic(), input.uuid, org.uuid, note)  # type: ignore
-        return uuid2response(uuid, ClassRead)
+        # uuid = await update_class(input.to_pydantic(), input.uuid, org.uuid, note)  # type: ignore
+        # return uuid2response(uuid, ClassRead)
+        return uuid2response(
+            await update_class(input.to_pydantic(), org.uuid),  # type: ignore
+            ClassWrite,
+        )
 
     # TODO: class_terminate
 

@@ -3,6 +3,7 @@
 import abc
 from asyncio import create_task
 from asyncio import gather
+from collections.abc import Callable
 from collections.abc import Iterable
 from inspect import isawaitable
 from typing import Any
@@ -96,7 +97,12 @@ class ReadingHandler:
 
     @classmethod
     async def __async_get_mo_object_from_effect(
-        cls, c, function_id, function_obj, flat: bool = False
+        cls,
+        c,
+        function_id,
+        function_obj,
+        flat: bool = False,
+        is_reg_valid_fn: Callable[[Any], str] | None = None,
     ) -> list[Any]:
         """
         just a wrapper that makes calls in parallel. Not encapsulating / motivated by
@@ -106,6 +112,7 @@ class ReadingHandler:
         :param function_id: object from object_tuple
         :return: List of whatever this returns get_mo_object_from_effect
         """
+        is_reg_valid_fn = is_reg_valid_fn or util.is_reg_valid
         return await gather(
             *[
                 create_task(
@@ -114,7 +121,7 @@ class ReadingHandler:
                     )
                 )
                 for start, end, effect in (await cls._get_effects(c, function_obj))
-                if util.is_reg_valid(effect)
+                if is_reg_valid_fn(effect)
             ]
         )
 
@@ -124,6 +131,7 @@ class ReadingHandler:
         c: Connector,
         object_tuples: Iterable[tuple[str, dict[Any, Any]]],
         flat: bool = False,
+        is_reg_valid_fn: Callable[[Any], str] | None = None,
     ) -> list[dict[Any, Any]]:
         """
         Convert a list of LoRa objects into a list of MO objects
@@ -138,7 +146,7 @@ class ReadingHandler:
                 *[
                     create_task(
                         cls.__async_get_mo_object_from_effect(
-                            c, function_id, function_obj, flat
+                            c, function_id, function_obj, flat, is_reg_valid_fn
                         )
                     )
                     for function_id, function_obj in object_tuples

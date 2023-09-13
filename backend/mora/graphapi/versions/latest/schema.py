@@ -72,7 +72,7 @@ from mora.handler.reading import get_handler_for_type
 from mora.handler.reading import ReadingHandler
 from mora.service.address_handler import dar
 from mora.service.address_handler import multifield_text
-from mora.service.facet import is_class_uuid_primary
+from mora.service.clazz import is_class_uuid_primary
 from mora.util import NEGATIVE_INFINITY
 from mora.util import now
 from mora.util import POSITIVE_INFINITY
