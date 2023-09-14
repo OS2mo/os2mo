@@ -230,12 +230,15 @@ class RegistrationResolver(PagedResolver):
                 ),
             )
 
+        # Pagination
+        if cursor:
+            query = query.where(column("start") <= cursor.registration_time)
         # Order by UUID so the order of pagination is well-defined
         query = query.order_by(column("uuid"))
         if limit is not None:
             # Fetch one extra element to see if there is another page
             query = query.limit(limit + 1)
-        query = query.offset(cursor or 0)
+        query = query.offset(cursor.offset if cursor else 0)
 
         session = info.context["sessionmaker"]()
         async with session.begin():

@@ -24,7 +24,7 @@ def test_health_pagination(graphapi_post):
         patch.setattr("mora.graphapi.versions.latest.query.health_map", test_data)
         query = """
             query {
-                healths(limit: 2, cursor: "Mg==") {
+                healths(limit: 2, cursor: "eyJvZmZzZXQiOiAyLCAicmVnaXN0cmF0aW9uX3RpbWUiOiAiMjAyMy0wOS0xNFQxNjowODo1Ni4zMzg1MDgrMDI6MDAifQ==") {
                     objects {
                         status
                         identifier
@@ -44,4 +44,7 @@ def test_health_pagination(graphapi_post):
 
     assert len(health_list) == 2
     assert all(health in test_data for health in health_list)
-    assert healths["page_info"]["next_cursor"] == "NA=="
+    assert (
+        healths["page_info"]["next_cursor"]
+        == "eyJvZmZzZXQiOiA0LCAicmVnaXN0cmF0aW9uX3RpbWUiOiAiMjAyMy0wOS0xNFQxNjowODo1Ni4zMzg1MDgrMDI6MDAifQ=="
+    )

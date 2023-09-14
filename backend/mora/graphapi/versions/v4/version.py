@@ -51,6 +51,7 @@ from ..v13.schema import RelatedUnit
 from ..v13.schema import Response
 from ..v13.schema import Role
 from ..v5.version import GraphQLVersion as NextGraphQLVersion
+from mora.util import now
 
 
 def to_response(resolver):  # type: ignore
@@ -90,7 +91,16 @@ def offset2cursor(func: Callable) -> Callable:
     new_sig = sig.replace(parameters=parameter_list)
 
     async def cursor_func(*args: Any, offset: PositiveInt | None, **kwargs: Any) -> Any:
-        cursor = Cursor(offset) if offset is not None else None
+        # This function (and `offset2cursor`) exists to continue support for
+        # the old non-cursor-based pagination. We simply set
+        # "registration_time" to now() every time which means that any version
+        # <= 4 we don't guarantee a consistent view when paginating.
+        cursor = None
+        if offset is not None:
+            cursor = Cursor(
+                offset=offset,
+                registration_time=now(),
+            )
         return await func(*args, cursor=cursor, **kwargs)
 
     cursor_func.__signature__ = new_sig  # type: ignore[attr-defined]

@@ -1,12 +1,13 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import datetime
 import json
 from base64 import b64decode
 from base64 import b64encode
 from textwrap import dedent
-from typing import NewType
 
 import strawberry
+from pydantic import BaseModel
 
 from mora.util import CPR
 
@@ -40,10 +41,16 @@ CPRType = strawberry.scalar(
     ),
 )
 
+
+class _Cursor(BaseModel):
+    offset: int
+    registration_time: datetime.datetime
+
+
 Cursor = strawberry.scalar(
-    NewType("Cursor", str),
-    serialize=lambda v: b64encode(json.dumps(v).encode("ascii")).decode("ascii"),
-    parse_value=lambda v: int(b64decode(v)),
+    _Cursor,
+    serialize=lambda v: b64encode(v.json().encode("ascii")).decode("ascii"),
+    parse_value=lambda v: _Cursor(**json.loads(b64decode(v))),
     description=dedent(
         """\
         Scalar implementing the cursor of cursor-based pagination.
