@@ -127,6 +127,7 @@ get_leaves = partial(get_mo, model=LeaveRead)
 get_associations = partial(get_mo, model=AssociationRead)
 get_roles = partial(get_mo, model=RoleRead)
 get_itusers = partial(get_mo, model=ITUserRead)
+get_itsystems = partial(get_mo, model=ITSystemRead)
 get_managers = partial(get_mo, model=ManagerRead)
 get_owners = partial(get_mo, model=OwnerRead)
 get_related_units = partial(get_mo, model=RelatedUnitRead)
@@ -158,12 +159,12 @@ def lora_itsystem_to_mo_itsystem(
     return parse_obj_as(list[ITSystemRead], objects)
 
 
-async def get_itsystems(**kwargs: Any) -> dict[UUID, list[ITSystemRead]]:
-    c = get_connector()
-    lora_result = await c.itsystem.get_all(**kwargs)
-    mo_models = lora_itsystem_to_mo_itsystem(lora_result)
-    uuid_map = group_by_uuid(mo_models)
-    return uuid_map
+# async def get_itsystems(**kwargs: Any) -> dict[UUID, list[ITSystemRead]]:
+#     c = get_connector()
+#     lora_result = await c.itsystem.get_all(**kwargs)
+#     mo_models = lora_itsystem_to_mo_itsystem(lora_result)
+#     uuid_map = group_by_uuid(mo_models)
+#     return uuid_map
 
 
 async def load_itsystems(uuids: list[UUID]) -> list[list[ITSystemRead]]:

@@ -49,26 +49,34 @@ class Validity(OpenValidity):
         }
 
     def get_termination_effect(self) -> dict:
+        if not self.from_date:
+            # TODO: This if is legacy, and should be removed since the logic is confusing.
+            #       Instead of replacing "from" with "to", it should fail andf clients should
+            #       use the logic correctly instead.
+            if self.to_date:
+                logger.warning(
+                    'ValidityTerminate called without "from" in "validity"',
+                )
+                return common._create_virkning(
+                    self.get_terminate_effect_to_date(), "infinity"
+                )
+
+            exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
+                key="ValidityTerminate must have a 'from' date",
+                validity={
+                    "from": self.from_date.isoformat() if self.from_date else None,
+                    "to": self.to_date.isoformat() if self.to_date else None,
+                },
+            )
+
         if self.from_date and self.to_date:
             return common._create_virkning(
                 self.get_terminate_effect_from_date(),
                 self.get_terminate_effect_to_date(),
             )
 
-        if not self.from_date and self.to_date:
-            logger.warning(
-                'terminate org unit called without "from" in "validity"',
-            )
-            return common._create_virkning(
-                self.get_terminate_effect_to_date(), "infinity"
-            )
-        exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
-            key="Organisation unit must be set with either 'to' or both 'from' "
-            "and 'to'",
-            unit={
-                "from": self.from_date.isoformat() if self.from_date else None,
-                "to": self.to_date.isoformat() if self.to_date else None,
-            },
+        return common._create_virkning(
+            self.get_terminate_effect_from_date(), "infinity"
         )
 
     def get_terminate_effect_from_date(self) -> datetime.datetime:
@@ -95,9 +103,9 @@ class Validity(OpenValidity):
 
 
 class ValidityTerminate(Validity):
-    to_date: datetime.datetime = Field(
-        alias="to",
-        description="When the validity should end " "- required when terminating",
+    from_date: datetime.datetime = Field(
+        alias="from",
+        description="When the terminate state starts",
     )
 
 
@@ -779,6 +787,30 @@ class ITSystemCreate(UUIDBase):
         }
         validate.validate(lora_registration, "itsystem")
         return lora_registration
+
+
+class ITSystemUpdate(ITSystemCreate):
+    uuid: UUID = Field(description="UUID for the it-system we want to terminate.")
+
+
+class ITSystemTerminate(UUIDBase):
+    uuid: UUID = Field(description="UUID for the it-system we want to terminate.")
+    validity: ValidityTerminate = Field(
+        description="Validity range for the terminate state"
+    )
+
+    def to_registration(self) -> dict:
+        return {
+            "tilstande": {
+                "itsystemgyldighed": [
+                    {
+                        "gyldighed": "Inaktiv",
+                        "virkning": self.validity.get_termination_effect(),
+                    }
+                ]
+            },
+            "note": "Afslut enhed",
+        }
 
 
 # ITUsers

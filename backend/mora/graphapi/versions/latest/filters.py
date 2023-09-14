@@ -229,6 +229,11 @@ class ITUserFilter(BaseFilter):
     )
 
 
+@strawberry.input(description="IT user filter.")
+class ITSystemFilter(BaseFilter):
+    pass
+
+
 @strawberry.input(description="KLE filter.")
 class KLEFilter(BaseFilter):
     org_units: list[UUID] | None = strawberry.field(

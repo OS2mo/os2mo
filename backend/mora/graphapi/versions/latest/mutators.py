@@ -64,6 +64,7 @@ from .inputs import ITAssociationCreateInput
 from .inputs import ITAssociationTerminateInput
 from .inputs import ITAssociationUpdateInput
 from .inputs import ITSystemCreateInput
+from .inputs import ITSystemTerminateInput
 from .inputs import ITUserCreateInput
 from .inputs import ITUserTerminateInput
 from .inputs import ITUserUpdateInput
@@ -90,6 +91,7 @@ from .it_user import terminate as terminate_ituser
 from .it_user import update as update_ituser
 from .itsystem import create_itsystem
 from .itsystem import delete_itsystem
+from .itsystem import terminate_itsystem
 from .itsystem import update_itsystem
 from .kle import create_kle
 from .kle import terminate_kle
@@ -710,6 +712,19 @@ class Mutation:
         return uuid2response(uuid, ITSystemRead)
 
     # TODO: itsystem_terminate
+    @strawberry.mutation(
+        description="Terminates IT-System.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_terminate_permission("itsystem"),
+        ],
+    )
+    async def itsystem_terminate(
+        self, input: ITSystemTerminateInput
+    ) -> Response[ITSystem]:
+        return uuid2response(
+            await terminate_itsystem(input.to_pydantic(), note=""), ITUserRead
+        )
 
     @strawberry.mutation(
         description="Deletes an ITSystem." + delete_warning,
@@ -731,21 +746,10 @@ class Mutation:
         ],
     )
     async def itsystem_refresh(
-        self,
-        info: Info,
-        filter: ITSystemFilter | None = None,
-        limit: LimitType = None,
-        cursor: CursorType = None,
-        queue: str | None = None,
-    ) -> Paged[UUID]:
-        resolve = to_paged_uuids(ITSystemResolver())
-        page = await resolve(
-            info=info,
-            filter=filter,
-            limit=limit,
-            cursor=cursor,
-        )
-        return await refresh(page=page, model="itsystem", queue=queue)
+        self, info: Info, filter: ITSystemFilter | None = None, queue: str | None = None
+    ) -> list[UUID]:
+        results = await ITSystemResolver().resolve(info=info, filter=filter)
+        return await refresh(results=results, model="itsystem", queue=queue)
 
     # ITUsers
     # -------

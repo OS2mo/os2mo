@@ -43,7 +43,13 @@ async def update_employee(input: EmployeeUpdate) -> UUID:
 
 async def terminate(termination: EmployeeTerminate) -> UUID:
     # Create request dict, legacy, from data model
-    request = {mapping.VALIDITY: {mapping.TO: termination.to_date.date().isoformat()}}
+    request = {
+        mapping.VALIDITY: {
+            mapping.TO: termination.to_date.date().isoformat()
+            if termination.to_date
+            else None
+        }
+    }
     if termination.from_date:
         request[mapping.VALIDITY][
             mapping.FROM

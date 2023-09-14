@@ -5,6 +5,8 @@ from uuid import UUID
 from uuid import uuid4
 
 from .models import ITSystemCreate
+from .models import ITSystemTerminate
+from .models import ITSystemUpdate
 from mora import lora
 from mora.util import get_uuid
 from oio_rest import db
@@ -21,12 +23,17 @@ async def create_itsystem(
 
 
 async def update_itsystem(
-    input: ITSystemCreate, organisation_uuid: UUID, note: str
+    input: ITSystemUpdate, organisation_uuid: UUID, note: str
 ) -> UUID:
     c = lora.Connector()
     return await c.itsystem.update(
         input.to_registration(organisation_uuid=organisation_uuid), input.uuid
     )
+
+
+async def terminate_itsystem(input: ITSystemTerminate, note: str) -> UUID:
+    c = lora.Connector()
+    return await c.itsystem.update(input.to_registration(), input.uuid)
 
 
 async def delete_itsystem(itsystem_uuid: UUID, note: str) -> UUID:

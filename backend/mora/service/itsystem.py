@@ -375,20 +375,9 @@ async def get_one_itsystem(
 
     # TODO: Figure out the correct way instead of just using [0]
     validities = itsystem["tilstande"]["itsystemgyldighed"]
-    # response["status"] = validities[0]["gyldighed"]
     response[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
 
     return response
-
-
-# PROTECTEDs
-
-
-def _get_owner_uuid(itsystem):
-    if "ejer" not in itsystem["relationer"]:
-        return None
-
-    return itsystem["relationer"]["ejer"][0]["uuid"]
 
 
 def _get_attrs(itsystem):
