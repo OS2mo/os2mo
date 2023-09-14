@@ -488,7 +488,7 @@ async def create_or_update_class(
 
 def is_class_primary(mo_class: dict) -> bool:
     try:
-        return int(mo_class["scope"]) >= 3000
+        return int(mo_class[mapping.SCOPE]) >= mapping.MINIMUM_PRIMARY_SCOPE_VALUE
     except KeyError:
         return False
     except ValueError:
@@ -507,7 +507,7 @@ async def is_class_uuid_primary(primary_class_uuid: str) -> bool:
 
 async def get_mo_object_primary_value(mo_object: dict) -> bool:
     primary = mo_object.get(mapping.PRIMARY) or {}
-    if "scope" in primary:
+    if mapping.SCOPE in primary:
         return is_class_primary(mo_object[mapping.PRIMARY])
 
     # Next, see if `mo_object` contains a `primary` dict with a `uuid` key

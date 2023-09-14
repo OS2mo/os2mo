@@ -44,6 +44,9 @@ CHILDREN = "children"
 DATA = "data"
 TYPE = "type"
 INFINITY = "infinity"
+SCOPE = "scope"
+
+MINIMUM_PRIMARY_SCOPE_VALUE = 3000
 
 # Address
 ADDRESS_KEY = "Adresse"
