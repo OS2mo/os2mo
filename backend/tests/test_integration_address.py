@@ -1234,6 +1234,7 @@ async def test_missing_address(service_client: TestClient) -> None:
                     "top_level_facet": address_type_facet,
                     "user_key": "OrgEnhedPostadresse",
                     "uuid": "28d71012-2919-4b67-a2f0-7b59ed52561e",
+                    "validity": {"from": "2016-01-01T00:00:00+01:00", "to": None},
                 },
                 "user_key": "Nordre Ringgade 1, 8000 Aarhus C",
                 "href": None,
