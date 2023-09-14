@@ -167,7 +167,18 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
         else:
             employee = util.get_obj_value(original, mapping.USER_FIELD.path)[-1]
 
-        for responsibility in util.checked_get(data, mapping.RESPONSIBILITY, []):
+        # Manager responsibility and manager level are stored in the same list in the
+        # relationer>opgaver field in LoRa. MO separates the objects based on their
+        # 'objekttype' when reading them back out (see 'filter_fn' on
+        # RESPONSIBILITY_FIELD and MANAGER_LEVEL_FIELD in mapping.py), but LoRa does
+        # not distinguish between them. Therefore, updating exactly one of them, while
+        # the other is unset/null, causes LoRa to overwrite the field's list with only
+        # the updated object. To circumvent this issue, we add the original values for
+        # these fields to the update, as if it was provided by the user.
+        original_responsibilities = mapping.RESPONSIBILITY_FIELD.get(original)
+        for responsibility in util.checked_get(
+            data, mapping.RESPONSIBILITY, default=original_responsibilities
+        ):
             update_fields.append(
                 (
                     mapping.RESPONSIBILITY_FIELD,
@@ -178,16 +189,19 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        if mapping.MANAGER_LEVEL in data:
-            update_fields.append(
-                (
-                    mapping.MANAGER_LEVEL_FIELD,
-                    {
-                        "objekttype": "lederniveau",
-                        "uuid": util.get_mapping_uuid(data, mapping.MANAGER_LEVEL),
-                    },
-                )
+        if data.get(mapping.MANAGER_LEVEL) is not None:
+            manager_level_uuid = util.get_mapping_uuid(data, mapping.MANAGER_LEVEL)
+        else:
+            manager_level_uuid = mapping.MANAGER_LEVEL_FIELD.get_uuid(original)
+        update_fields.append(
+            (
+                mapping.MANAGER_LEVEL_FIELD,
+                {
+                    "objekttype": "lederniveau",
+                    "uuid": manager_level_uuid,
+                },
             )
+        )
 
         payload = common.update_payload(
             new_from, new_to, update_fields, original, payload

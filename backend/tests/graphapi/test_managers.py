@@ -314,12 +314,6 @@ async def test_create_manager_integration_test(
             "responsibility": None,
             "org_unit": None,
             "manager_type": None,
-            # This is a known issue: if "manager_level" is set to None, the
-            # "responsibility" field may NOT be updated. If manager_level is set to be
-            # updated, the "responsibility" field may NOT be set to None. In other
-            # words: if "manager_level" is to be updated, then "responsibility" is also
-            # expected to be updated, and if "manager_level" is not set to be updated,
-            # then neither may "responsibility" be updated.
             "manager_level": None,
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
         },
@@ -329,7 +323,7 @@ async def test_create_manager_integration_test(
             "person": None,
             "responsibility": ["93ea44f9-127c-4465-a34c-77d149e3e928"],
             "org_unit": None,
-            "manager_level": "ca76a441-6226-404f-88a9-31e02e420e52",
+            "manager_level": None,
             "manager_type": None,
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
         },
@@ -339,7 +333,7 @@ async def test_create_manager_integration_test(
             "person": None,
             "responsibility": None,
             "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
-            "manager_level": None,
+            "manager_level": "ca76a441-6226-404f-88a9-31e02e420e52",
             "manager_type": "a22f8575-89b4-480b-a7ba-b3f1372e25a4",
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
         },
