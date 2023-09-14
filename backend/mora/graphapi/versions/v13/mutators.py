@@ -47,6 +47,7 @@ from ..latest.inputs import EngagementUpdateInput
 from ..latest.inputs import ITAssociationCreateInput
 from ..latest.inputs import ITAssociationTerminateInput
 from ..latest.inputs import ITAssociationUpdateInput
+from ..latest.inputs import ITSystemCreateInput
 from ..latest.inputs import ITUserCreateInput
 from ..latest.inputs import ITUserTerminateInput
 from ..latest.inputs import ITUserUpdateInput
@@ -73,7 +74,6 @@ from ..latest.it_user import terminate as terminate_ituser
 from ..latest.it_user import update as update_ituser
 from ..latest.itsystem import create_itsystem
 from ..latest.itsystem import delete_itsystem
-from ..latest.itsystem import ITSystemCreateInput
 from ..latest.itsystem import update_itsystem
 from ..latest.kle import create_kle
 from ..latest.kle import terminate_kle
@@ -523,7 +523,7 @@ class Mutation:
     ) -> Response[ITSystem]:
         note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await update_itsystem(input.to_pydantic(), input.uuid, org.uuid, note)  # type: ignore
+        uuid = await update_itsystem(input.to_pydantic(), org.uuid, note)  # type: ignore
         return uuid2response(uuid, ITSystemRead)
 
     # TODO: itsystem_terminate

@@ -63,6 +63,7 @@ from .inputs import EngagementUpdateInput
 from .inputs import ITAssociationCreateInput
 from .inputs import ITAssociationTerminateInput
 from .inputs import ITAssociationUpdateInput
+from .inputs import ITSystemCreateInput
 from .inputs import ITUserCreateInput
 from .inputs import ITUserTerminateInput
 from .inputs import ITUserUpdateInput
@@ -89,7 +90,6 @@ from .it_user import terminate as terminate_ituser
 from .it_user import update as update_ituser
 from .itsystem import create_itsystem
 from .itsystem import delete_itsystem
-from .itsystem import ITSystemCreateInput
 from .itsystem import update_itsystem
 from .kle import create_kle
 from .kle import terminate_kle
@@ -706,7 +706,7 @@ class Mutation:
     ) -> Response[ITSystem]:
         note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await update_itsystem(input.to_pydantic(), input.uuid, org.uuid, note)  # type: ignore
+        uuid = await update_itsystem(input.to_pydantic(), org.uuid, note)  # type: ignore
         return uuid2response(uuid, ITSystemRead)
 
     # TODO: itsystem_terminate

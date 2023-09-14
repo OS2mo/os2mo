@@ -22,6 +22,11 @@ class ITSystemRead(MOBase):
     name: str = Field(description="Name/titel of the itsystem.")
     user_key: str = Field(description="Short, unique key.")
     system_type: str | None = Field(description="The ITSystem type.")
+    validity: Validity = Field(description="Validity of the IT system object.")
+
+
+class ITSystemWrite(ITSystemRead):
+    pass
 
 
 class ITUserBase(MOBase):

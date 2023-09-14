@@ -3,6 +3,7 @@
 """Loaders for translating LoRa data to MO data to be returned from the GraphAPI."""
 from collections.abc import Callable
 from collections.abc import Iterable
+from datetime import datetime
 from functools import partial
 from itertools import starmap
 from typing import Any
@@ -35,6 +36,7 @@ from .schema import RelatedUnitRead
 from .schema import RoleRead
 from mora.common import get_connector
 from mora.service import org
+from mora.util import NEGATIVE_INFINITY
 from mora.util import parsedatetime
 from ramodels.lora.facet import FacetRead as LFacetRead
 from ramodels.lora.klasse import KlasseRead
@@ -135,12 +137,21 @@ def lora_itsystem_to_mo_itsystem(
 ) -> Iterable[ITSystemRead]:
     def convert(systemid: str, system: dict) -> dict[str, Any]:
         attrs = system["attributter"]["itsystemegenskaber"][0]
+        state_validity = one(system["tilstande"]["itsystemgyldighed"])
 
         return {
             "uuid": systemid,
             "name": attrs.get("itsystemnavn"),
             "system_type": attrs.get("itsystemtype"),
             "user_key": attrs["brugervendtnoegle"],
+            "validity": {
+                "from": datetime.fromisoformat(state_validity["virkning"]["from"])
+                if state_validity["virkning"]["from"] != "-infinity"
+                else NEGATIVE_INFINITY,
+                "to": datetime.fromisoformat(state_validity["virkning"]["to"])
+                if state_validity["virkning"]["to"] != "infinity"
+                else None,
+            },
         }
 
     objects = list(starmap(convert, lora_result))
@@ -337,7 +348,7 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
         "rel_unit_getter": get_related_units,
         "facet_loader": DataLoader(load_fn=load_facets),
         "facet_getter": get_facets,
-        "itsystem_loader": DataLoader(load_fn=load_itsystems),
+        "itsystem_loader": DataLoader(load_fn=partial(load_mo, model=ITSystemRead)),
         "itsystem_getter": get_itsystems,
     }
 

@@ -9,6 +9,7 @@ from uuid import UUID
 
 import strawberry
 from pydantic import BaseModel
+from pydantic import Extra
 from pydantic import Field
 from pydantic import root_validator
 
@@ -18,6 +19,8 @@ from mora import mapping
 from mora.util import CPR
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
+from mora.util import to_lora_time
+from oio_rest import validate
 from ramodels.mo import OpenValidity
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo._shared import UUIDBase
@@ -722,6 +725,60 @@ class ITAssociationTerminate(ValidityTerminate):
 
 # ITSystems
 # ---------
+class ITSystemCreate(UUIDBase):
+    """Model representing an itsystem creation."""
+
+    user_key: str
+    name: str
+    validity: RAValidity = Field(description="Validity range for the itsystem")
+
+    class Config:
+        frozen = True
+        allow_population_by_field_name = True
+        extra = Extra.forbid
+
+    def to_registration(self, organisation_uuid: UUID) -> dict:
+        from_time = to_lora_time(self.validity.from_date or "-infinity")
+        to_time = to_lora_time(self.validity.to_date or "infinity")
+
+        lora_registration = {
+            "attributter": {
+                "itsystemegenskaber": [
+                    {
+                        "brugervendtnoegle": self.user_key,
+                        "virkning": {
+                            "from": from_time,
+                            "to": to_time,
+                        },
+                        "itsystemnavn": self.name,
+                    }
+                ]
+            },
+            "tilstande": {
+                "itsystemgyldighed": [
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "from": from_time,
+                            "to": to_time,
+                        },
+                    }
+                ]
+            },
+            "relationer": {
+                "tilknyttedeorganisationer": [
+                    {
+                        "uuid": str(organisation_uuid),
+                        "virkning": {
+                            "from": from_time,
+                            "to": to_time,
+                        },
+                    }
+                ],
+            },
+        }
+        validate.validate(lora_registration, "itsystem")
+        return lora_registration
 
 
 # ITUsers
