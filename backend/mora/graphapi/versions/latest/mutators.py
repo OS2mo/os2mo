@@ -65,6 +65,7 @@ from .inputs import ITAssociationTerminateInput
 from .inputs import ITAssociationUpdateInput
 from .inputs import ITSystemCreateInput
 from .inputs import ITSystemTerminateInput
+from .inputs import ITSystemUpdateInput
 from .inputs import ITUserCreateInput
 from .inputs import ITUserTerminateInput
 from .inputs import ITUserUpdateInput
@@ -704,7 +705,7 @@ class Mutation:
         ],
     )
     async def itsystem_update(
-        self, info: Info, input: ITSystemCreateInput
+        self, info: Info, input: ITSystemUpdateInput
     ) -> Response[ITSystem]:
         note = ""
         org = await info.context["org_loader"].load(0)
