@@ -115,22 +115,6 @@ async def load_mo(uuids: list[UUID], model: MOModel) -> list[list[MOModel]]:
     return list(map(uuid_map.get, uuids))  # type: ignore
 
 
-# get all models
-get_org_units = partial(get_mo, model=OrganisationUnitRead)
-get_employees = partial(get_mo, model=EmployeeRead)
-get_engagements = partial(get_mo, model=EngagementRead)
-get_kles = partial(get_mo, model=KLERead)
-get_addresses = partial(get_mo, model=AddressRead)
-get_leaves = partial(get_mo, model=LeaveRead)
-get_associations = partial(get_mo, model=AssociationRead)
-get_roles = partial(get_mo, model=RoleRead)
-get_itusers = partial(get_mo, model=ITUserRead)
-get_itsystems = partial(get_mo, model=ITSystemRead)
-get_managers = partial(get_mo, model=ManagerRead)
-get_owners = partial(get_mo, model=OwnerRead)
-get_related_units = partial(get_mo, model=RelatedUnitRead)
-
-
 def lora_class_to_mo_class(lora_tuple: tuple[UUID, KlasseRead]) -> ClassRead:
     uuid, lora_class = lora_tuple
 
@@ -272,41 +256,57 @@ async def load_org(keys: list[int]) -> list[OrganisationRead]:
 async def get_loaders() -> dict[str, DataLoader | Callable]:
     """Get all available dataloaders as a dictionary."""
     return {
+        # Organisation
         "org_loader": DataLoader(load_fn=load_org),
+        # Organisation Unit
         "org_unit_loader": DataLoader(
             load_fn=partial(load_mo, model=OrganisationUnitRead)
         ),
-        "org_unit_getter": get_org_units,
+        "org_unit_getter": partial(get_mo, model=OrganisationUnitRead),
+        # Person
         "employee_loader": DataLoader(load_fn=partial(load_mo, model=EmployeeRead)),
-        "employee_getter": get_employees,
+        "employee_getter": partial(get_mo, model=EmployeeRead),
+        # Engagement
         "engagement_loader": DataLoader(load_fn=partial(load_mo, model=EngagementRead)),
-        "engagement_getter": get_engagements,
+        "engagement_getter": partial(get_mo, model=EngagementRead),
+        # KLE
         "kle_loader": DataLoader(load_fn=partial(load_mo, model=KLERead)),
-        "kle_getter": get_kles,
+        "kle_getter": partial(get_mo, model=KLERead),
+        # Address
         "address_loader": DataLoader(load_fn=partial(load_mo, model=AddressRead)),
-        "address_getter": get_addresses,
+        "address_getter": partial(get_mo, model=AddressRead),
+        # Leave
         "leave_loader": DataLoader(load_fn=partial(load_mo, model=LeaveRead)),
-        "leave_getter": get_leaves,
+        "leave_getter": partial(get_mo, model=LeaveRead),
+        # Association
         "association_loader": DataLoader(
             load_fn=partial(load_mo, model=AssociationRead)
         ),
-        "association_getter": get_associations,
+        "association_getter": partial(get_mo, model=AssociationRead),
+        # Role
         "role_loader": DataLoader(load_fn=partial(load_mo, model=RoleRead)),
-        "role_getter": get_roles,
+        "role_getter": partial(get_mo, model=RoleRead),
+        # ITUser
         "ituser_loader": DataLoader(load_fn=partial(load_mo, model=ITUserRead)),
-        "ituser_getter": get_itusers,
+        "ituser_getter": partial(get_mo, model=ITUserRead),
+        # Manager
         "manager_loader": DataLoader(load_fn=partial(load_mo, model=ManagerRead)),
-        "manager_getter": get_managers,
+        "manager_getter": partial(get_mo, model=ManagerRead),
+        # Owner
         "owner_loader": DataLoader(load_fn=partial(load_mo, model=OwnerRead)),
-        "owner_getter": get_owners,
+        "owner_getter": partial(get_mo, model=OwnerRead),
+        # Class
         "class_loader": DataLoader(load_fn=load_classes),
         "class_getter": get_classes,
+        # Related Organisation Unit
         "rel_unit_loader": DataLoader(load_fn=partial(load_mo, model=RelatedUnitRead)),
-        "rel_unit_getter": get_related_units,
+        "rel_unit_getter": partial(get_mo, model=RelatedUnitRead),
+        # Facet
         "facet_loader": DataLoader(load_fn=load_facets),
         "facet_getter": get_facets,
+        # ITSysterm
         "itsystem_loader": DataLoader(load_fn=partial(load_mo, model=ITSystemRead)),
-        "itsystem_getter": get_itsystems,
+        "itsystem_getter": partial(get_mo, model=ITSystemRead),
     }
 
 
