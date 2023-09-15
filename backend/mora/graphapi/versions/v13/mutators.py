@@ -511,10 +511,7 @@ class Mutation:
     ) -> Response[ITSystem]:
         org = await info.context["org_loader"].load(0)
         v13_model = input.to_pydantic()
-        latest_model = parse_obj_as(
-            LatestITSystemCreate,
-            {**v13_model.dict(), "validity": {"from": "1900-01-01"}},
-        )
+        latest_model = parse_obj_as(LatestITSystemCreate, v13_model.to_latest_dict())
         uuid = await create_itsystem(latest_model, org.uuid)
         return uuid2response(uuid, ITSystemRead)
 
@@ -530,10 +527,7 @@ class Mutation:
     ) -> Response[ITSystem]:
         org = await info.context["org_loader"].load(0)
         v13_model = input.to_pydantic()
-        latest_model = parse_obj_as(
-            LatestITSystemUpdate,
-            {**v13_model.dict(), "validity": {"from": "1900-01-01"}},
-        )
+        latest_model = parse_obj_as(LatestITSystemUpdate, v13_model.to_latest_dict())
         uuid = await update_itsystem(latest_model, org.uuid)  # type: ignore
         return uuid2response(uuid, ITSystemRead)
 
