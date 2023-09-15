@@ -38,6 +38,21 @@ def mock_get_settings_custom_attrs():
             confdb_autocomplete_attrs_orgunit=[
                 uuid.UUID("e8ea1a09-d3d4-4203-bfe9-d9a213371337"),
             ],
+            confdb_autocomplete_attrs_employee=[
+                uuid.UUID(
+                    "06f95678-166a-455a-a2ab-121a8d92ea23"
+                ),  # engagement_type = Ansat
+                uuid.UUID(
+                    "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
+                ),  # address_type = Email
+                uuid.UUID(
+                    "62ec821f-4179-4758-bfdf-134529d186e9"
+                ),  # association_type = Medlem
+                uuid.UUID(
+                    "59c135c9-2b15-41cc-97c8-b5dff7180beb"
+                ),  # itsystem = Active Directory
+                uuid.UUID("14466fb0-f9de-439c-a6c2-b3262c367da7"),  # itsystem = SAP
+            ],
         ),
     ) as mock_get_settings:
         yield mock_get_settings

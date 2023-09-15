@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from _datetime import datetime
+from datetime import datetime
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -22,6 +22,7 @@ from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.models import RoleCreate
 from mora.graphapi.versions.latest.models import RoleUpdate
+from mora.util import POSITIVE_INFINITY
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import RoleRead
 from tests.conftest import GQLResponse
@@ -199,13 +200,18 @@ async def test_create_role_integration_test(
         datetime.fromisoformat(obj["validity"]["from"]).date()
         == test_data.validity.from_date.date()
     )
-    if obj["validity"]["to"] is not None:
+
+    # FYI: "backend/mora/util.py::to_iso_date()" does a check for POSITIVE_INFINITY.year
+    if (
+        not test_data.validity.to_date
+        or test_data.validity.to_date.year == POSITIVE_INFINITY.year
+    ):
+        assert obj["validity"]["to"] is None
+    else:
         assert (
             datetime.fromisoformat(obj["validity"]["to"]).date()
             == test_data.validity.to_date.date()
         )
-    else:
-        assert test_data.validity.to_date is None
 
 
 @given(test_data=...)

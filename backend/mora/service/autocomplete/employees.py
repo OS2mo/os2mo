@@ -15,6 +15,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.sql import select
 from sqlalchemy.sql import union
 
+from mora import config
 from mora import util
 from mora.audit import audit_log
 from mora.db import BrugerAttrUdvidelser
@@ -65,13 +66,15 @@ async def search_employees(
         return result
 
 
-async def decorate_employee_search_result(search_results: [Row], at: date | None):
-    from mora.graphapi.versions.v8.version import GraphQLVersion
+async def decorate_employee_search_result(
+    settings: config.Settings, search_results: [Row], at: date | None
+):
+    from mora.graphapi.versions.v14.version import GraphQLVersion
 
     graphql_vars = {"uuids": [str(employee.uuid) for employee in search_results]}
     employee_decorate_query = """
         query EmployeeDecorate($uuids: [UUID!]) {
-            employees(uuids: $uuids, from_date: null, to_date: null) {
+            employees(filter: { uuids: $uuids, from_date: null, to_date: null }) {
                 objects {
                     uuid
 
@@ -101,48 +104,84 @@ async def decorate_employee_search_result(search_results: [Row], at: date | None
                 from
                 to
             }
-
-            engagements {
-                uuid
-                user_key
-                engagement_type {
-                    uuid
-                    name
-                    published
-                }
-            }
-
-            addresses {
-                uuid
-                user_key
-                value
-                address_type {
-                    uuid
-                    name
-                    published
-                }
-            }
-
-            associations {
-                uuid
-                user_key
-                association_type {
-                    uuid
-                    name
-                    published
-                }
-            }
-
-            itusers {
-                uuid
-                user_key
-                itsystem {
-                    uuid
-                    name
-                }
-            }
         }
     """
+
+    if settings.confdb_autocomplete_attrs_employee:
+        employee_decorate_query = """
+            query EmployeeDecorate($uuids: [UUID!]) {
+                employees(filter: { uuids: $uuids, from_date: null, to_date: null }) {
+                    objects {
+                        uuid
+
+                        current {
+                            ...employee_details
+                        }
+
+                        objects {
+                            ...employee_details
+                        }
+                    }
+                }
+            }
+
+            fragment employee_details on Employee {
+                uuid
+                user_key
+                cpr_no
+                name
+                givenname
+                surname
+                nickname
+                nickname_givenname
+                nickname_surname
+
+                validity {
+                    from
+                    to
+                }
+
+                engagements_validity {
+                    uuid
+                    user_key
+                    engagement_type {
+                        uuid
+                        name
+                        published
+                    }
+                }
+
+                addresses_validity {
+                    uuid
+                    user_key
+                    value
+                    address_type {
+                        uuid
+                        name
+                        published
+                    }
+                }
+
+                associations_validity {
+                    uuid
+                    user_key
+                    association_type {
+                        uuid
+                        name
+                        published
+                    }
+                }
+
+                itusers_validity {
+                    uuid
+                    user_key
+                    itsystem {
+                        uuid
+                        name
+                    }
+                }
+            }
+        """
 
     response = await execute_graphql(
         employee_decorate_query,
@@ -163,7 +202,7 @@ async def decorate_employee_search_result(search_results: [Row], at: date | None
             {
                 "uuid": employee.uuid,
                 "name": graphql_equivalent["name"],
-                "attrs": _gql_get_employee_attrs(graphql_equivalent),
+                "attrs": _gql_get_employee_attrs(settings, graphql_equivalent),
             }
         )
 
@@ -283,14 +322,18 @@ async def _get_cte_itsystem_hits(query: str):
     )
 
 
-def _gql_get_employee_attrs(gql_employee: dict):
+def _gql_get_employee_attrs(settings: config.Settings, gql_employee: dict):
     attrs = []
 
-    for engagement in gql_employee.get("engagements", []):
+    for engagement in gql_employee.get("engagements_validity", []):
         uuid = engagement["uuid"]
         value = engagement["user_key"]
         engagement_type = engagement.get("engagement_type")
-        if not engagement_type:
+        if (
+            not engagement_type
+            or UUID(engagement_type["uuid"])
+            not in settings.confdb_autocomplete_attrs_employee
+        ):
             continue
 
         if util.is_detail_unpublished(
@@ -301,16 +344,20 @@ def _gql_get_employee_attrs(gql_employee: dict):
         attrs.append(
             {
                 "uuid": UUID(uuid),
-                "title": engagement["engagement_type"]["name"],
+                "title": engagement_type["name"],
                 "value": value,
             }
         )
 
-    for address in gql_employee.get("addresses", []):
+    for address in gql_employee.get("addresses_validity", []):
         uuid = address["uuid"]
         value = address["value"]
         addr_type = address.get("address_type")
-        if not addr_type:
+        if (
+            not addr_type
+            or UUID(addr_type["uuid"])
+            not in settings.confdb_autocomplete_attrs_employee
+        ):
             continue
 
         if util.is_detail_unpublished(
@@ -321,16 +368,20 @@ def _gql_get_employee_attrs(gql_employee: dict):
         attrs.append(
             {
                 "uuid": UUID(uuid),
-                "title": address["address_type"]["name"],
+                "title": addr_type["name"],
                 "value": value,
             }
         )
 
-    for assoc in gql_employee.get("associations", []):
+    for assoc in gql_employee.get("associations_validity", []):
         uuid = assoc["uuid"]
         value = assoc["user_key"]
         assoc_type = assoc.get("association_type")
-        if not assoc_type:
+        if (
+            not assoc_type
+            or UUID(assoc_type["uuid"])
+            not in settings.confdb_autocomplete_attrs_employee
+        ):
             continue
 
         if util.is_detail_unpublished(
@@ -341,16 +392,19 @@ def _gql_get_employee_attrs(gql_employee: dict):
         attrs.append(
             {
                 "uuid": UUID(uuid),
-                "title": assoc["association_type"]["name"],
+                "title": assoc_type["name"],
                 "value": value,
             }
         )
 
-    for ituser in gql_employee.get("itusers", []):
+    for ituser in gql_employee.get("itusers_validity", []):
         uuid = ituser["uuid"]
         value = ituser["user_key"]
-
-        if not ituser.get("itsystem"):
+        itsystem = ituser.get("itsystem")
+        if (
+            not itsystem
+            or UUID(itsystem["uuid"]) not in settings.confdb_autocomplete_attrs_employee
+        ):
             continue
 
         if util.is_detail_unpublished(value) or util.is_uuid(value):

@@ -78,44 +78,45 @@ async def decorate_orgunit_search_result(
     if at is not None:
         graphql_vars["from_date"] = at
 
-    from mora.graphapi.versions.v8.version import GraphQLVersion
+    from mora.graphapi.versions.v14.version import GraphQLVersion
 
     orgunit_decorate_query = """
-            query OrgUnitDecorate($uuids: [UUID!]) {
-                org_units(uuids: $uuids, from_date: null, to_date: null) {
+        query OrgUnitDecorate($uuids: [UUID!]) {
+            org_units(filter: { uuids: $uuids, from_date: null, to_date: null }) {
+                objects {
+                    uuid
+
+                    current {
+                        ...orgunit_details
+                    }
+
                     objects {
-                        uuid
-
-                        current {
-                            ...orgunit_details
-                        }
-
-                        objects {
-                            ...orgunit_details
-                        }
+                        ...orgunit_details
                     }
                 }
             }
+        }
 
-            fragment orgunit_details on OrganisationUnit {
-                uuid
-                name
-                user_key
+        fragment orgunit_details on OrganisationUnit {
+            uuid
+            name
+            user_key
 
-                validity {
-                    from
-                    to
-                }
-
-                ancestors_validity {
-                    name
-                }
+            validity {
+                from
+                to
             }
-            """
+
+            ancestors_validity {
+                name
+            }
+        }
+        """
+
     if settings.confdb_autocomplete_attrs_orgunit:
         orgunit_decorate_query = """
             query OrgUnitDecorate($uuids: [UUID!]) {
-                org_units(uuids: $uuids, from_date: null, to_date: null) {
+                org_units(filter: { uuids: $uuids, from_date: null, to_date: null }) {
                     objects {
                         uuid
 
@@ -144,7 +145,7 @@ async def decorate_orgunit_search_result(
                     name
                 }
 
-                addresses {
+                addresses_validity {
                     uuid
                     name
                     address_type {
@@ -153,7 +154,7 @@ async def decorate_orgunit_search_result(
                     }
                 }
 
-                itusers {
+                itusers_validity {
                     uuid
                     user_key
                     itsystem {
@@ -195,8 +196,8 @@ async def decorate_orgunit_search_result(
 
 def _gql_get_orgunit_attrs(settings: config.Settings, org_unit_graphql: dict) -> [dict]:
     attrs: [dict] = []
-    if "addresses" in org_unit_graphql:
-        for addr in org_unit_graphql["addresses"]:
+    if "addresses_validity" in org_unit_graphql:
+        for addr in org_unit_graphql["addresses_validity"]:
             if (
                 UUID(addr["address_type"]["uuid"])
                 not in settings.confdb_autocomplete_attrs_orgunit
@@ -211,8 +212,8 @@ def _gql_get_orgunit_attrs(settings: config.Settings, org_unit_graphql: dict) ->
                 }
             )
 
-    if "itusers" in org_unit_graphql:
-        for ituser in org_unit_graphql["itusers"]:
+    if "itusers_validity" in org_unit_graphql:
+        for ituser in org_unit_graphql["itusers_validity"]:
             if (
                 UUID(ituser["itsystem"]["uuid"])
                 not in settings.confdb_autocomplete_attrs_orgunit

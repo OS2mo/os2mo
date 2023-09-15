@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import datetime as dt
-from _datetime import datetime
+from datetime import datetime
 from unittest import mock
 from unittest.mock import AsyncMock
 from unittest.mock import patch
@@ -26,6 +26,7 @@ from mora.graphapi.versions.latest.manager import terminate_manager
 from mora.graphapi.versions.latest.models import ManagerCreate
 from mora.graphapi.versions.latest.models import ManagerTerminate
 from mora.graphapi.versions.latest.models import ManagerUpdate
+from mora.util import POSITIVE_INFINITY
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import ManagerRead
 from tests.conftest import GQLResponse
@@ -283,13 +284,18 @@ async def test_create_manager_integration_test(
         datetime.fromisoformat(obj["validity"]["from"]).date()
         == test_data.validity.from_date.date()
     )
-    if obj["validity"]["to"] is not None:
+
+    # FYI: "backend/mora/util.py::to_iso_date()" does a check for POSITIVE_INFINITY.year
+    if (
+        not test_data.validity.to_date
+        or test_data.validity.to_date.year == POSITIVE_INFINITY.year
+    ):
+        assert obj["validity"]["to"] is None
+    else:
         assert (
             datetime.fromisoformat(obj["validity"]["to"]).date()
             == test_data.validity.to_date.date()
         )
-    else:
-        assert test_data.validity.to_date is None
 
 
 @pytest.mark.integration_test

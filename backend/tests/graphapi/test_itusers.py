@@ -28,6 +28,7 @@ from mora.graphapi.versions.latest.it_user import terminate
 from mora.graphapi.versions.latest.models import ITUserCreate
 from mora.graphapi.versions.latest.models import ITUserTerminate
 from mora.graphapi.versions.latest.models import ITUserUpdate
+from mora.util import POSITIVE_INFINITY
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import ITUserRead
 from tests.conftest import GQLResponse
@@ -242,13 +243,18 @@ async def test_create_ituser_employee_integration_test(
             datetime.fromisoformat(obj["validity"]["from"]).date()
             == test_data.validity.from_date.date()
         )
-        if obj["validity"]["to"] is not None:
+
+        # FYI: "backend/mora/util.py::to_iso_date()" does a check for POSITIVE_INFINITY.year
+        if (
+            not test_data.validity.to_date
+            or test_data.validity.to_date.year == POSITIVE_INFINITY.year
+        ):
+            assert obj["validity"]["to"] is None
+        else:
             assert (
                 datetime.fromisoformat(obj["validity"]["to"]).date()
                 == test_data.validity.to_date.date()
             )
-        else:
-            assert test_data.validity.to_date is None
 
 
 @patch(
@@ -353,13 +359,18 @@ async def test_create_ituser_org_unit_integration_test(
             datetime.fromisoformat(obj["validity"]["from"]).date()
             == test_data.validity.from_date.date()
         )
-        if obj["validity"]["to"] is not None:
+
+        # FYI: "backend/mora/util.py::to_iso_date()" does a check for POSITIVE_INFINITY.year
+        if (
+            not test_data.validity.to_date
+            or test_data.validity.to_date.year == POSITIVE_INFINITY.year
+        ):
+            assert obj["validity"]["to"] is None
+        else:
             assert (
                 datetime.fromisoformat(obj["validity"]["to"]).date()
                 == test_data.validity.to_date.date()
             )
-        else:
-            assert test_data.validity.to_date is None
 
 
 @given(test_data=...)

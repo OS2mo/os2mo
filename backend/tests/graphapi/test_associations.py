@@ -29,6 +29,7 @@ from mora.graphapi.versions.latest.association import terminate_association
 from mora.graphapi.versions.latest.models import AssociationCreate
 from mora.graphapi.versions.latest.models import AssociationTerminate
 from mora.graphapi.versions.latest.models import AssociationUpdate
+from mora.util import POSITIVE_INFINITY
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import AssociationRead
 from tests.conftest import GQLResponse
@@ -324,13 +325,18 @@ async def test_create_association_integration_test(
         datetime.fromisoformat(obj["validity"]["from"]).date()
         == test_data.validity.from_date.date()
     )
-    if obj["validity"]["to"] is not None:
+
+    # FYI: "backend/mora/util.py::to_iso_date()" does a check for POSITIVE_INFINITY.year
+    if (
+        not test_data.validity.to_date
+        or test_data.validity.to_date.year == POSITIVE_INFINITY.year
+    ):
+        assert obj["validity"]["to"] is None
+    else:
         assert (
             datetime.fromisoformat(obj["validity"]["to"]).date()
             == test_data.validity.to_date.date()
         )
-    else:
-        assert test_data.validity.to_date is None
 
 
 @pytest.mark.integration_test
