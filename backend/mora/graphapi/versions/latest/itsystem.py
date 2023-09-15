@@ -19,21 +19,23 @@ async def create_itsystem(
     new_uuid = get_uuid(registration, required=False) or str(uuid4())
 
     c = lora.Connector()
-    return await c.itsystem.create(registration, new_uuid)
+    return UUID(await c.itsystem.create(registration, new_uuid))
 
 
 async def update_itsystem(
     input: ITSystemUpdate, organisation_uuid: UUID, note: str
 ) -> UUID:
     c = lora.Connector()
-    return await c.itsystem.update(
-        input.to_registration(organisation_uuid=organisation_uuid), input.uuid
+    await c.itsystem.update(
+        input.to_registration(organisation_uuid=organisation_uuid), str(input.uuid)
     )
+    return input.uuid
 
 
 async def terminate_itsystem(input: ITSystemTerminate, note: str) -> UUID:
     c = lora.Connector()
-    return await c.itsystem.update(input.to_registration(), input.uuid)
+    await c.itsystem.update(input.to_registration(), input.uuid)
+    return input.uuid
 
 
 async def delete_itsystem(itsystem_uuid: UUID, note: str) -> UUID:
