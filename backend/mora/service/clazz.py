@@ -17,7 +17,6 @@ from typing import Any
 from uuid import UUID
 from uuid import uuid4
 
-from fastapi import APIRouter
 from more_itertools import one
 
 from . import facet
@@ -34,7 +33,7 @@ from mora.request_scoped.bulking import request_wide_bulk
 from ramodels.mo.class_ import ClassWrite
 
 
-router = APIRouter()
+# router = APIRouter()
 
 
 # Main class details class
@@ -422,7 +421,7 @@ async def _get_class_from_cache(
 # from "mora.service.facets" when making no-static classes
 
 
-@router.get("/c/ancestor-tree")
+@facet.router.get("/c/ancestor-tree")
 async def get_class_ancestor_tree(
     uuid: list[UUID] | None = None, only_primary_uuid: bool | None = None
 ):
@@ -477,7 +476,7 @@ async def get_class_ancestor_tree(
     )
 
 
-@router.post("/f/{facet}/")
+@facet.router.post("/f/{facet}/")
 async def create_or_update_class(
     facet: str,
     class_model: ClassWrite,
