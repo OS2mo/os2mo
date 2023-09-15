@@ -48,6 +48,10 @@ def test_query_all(test_data, graphapi_post, patch_loader):
                             type
                             user_key
                             uuid
+                            validity {
+                                from
+                                to
+                            }
                         }
                     }
                 }
@@ -142,7 +146,14 @@ def test_itsystem_create(graphapi_post) -> None:
         }
     """
     response: GQLResponse = graphapi_post(
-        mutation, {"input": {"user_key": "my_user_key", "name": "my_name"}}
+        mutation,
+        {
+            "input": {
+                "user_key": "my_user_key",
+                "name": "my_name",
+                "validity": {"from": "1930-01-01"},
+            }
+        },
     )
     assert response.errors is None
     assert response.data
@@ -185,7 +196,14 @@ def test_itsystem_create_mocked(
         mock.return_value = uuid
 
         response: GQLResponse = graphapi_post(
-            mutation, {"input": {"user_key": user_key, "name": name}}
+            mutation,
+            {
+                "input": {
+                    "user_key": user_key,
+                    "name": name,
+                    "validity": {"from": "1930-01-01"},
+                }
+            },
         )
         assert response.errors is None
         assert response.data
@@ -268,6 +286,7 @@ def test_itsystem_update(graphapi_post) -> None:
                 "user_key": "my_user_key",
                 "name": "my_name",
                 "uuid": str(existing_itsystem_uuid),
+                "validity": {"from": "1930-01-01"},
             },
         },
     )
@@ -319,6 +338,7 @@ def test_itsystem_update_mocked(
                     "user_key": user_key,
                     "name": name,
                     "uuid": str(existing_itsystem_uuid),
+                    "validity": {"from": "1930-01-01"},
                 },
             },
         )
@@ -376,7 +396,12 @@ def test_itsystem_update_non_existent(graphapi_post) -> None:
     response: GQLResponse = graphapi_post(
         mutation,
         {
-            "input": {"user_key": "whatever", "name": "whatever", "uuid": str(uuid4())},
+            "input": {
+                "user_key": "whatever",
+                "name": "whatever",
+                "uuid": str(uuid4()),
+                "validity": {"from": "1930-01-01"},
+            },
         },
     )
     assert response.errors == [
@@ -411,6 +436,7 @@ def test_itsystem_update_non_existent_mocked(
                     "user_key": "whatever",
                     "name": "whatever",
                     "uuid": str(uuid4()),
+                    "validity": {"from": "1930-01-01"},
                 },
             },
         )
