@@ -107,6 +107,10 @@ include:
     - name: magentaaps/os2mo:latest
       alias: mo
       variables: !reference [ .variables:mo, variables ]
+    - name: magentaaps/os2mo:latest
+      alias: mo-amqp-subsystem
+      variables: !reference [ .variables:mo, variables ]
+      command: [ "python", "-m", "mora.cli", "amqp", "start" ]
   before_script:
     - !reference [ .pytest, before_script ]
     - !reference [ .services:mo-backing, before_script ]
