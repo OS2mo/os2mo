@@ -3,9 +3,11 @@
 import logging
 from textwrap import dedent
 from typing import Annotated
+from typing import Any
 from uuid import UUID
 
 import strawberry
+from ramqp import AMQPSystem
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
@@ -31,6 +33,21 @@ from .facets import delete_facet
 from .facets import FacetCreateInput
 from .facets import FacetUpdateInput
 from .facets import update_facet
+from .filters import AddressFilter
+from .filters import AssociationFilter
+from .filters import BaseFilter
+from .filters import ClassFilter
+from .filters import EmployeeFilter
+from .filters import EngagementFilter
+from .filters import FacetFilter
+from .filters import ITUserFilter
+from .filters import KLEFilter
+from .filters import LeaveFilter
+from .filters import ManagerFilter
+from .filters import OrganisationUnitFilter
+from .filters import OwnerFilter
+from .filters import RelatedUnitFilter
+from .filters import RoleFilter
 from .inputs import AddressCreateInput
 from .inputs import AddressTerminateInput
 from .inputs import AddressUpdateInput
@@ -91,10 +108,26 @@ from .org_unit import terminate_org_unit
 from .org_unit import update_org_unit
 from .permissions import gen_create_permission
 from .permissions import gen_delete_permission
+from .permissions import gen_refresh_permission
 from .permissions import gen_role_permission
 from .permissions import gen_terminate_permission
 from .permissions import gen_update_permission
 from .permissions import IsAuthenticatedPermission
+from .resolvers import AddressResolver
+from .resolvers import AssociationResolver
+from .resolvers import ClassResolver
+from .resolvers import EmployeeResolver
+from .resolvers import EngagementResolver
+from .resolvers import FacetResolver
+from .resolvers import ITSystemResolver
+from .resolvers import ITUserResolver
+from .resolvers import KLEResolver
+from .resolvers import LeaveResolver
+from .resolvers import ManagerResolver
+from .resolvers import OrganisationUnitResolver
+from .resolvers import OwnerResolver
+from .resolvers import RelatedUnitResolver
+from .resolvers import RoleResolver
 from .role import create_role
 from .role import terminate_role
 from .role import update_role
@@ -115,6 +148,7 @@ from .schema import Response
 from .schema import Role
 from mora.audit import audit_log
 from mora.common import get_connector
+from mora.config import get_settings
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import FacetRead
@@ -218,6 +252,19 @@ class Mutation:
     async def address_delete(self, uuid: UUID) -> Response[Address]:
         return uuid2response(await delete_organisationfunktion(uuid), AddressRead)
 
+    @strawberry.mutation(
+        description="Refresh addresses.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_refresh_permission("address"),
+        ],
+    )
+    async def address_refresh(
+        self, info: Info, filter: AddressFilter | None = None, queue: str | None = None
+    ) -> list[UUID]:
+        results = await AddressResolver().resolve(info=info, filter=filter)
+        return await refresh(results=results, model="address", queue=queue)
+
     # Associations
     # ------------
     @strawberry.mutation(
@@ -263,6 +310,22 @@ class Mutation:
         )
 
     # TODO: association_delete
+
+    @strawberry.mutation(
+        description="Refresh associations.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_refresh_permission("association"),
+        ],
+    )
+    async def association_refresh(
+        self,
+        info: Info,
+        filter: AssociationFilter | None = None,
+        queue: str | None = None,
+    ) -> list[UUID]:
+        results = await AssociationResolver().resolve(info=info, filter=filter)
+        return await refresh(results=results, model="association", queue=queue)
 
     # Classes
     # -------
@@ -310,6 +373,19 @@ class Mutation:
         uuid = await delete_class(uuid, note)
         return uuid2response(uuid, ClassRead)
 
+    @strawberry.mutation(
+        description="Refresh classes.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_refresh_permission("class"),
+        ],
+    )
+    async def class_refresh(
+        self, info: Info, filter: ClassFilter | None = None, queue: str | None = None
+    ) -> list[UUID]:
+        results = await ClassResolver().resolve(info=info, filter=filter)
+        return await refresh(results=results, model="class", queue=queue)
+
     # Employees
     # ---------
     # Rename all 'employee' mutators and objects to 'person'
@@ -348,6 +424,20 @@ class Mutation:
         )
 
     # TODO: employee_delete
+
+    @strawberry.mutation(
+        description="Refresh employees.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_refresh_permission("employee"),
+        ],
+    )
+    async def employee_refresh(
+        self, info: Info, filter: EmployeeFilter | None = None, queue: str | None = None
+    ) -> list[UUID]:
+        results = await EmployeeResolver().resolve(info=info, filter=filter)
+        # NOTE: "employee" is called "person" in the new AMQP system
+        return await refresh(results=results, model="person", queue=queue)
 
     # Engagements
     # -----------
@@ -403,6 +493,22 @@ class Mutation:
     async def engagement_delete(self, uuid: UUID) -> Response[Engagement]:
         return uuid2response(await delete_organisationfunktion(uuid), EngagementRead)
 
+    @strawberry.mutation(
+        description="Refresh engagements.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_refresh_permission("engagement"),
+        ],
+    )
+    async def engagement_refresh(
+        self,
+        info: Info,
+        filter: EngagementFilter | None = None,
+        queue: str | None = None,
+    ) -> list[UUID]:
+        results = await EngagementResolver().resolve(info=info, filter=filter)
+        return await refresh(results=results, model="engagement", queue=queue)
+
     # Facets
     # ------
     @strawberry.mutation(
@@ -449,6 +555,19 @@ class Mutation:
         note = ""
         uuid = await delete_facet(uuid, note)
         return uuid2response(uuid, FacetRead)
+
+    @strawberry.mutation(
+        description="Refresh facets.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_refresh_permission("facet"),
+        ],
+    )
+    async def facet_refresh(
+        self, info: Info, filter: FacetFilter | None = None, queue: str | None = None
+    ) -> list[UUID]:
+        results = await FacetResolver().resolve(info=info, filter=filter)
+        return await refresh(results=results, model="facet", queue=queue)
 
     # ITAssociations
     # ---------
@@ -540,6 +659,19 @@ class Mutation:
         uuid = await delete_itsystem(uuid, note)
         return uuid2response(uuid, ITSystemRead)
 
+    @strawberry.mutation(
+        description="Refresh ITSystems.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_refresh_permission("itsystem"),
+        ],
+    )
+    async def itsystem_refresh(
+        self, info: Info, filter: BaseFilter | None = None, queue: str | None = None
+    ) -> list[UUID]:
+        results = await ITSystemResolver().resolve(info=info, filter=filter)
+        return await refresh(results=results, model="itsystem", queue=queue)
+
     # ITUsers
     # -------
     @strawberry.mutation(
@@ -582,6 +714,19 @@ class Mutation:
     async def ituser_delete(self, uuid: UUID) -> Response[ITUser]:
         return uuid2response(await delete_organisationfunktion(uuid), ITUserRead)
 
+    @strawberry.mutation(
+        description="Refresh IT-Users.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_refresh_permission("ituser"),
+        ],
+    )
+    async def ituser_refresh(
+        self, info: Info, filter: ITUserFilter | None = None, queue: str | None = None
+    ) -> list[UUID]:
+        results = await ITUserResolver().resolve(info=info, filter=filter)
+        return await refresh(results=results, model="ituser", queue=queue)
+
     # KLEs
     # ----
     @strawberry.mutation(
@@ -616,6 +761,19 @@ class Mutation:
 
     # TODO: kle_delete
 
+    @strawberry.mutation(
+        description="Refresh KLEs.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_refresh_permission("kle"),
+        ],
+    )
+    async def kle_refresh(
+        self, info: Info, filter: KLEFilter | None = None, queue: str | None = None
+    ) -> list[UUID]:
+        results = await KLEResolver().resolve(info=info, filter=filter)
+        return await refresh(results=results, model="kle", queue=queue)
+
     # Leave
     # -----
     @strawberry.mutation(
@@ -649,6 +807,19 @@ class Mutation:
         return uuid2response(await terminate_leave(input.to_pydantic()), LeaveRead)
 
     # TODO: leave_delete
+
+    @strawberry.mutation(
+        description="Refresh leaves.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_refresh_permission("leave"),
+        ],
+    )
+    async def leave_refresh(
+        self, info: Info, filter: LeaveFilter | None = None, queue: str | None = None
+    ) -> list[UUID]:
+        results = await LeaveResolver().resolve(info=info, filter=filter)
+        return await refresh(results=results, model="leave", queue=queue)
 
     # Managers
     # --------
@@ -685,6 +856,19 @@ class Mutation:
         return uuid2response(await terminate_manager(input.to_pydantic()), ManagerRead)
 
     # TODO: manager_delete
+
+    @strawberry.mutation(
+        description="Refresh managers.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_refresh_permission("manager"),
+        ],
+    )
+    async def manager_refresh(
+        self, info: Info, filter: ManagerFilter | None = None, queue: str | None = None
+    ) -> list[UUID]:
+        results = await ManagerResolver().resolve(info=info, filter=filter)
+        return await refresh(results=results, model="manager", queue=queue)
 
     # Root Organisation
     # -----------------
@@ -751,6 +935,43 @@ class Mutation:
 
     # TODO: org_unit_delete
 
+    @strawberry.mutation(
+        description="Refresh organization units.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_refresh_permission("org_unit"),
+        ],
+    )
+    async def org_unit_refresh(
+        self,
+        info: Info,
+        filter: OrganisationUnitFilter | None = None,
+        queue: str | None = None,
+    ) -> list[UUID]:
+        results = await OrganisationUnitResolver().resolve(info=info, filter=filter)
+        return await refresh(results=results, model="org_unit", queue=queue)
+
+    # Owner
+    # -------------
+
+    # TODO: owner_create
+    # TODO: owner_update
+    # TODO: owner_terminate
+    # TODO: owner_delete
+
+    @strawberry.mutation(
+        description="Refresh owners.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_refresh_permission("owner"),
+        ],
+    )
+    async def owner_refresh(
+        self, info: Info, filter: OwnerFilter | None = None, queue: str | None = None
+    ) -> list[UUID]:
+        results = await OwnerResolver().resolve(info=info, filter=filter)
+        return await refresh(results=results, model="owner", queue=queue)
+
     # Related Units
     # -------------
 
@@ -758,6 +979,22 @@ class Mutation:
     # TODO: related_update
     # TODO: related_terminate
     # TODO: related_delete
+
+    @strawberry.mutation(
+        description="Refresh a related unit.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_refresh_permission("related_unit"),
+        ],
+    )
+    async def related_unit_refresh(
+        self,
+        info: Info,
+        filter: RelatedUnitFilter | None = None,
+        queue: str | None = None,
+    ) -> list[UUID]:
+        results = await RelatedUnitResolver().resolve(info=info, filter=filter)
+        return await refresh(results=results, model="related_unit", queue=queue)
 
     # Roles
     # -----
@@ -793,6 +1030,19 @@ class Mutation:
         return uuid2response(await terminate_role(input.to_pydantic()), RoleRead)
 
     # TODO: roles_delete
+
+    @strawberry.mutation(
+        description="Refresh roles.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_refresh_permission("role"),
+        ],
+    )
+    async def role_refresh(
+        self, info: Info, filter: RoleFilter | None = None, queue: str | None = None
+    ) -> list[UUID]:
+        results = await RoleResolver().resolve(info=info, filter=filter)
+        return await refresh(results=results, model="role", queue=queue)
 
     # Files
     # -----
@@ -889,3 +1139,35 @@ async def delete_organisationfunktion(uuid: UUID) -> UUID:
     c = get_connector()
     uuid = await c.organisationfunktion.delete(uuid)
     return uuid
+
+
+async def refresh(
+    results: dict[UUID, Any], model: str, queue: str | None
+) -> list[UUID]:
+    """Publish AMQP messages for the given UUIDs, optionally to a specific queue."""
+    # TODO: We should have a shared AMQPSystem instead of creating an ephemeral one
+    amqp_system = AMQPSystem(get_settings().amqp)
+    await amqp_system.start()
+
+    if queue is None:
+        # Broadcast on OS2mo's default exchange if no queue is specified
+        routing_key = model
+        exchange = None
+    else:
+        # Otherwise, publish directly to the specified queue by using RabbitMQ's
+        # default/nameless exchange (""), which is implicitly bound to every queue with
+        # a routing key equal to the queue name. The model's name isn't needed as a
+        # routing key in this case since the messages are inserted directly into the
+        # queue. The caller could choose to make sure that the UUIDs and queue match.
+        routing_key = queue
+        exchange = ""
+
+    uuids = list(results.keys())
+    for uuid in uuids:
+        await amqp_system.publish_message(
+            routing_key=routing_key, payload=str(uuid), exchange=exchange
+        )
+
+    await amqp_system.stop()
+    # The list of UUIDs is returned to reduce duplicated boilerplate in the callers
+    return uuids
