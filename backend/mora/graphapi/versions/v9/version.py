@@ -8,10 +8,10 @@ from strawberry.types import Info
 
 from ..latest.classes import ClassUpdateInput
 from ..latest.facets import FacetUpdateInput
-from ..latest.inputs import ITSystemCreateInput
 from ..latest.permissions import gen_update_permission
 from ..latest.permissions import IsAuthenticatedPermission
 from ..v10.version import GraphQLVersion as NextGraphQLVersion
+from ..v13.inputs import ITSystemCreateInput
 from ..v13.mutators import uuid2response
 from ..v13.schema import Class
 from ..v13.schema import Facet
@@ -110,8 +110,8 @@ class Mutation(NextGraphQLVersion.schema.mutation):  # type: ignore[name-defined
 class GraphQLSchema(NextGraphQLVersion.schema):  # type: ignore
     """Version 9 of the GraphQL Schema.
 
-    Version 10 introduced a breaking change to the org_unit_terminate mutator, which
-    changes the name of its input from `unit` to `input` to align with other mutators.
+    Version 10 introduced a breaking change to the itsystem, facet and class mutators,
+    which removes their uuid argument to align with other mutators.
     Version 9 ensures that the old functionality is still available.
     """
 
