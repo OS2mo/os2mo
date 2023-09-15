@@ -790,7 +790,7 @@ class ITSystemCreate(UUIDBase):
 
 
 class ITSystemUpdate(ITSystemCreate):
-    uuid: UUID = Field(description="UUID for the it-system we want to terminate.")
+    uuid: UUID = Field(description="UUID for the it-system we want to edit.")
 
 
 class ITSystemTerminate(UUIDBase):
