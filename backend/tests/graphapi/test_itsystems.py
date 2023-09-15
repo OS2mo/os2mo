@@ -11,10 +11,8 @@ from hypothesis import HealthCheck
 from hypothesis import settings as hypothesis_settings
 from more_itertools import first
 from more_itertools import one
-from pydantic import parse_obj_as
 from pytest import MonkeyPatch
 
-import mora.lora as lora
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora.graphapi.shim import flatten_data
@@ -29,14 +27,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
     """Test that we can query all attributes of the ITSystem data model."""
     # Patch dataloader
     with MonkeyPatch.context() as patch:
-        # Our IT system dataloaders are ~* special *~
-        # We need to intercept the connector too
-        patch.setattr(lora.Scope, "get_all", patch_loader({}))
-        patch.setattr(
-            dataloaders,
-            "lora_itsystem_to_mo_itsystem",
-            lambda *args, **kwargs: parse_obj_as(list[ITSystemRead], test_data),
-        )
+        patch.setattr(dataloaders, "search_role_type", patch_loader(test_data))
         query = """
             query {
                 itsystems {
@@ -71,21 +62,12 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
 
     # Patch dataloader
     with MonkeyPatch.context() as patch:
-        # Our facet dataloaders are ~* special *~
-        # We need to intercept the connector too
-        patch.setattr(lora.Scope, "get_all_by_uuid", patch_loader({}))
-        patch.setattr(
-            dataloaders,
-            "lora_itsystem_to_mo_itsystem",
-            lambda *args, **kwargs: parse_obj_as(list[ITSystemRead], test_data),
-        )
+        patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
         query = """
                 query TestQuery($uuids: [UUID!]) {
                     itsystems(filter: {uuids: $uuids}) {
                         objects {
-                            current {
-                                uuid
-                            }
+                            uuid
                         }
                     }
                 }
@@ -97,7 +79,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
 
     # Check UUID equivalence
     result_uuids = [
-        itsys["current"].get("uuid") for itsys in response.data["itsystems"]["objects"]
+        itsys.get("uuid") for itsys in response.data["itsystems"]["objects"]
     ]
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))
