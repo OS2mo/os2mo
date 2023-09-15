@@ -159,22 +159,6 @@ def lora_itsystem_to_mo_itsystem(
     return parse_obj_as(list[ITSystemRead], objects)
 
 
-# async def get_itsystems(**kwargs: Any) -> dict[UUID, list[ITSystemRead]]:
-#     c = get_connector()
-#     lora_result = await c.itsystem.get_all(**kwargs)
-#     mo_models = lora_itsystem_to_mo_itsystem(lora_result)
-#     uuid_map = group_by_uuid(mo_models)
-#     return uuid_map
-
-
-async def load_itsystems(uuids: list[UUID]) -> list[list[ITSystemRead]]:
-    c = get_connector()
-    lora_result = await c.itsystem.get_all_by_uuid(uuids)
-    mo_models = lora_itsystem_to_mo_itsystem(lora_result)
-    uuid_map = group_by_uuid(mo_models, uuids)
-    return list(map(uuid_map.get, uuids))  # type: ignore
-
-
 def lora_class_to_mo_class(lora_tuple: tuple[UUID, KlasseRead]) -> ClassRead:
     uuid, lora_class = lora_tuple
 
