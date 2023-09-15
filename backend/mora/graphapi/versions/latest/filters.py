@@ -229,7 +229,7 @@ class ITUserFilter(BaseFilter):
     )
 
 
-@strawberry.input(description="IT user filter.")
+@strawberry.input(description="IT system filter.")
 class ITSystemFilter(BaseFilter):
     pass
 
