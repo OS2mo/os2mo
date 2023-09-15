@@ -346,39 +346,3 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 ),
             }
         )
-
-
-async def get_one_itsystem(
-    c: lora.Connector,
-    itsystem_uuid,
-    itsystem=None,
-    only_primary_uuid: bool = False,
-    validity=None,
-) -> MO_OBJ_TYPE:
-    if only_primary_uuid:
-        return {mapping.UUID: itsystem_uuid}
-
-    if not itsystem:  # optionally exit early
-        if not itsystem_uuid:
-            return None
-
-        itsystem = await c.itsystem.get(itsystem_uuid)
-        if not itsystem:
-            return None
-
-    attrs = _get_attrs(itsystem)
-    response = {
-        "uuid": itsystem_uuid,
-        "name": attrs.get("itsystemnavn"),
-        "user_key": attrs.get("brugervendtnoegle"),
-    }
-
-    # TODO: Figure out the correct way instead of just using [0]
-    validities = itsystem["tilstande"]["itsystemgyldighed"]
-    response[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
-
-    return response
-
-
-def _get_attrs(itsystem):
-    return itsystem["attributter"]["itsystemegenskaber"][0]

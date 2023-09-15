@@ -8,9 +8,10 @@ from structlog import get_logger
 from .. import reading
 from ... import common
 from ... import exceptions
+from ... import lora
 from ... import mapping
 from ... import util
-from ...service.itsystem import get_one_itsystem
+from ...service.itsystem import MO_OBJ_TYPE
 
 logger = get_logger()
 
@@ -77,3 +78,38 @@ class ITSystemReader(reading.ReadingHandler):
                 mapping.TO: util.to_iso_date(end, is_end=True),
             },
         )
+
+
+async def get_one_itsystem(
+    c: lora.Connector,
+    itsystem_uuid,
+    itsystem=None,
+    only_primary_uuid: bool = False,
+    validity=None,
+) -> MO_OBJ_TYPE | None:
+    def _get_attrs(itsystem):
+        return itsystem["attributter"]["itsystemegenskaber"][0]
+
+    if only_primary_uuid:
+        return {mapping.UUID: itsystem_uuid}
+
+    if not itsystem:  # optionally exit early
+        if not itsystem_uuid:
+            return None
+
+        itsystem = await c.itsystem.get(itsystem_uuid)
+        if not itsystem:
+            return None
+
+    attrs = _get_attrs(itsystem)
+    response = {
+        "uuid": itsystem_uuid,
+        "name": attrs.get("itsystemnavn"),
+        "user_key": attrs.get("brugervendtnoegle"),
+    }
+
+    # TODO: Figure out the correct way instead of just using [0]
+    validities = itsystem["tilstande"]["itsystemgyldighed"]
+    response[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
+
+    return response
