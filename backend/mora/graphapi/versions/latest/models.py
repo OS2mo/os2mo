@@ -103,9 +103,9 @@ class Validity(OpenValidity):
 
 
 class ValidityTerminate(Validity):
-    from_date: datetime.datetime = Field(
-        alias="from",
-        description="When the terminate state starts",
+    to_date: datetime.datetime = Field(
+        alias="to",
+        description="When the validity should end - required when terminating",
     )
 
 
