@@ -12,9 +12,7 @@ from mora.util import get_uuid
 from oio_rest import db
 
 
-async def create_itsystem(
-    input: ITSystemCreate, organisation_uuid: UUID, note: str
-) -> UUID:
+async def create_itsystem(input: ITSystemCreate, organisation_uuid: UUID) -> UUID:
     registration = input.to_registration(organisation_uuid=organisation_uuid)
     new_uuid = get_uuid(registration, required=False) or str(uuid4())
 
@@ -22,9 +20,7 @@ async def create_itsystem(
     return UUID(await c.itsystem.create(registration, new_uuid))
 
 
-async def update_itsystem(
-    input: ITSystemUpdate, organisation_uuid: UUID, note: str
-) -> UUID:
+async def update_itsystem(input: ITSystemUpdate, organisation_uuid: UUID) -> UUID:
     c = lora.Connector()
     await c.itsystem.update(
         input.to_registration(organisation_uuid=organisation_uuid), str(input.uuid)
@@ -32,7 +28,7 @@ async def update_itsystem(
     return input.uuid
 
 
-async def terminate_itsystem(input: ITSystemTerminate, note: str) -> UUID:
+async def terminate_itsystem(input: ITSystemTerminate) -> UUID:
     c = lora.Connector()
     await c.itsystem.update(input.to_registration(), input.uuid)
     return input.uuid

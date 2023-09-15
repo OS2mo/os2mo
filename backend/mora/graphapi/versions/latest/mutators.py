@@ -692,9 +692,8 @@ class Mutation:
     async def itsystem_create(
         self, info: Info, input: ITSystemCreateInput
     ) -> Response[ITSystem]:
-        note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await create_itsystem(input.to_pydantic(), org.uuid, note)
+        uuid = await create_itsystem(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, ITSystemRead)
 
     @strawberry.mutation(
@@ -707,14 +706,12 @@ class Mutation:
     async def itsystem_update(
         self, info: Info, input: ITSystemUpdateInput
     ) -> Response[ITSystem]:
-        note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await update_itsystem(input.to_pydantic(), org.uuid, note)  # type: ignore
+        uuid = await update_itsystem(input.to_pydantic(), org.uuid)  # type: ignore
         return uuid2response(uuid, ITSystemRead)
 
-    # TODO: itsystem_terminate
     @strawberry.mutation(
-        description="Terminates IT-System.",
+        description="Terminates an IT-System.",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_terminate_permission("itsystem"),
@@ -723,9 +720,7 @@ class Mutation:
     async def itsystem_terminate(
         self, input: ITSystemTerminateInput
     ) -> Response[ITSystem]:
-        return uuid2response(
-            await terminate_itsystem(input.to_pydantic(), note=""), ITUserRead
-        )
+        return uuid2response(await terminate_itsystem(input.to_pydantic()), ITUserRead)
 
     @strawberry.mutation(
         description="Deletes an ITSystem." + delete_warning,
