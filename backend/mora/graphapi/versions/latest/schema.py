@@ -3577,6 +3577,7 @@ class OrganisationUnit:
     validity: Validity = strawberry.auto
 
     # VALIDITY HACKS
+    # see deprecation_reason's below
 
     @strawberry.field(
         description=dedent(
