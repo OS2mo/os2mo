@@ -51,18 +51,18 @@ class Validity(OpenValidity):
     def get_termination_effect(self) -> dict:
         if not self.from_date:
             # TODO: This if is legacy, and should be removed since the logic is confusing.
-            #       Instead of replacing "from" with "to", it should fail andf clients should
+            #       Instead of replacing "from" with "to", it should fail and clients should
             #       use the logic correctly instead.
             if self.to_date:
                 logger.warning(
-                    'ValidityTerminate called without "from" in "validity"',
+                    'Validity called without "from" in "validity"',
                 )
                 return common._create_virkning(
                     self.get_terminate_effect_to_date(), "infinity"
                 )
 
             exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
-                key="ValidityTerminate must have a 'from' date",
+                key="Validity must have a 'from' date",
                 validity={
                     "from": self.from_date.isoformat() if self.from_date else None,
                     "to": self.to_date.isoformat() if self.to_date else None,
