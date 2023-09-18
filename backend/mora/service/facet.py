@@ -16,6 +16,7 @@ objects.
 """
 import enum
 import locale
+import logging
 from asyncio import create_task
 from asyncio import gather
 from collections.abc import Awaitable
@@ -38,6 +39,8 @@ from ..lora import LoraObjectType
 from .tree_helper import prepare_ancestor_tree
 from mora.request_scoped.bulking import request_wide_bulk
 from ramodels.mo.class_ import ClassWrite
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -490,8 +493,10 @@ def is_class_primary(mo_class: dict) -> bool:
     try:
         return int(mo_class[mapping.SCOPE]) >= mapping.MINIMUM_PRIMARY_SCOPE_VALUE
     except KeyError:
+        logging.error(f"Primary class has no 'scope' {mo_class=}")
         return False
     except ValueError:
+        logging.error(f"Primary class has a non-integer value in 'scope', {mo_class=}")
         return False
 
 
