@@ -7,6 +7,8 @@ import freezegun
 import pytest
 from fastapi.testclient import TestClient
 
+root_org_uuid = "456362c4-0ee4-4e5e-a72c-751239745e62"
+
 kle_aspekt_facet = {
     "description": "",
     "user_key": "kle_aspect",
@@ -57,6 +59,9 @@ def test_create_kle(service_client: TestClient) -> None:
                     "top_level_facet": kle_aspekt_facet,
                     "user_key": "kle_ansvarlig",
                     "uuid": "9016d80a-c6d2-4fb4-83f1-87ecc23ab062",
+                    "validity": {"from": "1900-01-01", "to": None},
+                    "org_uuid": root_org_uuid,
+                    "facet_uuid": kle_aspekt_facet["uuid"],
                 },
                 {
                     "example": None,
@@ -69,6 +74,9 @@ def test_create_kle(service_client: TestClient) -> None:
                     "top_level_facet": kle_aspekt_facet,
                     "user_key": "kle_indsigt",
                     "uuid": "fdbdb18f-5a28-4414-bc43-d5c2b70c0510",
+                    "validity": {"from": "1900-01-01", "to": None},
+                    "org_uuid": root_org_uuid,
+                    "facet_uuid": kle_aspekt_facet["uuid"],
                 },
             ],
             "kle_number": {
@@ -82,6 +90,9 @@ def test_create_kle(service_client: TestClient) -> None:
                 "top_level_facet": kle_nummer_facet,
                 "user_key": "kle_number",
                 "uuid": "d7c12965-6207-4c82-88b8-68dbf6667492",
+                "validity": {"from": "1900-01-01", "to": None},
+                "org_uuid": root_org_uuid,
+                "facet_uuid": kle_nummer_facet["uuid"],
             },
             "org_unit": {
                 "name": "Humanistisk fakultet",
@@ -103,10 +114,8 @@ def test_create_kle(service_client: TestClient) -> None:
         assert response.status_code == 201
 
     response = service_client.request("GET", f"/service/ou/{org_unit_uuid}/details/kle")
-    # amqp_topics={"org_unit.kle.create": 1},
     assert response.status_code == 200
-    actual = response.json()
-    assert expected == actual
+    assert response.json() == expected
 
 
 @pytest.mark.integration_test
@@ -156,6 +165,9 @@ def test_edit_kle_no_overwrite(service_client: TestClient) -> None:
                     "top_level_facet": kle_aspekt_facet,
                     "user_key": "kle_indsigt",
                     "uuid": "fdbdb18f-5a28-4414-bc43-d5c2b70c0510",
+                    "validity": {"from": "1900-01-01", "to": None},
+                    "org_uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "facet_uuid": kle_aspekt_facet["uuid"],
                 },
                 {
                     "example": None,
@@ -168,6 +180,9 @@ def test_edit_kle_no_overwrite(service_client: TestClient) -> None:
                     "top_level_facet": kle_aspekt_facet,
                     "user_key": "kle_udfoerende",
                     "uuid": "f9748c65-3354-4682-a035-042c534c6b4e",
+                    "validity": {"from": "1900-01-01", "to": None},
+                    "org_uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "facet_uuid": kle_aspekt_facet["uuid"],
                 },
             ],
             "kle_number": {
@@ -181,6 +196,9 @@ def test_edit_kle_no_overwrite(service_client: TestClient) -> None:
                 "top_level_facet": org_unit_address_type_facet,
                 "user_key": "OrgEnhedEmail",
                 "uuid": "73360db1-bad3-4167-ac73-8d827c0c8751",
+                "validity": {"from": "2016-01-01", "to": None},
+                "org_uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "facet_uuid": org_unit_address_type_facet["uuid"],
             },
             "org_unit": {
                 "name": "Skole og Børn",
@@ -195,11 +213,9 @@ def test_edit_kle_no_overwrite(service_client: TestClient) -> None:
     ]
 
     response = service_client.request("POST", "/service/details/edit", json=req)
-    # amqp_topics={"org_unit.kle.update": 1},
     assert response.status_code == 200
     assert response.json() == [kle_uuid]
 
     response = service_client.request("GET", f"/service/ou/{org_unit_uuid}/details/kle")
-    # amqp_topics={"org_unit.kle.update": 1},
     assert response.status_code == 200
     assert response.json() == expected
