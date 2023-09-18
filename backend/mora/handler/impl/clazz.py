@@ -88,6 +88,7 @@ class ClassReader(reading.ReadingHandler):
         return await get_one_class(
             c,
             obj_id,
+            clazz=effect,
             validity={
                 mapping.FROM: util.to_iso_date(start),
                 mapping.TO: util.to_iso_date(end, is_end=True),
