@@ -140,11 +140,17 @@ async def get_one_class(
         if not clazz:
             return None
 
-    attrs = _get_attrs(clazz)
+    # Check if the class have a facet
+    # This can occurs when running impl.*._get_obj_effects() on lora objects,
+    # where it splits a lora object into multiple depending on the validity.
+    # These duplicates will not have the facet relation, so we need to fetch it
+    if "facet" not in clazz["relationer"]:
+        clazz_full = await c.klasse.get(classid)
+        clazz["relationer"]["facet"] = clazz_full["relationer"]["facet"]
+
     parents = None
-
     owner = _get_owner_uuid(clazz)
-
+    attrs = _get_attrs(clazz)
     response = {
         "uuid": classid,
         "name": attrs.get("titel"),
