@@ -9,6 +9,11 @@ include:
 # NOTE: These templates are imported and used by our other components to run integration tests
 # against OS2mo. It's very easy to break tests in the other repos by changing something here.
 
+variables:
+  # The default config file for OS2mo-init is (re-)declared to allow integrations to
+  # overwrite with their own facets, classes and IT-systems.
+  OS2MO_INIT_CONFIG: "/config/config.yml"
+
 .variables:mo:
   variables:
     PYTHONASYNCIODEBUG: "1"
@@ -111,6 +116,9 @@ include:
       alias: mo-amqp-subsystem
       variables: !reference [ .variables:mo, variables ]
       command: [ "python", "-m", "mora.cli", "amqp", "start" ]
+    - name: magentaaps/os2mo-init:2
+      variables:
+        CONFIG_FILE: $OS2MO_INIT_CONFIG
   before_script:
     - !reference [ .pytest, before_script ]
     - !reference [ .services:mo-backing, before_script ]
