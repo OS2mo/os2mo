@@ -136,6 +136,11 @@ async def get_orgunit(
                 user_key
                 description
             }
+            published
+            validity {
+                from
+                to
+            }
         }
         """
     response = await execute_graphql(query, variable_values=jsonable_encoder(variables))
