@@ -101,7 +101,7 @@ from ..latest.permissions import IsAuthenticatedPermission
 from ..latest.role import create_role
 from ..latest.role import terminate_role
 from ..latest.role import update_role
-from .inputs import ITSystemCreateInput
+from ..v14.version import ITSystemCreateInput
 from .schema import Address
 from .schema import Association
 from .schema import Class
