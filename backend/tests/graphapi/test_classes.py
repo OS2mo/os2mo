@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import datetime
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -14,15 +15,16 @@ from pydantic import parse_obj_as
 from pytest import MonkeyPatch
 
 import mora.lora as lora
+from .strategies import graph_data_momodel_validity_strat
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
-from mora import mapping
 from mora.auth.keycloak.oidc import noauth
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest import dataloaders
-from mora.graphapi.versions.latest.classes import ClassCreate
-from mora.graphapi.versions.latest.graphql_utils import get_uuids
+from mora.graphapi.versions.latest.dataloaders import MOModel
 from mora.graphapi.versions.latest.graphql_utils import PrintableStr
+from mora.graphapi.versions.latest.models import ClassCreate
+from mora.util import DEFAULT_TIMEZONE
 from ramodels.mo import ClassRead
 from tests.conftest import GQLResponse
 
@@ -56,6 +58,10 @@ def test_query_all(test_data, graphapi_post, graphapi_test, patch_loader):
                             published
                             scope
                             type
+                            validity {
+                                from
+                                to
+                            }
                         }
                     }
                 }
@@ -76,7 +82,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     with MonkeyPatch.context() as patch:
         # Our class dataloaders are ~* special *~
         # We need to intercept the connector too
-        patch.setattr(lora.Scope, "get_all_by_uuid", patch_loader({}))
+        patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
         patch.setattr(
             dataloaders,
             "lora_classes_to_mo_classes",
@@ -116,7 +122,10 @@ OPTIONAL = {
 
 
 @st.composite
-def write_strat(draw):
+def write_strat(draw, model: MOModel = None, now: datetime.datetime = None):
+    if model is not None:
+        return draw(graph_data_momodel_validity_strat(model, now))
+
     required = {
         "user_key": st.from_regex(PrintableStr.regex),
         "name": st.from_regex(PrintableStr.regex),
@@ -158,14 +167,20 @@ def prepare_query_data(test_data, query_response):
     return test_data, query
 
 
-@given(test_data=write_strat())
+@given(
+    test_data=write_strat(
+        ClassCreate,
+        now=datetime.datetime.combine(
+            datetime.datetime(2016, 1, 1).date(), datetime.time.min
+        ),
+    )
+)
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_integration_create_class(test_data, graphapi_post) -> None:
     """Integrationtest for create class mutator."""
 
-    test_data["facet_uuid"] = await get_uuids(mapping.FACETS, graphapi_post)
-
+    test_data_model = ClassCreate(**test_data)
     mutate_query = """
         mutation CreateClass($input: ClassCreateInput!) {
           class_create(input: $input) {
@@ -174,12 +189,21 @@ async def test_integration_create_class(test_data, graphapi_post) -> None:
         }
     """
 
-    test_data = prepare_mutator_data(test_data)
+    create_payload = {
+        **test_data_model.dict(),
+        "validity": {
+            "from": test_data_model.validity.from_date.date(),
+            "to": test_data_model.validity.to_date.date()
+            if test_data_model.validity.to_date
+            else None,
+        },
+    }
 
     mut_response: GQLResponse = graphapi_post(
-        query=mutate_query, variables={"input": test_data}
+        query=mutate_query, variables={"input": jsonable_encoder(create_payload)}
     )
 
+    assert mut_response.errors is None
     assert mut_response.data
     response_uuid = (
         mut_response.data.get("class_create", {}).get("uuid", {})
@@ -187,7 +211,9 @@ async def test_integration_create_class(test_data, graphapi_post) -> None:
         else {}
     )
 
-    """Query data to check that it actually gets written to database"""
+    assert response_uuid == str(test_data_model.uuid)
+
+    # Query data to check that it actually gets written to database
     query_query = """
         query ($uuid: [UUID!]!) {
           classes(filter: {uuids: $uuid}) {
@@ -195,10 +221,13 @@ async def test_integration_create_class(test_data, graphapi_post) -> None:
               current {
                 uuid
                 type
-                org_uuid
                 user_key
                 name
                 facet_uuid
+                validity {
+                    from
+                    to
+                }
               }
             }
           }
@@ -209,23 +238,43 @@ async def test_integration_create_class(test_data, graphapi_post) -> None:
         variable_values={"uuid": str(response_uuid)},
     )
 
-    test_data, query = prepare_query_data(test_data, query_response)
-
-    """Assert response returned by mutation."""
-    assert mut_response.errors is None
-    assert mut_response.data
-    if test_data.get("uuid"):
-        assert response_uuid == test_data["uuid"]
-
-    """Assert response returned by quering data written."""
     assert query_response.errors is None
-    assert query == test_data
+    assert query_response.data
+
+    created_class = one(query_response.data.get("classes")["objects"])["current"]
+    assert created_class == {
+        "uuid": str(test_data_model.uuid),
+        "type": "class",
+        "user_key": test_data_model.user_key,
+        "name": test_data_model.name,
+        "facet_uuid": str(test_data_model.facet_uuid),
+        "validity": {
+            "from": datetime.datetime.combine(
+                test_data_model.validity.from_date.date(), datetime.time.min
+            )
+            .replace(tzinfo=DEFAULT_TIMEZONE)
+            .isoformat(),
+            "to": datetime.datetime.combine(
+                (test_data_model.validity.to_date - datetime.timedelta(days=1)).date(),
+                datetime.time.min,
+            )
+            .replace(tzinfo=DEFAULT_TIMEZONE)
+            .isoformat()
+            if test_data_model.validity.to_date
+            else None,
+        },
+    }
 
 
-"""Test exception gets raised if illegal values are entered"""
-
-
-@given(test_data=write_strat())
+# @given(test_data=write_strat())
+@given(
+    test_data=write_strat(
+        ClassCreate,
+        now=datetime.datetime.combine(
+            datetime.datetime(2016, 1, 1).date(), datetime.time.min
+        ),
+    )
+)
 @patch("mora.graphapi.versions.latest.mutators.create_class", new_callable=AsyncMock)
 async def test_unit_create_class(
     create_class: AsyncMock, test_data: ClassCreate
@@ -358,6 +407,8 @@ async def test_integration_delete_class() -> None:
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_update_class() -> None:
     """Unit test for create class mutator."""
+
+    # Get the class we want to update
     read_query = """
         query ($uuid: [UUID!]!) {
           classes(filter: {uuids: $uuid}) {
@@ -367,13 +418,16 @@ async def test_update_class() -> None:
                 name
                 user_key
                 facet_uuid
+                validity {
+                    from
+                    to
+                }
               }
             }
           }
         }
     """
     class_uuid = "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
-
     response = await execute_graphql(
         query=read_query,
         variable_values={"uuid": class_uuid},
@@ -386,8 +440,13 @@ async def test_update_class() -> None:
         "name": "Postadresse",
         "facet_uuid": "baddc4eb-406e-4c6b-8229-17e4a21d3550",
         "user_key": "BrugerPostadresse",
+        "validity": {
+            "from": "2016-01-01T00:00:00+01:00",
+            "to": None,
+        },
     }
 
+    # Update the class
     update_query = """
         mutation UpdateClass($input: ClassUpdateInput!) {
             class_update(input: $input) {
@@ -395,6 +454,10 @@ async def test_update_class() -> None:
             }
         }
     """
+
+    dt_now = datetime.datetime.combine(
+        datetime.datetime.now().date(), datetime.time.min
+    ).replace(tzinfo=DEFAULT_TIMEZONE)
     response = await execute_graphql(
         query=update_query,
         variable_values={
@@ -403,78 +466,29 @@ async def test_update_class() -> None:
                 "name": "Postal Address",
                 "user_key": klass["user_key"],
                 "facet_uuid": klass["facet_uuid"],
+                "validity": {"from": dt_now.date().isoformat()},
             },
         },
     )
     assert response.errors is None
     assert response.data == {"class_update": {"uuid": class_uuid}}
 
+    # Read the updated class again, and verify it have been updated
     response = await execute_graphql(
         query=read_query,
         variable_values={"uuid": class_uuid},
     )
     assert response.errors is None
     assert one(response.data.keys()) == "classes"
+
     klass = one(response.data["classes"]["objects"])["current"]
     assert klass == {
         "uuid": class_uuid,
         "name": "Postal Address",
         "facet_uuid": "baddc4eb-406e-4c6b-8229-17e4a21d3550",
         "user_key": "BrugerPostadresse",
-    }
-
-    delete_query = """
-        mutation ($uuid: UUID!) {
-          class_delete(uuid: $uuid) {
-            uuid
-          }
-        }
-    """
-    response = await execute_graphql(
-        query=delete_query,
-        variable_values={"uuid": class_uuid},
-    )
-    assert response.errors is None
-    assert response.data == {"class_delete": {"uuid": class_uuid}}
-
-    response = await execute_graphql(
-        query=read_query,
-        variable_values={"uuid": class_uuid},
-    )
-    assert response.errors is None
-    assert response.data == {"classes": {"objects": []}}
-
-    update_query = """
-        mutation UpdateClass($input: ClassUpdateInput!) {
-            class_update(input: $input) {
-                uuid
-            }
-        }
-    """
-    response = await execute_graphql(
-        query=update_query,
-        variable_values={
-            "input": {
-                "uuid": class_uuid,
-                "name": "Postal Address",
-                "user_key": klass["user_key"],
-                "facet_uuid": klass["facet_uuid"],
-            },
+        "validity": {
+            "from": dt_now.isoformat(),
+            "to": None,
         },
-    )
-    assert response.errors is None
-    assert response.data == {"class_update": {"uuid": class_uuid}}
-
-    response = await execute_graphql(
-        query=read_query,
-        variable_values={"uuid": class_uuid},
-    )
-    assert response.errors is None
-    assert one(response.data.keys()) == "classes"
-    klass = one(response.data["classes"]["objects"])["current"]
-    assert klass == {
-        "uuid": class_uuid,
-        "name": "Postal Address",
-        "facet_uuid": "baddc4eb-406e-4c6b-8229-17e4a21d3550",
-        "user_key": "BrugerPostadresse",
     }
