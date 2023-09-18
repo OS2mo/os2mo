@@ -11,6 +11,8 @@ from mora.service.facet import get_mo_object_primary_value
 from mora.service.facet import is_class_primary
 from mora.service.facet import is_class_uuid_primary
 
+BELOW_MINIMUM_SCOPE = str(int(mapping.MINIMUM_PRIMARY_SCOPE_VALUE) - 1)
+
 
 class TestPrimaryClassHelpers:
     """Tests the helper methods for determining the value of a `primary` MO class that
@@ -20,9 +22,9 @@ class TestPrimaryClassHelpers:
     @parameterized.expand(
         [
             # 1. MO class is primary
-            ({mapping.USER_KEY: mapping.PRIMARY}, True),
+            ({mapping.SCOPE: mapping.MINIMUM_PRIMARY_SCOPE_VALUE}, True),
             # 2. MO class is not primary
-            ({mapping.USER_KEY: "non-primary"}, False),
+            ({mapping.SCOPE: BELOW_MINIMUM_SCOPE}, False),
             # 3. MO class is empty
             ({}, False),
         ]
@@ -33,25 +35,28 @@ class TestPrimaryClassHelpers:
     @parameterized.expand(
         [
             # MO class is primary
-            (mapping.PRIMARY, True),
+            (mapping.MINIMUM_PRIMARY_SCOPE_VALUE, True),
             # MO class is not primary
-            ("not-primary", False),
+            (BELOW_MINIMUM_SCOPE, False),
         ]
     )
     @pytest.mark.asyncio
     async def test_is_class_uuid_primary(
-        self, primary_class_user_key: str, expected_result: bool
+        self, primary_class_scope: str, expected_result: bool
     ):
-        with self._mock_get_one_class(primary_class_user_key):
+        with self._mock_get_one_class(primary_class_scope):
             actual_result = await is_class_uuid_primary("primary-class-uuid")
             assert actual_result == expected_result
 
     @parameterized.expand(
         [
-            # 1. MO object contains a `primary` dict with a `user_key` "primary"
-            ({mapping.PRIMARY: {mapping.USER_KEY: mapping.PRIMARY}}, True),
-            # 2. MO object contains a `primary` dict with a `user_key` "non-primary"
-            ({mapping.PRIMARY: {mapping.USER_KEY: "non-primary"}}, False),
+            # 1. MO object contains a `primary` dict with a `scope` at 3000
+            (
+                {mapping.PRIMARY: {mapping.SCOPE: mapping.MINIMUM_PRIMARY_SCOPE_VALUE}},
+                True,
+            ),
+            # 1. MO object contains a `primary` dict with a `scope` less than 3000
+            ({mapping.PRIMARY: {mapping.SCOPE: BELOW_MINIMUM_SCOPE}}, False),
             # 3. MO object contains a `primary` dict with a class UUID
             ({mapping.PRIMARY: {mapping.UUID: str(uuid4())}}, False),
             # 4. MO object contains a `primary` dict with an invalid class UUID
@@ -70,8 +75,8 @@ class TestPrimaryClassHelpers:
         with self._mock_get_one_class(""):
             assert (await get_mo_object_primary_value(mo_object)) == expected_result
 
-    def _mock_get_one_class(self, primary_class_user_key: str):
+    def _mock_get_one_class(self, scope: str):
         mock_get = mock.AsyncMock(
-            return_value={mapping.USER_KEY: primary_class_user_key}
+            return_value={mapping.USER_KEY: "dummy_user_key", mapping.SCOPE: scope}
         )
         return mock.patch("mora.service.facet.get_one_class", mock_get)
