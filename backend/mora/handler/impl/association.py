@@ -272,7 +272,6 @@ class AssociationReader(reading.OrgFunkReadingHandler):
             job_function_task = clazz.get_one_class(
                 c,
                 classid=associated_function_uuid,
-                details=set(),
                 only_primary_uuid=only_primary_uuid,
             )
         else:
