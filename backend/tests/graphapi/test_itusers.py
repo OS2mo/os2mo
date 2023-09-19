@@ -556,3 +556,34 @@ async def test_terminate_response(given_uuid, given_validity_dts):
         assert terminate_result_uuid == test_data.uuid
     else:
         assert caught_exception is not None
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_it_user_systems_uuid_filter(graphapi_post):
+    ACTIVE_DIRECTORY = "59c135c9-2b15-41cc-97c8-b5dff7180beb"
+
+    query = """
+      query TestITSystemUUIDFilter($itsystem_uuids: [UUID!]!) {
+        itusers(filter: {itsystem_uuids: $itsystem_uuids}) {
+          objects {
+            objects {
+              itsystem {
+                uuid
+              }
+            }
+          }
+        }
+      }
+    """
+
+    r: GQLResponse = graphapi_post(
+        query=query, variables={"itsystem_uuids": ACTIVE_DIRECTORY}
+    )
+
+    assert r.errors is None
+    assert r.data is not None
+
+    for itusers in r.data["itusers"]["objects"]:
+        for objects in itusers["objects"]:
+            assert objects["itsystem"]["uuid"] == ACTIVE_DIRECTORY

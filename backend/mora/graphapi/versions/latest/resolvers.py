@@ -646,6 +646,9 @@ class ITUserResolver(Resolver):
             kwargs["tilknyttedebrugere"] = filter.employees
         if filter.org_units is not None:
             kwargs["tilknyttedeenheder"] = filter.org_units
+        if filter.itsystem_uuids is not None:
+            kwargs["tilknyttedeitsystemer"] = filter.itsystem_uuids
+
         return await super()._resolve(
             info=info,
             filter=filter,
