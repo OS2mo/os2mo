@@ -172,6 +172,10 @@ def to_response(resolver: Resolver, result: dict[UUID, list[dict]]) -> list[Resp
     ]
 
 
+def to_uuids(resolver: Resolver, result: dict[UUID, list[dict]]) -> list[UUID]:
+    return list(result.keys())
+
+
 def to_paged(resolver: PagedResolver, result_transformer: Callable[[PagedResolver, Any], list[Any]] | None = None):  # type: ignore
     result_transformer = result_transformer or (lambda _, x: x)
 
@@ -204,6 +208,7 @@ def to_paged(resolver: PagedResolver, result_transformer: Callable[[PagedResolve
 
 
 to_paged_response = partial(to_paged, result_transformer=to_response)
+to_paged_uuids = partial(to_paged, result_transformer=to_uuids)
 
 
 @strawberry.type(description="Entrypoint for all read-operations")

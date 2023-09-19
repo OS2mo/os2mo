@@ -3,10 +3,10 @@
 import logging
 from textwrap import dedent
 from typing import Annotated
-from typing import Any
 from uuid import UUID
 
 import strawberry
+from ra_utils.asyncio_utils import gather_with_concurrency
 from ramqp import AMQPSystem
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
@@ -35,11 +35,11 @@ from .facets import FacetUpdateInput
 from .facets import update_facet
 from .filters import AddressFilter
 from .filters import AssociationFilter
-from .filters import BaseFilter
 from .filters import ClassFilter
 from .filters import EmployeeFilter
 from .filters import EngagementFilter
 from .filters import FacetFilter
+from .filters import ITSystemFilter
 from .filters import ITUserFilter
 from .filters import KLEFilter
 from .filters import LeaveFilter
@@ -113,9 +113,11 @@ from .permissions import gen_role_permission
 from .permissions import gen_terminate_permission
 from .permissions import gen_update_permission
 from .permissions import IsAuthenticatedPermission
+from .query import to_paged_uuids
 from .resolvers import AddressResolver
 from .resolvers import AssociationResolver
 from .resolvers import ClassResolver
+from .resolvers import CursorType
 from .resolvers import EmployeeResolver
 from .resolvers import EngagementResolver
 from .resolvers import FacetResolver
@@ -123,6 +125,7 @@ from .resolvers import ITSystemResolver
 from .resolvers import ITUserResolver
 from .resolvers import KLEResolver
 from .resolvers import LeaveResolver
+from .resolvers import LimitType
 from .resolvers import ManagerResolver
 from .resolvers import OrganisationUnitResolver
 from .resolvers import OwnerResolver
@@ -144,6 +147,7 @@ from .schema import Leave
 from .schema import Manager
 from .schema import Organisation
 from .schema import OrganisationUnit
+from .schema import Paged
 from .schema import Response
 from .schema import Role
 from mora.audit import audit_log
@@ -260,10 +264,21 @@ class Mutation:
         ],
     )
     async def address_refresh(
-        self, info: Info, filter: AddressFilter | None = None, queue: str | None = None
-    ) -> list[UUID]:
-        results = await AddressResolver().resolve(info=info, filter=filter)
-        return await refresh(results=results, model="address", queue=queue)
+        self,
+        info: Info,
+        filter: AddressFilter | None = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        queue: str | None = None,
+    ) -> Paged[UUID]:
+        resolve = to_paged_uuids(AddressResolver())
+        page = await resolve(
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+        )
+        return await refresh(page=page, model="address", queue=queue)
 
     # Associations
     # ------------
@@ -322,10 +337,18 @@ class Mutation:
         self,
         info: Info,
         filter: AssociationFilter | None = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
         queue: str | None = None,
-    ) -> list[UUID]:
-        results = await AssociationResolver().resolve(info=info, filter=filter)
-        return await refresh(results=results, model="association", queue=queue)
+    ) -> Paged[UUID]:
+        resolve = to_paged_uuids(AssociationResolver())
+        page = await resolve(
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+        )
+        return await refresh(page=page, model="association", queue=queue)
 
     # Classes
     # -------
@@ -381,10 +404,21 @@ class Mutation:
         ],
     )
     async def class_refresh(
-        self, info: Info, filter: ClassFilter | None = None, queue: str | None = None
-    ) -> list[UUID]:
-        results = await ClassResolver().resolve(info=info, filter=filter)
-        return await refresh(results=results, model="class", queue=queue)
+        self,
+        info: Info,
+        filter: ClassFilter | None = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        queue: str | None = None,
+    ) -> Paged[UUID]:
+        resolve = to_paged_uuids(ClassResolver())
+        page = await resolve(
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+        )
+        return await refresh(page=page, model="class", queue=queue)
 
     # Employees
     # ---------
@@ -433,11 +467,22 @@ class Mutation:
         ],
     )
     async def employee_refresh(
-        self, info: Info, filter: EmployeeFilter | None = None, queue: str | None = None
-    ) -> list[UUID]:
-        results = await EmployeeResolver().resolve(info=info, filter=filter)
+        self,
+        info: Info,
+        filter: EmployeeFilter | None = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        queue: str | None = None,
+    ) -> Paged[UUID]:
+        resolve = to_paged_uuids(EmployeeResolver())
+        page = await resolve(
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+        )
         # NOTE: "employee" is called "person" in the new AMQP system
-        return await refresh(results=results, model="person", queue=queue)
+        return await refresh(page=page, model="person", queue=queue)
 
     # Engagements
     # -----------
@@ -504,10 +549,18 @@ class Mutation:
         self,
         info: Info,
         filter: EngagementFilter | None = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
         queue: str | None = None,
-    ) -> list[UUID]:
-        results = await EngagementResolver().resolve(info=info, filter=filter)
-        return await refresh(results=results, model="engagement", queue=queue)
+    ) -> Paged[UUID]:
+        resolve = to_paged_uuids(EngagementResolver())
+        page = await resolve(
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+        )
+        return await refresh(page=page, model="engagement", queue=queue)
 
     # Facets
     # ------
@@ -564,10 +617,21 @@ class Mutation:
         ],
     )
     async def facet_refresh(
-        self, info: Info, filter: FacetFilter | None = None, queue: str | None = None
-    ) -> list[UUID]:
-        results = await FacetResolver().resolve(info=info, filter=filter)
-        return await refresh(results=results, model="facet", queue=queue)
+        self,
+        info: Info,
+        filter: FacetFilter | None = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        queue: str | None = None,
+    ) -> Paged[UUID]:
+        resolve = to_paged_uuids(FacetResolver())
+        page = await resolve(
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+        )
+        return await refresh(page=page, model="facet", queue=queue)
 
     # ITAssociations
     # ---------
@@ -667,10 +731,21 @@ class Mutation:
         ],
     )
     async def itsystem_refresh(
-        self, info: Info, filter: BaseFilter | None = None, queue: str | None = None
-    ) -> list[UUID]:
-        results = await ITSystemResolver().resolve(info=info, filter=filter)
-        return await refresh(results=results, model="itsystem", queue=queue)
+        self,
+        info: Info,
+        filter: ITSystemFilter | None = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        queue: str | None = None,
+    ) -> Paged[UUID]:
+        resolve = to_paged_uuids(ITSystemResolver())
+        page = await resolve(
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+        )
+        return await refresh(page=page, model="itsystem", queue=queue)
 
     # ITUsers
     # -------
@@ -722,10 +797,21 @@ class Mutation:
         ],
     )
     async def ituser_refresh(
-        self, info: Info, filter: ITUserFilter | None = None, queue: str | None = None
-    ) -> list[UUID]:
-        results = await ITUserResolver().resolve(info=info, filter=filter)
-        return await refresh(results=results, model="ituser", queue=queue)
+        self,
+        info: Info,
+        filter: ITUserFilter | None = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        queue: str | None = None,
+    ) -> Paged[UUID]:
+        resolve = to_paged_uuids(ITUserResolver())
+        page = await resolve(
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+        )
+        return await refresh(page=page, model="ituser", queue=queue)
 
     # KLEs
     # ----
@@ -769,10 +855,21 @@ class Mutation:
         ],
     )
     async def kle_refresh(
-        self, info: Info, filter: KLEFilter | None = None, queue: str | None = None
-    ) -> list[UUID]:
-        results = await KLEResolver().resolve(info=info, filter=filter)
-        return await refresh(results=results, model="kle", queue=queue)
+        self,
+        info: Info,
+        filter: KLEFilter | None = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        queue: str | None = None,
+    ) -> Paged[UUID]:
+        resolve = to_paged_uuids(KLEResolver())
+        page = await resolve(
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+        )
+        return await refresh(page=page, model="kle", queue=queue)
 
     # Leave
     # -----
@@ -816,10 +913,21 @@ class Mutation:
         ],
     )
     async def leave_refresh(
-        self, info: Info, filter: LeaveFilter | None = None, queue: str | None = None
-    ) -> list[UUID]:
-        results = await LeaveResolver().resolve(info=info, filter=filter)
-        return await refresh(results=results, model="leave", queue=queue)
+        self,
+        info: Info,
+        filter: LeaveFilter | None = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        queue: str | None = None,
+    ) -> Paged[UUID]:
+        resolve = to_paged_uuids(LeaveResolver())
+        page = await resolve(
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+        )
+        return await refresh(page=page, model="leave", queue=queue)
 
     # Managers
     # --------
@@ -865,10 +973,21 @@ class Mutation:
         ],
     )
     async def manager_refresh(
-        self, info: Info, filter: ManagerFilter | None = None, queue: str | None = None
-    ) -> list[UUID]:
-        results = await ManagerResolver().resolve(info=info, filter=filter)
-        return await refresh(results=results, model="manager", queue=queue)
+        self,
+        info: Info,
+        filter: ManagerFilter | None = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        queue: str | None = None,
+    ) -> Paged[UUID]:
+        resolve = to_paged_uuids(ManagerResolver())
+        page = await resolve(
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+        )
+        return await refresh(page=page, model="manager", queue=queue)
 
     # Root Organisation
     # -----------------
@@ -946,10 +1065,18 @@ class Mutation:
         self,
         info: Info,
         filter: OrganisationUnitFilter | None = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
         queue: str | None = None,
-    ) -> list[UUID]:
-        results = await OrganisationUnitResolver().resolve(info=info, filter=filter)
-        return await refresh(results=results, model="org_unit", queue=queue)
+    ) -> Paged[UUID]:
+        resolve = to_paged_uuids(OrganisationUnitResolver())
+        page = await resolve(
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+        )
+        return await refresh(page=page, model="org_unit", queue=queue)
 
     # Owner
     # -------------
@@ -967,10 +1094,21 @@ class Mutation:
         ],
     )
     async def owner_refresh(
-        self, info: Info, filter: OwnerFilter | None = None, queue: str | None = None
-    ) -> list[UUID]:
-        results = await OwnerResolver().resolve(info=info, filter=filter)
-        return await refresh(results=results, model="owner", queue=queue)
+        self,
+        info: Info,
+        filter: OwnerFilter | None = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        queue: str | None = None,
+    ) -> Paged[UUID]:
+        resolve = to_paged_uuids(OwnerResolver())
+        page = await resolve(
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+        )
+        return await refresh(page=page, model="owner", queue=queue)
 
     # Related Units
     # -------------
@@ -991,10 +1129,18 @@ class Mutation:
         self,
         info: Info,
         filter: RelatedUnitFilter | None = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
         queue: str | None = None,
-    ) -> list[UUID]:
-        results = await RelatedUnitResolver().resolve(info=info, filter=filter)
-        return await refresh(results=results, model="related_unit", queue=queue)
+    ) -> Paged[UUID]:
+        resolve = to_paged_uuids(RelatedUnitResolver())
+        page = await resolve(
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+        )
+        return await refresh(page=page, model="related_unit", queue=queue)
 
     # Roles
     # -----
@@ -1039,10 +1185,21 @@ class Mutation:
         ],
     )
     async def role_refresh(
-        self, info: Info, filter: RoleFilter | None = None, queue: str | None = None
-    ) -> list[UUID]:
-        results = await RoleResolver().resolve(info=info, filter=filter)
-        return await refresh(results=results, model="role", queue=queue)
+        self,
+        info: Info,
+        filter: RoleFilter | None = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        queue: str | None = None,
+    ) -> Paged[UUID]:
+        resolve = to_paged_uuids(RoleResolver())
+        page = await resolve(
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+        )
+        return await refresh(page=page, model="role", queue=queue)
 
     # Files
     # -----
@@ -1141,10 +1298,8 @@ async def delete_organisationfunktion(uuid: UUID) -> UUID:
     return uuid
 
 
-async def refresh(
-    results: dict[UUID, Any], model: str, queue: str | None
-) -> list[UUID]:
-    """Publish AMQP messages for the given UUIDs, optionally to a specific queue."""
+async def refresh(page: Paged[UUID], model: str, queue: str | None) -> Paged[UUID]:
+    """Publish AMQP messages for UUIDs in the page, optionally to a specific queue."""
     # TODO: We should have a shared AMQPSystem instead of creating an ephemeral one
     amqp_system = AMQPSystem(get_settings().amqp)
     await amqp_system.start()
@@ -1162,12 +1317,17 @@ async def refresh(
         routing_key = queue
         exchange = ""
 
-    uuids = list(results.keys())
-    for uuid in uuids:
-        await amqp_system.publish_message(
+    # Publish UUIDs to AMQP
+    uuids = page.objects
+    tasks = (
+        amqp_system.publish_message(
             routing_key=routing_key, payload=str(uuid), exchange=exchange
         )
+        for uuid in uuids
+    )
+    await gather_with_concurrency(100, *tasks)
 
     await amqp_system.stop()
-    # The list of UUIDs is returned to reduce duplicated boilerplate in the callers
-    return uuids
+
+    # Return the page to reduce duplicated boilerplate in the callers
+    return page
