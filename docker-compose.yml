@@ -16,7 +16,7 @@ services:
     restart: unless-stopped
 
   frontend_static:
-    image: magentaaps/os2mo-frontend:12.13.0
+    image: magentaaps/os2mo-frontend:12.28.0
     environment:
       BASE_URL: http://mo:5000
     restart: unless-stopped
