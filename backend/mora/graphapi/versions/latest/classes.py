@@ -11,21 +11,16 @@ from oio_rest import db
 
 
 async def create_class(input: ClassCreate, organisation_uuid: UUID) -> UUID:
-    registration = input.to_registration(organisation_uuid=organisation_uuid)
-    new_uuid = str(input.uuid) or str(uuid4())
-    c = lora.Connector()
-    return await c.klasse.create(registration, new_uuid)
+    return await lora.Connector().klasse.create(
+        input.to_registration(organisation_uuid=organisation_uuid),
+        str(input.uuid) or str(uuid4()),
+    )
 
 
 async def update_class(input: ClassUpdate, organisation_uuid: UUID) -> UUID:
-    c = lora.Connector()
-    result = await c.klasse.update(
+    return await lora.Connector().facet.update(
         input.to_registration(organisation_uuid=organisation_uuid), input.uuid
     )
-    return result
-    # return await c.facet.update(
-    #     input.to_registration(organisation_uuid=organisation_uuid), input.uuid
-    # )
 
 
 async def delete_class(class_uuid: UUID, note: str) -> UUID:

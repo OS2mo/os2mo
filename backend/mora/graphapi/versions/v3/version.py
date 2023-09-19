@@ -10,7 +10,7 @@ from ..latest.permissions import IsAuthenticatedPermission
 from ..v4.version import GraphQLVersion as NextGraphQLVersion
 from ..v5.version import UUIDReturn
 from mora import mapping
-from mora.service.clazz import ClassRequestHandler
+from mora.service.facet import ClassRequestHandler
 from ramodels.mo._shared import UUIDBase
 
 

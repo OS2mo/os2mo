@@ -148,6 +148,10 @@ async def decorate_employee_search_result(
                         uuid
                         name
                         published
+                        validity {
+                            from
+                            to
+                        }
                     }
                 }
 
@@ -159,6 +163,10 @@ async def decorate_employee_search_result(
                         uuid
                         name
                         published
+                        validity {
+                            from
+                            to
+                        }
                     }
                 }
 
@@ -169,6 +177,10 @@ async def decorate_employee_search_result(
                         uuid
                         name
                         published
+                        validity {
+                            from
+                            to
+                        }
                     }
                 }
 

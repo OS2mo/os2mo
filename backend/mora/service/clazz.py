@@ -15,13 +15,7 @@ from asyncio import gather
 from collections.abc import Awaitable
 from typing import Any
 from uuid import UUID
-from uuid import uuid4
 
-from more_itertools import one
-
-from . import facet
-from . import handlers
-from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
@@ -30,13 +24,6 @@ from ..exceptions import ErrorCodes
 from ..lora import LoraObjectType
 from .tree_helper import prepare_ancestor_tree
 from mora.request_scoped.bulking import request_wide_bulk
-from ramodels.mo.class_ import ClassWrite
-
-
-# router = APIRouter()
-
-
-# Main class details class
 
 
 @enum.unique
@@ -48,49 +35,6 @@ class ClassDetails(enum.Enum):  # TODO: Deal with cross-language enums
     TOP_LEVEL_FACET = 2
     FACET = 3
 
-
-# Class request handler
-
-
-class ClassRequestHandler(handlers.RequestHandler):
-    role_type = "class"
-
-    async def prepare_create(self, request: dict):
-        valid_from = util.NEGATIVE_INFINITY
-        valid_to = util.POSITIVE_INFINITY
-
-        facet_bvn = request["facet"]
-        facetids = await facet.get_facetids(facet_bvn)
-        facet_uuid = one(facetids)
-
-        mo_class = request["class_model"]
-
-        clazz = common.create_klasse_payload(
-            valid_from=valid_from,
-            valid_to=valid_to,
-            facet_uuid=facet_uuid,
-            org_uuid=mo_class.org_uuid,
-            owner=mo_class.owner,
-            bvn=mo_class.user_key,
-            title=mo_class.name,
-            scope=mo_class.scope,
-        )
-
-        self.payload = clazz
-        self.uuid = mo_class.uuid or str(uuid4())
-
-    async def submit(self) -> str:
-        c = lora.Connector()
-
-        if self.request_type == mapping.RequestType.CREATE:
-            self.result = await c.klasse.create(self.payload, self.uuid)
-        else:
-            self.result = await c.klasse.update(self.payload, self.uuid)
-
-        return await super().submit()
-
-
-# Constants
 
 MO_OBJ_TYPE = dict[str, Any]
 FULL_DETAILS = {
@@ -151,6 +95,11 @@ async def get_one_class(
     parents = None
     owner = _get_owner_uuid(clazz)
     attrs = _get_attrs(clazz)
+    try:
+        facet_uuid = _get_class_facet_uuid(clazz)
+    except Exception as e:
+        raise e
+
     response = {
         "uuid": classid,
         "name": attrs.get("titel"),
@@ -158,16 +107,19 @@ async def get_one_class(
         "example": attrs.get("eksempel"),
         "scope": attrs.get("omfang"),
         "owner": owner,
-        "org_uuid": _get_class_org_uuid(clazz),
-        "facet_uuid": _get_class_facet_uuid(clazz),
+        "facet_uuid": facet_uuid,
+        # "facet_uuid": _get_class_facet_uuid(clazz),
+        # "org_uuid": _get_class_org_uuid(clazz),
     }
 
     # create tasks
-    if ClassDetails.FACET in details:
-        facet_task = create_task(_get_facet(clazz))
+    # if ClassDetails.FACET in details:
+    #     facet_task = create_task(_get_facet(clazz))
+    #     response["facet"] = await facet_task
 
     if ClassDetails.NCHILDREN in details:
         nchildren_task = create_task(count_class_children(c, classid))
+        response["child_count"] = await nchildren_task
 
     if ClassDetails.FULL_NAME in details or ClassDetails.TOP_LEVEL_FACET in details:
         if not parents:
@@ -176,19 +128,12 @@ async def get_one_class(
         if ClassDetails.FULL_NAME in details:
             response["full_name"] = _get_full_name(parents)
 
-        if ClassDetails.TOP_LEVEL_FACET in details:
-            response["top_level_facet"] = await _get_top_level_facet(parents)
+        # if ClassDetails.TOP_LEVEL_FACET in details:
+        #     response["top_level_facet"] = await _get_top_level_facet(parents)
 
-    if ClassDetails.FACET in details:
-        response["facet"] = await facet_task
-
-    if ClassDetails.NCHILDREN in details:
-        response["child_count"] = await nchildren_task
-
-    validities = clazz["tilstande"]["klassepubliceret"]
-    # TODO: Figure out the correct way instead of just using [0]
-    response["published"] = validities[0]["publiceret"]
-    response[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
+    clazz_validity = clazz["tilstande"]["klassepubliceret"][0]
+    response["published"] = clazz_validity["publiceret"]
+    response[mapping.VALIDITY] = validity or util.get_effect_validity(clazz_validity)
 
     return response
 
@@ -243,11 +188,11 @@ async def get_class_tree(
             c,
             classid,
             cache[classid],
-            details=(
-                {ClassDetails.NCHILDREN}
-                if with_siblings and classid not in children
-                else None
-            ),
+            # details=(
+            #     {ClassDetails.NCHILDREN}
+            #     if with_siblings and classid not in children
+            #     else None
+            # ),
             only_primary_uuid=only_primary_uuid,
         )
         if classid in children:
@@ -387,14 +332,14 @@ async def _get_parents(clazz):
     return [clazz] + await _get_parents(new_class)
 
 
-async def _get_top_level_facet(parents):
-    facetid = _get_class_facet_uuid(parents[-1])
-    return await facet.get_facet_from_cache(facetid=facetid)
+# async def _get_top_level_facet(parents):
+#     facetid = _get_class_facet_uuid(parents[-1])
+#     return await facet.get_facet_from_cache(facetid=facetid)
 
 
-async def _get_facet(clazz):
-    facetid = _get_class_facet_uuid(clazz)
-    return await facet.get_facet_from_cache(facetid=facetid)
+# async def _get_facet(clazz):
+#     facetid = _get_class_facet_uuid(clazz)
+#     return await facet.get_facet_from_cache(facetid=facetid)
 
 
 async def _get_class_from_cache(
@@ -420,79 +365,3 @@ async def _get_class_from_cache(
         details=details,
         only_primary_uuid=only_primary_uuid,
     )
-
-
-# ROUTEs
-# TODO: find the correct place for these - they where just moved to this file
-# from "mora.service.facets" when making no-static classes
-
-
-@facet.router.get("/c/ancestor-tree")
-async def get_class_ancestor_tree(
-    uuid: list[UUID] | None = None, only_primary_uuid: bool | None = None
-):
-    """Obtain the tree of ancestors for the given classes.
-
-    The tree includes siblings of ancestors:
-
-    * Every ancestor of each class.
-    * Every sibling of every ancestor.
-
-    The intent of this routine is to enable easily showing the tree
-    *up to and including* the given classes in the UI.
-
-    .. :quickref: Class; Ancestor tree
-
-    :queryparam uuid: The UUID of the class.
-
-    :see: http:get:`/service/c/(uuid:uuid)/`.
-
-    **Example Response**:
-
-    .. sourcecode:: json
-
-     [{
-        "children": [{
-            "children": [{
-                "name": "Industrigruppen",
-                "user_key": "LO_3f_industri",
-                "uuid": "71acc2cf-9a4f-465d-80b7-d6ba4d823ac5",
-                "...": "..."
-            }],
-            "name": "Fagligt Fælles Forbund (3F)",
-            "user_key": "LO_3f",
-            "uuid": "87fc0429-ab51-4b5a-bad2-f55ba39f88d2",
-            "...": "..."
-        }],
-        "name": "LO",
-        "user_key": "LO",
-        "uuid": "a966e536-998a-42b7-9213-c9f89b27f8f8",
-        "...": "..."
-     }]
-    """
-
-    if uuid is None:
-        return []
-
-    c = common.get_connector()
-    classids = uuid
-
-    return await get_class_tree(
-        c, classids, with_siblings=True, only_primary_uuid=only_primary_uuid
-    )
-
-
-@facet.router.post("/f/{facet}/")
-async def create_or_update_class(
-    facet: str,
-    class_model: ClassWrite,
-):
-    """Will create a new class if there's no UUID or it doesnt match an exiting class
-    Will update an existing class if there's a matching UUID
-
-    :param facet: One of the facet bvns/uuids.
-    :param class_model: Pydantic BaseModel for a class
-    """
-    req = {"facet": facet, "class_model": class_model}
-    request = await ClassRequestHandler.construct(req, mapping.RequestType.CREATE)
-    return await request.submit()

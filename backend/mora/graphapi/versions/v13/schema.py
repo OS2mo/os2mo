@@ -1192,7 +1192,7 @@ class Class:
             """
         ),
     )
-    async def org_uuid(self, root: ClassRead) -> UUID:
+    async def org_uuid(self, root: ClassRead) -> UUID | None:
         return root.org_uuid
 
     @strawberry.field(
@@ -1760,7 +1760,7 @@ class Facet:
             """
         ),
     )
-    async def org_uuid(self, root: ClassRead) -> UUID:
+    async def org_uuid(self, root: ClassRead) -> UUID | None:
         return root.org_uuid
 
     @strawberry.field(

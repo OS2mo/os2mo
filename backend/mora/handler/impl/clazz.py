@@ -73,12 +73,12 @@ class ClassReader(reading.ReadingHandler):
             "relationer": (
                 "ansvarlig",
                 "ejer",
+                "facet",
             ),
             "tilstande": ("klassepubliceret",),
         }
-        also = {}
 
-        return await c.klasse.get_effects(obj, relevant, also, **params)
+        return await c.klasse.get_effects(obj, relevant, {}, **params)
 
     @classmethod
     async def _get_mo_object_from_effect(
