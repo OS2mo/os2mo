@@ -9,11 +9,13 @@ from uuid import uuid4
 import hypothesis.strategies as st
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
+from fastapi.encoders import jsonable_encoder
 from hypothesis import given
 from more_itertools import flatten
 from more_itertools import one
 from sqlalchemy import delete
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from mora.audit import audit_log
 from mora.auth.middleware import set_authenticated_user
@@ -26,6 +28,7 @@ from mora.util import DEFAULT_TIMEZONE
 from oio_rest.config import get_settings as lora_get_settings
 from oio_rest.db import _get_dbname
 from tests.conftest import admin_auth_uuid
+from tests.conftest import AsyncYieldFixture
 
 
 def create_sessionmaker():
@@ -36,6 +39,14 @@ def create_sessionmaker():
         host=lora_settings.db_host,
         name=_get_dbname(),
     )
+
+
+@pytest.fixture(scope="session")
+async def testing_db_session(testing_db) -> AsyncYieldFixture[AsyncSession]:
+    sessionmaker = create_sessionmaker()
+    session = sessionmaker()
+    yield session
+    await session.close()
 
 
 async def ensure_empty_audit_tables(sessionmaker) -> None:
@@ -193,41 +204,68 @@ async def test_search_orgunits(set_settings: MonkeyPatch) -> None:
     )
 
 
+simple_text = st.text(alphabet=st.characters(whitelist_categories=("L",)), min_size=1)
+
+
+@st.composite
+def audit_log_entries_and_filter(
+    draw: st.DrawFn,
+) -> tuple[list[dict[str, Any]], list[UUID], list[UUID], list[UUID]]:
+    audit_log_entries = draw(
+        st.lists(
+            st.fixed_dictionaries(
+                {
+                    "actor": st.uuids(),
+                    "operation": simple_text,
+                    "class_name": simple_text,
+                    "uuids": st.lists(st.uuids()),
+                    # "time": st.datetimes(),
+                }
+            )
+        )
+    )
+
+    def graphql_filter(values: list[Any]):
+        return st.one_of(
+            st.none(), st.lists(st.sampled_from(values) if values else st.nothing())
+        )
+
+    uuid_filter = draw(
+        graphql_filter(list(flatten([x["uuids"] for x in audit_log_entries])))
+    )
+    actor_filter = draw(graphql_filter([x["actor"] for x in audit_log_entries]))
+    model_filter = draw(graphql_filter([x["class_name"] for x in audit_log_entries]))
+
+    return (audit_log_entries, uuid_filter, actor_filter, model_filter)
+
+
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("testing_db")
-@given(
-    audit_log_entries=st.lists(
-        st.fixed_dictionaries(
-            {
-                "actor": st.uuids(),
-                "operation": st.text(min_size=1),
-                "class_name": st.text(min_size=1),
-                "uuids": st.lists(st.uuids()),
-                # "time": st.datetimes(),
-            }
-        )
-    ),
-    data=st.data(),
-)
+@given(audit_log_entries_and_filter=audit_log_entries_and_filter())
 # TODO: Add support for id filtering
 async def test_auditlog_filters(
     graphapi_post,
     set_session_settings: MonkeyPatch,
-    audit_log_entries: list[dict[str, Any]],
-    data: Any,
+    testing_db_session: AsyncSession,
+    audit_log_entries_and_filter: tuple[
+        list[dict[str, Any]],
+        list[UUID],
+        list[UUID],
+        list[UUID],
+    ],
 ) -> None:
     """Integration equivalence test between python and SQLAlchemy filtering.
 
     This test ensures that filters on their own AND filters being combined works as expected.
     """
-    lora_settings = lora_get_settings()
-    sessionmaker = get_sessionmaker(
-        user=lora_settings.db_user,
-        password=lora_settings.db_password,
-        host=lora_settings.db_host,
-        name=_get_dbname(),
-    )
-    session = sessionmaker()
+    session = testing_db_session
+    (
+        audit_log_entries,
+        uuid_filter,
+        actor_filter,
+        model_filter,
+    ) = audit_log_entries_and_filter
+
     # Remove all audit log entries present
     async with session.begin():
         await session.execute(delete(AuditLogRead))
@@ -284,27 +322,13 @@ async def test_auditlog_filters(
 
     # Create filter object
     filter_object = {}
-
-    def graphql_filter(values: list[Any]):
-        return st.one_of(
-            st.none(), st.lists(st.sampled_from(values) if values else st.nothing())
-        )
-
-    uuid_filter = data.draw(
-        graphql_filter(list(flatten([x["uuids"] for x in audit_log_entries])))
-    )
-    actor_filter = data.draw(graphql_filter([x["actor"] for x in audit_log_entries]))
-    model_filter = data.draw(
-        graphql_filter([x["class_name"] for x in audit_log_entries])
-    )
-
-    # TODO: Add support for start + end filtering (time)
     if uuid_filter is not None:
-        filter_object["uuids"] = list(map(str, uuid_filter))
+        filter_object["uuids"] = uuid_filter
     if actor_filter is not None:
-        filter_object["actors"] = list(map(str, actor_filter))
+        filter_object["actors"] = actor_filter
     if model_filter is not None:
-        filter_object["models"] = list(map(str, model_filter))
+        filter_object["models"] = model_filter
+    # TODO: Add support for start + end filtering (time)
 
     # Calculate expected output by python filtering
     expected = audit_log_entries
@@ -324,7 +348,9 @@ async def test_auditlog_filters(
     expected = list(expected)
 
     # Run query and verify equivalence
-    response = graphapi_post(audit_filter_query, {"filter": filter_object})
+    response = graphapi_post(
+        audit_filter_query, {"filter": jsonable_encoder(filter_object)}
+    )
     assert response.errors is None
     objects = response.data["auditlog"]["objects"]
     assert len(objects) == len(expected)
