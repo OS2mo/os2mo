@@ -5,6 +5,7 @@ from operator import itemgetter
 from typing import Any
 
 from more_itertools import one
+from strawberry.exceptions import StrawberryGraphQLError
 
 from mora import exceptions
 from mora.graphapi.shim import execute_graphql
@@ -21,11 +22,17 @@ def handle_gql_error(response: ExecutionResult) -> None:
         error.original_error: The original error, if any.
         ValueError: If no original error is present.
     """
-    if response.errors:
-        error = one(response.errors)
+
+    def to_exception(error: StrawberryGraphQLError) -> Exception:
         if error.original_error:
-            raise error.original_error
-        raise ValueError(error)
+            return error.original_error
+        return error
+
+    if response.errors:
+        exceptions = list(map(to_exception, response.errors))
+        if len(exceptions) == 1:
+            raise one(exceptions)
+        raise ExceptionGroup("GraphQL Errors", exceptions)  # noqa: F821
 
 
 async def get_configuration() -> dict[str, Any]:
