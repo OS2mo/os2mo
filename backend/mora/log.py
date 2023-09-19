@@ -5,10 +5,12 @@ import time
 from collections.abc import Awaitable
 from collections.abc import Callable
 from typing import Any
+from uuid import uuid4
 
 import structlog
 from fastapi import Request
 from fastapi import Response
+from structlog.contextvars import bound_contextvars
 from structlog.types import EventDict
 from structlog.types import Processor
 from uvicorn.protocols.utils import get_path_with_query_string
@@ -31,7 +33,8 @@ def gen_accesslog_middleware() -> Callable[[Request, Any], Awaitable[Response]]:
     async def accesslog_middleware(request: Request, call_next) -> Response:
         start_time = time.perf_counter_ns()
 
-        response = await call_next(request)
+        with bound_contextvars(request_id=str(uuid4())):
+            response = await call_next(request)
 
         process_time = round((time.perf_counter_ns() - start_time) / 10**9, 3)
 
