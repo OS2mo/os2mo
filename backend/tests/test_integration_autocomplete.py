@@ -98,7 +98,7 @@ def test_v2_search_employee_by_uuid(mock_get_settings, service_client: TestClien
                     {
                         "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
                         "title": "Active Directory",
-                        "value": "donald",
+                        "value": "18d2271a-45c4-406c-a482-04ab12f80881",
                     },
                 ],
             }
@@ -142,7 +142,7 @@ def test_v2_search_employee_by_name(mock_get_settings, service_client: TestClien
                     {
                         "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
                         "title": "Active Directory",
-                        "value": "donald",
+                        "value": "18d2271a-45c4-406c-a482-04ab12f80881",
                     },
                 ],
             }
@@ -213,7 +213,7 @@ def test_v2_search_employee_by_email(mock_get_settings, service_client: TestClie
                     {
                         "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
                         "title": "Active Directory",
-                        "value": "donald",
+                        "value": "18d2271a-45c4-406c-a482-04ab12f80881",
                     },
                 ],
             }
@@ -284,7 +284,7 @@ def test_v2_search_employee_by_itsystem(mock_get_settings, service_client: TestC
                     {
                         "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
                         "title": "Active Directory",
-                        "value": "donald",
+                        "value": "18d2271a-45c4-406c-a482-04ab12f80881",
                     },
                 ],
             }
@@ -607,7 +607,7 @@ def test_v2_only_gql_decorate_employees(
                     {
                         "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
                         "title": "Active Directory",
-                        "value": "donald",
+                        "value": "18d2271a-45c4-406c-a482-04ab12f80881",
                     },
                 ],
             }

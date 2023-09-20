@@ -205,6 +205,14 @@ class Settings(BaseSettings):
     keycloak_auth_server_url: AnyHttpUrl = "http://localhost:8081/auth/"
     keycloak_ssl_required: str = "external"
     keycloak_rbac_enabled: bool = False
+    # Normally, when checking owners, the MO employee UUID will be passed to MO
+    # in the Keycloak token. This setting can be used (set to the UUID of an IT
+    # system) to make MO check ownership by looking at the employee with the IT
+    # user matching the Keycloak token UUID.
+    # For instance, if this setting points at the ADGUID IT System and the
+    # Keycloak token contains the AD object guid then MO will find the ADGUID
+    # IT User and use the related persons uuid before checking ownership.
+    keycloak_rbac_authoritative_it_system_for_owners: UUID | None = None
 
     # Expose lora
     expose_lora: bool = Field(

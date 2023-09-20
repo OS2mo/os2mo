@@ -24,7 +24,11 @@ from tests.conftest import GQLResponse
         ("engagements", "301a906b-ef51-4d5c-9c77-386fb8410459", "bvn"),
         ("facets", "1a6045a2-7a8e-4916-ab27-b2402e64f2be", "engagement_job_function"),
         ("itsystems", "59c135c9-2b15-41cc-97c8-b5dff7180beb", "AD"),
-        ("itusers", "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66", "donald"),
+        (
+            "itusers",
+            "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
+            "18d2271a-45c4-406c-a482-04ab12f80881",
+        ),
         ("kles", "4bee0127-a3a3-419a-8bcc-d1b81d21c5b5", "1234"),
         ("leaves", "0895b7f5-86ac-45c5-8fb1-c3047d45b643", "bvn"),
         (

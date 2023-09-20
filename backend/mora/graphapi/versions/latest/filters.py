@@ -216,6 +216,12 @@ class ITUserFilter(BaseFilter):
         default=None,
         description=gen_filter_string("Organisational Unit UUID", "org_units"),
     )
+    itsystem_uuids: list[UUID] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string(
+            "Only return IT users of ITSystem with these UUIDs", "itsystem_uuids"
+        ),
+    )
 
 
 @strawberry.input(description="KLE filter.")

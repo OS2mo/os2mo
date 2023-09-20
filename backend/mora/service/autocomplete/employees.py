@@ -407,7 +407,7 @@ def _gql_get_employee_attrs(settings: config.Settings, gql_employee: dict):
         ):
             continue
 
-        if util.is_detail_unpublished(value) or util.is_uuid(value):
+        if util.is_detail_unpublished(value):
             continue
 
         attrs.append(

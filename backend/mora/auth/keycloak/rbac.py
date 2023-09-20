@@ -1,18 +1,75 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
+from uuid import UUID
 
 from fastapi import Request
+from fastapi.encoders import jsonable_encoder
+from more_itertools import one
 from structlog import get_logger
 
 import mora.auth.keycloak.uuid_extractor as uuid_extractor
+import mora.config
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.owner import get_owners
+from mora.graphapi.shim import execute_graphql
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
 
+
 logger = get_logger()
+
+
+async def _get_employee_uuid_via_it_system(
+    it_system: UUID, it_user_key: UUID | str
+) -> UUID:
+    """Return the employee UUID of the related it user.
+
+    This is used to implement the
+    `KEYCLOAK_RBAC_AUTHORITATIVE_IT_SYSTEM_FOR_OWNERS` configuration option.
+    """
+
+    query = """
+    query GetEmployeeUUIDFromItUser($user_keys: [String!]!, $itsystem_uuids: [UUID!]!) {
+      itusers(filter: {itsystem_uuids: $itsystem_uuids, user_keys: $user_keys}) {
+        objects {
+          current {
+            employee_uuid
+          }
+        }
+      }
+    }
+    """
+    r = await execute_graphql(
+        query,
+        variable_values=jsonable_encoder(
+            {"user_keys": it_user_key, "itsystem_uuids": it_system}
+        ),
+    )
+    if r.errors or r.data is None:
+        raise AuthorizationError("Error when looking up IT users")
+    try:
+        return UUID(one(r.data["itusers"]["objects"])["current"]["employee_uuid"])
+    except ValueError:
+        raise AuthorizationError("Expected exactly one matching IT user")
+
+
+def _get_employee_uuid_via_token(token: Token) -> UUID:
+    return token.uuid
+
+
+async def _get_employee_uuid(token: Token) -> UUID:
+    """Select employee UUID based on MOs configuration."""
+
+    it_system = (
+        mora.config.get_settings().keycloak_rbac_authoritative_it_system_for_owners
+    )
+    lookup_via_it_system = it_system is not None
+
+    if lookup_via_it_system:
+        return await _get_employee_uuid_via_it_system(it_system, token.uuid)
+    return _get_employee_uuid_via_token(token)
 
 
 async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
@@ -41,6 +98,8 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
     if OWNER in roles and not admin_only:
         if token.uuid is None:
             raise AuthorizationError("User has owner role, but UUID unset.")
+
+        user_uuid = await _get_employee_uuid(token)
 
         logger.debug("User has owner role - checking ownership...")
 
@@ -71,8 +130,7 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
             *(get_owners(uuid, entity_type) for uuid in uuids)
         )
 
-        current_user_ownership_verified = [(token.uuid in owner) for owner in owners]
-
+        current_user_ownership_verified = [(user_uuid in owner) for owner in owners]
         if current_user_ownership_verified and all(current_user_ownership_verified):
             logger.debug(f"User {token.preferred_username} authorized")
             return

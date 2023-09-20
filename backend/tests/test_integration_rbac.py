@@ -3,6 +3,8 @@
 from collections.abc import Callable
 from datetime import datetime
 from typing import Any
+from uuid import UUID
+from uuid import uuid4
 
 import pytest
 from fastapi import FastAPI
@@ -11,8 +13,10 @@ from starlette.status import HTTP_200_OK
 from starlette.status import HTTP_201_CREATED
 from starlette.status import HTTP_403_FORBIDDEN
 
+from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import auth
+from mora.auth.keycloak.rbac import _get_employee_uuid_via_it_system
 from mora.config import Settings
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
@@ -26,6 +30,12 @@ FEDTMULE = "6ee24785-ee9a-4502-81c2-7697009c9053"
 ROOT_UNIT = "2874e1dc-85e6-4269-823a-e1125484dfd3"
 HUM_UNIT = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
 FILOSOFISK_INSTITUT = "85715fc7-925d-401b-822d-467eb4b163b6"
+
+# IT systems
+ACTIVE_DIRECTORY = UUID("59c135c9-2b15-41cc-97c8-b5dff7180beb")
+
+# IT users
+ANDERS_AND_AD_USER = "18d2271a-45c4-406c-a482-04ab12f80881"
 
 
 def mock_auth(
@@ -704,3 +714,52 @@ def test_terminate_x_as_owner_of_unit(
     )
     assert response.status_code == 200
     assert response.json() == payload["uuid"]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "token_uuid,expected",
+    [
+        (ANDERS_AND_AD_USER, 200),
+        (ANDERS_AND, 403),
+    ],
+)
+@util.override_config(
+    Settings(
+        keycloak_rbac_enabled=True,
+        keycloak_rbac_authoritative_it_system_for_owners=ACTIVE_DIRECTORY,
+    )
+)
+def test_ownership_through_it_system(
+    fastapi_test_app: FastAPI, service_client: TestClient, token_uuid, expected
+) -> None:
+    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, token_uuid)
+
+    payload = {
+        "type": "address",
+        "uuid": "55848eca-4e9e-4f30-954b-78d55eec0473",
+        "validity": {"to": "2021-07-16"},
+    }
+
+    response = service_client.request(
+        "POST", "/service/details/terminate", json=payload
+    )
+
+    assert response.status_code == expected
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_it_user_to_employee_uuid():
+    result = await _get_employee_uuid_via_it_system(
+        ACTIVE_DIRECTORY, ANDERS_AND_AD_USER
+    )
+    assert ANDERS_AND == str(result)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_it_user_to_employee_uuid_missing_it_user():
+    with pytest.raises(AuthorizationError):
+        await _get_employee_uuid_via_it_system(ACTIVE_DIRECTORY, uuid4())

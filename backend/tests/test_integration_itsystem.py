@@ -589,7 +589,7 @@ def test_reading_employee(service_client: TestClient) -> None:
             "org_unit": None,
             "person": {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"},
             "engagement": None,
-            "user_key": "donald",
+            "user_key": "18d2271a-45c4-406c-a482-04ab12f80881",
             "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
             "validity": {"from": "2017-01-01", "to": None},
             "primary": None,
