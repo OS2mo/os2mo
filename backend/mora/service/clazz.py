@@ -10,6 +10,7 @@ NOTE the file is named `clazz` to avoid conflict with the Python keyword `class`
 """
 import enum
 import locale
+import logging
 from asyncio import create_task
 from asyncio import gather
 from collections.abc import Awaitable
@@ -24,6 +25,8 @@ from ..exceptions import ErrorCodes
 from ..lora import LoraObjectType
 from .tree_helper import prepare_ancestor_tree
 from mora.request_scoped.bulking import request_wide_bulk
+
+logger = logging.getLogger(__name__)
 
 
 @enum.unique
@@ -53,11 +56,12 @@ def is_class_reg_valid(reg):
 
 def is_class_primary(mo_class: dict) -> bool:
     try:
-        return mo_class[mapping.USER_KEY] in (
-            mapping.PRIMARY,
-            mapping.EXPLICITLY_PRIMARY,
-        )
+        return int(mo_class[mapping.SCOPE]) >= mapping.MINIMUM_PRIMARY_SCOPE_VALUE
     except KeyError:
+        logging.error(f"Primary class has no 'scope' {mo_class=}")
+        return False
+    except ValueError:
+        logging.error(f"Primary class has a non-integer value in 'scope', {mo_class=}")
         return False
 
 
@@ -222,7 +226,7 @@ async def get_class_tree(
 async def get_mo_object_primary_value(mo_object: dict) -> bool:
     # First, see if `mo_object` contains a `primary` dict with a `user_key` key
     primary = mo_object.get(mapping.PRIMARY) or {}
-    if mapping.USER_KEY in primary:
+    if mapping.SCOPE in primary:
         return is_class_primary(mo_object[mapping.PRIMARY])
 
     # Next, see if `mo_object` contains a `primary` dict with a `uuid` key
