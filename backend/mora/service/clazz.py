@@ -99,10 +99,9 @@ async def get_one_class(
     parents = None
     owner = _get_owner_uuid(clazz)
     attrs = _get_attrs(clazz)
-    try:
-        facet_uuid = _get_class_facet_uuid(clazz)
-    except Exception as e:
-        raise e
+
+    facet_uuid = _get_class_facet_uuid(clazz)
+    org_uuid = _get_class_org_uuid(clazz)
 
     response = {
         "uuid": classid,
@@ -112,14 +111,13 @@ async def get_one_class(
         "scope": attrs.get("omfang"),
         "owner": owner,
         "facet_uuid": facet_uuid,
-        # "facet_uuid": _get_class_facet_uuid(clazz),
-        # "org_uuid": _get_class_org_uuid(clazz),
+        "org_uuid": org_uuid,
     }
 
     # create tasks
-    # if ClassDetails.FACET in details:
-    #     facet_task = create_task(_get_facet(clazz))
-    #     response["facet"] = await facet_task
+    if ClassDetails.FACET in details:
+        facet_task = create_task(_get_facet(c, facet_uuid))
+        response["facet"] = await facet_task
 
     if ClassDetails.NCHILDREN in details:
         nchildren_task = create_task(count_class_children(c, classid))
@@ -132,8 +130,9 @@ async def get_one_class(
         if ClassDetails.FULL_NAME in details:
             response["full_name"] = _get_full_name(parents)
 
-        # if ClassDetails.TOP_LEVEL_FACET in details:
-        #     response["top_level_facet"] = await _get_top_level_facet(parents)
+        if ClassDetails.TOP_LEVEL_FACET in details:
+            top_lvl_facet_uuid = parents[-1]["relationer"]["facet"][0]["uuid"]
+            response["top_level_facet"] = await _get_facet(c, top_lvl_facet_uuid)
 
     clazz_validity = clazz["tilstande"]["klassepubliceret"][0]
     response["published"] = clazz_validity["publiceret"]
@@ -336,14 +335,24 @@ async def _get_parents(clazz):
     return [clazz] + await _get_parents(new_class)
 
 
-# async def _get_top_level_facet(parents):
-#     facetid = _get_class_facet_uuid(parents[-1])
-#     return await facet.get_facet_from_cache(facetid=facetid)
+async def _get_facet(c: lora.Connector, facet_uuid):
+    """local helper function to get facet
 
+    This was implemented to avoid circular imports when seperating classes from facets
+    """
 
-# async def _get_facet(clazz):
-#     facetid = _get_class_facet_uuid(clazz)
-#     return await facet.get_facet_from_cache(facetid=facetid)
+    facet = await c.facet.get(facet_uuid)
+    if facet is None:
+        return None
+
+    properties = facet["attributter"]["facetegenskaber"][0]
+    bvn = properties.get("brugervendtnoegle", "")
+    description = properties.get("beskrivelse", "")
+    return {
+        "uuid": facet_uuid,
+        "user_key": bvn,
+        "description": description,
+    }
 
 
 async def _get_class_from_cache(
