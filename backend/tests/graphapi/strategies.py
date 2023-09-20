@@ -58,6 +58,22 @@ def graph_data_uuids_strat(draw, model: MOModel):
 def graph_data_momodel_validity_strat(
     draw, model: MOModel, now: datetime.datetime = None
 ):
+    return jsonable_encoder(draw(_strat_data_momodel_validity(draw, model, now)))
+
+
+@st.composite
+def graph_data_momodel_validity_strat_list(
+    draw, model: MOModel, now: datetime.datetime = None
+):
+    return jsonable_encoder(
+        draw(st.lists(_strat_data_momodel_validity(draw, model, now)))
+    )
+
+
+# local helpers
+
+
+def _strat_data_momodel_validity(draw, model: MOModel, now: datetime.datetime = None):
     data_args = {}
     min_dt = datetime.datetime(1900, 1, 1)
     if "validity" in model.__fields__:
@@ -92,5 +108,4 @@ def graph_data_momodel_validity_strat(
     if "user_key" in model.__fields__:
         data_args["user_key"] = st.from_regex(PrintableStr.regex)
 
-    data = draw(st.builds(model, **data_args))
-    return jsonable_encoder(data)
+    return st.builds(model, **data_args)

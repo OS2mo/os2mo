@@ -16,7 +16,7 @@ from pytest import MonkeyPatch
 
 import mora.lora as lora
 from .strategies import graph_data_momodel_validity_strat
-from .strategies import graph_data_strat
+from .strategies import graph_data_momodel_validity_strat_list
 from .strategies import graph_data_uuids_strat
 from mora.auth.keycloak.oidc import noauth
 from mora.graphapi.shim import execute_graphql
@@ -29,7 +29,14 @@ from ramodels.mo import ClassRead
 from tests.conftest import GQLResponse
 
 
-@given(test_data=graph_data_strat(ClassRead))
+@given(
+    test_data=graph_data_momodel_validity_strat_list(
+        ClassRead,
+        now=datetime.datetime.combine(
+            datetime.datetime.now().date(), datetime.time.min
+        ),
+    )
+)
 def test_query_all(test_data, graphapi_post, graphapi_test, patch_loader):
     """Test that we can query all attributes of the classes data model."""
     # patch get_classes to return list(ClassRead)
@@ -42,6 +49,7 @@ def test_query_all(test_data, graphapi_post, graphapi_test, patch_loader):
             "lora_classes_to_mo_classes",
             lambda *args, **kwargs: parse_obj_as(list[ClassRead], test_data),
         )
+
         query = """
             query {
                 classes {
