@@ -11,8 +11,8 @@ from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.owner import _get_entity_owners
 from mora.auth.keycloak.owner import get_ancestor_owners
-from mora.auth.keycloak.rbac import _get_employee_uuid
-from mora.auth.keycloak.rbac import _get_employee_uuid_via_token
+from mora.auth.keycloak.rbac import _get_employee_uuids
+from mora.auth.keycloak.rbac import _get_employee_uuids_via_token
 from mora.auth.keycloak.rbac import _rbac
 from mora.config import Settings
 from mora.mapping import ADMIN
@@ -323,9 +323,9 @@ class TestGetEntityOwners:
         assert owners == {owner_uuid}
 
 
-def test__get_employee_uuid_via_token():
+def test__get_employee_uuids_via_token():
     uuid = uuid4()
-    employee_uuid = _get_employee_uuid_via_token(
+    employee_uuid = _get_employee_uuids_via_token(
         Token(
             azp="azp",
             email="test@example.org",
@@ -333,10 +333,10 @@ def test__get_employee_uuid_via_token():
             uuid=uuid,
         )
     )
-    assert employee_uuid == uuid
+    assert employee_uuid == [uuid]
 
 
-async def test__get_employee_uuid_via_token_strategy():
+async def test__get_employee_uuids_via_token_strategy():
     uuid = uuid4()
     token = Token(
         azp="azp",
@@ -344,12 +344,12 @@ async def test__get_employee_uuid_via_token_strategy():
         preferred_username="Test",
         uuid=uuid,
     )
-    assert await _get_employee_uuid(token) == uuid
+    assert await _get_employee_uuids(token) == [uuid]
 
 
 @unittest.mock.patch("mora.auth.keycloak.rbac.mora.config.get_settings")
 @unittest.mock.patch("mora.auth.keycloak.rbac._get_employee_uuid_via_it_system")
-async def test__get_employee_uuid_via_it_system_strategy(mock, mock_get_settings):
+async def test__get_employee_uuids_via_it_system_strategy(mock, mock_get_settings):
     it_system_uuid = uuid4()
     uuid = uuid4()
 
@@ -364,7 +364,7 @@ async def test__get_employee_uuid_via_it_system_strategy(mock, mock_get_settings
         uuid=uuid,
     )
 
-    await _get_employee_uuid(token)
+    await _get_employee_uuids(token)
 
     # We are only testing that the correct strategy is selected
     mock.assert_awaited_once_with(it_system_uuid, uuid)

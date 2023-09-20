@@ -21,9 +21,9 @@ from mora.mapping import OWNER
 logger = get_logger()
 
 
-async def _get_employee_uuid_via_it_system(
+async def _get_employee_uuids_via_it_system(
     it_system: UUID, it_user_key: UUID | str
-) -> UUID:
+) -> list[UUID]:
     """Return the employee UUID of the related it user.
 
     This is used to implement the
@@ -50,16 +50,19 @@ async def _get_employee_uuid_via_it_system(
     if r.errors or r.data is None:
         raise AuthorizationError("Error when looking up IT users")
     try:
-        return UUID(one(r.data["itusers"]["objects"])["current"]["employee_uuid"])
+        it_users = r.data["itusers"]["objects"]
+        if not it_users:
+            raise AuthorizationError("No IT users found")
+        return [it_user["current"]["employee_uuid"] for it_user in it_users]
     except ValueError:
         raise AuthorizationError("Expected exactly one matching IT user")
 
 
-def _get_employee_uuid_via_token(token: Token) -> UUID:
-    return token.uuid
+def _get_employee_uuids_via_token(token: Token) -> list[UUID]:
+    return [token.uuid]
 
 
-async def _get_employee_uuid(token: Token) -> UUID:
+async def _get_employee_uuids(token: Token) -> list[UUID]:
     """Select employee UUID based on MOs configuration."""
 
     it_system = (
@@ -68,8 +71,8 @@ async def _get_employee_uuid(token: Token) -> UUID:
     lookup_via_it_system = it_system is not None
 
     if lookup_via_it_system:
-        return await _get_employee_uuid_via_it_system(it_system, token.uuid)
-    return _get_employee_uuid_via_token(token)
+        return await _get_employee_uuids_via_it_system(it_system, token.uuid)
+    return _get_employee_uuids_via_token(token)
 
 
 async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
@@ -99,7 +102,7 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
         if token.uuid is None:
             raise AuthorizationError("User has owner role, but UUID unset.")
 
-        user_uuid = await _get_employee_uuid(token)
+        user_uuids = await _get_employee_uuids(token)
 
         logger.debug("User has owner role - checking ownership...")
 
@@ -130,10 +133,11 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
             *(get_owners(uuid, entity_type) for uuid in uuids)
         )
 
-        current_user_ownership_verified = [(user_uuid in owner) for owner in owners]
-        if current_user_ownership_verified and all(current_user_ownership_verified):
-            logger.debug(f"User {token.preferred_username} authorized")
-            return
+        for user_uuid in user_uuids:
+            current_user_ownership_verified = [(user_uuid in owner) for owner in owners]
+            if current_user_ownership_verified and all(current_user_ownership_verified):
+                logger.debug(f"User {token.preferred_username} authorized")
+                return
 
     logger.debug(
         f"User {token.preferred_username} with UUID " f"{token.uuid} not authorized"

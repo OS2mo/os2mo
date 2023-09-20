@@ -16,7 +16,7 @@ from starlette.status import HTTP_403_FORBIDDEN
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import auth
-from mora.auth.keycloak.rbac import _get_employee_uuid_via_it_system
+from mora.auth.keycloak.rbac import _get_employee_uuids_via_it_system
 from mora.config import Settings
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
@@ -752,14 +752,14 @@ def test_ownership_through_it_system(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_it_user_to_employee_uuid():
-    result = await _get_employee_uuid_via_it_system(
+    result = await _get_employee_uuids_via_it_system(
         ACTIVE_DIRECTORY, ANDERS_AND_AD_USER
     )
-    assert ANDERS_AND == str(result)
+    assert ANDERS_AND == [str(r) for r in result]
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_it_user_to_employee_uuid_missing_it_user():
     with pytest.raises(AuthorizationError):
-        await _get_employee_uuid_via_it_system(ACTIVE_DIRECTORY, uuid4())
+        await _get_employee_uuids_via_it_system(ACTIVE_DIRECTORY, uuid4())
