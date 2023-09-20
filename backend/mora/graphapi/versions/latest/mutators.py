@@ -378,10 +378,7 @@ class Mutation:
     async def class_update(
         self, info: Info, input: ClassUpdateInput
     ) -> Response[Class]:
-        # note = ""
         org = await info.context["org_loader"].load(0)
-        # uuid = await update_class(input.to_pydantic(), input.uuid, org.uuid, note)  # type: ignore
-        # return uuid2response(uuid, ClassRead)
         return uuid2response(
             await update_class(input.to_pydantic(), org.uuid),  # type: ignore
             ClassWrite,

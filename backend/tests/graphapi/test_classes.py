@@ -75,7 +75,7 @@ def test_query_all(test_data, graphapi_post, graphapi_test, patch_loader):
 
 
 @given(test_input=graph_data_uuids_strat(ClassRead))
-def test_query_by_uuid(test_input, graphapi_post, patch_loader):
+async def test_query_by_uuid(test_input, patch_loader):
     """Test that we can query classes by UUID."""
     test_data, test_uuids = test_input
     # Patch dataloader
@@ -83,11 +83,6 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         # Our class dataloaders are ~* special *~
         # We need to intercept the connector too
         patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
-        patch.setattr(
-            dataloaders,
-            "lora_classes_to_mo_classes",
-            lambda *args, **kwargs: parse_obj_as(list[ClassRead], test_data),
-        )
         query = """
                 query TestQuery($uuids: [UUID!]) {
                     classes(filter: {uuids: $uuids}) {
@@ -95,21 +90,36 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
                             current {
                                 uuid
                             }
+
+                            objects {
+                                uuid
+                                validity {
+                                    from
+                                    to
+                                }
+                            }
                         }
                     }
                 }
             """
-        response: GQLResponse = graphapi_post(query, {"uuids": test_uuids})
+        # response: GQLResponse = graphapi_post(query, {"uuids": test_uuids})
+        response = await execute_graphql(
+            query=query,
+            variable_values={"uuids": test_uuids},
+        )
 
     assert response.errors is None
     assert response.data
 
     # Check UUID equivalence
-    result_uuids = [
-        cla["current"].get("uuid") for cla in response.data["classes"]["objects"]
-    ]
-    assert set(result_uuids) == set(test_uuids)
-    assert len(result_uuids) == len(set(test_uuids))
+    result_uuids = []
+    for obj in response.data["classes"]["objects"]:
+        obj = one(obj["objects"])
+        result_uuids.append(obj["uuid"])
+
+    test_uuids_set = set(test_uuids)
+    assert len(result_uuids) == len(test_uuids_set)
+    assert set(result_uuids) == test_uuids_set
 
 
 OPTIONAL = {
@@ -266,7 +276,6 @@ async def test_integration_create_class(test_data, graphapi_post) -> None:
     }
 
 
-# @given(test_data=write_strat())
 @given(
     test_data=write_strat(
         ClassCreate,
@@ -427,6 +436,7 @@ async def test_update_class() -> None:
           }
         }
     """
+
     class_uuid = "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
     response = await execute_graphql(
         query=read_query,

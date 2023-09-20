@@ -350,12 +350,7 @@ class ClassResolver(Resolver):
 
         return await super()._resolve(
             info=info,
-            filter=BaseFilter(
-                uuids=filter.uuids,
-                user_keys=filter.user_keys,
-                from_date=None,  # from -inf
-                to_date=None,  # to inf
-            ),
+            filter=filter,
             limit=limit,
             cursor=cursor,
             **kwargs,

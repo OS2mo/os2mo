@@ -18,7 +18,7 @@ async def create_class(input: ClassCreate, organisation_uuid: UUID) -> UUID:
 
 
 async def update_class(input: ClassUpdate, organisation_uuid: UUID) -> UUID:
-    return await lora.Connector().facet.update(
+    return await lora.Connector().klasse.update(
         input.to_registration(organisation_uuid=organisation_uuid), input.uuid
     )
 
