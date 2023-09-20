@@ -25,6 +25,7 @@ from .filters import ClassFilter
 from .filters import EmployeeFilter
 from .filters import EngagementFilter
 from .filters import FacetFilter
+from .filters import ITSystemFilter
 from .filters import ITUserFilter
 from .filters import KLEFilter
 from .filters import LeaveFilter
@@ -624,6 +625,25 @@ class OrganisationUnitResolver(Resolver):
 class ITSystemResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(ITSystemRead)
+
+    async def resolve(  # type: ignore[no-untyped-def,override]
+        self,
+        info: Info,
+        # TODO: change BaseFilter to ITSystemFilter in a breaking change or new version
+        filter: BaseFilter | None = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+    ):
+        """Resolve it-systems."""
+        if filter is None:
+            filter = ITSystemFilter()
+
+        return await super().resolve(
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+        )
 
 
 class ITUserResolver(Resolver):

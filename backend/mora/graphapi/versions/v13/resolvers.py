@@ -12,7 +12,6 @@ from strawberry.types import Info
 
 from ..latest.filters import AddressFilter
 from ..latest.filters import AssociationFilter
-from ..latest.filters import BaseFilter
 from ..latest.filters import ClassFilter
 from ..latest.filters import ConfigurationFilter
 from ..latest.filters import EmployeeFilter
@@ -22,6 +21,7 @@ from ..latest.filters import FileFilter
 from ..latest.filters import gen_filter_string
 from ..latest.filters import gen_filter_table
 from ..latest.filters import HealthFilter
+from ..latest.filters import ITSystemFilter
 from ..latest.filters import ITUserFilter
 from ..latest.filters import KLEFilter
 from ..latest.filters import LeaveFilter
@@ -464,7 +464,7 @@ class ITSystemResolver(NextITSystemResolver):
         from_date: FromDateFilterType = UNSET,
         to_date: ToDateFilterType = UNSET,
     ):
-        filter = BaseFilter(
+        filter = ITSystemFilter(
             uuids=uuids,
             user_keys=user_keys,
             from_date=from_date,
