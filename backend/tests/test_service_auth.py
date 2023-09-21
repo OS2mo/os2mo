@@ -97,10 +97,6 @@ def no_auth_endpoints():
         "/saml/sso/",
         "/graphql",
         "/graphql/v{version_number}",
-        "/testing/amqp/flush",
-        "/testing/database/autocommit",
-        "/testing/database/commit",
-        "/testing/database/rollback",
     }
     graphql_endpoints = set(
         more_itertools.flatten(

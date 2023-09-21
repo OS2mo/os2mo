@@ -112,13 +112,6 @@ lora_endpoints = {
     "/lora",
 }
 
-testing_endpoints = {
-    "/testing/amqp/flush",
-    "/testing/database/autocommit",
-    "/testing/database/commit",
-    "/testing/database/rollback",
-}
-
 all_endpoints = (
     {
         "",
@@ -146,10 +139,3 @@ def test_lora_endpoints(set_settings: Callable[..., None]) -> None:
     app = create_app()
     routes = {r.path for r in app.routes} | {""}
     assert routes == all_endpoints - lora_endpoints
-
-
-def test_testing_endpoints(set_settings: Callable[..., None]) -> None:
-    set_settings(INSECURE_ENABLE_TESTING_API=True)
-    app = create_app()
-    routes = {r.path for r in app.routes} | {""}
-    assert routes == all_endpoints | testing_endpoints

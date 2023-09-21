@@ -23,7 +23,6 @@ from structlog import get_logger
 
 from . import lora
 from . import service
-from . import testing
 from . import triggers
 from .auth.exceptions import get_auth_exception_handler
 from .config import Environment
@@ -279,13 +278,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         meta_router(),
         tags=["Meta"],
     )
-
-    if settings.insecure_enable_testing_api:
-        app.include_router(
-            testing.router,
-            prefix="/testing",
-            tags=["Testing"],
-        )
 
     if settings.expose_lora:
         # Mount all of Lora in
