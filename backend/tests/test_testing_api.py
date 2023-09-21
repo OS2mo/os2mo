@@ -77,11 +77,11 @@ async def test_rollback(
     monkeypatch.delenv("TESTING")
 
     # Disable autocommit
-    raw_client.post("/testing/database/autocommit", params={"enable": False})
+    raw_client.post("/testing/autocommit", params={"enable": False})
 
     # Create and commit employee
     employee_uuid = create_employee(graphapi_post, surname="foo")
-    raw_client.post("/testing/database/commit")
+    raw_client.post("/testing/commit")
     assert read_employee_surname(graphapi_post, employee_uuid) == "foo"
 
     # Update surname without committing
@@ -89,7 +89,7 @@ async def test_rollback(
     assert read_employee_surname(graphapi_post, employee_uuid) == "bar"
 
     # Rollback to committed value
-    raw_client.post("/testing/database/rollback")
+    raw_client.post("/testing/rollback")
     assert read_employee_surname(graphapi_post, employee_uuid) == "foo"
 
     # Close connection to ensure the next test will recreate it with settings expected

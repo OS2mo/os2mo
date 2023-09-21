@@ -113,10 +113,9 @@ lora_endpoints = {
 }
 
 testing_endpoints = {
-    "/testing/amqp/flush",
-    "/testing/database/autocommit",
-    "/testing/database/commit",
-    "/testing/database/rollback",
+    "/testing/autocommit",
+    "/testing/commit",
+    "/testing/rollback",
 }
 
 all_endpoints = (
