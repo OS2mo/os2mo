@@ -9,6 +9,11 @@ include:
 # NOTE: These templates are imported and used by our other components to run integration tests
 # against OS2mo. It's very easy to break tests in the other repos by changing something here.
 
+variables:
+  # The default config file for OS2mo-init is (re-)declared to allow integrations to
+  # overwrite with their own facets, classes and IT-systems.
+  OS2MO_INIT_CONFIG: "/config/config.yml"
+
 .variables:mo:
   variables:
     PYTHONASYNCIODEBUG: "1"
@@ -82,6 +87,8 @@ include:
         KEYCLOAK_MO_CLIENT_REDIRECT_URI: '["*"]'
         KEYCLOAK_MO_CLIENT_WEB_ORIGIN: '["*"]'
         KEYCLOAK_REALM_USERS: '[{"username": "bruce", "password": "bruce", "firstname": "Bruce", "lastname": "Lee", "email": "bruce@kung.fu", "enabled": true, "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a"}]'
+        KEYCLOAK_DIPEX_CLIENT_ENABLED: "true"
+        KEYCLOAK_DIPEX_CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
     # AMQP
     - name: rabbitmq:3
       alias: msg-broker
@@ -111,6 +118,9 @@ include:
       alias: mo-amqp-subsystem
       variables: !reference [ .variables:mo, variables ]
       command: [ "python", "-m", "mora.cli", "amqp", "start" ]
+    - name: magentaaps/os2mo-init:2
+      variables:
+        CONFIG_FILE: $OS2MO_INIT_CONFIG
   before_script:
     - !reference [ .pytest, before_script ]
     - !reference [ .services:mo-backing, before_script ]
