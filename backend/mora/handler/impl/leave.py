@@ -7,8 +7,8 @@ from structlog import get_logger
 from .. import reading
 from ... import mapping
 from ...graphapi.middleware import is_graphql
+from ...service import clazz
 from ...service import employee
-from ...service import facet
 from .engagement import get_engagement
 from mora import lora
 from mora import util
@@ -50,7 +50,7 @@ class LeaveReader(reading.OrgFunkReadingHandler):
         )
 
         leave_type_task = create_task(
-            facet.request_bulked_get_one_class(
+            clazz.request_bulked_get_one_class(
                 leave_type, only_primary_uuid=only_primary_uuid
             )
         )
