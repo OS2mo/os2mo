@@ -685,10 +685,22 @@ async def test_create_org_unit(service_client: TestClient) -> None:
     assert_registrations_equal(actual_org_unit, expected)
 
     org_unit_type_institute_without_published = deepcopy(org_unit_type_institute)
-    org_unit_type_institute_without_published.pop("published")
+    # org_unit_type_institute_without_published.pop("published")
+    org_unit_type_institute_without_published.pop("org_uuid")
+    org_unit_type_institute_without_published.pop("facet_uuid")
+    org_unit_type_institute_without_published["validity"] = {
+        "from": "2016-01-01T00:00:00+01:00",
+        "to": None,
+    }
 
     org_unit_type_department_without_published = deepcopy(org_unit_type_department)
-    org_unit_type_department_without_published.pop("published")
+    # org_unit_type_department_without_published.pop("published")
+    org_unit_type_department_without_published.pop("org_uuid")
+    org_unit_type_department_without_published.pop("facet_uuid")
+    org_unit_type_department_without_published["validity"] = {
+        "from": "2016-01-01T00:00:00+01:00",
+        "to": None,
+    }
 
     with set_get_configuration("mora.service.shimmed.org_unit.get_configuration"):
         response = service_client.request("GET", f"/service/ou/{unitid}/")
@@ -707,6 +719,8 @@ async def test_create_org_unit(service_client: TestClient) -> None:
                 "top_level_facet": org_unit_level_facet,
                 "user_key": "orgunitlevel10",
                 "uuid": "0f015b67-f250-43bb-9160-043ec19fad48",
+                "published": "Publiceret",
+                "validity": {"from": "2016-01-01T00:00:00+01:00", "to": None},
             },
             "time_planning": org_unit_type_institute_without_published,
             "org_unit_type": org_unit_type_institute_without_published,
@@ -1211,6 +1225,9 @@ org_unit_type_department = {
     "top_level_facet": org_unit_type_facet,
     "user_key": "afd",
     "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+    "org_uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+    "validity": {"from": "1900-01-01", "to": None},
+    "facet_uuid": org_unit_type_facet["uuid"],
 }
 org_unit_type_institute = {
     "example": None,
@@ -1223,6 +1240,9 @@ org_unit_type_institute = {
     "top_level_facet": org_unit_type_facet,
     "user_key": "inst",
     "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+    "org_uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+    "validity": {"from": "1900-01-01", "to": None},
+    "facet_uuid": org_unit_type_facet["uuid"],
 }
 org_unit_type_faculty = {
     "example": None,
@@ -1235,6 +1255,9 @@ org_unit_type_faculty = {
     "top_level_facet": org_unit_type_facet,
     "user_key": "fak",
     "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+    "org_uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+    "validity": {"from": "1900-01-01", "to": None},
+    "facet_uuid": org_unit_type_facet["uuid"],
 }
 
 parent_org_unit = {
@@ -1266,6 +1289,9 @@ humanities_org_unit = {
         "top_level_facet": org_unit_hierarchy_facet,
         "user_key": "selvejet",
         "uuid": "69de6410-bfe7-bea5-e6cc-376b3302189c",
+        "org_uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+        "validity": {"from": "2016-01-01", "to": None},
+        "facet_uuid": org_unit_hierarchy_facet["uuid"],
     },
     "org_unit_level": None,
     "org_unit_type": org_unit_type_institute,
