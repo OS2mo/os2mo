@@ -19,6 +19,7 @@ from .association import terminate_association
 from .association import update_association
 from .classes import create_class
 from .classes import delete_class
+from .classes import terminate_class
 from .classes import update_class
 from .employee import create_employee
 from .employee import terminate as terminate_employee
@@ -53,6 +54,7 @@ from .inputs import AssociationCreateInput
 from .inputs import AssociationTerminateInput
 from .inputs import AssociationUpdateInput
 from .inputs import ClassCreateInput
+from .inputs import ClassTerminateInput
 from .inputs import ClassUpdateInput
 from .inputs import EmployeeCreateInput
 from .inputs import EmployeeTerminateInput
@@ -385,6 +387,15 @@ class Mutation:
         )
 
     # TODO: class_terminate
+    @strawberry.mutation(
+        description="Terminates a class.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_terminate_permission("class"),
+        ],
+    )
+    async def class_terminate(self, input: ClassTerminateInput) -> Response[Class]:
+        return uuid2response(await terminate_class(input.to_pydantic()), ClassRead)
 
     @strawberry.mutation(
         description="Deletes a class." + delete_warning,

@@ -11,6 +11,7 @@ from .models import AssociationCreate
 from .models import AssociationTerminate
 from .models import AssociationUpdate
 from .models import ClassCreate
+from .models import ClassTerminate
 from .models import ClassUpdate
 from .models import EmployeeCreate
 from .models import EmployeeTerminate
@@ -156,6 +157,14 @@ class ClassCreateInput:
 )
 class ClassUpdateInput:
     """input model for updating a class."""
+
+
+@strawberry.experimental.pydantic.input(
+    model=ClassTerminate,
+    all_fields=True,
+)
+class ClassTerminateInput:
+    """input model for terminating a class."""
 
 
 # Employees
