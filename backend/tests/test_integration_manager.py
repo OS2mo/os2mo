@@ -744,6 +744,9 @@ def test_create_vacant_manager(service_client: TestClient) -> None:
                 "top_level_facet": employee_address_type_facet,
                 "user_key": "BrugerEmail",
                 "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
+                "facet_uuid": employee_address_type_facet["uuid"],
+                "org_uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "validity": {"from": "2016-01-01", "to": None},
             },
             "manager_type": {
                 "example": None,
@@ -756,6 +759,9 @@ def test_create_vacant_manager(service_client: TestClient) -> None:
                 "top_level_facet": association_type_facet,
                 "user_key": "medl",
                 "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
+                "facet_uuid": association_type_facet["uuid"],
+                "org_uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "validity": {"from": "1900-01-01", "to": None},
             },
             "org_unit": {
                 "name": "Historisk Institut",
@@ -776,6 +782,9 @@ def test_create_vacant_manager(service_client: TestClient) -> None:
                     "top_level_facet": association_type_facet,
                     "user_key": "medl",
                     "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
+                    "facet_uuid": association_type_facet["uuid"],
+                    "org_uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "validity": {"from": "1900-01-01", "to": None},
                 }
             ],
             "uuid": function_id,
