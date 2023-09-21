@@ -25,6 +25,7 @@ from mora.graphapi.versions.latest.dataloaders import MOModel
 from mora.graphapi.versions.latest.graphql_utils import PrintableStr
 from mora.graphapi.versions.latest.models import ClassCreate
 from mora.util import DEFAULT_TIMEZONE
+from mora.util import POSITIVE_INFINITY
 from ramodels.mo import ClassRead
 from tests.conftest import GQLResponse
 
@@ -279,6 +280,7 @@ async def test_integration_create_class(test_data, graphapi_post) -> None:
             .replace(tzinfo=DEFAULT_TIMEZONE)
             .isoformat()
             if test_data_model.validity.to_date
+            and test_data_model.validity.to_date.year != POSITIVE_INFINITY.year
             else None,
         },
     }
