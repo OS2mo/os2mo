@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import datetime
 from collections.abc import Callable
 from operator import itemgetter
 
@@ -8,6 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from . import util
+from mora import util as mora_util
 
 
 org_unit_type_facet = {
@@ -612,6 +614,7 @@ def test_children(service_client: TestClient) -> None:
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 def test_facet_create_and_update(service_client: TestClient) -> None:
+    now = mora_util.now()
     # Tests new creation - 200 message
     response = service_client.request(
         "POST",
@@ -623,6 +626,11 @@ def test_facet_create_and_update(service_client: TestClient) -> None:
             "owner": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
             "scope": "TEXT",
             "org_uuid": "0b6c3ae7-dfe9-4136-89ee-53de96fb688b",
+            "published": "Publiceret",
+            "validity": {
+                "from": now.date().isoformat(),
+                "to": None,
+            },
         },
     )
     assert response.status_code == 200
@@ -696,6 +704,11 @@ def test_facet_create_and_update(service_client: TestClient) -> None:
             "name": "Ergoterapeut",
             "scope": "TEXT",
             "org_uuid": "0b6c3ae7-dfe9-4136-89ee-53de96fb688b",
+            "published": "Publiceret",
+            "validity": {
+                "from": (now + datetime.timedelta(days=1)).date().isoformat(),
+                "to": None,
+            },
         },
     )
     assert response.status_code == 200
