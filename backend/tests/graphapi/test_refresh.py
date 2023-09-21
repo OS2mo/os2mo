@@ -40,10 +40,12 @@ async def test_refresh_mutators(
     mutator = f"{model}_refresh"
     mutation = f"""
       mutation RefreshMutation($uuid: UUID!) {{
-        {mutator}(filter: {{uuids: [$uuid]}})
+        {mutator}(filter: {{uuids: [$uuid]}}) {{
+          objects
+        }}
       }}
     """
     response: GQLResponse = graphapi_post(mutation, variables=dict(uuid=filter_uuid))
     assert response.errors is None
-    assert response.data[mutator] == [filter_uuid]
+    assert response.data[mutator]["objects"] == [filter_uuid]
     mock.assert_awaited_once_with(routing_key=model, payload=filter_uuid, exchange=None)

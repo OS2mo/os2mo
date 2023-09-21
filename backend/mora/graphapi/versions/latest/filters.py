@@ -207,6 +207,11 @@ class HealthFilter:
     )
 
 
+@strawberry.input(description="IT system filter.")
+class ITSystemFilter(BaseFilter):
+    pass
+
+
 @strawberry.input(description="IT user filter.")
 class ITUserFilter(BaseFilter):
     employees: list[UUID] | None = strawberry.field(
