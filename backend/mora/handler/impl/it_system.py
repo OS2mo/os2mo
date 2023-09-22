@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """ITSystem Reading Handler (Lora)"""
-from datetime import datetime
-
 from structlog import get_logger
 
 from .. import reading
@@ -13,45 +11,32 @@ from ... import mapping
 from ... import util
 from ...service.itsystem import MO_OBJ_TYPE
 
-logger = get_logger()
-
 ROLE_TYPE = "itsystem"
+
+logger = get_logger()
 
 
 @reading.register(ROLE_TYPE)
 class ITSystemReader(reading.ReadingHandler):
     @classmethod
-    async def get(
-        cls, c, search_fields, changed_since: datetime | None = None, flat=False
-    ):
-        object_tuples = await cls._get_lora_object(
-            c=c, search_fields=search_fields, changed_since=changed_since
-        )
-
+    async def get(cls, c, search_fields, flat=False):
+        object_tuples = await cls._get_lora_object(c=c, search_fields=search_fields)
         return await cls._get_obj_effects(c, object_tuples)
 
     @classmethod
-    async def get_from_type(cls, c, type, objid, changed_since: datetime | None = None):
+    async def get_from_type(cls, c, type, objid):
         if type != ROLE_TYPE:
             exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
-
-        object_tuples = await c.itsystem.get_all_by_uuid(
-            uuids=[objid], changed_since=changed_since
-        )
+        object_tuples = await c.itsystem.get_all_by_uuid(uuids=[objid])
         return await cls._get_obj_effects(c, object_tuples)
 
     @classmethod
-    async def _get_lora_object(
-        cls, c, search_fields, changed_since: datetime | None = None
-    ):
+    async def _get_lora_object(cls, c, search_fields):
         if mapping.UUID in search_fields:
             return await c.itsystem.get_all_by_uuid(
                 uuids=search_fields[mapping.UUID],
             )
-        return await c.itsystem.get_all(
-            changed_since=changed_since,
-            **search_fields,
-        )
+        return await c.itsystem.get_all(**search_fields)
 
     @classmethod
     async def _get_effects(cls, c, obj, **params):
@@ -108,7 +93,6 @@ async def get_one_itsystem(
         "user_key": attrs.get("brugervendtnoegle"),
     }
 
-    # TODO: Figure out the correct way instead of just using [0]
     validities = itsystem["tilstande"]["itsystemgyldighed"]
     response[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
 
