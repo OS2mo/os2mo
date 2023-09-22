@@ -2261,6 +2261,8 @@ class ITSystem:
     # TODO: Document this
     system_type: str | None = strawberry.auto
 
+    validity: Validity = strawberry.auto
+
 
 @strawberry.experimental.pydantic.type(
     model=ITUserRead,

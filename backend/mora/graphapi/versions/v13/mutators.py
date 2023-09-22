@@ -7,6 +7,7 @@ from typing import Annotated
 from uuid import UUID
 
 import strawberry
+from pydantic import parse_obj_as
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
@@ -73,7 +74,6 @@ from ..latest.it_user import terminate as terminate_ituser
 from ..latest.it_user import update as update_ituser
 from ..latest.itsystem import create_itsystem
 from ..latest.itsystem import delete_itsystem
-from ..latest.itsystem import ITSystemCreateInput
 from ..latest.itsystem import update_itsystem
 from ..latest.kle import create_kle
 from ..latest.kle import terminate_kle
@@ -85,6 +85,8 @@ from ..latest.manager import create_manager
 from ..latest.manager import terminate_manager
 from ..latest.manager import update_manager
 from ..latest.models import FileStore
+from ..latest.models import ITSystemCreate as LatestITSystemCreate
+from ..latest.models import ITSystemUpdate as LatestITSystemUpdate
 from ..latest.org import create_org
 from ..latest.org import OrganisationCreate
 from ..latest.org_unit import create_org_unit
@@ -99,6 +101,7 @@ from ..latest.permissions import IsAuthenticatedPermission
 from ..latest.role import create_role
 from ..latest.role import terminate_role
 from ..latest.role import update_role
+from ..v14.version import ITSystemCreateInput
 from .schema import Address
 from .schema import Association
 from .schema import Class
@@ -506,9 +509,10 @@ class Mutation:
     async def itsystem_create(
         self, info: Info, input: ITSystemCreateInput
     ) -> Response[ITSystem]:
-        note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await create_itsystem(input.to_pydantic(), org.uuid, note)
+        v13_model = input.to_pydantic()
+        latest_model = parse_obj_as(LatestITSystemCreate, v13_model.to_latest_dict())
+        uuid = await create_itsystem(latest_model, org.uuid)
         return uuid2response(uuid, ITSystemRead)
 
     @strawberry.mutation(
@@ -521,12 +525,11 @@ class Mutation:
     async def itsystem_update(
         self, info: Info, input: ITSystemCreateInput
     ) -> Response[ITSystem]:
-        note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await update_itsystem(input.to_pydantic(), input.uuid, org.uuid, note)  # type: ignore
+        v13_model = input.to_pydantic()
+        latest_model = parse_obj_as(LatestITSystemUpdate, v13_model.to_latest_dict())
+        uuid = await update_itsystem(latest_model, org.uuid)  # type: ignore
         return uuid2response(uuid, ITSystemRead)
-
-    # TODO: itsystem_terminate
 
     @strawberry.mutation(
         description="Deletes an ITSystem." + delete_warning,
@@ -535,7 +538,7 @@ class Mutation:
             gen_delete_permission("itsystem"),
         ],
     )
-    async def itsystem_delete(self, info: Info, uuid: UUID) -> Response[ITSystem]:
+    async def itsystem_delete(self, uuid: UUID) -> Response[ITSystem]:
         note = ""
         uuid = await delete_itsystem(uuid, note)
         return uuid2response(uuid, ITSystemRead)

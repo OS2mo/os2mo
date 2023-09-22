@@ -63,6 +63,9 @@ from .inputs import EngagementUpdateInput
 from .inputs import ITAssociationCreateInput
 from .inputs import ITAssociationTerminateInput
 from .inputs import ITAssociationUpdateInput
+from .inputs import ITSystemCreateInput
+from .inputs import ITSystemTerminateInput
+from .inputs import ITSystemUpdateInput
 from .inputs import ITUserCreateInput
 from .inputs import ITUserTerminateInput
 from .inputs import ITUserUpdateInput
@@ -89,7 +92,7 @@ from .it_user import terminate as terminate_ituser
 from .it_user import update as update_ituser
 from .itsystem import create_itsystem
 from .itsystem import delete_itsystem
-from .itsystem import ITSystemCreateInput
+from .itsystem import terminate_itsystem
 from .itsystem import update_itsystem
 from .kle import create_kle
 from .kle import terminate_kle
@@ -689,9 +692,8 @@ class Mutation:
     async def itsystem_create(
         self, info: Info, input: ITSystemCreateInput
     ) -> Response[ITSystem]:
-        note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await create_itsystem(input.to_pydantic(), org.uuid, note)
+        uuid = await create_itsystem(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, ITSystemRead)
 
     @strawberry.mutation(
@@ -702,14 +704,23 @@ class Mutation:
         ],
     )
     async def itsystem_update(
-        self, info: Info, input: ITSystemCreateInput
+        self, info: Info, input: ITSystemUpdateInput
     ) -> Response[ITSystem]:
-        note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await update_itsystem(input.to_pydantic(), input.uuid, org.uuid, note)  # type: ignore
+        uuid = await update_itsystem(input.to_pydantic(), org.uuid)  # type: ignore
         return uuid2response(uuid, ITSystemRead)
 
-    # TODO: itsystem_terminate
+    @strawberry.mutation(
+        description="Terminates an IT-System.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_terminate_permission("itsystem"),
+        ],
+    )
+    async def itsystem_terminate(
+        self, input: ITSystemTerminateInput
+    ) -> Response[ITSystem]:
+        return uuid2response(await terminate_itsystem(input.to_pydantic()), ITUserRead)
 
     @strawberry.mutation(
         description="Deletes an ITSystem." + delete_warning,

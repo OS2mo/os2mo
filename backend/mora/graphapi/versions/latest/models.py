@@ -9,6 +9,7 @@ from uuid import UUID
 
 import strawberry
 from pydantic import BaseModel
+from pydantic import Extra
 from pydantic import Field
 from pydantic import root_validator
 
@@ -18,6 +19,8 @@ from mora import mapping
 from mora.util import CPR
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
+from mora.util import to_lora_time
+from oio_rest import validate
 from ramodels.mo import OpenValidity
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo._shared import UUIDBase
@@ -46,26 +49,34 @@ class Validity(OpenValidity):
         }
 
     def get_termination_effect(self) -> dict:
+        if not self.from_date:
+            # TODO: This if is legacy, and should be removed since the logic is confusing.
+            #       Instead of replacing "from" with "to", it should fail and clients should
+            #       use the logic correctly instead.
+            if self.to_date:
+                logger.warning(
+                    'Validity called without "from" in "validity"',
+                )
+                return common._create_virkning(
+                    self.get_terminate_effect_to_date(), "infinity"
+                )
+
+            exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
+                key="Validity must have a 'from' date",
+                validity={
+                    "from": self.from_date.isoformat() if self.from_date else None,
+                    "to": self.to_date.isoformat() if self.to_date else None,
+                },
+            )
+
         if self.from_date and self.to_date:
             return common._create_virkning(
                 self.get_terminate_effect_from_date(),
                 self.get_terminate_effect_to_date(),
             )
 
-        if not self.from_date and self.to_date:
-            logger.warning(
-                'terminate org unit called without "from" in "validity"',
-            )
-            return common._create_virkning(
-                self.get_terminate_effect_to_date(), "infinity"
-            )
-        exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
-            key="Organisation unit must be set with either 'to' or both 'from' "
-            "and 'to'",
-            unit={
-                "from": self.from_date.isoformat() if self.from_date else None,
-                "to": self.to_date.isoformat() if self.to_date else None,
-            },
+        return common._create_virkning(
+            self.get_terminate_effect_from_date(), "infinity"
         )
 
     def get_terminate_effect_from_date(self) -> datetime.datetime:
@@ -94,7 +105,7 @@ class Validity(OpenValidity):
 class ValidityTerminate(Validity):
     to_date: datetime.datetime = Field(
         alias="to",
-        description="When the validity should end " "- required when terminating",
+        description="When the validity should end - required when terminating",
     )
 
 
@@ -722,6 +733,82 @@ class ITAssociationTerminate(ValidityTerminate):
 
 # ITSystems
 # ---------
+class ITSystemCreate(UUIDBase):
+    """Model representing an itsystem creation."""
+
+    user_key: str
+    name: str
+    validity: RAValidity = Field(description="Validity range for the itsystem")
+
+    class Config:
+        frozen = True
+        allow_population_by_field_name = True
+        extra = Extra.forbid
+
+    def to_registration(self, organisation_uuid: UUID) -> dict:
+        from_time = to_lora_time(self.validity.from_date or "-infinity")
+        to_time = to_lora_time(self.validity.to_date or "infinity")
+
+        lora_registration = {
+            "attributter": {
+                "itsystemegenskaber": [
+                    {
+                        "brugervendtnoegle": self.user_key,
+                        "virkning": {
+                            "from": from_time,
+                            "to": to_time,
+                        },
+                        "itsystemnavn": self.name,
+                    }
+                ]
+            },
+            "tilstande": {
+                "itsystemgyldighed": [
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "from": from_time,
+                            "to": to_time,
+                        },
+                    }
+                ]
+            },
+            "relationer": {
+                "tilknyttedeorganisationer": [
+                    {
+                        "uuid": str(organisation_uuid),
+                        "virkning": {
+                            "from": from_time,
+                            "to": to_time,
+                        },
+                    }
+                ],
+            },
+        }
+        validate.validate(lora_registration, "itsystem")
+        return lora_registration
+
+
+class ITSystemUpdate(ITSystemCreate):
+    uuid: UUID = Field(description="UUID for the it-system we want to edit.")
+
+
+class ITSystemTerminate(UUIDBase):
+    uuid: UUID = Field(description="UUID for the it-system we want to terminate.")
+    validity: ValidityTerminate = Field(description="When to terminate the ITSystem")
+
+    def to_registration(self) -> dict:
+        return {
+            "tilstande": {
+                "itsystemgyldighed": [
+                    {
+                        "gyldighed": "Inaktiv",
+                        "virkning": self.validity.get_termination_effect(),
+                    }
+                ]
+            },
+            "note": "Afslut enhed",
+        }
 
 
 # ITUsers

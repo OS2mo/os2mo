@@ -9,6 +9,79 @@ code is up-to-date with the latest version.
 
 Below follows the migration guide for each version.
 
+## Version 15
+
+GraphQL version 15 introduces breaking changes to a few itsystem related
+endpoint. Specifically the `itsystem` query endpoint, and the `itsystem_create`
+and the `itsystem_update` mutators.
+
+The breaking changes to the `itsystem` query endpoint as it is simply a filter that
+has been given a new type, as such it only affects users that explicitly typed the filter
+in their query, to migrate from GraphQL v14 in such case, simply rename the filter
+type:
+```graphql
+query ITSystemsRead($filter: BaseFilter){
+    itsystems(filter: $filter) {
+        ...
+    }
+}
+```
+to:
+```graphql
+query ITSystemsRead($filter: ITSystemFilter){
+    itsystems(filter: $filter) {
+        ...
+    }
+}
+```
+
+The breaking changes to the `itsystem_create` and `itsystem_update` mutators are
+a little more involved. First up the `itsystem_update` mutator now takes the
+`ITSystemUpdateInput` input-type, whereas GraphQL v14 unintentionally took the
+`ITSystemCreateInput` input-type. The newly introduced `ITSystemUpdateInput`
+input-type is still identical to its create counterpart, but keeping them separate
+allows for future non-breaking changes.
+The `ITSystemCreateInput` input-type itself has changed however as date arguments
+are now given inside a nested `validity` container, rather than on the input type
+itself. As such to migrate from GraphQL v15, simply fix the input type:
+```graphql
+mutation ITSystemUpdate($input: ITSystemCreateInput!){
+    itsystem_update(input: $input) {
+        uuid
+    }
+}
+```
+to:
+```graphql
+mutation ITSystemUpdate($input: ITSystemUpdateInput!){
+    itsystem_update(input: $input) {
+        uuid
+    }
+}
+```
+And ensure that the provided `input` payload has undergone the following transformation:
+```json
+{
+  "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+  "user_key": "Test",
+  "name": "Test",
+  "from": "1990-01-01T00:00:00+01:00",
+  "to": null
+}
+```
+to:
+```json
+{
+  "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+  "user_key": "Test",
+  "name": "Test",
+  "validity": {
+      "from": "1990-01-01T00:00:00+01:00",
+      "to": null
+  }
+}
+```
+
 ## Version 14
 
 GraphQL version 14 introduces a breaking change to the filter variables

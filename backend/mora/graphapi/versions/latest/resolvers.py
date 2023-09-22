@@ -629,16 +629,14 @@ class ITSystemResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        # TODO: change BaseFilter to ITSystemFilter in a breaking change or new version
-        filter: BaseFilter | None = None,
+        filter: ITSystemFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
     ):
-        """Resolve it-systems."""
         if filter is None:
             filter = ITSystemFilter()
 
-        return await super().resolve(
+        return await super()._resolve(
             info=info,
             filter=filter,
             limit=limit,
