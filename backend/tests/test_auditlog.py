@@ -18,6 +18,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from mora.audit import audit_log
+from mora.auth.middleware import LORA_USER_UUID
 from mora.auth.middleware import set_authenticated_user
 from mora.db import AuditLogOperation as AuditLogOperation
 from mora.db import AuditLogRead
@@ -70,7 +71,7 @@ async def assert_one_audit_entry(
     arguments: dict[str, Any] | None = None,
     now: datetime | None = None,
 ) -> None:
-    actor = actor or UUID("42c432e8-9c4a-11e6-9f62-873cf34a735f")
+    actor = actor or LORA_USER_UUID
     arguments = arguments or {}
     now = now or (datetime.now(tz=DEFAULT_TIMEZONE) - timedelta(minutes=1))
     uuids = uuids or []
