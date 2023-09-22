@@ -38,7 +38,7 @@ Det skal ligeledes være muligt at styre hvem der har adgang til hvad i OS2mo. R
 ### OS2mo som anvendersystem på FK Org på Serviceplatformen
 
 OS2mo kan opdatere FK Organisation igennem OS2-komponenten OS2sync.
-Se [Vejledning til Serviceplatformen til FK Org](https://drive.google.com/file/d/1w5DnucWrkW2vrK_et-79yA-M6w1G3b6g/view)
+Se [Vejledning til Serviceplatformen til FK Org](../static/Vejledning til STSOrgSync v3.pdf)
 
 OS2mo kan ligeledes hente personoplysninger fra CPR-registret.
 
