@@ -745,7 +745,7 @@ class Mutation:
         self, info: Info, filter: ITSystemFilter | None = None, queue: str | None = None
     ) -> list[UUID]:
         results = await ITSystemResolver().resolve(info=info, filter=filter)
-        return await refresh(results=results, model="itsystem", queue=queue)
+        return await refresh(results=results, model="itsystem", queue=queue)  # type: ignore
 
     # ITUsers
     # -------

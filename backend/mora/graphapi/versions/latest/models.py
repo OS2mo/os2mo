@@ -795,9 +795,7 @@ class ITSystemUpdate(ITSystemCreate):
 
 class ITSystemTerminate(UUIDBase):
     uuid: UUID = Field(description="UUID for the it-system we want to terminate.")
-    validity: ValidityTerminate = Field(
-        description="When to terminate the ITSystem"
-    )
+    validity: ValidityTerminate = Field(description="When to terminate the ITSystem")
 
     def to_registration(self) -> dict:
         return {
