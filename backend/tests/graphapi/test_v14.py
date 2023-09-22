@@ -63,7 +63,7 @@ async def test_query_itsystems(graphapi_post: Callable) -> None:
     response: GQLResponse = graphapi_post(query_v15, url="/graphql/v14")
     error = first(response.errors)
     assert (
-        "Unknown type 'ITSystemFilter'. Did you mean 'ITUserFilter', 'BaseFilter', or 'ITSystem'?"
+        "Variable '$filter' of type 'ITSystemFilter!' used in position expecting type 'BaseFilter'."
         in error["message"]
     )
 
