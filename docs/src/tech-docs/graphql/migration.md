@@ -12,26 +12,28 @@ Below follows the migration guide for each version.
 ## Version 15
 
 GraphQL version 15 introduces breaking changes to a few itsystem related
-endpoint. Specifically the `itsystem` query endpoint, and the `itsystem_create`,
-`itsystem_update` and `itsystem_refresh` mutators.
+endpoint. Specifically the `itsystem` query endpoint, and the `itsystem_create`
+and the `itsystem_update` mutators.
 
-The breaking changes to the `itsystem` query endpoint and the `itsystem_refresh`
-mutator should be minimal to most users, as it is simply a filter that has been
-given a new type, as such it only affects users that explicitly typed the filter
+The breaking changes to the `itsystem` query endpoint as it is simply a filter that
+has been given a new type, as such it only affects users that explicitly typed the filter
 in their query, to migrate from GraphQL v14 in such case, simply rename the filter
 type:
 ```graphql
-mutation ITSystemRefresh($filter: BaseFilter, $queue: String){
-    itsystem_refresh(filter: $filter, queue: $queue)
+query ITSystemsRead($filter: BaseFilter){
+    itsystems(filter: $filter) {
+        ...
+    }
 }
 ```
 to:
 ```graphql
-mutation ITSystemRefresh($filter: ITSystemFilter, $queue: String){
-    itsystem_refresh(filter: $filter, queue: $queue)
+query ITSystemsRead($filter: ITSystemFilter){
+    itsystems(filter: $filter) {
+        ...
+    }
 }
 ```
-With a similar change for the top-level `itsystem` query endpoint.
 
 The breaking changes to the `itsystem_create` and `itsystem_update` mutators are
 a little more involved. First up the `itsystem_update` mutator now takes the

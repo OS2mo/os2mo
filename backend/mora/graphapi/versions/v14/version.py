@@ -2,18 +2,15 @@
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
 from typing import Any
-from uuid import UUID
 
 import strawberry
 from pydantic import Extra
 from pydantic import Field
 from strawberry.types import Info
 
-from ..latest.filters import BaseFilter
 from ..latest.mutators import uuid2response
 from ..latest.permissions import gen_create_permission
 from ..latest.permissions import gen_read_permission
-from ..latest.permissions import gen_refresh_permission
 from ..latest.permissions import gen_update_permission
 from ..latest.permissions import IsAuthenticatedPermission
 from ..latest.query import to_paged_response
@@ -142,51 +139,13 @@ class Mutation(NextGraphQLVersion.schema.mutation):  # type: ignore[name-defined
         uuid = response.data["itsystem_update"]["uuid"]
         return uuid2response(uuid, ITSystemRead)
 
-    @strawberry.mutation(
-        description="Refresh ITSystems.",
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_refresh_permission("itsystem"),
-        ],
-    )
-    async def itsystem_refresh(
-        self, info: Info, filter: BaseFilter | None = None, queue: str | None = None
-    ) -> list[UUID]:
-        filter_dict: dict[str, Any] = {}
-        if filter:
-            if filter.uuids:
-                filter_dict["uuids"] = filter.uuids
-            if filter.user_keys:
-                filter_dict["user_keys"] = filter.user_keys
-            if filter.from_date:
-                filter_dict["from_date"] = filter.from_date
-            if filter.to_date:
-                filter_dict["to_date"] = filter.to_date
-
-        response = await execute_graphql(
-            """
-            mutation ITSystemRefresh($filter: ITSystemFilter, $queue: String){
-                itsystem_refresh(filter: $filter, queue: $queue)
-            }
-            """,
-            graphql_version=NextGraphQLVersion,
-            context_value=info.context,
-            variable_values={"filter": filter_dict, "queue": queue},
-        )
-        if response.errors:
-            for error in response.errors:
-                raise ValueError(error.message)
-        uuids = response.data["itsystem_refresh"]
-        return uuids
-
 
 class GraphQLSchema(NextGraphQLVersion.schema):  # type: ignore
     """Version 14 of the GraphQL Schema.
 
-    Version 15 introduced a breaking change to the `itsystem_refresh` input filter type,
-    to the `itsystem_update` input type and to the `itsystems` query input filter type,
-    additionally both the `itsystem_create` and `itsystem_update` not require a `validity`
-    argument to be provided.
+    Version 15 introduced a breaking change to the `itsystem_update` input type and
+    to the `itsystems` query input filter type, additionally both the `itsystem_create`
+    and `itsystem_update` not require a `validity` argument to be provided.
     Version 14 ensures that the old functionality is still available.
     """
 

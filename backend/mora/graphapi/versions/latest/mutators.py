@@ -742,10 +742,21 @@ class Mutation:
         ],
     )
     async def itsystem_refresh(
-        self, info: Info, filter: ITSystemFilter | None = None, queue: str | None = None
-    ) -> list[UUID]:
-        results = await ITSystemResolver().resolve(info=info, filter=filter)
-        return await refresh(results=results, model="itsystem", queue=queue)  # type: ignore
+        self,
+        info: Info,
+        filter: ITSystemFilter | None = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        queue: str | None = None,
+    ) -> Paged[UUID]:
+        resolve = to_paged_uuids(ITSystemResolver())
+        page = await resolve(
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+        )
+        return await refresh(page=page, model="itsystem", queue=queue)
 
     # ITUsers
     # -------
