@@ -5,6 +5,8 @@ title: SD-Læs
 Denne integration gør det muligt at hente og opdatere organisations- og
 medarbejderoplysninger fra SD Løn til OS2MO.
 
+Bemærk, at SD-Løns API er et såkaldt medarbejder-API, og ikke et organisationsenheds-API. Det betyder, at visse ændringer på enheder ikke lår igennem i MO, med mindre man benytter sig af den såkaldt SD-Tool-knap i MOs brugergrænseflade. Læs om det [her](../static/SD-tool.pdf).
+
 ## Opsætning
 
 For at kunne afvikle integrationen, kræves loginoplysninger til SD-Løn,
