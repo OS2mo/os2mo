@@ -225,23 +225,6 @@ async def get_classes(**kwargs: Any) -> dict[UUID, list[ClassRead]]:
     return uuid_map
 
 
-# TODO: Remove this, when load_mo have been implemented for classes
-async def load_classes(uuids: list[UUID]) -> list[list[ClassRead]]:
-    """Load MO models from LoRa by UUID.
-
-    Args:
-        uuids: UUIDs to load.
-
-    Returns:
-        List of parsed MO classes.
-    """
-    c = get_connector()
-    lora_result = await c.klasse.get_all_by_uuid(uuids)
-    mo_models = lora_classes_to_mo_classes(lora_result)
-    uuid_map = group_by_uuid(mo_models, uuids)
-    return list(map(uuid_map.get, uuids))  # type: ignore
-
-
 def lora_facet_to_mo_facet(lora_tuple: tuple[UUID, LFacetRead]) -> FacetRead:
     uuid, lora_facet = lora_tuple
 

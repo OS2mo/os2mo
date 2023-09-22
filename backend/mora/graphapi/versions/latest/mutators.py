@@ -386,7 +386,6 @@ class Mutation:
             ClassWrite,
         )
 
-    # TODO: class_terminate
     @strawberry.mutation(
         description="Terminates a class.",
         permission_classes=[

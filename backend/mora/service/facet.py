@@ -107,7 +107,9 @@ async def get_facetids(facet: str):
     return facetids
 
 
-# TODO: Refactored and moved below code to appropriate place
+# TODO: Refactored and moved below class-related code, so its not located under facets.
+#       Some of the prev. logic have already been moved to ./clazz.py, but this had issues
+#       due to circular-imports.. and due to time constraints, it was left in this state
 
 
 async def get_sorted_primary_class_list(c: lora.Connector) -> list[tuple[str, int]]:
