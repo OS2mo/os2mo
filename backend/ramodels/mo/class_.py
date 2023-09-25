@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import Field
 
 from ramodels.mo._shared import MOBase
+from ramodels.mo._shared import Validity
 
 
 class ClassBase(MOBase):
@@ -20,6 +21,7 @@ class ClassBase(MOBase):
     parent_uuid: UUID | None = Field(description="UUID of the parent class.")
     example: str | None = Field(description="Example usage.")
     owner: UUID | None = Field(description="Owner of class")
+    validity: Validity = Field(description="Validity of the IT system object.")
 
 
 class ClassRead(ClassBase):

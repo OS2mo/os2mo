@@ -1494,6 +1494,8 @@ class Class:
     async def parent_uuid(self, root: ClassRead) -> UUID | None:
         return root.parent_uuid
 
+    validity: Validity = strawberry.auto
+
 
 # Employee
 # --------
