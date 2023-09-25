@@ -301,9 +301,6 @@ async def is_candidate_parent_valid(
     org_unit_relations = (await c.organisationenhed.get(uuid=unitid))["relationer"]
     orgid = org_unit_relations["tilhoerer"][0]["uuid"]
 
-    if parent == orgid:
-        exceptions.ErrorCodes.V_CANNOT_MOVE_UNIT_TO_ROOT_LEVEL()
-
     # Use for checking that the candidate parent is not the units own subtree
     seen = {unitid}
 
@@ -318,6 +315,8 @@ async def is_candidate_parent_valid(
 
         seen.add(parent)
 
+        if parent == orgid:
+            break
         parentobj = await c.organisationenhed.get(uuid=parent)
 
         if not parentobj:

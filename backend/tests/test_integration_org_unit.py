@@ -1062,6 +1062,122 @@ async def test_move_org_unit(service_client: TestClient):
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2016-01-01")
+async def test_move_org_unit_to_root(service_client: TestClient):
+    "Test successfully moving organisational units"
+
+    org_unit_uuid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+
+    req = {
+        "type": "org_unit",
+        "data": {
+            "parent": None,
+            "uuid": org_unit_uuid,
+            "validity": {
+                "from": "2017-07-01",
+            },
+        },
+    }
+
+    response = service_client.request("POST", "/service/details/edit", json=req)
+    assert response.status_code == 200
+    assert response.json() == org_unit_uuid
+
+    expected = {
+        "note": "Rediger organisationsenhed",
+        "attributter": {
+            "organisationenhedegenskaber": [
+                {
+                    "virkning": {
+                        "from_included": True,
+                        "to_included": False,
+                        "from": "2016-01-01 00:00:00+01",
+                        "to": "infinity",
+                    },
+                    "brugervendtnoegle": "hum",
+                    "enhedsnavn": "Humanistisk fakultet",
+                }
+            ]
+        },
+        "tilstande": {
+            "organisationenhedgyldighed": [
+                {
+                    "gyldighed": "Aktiv",
+                    "virkning": {
+                        "from_included": True,
+                        "to_included": False,
+                        "from": "2016-01-01 00:00:00+01",
+                        "to": "infinity",
+                    },
+                },
+            ]
+        },
+        "relationer": {
+            "tilhoerer": [
+                {
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "virkning": {
+                        "from_included": True,
+                        "to_included": False,
+                        "from": "2016-01-01 00:00:00+01",
+                        "to": "infinity",
+                    },
+                }
+            ],
+            "overordnet": [
+                {
+                    "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                    "virkning": {
+                        "from": "2016-01-01 00:00:00+01",
+                        "from_included": True,
+                        "to": "2017-07-01 00:00:00+02",
+                        "to_included": False,
+                    },
+                },
+                {
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "virkning": {
+                        "from": "2017-07-01 00:00:00+02",
+                        "from_included": True,
+                        "to": "infinity",
+                        "to_included": False,
+                    },
+                },
+            ],
+            "enhedstype": [
+                {
+                    "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                    "virkning": {
+                        "from_included": True,
+                        "to_included": False,
+                        "from": "2016-01-01 00:00:00+01",
+                        "to": "infinity",
+                    },
+                }
+            ],
+            "opmærkning": [
+                {
+                    "uuid": "69de6410-bfe7-bea5-e6cc-376b3302189c",
+                    "virkning": {
+                        "from": "2016-12-31 23:00:00+01",
+                        "from_included": True,
+                        "to": "infinity",
+                        "to_included": False,
+                    },
+                }
+            ],
+        },
+        "livscykluskode": "Rettet",
+    }
+
+    c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+    actual = await c.organisationenhed.get(org_unit_uuid)
+
+    assert_registrations_equal(actual, expected)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@freezegun.freeze_time("2016-01-01")
 async def test_move_org_unit_wrong_org(service_client: TestClient) -> None:
     """Verify that we cannot move a unit into another organisation"""
 
@@ -1649,25 +1765,6 @@ def test_edit_time_planning(service_client: TestClient) -> None:
                 "error": True,
                 "error_key": "V_ORG_UNIT_MOVE_TO_CHILD",
                 "org_unit_uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                "status": 400,
-            },
-        ),
-        # Should fail validation when trying to move an org unit to the root level
-        (
-            {
-                "type": "org_unit",
-                "data": {
-                    "parent": {"uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"},
-                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                    "validity": {
-                        "from": "2017-07-01T00:00:00+02",
-                    },
-                },
-            },
-            {
-                "description": "Moving an org unit to the root level is not allowed",
-                "error": True,
-                "error_key": "V_CANNOT_MOVE_UNIT_TO_ROOT_LEVEL",
                 "status": 400,
             },
         ),
