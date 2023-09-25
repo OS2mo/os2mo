@@ -114,7 +114,7 @@ class ReadingHandler:
                     )
                 )
                 for start, end, effect in (await cls._get_effects(c, function_obj))
-                if util.is_reg_valid(effect)
+                if cls._is_reg_valid(effect)
             ]
         )
 
@@ -146,6 +146,17 @@ class ReadingHandler:
             )
             for x in sublist
         ]
+
+    @classmethod
+    @abc.abstractmethod
+    def _is_reg_valid(cls, effect: dict) -> bool:
+        """
+        Checks if a LoRa effect is valid.
+        Default to util.is_reg_valid, but can be overridden for special cases
+
+        :param effect: A LoRa effect
+        """
+        return util.is_reg_valid(effect)
 
 
 class OrgFunkReadingHandler(ReadingHandler):
