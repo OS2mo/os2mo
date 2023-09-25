@@ -19,7 +19,6 @@ from asyncio import gather
 from collections.abc import Awaitable
 from datetime import date
 from datetime import datetime
-from itertools import chain
 from typing import Any
 from uuid import UUID
 from uuid import uuid4
@@ -29,6 +28,7 @@ from fastapi import Body
 from fastapi import Depends
 from fastapi import Query
 from fastapi import Request
+from more_itertools import flatten
 from more_itertools import last
 from more_itertools import unzip
 
@@ -55,11 +55,6 @@ from mora.service.util import get_configuration
 router = APIRouter()
 
 logger = logging.getLogger(__name__)
-
-
-def flatten(list_of_lists):
-    """Flatten one level of nesting"""
-    return chain.from_iterable(list_of_lists)
 
 
 @enum.unique
@@ -139,6 +134,18 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
                 {"uuid": parent_uuid}, valid_from, valid_to
             )
 
+        def _inject_org_units(details, org_unit_uuid, valid_from, valid_to):
+            decorated = copy.deepcopy(details)
+            for detail in decorated:
+                detail["org_unit"] = {
+                    mapping.UUID: org_unit_uuid,
+                    mapping.VALID_FROM: valid_from,
+                    mapping.VALID_TO: valid_to,
+                    "allow_nonexistent": True,
+                }
+
+            return decorated
+
         details = util.checked_get(req, "details", [])
         details_with_org_units = _inject_org_units(
             details, unitid, valid_from, valid_to
@@ -205,6 +212,27 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
 
         # Always update gyldighed
         update_fields.append((mapping.ORG_UNIT_GYLDIGHED_FIELD, {"gyldighed": "Aktiv"}))
+
+        def get_lora_dict_current_attr(
+            lora_dict: dict, from_date: datetime, to_date: datetime
+        ):
+            """Returns the current active attribute for a LoRa dict/obj.
+
+            LoRa-Connector-Scopes returns objects with atrributes, and others, which are
+            unordered lists. The old logic assumed the last element was the current element,
+            which we still implement through last(), but now also filter the attributes based
+            on its date related to the given "from_date" and "to_date".
+            """
+
+            return last(
+                filter(
+                    lambda a: (
+                        util.get_effect_from(a) <= to_date
+                        and util.get_effect_to(a) > from_date
+                    ),
+                    mapping.ORG_UNIT_EGENSKABER_FIELD(lora_dict),
+                )
+            ).copy()
 
         try:
             attributes = get_lora_dict_current_attr(original, new_from, new_to)
@@ -332,66 +360,6 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         return submit
 
 
-def _inject_org_units(details, org_unit_uuid, valid_from, valid_to):
-    decorated = copy.deepcopy(details)
-    for detail in decorated:
-        detail["org_unit"] = {
-            mapping.UUID: org_unit_uuid,
-            mapping.VALID_FROM: valid_from,
-            mapping.VALID_TO: valid_to,
-            "allow_nonexistent": True,
-        }
-
-    return decorated
-
-
-def _get_count_related():
-    """
-    Given a URL query '?count=association&count=engagement&count=association',
-    return a set {'association', 'engagement'}.
-
-    Given a URL query '?count=association&count=invalid`, raise a HTTP error.
-    """
-    allowed = {"association", "engagement"}
-    given = set(util.get_query_args().getlist("count"))
-    invalid = given - allowed
-    if invalid:
-        exceptions.ErrorCodes.E_INVALID_INPUT(
-            'invalid value(s) for "count" query parameter: %r' % invalid
-        )
-    else:
-        return given
-
-
-async def __get_one_orgunit_from_cache(
-    unitid: str,
-    details: UnitDetails = UnitDetails.NCHILDREN,
-    validity: Any | None = None,
-    only_primary_uuid: bool = False,
-) -> dict[Any, Any] | None:
-    """
-    Get org unit from cache and process it
-    :param unitid: uuid of orgunit
-    :param details: configure processing of the org_unit
-    :param validity:
-    :param only_primary_uuid:
-    :return: A processed org_unit
-    """
-    connector = common.get_connector()
-    return await get_one_orgunit(
-        c=connector,
-        unitid=unitid,
-        unit=await get_lora_object(
-            type_=LoraObjectType.org_unit, uuid=unitid, connector=connector
-        )
-        if not only_primary_uuid
-        else None,
-        details=details,
-        validity=validity,
-        only_primary_uuid=only_primary_uuid,
-    )
-
-
 async def request_bulked_get_one_orgunit(
     unitid: str,
     details: UnitDetails = UnitDetails.NCHILDREN,
@@ -408,8 +376,15 @@ async def request_bulked_get_one_orgunit(
     :param only_primary_uuid:
     :return: Awaitable returning the processed org_unit
     """
-    return __get_one_orgunit_from_cache(
+    connector = common.get_connector()
+    return get_one_orgunit(
+        c=connector,
         unitid=unitid,
+        unit=await get_lora_object(
+            type_=LoraObjectType.org_unit, uuid=unitid, connector=connector
+        )
+        if not only_primary_uuid
+        else None,
         details=details,
         validity=validity,
         only_primary_uuid=only_primary_uuid,
@@ -729,8 +704,16 @@ async def get_unit_ancestor_tree(
 
     """
 
+    allowed = {"association", "engagement"}
+    given = set(util.get_query_args().getlist("count"))
+    invalid = given - allowed
+    if invalid:
+        exceptions.ErrorCodes.E_INVALID_INPUT(
+            'invalid value(s) for "count" query parameter: %r' % invalid
+        )
+
     c = common.get_connector()
-    count_related = {t: get_handler_for_type(t) for t in _get_count_related()}
+    count_related = {t: get_handler_for_type(t) for t in given}
 
     unitids = list(map(str, uuid))
     return await get_unit_tree(
@@ -1124,75 +1107,3 @@ async def create_org_unit(req: dict = Body(...), permissions=Depends(oidc.rbac_o
     request = await OrgUnitRequestHandler.construct(req, mapping.RequestType.CREATE)
 
     return await request.submit()
-
-
-async def terminate_org_unit_validation(unitid, request):
-    validity = request.get(mapping.VALIDITY, {})
-    if mapping.FROM in validity and mapping.TO in validity:
-        date = util.get_valid_from(request)
-    else:
-        date = util.get_valid_to(request)
-
-    c = lora.Connector(effective_date=util.to_iso_date(date))
-    await validator.is_date_range_in_org_unit_range(
-        {"uuid": unitid},
-        date - util.MINIMAL_INTERVAL,
-        date,
-    )
-
-    children = set(
-        await c.organisationenhed.load_uuids(
-            overordnet=unitid,
-            gyldighed="Aktiv",
-        )
-    )
-
-    roles = set(
-        await c.organisationfunktion.load_uuids(
-            tilknyttedeenheder=unitid,
-            gyldighed="Aktiv",
-        )
-    )
-
-    active_roles = roles
-    role_counts = set()
-    if active_roles:
-        role_counts = {
-            mapping.ORG_FUNK_EGENSKABER_FIELD.get(obj)[0]["funktionsnavn"]
-            for objid, obj in await c.organisationfunktion.get_all_by_uuid(
-                uuids=active_roles
-            )
-        }
-
-    if children and role_counts:
-        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES(
-            child_count=len(children),
-            roles=", ".join(sorted(role_counts)),
-        )
-    elif children:
-        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN(
-            child_count=len(children),
-        )
-    elif role_counts:
-        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_ROLES(
-            roles=", ".join(sorted(role_counts)),
-        )
-
-
-def get_lora_dict_current_attr(lora_dict: dict, from_date: datetime, to_date: datetime):
-    """Returns the current active attribute for a LoRa dict/obj.
-
-    LoRa-Connector-Scopes returns objects with atrributes, and others, which are
-    unordered lists. The old logic assumed the last element was the current element,
-    which we still implement through last(), but now also filter the attributes based
-    on its date related to the given "from_date" and "to_date".
-    """
-
-    return last(
-        filter(
-            lambda a: (
-                util.get_effect_from(a) <= to_date and util.get_effect_to(a) > from_date
-            ),
-            mapping.ORG_UNIT_EGENSKABER_FIELD(lora_dict),
-        )
-    ).copy()
