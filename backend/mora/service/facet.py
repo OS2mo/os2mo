@@ -37,7 +37,7 @@ from .. import util
 from ..exceptions import ErrorCodes
 from ..lora import LoraObjectType
 from .tree_helper import prepare_ancestor_tree
-from mora.request_scoped.bulking import request_wide_bulk
+from mora.request_scoped.bulking import get_lora_object
 from ramodels.mo.class_ import ClassWrite
 
 logger = logging.getLogger(__name__)
@@ -172,13 +172,13 @@ async def __get_facet_from_cache(facetid, orgid=None, data=None) -> Any:
     :param data:
     :return: A processed facet
     """
-
+    connector = common.get_connector()
     return await get_one_facet(
-        c=request_wide_bulk.connector,
+        c=connector,
         facetid=facetid,
         orgid=orgid,
-        facet=await request_wide_bulk.get_lora_object(
-            type_=LoraObjectType.facet, uuid=facetid
+        facet=await get_lora_object(
+            type_=LoraObjectType.facet, uuid=facetid, connector=connector
         ),
         data=data,
     )
@@ -232,11 +232,12 @@ async def __get_class_from_cache(
     :param only_primary_uuid:
     :return: A processed class
     """
+    connector = common.get_connector()
     return await get_one_class(
-        c=request_wide_bulk.connector,
+        c=connector,
         classid=classid,
-        clazz=await request_wide_bulk.get_lora_object(
-            type_=LoraObjectType.class_, uuid=classid
+        clazz=await get_lora_object(
+            type_=LoraObjectType.class_, uuid=classid, connector=connector
         )
         if not only_primary_uuid
         else None,
@@ -328,7 +329,7 @@ async def get_one_class(
         potential_parent = get_parent(clazz)
         if potential_parent is None:
             return [clazz]
-        new_class = await request_wide_bulk.get_lora_object(
+        new_class = await get_lora_object(
             type_=LoraObjectType.class_, uuid=potential_parent
         )
         return [clazz] + await get_parents(new_class)

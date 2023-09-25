@@ -49,7 +49,7 @@ from ..triggers import Trigger
 from .tree_helper import prepare_ancestor_tree
 from .validation import validator
 from mora.auth.keycloak import oidc
-from mora.request_scoped.bulking import request_wide_bulk
+from mora.request_scoped.bulking import get_lora_object
 from mora.service.util import get_configuration
 
 router = APIRouter()
@@ -377,11 +377,12 @@ async def __get_one_orgunit_from_cache(
     :param only_primary_uuid:
     :return: A processed org_unit
     """
+    connector = common.get_connector()
     return await get_one_orgunit(
-        c=request_wide_bulk.connector,
+        c=connector,
         unitid=unitid,
-        unit=await request_wide_bulk.get_lora_object(
-            type_=LoraObjectType.org_unit, uuid=unitid
+        unit=await get_lora_object(
+            type_=LoraObjectType.org_unit, uuid=unitid, connector=connector
         )
         if not only_primary_uuid
         else None,
@@ -431,9 +432,7 @@ async def get_one_orgunit(
         return {mapping.UUID: unitid}
 
     if not unit:  # optional early exit
-        unit = await request_wide_bulk.get_lora_object(
-            LoraObjectType.org_unit, uuid=unitid
-        )
+        unit = await get_lora_object(LoraObjectType.org_unit, uuid=unitid)
 
         if not unit or not util.is_reg_valid(unit):
             return None

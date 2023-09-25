@@ -7,13 +7,13 @@ from structlog import get_logger
 from .. import reading
 from ... import mapping
 from ...graphapi.middleware import is_graphql
-from ...request_scoped.bulking import request_wide_bulk
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
 from ...service.address_handler import base
 from .engagement import get_engagement
 from mora import util
+from mora.common import get_connector
 
 ROLE_TYPE = "address"
 
@@ -88,9 +88,7 @@ class AddressReader(reading.OrgFunkReadingHandler):
         if engagement_uuid is not None:
             engagement = {mapping.UUID: engagement_uuid}
             if not only_primary_uuid:
-                engagement = await get_engagement(
-                    request_wide_bulk.connector, uuid=engagement_uuid
-                )
+                engagement = await get_engagement(get_connector(), uuid=engagement_uuid)
 
         r = {
             **await base_obj_task,

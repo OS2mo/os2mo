@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from itertools import chain
 from typing import Any
@@ -45,7 +44,6 @@ from mora.common import lora_connector_context
 from mora.graphapi.main import setup_graphql
 from mora.graphapi.middleware import graphql_dates_context
 from mora.graphapi.middleware import is_graphql_context
-from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args_context_plugin import query_args_context
 from mora.service.address_handler.dar import dar_loader_context
 from mora.service.shimmed.meta import meta_router
@@ -106,11 +104,6 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         logger.info("http_exception", stack=exc.stack, traceback=exc.traceback)
 
     return http_exception_to_json_response(exc=exc)
-
-
-async def clear_request_scoped_globals() -> AsyncIterator[None]:
-    async with request_wide_bulk.cache_context():
-        yield
 
 
 def create_app(settings_overrides: dict[str, Any] | None = None):
@@ -230,7 +223,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             Depends(dar_loader_context),
             Depends(is_graphql_context),
             Depends(graphql_dates_context),
-            Depends(clear_request_scoped_globals),
             Depends(set_authorization_header),
         ],
         openapi_tags=list(tags_metadata),

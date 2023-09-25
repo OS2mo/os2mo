@@ -43,7 +43,7 @@ from ..lora import LoraObjectType
 from ..triggers import Trigger
 from .validation.validator import does_employee_with_cpr_already_exist
 from mora.auth.keycloak import oidc
-from mora.request_scoped.bulking import request_wide_bulk
+from mora.request_scoped.bulking import get_lora_object
 from ramodels.base import tz_isodate
 
 
@@ -306,11 +306,12 @@ async def __get_employee_from_cache(
     :param details: configure processing of the employee
     :return: A processed employee
     """
+    connector = common.get_connector()
     ret = await get_one_employee(
-        c=request_wide_bulk.connector,
+        c=connector,
         userid=userid,
-        user=await request_wide_bulk.get_lora_object(
-            type_=LoraObjectType.user, uuid=userid
+        user=await get_lora_object(
+            type_=LoraObjectType.user, uuid=userid, connector=connector
         )
         if not only_primary_uuid
         else None,

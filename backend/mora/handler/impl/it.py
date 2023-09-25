@@ -13,7 +13,8 @@ from ...service import facet
 from ...service import orgunit
 from .engagement import get_engagement
 from mora import util
-from mora.request_scoped.bulking import request_wide_bulk
+from mora.common import get_connector
+from mora.request_scoped.bulking import get_lora_object
 
 ROLE_TYPE = "it"
 
@@ -36,9 +37,7 @@ async def get_itsystem_only_primary(itsystem_uuid):
 
 async def get_itsystem(itsystem_uuid):
     """Task to return a full itsystem response."""
-    system = await request_wide_bulk.get_lora_object(
-        type_=LoraObjectType.it_system, uuid=itsystem_uuid
-    )
+    system = await get_lora_object(type_=LoraObjectType.it_system, uuid=itsystem_uuid)
     system_attrs = system["attributter"]["itsystemegenskaber"][0]
     return {
         "uuid": itsystem_uuid,
@@ -102,9 +101,7 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
             org_unit_task = noop_task()
 
         if engagement_uuid:
-            engagement_task = get_engagement(
-                request_wide_bulk.connector, uuid=engagement_uuid
-            )
+            engagement_task = get_engagement(get_connector(), uuid=engagement_uuid)
         else:
             engagement_task = noop_task()
 

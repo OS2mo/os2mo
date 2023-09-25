@@ -16,7 +16,7 @@ from ...service import employee
 from ...service import facet
 from ...service import orgunit
 from ...service.facet import get_sorted_primary_class_list
-from mora.request_scoped.bulking import request_wide_bulk
+from mora.common import get_connector
 
 ROLE_TYPE = "engagement"
 
@@ -59,7 +59,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
             }
 
         is_primary = await create_task(
-            cls._is_primary(request_wide_bulk.connector, person, primary)
+            cls._is_primary(get_connector(), person, primary)
         )
         person_task = create_task(
             employee.request_bulked_get_one_employee(

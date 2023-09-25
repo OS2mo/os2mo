@@ -12,13 +12,13 @@ from structlog import get_logger
 from .. import reading
 from ... import mapping
 from ... import util
+from ...common import get_connector
 from ...common import parse_owner_inference_priority_str
 from ...exceptions import ErrorCodes
 from ...graphapi.middleware import is_graphql
 from ...mapping import EXTENSION_1
 from ...mapping import OwnerInferencePriority
 from ...mapping import PRIMARY
-from ...request_scoped.bulking import request_wide_bulk
 from ...service import employee
 from ...service import orgunit
 from ...service.facet import get_sorted_primary_class_list
@@ -103,13 +103,13 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         if inference_priority is OwnerInferencePriority.engagement:
             return list(
                 await EngagementReader.get(
-                    c=request_wide_bulk.connector,
+                    c=get_connector(),
                     search_fields={"tilknyttedebrugere": owned_person_uuid},
                 )
             )
         if inference_priority is OwnerInferencePriority.association:
             return await AssociationReader.get(
-                c=request_wide_bulk.connector,
+                c=get_connector(),
                 search_fields={"tilknyttedebrugere": owned_person_uuid},
             )
 
@@ -131,9 +131,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         if not candidates:  # nothing to do
             return None
         elif len(candidates) > 1:  # sort if multiple
-            priorities = dict(
-                await get_sorted_primary_class_list(c=request_wide_bulk.connector)
-            )
+            priorities = dict(await get_sorted_primary_class_list(c=get_connector()))
             sort_func = partial(cls.__owner_priority, primary_priorities=priorities)
             best_candidate = max(candidates, key=sort_func)
         else:  # nothing to infer
@@ -141,7 +139,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
 
         # we have a candidate, so look at owner of candidate's org_unit
         org_unit_owners = await OwnerReader.get_from_type(
-            c=request_wide_bulk.connector,
+            c=get_connector(),
             type="ou",
             object_id=util.get_mapping_uuid(
                 best_candidate, mapping.ORG_UNIT, required=True
