@@ -2261,7 +2261,7 @@ class ITSystem:
     # TODO: Document this
     system_type: str | None = strawberry.auto
 
-    validity: Validity = strawberry.auto
+    validity: OpenValidity = strawberry.auto
 
 
 @strawberry.experimental.pydantic.type(

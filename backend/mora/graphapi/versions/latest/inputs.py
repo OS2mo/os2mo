@@ -42,6 +42,7 @@ from .models import RoleCreate
 from .models import RoleTerminate
 from .models import RoleUpdate
 from .models import Validity
+from ramodels.mo import OpenValidity as RAOpenValidity
 from ramodels.mo import Validity as RAValidity
 
 
@@ -60,6 +61,14 @@ class ValidityInput:
     all_fields=True,
 )
 class RAValidityInput:
+    pass
+
+
+@strawberry.experimental.pydantic.input(
+    model=RAOpenValidity,
+    all_fields=True,
+)
+class RAOpenValidityInput:
     pass
 
 
