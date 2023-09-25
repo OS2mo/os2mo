@@ -17,8 +17,6 @@ from .address import update_address
 from .association import create_association
 from .association import terminate_association
 from .association import update_association
-from .classes import ClassCreateInput
-from .classes import ClassUpdateInput
 from .classes import create_class
 from .classes import delete_class
 from .classes import update_class
@@ -54,6 +52,8 @@ from .inputs import AddressUpdateInput
 from .inputs import AssociationCreateInput
 from .inputs import AssociationTerminateInput
 from .inputs import AssociationUpdateInput
+from .inputs import ClassCreateInput
+from .inputs import ClassUpdateInput
 from .inputs import EmployeeCreateInput
 from .inputs import EmployeeTerminateInput
 from .inputs import EmployeeUpdateInput
