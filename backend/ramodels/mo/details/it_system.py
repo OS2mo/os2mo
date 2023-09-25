@@ -9,6 +9,7 @@ from .._shared import EmployeeRef
 from .._shared import EngagementRef
 from .._shared import ITSystemRef
 from .._shared import MOBase
+from .._shared import OpenValidity
 from .._shared import OrgUnitRef
 from .._shared import PersonRef
 from .._shared import Validity
@@ -22,7 +23,7 @@ class ITSystemRead(MOBase):
     name: str = Field(description="Name/titel of the itsystem.")
     user_key: str = Field(description="Short, unique key.")
     system_type: str | None = Field(description="The ITSystem type.")
-    validity: Validity = Field(description="Validity of the IT system object.")
+    validity: OpenValidity = Field(description="Validity of the IT system object.")
 
 
 class ITSystemWrite(ITSystemRead):

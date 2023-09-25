@@ -137,7 +137,7 @@ async def test_create_itsystem(graphapi_post: Callable) -> None:
     response: GQLResponse = graphapi_post(create_v14, v14_input, url="/graphql/v15")
     error = first(response.errors)
     assert (
-        "Field 'validity' of required type 'RAValidityInput!' was not provided."
+        "Field 'validity' of required type 'RAOpenValidityInput!' was not provided."
         in error["message"]
     )
 

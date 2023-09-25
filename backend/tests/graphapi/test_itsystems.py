@@ -154,6 +154,53 @@ def test_itsystem_create(graphapi_post) -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_itsystem_infinite_dates(graphapi_post) -> None:
+    """Test that itsystems allow for infinite validity dates."""
+
+    # Create new itsystem
+    mutation = """
+        mutation CreateInfiniteITSystem {
+          itsystem_create(
+            input: {
+              user_key: "to_infinity",
+              name: "and beyond!",
+              validity: {from: null, to: null},
+            }
+          ) {
+            uuid
+          }
+        }
+    """
+    response: GQLResponse = graphapi_post(mutation)
+    assert response.errors is None
+    uuid = UUID(response.data["itsystem_create"]["uuid"])
+
+    # Validate it(-system)
+    query = """
+        query ReadInfiniteITSystem($uuid: UUID!) {
+          itsystems(filter: {uuids: [$uuid]}) {
+            objects {
+              current {
+                uuid
+                user_key
+                name
+                validity {
+                  from
+                  to
+                }
+              }
+            }
+          }
+        }
+    """
+    response: GQLResponse = graphapi_post(query, variables={"uuid": str(uuid)})
+    assert response.errors is None
+    itsystem = one(response.data["itsystems"]["objects"])["current"]
+    assert itsystem["validity"] == {"from": None, "to": None}
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 def test_itsystem_update(graphapi_post) -> None:
     """Test that we can update itsystems."""
     existing_itsystem_uuid = UUID("0872fb72-926d-4c5c-a063-ff800b8ee697")

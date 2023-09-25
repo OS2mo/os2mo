@@ -21,7 +21,7 @@ from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from mora.util import to_lora_time
 from oio_rest import validate
-from ramodels.mo import OpenValidity
+from ramodels.mo import OpenValidity as RAOpenValidity
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo._shared import UUIDBase
 
@@ -36,7 +36,7 @@ def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
     return {"uuid": str(uuid)}
 
 
-class Validity(OpenValidity):
+class Validity(RAOpenValidity):
     """Model representing an entities validity range.
 
     Where both from and to dates can be optional.
@@ -738,7 +738,7 @@ class ITSystemCreate(UUIDBase):
 
     user_key: str
     name: str
-    validity: RAValidity = Field(description="Validity range for the itsystem")
+    validity: RAOpenValidity = Field(description="Validity range for the itsystem")
 
     class Config:
         frozen = True
