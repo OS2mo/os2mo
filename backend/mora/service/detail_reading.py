@@ -673,6 +673,10 @@ async def list_addresses_ou(
                         example
                         owner
                         published
+                        validity {
+                          from
+                          to
+                        }
                       }
                       visibility {
                         uuid
