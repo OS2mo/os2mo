@@ -6,10 +6,8 @@ Organisation
 
 This section describes how to interact with organisations.
 """
-from asyncio import create_task
-from asyncio import gather
-
 from fastapi import APIRouter
+from more_itertools import one
 
 from .. import common
 from .. import exceptions
@@ -29,17 +27,33 @@ class ConfiguredOrganisation:
 
     @classmethod
     async def validate(cls):
-        orglist = await get_valid_organisations()
+        async def get_lora_organisation(c, orgid, org=None):
+            if not org:
+                org = await c.organisation.get(orgid)
 
-        if len(orglist) > 1:
-            exceptions.ErrorCodes.E_ORG_TOO_MANY(count=len(orglist))
+                if not org or not util.is_reg_valid(org):
+                    return None
 
-        elif len(orglist) == 0:
+            attrs = org["attributter"]["organisationegenskaber"][0]
+            ret = {
+                "name": attrs["organisationsnavn"],
+                "user_key": attrs["brugervendtnoegle"],
+                "uuid": orgid,
+            }
+            return ret
+
+        c = common.lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+        orgs = list(await c.organisation.get_all(bvn="%"))
+
+        if len(orgs) > 1:
+            exceptions.ErrorCodes.E_ORG_TOO_MANY(count=len(orgs))
+
+        elif len(orgs) == 0:
             exceptions.ErrorCodes.E_ORG_UNCONFIGURED()
 
-        elif len(orglist) == 1:
-            cls.organisation = orglist[0]
-            cls.valid = True
+        orgid, org = one(orgs)
+        cls.organisation = await get_lora_organisation(c, orgid, org)
+        cls.valid = True
 
     @classmethod
     def clear(cls):
@@ -59,31 +73,3 @@ async def get_configured_organisation(uuid=None):
         exceptions.ErrorCodes.E_ORG_NOT_ALLOWED(uuid=uuid)
 
     return org
-
-
-async def get_lora_organisation(c, orgid, org=None):
-    if not org:
-        org = await c.organisation.get(orgid)
-
-        if not org or not util.is_reg_valid(org):
-            return None
-
-    attrs = org["attributter"]["organisationegenskaber"][0]
-    ret = {
-        "name": attrs["organisationsnavn"],
-        "user_key": attrs["brugervendtnoegle"],
-        "uuid": orgid,
-    }
-    return ret
-
-
-async def get_valid_organisations():
-    """return all valid organisations, being the ones
-    who have at least one top organisational unit
-    """
-    c = common.lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-    orgs = await c.organisation.get_all(bvn="%")
-    orglist = await gather(
-        *[create_task(get_lora_organisation(c, orgid, org)) for orgid, org in orgs]
-    )
-    return orglist
