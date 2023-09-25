@@ -74,8 +74,7 @@ def test_ou_service_response(service_client: TestClient) -> None:
     response = service_client.request("POST", url, json=payload)
     assert response.status_code == 410
 
-    service_url = f"/service/ou/{uuid}/"
-    response = service_client.request("GET", service_url)
+    response = service_client.request("GET", f"/service/ou/{uuid}/")
     assert response.status_code == 200
     result = response.json()
     user_settings = result["user_settings"]["orgunit"]

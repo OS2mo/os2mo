@@ -105,8 +105,7 @@ def test_create_kle(service_client: TestClient) -> None:
     response = service_client.request("GET", f"/service/ou/{org_unit_uuid}/details/kle")
     # amqp_topics={"org_unit.kle.create": 1},
     assert response.status_code == 200
-    actual = response.json()
-    assert expected == actual
+    assert response.json() == expected
 
 
 @pytest.mark.integration_test

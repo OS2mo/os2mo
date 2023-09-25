@@ -1439,20 +1439,12 @@ not_found_error = {
             200,
             {
                 "example": None,
-                "facet": {
-                    "description": "",
-                    "user_key": "org_unit_type",
-                    "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                },
+                "facet": org_unit_type_facet,
                 "full_name": "Afdeling",
                 "name": "Afdeling",
                 "owner": None,
                 "scope": None,
-                "top_level_facet": {
-                    "description": "",
-                    "user_key": "org_unit_type",
-                    "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                },
+                "top_level_facet": org_unit_type_facet,
                 "user_key": "afd",
                 "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
             },
