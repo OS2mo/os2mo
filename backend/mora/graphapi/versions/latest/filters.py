@@ -116,15 +116,7 @@ class AssociationFilter(BaseFilter):
 
 
 @strawberry.input(description="Class filter.")
-class ClassFilter:
-    # TODO: inherit these from BaseFilter when the object is non-static
-    uuids: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("UUID", "uuids")
-    )
-    user_keys: list[str] | None = strawberry.field(
-        default=None, description=gen_filter_string("User-key", "user_keys")
-    )
-
+class ClassFilter(BaseFilter):
     facets: list[UUID] | None = strawberry.field(
         default=None, description=gen_filter_string("Facet UUID", "facets")
     )
