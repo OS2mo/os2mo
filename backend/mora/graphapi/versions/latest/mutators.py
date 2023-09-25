@@ -19,6 +19,7 @@ from .association import terminate_association
 from .association import update_association
 from .classes import create_class
 from .classes import delete_class
+from .classes import terminate_class
 from .classes import update_class
 from .employee import create_employee
 from .employee import terminate as terminate_employee
@@ -53,6 +54,7 @@ from .inputs import AssociationCreateInput
 from .inputs import AssociationTerminateInput
 from .inputs import AssociationUpdateInput
 from .inputs import ClassCreateInput
+from .inputs import ClassTerminateInput
 from .inputs import ClassUpdateInput
 from .inputs import EmployeeCreateInput
 from .inputs import EmployeeTerminateInput
@@ -365,9 +367,8 @@ class Mutation:
     async def class_create(
         self, info: Info, input: ClassCreateInput
     ) -> Response[Class]:
-        note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await create_class(input.to_pydantic(), org.uuid, note)
+        uuid = await create_class(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, ClassRead)
 
     @strawberry.mutation(
@@ -380,12 +381,19 @@ class Mutation:
     async def class_update(
         self, info: Info, input: ClassUpdateInput
     ) -> Response[Class]:
-        note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await update_class(input.to_pydantic(), input.uuid, org.uuid, note)  # type: ignore
+        uuid = await update_class(input.to_pydantic(), org.uuid)  # type: ignore
         return uuid2response(uuid, ClassRead)
 
-    # TODO: class_terminate
+    @strawberry.mutation(
+        description="Terminates a class.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_terminate_permission("class"),
+        ],
+    )
+    async def class_terminate(self, input: ClassTerminateInput) -> Response[Class]:
+        return uuid2response(await terminate_class(input.to_pydantic()), ClassRead)
 
     @strawberry.mutation(
         description="Deletes a class." + delete_warning,

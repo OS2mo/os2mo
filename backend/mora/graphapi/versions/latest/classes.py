@@ -11,20 +11,20 @@ from mora import lora
 from oio_rest import db
 
 
-async def create_class(input: ClassCreate, organisation_uuid: UUID, note: str) -> UUID:
+async def create_class(input: ClassCreate, organisation_uuid: UUID) -> UUID:
     return await lora.Connector().klasse.create(
         input.to_registration(organisation_uuid=organisation_uuid),
         str(input.uuid) or str(uuid4()),
     )
 
 
-async def update_class(input: ClassUpdate, organisation_uuid: UUID, note: str) -> UUID:
+async def update_class(input: ClassUpdate, organisation_uuid: UUID) -> UUID:
     return await lora.Connector().klasse.update(
         input.to_registration(organisation_uuid=organisation_uuid), input.uuid
     )
 
 
-async def terminate_class(input: ClassTerminate, note: str) -> UUID:
+async def terminate_class(input: ClassTerminate) -> UUID:
     await lora.Connector().klasse.update(input.to_registration(), input.uuid)
     return input.uuid
 
