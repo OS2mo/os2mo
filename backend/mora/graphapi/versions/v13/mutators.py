@@ -17,8 +17,6 @@ from ..latest.address import update_address
 from ..latest.association import create_association
 from ..latest.association import terminate_association
 from ..latest.association import update_association
-from ..latest.classes import ClassCreateInput
-from ..latest.classes import ClassUpdateInput
 from ..latest.classes import create_class
 from ..latest.classes import delete_class
 from ..latest.classes import update_class
@@ -39,6 +37,8 @@ from ..latest.inputs import AddressUpdateInput
 from ..latest.inputs import AssociationCreateInput
 from ..latest.inputs import AssociationTerminateInput
 from ..latest.inputs import AssociationUpdateInput
+from ..latest.inputs import ClassCreateInput
+from ..latest.inputs import ClassUpdateInput
 from ..latest.inputs import EmployeeCreateInput
 from ..latest.inputs import EmployeeTerminateInput
 from ..latest.inputs import EmployeeUpdateInput
@@ -279,9 +279,8 @@ class Mutation:
     async def class_create(
         self, info: Info, input: ClassCreateInput
     ) -> Response[Class]:
-        note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await create_class(input.to_pydantic(), org.uuid, note)
+        uuid = await create_class(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, ClassRead)
 
     @strawberry.mutation(
