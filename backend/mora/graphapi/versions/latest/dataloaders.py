@@ -137,17 +137,6 @@ def lora_class_to_mo_class(lora_tuple: tuple[UUID, KlasseRead]) -> ClassRead:
         if class_relations.parent
         else None,
         "owner": one(class_relations.owner).uuid if class_relations.owner else None,
-        # TODO: Stop mixing *_INFINITY and "None" as defaults in validity - currently done due to tests
-        "validity": {
-            "from": datetime.fromisoformat(
-                class_state_published.effective_time.from_date
-            )
-            if class_state_published.effective_time.from_date != "-infinity"
-            else NEGATIVE_INFINITY,
-            "to": datetime.fromisoformat(class_state_published.effective_time.to_date)
-            if class_state_published.effective_time.to_date != "infinity"
-            else None,
-        },
     }
     return ClassRead(**mo_class)
 

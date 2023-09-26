@@ -680,7 +680,7 @@ def is_detail_unpublished(
 
 def removeNonServiceApiFields(
     objs: list,
-    invalid_fields: list[str] = ["org_uuid", "facet_uuid", "validity"],
+    invalid_fields: list[str] = ["org_uuid", "facet_uuid"],
     exclude_objs: list[str] = [],
     parent_obj_name: str = None,
 ):

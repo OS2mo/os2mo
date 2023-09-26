@@ -136,10 +136,6 @@ async def get_orgunit(
                 user_key
                 description
             }
-            validity {
-                from
-                to
-            }
         }
         """
     response = await execute_graphql(query, variable_values=jsonable_encoder(variables))

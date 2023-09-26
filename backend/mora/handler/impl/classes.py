@@ -65,15 +65,7 @@ class ClassReader(reading.ReadingHandler):
         cls, effect, start, end, obj_id, flat: bool = False
     ):
         c = common.get_connector()
-        return await get_one_class(
-            c,
-            obj_id,
-            clazz=effect,
-            validity={
-                mapping.FROM: util.to_iso_date(start),
-                mapping.TO: util.to_iso_date(end, is_end=True),
-            },
-        )
+        return await get_one_class(c, obj_id, clazz=effect)
 
     @classmethod
     def _is_reg_valid(cls, lora_registration: dict) -> bool:

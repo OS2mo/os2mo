@@ -673,10 +673,6 @@ async def list_addresses_ou(
                         example
                         owner
                         published
-                        validity {
-                          from
-                          to
-                        }
                       }
                       visibility {
                         uuid
@@ -1224,7 +1220,6 @@ async def list_kles_ou(
     """Fetch a list of kles for the organisation unit."""
     return util.removeNonServiceApiFields(
         await get_detail(type="ou", id=id, function="kle"),
-        exclude_objs=[None, "org_unit"],
     )
 
 
@@ -1415,9 +1410,9 @@ async def list_managers_ou(
            }
          ]
     """
+    # return await get_detail(type="ou", id=id, function="manager")
     return util.removeNonServiceApiFields(
         await get_detail(type="ou", id=id, function="manager"),
-        exclude_objs=[None, "org_unit"],
     )
 
 
@@ -1516,10 +1511,7 @@ async def list_org_units_ou(
            }
         ]
     """
-    return util.removeNonServiceApiFields(
-        await get_detail(type="ou", id=id, function="org_unit"),
-        exclude_objs=[None, "parent"],
-    )
+    return await get_detail(type="ou", id=id, function="org_unit")
 
 
 @router.get("/e/{id}/details/owner")

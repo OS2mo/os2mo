@@ -284,7 +284,6 @@ async def get_one_class(
     clazz=None,
     details: set[ClassDetails] | None = None,
     only_primary_uuid: bool = False,
-    validity=None,
 ) -> MO_OBJ_TYPE:
     if not details:
         details = set()
@@ -355,7 +354,6 @@ async def get_one_class(
         "owner": owner,
         # TODO(#52443): don't last()
         "published": clazz_validity["publiceret"],
-        "validity": validity or util.get_effect_validity(clazz_validity),
         "facet_uuid": get_facet_uuid(clazz),
         "org_uuid": clazz_responsible["uuid"],
     }
@@ -387,15 +385,9 @@ async def get_one_class(
 
 
 # Helper function for reading classes enriched with additional details
-async def get_one_class_full(
-    *args, only_primary_uuid: bool = False, validity=None, **kwargs
-):
+async def get_one_class_full(*args, only_primary_uuid: bool = False, **kwargs):
     return await get_one_class(
-        *args,
-        **kwargs,
-        details=FULL_DETAILS,
-        only_primary_uuid=only_primary_uuid,
-        validity=validity,
+        *args, **kwargs, details=FULL_DETAILS, only_primary_uuid=only_primary_uuid
     )
 
 
