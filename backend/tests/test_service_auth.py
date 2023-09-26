@@ -97,6 +97,8 @@ def no_auth_endpoints():
         "/saml/sso/",
         "/graphql",
         "/graphql/v{version_number}",
+        "/testing/database/snapshot",
+        "/testing/database/restore",
     }
     graphql_endpoints = set(
         more_itertools.flatten(

@@ -116,7 +116,7 @@ async def _emit_events(
     sessionmaker: async_sessionmaker, amqp_system: AMQPSystem
 ) -> None:
     """Send an event for every new registration or validity we've passed since last run."""
-
+    logger.info("emitting amqp events")
     async with sessionmaker() as session, session.begin():
         # We need to fetch "now" before our queries, or we expose ourself to
         # race-conditions when updating the table in the end.
