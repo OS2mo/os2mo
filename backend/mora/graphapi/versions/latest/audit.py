@@ -10,7 +10,7 @@ from more_itertools import bucket
 from ra_utils.apply import apply
 from sqlalchemy import column
 from sqlalchemy import select
-from sqlalchemy.orm import sessionmaker as sqla_sessionmaker
+from sqlalchemy.ext.asyncio import async_sessionmaker
 from starlette_context import context
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
@@ -26,7 +26,7 @@ from mora.db import AuditLogOperation as AuditLogOperation
 from mora.db import AuditLogRead as AuditLogRead
 
 
-def get_audit_loaders(sessionmaker: sqla_sessionmaker) -> dict[str, DataLoader]:
+def get_audit_loaders(sessionmaker: async_sessionmaker) -> dict[str, DataLoader]:
     """Return dataloaders required for auditing functionality.
 
     Args:
@@ -43,7 +43,7 @@ def get_audit_loaders(sessionmaker: sqla_sessionmaker) -> dict[str, DataLoader]:
 
 
 async def audit_read_loader(
-    sessionmaker: sqla_sessionmaker, keys: list[UUID]
+    sessionmaker: async_sessionmaker, keys: list[UUID]
 ) -> list[list[UUID]]:
     """Load UUIDs registered as read for the given operation.
 
