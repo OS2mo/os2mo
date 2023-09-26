@@ -113,6 +113,7 @@ lora_endpoints = {
 }
 
 testing_endpoints = {
+    "/testing/amqp/emit",
     "/testing/database/snapshot",
     "/testing/database/restore",
 }

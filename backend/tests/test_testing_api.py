@@ -1,11 +1,16 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
+import secrets
 from collections.abc import Callable
 
 import pytest
 from pytest import MonkeyPatch
+from ramqp import AMQPSystem
+from ramqp.mo import PayloadUUID
 from starlette.testclient import TestClient
 
+from mora.config import get_settings
 from oio_rest.db import close_connection
 from tests.conftest import GQLResponse
 
@@ -66,7 +71,7 @@ def read_employee_surname(graphapi_post: Callable[..., GQLResponse], uuid: str) 
 
 
 @pytest.mark.integration_test
-async def test_snapshot(
+async def test_database_snapshot(
     monkeypatch: MonkeyPatch,
     raw_client: TestClient,
     graphapi_post: Callable[..., GQLResponse],
@@ -94,3 +99,49 @@ async def test_snapshot(
     # Close connection to ensure the next test will recreate it with settings expected
     # during testing.
     close_connection()
+
+
+# NOTE: Read "backend/tests/graphapi/test_registration.py:11",
+# for reasoning behind "@pytest.mark.xfail"
+
+
+@pytest.mark.xfail
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_amqp_emit(
+    raw_client: TestClient,
+    graphapi_post: Callable[..., GQLResponse],
+) -> None:
+    # Set up AMQP callback
+    settings = get_settings()
+    amqp_settings = settings.amqp.copy(
+        update=dict(
+            # A queue prefix is required when registering callbacks
+            queue_prefix=secrets.token_hex(),
+        ),
+    )
+    amqp_system = AMQPSystem(amqp_settings)
+
+    is_called = asyncio.Event()
+    callback_args = {}
+
+    @amqp_system.router.register("person")
+    async def callback(uuid: PayloadUUID) -> None:
+        is_called.set()
+        callback_args["uuid"] = uuid
+
+    await amqp_system.start()
+
+    # Create employee
+    created_employee_uuid = create_employee(graphapi_post, surname="foo")
+
+    # There should be no AMQP message
+    await asyncio.sleep(1)
+    assert not is_called.is_set()
+
+    # Emit AMQP message
+    assert raw_client.post("/testing/amqp/emit").is_success
+
+    # We should be notified through AMQP
+    await asyncio.wait_for(is_called.wait(), timeout=5)
+    assert callback_args["uuid"] == created_employee_uuid

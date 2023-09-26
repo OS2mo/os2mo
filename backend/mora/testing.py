@@ -9,6 +9,8 @@ from psycopg2 import sql
 from starlette.status import HTTP_204_NO_CONTENT
 from structlog import get_logger
 
+from mora import amqp
+from mora import depends
 from oio_rest.db import _get_dbname
 from oio_rest.db import close_connection
 from oio_rest.db import get_new_connection
@@ -17,6 +19,20 @@ logger = get_logger()
 
 
 router = APIRouter()
+
+
+@router.post("/amqp/emit", status_code=HTTP_204_NO_CONTENT)
+async def emit(
+    sessionmaker: depends.async_sessionmaker, amqp_system: depends.AMQPSystem
+) -> None:
+    """
+    Emit queued AMQP events immediately.
+
+    Note that this is only needed for the "new" AMQP subsystem. Events in the old one
+    are always sent immediately.
+    """
+    logger.warning("Emitting AMQP events")
+    await amqp._emit_events(sessionmaker, amqp_system)
 
 
 @contextmanager
