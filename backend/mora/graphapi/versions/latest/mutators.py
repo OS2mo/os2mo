@@ -30,8 +30,6 @@ from .engagements import terminate_engagement
 from .engagements import update_engagement
 from .facets import create_facet
 from .facets import delete_facet
-from .facets import FacetCreateInput
-from .facets import FacetUpdateInput
 from .facets import update_facet
 from .filters import AddressFilter
 from .filters import AssociationFilter
@@ -60,6 +58,8 @@ from .inputs import EmployeeUpdateInput
 from .inputs import EngagementCreateInput
 from .inputs import EngagementTerminateInput
 from .inputs import EngagementUpdateInput
+from .inputs import FacetCreateInput
+from .inputs import FacetUpdateInput
 from .inputs import ITAssociationCreateInput
 from .inputs import ITAssociationTerminateInput
 from .inputs import ITAssociationUpdateInput

@@ -30,8 +30,6 @@ from ..latest.engagements import terminate_engagement
 from ..latest.engagements import update_engagement
 from ..latest.facets import create_facet
 from ..latest.facets import delete_facet
-from ..latest.facets import FacetCreateInput
-from ..latest.facets import FacetUpdateInput
 from ..latest.facets import update_facet
 from ..latest.inputs import AddressCreateInput
 from ..latest.inputs import AddressTerminateInput
@@ -45,6 +43,8 @@ from ..latest.inputs import EmployeeUpdateInput
 from ..latest.inputs import EngagementCreateInput
 from ..latest.inputs import EngagementTerminateInput
 from ..latest.inputs import EngagementUpdateInput
+from ..latest.inputs import FacetCreateInput
+from ..latest.inputs import FacetUpdateInput
 from ..latest.inputs import ITAssociationCreateInput
 from ..latest.inputs import ITAssociationTerminateInput
 from ..latest.inputs import ITAssociationUpdateInput

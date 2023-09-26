@@ -3,74 +3,8 @@
 import asyncio
 from uuid import UUID
 
-import strawberry
-from pydantic import BaseModel
-from pydantic import Extra
-from pydantic import Field
-
-from mora.util import to_lora_time
+from .models import FacetCreate
 from oio_rest import db
-from oio_rest import validate
-
-
-class FacetCreate(BaseModel):
-    """Model representing a facet creation."""
-
-    user_key: str = Field(description="Facet name.")
-    published: str = Field(
-        "Publiceret", description="Published state of the facet object."
-    )
-
-    class Config:
-        frozen = True
-        extra = Extra.forbid
-
-    def to_registration(self, organisation_uuid: UUID) -> dict:
-        from_time = to_lora_time("-infinity")
-        to_time = to_lora_time("infinity")
-
-        input = {
-            "tilstande": {
-                "facetpubliceret": [
-                    {
-                        "publiceret": self.published,
-                        "virkning": {"from": from_time, "to": to_time},
-                    }
-                ]
-            },
-            "attributter": {
-                "facetegenskaber": [
-                    {
-                        "brugervendtnoegle": self.user_key,
-                        "virkning": {"from": from_time, "to": to_time},
-                    }
-                ]
-            },
-            "relationer": {
-                "ansvarlig": [
-                    {
-                        "uuid": str(organisation_uuid),
-                        "virkning": {"from": from_time, "to": to_time},
-                        "objekttype": "Organisation",
-                    }
-                ],
-            },
-        }
-        validate.validate(input, "facet")
-
-        return {
-            "states": input["tilstande"],
-            "attributes": input["attributter"],
-            "relations": input["relationer"],
-        }
-
-
-@strawberry.experimental.pydantic.input(
-    model=FacetCreate,
-    all_fields=True,
-)
-class FacetCreateInput:
-    """Input model for creating a facet."""
 
 
 async def create_facet(input: FacetCreate, organisation_uuid: UUID, note: str) -> UUID:
@@ -81,20 +15,6 @@ async def create_facet(input: FacetCreate, organisation_uuid: UUID, note: str) -
         db.create_or_import_object, "facet", note, registration
     )
     return uuid
-
-
-class FacetUpdate(FacetCreate):
-    """Model representing a facet updates."""
-
-    uuid: UUID = Field(description="UUID of the facet to update.")
-
-
-@strawberry.experimental.pydantic.input(
-    model=FacetUpdate,
-    all_fields=True,
-)
-class FacetUpdateInput:
-    """Input model for updating a facet."""
 
 
 async def update_facet(

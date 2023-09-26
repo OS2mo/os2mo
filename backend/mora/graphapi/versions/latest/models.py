@@ -26,6 +26,7 @@ from ramodels.mo import OpenValidity as RAOpenValidity
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo._shared import UUIDBase
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -649,6 +650,64 @@ class EngagementUpdate(EngagementUpsert):
 
 # Facets
 # -----------------------
+
+
+class FacetCreate(BaseModel):
+    """Model representing a facet creation."""
+
+    user_key: str = Field(description="Facet name.")
+    published: str = Field(
+        "Publiceret", description="Published state of the facet object."
+    )
+
+    class Config:
+        frozen = True
+        extra = Extra.forbid
+
+    def to_registration(self, organisation_uuid: UUID) -> dict:
+        from_time = to_lora_time("-infinity")
+        to_time = to_lora_time("infinity")
+
+        input = {
+            "tilstande": {
+                "facetpubliceret": [
+                    {
+                        "publiceret": self.published,
+                        "virkning": {"from": from_time, "to": to_time},
+                    }
+                ]
+            },
+            "attributter": {
+                "facetegenskaber": [
+                    {
+                        "brugervendtnoegle": self.user_key,
+                        "virkning": {"from": from_time, "to": to_time},
+                    }
+                ]
+            },
+            "relationer": {
+                "ansvarlig": [
+                    {
+                        "uuid": str(organisation_uuid),
+                        "virkning": {"from": from_time, "to": to_time},
+                        "objekttype": "Organisation",
+                    }
+                ],
+            },
+        }
+        validate.validate(input, "facet")
+
+        return {
+            "states": input["tilstande"],
+            "attributes": input["attributter"],
+            "relations": input["relationer"],
+        }
+
+
+class FacetUpdate(FacetCreate):
+    """Model representing a facet updates."""
+
+    uuid: UUID = Field(description="UUID of the facet to update.")
 
 
 class FacetRead(RAFacetRead):

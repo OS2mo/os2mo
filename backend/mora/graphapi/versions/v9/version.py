@@ -7,7 +7,7 @@ from fastapi.encoders import jsonable_encoder
 from strawberry.types import Info
 
 from ..latest.classes import ClassUpdateInput
-from ..latest.facets import FacetUpdateInput
+from ..latest.inputs import FacetUpdateInput
 from ..latest.permissions import gen_update_permission
 from ..latest.permissions import IsAuthenticatedPermission
 from ..v10.version import GraphQLVersion as NextGraphQLVersion
