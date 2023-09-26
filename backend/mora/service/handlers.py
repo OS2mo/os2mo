@@ -208,6 +208,14 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         employee. In that case, we need to look at the group of IT users and consider
         whether they are identical or differ from each other.
         """
+
+        def get_handler_for_role_type(role_type: str):
+            """Obtain the handler class corresponding to given role_type"""
+            try:
+                return HANDLERS_BY_ROLE_TYPE[role_type]
+            except LookupError:
+                exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE(type=role_type)
+
         # Group detail requests by role type
         key: typing.Callable = itemgetter("type")
         groups: groupby[typing.Iterable[dict]] = groupby(
@@ -341,15 +349,6 @@ def get_handler_for_function(obj: dict):
     """Obtain the handler class corresponding to the given LoRA object"""
 
     return HANDLERS_BY_FUNCTION_KEY[get_key_for_function(obj)]
-
-
-def get_handler_for_role_type(role_type: str):
-    """Obtain the handler class corresponding to given role_type"""
-
-    try:
-        return HANDLERS_BY_ROLE_TYPE[role_type]
-    except LookupError:
-        exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE(type=role_type)
 
 
 async def generate_requests(

@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import json
 from asyncio import Future
-from contextlib import nullcontext as does_not_raise
 from copy import deepcopy
 from unittest.mock import call
 from unittest.mock import MagicMock
@@ -19,9 +18,7 @@ from starlette.datastructures import ImmutableMultiDict
 from mora import lora
 from mora import mapping
 from mora.config import Settings
-from mora.exceptions import HTTPException
 from mora.handler.impl.association import AssociationReader
-from mora.service.orgunit import _get_count_related
 from mora.service.orgunit import get_one_orgunit
 from mora.service.orgunit import get_unit_ancestor_tree
 from mora.service.orgunit import UnitDetails
@@ -376,37 +373,6 @@ async def test_details(details: UnitDetails, expected_keys: set[str]) -> None:
     )
     assert orgunit is not None
     assert set(orgunit.keys()) == expected_keys
-
-
-@pytest.mark.parametrize(
-    "arguments, value, expected_raise",
-    [
-        # Testing valid name.
-        ({"count": "association"}, {"association"}, does_not_raise()),
-        # Testing valid name repeated.
-        (
-            [("count", "association"), ("count", "association")],
-            {"association"},
-            does_not_raise(),
-        ),
-        # Testing multiple valid names.
-        (
-            [("count", "association"), ("count", "engagement")],
-            {"association", "engagement"},
-            does_not_raise(),
-        ),
-        # Testing invalid name with HTTP Exception raise.
-        (
-            [("count", "association"), ("count", "foobar")],
-            None,
-            pytest.raises(HTTPException),
-        ),
-    ],
-)
-def test_valid_name(arguments, value, expected_raise):
-    with expected_raise:
-        with util.patch_query_args(ImmutableMultiDict(arguments)):
-            assert value == _get_count_related()
 
 
 def _assert_matching_ou_has(doc, user_key=None, **attrs):

@@ -43,7 +43,7 @@ from ..lora import LoraObjectType
 from ..triggers import Trigger
 from .validation.validator import does_employee_with_cpr_already_exist
 from mora.auth.keycloak import oidc
-from mora.request_scoped.bulking import request_wide_bulk
+from mora.request_scoped.bulking import get_lora_object
 from ramodels.base import tz_isodate
 
 
@@ -295,31 +295,6 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         return await super().submit()
 
 
-async def __get_employee_from_cache(
-    userid: str,
-    details: EmployeeDetails = EmployeeDetails.MINIMAL,
-    only_primary_uuid: bool = False,
-) -> Any:
-    """
-    Get org unit from cache and process it
-    :param userid: uuid of employee
-    :param details: configure processing of the employee
-    :return: A processed employee
-    """
-    ret = await get_one_employee(
-        c=request_wide_bulk.connector,
-        userid=userid,
-        user=await request_wide_bulk.get_lora_object(
-            type_=LoraObjectType.user, uuid=userid
-        )
-        if not only_primary_uuid
-        else None,
-        details=details,
-        only_primary_uuid=only_primary_uuid,
-    )
-    return ret
-
-
 async def request_bulked_get_one_employee(
     userid: str,
     details: EmployeeDetails = EmployeeDetails.MINIMAL,
@@ -334,8 +309,17 @@ async def request_bulked_get_one_employee(
     :param only_primary_uuid:
     :return: Awaitable returning the processed employee
     """
-    return __get_employee_from_cache(
-        userid=userid, details=details, only_primary_uuid=only_primary_uuid
+    connector = common.get_connector()
+    return get_one_employee(
+        c=connector,
+        userid=userid,
+        user=await get_lora_object(
+            type_=LoraObjectType.user, uuid=userid, connector=connector
+        )
+        if not only_primary_uuid
+        else None,
+        details=details,
+        only_primary_uuid=only_primary_uuid,
     )
 
 

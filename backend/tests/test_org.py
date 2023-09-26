@@ -1,20 +1,14 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from unittest.mock import patch
-
 from fastapi.testclient import TestClient
+from httpx import Response
 
 
-async def async_helper1():
-    return []
+def test_no_orgs_in_mo(service_client: TestClient, respx_mock) -> None:
+    respx_mock.get("http://localhost/lora/organisation/organisation").mock(
+        return_value=Response(200, json={"results": []})
+    )
 
-
-async def async_helper2():
-    return [{}, {}]
-
-
-@patch("mora.service.org.get_valid_organisations", new=async_helper1)
-def test_no_orgs_in_mo(service_client: TestClient) -> None:
     response = service_client.request("GET", "/service/o/")
     assert response.status_code == 400
     assert response.json() == {
@@ -25,8 +19,27 @@ def test_no_orgs_in_mo(service_client: TestClient) -> None:
     }
 
 
-@patch("mora.service.org.get_valid_organisations", new=async_helper2)
-def test_more_than_one_org_in_mo(service_client: TestClient) -> None:
+def test_more_than_one_org_in_mo(service_client: TestClient, respx_mock) -> None:
+    respx_mock.get("http://localhost/lora/organisation/organisation").mock(
+        return_value=Response(
+            200,
+            json={
+                "results": [
+                    [
+                        {
+                            "id": "6bd057e7-0727-43e7-96d6-f01f741f8554",
+                            "registreringer": [{}],
+                        },
+                        {
+                            "id": "b9a30070-ef15-4e54-840f-2b77753580df",
+                            "registreringer": [{}],
+                        },
+                    ]
+                ]
+            },
+        )
+    )
+
     response = service_client.request("GET", "/service/o/")
     assert response.status_code == 400
     assert response.json() == {

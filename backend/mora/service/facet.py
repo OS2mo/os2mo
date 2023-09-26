@@ -20,6 +20,7 @@ import logging
 from asyncio import create_task
 from asyncio import gather
 from collections.abc import Awaitable
+from functools import partial
 from typing import Any
 from uuid import UUID
 from uuid import uuid4
@@ -37,7 +38,7 @@ from .. import util
 from ..exceptions import ErrorCodes
 from ..lora import LoraObjectType
 from .tree_helper import prepare_ancestor_tree
-from mora.request_scoped.bulking import request_wide_bulk
+from mora.request_scoped.bulking import get_lora_object
 from ramodels.mo.class_ import ClassWrite
 
 logger = logging.getLogger(__name__)
@@ -115,18 +116,7 @@ async def get_class_ancestor_tree(
     c = common.get_connector()
     classids = uuid
 
-    return await get_class_tree(
-        c, classids, with_siblings=True, only_primary_uuid=only_primary_uuid
-    )
-
-
-async def get_class_tree(
-    c, classids: list[UUID], with_siblings=False, only_primary_uuid: bool = False
-):
-    """Return a tree, bounded by the given classid.
-
-    The tree includes siblings of ancestors, with their child counts.
-    """
+    with_siblings = True
 
     async def get_class(classid):
         r = await get_one_class(
@@ -164,27 +154,7 @@ async def get_class_tree(
     return await get_classes(root for root in root_uuids)
 
 
-async def __get_facet_from_cache(facetid, orgid=None, data=None) -> Any:
-    """
-    Get org unit from cache and process it
-    :param facetid: uuid of facet
-    :param facet:
-    :param data:
-    :return: A processed facet
-    """
-
-    return await get_one_facet(
-        c=request_wide_bulk.connector,
-        facetid=facetid,
-        orgid=orgid,
-        facet=await request_wide_bulk.get_lora_object(
-            type_=LoraObjectType.facet, uuid=facetid
-        ),
-        data=data,
-    )
-
-
-async def get_one_facet(c, facetid, orgid=None, facet=None, data=None):
+async def get_one_facet(c, facetid, facet=None):
     """Fetch a facet and enrich it."""
 
     # Use given facet or fetch one, if none is given
@@ -200,49 +170,7 @@ async def get_one_facet(c, facetid, orgid=None, facet=None, data=None):
         "user_key": bvn,
         "description": description,
     }
-    if orgid:
-        response["path"] = bvn and router.url_path_for(
-            "get_classes", orgid=orgid, facet=bvn
-        )
-    if data:
-        response["data"] = data
     return response
-
-
-async def fetch_class_children(c, parent_uuid) -> list:
-    return list(
-        await c.klasse.get_all(publiceret="Publiceret", overordnetklasse=parent_uuid)
-    )
-
-
-async def count_class_children(c, parent_uuid):
-    """Find the number of children under the class given by uuid."""
-    return len(await fetch_class_children(c, parent_uuid))
-
-
-async def __get_class_from_cache(
-    classid: str,
-    details: set[ClassDetails] | None = None,
-    only_primary_uuid: bool = False,
-) -> MO_OBJ_TYPE:
-    """
-    Get org unit from cache and process it
-    :param classid: uuid of class
-    :param details: configure processing of the class
-    :param only_primary_uuid:
-    :return: A processed class
-    """
-    return await get_one_class(
-        c=request_wide_bulk.connector,
-        classid=classid,
-        clazz=await request_wide_bulk.get_lora_object(
-            type_=LoraObjectType.class_, uuid=classid
-        )
-        if not only_primary_uuid
-        else None,
-        details=details,
-        only_primary_uuid=only_primary_uuid,
-    )
 
 
 async def request_bulked_get_one_class(
@@ -259,23 +187,23 @@ async def request_bulked_get_one_class(
     :param only_primary_uuid:
     :return: Awaitable returning the processed class
     """
-    return __get_class_from_cache(
-        classid=classid, details=details, only_primary_uuid=only_primary_uuid
+    connector = common.get_connector()
+    return get_one_class(
+        c=connector,
+        classid=classid,
+        clazz=await get_lora_object(
+            type_=LoraObjectType.class_, uuid=classid, connector=connector
+        )
+        if not only_primary_uuid
+        else None,
+        details=details,
+        only_primary_uuid=only_primary_uuid,
     )
 
 
-async def request_bulked_get_one_class_full(
-    classid: str, only_primary_uuid: bool = False
-) -> Awaitable[MO_OBJ_TYPE]:
-    """
-    trivial wrapper for often-used setting
-    :param classid: uuid of class
-    :param only_primary_uuid:
-    :return: Awaitable returning the processed class
-    """
-    return await request_bulked_get_one_class(
-        classid=classid, details=FULL_DETAILS, only_primary_uuid=only_primary_uuid
-    )
+request_bulked_get_one_class_full = partial(
+    request_bulked_get_one_class, details=FULL_DETAILS
+)
 
 
 async def get_one_class(
@@ -328,18 +256,40 @@ async def get_one_class(
         potential_parent = get_parent(clazz)
         if potential_parent is None:
             return [clazz]
-        new_class = await request_wide_bulk.get_lora_object(
+        new_class = await get_lora_object(
             type_=LoraObjectType.class_, uuid=potential_parent
         )
         return [clazz] + await get_parents(new_class)
 
+    async def getfacet(facetid) -> Any:
+        """
+        Get org unit from cache and process it
+        :param facetid: uuid of facet
+        :return: A processed facet
+        """
+        connector = common.get_connector()
+        facet = await get_lora_object(
+            type_=LoraObjectType.facet, uuid=facetid, connector=connector
+        )
+        return await get_one_facet(c=connector, facetid=facetid, facet=facet)
+
     async def get_top_level_facet(parents):
         facetid = get_facet_uuid(parents[-1])
-        return await __get_facet_from_cache(facetid=facetid)
+        return await getfacet(facetid=facetid)
 
     async def get_facet(clazz):
         facetid = get_facet_uuid(clazz)
-        return await __get_facet_from_cache(facetid=facetid)
+        return await getfacet(facetid=facetid)
+
+    async def count_class_children(c, parent_uuid):
+        """Find the number of children under the class given by uuid."""
+        return len(
+            list(
+                await c.klasse.get_all(
+                    publiceret="Publiceret", overordnetklasse=parent_uuid
+                )
+            )
+        )
 
     owner = get_owner_uuid(clazz)
 
@@ -380,31 +330,6 @@ async def get_one_class(
     return response
 
 
-# Helper function for reading classes enriched with additional details
-async def get_one_class_full(*args, only_primary_uuid: bool = False, **kwargs):
-    return await get_one_class(
-        *args, **kwargs, details=FULL_DETAILS, only_primary_uuid=only_primary_uuid
-    )
-
-
-async def get_facetids(facet: str):
-    c = common.get_connector()
-
-    uuid, bvn = (facet, None) if util.is_uuid(facet) else (None, facet)
-
-    facetids = await c.facet.load_uuids(uuid=uuid, bvn=bvn, publiceret="Publiceret")
-
-    if not facetids:
-        raise exceptions.HTTPException(
-            exceptions.ErrorCodes.E_NOT_FOUND,
-            message=f"Facet {facet} not found.",
-        )
-
-    assert len(facetids) <= 1, "Facet is not unique"
-
-    return facetids
-
-
 async def get_sorted_primary_class_list(c: lora.Connector) -> list[tuple[str, int]]:
     """
     Return a list of primary classes, sorted by priority in the "scope" field
@@ -412,6 +337,8 @@ async def get_sorted_primary_class_list(c: lora.Connector) -> list[tuple[str, in
     :param c: A LoRa connector
     :return: A sorted list of tuples of (uuid, scope) for all available primary classes
     """
+    get_one_class_full = partial(get_one_class, details=FULL_DETAILS)
+
     facet_id = (await c.facet.load_uuids(bvn="primary_type"))[0]
 
     classes = await gather(
@@ -439,6 +366,25 @@ class ClassRequestHandler(handlers.RequestHandler):
     role_type = "class"
 
     async def prepare_create(self, request: dict):
+        async def get_facetids(facet: str):
+            c = common.get_connector()
+
+            uuid, bvn = (facet, None) if util.is_uuid(facet) else (None, facet)
+
+            facetids = await c.facet.load_uuids(
+                uuid=uuid, bvn=bvn, publiceret="Publiceret"
+            )
+
+            if not facetids:
+                raise exceptions.HTTPException(
+                    exceptions.ErrorCodes.E_NOT_FOUND,
+                    message=f"Facet {facet} not found.",
+                )
+
+            assert len(facetids) <= 1, "Facet is not unique"
+
+            return facetids
+
         valid_from = util.NEGATIVE_INFINITY
         valid_to = util.POSITIVE_INFINITY
 
