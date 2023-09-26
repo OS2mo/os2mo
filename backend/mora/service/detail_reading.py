@@ -1547,7 +1547,11 @@ async def list_org_units_ou(
            }
         ]
     """
-    return await get_detail(type="ou", id=id, function="org_unit")
+    return util.removeNonServiceApiFields(
+        await get_detail(type="ou", id=id, function="org_unit"),
+        invalid_fields=["org_uuid", "facet_uuid", "validity"],
+        exclude_objs=[None, "parent"],
+    )
 
 
 @router.get("/e/{id}/details/owner")
