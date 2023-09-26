@@ -418,9 +418,8 @@ class Mutation:
     async def facet_create(
         self, info: Info, input: FacetCreateInput
     ) -> Response[Facet]:
-        note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await create_facet(input.to_pydantic(), org.uuid, note)
+        uuid = await create_facet(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, FacetRead)
 
     @strawberry.mutation(
@@ -433,9 +432,8 @@ class Mutation:
     async def facet_update(
         self, info: Info, input: FacetUpdateInput
     ) -> Response[Facet]:
-        note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await update_facet(input.to_pydantic(), input.uuid, org.uuid, note)  # type: ignore
+        uuid = await update_facet(input.to_pydantic(), input.uuid, org.uuid)  # type: ignore
         return uuid2response(uuid, FacetRead)
 
     # TODO: facet_update
@@ -449,8 +447,7 @@ class Mutation:
         ],
     )
     async def facet_delete(self, uuid: UUID) -> Response[Facet]:
-        note = ""
-        uuid = await delete_facet(uuid, note)
+        uuid = await delete_facet(uuid)
         return uuid2response(uuid, FacetRead)
 
     # ITAssociations

@@ -8,18 +8,18 @@ from .models import FacetUpdate
 from oio_rest import db
 
 
-async def create_facet(input: FacetCreate, organisation_uuid: UUID, note: str) -> UUID:
+async def create_facet(input: FacetCreate, organisation_uuid: UUID) -> UUID:
     # Construct a LoRa registration object from our input arguments
     registration = input.to_registration(organisation_uuid=organisation_uuid)
     # Let LoRa's SQL templates do their magic
     uuid = await asyncio.to_thread(
-        db.create_or_import_object, "facet", note, registration
+        db.create_or_import_object, "facet", "", registration
     )
     return uuid
 
 
 async def update_facet(
-    input: FacetUpdate, facet_uuid: UUID, organisation_uuid: UUID, note: str
+    input: FacetUpdate, facet_uuid: UUID, organisation_uuid: UUID
 ) -> UUID:
     exists = await asyncio.to_thread(db.object_exists, "facet", str(facet_uuid))
     if not exists:
@@ -37,7 +37,7 @@ async def update_facet(
         uuid = await asyncio.to_thread(
             db.update_object,
             "facet",
-            note,
+            "",
             registration,
             uuid=str(facet_uuid),
             life_cycle_code=db.Livscyklus.IMPORTERET.value,
@@ -47,14 +47,14 @@ async def update_facet(
         uuid = await asyncio.to_thread(
             db.create_or_import_object,
             "facet",
-            note,
+            "",
             registration,
             str(facet_uuid),
         )
     return uuid
 
 
-async def delete_facet(facet_uuid: UUID, note: str) -> UUID:
+async def delete_facet(facet_uuid: UUID) -> UUID:
     # Gather a blank registration
     registration: dict = {
         "states": {},
@@ -63,6 +63,6 @@ async def delete_facet(facet_uuid: UUID, note: str) -> UUID:
     }
     # Let LoRa's SQL templates do their magic
     await asyncio.to_thread(
-        db.delete_object, "facet", registration, note, str(facet_uuid)
+        db.delete_object, "facet", registration, "", str(facet_uuid)
     )
     return facet_uuid
