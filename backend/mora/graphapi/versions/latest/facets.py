@@ -4,6 +4,7 @@ import asyncio
 from uuid import UUID
 
 from .models import FacetCreate
+from .models import FacetUpdate
 from oio_rest import db
 
 
@@ -18,7 +19,7 @@ async def create_facet(input: FacetCreate, organisation_uuid: UUID, note: str) -
 
 
 async def update_facet(
-    input: FacetCreate, facet_uuid: UUID, organisation_uuid: UUID, note: str
+    input: FacetUpdate, facet_uuid: UUID, organisation_uuid: UUID, note: str
 ) -> UUID:
     exists = await asyncio.to_thread(db.object_exists, "facet", str(facet_uuid))
     if not exists:
