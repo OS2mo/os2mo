@@ -13,7 +13,6 @@ from uuid import UUID
 
 from more_itertools import flatten
 from pydantic import BaseModel
-from pydantic import Extra
 from pydantic import Field
 from pydantic import root_validator
 from pydantic import validator
@@ -44,10 +43,6 @@ class MOEmployee(EmployeeRead):
 
 
 class UUIDObject(BaseModel):
-    class Config:
-        frozen = True
-        extra = Extra.forbid
-
     # Lots of old service endpoints return {"uuid": UUID} objects.
     uuid: UUID
 
