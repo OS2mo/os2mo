@@ -594,7 +594,7 @@ class Mutation:
         self, info: Info, input: FacetUpdateInput
     ) -> Response[Facet]:
         org = await info.context["org_loader"].load(0)
-        uuid = await update_facet(input.to_pydantic(), org.uuid)  # type: ignore
+        uuid = await update_facet(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, FacetRead)
 
     @strawberry.mutation(

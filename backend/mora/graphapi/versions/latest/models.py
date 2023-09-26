@@ -17,6 +17,7 @@ from mora import common
 from mora import exceptions
 from mora import mapping
 from mora.util import CPR
+from mora.util import NEGATIVE_INFINITY
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from mora.util import to_lora_time
@@ -660,15 +661,24 @@ class FacetCreate(BaseModel):
         "Publiceret", description="Published state of the facet object."
     )
 
+    validity: Validity = Field(
+        description="Validity range for the facet. Default to ['-infinity', 'infinity']",
+    )
+
     class Config:
         frozen = True
         extra = Extra.forbid
 
     def to_registration(self, organisation_uuid: UUID) -> dict:
-        from_time = to_lora_time("-infinity")
-        to_time = to_lora_time("infinity")
+        from_time = to_lora_time(NEGATIVE_INFINITY)
+        to_time = to_lora_time(POSITIVE_INFINITY)
 
-        input = {
+        if self.validity and self.validity.from_date:
+            from_time = to_lora_time(self.validity.from_date)
+        if self.validity and self.validity.to_date:
+            to_time = to_lora_time(self.validity.to_date)
+
+        lora_registration = {
             "tilstande": {
                 "facetpubliceret": [
                     {
@@ -695,13 +705,9 @@ class FacetCreate(BaseModel):
                 ],
             },
         }
-        validate.validate(input, "facet")
+        validate.validate(lora_registration, "facet")
 
-        return {
-            "states": input["tilstande"],
-            "attributes": input["attributter"],
-            "relations": input["relationer"],
-        }
+        return lora_registration
 
 
 class FacetUpdate(FacetCreate):
