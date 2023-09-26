@@ -7,7 +7,6 @@ from uuid import UUID
 
 import strawberry
 from ra_utils.asyncio_utils import gather_with_concurrency
-from ramqp import AMQPSystem
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
@@ -161,7 +160,6 @@ from .schema import Response
 from .schema import Role
 from mora.audit import audit_log
 from mora.common import get_connector
-from mora.config import get_settings
 from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead
@@ -285,7 +283,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(page=page, model="address", queue=queue)
+        return await refresh(info=info, page=page, model="address", queue=queue)
 
     # Associations
     # ------------
@@ -355,7 +353,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(page=page, model="association", queue=queue)
+        return await refresh(info=info, page=page, model="association", queue=queue)
 
     # Classes
     # -------
@@ -430,7 +428,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(page=page, model="class", queue=queue)
+        return await refresh(info=info, page=page, model="class", queue=queue)
 
     # Employees
     # ---------
@@ -494,7 +492,7 @@ class Mutation:
             cursor=cursor,
         )
         # NOTE: "employee" is called "person" in the new AMQP system
-        return await refresh(page=page, model="person", queue=queue)
+        return await refresh(info=info, page=page, model="person", queue=queue)
 
     # Engagements
     # -----------
@@ -572,7 +570,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(page=page, model="engagement", queue=queue)
+        return await refresh(info=info, page=page, model="engagement", queue=queue)
 
     # Facets
     # ------
@@ -647,7 +645,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(page=page, model="facet", queue=queue)
+        return await refresh(info=info, page=page, model="facet", queue=queue)
 
     # ITAssociations
     # ---------
@@ -769,7 +767,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(page=page, model="itsystem", queue=queue)
+        return await refresh(info=info, page=page, model="itsystem", queue=queue)
 
     # ITUsers
     # -------
@@ -835,7 +833,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(page=page, model="ituser", queue=queue)
+        return await refresh(info=info, page=page, model="ituser", queue=queue)
 
     # KLEs
     # ----
@@ -893,7 +891,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(page=page, model="kle", queue=queue)
+        return await refresh(info=info, page=page, model="kle", queue=queue)
 
     # Leave
     # -----
@@ -951,7 +949,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(page=page, model="leave", queue=queue)
+        return await refresh(info=info, page=page, model="leave", queue=queue)
 
     # Managers
     # --------
@@ -1011,7 +1009,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(page=page, model="manager", queue=queue)
+        return await refresh(info=info, page=page, model="manager", queue=queue)
 
     # Root Organisation
     # -----------------
@@ -1100,7 +1098,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(page=page, model="org_unit", queue=queue)
+        return await refresh(info=info, page=page, model="org_unit", queue=queue)
 
     # Owner
     # -------------
@@ -1132,7 +1130,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(page=page, model="owner", queue=queue)
+        return await refresh(info=info, page=page, model="owner", queue=queue)
 
     # Related Units
     # -------------
@@ -1164,7 +1162,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(page=page, model="related_unit", queue=queue)
+        return await refresh(info=info, page=page, model="related_unit", queue=queue)
 
     # Roles
     # -----
@@ -1223,7 +1221,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(page=page, model="role", queue=queue)
+        return await refresh(info=info, page=page, model="role", queue=queue)
 
     # Files
     # -----
@@ -1322,12 +1320,10 @@ async def delete_organisationfunktion(uuid: UUID) -> UUID:
     return uuid
 
 
-async def refresh(page: Paged[UUID], model: str, queue: str | None) -> Paged[UUID]:
+async def refresh(
+    info: Info, page: Paged[UUID], model: str, queue: str | None
+) -> Paged[UUID]:
     """Publish AMQP messages for UUIDs in the page, optionally to a specific queue."""
-    # TODO: We should have a shared AMQPSystem instead of creating an ephemeral one
-    amqp_system = AMQPSystem(get_settings().amqp)
-    await amqp_system.start()
-
     if queue is None:
         # Broadcast on OS2mo's default exchange if no queue is specified
         routing_key = model
@@ -1343,6 +1339,7 @@ async def refresh(page: Paged[UUID], model: str, queue: str | None) -> Paged[UUI
 
     # Publish UUIDs to AMQP
     uuids = page.objects
+    amqp_system = info.context["amqp_system"]
     tasks = (
         amqp_system.publish_message(
             routing_key=routing_key, payload=str(uuid), exchange=exchange
@@ -1350,8 +1347,6 @@ async def refresh(page: Paged[UUID], model: str, queue: str | None) -> Paged[UUI
         for uuid in uuids
     )
     await gather_with_concurrency(100, *tasks)
-
-    await amqp_system.stop()
 
     # Return the page to reduce duplicated boilerplate in the callers
     return page

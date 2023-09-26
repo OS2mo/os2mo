@@ -32,7 +32,7 @@ from tests.conftest import GQLResponse
         ("role", "1b20d0b9-96a0-42a6-b196-293bb86e62e8"),
     ],
 )
-@patch("mora.graphapi.versions.latest.mutators.AMQPSystem.publish_message")
+@patch("mora.app.AMQPSystem.publish_message")
 async def test_refresh_mutators(
     mock: AsyncMock, graphapi_post: Callable, model: str, filter_uuid: str
 ) -> None:

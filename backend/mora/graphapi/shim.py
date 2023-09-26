@@ -209,7 +209,7 @@ def get_schema(graphql_version: type[BaseGraphQLVersion]) -> Schema:
 
 
 async def set_graphql_context_dependencies(
-    sessionmaker: depends.async_sessionmaker
+    amqp_system: depends.AMQPSystem, sessionmaker: depends.async_sessionmaker
 ):
     """Fetch FastAPI dependencies into starlette context.
 
@@ -222,6 +222,7 @@ async def set_graphql_context_dependencies(
     """
     data = {
         **context,
+        "amqp_system": amqp_system,
         "sessionmaker": sessionmaker,
     }
     with request_cycle_context(data):
@@ -242,6 +243,7 @@ async def execute_graphql(
         #  service API shims get RBAC equivalent to the GraphQL API for free.
         kwargs["context_value"] = await graphql_version.get_context(
             get_token=noauth,
+            amqp_system=context.get("amqp_system"),
             sessionmaker=context.get("sessionmaker"),
         )
 

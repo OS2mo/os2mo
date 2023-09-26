@@ -14,6 +14,7 @@ from more_itertools import only
 from prometheus_client import Gauge
 from prometheus_client import Info
 from prometheus_fastapi_instrumentator import Instrumentator
+from ramqp import AMQPSystem
 from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
@@ -167,6 +168,8 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         await triggers.register(app)
         if lora.client is None:
             lora.client = await lora.create_lora_client(app)
+        if settings.amqp_enable:
+            await app.state.amqp_system.start()
 
         yield
 
@@ -296,6 +299,8 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         host=lora_settings.db_host,
         name=_get_dbname(),
     )
+    amqp_system = AMQPSystem(settings.amqp)
+    app.state.amqp_system = amqp_system
 
     # TODO: Deal with uncaught "Exception", #43826
     app.add_exception_handler(Exception, fallback_handler)

@@ -7,6 +7,7 @@ from typing import Any
 import strawberry
 from fastapi import Depends
 from pydantic import PositiveInt
+from ramqp import AMQPSystem
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from ..base import BaseGraphQLSchema
@@ -57,6 +58,7 @@ class LatestGraphQLVersion(BaseGraphQLVersion):
         # NOTE: If you add or remove any parameters, make sure to keep the
         # execute_graphql ajour.
         get_token: Callable[[], Awaitable[Token]] = Depends(token_getter),
+        amqp_system: AMQPSystem = Depends(depends.get_amqp_system),
         sessionmaker: async_sessionmaker = Depends(depends.get_sessionmaker),
     ) -> dict[str, Any]:
         return {
@@ -64,6 +66,7 @@ class LatestGraphQLVersion(BaseGraphQLVersion):
             **await get_loaders(),
             "get_token": get_token,
             "filestorage": get_filestorage(),
+            "amqp_system": amqp_system,
             "sessionmaker": sessionmaker,
             **get_audit_loaders(sessionmaker),
         }
