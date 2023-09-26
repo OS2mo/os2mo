@@ -1410,7 +1410,6 @@ async def list_managers_ou(
            }
          ]
     """
-    # return await get_detail(type="ou", id=id, function="manager")
     return util.removeNonServiceApiFields(
         await get_detail(type="ou", id=id, function="manager"),
     )
