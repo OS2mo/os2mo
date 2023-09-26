@@ -20,10 +20,8 @@ async def create_facet(input: FacetCreate, organisation_uuid: UUID) -> UUID:
     return uuid
 
 
-async def update_facet(
-    input: FacetUpdate, facet_uuid: UUID, organisation_uuid: UUID
-) -> UUID:
-    exists = await asyncio.to_thread(db.object_exists, "facet", str(facet_uuid))
+async def update_facet(input: FacetUpdate, organisation_uuid: UUID) -> UUID:
+    exists = await asyncio.to_thread(db.object_exists, "facet", str(input.uuid))
     if not exists:
         raise ValueError("Cannot update a non-existent object")
 
@@ -32,7 +30,7 @@ async def update_facet(
 
     # Let LoRa's SQL templates do their magic
     life_cycle_code = await asyncio.to_thread(
-        db.get_life_cycle_code, "facet", str(facet_uuid)
+        db.get_life_cycle_code, "facet", str(input.uuid)
     )
     if life_cycle_code in (db.Livscyklus.SLETTET.value, db.Livscyklus.PASSIVERET.value):
         # Reactivate and update
@@ -41,7 +39,7 @@ async def update_facet(
             "facet",
             "",
             registration,
-            uuid=str(facet_uuid),
+            uuid=str(input.uuid),
             life_cycle_code=db.Livscyklus.IMPORTERET.value,
         )
     else:
@@ -51,7 +49,7 @@ async def update_facet(
             "facet",
             "",
             registration,
-            str(facet_uuid),
+            str(input.uuid),
         )
     return uuid
 
