@@ -57,6 +57,10 @@ from ._organisationsfunktion import OrganisationFunktionTilsGyldighed
 
 def get_sessionmaker(user, password, host, name):
     engine = create_async_engine(
-        f"postgresql+psycopg://{user}:{password}@{host}/{name}"
+        f"postgresql+psycopg://{user}:{password}@{host}/{name}",
+        # Transparently reconnect on connection errors so the calling application does
+        # not need to be concerned with error handling. This is required for the
+        # testing APIs to function correctly.
+        pool_pre_ping=True,
     )
     return async_sessionmaker(engine)
