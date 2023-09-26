@@ -17,6 +17,7 @@ class Detail(UUIDBase):
         "it",
         "role",
         "kle",
+        "owner",
     ] = Field(
         description="Name of the type of detail we wish to terminate. "
         "Must be a valid lora role_type like:  'address', "
