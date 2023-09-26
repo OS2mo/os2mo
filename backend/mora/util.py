@@ -680,8 +680,8 @@ def is_detail_unpublished(
 
 def removeNonServiceApiFields(
     objs: list,
-    invalid_fields: list[str],
-    exclude_objs: list[str] = None,
+    invalid_fields: list[str] = ["org_uuid", "facet_uuid", "validity"],
+    exclude_objs: list[str] = [],
     parent_obj_name: str = None,
 ):
     """
@@ -718,9 +718,6 @@ def removeNonServiceApiFields(
             for invalid_field in invalid_fields:
                 if invalid_field in obj:
                     del obj[invalid_field]
-
-        # Go through obj keys and if its a part of "extra_keys", treat the value
-        # as an object aswell, which also needs to be cleaned - the value can also be a list of objects
 
         for key, value in obj.items():
             if value is None:
