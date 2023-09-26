@@ -30,6 +30,7 @@ from .engagements import terminate_engagement
 from .engagements import update_engagement
 from .facets import create_facet
 from .facets import delete_facet
+from .facets import terminate_facet
 from .facets import update_facet
 from .filters import AddressFilter
 from .filters import AssociationFilter
@@ -59,6 +60,7 @@ from .inputs import EngagementCreateInput
 from .inputs import EngagementTerminateInput
 from .inputs import EngagementUpdateInput
 from .inputs import FacetCreateInput
+from .inputs import FacetTerminateInput
 from .inputs import FacetUpdateInput
 from .inputs import ITAssociationCreateInput
 from .inputs import ITAssociationTerminateInput
@@ -595,8 +597,15 @@ class Mutation:
         uuid = await update_facet(input.to_pydantic(), input.uuid, org.uuid)  # type: ignore
         return uuid2response(uuid, FacetRead)
 
-    # TODO: facet_update
-    # TODO: facet_terminate
+    @strawberry.mutation(
+        description="Terminates a facet.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_terminate_permission("facet"),
+        ],
+    )
+    async def facet_terminate(self, input: FacetTerminateInput) -> Response[Facet]:
+        return uuid2response(await terminate_facet(input.to_pydantic()), FacetRead)
 
     @strawberry.mutation(
         description="Deletes a facet." + delete_warning,

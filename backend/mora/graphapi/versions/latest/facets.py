@@ -4,7 +4,9 @@ import asyncio
 from uuid import UUID
 
 from .models import FacetCreate
+from .models import FacetTerminate
 from .models import FacetUpdate
+from mora import lora
 from oio_rest import db
 
 
@@ -52,6 +54,11 @@ async def update_facet(
             str(facet_uuid),
         )
     return uuid
+
+
+async def terminate_facet(input: FacetTerminate) -> UUID:
+    await lora.Connector().facet.update(input.to_registration(), input.uuid)
+    return input.uuid
 
 
 async def delete_facet(facet_uuid: UUID) -> UUID:

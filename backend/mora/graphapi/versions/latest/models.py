@@ -710,6 +710,24 @@ class FacetUpdate(FacetCreate):
     uuid: UUID = Field(description="UUID of the facet to update.")
 
 
+class FacetTerminate(UUIDBase):
+    uuid: UUID = Field(description="UUID for the facet we want to terminate.")
+    validity: ValidityTerminate = Field(description="When to terminate the facet")
+
+    def to_registration(self) -> dict:
+        return {
+            "tilstande": {
+                "facetpubliceret": [
+                    {
+                        "publiceret": "IkkePubliceret",
+                        "virkning": self.validity.get_termination_effect(),
+                    }
+                ]
+            },
+            "note": "Afslut klasse",
+        }
+
+
 class FacetRead(RAFacetRead):
     validity: Validity = Field(description="Validity of the facet.")
 

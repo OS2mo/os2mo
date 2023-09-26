@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from functools import partial
 from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import patch
@@ -84,6 +85,58 @@ async def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     result_uuids = [facet.get("uuid") for facet in response.data["facets"]["objects"]]
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))
+
+
+def read_facets_helper(graphapi_post, query: str, extract: str) -> dict[UUID, Any]:
+    response: GQLResponse = graphapi_post(query)
+    assert response.errors is None
+    assert response.data
+    return {UUID(x["uuid"]): x[extract] for x in response.data["facets"]["objects"]}
+
+
+read_facets = partial(
+    read_facets_helper,
+    query="""
+        query ReadITFacet {
+            facets {
+                objects {
+                    uuid
+                    current {
+                        uuid
+                        user_key
+                        validity {
+                            from
+                            to
+                        }
+                    }
+                }
+            }
+        }
+    """,
+    extract="current",
+)
+
+read_history = partial(
+    read_facets_helper,
+    query="""
+        query ReadITFacet {
+            facets(filter: {from_date: null, to_date: null}) {
+                objects {
+                    uuid
+                    objects {
+                        uuid
+                        user_key
+                        validity {
+                            from
+                            to
+                        }
+                    }
+                }
+            }
+        }
+    """,
+    extract="objects",
+)
 
 
 OPTIONAL = {
@@ -391,3 +444,49 @@ async def test_update_facet() -> None:
         "uuid": facet_uuid,
         "user_key": "New Value 2",
     }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_terminate_facet(graphapi_post) -> None:
+    """Test that we can terminate facets."""
+    # Verify existing state
+    facet_map = read_facets(graphapi_post)
+    assert len(facet_map.keys()) == 18
+
+    facet_to_terminate = UUID("1a6045a2-7a8e-4916-ab27-b2402e64f2be")
+    assert facet_to_terminate in facet_map.keys()
+
+    # Terminate a facet
+    mutation = """
+        mutation TerminateFacet($input: FacetTerminateInput!) {
+            facet_terminate(input: $input) {
+                uuid
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(
+        mutation,
+        {"input": {"uuid": str(facet_to_terminate), "validity": {"to": "1990-01-01"}}},
+    )
+    assert response.errors is None
+    assert response.data
+    terminated_uuid = UUID(response.data["facet_terminate"]["uuid"])
+    assert terminated_uuid == facet_to_terminate
+
+    # Verify modified state
+    new_facet_map = read_history(graphapi_post)
+    assert new_facet_map.keys() == set(facet_map.keys())
+
+    # Verify facet history
+    facet_history = new_facet_map[terminated_uuid]
+    assert facet_history == [
+        {
+            "uuid": str(facet_to_terminate),
+            "user_key": "engagement_job_function",
+            "validity": {
+                "from": "1900-01-01T00:00:00+01:00",
+                "to": "1990-01-01T00:00:00+01:00",
+            },
+        }
+    ]
