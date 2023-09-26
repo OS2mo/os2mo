@@ -7,7 +7,6 @@ from fastapi.encoders import jsonable_encoder
 from strawberry.types import Info
 
 from ..latest.classes import ClassUpdateInput
-from ..latest.inputs import FacetUpdateInput
 from ..latest.permissions import gen_update_permission
 from ..latest.permissions import IsAuthenticatedPermission
 from ..v10.version import GraphQLVersion as NextGraphQLVersion
@@ -17,6 +16,7 @@ from ..v13.schema import Facet
 from ..v13.schema import ITSystem
 from ..v13.schema import Response
 from ..v14.version import ITSystemCreateInput
+from ..v15.version import FacetUpdateInput
 from mora.graphapi.shim import execute_graphql  # type: ignore[attr-defined]
 from ramodels.mo import ClassRead
 from ramodels.mo import FacetRead

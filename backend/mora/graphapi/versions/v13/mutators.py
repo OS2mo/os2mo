@@ -28,9 +28,7 @@ from ..latest.employee import update_employee
 from ..latest.engagements import create_engagement
 from ..latest.engagements import terminate_engagement
 from ..latest.engagements import update_engagement
-from ..latest.facets import create_facet
 from ..latest.facets import delete_facet
-from ..latest.facets import update_facet
 from ..latest.inputs import AddressCreateInput
 from ..latest.inputs import AddressTerminateInput
 from ..latest.inputs import AddressUpdateInput
@@ -43,8 +41,6 @@ from ..latest.inputs import EmployeeUpdateInput
 from ..latest.inputs import EngagementCreateInput
 from ..latest.inputs import EngagementTerminateInput
 from ..latest.inputs import EngagementUpdateInput
-from ..latest.inputs import FacetCreateInput
-from ..latest.inputs import FacetUpdateInput
 from ..latest.inputs import ITAssociationCreateInput
 from ..latest.inputs import ITAssociationTerminateInput
 from ..latest.inputs import ITAssociationUpdateInput
@@ -102,6 +98,9 @@ from ..latest.role import create_role
 from ..latest.role import terminate_role
 from ..latest.role import update_role
 from ..v14.version import ITSystemCreateInput
+from ..v15.version import FacetCreateInput
+from ..v15.version import FacetUpdateInput
+from ..v15.version import GraphQLVersion as GraphQLV15
 from .schema import Address
 from .schema import Association
 from .schema import Class
@@ -418,9 +417,9 @@ class Mutation:
     async def facet_create(
         self, info: Info, input: FacetCreateInput
     ) -> Response[Facet]:
-        org = await info.context["org_loader"].load(0)
-        uuid = await create_facet(input.to_pydantic(), org.uuid)
-        return uuid2response(uuid, FacetRead)
+        return await GraphQLV15.schema.mutation.facet_create(
+            self=self, info=info, input=input
+        )
 
     @strawberry.mutation(
         description="Updates a facet.",
@@ -432,9 +431,9 @@ class Mutation:
     async def facet_update(
         self, info: Info, input: FacetUpdateInput
     ) -> Response[Facet]:
-        org = await info.context["org_loader"].load(0)
-        uuid = await update_facet(input.to_pydantic(), input.uuid, org.uuid)  # type: ignore
-        return uuid2response(uuid, FacetRead)
+        return await GraphQLV15.schema.mutation.facet_update(
+            self=self, info=info, input=input
+        )
 
     # TODO: facet_update
     # TODO: facet_terminate
