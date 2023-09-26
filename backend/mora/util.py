@@ -676,3 +676,63 @@ def is_detail_unpublished(
         return True
 
     return detail_value == "-"
+
+
+def removeNonServiceApiFields(
+    objs: list,
+    invalid_fields: list[str],
+    exclude_objs: list[str] = None,
+    parent_obj_name: str = None,
+):
+    """
+    Remove fields that are not part of the service API from the context
+
+    NOTE: If "None" is added to exclude_objs, the objects in iteration 0
+    will be excluded from removal
+
+    :param objs: The objects to remove fields from
+    :param invalid_fields: The fields to remove
+    :param exclude_objs: The objects to exclude from the removal
+    :param parent_obj_name: The name of the parent object
+
+    :return: The objects with the fields removed
+
+    Example:
+    ```
+    ou_result = await mora.service.detail_reading.get_detail(
+        type="ou", id=id, function="org_unit"
+    )
+
+    ou_result = util.removeNonServiceApiFields(
+        ou_result,
+        invalid_fields=["org_uuid", "facet_uuid", "validity"],
+        exclude_objs=[None, "parent"]
+    )
+    ```
+    """
+    for obj in objs:
+        if not isinstance(obj, dict):
+            continue
+
+        if parent_obj_name not in exclude_objs:
+            for invalid_field in invalid_fields:
+                if invalid_field in obj:
+                    del obj[invalid_field]
+
+        # Go through obj keys and if its a part of "extra_keys", treat the value
+        # as an object aswell, which also needs to be cleaned - the value can also be a list of objects
+
+        for key, value in obj.items():
+            if value is None:
+                continue
+
+            if isinstance(value, list):
+                obj[key] = removeNonServiceApiFields(
+                    value, invalid_fields, exclude_objs, key
+                )
+            else:
+                obj[key] = removeNonServiceApiFields(
+                    [value], invalid_fields, exclude_objs, key
+                )[0]
+
+    return objs
