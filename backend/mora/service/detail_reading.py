@@ -1222,24 +1222,10 @@ async def list_kles_ou(
     only_primary_uuid: Any | None = None,
 ):
     """Fetch a list of kles for the organisation unit."""
-    # return await get_detail(type="ou", id=id, function="kle")
-    kle_result = await get_detail(type="ou", id=id, function="kle")
-
-    # Remove fields now supported by the Service-API
-    invalid_fields = ["org_uuid", "facet_uuid", "validity"]
-    for kle in kle_result:
-        if "kle_aspect" in kle:
-            for aspect in kle["kle_aspect"]:
-                for invalid_field in invalid_fields:
-                    if invalid_field in aspect:
-                        aspect.pop(invalid_field)
-
-        if "kle_number" in kle:
-            for invalid_field in invalid_fields:
-                if invalid_field in kle["kle_number"]:
-                    kle["kle_number"].pop(invalid_field)
-
-    return kle_result
+    return util.removeNonServiceApiFields(
+        await get_detail(type="ou", id=id, function="kle"),
+        exclude_objs=[None, "org_unit"],
+    )
 
 
 @router.get("/e/{id}/details/leave")
@@ -1429,27 +1415,10 @@ async def list_managers_ou(
            }
          ]
     """
-    manager_result = await get_detail(type="ou", id=id, function="manager")
-
-    invalid_fields = ["org_uuid", "facet_uuid", "validity"]
-    for manager in manager_result:
-        if "manager_level" in manager:
-            for invalid_field in invalid_fields:
-                if invalid_field in manager["manager_level"]:
-                    manager["manager_level"].pop(invalid_field)
-
-        if "manager_type" in manager:
-            for invalid_field in invalid_fields:
-                if invalid_field in manager["manager_type"]:
-                    manager["manager_type"].pop(invalid_field)
-
-        if "responsibility" in manager:
-            for responsibility in manager["responsibility"]:
-                for invalid_field in invalid_fields:
-                    if invalid_field in responsibility:
-                        responsibility.pop(invalid_field)
-
-    return manager_result
+    return util.removeNonServiceApiFields(
+        await get_detail(type="ou", id=id, function="manager"),
+        exclude_objs=[None, "org_unit"],
+    )
 
 
 @router.get("/e/{id}/details/org_unit")
@@ -1549,7 +1518,6 @@ async def list_org_units_ou(
     """
     return util.removeNonServiceApiFields(
         await get_detail(type="ou", id=id, function="org_unit"),
-        invalid_fields=["org_uuid", "facet_uuid", "validity"],
         exclude_objs=[None, "parent"],
     )
 
