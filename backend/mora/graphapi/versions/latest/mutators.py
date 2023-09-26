@@ -103,6 +103,7 @@ from .leave import update_leave
 from .manager import create_manager
 from .manager import terminate_manager
 from .manager import update_manager
+from .models import FacetRead
 from .models import FileStore
 from .org import create_org
 from .org import OrganisationCreate
@@ -158,7 +159,6 @@ from mora.common import get_connector
 from mora.config import get_settings
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
-from ramodels.mo import FacetRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead
 from ramodels.mo.details import AssociationRead

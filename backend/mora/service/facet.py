@@ -154,7 +154,7 @@ async def get_class_ancestor_tree(
     return await get_classes(root for root in root_uuids)
 
 
-async def get_one_facet(c, facetid, facet=None):
+async def get_one_facet(c, facetid, facet=None, extended: bool = False, validity=None):
     """Fetch a facet and enrich it."""
 
     # Use given facet or fetch one, if none is given
@@ -170,6 +170,14 @@ async def get_one_facet(c, facetid, facet=None):
         "user_key": bvn,
         "description": description,
     }
+
+    if extended:
+        response["org_uuid"] = facet["relationer"]["ansvarlig"][0]["uuid"]
+        validities = facet["tilstande"]["facetpubliceret"]
+        response[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
+
+        response["published"] = validities[0]["publiceret"]
+
     return response
 
 

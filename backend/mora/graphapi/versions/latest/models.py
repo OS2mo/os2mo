@@ -21,6 +21,7 @@ from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from mora.util import to_lora_time
 from oio_rest import validate
+from ramodels.mo import FacetRead as RAFacetRead
 from ramodels.mo import OpenValidity as RAOpenValidity
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo._shared import UUIDBase
@@ -645,6 +646,13 @@ class EngagementUpdate(EngagementUpsert):
 
 # EngagementsAssociations
 # -----------------------
+
+# Facets
+# -----------------------
+
+
+class FacetRead(RAFacetRead):
+    validity: Validity = Field(description="Validity of the facet.")
 
 
 # ITAssociations
