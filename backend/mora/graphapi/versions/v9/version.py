@@ -36,6 +36,16 @@ class Mutation(NextGraphQLVersion.schema.mutation):  # type: ignore[name-defined
         self, info: Info, uuid: UUID, input: ClassUpdateInput
     ) -> Response[Class]:
         input.uuid = uuid  # type: ignore
+        payload = jsonable_encoder(input)
+        if "validity" in payload:
+            payload["validity"] = {
+                "from": payload["validity"]["from"]
+                if "from" in payload["validity"]
+                else payload["validity"]["from_date"],
+                "to": payload["validity"]["to"]
+                if "to" in payload["validity"]
+                else payload["validity"]["to_date"],
+            }
 
         response = await execute_graphql(
             """
@@ -47,7 +57,7 @@ class Mutation(NextGraphQLVersion.schema.mutation):  # type: ignore[name-defined
             """,
             graphql_version=NextGraphQLVersion,
             context_value=info.context,
-            variable_values={"input": jsonable_encoder(input)},
+            variable_values={"input": payload},
         )
         uuid = response.data["class_update"]["uuid"]
         return uuid2response(uuid, ClassRead)
