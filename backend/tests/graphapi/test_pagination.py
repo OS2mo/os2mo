@@ -295,7 +295,16 @@ async def test_cursor_stable_registration(
 
     # Add new facet
     response: GQLResponse = graphapi_post(
-        create_facet_query, {"input": {"user_key": "TestFacet"}}
+        create_facet_query,
+        {
+            "input": {
+                "user_key": "TestFacet",
+                "validity": {
+                    "from": now().date().isoformat(),
+                    "to": None,
+                },
+            }
+        },
     )
     assert response.errors is None
     new_uuid = response.data["facet_create"]["uuid"]

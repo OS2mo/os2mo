@@ -52,7 +52,6 @@ class BaseFilter:
         default=UNSET,
         description="Limit the elements returned by their starting validity.",
     )
-
     to_date: datetime | None = strawberry.field(
         default=UNSET,
         description="Limit the elements returned by their ending validity.",
@@ -170,15 +169,7 @@ class EngagementFilter(BaseFilter):
 
 
 @strawberry.input(description="Facet filter.")
-class FacetFilter:
-    # TODO: inherit these from BaseFilter when the object is non-static
-    uuids: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("UUID", "uuids")
-    )
-    user_keys: list[str] | None = strawberry.field(
-        default=None, description=gen_filter_string("User-key", "user_keys")
-    )
-
+class FacetFilter(BaseFilter):
     parents: list[UUID] | None = strawberry.field(
         default=None, description=gen_filter_string("Parent UUID", "parents")
     )

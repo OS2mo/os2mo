@@ -35,6 +35,8 @@ def get_handler_for_type(object_type) -> "ReadingHandler":
 
 
 class ReadingHandler:
+    is_reg_valid = util.is_reg_valid
+
     @classmethod
     @abc.abstractmethod
     async def get(
@@ -114,7 +116,7 @@ class ReadingHandler:
                     )
                 )
                 for start, end, effect in (await cls._get_effects(c, function_obj))
-                if util.is_reg_valid(effect)
+                if cls.is_reg_valid(effect)
             ]
         )
 

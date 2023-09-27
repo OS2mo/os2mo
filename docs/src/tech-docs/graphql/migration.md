@@ -9,6 +9,42 @@ code is up-to-date with the latest version.
 
 Below follows the migration guide for each version.
 
+## Version 16
+
+GraphQL version 16 introduces breaking changes to a few facet related endpoints.
+Specifically the `facet_create` and the `facet_update` mutators.
+
+The breaking changes to the `facet_create` and `facet_update` mutators are that
+both now require a `validity` argument in their input types. Allowing for bitemporal
+changes to the underlying data-entity.
+
+As such to migrate from GraphQL v15, simply send the input as normal:
+```graphql
+mutation FacetUpdate($input: FacetUpdateInput!){
+    facet_update(input: $input) {
+        uuid
+    }
+}
+```
+But ensure that the provided `input` payload has undergone the following transformation:
+```json
+{
+  "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+  "user_key": "Test",
+}
+```
+to:
+```json
+{
+  "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+  "user_key": "Test",
+  "validity": {
+      "from": null,
+      "to": null
+  }
+}
+```
+
 ## Version 15
 
 GraphQL version 15 introduces breaking changes to a few itsystem related

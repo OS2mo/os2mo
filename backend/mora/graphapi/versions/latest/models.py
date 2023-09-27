@@ -17,13 +17,16 @@ from mora import common
 from mora import exceptions
 from mora import mapping
 from mora.util import CPR
+from mora.util import NEGATIVE_INFINITY
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from mora.util import to_lora_time
 from oio_rest import validate
+from ramodels.mo import FacetRead as RAFacetRead
 from ramodels.mo import OpenValidity as RAOpenValidity
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo._shared import UUIDBase
+
 
 logger = logging.getLogger(__name__)
 
@@ -645,6 +648,91 @@ class EngagementUpdate(EngagementUpsert):
 
 # EngagementsAssociations
 # -----------------------
+
+# Facets
+# -----------------------
+
+
+class FacetCreate(BaseModel):
+    """Model representing a facet creation."""
+
+    user_key: str = Field(description="Facet name.")
+    published: str = Field(
+        "Publiceret", description="Published state of the facet object."
+    )
+
+    validity: Validity = Field(
+        description="Validity range for the facet. Default to ['-infinity', 'infinity']",
+    )
+
+    class Config:
+        frozen = True
+        extra = Extra.forbid
+
+    def to_registration(self, organisation_uuid: UUID) -> dict:
+        from_time = to_lora_time(
+            self.validity.from_date or to_lora_time(NEGATIVE_INFINITY)
+        )
+        to_time = to_lora_time(self.validity.to_date or to_lora_time(POSITIVE_INFINITY))
+
+        lora_registration = {
+            "tilstande": {
+                "facetpubliceret": [
+                    {
+                        "publiceret": self.published,
+                        "virkning": {"from": from_time, "to": to_time},
+                    }
+                ]
+            },
+            "attributter": {
+                "facetegenskaber": [
+                    {
+                        "brugervendtnoegle": self.user_key,
+                        "virkning": {"from": from_time, "to": to_time},
+                    }
+                ]
+            },
+            "relationer": {
+                "ansvarlig": [
+                    {
+                        "uuid": str(organisation_uuid),
+                        "virkning": {"from": from_time, "to": to_time},
+                        "objekttype": "Organisation",
+                    }
+                ],
+            },
+        }
+        validate.validate(lora_registration, "facet")
+
+        return lora_registration
+
+
+class FacetUpdate(FacetCreate):
+    """Model representing a facet updates."""
+
+    uuid: UUID = Field(description="UUID of the facet to update.")
+
+
+class FacetTerminate(UUIDBase):
+    uuid: UUID = Field(description="UUID for the facet we want to terminate.")
+    validity: ValidityTerminate = Field(description="When to terminate the facet")
+
+    def to_registration(self) -> dict:
+        return {
+            "tilstande": {
+                "facetpubliceret": [
+                    {
+                        "publiceret": "IkkePubliceret",
+                        "virkning": self.validity.get_termination_effect(),
+                    }
+                ]
+            },
+            "note": "Afslut klasse",
+        }
+
+
+class FacetRead(RAFacetRead):
+    validity: Validity = Field(description="Validity of the facet.")
 
 
 # ITAssociations

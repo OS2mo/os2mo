@@ -16,6 +16,9 @@ from .models import EmployeeUpdate
 from .models import EngagementCreate
 from .models import EngagementTerminate
 from .models import EngagementUpdate
+from .models import FacetCreate
+from .models import FacetTerminate
+from .models import FacetUpdate
 from .models import ITAssociationCreate
 from .models import ITAssociationTerminate
 from .models import ITAssociationUpdate
@@ -238,6 +241,32 @@ class ITAssociationUpdateInput:
 )
 class ITAssociationTerminateInput:
     """input model for terminating IT-associations."""
+
+
+# Facets
+# ------
+@strawberry.experimental.pydantic.input(
+    model=FacetCreate,
+    all_fields=True,
+)
+class FacetCreateInput:
+    """Input model for creating a facet."""
+
+
+@strawberry.experimental.pydantic.input(
+    model=FacetUpdate,
+    all_fields=True,
+)
+class FacetUpdateInput:
+    """Input model for updating a facet."""
+
+
+@strawberry.experimental.pydantic.input(
+    model=FacetTerminate,
+    all_fields=True,
+)
+class FacetTerminateInput:
+    """input model for terminating a facet."""
 
 
 # ITSystems

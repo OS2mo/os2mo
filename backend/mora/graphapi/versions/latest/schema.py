@@ -37,6 +37,7 @@ from strawberry.types import Info
 
 from .filters import ManagerFilter
 from .health import health_map
+from .models import FacetRead
 from .models import FileStore
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
@@ -78,7 +79,6 @@ from mora.util import now
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
-from ramodels.mo import FacetRead
 from ramodels.mo import OpenValidity as RAMOpenValidity
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
@@ -439,10 +439,24 @@ class Response(Generic[MOObject]):
             #       Remove when legacy systems handle datetimes properly.
             return from_date.date() <= now().date() <= to_date.date()
 
+        def activity_tuple(obj: Any) -> datetime:
+            if not hasattr(obj, "validity"):
+                return datetime.min
+            if obj.validity.to_date is None:
+                return datetime.max
+            return obj.validity.to_date
+
         # TODO: This should really do its own instantaneous query to find whatever is
         #       active right now, regardless of the values in objects.
         objects = await Response.objects(self, root, info)
-        return only(filter(active_now, objects))
+        objects_active_now = filter(active_now, objects)
+
+        # HACK: Due to legacy systems, ex dipex, we must use .date() to compare dates instead of datetimes.
+        #       because of this, if we update entities on the same date shortly after each other,
+        #       we may end up with multiple entities which are "active now", where only one is expected.
+        #       To handle this, we first try to find an entity which is active now and has no end date.
+        #       If we cannot find such an entity, we find the entity with largest to_date
+        return max(objects_active_now, key=activity_tuple, default=None)
 
     @strawberry.field(
         description=dedent(
@@ -2188,6 +2202,8 @@ class Facet:
     )
     async def description(self, root: FacetRead) -> str | None:
         return root.description
+
+    validity: OpenValidity = strawberry.auto
 
 
 # IT

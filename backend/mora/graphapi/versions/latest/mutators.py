@@ -30,8 +30,7 @@ from .engagements import terminate_engagement
 from .engagements import update_engagement
 from .facets import create_facet
 from .facets import delete_facet
-from .facets import FacetCreateInput
-from .facets import FacetUpdateInput
+from .facets import terminate_facet
 from .facets import update_facet
 from .filters import AddressFilter
 from .filters import AssociationFilter
@@ -60,6 +59,9 @@ from .inputs import EmployeeUpdateInput
 from .inputs import EngagementCreateInput
 from .inputs import EngagementTerminateInput
 from .inputs import EngagementUpdateInput
+from .inputs import FacetCreateInput
+from .inputs import FacetTerminateInput
+from .inputs import FacetUpdateInput
 from .inputs import ITAssociationCreateInput
 from .inputs import ITAssociationTerminateInput
 from .inputs import ITAssociationUpdateInput
@@ -103,6 +105,7 @@ from .leave import update_leave
 from .manager import create_manager
 from .manager import terminate_manager
 from .manager import update_manager
+from .models import FacetRead
 from .models import FileStore
 from .org import create_org
 from .org import OrganisationCreate
@@ -158,7 +161,6 @@ from mora.common import get_connector
 from mora.config import get_settings
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
-from ramodels.mo import FacetRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead
 from ramodels.mo.details import AssociationRead
@@ -577,9 +579,8 @@ class Mutation:
     async def facet_create(
         self, info: Info, input: FacetCreateInput
     ) -> Response[Facet]:
-        note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await create_facet(input.to_pydantic(), org.uuid, note)
+        uuid = await create_facet(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, FacetRead)
 
     @strawberry.mutation(
@@ -592,13 +593,19 @@ class Mutation:
     async def facet_update(
         self, info: Info, input: FacetUpdateInput
     ) -> Response[Facet]:
-        note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await update_facet(input.to_pydantic(), input.uuid, org.uuid, note)  # type: ignore
+        uuid = await update_facet(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, FacetRead)
 
-    # TODO: facet_update
-    # TODO: facet_terminate
+    @strawberry.mutation(
+        description="Terminates a facet.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_terminate_permission("facet"),
+        ],
+    )
+    async def facet_terminate(self, input: FacetTerminateInput) -> Response[Facet]:
+        return uuid2response(await terminate_facet(input.to_pydantic()), FacetRead)
 
     @strawberry.mutation(
         description="Deletes a facet." + delete_warning,
@@ -608,8 +615,7 @@ class Mutation:
         ],
     )
     async def facet_delete(self, uuid: UUID) -> Response[Facet]:
-        note = ""
-        uuid = await delete_facet(uuid, note)
+        uuid = await delete_facet(uuid)
         return uuid2response(uuid, FacetRead)
 
     @strawberry.mutation(
