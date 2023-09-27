@@ -4,6 +4,7 @@ import asyncio
 from uuid import UUID
 
 from .models import ClassCreate
+from .models import ClassUpdate
 from oio_rest import db
 
 
@@ -22,7 +23,7 @@ async def create_class(input: ClassCreate, organisation_uuid: UUID, note: str) -
 
 
 async def update_class(
-    input: ClassCreate, class_uuid: UUID, organisation_uuid: UUID, note: str
+    input: ClassUpdate, class_uuid: UUID, organisation_uuid: UUID, note: str
 ) -> UUID:
     exists = await asyncio.to_thread(db.object_exists, "klasse", str(class_uuid))
     if not exists:

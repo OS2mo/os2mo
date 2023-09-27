@@ -503,6 +503,13 @@ class ClassCreate(UUIDBase):
         }
 
 
+class ClassUpdate(ClassCreate):
+    """Model representing a class update."""
+
+    uuid: UUID = Field(description="UUID of the class to update.")
+    facet_uuid: UUID | None = Field(None, description="UUID of the related facet.")  # type: ignore
+
+
 class ClassRead(RAClassRead):
     validity: Validity = Field(description="Validity of the IT system object.")
 
