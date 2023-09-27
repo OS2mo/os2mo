@@ -5,7 +5,7 @@ from uuid import UUID
 import strawberry
 from strawberry.types import Info
 
-from ..latest.classes import ClassUpdateInput
+from ..latest.inputs import ClassUpdateInput
 from ..latest.permissions import gen_update_permission
 from ..latest.permissions import IsAuthenticatedPermission
 from ..v10.version import GraphQLVersion as NextGraphQLVersion
