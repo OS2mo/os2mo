@@ -4,6 +4,7 @@ from collections.abc import Callable
 
 import pytest
 
+from mora import util
 from tests.conftest import GQLResponse
 
 
@@ -25,6 +26,10 @@ async def test_mutator_format(graphapi_post: Callable, uuid: str) -> None:
             "facet_uuid": "ef71fe9c-7901-48e2-86d8-84116e210202",
             "name": "Test",
             "user_key": "Test",
+            "validity": {
+                "from": util.now().date().isoformat(),
+                "to": None,
+            },
         },
     }
 
