@@ -143,6 +143,7 @@ from .role import update_role
 from .schema import Address
 from .schema import Association
 from .schema import Class
+from .schema import ClassRead
 from .schema import Employee
 from .schema import Engagement
 from .schema import Facet
@@ -159,7 +160,6 @@ from .schema import Role
 from mora.audit import audit_log
 from mora.common import get_connector
 from mora.config import get_settings
-from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead

@@ -220,6 +220,8 @@ async def get_one_class(
     clazz=None,
     details: set[ClassDetails] | None = None,
     only_primary_uuid: bool = False,
+    extended: bool = False,
+    validity=None,
 ) -> MO_OBJ_TYPE:
     if not details:
         details = set()
@@ -301,6 +303,7 @@ async def get_one_class(
 
     owner = get_owner_uuid(clazz)
 
+    clazz_validity = last(clazz["tilstande"]["klassepubliceret"])
     response = {
         "uuid": classid,
         "name": attrs.get("titel"),
@@ -309,7 +312,7 @@ async def get_one_class(
         "scope": attrs.get("omfang"),
         "owner": owner,
         # TODO(#52443): don't last()
-        "published": last(clazz["tilstande"]["klassepubliceret"])["publiceret"],
+        "published": clazz_validity["publiceret"],
     }
 
     # create tasks
@@ -334,6 +337,11 @@ async def get_one_class(
 
     if ClassDetails.NCHILDREN in details:
         response["child_count"] = await nchildren_task
+
+    if extended:
+        response["facet_uuid"] = get_facet_uuid(clazz)
+        response["org_uuid"] = last(clazz["relationer"]["ansvarlig"])["uuid"]
+        response["validity"] = validity or util.get_effect_validity(clazz_validity)
 
     return response
 

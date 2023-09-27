@@ -22,6 +22,7 @@ from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from mora.util import to_lora_time
 from oio_rest import validate
+from ramodels.mo import ClassRead as RAClassRead
 from ramodels.mo import FacetRead as RAFacetRead
 from ramodels.mo import OpenValidity as RAOpenValidity
 from ramodels.mo import Validity as RAValidity
@@ -500,6 +501,10 @@ class ClassCreate(UUIDBase):
             "attributes": input["attributter"],
             "relations": input["relationer"],
         }
+
+
+class ClassRead(RAClassRead):
+    validity: Validity = Field(description="Validity of the IT system object.")
 
 
 # Employees
