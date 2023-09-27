@@ -812,6 +812,11 @@ def create_app(**kwargs: Any) -> FastAPI:
         ldap_overview = dataloader.load_ldap_overview()
         return ldap_overview[ldap_class]
 
+    # Get LDAP overview
+    @app.get("/Inspect/structure", status_code=202, tags=["LDAP"])
+    async def load_structure_from_LDAP(search_base: Union[str, None] = None) -> Any:
+        return dataloader.load_ldap_OUs(search_base)
+
     # Get populated LDAP overview
     @app.get("/Inspect/overview/populated", status_code=202, tags=["LDAP"])
     async def load_populated_overview_from_LDAP(
