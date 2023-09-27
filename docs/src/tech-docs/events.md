@@ -38,4 +38,4 @@ The body of the event contains the UUID of the affected object.
 ## Configuration
 
 Events are currently **disabled by default**. To enable this, set `ENABLE_AMQP`
-and `AMQP_ENABLE_NEW_SUBSYSTEM` to `True`.
+and deploy a MO container with command `mora.cli amqp start`.
