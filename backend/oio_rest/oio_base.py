@@ -495,8 +495,7 @@ class OIORestObject:
 
             if args.get("list") is not None:
                 # request.api_operation = "List"
-                results = await asyncio.to_thread(
-                    list_fn,
+                results = await list_fn(
                     cls.__name__,
                     results[0],
                     virkning_fra,
@@ -509,8 +508,7 @@ class OIORestObject:
         else:
             uuid_param = list_args.get("uuid")
             # request.api_operation = "List"
-            results = await asyncio.to_thread(
-                list_fn,
+            results = await list_fn(
                 cls.__name__,
                 uuid_param,
                 virkning_fra,
@@ -558,8 +556,7 @@ class OIORestObject:
 
         # request.api_operation = "Læs"
         # request.uuid = uuid
-        object_list = await asyncio.to_thread(
-            list_fn,
+        object_list = await list_fn(
             cls.__name__,
             [uuid],
             virkning_fra,

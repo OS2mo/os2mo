@@ -45,6 +45,7 @@ from .db_helpers import OffentlighedUndtaget
 from .db_helpers import Soegeord
 from .db_helpers import to_bool
 from .db_helpers import VaerdiRelationAttr
+from mora.audit import audit_log
 from mora.audit import audit_log_lora
 from mora.auth.middleware import get_authenticated_user
 from oio_rest import config
@@ -571,12 +572,12 @@ def update_object(
     return uuid
 
 
-def list_and_consolidate_objects(
+async def list_and_consolidate_objects(
     class_name, uuid, virkning_fra, virkning_til, registreret_fra, registreret_til
 ):
     """List objects with the given uuids, consolidating the 'virkninger' and
     optionally filtering by the given virkning and registrering periods."""
-    output = list_objects(
+    output = await list_objects(
         class_name=class_name,
         uuid=uuid,
         virkning_fra="-infinity",
@@ -589,7 +590,7 @@ def list_and_consolidate_objects(
     )
 
 
-def list_objects(
+async def list_objects(
     class_name: str,
     uuid: list | None,
     virkning_fra,
@@ -609,14 +610,31 @@ def list_objects(
     if registreret_fra is not None or registreret_til is not None:
         registration_period = DateTimeTZRange(registreret_fra, registreret_til)
 
+    from oio_rest.config import get_settings as lora_get_settings
+    from mora.db import get_sessionmaker
+    from oio_rest.db import _get_dbname
+    from sqlalchemy.sql import text
+
+    lora_settings = lora_get_settings()
+    sessionmaker = get_sessionmaker(
+        user=lora_settings.db_user,
+        password=lora_settings.db_password,
+        host=lora_settings.db_host,
+        name=_get_dbname(),
+    )
+
+    arguments = {
+        "uuid": uuid,
+        "registrering_tstzrange": registration_period,
+        "virkning_tstzrange": DateTimeTZRange(virkning_fra, virkning_til),
+    }
+
     with get_connection().cursor() as cursor:
+        resulting_sql = cursor.mogrify(sql, arguments)
+
+    async with sessionmaker() as session, session.begin():
         try:
-            arguments = {
-                "uuid": uuid,
-                "registrering_tstzrange": registration_period,
-                "virkning_tstzrange": DateTimeTZRange(virkning_fra, virkning_til),
-            }
-            cursor.execute(sql, arguments)
+            result = await session.execute(text(resulting_sql.decode("UTF-8")))
         except psycopg2.Error as e:
             if e.pgcode is not None and e.pgcode[:2] == "MO":
                 status_code = int(e.pgcode[2:])
@@ -624,12 +642,12 @@ def list_objects(
             else:
                 raise
 
-        output = one(cursor.fetchone())
+        output = one(result.fetchone())
         uuids = []
         if output is not None:
             uuids = [entry["id"] for entry in output]
-        audit_log_lora(
-            cursor, "list_objects", class_name, arguments, list(map(UUID, uuids))
+        audit_log(
+            session, "list_objects", class_name, arguments, list(map(UUID, uuids))
         )
 
     ret = filter_json_output((output,))
@@ -1006,10 +1024,11 @@ def search_objects(
     return (uuids,)
 
 
-def get_life_cycle_code(class_name, uuid):
+# TODO: Asyncify callers
+async def get_life_cycle_code(class_name, uuid):
     n = datetime.datetime.now()
     n1 = n + datetime.timedelta(seconds=1)
-    regs = list_objects(class_name, [uuid], n, n1, None, None)
+    regs = await list_objects(class_name, [uuid], n, n1, None, None)
     reg = regs[0][0]
     livscykluskode = reg["registreringer"][0]["livscykluskode"]
 
