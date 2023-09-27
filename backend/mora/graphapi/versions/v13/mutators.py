@@ -97,10 +97,10 @@ from ..latest.permissions import IsAuthenticatedPermission
 from ..latest.role import create_role
 from ..latest.role import terminate_role
 from ..latest.role import update_role
+from ..v14.version import GraphQLVersion as NextGraphQLVersion
 from ..v14.version import ITSystemCreateInput
 from ..v15.version import FacetCreateInput
 from ..v15.version import FacetUpdateInput
-from ..v15.version import GraphQLVersion as GraphQLV15
 from .schema import Address
 from .schema import Association
 from .schema import Class
@@ -417,7 +417,7 @@ class Mutation:
     async def facet_create(
         self, info: Info, input: FacetCreateInput
     ) -> Response[Facet]:
-        return await GraphQLV15.schema.mutation.facet_create(
+        return await NextGraphQLVersion.schema.mutation.facet_create(
             self=self, info=info, input=input
         )
 
@@ -431,7 +431,7 @@ class Mutation:
     async def facet_update(
         self, info: Info, input: FacetUpdateInput
     ) -> Response[Facet]:
-        return await GraphQLV15.schema.mutation.facet_update(
+        return await NextGraphQLVersion.schema.mutation.facet_update(
             self=self, info=info, input=input
         )
 

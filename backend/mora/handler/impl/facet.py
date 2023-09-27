@@ -46,10 +46,7 @@ class FacetReader(reading.ReadingHandler):
     async def _get_effects(cls, c, obj, **params):
         relevant = {
             "attributter": ("facetegenskaber",),
-            "relationer": (
-                "ansvarlig",
-                "ejer",
-            ),
+            "relationer": ("ansvarlig", "ejer", "facettilhoerer"),
             "tilstande": ("facetpubliceret",),
         }
         also = {}

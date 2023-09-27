@@ -670,13 +670,10 @@ class FacetCreate(BaseModel):
         extra = Extra.forbid
 
     def to_registration(self, organisation_uuid: UUID) -> dict:
-        from_time = to_lora_time(NEGATIVE_INFINITY)
-        to_time = to_lora_time(POSITIVE_INFINITY)
-
-        if self.validity and self.validity.from_date:
-            from_time = to_lora_time(self.validity.from_date)
-        if self.validity and self.validity.to_date:
-            to_time = to_lora_time(self.validity.to_date)
+        from_time = to_lora_time(
+            self.validity.from_date or to_lora_time(NEGATIVE_INFINITY)
+        )
+        to_time = to_lora_time(self.validity.to_date or to_lora_time(POSITIVE_INFINITY))
 
         lora_registration = {
             "tilstande": {
