@@ -172,6 +172,7 @@ def dataloader(
     dataloader = AsyncMock()
     dataloader.load_ldap_object = sync_dataloader
     dataloader.load_ldap_populated_overview = sync_dataloader
+    dataloader.load_ldap_OUs = sync_dataloader
     dataloader.load_ldap_overview = sync_dataloader
     dataloader.load_ldap_cpr_object = load_ldap_cpr_object
     dataloader.load_ldap_objects.return_value = [test_ldap_object] * 3
@@ -464,6 +465,13 @@ def test_ldap_get_overview_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get endpoint on our app."""
 
     response = test_client.get("/Inspect/overview")
+    assert response.status_code == 202
+
+
+def test_ldap_get_structure_endpoint(test_client: TestClient) -> None:
+    """Test the LDAP get endpoint on our app."""
+
+    response = test_client.get("/Inspect/structure")
     assert response.status_code == 202
 
 

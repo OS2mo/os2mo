@@ -437,6 +437,44 @@ class DataLoader:
 
         return output
 
+    def load_ldap_OUs(self, search_base) -> dict:
+        """
+        Returns a dictionary where the keys are OU strings and the items are dicts
+        which contain information about the OU
+        """
+        searchParameters: dict = {
+            "search_filter": "(objectclass=OrganizationalUnit)",
+            "attributes": [],
+        }
+
+        responses = paged_search(
+            self.context,
+            searchParameters,
+            search_base=search_base,
+        )
+
+        ous = [r["dn"] for r in responses]
+        output = {}
+
+        for ou in ous:
+            searchParameters = {
+                "search_filter": "(objectclass=user)",
+                "attributes": [],
+                "size_limit": 1,
+            }
+
+            responses = paged_search(
+                self.context,
+                searchParameters,
+                search_base=ou,
+            )
+            if len(responses) == 0:
+                output[ou] = {"empty": True}
+            else:
+                output[ou] = {"empty": False}
+
+        return output
+
     def add_ldap_object(self, dn: str, attributes: dict[str, Any] | None = None):
         """
         Adds a new object to LDAP

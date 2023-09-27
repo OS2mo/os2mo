@@ -231,6 +231,38 @@ async def test_load_ldap_objects(
     assert output[0] == expected_result
 
 
+async def test_load_ldap_OUs(ldap_connection: MagicMock, dataloader: DataLoader):
+
+    ou1 = "OU=Users,OU=Magenta,DC=ad,DC=addev"
+    ou2 = "OU=Groups,OU=Magenta,DC=ad,DC=addev"
+    dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
+
+    first_response = [mock_ldap_response({}, ou1), mock_ldap_response({}, ou2)]
+
+    second_response = [mock_ldap_response({}, dn)]
+    third_response: list = []
+
+    responses = iter(
+        [
+            first_response,
+            second_response,
+            third_response,
+        ]
+    )
+
+    def set_new_result(*args, **kwargs) -> None:
+        ldap_connection.response = next(responses)
+
+    ldap_connection.search.side_effect = set_new_result
+
+    output = dataloader.load_ldap_OUs(None)
+
+    assert ou1 in output
+    assert ou2 in output
+    assert output[ou1]["empty"] is False
+    assert output[ou2]["empty"] is True
+
+
 async def test_modify_ldap_employee(
     ldap_connection: MagicMock,
     dataloader: DataLoader,
