@@ -45,6 +45,7 @@ MOModel = TypeVar(
     AddressRead,
     AssociationRead,
     ClassRead,
+    RAClassRead,
     EmployeeRead,
     EngagementRead,
     FacetRead,
@@ -142,7 +143,7 @@ def lora_class_to_mo_class(lora_tuple: tuple[UUID, KlasseRead]) -> RAClassRead:
 
 def lora_classes_to_mo_classes(
     lora_result: Iterable[tuple[str, dict]],
-) -> Iterable[ClassRead]:
+) -> Iterable[RAClassRead]:
     mapped_result = starmap(
         lambda uuid_str, entry: (UUID(uuid_str), parse_obj_as(KlasseRead, entry)),
         lora_result,

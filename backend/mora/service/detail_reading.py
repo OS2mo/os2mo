@@ -1220,6 +1220,7 @@ async def list_kles_ou(
     """Fetch a list of kles for the organisation unit."""
     return util.removeNonServiceApiFields(
         await get_detail(type="ou", id=id, function="kle"),
+        exclude_objs=[None, "org_unit"],
     )
 
 
@@ -1412,6 +1413,7 @@ async def list_managers_ou(
     """
     return util.removeNonServiceApiFields(
         await get_detail(type="ou", id=id, function="manager"),
+        exclude_objs=[None, "org_unit"],
     )
 
 
@@ -1510,7 +1512,10 @@ async def list_org_units_ou(
            }
         ]
     """
-    return await get_detail(type="ou", id=id, function="org_unit")
+    return util.removeNonServiceApiFields(
+        await get_detail(type="ou", id=id, function="org_unit"),
+        exclude_objs=[None, "parent"],
+    )
 
 
 @router.get("/e/{id}/details/owner")
