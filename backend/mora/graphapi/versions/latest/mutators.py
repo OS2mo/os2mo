@@ -367,9 +367,8 @@ class Mutation:
     async def class_create(
         self, info: Info, input: ClassCreateInput
     ) -> Response[Class]:
-        note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await create_class(input.to_pydantic(), org.uuid, note)
+        uuid = await create_class(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, ClassRead)
 
     @strawberry.mutation(
@@ -382,9 +381,8 @@ class Mutation:
     async def class_update(
         self, info: Info, input: ClassUpdateInput
     ) -> Response[Class]:
-        note = ""
         org = await info.context["org_loader"].load(0)
-        uuid = await update_class(input.to_pydantic(), input.uuid, org.uuid, note)  # type: ignore
+        uuid = await update_class(input.to_pydantic(), input.uuid, org.uuid)  # type: ignore
         return uuid2response(uuid, ClassRead)
 
     # TODO: class_terminate
@@ -397,8 +395,7 @@ class Mutation:
         ],
     )
     async def class_delete(self, uuid: UUID) -> Response[Class]:
-        note = ""
-        uuid = await delete_class(uuid, note)
+        uuid = await delete_class(uuid)
         return uuid2response(uuid, ClassRead)
 
     @strawberry.mutation(

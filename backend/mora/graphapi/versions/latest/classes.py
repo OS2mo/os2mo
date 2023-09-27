@@ -8,14 +8,14 @@ from .models import ClassUpdate
 from oio_rest import db
 
 
-async def create_class(input: ClassCreate, organisation_uuid: UUID, note: str) -> UUID:
+async def create_class(input: ClassCreate, organisation_uuid: UUID) -> UUID:
     # Construct a LoRa registration object from our input arguments
     registration = input.to_registration(organisation_uuid=organisation_uuid)
     # Let LoRa's SQL templates do their magic
     uuid = await asyncio.to_thread(
         db.create_or_import_object,
         "klasse",
-        note,
+        "",
         registration,
         str(input.uuid) if input.uuid else None,
     )
@@ -23,7 +23,7 @@ async def create_class(input: ClassCreate, organisation_uuid: UUID, note: str) -
 
 
 async def update_class(
-    input: ClassUpdate, class_uuid: UUID, organisation_uuid: UUID, note: str
+    input: ClassUpdate, class_uuid: UUID, organisation_uuid: UUID
 ) -> UUID:
     exists = await asyncio.to_thread(db.object_exists, "klasse", str(class_uuid))
     if not exists:
@@ -41,7 +41,7 @@ async def update_class(
         uuid = await asyncio.to_thread(
             db.update_object,
             "klasse",
-            note,
+            "",
             registration,
             uuid=str(class_uuid),
             life_cycle_code=db.Livscyklus.IMPORTERET.value,
@@ -51,14 +51,14 @@ async def update_class(
         uuid = await asyncio.to_thread(
             db.create_or_import_object,
             "klasse",
-            note,
+            "",
             registration,
             str(class_uuid),
         )
     return uuid
 
 
-async def delete_class(class_uuid: UUID, note: str) -> UUID:
+async def delete_class(class_uuid: UUID) -> UUID:
     # Gather a blank registration
     registration: dict = {
         "states": {},
@@ -67,6 +67,6 @@ async def delete_class(class_uuid: UUID, note: str) -> UUID:
     }
     # Let LoRa's SQL templates do their magic
     await asyncio.to_thread(
-        db.delete_object, "klasse", registration, note, str(class_uuid)
+        db.delete_object, "klasse", registration, "", str(class_uuid)
     )
     return class_uuid
