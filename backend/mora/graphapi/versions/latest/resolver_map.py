@@ -3,6 +3,7 @@
 """Mapping from data models to data resolvers."""
 from typing import Any
 
+from .models import ClassRead as ClassReadNoStatic
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import FacetRead
@@ -19,13 +20,13 @@ from ramodels.mo.details import OwnerRead
 from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
 
-
 # TODO: Encode this relation using Annotated types
 # FacetRead = Annotated[FacetRead, FacetResolver(...)]
 # Then later extract the resolver from the type using typing.get_args
 _resolver_tuples = [
     (FacetRead, "facet_getter", "facet_loader"),
     (ClassRead, "class_getter", "class_loader"),
+    (ClassReadNoStatic, "class_getter_nostatic", "class_loader_nostatic"),
     (AddressRead, "address_getter", "address_loader"),
     (AssociationRead, "association_getter", "association_loader"),
     (EmployeeRead, "employee_getter", "employee_loader"),

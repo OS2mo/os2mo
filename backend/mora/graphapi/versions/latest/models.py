@@ -22,6 +22,7 @@ from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from mora.util import to_lora_time
 from oio_rest import validate
+from ramodels.mo import ClassRead as RAClassRead
 from ramodels.mo import OpenValidity
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo._shared import UUIDBase
@@ -413,6 +414,10 @@ class AssociationTerminate(ValidityTerminate):
 
 # Classes
 # ------------
+class ClassRead(RAClassRead):
+    validity: RAValidity = Field(description="Validity of the IT system object.")
+
+
 class ClassCreate(UUIDBase):
     """Model representing a Class creation."""
 

@@ -3,7 +3,6 @@
 """Loaders for translating LoRa data to MO data to be returned from the GraphAPI."""
 from collections.abc import Callable
 from collections.abc import Iterable
-from datetime import datetime
 from functools import partial
 from itertools import starmap
 from typing import Any
@@ -36,10 +35,10 @@ from .schema import RelatedUnitRead
 from .schema import RoleRead
 from mora.common import get_connector
 from mora.service import org
-from mora.util import NEGATIVE_INFINITY
 from mora.util import parsedatetime
 from ramodels.lora.facet import FacetRead as LFacetRead
 from ramodels.lora.klasse import KlasseRead
+from ramodels.mo import ClassRead as RAClassRead
 
 MOModel = TypeVar(
     "MOModel",
@@ -117,7 +116,7 @@ async def load_mo(uuids: list[UUID], model: MOModel) -> list[list[MOModel]]:
     return list(map(uuid_map.get, uuids))  # type: ignore
 
 
-def lora_class_to_mo_class(lora_tuple: tuple[UUID, KlasseRead]) -> ClassRead:
+def lora_class_to_mo_class(lora_tuple: tuple[UUID, KlasseRead]) -> RAClassRead:
     uuid, lora_class = lora_tuple
 
     class_attributes = one(lora_class.attributes.properties)
@@ -138,7 +137,7 @@ def lora_class_to_mo_class(lora_tuple: tuple[UUID, KlasseRead]) -> ClassRead:
         else None,
         "owner": one(class_relations.owner).uuid if class_relations.owner else None,
     }
-    return ClassRead(**mo_class)
+    return RAClassRead(**mo_class)
 
 
 def lora_classes_to_mo_classes(
@@ -151,7 +150,7 @@ def lora_classes_to_mo_classes(
     return map(lora_class_to_mo_class, mapped_result)
 
 
-async def get_classes(**kwargs: Any) -> dict[UUID, list[ClassRead]]:
+async def get_classes(**kwargs: Any) -> dict[UUID, list[RAClassRead]]:
     c = get_connector()
     lora_result = await c.klasse.get_all(**kwargs)
     lora_result = format_lora_results_only_newest_relevant_lists(
@@ -167,7 +166,7 @@ async def get_classes(**kwargs: Any) -> dict[UUID, list[ClassRead]]:
     return uuid_map
 
 
-async def load_classes(uuids: list[UUID]) -> list[list[ClassRead]]:
+async def load_classes(uuids: list[UUID]) -> list[list[RAClassRead]]:
     """Load MO models from LoRa by UUID.
 
     Args:
@@ -298,8 +297,10 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
         "owner_loader": DataLoader(load_fn=partial(load_mo, model=OwnerRead)),
         "owner_getter": partial(get_mo, model=OwnerRead),
         # Class
-        "class_loader": DataLoader(load_fn=partial(load_mo, model=ClassRead)),
-        "class_getter": partial(get_mo, model=ClassRead),
+        "class_loader": DataLoader(load_fn=load_classes),
+        "class_getter": get_classes,
+        "class_loader_nostatic": DataLoader(load_fn=partial(load_mo, model=ClassRead)),
+        "class_getter_nostatic": partial(get_mo, model=ClassRead),
         # Related Organisation Unit
         "rel_unit_loader": DataLoader(load_fn=partial(load_mo, model=RelatedUnitRead)),
         "rel_unit_getter": partial(get_mo, model=RelatedUnitRead),

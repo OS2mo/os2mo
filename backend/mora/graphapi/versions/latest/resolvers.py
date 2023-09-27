@@ -34,10 +34,10 @@ from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
 from .filters import RelatedUnitFilter
 from .filters import RoleFilter
+from .models import ClassRead
 from .resolver_map import resolver_map
 from .types import Cursor
 from .validity import OpenValidityModel
-from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import FacetRead
 from ramodels.mo import OrganisationUnitRead

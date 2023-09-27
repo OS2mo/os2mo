@@ -23,9 +23,9 @@ from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.classes import ClassCreate
 from mora.graphapi.versions.latest.graphql_utils import PrintableStr
+from mora.graphapi.versions.latest.schema import ClassRead
 from mora.util import DEFAULT_TIMEZONE
 from mora.util import POSITIVE_INFINITY
-from ramodels.mo import ClassRead
 from tests.conftest import GQLResponse
 
 
@@ -174,7 +174,6 @@ def prepare_query_data(test_data, query_response):
 async def test_integration_create_class(test_data, graphapi_post) -> None:
     """Integrationtest for create class mutator."""
 
-    # test_data["facet_uuid"] = await get_uuids(mapping.FACETS, graphapi_post)
     test_data_model = ClassCreate(**test_data)
 
     mutate_query = """
@@ -258,18 +257,6 @@ async def test_integration_create_class(test_data, graphapi_post) -> None:
             else None,
         },
     }
-
-    # test_data, query = prepare_query_data(test_data, query_response)
-
-    # """Assert response returned by mutation."""
-    # assert mut_response.errors is None
-    # assert mut_response.data
-    # if test_data.get("uuid"):
-    #     assert response_uuid == test_data["uuid"]
-
-    # """Assert response returned by quering data written."""
-    # assert query_response.errors is None
-    # assert query == test_data
 
 
 """Test exception gets raised if illegal values are entered"""

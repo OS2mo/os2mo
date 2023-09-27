@@ -284,6 +284,7 @@ async def get_one_class(
     clazz=None,
     details: set[ClassDetails] | None = None,
     only_primary_uuid: bool = False,
+    validity=None,
 ) -> MO_OBJ_TYPE:
     if not details:
         details = set()
@@ -356,6 +357,7 @@ async def get_one_class(
         "published": clazz_validity["publiceret"],
         "facet_uuid": get_facet_uuid(clazz),
         "org_uuid": clazz_responsible["uuid"],
+        "validity": validity or util.get_effect_validity(clazz_validity),
     }
 
     # create tasks
