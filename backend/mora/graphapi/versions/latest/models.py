@@ -510,6 +510,24 @@ class ClassUpdate(ClassCreate):
     facet_uuid: UUID | None = Field(None, description="UUID of the related facet.")  # type: ignore
 
 
+class ClassTerminate(UUIDBase):
+    uuid: UUID = Field(description="UUID for the it-system we want to terminate.")
+    validity: ValidityTerminate = Field(description="When to terminate the ITSystem")
+
+    def to_registration(self) -> dict:
+        return {
+            "tilstande": {
+                "klassepubliceret": [
+                    {
+                        "publiceret": "IkkePubliceret",
+                        "virkning": self.validity.get_termination_effect(),
+                    }
+                ]
+            },
+            "note": "Afslut klasse",
+        }
+
+
 class ClassRead(RAClassRead):
     validity: Validity = Field(description="Validity of the IT system object.")
 

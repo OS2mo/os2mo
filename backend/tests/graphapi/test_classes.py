@@ -1,5 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import datetime
+from functools import partial
+from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -17,6 +20,7 @@ import mora.lora as lora
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora import mapping
+from mora import util
 from mora.auth.keycloak.oidc import noauth
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest import dataloaders
@@ -27,6 +31,114 @@ from ramodels.mo import ClassRead
 from tests.conftest import GQLResponse
 
 
+# Helpers
+# -------------------
+OPTIONAL = {
+    "published": st.sampled_from(["Publiceret", "IkkePubliceret"]),
+    "scope": st.none() | st.from_regex(PrintableStr.regex),
+    "parent_uuid": st.none() | st.uuids(),
+    "example": st.none() | st.from_regex(PrintableStr.regex),
+    "owner": st.none() | st.uuids(),
+}
+
+
+@st.composite
+def write_strat(draw):
+    required = {
+        "user_key": st.from_regex(PrintableStr.regex),
+        "name": st.from_regex(PrintableStr.regex),
+        "facet_uuid": st.uuids(),
+    }
+    st_dict = draw(st.fixed_dictionaries(required, optional=OPTIONAL))
+    return st_dict
+
+
+def prepare_mutator_data(test_data):
+    if "type_" in test_data:
+        test_data["type"] = test_data.pop("type_")
+
+    """Change UUID types to string."""
+    for k, v in test_data.items():
+        if type(v) == UUID:
+            test_data[k] = str(v)
+
+    return test_data
+
+
+def prepare_query_data(test_data, query_response):
+    entries_to_remove = OPTIONAL.keys()
+    for k in entries_to_remove:
+        test_data.pop(k, None)
+
+    td = {k: v for k, v in test_data.items() if v is not None}
+
+    query_dict = (
+        one(query_response.data.get("classes")["objects"])["current"]
+        if isinstance(query_response.data, dict)
+        else {}
+    )
+    query = {k: v for k, v in query_dict.items() if k in td.keys()}
+
+    if not test_data["user_key"]:
+        test_data["user_key"] = test_data["uuid"]
+
+    return test_data, query
+
+
+def read_classes_helper(graphapi_post, query: str, extract: str) -> dict[UUID, Any]:
+    response: GQLResponse = graphapi_post(query)
+    assert response.errors is None
+    assert response.data
+    return {UUID(x["uuid"]): x[extract] for x in response.data["classes"]["objects"]}
+
+
+read_classes = partial(
+    read_classes_helper,
+    query="""
+        query ReadClasses {
+            classes {
+                objects {
+                    uuid
+                    current {
+                        uuid
+                        user_key
+                        validity {
+                            from
+                            to
+                        }
+                    }
+                }
+            }
+        }
+    """,
+    extract="current",
+)
+
+read_history = partial(
+    read_classes_helper,
+    query="""
+        query ReadClasses {
+            classes(filter: {from_date: null, to_date: null}) {
+                objects {
+                    uuid
+                    objects {
+                        uuid
+                        user_key
+                        validity {
+                            from
+                            to
+                        }
+                    }
+                }
+            }
+        }
+    """,
+    extract="objects",
+)
+
+
+# UNIT tests
+# -------------------
 @given(test_data=graph_data_strat(ClassRead))
 def test_query_all(test_data, graphapi_post, graphapi_test, patch_loader):
     """Test that we can query all attributes of the classes data model."""
@@ -106,58 +218,8 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     assert len(result_uuids) == len(set(test_uuids))
 
 
-OPTIONAL = {
-    "published": st.sampled_from(["Publiceret", "IkkePubliceret"]),
-    "scope": st.none() | st.from_regex(PrintableStr.regex),
-    "parent_uuid": st.none() | st.uuids(),
-    "example": st.none() | st.from_regex(PrintableStr.regex),
-    "owner": st.none() | st.uuids(),
-}
-
-
-@st.composite
-def write_strat(draw):
-    required = {
-        "user_key": st.from_regex(PrintableStr.regex),
-        "name": st.from_regex(PrintableStr.regex),
-        "facet_uuid": st.uuids(),
-    }
-    st_dict = draw(st.fixed_dictionaries(required, optional=OPTIONAL))
-    return st_dict
-
-
-def prepare_mutator_data(test_data):
-    if "type_" in test_data:
-        test_data["type"] = test_data.pop("type_")
-
-    """Change UUID types to string."""
-    for k, v in test_data.items():
-        if type(v) == UUID:
-            test_data[k] = str(v)
-
-    return test_data
-
-
-def prepare_query_data(test_data, query_response):
-    entries_to_remove = OPTIONAL.keys()
-    for k in entries_to_remove:
-        test_data.pop(k, None)
-
-    td = {k: v for k, v in test_data.items() if v is not None}
-
-    query_dict = (
-        one(query_response.data.get("classes")["objects"])["current"]
-        if isinstance(query_response.data, dict)
-        else {}
-    )
-    query = {k: v for k, v in query_dict.items() if k in td.keys()}
-
-    if not test_data["user_key"]:
-        test_data["user_key"] = test_data["uuid"]
-
-    return test_data, query
-
-
+# INTEGRATION tests
+# -------------------
 @given(test_data=write_strat())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
@@ -220,9 +282,6 @@ async def test_integration_create_class(test_data, graphapi_post) -> None:
     """Assert response returned by quering data written."""
     assert query_response.errors is None
     assert query == test_data
-
-
-"""Test exception gets raised if illegal values are entered"""
 
 
 @given(test_data=write_strat())
@@ -478,3 +537,60 @@ async def test_update_class() -> None:
         "facet_uuid": "baddc4eb-406e-4c6b-8229-17e4a21d3550",
         "user_key": "BrugerPostadresse",
     }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_terminate_class(graphapi_post) -> None:
+    """Test that we can terminate class."""
+
+    # test class: "Niveau1"
+    class_to_terminate = UUID("3c791935-2cfa-46b5-a12e-66f7f54e70fe")
+
+    # Verify existing state
+    classes_map = read_classes(graphapi_post)
+    assert len(classes_map.keys()) == 39
+    assert class_to_terminate in classes_map.keys()
+
+    # Terminate the class
+    mutation = """
+        mutation TerminateClass($input: ClassTerminateInput!) {
+            class_terminate(input: $input) {
+                uuid
+            }
+        }
+    """
+    dt_now = util.now()
+    response: GQLResponse = graphapi_post(
+        mutation,
+        {
+            "input": {
+                "uuid": str(class_to_terminate),
+                "validity": {"to": dt_now.date().isoformat()},
+            }
+        },
+    )
+
+    assert response.errors is None
+    assert response.data
+    terminated_uuid = UUID(response.data["class_terminate"]["uuid"])
+    assert terminated_uuid == class_to_terminate
+
+    # Verify class history
+    new_class_map = read_history(graphapi_post)
+    assert new_class_map.keys() == set(classes_map.keys())
+
+    # Verify facet history
+    class_history = new_class_map[terminated_uuid]
+    assert class_history == [
+        {
+            "uuid": str(class_to_terminate),
+            "user_key": "Niveau1",
+            "validity": {
+                "from": "1900-01-01T00:00:00+01:00",
+                "to": datetime.datetime.combine(dt_now.date(), datetime.time.min)
+                .replace(tzinfo=util.DEFAULT_TIMEZONE)
+                .isoformat(),
+            },
+        }
+    ]

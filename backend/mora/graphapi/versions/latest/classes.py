@@ -4,7 +4,9 @@ import asyncio
 from uuid import UUID
 
 from .models import ClassCreate
+from .models import ClassTerminate
 from .models import ClassUpdate
+from mora import lora
 from oio_rest import db
 
 
@@ -56,6 +58,11 @@ async def update_class(
             str(class_uuid),
         )
     return uuid
+
+
+async def terminate_class(input: ClassTerminate) -> UUID:
+    await lora.Connector().klasse.update(input.to_registration(), input.uuid)
+    return input.uuid
 
 
 async def delete_class(class_uuid: UUID) -> UUID:
