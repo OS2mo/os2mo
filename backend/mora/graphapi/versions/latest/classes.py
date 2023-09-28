@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 from uuid import UUID
+from uuid import uuid4
 
 from .models import ClassCreate
 from .models import ClassTerminate
@@ -11,51 +12,16 @@ from oio_rest import db
 
 
 async def create_class(input: ClassCreate, organisation_uuid: UUID) -> UUID:
-    # Construct a LoRa registration object from our input arguments
-    registration = input.to_registration(organisation_uuid=organisation_uuid)
-    # Let LoRa's SQL templates do their magic
-    uuid = await asyncio.to_thread(
-        db.create_or_import_object,
-        "klasse",
-        "",
-        registration,
-        str(input.uuid) if input.uuid else None,
+    return await lora.Connector().klasse.create(
+        input.to_registration(organisation_uuid=organisation_uuid),
+        str(input.uuid) or str(uuid4()),
     )
-    return uuid
 
 
 async def update_class(input: ClassUpdate, organisation_uuid: UUID) -> UUID:
-    exists = await asyncio.to_thread(db.object_exists, "klasse", str(input.uuid))
-    if not exists:
-        raise ValueError("Cannot update a non-existent object")
-
-    # Construct a LoRa registration object from our input arguments
-    registration = input.to_registration(organisation_uuid=organisation_uuid)
-
-    # Let LoRa's SQL templates do their magic
-    life_cycle_code = await asyncio.to_thread(
-        db.get_life_cycle_code, "klasse", str(input.uuid)
+    return await lora.Connector().klasse.update(
+        input.to_registration(organisation_uuid=organisation_uuid), input.uuid
     )
-    if life_cycle_code in (db.Livscyklus.SLETTET.value, db.Livscyklus.PASSIVERET.value):
-        # Reactivate and update
-        uuid = await asyncio.to_thread(
-            db.update_object,
-            "klasse",
-            "",
-            registration,
-            uuid=str(input.uuid),
-            life_cycle_code=db.Livscyklus.IMPORTERET.value,
-        )
-    else:
-        # Update
-        uuid = await asyncio.to_thread(
-            db.create_or_import_object,
-            "klasse",
-            "",
-            registration,
-            str(input.uuid),
-        )
-    return uuid
 
 
 async def terminate_class(input: ClassTerminate) -> UUID:

@@ -429,6 +429,7 @@ class ClassCreate(UUIDBase):
     parent_uuid: UUID | None = Field(description="UUID of the parent class.")
     example: str | None = Field(description="Example usage.")
     owner: UUID | None = Field(description="Owner of class")
+    validity: Validity = Field(description="Validity range for the class.")
 
     class Config:
         frozen = True
@@ -436,8 +437,13 @@ class ClassCreate(UUIDBase):
         extra = Extra.forbid
 
     def to_registration(self, organisation_uuid: UUID) -> dict:
-        from_time = to_lora_time("-infinity")
-        to_time = to_lora_time("infinity")
+        from_time = to_lora_time(NEGATIVE_INFINITY)
+        to_time = to_lora_time(POSITIVE_INFINITY)
+
+        if self.validity and self.validity.from_date:
+            from_time = to_lora_time(self.validity.from_date)
+        if self.validity and self.validity.to_date:
+            to_time = to_lora_time(self.validity.to_date)
 
         klasseegenskaber = {
             "brugervendtnoegle": self.user_key,
@@ -482,7 +488,7 @@ class ClassCreate(UUIDBase):
                 }
             ]
 
-        input = {
+        lora_registration = {
             "tilstande": {
                 "klassepubliceret": [
                     {
@@ -494,13 +500,9 @@ class ClassCreate(UUIDBase):
             "attributter": {"klasseegenskaber": [klasseegenskaber]},
             "relationer": relations,
         }
-        validate.validate(input, "klasse")
+        validate.validate(lora_registration, "klasse")
 
-        return {
-            "states": input["tilstande"],
-            "attributes": input["attributter"],
-            "relations": input["relationer"],
-        }
+        return lora_registration
 
 
 class ClassUpdate(ClassCreate):
