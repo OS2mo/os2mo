@@ -12,6 +12,7 @@ from .models import AssociationTerminate
 from .models import AssociationUpdate
 from .models import ClassCreate
 from .models import ClassTerminate
+from .models import ClassUpdate
 from .models import EmployeeCreate
 from .models import EmployeeTerminate
 from .models import EmployeeUpdate
@@ -166,7 +167,7 @@ class ClassCreateInput:
 
 
 @strawberry.experimental.pydantic.input(
-    model=ClassCreate,
+    model=ClassUpdate,
     all_fields=True,
 )
 class ClassUpdateInput:

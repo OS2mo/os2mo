@@ -384,7 +384,7 @@ class Mutation:
         self, info: Info, input: ClassUpdateInput
     ) -> Response[Class]:
         org = await info.context["org_loader"].load(0)
-        uuid = await update_class(input.to_pydantic(), input.uuid, org.uuid)  # type: ignore
+        uuid = await update_class(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, ClassRead)
 
     @strawberry.mutation(

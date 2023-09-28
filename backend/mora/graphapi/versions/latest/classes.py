@@ -24,10 +24,8 @@ async def create_class(input: ClassCreate, organisation_uuid: UUID) -> UUID:
     return uuid
 
 
-async def update_class(
-    input: ClassUpdate, class_uuid: UUID, organisation_uuid: UUID
-) -> UUID:
-    exists = await asyncio.to_thread(db.object_exists, "klasse", str(class_uuid))
+async def update_class(input: ClassUpdate, organisation_uuid: UUID) -> UUID:
+    exists = await asyncio.to_thread(db.object_exists, "klasse", str(input.uuid))
     if not exists:
         raise ValueError("Cannot update a non-existent object")
 
@@ -36,7 +34,7 @@ async def update_class(
 
     # Let LoRa's SQL templates do their magic
     life_cycle_code = await asyncio.to_thread(
-        db.get_life_cycle_code, "klasse", str(class_uuid)
+        db.get_life_cycle_code, "klasse", str(input.uuid)
     )
     if life_cycle_code in (db.Livscyklus.SLETTET.value, db.Livscyklus.PASSIVERET.value):
         # Reactivate and update
@@ -45,7 +43,7 @@ async def update_class(
             "klasse",
             "",
             registration,
-            uuid=str(class_uuid),
+            uuid=str(input.uuid),
             life_cycle_code=db.Livscyklus.IMPORTERET.value,
         )
     else:
@@ -55,7 +53,7 @@ async def update_class(
             "klasse",
             "",
             registration,
-            str(class_uuid),
+            str(input.uuid),
         )
     return uuid
 
