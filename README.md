@@ -388,11 +388,9 @@ to its organizational unit. This is important because organizational units can
 have duplicate names. For example: Every sub-organizational unit in most companies has
 an `IT Support` department.
 
-Created organizational units are called `IMPORTED FROM LDAP: {name}`. They have a
+Created organizational units have a
 default organizational unit type and level specified in the environment variables with
-`DEFAULT_ORG_UNIT_TYPE` and `DEFAULT_ORG_UNIT_LEVEL`. The idea is that users manually go
-in and remove the `IMPORTED FROM LDAP` tag. While they are doing this they can also set
-the proper level and type for the organization.
+`DEFAULT_ORG_UNIT_TYPE` and `DEFAULT_ORG_UNIT_LEVEL`.
 
 Note the `primary` attribute. If you want, you can set this to a dictionary with an
 uuid that refers to OS2mo's `primary` class. `primary` is not just a True/False value,
