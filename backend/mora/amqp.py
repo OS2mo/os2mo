@@ -106,6 +106,7 @@ _lora_to_mo: dict[str, MO_TYPE] = {
 async def _send_amqp_message(
     amqp_system: AMQPSystem, object_type: MO_TYPE, uuid: UUID
 ) -> None:
+    print("SENDING AMQP MESSAGE", object_type, uuid)
     await amqp_system.publish_message(
         routing_key=object_type,
         payload=str(uuid),

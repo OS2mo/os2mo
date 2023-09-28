@@ -80,27 +80,19 @@ async def register(app) -> bool:
     * Establishes an AMQP connection to check credentials
     * Registers the AMQP trigger for all types.
     """
-    settings = config.get_settings()
-    if not settings.amqp_enable:
-        logger.debug("AMQP Triggers not enabled!")
-        return False
-
     # Start AMQP system
+    settings = config.get_settings()
     amqp_system = AMQPSystem(settings.amqp)
     await amqp_system.start()
 
     # Register healthcheck
     @register_health_endpoint
-    async def amqp() -> bool | None:
+    async def amqp() -> bool:
         """Check if AMQP connection is open.
 
         Returns:
-            Optional[bool]: True if open, False if not open or an error occurs.
-                None if AMQP support is disabled.
+            bool: True if open, False if not open or an error occurs.
         """
-        if not config.get_settings().amqp_enable:
-            return None
-
         return amqp_system.healthcheck()
 
     # Register trigger on everything

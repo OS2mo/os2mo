@@ -185,6 +185,7 @@ def admin_token_getter() -> Callable[[], Awaitable[Token]]:
 
 def raw_test_app(**overrides: Any) -> FastAPI:
     app = create_app(overrides)
+    app.dependency_overrides[get_sessionmaker] = get_sessionmaker
     return app
 
 

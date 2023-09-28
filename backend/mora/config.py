@@ -155,7 +155,6 @@ class Settings(BaseSettings):
     audit_readlog_enable: bool = False
 
     # AMQP settings
-    amqp_enable: bool = False
     amqp_url: str | None  # DEPRECATED (used in kubernetes)
     amqp_password: str = "guest"  # DEPRECATED (used in salt)
     # `amqp` can never be None, but must be set to it to force validation. See:

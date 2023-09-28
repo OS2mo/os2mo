@@ -67,9 +67,6 @@ def _wait_for_service(name, wait_fn, unavailable_exception, wait):
     help="Wait up to n seconds for rabbitmq.",
 )
 def wait_for_rabbitmq(seconds):
-    if not settings.amqp_enable:
-        logger.info("AMQP is disabled. MO will not send messages.")
-        return 0
 
     @async_to_sync
     async def connector():

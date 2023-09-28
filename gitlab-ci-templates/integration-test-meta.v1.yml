@@ -35,7 +35,6 @@ variables:
     INSECURE_ENABLE_TESTING_API: "true"
     VOID_WARRANTY_DISABLE_AMQP_DELAY: "true"
 
-    AMQP_ENABLE: "true"
     AMQP_URL: "amqp://guest:guest@msg-broker:5672/"
 
 .services:mo-backing:

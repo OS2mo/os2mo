@@ -237,7 +237,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
                 "mo_commit_sha": settings.commit_sha or "no sha",
             }
         )
-        Gauge("amqp_enabled", "AMQP enabled").set(settings.amqp_enable)
 
     app.include_router(
         health.router,
