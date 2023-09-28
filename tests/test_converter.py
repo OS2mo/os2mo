@@ -96,7 +96,6 @@ def context() -> Context:
     settings_mock.default_org_unit_type = "Afdeling"
     settings_mock.default_org_unit_level = "N1"
     settings_mock.org_unit_path_string_separator = "\\"
-    settings_mock.imported_org_unit_tag = "IMPORTED FROM LDAP: "
 
     dataloader = AsyncMock()
     uuid1 = str(uuid4())
@@ -1568,17 +1567,17 @@ async def test_get_org_unit_uuid_from_path(converter: LdapConverter):
 
     converter.org_unit_info = {
         uuid_org1: {
-            "name": "IMPORTED FROM LDAP: org1",
+            "name": "org1",
             "uuid": uuid_org1,
             "parent_uuid": root_org_uuid,
         },
         uuid_org2: {
-            "name": "IMPORTED FROM LDAP: org2",
+            "name": "org2",
             "uuid": uuid_org2,
             "parent_uuid": uuid_org1,
         },
         uuid_org3: {
-            "name": "IMPORTED FROM LDAP: org3",
+            "name": "org3",
             "uuid": uuid_org3,
             "parent_uuid": uuid_org2,
         },

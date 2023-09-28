@@ -160,11 +160,6 @@ class Settings(BaseSettings):
         5, description="Seconds between calls to LDAP to search for updates"
     )
 
-    imported_org_unit_tag: str = Field(
-        "IMPORTED FROM LDAP: ",
-        description="Tag which is added to all imported org-units",
-    )
-
     check_alleroed_sd_number: bool = Field(
         False,
         description=(

@@ -112,11 +112,6 @@ class LdapConverter:
         self.overview = self.dataloader.load_ldap_overview()
         self.username_generator = self.user_context["username_generator"]
 
-        # Set this to an empty string if we do not need to know which org units
-        # were imported by this program. For now this is useful to know because
-        # we do not import details such as the org-unit level and the type.
-        self.imported_org_unit_tag = self.settings.imported_org_unit_tag
-
         self.default_org_unit_type_uuid = self.get_org_unit_type_uuid(
             self.settings.default_org_unit_type
         )
@@ -1023,7 +1018,7 @@ class LdapConverter:
                 from_date = datetime.datetime(1960, 1, 1).strftime("%Y-%m-%dT00:00:00")
                 org_unit = OrganisationUnit.from_simplified_fields(
                     user_key=str(uuid4()),
-                    name=self.imported_org_unit_tag + name,
+                    name=name,
                     org_unit_type_uuid=UUID(self.default_org_unit_type_uuid),
                     org_unit_level_uuid=UUID(self.default_org_unit_level_uuid),
                     from_date=from_date,
@@ -1039,15 +1034,12 @@ class LdapConverter:
                 }
 
     async def get_org_unit_uuid_from_path(self, org_unit_path_string: str):
-        clean_org_unit_path_string = org_unit_path_string.replace(
-            self.imported_org_unit_tag, ""
-        )
         for info in self.org_unit_info.values():
-            clean_name = info["name"].replace(self.imported_org_unit_tag, "").strip()
-            if not clean_org_unit_path_string.strip().endswith(clean_name):
+            clean_name = info["name"].strip()
+            if not org_unit_path_string.strip().endswith(clean_name):
                 continue
             path_string = await self.get_org_unit_path_string(info["uuid"])
-            if path_string == clean_org_unit_path_string:
+            if path_string == org_unit_path_string:
                 return info["uuid"]
         raise UUIDNotFoundException(
             f"'{org_unit_path_string}' not found in self.org_unit_info"
@@ -1067,7 +1059,7 @@ class LdapConverter:
             )
             parent_uuid = self.org_unit_info[parent_uuid]["parent_uuid"]
 
-        return path_string.replace(self.imported_org_unit_tag, "")
+        return path_string
 
     def clean_org_unit_path_string(self, org_unit_path_string: str) -> str:
         """
