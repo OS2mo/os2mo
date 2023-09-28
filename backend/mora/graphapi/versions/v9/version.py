@@ -5,7 +5,6 @@ from uuid import UUID
 import strawberry
 from strawberry.types import Info
 
-from ..latest.inputs import ClassUpdateInput
 from ..latest.permissions import gen_update_permission
 from ..latest.permissions import IsAuthenticatedPermission
 from ..v10.version import GraphQLVersion as NextGraphQLVersion
@@ -15,6 +14,7 @@ from ..v13.schema import ITSystem
 from ..v13.schema import Response
 from ..v14.version import ITSystemCreateInput
 from ..v15.version import FacetUpdateInput
+from ..v16.version import ClassUpdateInput
 
 
 @strawberry.type
