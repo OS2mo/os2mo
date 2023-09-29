@@ -6,9 +6,13 @@ from typing import Any
 import strawberry
 from pydantic import Extra
 from pydantic import Field
+from pydantic import parse_obj_as
 from strawberry.types import Info
 
-from ..latest.mutators import uuid2response
+from ..latest.inputs import ITSystemCreateInput as LatestITSystemCreateInput
+from ..latest.inputs import ITSystemUpdateInput as LatestITSystemUpdateInput
+from ..latest.models import ITSystemCreate as LatestITSystemCreate
+from ..latest.models import ITSystemUpdate as LatestITSystemUpdate
 from ..latest.permissions import gen_create_permission
 from ..latest.permissions import gen_read_permission
 from ..latest.permissions import gen_update_permission
@@ -19,7 +23,6 @@ from ..latest.schema import ITSystem
 from ..latest.schema import Paged
 from ..latest.schema import Response
 from ..v15.version import GraphQLVersion as NextGraphQLVersion
-from mora.graphapi.shim import execute_graphql  # type: ignore
 from ramodels.mo._shared import UUIDBase
 from ramodels.mo.details import ITSystemRead
 
@@ -40,6 +43,16 @@ class ITSystemCreateV14(UUIDBase):
     to_date: datetime | None = Field(
         None, alias="to", description="End date of the validity, if applicable."
     )
+
+    def to_new_create_input(self) -> LatestITSystemCreateInput:
+        return LatestITSystemCreateInput.from_pydantic(
+            parse_obj_as(LatestITSystemCreate, self.to_latest_dict())
+        )
+
+    def to_new_update_input(self) -> LatestITSystemUpdateInput:
+        return LatestITSystemUpdateInput.from_pydantic(
+            parse_obj_as(LatestITSystemUpdate, self.to_latest_dict())
+        )
 
     def to_latest_dict(self) -> dict[str, Any]:
         return {
@@ -91,24 +104,10 @@ class Mutation(NextGraphQLVersion.schema.mutation):  # type: ignore[name-defined
     async def itsystem_create(
         self, info: Info, input: ITSystemCreateInput
     ) -> Response[ITSystem]:
-        input_dict = input.to_pydantic().to_latest_dict()
-        response = await execute_graphql(
-            """
-            mutation ITSystemCreate($input: ITSystemCreateInput!){
-                itsystem_create(input: $input) {
-                    uuid
-                }
-            }
-            """,
-            graphql_version=NextGraphQLVersion,
-            context_value=info.context,
-            variable_values={"input": input_dict},
+        new_input = input.to_pydantic().to_new_create_input()
+        return await NextGraphQLVersion.schema.mutation.itsystem_create(
+            self=self, info=info, input=new_input
         )
-        if response.errors:
-            for error in response.errors:
-                raise ValueError(error.message)
-        uuid = response.data["itsystem_create"]["uuid"]
-        return uuid2response(uuid, ITSystemRead)
 
     @strawberry.mutation(
         description="Updates an ITSystem.",
@@ -120,24 +119,10 @@ class Mutation(NextGraphQLVersion.schema.mutation):  # type: ignore[name-defined
     async def itsystem_update(
         self, info: Info, input: ITSystemCreateInput
     ) -> Response[ITSystem]:
-        input_dict = input.to_pydantic().to_latest_dict()
-        response = await execute_graphql(
-            """
-            mutation ITSystemUpdate($input: ITSystemUpdateInput!){
-                itsystem_update(input: $input) {
-                    uuid
-                }
-            }
-            """,
-            graphql_version=NextGraphQLVersion,
-            context_value=info.context,
-            variable_values={"input": input_dict},
+        new_input = input.to_pydantic().to_new_update_input()
+        return await NextGraphQLVersion.schema.mutation.itsystem_update(
+            self=self, info=info, input=new_input
         )
-        if response.errors:
-            for error in response.errors:
-                raise ValueError(error.message)
-        uuid = response.data["itsystem_update"]["uuid"]
-        return uuid2response(uuid, ITSystemRead)
 
 
 class GraphQLSchema(NextGraphQLVersion.schema):  # type: ignore
