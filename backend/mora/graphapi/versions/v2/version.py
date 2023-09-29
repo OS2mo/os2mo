@@ -6,7 +6,6 @@ from strawberry.types import Info
 from ..latest.permissions import gen_read_permission
 from ..v13.schema import Health
 from ..v3.version import GraphQLVersion as NextGraphQLVersion
-from mora.graphapi.shim import execute_graphql  # type: ignore[attr-defined]
 
 
 @strawberry.type(description="Entrypoint for all read-operations")
@@ -22,26 +21,10 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
 
         Returns a list of Health(s), instead of PagedHealth(s).
         """
-        response = await execute_graphql(
-            """
-            query HealthQuery ($identifiers: [String!]){
-                healths(identifiers: $identifiers) {
-                    objects {
-                        identifier
-                    }
-                }
-            }
-            """,
-            graphql_version=NextGraphQLVersion,
-            context_value=info.context,
-            variable_values={"identifiers": identifiers},
+        result = await NextGraphQLVersion.schema.query.healths(
+            info=info, limit=None, cursor=None, identifiers=identifiers
         )
-
-        healths = response.data["healths"]["objects"]
-        return [
-            Health(identifier=health["identifier"])  # type: ignore[call-arg]
-            for health in healths
-        ]
+        return result.objects
 
 
 class GraphQLSchema(NextGraphQLVersion.schema):  # type: ignore
