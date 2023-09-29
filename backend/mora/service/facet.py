@@ -341,7 +341,9 @@ async def get_one_class(
     if extended:
         response["facet_uuid"] = get_facet_uuid(clazz)
         response["org_uuid"] = last(clazz["relationer"]["ansvarlig"])["uuid"]
-        response["validity"] = validity or util.get_effect_validity(clazz_validity)
+        response[mapping.VALIDITY] = validity or util.get_effect_validity(
+            clazz_validity
+        )
 
     return response
 
