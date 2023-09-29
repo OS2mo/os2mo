@@ -21,9 +21,11 @@ async def create_class(input: ClassCreate, organisation_uuid: UUID) -> UUID:
 
 
 async def update_class(input: ClassUpdate, organisation_uuid: UUID) -> UUID:
-    return await lora.Connector().klasse.update(
+    c = lora.Connector()
+    await c.klasse.update(
         input.to_registration(organisation_uuid=organisation_uuid), input.uuid
     )
+    return input.uuid
 
 
 async def terminate_class(input: ClassTerminate) -> UUID:
