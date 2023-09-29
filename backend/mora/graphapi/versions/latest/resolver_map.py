@@ -5,7 +5,6 @@ from typing import Any
 
 from .models import ClassRead
 from .models import FacetRead
-from ramodels.mo import ClassRead as RAClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead
@@ -26,8 +25,7 @@ from ramodels.mo.details import RoleRead
 # Then later extract the resolver from the type using typing.get_args
 _resolver_tuples = [
     (FacetRead, "facet_getter", "facet_loader"),
-    (RAClassRead, "class_getter", "class_loader"),
-    (ClassRead, "class_getter_nostatic", "class_loader_nostatic"),
+    (ClassRead, "class_getter", "class_loader"),
     (AddressRead, "address_getter", "address_loader"),
     (AssociationRead, "association_getter", "association_loader"),
     (EmployeeRead, "employee_getter", "employee_loader"),

@@ -4,13 +4,11 @@
 from collections.abc import Callable
 from collections.abc import Iterable
 from functools import partial
-from itertools import starmap
 from typing import Any
 from typing import TypeVar
 from uuid import UUID
 
 from more_itertools import bucket
-from more_itertools import one
 from more_itertools import unique_everseen
 from pydantic import parse_obj_as
 from strawberry.dataloader import DataLoader
@@ -33,18 +31,13 @@ from .schema import OrganisationUnitRead
 from .schema import OwnerRead
 from .schema import RelatedUnitRead
 from .schema import RoleRead
-from mora.common import get_connector
 from mora.service import org
-from mora.util import parsedatetime
-from ramodels.lora.klasse import KlasseRead
-from ramodels.mo import ClassRead as RAClassRead
 
 MOModel = TypeVar(
     "MOModel",
     AddressRead,
     AssociationRead,
     ClassRead,
-    RAClassRead,
     EmployeeRead,
     EngagementRead,
     FacetRead,
@@ -116,72 +109,6 @@ async def load_mo(uuids: list[UUID], model: MOModel) -> list[list[MOModel]]:
     return list(map(uuid_map.get, uuids))  # type: ignore
 
 
-def lora_class_to_mo_class(lora_tuple: tuple[UUID, KlasseRead]) -> RAClassRead:
-    uuid, lora_class = lora_tuple
-
-    class_attributes = one(lora_class.attributes.properties)
-    class_state = one(lora_class.states.published_state)
-    class_relations = lora_class.relations
-
-    mo_class = {
-        "uuid": uuid,
-        "name": class_attributes.title,
-        "user_key": class_attributes.user_key,
-        "scope": class_attributes.scope,
-        "example": class_attributes.example,
-        "published": class_state.published,
-        "facet_uuid": one(class_relations.facet).uuid,
-        "org_uuid": one(class_relations.responsible).uuid,
-        "parent_uuid": one(class_relations.parent).uuid
-        if class_relations.parent
-        else None,
-        "owner": one(class_relations.owner).uuid if class_relations.owner else None,
-    }
-    return RAClassRead(**mo_class)
-
-
-def lora_classes_to_mo_classes(
-    lora_result: Iterable[tuple[str, dict]],
-) -> Iterable[RAClassRead]:
-    mapped_result = starmap(
-        lambda uuid_str, entry: (UUID(uuid_str), parse_obj_as(KlasseRead, entry)),
-        lora_result,
-    )
-    return map(lora_class_to_mo_class, mapped_result)
-
-
-async def get_classes(**kwargs: Any) -> dict[UUID, list[RAClassRead]]:
-    c = get_connector()
-    lora_result = await c.klasse.get_all(**kwargs)
-    lora_result = format_lora_results_only_newest_relevant_lists(
-        lora_result,
-        relevant_lists={
-            "attributter": ("klasseegenskaber",),
-            "tilstande": ("klassepubliceret",),
-            "relationer": ("ejer", "ansvarlig", "facet"),
-        },
-    )
-    mo_models = lora_classes_to_mo_classes(lora_result)
-    uuid_map = group_by_uuid(mo_models)
-    return uuid_map
-
-
-async def load_classes(uuids: list[UUID]) -> list[list[RAClassRead]]:
-    """Load MO models from LoRa by UUID.
-
-    Args:
-        uuids: UUIDs to load.
-
-    Returns:
-        List of parsed MO classes.
-    """
-    c = get_connector()
-    lora_result = await c.klasse.get_all_by_uuid(uuids)
-    mo_models = lora_classes_to_mo_classes(lora_result)
-    uuid_map = group_by_uuid(mo_models, uuids)
-    return list(map(uuid_map.get, uuids))  # type: ignore
-
-
 async def load_org(keys: list[int]) -> list[OrganisationRead]:
     """Dataloader function to load Organisation.
 
@@ -241,10 +168,8 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
         "owner_loader": DataLoader(load_fn=partial(load_mo, model=OwnerRead)),
         "owner_getter": partial(get_mo, model=OwnerRead),
         # Class
-        "class_loader": DataLoader(load_fn=load_classes),
-        "class_getter": get_classes,
-        "class_loader_nostatic": DataLoader(load_fn=partial(load_mo, model=ClassRead)),
-        "class_getter_nostatic": partial(get_mo, model=ClassRead),
+        "class_loader": DataLoader(load_fn=partial(load_mo, model=ClassRead)),
+        "class_getter": partial(get_mo, model=ClassRead),
         # Related Organisation Unit
         "rel_unit_loader": DataLoader(load_fn=partial(load_mo, model=RelatedUnitRead)),
         "rel_unit_getter": partial(get_mo, model=RelatedUnitRead),
@@ -255,65 +180,3 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
         "itsystem_loader": DataLoader(load_fn=partial(load_mo, model=ITSystemRead)),
         "itsystem_getter": partial(get_mo, model=ITSystemRead),
     }
-
-
-def convert_lora_object_section(lora_value: list[dict]) -> list[dict]:
-    """Transforms a lora_object list, to only contain the newest element.
-
-    Ex. transform_lora_object_section(lora_object["attributter"]["klasseegenskaber"])
-    """
-    return [
-        max(
-            lora_value,
-            key=lambda x: parsedatetime(x["virkning"]["from"]),
-        )
-    ]
-
-
-def gen_paths(relevant_lists: dict[str, tuple[str, ...]]) -> Iterable[tuple[str, str]]:
-    """Converts a dict representing lora-object attribute-paths to a flat list.
-
-    Ex: `{"attributter": ("klasseegenskaber", "something",)}` becomes
-    `[("attributter", "klasseegenskaber"), ("attributter", "something")...]`
-    """
-    for key, rel_lists in relevant_lists.items():
-        for list_name in rel_lists:
-            yield key, list_name
-
-
-def transform_lora_object(
-    relevant_paths: set[tuple[str, str]], lora_obj: dict[str, Any]
-) -> None:
-    """Filters LoRa object lists, based on relevant_paths, to a maximum of 1.
-
-    Ex. {"attributter": {"klasseegenskaber": [ ELEMENT_1, ELEMENT_2 ]}} will be filtered to
-    have only one element, using relevant_paths={"attributter": ("klasseegenskaber",)}
-
-    The element choosen is the newest one, identified through the following date attr:
-    ELEMENT["virkning"]["from"]
-    """
-    object_paths = set(gen_paths(lora_obj))
-    process_paths = relevant_paths.intersection(object_paths)
-    for key, list_name in process_paths:
-        lora_obj[key][list_name] = convert_lora_object_section(lora_obj[key][list_name])
-
-
-def format_lora_results_only_newest_relevant_lists(
-    lora_results: Iterable[tuple[str, dict[str, Any]]],
-    relevant_lists: dict[str, tuple[str, ...]],
-) -> Iterable[tuple[str, dict]]:
-    """Formats the LoRa results to only contain 1 element in list paths specified in relevant_lists.
-
-    This method can take the result from `mora.lora.Scope.get_all()` and make sure the lora_objects
-    only contain 1 element inside the lists referenced in relevant_lists.
-
-    INFO: This was created due to the assumption that a "class/klasse" only have
-    1 attribute and 1 state - but our importers break this assumption.
-    """
-    if not lora_results:
-        return []
-
-    relevant_paths = set(gen_paths(relevant_lists))
-    for uuid, lora_obj in lora_results:
-        transform_lora_object(relevant_paths, lora_obj)
-        yield uuid, lora_obj
