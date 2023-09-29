@@ -506,7 +506,6 @@ class ClassUpdate(ClassCreate):
     """Model representing a class update."""
 
     uuid: UUID = Field(description="UUID of the class to update.")
-    facet_uuid: UUID | None = Field(None, description="UUID of the related facet.")  # type: ignore
 
 
 class ClassTerminate(UUIDBase):
