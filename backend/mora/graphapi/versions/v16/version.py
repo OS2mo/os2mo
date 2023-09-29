@@ -34,12 +34,21 @@ class ClassCreateV16(UUIDBase):
         "Publiceret", description="Published state of the class object"
     )
 
+    scope: str | None = Field(description="Scope of the class.")
+    parent_uuid: UUID | None = Field(description="UUID of the parent class.")
+    example: str | None = Field(description="Example usage.")
+    owner: UUID | None = Field(description="Owner of class")
+
     def to_latest_dict(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "user_key": self.user_key,
             "facet_uuid": str(self.facet_uuid),
             "published": self.published,
+            "scope": self.scope,
+            "parent_uuid": str(self.parent_uuid) if self.parent_uuid else None,
+            "example": self.example,
+            "owner": str(self.owner) if self.owner else None,
             "validity": {"from": None, "to": None},
         }
 
