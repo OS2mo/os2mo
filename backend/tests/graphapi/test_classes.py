@@ -297,7 +297,7 @@ async def test_integration_create_class(test_data, graphapi_post) -> None:
 
     created_class = one(query_response.data.get("classes")["objects"])["current"]
     assert created_class == {
-        "uuid": str(test_data_model.uuid),
+        "uuid": response_uuid,
         "type": "class",
         "user_key": test_data_model.user_key,
         "name": test_data_model.name,
@@ -566,17 +566,10 @@ async def test_terminate_class(graphapi_post) -> None:
             }
         }
     """
-    dt_now = util.now()
     response: GQLResponse = graphapi_post(
         mutation,
-        {
-            "input": {
-                "uuid": str(class_to_terminate),
-                "validity": {"to": dt_now.date().isoformat()},
-            }
-        },
+        {"input": {"uuid": str(class_to_terminate), "validity": {"to": "1990-01-01"}}},
     )
-
     assert response.errors is None
     assert response.data
     terminated_uuid = UUID(response.data["class_terminate"]["uuid"])
@@ -594,9 +587,7 @@ async def test_terminate_class(graphapi_post) -> None:
             "user_key": "Niveau1",
             "validity": {
                 "from": "1900-01-01T00:00:00+01:00",
-                "to": datetime.datetime.combine(dt_now.date(), datetime.time.min)
-                .replace(tzinfo=util.DEFAULT_TIMEZONE)
-                .isoformat(),
+                "to": "1990-01-01T00:00:00+01:00",
             },
         }
     ]
