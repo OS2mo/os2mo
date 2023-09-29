@@ -303,7 +303,6 @@ async def get_one_class(
 
     owner = get_owner_uuid(clazz)
 
-    clazz_validity = last(clazz["tilstande"]["klassepubliceret"])
     response = {
         "uuid": classid,
         "name": attrs.get("titel"),
@@ -312,7 +311,7 @@ async def get_one_class(
         "scope": attrs.get("omfang"),
         "owner": owner,
         # TODO(#52443): don't last()
-        "published": clazz_validity["publiceret"],
+        "published": last(clazz["tilstande"]["klassepubliceret"])["publiceret"],
     }
 
     # create tasks
@@ -341,9 +340,8 @@ async def get_one_class(
     if extended:
         response["facet_uuid"] = get_facet_uuid(clazz)
         response["org_uuid"] = last(clazz["relationer"]["ansvarlig"])["uuid"]
-        response[mapping.VALIDITY] = validity or util.get_effect_validity(
-            clazz_validity
-        )
+        validities = clazz["tilstande"]["klassepubliceret"]
+        response[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
 
     return response
 
