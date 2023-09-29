@@ -510,8 +510,8 @@ class ClassUpdate(ClassCreate):
 
 
 class ClassTerminate(UUIDBase):
-    uuid: UUID = Field(description="UUID for the it-system we want to terminate.")
-    validity: ValidityTerminate = Field(description="When to terminate the ITSystem")
+    uuid: UUID = Field(description="UUID for the class we want to terminate.")
+    validity: ValidityTerminate = Field(description="When to terminate the class")
 
     def to_registration(self) -> dict:
         return {
@@ -528,7 +528,7 @@ class ClassTerminate(UUIDBase):
 
 
 class ClassRead(RAClassRead):
-    validity: Validity = Field(description="Validity of the IT system object.")
+    validity: Validity = Field(description="Validity of the class.")
 
 
 # Employees

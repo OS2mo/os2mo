@@ -586,7 +586,7 @@ async def test_terminate_class(graphapi_post) -> None:
     new_class_map = read_history(graphapi_post)
     assert new_class_map.keys() == set(classes_map.keys())
 
-    # Verify facet history
+    # Verify class history
     class_history = new_class_map[terminated_uuid]
     assert class_history == [
         {
