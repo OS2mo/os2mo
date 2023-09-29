@@ -20,18 +20,24 @@ from mo_ldap_import_export.utils import combine_dn_strings
 from mo_ldap_import_export.utils import countdown
 from mo_ldap_import_export.utils import datetime_to_ldap_timestamp
 from mo_ldap_import_export.utils import delete_keys_from_dict
+from mo_ldap_import_export.utils import exchange_ou_in_dn
+from mo_ldap_import_export.utils import extract_cn_from_dn
 from mo_ldap_import_export.utils import extract_ou_from_dn
 from mo_ldap_import_export.utils import get_object_type_from_routing_key
 from mo_ldap_import_export.utils import import_class
 from mo_ldap_import_export.utils import listener
 from mo_ldap_import_export.utils import mo_datestring_to_utc
 from mo_ldap_import_export.utils import mo_object_is_valid
+from mo_ldap_import_export.utils import remove_cn_from_dn
 from mo_ldap_import_export.utils import remove_vowels
 
 
 async def test_import_class():
     imported_class = import_class("ramodels.mo.employee.Employee")
     assert imported_class.__name__ == "Employee"
+
+    imported_class = import_class("Custom.JobTitleFromADToMO")
+    assert imported_class.__name__ == "JobTitleFromADToMO"
 
 
 async def test_delete_keys_from_dict():
@@ -201,3 +207,38 @@ def test_extract_ou_from_dn():
 def test_get_object_type_from_routing_key():
     routing_key: MORoutingKey = "address"
     assert get_object_type_from_routing_key(routing_key) == "address"
+
+
+def test_remove_cn_from_dn():
+    assert remove_cn_from_dn("CN=Nick,OU=foo,DC=bar") == "OU=foo,DC=bar"
+    assert remove_cn_from_dn("CN=Nick,CN=Janssen,OU=foo,DC=bar") == "OU=foo,DC=bar"
+    assert remove_cn_from_dn("OU=foo,DC=bar") == "OU=foo,DC=bar"
+    assert remove_cn_from_dn("CN=Nick") == ""
+
+
+def test_exchange_ou_in_dn():
+    assert (
+        exchange_ou_in_dn("CN=Tobias,OU=foo,DC=Q", "OU=bar") == "CN=Tobias,OU=bar,DC=Q"
+    )
+    assert (
+        exchange_ou_in_dn("CN=Tobias,OU=foo,DC=Q", "OU=mucki,OU=bar")
+        == "CN=Tobias,OU=mucki,OU=bar,DC=Q"
+    )
+    assert (
+        exchange_ou_in_dn("CN=Tobias,OU=foo,OU=oof,DC=Q", "OU=mucki")
+        == "CN=Tobias,OU=mucki,DC=Q"
+    )
+    assert (
+        exchange_ou_in_dn("CN=Tobias,OU=foo,OU=oof", "OU=mucki,OU=bar")
+        == "CN=Tobias,OU=mucki,OU=bar"
+    )
+    assert (
+        exchange_ou_in_dn("CN=Tobias,OU=bar,DC=Q", "OU=bar") == "CN=Tobias,OU=bar,DC=Q"
+    )
+
+
+def test_extract_cn_from_dn():
+    assert extract_cn_from_dn("CN=Nick,OU=foo,DC=bar") == "CN=Nick"
+    assert (
+        extract_cn_from_dn("CN=Nick,CN=Janssen,OU=foo,DC=bar") == "CN=Nick,CN=Janssen"
+    )

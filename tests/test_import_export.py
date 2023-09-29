@@ -232,7 +232,7 @@ async def test_listen_to_changes_in_employees(
     settings_mock.ldap_search_base = "bar"
 
     converter.cpr_field = "EmployeeID"
-    converted_ldap_object = LdapObject(dn="Foo")
+    converted_ldap_object = LdapObject(dn="CN=foo")
     converter.to_ldap.return_value = converted_ldap_object
     converter.mapping = {"mo_to_ldap": {"EmailEmployee": 2}}
     converter.get_it_system_user_key.return_value = "AD"
@@ -1260,3 +1260,53 @@ def test_extract_uuid(sync_tool: SyncTool):
 
     with pytest.raises(TypeError):
         sync_tool.extract_uuid("foo")
+
+
+def test_move_ldap_object(sync_tool: SyncTool, dataloader: AsyncMock):
+    dataloader.move_ldap_object.return_value = True
+
+    # user_context = {"dataloader": dataloader}
+    old_dn = "CN=Angus,OU=Auchtertool"
+    new_dn = "CN=Angus,OU=Dundee"
+
+    # Attempt to move Angus from OU=Auchtertool to OU=Dundee
+    ldap_object = sync_tool.move_ldap_object(LdapObject(dn=new_dn), old_dn)
+
+    # Which means we need to create OU=Dundee
+    dataloader.create_ou.assert_called_once_with("OU=Dundee")
+
+    # Them move Angus
+    dataloader.move_ldap_object.assert_called_once_with(old_dn, new_dn)
+
+    # And delete OU=Auchtertool, which is now empty
+    dataloader.delete_ou.assert_called_once_with("OU=Auchtertool")
+
+    assert ldap_object.dn == new_dn
+
+
+def test_move_ldap_object_move_failed(sync_tool: SyncTool, dataloader: AsyncMock):
+    dataloader.move_ldap_object.return_value = False
+
+    old_dn = "CN=Angus,OU=Auchtertool"
+    new_dn = "CN=Angus,OU=Dundee"
+
+    # Attempt to move Angus from OU=Auchtertool to OU=Dundee
+    ldap_object = sync_tool.move_ldap_object(LdapObject(dn=new_dn), old_dn)
+
+    # The move was not successful so we fall back to the old DN
+    assert ldap_object.dn == old_dn
+    dataloader.delete_ou.assert_not_called()
+
+
+def test_move_ldap_object_nothing_to_move(sync_tool: SyncTool, dataloader: AsyncMock):
+    old_dn = "CN=Angus,OU=Dundee"
+    new_dn = "CN=Angus,OU=Dundee"
+
+    # The new DN is equal to the old DN. We expect nothing to happen.
+    ldap_object = sync_tool.move_ldap_object(LdapObject(dn=new_dn), old_dn)
+
+    dataloader.create_ou.assert_not_called()
+    dataloader.move_ldap_object.assert_not_called()
+    dataloader.delete_ou.assert_not_called()
+    assert ldap_object.dn == new_dn
+    assert ldap_object.dn == old_dn

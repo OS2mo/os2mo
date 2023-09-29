@@ -74,7 +74,6 @@ def context() -> Context:
                 "sn": "{{mo_employee.surname}}",
                 "displayName": "{{mo_employee.surname}}, {{mo_employee.givenname}}",
                 "name": "{{mo_employee.givenname}} {{mo_employee.surname}}",
-                "dn": "",
                 "employeeID": "{{mo_employee.cpr_no or None}}",
             },
             "Email": {
@@ -572,6 +571,12 @@ def test_get_accepted_json_keys(converter: LdapConverter):
 def test_nonejoin(converter: LdapConverter):
     output = converter.nonejoin("foo", "bar", None)
     assert output == "foo, bar"
+
+
+def test_nonejoin_orgs(converter: LdapConverter):
+    converter.org_unit_path_string_separator = "|"
+    output = converter.nonejoin_orgs("", "org1 ", " org2", None, "")
+    assert output == "org1|org2"
 
 
 def test_str_to_dict(converter: LdapConverter):
@@ -1587,3 +1592,27 @@ async def test_get_org_unit_uuid_from_path(converter: LdapConverter):
     assert await converter.get_org_unit_uuid_from_path("org1\\org2") == uuid_org2
     with pytest.raises(UUIDNotFoundException):
         await converter.get_org_unit_uuid_from_path("org1\\org4")
+
+
+def test_org_unit_path_string_from_dn(converter: LdapConverter):
+    dn = "CN=Angus,OU=Auchtertool,OU=Kingdom of Fife,OU=Scotland,DC=gh"
+
+    org_unit_path = converter.org_unit_path_string_from_dn(dn)
+    assert org_unit_path == "Scotland\\Kingdom of Fife\\Auchtertool"
+
+    org_unit_path = converter.org_unit_path_string_from_dn(dn, 1)
+    assert org_unit_path == "Kingdom of Fife\\Auchtertool"
+
+    org_unit_path = converter.org_unit_path_string_from_dn(dn, 2)
+    assert org_unit_path == "Auchtertool"
+
+    org_unit_path = converter.org_unit_path_string_from_dn(dn, 3)
+    assert org_unit_path == ""
+
+
+def test_make_dn_from_org_unit_path(converter: LdapConverter):
+    org_unit_path = " foo|mucki |bar"
+    converter.org_unit_path_string_separator = "|"
+    dn = "CN=Angus,OU=replace_me,DC=GHU"
+    new_dn = converter.make_dn_from_org_unit_path(dn, org_unit_path)
+    assert new_dn == "CN=Angus,OU=bar,OU=mucki,OU=foo,DC=GHU"

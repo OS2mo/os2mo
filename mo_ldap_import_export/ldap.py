@@ -204,6 +204,7 @@ def _paged_search(
     context: Context,
     searchParameters: dict,
     search_base: str,
+    mute: bool = False,
 ) -> list:
     responses = []
     user_context = context["user_context"]
@@ -215,11 +216,13 @@ def _paged_search(
 
     search_filter = searchParameters["search_filter"]
 
-    logger.info(f"searching for {search_filter} on {search_base}")
+    if not mute:
+        logger.info(f"searching for {search_filter} on {search_base}")
 
     # Max 10_000 pages to avoid eternal loops
     for page in range(0, 10_000):
-        logger.info(f"searching page {page}")
+        if not mute:
+            logger.info(f"searching page {page}")
         ldap_connection.search(**searchParameters)
 
         if ldap_connection.result["description"] == "operationsError":
@@ -250,6 +253,7 @@ def paged_search(
     context: Context,
     searchParameters: dict,
     search_base: Union[str, None] = None,
+    **kwargs,
 ) -> list:
     """
     Parameters
@@ -265,7 +269,7 @@ def paged_search(
 
     if search_base:
         # If the search base is explicitly defined: Don't try anything fancy.
-        results = _paged_search(context, searchParameters, search_base)
+        results = _paged_search(context, searchParameters, search_base, **kwargs)
     else:
         # Otherwise, loop over all OUs to search in
         settings = context["user_context"]["settings"]
@@ -273,7 +277,9 @@ def paged_search(
         results = []
         for ou in settings.ldap_ous_to_search_in:
             search_base = combine_dn_strings([ou, settings.ldap_search_base])
-            results.extend(_paged_search(context, searchParameters.copy(), search_base))
+            results.extend(
+                _paged_search(context, searchParameters.copy(), search_base, **kwargs)
+            )
 
     return results
 
