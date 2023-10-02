@@ -4,11 +4,13 @@ from collections.abc import Callable
 
 import pytest
 
+from tests.conftest import GraphAPIPost
+
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_consolidate_feature_flag(
-    graphapi_post: Callable, set_settings: Callable[..., None]
+    graphapi_post: GraphAPIPost, set_settings: Callable[..., None]
 ) -> None:
     # Create org unit
     org_unit_create_mutation = """

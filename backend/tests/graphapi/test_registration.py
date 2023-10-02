@@ -8,7 +8,6 @@ import pytest
 from more_itertools import one
 
 from mora.util import DEFAULT_TIMEZONE
-from tests.conftest import GQLResponse
 
 
 # This test is xfailed since reading registrations does not work in our test setup.
@@ -66,7 +65,7 @@ async def test_writing_registration(graphapi_post) -> None:
     uuid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
 
     # Fetch the current registrations
-    response: GQLResponse = graphapi_post(query, {"uuid": uuid})
+    response = graphapi_post(query, {"uuid": uuid})
     assert response.errors is None
     assert response.data
     org_unit = one(response.data["org_units"]["objects"])
@@ -78,7 +77,7 @@ async def test_writing_registration(graphapi_post) -> None:
     assert registration["end"] is None
 
     # Update the org-unit to create a new registration
-    response: GQLResponse = graphapi_post(
+    response = graphapi_post(
         """
             mutation UpdateOrgUnit($input: OrganisationUnitUpdateInput!) {
                 org_unit_update(input: $input) {
@@ -98,7 +97,7 @@ async def test_writing_registration(graphapi_post) -> None:
     assert response.data == {"org_unit_update": {"uuid": uuid}}
 
     # Fetch registrations now, expecting to find one more
-    response: GQLResponse = graphapi_post(query, {"uuid": uuid})
+    response = graphapi_post(query, {"uuid": uuid})
     assert response.errors is None
     assert response.data
     org_unit = one(response.data["org_units"]["objects"])
@@ -152,7 +151,7 @@ async def test_read_object_registration(graphapi_post) -> None:
     uuid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
 
     # Fetch the current registrations
-    response: GQLResponse = graphapi_post(query, {"uuid": uuid})
+    response = graphapi_post(query, {"uuid": uuid})
     assert response.errors is None
     assert response.data
     org_unit = one(response.data["org_units"]["objects"])
@@ -187,7 +186,7 @@ async def test_read_top_level_registration(graphapi_post) -> None:
     uuid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
 
     # Fetch the current registrations
-    response: GQLResponse = graphapi_post(query, {"uuid": uuid})
+    response = graphapi_post(query, {"uuid": uuid})
     assert response.errors is None
     assert response.data
     registration = one(response.data["registrations"]["objects"])

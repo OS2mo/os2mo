@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
 from datetime import datetime
 
 import pytest
 
 from tests.conftest import GQLResponse
+from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
@@ -19,7 +19,7 @@ from tests.conftest import GQLResponse
         "5942ce50-2be8-476f-914b-6769a888a7c8",
     ],
 )
-async def test_mutator_format(graphapi_post: Callable, uuid: str) -> None:
+async def test_mutator_format(graphapi_post: GraphAPIPost, uuid: str) -> None:
     """Test terminate_org_unit v8 vs v9."""
     today = datetime.today().strftime("%Y-%m-%d")
     test_input = {"input": {"uuid": uuid, "to": today}}
@@ -49,7 +49,7 @@ async def test_mutator_format(graphapi_post: Callable, uuid: str) -> None:
     assert response_v9.data["org_unit_terminate"] is not None
 
     # Running v8 mutation on v9 schema
-    response: GQLResponse = graphapi_post(mutation_v8, url="/graphql/v9")
+    response = graphapi_post(mutation_v8, url="/graphql/v9")
     error = response.errors[0]
     assert (
         "Unknown argument 'unit' on field 'Mutation.org_unit_terminate'."
@@ -57,7 +57,7 @@ async def test_mutator_format(graphapi_post: Callable, uuid: str) -> None:
     )
 
     # Running v9 mutation on v8 schema
-    response: GQLResponse = graphapi_post(mutation_v9, url="/graphql/v8")
+    response = graphapi_post(mutation_v9, url="/graphql/v8")
     error = response.errors[0]
     assert (
         "Unknown argument 'input' on field 'Mutation.org_unit_terminate'."

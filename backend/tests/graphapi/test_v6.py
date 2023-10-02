@@ -1,11 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
-
 import pytest
 from more_itertools import one
 
 from tests.conftest import GQLResponse
+from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
@@ -19,7 +18,7 @@ from tests.conftest import GQLResponse
     ],
 )
 async def test_response_format(
-    graphapi_post: Callable,
+    graphapi_post: GraphAPIPost,
     resolver: str,
     expected_length: int,
 ) -> None:
@@ -62,11 +61,11 @@ async def test_response_format(
     assert objects_v6 == [x["current"] for x in objects_v7]
 
     # Running V6 query on V7 schema
-    response: GQLResponse = graphapi_post(query_v6, url="/graphql/v7")
+    response = graphapi_post(query_v6, url="/graphql/v7")
     error = one(response.errors)
     assert "Cannot query field 'user_key' on type " in error["message"]
 
     # Running V7 query on V6 schema
-    response: GQLResponse = graphapi_post(query_v7, url="/graphql/v6")
+    response = graphapi_post(query_v7, url="/graphql/v6")
     error = one(response.errors)
     assert "Cannot query field 'current' on type " in error["message"]

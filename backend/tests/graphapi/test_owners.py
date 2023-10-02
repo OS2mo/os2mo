@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import pytest
 
-from tests.conftest import GQLResponse
+from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
@@ -52,7 +52,9 @@ from tests.conftest import GQLResponse
         ),
     ],
 )
-async def test_owner_employees_filters(graphapi_post, filter, expected) -> None:
+async def test_owner_employees_filters(
+    graphapi_post: GraphAPIPost, filter, expected
+) -> None:
     """Test filters on owners."""
     owner_query = """
         query ReadOwners($filter: OwnerFilter!) {
@@ -67,6 +69,6 @@ async def test_owner_employees_filters(graphapi_post, filter, expected) -> None:
             }
         }
     """
-    response: GQLResponse = graphapi_post(owner_query, variables=dict(filter=filter))
+    response = graphapi_post(owner_query, variables=dict(filter=filter))
     assert response.errors is None
     assert len(response.data["owners"]["objects"]) == expected

@@ -1,14 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
-
 import pytest
 from strawberry.exceptions import GraphQLError
 
 from mora.graphapi.shim import execute_graphql
 from mora.service.util import handle_gql_error
-from tests.conftest import GQLResponse
-
+from tests.conftest import GraphAPIPost
 
 query = """
     query TestMultipleErrors {
@@ -26,10 +23,10 @@ query = """
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_multiple_errors(graphapi_post: Callable) -> None:
+async def test_multiple_errors(graphapi_post: GraphAPIPost) -> None:
     """Test how multiple errors are handled."""
 
-    response: GQLResponse = graphapi_post(query)
+    response = graphapi_post(query)
     assert response.errors == [
         {
             "locations": [{"column": 13, "line": 6}],

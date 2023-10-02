@@ -8,7 +8,7 @@ import pytest
 from fastapi.encoders import jsonable_encoder
 from more_itertools import first
 
-from tests.conftest import GQLResponse
+from tests.conftest import GraphAPIPost
 
 
 @patch("mora.lora.Scope.delete", new_callable=AsyncMock)
@@ -21,7 +21,7 @@ from tests.conftest import GQLResponse
     ],
 )
 async def test_delete_organisationfunktion(
-    delete_mock: AsyncMock, graphapi_post, method
+    delete_mock: AsyncMock, graphapi_post: GraphAPIPost, method
 ) -> None:
     uuid = uuid4()
     delete_mock.return_value = uuid
@@ -32,7 +32,7 @@ async def test_delete_organisationfunktion(
           }}
         }}
     """
-    response: GQLResponse = graphapi_post(
+    response = graphapi_post(
         mutate_query,
         variables=jsonable_encoder({"uuid": uuid}),
     )
@@ -52,7 +52,7 @@ async def test_delete_organisationfunktion(
     ],
 )
 async def test_delete_organisationfunktion_integration_test(
-    graphapi_post, organisationfunktion, method
+    graphapi_post: GraphAPIPost, organisationfunktion, method
 ) -> None:
     # Read current organisationfunktion
     read_query = f"""
@@ -64,7 +64,7 @@ async def test_delete_organisationfunktion_integration_test(
           }}
         }}
     """
-    response: GQLResponse = graphapi_post(read_query)
+    response = graphapi_post(read_query)
     first_organisationfunktion = first(response.data[organisationfunktion]["objects"])
     assert first_organisationfunktion in response.data[organisationfunktion]["objects"]
 
@@ -76,7 +76,7 @@ async def test_delete_organisationfunktion_integration_test(
           }}
         }}
     """
-    response: GQLResponse = graphapi_post(
+    response = graphapi_post(
         mutate_query,
         variables={"uuid": first_organisationfunktion["uuid"]},
     )
@@ -84,5 +84,5 @@ async def test_delete_organisationfunktion_integration_test(
     assert response.data[method]["uuid"] == first_organisationfunktion["uuid"]
 
     # Check that it got deleted
-    response: GQLResponse = graphapi_post(read_query)
+    response = graphapi_post(read_query)
     assert organisationfunktion not in response.data[organisationfunktion]

@@ -9,6 +9,7 @@ from more_itertools import one
 
 from mora.service.org import get_configured_organisation
 from tests.conftest import GQLResponse
+from tests.conftest import GraphAPIPost
 
 
 async def test_mocking_and_cache_clearing(respx_mock, mock_organisation):
@@ -25,7 +26,7 @@ async def test_mocking_and_cache_clearing(respx_mock, mock_organisation):
     assert raw_org == {"uuid": str(uuid), "name": "name", "user_key": "user_key"}
 
 
-def test_query_organisation(graphapi_post, mock_organisation):
+def test_query_organisation(graphapi_post: GraphAPIPost, mock_organisation):
     """Test that we are able to query our organisation."""
     uuid = mock_organisation
 
@@ -41,7 +42,7 @@ def test_query_organisation(graphapi_post, mock_organisation):
     }
 
 
-async def test_invalid_query_no_organisation(graphapi_post, respx_mock):
+async def test_invalid_query_no_organisation(graphapi_post: GraphAPIPost, respx_mock):
     """Test that we get an error when querying with no organisation."""
     respx_mock.get("http://localhost/lora/organisation/organisation").mock(
         return_value=Response(200, json={"results": []})
@@ -74,7 +75,7 @@ org_fields = ["uuid", "name", "user_key"]
     ),
 )
 async def test_query_all_permutations_of_organisation(
-    graphapi_post, respx_mock, fields, mock_organisation
+    graphapi_post: GraphAPIPost, respx_mock, fields, mock_organisation
 ):
     """Test all permutations (15) of queries against our organisation.
 
@@ -106,7 +107,7 @@ async def test_query_all_permutations_of_organisation(
     assert org == {}
 
 
-async def test_non_existing_field_query(graphapi_post, respx_mock):
+async def test_non_existing_field_query(graphapi_post: GraphAPIPost, respx_mock):
     """Test that we are able to query our organisation."""
     query = "query { org { uuid, non_existing_field }}"
     result: GQLResponse = graphapi_post(query)
@@ -122,7 +123,7 @@ async def test_non_existing_field_query(graphapi_post, respx_mock):
     assert result.data is None
 
 
-async def test_no_fields_query(graphapi_post, respx_mock):
+async def test_no_fields_query(graphapi_post: GraphAPIPost, respx_mock):
     """Test that we are able to query our organisation."""
     query = "query { org { }}"
     result: GQLResponse = graphapi_post(query)

@@ -14,6 +14,7 @@ from hypothesis import strategies as st
 from more_itertools import one
 from pytest import MonkeyPatch
 
+from ..conftest import GraphAPIPost
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from .utils import fetch_class_uuids
@@ -29,11 +30,10 @@ from mora.graphapi.versions.latest.models import ManagerUpdate
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import ManagerRead
-from tests.conftest import GQLResponse
 
 
 @given(test_data=graph_data_strat(ManagerRead))
-def test_query_all(test_data, graphapi_post, patch_loader):
+def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all attributes of the manager data model."""
     # Patch dataloader
     with MonkeyPatch.context() as patch:
@@ -58,7 +58,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
                 }
             }
         """
-        response: GQLResponse = graphapi_post(query)
+        response = graphapi_post(query)
 
     assert response.errors is None
     assert response.data
@@ -66,7 +66,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
 
 @given(test_input=graph_data_uuids_strat(ManagerRead))
-def test_query_by_uuid(test_input, graphapi_post, patch_loader):
+def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query managers by UUID."""
     test_data, test_uuids = test_input
 
@@ -82,7 +82,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
                     }
                 }
             """
-        response: GQLResponse = graphapi_post(query, {"uuids": test_uuids})
+        response = graphapi_post(query, {"uuids": test_uuids})
 
     assert response.errors is None
     assert response.data
@@ -142,7 +142,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         ),
     ],
 )
-async def test_manager_employees_filters(graphapi_post, filter, expected) -> None:
+async def test_manager_employees_filters(
+    graphapi_post: GraphAPIPost, filter, expected
+) -> None:
     """Test filters on managers."""
     manager_query = """
         query Managers($filter: ManagerFilter!) {
@@ -153,7 +155,7 @@ async def test_manager_employees_filters(graphapi_post, filter, expected) -> Non
             }
         }
     """
-    response: GQLResponse = graphapi_post(manager_query, variables=dict(filter=filter))
+    response = graphapi_post(manager_query, variables=dict(filter=filter))
     assert response.errors is None
     assert len(response.data["managers"]["objects"]) == expected
 
@@ -188,7 +190,7 @@ async def test_create_manager_mutation_unit_test(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_manager_integration_test(
-    data, graphapi_post, employee_uuids, org_uuids
+    data, graphapi_post: GraphAPIPost, employee_uuids, org_uuids
 ) -> None:
     """Test that managers can be created in LoRa via GraphQL."""
 
@@ -237,9 +239,7 @@ async def test_create_manager_integration_test(
             }
         }
     """
-    response: GQLResponse = graphapi_post(
-        mutation, {"input": jsonable_encoder(test_data)}
-    )
+    response = graphapi_post(mutation, {"input": jsonable_encoder(test_data)})
     assert response.errors is None
     uuid = UUID(response.data["manager_create"]["uuid"])
 
@@ -265,7 +265,7 @@ async def test_create_manager_integration_test(
         }
     """
 
-    response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
     obj = one(one(response.data["managers"]["objects"])["objects"])
 
@@ -359,7 +359,9 @@ async def test_create_manager_integration_test(
         },
     ],
 )
-async def test_update_manager_integration_test(test_data, graphapi_post) -> None:
+async def test_update_manager_integration_test(
+    test_data, graphapi_post: GraphAPIPost
+) -> None:
     """Test that managers can be updated in LoRa via GraphQL."""
 
     uuid = test_data["uuid"]
@@ -385,7 +387,7 @@ async def test_update_manager_integration_test(test_data, graphapi_post) -> None
             }
         }
     """
-    response: GQLResponse = graphapi_post(query, {"uuid": str(uuid)})
+    response = graphapi_post(query, {"uuid": str(uuid)})
     assert response.errors is None
 
     pre_update_manager = one(one(response.data["managers"]["objects"])["objects"])
@@ -397,9 +399,7 @@ async def test_update_manager_integration_test(test_data, graphapi_post) -> None
             }
         }
     """
-    mutation_response: GQLResponse = graphapi_post(
-        mutation, {"input": jsonable_encoder(test_data)}
-    )
+    mutation_response = graphapi_post(mutation, {"input": jsonable_encoder(test_data)})
 
     assert mutation_response.errors is None
 
@@ -426,7 +426,7 @@ async def test_update_manager_integration_test(test_data, graphapi_post) -> None
         }
     """
 
-    verify_response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    verify_response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert verify_response.errors is None
 
     manager_objects_post_update = one(

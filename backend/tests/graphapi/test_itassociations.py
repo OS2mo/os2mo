@@ -15,6 +15,7 @@ from more_itertools import one
 from pydantic import Field
 from pytest import MonkeyPatch
 
+from ..conftest import GraphAPIPost
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from .utils import fetch_class_uuids
@@ -27,7 +28,6 @@ from mora.graphapi.versions.latest.models import ITAssociationUpdate
 from mora.graphapi.versions.latest.schema import AssociationRead
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import Validity as RAValidity
-from tests.conftest import GQLResponse
 
 
 class ITAssociationRead(AssociationRead):
@@ -40,7 +40,7 @@ class ITAssociationRead(AssociationRead):
 
 
 @given(test_data=graph_data_strat(ITAssociationRead))
-def test_query_all(test_data, graphapi_post, patch_loader):
+def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all our ITAssociations."""
     # JSON encode test data
     test_data = jsonable_encoder(test_data)
@@ -81,7 +81,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
 
 @given(test_data=graph_data_strat(ITAssociationRead))
-def test_query_none(test_data, graphapi_post, patch_loader):
+def test_query_none(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we don't get any ITAssociations, when setting the `it_association`
     parameter to "false"."""
     # JSON encode test data
@@ -123,7 +123,7 @@ def test_query_none(test_data, graphapi_post, patch_loader):
 
 
 @given(test_input=graph_data_uuids_strat(ITAssociationRead))
-def test_query_by_uuid(test_input, graphapi_post, patch_loader):
+def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query associations by UUID."""
     # Sample UUIDs
     test_data, test_uuids = test_input
@@ -140,7 +140,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
                     }
                 }
             """
-        response: GQLResponse = graphapi_post(query, {"uuids": test_uuids})
+        response = graphapi_post(query, {"uuids": test_uuids})
 
     assert response.errors is None
     assert response.data
@@ -187,7 +187,7 @@ async def test_create_itassociation_mutation_unit_test(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_itassociation_integration_test(
-    data, graphapi_post, org_uuids, employee_uuids, ituser_uuids
+    data, graphapi_post: GraphAPIPost, org_uuids, employee_uuids, ituser_uuids
 ) -> None:
     """Test that ITAssociation annotations can be created in LoRa via GraphQL."""
 
@@ -231,9 +231,7 @@ async def test_create_itassociation_integration_test(
             }
         }
     """
-    response: GQLResponse = graphapi_post(
-        mutation, {"input": jsonable_encoder(test_data)}
-    )
+    response = graphapi_post(mutation, {"input": jsonable_encoder(test_data)})
 
     assert response.errors is None
     uuid = UUID(response.data["itassociation_create"]["uuid"])
@@ -258,7 +256,7 @@ async def test_create_itassociation_integration_test(
         }
     """
 
-    response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
     obj = one(one(response.data["associations"]["objects"])["objects"])
 
@@ -360,7 +358,9 @@ async def test_update_itassociation_unit_test(
         },
     ],
 )
-async def test_update_itassociation_integration_test(graphapi_post, test_data) -> None:
+async def test_update_itassociation_integration_test(
+    graphapi_post: GraphAPIPost, test_data
+) -> None:
     uuid = test_data["uuid"]
 
     query = """
@@ -382,7 +382,7 @@ async def test_update_itassociation_integration_test(graphapi_post, test_data) -
         }
     """
 
-    response: GQLResponse = graphapi_post(query, {"uuid": uuid})
+    response = graphapi_post(query, {"uuid": uuid})
     assert response.errors is None
 
     pre_update_it_association = one(
@@ -396,7 +396,7 @@ async def test_update_itassociation_integration_test(graphapi_post, test_data) -
             }
         }
     """
-    mutation_response: GQLResponse = graphapi_post(
+    mutation_response = graphapi_post(
         mutate_query, {"input": jsonable_encoder(test_data)}
     )
     assert mutation_response.errors is None
@@ -421,9 +421,7 @@ async def test_update_itassociation_integration_test(graphapi_post, test_data) -
         }
     """
 
-    verify_response: GQLResponse = graphapi_post(
-        query=verify_query, variables={"uuid": uuid}
-    )
+    verify_response = graphapi_post(query=verify_query, variables={"uuid": uuid})
 
     assert verify_response.errors is None
 
@@ -456,7 +454,9 @@ async def test_update_itassociation_integration_test(graphapi_post, test_data) -
         },
     ],
 )
-async def test_itassociation_terminate_integration(test_data, graphapi_post) -> None:
+async def test_itassociation_terminate_integration(
+    test_data, graphapi_post: GraphAPIPost
+) -> None:
     uuid = test_data["uuid"]
     mutation = """
         mutation TerminateITAssociation($input: ITAssociationTerminateInput!) {
@@ -465,9 +465,7 @@ async def test_itassociation_terminate_integration(test_data, graphapi_post) -> 
             }
         }
     """
-    mutation_response: GQLResponse = graphapi_post(
-        mutation, {"input": jsonable_encoder(test_data)}
-    )
+    mutation_response = graphapi_post(mutation, {"input": jsonable_encoder(test_data)})
 
     assert mutation_response.errors is None
 
@@ -486,7 +484,7 @@ async def test_itassociation_terminate_integration(test_data, graphapi_post) -> 
         }
     """
 
-    verify_response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    verify_response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert verify_response.errors is None
     it_association_objects_post_terminate = one(
         one(verify_response.data["associations"]["objects"])["objects"]

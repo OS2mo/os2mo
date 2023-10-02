@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
 from typing import Any
 
 import pytest
 
 from tests.conftest import GQLResponse
+from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
@@ -39,7 +39,7 @@ from tests.conftest import GQLResponse
     ],
 )
 async def test_create_mutator_format(
-    graphapi_post: Callable, added_input: dict[str, Any], error_messages: list[str]
+    graphapi_post: GraphAPIPost, added_input: dict[str, Any], error_messages: list[str]
 ) -> None:
     """Test create_employee v12 vs v13."""
     test_input = {
@@ -106,7 +106,7 @@ async def test_create_mutator_format(
     ],
 )
 async def test_update_mutator_format(
-    graphapi_post: Callable, added_input: dict[str, Any], error_messages: list[str]
+    graphapi_post: GraphAPIPost, added_input: dict[str, Any], error_messages: list[str]
 ) -> None:
     """Test create_employee v12 vs v13."""
     test_input = {
@@ -175,7 +175,7 @@ async def test_update_mutator_format(
     ],
 )
 async def test_create_validators(
-    graphapi_post: Callable, added_input: dict[str, Any], error_messages: list[str]
+    graphapi_post: GraphAPIPost, added_input: dict[str, Any], error_messages: list[str]
 ) -> None:
     """Test create_employee v12 validators."""
     test_input = {"input": {"given_name": "John", "surname": "Deere"}}
@@ -188,7 +188,7 @@ async def test_create_validators(
             }
         }
     """
-    response: GQLResponse = graphapi_post(mutation, test_input, url="/graphql/v12")
+    response = graphapi_post(mutation, test_input, url="/graphql/v12")
     assert response.data is None
     for error, expected in zip(response.errors, error_messages):
         assert expected in error["message"]
@@ -252,7 +252,7 @@ async def test_create_validators(
     ],
 )
 async def test_update_validators(
-    graphapi_post: Callable, added_input: dict[str, Any], error_messages: list[str]
+    graphapi_post: GraphAPIPost, added_input: dict[str, Any], error_messages: list[str]
 ) -> None:
     """Test update_employee v12 validators."""
     test_input = {
@@ -271,7 +271,7 @@ async def test_update_validators(
         }
     """
 
-    response: GQLResponse = graphapi_post(mutation, test_input, url="/graphql/v12")
+    response = graphapi_post(mutation, test_input, url="/graphql/v12")
     assert response.data is None
     for error, expected in zip(response.errors, error_messages):
         assert expected in error["message"]

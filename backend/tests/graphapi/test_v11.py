@@ -1,15 +1,14 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
-
 import pytest
 
 from tests.conftest import GQLResponse
+from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_mutator_format(graphapi_post: Callable) -> None:
+async def test_mutator_format(graphapi_post: GraphAPIPost) -> None:
     """Test create_ituser v11 vs v12."""
     test_input = {
         "input": {

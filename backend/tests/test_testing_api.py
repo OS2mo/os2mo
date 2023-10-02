@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import secrets
-from collections.abc import Callable
 
 import pytest
 from pytest import MonkeyPatch
@@ -12,10 +11,10 @@ from starlette.testclient import TestClient
 
 from mora.config import get_settings
 from oio_rest.db import close_connection
-from tests.conftest import GQLResponse
+from tests.conftest import GraphAPIPost
 
 
-def create_employee(graphapi_post: Callable[..., GQLResponse], surname: str) -> str:
+def create_employee(graphapi_post: GraphAPIPost, surname: str) -> str:
     employee = graphapi_post(
         """
         mutation Create($surname: String!) {
@@ -32,9 +31,7 @@ def create_employee(graphapi_post: Callable[..., GQLResponse], surname: str) -> 
     return employee_uuid
 
 
-def update_employee(
-    graphapi_post: Callable[..., GQLResponse], uuid: str, surname: str
-) -> None:
+def update_employee(graphapi_post: GraphAPIPost, uuid: str, surname: str) -> None:
     graphapi_post(
         """
         mutation Update($uuid: UUID!, $surname: String!) {
@@ -50,7 +47,7 @@ def update_employee(
     )
 
 
-def read_employee_surname(graphapi_post: Callable[..., GQLResponse], uuid: str) -> str:
+def read_employee_surname(graphapi_post: GraphAPIPost, uuid: str) -> str:
     employee = graphapi_post(
         """
         query Read($uuid: UUID!) {
@@ -74,7 +71,7 @@ def read_employee_surname(graphapi_post: Callable[..., GQLResponse], uuid: str) 
 async def test_database_snapshot(
     monkeypatch: MonkeyPatch,
     raw_client: TestClient,
-    graphapi_post: Callable[..., GQLResponse],
+    graphapi_post: GraphAPIPost,
 ) -> None:
     # Clear singleton database connection, and ensure it is recreated as in a normally
     # running application, i.e. without the pytest TESTING environment variable.
@@ -110,7 +107,7 @@ async def test_database_snapshot(
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_amqp_emit(
     raw_client: TestClient,
-    graphapi_post: Callable[..., GQLResponse],
+    graphapi_post: GraphAPIPost,
 ) -> None:
     # Set up AMQP callback
     settings = get_settings()

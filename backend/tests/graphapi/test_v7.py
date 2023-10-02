@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
 from datetime import datetime
 
 import pytest
 
 from tests.conftest import GQLResponse
+from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
@@ -23,7 +23,7 @@ from tests.conftest import GQLResponse
         "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
     ],
 )
-async def test_mutator_format(graphapi_post: Callable, uuid: str) -> None:
+async def test_mutator_format(graphapi_post: GraphAPIPost, uuid: str) -> None:
     """Get addresses."""
     today = datetime.today().strftime("%Y-%m-%d")
     test_input = {"input": {"uuid": uuid, "to": today}}
@@ -53,7 +53,7 @@ async def test_mutator_format(graphapi_post: Callable, uuid: str) -> None:
     assert response_v8.data["address_terminate"] is not None
 
     # Running V7 mutation on V8 schema
-    response: GQLResponse = graphapi_post(mutation_v7, url="/graphql/v8")
+    response = graphapi_post(mutation_v7, url="/graphql/v8")
     error = response.errors[0]
     assert (
         "Unknown argument 'at' on field 'Mutation.address_terminate'."
@@ -61,7 +61,7 @@ async def test_mutator_format(graphapi_post: Callable, uuid: str) -> None:
     )
 
     # Running V8 mutation on V7 schema
-    response: GQLResponse = graphapi_post(mutation_v8, url="/graphql/v7")
+    response = graphapi_post(mutation_v8, url="/graphql/v7")
     error = response.errors[0]
     assert (
         "Unknown argument 'input' on field 'Mutation.address_terminate'."

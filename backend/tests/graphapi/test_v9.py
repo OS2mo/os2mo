@@ -1,10 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
-
 import pytest
 
 from tests.conftest import GQLResponse
+from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
@@ -16,7 +15,7 @@ from tests.conftest import GQLResponse
         "bf65769c-5227-49b4-97c5-642cfbe41aa1",
     ],
 )
-async def test_mutator_format(graphapi_post: Callable, uuid: str) -> None:
+async def test_mutator_format(graphapi_post: GraphAPIPost, uuid: str) -> None:
     """Test class_update v9 vs v10."""
     test_input = {
         "uuid": uuid,
@@ -55,14 +54,14 @@ async def test_mutator_format(graphapi_post: Callable, uuid: str) -> None:
     assert response_v10.data["class_update"] is not None
 
     # Running v9 mutation on v10 schema
-    response: GQLResponse = graphapi_post(mutation_v9, url="/graphql/v10")
+    response = graphapi_post(mutation_v9, url="/graphql/v10")
     error = response.errors[0]
     assert (
         "Unknown argument 'uuid' on field 'Mutation.class_update'." in error["message"]
     )
 
     # Running v10 mutation on v9 schema
-    response: GQLResponse = graphapi_post(mutation_v10, url="/graphql/v9")
+    response = graphapi_post(mutation_v10, url="/graphql/v9")
     error = response.errors[0]
     assert (
         "Field 'class_update' argument 'uuid' of type 'UUID!' is required, but it was not provided."

@@ -30,6 +30,7 @@ from oio_rest.config import get_settings as lora_get_settings
 from oio_rest.db import _get_dbname
 from tests.conftest import admin_auth_uuid
 from tests.conftest import AsyncYieldFixture
+from tests.conftest import GraphAPIPost
 
 
 def create_sessionmaker():
@@ -119,7 +120,9 @@ async def test_auditlog_database(set_settings: MonkeyPatch) -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-async def test_auditlog_graphql_self(set_settings: MonkeyPatch, graphapi_post) -> None:
+async def test_auditlog_graphql_self(
+    set_settings: MonkeyPatch, graphapi_post: GraphAPIPost
+) -> None:
     """Integrationtest for reading and writing the auditlog."""
 
     set_settings(AUDIT_READLOG_ENABLE="True")
@@ -245,7 +248,7 @@ def audit_log_entries_and_filter(
 @given(audit_log_entries_and_filter=audit_log_entries_and_filter())
 # TODO: Add support for id filtering
 async def test_auditlog_filters(
-    graphapi_post,
+    graphapi_post: GraphAPIPost,
     set_session_settings: MonkeyPatch,
     testing_db_session: AsyncSession,
     audit_log_entries_and_filter: tuple[

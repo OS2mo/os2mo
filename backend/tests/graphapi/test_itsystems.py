@@ -9,16 +9,16 @@ from more_itertools import first
 from more_itertools import one
 from pytest import MonkeyPatch
 
+from ..conftest import GraphAPIPost
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from ramodels.mo.details import ITSystemRead
-from tests.conftest import GQLResponse
 
 
 @given(test_data=graph_data_strat(ITSystemRead))
-def test_query_all(test_data, graphapi_post, patch_loader):
+def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all attributes of the ITSystem data model."""
     # Patch dataloader
     with MonkeyPatch.context() as patch:
@@ -43,7 +43,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
                 }
             }
         """
-        response: GQLResponse = graphapi_post(query)
+        response = graphapi_post(query)
 
     assert response.errors is None
     assert response.data
@@ -51,7 +51,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
 
 @given(test_input=graph_data_uuids_strat(ITSystemRead))
-def test_query_by_uuid(test_input, graphapi_post, patch_loader):
+def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query ITSystems by UUID."""
     test_data, test_uuids = test_input
 
@@ -67,7 +67,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
                     }
                 }
             """
-        response: GQLResponse = graphapi_post(query, {"uuids": test_uuids})
+        response = graphapi_post(query, {"uuids": test_uuids})
 
     assert response.errors is None
     assert response.data
@@ -105,7 +105,7 @@ def test_itsystem_create(graphapi_post) -> None:
             }
         }
     """
-    response: GQLResponse = graphapi_post(query)
+    response = graphapi_post(query)
     assert response.errors is None
     assert response.data
     itsystem_map = {
@@ -122,7 +122,7 @@ def test_itsystem_create(graphapi_post) -> None:
             }
         }
     """
-    response: GQLResponse = graphapi_post(
+    response = graphapi_post(
         mutation,
         {
             "input": {
@@ -137,7 +137,7 @@ def test_itsystem_create(graphapi_post) -> None:
     new_uuid = UUID(response.data["itsystem_create"]["uuid"])
 
     # Verify modified state
-    response: GQLResponse = graphapi_post(query)
+    response = graphapi_post(query)
     assert response.errors is None
     assert response.data
     itsystem_map = {
@@ -171,7 +171,7 @@ def test_itsystem_infinite_dates(graphapi_post) -> None:
           }
         }
     """
-    response: GQLResponse = graphapi_post(mutation)
+    response = graphapi_post(mutation)
     assert response.errors is None
     uuid = UUID(response.data["itsystem_create"]["uuid"])
 
@@ -193,7 +193,7 @@ def test_itsystem_infinite_dates(graphapi_post) -> None:
           }
         }
     """
-    response: GQLResponse = graphapi_post(query, variables={"uuid": str(uuid)})
+    response = graphapi_post(query, variables={"uuid": str(uuid)})
     assert response.errors is None
     itsystem = one(response.data["itsystems"]["objects"])["current"]
     assert itsystem["validity"] == {"from": None, "to": None}
@@ -219,7 +219,7 @@ def test_itsystem_update(graphapi_post) -> None:
             }
         }
     """
-    response: GQLResponse = graphapi_post(query, {"uuids": str(existing_itsystem_uuid)})
+    response = graphapi_post(query, {"uuids": str(existing_itsystem_uuid)})
     assert response.errors is None
     assert response.data
     itsystem = one(response.data["itsystems"]["objects"])["current"]
@@ -233,7 +233,7 @@ def test_itsystem_update(graphapi_post) -> None:
             }
         }
     """
-    response: GQLResponse = graphapi_post(
+    response = graphapi_post(
         mutation,
         {
             "input": {
@@ -250,7 +250,7 @@ def test_itsystem_update(graphapi_post) -> None:
     assert edit_uuid == existing_itsystem_uuid
 
     # Verify modified state
-    response: GQLResponse = graphapi_post(query, {"uuids": str(existing_itsystem_uuid)})
+    response = graphapi_post(query, {"uuids": str(existing_itsystem_uuid)})
     assert response.errors is None
     assert response.data
     itsystem = one(response.data["itsystems"]["objects"])["current"]
@@ -283,7 +283,7 @@ def test_itsystem_delete(graphapi_post) -> None:
             }
         }
     """
-    response: GQLResponse = graphapi_post(query)
+    response = graphapi_post(query)
     assert response.errors is None
     assert response.data
     itsystem_map = {
@@ -299,15 +299,13 @@ def test_itsystem_delete(graphapi_post) -> None:
             }
         }
     """
-    response: GQLResponse = graphapi_post(
-        mutation, {"uuid": str(first(existing_itsystem_uuids))}
-    )
+    response = graphapi_post(mutation, {"uuid": str(first(existing_itsystem_uuids))})
     assert response.errors is None
     assert response.data
     deleted_uuid = UUID(response.data["itsystem_delete"]["uuid"])
 
     # Verify modified state
-    response: GQLResponse = graphapi_post(query)
+    response = graphapi_post(query)
     assert response.errors is None
     assert response.data
     itsystem_map = {
@@ -317,7 +315,7 @@ def test_itsystem_delete(graphapi_post) -> None:
 
 
 @given(uuid=...)
-def test_itsystem_delete_mocked(uuid: UUID, graphapi_post) -> None:
+def test_itsystem_delete_mocked(uuid: UUID, graphapi_post: GraphAPIPost) -> None:
     """Test that delete_object is called as expected."""
     mutation = """
         mutation DeleteITSystem($uuid: UUID!) {
@@ -329,7 +327,7 @@ def test_itsystem_delete_mocked(uuid: UUID, graphapi_post) -> None:
     with patch("oio_rest.db.delete_object") as mock:
         mock.return_value = None
 
-        response: GQLResponse = graphapi_post(mutation, {"uuid": str(uuid)})
+        response = graphapi_post(mutation, {"uuid": str(uuid)})
         assert response.errors is None
         assert response.data
         deleted_uuid = UUID(response.data["itsystem_delete"]["uuid"])

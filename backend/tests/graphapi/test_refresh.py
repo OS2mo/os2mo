@@ -1,12 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 
 import pytest
 
-from tests.conftest import GQLResponse
+from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
@@ -34,7 +33,7 @@ from tests.conftest import GQLResponse
 )
 @patch("mora.app.AMQPSystem.publish_message")
 async def test_refresh_mutators(
-    mock: AsyncMock, graphapi_post: Callable, model: str, filter_uuid: str
+    mock: AsyncMock, graphapi_post: GraphAPIPost, model: str, filter_uuid: str
 ) -> None:
     """Test refresh mutators."""
     mutator = f"{model}_refresh"
@@ -45,7 +44,7 @@ async def test_refresh_mutators(
         }}
       }}
     """
-    response: GQLResponse = graphapi_post(mutation, variables=dict(uuid=filter_uuid))
+    response = graphapi_post(mutation, variables=dict(uuid=filter_uuid))
     assert response.errors is None
     assert response.data[mutator]["objects"] == [filter_uuid]
     mock.assert_awaited_once_with(routing_key=model, payload=filter_uuid, exchange=None)

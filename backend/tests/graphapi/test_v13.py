@@ -1,11 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
-
 import pytest
 from more_itertools import one
 
-from tests.conftest import GQLResponse
+from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
@@ -47,7 +45,7 @@ from tests.conftest import GQLResponse
     ],
 )
 async def test_top_level_resolver_uuid_filters(
-    graphapi_post: Callable, resolver: str, filter_uuid: str, expected_user_key: str
+    graphapi_post: GraphAPIPost, resolver: str, filter_uuid: str, expected_user_key: str
 ) -> None:
     """Test top-level resolver filters."""
     query = f"""
@@ -61,7 +59,7 @@ async def test_top_level_resolver_uuid_filters(
           }}
         }}
     """
-    response: GQLResponse = graphapi_post(query, url="/graphql/v13")
+    response = graphapi_post(query, url="/graphql/v13")
     assert response.errors is None
     objects = one(response.data.values())["objects"]
     assert one(objects)["current"]["user_key"] == expected_user_key
@@ -69,7 +67,7 @@ async def test_top_level_resolver_uuid_filters(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_configuration_resolver_filters(graphapi_post: Callable) -> None:
+async def test_configuration_resolver_filters(graphapi_post: GraphAPIPost) -> None:
     """Test configuration resolver filters."""
     query = """
         query TestConfigurationResolver {
@@ -80,13 +78,13 @@ async def test_configuration_resolver_filters(graphapi_post: Callable) -> None:
           }
         }
     """
-    response: GQLResponse = graphapi_post(query, url="/graphql/v13")
+    response = graphapi_post(query, url="/graphql/v13")
     assert response.errors is None
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_files_resolver_filters(graphapi_post: Callable) -> None:
+async def test_files_resolver_filters(graphapi_post: GraphAPIPost) -> None:
     """Test files resolver filters."""
     query = """
         query TestFilesResolver {
@@ -97,13 +95,13 @@ async def test_files_resolver_filters(graphapi_post: Callable) -> None:
           }
         }
     """
-    response: GQLResponse = graphapi_post(query, url="/graphql/v13")
+    response = graphapi_post(query, url="/graphql/v13")
     assert response.errors is None
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_healths_resolver_fclearilters(graphapi_post: Callable) -> None:
+async def test_healths_resolver_fclearilters(graphapi_post: GraphAPIPost) -> None:
     """Test healths resolver filters."""
     query = """
         query TestHealthsResolver {
@@ -114,13 +112,13 @@ async def test_healths_resolver_fclearilters(graphapi_post: Callable) -> None:
           }
         }
     """
-    response: GQLResponse = graphapi_post(query, url="/graphql/v13")
+    response = graphapi_post(query, url="/graphql/v13")
     assert response.errors is None
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_nested_resolver_filters(graphapi_post: Callable) -> None:
+async def test_nested_resolver_filters(graphapi_post: GraphAPIPost) -> None:
     """Test nested resolver filters."""
     query = """
         query TestNestedLevelResolversQuery {
@@ -143,7 +141,7 @@ async def test_nested_resolver_filters(graphapi_post: Callable) -> None:
           }
         }
     """
-    response: GQLResponse = graphapi_post(query, url="/graphql/v13")
+    response = graphapi_post(query, url="/graphql/v13")
     assert response.errors is None
     assert response.data == {
         "org_units": {

@@ -16,8 +16,7 @@ from mora.graphapi.versions.latest.graphql_utils import get_uuids
 from mora.graphapi.versions.latest.graphql_utils import PrintableStr
 from mora.graphapi.versions.v3.version import ClassCreate
 from mora.graphapi.versions.v3.version import GraphQLVersion
-from tests.conftest import GQLResponse
-
+from tests.conftest import GraphAPIPost
 
 OPTIONAL = {
     "uuid": st.uuids(),
@@ -77,7 +76,7 @@ def prepare_query_data(test_data, query_response):
 @given(test_data=write_strat())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_integration_create_class(test_data, graphapi_post):
+async def test_integration_create_class(test_data, graphapi_post: GraphAPIPost):
     """Integrationtest for create class mutator."""
 
     test_data["org_uuid"] = await get_uuids(mapping.ORG, graphapi_post)
@@ -93,7 +92,7 @@ async def test_integration_create_class(test_data, graphapi_post):
 
     test_data = prepare_mutator_data(test_data)
 
-    mut_response: GQLResponse = graphapi_post(
+    mut_response = graphapi_post(
         query=mutate_query, variables={"input": test_data}, url="/graphql/v3"
     )
 

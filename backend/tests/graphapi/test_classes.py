@@ -17,6 +17,7 @@ from pydantic import parse_obj_as
 from pytest import MonkeyPatch
 
 import mora.lora as lora
+from ..conftest import GraphAPIPost
 from .strategies import graph_data_momodel_validity_strat
 from .strategies import graph_data_momodel_validity_strat_list
 from .strategies import graph_data_uuids_strat
@@ -27,8 +28,6 @@ from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.classes import ClassCreate
 from mora.graphapi.versions.latest.graphql_utils import PrintableStr
 from mora.graphapi.versions.latest.models import ClassRead
-from tests.conftest import GQLResponse
-
 
 # Helpers
 # -------------------
@@ -73,8 +72,10 @@ def prepare_query_data(test_data, query_response):
     return test_data, query
 
 
-def read_classes_helper(graphapi_post, query: str, extract: str) -> dict[UUID, Any]:
-    response: GQLResponse = graphapi_post(query)
+def read_classes_helper(
+    graphapi_post: GraphAPIPost, query: str, extract: str
+) -> dict[UUID, Any]:
+    response = graphapi_post(query)
     assert response.errors is None
     assert response.data
     return {UUID(x["uuid"]): x[extract] for x in response.data["classes"]["objects"]}
@@ -135,7 +136,7 @@ read_history = partial(
         ),
     )
 )
-def test_query_all(test_data, graphapi_post, patch_loader):
+def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all attributes of the classes data model."""
     # patch get_classes to return list(ClassRead)
     with MonkeyPatch.context() as patch:
@@ -172,7 +173,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
                 }
             }
         """
-        response: GQLResponse = graphapi_post(query=query)
+        response = graphapi_post(query=query)
 
     assert response.errors is None
     assert response.data
@@ -230,7 +231,7 @@ async def test_query_by_uuid(test_input, patch_loader):
 )
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_integration_create_class(test_data, graphapi_post) -> None:
+async def test_integration_create_class(test_data, graphapi_post: GraphAPIPost) -> None:
     """Integrationtest for create class mutator."""
 
     test_data_model = ClassCreate(**test_data)
@@ -254,7 +255,7 @@ async def test_integration_create_class(test_data, graphapi_post) -> None:
         },
     }
 
-    mut_response: GQLResponse = graphapi_post(
+    mut_response = graphapi_post(
         query=mutate_query, variables={"input": jsonable_encoder(create_payload)}
     )
 
@@ -389,7 +390,9 @@ async def test_unit_create_class(
         ),
     ],
 )
-async def test_class_facet_filter(graphapi_post, filter, expected) -> None:
+async def test_class_facet_filter(
+    graphapi_post: GraphAPIPost, filter, expected
+) -> None:
     """Test facet filters on classes."""
     class_query = """
         query Classes($filter: ClassFilter!) {
@@ -402,7 +405,7 @@ async def test_class_facet_filter(graphapi_post, filter, expected) -> None:
             }
         }
     """
-    response: GQLResponse = graphapi_post(class_query, variables=dict(filter=filter))
+    response = graphapi_post(class_query, variables=dict(filter=filter))
     assert response.errors is None
     assert len(response.data["classes"]["objects"]) == expected
 
@@ -566,7 +569,7 @@ async def test_terminate_class(graphapi_post) -> None:
             }
         }
     """
-    response: GQLResponse = graphapi_post(
+    response = graphapi_post(
         mutation,
         {"input": {"uuid": str(class_to_terminate), "validity": {"to": "1990-01-01"}}},
     )

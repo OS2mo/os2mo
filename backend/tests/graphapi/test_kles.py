@@ -15,6 +15,7 @@ from hypothesis import strategies as st
 from more_itertools import one
 from pytest import MonkeyPatch
 
+from ..conftest import GraphAPIPost
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from .utils import fetch_class_uuids
@@ -30,11 +31,10 @@ from mora.graphapi.versions.latest.models import KLEUpdate
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import KLERead
-from tests.conftest import GQLResponse
 
 
 @given(test_data=graph_data_strat(KLERead))
-def test_query_all(test_data, graphapi_post, patch_loader):
+def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all attributes of the KLE data model."""
     # Patch dataloader
     with MonkeyPatch.context() as patch:
@@ -57,7 +57,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
                 }
             }
         """
-        response: GQLResponse = graphapi_post(query)
+        response = graphapi_post(query)
 
     assert response.errors is None
     assert response.data
@@ -65,7 +65,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
 
 @given(test_input=graph_data_uuids_strat(KLERead))
-def test_query_by_uuid(test_input, graphapi_post, patch_loader):
+def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query a single KLE by UUID."""
     test_data, test_uuids = test_input
 
@@ -81,7 +81,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
                     }
                 }
             """
-        response: GQLResponse = graphapi_post(query, {"uuids": test_uuids})
+        response = graphapi_post(query, {"uuids": test_uuids})
 
     assert response.errors is None
     assert response.data is not None
@@ -121,7 +121,9 @@ async def test_create_kle_mutation_unit_test(
 @given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_create_kle_integration_test(data, graphapi_post, org_uuids) -> None:
+async def test_create_kle_integration_test(
+    data, graphapi_post: GraphAPIPost, org_uuids
+) -> None:
     """Test that KLE annotations can be created in LoRa via GraphQL."""
 
     org_uuid = data.draw(st.sampled_from(org_uuids))
@@ -164,9 +166,7 @@ async def test_create_kle_integration_test(data, graphapi_post, org_uuids) -> No
             }
         }
     """
-    response: GQLResponse = graphapi_post(
-        mutation, {"input": jsonable_encoder(test_data)}
-    )
+    response = graphapi_post(mutation, {"input": jsonable_encoder(test_data)})
 
     assert response.errors is None
     uuid = UUID(response.data["kle_create"]["uuid"])
@@ -191,7 +191,7 @@ async def test_create_kle_integration_test(data, graphapi_post, org_uuids) -> No
         }
     """
 
-    response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
     obj = one(one(response.data["kles"]["objects"])["objects"])
 
@@ -292,7 +292,9 @@ async def test_update_kle_mutation_unit_test(
         },
     ],
 )
-async def test_update_kle_integration_test(test_data, graphapi_post) -> None:
+async def test_update_kle_integration_test(
+    test_data, graphapi_post: GraphAPIPost
+) -> None:
     """Test that KLEs can be updated in LoRa via GraphQL."""
 
     uuid = test_data["uuid"]
@@ -316,7 +318,7 @@ async def test_update_kle_integration_test(test_data, graphapi_post) -> None:
             }
         }
     """
-    response: GQLResponse = graphapi_post(query, {"uuid": str(uuid)})
+    response = graphapi_post(query, {"uuid": str(uuid)})
 
     assert response.errors is None
 
@@ -329,9 +331,7 @@ async def test_update_kle_integration_test(test_data, graphapi_post) -> None:
             }
         }
     """
-    mutation_response: GQLResponse = graphapi_post(
-        mutation, {"input": jsonable_encoder(test_data)}
-    )
+    mutation_response = graphapi_post(mutation, {"input": jsonable_encoder(test_data)})
 
     assert mutation_response.errors is None
 
@@ -356,7 +356,7 @@ async def test_update_kle_integration_test(test_data, graphapi_post) -> None:
         }
     """
 
-    verify_response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    verify_response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert verify_response.errors is None
 
     kle_objects_post_update = one(
@@ -435,7 +435,9 @@ async def test_kle_terminate_unit(given_uuid, given_validity_dts):
         },
     ],
 )
-async def test_kle_terminate_integration(test_data, graphapi_post) -> None:
+async def test_kle_terminate_integration(
+    test_data, graphapi_post: GraphAPIPost
+) -> None:
     uuid = test_data["uuid"]
     mutation = """
         mutation TerminateKLE($input: KLETerminateInput!) {
@@ -444,9 +446,7 @@ async def test_kle_terminate_integration(test_data, graphapi_post) -> None:
             }
         }
     """
-    mutation_response: GQLResponse = graphapi_post(
-        mutation, {"input": jsonable_encoder(test_data)}
-    )
+    mutation_response = graphapi_post(mutation, {"input": jsonable_encoder(test_data)})
 
     assert mutation_response.errors is None
 
@@ -465,7 +465,7 @@ async def test_kle_terminate_integration(test_data, graphapi_post) -> None:
         }
     """
 
-    verify_response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    verify_response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert verify_response.errors is None
     kle_objects_post_terminate = one(
         one(verify_response.data["kles"]["objects"])["objects"]

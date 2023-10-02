@@ -1,16 +1,15 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
-
 import pytest
 from more_itertools import first
 
 from tests.conftest import GQLResponse
+from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_query_itsystems(graphapi_post: Callable) -> None:
+async def test_query_itsystems(graphapi_post: GraphAPIPost) -> None:
     """Test update_employee v12 validators."""
     test_input = {"filter": {}}
 
@@ -52,7 +51,7 @@ async def test_query_itsystems(graphapi_post: Callable) -> None:
     assert response_v15.data["itsystems"]["objects"] == expected
 
     # Running v14 query on v15 schema
-    response: GQLResponse = graphapi_post(query_v14, url="/graphql/v15")
+    response = graphapi_post(query_v14, url="/graphql/v15")
     error = first(response.errors)
     assert (
         "Unknown type 'BaseFilter'. Did you mean 'ClassFilter', 'FacetFilter', "
@@ -60,7 +59,7 @@ async def test_query_itsystems(graphapi_post: Callable) -> None:
     )
 
     # Running v15 query on v14 schema
-    response: GQLResponse = graphapi_post(query_v15, url="/graphql/v14")
+    response = graphapi_post(query_v15, url="/graphql/v14")
     error = first(response.errors)
     assert (
         "Variable '$filter' of type 'ITSystemFilter!' used in position expecting type 'BaseFilter'."
@@ -70,7 +69,7 @@ async def test_query_itsystems(graphapi_post: Callable) -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_create_itsystem(graphapi_post: Callable) -> None:
+async def test_create_itsystem(graphapi_post: GraphAPIPost) -> None:
     """Test update_employee v12 validators."""
     # create under v14 schema
     v14_input = {
@@ -134,7 +133,7 @@ async def test_create_itsystem(graphapi_post: Callable) -> None:
     assert response_v15.data["itsystem_create"]["current"] == expected
 
     # Running v14 create on v15 schema
-    response: GQLResponse = graphapi_post(create_v14, v14_input, url="/graphql/v15")
+    response = graphapi_post(create_v14, v14_input, url="/graphql/v15")
     error = first(response.errors)
     assert (
         "Field 'validity' of required type 'RAOpenValidityInput!' was not provided."
@@ -142,7 +141,7 @@ async def test_create_itsystem(graphapi_post: Callable) -> None:
     )
 
     # Running v15 create on v14 schema
-    response: GQLResponse = graphapi_post(create_v15, v15_input, url="/graphql/v14")
+    response = graphapi_post(create_v15, v15_input, url="/graphql/v14")
     error = first(response.errors)
     assert (
         "Field 'validity' is not defined by type 'ITSystemCreateInput'."
@@ -152,7 +151,7 @@ async def test_create_itsystem(graphapi_post: Callable) -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_update_itsystem(graphapi_post: Callable) -> None:
+async def test_update_itsystem(graphapi_post: GraphAPIPost) -> None:
     """Test update_employee v12 validators."""
     # update under v14 schema
     v14_input = {
@@ -220,7 +219,7 @@ async def test_update_itsystem(graphapi_post: Callable) -> None:
     assert response_v15.data["itsystem_update"]["current"] == expected
 
     # Running v14 update on v15 schema
-    response: GQLResponse = graphapi_post(update_v14, v14_input, url="/graphql/v15")
+    response = graphapi_post(update_v14, v14_input, url="/graphql/v15")
     error = first(response.errors)
     assert (
         "Variable '$input' of type 'ITSystemCreateInput!' used in position expecting type 'ITSystemUpdateInput!'."
@@ -228,7 +227,7 @@ async def test_update_itsystem(graphapi_post: Callable) -> None:
     )
 
     # Running v15 update on v14 schema
-    response: GQLResponse = graphapi_post(update_v15, v15_input, url="/graphql/v14")
+    response = graphapi_post(update_v15, v15_input, url="/graphql/v14")
     error = first(response.errors)
     assert (
         "Unknown type 'ITSystemUpdateInput'. Did you mean 'ITSystemCreateInput', 'ITUserUpdateInput', "
