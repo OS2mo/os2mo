@@ -1,16 +1,15 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
-
 import pytest
 from more_itertools import first
 
 from tests.conftest import GQLResponse
+from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_create_class(graphapi_post: Callable) -> None:
+async def test_create_class(graphapi_post: GraphAPIPost) -> None:
     """Test create_class v16 shim."""
 
     # create under v16 schema
@@ -75,7 +74,7 @@ async def test_create_class(graphapi_post: Callable) -> None:
     assert response_v17.data["class_create"]["current"] == expected
 
     # Running v16 create on v17 schema
-    response: GQLResponse = graphapi_post(create_v16, v16_input, url="/graphql/v17")
+    response = graphapi_post(create_v16, v16_input, url="/graphql/v17")
     error = first(response.errors)
     assert (
         "Field 'validity' of required type 'ValidityInput!' was not provided."
@@ -83,7 +82,7 @@ async def test_create_class(graphapi_post: Callable) -> None:
     )
 
     # Running v17 create on v16 schema
-    response: GQLResponse = graphapi_post(create_v17, v17_input, url="/graphql/v16")
+    response = graphapi_post(create_v17, v17_input, url="/graphql/v16")
     error = first(response.errors)
     assert (
         "Field 'validity' is not defined by type 'ClassCreateInput'."
@@ -93,7 +92,7 @@ async def test_create_class(graphapi_post: Callable) -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_update_class(graphapi_post: Callable) -> None:
+async def test_update_class(graphapi_post: GraphAPIPost) -> None:
     """Test update_class v15 shim."""
     # update under v16 schema
     v16_input = {
@@ -141,7 +140,7 @@ async def test_update_class(graphapi_post: Callable) -> None:
     assert response_v17.data["class_update"]["uuid"] == v17_input["input"]["uuid"]
 
     # Running v16 update on v17 schema
-    response: GQLResponse = graphapi_post(update_v16, v16_input, url="/graphql/v17")
+    response = graphapi_post(update_v16, v16_input, url="/graphql/v17")
     error = first(response.errors)
     assert (
         "Field 'validity' of required type 'ValidityInput!' was not provided."
@@ -149,7 +148,7 @@ async def test_update_class(graphapi_post: Callable) -> None:
     )
 
     # Running v17 update on v16 schema
-    response: GQLResponse = graphapi_post(update_v17, v17_input, url="/graphql/v16")
+    response = graphapi_post(update_v17, v17_input, url="/graphql/v16")
     error = first(response.errors)
     assert (
         "Field 'validity' is not defined by type 'ClassUpdateInput'."

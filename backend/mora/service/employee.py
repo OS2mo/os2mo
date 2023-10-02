@@ -27,13 +27,13 @@ from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
 from fastapi import Query
-from fastapi import Request
 
 from . import autocomplete
 from . import handlers
 from . import org
 from .. import common
 from .. import config
+from .. import depends
 from .. import exceptions
 from .. import lora
 from .. import mapping
@@ -392,7 +392,7 @@ async def get_one_employee(
 )
 # async def autocomplete_employees(query: str):
 async def autocomplete_employees(
-    request: Request,
+    sessionmaker: depends.async_sessionmaker,
     query: str,
     at: date
     | None = Query(
@@ -409,9 +409,7 @@ async def autocomplete_employees(
         )
 
     logger.debug("using autocomplete_employee_v2 new")
-    search_results = await autocomplete.search_employees(
-        request.app.state.sessionmaker, query, at
-    )
+    search_results = await autocomplete.search_employees(sessionmaker, query, at)
 
     # Decorate search results with data through GraphQL
     return {

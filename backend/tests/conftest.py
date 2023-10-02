@@ -10,6 +10,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from operator import itemgetter
 from typing import Any
+from typing import Protocol
 from typing import TypeVar
 from unittest.mock import patch
 from uuid import UUID
@@ -54,7 +55,6 @@ from tests.hypothesis_utils import validity_model_strat
 from tests.util import darmock
 from tests.util import load_sample_structures
 from tests.util import MockAioresponses
-
 
 T = TypeVar("T")
 YieldFixture = Generator[T, None, None]
@@ -372,8 +372,18 @@ class GQLResponse:
     status_code: int
 
 
+class GraphAPIPost(Protocol):
+    def __call__(
+        self,
+        query: str,
+        variables: dict[str, Any] | None = None,
+        url: str = latest_graphql_url,
+    ) -> GQLResponse:
+        ...
+
+
 @pytest.fixture(scope="session")
-def graphapi_post(admin_client: TestClient, latest_graphql_url: str):
+def graphapi_post(admin_client: TestClient, latest_graphql_url: str) -> GraphAPIPost:
     def _post(
         query: str,
         variables: dict[str, Any] | None = None,
@@ -503,7 +513,7 @@ def mock_get_valid_organisations() -> YieldFixture[UUID]:
 
 
 @pytest.fixture(scope="session", name="org_uuids")
-def fetch_org_uuids(load_fixture, graphapi_post: Callable) -> list[UUID]:
+def fetch_org_uuids(load_fixture, graphapi_post: GraphAPIPost) -> list[UUID]:
     parent_uuids_query = """
         query FetchOrgUUIDs {
             org_units {
@@ -513,7 +523,7 @@ def fetch_org_uuids(load_fixture, graphapi_post: Callable) -> list[UUID]:
             }
         }
     """
-    response: GQLResponse = graphapi_post(parent_uuids_query)
+    response = graphapi_post(parent_uuids_query)
     assert response.errors is None
     uuids = list(
         map(UUID, map(itemgetter("uuid"), response.data["org_units"]["objects"]))
@@ -522,7 +532,7 @@ def fetch_org_uuids(load_fixture, graphapi_post: Callable) -> list[UUID]:
 
 
 @pytest.fixture(scope="session", name="employee_uuids")
-def fetch_employee_uuids(load_fixture, graphapi_post: Callable) -> list[UUID]:
+def fetch_employee_uuids(load_fixture, graphapi_post: GraphAPIPost) -> list[UUID]:
     parent_uuids_query = """
         query FetchEmployeeUUIDs {
             employees {
@@ -532,7 +542,7 @@ def fetch_employee_uuids(load_fixture, graphapi_post: Callable) -> list[UUID]:
             }
         }
     """
-    response: GQLResponse = graphapi_post(parent_uuids_query)
+    response = graphapi_post(parent_uuids_query)
     assert response.errors is None
     uuids = list(
         map(UUID, map(itemgetter("uuid"), response.data["employees"]["objects"]))
@@ -542,7 +552,7 @@ def fetch_employee_uuids(load_fixture, graphapi_post: Callable) -> list[UUID]:
 
 @pytest.fixture(scope="session", name="employee_and_engagement_uuids")
 def fetch_employee_and_engagement_uuids(
-    load_fixture, graphapi_post: Callable
+    load_fixture, graphapi_post: GraphAPIPost
 ) -> list[tuple[UUID, UUID]]:
     employee_and_engagement_uuids_query = """
         query FetchEmployeeUUIDs {
@@ -558,7 +568,7 @@ def fetch_employee_and_engagement_uuids(
             }
         }
     """
-    response: GQLResponse = graphapi_post(employee_and_engagement_uuids_query)
+    response = graphapi_post(employee_and_engagement_uuids_query)
     assert response.errors is None
     uuids_and_engagements = [
         {
@@ -576,7 +586,7 @@ def fetch_employee_and_engagement_uuids(
 
 
 @pytest.fixture(scope="session", name="itsystem_uuids")
-def fetch_itsystem_uuids(load_fixture, graphapi_post: Callable) -> list[UUID]:
+def fetch_itsystem_uuids(load_fixture, graphapi_post: GraphAPIPost) -> list[UUID]:
     itsystem_uuids_query = """
         query FetchITSystemUUIDs {
             itsystems {
@@ -586,7 +596,7 @@ def fetch_itsystem_uuids(load_fixture, graphapi_post: Callable) -> list[UUID]:
             }
         }
     """
-    response: GQLResponse = graphapi_post(itsystem_uuids_query)
+    response = graphapi_post(itsystem_uuids_query)
     assert response.errors is None
     uuids = list(
         map(UUID, map(itemgetter("uuid"), response.data["itsystems"]["objects"]))
@@ -595,7 +605,7 @@ def fetch_itsystem_uuids(load_fixture, graphapi_post: Callable) -> list[UUID]:
 
 
 @pytest.fixture(scope="session", name="ituser_uuids")
-def fetch_ituser_uuids(load_fixture, graphapi_post: Callable) -> list[UUID]:
+def fetch_ituser_uuids(load_fixture, graphapi_post: GraphAPIPost) -> list[UUID]:
     ituser_uuids_query = """
         query FetchITSystemUUIDs {
             itusers {
@@ -605,7 +615,7 @@ def fetch_ituser_uuids(load_fixture, graphapi_post: Callable) -> list[UUID]:
             }
         }
     """
-    response: GQLResponse = graphapi_post(ituser_uuids_query)
+    response = graphapi_post(ituser_uuids_query)
     assert response.errors is None
     uuids = list(
         map(UUID, map(itemgetter("uuid"), response.data["itusers"]["objects"]))

@@ -9,16 +9,16 @@ from hypothesis import given
 from more_itertools import first
 from pytest import MonkeyPatch
 
+from ..conftest import GraphAPIPost
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.models import FacetRead
-from tests.conftest import GQLResponse
 
 
 @given(test_data=graph_data_strat(FacetRead))
-async def test_query_all(test_data, graphapi_post, patch_loader):
+async def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all attributes of the facets data model."""
     # Patch dataloader
     with MonkeyPatch.context() as patch:
@@ -44,7 +44,7 @@ async def test_query_all(test_data, graphapi_post, patch_loader):
                 }
             }
         """
-        response: GQLResponse = graphapi_post(query)
+        response = graphapi_post(query)
 
     assert response.errors is None
     assert response.data
@@ -52,7 +52,7 @@ async def test_query_all(test_data, graphapi_post, patch_loader):
 
 
 @given(test_input=graph_data_uuids_strat(FacetRead))
-async def test_query_by_uuid(test_input, graphapi_post, patch_loader):
+async def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query facets by UUID."""
     test_data, test_uuids = test_input
 
@@ -68,7 +68,7 @@ async def test_query_by_uuid(test_input, graphapi_post, patch_loader):
                     }
                 }
             """
-        response: GQLResponse = graphapi_post(query, {"uuids": test_uuids})
+        response = graphapi_post(query, {"uuids": test_uuids})
 
     assert response.errors is None
     assert response.data
@@ -79,8 +79,10 @@ async def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     assert len(result_uuids) == len(set(test_uuids))
 
 
-def read_facets_helper(graphapi_post, query: str, extract: str) -> dict[UUID, Any]:
-    response: GQLResponse = graphapi_post(query)
+def read_facets_helper(
+    graphapi_post: GraphAPIPost, query: str, extract: str
+) -> dict[UUID, Any]:
+    response = graphapi_post(query)
     assert response.errors is None
     assert response.data
     return {UUID(x["uuid"]): x[extract] for x in response.data["facets"]["objects"]}
@@ -147,7 +149,7 @@ async def test_create_facet(graphapi_post):
             }
         }
     """
-    response: GQLResponse = graphapi_post(
+    response = graphapi_post(
         mutation,
         {
             "input": {
@@ -194,7 +196,7 @@ async def test_update_facet(graphapi_post) -> None:
             }
         }
     """
-    response: GQLResponse = graphapi_post(
+    response = graphapi_post(
         mutation,
         {
             "input": {
@@ -250,7 +252,7 @@ async def test_delete_facet(graphapi_post) -> None:
             }
         }
     """
-    response: GQLResponse = graphapi_post(mutation, {"uuid": str(facet_to_delete)})
+    response = graphapi_post(mutation, {"uuid": str(facet_to_delete)})
     assert response.errors is None
     assert response.data
     deleted_uuid = UUID(response.data["facet_delete"]["uuid"])
@@ -280,7 +282,7 @@ async def test_terminate_facet(graphapi_post) -> None:
             }
         }
     """
-    response: GQLResponse = graphapi_post(
+    response = graphapi_post(
         mutation,
         {"input": {"uuid": str(facet_to_terminate), "validity": {"to": "1990-01-01"}}},
     )

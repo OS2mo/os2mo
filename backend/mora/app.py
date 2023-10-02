@@ -14,6 +14,7 @@ from more_itertools import only
 from prometheus_client import Gauge
 from prometheus_client import Info
 from prometheus_fastapi_instrumentator import Instrumentator
+from ramqp import AMQPSystem
 from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
@@ -30,6 +31,7 @@ from .db import get_sessionmaker
 from .exceptions import ErrorCodes
 from .exceptions import http_exception_to_json_response
 from .exceptions import HTTPException
+from .graphapi.shim import set_graphql_context_dependencies
 from .lora import lora_noop_change_context
 from mora import config
 from mora import health
@@ -50,6 +52,7 @@ from mora.service.address_handler.dar import dar_loader_context
 from mora.service.shimmed.meta import meta_router
 from oio_rest.app import create_app as create_lora_app
 from oio_rest.config import get_settings as lora_get_settings
+from oio_rest.db import _get_dbname
 
 logger = get_logger()
 
@@ -165,6 +168,8 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         await triggers.register(app)
         if lora.client is None:
             lora.client = await lora.create_lora_client(app)
+        if settings.amqp_enable:
+            await app.state.amqp_system.start()
 
         yield
 
@@ -225,6 +230,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             Depends(is_graphql_context),
             Depends(graphql_dates_context),
             Depends(set_authorization_header),
+            Depends(set_graphql_context_dependencies),
         ],
         openapi_tags=list(tags_metadata),
     )
@@ -285,12 +291,16 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         app.mount("/lora", lora_app)
 
     lora_settings = lora_get_settings()
+
+    # Set up lifecycle state for depends.py
     app.state.sessionmaker = get_sessionmaker(
         user=lora_settings.db_user,
         password=lora_settings.db_password,
         host=lora_settings.db_host,
-        name=lora_settings.db_name,
+        name=_get_dbname(),
     )
+    amqp_system = AMQPSystem(settings.amqp)
+    app.state.amqp_system = amqp_system
 
     # TODO: Deal with uncaught "Exception", #43826
     app.add_exception_handler(Exception, fallback_handler)

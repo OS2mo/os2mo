@@ -91,7 +91,6 @@ class Settings(BaseSettings):
 
     # Testing
     insecure_enable_testing_api: bool = False
-    void_warranty_disable_amqp_delay: bool = False
 
     # File Store settings
     file_storage: str = "noop"

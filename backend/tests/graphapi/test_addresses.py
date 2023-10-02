@@ -15,6 +15,7 @@ from hypothesis import strategies as st
 from more_itertools import one
 from pytest import MonkeyPatch
 
+from ..conftest import GraphAPIPost
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora import lora
@@ -33,7 +34,6 @@ from tests.conftest import GQLResponse
 from tests.graphapi.utils import fetch_employee_validity
 from tests.graphapi.utils import fetch_org_unit_validity
 from tests.util import dar_loader
-
 
 # HELPERS
 
@@ -114,7 +114,9 @@ def _get_address_query():
     """
 
 
-def _create_address_create_hypothesis_test_data(data, graphapi_post, test_data_samples):
+def _create_address_create_hypothesis_test_data(
+    data, graphapi_post: GraphAPIPost, test_data_samples
+):
     (
         test_data_org_unit_uuid,
         test_data_person_uuid,
@@ -202,7 +204,7 @@ def _create_address_create_hypothesis_test_data(data, graphapi_post, test_data_s
 
 
 @given(test_data=graph_data_strat(AddressRead))
-def test_query_all(test_data, graphapi_post, patch_loader):
+def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all attributes of the address data model."""
     # JSON encode test data
     test_data = jsonable_encoder(test_data)
@@ -235,7 +237,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
                 }
             }
         """
-        response: GQLResponse = graphapi_post(query)
+        response = graphapi_post(query)
 
     assert response.errors is None
     assert response.data
@@ -243,7 +245,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
 
 @given(test_input=graph_data_uuids_strat(AddressRead))
-def test_query_by_uuid(test_input, graphapi_post, patch_loader):
+def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query addresses by UUID."""
     test_data, test_uuids = test_input
 
@@ -259,7 +261,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
                     }
                 }
             """
-        response: GQLResponse = graphapi_post(query, {"uuids": test_uuids})
+        response = graphapi_post(query, {"uuids": test_uuids})
 
     assert response.errors is None
     assert response.data
@@ -410,7 +412,7 @@ async def test_create_mutator_fails(create_address: AsyncMock, given_mutator_arg
 @given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_create_integration(data, graphapi_post):
+async def test_create_integration(data, graphapi_post: GraphAPIPost):
     """Integration test for create address.
 
     OBS: Does currently not test address-relation to engagements.
@@ -549,7 +551,7 @@ async def test_create_integration(data, graphapi_post):
 
     # query invoke after mutation
     verify_query = _get_address_query()
-    verify_response: GQLResponse = graphapi_post(
+    verify_response = graphapi_post(
         verify_query,
         {mapping.UUID: str(test_data_uuid_new)},
     )
@@ -690,7 +692,7 @@ async def test_terminate(given_uuid, given_validity_dts):
         ),
     ],
 )
-async def test_address_filters(graphapi_post, filter, expected) -> None:
+async def test_address_filters(graphapi_post: GraphAPIPost, filter, expected) -> None:
     """Test filters on addresses."""
     address_query = """
         query Addresses($filter: AddressFilter!) {
@@ -701,7 +703,7 @@ async def test_address_filters(graphapi_post, filter, expected) -> None:
             }
         }
     """
-    response: GQLResponse = graphapi_post(address_query, variables=dict(filter=filter))
+    response = graphapi_post(address_query, variables=dict(filter=filter))
     assert response.errors is None
     assert len(response.data["addresses"]["objects"]) == expected
 
@@ -768,7 +770,9 @@ async def test_address_filters(graphapi_post, filter, expected) -> None:
         },
     ],
 )
-async def test_update_address_integration_test(test_data, graphapi_post) -> None:
+async def test_update_address_integration_test(
+    test_data, graphapi_post: GraphAPIPost
+) -> None:
     async def query_data(uuid: str) -> GQLResponse:
         query = """
             query ($uuid: [UUID!]!){
@@ -794,7 +798,7 @@ async def test_update_address_integration_test(test_data, graphapi_post) -> None
             }
 
         """
-        response: GQLResponse = graphapi_post(query=query, variables={"uuid": uuid})
+        response = graphapi_post(query=query, variables={"uuid": uuid})
 
         return response
 
@@ -810,9 +814,7 @@ async def test_update_address_integration_test(test_data, graphapi_post) -> None
             }
         }
     """
-    response: GQLResponse = graphapi_post(
-        mutate_query, {"input": jsonable_encoder(test_data)}
-    )
+    response = graphapi_post(mutate_query, {"input": jsonable_encoder(test_data)})
 
     posterior_data = await query_data(test_data["uuid"])
 

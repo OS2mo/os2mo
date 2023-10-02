@@ -14,7 +14,6 @@ from fastapi import File
 from fastapi import HTTPException
 from fastapi import Path
 from fastapi import Query
-from fastapi import Request
 from fastapi import Response
 from fastapi.responses import StreamingResponse
 from more_itertools import one
@@ -22,9 +21,9 @@ from sqlalchemy import delete
 from sqlalchemy import func
 from sqlalchemy import insert
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import async_sessionmaker
 from starlette.datastructures import UploadFile
 
+from ... import depends
 from .errors import handle_gql_error
 from mora import exceptions
 from mora.auth.keycloak.oidc import auth
@@ -32,25 +31,12 @@ from mora.db import FileToken
 from mora.graphapi.shim import execute_graphql
 from mora.service.exports import router as exports_router
 
-
 cookie_key = "MO_FILE_DOWNLOAD"
 file_token_expiration_minutes = 10
 
 
-def get_sessionmaker(request: Request) -> async_sessionmaker:
-    """Extract the sessionmaker from our app.state.
-
-    Args:
-        request: The incoming request.
-
-    Return:
-        Extracted sessionmaker.
-    """
-    return request.app.state.sessionmaker
-
-
 async def purge_all_filetokens(
-    sessionmaker: async_sessionmaker = Depends(get_sessionmaker),
+    sessionmaker: depends.async_sessionmaker,
 ) -> None:
     """Purge expired filetokens.
 
@@ -76,7 +62,7 @@ async def purge_all_filetokens(
 )
 async def list_export_files(
     response: Response,
-    sessionmaker: async_sessionmaker = Depends(get_sessionmaker),
+    sessionmaker: depends.async_sessionmaker,
 ) -> list[str]:
     """List the available exports.
 
@@ -95,14 +81,13 @@ async def list_export_files(
         samesite="strict",
         path="/service/exports/",
     )
-    async with sessionmaker() as session:
-        async with session.begin():
-            await session.execute(
-                insert(FileToken),
-                [
-                    {"secret": secret},
-                ],
-            )
+    async with sessionmaker() as session, session.begin():
+        await session.execute(
+            insert(FileToken),
+            [
+                {"secret": secret},
+            ],
+        )
 
     query = "query FilesQuery { files(filter: {file_store: EXPORTS}) { objects { file_name } } }"
     gql_response = await execute_graphql(query)
@@ -148,7 +133,7 @@ async def upload_export_file(
 
 
 async def check_auth_cookie(
-    sessionmaker: async_sessionmaker = Depends(get_sessionmaker),
+    sessionmaker: depends.async_sessionmaker,
     auth_cookie: str | None = Cookie(None, alias=cookie_key),
 ) -> None:
     """Check the provided auth cookie in the file_token table.

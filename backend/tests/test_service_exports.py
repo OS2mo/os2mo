@@ -24,9 +24,9 @@ from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 from strawberry.types import ExecutionResult
 
 import mora.graphapi.versions.latest.files
+from mora import depends
 from mora.config import get_settings
 from mora.service.shimmed.exports import check_auth_cookie
-from mora.service.shimmed.exports import get_sessionmaker
 from mora.service.shimmed.exports import purge_all_filetokens
 from tests.conftest import test_app
 from tests.conftest import YieldFixture
@@ -37,7 +37,7 @@ def fastapi_test_app_weird_auth() -> FastAPI:
     app = test_app()
     app.dependency_overrides[purge_all_filetokens] = _noop_purge_file_tokens
     app.dependency_overrides[check_auth_cookie] = _noop_check_auth_cookie
-    app.dependency_overrides[get_sessionmaker] = _mock_session_maker
+    app.dependency_overrides[depends.get_sessionmaker] = _mock_session_maker
     return app
 
 
@@ -67,6 +67,9 @@ class FakeAsyncSession:
 
     async def __aexit__(self, exc_type, exc, traceback):
         pass
+
+    def begin(self):
+        return self.session.begin()
 
 
 async def _mock_session_maker() -> async_sessionmaker:
@@ -193,6 +196,7 @@ async def test_get_export_reads_cookie(
     assert response.json() == "Missing download cookie!"
 
 
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("file_storage_filesystem")
 async def test_list_export_files_raises_on_invalid_dir(
     service_client_weird_auth: TestClient, mock_path: MockPath
@@ -211,6 +215,7 @@ async def test_list_export_files_raises_on_invalid_dir(
     }
 
 
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("file_storage_filesystem")
 async def test_list_export_files_returns_filenames(
     service_client_weird_auth: TestClient, mock_path: MockPath, monkeypatch: MonkeyPatch

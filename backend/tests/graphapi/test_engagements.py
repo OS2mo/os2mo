@@ -16,6 +16,7 @@ from hypothesis.strategies import characters
 from more_itertools import one
 from pytest import MonkeyPatch
 
+from ..conftest import GraphAPIPost
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from .utils import fetch_class_uuids
@@ -31,11 +32,10 @@ from mora.graphapi.versions.latest.models import EngagementUpdate
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import EngagementRead
-from tests.conftest import GQLResponse
 
 
 @given(test_data=graph_data_strat(EngagementRead))
-def test_query_all(test_data, graphapi_post, patch_loader):
+def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all attributes of the engagement data model."""
     # Patch dataloader
     with MonkeyPatch.context() as patch:
@@ -72,7 +72,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
                 }
             }
         """
-        response: GQLResponse = graphapi_post(query)
+        response = graphapi_post(query)
 
     assert response.errors is None
     assert response.data
@@ -80,7 +80,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
 
 @given(test_input=graph_data_uuids_strat(EngagementRead))
-def test_query_by_uuid(test_input, graphapi_post, patch_loader):
+def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query engagements by UUID."""
     test_data, test_uuids = test_input
 
@@ -96,7 +96,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
                     }
                 }
             """
-        response: GQLResponse = graphapi_post(query, {"uuids": test_uuids})
+        response = graphapi_post(query, {"uuids": test_uuids})
 
     assert response.errors is None
     assert response.data
@@ -110,7 +110,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
 
 
 @given(test_data=graph_data_strat(EngagementRead))
-def test_query_is_primary(test_data, graphapi_post, patch_loader):
+def test_query_is_primary(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query 'is_primary' from the engagement data model."""
 
     query = """
@@ -134,7 +134,7 @@ def test_query_is_primary(test_data, graphapi_post, patch_loader):
             "mora.graphapi.versions.latest.schema.is_class_uuid_primary",
             return_value=True,
         ) as primary_mock:
-            response: GQLResponse = graphapi_post(query)
+            response = graphapi_post(query)
 
     assert response.errors is None
 
@@ -243,7 +243,9 @@ async def test_terminate_response(given_uuid, given_validity_dts):
         ),
     ],
 )
-async def test_engagement_filters(graphapi_post, filter, expected) -> None:
+async def test_engagement_filters(
+    graphapi_post: GraphAPIPost, filter, expected
+) -> None:
     """Test filters on engagements."""
     engagement_query = """
         query Engagements($filter: EngagementFilter!) {
@@ -254,9 +256,7 @@ async def test_engagement_filters(graphapi_post, filter, expected) -> None:
             }
         }
     """
-    response: GQLResponse = graphapi_post(
-        engagement_query, variables=dict(filter=filter)
-    )
+    response = graphapi_post(engagement_query, variables=dict(filter=filter))
     assert response.errors is None
     assert len(response.data["engagements"]["objects"]) == expected
 
@@ -293,7 +293,7 @@ async def test_create_engagement(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_engagement_integration_test(
-    data, graphapi_post, org_uuids, employee_uuids
+    data, graphapi_post: GraphAPIPost, org_uuids, employee_uuids
 ) -> None:
     """Test that engagements can be created in LoRa via GraphQL."""
 
@@ -339,9 +339,7 @@ async def test_create_engagement_integration_test(
             }
         }
     """
-    response: GQLResponse = graphapi_post(
-        mutate_query, {"input": jsonable_encoder(test_data)}
-    )
+    response = graphapi_post(mutate_query, {"input": jsonable_encoder(test_data)})
     assert response.errors is None
     uuid = UUID(response.data["engagement_create"]["uuid"])
 
@@ -365,7 +363,7 @@ async def test_create_engagement_integration_test(
             }
         }
     """
-    response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
     obj = one(one(response.data["engagements"]["objects"])["objects"])
     assert obj["user_key"] == test_data.user_key or str(uuid)
@@ -474,7 +472,9 @@ async def test_update_engagement_unit_test(
         },
     ],
 )
-async def test_update_engagement_integration_test(graphapi_post, test_data) -> None:
+async def test_update_engagement_integration_test(
+    graphapi_post: GraphAPIPost, test_data
+) -> None:
     uuid = test_data["uuid"]
 
     query = """
@@ -496,7 +496,7 @@ async def test_update_engagement_integration_test(graphapi_post, test_data) -> N
             }
         }
     """
-    response: GQLResponse = graphapi_post(query, {"uuid": uuid})
+    response = graphapi_post(query, {"uuid": uuid})
     assert response.errors is None
 
     pre_update_engagement = one(one(response.data["engagements"]["objects"])["objects"])
@@ -508,7 +508,7 @@ async def test_update_engagement_integration_test(graphapi_post, test_data) -> N
             }
         }
     """
-    mutation_response: GQLResponse = graphapi_post(
+    mutation_response = graphapi_post(
         mutate_query, {"input": jsonable_encoder(test_data)}
     )
     assert mutation_response.errors is None
@@ -535,9 +535,7 @@ async def test_update_engagement_integration_test(graphapi_post, test_data) -> N
         }
     """
 
-    verify_response: GQLResponse = graphapi_post(
-        query=verify_query, variables={"uuid": uuid}
-    )
+    verify_response = graphapi_post(query=verify_query, variables={"uuid": uuid})
 
     assert verify_response.errors is None
 
@@ -597,7 +595,7 @@ async def test_update_engagement_integration_test(graphapi_post, test_data) -> N
     ],
 )
 async def test_update_extensions_field_integrations_test(
-    graphapi_post, update_input, expected_extension_field
+    graphapi_post: GraphAPIPost, update_input, expected_extension_field
 ) -> None:
     """Tests that extension fields in engagements is editable via GraphQL."""
     # ARRANGE
@@ -616,7 +614,7 @@ async def test_update_extensions_field_integrations_test(
           }
         }
     """
-    response: GQLResponse = graphapi_post(query, {"uuid": uuid})
+    response = graphapi_post(query, {"uuid": uuid})
     assert response.errors is None
     assert response.status_code == 200
 
@@ -629,7 +627,7 @@ async def test_update_extensions_field_integrations_test(
         }
     """
 
-    mutation_response: GQLResponse = graphapi_post(
+    mutation_response = graphapi_post(
         query=mutation_query, variables={"input": jsonable_encoder(update_input)}
     )
 
@@ -649,9 +647,7 @@ async def test_update_extensions_field_integrations_test(
           }
         }
     """
-    verify_response: GQLResponse = graphapi_post(
-        query=verify_query, variables={"uuid": uuid}
-    )
+    verify_response = graphapi_post(query=verify_query, variables={"uuid": uuid})
     assert verify_response.errors is None
     assert verify_response.status_code == 200
 
@@ -667,7 +663,7 @@ async def test_update_extensions_field_integrations_test(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_engagement_with_extensions_fields_integrations_test(
-    data, graphapi_post, org_uuids, employee_uuids
+    data, graphapi_post: GraphAPIPost, org_uuids, employee_uuids
 ) -> None:
     """Test that extension fields in engagements can be created in LoRa via GraphQL."""
     org_uuid = data.draw(st.sampled_from(org_uuids))
@@ -725,7 +721,7 @@ async def test_create_engagement_with_extensions_fields_integrations_test(
             }
         }
     """
-    mutation_response: GQLResponse = graphapi_post(
+    mutation_response = graphapi_post(
         query=mutate_query, variables={"input": jsonable_encoder(test_data)}
     )
 
@@ -760,7 +756,7 @@ async def test_create_engagement_with_extensions_fields_integrations_test(
             }
         }
         """
-    response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
 
     obj = one(one(response.data["engagements"]["objects"])["objects"])

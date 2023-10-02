@@ -1,16 +1,15 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
-
 import pytest
 from more_itertools import first
 
 from tests.conftest import GQLResponse
+from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_create_facet(graphapi_post: Callable) -> None:
+async def test_create_facet(graphapi_post: GraphAPIPost) -> None:
     """Test create_facet v15 shim."""
     # create under v15 schema
     v15_input = {
@@ -68,7 +67,7 @@ async def test_create_facet(graphapi_post: Callable) -> None:
     assert response_v16.data["facet_create"]["current"] == expected
 
     # Running v15 create on v16 schema
-    response: GQLResponse = graphapi_post(create_v15, v15_input, url="/graphql/v16")
+    response = graphapi_post(create_v15, v15_input, url="/graphql/v16")
     error = first(response.errors)
     assert (
         "Field 'validity' of required type 'ValidityInput!' was not provided."
@@ -76,7 +75,7 @@ async def test_create_facet(graphapi_post: Callable) -> None:
     )
 
     # Running v16 create on v15 schema
-    response: GQLResponse = graphapi_post(create_v16, v16_input, url="/graphql/v15")
+    response = graphapi_post(create_v16, v16_input, url="/graphql/v15")
     error = first(response.errors)
     assert (
         "Field 'validity' is not defined by type 'FacetCreateInput'."
@@ -86,7 +85,7 @@ async def test_create_facet(graphapi_post: Callable) -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_update_facet(graphapi_post: Callable) -> None:
+async def test_update_facet(graphapi_post: GraphAPIPost) -> None:
     """Test update_facet v15 shim."""
     # update under v15 schema
     v15_input = {
@@ -134,7 +133,7 @@ async def test_update_facet(graphapi_post: Callable) -> None:
     assert response_v16.data["facet_update"]["uuid"] == v16_input["input"]["uuid"]
 
     # Running v15 update on v16 schema
-    response: GQLResponse = graphapi_post(update_v15, v15_input, url="/graphql/v16")
+    response = graphapi_post(update_v15, v15_input, url="/graphql/v16")
     error = first(response.errors)
     assert (
         "Field 'validity' of required type 'ValidityInput!' was not provided."
@@ -142,7 +141,7 @@ async def test_update_facet(graphapi_post: Callable) -> None:
     )
 
     # Running v16 update on v15 schema
-    response: GQLResponse = graphapi_post(update_v16, v16_input, url="/graphql/v15")
+    response = graphapi_post(update_v16, v16_input, url="/graphql/v15")
     error = first(response.errors)
     assert (
         "Field 'validity' is not defined by type 'FacetUpdateInput'."

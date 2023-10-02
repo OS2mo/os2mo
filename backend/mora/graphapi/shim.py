@@ -16,10 +16,13 @@ from pydantic import BaseModel
 from pydantic import Field
 from pydantic import root_validator
 from pydantic import validator
+from starlette_context import context
+from starlette_context import request_cycle_context
 from strawberry import Schema
 from strawberry.types import ExecutionResult
 
 from .versions.base import BaseGraphQLVersion
+from mora import depends
 from mora import util
 from mora.auth.keycloak.oidc import noauth
 from ramodels.mo import ClassRead
@@ -205,6 +208,27 @@ def get_schema(graphql_version: type[BaseGraphQLVersion]) -> Schema:
     return graphql_version.schema.get()
 
 
+async def set_graphql_context_dependencies(
+    amqp_system: depends.AMQPSystem, sessionmaker: depends.async_sessionmaker
+):
+    """Fetch FastAPI dependencies into starlette context.
+
+    Strawberry allows FastAPI dependency injection on the router's context_getter, i.e.
+    the GraphQL version's get_context() method. execute_graphql(), however, can be
+    called from anywhere, and therefore has to initialise its own context. We define
+    this starlette_context middleware, which support dependency injection, to inject
+    them into the context. execute_graphql() can then fetch them from the context
+    later, allowing for indirect dependency injection from a non-FastAPI context.
+    """
+    data = {
+        **context,
+        "amqp_system": amqp_system,
+        "sessionmaker": sessionmaker,
+    }
+    with request_cycle_context(data):
+        yield
+
+
 async def execute_graphql(
     *args: Any, graphql_version: type[BaseGraphQLVersion] | None = None, **kwargs: Any
 ) -> ExecutionResult:
@@ -217,7 +241,11 @@ async def execute_graphql(
     if "context_value" not in kwargs:
         # TODO: The token should be passed from the original caller, such that the
         #  service API shims get RBAC equivalent to the GraphQL API for free.
-        kwargs["context_value"] = await graphql_version.get_context(get_token=noauth)
+        kwargs["context_value"] = await graphql_version.get_context(
+            get_token=noauth,
+            amqp_system=context.get("amqp_system"),
+            sessionmaker=context.get("sessionmaker"),
+        )
 
     schema = get_schema(graphql_version)
     return await schema.execute(*args, **kwargs)

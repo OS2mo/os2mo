@@ -1,13 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
-
 import pytest
 
 from mora.graphapi.versions.latest.types import Cursor
 from mora.util import now
-from tests.conftest import GQLResponse
-
+from tests.conftest import GraphAPIPost
 
 serialize_cursor = Cursor._scalar_definition.serialize
 
@@ -93,7 +90,7 @@ serialize_cursor = Cursor._scalar_definition.serialize
     ],
 )
 async def test_pagination(
-    graphapi_post: Callable,
+    graphapi_post: GraphAPIPost,
     resolver: str,
     limit: int,
     offset: int,
@@ -116,7 +113,7 @@ async def test_pagination(
     if offset is not None:
         cursor = serialize_cursor(Cursor(offset=offset, registration_time=now()))
     variables = dict(limit=limit, cursor=cursor)
-    response: GQLResponse = graphapi_post(query, variables)
+    response = graphapi_post(query, variables)
     assert response.errors is None
     assert len(response.data[resolver]["objects"]) == expected_length
 
@@ -159,7 +156,7 @@ async def test_pagination(
     ],
 )
 async def test_pagination_out_of_range(
-    graphapi_post: Callable, resolver: str, limit: int, offset: int
+    graphapi_post: GraphAPIPost, resolver: str, limit: int, offset: int
 ) -> None:
     """Test that out of range pagination returns None."""
     query = f"""
@@ -178,7 +175,7 @@ async def test_pagination_out_of_range(
     if offset is not None:
         cursor = serialize_cursor(Cursor(offset=offset, registration_time=now()))
     variables = dict(limit=limit, cursor=cursor)
-    response: GQLResponse = graphapi_post(query, variables)
+    response = graphapi_post(query, variables)
     assert response.errors is None
     assert response.data[resolver]["objects"] == []
     assert response.data[resolver]["page_info"]["next_cursor"] is None
@@ -210,7 +207,7 @@ async def test_pagination_out_of_range(
     ],
 )
 async def test_cursor_based_pagination(
-    graphapi_post: Callable,
+    graphapi_post: GraphAPIPost,
     limit: int,
     resolver: str,
     expected: int,
@@ -233,7 +230,7 @@ async def test_cursor_based_pagination(
     cursor = None
     while True:
         variables = dict(limit=limit, cursor=cursor)
-        response: GQLResponse = graphapi_post(query, variables)
+        response = graphapi_post(query, variables)
         assert response.errors is None
         elements.extend(response.data[resolver]["objects"])
         cursor = response.data[resolver]["page_info"]["next_cursor"]
@@ -249,7 +246,7 @@ async def test_cursor_based_pagination(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_cursor_stable_registration(
-    graphapi_post: Callable,
+    graphapi_post: GraphAPIPost,
 ) -> None:
     """Test that pagination results in a consistent view."""
     query = """
@@ -274,7 +271,7 @@ async def test_cursor_stable_registration(
 
     def fetch(cursor):
         variables = dict(limit=5, cursor=cursor)
-        response: GQLResponse = graphapi_post(query, variables)
+        response = graphapi_post(query, variables)
         assert response.errors is None
         uuids = {obj["uuid"] for obj in response.data["facets"]["objects"]}
         cursor = response.data["facets"]["page_info"]["next_cursor"]
@@ -294,7 +291,7 @@ async def test_cursor_stable_registration(
     assert stable_pagination_cursor is not None
 
     # Add new facet
-    response: GQLResponse = graphapi_post(
+    response = graphapi_post(
         create_facet_query,
         {
             "input": {

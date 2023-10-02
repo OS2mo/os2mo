@@ -2,8 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import pytest
 
-from tests.conftest import GQLResponse
-
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
@@ -22,7 +20,7 @@ async def test_mutator_extended_exception(graphapi_post) -> None:
         "validity": {"from": "2000-01-01", "to": None},
         "value": "12345678",
     }
-    response: GQLResponse = graphapi_post(mutate_query, {"input": input})
+    response = graphapi_post(mutate_query, {"input": input})
 
     assert response.data is None
     assert response.errors == [

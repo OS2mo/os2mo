@@ -16,6 +16,7 @@ from hypothesis.strategies import DataObject
 from more_itertools import one
 from pytest import MonkeyPatch
 
+from ..conftest import GraphAPIPost
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from .utils import fetch_employee_validity
@@ -35,7 +36,7 @@ from tests.conftest import GQLResponse
 
 
 @given(test_data=graph_data_strat(ITUserRead))
-def test_query_all(test_data, graphapi_post, patch_loader):
+def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all attributes of the ituser data model."""
     # Patch dataloader
     with MonkeyPatch.context() as patch:
@@ -60,7 +61,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
                 }
             }
         """
-        response: GQLResponse = graphapi_post(query)
+        response = graphapi_post(query)
 
     assert response.errors is None
     assert response.data
@@ -68,7 +69,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
 
 @given(test_input=graph_data_uuids_strat(ITUserRead))
-def test_query_by_uuid(test_input, graphapi_post, patch_loader):
+def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query itusers by UUID."""
     test_data, test_uuids = test_input
 
@@ -84,7 +85,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
                     }
                 }
             """
-        response: GQLResponse = graphapi_post(query, {"uuids": test_uuids})
+        response = graphapi_post(query, {"uuids": test_uuids})
 
     assert response.errors is None
     assert response.data
@@ -150,7 +151,7 @@ async def test_create_ituser(create_ituser: AsyncMock, data: DataObject) -> None
 async def test_create_ituser_employee_integration_test(
     validate_unique_constraint: AsyncMock,
     data: DataObject,
-    graphapi_post,
+    graphapi_post: GraphAPIPost,
     itsystem_uuids,
     employee_uuids,
 ) -> None:
@@ -198,9 +199,7 @@ async def test_create_ituser_employee_integration_test(
             }
         }
     """
-    response: GQLResponse = graphapi_post(
-        mutate_query, {"input": jsonable_encoder(test_data)}
-    )
+    response = graphapi_post(mutate_query, {"input": jsonable_encoder(test_data)})
     assert response.errors is None
     uuid = UUID(response.data["ituser_create"]["uuid"])
     verify_query = """
@@ -222,7 +221,7 @@ async def test_create_ituser_employee_integration_test(
             }
         }
     """
-    response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
 
     # IMPORTANT: This is needed and shouldn't (I think), cause problems.
@@ -267,7 +266,7 @@ async def test_create_ituser_employee_integration_test(
 async def test_create_ituser_org_unit_integration_test(
     validate_unique_constraint: AsyncMock,
     data: DataObject,
-    graphapi_post,
+    graphapi_post: GraphAPIPost,
     itsystem_uuids,
     org_uuids,
 ) -> None:
@@ -315,9 +314,7 @@ async def test_create_ituser_org_unit_integration_test(
             }
         }
     """
-    response: GQLResponse = graphapi_post(
-        mutate_query, {"input": jsonable_encoder(test_data)}
-    )
+    response = graphapi_post(mutate_query, {"input": jsonable_encoder(test_data)})
     assert response.errors is None
     uuid = UUID(response.data["ituser_create"]["uuid"])
     verify_query = """
@@ -339,7 +336,7 @@ async def test_create_ituser_org_unit_integration_test(
             }
         }
     """
-    response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
 
     # IMPORTANT: This is needed and shouldn't (I think), cause problems.
@@ -441,7 +438,9 @@ async def test_update_ituser(update_ituser: AsyncMock, test_data: ITUserUpdate) 
         },
     ],
 )
-async def test_update_ituser_integration_test(graphapi_post, test_data) -> None:
+async def test_update_ituser_integration_test(
+    graphapi_post: GraphAPIPost, test_data
+) -> None:
     uuid = test_data["uuid"]
 
     query = """
@@ -462,7 +461,7 @@ async def test_update_ituser_integration_test(graphapi_post, test_data) -> None:
             }
         }
     """
-    response: GQLResponse = graphapi_post(query, {"uuid": uuid})
+    response = graphapi_post(query, {"uuid": uuid})
     assert response.errors is None
 
     pre_update_ituser = one(one(response.data["itusers"]["objects"])["objects"])
@@ -474,7 +473,7 @@ async def test_update_ituser_integration_test(graphapi_post, test_data) -> None:
             }
         }
     """
-    mutation_response: GQLResponse = graphapi_post(
+    mutation_response = graphapi_post(
         mutate_query, {"input": jsonable_encoder(test_data)}
     )
     assert mutation_response.errors is None
@@ -499,9 +498,7 @@ async def test_update_ituser_integration_test(graphapi_post, test_data) -> None:
         }
     """
 
-    verify_response: GQLResponse = graphapi_post(
-        query=verify_query, variables={"uuid": uuid}
-    )
+    verify_response = graphapi_post(query=verify_query, variables={"uuid": uuid})
 
     assert verify_response.errors is None
 

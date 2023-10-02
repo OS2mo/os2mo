@@ -27,7 +27,6 @@ from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
 from fastapi import Query
-from fastapi import Request
 from more_itertools import flatten
 from more_itertools import last
 from more_itertools import unzip
@@ -38,6 +37,7 @@ from . import handlers
 from . import org
 from .. import common
 from .. import config
+from .. import depends
 from .. import exceptions
 from .. import lora
 from .. import mapping
@@ -600,7 +600,7 @@ async def get_one_orgunit(
 
 @router.get("/ou/autocomplete/")
 async def autocomplete_orgunits(
-    request: Request,
+    sessionmaker: depends.async_sessionmaker,
     query: str,
     at: date
     | None = Query(
@@ -619,9 +619,7 @@ async def autocomplete_orgunits(
         )
 
     logger.debug("using autocomplete_orgunits_v2 new")
-    search_results = await autocomplete.search_orgunits(
-        request.app.state.sessionmaker, query, at
-    )
+    search_results = await autocomplete.search_orgunits(sessionmaker, query, at)
 
     # Decorate search results with data through GraphQL
     return {

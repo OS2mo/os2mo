@@ -15,6 +15,7 @@ from hypothesis import strategies as st
 from more_itertools import one
 from pytest import MonkeyPatch
 
+from ..conftest import GraphAPIPost
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora import mapping
@@ -25,7 +26,6 @@ from mora.graphapi.versions.latest.models import EmployeeCreate
 from mora.graphapi.versions.latest.models import EmployeeUpdate
 from mora.util import NEGATIVE_INFINITY
 from ramodels.mo import EmployeeRead
-from tests.conftest import GQLResponse
 
 # Helpers
 
@@ -38,7 +38,7 @@ invalid_uuids = [UUID("7626ad64-327d-481f-8b32-36c78eb12f8c")]
 
 
 @given(test_data=graph_data_strat(EmployeeRead))
-def test_query_all(test_data, graphapi_post, patch_loader):
+def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all our employees."""
     # Patch dataloader
     with MonkeyPatch.context() as patch:
@@ -64,7 +64,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
                 }
             }
         """
-        response: GQLResponse = graphapi_post(query)
+        response = graphapi_post(query)
 
     assert response.errors is None
     assert response.data
@@ -81,7 +81,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
 
 @given(test_input=graph_data_uuids_strat(EmployeeRead))
-def test_query_by_uuid(test_input, graphapi_post, patch_loader):
+def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query employees by UUID."""
     test_data, test_uuids = test_input
 
@@ -97,7 +97,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
                     }
                 }
             """
-        response: GQLResponse = graphapi_post(query, {"uuids": test_uuids})
+        response = graphapi_post(query, {"uuids": test_uuids})
 
     assert response.errors is None
     assert response.data
@@ -335,7 +335,7 @@ def valid_cprs(draw) -> str:
 async def test_create_employee_integration_test(
     does_employee_with_cpr_already_exist: AsyncMock,
     test_data: EmployeeCreate,
-    graphapi_post,
+    graphapi_post: GraphAPIPost,
 ) -> None:
     """Test that employees can be created in LoRa via GraphQL."""
 
@@ -348,9 +348,7 @@ async def test_create_employee_integration_test(
             }
         }
     """
-    response: GQLResponse = graphapi_post(
-        mutate_query, {"input": jsonable_encoder(test_data)}
-    )
+    response = graphapi_post(mutate_query, {"input": jsonable_encoder(test_data)})
     assert response.errors is None
     uuid = UUID(response.data["employee_create"]["uuid"])
 
@@ -368,7 +366,7 @@ async def test_create_employee_integration_test(
             }
         }
     """
-    response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
     obj = one(one(response.data["employees"]["objects"])["objects"])
     assert obj["given_name"] == test_data.given_name
@@ -401,7 +399,7 @@ async def test_create_employee_with_nickname(graphapi_post) -> None:
         "nickname_given_name": "Garry",
         "nickname_surname": "Kasparov",
     }
-    response: GQLResponse = graphapi_post(mutate_query, {"input": input})
+    response = graphapi_post(mutate_query, {"input": input})
     assert response.errors is None
     assert response.data is not None
     UUID(response.data["employee_create"]["uuid"])
@@ -543,7 +541,7 @@ async def test_update_mutator(
 async def test_update_mutator_fails(
     given_mutator_args,
     given_error_msg_checks,
-    graphapi_post,
+    graphapi_post: GraphAPIPost,
 ):
     """Test which verifies that certain mutator inputs, cause a validation error."""
 
@@ -558,7 +556,7 @@ async def test_update_mutator_fails(
         "cpr_number": given_mutator_args.get("cpr_number"),
     }
 
-    mutation_response: GQLResponse = graphapi_post(
+    mutation_response = graphapi_post(
         """
         mutation($input: EmployeeUpdateInput!) {
             employee_update(input: $input) {
@@ -620,7 +618,7 @@ async def test_update_mutator_fails(
 )
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_update_integration(given_data, graphapi_post):
+async def test_update_integration(given_data, graphapi_post: GraphAPIPost):
     # Create test data
     test_data = EmployeeUpdate(
         uuid=given_data.get("uuid"),
@@ -636,7 +634,7 @@ async def test_update_integration(given_data, graphapi_post):
     payload = jsonable_encoder(test_data)
 
     # Invoke mutation & and get updated employee UUID
-    mutation_response: GQLResponse = graphapi_post(
+    mutation_response = graphapi_post(
         """
         mutation($input: EmployeeUpdateInput!) {
             employee_update(input: $input) {
@@ -650,7 +648,7 @@ async def test_update_integration(given_data, graphapi_post):
     test_data_uuid_updated = UUID(mutation_response.data["employee_update"]["uuid"])
 
     # Fetch employee and verify and updated version of the employee can be found
-    verify_response: GQLResponse = graphapi_post(
+    verify_response = graphapi_post(
         _get_employee_verify_query(), {mapping.UUID: str(test_data_uuid_updated)}
     )
     assert verify_response.errors is None

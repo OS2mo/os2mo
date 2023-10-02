@@ -3,10 +3,11 @@
 import random
 import re
 import string
-from collections.abc import Callable
 from uuid import UUID
 
 from pydantic import ConstrainedStr
+
+from tests.conftest import GraphAPIPost
 
 sys_random = random.SystemRandom()
 
@@ -33,7 +34,7 @@ class CprNo(ConstrainedStr):
     regex = re.compile(r"^\d{10}$")
 
 
-async def get_uuids(obj: str, graphapi_post: Callable) -> UUID:
+async def get_uuids(obj: str, graphapi_post: GraphAPIPost) -> UUID:
     """Queries for uuids for a given object type. Eg. Employees."""
     if obj == "org":
         query = "".join(["query FetchUUIDs {", obj, "{uuid}}"])

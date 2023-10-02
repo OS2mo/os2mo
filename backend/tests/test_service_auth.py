@@ -91,12 +91,11 @@ def no_auth_endpoints():
         "/service/token",
         "/service/exports/{file_name}",
         "/service/{rest_of_path:path}",
-        "/testing/testcafe-db-setup",
-        "/testing/testcafe-db-teardown",
         "/metrics",
         "/saml/sso/",
         "/graphql",
         "/graphql/v{version_number}",
+        "/testing/amqp/emit",
         "/testing/database/snapshot",
         "/testing/database/restore",
     }

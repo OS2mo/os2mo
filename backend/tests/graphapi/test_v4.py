@@ -1,10 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
-
 import pytest
 
-from tests.conftest import GQLResponse
+from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
@@ -88,7 +86,7 @@ from tests.conftest import GQLResponse
     ],
 )
 async def test_pagination(
-    graphapi_post: Callable,
+    graphapi_post: GraphAPIPost,
     resolver: str,
     limit: int,
     offset: int,
@@ -103,7 +101,7 @@ async def test_pagination(
         }}
     """
     variables = dict(limit=limit, offset=offset)
-    response: GQLResponse = graphapi_post(query, variables, url="/graphql/v4")
+    response = graphapi_post(query, variables, url="/graphql/v4")
     assert response.errors is None
     assert len(response.data[resolver]) == expected_length
 
@@ -146,7 +144,7 @@ async def test_pagination(
     ],
 )
 async def test_pagination_out_of_range(
-    graphapi_post: Callable, resolver: str, limit: int, offset: int
+    graphapi_post: GraphAPIPost, resolver: str, limit: int, offset: int
 ) -> None:
     """Test that out of range pagination returns None."""
     query = f"""
@@ -157,7 +155,7 @@ async def test_pagination_out_of_range(
         }}
     """
     variables = dict(limit=limit, offset=offset)
-    response: GQLResponse = graphapi_post(query, variables, url="/graphql/v4")
+    response = graphapi_post(query, variables, url="/graphql/v4")
     assert response.errors is None
     assert response.data[resolver] == []
     assert response.extensions == {

@@ -17,6 +17,7 @@ from more_itertools import one
 from pydantic import parse_obj_as
 from pytest import MonkeyPatch
 
+from ..conftest import GraphAPIPost
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from .utils import fetch_class_uuids
@@ -36,7 +37,7 @@ from tests.conftest import GQLResponse
 
 
 @given(test_data=graph_data_strat(AssociationRead))
-def test_query_all(test_data, graphapi_post, patch_loader):
+def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all our associations."""
     # JSON encode test data
     test_data = jsonable_encoder(test_data)
@@ -76,7 +77,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
 
 @given(test_input=graph_data_uuids_strat(AssociationRead))
-def test_query_by_uuid(test_input, graphapi_post, patch_loader):
+def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query associations by UUID."""
     # Sample UUIDs
     test_data, test_uuids = test_input
@@ -93,7 +94,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
                     }
                 }
             """
-        response: GQLResponse = graphapi_post(query, {"uuids": test_uuids})
+        response = graphapi_post(query, {"uuids": test_uuids})
 
     assert response.errors is None
     assert response.data
@@ -192,7 +193,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         ),
     ],
 )
-async def test_association_filters(graphapi_post, filter, expected) -> None:
+async def test_association_filters(
+    graphapi_post: GraphAPIPost, filter, expected
+) -> None:
     """Test filters on associations."""
     association_query = """
         query Associations($filter: AssociationFilter!) {
@@ -203,9 +206,7 @@ async def test_association_filters(graphapi_post, filter, expected) -> None:
             }
         }
     """
-    response: GQLResponse = graphapi_post(
-        association_query, variables=dict(filter=filter)
-    )
+    response = graphapi_post(association_query, variables=dict(filter=filter))
     assert response.errors is None
     assert len(response.data["associations"]["objects"]) == expected
 
@@ -243,7 +244,7 @@ async def test_create_association(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_association_integration_test(
-    data, graphapi_post, org_uuids, employee_uuids
+    data, graphapi_post: GraphAPIPost, org_uuids, employee_uuids
 ) -> None:
     """Test that associations can be created in LoRa via GraphQL."""
 
@@ -288,9 +289,7 @@ async def test_create_association_integration_test(
             }
         }
     """
-    response: GQLResponse = graphapi_post(
-        mutate_query, {"input": jsonable_encoder(test_data)}
-    )
+    response = graphapi_post(mutate_query, {"input": jsonable_encoder(test_data)})
     assert response.errors is None
     uuid = UUID(response.data["association_create"]["uuid"])
 
@@ -313,7 +312,7 @@ async def test_create_association_integration_test(
             }
         }
     """
-    response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
     obj = one(one(response.data["associations"]["objects"])["objects"])
     assert obj["user_key"] == test_data.user_key or str(uuid)
@@ -385,7 +384,9 @@ async def test_create_association_integration_test(
         },
     ],
 )
-async def test_update_association_integration_test(graphapi_post, test_data) -> None:
+async def test_update_association_integration_test(
+    graphapi_post: GraphAPIPost, test_data
+) -> None:
     async def query_data(uuid: str) -> GQLResponse:
         query = """
             query ($uuid: [UUID!]!) {
@@ -409,7 +410,7 @@ async def test_update_association_integration_test(graphapi_post, test_data) -> 
             }
 
         """
-        response: GQLResponse = graphapi_post(query=query, variables={"uuid": uuid})
+        response = graphapi_post(query=query, variables={"uuid": uuid})
 
         return response
 
@@ -426,9 +427,7 @@ async def test_update_association_integration_test(graphapi_post, test_data) -> 
             }
         }
     """
-    response: GQLResponse = graphapi_post(
-        mutate_query, {"input": jsonable_encoder(test_data)}
-    )
+    response = graphapi_post(mutate_query, {"input": jsonable_encoder(test_data)})
 
     """Query data to check that it actually gets written to database"""
     query_query = """
@@ -454,7 +453,7 @@ async def test_update_association_integration_test(graphapi_post, test_data) -> 
 
     """
 
-    query_response: GQLResponse = graphapi_post(
+    query_response = graphapi_post(
         query=query_query, variables={"uuid": test_data["uuid"]}
     )
 

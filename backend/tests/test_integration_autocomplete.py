@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 
 from mora.service.orgunit import config as orgunit_config
 from tests.conftest import GQLResponse
+from tests.conftest import GraphAPIPost
 
 
 # NOTE: Read "backend/tests/graphapi/test_registration.py:11",
@@ -453,7 +454,7 @@ def test_v2_search_orgunit_by_addr_afdelingskode(
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 def test_v2_search_orgunit_by_addr_afdelingskode_addr_rename(
-    graphapi_post, admin_client, mock_get_settings_custom_attrs
+    graphapi_post: GraphAPIPost, admin_client, mock_get_settings_custom_attrs
 ):
     newAddrName = "Fake afdelingskode changed"
     at = datetime.now().date()
