@@ -220,6 +220,8 @@ async def get_one_class(
     clazz=None,
     details: set[ClassDetails] | None = None,
     only_primary_uuid: bool = False,
+    extended: bool = False,
+    validity=None,
 ) -> MO_OBJ_TYPE:
     if not details:
         details = set()
@@ -334,6 +336,12 @@ async def get_one_class(
 
     if ClassDetails.NCHILDREN in details:
         response["child_count"] = await nchildren_task
+
+    if extended:
+        response["facet_uuid"] = get_facet_uuid(clazz)
+        response["org_uuid"] = last(clazz["relationer"]["ansvarlig"])["uuid"]
+        validities = clazz["tilstande"]["klassepubliceret"]
+        response[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
 
     return response
 

@@ -9,6 +9,44 @@ code is up-to-date with the latest version.
 
 Below follows the migration guide for each version.
 
+## Version 17
+
+GraphQL version 17 introduces breaking changes to a few class related endpoints.
+Specifically the `class_create` and the `class_update` mutators.
+
+The breaking changes to the `class_create` and `class_update` mutators are that
+both now require a `validity` argument in their input types. Allowing for bitemporal
+changes to the underlying data-entity.
+
+As such to migrate from GraphQL v16, simply send the input as normal:
+```graphql
+mutation ClassUpdate($input: ClassUpdateInput!){
+    class_update(input: $input) {
+        uuid
+    }
+}
+```
+But ensure that the provided `input` payload has undergone the following transformation:
+```json
+{
+  "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+  "name": "TestClass",
+  "user_key": "testclass",
+}
+```
+to:
+```json
+{
+  "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+  "name": "TestClass",
+  "user_key": "testclass",
+  "validity": {
+      "from": null,
+      "to": null
+  }
+}
+```
+
 ## Version 16
 
 GraphQL version 16 introduces breaking changes to a few facet related endpoints.

@@ -3,8 +3,8 @@
 """Mapping from data models to data resolvers."""
 from typing import Any
 
+from .models import ClassRead
 from .models import FacetRead
-from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead

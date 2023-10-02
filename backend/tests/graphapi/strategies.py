@@ -1,10 +1,14 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Custom hypothesis strategies used in the GraphAPI testing suite."""
+import datetime
+
 from fastapi.encoders import jsonable_encoder
 from hypothesis import strategies as st
 
 from mora.graphapi.versions.latest.dataloaders import MOModel
+from mora.graphapi.versions.latest.graphql_utils import PrintableStr
+from ramodels.mo import Validity as RAValidity
 
 
 @st.composite
@@ -48,3 +52,65 @@ def graph_data_uuids_strat(draw, model: MOModel):
     test_uuids = draw(st.lists(st.sampled_from(uuids))) if uuids else []
     test_data = list(filter(lambda obj: obj.get("uuid") in test_uuids, data))
     return test_data, test_uuids
+
+
+@st.composite
+def graph_data_momodel_validity_strat(
+    draw, model: MOModel, now: datetime.datetime = None
+):
+    return jsonable_encoder(draw(_strat_data_momodel_validity(draw, model, now)))
+
+
+@st.composite
+def graph_data_momodel_validity_strat_list(
+    draw, model: MOModel, now: datetime.datetime = None
+):
+    return jsonable_encoder(
+        draw(st.lists(_strat_data_momodel_validity(draw, model, now)))
+    )
+
+
+# Helpers
+
+
+def _strat_data_momodel_validity(
+    draw,
+    model: MOModel,
+    now: datetime.datetime = None,
+    validity_min_dt: datetime.datetime = None,
+):
+    data_args = {}
+    validity_min_dt = validity_min_dt or datetime.datetime(1900, 1, 1)
+    if "validity" in model.__fields__:
+        validity_tuple = draw(
+            st.tuples(
+                st.datetimes(min_value=validity_min_dt),
+                st.datetimes(min_value=validity_min_dt) | st.none(),
+            )
+            .filter(
+                # only generate validities that are valid NOW / have currents - if NOW is specified
+                lambda dts: (dts[0] <= now if now else True)
+                and (dts[1] >= now if dts[1] and now else True)
+            )
+            .filter(
+                # Only generate validities where from_date <= to_date
+                lambda dts: dts[0] <= dts[1]
+                if dts[0] and dts[1]
+                else True
+            )
+        )
+
+        data_args["validity"] = st.builds(
+            RAValidity,
+            from_date=st.just(validity_tuple[0]),
+            to_date=st.just(validity_tuple[1]),
+        )
+
+    # If there is a name in model, it must be a PrintableStr and not be empty
+    if "name" in model.__fields__:
+        data_args["name"] = st.from_regex(PrintableStr.regex)
+
+    if "user_key" in model.__fields__:
+        data_args["user_key"] = st.from_regex(PrintableStr.regex)
+
+    return st.builds(model, **data_args)

@@ -37,6 +37,7 @@ from strawberry.types import Info
 
 from .filters import ManagerFilter
 from .health import health_map
+from .models import ClassRead
 from .models import FacetRead
 from .models import FileStore
 from .permissions import gen_read_permission
@@ -77,7 +78,6 @@ from mora.service.facet import is_class_uuid_primary
 from mora.util import NEGATIVE_INFINITY
 from mora.util import now
 from mora.util import POSITIVE_INFINITY
-from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import OpenValidity as RAMOpenValidity
 from ramodels.mo import OrganisationRead
@@ -1507,6 +1507,8 @@ class Class:
     )
     async def parent_uuid(self, root: ClassRead) -> UUID | None:
         return root.parent_uuid
+
+    validity: OpenValidity = strawberry.auto
 
 
 # Employee

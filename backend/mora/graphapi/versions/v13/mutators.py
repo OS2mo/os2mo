@@ -17,11 +17,7 @@ from ..latest.address import update_address
 from ..latest.association import create_association
 from ..latest.association import terminate_association
 from ..latest.association import update_association
-from ..latest.classes import ClassCreateInput
-from ..latest.classes import ClassUpdateInput
-from ..latest.classes import create_class
 from ..latest.classes import delete_class
-from ..latest.classes import update_class
 from ..latest.employee import create_employee
 from ..latest.employee import terminate as terminate_employee
 from ..latest.employee import update_employee
@@ -101,6 +97,8 @@ from ..v14.version import GraphQLVersion as NextGraphQLVersion
 from ..v14.version import ITSystemCreateInput
 from ..v15.version import FacetCreateInput
 from ..v15.version import FacetUpdateInput
+from ..v16.version import ClassCreateInput
+from ..v16.version import ClassUpdateInput
 from .schema import Address
 from .schema import Association
 from .schema import Class
@@ -278,10 +276,9 @@ class Mutation:
     async def class_create(
         self, info: Info, input: ClassCreateInput
     ) -> Response[Class]:
-        note = ""
-        org = await info.context["org_loader"].load(0)
-        uuid = await create_class(input.to_pydantic(), org.uuid, note)
-        return uuid2response(uuid, ClassRead)
+        return await NextGraphQLVersion.schema.mutation.class_create(
+            self=self, info=info, input=input
+        )
 
     @strawberry.mutation(
         description="Updates a class.",
@@ -293,10 +290,9 @@ class Mutation:
     async def class_update(
         self, info: Info, input: ClassUpdateInput
     ) -> Response[Class]:
-        note = ""
-        org = await info.context["org_loader"].load(0)
-        uuid = await update_class(input.to_pydantic(), input.uuid, org.uuid, note)  # type: ignore
-        return uuid2response(uuid, ClassRead)
+        return await NextGraphQLVersion.schema.mutation.class_update(
+            self=self, info=info, input=input
+        )
 
     # TODO: class_terminate
 
@@ -308,8 +304,7 @@ class Mutation:
         ],
     )
     async def class_delete(self, uuid: UUID) -> Response[Class]:
-        note = ""
-        uuid = await delete_class(uuid, note)
+        uuid = await delete_class(uuid)
         return uuid2response(uuid, ClassRead)
 
     # Employees

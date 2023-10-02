@@ -34,11 +34,11 @@ from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
 from .filters import RelatedUnitFilter
 from .filters import RoleFilter
+from .models import ClassRead
 from .models import FacetRead
 from .resolver_map import resolver_map
 from .types import Cursor
 from .validity import OpenValidityModel
-from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead
@@ -350,12 +350,7 @@ class ClassResolver(Resolver):
 
         return await super()._resolve(
             info=info,
-            filter=BaseFilter(
-                uuids=filter.uuids,
-                user_keys=filter.user_keys,
-                from_date=None,  # from -inf
-                to_date=None,  # to inf
-            ),
+            filter=filter,
             limit=limit,
             cursor=cursor,
             **kwargs,

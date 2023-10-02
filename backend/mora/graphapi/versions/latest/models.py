@@ -22,6 +22,7 @@ from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from mora.util import to_lora_time
 from oio_rest import validate
+from ramodels.mo import ClassRead as RAClassRead
 from ramodels.mo import FacetRead as RAFacetRead
 from ramodels.mo import OpenValidity as RAOpenValidity
 from ramodels.mo import Validity as RAValidity
@@ -413,6 +414,122 @@ class AssociationTerminate(ValidityTerminate):
         )
 
 
+# Classes
+# -----------------------
+class ClassCreate(UUIDBase):
+    """Model representing a Class creation."""
+
+    name: str = Field(description="Mo-class name.")
+    user_key: str = Field(description="Extra info or uuid")
+    facet_uuid: UUID = Field(description="UUID of the related facet.")
+    scope: str | None = Field(description="Scope of the class.")
+    published: str = Field(
+        "Publiceret", description="Published state of the class object."
+    )
+    parent_uuid: UUID | None = Field(description="UUID of the parent class.")
+    example: str | None = Field(description="Example usage.")
+    owner: UUID | None = Field(description="Owner of class")
+    validity: Validity = Field(description="Validity range for the class.")
+
+    class Config:
+        frozen = True
+        allow_population_by_field_name = True
+        extra = Extra.forbid
+
+    def to_registration(self, organisation_uuid: UUID) -> dict:
+        from_time = to_lora_time(
+            self.validity.from_date or to_lora_time(NEGATIVE_INFINITY)
+        )
+        to_time = to_lora_time(self.validity.to_date or to_lora_time(POSITIVE_INFINITY))
+
+        klasseegenskaber = {
+            "brugervendtnoegle": self.user_key,
+            "titel": self.name,
+            "virkning": {"from": from_time, "to": to_time},
+        }
+        if self.example is not None:
+            klasseegenskaber["eksempel"] = self.example
+        if self.scope is not None:
+            klasseegenskaber["omfang"] = self.scope
+
+        relations = {
+            "facet": [
+                {
+                    "uuid": str(self.facet_uuid),
+                    "virkning": {"from": from_time, "to": to_time},
+                    "objekttype": "Facet",
+                }
+            ],
+            "ansvarlig": [
+                {
+                    "uuid": str(organisation_uuid),
+                    "virkning": {"from": from_time, "to": to_time},
+                    "objekttype": "Organisation",
+                }
+            ],
+        }
+        if self.parent_uuid is not None:
+            relations["overordnetklasse"] = [
+                {
+                    "uuid": str(self.parent_uuid),
+                    "virkning": {"from": from_time, "to": to_time},
+                    "objekttype": "klasse",
+                }
+            ]
+        if self.owner is not None:
+            relations["ejer"] = [
+                {
+                    "uuid": str(self.owner),
+                    "virkning": {"from": from_time, "to": to_time},
+                    "objekttype": "organisationenhed",
+                }
+            ]
+
+        lora_registration = {
+            "tilstande": {
+                "klassepubliceret": [
+                    {
+                        "publiceret": self.published,
+                        "virkning": {"from": from_time, "to": to_time},
+                    }
+                ]
+            },
+            "attributter": {"klasseegenskaber": [klasseegenskaber]},
+            "relationer": relations,
+        }
+        validate.validate(lora_registration, "klasse")
+
+        return lora_registration
+
+
+class ClassUpdate(ClassCreate):
+    """Model representing a class update."""
+
+    uuid: UUID = Field(description="UUID of the class to update.")
+
+
+class ClassTerminate(UUIDBase):
+    uuid: UUID = Field(description="UUID for the class we want to terminate.")
+    validity: ValidityTerminate = Field(description="When to terminate the class")
+
+    def to_registration(self) -> dict:
+        return {
+            "tilstande": {
+                "klassepubliceret": [
+                    {
+                        "publiceret": "IkkePubliceret",
+                        "virkning": self.validity.get_termination_effect(),
+                    }
+                ]
+            },
+            "note": "Afslut klasse",
+        }
+
+
+class ClassRead(RAClassRead):
+    validity: Validity = Field(description="Validity of the class.")
+
+
 # Employees
 # ---------
 class EmployeeUpsert(UUIDBase):
@@ -649,10 +766,9 @@ class EngagementUpdate(EngagementUpsert):
 # EngagementsAssociations
 # -----------------------
 
+
 # Facets
 # -----------------------
-
-
 class FacetCreate(BaseModel):
     """Model representing a facet creation."""
 
