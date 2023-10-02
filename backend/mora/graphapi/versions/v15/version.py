@@ -7,17 +7,19 @@ import strawberry
 from pydantic import BaseModel
 from pydantic import Extra
 from pydantic import Field
+from pydantic import parse_obj_as
 from strawberry.types import Info
 
-from ..latest.models import FacetRead
-from ..latest.mutators import uuid2response
+from ..latest.inputs import FacetCreateInput as LatestFacetCreateInput
+from ..latest.inputs import FacetUpdateInput as LatestFacetUpdateInput
+from ..latest.models import FacetCreate as LatestFacetCreate
+from ..latest.models import FacetUpdate as LatestFacetUpdate
 from ..latest.permissions import gen_create_permission
 from ..latest.permissions import gen_update_permission
 from ..latest.permissions import IsAuthenticatedPermission
 from ..latest.schema import Facet
 from ..latest.schema import Response
 from ..v16.version import GraphQLVersion as NextGraphQLVersion
-from mora.graphapi.shim import execute_graphql  # type: ignore
 
 
 class FacetCreateV15(BaseModel):
@@ -32,6 +34,11 @@ class FacetCreateV15(BaseModel):
         "Publiceret", description="Published state of the facet object."
     )
 
+    def to_new_create_input(self) -> LatestFacetCreateInput:
+        return LatestFacetCreateInput.from_pydantic(
+            parse_obj_as(LatestFacetCreate, self.to_latest_dict())
+        )
+
     def to_latest_dict(self) -> dict[str, Any]:
         return {
             "user_key": self.user_key,
@@ -44,6 +51,11 @@ class FacetUpdateV15(FacetCreateV15):
     """Model representing a facet update."""
 
     uuid: UUID = Field(description="UUID of the facet to update.")
+
+    def to_new_update_input(self) -> LatestFacetUpdateInput:
+        return LatestFacetUpdateInput.from_pydantic(
+            parse_obj_as(LatestFacetUpdate, self.to_latest_dict())
+        )
 
     def to_latest_dict(self) -> dict[str, Any]:
         latest_dict = super().to_latest_dict()
@@ -80,24 +92,10 @@ class Mutation(NextGraphQLVersion.schema.mutation):  # type: ignore[name-defined
     async def facet_create(
         self, info: Info, input: FacetCreateInput
     ) -> Response[Facet]:
-        input_dict = input.to_pydantic().to_latest_dict()
-        response = await execute_graphql(
-            """
-            mutation FacetCreate($input: FacetCreateInput!){
-                facet_create(input: $input) {
-                    uuid
-                }
-            }
-            """,
-            graphql_version=NextGraphQLVersion,
-            context_value=info.context,
-            variable_values={"input": input_dict},
+        new_input = input.to_pydantic().to_new_create_input()
+        return await NextGraphQLVersion.schema.mutation.facet_create(
+            self=self, info=info, input=new_input
         )
-        if response.errors:
-            for error in response.errors:
-                raise ValueError(error.message)
-        uuid = response.data["facet_create"]["uuid"]
-        return uuid2response(uuid, FacetRead)
 
     @strawberry.mutation(
         description="Updates a facet.",
@@ -109,24 +107,10 @@ class Mutation(NextGraphQLVersion.schema.mutation):  # type: ignore[name-defined
     async def facet_update(
         self, info: Info, input: FacetUpdateInput
     ) -> Response[Facet]:
-        input_dict = input.to_pydantic().to_latest_dict()
-        response = await execute_graphql(
-            """
-            mutation FacetUpdate($input: FacetUpdateInput!){
-                facet_update(input: $input) {
-                    uuid
-                }
-            }
-            """,
-            graphql_version=NextGraphQLVersion,
-            context_value=info.context,
-            variable_values={"input": input_dict},
+        new_input = input.to_pydantic().to_new_update_input()
+        return await NextGraphQLVersion.schema.mutation.facet_update(
+            self=self, info=info, input=new_input
         )
-        if response.errors:
-            for error in response.errors:
-                raise ValueError(error.message)
-        uuid = response.data["facet_update"]["uuid"]
-        return uuid2response(uuid, FacetRead)
 
 
 class GraphQLSchema(NextGraphQLVersion.schema):  # type: ignore
