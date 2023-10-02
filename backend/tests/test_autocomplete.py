@@ -14,6 +14,7 @@ from mora.graphapi.versions.v14.version import GraphQLVersion as GraphQLVersionV
 from mora.lora import AutocompleteScope
 from mora.lora import Connector
 from mora.service.autocomplete.orgunits import decorate_orgunit_search_result
+from mora.service.autocomplete.orgunits import search_orgunits
 
 
 @pytest.mark.parametrize(
@@ -242,3 +243,53 @@ async def test_v2_decorate_orgunits_attrs(mock_execute_graphql):
     )
 
     assert result == expected_result
+
+
+@patch("mora.service.autocomplete.orgunits._sqlalchemy_generate_query")
+async def test_v2_search_orgunits(mock_sqlalchemy_generate_query):
+    """Test that search_orgunits() returns the expected result
+
+    NOTE: The unit test does not patch out read_sqlalchemy_result(), but
+    instead mocks the sqlalchemy result.
+    """
+
+    search_query = "Samfundsvidenskabelige"
+    expected = [uuid.UUID("b688513d-11f7-4efc-b679-ab082a2055d0")]
+
+    # Mocking
+    mock_sqlalchemy_generate_query.return_value = "some-verification-return"
+
+    session_mock = MagicMock()
+    session_mock.__aenter__.return_value = session_mock
+    session_mock.__aexit__.return_value = None
+    session_mock.begin.return_value.__aenter__.return_value = None
+    session_mock.begin.return_value.__aexit__.return_value = None
+
+    # NOTE: 1000 is the default chunk size of read_sqlalchemy_result()
+    sqlalchemy_result_chunck_size = 1000
+    sqlalchemy_fetchmany_rows_mocked = [MagicMock(uuid=uuid) for uuid in expected]
+    sqlalchemy_fetchmany_mock_return = [
+        sqlalchemy_fetchmany_rows_mocked[i : i + sqlalchemy_result_chunck_size]
+        for i in range(
+            0, len(sqlalchemy_fetchmany_rows_mocked), sqlalchemy_result_chunck_size
+        )
+    ]
+    sqlalchemy_fetchmany_mock_return.append([])
+
+    session_mock.execute = AsyncMock(
+        return_value=MagicMock(  # sqlalchemy result
+            fetchmany=MagicMock(  # sqlalchemy rows
+                side_effect=sqlalchemy_fetchmany_mock_return,
+            )
+        )
+    )
+
+    # Invoke search_orgunits with mocked sessionmaker
+    result = await search_orgunits(MagicMock(return_value=session_mock), search_query)
+
+    # Asserts
+    mock_sqlalchemy_generate_query.assert_called_with(search_query, ANY)
+    session_mock.execute.assert_called_with(
+        mock_sqlalchemy_generate_query.return_value, {}
+    )
+    assert result == expected
