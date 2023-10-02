@@ -21,7 +21,9 @@ from mora.auth.keycloak.oidc import token_getter
 LORA_USER_UUID = UUID("05211100-baad-1110-006e-6F2075756964")
 
 
-_MIDDLEWARE_KEY = "authenticated_user"
+_AUTHENTICATED_USER_MIDDLEWARE_KEY = "authenticated_user"
+_AUTHENTICATED_USER_HEADER = "X-Authenticated-User"
+
 
 
 async def fetch_authenticated_user(
@@ -37,20 +39,20 @@ async def fetch_authenticated_user(
 async def set_authenticated_user(
     user_uuid: UUID | None = Depends(fetch_authenticated_user),
 ) -> AsyncIterator[None]:
-    data = {**context, _MIDDLEWARE_KEY: user_uuid}
+    data = {**context, _AUTHENTICATED_USER_MIDDLEWARE_KEY: user_uuid}
     with request_cycle_context(data):
         yield
 
 
 async def set_authenticated_user_from_header(request: Request) -> AsyncIterator[None]:
-    user_uuid = request.headers.get("X-Authenticated-User")
+    user_uuid = request.headers.get(_AUTHENTICATED_USER_HEADER)
     data = {**context}
     if user_uuid:
-        data[_MIDDLEWARE_KEY] = UUID(user_uuid)
+        data[_AUTHENTICATED_USER_MIDDLEWARE_KEY] = UUID(user_uuid)
     with request_cycle_context(data):
         yield
 
 
 def get_authenticated_user() -> UUID:
     """Return UUID of the authenticated user."""
-    return context.get(_MIDDLEWARE_KEY) or LORA_USER_UUID
+    return context.get(_AUTHENTICATED_USER_MIDDLEWARE_KEY) or LORA_USER_UUID

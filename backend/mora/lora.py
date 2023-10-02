@@ -44,6 +44,7 @@ from . import exceptions
 from . import util
 from .graphapi.middleware import is_graphql
 from mora.auth.middleware import get_authenticated_user
+from mora.auth.middleware import _AUTHENTICATED_USER_HEADER
 
 
 T = TypeVar("T")
@@ -412,7 +413,7 @@ class BaseScope:
         headers = {}
 
         # LoRa needs the user to keep the audit log
-        headers["X-Authenticated-User"] = str(get_authenticated_user())
+        headers[_AUTHENTICATED_USER_HEADER] = str(get_authenticated_user())
 
         return headers
 
