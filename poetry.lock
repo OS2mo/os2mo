@@ -210,11 +210,11 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7
 
 [[package]]
 name = "commitizen"
-version = "3.9.1"
+version = "3.10.0"
 description = "Python commitizen client tool"
 category = "dev"
 optional = false
-python-versions = "^3.7"
+python-versions = ">=3.8"
 develop = false
 
 [package.dependencies]
@@ -226,7 +226,7 @@ importlib_metadata = ">=4.13,<7"
 jinja2 = ">=2.10.3"
 packaging = ">=19"
 pyyaml = ">=3.08"
-questionary = "^1.4.0"
+questionary = "^2.0"
 termcolor = ">= 1.1, < 3"
 tomlkit = ">=0.5.3,<1.0.0"
 
@@ -234,7 +234,7 @@ tomlkit = ">=0.5.3,<1.0.0"
 type = "git"
 url = "https://github.com/noirbizarre/commitizen.git"
 reference = "feature/template-override"
-resolved_reference = "f086c69387106a257f5ec4287b51ea053d60ad5e"
+resolved_reference = "c36e406c4525b7a94d6aabed07ae40c42baeab40"
 
 [[package]]
 name = "coverage"
@@ -778,11 +778,11 @@ prometheus-client = ">=0.8.0,<1.0.0"
 
 [[package]]
 name = "prompt-toolkit"
-version = "3.0.39"
+version = "3.0.36"
 description = "Library for building powerful interactive command lines in Python"
 category = "dev"
 optional = false
-python-versions = ">=3.7.0"
+python-versions = ">=3.6.2"
 
 [package.dependencies]
 wcwidth = "*"
@@ -982,17 +982,14 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "questionary"
-version = "1.10.0"
+version = "2.0.1"
 description = "Python library to build pretty command line user prompts ⭐️"
 category = "dev"
 optional = false
-python-versions = ">=3.6,<4.0"
+python-versions = ">=3.8"
 
 [package.dependencies]
-prompt_toolkit = ">=2.0,<4.0"
-
-[package.extras]
-docs = ["Sphinx (>=3.3,<4.0)", "sphinx-autobuild (>=2020.9.1,<2021.0.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)", "sphinx-copybutton (>=0.3.1,<0.4.0)", "sphinx-rtd-theme (>=0.5.0,<0.6.0)"]
+prompt_toolkit = ">=2.0,<=3.0.36"
 
 [[package]]
 name = "ra-utils"
@@ -1286,7 +1283,7 @@ starlette = "*"
 
 [[package]]
 name = "strawberry-graphql"
-version = "0.205.0"
+version = "0.209.3"
 description = "A library for creating GraphQL APIs"
 category = "main"
 optional = false
@@ -1499,7 +1496,7 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "829b53a253afe2295ecb8a639b08388dcfff1f22e15d5733a0f9b3fdf0d918d8"
+content-hash = "18c8d9665703330835640927f4a3c0baa4317f78447e37b93eb086e4cc14caca"
 
 [metadata.files]
 aio-pika = [
@@ -2203,8 +2200,8 @@ prometheus-fastapi-instrumentator = [
     {file = "prometheus_fastapi_instrumentator-6.1.0.tar.gz", hash = "sha256:1820d7a90389ce100f7d1285495ead388818ae0882e761c1f3e6e62a410bdf13"},
 ]
 prompt-toolkit = [
-    {file = "prompt_toolkit-3.0.39-py3-none-any.whl", hash = "sha256:9dffbe1d8acf91e3de75f3b544e4842382fc06c6babe903ac9acb74dc6e08d88"},
-    {file = "prompt_toolkit-3.0.39.tar.gz", hash = "sha256:04505ade687dc26dc4284b1ad19a83be2f2afe83e7a828ace0c72f3a1df72aac"},
+    {file = "prompt_toolkit-3.0.36-py3-none-any.whl", hash = "sha256:aa64ad242a462c5ff0363a7b9cfe696c20d55d9fc60c11fd8e632d064804d305"},
+    {file = "prompt_toolkit-3.0.36.tar.gz", hash = "sha256:3e163f254bef5a03b146397d7c1963bd3e2812f0964bb9a24e6ec761fd28db63"},
 ]
 psycopg = [
     {file = "psycopg-3.1.12-py3-none-any.whl", hash = "sha256:8ec5230d6a7eb654b4fb3cf2d3eda8871d68f24807b934790504467f1deee9f8"},
@@ -2406,8 +2403,8 @@ pyyaml = [
     {file = "PyYAML-6.0.1.tar.gz", hash = "sha256:bfdf460b1736c775f2ba9f6a92bca30bc2095067b8a9d77876d1fad6cc3b4a43"},
 ]
 questionary = [
-    {file = "questionary-1.10.0-py3-none-any.whl", hash = "sha256:fecfcc8cca110fda9d561cb83f1e97ecbb93c613ff857f655818839dac74ce90"},
-    {file = "questionary-1.10.0.tar.gz", hash = "sha256:600d3aefecce26d48d97eee936fdb66e4bc27f934c3ab6dd1e292c4f43946d90"},
+    {file = "questionary-2.0.1-py3-none-any.whl", hash = "sha256:8ab9a01d0b91b68444dff7f6652c1e754105533f083cbe27597c8110ecc230a2"},
+    {file = "questionary-2.0.1.tar.gz", hash = "sha256:bcce898bf3dbb446ff62830c86c5c6fb9a22a54146f0f5597d3da43b10d8fc8b"},
 ]
 ra-utils = [
     {file = "ra_utils-1.13.9-py3-none-any.whl", hash = "sha256:3e3d55ab25d10df0360e950ffecddeac42786c0e0103783a1d9701fd5e538704"},
@@ -2612,8 +2609,8 @@ starlette-context = [
     {file = "starlette_context-0.3.6.tar.gz", hash = "sha256:d361a36ba2d4acca3ab680f917b25e281533d725374752d47607a859041958cb"},
 ]
 strawberry-graphql = [
-    {file = "strawberry_graphql-0.205.0-py3-none-any.whl", hash = "sha256:b666a7b153c4349a82bdaacc92a14d0863466b81e75286c8841ebcb1ba2f5f7f"},
-    {file = "strawberry_graphql-0.205.0.tar.gz", hash = "sha256:7f545441a31d1b528a06183127fe2f09695446d2930964bbc3c5812d7217e719"},
+    {file = "strawberry_graphql-0.209.3-py3-none-any.whl", hash = "sha256:addd7103d0ceca489ea523226733f95ef236934af9cc562aed25fa058773f9a8"},
+    {file = "strawberry_graphql-0.209.3.tar.gz", hash = "sha256:91e7d1be1d659b9987f93c9bf598f75c1b4ba4f7efaf26dd8d126e094d1a38b7"},
 ]
 structlog = [
     {file = "structlog-23.1.0-py3-none-any.whl", hash = "sha256:79b9e68e48b54e373441e130fa447944e6f87a05b35de23138e475c05d0f7e0e"},
