@@ -37,6 +37,17 @@ variables:
     AMQP_ENABLE: "true"
     AMQP_URL: "amqp://guest:guest@msg-broker:5672/"
 
+# GitLab CI services are one-shot without any restart policy, and does not start in
+# the order they are defined. To replicate init containers, the entrypoint of the
+# "init" services are overwritten to retry until they succeed.
+# Additionally, GitLab does not wait for services without an EXPOSE (port) definition
+# before starting the main job. This is a problem, since we need to wait for these
+# init containers to finish. For example, the realm builder needs to create the
+# realm, and os2mo-init needs to ensure all required facets, classes and it-systems
+# exist before the integration tests tries to access them. As a workaround, we touch
+# a sentinel in /builds, which is shared among all jobs, and wait for it in the main
+# job's before_script. See https://docs.gitlab.com/ee/ci/services/ for more info.
+
 .services:mo-backing:
   services:
     # LoRa database
@@ -53,10 +64,6 @@ variables:
         KEYCLOAK_USER: "admin"
         KEYCLOAK_PASSWORD: "admin"
     - name: magentaaps/os2mo-keycloak-realm-builder:4
-      # GitLab CI services are one-shot, without any restart policy, and does
-      # not start in the order they are defined. The only way to ensure that
-      # the realm builder runs after keycloak has started is by overwriting its
-      # entrypoint to retry until it succeeds.
       entrypoint:
         - "sh"
         - "-c"
@@ -65,18 +72,11 @@ variables:
             echo 'Waiting for keycloak...'
             sleep 1
           done
-          # GitLab doesn't wait for services without an EXPOSE (port) definition
-          # before starting the main job. This is a problem, since it doesn't
-          # allow the realm builder to create the realm before the integration
-          # tests tries to access it. As a workaround, we touch a sentinel in
-          # /builds, which is shared amongst all jobs, and wait for it in the
-          # main job's before_script.
-          # https://docs.gitlab.com/ee/ci/services/
           touch /builds/.keycloak-realm-builder-finished
       variables:
         # Since GitLab CI doesn't support multiple services on the same port,
         # we cannot (easily) run a separate postgres for the realm builder's
-        # terraform state.
+        # terraform state. Reuse the mox database instead.
         POSTGRES_CONNECTION_STRING: "postgres://mox:mox@mox-db/mox?sslmode=disable"
         KEYCLOAK_URL: "http://keycloak:8080"
         KEYCLOAK_ADMIN_USERNAME: "admin"
@@ -112,28 +112,41 @@ variables:
     - name: magentaaps/os2mo:latest
       alias: mo
       variables: !reference [ .variables:mo, variables ]
-    - name: magentaaps/os2mo:latest
-      alias: mo-amqp-subsystem
-      variables: !reference [ .variables:mo, variables ]
-      command: [ "python", "-m", "mora.cli", "amqp", "start" ]
     - name: magentaaps/os2mo-init:2
       variables:
         CONFIG_FILE: $OS2MO_INIT_CONFIG
+        MO_URL: "http://mo:5000"
+        CLIENT_ID: "dipex"
+        CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
+        AUTH_SERVER: "http://keycloak:8080/auth"
+        AUTH_REALM: "mo"
+      entrypoint:
+        - "sh"
+        - "-c"
+        - |
+          while ! python -m os2mo_init; do
+            echo 'Waiting for os2mo...'
+            sleep 1
+          done
+          touch /builds/.os2mo-init-finished
   before_script:
     - !reference [ .pytest, before_script ]
     - !reference [ .services:mo-backing, before_script ]
-    # Using the GitLab Docker executor, the runner waits for every port in each
-    # service's Docker EXPOSE definition to be reachable before starting the main
-    # job. In Kubernetes, however, GitLab only considers the *first* port of each
-    # service's definition.
-    # This is fine for every service except RabbitMQ, which exposes six different
-    # ports; the main AMQP one not being the first.
-    # https://gitlab.com/gitlab-org/gitlab-runner/-/merge_requests/4079
-    # https://docs.gitlab.com/runner/executors/docker.html
-    # https://docs.gitlab.com/runner/executors/kubernetes.html
-    # https://github.com/docker-library/rabbitmq/blob/master/Dockerfile-ubuntu.template
-    #
     - |
+      while [ ! -f /builds/.os2mo-init-finished ]; do
+        echo 'Waiting for os2mo-init...'
+        sleep 1
+      done
+      # Using the GitLab Docker executor, the runner waits for every port in each
+      # service's Docker EXPOSE definition to be reachable before starting the main
+      # job. In Kubernetes, however, GitLab only considers the *first* port of each
+      # service's definition.
+      # This is fine for every service except RabbitMQ, which exposes six different
+      # ports; the main AMQP one not being the first.
+      # https://gitlab.com/gitlab-org/gitlab-runner/-/merge_requests/4079
+      # https://docs.gitlab.com/runner/executors/docker.html
+      # https://docs.gitlab.com/runner/executors/kubernetes.html
+      # https://github.com/docker-library/rabbitmq/blob/master/Dockerfile-ubuntu.template
       apt update
       apt install -y netcat-openbsd
       while ! nc -z msg-broker 5672; do
