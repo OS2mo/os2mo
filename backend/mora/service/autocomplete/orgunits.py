@@ -7,7 +7,6 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy import cast
 from sqlalchemy import String
 from sqlalchemy import Text
-from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio.session import async_sessionmaker
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import func
@@ -32,7 +31,7 @@ from mora.service.util import handle_gql_error
 
 async def search_orgunits(
     sessionmaker: async_sessionmaker, query: str, at: date | None = None
-) -> [Row]:
+) -> list[UUID]:
     at_sql, at_sql_bind_params = get_at_date_sql(at)
 
     selects = [
@@ -68,13 +67,13 @@ async def search_orgunits(
                 {"query": query, "at": at},
                 uuids,
             )
-        return result
+            return uuids
 
 
 async def decorate_orgunit_search_result(
-    settings: config.Settings, search_results: [Row], at: date | None
+    settings: config.Settings, search_results: list[UUID], at: date | None
 ):
-    graphql_vars = {"uuids": [str(orgunit.uuid) for orgunit in search_results]}
+    graphql_vars = {"uuids": search_results}
     if at is not None:
         graphql_vars["from_date"] = at
 
@@ -174,16 +173,16 @@ async def decorate_orgunit_search_result(
     handle_gql_error(response)
 
     decorated_result = []
-    for idx, orgunit in enumerate(search_results):
+    for orgunit_uuid in search_results:
         graphql_equivalent = get_graphql_equivalent_by_uuid(
-            response.data["org_units"]["objects"], orgunit.uuid, at
+            response.data["org_units"]["objects"], orgunit_uuid, at
         )
         if not graphql_equivalent:
             continue
 
         decorated_result.append(
             {
-                "uuid": orgunit.uuid,
+                "uuid": orgunit_uuid,
                 "name": graphql_equivalent["name"],
                 "path": _gql_get_orgunit_path(graphql_equivalent),
                 "attrs": _gql_get_orgunit_attrs(settings, graphql_equivalent),
