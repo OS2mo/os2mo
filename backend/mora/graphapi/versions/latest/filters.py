@@ -144,6 +144,17 @@ class ConfigurationFilter:
 
 @strawberry.input(description="Employee filter.")
 class EmployeeFilter(BaseFilter):
+    query: str | None = strawberry.field(
+        default=UNSET,
+        description=dedent(
+            """
+            Free text search.
+
+            Does best effort lookup to find entities matching the query string.
+            No quarantees are given w.r.t. the entries returned.
+            """
+        ),
+    )
     cpr_numbers: list[CPR] | None = strawberry.field(
         default=None, description=gen_filter_string("CPR number", "cpr_numbers")
     )

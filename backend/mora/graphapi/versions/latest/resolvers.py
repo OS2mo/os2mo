@@ -39,6 +39,7 @@ from .models import FacetRead
 from .resolver_map import resolver_map
 from .types import Cursor
 from .validity import OpenValidityModel
+from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.orgunits import search_orgunits
 from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationUnitRead
@@ -474,6 +475,13 @@ class EmployeeResolver(Resolver):
         """Resolve employees."""
         if filter is None:
             filter = EmployeeFilter()
+
+        if filter.query:
+            if filter.uuids:
+                raise ValueError("Cannot supply both filter.uuids and filter.query")
+            filter.uuids = await search_employees(
+                info.context["sessionmaker"], filter.query
+            )
 
         kwargs = {}
         if filter.cpr_numbers is not None:
