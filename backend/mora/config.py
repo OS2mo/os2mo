@@ -3,6 +3,7 @@
 import os
 from enum import Enum
 from functools import lru_cache
+from textwrap import dedent
 from typing import Any
 
 from pydantic import AmqpDsn
@@ -149,9 +150,35 @@ class Settings(BaseSettings):
     httpx_timeout: PositiveInt = 60
 
     # AuditLog settings
-    # Disabled by default due to performance considerations
-    # The compliant default would be True
-    audit_readlog_enable: bool = False
+    audit_readlog_enable: bool = Field(
+        False,
+        description=dedent(
+            """
+            Whether to do audit logging of read operations.
+
+            Disabled by default due to performance considerations.
+
+            Please note that enabling this has performance and storage implications.
+            """
+        ),
+    )
+    audit_readlog_no_log_uuids: list[UUID] = Field(
+        [],
+        description=dedent(
+            """
+            Selective disabling of audit read logging for specified UUIDs.
+
+            The provided UUIDs should be client or user UUIDs meant to have their audit
+            read logging disabled. Preferably only clients.
+
+            Please note that using this feature flag makes the audit readlog slightly
+            incorrect and thus slightly untrustworthy.
+
+            It is mainly useful to avoid logging integrations that read tons of data.
+            As otherwise the audit read log grows at an incredible pace.
+            """
+        ),
+    )
 
     # AMQP settings
     amqp_enable: bool = False
