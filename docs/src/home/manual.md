@@ -117,6 +117,12 @@ Under Organisationsdelen kan man søge på:
 - Organisationsenhedsnavn (ex Egtved skole)
 - Enhedsnummer (BrugerVendt Nøgle, ex EgtSko)
 
+Resultaterne ser ud på følgende måde:
+
+![Medarbejdere sørgeresultat v1](../graphics/momanual/search_employees_v1_result.png)
+
+![Organisations enheder sørgeresultat v1](../graphics/momanual/search_orgunits_v1_result.png)
+
 #### Søgefunktionen+
 
 **Hvad kan man søge på?**
@@ -147,11 +153,11 @@ Det er også muligt at få tilpasset sin søgning. I så fald bliver det muligt 
 
 **Organisationenheders adresse-registreringer (undtagen DAR-adresser). Eksempelvis:**
 
-- LOS ID
 - OrgID
 - Adresse
 - Telefonnummer
 - Email
+- Egene specificerede adresser, ex "LOS ID", "MagKort"
 
 **Organisationenheders it-konto-registreringer**
 
@@ -163,12 +169,16 @@ Det er også muligt at få tilpasset sin søgning. I så fald bliver det muligt 
 - Udvalgte adresse--registreringer (fx telefonnummer, email)
 - Udvalgte it-konto-oplysninger (fx “AZ ident”)
 
+![medarbejdere sørgeresultat v2](../graphics/momanual/search_employees_v2_result.png)
+
 **Organisation**
 
 - Navn
 - Organisatorisk sti
 - Udvalgte adresse-registreringer (fx LOS-ID, mag-kort)
 - Udvalgte it-konto-oplysninger
+
+![Organisations enheder søgeresultat v2](../graphics/momanual/search_orgunits_v2_result.png)
 
 #### Rapporter
 
