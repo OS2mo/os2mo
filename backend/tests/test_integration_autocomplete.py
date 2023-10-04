@@ -520,7 +520,7 @@ def test_v2_only_gql_decorate_orgunits(
     performing database transactions"""
 
     mock_search_orgunits.return_value = [
-        MagicMock(uuid=uuid.UUID("f494ad89-039d-478e-91f2-a63566554666"))
+        uuid.UUID("f494ad89-039d-478e-91f2-a63566554666")
     ]
 
     at = datetime.now().date()
@@ -564,7 +564,7 @@ def test_v2_only_gql_decorate_employees(
     performing database transactions"""
 
     mock_search_employees.return_value = [
-        MagicMock(uuid=uuid.UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"))
+        uuid.UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a")
     ]
 
     at = datetime.now().date()

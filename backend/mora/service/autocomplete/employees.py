@@ -8,7 +8,6 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy import cast
 from sqlalchemy import String
 from sqlalchemy import Text
-from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio.session import async_sessionmaker
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import func
@@ -35,7 +34,7 @@ from mora.service.util import handle_gql_error
 
 async def search_employees(
     sessionmaker: async_sessionmaker, query: str, at: date | None = None
-) -> [Row]:
+) -> list[UUID]:
     at_sql, at_sql_bind_params = get_at_date_sql(at)
 
     ctes = await asyncio.gather(
@@ -63,15 +62,15 @@ async def search_employees(
             audit_log(
                 session, "search_employees", "Bruger", {"query": query, "at": at}, uuids
             )
-        return result
+            return uuids
 
 
 async def decorate_employee_search_result(
-    settings: config.Settings, search_results: [Row], at: date | None
+    settings: config.Settings, search_results: list[UUID], at: date | None
 ):
     from mora.graphapi.versions.v14.version import GraphQLVersion
 
-    graphql_vars = {"uuids": [str(employee.uuid) for employee in search_results]}
+    graphql_vars = {"uuids": search_results}
     employee_decorate_query = """
         query EmployeeDecorate($uuids: [UUID!]) {
             employees(filter: { uuids: $uuids, from_date: null, to_date: null }) {
@@ -191,16 +190,16 @@ async def decorate_employee_search_result(
     handle_gql_error(response)
 
     decorated_result = []
-    for idx, employee in enumerate(search_results):
+    for employee_uuid in search_results:
         graphql_equivalent = get_graphql_equivalent_by_uuid(
-            response.data["employees"]["objects"], employee.uuid, at
+            response.data["employees"]["objects"], employee_uuid, at
         )
         if not graphql_equivalent:
             continue
 
         decorated_result.append(
             {
-                "uuid": employee.uuid,
+                "uuid": employee_uuid,
                 "name": graphql_equivalent["name"],
                 "attrs": _gql_get_employee_attrs(settings, graphql_equivalent),
             }
