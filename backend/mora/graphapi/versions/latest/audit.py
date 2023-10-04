@@ -8,7 +8,6 @@ from uuid import UUID
 import strawberry
 from more_itertools import bucket
 from ra_utils.apply import apply
-from sqlalchemy import column
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from starlette_context import context
@@ -210,7 +209,7 @@ class AuditLogResolver(PagedResolver):
         if filter.start is not None or filter.end is not None:
             dates = get_date_interval(filter.start, filter.end)
             query = query.where(
-                column("time").between(
+                AuditLogOperation.time.between(
                     dates.from_date or datetime(1, 1, 1),
                     dates.to_date or datetime(9999, 12, 31),
                 )
@@ -219,9 +218,9 @@ class AuditLogResolver(PagedResolver):
         # Pagination
         if cursor:
             # Make sure we only see objects created before pagination started
-            query = query.where(column("start") <= cursor.registration_time)
+            query = query.where(AuditLogOperation.time <= cursor.registration_time)
         # Order by UUID so the order of pagination is well-defined
-        query = query.order_by(column("id"))
+        query = query.order_by(AuditLogOperation.id)
         if limit is not None:
             # Fetch one extra element to see if there is another page
             query = query.limit(limit + 1)
