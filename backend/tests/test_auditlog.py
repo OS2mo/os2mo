@@ -358,3 +358,49 @@ async def test_auditlog_filters(
     assert response.errors is None
     objects = response.data["auditlog"]["objects"]
     assert len(objects) == len(expected)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_auditlog_disabled(set_settings: MonkeyPatch) -> None:
+    """Integrationtest for enabling the auditlog."""
+
+    sessionmaker = create_sessionmaker()
+    session = sessionmaker()
+    await ensure_empty_audit_tables(sessionmaker)
+
+    set_settings(AUDIT_READLOG_ENABLE="False")
+    uuid = uuid4()
+    async with session.begin():
+        audit_log(session, "test_auditlog", "AuditLog", {}, [uuid])
+    await ensure_empty_audit_tables(sessionmaker)
+
+    set_settings(AUDIT_READLOG_ENABLE="True")
+    uuid = uuid4()
+    async with session.begin():
+        audit_log(session, "test_auditlog", "AuditLog", {}, [uuid])
+    await assert_one_audit_entry(sessionmaker, "AuditLog", "test_auditlog", [uuid])
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_auditlog_disabled_for_user(set_settings: MonkeyPatch) -> None:
+    """Integrationtest for selectively disabling the auditlog."""
+
+    set_settings(AUDIT_READLOG_ENABLE="True")
+
+    sessionmaker = create_sessionmaker()
+    session = sessionmaker()
+    await ensure_empty_audit_tables(sessionmaker)
+
+    set_settings(AUDIT_READLOG_NO_LOG_UUIDS=f'["{LORA_USER_UUID}"]')
+    uuid = uuid4()
+    async with session.begin():
+        audit_log(session, "test_auditlog", "AuditLog", {}, [uuid])
+    await ensure_empty_audit_tables(sessionmaker)
+
+    set_settings(AUDIT_READLOG_NO_LOG_UUIDS="[]")
+    uuid = uuid4()
+    async with session.begin():
+        audit_log(session, "test_auditlog", "AuditLog", {}, [uuid])
+    await assert_one_audit_entry(sessionmaker, "AuditLog", "test_auditlog", [uuid])

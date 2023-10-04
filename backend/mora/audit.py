@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
+from functools import wraps
 from typing import Any
 from uuid import UUID
 
@@ -16,6 +18,31 @@ from mora.db import AuditLogOperation
 from mora.db import AuditLogRead
 
 
+def if_audit(function: Callable) -> Callable:
+    """Disable function if auditing is disabled.
+
+    Args:
+        function: The function to call if auditing is enabled.
+
+    Returns:
+        Callable that only calls `function` if auditing is enabled.
+    """
+
+    @wraps(function)
+    def wrapper(*args: Any, **kwargs: Any) -> None:
+        settings = get_settings()
+        if not settings.audit_readlog_enable:
+            return
+
+        if get_authenticated_user() in settings.audit_readlog_no_log_uuids:
+            return
+
+        return function(*args, **kwargs)
+
+    return wrapper
+
+
+@if_audit
 def audit_log_lora(
     cursor: cursor,
     operation: str,
@@ -32,9 +59,6 @@ def audit_log_lora(
         arguments: Arguments provided to operation.
         uuids: UUIDs read by the operation.
     """
-    if not get_settings().audit_readlog_enable:
-        return
-
     operation_query = """
     INSERT INTO
         audit_log_operation (time, actor, model, operation, arguments)
@@ -63,6 +87,7 @@ def audit_log_lora(
     )
 
 
+@if_audit
 def audit_log(
     session: Session | AsyncSession,
     operation: str,
@@ -79,9 +104,6 @@ def audit_log(
         arguments: Arguments provided to operation.
         uuids: UUIDs read by the operation.
     """
-    if not get_settings().audit_readlog_enable:
-        return
-
     operation = AuditLogOperation(
         actor=get_authenticated_user(),
         model=class_name,
