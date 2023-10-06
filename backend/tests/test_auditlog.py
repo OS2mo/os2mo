@@ -160,11 +160,7 @@ async def test_auditlog_graphql_self(
     # This call reads both audit events (and makes yet another)
     response = graphapi_post(query)
     assert response.errors is None
-    results = list(response.data["auditlog"]["objects"])
-    ordered_results = sorted(
-        results, key=lambda result: datetime.fromisoformat(result["time"])
-    )
-    old_result, new_result = ordered_results
+    old_result, new_result = list(response.data["auditlog"]["objects"])
 
     assert old_result == result
 
