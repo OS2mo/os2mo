@@ -23,7 +23,6 @@ import strawberry
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
 from more_itertools import only
-from pydantic import parse_obj_as
 from starlette_context import context
 from strawberry import UNSET
 from strawberry.types import Info
@@ -64,10 +63,6 @@ from .resolvers import RelatedUnitResolver
 from .resolvers import RoleResolver
 from mora import common
 from mora import config
-from mora.common import _create_graphql_connector
-from mora.graphapi.middleware import set_graphql_dates
-from mora.graphapi.versions.latest.readers import _extract_search_params
-from mora.handler.reading import get_handler_for_type
 from mora.service.address_handler import dar
 from mora.service.address_handler import multifield_text
 from mora.service.facet import is_class_uuid_primary
@@ -2771,62 +2766,6 @@ class OrganisationUnit:
             return []
         ancestors = await OrganisationUnit.ancestors(self=self, root=parent, info=info)  # type: ignore
         return [parent] + ancestors
-
-    @strawberry.field(
-        description=dedent(
-            """\
-            Same as ancestors(), but with HACKs to enable validities.
-            """
-        ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
-        deprecation_reason=dedent(
-            """\
-            Should only be used to query ancestors when validity dates have been specified, "
-            "ex from_date & to_date."
-            "Will be removed when sub-query date handling is implemented.
-            """
-        ),
-    )
-    async def ancestors_validity(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> list[LazyOrganisationUnit]:
-        # Custom Lora-GraphQL connector - created in order to control dates in sub-queries/recursions
-        set_graphql_dates(root.validity)
-        c = _create_graphql_connector()
-        cls = get_handler_for_type("org_unit")
-
-        # Query LoRa and parse result to read-model
-        potential_parents = await cls.get(
-            c=c,
-            search_fields=_extract_search_params(
-                query_args={"uuid": uuid2list(root.parent_uuid)}
-            ),
-        )
-        potential_parents_models = parse_obj_as(
-            list[OrganisationUnitRead], potential_parents
-        )  # type: ignore
-
-        # if root element have a to_date, exclude all parents where from date is after root.to_date
-        potential_parents_models = list(
-            filter(
-                lambda ppm: (
-                    root.validity.to_date is None
-                    or ppm.validity.from_date <= root.validity.to_date
-                ),
-                potential_parents_models,
-            )
-        )
-
-        parent = max(
-            potential_parents_models,
-            key=lambda ppm: ppm.validity.from_date,
-            default=None,
-        )
-        if parent is None:
-            return []
-
-        parent_ancestors = await OrganisationUnit.ancestors_validity(self=self, root=parent, info=info)  # type: ignore
-        return [parent] + parent_ancestors
 
     children: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_list(

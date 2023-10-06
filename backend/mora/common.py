@@ -14,10 +14,6 @@ import copy
 import datetime
 import functools
 import uuid
-from collections.abc import AsyncIterator
-
-from starlette_context import context
-from starlette_context import request_cycle_context
 
 from . import exceptions
 from . import lora
@@ -25,29 +21,13 @@ from . import mapping
 from . import util
 from .exceptions import ErrorCodes
 from .mapping import OwnerInferencePriority
-from mora.graphapi.middleware import get_graphql_dates
 from mora.graphapi.middleware import is_graphql
 
 
-_MIDDLEWARE_KEY = "lora_connector"
-
-
-async def lora_connector_context() -> AsyncIterator[None]:
-    @functools.lru_cache
-    def cached_create_connector(**kwargs):
-        return _create_connector(**kwargs)
-
-    data = {**context, _MIDDLEWARE_KEY: cached_create_connector}
-    with request_cycle_context(data):
-        yield
-
-
 def get_connector(**loraparams) -> lora.Connector:
-    create_connector = context.get(_MIDDLEWARE_KEY, _create_connector)
-    return create_connector(**loraparams)
+    if is_graphql():
+        return lora.Connector(**loraparams)
 
-
-def _create_service_connector(**loraparams) -> lora.Connector:
     args = util.get_query_args() or {}
     if args.get("at"):
         loraparams["effective_date"] = util.from_iso_time(args["at"])
@@ -66,31 +46,6 @@ def _create_service_connector(**loraparams) -> lora.Connector:
             loraparams.setdefault("validity", args["validity"])
 
     return lora.Connector(**loraparams)
-
-
-def _create_graphql_connector(**loraparams) -> lora.Connector:
-    dates = get_graphql_dates()
-
-    if dates is None:
-        # default to present
-        from_date = datetime.datetime.now(tz=datetime.timezone.utc)
-        to_date = from_date + datetime.timedelta(milliseconds=1)
-    else:
-        # None in MO -> ±infinity in LoRa
-        from_date = dates.from_date if dates.from_date is not None else "-infinity"
-        to_date = dates.to_date if dates.to_date is not None else "infinity"
-
-    loraparams["validity"] = "present"
-    loraparams["virkningfra"] = from_date
-    loraparams["virkningtil"] = to_date
-
-    return lora.Connector(**loraparams)
-
-
-def _create_connector(**loraparams) -> lora.Connector:
-    if is_graphql():
-        return _create_graphql_connector(**loraparams)
-    return _create_service_connector(**loraparams)
 
 
 class cache(collections.defaultdict):

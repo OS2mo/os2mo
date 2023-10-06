@@ -12,8 +12,6 @@ from starlette_context import context
 from starlette_context import request_cycle_context
 from strawberry.extensions import SchemaExtension
 
-from ramodels.mo import OpenValidity
-
 
 _IS_GRAPHQL_MIDDLEWARE_KEY = "is_graphql"
 
@@ -87,29 +85,3 @@ class StarletteContextExtension(SchemaExtension):
 def is_graphql() -> bool:
     """Determine if we are currently evaluating a GraphQL query."""
     return context.get(_IS_GRAPHQL_MIDDLEWARE_KEY, 0) > 0
-
-
-_GRAPHQL_DATES_MIDDLEWARE_KEY = "graphql_dates"
-
-
-async def graphql_dates_context() -> AsyncIterator[None]:
-    """Application dependency to create the `graphql_dates` context variable.
-
-    The variable is used to store `from_date` and `to_date` and send them
-    to the LoRa connector.
-
-    When we regain control of our connectors and dataloaders, this
-    should be deleted immediately and with extreme prejudice.
-    """
-    data = {**context, _GRAPHQL_DATES_MIDDLEWARE_KEY: None}
-    with request_cycle_context(data):
-        yield
-
-
-def set_graphql_dates(dates: OpenValidity) -> None:
-    """Set GraphQL args directly in the Starlette context."""
-    context[_GRAPHQL_DATES_MIDDLEWARE_KEY] = dates
-
-
-def get_graphql_dates() -> OpenValidity | None:
-    return context.get(_GRAPHQL_DATES_MIDDLEWARE_KEY)

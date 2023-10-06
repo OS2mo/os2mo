@@ -17,7 +17,6 @@ from strawberry import UNSET
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 
-from ...middleware import set_graphql_dates
 from .filters import AddressFilter
 from .filters import AssociationFilter
 from .filters import BaseFilter
@@ -176,7 +175,13 @@ class Resolver(PagedResolver):
 
         # Dates
         dates = get_date_interval(filter.from_date, filter.to_date)
-        set_graphql_dates(dates)
+        kwargs["validity"] = "present"
+        kwargs["virkningfra"] = (
+            dates.from_date.isoformat() if dates.from_date else "-infinity"
+        )
+        kwargs["virkningtil"] = (
+            dates.to_date.isoformat() if dates.to_date else "infinity"
+        )
 
         # UUIDs
         if filter.uuids is not None:
