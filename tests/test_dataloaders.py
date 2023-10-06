@@ -38,6 +38,7 @@ from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import NotEnabledException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
 from mo_ldap_import_export.import_export import IgnoreMe
+from mo_ldap_import_export.utils import extract_ou_from_dn
 
 
 @pytest.fixture()
@@ -233,13 +234,18 @@ async def test_load_ldap_objects(
 
 async def test_load_ldap_OUs(ldap_connection: MagicMock, dataloader: DataLoader):
 
-    ou1 = "OU=Users,OU=Magenta,DC=ad,DC=addev"
-    ou2 = "OU=Groups,OU=Magenta,DC=ad,DC=addev"
-    dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
+    group_dn1 = "OU=Users,OU=Magenta,DC=ad,DC=addev"
+    group_dn2 = "OU=Groups,OU=Magenta,DC=ad,DC=addev"
+    ou1 = extract_ou_from_dn(group_dn1)
+    ou2 = extract_ou_from_dn(group_dn2)
+    user_dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
 
-    first_response = [mock_ldap_response({}, ou1), mock_ldap_response({}, ou2)]
+    first_response = [
+        mock_ldap_response({}, group_dn1),
+        mock_ldap_response({}, group_dn2),
+    ]
 
-    second_response = [mock_ldap_response({}, dn)]
+    second_response = [mock_ldap_response({}, user_dn)]
     third_response: list = []
 
     responses = iter(
@@ -2026,6 +2032,14 @@ def test_add_ldap_object(dataloader: DataLoader):
     with pytest.raises(NotEnabledException):
         dataloader.add_ldap_object("CN=foo")
 
+    dataloader.ldap_connection.reset_mock()
+    dataloader.user_context["settings"].add_objects_to_ldap = True
+    dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
+    dataloader.ou_in_ous_to_write_to.return_value = False
+
+    dataloader.add_ldap_object("CN=foo")
+    dataloader.ldap_connection.add.assert_not_called()
+
 
 async def test_load_mo_employee_engagement_dicts(dataloader: DataLoader):
     dataloader.query_mo = AsyncMock()  # type: ignore
@@ -2402,3 +2416,115 @@ async def test_load_mo_root_org_uuid(dataloader: DataLoader):
     dataloader.query_mo.return_value = {"org": {"uuid": str(root_org_uuid)}}
 
     assert await dataloader.load_mo_root_org_uuid() == str(root_org_uuid)
+
+
+def test_decompose_ou_string(dataloader: DataLoader):
+    ou = "OU=foo,OU=mucki,OU=bar"
+    output = dataloader.decompose_ou_string(ou)
+
+    assert len(output) == 3
+    assert output[0] == "OU=foo,OU=mucki,OU=bar"
+    assert output[1] == "OU=mucki,OU=bar"
+    assert output[2] == "OU=bar"
+
+
+def test_create_ou(dataloader: DataLoader):
+    dataloader.load_ldap_OUs = MagicMock()  # type: ignore
+    dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
+    dataloader.ou_in_ous_to_write_to.return_value = True
+
+    settings_mock = MagicMock()
+    settings_mock.ldap_search_base = "DC=Magenta"
+    dataloader.user_context["settings"] = settings_mock  # type: ignore
+
+    dataloader.load_ldap_OUs.return_value = {
+        "OU=mucki,OU=bar": {"empty": False},
+        "OU=bar": {"empty": False},
+    }
+
+    ou = "OU=foo,OU=mucki,OU=bar"
+    dataloader.create_ou(ou)
+    dataloader.ldap_connection.add.assert_called_once_with(
+        "OU=foo,OU=mucki,OU=bar,DC=Magenta", "OrganizationalUnit"
+    )
+
+    dataloader.user_context["settings"].add_objects_to_ldap = False
+
+    with pytest.raises(NotEnabledException):
+        dataloader.create_ou(ou)
+
+    dataloader.ldap_connection.reset_mock()
+    dataloader.user_context["settings"].add_objects_to_ldap = True
+    dataloader.ou_in_ous_to_write_to.return_value = False
+
+    dataloader.create_ou(ou)
+    dataloader.ldap_connection.add.assert_not_called()
+
+
+def test_delete_ou(dataloader: DataLoader):
+
+    dataloader.load_ldap_OUs = MagicMock()  # type: ignore
+    dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
+    dataloader.ou_in_ous_to_write_to.return_value = True
+
+    settings_mock = MagicMock()
+    settings_mock.ldap_search_base = "DC=Magenta"
+    dataloader.user_context["settings"] = settings_mock  # type: ignore
+
+    dataloader.load_ldap_OUs.return_value = {
+        "OU=foo,OU=mucki,OU=bar": {"empty": True},
+        "OU=mucki,OU=bar": {"empty": False},
+        "OU=bar": {"empty": False},
+    }
+
+    ou = "OU=foo,OU=mucki,OU=bar"
+    dataloader.delete_ou(ou)
+    dataloader.ldap_connection.delete.assert_called_once_with(
+        "OU=foo,OU=mucki,OU=bar,DC=Magenta"
+    )
+
+    dataloader.ldap_connection.reset_mock()
+    dataloader.user_context["settings"].add_objects_to_ldap = True
+    dataloader.ou_in_ous_to_write_to.return_value = False
+
+    dataloader.delete_ou(ou)
+    dataloader.ldap_connection.delete.assert_not_called()
+
+    # Test that we do not remove the ou-for-new-users
+    dataloader.ou_in_ous_to_write_to.return_value = True
+    settings_mock.ldap_ou_for_new_users = ou
+    dataloader.delete_ou(ou)
+    dataloader.ldap_connection.delete.assert_not_called()
+
+    # Test that we do not try to remove an OU which is not in the ou-dict
+    dataloader.ou_in_ous_to_write_to.return_value = False
+    dataloader.delete_ou("OU=non_existing_OU")
+    dataloader.ldap_connection.delete.assert_not_called()
+
+
+def test_move_ldap_object(dataloader: DataLoader):
+
+    dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
+    dataloader.ou_in_ous_to_write_to.return_value = True
+    settings_mock = MagicMock()
+    dataloader.user_context["settings"] = settings_mock  # type: ignore
+
+    dataloader.log_ldap_response = MagicMock()  # type: ignore
+    dataloader.log_ldap_response.return_value = {"description": "success"}
+
+    success = dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
+
+    dataloader.ldap_connection.modify_dn.assert_called_once_with(
+        "CN=foo,OU=old_ou", "CN=foo", new_superior="OU=new_ou"
+    )
+    assert success is True
+
+    dataloader.ou_in_ous_to_write_to.return_value = False
+    success = dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
+    assert success is False
+
+    dataloader.ou_in_ous_to_write_to.return_value = True
+    dataloader.user_context["settings"].add_objects_to_ldap = False
+
+    with pytest.raises(NotEnabledException):
+        dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")

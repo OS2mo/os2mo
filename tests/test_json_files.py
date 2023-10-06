@@ -59,6 +59,20 @@ async def converters(
     """
     converters = {}
 
+    def get_org_unit_uuid_from_path_mock(org_unit_string):
+
+        # This is the only correct path for the purpose of these tests
+        expected_path = "org/unit/path"
+        if org_unit_string == expected_path:
+            return str(uuid)
+        else:
+            raise Exception(
+                (
+                    f"Attempting to find org-unit uuid for '{org_unit_string}'. "
+                    f"But expecting '{expected_path}'"
+                )
+            )
+
     for json_filename in json_filenames:
         user_context = {}
         user_context["mapping"] = read_mapping(json_filename)
@@ -92,13 +106,12 @@ async def converters(
         ):
             converter = LdapConverter(context)
             await converter._init()
+            converter.org_unit_path_string_separator = "/"
 
             # Mock basic functions used by our jinja templates
-            converter.clean_org_unit_path_string = AsyncMock()  # type: ignore
-            converter.clean_org_unit_path_string.return_value = "org/unit/path"
-
-            converter.get_org_unit_uuid_from_path = AsyncMock()  # type: ignore
-            converter.get_org_unit_uuid_from_path.return_value = str(uuid)
+            converter.get_org_unit_uuid_from_path = AsyncMock(  # type: ignore
+                side_effect=get_org_unit_uuid_from_path_mock
+            )
 
             converter.get_object_uuid_from_user_key = MagicMock()  # type: ignore
             converter.get_object_uuid_from_user_key.return_value = str(uuid)
@@ -261,6 +274,8 @@ async def test_back_and_forth_mapping(converters: dict[str, LdapConverter], uuid
         "mo_jobtilte_cust": mo_jobtilte_cust,
     }
 
+    dn = "CN=Bill Cosby,OU=foo,DC=US_of_A"
+
     for json_file, converter in converters.items():
         print("-" * 40)
         print(f"Testing '{json_file}' mapping")
@@ -270,7 +285,7 @@ async def test_back_and_forth_mapping(converters: dict[str, LdapConverter], uuid
         for json_key in json_keys:
             print(f"Testing '{json_key}' json_key")
 
-            ldap_object = await converter.to_ldap(mo_object_dict, json_key, "CN=foo")
+            ldap_object = await converter.to_ldap(mo_object_dict, json_key, dn)
             converted_mo_object = (
                 await converter.from_ldap(ldap_object, json_key, uuid)
             )[0]

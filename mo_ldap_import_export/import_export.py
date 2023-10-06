@@ -24,7 +24,9 @@ from .exceptions import IgnoreChanges
 from .exceptions import NoObjectsReturnedException
 from .exceptions import NotSupportedException
 from .ldap import cleanup
+from .ldap_classes import LdapObject
 from .logging import logger
+from .utils import extract_ou_from_dn
 from .utils import get_object_type_from_routing_key
 
 
@@ -213,6 +215,52 @@ class SyncTool:
         logger.info("[Cleanup-needed] No cleanup needed")
         return False
 
+    def move_ldap_object(self, ldap_object: LdapObject, dn: str) -> LdapObject:
+        """
+        Parameters
+        ----------------
+        ldap_object: LdapObject
+            LDAP object as converted by converter.to_ldap()
+        dn: str
+            DN which we expect the object to have
+
+        Notes
+        -----------
+        If the DN on the ldap object is different from the supplied dn, we move the
+        object in LDAP, so the two match. We always assume that the DN on the LDAP
+        object is correct, because that one is mapped in the json file.
+        """
+        old_dn = dn
+        new_dn = ldap_object.dn
+
+        if new_dn == old_dn:
+            return ldap_object
+
+        old_ou = extract_ou_from_dn(old_dn)
+        new_ou = extract_ou_from_dn(new_dn)
+
+        logger.info(
+            "[Move-LDAP-object] Moving user to new organizational unit.",
+            old_ou=old_ou,
+            new_ou=new_ou,
+            old_dn=old_dn,
+            new_dn=new_dn,
+        )
+
+        # Create the new OU (dataloader.create_ou checks if it exists)
+        self.dataloader.create_ou(new_ou)
+
+        # Move the object to the proper OU
+        move_successful: bool = self.dataloader.move_ldap_object(old_dn, new_dn)
+
+        if move_successful:
+            # Delete the old OU (dataloader.delete_ou checks if it is empty)
+            self.dataloader.delete_ou(old_ou)
+        else:
+            ldap_object.dn = old_dn
+
+        return ldap_object
+
     @wait_for_export_to_finish
     async def listen_to_changes_in_employees(
         self,
@@ -281,6 +329,7 @@ class SyncTool:
         if object_type == "person":
             # Convert to LDAP
             ldap_employee = await self.converter.to_ldap(mo_object_dict, "Employee", dn)
+            ldap_employee = self.move_ldap_object(ldap_employee, dn)
 
             # Upload to LDAP - overwrite because all employee fields are unique.
             # One person cannot have multiple names.
@@ -310,8 +359,11 @@ class SyncTool:
             mo_object_dict["mo_employee_address"] = changed_address
 
             # Convert & Upload to LDAP
+            ldap_object = await self.converter.to_ldap(mo_object_dict, json_key, dn)
+            ldap_object = self.move_ldap_object(ldap_object, dn)
+
             ldap_modify_responses = await self.dataloader.modify_ldap_object(
-                await self.converter.to_ldap(mo_object_dict, json_key, dn),
+                ldap_object,
                 json_key,
                 delete=delete,
             )
@@ -328,7 +380,7 @@ class SyncTool:
                     self.user_context,
                     changed_employee,
                     object_type,
-                    dn,
+                    ldap_object.dn,
                 )
 
         elif object_type == "ituser":
@@ -348,8 +400,11 @@ class SyncTool:
             mo_object_dict["mo_employee_it_user"] = changed_it_user
 
             # Convert & Upload to LDAP
+            ldap_object = await self.converter.to_ldap(mo_object_dict, json_key, dn)
+            ldap_object = self.move_ldap_object(ldap_object, dn)
+
             ldap_modify_responses = await self.dataloader.modify_ldap_object(
-                await self.converter.to_ldap(mo_object_dict, json_key, dn),
+                ldap_object,
                 json_key,
                 delete=delete,
             )
@@ -367,7 +422,7 @@ class SyncTool:
                     self.user_context,
                     changed_employee,
                     object_type,
-                    dn,
+                    ldap_object.dn,
                 )
 
         elif object_type == "engagement":
@@ -384,8 +439,10 @@ class SyncTool:
             # We upload an engagement to LDAP regardless of its 'primary' attribute.
             # Because it looks like you cannot set 'primary' when creating an engagement
             # in the OS2mo GUI.
+            ldap_object = await self.converter.to_ldap(mo_object_dict, json_key, dn)
+            ldap_object = self.move_ldap_object(ldap_object, dn)
             ldap_modify_responses = await self.dataloader.modify_ldap_object(
-                await self.converter.to_ldap(mo_object_dict, json_key, dn),
+                ldap_object,
                 json_key,
                 delete=delete,
             )
@@ -402,7 +459,7 @@ class SyncTool:
                     self.user_context,
                     changed_employee,
                     object_type,
-                    dn,
+                    ldap_object.dn,
                 )
 
     @wait_for_export_to_finish
@@ -424,8 +481,11 @@ class SyncTool:
         }
 
         # Convert & Upload to LDAP
+        ldap_object = await self.converter.to_ldap(mo_object_dict, json_key, dn)
+        ldap_object = self.move_ldap_object(ldap_object, dn)
+
         ldap_modify_responses = await self.dataloader.modify_ldap_object(
-            await self.converter.to_ldap(mo_object_dict, json_key, dn),
+            ldap_object,
             json_key,
             delete=delete,
         )
@@ -442,7 +502,7 @@ class SyncTool:
                 self.user_context,
                 affected_employee,
                 object_type,
-                dn,
+                ldap_object.dn,
             )
 
     @wait_for_export_to_finish

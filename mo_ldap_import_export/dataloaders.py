@@ -17,6 +17,7 @@ from ldap3 import BASE
 from ldap3.core.exceptions import LDAPInvalidValueError
 from ldap3.protocol import oid
 from ldap3.utils.dn import safe_dn
+from ldap3.utils.dn import to_dn
 from more_itertools import only
 from ramodels.mo._shared import validate_cpr
 from ramodels.mo.details.address import Address
@@ -45,8 +46,10 @@ from .logging import logger
 from .processors import _hide_cpr as hide_cpr
 from .utils import add_filter_to_query
 from .utils import combine_dn_strings
+from .utils import extract_cn_from_dn
 from .utils import extract_ou_from_dn
 from .utils import mo_datestring_to_utc
+from .utils import remove_cn_from_dn
 
 
 class DataLoader:
@@ -281,7 +284,11 @@ class DataLoader:
 
         return ldap_object
 
-    def ou_in_ous_to_write_to(self, dn: str) -> bool:
+    def ou_in_ous_to_write_to(
+        self,
+        dn: str,
+        tag: str = "[OU-in-OUs-to-write-to]",
+    ) -> bool:
         """
         Determine if an OU is among those to which we are allowed to write.
         """
@@ -301,7 +308,7 @@ class DataLoader:
                 # sub-OU inside "OU=foo"
                 return True
 
-        logger.info(f"[OU-in-OUs-to-write-to] {ou} is not in {ous_to_write_to}")
+        logger.info(f"{tag} {ou} is not in {ous_to_write_to}")
         return False
 
     def modify_ldap(
@@ -316,7 +323,7 @@ class DataLoader:
         Modifies LDAP and adds the dn to dns_to_ignore
         """
         # Checks
-        if not self.ou_in_ous_to_write_to(dn):
+        if not self.ou_in_ous_to_write_to(dn, "[Modify-ldap]"):
             return
 
         attributes = list(changes.keys())
@@ -344,8 +351,7 @@ class DataLoader:
         if not value_exists or "DELETE" in ldap_command:
             logger.info(f"[Modify-ldap] Uploading the following changes: {changes}")
             self.ldap_connection.modify(dn, changes)
-            response = self.ldap_connection.result
-            logger.info(f"[Modify-ldap] Response: {response}")
+            response = self.log_ldap_response("[Modify-ldap]", dn=dn)
 
             # If successful, the importer should ignore this DN
             if response["description"] == "success":
@@ -437,7 +443,7 @@ class DataLoader:
 
         return output
 
-    def load_ldap_OUs(self, search_base) -> dict:
+    def load_ldap_OUs(self, search_base: Union[str, None] = None) -> dict:
         """
         Returns a dictionary where the keys are OU strings and the items are dicts
         which contain information about the OU
@@ -451,12 +457,13 @@ class DataLoader:
             self.context,
             searchParameters,
             search_base=search_base,
+            mute=True,
         )
 
-        ous = [r["dn"] for r in responses]
+        dns = [r["dn"] for r in responses]
         output = {}
 
-        for ou in ous:
+        for dn in dns:
             searchParameters = {
                 "search_filter": "(objectclass=user)",
                 "attributes": [],
@@ -466,14 +473,22 @@ class DataLoader:
             responses = paged_search(
                 self.context,
                 searchParameters,
-                search_base=ou,
+                search_base=dn,
+                mute=True,
             )
+            ou = extract_ou_from_dn(dn)
             if len(responses) == 0:
                 output[ou] = {"empty": True}
             else:
                 output[ou] = {"empty": False}
+            output[ou]["dn"] = dn
 
         return output
+
+    def log_ldap_response(self, tag, **kwargs) -> dict:
+        response: dict = self.ldap_connection.result
+        logger.info(f"{tag} Response:", response=response, **kwargs)
+        return response
 
     def add_ldap_object(self, dn: str, attributes: dict[str, Any] | None = None):
         """
@@ -491,6 +506,9 @@ class DataLoader:
             logger.info("[Add-ldap-object] add_objects_to_ldap = False. Aborting.")
             raise NotEnabledException("Adding LDAP objects is disabled")
 
+        if not self.ou_in_ous_to_write_to(dn, "[Add-ldap-object]"):
+            return
+
         logger.info(
             "[Add-ldap-object] Adding user to LDAP.", dn=dn, attributes=attributes
         )
@@ -499,9 +517,95 @@ class DataLoader:
             self.user_context["converter"].find_ldap_object_class("Employee"),
             attributes=attributes,
         )
-        logger.info(
-            "[Add-ldap-object] Response:", response=self.ldap_connection.result, dn=dn
+        self.log_ldap_response("[Add-ldap-object]", dn=dn)
+
+    @staticmethod
+    def decompose_ou_string(ou: str) -> list[str]:
+        """
+        Decomposes an OU string and returns a list of OUs where the first one is the
+        given OU string, and the last one if the highest parent OU
+
+        Example
+        -----------
+        >>> ou = 'OU=foo,OU=bar'
+        >>> decompose_ou_string(ou)
+        >>> ['OU=foo,OU=bar', 'OU=bar']
+        """
+
+        ou_parts = to_dn(ou)
+        output = []
+        for i in range(len(ou_parts)):
+            output.append(combine_dn_strings(ou_parts[i:]))
+
+        return output
+
+    def create_ou(self, ou: str) -> None:
+        """
+        Creates an OU. If the parent OU does not exist, creates that one first
+        """
+        settings = self.user_context["settings"]
+        if not settings.add_objects_to_ldap:
+            logger.info("[Create-OU] add_objects_to_ldap = False. Aborting.")
+            raise NotEnabledException("Adding LDAP objects is disabled")
+        if not self.ou_in_ous_to_write_to(ou, "[Create-OU]"):
+            return
+
+        ou_dict = self.load_ldap_OUs()
+
+        # Create OUs top-down (unless they already exist)
+        for ou_to_create in self.decompose_ou_string(ou)[::-1]:
+            if ou_to_create not in ou_dict:
+                logger.info("[Create-OU] Creating OU.", ou_to_create=ou_to_create)
+                dn = combine_dn_strings([ou_to_create, settings.ldap_search_base])
+
+                self.ldap_connection.add(dn, "OrganizationalUnit")
+                self.log_ldap_response("[Create-OU]", dn=dn)
+
+    def delete_ou(self, ou: str) -> None:
+        """
+        Deletes an OU. If the parent OU is empty after deleting, also deletes that one
+
+        Notes
+        --------
+        Only deletes OUs which are empty
+        """
+        settings = self.user_context["settings"]
+        if not self.ou_in_ous_to_write_to(ou, "[Delete-OU]"):
+            return
+
+        for ou_to_delete in self.decompose_ou_string(ou):
+            ou_dict = self.load_ldap_OUs()
+            if (
+                ou_dict.get(ou_to_delete, {}).get("empty", False)
+                and ou_to_delete != settings.ldap_ou_for_new_users
+            ):
+                logger.info("[Delete-OU] Deleting OU.", ou_to_delete=ou_to_delete)
+                dn = combine_dn_strings([ou_to_delete, settings.ldap_search_base])
+                self.ldap_connection.delete(dn)
+                self.log_ldap_response("[Delete-OU]", dn=dn)
+
+    def move_ldap_object(self, old_dn: str, new_dn: str) -> bool:
+        """
+        Moves an LDAP object from one DN to another. Returns True if the move was
+        successful.
+        """
+        settings = self.user_context["settings"]
+        if not self.ou_in_ous_to_write_to(new_dn, "[Move-LDAP-object]"):
+            return False
+        if not settings.add_objects_to_ldap:
+            logger.info("[Move-LDAP-object] add_objects_to_ldap = False. Aborting.")
+            raise NotEnabledException("Moving LDAP objects is disabled")
+
+        logger.info("[Move-LDAP-object] Moving entry.", old_dn=old_dn, new_dn=new_dn)
+
+        self.ldap_connection.modify_dn(
+            old_dn, extract_cn_from_dn(new_dn), new_superior=remove_cn_from_dn(new_dn)
         )
+
+        response = self.log_ldap_response(
+            "[Move-LDAP-object]", new_dn=new_dn, old_dn=old_dn
+        )
+        return True if response["description"] == "success" else False
 
     async def modify_ldap_object(
         self,

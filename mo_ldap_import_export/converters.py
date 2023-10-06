@@ -18,6 +18,7 @@ import pydantic
 from fastramqpi.context import Context
 from jinja2 import Environment
 from ldap3.utils.ciDict import CaseInsensitiveDict
+from ldap3.utils.dn import parse_dn
 from ramodels.mo.organisation_unit import OrganisationUnit
 from ramqp.utils import RequeueMessage
 
@@ -30,6 +31,8 @@ from .ldap import is_guid
 from .ldap_classes import LdapObject
 from .logging import logger
 from .utils import delete_keys_from_dict
+from .utils import exchange_ou_in_dn
+from .utils import extract_ou_from_dn
 from .utils import import_class
 
 
@@ -225,7 +228,11 @@ class LdapConverter:
         return import_class(self.find_mo_object_class(json_key))
 
     def get_ldap_attributes(self, json_key):
-        return list(self.mapping["mo_to_ldap"][json_key].keys())
+        ldap_attributes = list(self.mapping["mo_to_ldap"][json_key].keys())
+        if "dn" in ldap_attributes:
+            # "dn" is the key which all LDAP objects have, not an attribute.
+            ldap_attributes.remove("dn")
+        return ldap_attributes
 
     def get_mo_attributes(self, json_key):
         return list(self.mapping["ldap_to_mo"][json_key].keys())
@@ -364,13 +371,15 @@ class LdapConverter:
 
             object_class = self.find_ldap_object_class(json_key)
 
-            accepted_attributes = self.overview[object_class]["attributes"].keys()
+            accepted_attributes = list(self.overview[object_class]["attributes"].keys())
             detected_attributes = self.get_ldap_attributes(json_key)
 
-            self.check_attributes(detected_attributes, accepted_attributes)
+            self.check_attributes(detected_attributes, accepted_attributes + ["dn"])
 
             detected_single_value_attributes = [
-                a for a in detected_attributes if self.dataloader.single_value[a]
+                a
+                for a in detected_attributes
+                if a == "dn" or self.dataloader.single_value[a]
             ]
 
             # Check single value fields which map to MO address/it-user/... objects.
@@ -503,7 +512,7 @@ class LdapConverter:
         for json_key in self.get_ldap_to_mo_json_keys():
             object_class = self.find_ldap_object_class(json_key)
             accepted_attributes = sorted(
-                self.overview[object_class]["attributes"].keys()
+                list(self.overview[object_class]["attributes"].keys()) + ["dn"]
             )
             for key, value in raw_mapping[json_key].items():
                 if type(value) is not str:
@@ -755,12 +764,20 @@ class LdapConverter:
         self.check_org_unit_info_dict()
 
     @staticmethod
-    def nonejoin(*args):
+    def nonejoin(*args) -> str:
         """
         Joins items together if they are not None or emtpy lists
         """
         items_to_join = [a for a in args if a]
         return ", ".join(items_to_join)
+
+    def nonejoin_orgs(self, *args) -> str:
+        """
+        Joins orgs together if they are not empty strings
+        """
+        items_to_join = [a.strip() for a in args if a]
+        sep = self.org_unit_path_string_separator
+        return sep.join(items_to_join)
 
     def get_object_user_key_from_uuid(self, info_dict: dict, uuid: str) -> str:
         user_key: str = info_dict[str(uuid)]["user_key"]
@@ -1061,6 +1078,23 @@ class LdapConverter:
 
         return path_string
 
+    def make_dn_from_org_unit_path(self, dn: str, org_unit_path_string: str) -> str:
+        """
+        Makes a new DN based on an org-unit path string and a DN, where the org unit
+        structure is parsed as an OU structure in the DN.
+
+        Example
+        --------
+        >>> dn = "CN=Earthworm Jim,OU=OS2MO,DC=ad,DC=addev"
+        >>> new_dn = make_dn_from_org_unit_path(dn,"foo/bar")
+        >>> new_dn
+        >>> "CN=Earthworm Jim,OU=bar,OU=foo,DC=ad,DC=addev"
+        """
+        sep = self.org_unit_path_string_separator
+        org_units = org_unit_path_string.split(sep)[::-1]
+        new_ou = ",".join([f"OU={org_unit.strip()}" for org_unit in org_units])
+        return exchange_ou_in_dn(dn, new_ou)
+
     def clean_org_unit_path_string(self, org_unit_path_string: str) -> str:
         """
         Cleans leading and trailing whitespace from org units in an org unit path string
@@ -1074,7 +1108,49 @@ class LdapConverter:
         sep = self.org_unit_path_string_separator
         return sep.join([s.strip() for s in org_unit_path_string.split(sep)])
 
+    def org_unit_path_string_from_dn(self, dn, number_of_ous_to_ignore=0) -> str:
+        """
+        Constructs an org-unit path string from a DN.
+
+        If number_of_ous_to_ignore is specified, ignores this many OUs in the path
+
+        Examples
+        -----------
+        >>> dn = "CN=Jim,OU=Technicians,OU=Users,OU=demo,OU=OS2MO,DC=ad,DC=addev"
+        >>> org_unit_path_string_from_dn(dn,2)
+        >>> "Users/Technicians
+        >>>
+        >>> org_unit_path_string_from_dn(dn,1)
+        >>> "demo/Users/Technicians
+        """
+        ou_decomposed = parse_dn(extract_ou_from_dn(dn))[::-1]
+        sep = self.org_unit_path_string_separator
+        org_unit_list = [ou[1] for ou in ou_decomposed]
+
+        if number_of_ous_to_ignore >= len(org_unit_list):
+            logger.info(
+                "[Org-unit-path-string-from-dn] DN cannot be mapped to org-unit-path.",
+                dn=dn,
+                org_unit_list=org_unit_list,
+                number_of_ous_to_ignore=number_of_ous_to_ignore,
+            )
+            return ""
+        org_unit_path_string = sep.join(org_unit_list[number_of_ous_to_ignore:])
+
+        logger.info(
+            "[Org-unit-path-string-from-dn] Constructed org unit path string from dn.",
+            dn=dn,
+            org_unit_path_string=org_unit_path_string,
+            number_of_ous_to_ignore=number_of_ous_to_ignore,
+        )
+        return org_unit_path_string
+
     async def get_or_create_org_unit_uuid(self, org_unit_path_string: str):
+
+        logger.info(
+            "[Get-or-create-org-unit-uuid] Finding org-unit uuid.",
+            org_unit_path_string=org_unit_path_string,
+        )
 
         if not org_unit_path_string:
             raise UUIDNotFoundException("Organization unit string is empty")
@@ -1104,16 +1180,19 @@ class LdapConverter:
         globals_dict = {
             "now": datetime.datetime.utcnow,
             "nonejoin": self.nonejoin,
+            "nonejoin_orgs": self.nonejoin_orgs,
             "get_employee_address_type_uuid": self.get_employee_address_type_uuid,
             "get_org_unit_address_type_uuid": self.get_org_unit_address_type_uuid,
             "get_it_system_uuid": self.get_it_system_uuid,
             "get_or_create_org_unit_uuid": self.get_or_create_org_unit_uuid,
+            "org_unit_path_string_from_dn": self.org_unit_path_string_from_dn,
             "get_job_function_uuid": self.get_job_function_uuid,
             "get_visibility_uuid": self.get_visibility_uuid,
             "get_primary_type_uuid": self.get_primary_type_uuid,
             "get_engagement_type_uuid": self.get_engagement_type_uuid,
             "uuid4": uuid4,
             "get_org_unit_path_string": self.get_org_unit_path_string,
+            "make_dn_from_org_unit_path": self.make_dn_from_org_unit_path,
             "get_engagement_type_name": self.get_engagement_type_name,
             "get_job_function_name": self.get_job_function_name,
             "get_org_unit_name": self.get_org_unit_name,
@@ -1151,6 +1230,10 @@ class LdapConverter:
                 - mail_address_attributes
         """
         ldap_object = {}
+
+        # Globals
+        mo_object_dict["dn"] = dn
+
         try:
             mapping = self.mapping["mo_to_ldap"]
         except KeyError:
@@ -1170,7 +1253,8 @@ class LdapConverter:
             if rendered_item:
                 ldap_object[ldap_field_name] = rendered_item
 
-        ldap_object["dn"] = dn
+        if "dn" not in ldap_object:
+            ldap_object["dn"] = dn
 
         return LdapObject(**ldap_object)
 

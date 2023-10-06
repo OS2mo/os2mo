@@ -72,19 +72,22 @@
       "value": "{{ ldap.postalAddress or NONE }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_org_unit_address_type_uuid('LocationUnit')) }}",
-      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.division)) }}"
+      //"org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.division)) }}"
+      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(org_unit_path_string_from_dn(ldap.dn, 2))) }}",
     },
     "Engagement": {
       "objectClass": "ramodels.mo.details.engagement.Engagement",
       "_import_to_mo_": "true",
-      //"org_unit": "{{ get_current_org_unit_uuid_dict(employee_uuid, ldap.countryCode) }}",
-      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.division)) }}",
+      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(org_unit_path_string_from_dn(ldap.dn, 2))) }}",
       "job_function": "{{ dict(uuid=get_or_create_job_function_uuid(ldap.title)) }}",
-      "engagement_type": "{{ get_current_engagement_type_uuid_dict(employee_uuid, ldap.countryCode) }}",
+      "engagement_type": "{{ dict(uuid=get_or_create_engagement_type_uuid(ldap.employeeType)) }}",
       "user_key": "{{ ldap.countryCode or '-'}}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}",
-      "primary": "{{ get_current_primary_uuid_dict(employee_uuid, ldap.countryCode) }}"
+      "primary": "{{ dict(uuid=get_primary_type_uuid('primary')) }}"
+      //"org_unit": "{{ get_current_org_unit_uuid_dict(employee_uuid, ldap.countryCode) }}",
+      //"engagement_type": "{{ get_current_engagement_type_uuid_dict(employee_uuid, ldap.countryCode) }}",
+      //"primary": "{{ get_current_primary_uuid_dict(employee_uuid, ldap.countryCode) }}"
     },
     "PhoneEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
@@ -102,14 +105,14 @@
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
-    "Custom": {
-      "objectClass": "Custom.JobTitleFromADToMO",
-      "_import_to_mo_": "true",
-      "user": "{{ dict(uuid=employee_uuid) }}",
-      "job_function": "{{ dict(uuid=get_or_create_job_function_uuid((ldap.title))) or NONE}}",
-      "job_function_fallback": "{{ dict(uuid=get_or_create_job_function_uuid(('Medarbejder')))}}",
-      "uuid": "{{ employee_uuid or NONE }}"
-    }
+    //"Custom": {
+    //  "objectClass": "Custom.JobTitleFromADToMO",
+    //  "_import_to_mo_": "true",
+    //  "user": "{{ dict(uuid=employee_uuid) }}",
+    //  "job_function": "{{ dict(uuid=get_or_create_job_function_uuid((ldap.title))) or NONE}}",
+    //  "job_function_fallback": "{{ dict(uuid=get_or_create_job_function_uuid(('Medarbejder')))}}",
+    //  "uuid": "{{ employee_uuid or NONE }}"
+    //}
   },
   "mo_to_ldap": {
     "Employee": {
@@ -149,16 +152,19 @@
       "_export_to_ldap_": "true",
       "postalAddress": "{{mo_org_unit_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}",
-      "division": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
+      //"division": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
+      "dn": "{{make_dn_from_org_unit_path(dn, nonejoin_orgs('OS2MO', 'demo', get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)))}}",
     },
     "Engagement" : {
       "objectClass": "user",
       "_export_to_ldap_": "true",
       "employeeID": "{{mo_employee.cpr_no}}",
       "department": "{{get_org_unit_name(mo_employee_engagement.org_unit.uuid)}}",
-      "division": "{{get_org_unit_path_string(mo_employee_engagement.org_unit.uuid)}}",
+      //"division": "{{get_org_unit_path_string(mo_employee_engagement.org_unit.uuid)}}",
+      "dn": "{{make_dn_from_org_unit_path(dn, nonejoin_orgs('OS2MO', 'demo', get_org_unit_path_string(mo_employee_engagement.org_unit.uuid)))}}",
       "countryCode": "{{mo_employee_engagement.user_key}}",
       "title": "{{get_job_function_name(mo_employee_engagement.job_function.uuid)}}",
+      "employeeType": "{{get_engagement_type_name(mo_employee_engagement.engagement_type.uuid)}}",
       "comment": "{{mo_employee_engagement.validity.to_date.strftime('%Y-%m-%d') if mo_employee_engagement.validity.to_date else NONE}}",
     },
     "PhoneEmployee": {
@@ -173,13 +179,13 @@
       "sAMAccountName" : "{{ mo_employee_it_user.user_key }}",
       "employeeNumber": "{{mo_employee.cpr_no}}"
     },
-    "Custom": {
-      "objectClass": "user",
-      "_export_to_ldap_": "false",
-      "employeeNumber": "{{ mo_jobtilte_cust.user.uuid }}",
-      "title": "{{ get_job_function_name(mo_jobtilte_cust.job_function.uuid) }}",
-      "comment": "{{ get_job_function_name(mo_jobtilte_cust.job_function_fallback.uuid) }}"
-    },
+    //"Custom": {
+    //  "objectClass": "user",
+    //  "_export_to_ldap_": "false",
+    //  "employeeNumber": "{{ mo_jobtilte_cust.user.uuid }}",
+    //  "title": "{{ get_job_function_name(mo_jobtilte_cust.job_function.uuid) }}",
+    //  "comment": "{{ get_job_function_name(mo_jobtilte_cust.job_function_fallback.uuid) }}"
+    //},
   },
   "username_generator": {
      "objectClass" : "UserNameGenerator",

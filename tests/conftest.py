@@ -135,6 +135,7 @@ def dataloader(
 
     dataloader = AsyncMock()
     dataloader.load_ldap_object = sync_dataloader
+    dataloader.load_ldap_OUs = sync_dataloader
     dataloader.load_ldap_populated_overview = sync_dataloader
     dataloader.load_ldap_overview = sync_dataloader
     dataloader.load_ldap_cpr_object = load_ldap_cpr_object
@@ -152,6 +153,12 @@ def dataloader(
     dataloader.load_ldap_attribute_values = sync_dataloader
     dataloader.modify_ldap_object.return_value = [{"description": "success"}]
     dataloader.get_ldap_objectGUID = sync_dataloader
+    dataloader.find_or_make_mo_employee_dn.return_value = "CN=foo"
+
+    dataloader.load_ldap_OUs = MagicMock()
+    dataloader.move_ldap_object = MagicMock()
+    dataloader.delete_ou = MagicMock()
+    dataloader.create_ou = MagicMock()
 
     return dataloader
 

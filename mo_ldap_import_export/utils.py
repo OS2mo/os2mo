@@ -189,28 +189,92 @@ def remove_vowels(string):
     return re.sub("[aeiouAEIOU]", "", string)
 
 
-def extract_ou_from_dn(dn: str) -> str:
+def extract_part_from_dn(dn: str, index_string: str) -> str:
     """
-    Extract the OU part from an LDAP DN string
+    Extract a part from an LDAP DN string
 
     Examples
     -------------
-    >>> extract_ou_from_dn("CN=Tobias,OU=mucki,OU=bar,DC=k")
+    >>> extract_part_from_dn("CN=Tobias,OU=mucki,OU=bar,DC=k","OU")
     >>> "OU=mucki,OU=bar"
     """
     dn_parts = to_dn(dn)
-    ou_parts = []
+    parts = []
     for dn_part in dn_parts:
         dn_decomposed = parse_dn(dn_part)[0]
-        if dn_decomposed[0].lower() == "ou":
-            ou_parts.append(dn_part)
+        if dn_decomposed[0].lower() == index_string.lower():
+            parts.append(dn_part)
 
-    if ou_parts:
-        ou: str = safe_dn(",".join(ou_parts))
-        return ou
+    if parts:
+        partial_dn: str = safe_dn(",".join(parts))
+        return partial_dn
     else:
         return ""
 
 
+def remove_part_from_dn(dn, index_string) -> str:
+    """
+    Remove a part from an LDAP DN string
+
+    Examples
+    -------------
+    >>> remove_part_from_dn("CN=Tobias,OU=mucki,OU=bar,DC=k","OU")
+    >>> "CN=Tobias,DC=k"
+    """
+    dn_parts = to_dn(dn)
+    parts = []
+    for dn_part in dn_parts:
+        dn_decomposed = parse_dn(dn_part)[0]
+        if dn_decomposed[0].lower() != index_string.lower():
+            parts.append(dn_part)
+
+    if parts:
+        partial_dn: str = safe_dn(",".join(parts))
+        return partial_dn
+    else:
+        return ""
+
+
+def extract_ou_from_dn(dn: str) -> str:
+    return extract_part_from_dn(dn, "OU")
+
+
+def extract_cn_from_dn(dn: str) -> str:
+    return extract_part_from_dn(dn, "CN")
+
+
+def remove_cn_from_dn(dn: str) -> str:
+    return remove_part_from_dn(dn, "CN")
+
+
 def get_object_type_from_routing_key(routing_key: MORoutingKey) -> str:
     return str(routing_key)
+
+
+def exchange_ou_in_dn(dn: str, new_ou: str) -> str:
+    """
+    Exchange the OU in a dn with another one
+
+    Examples
+    ------------
+    >>> dn = "CN=Johnny,OU=foo,DC=Magenta"
+    >>> new_ou = "OU=bar"
+    >>> exchange_ou_in_dn(dn, new_ou)
+    >>> 'CN=Johnny,OU=bar,DC=Magenta'
+    """
+
+    dn_parts = to_dn(dn)
+    new_dn_parts = []
+    new_ou_added = False
+
+    for dn_part in dn_parts:
+        dn_part_decomposed = parse_dn(dn_part)[0]
+
+        if dn_part_decomposed[0].lower() == "ou":
+            if not new_ou_added:
+                new_dn_parts.append(new_ou)
+                new_ou_added = True
+        else:
+            new_dn_parts.append(dn_part)
+
+    return combine_dn_strings(new_dn_parts)

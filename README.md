@@ -398,6 +398,51 @@ but can contain entries like for example `primary`, `not-primary`, `explicitly-p
 To inspect all possible values, which the `primary` class can take, use
 [GET:MO/Primary_types][get_primary_types].
 
+##### The DN attribute
+OS2mo's Organizational units can be mapped to LDAP's `dn` attribute. When mapping an
+organizational unit to the `dn` attribute, the application will move an LDAP user
+around, based on its organizational path. For example:
+
+
+
+```
+  [...]
+  "mo_to_ldap": {
+    "Engagement" : {
+      [...]
+      "dn": "{{make_dn_from_org_unit_path(dn, nonejoin_orgs('OS2MO', 'demo', get_org_unit_path_string(mo_employee_engagement.org_unit.uuid)))}}",
+      [...]
+    }
+  }
+  [...]
+```
+
+Will call `get_org_unit_path_string` to construct an org-unit path string from the
+org-unit's `uuid`. Then it calls `nonejoin_orgs` to append `OS2MO/demo` to this path.
+Finally the path is converted to an LDAP `dn`. This means that if an employee is
+registered to an org-unit called `org1/org2` in OS2mo, it will be placed in
+`OU=org2,OU=org1,OU=demo,OU=OS2mo` in LDAP. Note that the `dn` variable is
+globally defined in [global](#filters-and-globals).
+
+Converting the other way around can be done as follows:
+
+```
+  [...]
+  "ldap_to_mo": {
+    "Engagement": {
+      [...]
+      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(org_unit_path_string_from_dn(ldap.dn, 2))) }}",
+      [...]
+    }
+  }
+  [...]
+```
+
+Where the second argument to `org_unit_path_string_from_dn` strips the first two
+organizations in the path, before returning a path string. This means that if an object
+is in `OU=org2,OU=org1,OU=demo,OU=OS2mo` in LDAP, `OU=OS2mo` and `OU=demo` will be
+stripped and the user will be placed in `org1/org2` in OS2mo.
+
 #### Link LDAP and OS2mo objects
 
 For us to be able to synchronize objects between OS2mo and LDAP, we need to know which
@@ -533,6 +578,10 @@ These are called using the normal function call syntax. For example:
 * `now`: Returns current datetime
 * `nonejoin`: Joins two or more strings together with comma, omitting any Falsy values
   (`None`, `""`, `0`, `False`, `{}` or `[]`)
+* `nonejoin_orgs`: Joins two or more strings together with the org-unit path separator,
+  omitting any Falsy values (`None`, `""`, `0`, `False`, `{}` or `[]`). The org-unit
+  path separator can be set with the `org_unit_path_string_separator` environment
+  variable.
 * `get_employee_address_type_uuid`: Returns the address type uuid for an employee
   address type user_key
 * `get_org_unit_address_type_uuid`: Returns the address type uuid for an org-unit
@@ -551,11 +600,17 @@ These are called using the normal function call syntax. For example:
 * `get_engagement_type_name`: Returns the name of an engagement type, given its uuid
 * `get_job_function_name`: Returns the name of a job function, given its uuid
 * `get_org_unit_name`: Returns the name of an org-unit, given its uuid
+* `org_unit_path_string_from_dn`: Takes all `OU` attributes of an LDAP Distinguished Name
+  and formats them as an org-unit path string.
+* `make_dn_from_org_unit_path`: Replaces all `OU` attributes in an LDAP Distringuished
+  Name with org-unit names as specified in an org-unit path string.
 
 Finally, the following global variables can be used:
 
 * `employee_uuid`: uuid of the employee matching the converted object's cpr number.
   Can only be used in `ldap_to_mo` mapping.
+* `dn`: The DN (Distinguished Name) of an object.
+  Can only be used in `mo_to_ldap` mapping.
 
 #### Username generation
 If a user is created in OS2mo, the tool will try to find the matching user in LDAP using
