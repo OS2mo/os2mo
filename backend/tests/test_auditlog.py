@@ -3,6 +3,7 @@
 from datetime import datetime
 from datetime import timedelta
 from typing import Any
+from unittest.mock import ANY
 from uuid import UUID
 from uuid import uuid4
 
@@ -404,3 +405,63 @@ async def test_auditlog_disabled_for_user(set_settings: MonkeyPatch) -> None:
     async with session.begin():
         audit_log(session, "test_auditlog", "AuditLog", {}, [uuid])
     await assert_one_audit_entry(sessionmaker, "AuditLog", "test_auditlog", [uuid])
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("testing_db")
+async def test_auditlog_graphql_cursor(
+    set_settings: MonkeyPatch,
+    graphapi_post: GraphAPIPost,
+    testing_db_session: AsyncSession,
+) -> None:
+    """Ensure that auditlogs can be iterated without running indefinitely."""
+
+    session = testing_db_session
+    # Remove all audit log entries present
+    async with session.begin():
+        await session.execute(delete(AuditLogRead))
+        await session.execute(delete(AuditLogOperation))
+
+    set_settings(AUDIT_READLOG_ENABLE="True")
+
+    query = """
+        query ReadAuditLog($cursor: Cursor) {
+          auditlog(limit: 1, cursor: $cursor) {
+            objects {
+                id
+            }
+            page_info {
+              next_cursor
+            }
+          }
+        }
+    """
+    # First call returns nothing, but produces an audit event
+    response = graphapi_post(query)
+    assert response.errors is None
+    assert response.data == {
+        "auditlog": {"objects": [], "page_info": {"next_cursor": None}}
+    }
+
+    # Next call reads the first calls audit event and makes another
+    response = graphapi_post(query)
+    assert response.errors is None
+    assert response.data == {
+        "auditlog": {"objects": [ANY], "page_info": {"next_cursor": None}}
+    }
+
+    # Next call reads the two first calls audit events and makes yet another
+    response = graphapi_post(query)
+    assert response.errors is None
+    assert response.data == {
+        "auditlog": {"objects": [ANY], "page_info": {"next_cursor": ANY}}
+    }
+    next_cursor = response.data["auditlog"]["page_info"]["next_cursor"]
+    assert next_cursor is not None
+
+    # Check that iteration is not infinite
+    response = graphapi_post(query, variables={"cursor": next_cursor})
+    assert response.errors is None
+    assert response.data == {
+        "auditlog": {"objects": [ANY], "page_info": {"next_cursor": None}}
+    }
