@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
+from enum import Enum
 from functools import partial
 from textwrap import dedent
 from uuid import UUID
@@ -64,6 +65,21 @@ async def audit_read_loader(
         return [[uuid for _, uuid in buckets[key]] for key in keys]
 
 
+@strawberry.enum
+class AuditLogModel(Enum):
+    AUDIT_LOG = "AuditLog"
+    PERSON = "Bruger"
+    FACET = "Facet"
+    IT_SYSTEM = "ItSystem"
+    CLASS = "Klasse"
+    ORGANISATION = strawberry.enum_value(
+        "Organisation",
+        deprecation_reason="The root organisation concept will be removed in a future version of OS2mo.",
+    )
+    ORGANISATION_UNIT = "OrganisationEnhed"
+    ORGANISATION_FUNCTION = "OrganisationFunktion"
+
+
 @strawberry.type(
     description=dedent(
         """\
@@ -109,15 +125,10 @@ class AuditLog:
     )
 
     # Name of the entity model
-    model: str = strawberry.field(
+    model: AuditLogModel = strawberry.field(
         description=dedent(
             """\
         Model of the modified entity.
-
-        Examples:
-        * `"class"`
-        * `"employee"`
-        * `"org_unit"`
         """
         )
     )
@@ -156,7 +167,7 @@ class AuditLogFilter:
         + gen_filter_table("actors"),
     )
 
-    models: list[str] | None = strawberry.field(
+    models: list[AuditLogModel] | None = strawberry.field(
         default=None,
         description=dedent(
             """\
@@ -214,7 +225,8 @@ class AuditLogResolver(PagedResolver):
             query = query.where(AuditLogOperation.actor.in_(filter.actors))
 
         if filter.models is not None:
-            query = query.where(AuditLogOperation.model.in_(filter.models))
+            models = [model.value for model in filter.models]
+            query = query.where(AuditLogOperation.model.in_(models))
 
         if filter.start is not None or filter.end is not None:
             dates = get_date_interval(filter.start, filter.end)

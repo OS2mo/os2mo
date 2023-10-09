@@ -24,6 +24,7 @@ from mora.auth.middleware import set_authenticated_user
 from mora.db import AuditLogOperation as AuditLogOperation
 from mora.db import AuditLogRead
 from mora.db import get_sessionmaker
+from mora.graphapi.versions.latest.audit import AuditLogModel
 from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.orgunits import search_orgunits
 from mora.util import DEFAULT_TIMEZONE
@@ -154,7 +155,7 @@ async def test_auditlog_graphql_self(
 
     assert datetime.fromisoformat(result["time"]) > now
     assert result["actor"] == str(await admin_auth_uuid())
-    assert result["model"] == "AuditLog"
+    assert result["model"] == "AUDIT_LOG"
     assert result["uuids"] == []
 
     # This call reads both audit events (and makes yet another)
@@ -166,7 +167,7 @@ async def test_auditlog_graphql_self(
 
     assert datetime.fromisoformat(new_result["time"]) > now
     assert new_result["actor"] == str(await admin_auth_uuid())
-    assert new_result["model"] == "AuditLog"
+    assert new_result["model"] == "AUDIT_LOG"
     assert new_result["uuids"] == [old_result["id"]]
 
 
@@ -218,7 +219,9 @@ def audit_log_entries_and_filter(
                 {
                     "actor": st.uuids(),
                     "operation": simple_text,
-                    "class_name": simple_text,
+                    "class_name": st.sampled_from(AuditLogModel).map(
+                        lambda alm: alm.value
+                    ),
                     "uuids": st.lists(st.uuids()),
                     # "time": st.datetimes(),
                 }
@@ -235,7 +238,9 @@ def audit_log_entries_and_filter(
         graphql_filter(list(flatten([x["uuids"] for x in audit_log_entries])))
     )
     actor_filter = draw(graphql_filter([x["actor"] for x in audit_log_entries]))
-    model_filter = draw(graphql_filter([x["class_name"] for x in audit_log_entries]))
+    model_filter = draw(
+        graphql_filter([AuditLogModel(x["class_name"]).name for x in audit_log_entries])
+    )
 
     return (audit_log_entries, uuid_filter, actor_filter, model_filter)
 
@@ -344,7 +349,9 @@ async def test_auditlog_filters(
         )
     if "models" in filter_object:
         expected = filter(
-            lambda x: x["class_name"] in set(filter_object["models"]), expected
+            lambda x: AuditLogModel(x["class_name"]).name
+            in set(filter_object["models"]),
+            expected,
         )
     expected = list(expected)
 
