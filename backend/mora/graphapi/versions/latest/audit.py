@@ -163,6 +163,16 @@ class AuditLogFilter:
             Filter audit events by their model type.
 
             Can be used to select all reads for a data type.
+
+            Can be one of:
+            * `"AuditLog"`
+            * `"Bruger"`
+            * `"Facet"`
+            * `"ItSystem"`
+            * `"Klasse"`
+            * `"Organisation"`
+            * `"OrganisationEnhed"`
+            * `"OrganisationFunktion"`
             """
         )
         + gen_filter_table("models"),
