@@ -21,36 +21,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from mora.audit import audit_log
 from mora.auth.middleware import LORA_USER_UUID
 from mora.auth.middleware import set_authenticated_user
-from mora.db import AuditLogOperation as AuditLogOperation
+from mora.db import AuditLogOperation
 from mora.db import AuditLogRead
-from mora.db import get_sessionmaker
 from mora.graphapi.versions.latest.audit import AuditLogModel
 from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.orgunits import search_orgunits
 from mora.util import DEFAULT_TIMEZONE
-from oio_rest.config import get_settings as lora_get_settings
-from oio_rest.db import _get_dbname
 from tests.conftest import admin_auth_uuid
-from tests.conftest import AsyncYieldFixture
+from tests.conftest import create_sessionmaker
 from tests.conftest import GraphAPIPost
-
-
-def create_sessionmaker():
-    lora_settings = lora_get_settings()
-    return get_sessionmaker(
-        user=lora_settings.db_user,
-        password=lora_settings.db_password,
-        host=lora_settings.db_host,
-        name=_get_dbname(),
-    )
-
-
-@pytest.fixture(scope="session")
-async def testing_db_session(testing_db) -> AsyncYieldFixture[AsyncSession]:
-    sessionmaker = create_sessionmaker()
-    session = sessionmaker()
-    yield session
-    await session.close()
 
 
 async def ensure_empty_audit_tables(sessionmaker) -> None:

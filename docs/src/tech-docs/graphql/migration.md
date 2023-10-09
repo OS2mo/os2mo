@@ -9,6 +9,28 @@ code is up-to-date with the latest version.
 
 Below follows the migration guide for each version.
 
+## Version 18
+
+GraphQL version 18 introduces breaking changes to the `auditlog`'s `models` filter.
+Specifically it changes the type from an unconstrained string to a structured enum.
+
+To migrate to GraphQL v18, simply send queries as you do now, but modify the
+`models` filter value according to the below table:
+
+| v17                    | v18                     |
+|------------------------|-------------------------|
+| `AuditLog`             | `AUDIT_LOG`             |
+| `Bruger`               | `PERSON`                |
+| `Facet`                | `FACET`                 |
+| `ItSystem`             | `IT_SYSTEM`             |
+| `Klasse`               | `CLASS`                 |
+| `Organisation`         | `ORGANISATION`          |
+| `OrganisationEnhed`    | `ORGANISATION_UNIT`     |
+| `OrganisationFunktion` | `ORGANISATION_FUNCTION` |
+
+Additionally you should translate the `model` field in responses according to the
+above table as well.
+
 ## Version 17
 
 GraphQL version 17 introduces breaking changes to a few class related endpoints.
