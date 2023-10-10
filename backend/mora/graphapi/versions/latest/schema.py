@@ -632,6 +632,72 @@ async def validity_sub_query_hack(
 # -------
 
 
+@strawberry.interface
+class ResolvedAddress:
+    value: str
+
+
+@strawberry.type
+class DefaultAddress(ResolvedAddress):
+    pass
+
+
+@strawberry.type
+class MultifieldAddress(ResolvedAddress):
+    value2: str
+
+    @strawberry.field
+    async def name(self, root: "MultifieldAddress") -> str:
+        return multifield_text.name(root.value, root.value2)
+
+
+def extract_field(field: str) -> Any:
+    @strawberry.field
+    async def extractor(self: Any, root: "DARAddress") -> Any:
+        dar_response = await root.resolve_dar(root)
+        return dar_response[field]
+
+    return extractor
+
+
+@strawberry.type
+class DARAddress(ResolvedAddress):
+    # Lookup the UUID in DAR, cached via the dataloader
+    async def resolve_dar(self, root: "DARAddress") -> dict[str, Any]:
+        dar_loader = context["dar_loader"]
+        return await dar_loader.load(UUID(root.value))
+
+    # Unstructured fields, provided and computed
+    description: str = extract_field("betegnelse")
+
+    @strawberry.field
+    async def name(self, root: "DARAddress") -> str:
+        dar_response = await root.resolve_dar(root)
+        return dar.name_from_dar_object(dar_response)
+
+    # Structured fields
+    road_code: int = extract_field("vejkode")
+    road_name: str = extract_field("vejnavn")
+    house_number: str = extract_field("husnr")
+    floor: str | None = extract_field("etage")
+    door: str | None = extract_field("dør")
+    zip_code: str = extract_field("postnr")
+    zip_code_name: str = extract_field("postnrnavn")
+    municipality_code: str = extract_field("kommunekode")
+
+    # Global position
+    longitude: float = extract_field("x")
+    latitude: float = extract_field("y")
+
+    # Links
+    href: str = extract_field("href")
+
+    @strawberry.field
+    async def streetmap_href(self, root: "DARAddress") -> str | None:
+        dar_response = await root.resolve_dar(root)
+        return dar.open_street_map_href_from_dar_object(dar_response)
+
+
 @strawberry.experimental.pydantic.type(
     model=AddressRead,
     description=dedent(
@@ -824,6 +890,18 @@ class Address:
             return dar.name_from_dar_object(address_object)
 
         return root.value
+
+    @strawberry.field
+    async def resolve(self, root: AddressRead, info: Info) -> ResolvedAddress:
+        address_type = await Address.address_type(root=root, info=info)  # type: ignore[operator]
+
+        if address_type.scope == "MULTIFIELD_TEXT":
+            return MultifieldAddress(value=root.value, value2=root.value2)  # type: ignore
+
+        if address_type.scope == "DAR":
+            return DARAddress(value=root.value)  # type: ignore
+
+        return DefaultAddress(value=root.value)  # type: ignore
 
     @strawberry.field(
         description=dedent(
