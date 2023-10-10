@@ -29,6 +29,7 @@ from hypothesis import Verbosity
 from hypothesis.database import InMemoryExampleDatabase
 from more_itertools import last
 from more_itertools import one
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette_context import request_cycle_context
 
 from mora import lora
@@ -44,6 +45,7 @@ from mora.graphapi.versions.latest.dataloaders import MOModel
 from mora.graphapi.versions.latest.permissions import ALL_PERMISSIONS
 from mora.service.org import ConfiguredOrganisation
 from oio_rest.config import get_settings as lora_get_settings
+from oio_rest.db import _get_dbname
 from oio_rest.db import dbname_context
 from oio_rest.db import get_connection
 from ramodels.mo import Validity
@@ -709,3 +711,21 @@ def sp_configuration(monkeypatch, tmp_path) -> None:
     monkeypatch.setenv("ENABLE_SP", "True")
     monkeypatch.setenv("SP_CERTIFICATE_PATH", str(tmp_file))
     yield
+
+
+def create_sessionmaker():
+    lora_settings = lora_get_settings()
+    return get_sessionmaker(
+        user=lora_settings.db_user,
+        password=lora_settings.db_password,
+        host=lora_settings.db_host,
+        name=_get_dbname(),
+    )
+
+
+@pytest.fixture(scope="session")
+async def testing_db_session(testing_db) -> AsyncYieldFixture[AsyncSession]:
+    sessionmaker = create_sessionmaker()
+    session = sessionmaker()
+    yield session
+    await session.close()
