@@ -122,3 +122,123 @@ async def test_v2_decorate_orgunits(mock_execute_graphql):
     )
 
     assert result == expected_result
+
+
+@patch("mora.service.autocomplete.orgunits.execute_graphql", new_callable=AsyncMock)
+async def test_v2_decorate_orgunits_attrs(mock_execute_graphql):
+    test_data = {
+        "uuid": "08eaf849-e9f9-53e0-b6b9-3cd45763ecbb",
+        "name": "Viuf skole",
+        "user_key": "Viuf skole",
+        "validity": {"from": "1960-01-01T00:00:00+01:00", "to": None},
+        "ancestors_validity": [
+            {"name": "Skoler og børnehaver"},
+            {"name": "Skole og Børn"},
+            {"name": "Kolding Kommune"},
+        ],
+        "addresses_validity": [
+            {
+                "uuid": "279a900a-a1a6-4c93-9c58-4f7d31108cdd",
+                "name": "Viuf_skole@kolding.dk",
+                "address_type": {
+                    "uuid": "61c22b75-01b0-4e83-954c-9cf0c8dc79fe",
+                    "name": "Email",
+                },
+            },
+            {
+                "uuid": "b756c0c9-75b7-4ed3-a731-b66946b09437",
+                "name": "Næsbyvej 26, 6000 Kolding",
+                "address_type": {
+                    "uuid": "5260d4aa-e33b-48f7-ae3e-6074262cbdcf",
+                    "name": "Postadresse",
+                },
+            },
+        ],
+        "itusers_validity": [
+            {
+                "uuid": "397c3967-fb29-425a-88a5-dac2c804cbab",
+                "user_key": "viuf-skole-test-ad",
+                "itsystem": {
+                    "uuid": "a1608e69-c422-404f-a6cc-b873c50af111",
+                    "user_key": "Active Directory",
+                    "name": "Active Directory",
+                },
+            }
+        ],
+    }
+
+    # Configure expected result from test data
+    expected_attrs = []
+    for addr in test_data["addresses_validity"]:
+        expected_attrs.append(
+            {
+                "uuid": uuid.UUID(addr["uuid"]),
+                "value": addr["name"],
+                "title": addr["address_type"]["name"],
+            }
+        )
+
+    for ituser in test_data["itusers_validity"]:
+        expected_attrs.append(
+            {
+                "uuid": uuid.UUID(ituser["uuid"]),
+                "value": ituser["user_key"],
+                "title": ituser["itsystem"]["name"],
+            }
+        )
+
+    expected_result = [
+        {
+            "uuid": uuid.UUID(test_data["uuid"]),
+            "name": test_data["name"],
+            "path": [
+                # [::-1] reverses the list
+                ancestor["name"]
+                for ancestor in test_data["ancestors_validity"][::-1]
+            ]
+            + [test_data["name"]],
+            "attrs": expected_attrs,
+            "validity": test_data["validity"],
+        }
+    ]
+
+    # Mock GraphQL response & Invoke
+    mock_execute_graphql.return_value = MagicMock(
+        data={
+            "org_units": {
+                "objects": [
+                    {
+                        "uuid": test_data["uuid"],
+                        "current": test_data,
+                        "objects": [test_data],
+                    }
+                ]
+            }
+        },
+        errors=None,
+    )
+
+    now = datetime.now()
+    result = await decorate_orgunit_search_result(
+        settings=MagicMock(
+            confdb_autocomplete_attrs_orgunit=[
+                uuid.UUID(test_data["addresses_validity"][0]["address_type"]["uuid"]),
+                uuid.UUID(test_data["addresses_validity"][1]["address_type"]["uuid"]),
+                uuid.UUID(test_data["itusers_validity"][0]["itsystem"]["uuid"]),
+            ]
+        ),
+        search_results=[uuid.UUID(test_data["uuid"])],
+        at=now.date(),
+    )
+
+    # Asserts
+    mock_execute_graphql.assert_called_with(
+        ANY,
+        graphql_version=GraphQLVersionV14,
+        variable_values={
+            "uuids": [test_data["uuid"]],
+            "from_date": now.date().isoformat(),
+        },
+    )
+
+    assert result == expected_result
