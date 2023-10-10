@@ -5,8 +5,10 @@ from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import cast
+from sqlalchemy import Select
 from sqlalchemy import String
 from sqlalchemy import Text
+from sqlalchemy import Tuple
 from sqlalchemy.ext.asyncio.session import async_sessionmaker
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import func
@@ -33,26 +35,7 @@ async def search_orgunits(
     sessionmaker: async_sessionmaker, query: str, at: date | None = None
 ) -> list[UUID]:
     at_sql, at_sql_bind_params = get_at_date_sql(at)
-
-    selects = [
-        select(cte.c.uuid)
-        for cte in (
-            _get_cte_orgunit_uuid_hits(query, at_sql),
-            _get_cte_orgunit_name_hits(query, at_sql),
-            _get_cte_orgunit_addr_hits(query, at_sql),
-            _get_cte_orgunit_itsystem_hits(query, at_sql),
-        )
-    ]
-    all_hits = union(*selects).cte()
-
-    query_final = (
-        select(
-            OrganisationEnhedRegistrering.organisationenhed_id.label("uuid"),
-        )
-        .where(OrganisationEnhedRegistrering.organisationenhed_id == all_hits.c.uuid)
-        .group_by(OrganisationEnhedRegistrering.organisationenhed_id)
-    )
-
+    query_final = _sqlalchemy_generate_query(query, at_sql)
     async with sessionmaker() as session:
         async with session.begin():
             # Execute & parse results
@@ -191,6 +174,29 @@ async def decorate_orgunit_search_result(
         )
 
     return decorated_result
+
+
+def _sqlalchemy_generate_query(query: str, at_sql: str) -> Select[Tuple]:
+    selects = [
+        select(cte.c.uuid)
+        for cte in (
+            _get_cte_orgunit_uuid_hits(query, at_sql),
+            _get_cte_orgunit_name_hits(query, at_sql),
+            _get_cte_orgunit_addr_hits(query, at_sql),
+            _get_cte_orgunit_itsystem_hits(query, at_sql),
+        )
+    ]
+    all_hits = union(*selects).cte()
+
+    query_final = (
+        select(
+            OrganisationEnhedRegistrering.organisationenhed_id.label("uuid"),
+        )
+        .where(OrganisationEnhedRegistrering.organisationenhed_id == all_hits.c.uuid)
+        .group_by(OrganisationEnhedRegistrering.organisationenhed_id)
+    )
+
+    return query_final
 
 
 def _gql_get_orgunit_attrs(settings: config.Settings, org_unit_graphql: dict) -> [dict]:
