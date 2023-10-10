@@ -21,6 +21,9 @@ from .types import CPRType
 from mora import depends
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import token_getter
+from mora.graphapi.versions.latest.schema import DARAddress
+from mora.graphapi.versions.latest.schema import DefaultAddress
+from mora.graphapi.versions.latest.schema import MultifieldAddress
 from mora.util import CPR
 
 
@@ -29,6 +32,8 @@ class LatestGraphQLSchema(BaseGraphQLSchema):
 
     query = LatestQuery
     mutation = LatestMutation
+
+    types = [DefaultAddress, DARAddress, MultifieldAddress]
 
     scalar_overrides = {
         CPR: CPRType,

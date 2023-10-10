@@ -860,3 +860,172 @@ async def test_update_address_unit_test(
     assert response.data == {"address_update": {"uuid": str(address_uuid_to_update)}}
 
     update_address.assert_called_with(test_data)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_address_resolver(graphapi_post: GraphAPIPost) -> None:
+    query = """
+        query ResolveAddresses {
+          addresses {
+            objects {
+              current {
+                uuid
+                value
+                resolve {
+                  value
+                  # Catch all non-overridden address types
+                  ... on DefaultAddress {
+                    __typename
+                    value
+                  }
+                  # For DAR addresses
+                  ... on DARAddress {
+                    __typename
+                    value
+
+                    description
+                    name
+
+                    road_code
+                    road_name
+                    house_number
+                    floor
+                    door
+                    zip_code
+                    zip_code_name
+                    municipality_code
+
+                    longitude
+                    latitude
+
+                    href
+                    streetmap_href
+                  }
+                  # For Multifield addresses
+                  ... on MultifieldAddress {
+                    __typename
+                    value
+
+                    value2
+                    name
+                  }
+                }
+              }
+            }
+          }
+        }
+    """
+
+    nordre_ringgade = {
+        "__typename": "DARAddress",
+        "description": "Nordre Ringgade 1, 8000 Aarhus C",
+        "door": None,
+        "floor": None,
+        "house_number": "1",
+        "href": "https://api.dataforsyningen.dk/adresser/b1f1817d-5f02-4331-b8b3-97330a5d3197",
+        "latitude": 56.17102843,
+        "longitude": 10.19938084,
+        "municipality_code": "0751",
+        "name": "Nordre Ringgade 1, 8000 Aarhus C",
+        "road_code": 5902,
+        "road_name": "Nordre Ringgade",
+        "streetmap_href": "https://www.openstreetmap.org/?mlon=10.19938084&mlat=56.17102843&zoom=16",
+        "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+        "zip_code": "8000",
+        "zip_code_name": "Aarhus C",
+    }
+
+    response = graphapi_post(query)
+    assert response.errors is None
+    assert response.data == {
+        "addresses": {
+            "objects": [
+                {
+                    "current": {
+                        "resolve": nordre_ringgade,
+                        "uuid": "00e96933-91e4-42ac-9881-0fe1738b2e59",
+                        "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    }
+                },
+                {
+                    "current": {
+                        "resolve": nordre_ringgade,
+                        "uuid": "414044e0-fe5f-4f82-be20-1e107ad50e80",
+                        "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    }
+                },
+                {
+                    "current": {
+                        "resolve": {
+                            "__typename": "DefaultAddress",
+                            "value": "Fake afdelingskode",
+                        },
+                        "uuid": "55848eca-4e9e-4f30-954b-78d55eec0441",
+                        "value": "Fake afdelingskode",
+                    }
+                },
+                {
+                    "current": {
+                        "resolve": nordre_ringgade,
+                        "uuid": "55848eca-4e9e-4f30-954b-78d55eec0444",
+                        "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    }
+                },
+                {
+                    "current": {
+                        "resolve": {
+                            "__typename": "DefaultAddress",
+                            "value": "+4587150000",
+                        },
+                        "uuid": "55848eca-4e9e-4f30-954b-78d55eec0473",
+                        "value": "+4587150000",
+                    }
+                },
+                {
+                    "current": {
+                        "resolve": {
+                            "__typename": "DefaultAddress",
+                            "value": "goofy@example.com",
+                        },
+                        "uuid": "64ea02e2-8469-4c54-a523-3d46729e86a7",
+                        "value": "goofy@example.com",
+                    }
+                },
+                {
+                    "current": {
+                        "resolve": {
+                            "__typename": "DefaultAddress",
+                            "value": "5798000420526",
+                        },
+                        "uuid": "a0fe7d43-1e0d-4232-a220-87098024b34d",
+                        "value": "5798000420526",
+                    }
+                },
+                {
+                    "current": {
+                        "resolve": nordre_ringgade,
+                        "uuid": "cd6008bc-1ad2-4272-bc1c-d349ef733f52",
+                        "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    }
+                },
+                {
+                    "current": {
+                        "resolve": nordre_ringgade,
+                        "uuid": "e1a9cede-8c9b-4367-b628-113834361871",
+                        "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    }
+                },
+                {
+                    "current": {
+                        "resolve": {
+                            "__typename": "DefaultAddress",
+                            "value": "bruger@example.com",
+                        },
+                        "uuid": "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
+                        "value": "bruger@example.com",
+                    }
+                },
+            ]
+        }
+    }

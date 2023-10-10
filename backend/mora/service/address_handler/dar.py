@@ -41,7 +41,7 @@ async def load_addresses(keys: list[UUID]) -> list[dict | None]:
             addresses, _ = await adarclient.fetch(set(keys))
         except ClientResponseError as exc:
             logger.exception("address lookup failed", exc=exc)
-            return [None for key in keys]
+            return [None for _ in keys]
     return list(map(addresses.get, keys))
 
 
