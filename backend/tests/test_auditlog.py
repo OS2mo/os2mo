@@ -366,6 +366,61 @@ async def test_auditlog_disabled(set_settings: MonkeyPatch) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.usefixtures("testing_db")
+async def test_auditlog_disabled_for_user_graphql(
+    set_settings: MonkeyPatch,
+    graphapi_post: GraphAPIPost,
+    testing_db_session: AsyncSession,
+) -> None:
+    """Integrationtest for selectively disabling the auditlog (GraphQL)."""
+
+    session = testing_db_session
+    # Remove all audit log entries present
+    async with session.begin():
+        await session.execute(delete(AuditLogRead))
+        await session.execute(delete(AuditLogOperation))
+
+    set_settings(AUDIT_READLOG_ENABLE="True")
+
+    query = """
+        query ReadAuditLog {
+          auditlog {
+            objects {
+              id
+              time
+              actor
+              model
+              uuids
+            }
+          }
+        }
+    """
+
+    admin_uuid = str(await admin_auth_uuid())
+    set_settings(AUDIT_READLOG_NO_LOG_UUIDS=f'["{admin_uuid}"]')
+    # First call returns nothing, and produces nothing
+    response = graphapi_post(query)
+    assert response.errors is None
+    assert response.data == {"auditlog": {"objects": []}}
+
+    # Second call returns nothing, and produces nothing
+    response = graphapi_post(query)
+    assert response.errors is None
+    assert response.data == {"auditlog": {"objects": []}}
+
+    set_settings(AUDIT_READLOG_NO_LOG_UUIDS="[]")
+    # First call returns nothing, but produces an audit event
+    response = graphapi_post(query)
+    assert response.errors is None
+    assert response.data == {"auditlog": {"objects": []}}
+
+    # Second call returns first call audit event, and produces yet another
+    response = graphapi_post(query)
+    assert response.errors is None
+    assert response.data == {"auditlog": {"objects": [ANY]}}
+
+
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
 async def test_auditlog_disabled_for_user(set_settings: MonkeyPatch) -> None:
     """Integrationtest for selectively disabling the auditlog."""
