@@ -165,7 +165,6 @@ async def get_orgunit(
     org_unit["org"] = org
     org_unit["location"] = ""
     org_unit["org_unit_type"] = org_unit.pop("unit_type", None)
-    settings = {}
     parent_uuid = org_unit.pop("parent_uuid", None)
 
     # Recurse to get parents
@@ -173,10 +172,6 @@ async def get_orgunit(
         parent = await get_orgunit(
             parent_uuid, only_primary_uuid=only_primary_uuid, count=count, at=at
         )
-        # Settings
-        parent_settings = parent["user_settings"]["orgunit"]
-        for setting, value in parent_settings.items():
-            settings.setdefault(setting, value)
 
         # Parent location
         if parent["location"]:
@@ -189,10 +184,7 @@ async def get_orgunit(
 
     org_unit.setdefault("parent", None)
     global_settings = await get_configuration()
-    for setting, value in global_settings.items():
-        settings.setdefault(setting, value)
-
-    org_unit["user_settings"] = {"orgunit": settings}
+    org_unit["user_settings"] = {"orgunit": global_settings}
     return org_unit
 
 
