@@ -1961,7 +1961,8 @@ class DataLoader:
                 input: {{name: "{name}",
                         user_key: "{user_key}",
                         facet_uuid: "{facet_uuid}",
-                        scope: "{scope}"}},
+                        scope: "{scope}",
+                        uuid: "{class_uuid}"}},
                 uuid: "{class_uuid}"
               ) {{
                 uuid
