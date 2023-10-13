@@ -26,10 +26,10 @@ På den måde findes alle oplysninger i MO, men i de aftagersystemerne er de fø
 
 Her er en liste over de systemer, der overholder reglen for stillingsbetegnelser:
 
-- [plan2learn](https://rammearkitektur.docs.magenta.dk/os2mo/data-import-export/exporters/plan2learn.html)
-- [organisationsdiagrammet](https://rammearkitektur.docs.magenta.dk/os2mo/data-import-export/exporters/org-chart.html)
-- [FK Organisation](https://rammearkitektur.docs.magenta.dk/os2mo/data-import-export/exporters/os2sync.html)
-- [SQL-databaser](https://rammearkitektur.docs.magenta.dk/os2mo/data-import-export/exporters/sql_export.html).
+- [plan2learn](https://rammearkitektur.docs.magenta.dk/os2mo/integrations/plan2learn.html)
+- [organisationsdiagrammet](https://rammearkitektur.docs.magenta.dk/os2mo/features/org-chart.html)
+- [FK Organisation](https://rammearkitektur.docs.magenta.dk/os2mo/integrations/os2sync.html)
+- [SQL-databaser](https://rammearkitektur.docs.magenta.dk/os2mo/integrations/sql_export.html).
 
 ## Automatisk (eventbaseret) vedligeholdelse af stillingsbetegnelser
 
