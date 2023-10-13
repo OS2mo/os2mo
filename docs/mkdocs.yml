@@ -8,7 +8,7 @@ repo_url: https://github.com/OS2mo/os2mo
 docs_dir: src/
 
 nav:
-  - Home:
+  - Hjem:
       - index.md
       - home/manual.md
       - home/landscape.md
@@ -20,7 +20,7 @@ nav:
       - features/med-organisation.md
       - features/org-chart.md
       - features/reports.md
-  - Integrations:
+  - Integrationer:
       - Active Directory:
         - integrations/ldap_ad_amqp_integration.md
         - integrations/ad.md
@@ -43,7 +43,7 @@ nav:
       - moaas/cloud.md
       - moaas/on-prem.md
       - moaas/implementeringsguide.md
-  - Technical Documentation:
+  - Teknisk dokumentation:
       # - Understanding bitemporality: TODO
       - tech-docs/development.md
       - GraphQL / API:
@@ -51,7 +51,7 @@ nav:
           - tech-docs/graphql/reads.md
           # - tech-docs/graphql/pagination.md: TODO
           - tech-docs/graphql/migration.md
-      - IAM (Keycloak):
+      - IAM (Identity & Access Management - Keycloak):
           - tech-docs/iam/auth.md
           - tech-docs/iam/rbac.md
           - tech-docs/iam/adfs-setup.md
@@ -69,7 +69,7 @@ nav:
         - tech-docs/legacy/dipex-tools.md
         - tech-docs/legacy/data-import-tool.md
 
-  - Release History: changelog.md
+  - Versionshistorik: changelog.md
 theme:
   name: "material"
   palette:
