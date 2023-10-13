@@ -310,20 +310,21 @@ def test_alleroed_username_generator(
             "llkrs",
             "llrsm",
             "lrsms",
-            "llr",
-            "lrs",
-            "lr",
-            "lr2",
+            "lolk",
+            "lalk",
+            "lelk",
+            "lalr",
             "mlxn",
             "mlxb",
             "mlbr",
             "mbrh",
             "mlbn",
             "mbrn",
-            "bl",
-            "bl2",
-            "bl3",
+            "brul",
+            "borl",
+            "benl",
             "bruc",
+            "dobn",
         ]
     )
 
@@ -350,6 +351,7 @@ def test_alleroed_username_generator(
         ["Boris", "Lee"],
         ["Benjamin", "Lee"],
         ["Bruce", ""],
+        ["Dorthe", "Baun"],
     ]:
         username = alleroed_username_generator.generate_username(name, existing_names)
         assert username == next(expected_usernames)

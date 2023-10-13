@@ -399,6 +399,66 @@
 
             "FLLLL",
 
+            // If we get to here, we failed to make a username with only a single
+            // character for the first name
+
+            "FF11",
+            "FF12",
+            "FF22",
+            "FF23",
+            "FF33",
+            "FF1L",
+            "FF2L",
+            "FF3L",
+            "FFLL",
+
+            "FFF1",
+            "FFF2",
+            "FFF3",
+            "FFFL",
+
+            "FFFF",
+
+            // If we get to here, we failed to make a 4-character username with where
+            // we allow multiple characters for the first name
+
+            "FF111",
+            "FF112",
+            "FF122",
+            "FF222",
+            "FF223",
+            "FF233",
+            "FF333",
+
+            "FF11L",
+            "FF12L",
+            "FF22L",
+            "FF23L",
+            "FF33L",
+
+            "FF1LL",
+            "FF2LL",
+            "FF3LL",
+
+            "FFLLL",
+
+            "FFF11",
+            "FFF12",
+            "FFF22",
+            "FFF23",
+            "FFF33",
+            "FFF1L",
+            "FFF2L",
+            "FFF3L",
+            "FFFLL",
+
+            "FFFF1",
+            "FFFF2",
+            "FFFF3",
+            "FFFFL",
+
+            "FFFFF",
+
             // If we get to here, we failed to make a username with 5 characters.
             "F1L",
             "F2L",
