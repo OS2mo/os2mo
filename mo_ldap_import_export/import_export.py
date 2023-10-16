@@ -505,6 +505,26 @@ class SyncTool:
                 ldap_object.dn,
             )
 
+    async def publish_engagements_for_org_unit(self, org_unit_uuid: UUID) -> None:
+        """
+        Loops through all employees who are connected to an org-unit and publishes
+        'engagement' AMQP messages for all of them.
+
+        Parameters
+        -------------
+        org_unit_uuid : UUId
+            UUID of the org-unit for which to publish messages
+        """
+        employees = await self.dataloader.load_mo_employees_in_org_unit(org_unit_uuid)
+        for employee in employees:
+            engagements = await self.dataloader.load_mo_employee_engagements(
+                employee.uuid
+            )
+
+            for engagement in engagements:
+                if engagement.org_unit.uuid == org_unit_uuid:
+                    await self.refresh_object(engagement.uuid, "engagement")
+
     @wait_for_export_to_finish
     async def listen_to_changes_in_org_units(
         self,
@@ -551,6 +571,11 @@ class SyncTool:
             )
             self.converter.org_unit_info = await self.dataloader.load_mo_org_units()
             self.converter.check_org_unit_info_dict()
+
+            # In case the name of the org-unit changed, we need to publish an
+            # "engagement" message for each of its employees. Because org-unit
+            # LDAP mapping is primarily done through the "Engagment" json-key.
+            await self.publish_engagements_for_org_unit(object_uuid)
 
         if object_type == "address":
             # Get MO address
