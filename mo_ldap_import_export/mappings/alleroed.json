@@ -470,8 +470,6 @@
             "FLX",
 
             // If we get to here, we failed to make a username that includes last-name
-            "FFFF",
-            "FFFFF",
             "FFF",
             "FF",
             "FFX",
