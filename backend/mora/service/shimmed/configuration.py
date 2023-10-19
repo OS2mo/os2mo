@@ -15,7 +15,9 @@ from mora.service.util import get_configuration
 
 
 @config_router.post("/ou/{unitid}/configuration", status_code=410)
-async def set_org_unit_configuration(unitid: UUID, configuration: dict = Body(...)) -> bool:
+async def set_org_unit_configuration(
+    unitid: UUID, configuration: dict = Body(...)
+) -> bool:
     """Removed configuration setting endpoint."""
     return False
 
