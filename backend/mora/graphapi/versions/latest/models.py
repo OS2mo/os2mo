@@ -1529,6 +1529,32 @@ class OrganisationUnitUpdate(UUIDBase):
         return {k: v for k, v in data_dict.items() if v}
 
 
+# Related units
+# -----
+
+
+class RelatedUnitsUpdate(UUIDBase):
+    origin: UUID = Field(description="UUID of the unit to create relations under.")
+    destination: list[UUID] | None = Field(
+        description="UUID of the units to create relations to."
+    )
+    validity: RAValidity = Field(description="From date.")
+
+    def to_handler_dict(self) -> dict:
+        def get_destination(destinations: list[UUID] | None) -> list[str]:
+            if destinations is None:
+                return []
+            return [str(dest) for dest in destinations]
+
+        return {
+            "origin": str(self.origin),
+            "destination": get_destination(self.destination),
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+            },
+        }
+
+
 # Roles
 # -----
 class RoleCreate(UUIDBase):
