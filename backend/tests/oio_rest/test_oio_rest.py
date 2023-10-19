@@ -1248,7 +1248,7 @@ class TestOIOStandardHierarchy(ExtTestCase):
         assert route.name == "testclass_classes"
         assert isinstance(route.endpoint, types.FunctionType)
 
-    def test_setup_api_get_classes_returns_correct_result(self):
+    async def test_setup_api_get_classes_returns_correct_result(self):
         # Arrange
         cls1 = MagicMock()
         cls1.__name__ = "name1"
@@ -1269,7 +1269,7 @@ class TestOIOStandardHierarchy(ExtTestCase):
             route = next(routes)
             get_classes = route.endpoint
 
-            actual_result = get_classes()
+            actual_result = await get_classes()
             self.assertDictEqual(actual_result, expected_result)
 
 
