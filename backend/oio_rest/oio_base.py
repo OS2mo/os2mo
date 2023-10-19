@@ -303,7 +303,7 @@ class OIOStandardHierarchy:
         classes_url = "/{}/{}".format(hierarchy, "classes")
 
         @oio_router.get(classes_url, name="_".join([hierarchy, "classes"]))
-        def get_classes():
+        async def get_classes():
             """Return the classes including their fields under this service.
 
             .. :quickref: :http:get:`/(service)/classes`

@@ -31,12 +31,12 @@ def meta_router():
         return response.data["version"]
 
     @router.get("/service/{rest_of_path:path}")
-    def no_such_endpoint(rest_of_path):
+    async def no_such_endpoint(rest_of_path):
         """Throw an error on unknown `/service/` endpoints."""
         exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
 
     @router.get("/saml/sso/")
-    def old_auth():
+    async def old_auth():
         return RedirectResponse(url="/")
 
     return router

@@ -35,11 +35,11 @@ jinja_env = Environment(
 
 def setup_views(app):
     @app.get("/", tags=["Meta"])
-    def root():
+    async def root():
         return RedirectResponse(app.url_path_for("sitemap"))
 
     @app.get("/site-map", tags=["Meta"])
-    def sitemap():
+    async def sitemap():
         """Returns a site map over all valid urls.
 
         .. :quickref: :http:get:`/site-map`
@@ -51,7 +51,7 @@ def setup_views(app):
         return {"site-map": sorted(links)}
 
     @app.get("/version", tags=["Meta"])
-    def version():
+    async def version():
         settings = config.get_settings()
         return {
             "lora_version": f"{settings.commit_tag}",
@@ -59,14 +59,14 @@ def setup_views(app):
         }
 
     @app.get("/autocomplete/bruger", dependencies=[Depends(auth)])
-    def autocomplete_user(
+    async def autocomplete_user(
         phrase: str,
         class_uuids: list[UUID] | None = Query(None),
     ):
         return {"results": find_users_matching(phrase, class_uuids=class_uuids)}
 
     @app.get("/autocomplete/organisationsenhed", dependencies=[Depends(auth)])
-    def autocomplete_org_unit(
+    async def autocomplete_org_unit(
         phrase: str, class_uuids: list[UUID] | None = Query(None)
     ):
         return {"results": find_org_units_matching(phrase, class_uuids=class_uuids)}

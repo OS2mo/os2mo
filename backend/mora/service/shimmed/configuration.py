@@ -15,13 +15,13 @@ from mora.service.util import get_configuration
 
 
 @config_router.post("/ou/{unitid}/configuration", status_code=410)
-def set_org_unit_configuration(unitid: UUID, configuration: dict = Body(...)) -> bool:
+async def set_org_unit_configuration(unitid: UUID, configuration: dict = Body(...)) -> bool:
     """Removed configuration setting endpoint."""
     return False
 
 
 @config_router.post("/configuration", status_code=410)
-def set_global_configuration(configuration: dict = Body(...)) -> bool:
+async def set_global_configuration(configuration: dict = Body(...)) -> bool:
     """Removed global configuration setting endpoint."""
     return False
 
