@@ -180,7 +180,7 @@ class ClassUpdateInput:
     all_fields=True,
 )
 class ClassTerminateInput:
-    """input model for terminating a class."""
+    """Input model for terminating a class."""
 
 
 # Employees
@@ -296,7 +296,7 @@ class FacetUpdateInput:
     all_fields=True,
 )
 class FacetTerminateInput:
-    """input model for terminating a facet."""
+    """Input model for terminating a facet."""
 
 
 # ITSystems
@@ -322,7 +322,7 @@ class ITSystemUpdateInput:
     all_fields=True,
 )
 class ITSystemTerminateInput:
-    """Input model for terminating ITSystems."""
+    """Input model for terminating an ITSystem."""
 
 
 # ITUsers
