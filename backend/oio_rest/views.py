@@ -59,14 +59,14 @@ def setup_views(app):
         }
 
     @app.get("/autocomplete/bruger", dependencies=[Depends(auth)])
-    async def autocomplete_user(
+    def autocomplete_user(
         phrase: str,
         class_uuids: list[UUID] | None = Query(None),
     ):
         return {"results": find_users_matching(phrase, class_uuids=class_uuids)}
 
     @app.get("/autocomplete/organisationsenhed", dependencies=[Depends(auth)])
-    async def autocomplete_org_unit(
+    def autocomplete_org_unit(
         phrase: str, class_uuids: list[UUID] | None = Query(None)
     ):
         return {"results": find_org_units_matching(phrase, class_uuids=class_uuids)}
