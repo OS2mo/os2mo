@@ -9,6 +9,42 @@ code is up-to-date with the latest version.
 
 Below follows the migration guide for each version.
 
+## Version 19
+
+GraphQL version 19 introduces breaking changes to a few terminate endpoints.
+Specifically the `class_terminate`, `facet_terminate` and `itsystem_terminate`
+mutators.
+
+The breaking changes are similar for all the endpoints, namely that the
+`validity` argument has been inlined, such that these mutators are now aligned
+with the rest of the terminate mutators.
+
+As such to migrate from GraphQL v18, simply send the input as normal:
+```graphql
+mutation FacetTerminate($input: FacetTerminateInput!){
+    facet_terminate(input: $input) {
+        uuid
+    }
+}
+```
+But ensure that the provided `input` payload has undergone the following transformation:
+```json
+{
+  "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+  "validty": {
+    "to": "2023-01-01"
+  }
+}
+```
+to:
+```json
+{
+  "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+  "to": "2023-01-01"
+}
+```
+With a similar transformation for all calls to the other two mutators.
+
 ## Version 18
 
 GraphQL version 18 introduces breaking changes to the `auditlog`'s `models` filter.
