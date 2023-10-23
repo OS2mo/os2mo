@@ -508,9 +508,8 @@ class ClassUpdate(ClassCreate):
     uuid: UUID = Field(description="UUID of the class to update.")
 
 
-class ClassTerminate(UUIDBase):
+class ClassTerminate(ValidityTerminate):
     uuid: UUID = Field(description="UUID for the class we want to terminate.")
-    validity: ValidityTerminate = Field(description="When to terminate the class")
 
     def to_registration(self) -> dict:
         return {
@@ -518,7 +517,7 @@ class ClassTerminate(UUIDBase):
                 "klassepubliceret": [
                     {
                         "publiceret": "IkkePubliceret",
-                        "virkning": self.validity.get_termination_effect(),
+                        "virkning": self.get_termination_effect(),
                     }
                 ]
             },
@@ -829,9 +828,8 @@ class FacetUpdate(FacetCreate):
     uuid: UUID = Field(description="UUID of the facet to update.")
 
 
-class FacetTerminate(UUIDBase):
+class FacetTerminate(ValidityTerminate):
     uuid: UUID = Field(description="UUID for the facet we want to terminate.")
-    validity: ValidityTerminate = Field(description="When to terminate the facet")
 
     def to_registration(self) -> dict:
         return {
@@ -839,7 +837,7 @@ class FacetTerminate(UUIDBase):
                 "facetpubliceret": [
                     {
                         "publiceret": "IkkePubliceret",
-                        "virkning": self.validity.get_termination_effect(),
+                        "virkning": self.get_termination_effect(),
                     }
                 ]
             },
@@ -997,9 +995,8 @@ class ITSystemUpdate(ITSystemCreate):
     uuid: UUID = Field(description="UUID for the it-system we want to edit.")
 
 
-class ITSystemTerminate(UUIDBase):
+class ITSystemTerminate(ValidityTerminate):
     uuid: UUID = Field(description="UUID for the it-system we want to terminate.")
-    validity: ValidityTerminate = Field(description="When to terminate the ITSystem")
 
     def to_registration(self) -> dict:
         return {
@@ -1007,7 +1004,7 @@ class ITSystemTerminate(UUIDBase):
                 "itsystemgyldighed": [
                     {
                         "gyldighed": "Inaktiv",
-                        "virkning": self.validity.get_termination_effect(),
+                        "virkning": self.get_termination_effect(),
                     }
                 ]
             },

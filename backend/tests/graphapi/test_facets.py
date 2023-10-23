@@ -284,7 +284,7 @@ async def test_terminate_facet(graphapi_post) -> None:
     """
     response = graphapi_post(
         mutation,
-        {"input": {"uuid": str(facet_to_terminate), "validity": {"to": "1990-01-01"}}},
+        {"input": {"uuid": str(facet_to_terminate), "to": "1990-01-01"}},
     )
     assert response.errors is None
     assert response.data
