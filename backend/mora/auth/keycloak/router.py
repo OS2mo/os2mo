@@ -21,7 +21,7 @@ def keycloak_router():
 
     @router.head("/keycloak.json")
     @router.get("/keycloak.json")
-    def get_keycloak_config():
+    async def get_keycloak_config():
         """Frontend keycloak configuration endpoint."""
         return {
             "realm": REALM,
