@@ -1385,7 +1385,7 @@ class ManagerUpdate(UUIDBase):
                 {"uuid": str(responsib)} for responsib in self.responsibility
             ]
 
-        return {k: v for k, v in data_dict.items() if v or (k == mapping.PERSON)}
+        return {k: v for k, v in data_dict.items() if v or k == "person"}
 
 
 class ManagerTerminate(ValidityTerminate):
@@ -1523,7 +1523,7 @@ class OrganisationUnitUpdate(UUIDBase):
             },
         }
 
-        return {k: v for k, v in data_dict.items() if v or (k == mapping.PARENT)}
+        return {k: v for k, v in data_dict.items() if v}
 
 
 # Related units
