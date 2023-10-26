@@ -153,7 +153,7 @@ def test_create_org_unit_integration_test(
             name=st.text(
                 alphabet=st.characters(whitelist_categories=("L",)), min_size=1
             ),
-            parent=st.just(parent_uuid) | st.none(),
+            parent=st.just(parent_uuid),
             org_unit_type=st.sampled_from(org_unit_type_uuids),
             time_planning=st.sampled_from(time_planning_uuids),
             org_unit_level=st.sampled_from(org_unit_level_uuids),
@@ -188,11 +188,11 @@ def test_create_org_unit_integration_test(
                         uuid
                         user_key
                         name
-                        parent: parent_uuid
-                        org_unit_type: unit_type_uuid
-                        time_planning: time_planning_uuid
-                        org_unit_level: org_unit_level_uuid
-                        org_unit_hierarchy: org_unit_hierarchy
+                        parent_uuid
+                        unit_type_uuid
+                        time_planning_uuid
+                        org_unit_level_uuid
+                        org_unit_hierarchy_uuid: org_unit_hierarchy
                         validity {
                             from
                             to
@@ -200,29 +200,19 @@ def test_create_org_unit_integration_test(
                     }
                 }
             }
-            org {
-                uuid
-            }
         }
     """
     response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
-
     obj = one(one(response.data["org_units"]["objects"])["objects"])
-    root_org_uuid = response.data["org"]["uuid"]
-
     assert obj["name"] == test_data.name
     assert obj["user_key"] == test_data.user_key or str(uuid)
-    # If parent is `None`, `parent_uuid` is set to org_uuid (root)
-    if test_data.parent is None:
-        assert UUID(obj["parent"]) == UUID(root_org_uuid)
-    else:
-        assert UUID(obj["parent"]) == test_data.parent
-    assert UUID(obj["org_unit_type"]) == test_data.org_unit_type
-    assert UUID(obj["time_planning"]) == test_data.time_planning
-    assert UUID(obj["org_unit_level"]) == test_data.org_unit_level
-    # assert UUID(obj["org_unit_hierarchy"]) == test_data.org_unit_hierarchy
-    assert obj["org_unit_hierarchy"] is None
+    assert UUID(obj["parent_uuid"]) == test_data.parent
+    assert UUID(obj["unit_type_uuid"]) == test_data.org_unit_type
+    assert UUID(obj["time_planning_uuid"]) == test_data.time_planning
+    assert UUID(obj["org_unit_level_uuid"]) == test_data.org_unit_level
+    # assert UUID(obj["org_unit_hierarchy_uuid"]) == test_data.org_unit_hierarchy
+    assert obj["org_unit_hierarchy_uuid"] is None
     assert test_data.org_unit_hierarchy is None
 
     assert (
@@ -404,9 +394,6 @@ async def test_update_org_unit_mutation_integration_test(
                     }
                 }
             }
-            org {
-                uuid
-            }
         }
     """
 
@@ -414,8 +401,6 @@ async def test_update_org_unit_mutation_integration_test(
     assert response.errors is None
 
     pre_update_org_unit = one(one(response.data["org_units"]["objects"])["objects"])
-
-    root_org_uuid = response.data["org"]["uuid"]
 
     mutate_query = """
         mutation UpdateOrgUnit($input: OrganisationUnitUpdateInput!) {
@@ -460,14 +445,8 @@ async def test_update_org_unit_mutation_integration_test(
     )
 
     expected_updated_org_unit = {
-        k: v if v is not None or k == "parent" else pre_update_org_unit[k]
-        for k, v in test_data.items()
+        k: v or pre_update_org_unit[k] for k, v in test_data.items()
     }
-
-    # Set parent to root_org if None, since `parent_uuid` in GraphQL returns root_uuid
-    # if not set.
-    if expected_updated_org_unit["parent"] is None:
-        expected_updated_org_unit["parent"] = root_org_uuid
 
     assert post_update_org_unit == expected_updated_org_unit
 
