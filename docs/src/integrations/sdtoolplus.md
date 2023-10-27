@@ -15,7 +15,7 @@ SDTOOL+ kræver en række oplysninger for at kunne køre. Disse indstillinger gi
 ### Klient-oplysninger til OS2MO:
 
 - `mora_base`: (Valgfri) URL, der angiver adressen på OS2MO. Default-værdi er `http://mo:5000`.
-- `client_id`: (Valgfrit) klient-ID, der anvendes når SDTOOL+ kommunikerer med OS2MO. Default-værdi er `dipex`.
+- `client_id`: (Valgfrit) klient-ID, der anvendes når SDTOOL+ kommunikerer med OS2MO. Default-værdi er `integration_sdtool_plus`.
 - `client_secret`: (Obligatorisk) klient-hemmelighed, der anvendes når SDTOOL+ kommunikerer med OS2MO.
 - `auth_realm`: (Valgfri) "realm", der anvendes når SDTOOL+ kommunikerer med OS2MO. Default-værdi er `mo`.
 - `auth_server`: (Valgfri) URL, der angiver adressen på den anvendte Keycloak-installation. Default-værdi er `http://keycloak:8080/auth`.
@@ -36,7 +36,7 @@ SDTOOL+ kræver en række oplysninger for at kunne køre. Disse indstillinger gi
 
 ### Logging, fejlrapportering, mv.:
 
-- `log_level`: (Valgfrit) niveau for logging - default-værdi er `DEBUG`.
+- `log_level`: (Valgfrit) niveau for logging - default-værdi er `INFO`.
 - `sentry_dsn`: (Valgfrit) DSN på Sentry, der anvendes til indsamling af fejlrapporter.
 
 ## Anvendelse
@@ -56,8 +56,7 @@ Denne forespørgsel henter SD-organisationstræet, og ajourfører OS2MO-organisa
 
 For hver organisationsenhed, som oprettes eller ændres i OS2MO ved denne kørsel, kalder SDTOOL+ endvidere `/trigger/fix-departments/{org_unit_uuid}` i SD-integrationen. Dette sikrer, at medarbejdere i OS2MO flyttes til den rette organisationsenhed (enten den ændrede enhed, eller en af dens overliggende enheder.)
 
-SDTOOL+ kan detektere en enheds-sletning i SD, men effektuerer ikke denne sletning i OS2MO's organisationstræ, da sletning af enheder i SD anses for at være umulige, eller ihvertfald højest usædvanlige, idet den gængse SD-praksis er at flytte nedlagte enheder ned under en enhed kaldet "Lukkede 
-afdelinger" eller lignende.
+SDTOOL+ kan detektere en enheds-sletning i SD, men effektuerer ikke denne sletning i OS2MO's organisationstræ, da sletning af enheder i SD anses for at være umulige, eller ihvertfald højest usædvanlige, idet den gængse SD-praksis er at flytte nedlagte enheder ned under en enhed kaldet "Lukkede afdelinger" eller lignende.
 
 SDTOOL+ kan desuden udføre en "tør" kørsel således:
 
