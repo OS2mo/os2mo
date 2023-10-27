@@ -48,19 +48,20 @@ SDTOOl+ anvender flg. dele af SD-Løns API:
 - `GetOrganization20111201`
 - `GetDepartment20111201`
 
-SD-Løn ønsker ikke, at der laves for mange API-kald til disse dele af deres API, og derfor er SDTOOL+ indrettet på at blive aktiveret een gang dagligt, via et cronjob. Dette kan ske ved:
+SD-Løn ønsker, at der ikke laves for mange API-kald til disse dele af deres API, og derfor er SDTOOL+ indrettet på at blive aktiveret een gang dagligt, via et cronjob. Dette kan ske ved:
 
-- `curl http://<SDTOOL+-url>/trigger`
+- `curl -X POST http://<SDTOOL+-url>/trigger`
 
 Denne forespørgsel henter SD-organisationstræet, og ajourfører OS2MO-organisationstræet ud fra dette. SDTOOL+ svarer på forespørgslen med en liste af de ændringer, der er blevet udført i OS2MO-organisationstræet.
 
 For hver organisationsenhed, som oprettes eller ændres i OS2MO ved denne kørsel, kalder SDTOOL+ endvidere `/trigger/fix-departments/{org_unit_uuid}` i SD-integrationen. Dette sikrer, at medarbejdere i OS2MO flyttes til den rette organisationsenhed (enten den ændrede enhed, eller en af dens overliggende enheder.)
 
-SDTOOL+ kan detektere en enheds-sletning i SD, men effektuerer ikke denne sletning i OS2MO's organisationstræ, da sletning af enheder i SD anses for at være umulige, eller ihvertfald højest usædvanlige.
+SDTOOL+ kan detektere en enheds-sletning i SD, men effektuerer ikke denne sletning i OS2MO's organisationstræ, da sletning af enheder i SD anses for at være umulige, eller ihvertfald højest usædvanlige, idet den gængse SD-praksis er at flytte nedlagte enheder ned under en enhed kaldet "Lukkede 
+afdelinger" eller lignende.
 
 SDTOOL+ kan desuden udføre en "tør" kørsel således:
 
-- `curl http://<SDTOOL+-url>/trigger`
+- `curl -X POST http://<SDTOOL+-url>/trigger/dry`
 
 Denne forespørgsel svarer med en liste af de ændringer, som _ville blive_ udført i OS2MO's organisationstræ.
 
