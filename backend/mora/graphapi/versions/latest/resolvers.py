@@ -290,13 +290,7 @@ class FacetResolver(Resolver):
 
         return await super()._resolve(
             info=info,
-            # TODO: pass filter=filter directly when the object is non-static
-            filter=BaseFilter(
-                uuids=filter.uuids,
-                user_keys=filter.user_keys,
-                from_date=None,  # from -inf
-                to_date=None,  # to inf
-            ),
+            filter=filter,
             limit=limit,
             cursor=cursor,
             **kwargs,
