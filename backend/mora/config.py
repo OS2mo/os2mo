@@ -308,6 +308,9 @@ class Settings(BaseSettings):
     # This flag shows the birthday of an employee in the search bar
     confdb_show_employee_birthday_in_search: bool = False
 
+    # This flag makes the search-bar use GraphQL
+    confdb_use_graphql_search: bool = False
+
     # String telling OS2Mo what DIPEX version is being used to import & export data
     # to and from the system - SHOULD ONLY BE USED IF FORCED TO BY CUSTOMER!
     confdb_dipex_version__do_not_use: str | None
