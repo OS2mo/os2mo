@@ -6,10 +6,6 @@
     },
     "facets" : {
       "employee_address_type": {
-        "AddressEmployeeText": {
-          "title": "Address (AD)",
-          "scope": "TEXT"
-        },
         "EmailEmployee": {
           "title": "Mail (AD)",
           "scope": "EMAIL"
@@ -19,12 +15,6 @@
           "scope": "PHONE"
         },
       },
-      "org_unit_address_type": {
-        "LocationUnit": {
-          "title": "Lokation (AD)",
-          "scope": "TEXT"
-        },
-      }
     }
   },
   "ldap_to_mo": {
