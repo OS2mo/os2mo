@@ -1,4 +1,22 @@
 {
+  "init": {
+    "it_systems": {
+      "ADGUID": "Active Directory GUID",
+      "ADSAMA": "Active Directory sAMAccountName",
+    },
+    "facets" : {
+      "employee_address_type": {
+        "EmailEmployee": {
+          "title": "Mail (AD)",
+          "scope": "EMAIL"
+        },
+        "PhoneEmployee": {
+          "title": "Telefon (AD)",
+          "scope": "PHONE"
+        },
+      },
+    }
+  },
   "ldap_to_mo": {
     "Employee": {
       "objectClass": "ramodels.mo.employee.Employee",
