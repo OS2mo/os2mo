@@ -32,7 +32,12 @@ from mo_ldap_import_export.exceptions import UUIDNotFoundException
 
 
 @pytest.fixture
-def context() -> Context:
+def address_type_uuid() -> str:
+    return "f55abef6-5cb6-4c7e-9a62-ed4ab9371a72"
+
+
+@pytest.fixture
+def context(address_type_uuid: str) -> Context:
 
     mapping = {
         "ldap_to_mo": {
@@ -97,7 +102,7 @@ def context() -> Context:
     settings_mock.org_unit_path_string_separator = "\\"
 
     dataloader = AsyncMock()
-    uuid1 = str(uuid4())
+    uuid1 = address_type_uuid
     uuid2 = str(uuid4())
     mo_employee_address_types = {
         uuid1: {"uuid": uuid1, "scope": "MAIL", "user_key": "Email"},
@@ -1616,3 +1621,32 @@ def test_make_dn_from_org_unit_path(converter: LdapConverter):
     dn = "CN=Angus,OU=replace_me,DC=GHU"
     new_dn = converter.make_dn_from_org_unit_path(dn, org_unit_path)
     assert new_dn == "CN=Angus,OU=bar,OU=mucki,OU=foo,DC=GHU"
+
+
+async def test_get_object_item_from_uuid(
+    converter: LdapConverter, address_type_uuid: str
+):
+
+    # 'address_type_uuid' is loaded when converter.load_info_dicts() is called
+    # Let's remove the employee_address_type_info dict to provoke a keyError
+    converter.employee_address_type_info = {}
+
+    # If all goes as intended, the info dict is reloaded and a keyError is NOT raised:
+    with capture_logs() as cap_logs:
+        user_key = await converter.get_employee_address_type_user_key(address_type_uuid)
+        assert user_key == "Email"
+
+        info_messages = [w for w in cap_logs if w["log_level"] == "info"]
+        assert "Loading info dicts" in str(info_messages)
+
+    # If we call the same function again, the info dicts are not reloaded:
+    with capture_logs() as cap_logs:
+        user_key = await converter.get_employee_address_type_user_key(address_type_uuid)
+        assert user_key == "Email"
+
+        info_messages = [w for w in cap_logs if w["log_level"] == "info"]
+        assert "Loading info dicts" not in str(info_messages)
+
+    # If an uuid really does not exist (not even after reloading) a keyError is raised:
+    with pytest.raises(KeyError):
+        await converter.get_employee_address_type_user_key(str(uuid4()))

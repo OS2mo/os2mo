@@ -782,7 +782,11 @@ class LdapConverter:
     async def get_object_item_from_uuid(
         self, info_dict: str, uuid: str, key: str
     ) -> Any:
-        return getattr(self, info_dict)[str(uuid)][key]
+        try:
+            return getattr(self, info_dict)[str(uuid)][key]
+        except KeyError:
+            await self.load_info_dicts()
+            return getattr(self, info_dict)[str(uuid)][key]
 
     async def get_object_user_key_from_uuid(self, info_dict: str, uuid: str) -> str:
         user_key: str = await self.get_object_item_from_uuid(
