@@ -186,6 +186,13 @@ def converter() -> MagicMock:
     converter.from_ldap = AsyncMock()
     converter.to_ldap.return_value = LdapObject(dn="CN=foo", name="Angus")
 
+    converter.get_employee_address_type_user_key = AsyncMock()
+    converter.get_org_unit_address_type_user_key = AsyncMock()
+    converter.get_it_system_user_key = AsyncMock()
+    converter.get_engagement_type_name = AsyncMock()
+    converter.get_job_function_name = AsyncMock()
+    converter.get_org_unit_name = AsyncMock()
+
     return converter
 
 

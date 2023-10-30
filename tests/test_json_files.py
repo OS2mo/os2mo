@@ -119,10 +119,10 @@ async def converters(
             converter.get_object_uuid_from_name = MagicMock()  # type: ignore
             converter.get_object_uuid_from_name.return_value = str(uuid)
 
-            converter.get_object_user_key_from_uuid = MagicMock()  # type: ignore
+            converter.get_object_user_key_from_uuid = AsyncMock()  # type: ignore
             converter.get_object_user_key_from_uuid.return_value = "object_user_key"
 
-            converter.get_object_name_from_uuid = MagicMock()  # type: ignore
+            converter.get_object_name_from_uuid = AsyncMock()  # type: ignore
             converter.get_object_name_from_uuid.return_value = "object_name"
 
             converter.get_current_engagement_attribute_uuid_dict = (  # type: ignore

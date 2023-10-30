@@ -32,7 +32,12 @@ from mo_ldap_import_export.exceptions import UUIDNotFoundException
 
 
 @pytest.fixture
-def context() -> Context:
+def address_type_uuid() -> str:
+    return "f55abef6-5cb6-4c7e-9a62-ed4ab9371a72"
+
+
+@pytest.fixture
+def context(address_type_uuid: str) -> Context:
 
     mapping = {
         "ldap_to_mo": {
@@ -97,7 +102,7 @@ def context() -> Context:
     settings_mock.org_unit_path_string_separator = "\\"
 
     dataloader = AsyncMock()
-    uuid1 = str(uuid4())
+    uuid1 = address_type_uuid
     uuid2 = str(uuid4())
     mo_employee_address_types = {
         uuid1: {"uuid": uuid1, "scope": "MAIL", "user_key": "Email"},
@@ -1008,7 +1013,7 @@ async def test_get_primary_type_uuid(converter: LdapConverter):
     assert converter.get_primary_type_uuid("non-primary") == uuid2
 
 
-def test_get_it_system_user_key(converter: LdapConverter):
+async def test_get_it_system_user_key(converter: LdapConverter):
     uuid1 = str(uuid4())
     uuid2 = str(uuid4())
     it_system_info = {
@@ -1017,11 +1022,11 @@ def test_get_it_system_user_key(converter: LdapConverter):
     }
     converter.it_system_info = it_system_info
 
-    assert converter.get_it_system_user_key(uuid1) == "AD"
-    assert converter.get_it_system_user_key(uuid2) == "Office365"
+    assert await converter.get_it_system_user_key(uuid1) == "AD"
+    assert await converter.get_it_system_user_key(uuid2) == "Office365"
 
 
-def test_get_address_type_user_key(converter: LdapConverter):
+async def test_get_address_type_user_key(converter: LdapConverter):
     uuid1 = str(uuid4())
     uuid2 = str(uuid4())
 
@@ -1036,11 +1041,11 @@ def test_get_address_type_user_key(converter: LdapConverter):
     converter.org_unit_address_type_info = org_unit_address_type_info
     converter.employee_address_type_info = employee_address_type_info
 
-    assert converter.get_employee_address_type_user_key(uuid2) == "EmailEmployee"
-    assert converter.get_org_unit_address_type_user_key(uuid1) == "EmailUnit"
+    assert await converter.get_employee_address_type_user_key(uuid2) == "EmailEmployee"
+    assert await converter.get_org_unit_address_type_user_key(uuid1) == "EmailUnit"
 
 
-def test_get_engagement_type_name(converter: LdapConverter):
+async def test_get_engagement_type_name(converter: LdapConverter):
     uuid1 = str(uuid4())
     uuid2 = str(uuid4())
     engagement_type_info = {
@@ -1049,11 +1054,11 @@ def test_get_engagement_type_name(converter: LdapConverter):
     }
     converter.engagement_type_info = engagement_type_info
 
-    assert converter.get_engagement_type_name(uuid1) == "Ansat"
-    assert converter.get_engagement_type_name(uuid2) == "Vikar"
+    assert await converter.get_engagement_type_name(uuid1) == "Ansat"
+    assert await converter.get_engagement_type_name(uuid2) == "Vikar"
 
 
-def test_get_job_function_name(converter: LdapConverter):
+async def test_get_job_function_name(converter: LdapConverter):
     uuid1 = str(uuid4())
     uuid2 = str(uuid4())
     job_function_info = {
@@ -1062,8 +1067,8 @@ def test_get_job_function_name(converter: LdapConverter):
     }
     converter.job_function_info = job_function_info
 
-    assert converter.get_job_function_name(uuid1) == "Major"
-    assert converter.get_job_function_name(uuid2) == "Secretary"
+    assert await converter.get_job_function_name(uuid1) == "Major"
+    assert await converter.get_job_function_name(uuid2) == "Secretary"
 
 
 async def test_check_ldap_to_mo_references(converter: LdapConverter):
@@ -1616,3 +1621,32 @@ def test_make_dn_from_org_unit_path(converter: LdapConverter):
     dn = "CN=Angus,OU=replace_me,DC=GHU"
     new_dn = converter.make_dn_from_org_unit_path(dn, org_unit_path)
     assert new_dn == "CN=Angus,OU=bar,OU=mucki,OU=foo,DC=GHU"
+
+
+async def test_get_object_item_from_uuid(
+    converter: LdapConverter, address_type_uuid: str
+):
+
+    # 'address_type_uuid' is loaded when converter.load_info_dicts() is called
+    # Let's remove the employee_address_type_info dict to provoke a keyError
+    converter.employee_address_type_info = {}
+
+    # If all goes as intended, the info dict is reloaded and a keyError is NOT raised:
+    with capture_logs() as cap_logs:
+        user_key = await converter.get_employee_address_type_user_key(address_type_uuid)
+        assert user_key == "Email"
+
+        info_messages = [w for w in cap_logs if w["log_level"] == "info"]
+        assert "Loading info dicts" in str(info_messages)
+
+    # If we call the same function again, the info dicts are not reloaded:
+    with capture_logs() as cap_logs:
+        user_key = await converter.get_employee_address_type_user_key(address_type_uuid)
+        assert user_key == "Email"
+
+        info_messages = [w for w in cap_logs if w["log_level"] == "info"]
+        assert "Loading info dicts" not in str(info_messages)
+
+    # If an uuid really does not exist (not even after reloading) a keyError is raised:
+    with pytest.raises(KeyError):
+        await converter.get_employee_address_type_user_key(str(uuid4()))

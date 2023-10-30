@@ -347,7 +347,7 @@ class SyncTool:
                 current_objects_only=current_objects_only,
             )
             address_type_uuid = str(changed_address.address_type.uuid)
-            json_key = self.converter.get_employee_address_type_user_key(
+            json_key = await self.converter.get_employee_address_type_user_key(
                 address_type_uuid
             )
 
@@ -390,7 +390,7 @@ class SyncTool:
                 current_objects_only=current_objects_only,
             )
             it_system_type_uuid = changed_it_user.itsystem.uuid
-            json_key = self.converter.get_it_system_user_key(it_system_type_uuid)
+            json_key = await self.converter.get_it_system_user_key(it_system_type_uuid)
 
             logger.info(
                 "[Listen-to-changes-in-employees] Obtained IT system.",
@@ -584,7 +584,7 @@ class SyncTool:
                 current_objects_only=current_objects_only,
             )
             address_type_uuid = str(changed_address.address_type.uuid)
-            json_key = self.converter.get_org_unit_address_type_user_key(
+            json_key = await self.converter.get_org_unit_address_type_user_key(
                 address_type_uuid
             )
 
