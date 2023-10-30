@@ -1008,7 +1008,7 @@ async def test_get_primary_type_uuid(converter: LdapConverter):
     assert converter.get_primary_type_uuid("non-primary") == uuid2
 
 
-def test_get_it_system_user_key(converter: LdapConverter):
+async def test_get_it_system_user_key(converter: LdapConverter):
     uuid1 = str(uuid4())
     uuid2 = str(uuid4())
     it_system_info = {
@@ -1017,11 +1017,11 @@ def test_get_it_system_user_key(converter: LdapConverter):
     }
     converter.it_system_info = it_system_info
 
-    assert converter.get_it_system_user_key(uuid1) == "AD"
-    assert converter.get_it_system_user_key(uuid2) == "Office365"
+    assert await converter.get_it_system_user_key(uuid1) == "AD"
+    assert await converter.get_it_system_user_key(uuid2) == "Office365"
 
 
-def test_get_address_type_user_key(converter: LdapConverter):
+async def test_get_address_type_user_key(converter: LdapConverter):
     uuid1 = str(uuid4())
     uuid2 = str(uuid4())
 
@@ -1036,11 +1036,11 @@ def test_get_address_type_user_key(converter: LdapConverter):
     converter.org_unit_address_type_info = org_unit_address_type_info
     converter.employee_address_type_info = employee_address_type_info
 
-    assert converter.get_employee_address_type_user_key(uuid2) == "EmailEmployee"
-    assert converter.get_org_unit_address_type_user_key(uuid1) == "EmailUnit"
+    assert await converter.get_employee_address_type_user_key(uuid2) == "EmailEmployee"
+    assert await converter.get_org_unit_address_type_user_key(uuid1) == "EmailUnit"
 
 
-def test_get_engagement_type_name(converter: LdapConverter):
+async def test_get_engagement_type_name(converter: LdapConverter):
     uuid1 = str(uuid4())
     uuid2 = str(uuid4())
     engagement_type_info = {
@@ -1049,11 +1049,11 @@ def test_get_engagement_type_name(converter: LdapConverter):
     }
     converter.engagement_type_info = engagement_type_info
 
-    assert converter.get_engagement_type_name(uuid1) == "Ansat"
-    assert converter.get_engagement_type_name(uuid2) == "Vikar"
+    assert await converter.get_engagement_type_name(uuid1) == "Ansat"
+    assert await converter.get_engagement_type_name(uuid2) == "Vikar"
 
 
-def test_get_job_function_name(converter: LdapConverter):
+async def test_get_job_function_name(converter: LdapConverter):
     uuid1 = str(uuid4())
     uuid2 = str(uuid4())
     job_function_info = {
@@ -1062,8 +1062,8 @@ def test_get_job_function_name(converter: LdapConverter):
     }
     converter.job_function_info = job_function_info
 
-    assert converter.get_job_function_name(uuid1) == "Major"
-    assert converter.get_job_function_name(uuid2) == "Secretary"
+    assert await converter.get_job_function_name(uuid1) == "Major"
+    assert await converter.get_job_function_name(uuid2) == "Secretary"
 
 
 async def test_check_ldap_to_mo_references(converter: LdapConverter):

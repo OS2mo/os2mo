@@ -779,12 +779,19 @@ class LdapConverter:
         sep = self.org_unit_path_string_separator
         return sep.join(items_to_join)
 
-    def get_object_user_key_from_uuid(self, info_dict: dict, uuid: str) -> str:
-        user_key: str = info_dict[str(uuid)]["user_key"]
+    async def get_object_item_from_uuid(
+        self, info_dict: str, uuid: str, key: str
+    ) -> Any:
+        return getattr(self, info_dict)[str(uuid)][key]
+
+    async def get_object_user_key_from_uuid(self, info_dict: str, uuid: str) -> str:
+        user_key: str = await self.get_object_item_from_uuid(
+            info_dict, uuid, "user_key"
+        )
         return user_key
 
-    def get_object_name_from_uuid(self, info_dict: dict, uuid: str) -> str:
-        name: str = info_dict[str(uuid)]["name"]
+    async def get_object_name_from_uuid(self, info_dict: str, uuid: str) -> str:
+        name: str = await self.get_object_item_from_uuid(info_dict, uuid, "name")
         return name
 
     @staticmethod
@@ -977,23 +984,27 @@ class LdapConverter:
             self.org_unit_level_info, org_unit_level
         )
 
-    def get_employee_address_type_user_key(self, uuid: str) -> str:
-        return self.get_object_user_key_from_uuid(self.employee_address_type_info, uuid)
+    async def get_employee_address_type_user_key(self, uuid: str) -> str:
+        return await self.get_object_user_key_from_uuid(
+            "employee_address_type_info", uuid
+        )
 
-    def get_org_unit_address_type_user_key(self, uuid: str) -> str:
-        return self.get_object_user_key_from_uuid(self.org_unit_address_type_info, uuid)
+    async def get_org_unit_address_type_user_key(self, uuid: str) -> str:
+        return await self.get_object_user_key_from_uuid(
+            "org_unit_address_type_info", uuid
+        )
 
-    def get_it_system_user_key(self, uuid: str) -> str:
-        return self.get_object_user_key_from_uuid(self.it_system_info, uuid)
+    async def get_it_system_user_key(self, uuid: str) -> str:
+        return await self.get_object_user_key_from_uuid("it_system_info", uuid)
 
-    def get_engagement_type_name(self, uuid: str) -> str:
-        return self.get_object_name_from_uuid(self.engagement_type_info, uuid)
+    async def get_engagement_type_name(self, uuid: str) -> str:
+        return await self.get_object_name_from_uuid("engagement_type_info", uuid)
 
-    def get_job_function_name(self, uuid: str) -> str:
-        return self.get_object_name_from_uuid(self.job_function_info, uuid)
+    async def get_job_function_name(self, uuid: str) -> str:
+        return await self.get_object_name_from_uuid("job_function_info", uuid)
 
-    def get_org_unit_name(self, uuid: str) -> str:
-        return self.get_object_name_from_uuid(self.org_unit_info, uuid)
+    async def get_org_unit_name(self, uuid: str) -> str:
+        return await self.get_object_name_from_uuid("org_unit_info", uuid)
 
     async def create_org_unit(self, org_unit_path_string: str):
         """

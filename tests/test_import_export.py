@@ -209,6 +209,7 @@ async def test_listen_to_change_in_org_unit_address_not_supported(
     converter.org_unit_address_type_info = {
         str(address.address_type.uuid): {"user_key": "LocationUnit"}
     }
+    converter.get_org_unit_address_type_user_key = AsyncMock()
     converter.get_org_unit_address_type_user_key.return_value = "LocationUnit"
 
     with pytest.raises(NotSupportedException):
@@ -235,9 +236,11 @@ async def test_listen_to_changes_in_employees(
     converted_ldap_object = LdapObject(dn="CN=foo")
     converter.to_ldap.return_value = converted_ldap_object
     converter.mapping = {"mo_to_ldap": {"EmailEmployee": 2}}
+    converter.get_it_system_user_key = AsyncMock()
     converter.get_it_system_user_key.return_value = "AD"
 
     address_type_user_key = "EmailEmployee"
+    converter.get_employee_address_type_user_key = AsyncMock()
     converter.get_employee_address_type_user_key.return_value = address_type_user_key
 
     it_system_type_name = "AD"
