@@ -1220,6 +1220,7 @@ class KLETerminate(ValidityTerminate):
 class LeaveCreate(UUIDBase):
     """Model for creating a leave."""
 
+    user_key: str | None = Field(description="Extra info or uuid.")
     person: UUID = Field(description="UUID of the person.")
     # Engagement seems to be optional, but it's not possible to create a Leave without it.
     # Therefore it's set to required
@@ -1230,6 +1231,7 @@ class LeaveCreate(UUIDBase):
     def to_handler_dict(self) -> dict:
         return {
             "uuid": str(self.uuid),
+            "user_key": self.user_key,
             "person": gen_uuid(self.person),
             "engagement": gen_uuid(self.engagement),
             "leave_type": gen_uuid(self.leave_type),
@@ -1246,6 +1248,7 @@ class LeaveUpdate(UUIDBase):
     """Model for updating a leave."""
 
     uuid: UUID = Field(description="UUID of the leave.")
+    user_key: str | None = Field(description="Extra info or uuid.")
     person: UUID | None = Field(description="UUID of the person.")
     engagement: UUID | None = Field(description="UUID of the related engagement.")
     leave_type: UUID | None = Field(description="UUID of the leave type")
@@ -1254,6 +1257,7 @@ class LeaveUpdate(UUIDBase):
     def to_handler_dict(self) -> dict:
         data_dict: dict = {
             "uuid": str(self.uuid),
+            "user_key": self.user_key,
             "person": gen_uuid(self.person),
             "engagement": gen_uuid(self.engagement),
             "leave_type": gen_uuid(self.leave_type),

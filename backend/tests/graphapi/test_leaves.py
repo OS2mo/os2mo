@@ -149,6 +149,9 @@ async def test_create_leave_integration_test(
         st.builds(
             LeaveCreate,
             uuid=st.uuids() | st.none(),
+            user_key=st.text(
+                alphabet=st.characters(whitelist_categories=("L",)), min_size=1
+            ),
             person=st.just(employee["uuid"]),
             engagement=st.just(engagement),
             leave_type=st.sampled_from(leave_type_uuids),
@@ -177,6 +180,7 @@ async def test_create_leave_integration_test(
             leaves(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
                 objects {
                     objects {
+                        user_key
                         employee: employee_uuid
                         engagement: engagement_uuid
                         leave_type: leave_type_uuid
@@ -194,6 +198,7 @@ async def test_create_leave_integration_test(
     assert response.errors is None
     obj = one(one(response.data["leaves"]["objects"])["objects"])
 
+    assert obj["user_key"] == test_data.user_key
     assert UUID(obj["employee"]) == test_data.person
     assert UUID(obj["engagement"]) == test_data.engagement
     assert UUID(obj["leave_type"]) == test_data.leave_type
@@ -249,6 +254,7 @@ async def test_update_leave_unit_test(
     [
         {
             "uuid": "0895b7f5-86ac-45c5-8fb1-c3047d45b643",
+            "user_key": None,
             "engagement": "301a906b-ef51-4d5c-9c77-386fb8410459",
             "leave_type": "ad1b7d09-5452-4bec-9381-e4c876331ac0",
             "person": None,
@@ -256,6 +262,7 @@ async def test_update_leave_unit_test(
         },
         {
             "uuid": "0895b7f5-86ac-45c5-8fb1-c3047d45b643",
+            "user_key": "v3ry_n1c3_us3r_k3y",
             "engagement": None,
             "leave_type": "ad1b7d09-5452-4bec-9381-e4c876331ac0",
             "person": None,
@@ -263,6 +270,7 @@ async def test_update_leave_unit_test(
         },
         {
             "uuid": "0895b7f5-86ac-45c5-8fb1-c3047d45b643",
+            "user_key": "-",
             "engagement": "301a906b-ef51-4d5c-9c77-386fb8410459",
             "leave_type": None,
             "person": None,
@@ -283,6 +291,7 @@ async def test_update_leave_integration_test(
                 objects {
                     objects {
                         uuid
+                        user_key
                         leave_type: leave_type_uuid
                         person: employee_uuid
                         engagement: engagement_uuid
@@ -319,6 +328,7 @@ async def test_update_leave_integration_test(
                 objects {
                     objects {
                         uuid
+                        user_key
                         leave_type: leave_type_uuid
                         person: employee_uuid
                         engagement: engagement_uuid
@@ -341,6 +351,7 @@ async def test_update_leave_integration_test(
 
     expected_updated_leave = {k: v or pre_update_leave[k] for k, v in test_data.items()}
 
+    assert leave_objects_post_update["user_key"] == expected_updated_leave["user_key"]
     assert (
         leave_objects_post_update["leave_type"] == expected_updated_leave["leave_type"]
     )
