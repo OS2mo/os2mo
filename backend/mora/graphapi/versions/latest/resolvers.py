@@ -246,6 +246,13 @@ async def filter2uuids(
     Returns:
         A list of UUIDs.
     """
+    # The current resolver implementation disallows combining UUIDs with other filters.
+    # As the UUIDs returned from this function are only used for further filtering,
+    # we can simply return them as-is, bypassing another lookup.
+    # This is purely a performance optimization
+    if filter.uuids is not None:
+        return filter.uuids
+
     objects = await resolver.resolve(info, filter=filter)
     uuids = list(objects.keys())
     if uuids:
@@ -259,9 +266,51 @@ async def filter2uuids(
     return [UUID("00000000-baad-1dea-ca11-fa11fa11c0de")]
 
 
+def extend_uuids(output_filter: BaseFilter, input: list[UUID] | None) -> None:
+    if input is None:
+        return
+    output_filter.uuids = output_filter.uuids or []
+    output_filter.uuids.extend(input)
+
+
+def extend_user_keys(output_filter: BaseFilter, input: list[str] | None) -> None:
+    if input is None:
+        return
+    output_filter.user_keys = output_filter.user_keys or []
+    output_filter.user_keys.extend(input)
+
+
+async def get_employee_uuids(info: Info, filter: Any) -> list[UUID]:
+    employee_filter = filter.employee or EmployeeFilter()
+    # Handle deprecated filter
+    extend_uuids(employee_filter, filter.employees)
+    return await filter2uuids(EmployeeResolver(), info, employee_filter)
+
+
+async def get_engagement_uuids(info: Info, filter: Any) -> list[UUID]:
+    engagement_filter = filter.engagement or EngagementFilter()
+    # Handle deprecated filter
+    extend_uuids(engagement_filter, filter.engagements)
+    return await filter2uuids(EngagementResolver(), info, engagement_filter)
+
+
+async def get_org_unit_uuids(info: Info, filter: Any) -> list[UUID]:
+    org_unit_filter = filter.org_unit or OrganisationUnitFilter()
+    # Handle deprecated filter
+    extend_uuids(org_unit_filter, filter.org_units)
+    return await filter2uuids(OrganisationUnitResolver(), info, org_unit_filter)
+
+
 class FacetResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(FacetRead)
+
+    async def _get_parent_uuids(self, info: Info, filter: FacetFilter) -> list[UUID]:
+        facet_filter = filter.parent or FacetFilter()
+        # Handle deprecated filter
+        extend_uuids(facet_filter, filter.parents)
+        extend_user_keys(facet_filter, filter.parent_user_keys)
+        return await filter2uuids(FacetResolver(), info, facet_filter)
 
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
@@ -274,21 +323,13 @@ class FacetResolver(Resolver):
         if filter is None:
             filter = FacetFilter()
 
-        parents = filter.parents
-        if filter.parent_user_keys is not None:
-            # Convert user-keys to UUIDs for the UUID filtering
-            parents = filter.parents or []
-            parents.extend(
-                await filter2uuids(
-                    FacetResolver(),
-                    info,
-                    FacetFilter(user_keys=filter.parent_user_keys),  # type: ignore[arg-type]
-                )
-            )
-
         kwargs = {}
-        if parents is not None:
-            kwargs["facettilhoerer"] = parents
+        if (
+            filter.parents is not None
+            or filter.parent_user_keys is not None
+            or filter.parent is not None
+        ):
+            kwargs["facettilhoerer"] = await self._get_parent_uuids(info, filter)
 
         return await super()._resolve(
             info=info,
@@ -303,6 +344,20 @@ class ClassResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(ClassRead)
 
+    async def _get_facet_uuids(self, info: Info, filter: ClassFilter) -> list[UUID]:
+        facet_filter = filter.facet or FacetFilter()
+        # Handle deprecated filter
+        extend_uuids(facet_filter, filter.facets)
+        extend_user_keys(facet_filter, filter.facet_user_keys)
+        return await filter2uuids(FacetResolver(), info, facet_filter)
+
+    async def _get_parent_uuids(self, info: Info, filter: ClassFilter) -> list[UUID]:
+        class_filter = filter.parent or ClassFilter()
+        # Handle deprecated filter
+        extend_uuids(class_filter, filter.parents)
+        extend_user_keys(class_filter, filter.parent_user_keys)
+        return await filter2uuids(ClassResolver(), info, class_filter)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -314,35 +369,19 @@ class ClassResolver(Resolver):
         if filter is None:
             filter = ClassFilter()
 
-        facets = filter.facets
-        if filter.facet_user_keys is not None:
-            # Convert user-keys to UUIDs for the UUID filtering
-            facets = facets or []
-            facets.extend(
-                await filter2uuids(
-                    FacetResolver(),
-                    info,
-                    FacetFilter(user_keys=filter.facet_user_keys),  # type: ignore[arg-type]
-                )
-            )
-
-        parents = filter.parents
-        if filter.parent_user_keys is not None:
-            # Convert user-keys to UUIDs for the UUID filtering
-            parents = parents or []
-            parents.extend(
-                await filter2uuids(
-                    ClassResolver(),
-                    info,
-                    ClassFilter(user_keys=filter.parent_user_keys),  # type: ignore[arg-type]
-                )
-            )
-
         kwargs = {}
-        if facets is not None:
-            kwargs["facet"] = facets
-        if parents is not None:
-            kwargs["overordnetklasse"] = parents
+        if (
+            filter.facets is not None
+            or filter.facet_user_keys is not None
+            or filter.facet is not None
+        ):
+            kwargs["facet"] = await self._get_facet_uuids(info, filter)
+        if (
+            filter.parents is not None
+            or filter.parent_user_keys is not None
+            or filter.parent is not None
+        ):
+            kwargs["overordnetklasse"] = await self._get_parent_uuids(info, filter)
 
         return await super()._resolve(
             info=info,
@@ -357,6 +396,15 @@ class AddressResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(AddressRead)
 
+    async def _get_address_type_uuids(
+        self, info: Info, filter: AddressFilter
+    ) -> list[UUID]:
+        class_filter = filter.address_type or ClassFilter()
+        # Handle deprecated filter
+        extend_uuids(class_filter, filter.address_types)
+        extend_user_keys(class_filter, filter.address_type_user_keys)
+        return await filter2uuids(ClassResolver(), info, class_filter)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -368,26 +416,21 @@ class AddressResolver(Resolver):
         if filter is None:
             filter = AddressFilter()
 
-        address_types = filter.address_types or []
-        if filter.address_type_user_keys is not None:
-            # Convert user-keys to UUIDs for the UUID filtering
-            address_types.extend(
-                await filter2uuids(
-                    ClassResolver(),
-                    info,
-                    ClassFilter(user_keys=filter.address_type_user_keys),  # type: ignore[arg-type]
-                )
-            )
-
         kwargs = {}
-        if address_types is not None:
-            kwargs["organisatoriskfunktionstype"] = address_types
-        if filter.employees is not None:
-            kwargs["tilknyttedebrugere"] = filter.employees
-        if filter.engagements is not None:
-            kwargs["tilknyttedefunktioner"] = filter.engagements
-        if filter.org_units is not None:
-            kwargs["tilknyttedeenheder"] = filter.org_units
+        if filter.employee is not None or filter.employees is not None:
+            kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
+        if filter.org_units is not None or filter.org_unit is not None:
+            kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
+        if filter.engagements is not None or filter.engagement is not None:
+            kwargs["tilknyttedefunktioner"] = await get_engagement_uuids(info, filter)
+        if (
+            filter.address_types is not None
+            or filter.address_type_user_keys is not None
+            or filter.address_type is not None
+        ):
+            kwargs["organisatoriskfunktionstype"] = await self._get_address_type_uuids(
+                info, filter
+            )
 
         return await super()._resolve(
             info=info,
@@ -402,6 +445,15 @@ class AssociationResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(AssociationRead)
 
+    async def _get_association_type_uuids(
+        self, info: Info, filter: AssociationFilter
+    ) -> list[UUID]:
+        class_filter = filter.association_type or ClassFilter()
+        # Handle deprecated filter
+        extend_uuids(class_filter, filter.association_types)
+        extend_user_keys(class_filter, filter.association_type_user_keys)
+        return await filter2uuids(ClassResolver(), info, class_filter)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -413,24 +465,20 @@ class AssociationResolver(Resolver):
         if filter is None:
             filter = AssociationFilter()
 
-        association_types = filter.association_types or []
-        if filter.association_type_user_keys is not None:
-            # Convert user-keys to UUIDs for the UUID filtering
-            association_types.extend(
-                await filter2uuids(
-                    ClassResolver(),
-                    info,
-                    ClassFilter(user_keys=filter.association_type_user_keys),  # type: ignore[arg-type]
-                )
-            )
-
         kwargs = {}
-        if association_types is not None:
-            kwargs["organisatoriskfunktionstype"] = association_types
-        if filter.employees is not None:
-            kwargs["tilknyttedebrugere"] = filter.employees
-        if filter.org_units is not None:
-            kwargs["tilknyttedeenheder"] = filter.org_units
+        if filter.employee is not None or filter.employees is not None:
+            kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
+        if filter.org_units is not None or filter.org_unit is not None:
+            kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
+        if (
+            filter.association_types is not None
+            or filter.association_type_user_keys is not None
+            or filter.association_type is not None
+        ):
+            kwargs[
+                "organisatoriskfunktionstype"
+            ] = await self._get_association_type_uuids(info, filter)
+
         associations = await super()._resolve(
             info=info,
             filter=filter,
@@ -513,10 +561,11 @@ class EngagementResolver(Resolver):
             filter = EngagementFilter()
 
         kwargs = {}
-        if filter.employees is not None:
-            kwargs["tilknyttedebrugere"] = filter.employees
-        if filter.org_units is not None:
-            kwargs["tilknyttedeenheder"] = filter.org_units
+        if filter.employee is not None or filter.employees is not None:
+            kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
+        if filter.org_units is not None or filter.org_unit is not None:
+            kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
+
         return await super()._resolve(
             info=info,
             filter=filter,
@@ -542,10 +591,11 @@ class ManagerResolver(Resolver):
             filter = ManagerFilter()
 
         kwargs = {}
-        if filter.employees is not None:
-            kwargs["tilknyttedebrugere"] = filter.employees
-        if filter.org_units is not None:
-            kwargs["tilknyttedeenheder"] = filter.org_units
+        if filter.employee is not None or filter.employees is not None:
+            kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
+        if filter.org_units is not None or filter.org_unit is not None:
+            kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
+
         return await super()._resolve(
             info=info,
             filter=filter,
@@ -571,11 +621,12 @@ class OwnerResolver(Resolver):
             filter = OwnerFilter()
 
         kwargs = {}
-        if filter.employees is not None:
+        if filter.employee is not None or filter.employees is not None:
             # TODO: Figure out why this uses personer instead of brugere
-            kwargs["tilknyttedepersoner"] = filter.employees
-        if filter.org_units is not None:
-            kwargs["tilknyttedeenheder"] = filter.org_units
+            kwargs["tilknyttedepersoner"] = await get_employee_uuids(info, filter)
+        if filter.org_units is not None or filter.org_unit is not None:
+            kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
+
         return await super()._resolve(
             info=info,
             filter=filter,
@@ -588,6 +639,34 @@ class OwnerResolver(Resolver):
 class OrganisationUnitResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(OrganisationUnitRead)
+
+    async def _get_parent_uuids(
+        self, info: Info, filter: OrganisationUnitFilter
+    ) -> list[UUID]:
+        org_unit_filter = filter.parent or OrganisationUnitFilter()
+        # Handle deprecated filter
+        # parents vs parent values
+        #       | UNSET | None    | xs
+        # UNSET | noop  | root    | xs
+        # None  | root  | root    | root+xs
+        # ys    | ys    | root+ys | xs+ys
+        #
+        # The above assignment handles all parent=ys cases
+        # Thus we only need to check for parents=xs and Nones
+        if filter.parents is None or filter.parent is None:
+            org = await info.context["org_loader"].load(0)
+            extend_uuids(org_unit_filter, [org.uuid])
+        if filter.parents is not UNSET:
+            extend_uuids(org_unit_filter, filter.parents)
+        return await filter2uuids(OrganisationUnitResolver(), info, org_unit_filter)
+
+    async def _get_hierarchy_uuids(
+        self, info: Info, filter: OrganisationUnitFilter
+    ) -> list[UUID]:
+        class_filter = filter.hierarchy or ClassFilter()
+        # Handle deprecated filter
+        extend_uuids(class_filter, filter.hierarchies)
+        return await filter2uuids(ClassResolver(), info, class_filter)
 
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
@@ -609,14 +688,11 @@ class OrganisationUnitResolver(Resolver):
 
         kwargs = {}
         # Parents
-        if filter.parents is None:
-            org = await info.context["org_loader"].load(0)
-            kwargs["overordnet"] = org.uuid
-        elif filter.parents is not UNSET:
-            kwargs["overordnet"] = filter.parents
+        if filter.parents is not UNSET or filter.parent is not UNSET:
+            kwargs["overordnet"] = await self._get_parent_uuids(info, filter)
         # Hierarchy
-        if filter.hierarchies is not None:
-            kwargs["opmærkning"] = filter.hierarchies
+        if filter.hierarchies is not None or filter.hierarchy is not None:
+            kwargs["opmærkning"] = await self._get_hierarchy_uuids(info, filter)
 
         return await super()._resolve(
             info=info,
@@ -653,6 +729,12 @@ class ITUserResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(ITUserRead)
 
+    async def _get_itsystem_uuids(self, info: Info, filter: ITUserFilter) -> list[UUID]:
+        itsystem_filter = filter.itsystem or ITSystemFilter()
+        # Handle deprecated filter
+        extend_uuids(itsystem_filter, filter.itsystem_uuids)
+        return await filter2uuids(ITSystemResolver(), info, itsystem_filter)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -665,12 +747,14 @@ class ITUserResolver(Resolver):
             filter = ITUserFilter()
 
         kwargs = {}
-        if filter.employees is not None:
-            kwargs["tilknyttedebrugere"] = filter.employees
-        if filter.org_units is not None:
-            kwargs["tilknyttedeenheder"] = filter.org_units
-        if filter.itsystem_uuids is not None:
-            kwargs["tilknyttedeitsystemer"] = filter.itsystem_uuids
+        if filter.employee is not None or filter.employees is not None:
+            kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
+        if filter.org_units is not None or filter.org_unit is not None:
+            kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
+        if filter.itsystem_uuids is not None or filter.itsystem is not None:
+            kwargs["tilknyttedeitsystemer"] = await self._get_itsystem_uuids(
+                info, filter
+            )
 
         return await super()._resolve(
             info=info,
@@ -697,8 +781,9 @@ class KLEResolver(Resolver):
             filter = KLEFilter()
 
         kwargs = {}
-        if filter.org_units is not None:
-            kwargs["tilknyttedeenheder"] = filter.org_units
+        if filter.org_units is not None or filter.org_unit is not None:
+            kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
+
         return await super()._resolve(
             info=info,
             filter=filter,
@@ -724,10 +809,11 @@ class LeaveResolver(Resolver):
             filter = LeaveFilter()
 
         kwargs = {}
-        if filter.employees is not None:
-            kwargs["tilknyttedebrugere"] = filter.employees
-        if filter.org_units is not None:
-            kwargs["tilknyttedeenheder"] = filter.org_units
+        if filter.employee is not None or filter.employees is not None:
+            kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
+        if filter.org_units is not None or filter.org_unit is not None:
+            kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
+
         return await super()._resolve(
             info=info,
             filter=filter,
@@ -753,8 +839,9 @@ class RelatedUnitResolver(Resolver):
             filter = RelatedUnitFilter()
 
         kwargs = {}
-        if filter.org_units is not None:
-            kwargs["tilknyttedeenheder"] = filter.org_units
+        if filter.org_units is not None or filter.org_unit is not None:
+            kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
+
         return await super()._resolve(
             info=info,
             filter=filter,
@@ -780,10 +867,11 @@ class RoleResolver(Resolver):
             filter = RoleFilter()
 
         kwargs = {}
-        if filter.employees is not None:
-            kwargs["tilknyttedebrugere"] = filter.employees
-        if filter.org_units is not None:
-            kwargs["tilknyttedeenheder"] = filter.org_units
+        if filter.employee is not None or filter.employees is not None:
+            kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
+        if filter.org_units is not None or filter.org_unit is not None:
+            kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
+
         return await super()._resolve(
             info=info,
             filter=filter,

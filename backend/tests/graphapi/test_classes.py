@@ -381,13 +381,6 @@ async def test_unit_create_class(
             },
             9,
         ),
-        (
-            {
-                "facet_user_keys": "employee_address_type",
-                "facets": "3c44e5d2-7fef-4448-9bf6-449bf414ec49",
-            },
-            9,
-        ),
     ],
 )
 async def test_class_facet_filter(

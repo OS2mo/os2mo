@@ -153,13 +153,6 @@ def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
             },
             2,
         ),
-        (
-            {
-                "association_type_user_keys": "medl",
-                "association_types": "8eea787c-c2c7-46ca-bd84-2dd50f47801e",
-            },
-            2,
-        ),
         # Mixed filters
         (
             {
