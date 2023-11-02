@@ -130,7 +130,7 @@ async def decorate_orgunit_search_result(
                 addresses_validity {
                     uuid
                     name
-                    address_type {
+                    address_type_validity {
                         uuid
                         name
                     }
@@ -139,7 +139,7 @@ async def decorate_orgunit_search_result(
                 itusers_validity {
                     uuid
                     user_key
-                    itsystem {
+                    itsystem_validity {
                         uuid
                         user_key
                         name
@@ -203,8 +203,9 @@ def _gql_get_orgunit_attrs(settings: config.Settings, org_unit_graphql: dict) ->
     attrs: [dict] = []
     if "addresses_validity" in org_unit_graphql:
         for addr in org_unit_graphql["addresses_validity"]:
+            address_type = addr["address_type_validity"]
             if (
-                UUID(addr["address_type"]["uuid"])
+                UUID(address_type["uuid"])
                 not in settings.confdb_autocomplete_attrs_orgunit
             ):
                 continue
@@ -213,23 +214,21 @@ def _gql_get_orgunit_attrs(settings: config.Settings, org_unit_graphql: dict) ->
                 {
                     "uuid": UUID(addr["uuid"]),
                     "value": addr["name"],
-                    "title": addr["address_type"]["name"],
+                    "title": address_type["name"],
                 }
             )
 
     if "itusers_validity" in org_unit_graphql:
         for ituser in org_unit_graphql["itusers_validity"]:
-            if (
-                UUID(ituser["itsystem"]["uuid"])
-                not in settings.confdb_autocomplete_attrs_orgunit
-            ):
+            itsystem = ituser["itsystem_validity"]
+            if UUID(itsystem["uuid"]) not in settings.confdb_autocomplete_attrs_orgunit:
                 continue
 
             attrs.append(
                 {
                     "uuid": UUID(ituser["uuid"]),
                     "value": ituser["user_key"],
-                    "title": ituser["itsystem"]["name"],
+                    "title": itsystem["name"],
                 }
             )
 
