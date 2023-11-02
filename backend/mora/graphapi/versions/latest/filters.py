@@ -60,8 +60,42 @@ class BaseFilter:
     )
 
 
+@strawberry.interface
+class EmployeeFiltered:
+    employee: EmployeeFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Employee filter limiting which entries are returned.
+            """
+        ),
+    )
+    employees: list[UUID] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Employee UUID", "employees"),
+        deprecation_reason="Replaced by the 'employee' filter",
+    )
+
+
+@strawberry.interface
+class OrganisationUnitFiltered:
+    org_unit: OrganisationUnitFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Organisation Unit filter limiting which entries are returned.
+            """
+        ),
+    )
+    org_units: list[UUID] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Organisational Unit UUID", "org_units"),
+        deprecation_reason="Replaced by the 'org_unit' filter",
+    )
+
+
 @strawberry.input(description="Address filter.")
-class AddressFilter(BaseFilter):
+class AddressFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
     address_type: ClassFilter | None = strawberry.field(
         default=None,
         description=dedent(
@@ -83,20 +117,6 @@ class AddressFilter(BaseFilter):
         deprecation_reason="Replaced by the 'address_type' filter",
     )
 
-    employee: EmployeeFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Employee filter limiting which entries are returned.
-            """
-        ),
-    )
-    employees: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Employee UUID", "employees"),
-        deprecation_reason="Replaced by the 'employee' filter",
-    )
-
     engagement: EngagementFilter | None = strawberry.field(
         default=None,
         description=dedent(
@@ -111,51 +131,9 @@ class AddressFilter(BaseFilter):
         deprecation_reason="Replaced by the 'engagement' filter",
     )
 
-    org_unit: OrganisationUnitFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Organisation Unit filter limiting which entries are returned.
-            """
-        ),
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-        deprecation_reason="Replaced by the 'org_unit' filter",
-    )
-
 
 @strawberry.input(description="Association filter.")
-class AssociationFilter(BaseFilter):
-    employee: EmployeeFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Employee filter limiting which entries are returned.
-            """
-        ),
-    )
-    employees: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Employee UUID", "employees"),
-        deprecation_reason="Replaced by the 'employee' filter",
-    )
-
-    org_unit: OrganisationUnitFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Organisation Unit filter limiting which entries are returned.
-            """
-        ),
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-        deprecation_reason="Replaced by the 'org_unit' filter",
-    )
-
+class AssociationFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
     association_type: ClassFilter | None = strawberry.field(
         default=None,
         description=dedent(
@@ -257,34 +235,8 @@ class EmployeeFilter(BaseFilter):
 
 
 @strawberry.input(description="Engagement filter.")
-class EngagementFilter(BaseFilter):
-    employee: EmployeeFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Employee filter limiting which entries are returned.
-            """
-        ),
-    )
-    employees: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Employee UUID", "employees"),
-        deprecation_reason="Replaced by the 'employee' filter",
-    )
-
-    org_unit: OrganisationUnitFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Organisation Unit filter limiting which entries are returned.
-            """
-        ),
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-        deprecation_reason="Replaced by the 'org_unit' filter",
-    )
+class EngagementFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
+    pass
 
 
 @strawberry.input(description="Facet filter.")
@@ -334,35 +286,7 @@ class ITSystemFilter(BaseFilter):
 
 
 @strawberry.input(description="IT user filter.")
-class ITUserFilter(BaseFilter):
-    employee: EmployeeFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Employee filter limiting which entries are returned.
-            """
-        ),
-    )
-    employees: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Employee UUID", "employees"),
-        deprecation_reason="Replaced by the 'employee' filter",
-    )
-
-    org_unit: OrganisationUnitFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Organisation Unit filter limiting which entries are returned.
-            """
-        ),
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-        deprecation_reason="Replaced by the 'org_unit' filter",
-    )
-
+class ITUserFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
     itsystem: ITSystemFilter | None = strawberry.field(
         default=None,
         description=dedent(
@@ -381,82 +305,18 @@ class ITUserFilter(BaseFilter):
 
 
 @strawberry.input(description="KLE filter.")
-class KLEFilter(BaseFilter):
-    org_unit: OrganisationUnitFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Organisation Unit filter limiting which entries are returned.
-            """
-        ),
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-        deprecation_reason="Replaced by the 'org_unit' filter",
-    )
+class KLEFilter(BaseFilter, OrganisationUnitFiltered):
+    pass
 
 
 @strawberry.input(description="Leave filter.")
-class LeaveFilter(BaseFilter):
-    employee: EmployeeFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Employee filter limiting which entries are returned.
-            """
-        ),
-    )
-    employees: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Employee UUID", "employees"),
-        deprecation_reason="Replaced by the 'employee' filter",
-    )
-
-    org_unit: OrganisationUnitFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Organisation Unit filter limiting which entries are returned.
-            """
-        ),
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-        deprecation_reason="Replaced by the 'org_unit' filter",
-    )
+class LeaveFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
+    pass
 
 
 @strawberry.input(description="Manager filter.")
-class ManagerFilter(BaseFilter):
-    employee: EmployeeFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Employee filter limiting which entries are returned.
-            """
-        ),
-    )
-    employees: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Employee UUID", "employees"),
-        deprecation_reason="Replaced by the 'employee' filter",
-    )
-
-    org_unit: OrganisationUnitFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Organisation Unit filter limiting which entries are returned.
-            """
-        ),
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-        deprecation_reason="Replaced by the 'org_unit' filter",
-    )
+class ManagerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
+    pass
 
 
 @strawberry.input(description="Organisation unit filter.")
@@ -534,34 +394,8 @@ class OrganisationUnitFilter(BaseFilter):
 
 
 @strawberry.input(description="Owner filter.")
-class OwnerFilter(BaseFilter):
-    employee: EmployeeFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Employee filter limiting which entries are returned.
-            """
-        ),
-    )
-    employees: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Employee UUID", "employees"),
-        deprecation_reason="Replaced by the 'employee' filter",
-    )
-
-    org_unit: OrganisationUnitFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Organisation Unit filter limiting which entries are returned.
-            """
-        ),
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-        deprecation_reason="Replaced by the 'org_unit' filter",
-    )
+class OwnerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
+    pass
 
 
 @strawberry.input(description="Registration filter.")
@@ -602,48 +436,10 @@ class RegistrationFilter:
 
 
 @strawberry.input(description="Related unit filter.")
-class RelatedUnitFilter(BaseFilter):
-    org_unit: OrganisationUnitFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Organisation Unit filter limiting which entries are returned.
-            """
-        ),
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-        deprecation_reason="Replaced by the 'org_unit' filter",
-    )
+class RelatedUnitFilter(BaseFilter, OrganisationUnitFiltered):
+    pass
 
 
 @strawberry.input(description="Role filter.")
-class RoleFilter(BaseFilter):
-    employee: EmployeeFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Employee filter limiting which entries are returned.
-            """
-        ),
-    )
-    employees: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Employee UUID", "employees"),
-        deprecation_reason="Replaced by the 'employee' filter",
-    )
-
-    org_unit: OrganisationUnitFilter | None = strawberry.field(
-        default=None,
-        description=dedent(
-            """\
-            Organisation Unit filter limiting which entries are returned.
-            """
-        ),
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-        deprecation_reason="Replaced by the 'org_unit' filter",
-    )
+class RoleFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
+    pass
