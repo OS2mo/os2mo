@@ -653,13 +653,6 @@ async def test_terminate(given_uuid, given_validity_dts):
             },
             5,
         ),
-        (
-            {
-                "address_type_user_keys": "BrugerPostadresse",
-                "address_types": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
-            },
-            5,
-        ),
         # Employee filters
         ({"employees": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"}, 1),
         ({"employees": "6ee24785-ee9a-4502-81c2-7697009c9053"}, 2),

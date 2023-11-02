@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from __future__ import annotations
+
 from datetime import datetime
 from textwrap import dedent
 from uuid import UUID
@@ -58,79 +60,151 @@ class BaseFilter:
     )
 
 
+@strawberry.interface
+class EmployeeFiltered:
+    employee: EmployeeFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Employee filter limiting which entries are returned.
+            """
+        ),
+    )
+    employees: list[UUID] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Employee UUID", "employees"),
+        deprecation_reason="Replaced by the 'employee' filter",
+    )
+
+
+@strawberry.interface
+class OrganisationUnitFiltered:
+    org_unit: OrganisationUnitFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Organisation Unit filter limiting which entries are returned.
+            """
+        ),
+    )
+    org_units: list[UUID] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Organisational Unit UUID", "org_units"),
+        deprecation_reason="Replaced by the 'org_unit' filter",
+    )
+
+
 @strawberry.input(description="Address filter.")
-class AddressFilter(BaseFilter):
+class AddressFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
+    address_type: ClassFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Address type filter limiting which entries are returned.
+            """
+        ),
+    )
     address_types: list[UUID] | None = strawberry.field(
         default=None,
         description=gen_filter_string("Address type UUID", "address_types"),
+        deprecation_reason="Replaced by the 'address_type' filter",
     )
     address_type_user_keys: list[str] | None = strawberry.field(
         default=None,
         description=gen_filter_string(
             "Address type user-key", "address_type_user_keys"
         ),
+        deprecation_reason="Replaced by the 'address_type' filter",
     )
-    employees: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Employee UUID", "employees")
+
+    engagement: EngagementFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Engagement filter limiting which entries are returned.
+            """
+        ),
     )
     engagements: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Engagement UUID", "engagements")
-    )
-    org_units: list[UUID] | None = strawberry.field(
         default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
+        description=gen_filter_string("Engagement UUID", "engagements"),
+        deprecation_reason="Replaced by the 'engagement' filter",
     )
 
 
 @strawberry.input(description="Association filter.")
-class AssociationFilter(BaseFilter):
-    employees: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Employee UUID", "employees")
-    )
-    org_units: list[UUID] | None = strawberry.field(
+class AssociationFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
+    association_type: ClassFilter | None = strawberry.field(
         default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
+        description=dedent(
+            """\
+            Address type filter limiting which entries are returned.
+            """
+        ),
     )
     association_types: list[UUID] | None = strawberry.field(
         default=None,
         description=gen_filter_string("Association type UUID", "association_types"),
+        deprecation_reason="Replaced by the 'association_type' filter",
     )
     association_type_user_keys: list[str] | None = strawberry.field(
         default=None,
         description=gen_filter_string(
             "Association type user-key", "association_type_user_keys"
         ),
+        deprecation_reason="Replaced by the 'association_type' filter",
     )
     it_association: bool | None = strawberry.field(
         default=None,
         description=dedent(
             """\
-    Query for either IT-Associations or "normal" Associations. `None` returns all.
+            Query for either IT-Associations or "normal" Associations. `None` returns all.
 
-    This field is needed to replicate the functionality in the service API:
-    `?it=1`
-    """
+            This field is needed to replicate the functionality in the service API:
+            `?it=1`
+            """
         ),
     )
 
 
 @strawberry.input(description="Class filter.")
 class ClassFilter(BaseFilter):
-    facets: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Facet UUID", "facets")
+    facet: FacetFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Facet filter limiting which entries are returned.
+            """
+        ),
     )
-
+    facets: list[UUID] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Facet UUID", "facets"),
+        deprecation_reason="Replaced by the 'facet' filter",
+    )
     facet_user_keys: list[str] | None = strawberry.field(
         default=None,
         description=gen_filter_string("Facet user-key", "facet_user_keys"),
+        deprecation_reason="Replaced by the 'facet' filter",
     )
 
+    parent: ClassFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Parent filter limiting which entries are returned.
+            """
+        ),
+    )
     parents: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Parent UUID", "parents")
+        default=None,
+        description=gen_filter_string("Parent UUID", "parents"),
+        deprecation_reason="Replaced by the 'parent' filter",
     )
     parent_user_keys: list[str] | None = strawberry.field(
         default=None,
         description=gen_filter_string("Parent user-key", "parent_user_keys"),
+        deprecation_reason="Replaced by the 'parent' filter",
     )
 
 
@@ -147,7 +221,7 @@ class EmployeeFilter(BaseFilter):
     query: str | None = strawberry.field(
         default=UNSET,
         description=dedent(
-            """
+            """\
             Free text search.
 
             Does best effort lookup to find entities matching the query string.
@@ -161,24 +235,29 @@ class EmployeeFilter(BaseFilter):
 
 
 @strawberry.input(description="Engagement filter.")
-class EngagementFilter(BaseFilter):
-    employees: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Employee UUID", "employees")
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-    )
+class EngagementFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
+    pass
 
 
 @strawberry.input(description="Facet filter.")
 class FacetFilter(BaseFilter):
+    parent: FacetFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Parent filter limiting which entries are returned.
+            """
+        ),
+    )
     parents: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Parent UUID", "parents")
+        default=None,
+        description=gen_filter_string("Parent UUID", "parents"),
+        deprecation_reason="Replaced by the 'parent' filter",
     )
     parent_user_keys: list[str] | None = strawberry.field(
         default=None,
         description=gen_filter_string("Parent user-key", "parent_user_keys"),
+        deprecation_reason="Replaced by the 'parent' filter",
     )
 
 
@@ -207,50 +286,37 @@ class ITSystemFilter(BaseFilter):
 
 
 @strawberry.input(description="IT user filter.")
-class ITUserFilter(BaseFilter):
-    employees: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Employee UUID", "employees")
-    )
-    org_units: list[UUID] | None = strawberry.field(
+class ITUserFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
+    itsystem: ITSystemFilter | None = strawberry.field(
         default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
+        description=dedent(
+            """\
+            ITSystem filter limiting which entries are returned.
+            """
+        ),
     )
     itsystem_uuids: list[UUID] | None = strawberry.field(
         default=None,
         description=gen_filter_string(
             "Only return IT users of ITSystem with these UUIDs", "itsystem_uuids"
         ),
+        deprecation_reason="Replaced by the 'itsystem' filter",
     )
 
 
 @strawberry.input(description="KLE filter.")
-class KLEFilter(BaseFilter):
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-    )
+class KLEFilter(BaseFilter, OrganisationUnitFiltered):
+    pass
 
 
 @strawberry.input(description="Leave filter.")
-class LeaveFilter(BaseFilter):
-    employees: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Employee UUID", "employees")
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-    )
+class LeaveFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
+    pass
 
 
 @strawberry.input(description="Manager filter.")
-class ManagerFilter(BaseFilter):
-    employees: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Employee UUID", "employees")
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-    )
+class ManagerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
+    pass
 
 
 @strawberry.input(description="Organisation unit filter.")
@@ -258,7 +324,7 @@ class OrganisationUnitFilter(BaseFilter):
     query: str | None = strawberry.field(
         default=UNSET,
         description=dedent(
-            """
+            """\
             Free text search.
 
             Does best effort lookup to find entities matching the query string.
@@ -266,8 +332,43 @@ class OrganisationUnitFilter(BaseFilter):
             """
         ),
     )
+
+    parent: OrganisationUnitFilter | None = strawberry.field(
+        default=UNSET,
+        description=dedent(
+            """\
+            Parent filter limiting which entries are returned.
+
+            Set to `None` to find root units.
+            """
+        ),
+    )
     parents: list[UUID] | None = strawberry.field(
-        default=UNSET, description=gen_filter_string("Parent UUID", "parents")
+        default=UNSET,
+        description=gen_filter_string("Parent UUID", "parents"),
+        deprecation_reason="Replaced by the 'parent' filter",
+    )
+
+    hierarchy: ClassFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Hierarchy filter limiting which entries are returned.
+
+            Filter organisation units by their organisational hierarchy labels.
+
+            Can be used to extract a subset of the organisational structure.
+
+            Examples of user-keys:
+            * `"Line-management"`
+            * `"Self-owned institution"`
+            * `"Outside organisation"`
+            * `"Hidden"`
+
+            Note:
+            The organisation-gatekeeper integration is one option to keep hierarchy labels up-to-date.
+            """
+        ),
     )
     hierarchies: list[UUID] | None = strawberry.field(
         default=None,
@@ -288,18 +389,13 @@ class OrganisationUnitFilter(BaseFilter):
         """
         )
         + gen_filter_table("hierarchies"),
+        deprecation_reason="Replaced by the 'hierarchy' filter",
     )
 
 
 @strawberry.input(description="Owner filter.")
-class OwnerFilter(BaseFilter):
-    employees: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Employee UUID", "employees")
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-    )
+class OwnerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
+    pass
 
 
 @strawberry.input(description="Registration filter.")
@@ -311,10 +407,10 @@ class RegistrationFilter:
         default=None,
         description=dedent(
             """\
-        Filter registrations by their changing actor.
+            Filter registrations by their changing actor.
 
-        Can be used to select all changes made by a particular user or integration.
-        """
+            Can be used to select all changes made by a particular user or integration.
+            """
         )
         + gen_filter_table("actors"),
     )
@@ -322,10 +418,10 @@ class RegistrationFilter:
         default=None,
         description=dedent(
             """\
-        Filter registrations by their model type.
+            Filter registrations by their model type.
 
-        Can be used to select all changes of a type.
-        """
+            Can be used to select all changes of a type.
+            """
         )
         + gen_filter_table("models"),
     )
@@ -340,19 +436,10 @@ class RegistrationFilter:
 
 
 @strawberry.input(description="Related unit filter.")
-class RelatedUnitFilter(BaseFilter):
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-    )
+class RelatedUnitFilter(BaseFilter, OrganisationUnitFiltered):
+    pass
 
 
 @strawberry.input(description="Role filter.")
-class RoleFilter(BaseFilter):
-    employees: list[UUID] | None = strawberry.field(
-        default=None, description=gen_filter_string("Employee UUID", "employees")
-    )
-    org_units: list[UUID] | None = strawberry.field(
-        default=None,
-        description=gen_filter_string("Organisational Unit UUID", "org_units"),
-    )
+class RoleFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
+    pass
