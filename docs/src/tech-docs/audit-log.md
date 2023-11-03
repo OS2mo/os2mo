@@ -17,6 +17,7 @@ list of UUIDs exist:
 | AD2Mo Sync                  | ad21105c-baad-c0de-6164-326d6f73796e |
 | ADGUID Sync                 | ad5711c0-baad-c0de-0000-616467756964 |
 | Calculate Primary           | ca1c0000-baad-c0de-6361-6c637072696d |
+| Developer                   | de7e104e-baad-c0de-6465-76656c6f7065 |
 | DIPEX                       | d1fec000-baad-c0de-0000-004449504558 |
 | Engagement Updater          | 119da1e4-baad-c0de-656e-672075706461 |
 | Job Function Configurator   | 70bf1ccf-baad-c0de-6a6f-6266756e6366 |
