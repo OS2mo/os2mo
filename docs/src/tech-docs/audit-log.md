@@ -34,5 +34,6 @@ list of UUIDs exist:
 | SDChangedAt                 | 5dc4a1ce-baad-c0de-7364-6368616e6765 |
 | SDMox                       | 5d111070-baad-c0de-0000-0073646d6f78 |
 | SDTool                      | 5d100100-baad-c0de-0000-7364746f6f6c |
+| SDTool+                     | 5d700141-baad-c0de-0000-7364746f6f6c |
 | SMTP                        | 51111900-baad-c0de-6d6f-20736d747000 |
 | SQLExport                   | 052ec901-baad-c0de-7371-6c6578706f72 |
