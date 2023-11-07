@@ -589,11 +589,10 @@ async def validity_sub_query_hack(
     item_potentials_models = list(
         filter(
             lambda ipm: (  # type: ignore
-                root_validity.from_date is None
-                or (
-                    ipm.validity.to_date is None  # type: ignore
-                    or ipm.validity.to_date >= root_validity.from_date  # type: ignore
-                )
+                root_validity.from_date is None  # type: ignore
+                or ipm.validity.to_date is None  # type: ignore
+                or ipm.validity.to_date  # type: ignore
+                >= root_validity.from_date  # type: ignore
             ),
             item_potentials_models,
         )
@@ -603,8 +602,10 @@ async def validity_sub_query_hack(
     item_potentials_models = list(
         filter(
             lambda ipm: (  # type: ignore
-                root_validity.to_date is None
-                or ipm.validity.from_date <= root_validity.to_date  # type: ignore
+                root_validity.to_date is None  # type: ignore
+                or ipm.validity.from_date is None  # type: ignore
+                or ipm.validity.from_date  # type: ignore
+                <= root_validity.to_date  # type: ignore
             ),
             item_potentials_models,
         )
@@ -621,7 +622,12 @@ async def validity_sub_query_hack(
         if existing_item is None:
             items_final.append(item)
         else:
-            if item.validity.from_date < existing_item.validity.from_date:
+            # Handle the case where either from_date could be None
+            if existing_item.validity.from_date is None or (
+                item.validity.from_date is not None
+                and item.validity.from_date  # type: ignore
+                < existing_item.validity.from_date  # type: ignore
+            ):
                 items_final.remove(existing_item)
                 items_final.append(item)
 
