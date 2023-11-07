@@ -141,7 +141,7 @@ async def test_v2_decorate_orgunits_attrs(mock_execute_graphql):
             {
                 "uuid": "279a900a-a1a6-4c93-9c58-4f7d31108cdd",
                 "name": "Viuf_skole@kolding.dk",
-                "address_type": {
+                "address_type_validity": {
                     "uuid": "61c22b75-01b0-4e83-954c-9cf0c8dc79fe",
                     "name": "Email",
                 },
@@ -149,7 +149,7 @@ async def test_v2_decorate_orgunits_attrs(mock_execute_graphql):
             {
                 "uuid": "b756c0c9-75b7-4ed3-a731-b66946b09437",
                 "name": "Næsbyvej 26, 6000 Kolding",
-                "address_type": {
+                "address_type_validity": {
                     "uuid": "5260d4aa-e33b-48f7-ae3e-6074262cbdcf",
                     "name": "Postadresse",
                 },
@@ -159,7 +159,7 @@ async def test_v2_decorate_orgunits_attrs(mock_execute_graphql):
             {
                 "uuid": "397c3967-fb29-425a-88a5-dac2c804cbab",
                 "user_key": "viuf-skole-test-ad",
-                "itsystem": {
+                "itsystem_validity": {
                     "uuid": "a1608e69-c422-404f-a6cc-b873c50af111",
                     "user_key": "Active Directory",
                     "name": "Active Directory",
@@ -175,7 +175,7 @@ async def test_v2_decorate_orgunits_attrs(mock_execute_graphql):
             {
                 "uuid": uuid.UUID(addr["uuid"]),
                 "value": addr["name"],
-                "title": addr["address_type"]["name"],
+                "title": addr["address_type_validity"]["name"],
             }
         )
 
@@ -184,7 +184,7 @@ async def test_v2_decorate_orgunits_attrs(mock_execute_graphql):
             {
                 "uuid": uuid.UUID(ituser["uuid"]),
                 "value": ituser["user_key"],
-                "title": ituser["itsystem"]["name"],
+                "title": ituser["itsystem_validity"]["name"],
             }
         )
 
@@ -223,9 +223,15 @@ async def test_v2_decorate_orgunits_attrs(mock_execute_graphql):
     result = await decorate_orgunit_search_result(
         settings=MagicMock(
             confdb_autocomplete_attrs_orgunit=[
-                uuid.UUID(test_data["addresses_validity"][0]["address_type"]["uuid"]),
-                uuid.UUID(test_data["addresses_validity"][1]["address_type"]["uuid"]),
-                uuid.UUID(test_data["itusers_validity"][0]["itsystem"]["uuid"]),
+                uuid.UUID(
+                    test_data["addresses_validity"][0]["address_type_validity"]["uuid"]
+                ),
+                uuid.UUID(
+                    test_data["addresses_validity"][1]["address_type_validity"]["uuid"]
+                ),
+                uuid.UUID(
+                    test_data["itusers_validity"][0]["itsystem_validity"]["uuid"]
+                ),
             ]
         ),
         search_results=[uuid.UUID(test_data["uuid"])],

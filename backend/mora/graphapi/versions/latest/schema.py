@@ -1054,6 +1054,36 @@ class Address:
 
     validity: Validity = strawberry.auto
 
+    # VALIDITY HACKS
+
+    @strawberry.field(
+        description=dedent(
+            """\
+            Same as address_type, but with HACKs to enable validities.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("class"),
+        ],
+        deprecation_reason=dedent(
+            """\
+            Should only be used to query address_type when validity dates have been specified, "
+            "ex from_date & to_date."
+            "Will be removed when sub-query date handling is implemented.
+            """
+        ),
+    )
+    async def address_type_validity(self, root: AddressRead) -> LazyClass | None:
+        address_types = await validity_sub_query_hack(
+            root.validity,
+            ClassRead,
+            get_handler_for_type("class"),
+            {"uuid": uuid2list(root.address_type_uuid)},
+        )
+
+        return address_types[0] if address_types else None
+
 
 # Association
 # -----------
@@ -1312,6 +1342,38 @@ class Association:
         return root.it_user_uuid
 
     validity: Validity = strawberry.auto
+
+    # VALIDITY HACKS
+
+    @strawberry.field(
+        description=dedent(
+            """\
+            Same as association_type, but with HACKs to enable validities.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("class"),
+        ],
+        deprecation_reason=dedent(
+            """\
+            Should only be used to query association_types when validity dates have been specified, "
+            "ex from_date & to_date."
+            "Will be removed when sub-query date handling is implemented.
+            """
+        ),
+    )
+    async def association_type_validity(
+        self, root: AssociationRead
+    ) -> LazyClass | None:
+        association_types = await validity_sub_query_hack(
+            root.validity,
+            ClassRead,
+            get_handler_for_type("class"),
+            {"uuid": uuid2list(root.association_type_uuid)},
+        )
+
+        return association_types[0] if association_types else None
 
 
 # Class
@@ -2144,6 +2206,36 @@ class Engagement:
 
     validity: Validity = strawberry.auto
 
+    # VALIDITY HACKS
+
+    @strawberry.field(
+        description=dedent(
+            """\
+            Same as engagement_type, but with HACKs to enable validities.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("class"),
+        ],
+        deprecation_reason=dedent(
+            """\
+            Should only be used to query engagement_type when validity dates have been specified, "
+            "ex from_date & to_date."
+            "Will be removed when sub-query date handling is implemented.
+            """
+        ),
+    )
+    async def engagement_type_validity(self, root: EngagementRead) -> LazyClass | None:
+        engagement_types = await validity_sub_query_hack(
+            root.validity,
+            ClassRead,
+            get_handler_for_type("class"),
+            {"uuid": uuid2list(root.engagement_type_uuid)},
+        )
+
+        return engagement_types[0] if engagement_types else None
+
 
 # Facet
 # -----
@@ -2587,6 +2679,36 @@ class ITUser:
         return root.primary_uuid
 
     validity: Validity = strawberry.auto
+
+    # VALIDITY HACKS
+
+    @strawberry.field(
+        description=dedent(
+            """\
+            Same as itsystem, but with HACKs to enable validities.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("class"),
+        ],
+        deprecation_reason=dedent(
+            """\
+            Should only be used to query itsystem when validity dates have been specified, "
+            "ex from_date & to_date."
+            "Will be removed when sub-query date handling is implemented.
+            """
+        ),
+    )
+    async def itsystem_validity(self, root: ITUserRead) -> LazyITSystem:
+        itsystems = await validity_sub_query_hack(
+            root.validity,
+            ITSystemRead,
+            get_handler_for_type("itsystem"),
+            {"uuid": uuid2list(root.itsystem_uuid)},
+        )
+
+        return itsystems[0]
 
 
 # KLE

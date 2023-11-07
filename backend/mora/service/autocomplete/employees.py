@@ -143,7 +143,7 @@ async def decorate_employee_search_result(
                 engagements_validity {
                     uuid
                     user_key
-                    engagement_type {
+                    engagement_type_validity {
                         uuid
                         name
                         published
@@ -154,7 +154,7 @@ async def decorate_employee_search_result(
                     uuid
                     user_key
                     value
-                    address_type {
+                    address_type_validity {
                         uuid
                         name
                         published
@@ -164,7 +164,7 @@ async def decorate_employee_search_result(
                 associations_validity {
                     uuid
                     user_key
-                    association_type {
+                    association_type_validity {
                         uuid
                         name
                         published
@@ -174,7 +174,7 @@ async def decorate_employee_search_result(
                 itusers_validity {
                     uuid
                     user_key
-                    itsystem {
+                    itsystem_validity {
                         uuid
                         name
                     }
@@ -327,7 +327,7 @@ def _gql_get_employee_attrs(settings: config.Settings, gql_employee: dict):
     for engagement in gql_employee.get("engagements_validity", []):
         uuid = engagement["uuid"]
         value = engagement["user_key"]
-        engagement_type = engagement.get("engagement_type")
+        engagement_type = engagement.get("engagement_type_validity")
         if (
             not engagement_type
             or UUID(engagement_type["uuid"])
@@ -351,7 +351,7 @@ def _gql_get_employee_attrs(settings: config.Settings, gql_employee: dict):
     for address in gql_employee.get("addresses_validity", []):
         uuid = address["uuid"]
         value = address["value"]
-        addr_type = address.get("address_type")
+        addr_type = address.get("address_type_validity")
         if (
             not addr_type
             or UUID(addr_type["uuid"])
@@ -375,7 +375,7 @@ def _gql_get_employee_attrs(settings: config.Settings, gql_employee: dict):
     for assoc in gql_employee.get("associations_validity", []):
         uuid = assoc["uuid"]
         value = assoc["user_key"]
-        assoc_type = assoc.get("association_type")
+        assoc_type = assoc.get("association_type_validity")
         if (
             not assoc_type
             or UUID(assoc_type["uuid"])
@@ -399,7 +399,7 @@ def _gql_get_employee_attrs(settings: config.Settings, gql_employee: dict):
     for ituser in gql_employee.get("itusers_validity", []):
         uuid = ituser["uuid"]
         value = ituser["user_key"]
-        itsystem = ituser.get("itsystem")
+        itsystem = ituser.get("itsystem_validity")
         if (
             not itsystem
             or UUID(itsystem["uuid"]) not in settings.confdb_autocomplete_attrs_employee
@@ -412,7 +412,7 @@ def _gql_get_employee_attrs(settings: config.Settings, gql_employee: dict):
         attrs.append(
             {
                 "uuid": UUID(uuid),
-                "title": ituser["itsystem"]["name"],
+                "title": itsystem["name"],
                 "value": value,
             }
         )
