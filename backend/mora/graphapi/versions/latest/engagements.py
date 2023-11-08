@@ -43,10 +43,10 @@ async def terminate_engagement(input: EngagementTerminate) -> UUID:
 async def create_engagement(input: EngagementCreate) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
-    handler = await EngagementRequestHandler.construct(
+    request = await EngagementRequestHandler.construct(
         input_dict, mapping.RequestType.CREATE
     )
-    uuid = await handler.submit()
+    uuid = await request.submit()
 
     return UUID(uuid)
 

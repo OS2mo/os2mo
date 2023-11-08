@@ -17,10 +17,10 @@ from mora.triggers import Trigger
 async def create_association(input: AssociationCreate) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
-    handler = await AssociationRequestHandler.construct(
+    request = await AssociationRequestHandler.construct(
         input_dict, mapping.RequestType.CREATE
     )
-    uuid = await handler.submit()
+    uuid = await request.submit()
 
     return UUID(uuid)
 

@@ -14,8 +14,8 @@ from mora.triggers import Trigger
 async def create_role(input: RoleCreate) -> UUID:
     input_dict = input.to_handler_dict()
 
-    handler = await RoleRequestHandler.construct(input_dict, mapping.RequestType.CREATE)
-    uuid = await handler.submit()
+    request = await RoleRequestHandler.construct(input_dict, mapping.RequestType.CREATE)
+    uuid = await request.submit()
 
     return UUID(uuid)
 

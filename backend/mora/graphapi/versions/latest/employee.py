@@ -20,10 +20,10 @@ from mora.triggers import Trigger
 async def create_employee(input: EmployeeCreate) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
-    handler = await EmployeeRequestHandler.construct(
+    request = await EmployeeRequestHandler.construct(
         input_dict, mapping.RequestType.CREATE
     )
-    uuid = await handler.submit()
+    uuid = await request.submit()
 
     return UUID(uuid)
 

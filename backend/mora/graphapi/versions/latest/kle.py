@@ -15,8 +15,8 @@ async def create_kle(input: KLECreate) -> UUID:
     """Creating a KLE annotation."""
     input_dict = input.to_handler_dict()
 
-    handler = await KLERequestHandler.construct(input_dict, mapping.RequestType.CREATE)
-    uuid = await handler.submit()
+    request = await KLERequestHandler.construct(input_dict, mapping.RequestType.CREATE)
+    uuid = await request.submit()
 
     return UUID(uuid)
 

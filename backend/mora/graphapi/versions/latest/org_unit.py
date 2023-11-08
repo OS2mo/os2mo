@@ -139,10 +139,10 @@ async def terminate_org_unit(
 async def create_org_unit(input: OrganisationUnitCreate) -> UUID:
     input_dict = input.to_handler_dict()
 
-    handler = await OrgUnitRequestHandler.construct(
+    request = await OrgUnitRequestHandler.construct(
         input_dict, mapping.RequestType.CREATE
     )
-    uuid = await handler.submit()
+    uuid = await request.submit()
 
     return UUID(uuid)
 

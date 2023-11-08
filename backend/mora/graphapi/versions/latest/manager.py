@@ -15,10 +15,10 @@ async def create_manager(input: ManagerCreate) -> UUID:
     """Creating a manager."""
     input_dict = input.to_handler_dict()
 
-    handler = await ManagerRequestHandler.construct(
+    request = await ManagerRequestHandler.construct(
         input_dict, mapping.RequestType.CREATE
     )
-    uuid = await handler.submit()
+    uuid = await request.submit()
 
     return UUID(uuid)
 
