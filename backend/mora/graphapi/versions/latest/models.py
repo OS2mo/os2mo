@@ -112,6 +112,18 @@ class ValidityTerminate(Validity):
         description="When the validity should end - required when terminating",
     )
 
+    def to_handler_dict(self) -> dict:
+        validity = {}
+        if self.from_date:
+            validity["from"] = self.from_date
+        if self.to_date:
+            validity["to"] = self.to_date
+
+        return {
+            "uuid": self.uuid,  # type: ignore
+            "validity": validity,
+        }
+
 
 class MoraTriggerRequest(BaseModel):
     """Model representing a MoRa Trigger Request."""
@@ -284,15 +296,6 @@ class AddressTerminate(ValidityTerminate):
 
     uuid: UUID = Field(description="UUID for the address we want to terminate.")
 
-    def to_handler_dict(self) -> dict:
-        return {
-            "uuid": self.uuid,
-            "validity": {
-                "from": self.from_date,
-                "to": self.to_date,
-            },
-        }
-
 
 # Associations
 # ------------
@@ -366,15 +369,6 @@ class AssociationTerminate(ValidityTerminate):
     """Model representing an association termination(or rather end-date update)."""
 
     uuid: UUID = Field(description="UUID for the association we want to terminate.")
-
-    def to_handler_dict(self) -> dict:
-        return {
-            "uuid": self.uuid,
-            "validity": {
-                "from": self.from_date,
-                "to": self.to_date,
-            },
-        }
 
 
 # Classes
@@ -581,15 +575,6 @@ class EngagementTerminate(ValidityTerminate):
     """Model representing an engagement termination(or rather end-date update)."""
 
     uuid: UUID = Field(description="UUID for the engagement we want to terminate.")
-
-    def to_handler_dict(self) -> dict:
-        return {
-            "uuid": self.uuid,
-            "validity": {
-                "from": self.from_date,
-                "to": self.to_date,
-            },
-        }
 
 
 EXTENSION_FIELD_DESCRIPTION: str = dedent(
