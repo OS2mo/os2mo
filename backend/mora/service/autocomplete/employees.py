@@ -77,10 +77,6 @@ async def decorate_employee_search_result(
                 objects {
                     uuid
 
-                    current {
-                        ...employee_details
-                    }
-
                     objects {
                         ...employee_details
                     }
@@ -112,10 +108,6 @@ async def decorate_employee_search_result(
                 employees(filter: { uuids: $uuids, from_date: null, to_date: null }) {
                     objects {
                         uuid
-
-                        current {
-                            ...employee_details
-                        }
 
                         objects {
                             ...employee_details

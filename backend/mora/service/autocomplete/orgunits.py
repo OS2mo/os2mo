@@ -68,10 +68,6 @@ async def decorate_orgunit_search_result(
                 objects {
                     uuid
 
-                    current {
-                        ...orgunit_details
-                    }
-
                     objects {
                         ...orgunit_details
                     }

@@ -13,6 +13,7 @@ from httpx import Response
 from mora.graphapi.versions.v14.version import GraphQLVersion as GraphQLVersionV14
 from mora.lora import AutocompleteScope
 from mora.lora import Connector
+from mora.service.autocomplete.employees import decorate_employee_search_result
 from mora.service.autocomplete.orgunits import decorate_orgunit_search_result
 from mora.service.autocomplete.orgunits import search_orgunits
 
@@ -58,6 +59,9 @@ def test_v2_legacy_logic(mock_get_settings, mock_get_results, service_client):
     assert response.status_code == 200
     mock_get_results.assert_called()
     mock_get_results.assert_called_with(ANY, class_uuids, query)
+
+
+# ORG UNITS
 
 
 @patch("mora.service.autocomplete.orgunits.execute_graphql", new_callable=AsyncMock)
@@ -299,3 +303,149 @@ async def test_v2_search_orgunits(mock_sqlalchemy_generate_query):
         mock_sqlalchemy_generate_query.return_value, {}
     )
     assert result == expected
+
+
+# EMPLOYEES
+
+
+@patch("mora.service.autocomplete.employees.execute_graphql", new_callable=AsyncMock)
+async def test_v2_decorate_employees(mock_execute_graphql):
+    test_data = {
+        "uuid": "82a728b4-b7d0-40ea-a3db-8dbbf911a3e6",
+        "user_key": "AllanO",
+        "cpr_no": "0501402419",
+        "name": "Allan Bastrup Odgaard",
+        "givenname": "Allan Bastrup",
+        "surname": "Odgaard",
+        "nickname": "",
+        "nickname_givenname": "",
+        "nickname_surname": "",
+        "validity": {"from": "1940-01-05T00:00:00+01:00", "to": None},
+        "engagements_validity": [
+            {
+                "uuid": "3fea2351-dad8-4f7f-8c2b-5d73d83f51b1",
+                "user_key": "-",
+                "engagement_type_validity": {
+                    "uuid": "8acc5743-044b-4c82-9bb9-4e572d82b524",
+                    "name": "Ansat",
+                    "published": "Publiceret",
+                },
+            }
+        ],
+        "addresses_validity": [
+            {
+                "uuid": "5d60f62e-f17e-4b85-990f-42136eb19cd0",
+                "user_key": "53103758",
+                "value": "53103758",
+                "address_type_validity": {
+                    "uuid": "05b69443-0c9f-4d57-bb4b-a8c719afff89",
+                    "name": "Telefon",
+                    "published": "Publiceret",
+                },
+            },
+            {
+                "uuid": "9a4aeebc-8fff-49eb-9f9b-02f3c3a4f0ce",
+                "user_key": "allano@kolding.dk",
+                "value": "allano@kolding.dk",
+                "address_type_validity": {
+                    "uuid": "f376deb8-4743-4ca6-a047-3241de8fe9d2",
+                    "name": "Email",
+                    "published": "Publiceret",
+                },
+            },
+            {
+                "uuid": "9f87c7f5-2e1c-45df-8a23-f6157a2ae2db",
+                "user_key": "0a3f50bc-35ff-32b8-e044-0003ba298018",
+                "value": "0a3f50bc-35ff-32b8-e044-0003ba298018",
+                "address_type_validity": {
+                    "uuid": "e75f74f5-cbc4-4661-b9f4-e6a9e05abb2d",
+                    "name": "Postadresse",
+                    "published": "Publiceret",
+                },
+            },
+        ],
+        "associations_validity": [
+            {
+                "uuid": "3e45aeb0-29a6-41b9-8d04-1a50619b3076",
+                "user_key": "-",
+                "association_type_validity": {
+                    "uuid": "cc42af04-55f5-4483-87c3-3a22d8003d7e",
+                    "name": "Leder",
+                    "published": "Publiceret",
+                },
+            }
+        ],
+        "itusers_validity": [
+            {
+                "uuid": "e748df8f-dba4-494b-a3a1-9bccebc27538",
+                "user_key": "AllanO",
+                "itsystem_validity": {
+                    "uuid": "5168dd45-4cb5-4932-b8a1-10dbe736fc5d",
+                    "name": "Office365",
+                },
+            }
+        ],
+    }
+
+    # mocking
+    mock_execute_graphql.return_value = MagicMock(
+        data={
+            "employees": {
+                "objects": [
+                    {
+                        "uuid": test_data["uuid"],
+                        "current": test_data,
+                        "objects": [test_data],
+                    }
+                ]
+            }
+        },
+        errors=None,
+    )
+
+    # invoke
+    result = await decorate_employee_search_result(
+        settings=MagicMock(
+            confdb_autocomplete_attrs_employee=[
+                uuid.UUID(
+                    test_data["engagements_validity"][0]["engagement_type_validity"][
+                        "uuid"
+                    ]
+                ),  # engagement_type = Ansat
+                uuid.UUID(
+                    test_data["addresses_validity"][0]["address_type_validity"]["uuid"]
+                ),  # address_type = Email
+                uuid.UUID(
+                    test_data["associations_validity"][0]["association_type_validity"][
+                        "uuid"
+                    ]
+                ),  # association_type = Medlem
+                uuid.UUID(
+                    test_data["itusers_validity"][0]["itsystem_validity"]["uuid"]
+                ),  # itsystem = Active Directory
+                uuid.UUID("14466fb0-f9de-439c-a6c2-b3262c367da7"),  # itsystem = SAP
+            ],
+        ),
+        search_results=[uuid.UUID(test_data["uuid"])],
+        at=None,
+    )
+
+    # assert
+    assert result == [
+        {
+            "uuid": uuid.UUID(test_data["uuid"]),
+            "name": test_data["name"],
+            "attrs": [
+                {
+                    "uuid": uuid.UUID("5d60f62e-f17e-4b85-990f-42136eb19cd0"),
+                    "title": "Telefon",
+                    "value": "53103758",
+                },
+                {
+                    "uuid": uuid.UUID("e748df8f-dba4-494b-a3a1-9bccebc27538"),
+                    "title": "Office365",
+                    "value": "AllanO",
+                },
+            ],
+        }
+    ]
