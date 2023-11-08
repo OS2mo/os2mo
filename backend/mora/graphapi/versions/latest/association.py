@@ -8,10 +8,8 @@ from fastapi.encoders import jsonable_encoder
 from .models import AssociationCreate
 from .models import AssociationTerminate
 from .models import AssociationUpdate
-from mora import lora
 from mora import mapping
 from mora.service.association import AssociationRequestHandler
-from mora.triggers import Trigger
 
 
 async def create_association(input: AssociationCreate) -> UUID:
@@ -43,26 +41,11 @@ async def update_association(input: AssociationUpdate) -> UUID:
 
 async def terminate_association(input: AssociationTerminate) -> UUID:
     """Helper function for terminating associations."""
-    trigger = input.get_association_trigger()
-    trigger_dict = trigger.to_trigger_dict()
+    input_dict = jsonable_encoder(input.to_handler_dict())
 
-    # ON_BEFORE
-    _ = await Trigger.run(trigger_dict)
-
-    # Do LoRa update
-    lora_conn = lora.Connector()
-    lora_result = await lora_conn.organisationfunktion.update(
-        input.get_lora_payload(), str(input.uuid)
+    request = await AssociationRequestHandler.construct(
+        input_dict, mapping.RequestType.TERMINATE
     )
+    await request.submit()
 
-    # ON_AFTER
-    trigger_dict.update(
-        {
-            Trigger.RESULT: lora_result,
-            Trigger.EVENT_TYPE: mapping.EventType.ON_AFTER,
-        }
-    )
-
-    _ = await Trigger.run(trigger_dict)
-
-    return UUID(lora_result)
+    return input.uuid
