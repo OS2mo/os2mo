@@ -23,7 +23,7 @@ from mora import mapping
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
-from mora.graphapi.versions.latest.address import terminate_addr
+from mora.graphapi.versions.latest.address import terminate_address
 from mora.graphapi.versions.latest.models import AddressCreate
 from mora.graphapi.versions.latest.models import AddressTerminate
 from mora.graphapi.versions.latest.models import AddressUpdate
@@ -621,7 +621,7 @@ async def test_terminate(given_uuid, given_validity_dts):
     terminate_result_uuid = None
     caught_exception = None
     try:
-        terminate_result_uuid = await terminate_addr(address_terminate=at)
+        terminate_result_uuid = await terminate_address(input=at)
     except Exception as e:
         caught_exception = e
 

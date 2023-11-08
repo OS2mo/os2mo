@@ -13,7 +13,7 @@ from mora.service.itsystem import ItsystemRequestHandler
 from mora.triggers import Trigger
 
 
-async def create(input: ITUserCreate) -> UUID:
+async def create_ituser(input: ITUserCreate) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await ItsystemRequestHandler.construct(
@@ -24,7 +24,7 @@ async def create(input: ITUserCreate) -> UUID:
     return UUID(uuid)
 
 
-async def update(input: ITUserUpdate) -> UUID:
+async def update_ituser(input: ITUserUpdate) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     req = {
@@ -39,7 +39,7 @@ async def update(input: ITUserUpdate) -> UUID:
     return UUID(uuid)
 
 
-async def terminate(input: ITUserTerminate) -> UUID:
+async def terminate_ituser(input: ITUserTerminate) -> UUID:
     trigger = input.get_trigger()
     trigger_dict = trigger.to_trigger_dict()
 

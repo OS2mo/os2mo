@@ -25,7 +25,7 @@ from mora import lora
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
-from mora.graphapi.versions.latest.it_user import terminate
+from mora.graphapi.versions.latest.it_user import terminate_ituser
 from mora.graphapi.versions.latest.models import ITUserCreate
 from mora.graphapi.versions.latest.models import ITUserTerminate
 from mora.graphapi.versions.latest.models import ITUserUpdate
@@ -545,7 +545,7 @@ async def test_terminate_response(given_uuid, given_validity_dts):
     caught_exception = None
     with mock.patch.object(lora.Scope, "update", new=mock_update):
         try:
-            terminate_result_uuid = await terminate(input=test_data)
+            terminate_result_uuid = await terminate_ituser(input=test_data)
         except Exception as e:
             caught_exception = e
     # Assert

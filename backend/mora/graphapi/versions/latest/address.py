@@ -51,7 +51,8 @@ async def _get_original_addr(
     return original
 
 
-async def terminate_addr(address_terminate: AddressTerminate) -> UUID:
+async def terminate_address(input: AddressTerminate) -> UUID:
+    address_terminate = input
     original_addr = await _get_original_addr(
         address_terminate.uuid, address_terminate.from_date
     )
