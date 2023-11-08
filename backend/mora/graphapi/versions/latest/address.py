@@ -17,9 +17,9 @@ from mora.triggers import Trigger
 
 
 async def create_address(input: AddressCreate) -> UUID:
-    req = jsonable_encoder(input.to_handler_dict())
+    input_dict = jsonable_encoder(input.to_handler_dict())
 
-    request = await AddressRequestHandler.construct(req, RequestType.CREATE)
+    request = await AddressRequestHandler.construct(input_dict, RequestType.CREATE)
     uuid = await request.submit()
 
     return UUID(uuid)

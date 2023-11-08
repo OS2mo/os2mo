@@ -83,8 +83,9 @@ async def terminate_org_unit_validation(
 
 
 async def terminate_org_unit(
-    ou_terminate: OrganisationUnitTerminate,
+    input: OrganisationUnitTerminate,
 ) -> UUID:
+    ou_terminate = input
     try:
         await terminate_org_unit_validation(ou_terminate)
     except Exception as e:

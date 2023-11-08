@@ -15,9 +15,11 @@ from mora.triggers import Trigger
 
 async def create_leave(input: LeaveCreate) -> UUID:
     """Creating a leave."""
-    req = jsonable_encoder(input.to_handler_dict())
+    input_dict = jsonable_encoder(input.to_handler_dict())
 
-    request = await LeaveRequestHandler.construct(req, mapping.RequestType.CREATE)
+    request = await LeaveRequestHandler.construct(
+        input_dict, mapping.RequestType.CREATE
+    )
     uuid = await request.submit()
 
     return UUID(uuid)

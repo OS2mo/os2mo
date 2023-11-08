@@ -18,9 +18,11 @@ from mora.triggers import Trigger
 
 
 async def create_employee(input: EmployeeCreate) -> UUID:
-    req = jsonable_encoder(input.to_handler_dict())
+    input_dict = jsonable_encoder(input.to_handler_dict())
 
-    handler = await EmployeeRequestHandler.construct(req, mapping.RequestType.CREATE)
+    handler = await EmployeeRequestHandler.construct(
+        input_dict, mapping.RequestType.CREATE
+    )
     uuid = await handler.submit()
 
     return UUID(uuid)
