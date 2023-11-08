@@ -21,6 +21,33 @@ from mora.triggers import Trigger
 logger = logging.getLogger(__name__)
 
 
+async def create_org_unit(input: OrganisationUnitCreate) -> UUID:
+    input_dict = input.to_handler_dict()
+
+    request = await OrgUnitRequestHandler.construct(
+        input_dict, mapping.RequestType.CREATE
+    )
+    uuid = await request.submit()
+
+    return UUID(uuid)
+
+
+async def update_org_unit(input: OrganisationUnitUpdate) -> UUID:
+    """Updating an organisation unit."""
+    input_dict = input.to_handler_dict()
+
+    req = {
+        mapping.TYPE: mapping.ORG_UNIT,
+        mapping.UUID: str(input.uuid),
+        mapping.DATA: input_dict,
+    }
+
+    request = await OrgUnitRequestHandler.construct(req, mapping.RequestType.EDIT)
+    uuid = await request.submit()
+
+    return UUID(uuid)
+
+
 async def terminate_org_unit_validation(
     ou_terminate: OrganisationUnitTerminate,
 ) -> None:
@@ -134,30 +161,3 @@ async def terminate_org_unit(
 
     # Return the unit as the final thing
     return UUID(lora_result)
-
-
-async def create_org_unit(input: OrganisationUnitCreate) -> UUID:
-    input_dict = input.to_handler_dict()
-
-    request = await OrgUnitRequestHandler.construct(
-        input_dict, mapping.RequestType.CREATE
-    )
-    uuid = await request.submit()
-
-    return UUID(uuid)
-
-
-async def update_org_unit(input: OrganisationUnitUpdate) -> UUID:
-    """Updating an organisation unit."""
-    input_dict = input.to_handler_dict()
-
-    req = {
-        mapping.TYPE: mapping.ORG_UNIT,
-        mapping.UUID: str(input.uuid),
-        mapping.DATA: input_dict,
-    }
-
-    request = await OrgUnitRequestHandler.construct(req, mapping.RequestType.EDIT)
-    uuid = await request.submit()
-
-    return UUID(uuid)

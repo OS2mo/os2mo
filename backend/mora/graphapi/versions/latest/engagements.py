@@ -14,32 +14,6 @@ from mora.service.engagement import EngagementRequestHandler
 from mora.triggers import Trigger
 
 
-async def terminate_engagement(input: EngagementTerminate) -> UUID:
-    trigger = input.get_engagement_trigger()
-    trigger_dict = trigger.to_trigger_dict()
-
-    # ON_BEFORE
-    _ = await Trigger.run(trigger_dict)
-
-    # Do LoRa update
-    lora_conn = lora.Connector()
-    lora_result = await lora_conn.organisationfunktion.update(
-        input.get_lora_payload(), str(input.uuid)
-    )
-
-    # ON_AFTER
-    trigger_dict.update(
-        {
-            Trigger.RESULT: lora_result,
-            Trigger.EVENT_TYPE: mapping.EventType.ON_AFTER,
-        }
-    )
-
-    _ = await Trigger.run(trigger_dict)
-
-    return UUID(lora_result)
-
-
 async def create_engagement(input: EngagementCreate) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
@@ -64,3 +38,29 @@ async def update_engagement(input: EngagementUpdate) -> UUID:
     uuid = await request.submit()
 
     return UUID(uuid)
+
+
+async def terminate_engagement(input: EngagementTerminate) -> UUID:
+    trigger = input.get_engagement_trigger()
+    trigger_dict = trigger.to_trigger_dict()
+
+    # ON_BEFORE
+    _ = await Trigger.run(trigger_dict)
+
+    # Do LoRa update
+    lora_conn = lora.Connector()
+    lora_result = await lora_conn.organisationfunktion.update(
+        input.get_lora_payload(), str(input.uuid)
+    )
+
+    # ON_AFTER
+    trigger_dict.update(
+        {
+            Trigger.RESULT: lora_result,
+            Trigger.EVENT_TYPE: mapping.EventType.ON_AFTER,
+        }
+    )
+
+    _ = await Trigger.run(trigger_dict)
+
+    return UUID(lora_result)
