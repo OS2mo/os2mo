@@ -253,7 +253,7 @@ class Mutation:
     async def address_terminate(
         self, input: AddressTerminateInput
     ) -> Response[Address]:
-        return uuid2response(await terminate_address(input.to_pydantic()), AddressRead)
+        return uuid2response(await terminate_address(input.to_pydantic()), AddressRead)  # type: ignore
 
     @strawberry.mutation(
         description="Deletes an address." + delete_warning,
