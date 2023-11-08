@@ -577,54 +577,19 @@ class EmployeeTerminate(ValidityTerminate):
 
 # Engagements
 # -----------
-class EngagementTrigger(OrgFuncTrigger):
-    """Model representing a mora-trigger, specific for engagements.
-
-    Has the folling fields:
-        request_type: str "Request type to do, ex CREATE, EDIT, TERMINATE or REFRESH. "
-
-        request: MoraTriggerRequest  description="The Request for the trigger."
-
-        role_type: str  description="Role type for the trigger, ex 'org_unit'."
-
-        event_type: str  description="Trigger event-type. " "Ref: mora.mapping.EventType"
-
-        uuid: UUID
-
-        org_unit_uuid: UUID
-
-        employee_id: Optional[UUID]
-    """
-
-
 class EngagementTerminate(ValidityTerminate):
     """Model representing an engagement termination(or rather end-date update)."""
 
     uuid: UUID = Field(description="UUID for the engagement we want to terminate.")
 
-    def get_lora_payload(self) -> dict:
+    def to_handler_dict(self) -> dict:
         return {
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
-                ]
+            "uuid": self.uuid,
+            "validity": {
+                "from": self.from_date,
+                "to": self.to_date,
             },
-            "note": "Afsluttet",
         }
-
-    def get_engagement_trigger(self) -> EngagementTrigger:
-        return EngagementTrigger(
-            role_type=mapping.ENGAGEMENT,
-            event_type=mapping.EventType.ON_BEFORE,
-            uuid=self.uuid,
-            org_unit_uuid=self.uuid,
-            request_type=mapping.RequestType.TERMINATE,
-            request=MoraTriggerRequest(
-                type=mapping.ENGAGEMENT,
-                uuid=self.uuid,
-                validity=Validity(from_date=self.from_date, to_date=self.to_date),
-            ),
-        )
 
 
 EXTENSION_FIELD_DESCRIPTION: str = dedent(
