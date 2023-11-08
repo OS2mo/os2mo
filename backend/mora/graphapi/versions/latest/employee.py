@@ -51,7 +51,6 @@ async def terminate_employee(termination: EmployeeTerminate) -> UUID:
             mapping.FROM
         ] = termination.from_date.date().isoformat()
 
-    # Current logic - copied from os2mo.backend.service
     uuid = str(termination.uuid)
     date = util.get_valid_to(request)
 
@@ -61,7 +60,7 @@ async def terminate_employee(termination: EmployeeTerminate) -> UUID:
         await handlers.get_handler_for_function(obj).construct(
             {
                 "uuid": objid,
-                "vacate": util.checked_get(request, "vacate", False),
+                "vacate": termination.vacate,
                 "validity": {
                     "to": util.to_iso_date(
                         # we also want to handle _future_ relations
