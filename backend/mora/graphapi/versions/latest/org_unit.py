@@ -4,19 +4,15 @@
 import logging
 from uuid import UUID
 
-from .models import MoraTriggerRequest
 from .models import OrganisationUnitCreate
 from .models import OrganisationUnitTerminate
 from .models import OrganisationUnitUpdate
-from .models import OrgUnitTrigger
-from .models import Validity
 from mora import exceptions
 from mora import lora
 from mora import mapping
 from mora import util
 from mora.service.orgunit import OrgUnitRequestHandler
 from mora.service.validation import validator
-from mora.triggers import Trigger
 
 logger = logging.getLogger(__name__)
 
@@ -112,52 +108,17 @@ async def terminate_org_unit_validation(
 async def terminate_org_unit(
     input: OrganisationUnitTerminate,
 ) -> UUID:
-    ou_terminate = input
     try:
-        await terminate_org_unit_validation(ou_terminate)
+        await terminate_org_unit_validation(input)
     except Exception as e:
         logger.exception("ERROR validating termination request.")
         raise e
 
-    # Create payload to LoRa
-    org_unit_trigger = OrgUnitTrigger(
-        employee_id=None,
-        org_unit_uuid=ou_terminate.uuid,
-        request_type=mapping.RequestType.TERMINATE,
-        request=MoraTriggerRequest(
-            type=mapping.ORG_UNIT,
-            uuid=ou_terminate.uuid,
-            validity=Validity(
-                from_date=ou_terminate.from_date,
-                to_date=ou_terminate.to_date,
-            ),
-        ),
-        role_type=mapping.ORG_UNIT,
-        event_type=mapping.EventType.ON_BEFORE,
-        uuid=ou_terminate.uuid,
+    input_dict = input.to_handler_dict()
+
+    request = await OrgUnitRequestHandler.construct(
+        input_dict, mapping.RequestType.TERMINATE
     )
+    await request.submit()
 
-    trigger_dict = org_unit_trigger.to_trigger_dict()
-
-    # ON_BEFORE
-    _ = await Trigger.run(trigger_dict)
-
-    # Do LoRa update
-    lora_conn = lora.Connector()
-    lora_result = await lora_conn.organisationenhed.update(
-        ou_terminate.get_lora_payload(), str(ou_terminate.uuid)
-    )
-
-    # ON_AFTER
-    trigger_dict.update(
-        {
-            Trigger.RESULT: lora_result,
-            Trigger.EVENT_TYPE: mapping.EventType.ON_AFTER,
-        }
-    )
-
-    # ON_AFTER
-    _ = await Trigger.run(trigger_dict)
-
-    # Return the unit as the final thing
-    return UUID(lora_result)
+    return input.uuid

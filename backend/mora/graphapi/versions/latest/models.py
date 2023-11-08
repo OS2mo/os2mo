@@ -1208,24 +1208,10 @@ class ManagerTerminate(ValidityTerminate):
 
 # Organisational Units
 # --------------------
-class OrgUnitTrigger(OrgFuncTrigger):
-    """Model representing a mora-trigger, specific for organisation units."""
-
-
 class OrganisationUnitTerminate(ValidityTerminate):
     """Model representing an organisation unit termination."""
 
     uuid: UUID = Field(description="UUID for the org-unit we want to terminate.")
-
-    def get_lora_payload(self) -> dict:
-        return {
-            "tilstande": {
-                "organisationenhedgyldighed": [
-                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
-                ]
-            },
-            "note": "Afslut enhed",
-        }
 
 
 class OrganisationUnitCreate(UUIDBase):
