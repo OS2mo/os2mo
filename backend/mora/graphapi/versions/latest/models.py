@@ -994,9 +994,9 @@ class KLECreate(UUIDBase):
     validity: RAValidity = Field(description="Validity range for the KLE.")
 
     def to_handler_dict(self) -> dict:
-        aspects = [{"uuid": str(aspect)} for aspect in self.kle_aspects]
+        aspects = list(map(gen_uuid, self.kle_aspects))
         return {
-            "uuid": str(self.uuid),
+            "uuid": self.uuid,
             "user_key": self.user_key,
             "kle_number": gen_uuid(self.kle_number),
             "kle_aspect": aspects,
@@ -1033,7 +1033,6 @@ class KLEUpdate(UUIDBase):
         data_dict: dict = {
             "user_key": self.user_key,
             "kle_number": gen_uuid(self.kle_number),
-            "kle_aspect": self.kle_aspects,
             "org_unit": gen_uuid(self.org_unit),
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
@@ -1043,9 +1042,7 @@ class KLEUpdate(UUIDBase):
             },
         }
         if self.kle_aspects:
-            data_dict["kle_aspect"] = [
-                {"uuid": str(aspect)} for aspect in self.kle_aspects
-            ]
+            data_dict["kle_aspect"] = list(map(gen_uuid, self.kle_aspects))
 
         return {k: v for k, v in data_dict.items() if v}
 
