@@ -1068,7 +1068,7 @@ class LeaveCreate(UUIDBase):
 
     def to_handler_dict(self) -> dict:
         return {
-            "uuid": str(self.uuid),
+            "uuid": self.uuid,
             "user_key": self.user_key,
             "person": gen_uuid(self.person),
             "engagement": gen_uuid(self.engagement),
@@ -1094,7 +1094,7 @@ class LeaveUpdate(UUIDBase):
 
     def to_handler_dict(self) -> dict:
         data_dict: dict = {
-            "uuid": str(self.uuid),
+            "uuid": self.uuid,
             "user_key": self.user_key,
             "person": gen_uuid(self.person),
             "engagement": gen_uuid(self.engagement),
