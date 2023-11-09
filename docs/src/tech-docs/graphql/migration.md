@@ -9,6 +9,49 @@ code is up-to-date with the latest version.
 
 Below follows the migration guide for each version.
 
+## Version 20
+
+Prior to this version, `facets` ignored `start_date` and `end_date` filtering.
+For this reason, a query like
+```graphql
+query GetFacet {
+  facets {
+    objects {
+      current {
+        user_key
+      }
+    }
+  }
+}
+```
+would, confusingly, return empty `current` objects:
+```json
+{
+  "facets": {
+    "objects": [
+      {
+        "current": None,
+      }
+    ]
+  }
+}
+```
+
+This is no longer the case. Users who wish to retrieve the full facet history
+should utilise a query such as:
+```graphql
+query GetFacet {
+  facets(filter: {from_date: null, to_date: null}) {
+    objects {
+      objects {
+        user_key
+      }
+    }
+  }
+}
+```
+
+
 ## Version 19
 
 GraphQL version 19 introduces breaking changes to a few terminate endpoints.
