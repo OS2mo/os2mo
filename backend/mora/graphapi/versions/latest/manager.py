@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 from uuid import UUID
 
+from fastapi.encoders import jsonable_encoder
+
 from .models import ManagerCreate
 from .models import ManagerTerminate
 from .models import ManagerUpdate
@@ -11,7 +13,7 @@ from mora.service.manager import ManagerRequestHandler
 
 async def create_manager(input: ManagerCreate) -> UUID:
     """Creating a manager."""
-    input_dict = input.to_handler_dict()
+    input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await ManagerRequestHandler.construct(
         input_dict, mapping.RequestType.CREATE
@@ -23,7 +25,7 @@ async def create_manager(input: ManagerCreate) -> UUID:
 
 async def update_manager(input: ManagerUpdate) -> UUID:
     """Updating a manager."""
-    input_dict = input.to_handler_dict()
+    input_dict = jsonable_encoder(input.to_handler_dict())
 
     req = {
         mapping.TYPE: mapping.MANAGER,
@@ -38,7 +40,7 @@ async def update_manager(input: ManagerUpdate) -> UUID:
 
 
 async def terminate_manager(input: ManagerTerminate) -> UUID:
-    input_dict = input.to_handler_dict()
+    input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await ManagerRequestHandler.construct(
         input_dict, mapping.RequestType.TERMINATE

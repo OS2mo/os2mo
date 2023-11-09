@@ -1131,12 +1131,9 @@ class ManagerCreate(UUIDBase):
     validity: RAValidity = Field(description="Validity range for the manager.")
 
     def to_handler_dict(self) -> dict:
-        responsibilities = [
-            {"uuid": str(responsib)} for responsib in self.responsibility
-        ]
-
+        responsibilities = list(map(gen_uuid, self.responsibility))
         return {
-            "uuid": str(self.uuid),
+            "uuid": self.uuid,
             "user_key": self.user_key,
             "type": "manager",
             "person": gen_uuid(self.person),
@@ -1193,15 +1190,12 @@ class ManagerUpdate(UUIDBase):
             },
             "user_key": self.user_key,
             "person": gen_uuid(self.person),
-            "responsibility": self.responsibility,
             "org_unit": gen_uuid(self.org_unit),
             "manager_type": gen_uuid(self.manager_type),
             "manager_level": gen_uuid(self.manager_level),
         }
         if self.responsibility:
-            data_dict["responsibility"] = [
-                {"uuid": str(responsib)} for responsib in self.responsibility
-            ]
+            data_dict["responsibility"] = list(map(gen_uuid, self.responsibility))
 
         return {k: v for k, v in data_dict.items() if v or k == "person"}
 
