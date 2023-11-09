@@ -4,6 +4,8 @@
 import logging
 from uuid import UUID
 
+from fastapi.encoders import jsonable_encoder
+
 from .models import OrganisationUnitCreate
 from .models import OrganisationUnitTerminate
 from .models import OrganisationUnitUpdate
@@ -18,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 async def create_org_unit(input: OrganisationUnitCreate) -> UUID:
-    input_dict = input.to_handler_dict()
+    input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await OrgUnitRequestHandler.construct(
         input_dict, mapping.RequestType.CREATE
@@ -30,7 +32,7 @@ async def create_org_unit(input: OrganisationUnitCreate) -> UUID:
 
 async def update_org_unit(input: OrganisationUnitUpdate) -> UUID:
     """Updating an organisation unit."""
-    input_dict = input.to_handler_dict()
+    input_dict = jsonable_encoder(input.to_handler_dict())
 
     req = {
         mapping.TYPE: mapping.ORG_UNIT,
@@ -114,7 +116,7 @@ async def terminate_org_unit(
         logger.exception("ERROR validating termination request.")
         raise e
 
-    input_dict = input.to_handler_dict()
+    input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await OrgUnitRequestHandler.construct(
         input_dict, mapping.RequestType.TERMINATE

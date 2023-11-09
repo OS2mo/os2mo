@@ -1228,7 +1228,7 @@ class OrganisationUnitCreate(UUIDBase):
 
     def to_handler_dict(self) -> dict:
         return {
-            "uuid": str(self.uuid),
+            "uuid": self.uuid,
             "name": self.name,
             "user_key": self.user_key,
             "time_planning": gen_uuid(self.time_planning),
@@ -1281,7 +1281,7 @@ class OrganisationUnitUpdate(UUIDBase):
 
     def to_handler_dict(self) -> dict:
         data_dict: dict = {
-            "uuid": str(self.uuid),
+            "uuid": self.uuid,
             "name": self.name,
             "user_key": self.user_key,
             "parent": gen_uuid(self.parent),
