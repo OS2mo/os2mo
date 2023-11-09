@@ -1542,14 +1542,9 @@ class RelatedUnitsUpdate(UUIDBase):
     validity: RAValidity = Field(description="From date.")
 
     def to_handler_dict(self) -> dict:
-        def get_destination(destinations: list[UUID] | None) -> list[str]:
-            if destinations is None:
-                return []
-            return [str(dest) for dest in destinations]
-
         return {
-            "origin": str(self.origin),
-            "destination": get_destination(self.destination),
+            "origin": self.origin,
+            "destination": self.destination or [],
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
             },
