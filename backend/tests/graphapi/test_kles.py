@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import datetime as dt
 from datetime import datetime
-from unittest import mock
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -20,13 +18,10 @@ from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from .utils import fetch_class_uuids
 from .utils import fetch_org_unit_validity
-from mora import lora
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
-from mora.graphapi.versions.latest.kle import terminate_kle
 from mora.graphapi.versions.latest.models import KLECreate
-from mora.graphapi.versions.latest.models import KLETerminate
 from mora.graphapi.versions.latest.models import KLEUpdate
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import Validity as RAValidity
@@ -372,51 +367,6 @@ async def test_update_kle_integration_test(
     )
     assert kle_objects_post_update["org_unit"] == expected_updated_kle["org_unit"]
     assert kle_objects_post_update["validity"] == expected_updated_kle["validity"]
-
-
-@given(
-    given_uuid=st.uuids(),
-    given_validity_dts=st.tuples(st.datetimes() | st.none(), st.datetimes()).filter(
-        lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
-    ),
-)
-async def test_kle_terminate_unit(given_uuid, given_validity_dts):
-    # Around 80% of test-runs ends in `caught_exception` which equals a skip.
-    # This "template" is used on quite a few models and doesn't seem to provide
-    # reliable tests.
-    from_date, to_date = given_validity_dts
-
-    # The terminate logic have a check that verifies we don't use times other than:
-    # 00:00:00, to the endpoint.. so if we get one of these from hypothesis, we will
-    # expect an exception.
-    expect_exception = False
-    if to_date.time() != dt.time.min:
-        expect_exception = True
-
-    test_data = KLETerminate(
-        uuid=given_uuid,
-        from_date=from_date,
-        to_date=to_date,
-    )
-
-    # Patching / Mocking
-    async def mock_update(*args):
-        return args[-1]
-
-    terminate_result_uuid = None
-    caught_exception = None
-
-    with mock.patch.object(lora.Scope, "update", new=mock_update):
-        try:
-            terminate_result_uuid = await terminate_kle(input=test_data)
-        except Exception as e:
-            caught_exception = e
-
-    # Assert
-    if not expect_exception:
-        assert terminate_result_uuid == test_data.uuid
-    else:
-        assert caught_exception is not None
 
 
 @pytest.mark.integration_test

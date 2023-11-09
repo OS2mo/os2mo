@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
-from datetime import time
 from unittest import mock
 from unittest.mock import AsyncMock
 from unittest.mock import patch
@@ -21,13 +20,10 @@ from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from .utils import fetch_class_uuids
 from .utils import fetch_org_unit_validity
-from mora import lora
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
-from mora.graphapi.versions.latest.engagements import terminate_engagement
 from mora.graphapi.versions.latest.models import EngagementCreate
-from mora.graphapi.versions.latest.models import EngagementTerminate
 from mora.graphapi.versions.latest.models import EngagementUpdate
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import Validity as RAValidity
@@ -150,49 +146,6 @@ def test_query_is_primary(test_data, graphapi_post: GraphAPIPost, patch_loader):
             primary_mock.assert_not_called()
 
         assert e["objects"][0]["is_primary"] == expected
-
-
-@given(
-    st.uuids(),
-    st.tuples(st.datetimes() | st.none(), st.datetimes()).filter(
-        lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
-    ),
-)
-async def test_terminate_response(given_uuid, given_validity_dts):
-    # Init
-    from_date, to_date = given_validity_dts
-
-    # The terminate logic have a check that verifies we don't use times other than:
-    # 00:00:00, to the endpoint.. so if we get one of these from hypothesis, we will
-    # expect an exception.
-    expect_exception = False
-    if to_date is None or to_date.time() != time.min:
-        expect_exception = True
-
-    # Configure the addr-terminate we want to perform
-    test_data = EngagementTerminate(
-        uuid=given_uuid,
-        from_date=from_date,
-        to_date=to_date,
-    )
-
-    # Patching / Mocking
-    async def mock_update(*args):
-        return args[-1]
-
-    terminate_result_uuid = None
-    caught_exception = None
-    with mock.patch.object(lora.Scope, "update", new=mock_update):
-        try:
-            terminate_result_uuid = await terminate_engagement(input=test_data)
-        except Exception as e:
-            caught_exception = e
-
-    # Assert
-    if not expect_exception:
-        assert terminate_result_uuid == test_data.uuid
-    else:
-        assert caught_exception is not None
 
 
 @pytest.mark.integration_test

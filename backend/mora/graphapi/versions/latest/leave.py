@@ -7,17 +7,17 @@ from fastapi.encoders import jsonable_encoder
 from .models import LeaveCreate
 from .models import LeaveTerminate
 from .models import LeaveUpdate
-from mora import lora
 from mora import mapping
 from mora.service.leave import LeaveRequestHandler
-from mora.triggers import Trigger
 
 
 async def create_leave(input: LeaveCreate) -> UUID:
     """Creating a leave."""
-    req = jsonable_encoder(input.to_handler_dict())
+    input_dict = jsonable_encoder(input.to_handler_dict())
 
-    request = await LeaveRequestHandler.construct(req, mapping.RequestType.CREATE)
+    request = await LeaveRequestHandler.construct(
+        input_dict, mapping.RequestType.CREATE
+    )
     uuid = await request.submit()
 
     return UUID(uuid)
@@ -40,26 +40,11 @@ async def update_leave(input: LeaveUpdate) -> UUID:
 
 
 async def terminate_leave(input: LeaveTerminate) -> UUID:
-    trigger = input.get_leave_trigger()
-    trigger_dict = trigger.to_trigger_dict()
+    input_dict = jsonable_encoder(input.to_handler_dict())
 
-    # ON_BEFORE
-    _ = await Trigger.run(trigger_dict)
-
-    # Do LoRa update
-    lora_conn = lora.Connector()
-    lora_result = await lora_conn.organisationfunktion.update(
-        input.get_lora_payload(), str(input.uuid)
+    request = await LeaveRequestHandler.construct(
+        input_dict, mapping.RequestType.TERMINATE
     )
+    await request.submit()
 
-    # ON_AFTER
-    trigger_dict.update(
-        {
-            Trigger.RESULT: lora_result,
-            Trigger.EVENT_TYPE: mapping.EventType.ON_AFTER,
-        }
-    )
-
-    _ = await Trigger.run(trigger_dict)
-
-    return UUID(lora_result)
+    return input.uuid

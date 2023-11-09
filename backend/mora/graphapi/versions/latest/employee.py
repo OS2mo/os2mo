@@ -18,10 +18,12 @@ from mora.triggers import Trigger
 
 
 async def create_employee(input: EmployeeCreate) -> UUID:
-    req = jsonable_encoder(input.to_handler_dict())
+    input_dict = jsonable_encoder(input.to_handler_dict())
 
-    handler = await EmployeeRequestHandler.construct(req, mapping.RequestType.CREATE)
-    uuid = await handler.submit()
+    request = await EmployeeRequestHandler.construct(
+        input_dict, mapping.RequestType.CREATE
+    )
+    uuid = await request.submit()
 
     return UUID(uuid)
 
@@ -41,7 +43,7 @@ async def update_employee(input: EmployeeUpdate) -> UUID:
     return UUID(uuid)
 
 
-async def terminate(termination: EmployeeTerminate) -> UUID:
+async def terminate_employee(termination: EmployeeTerminate) -> UUID:
     # Create request dict, legacy, from data model
     request = {mapping.VALIDITY: {mapping.TO: termination.to_date.date().isoformat()}}
     if termination.from_date:

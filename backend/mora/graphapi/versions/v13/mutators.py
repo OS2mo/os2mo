@@ -12,14 +12,14 @@ from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
 from ..latest.address import create_address
-from ..latest.address import terminate_addr
+from ..latest.address import terminate_address
 from ..latest.address import update_address
 from ..latest.association import create_association
 from ..latest.association import terminate_association
 from ..latest.association import update_association
 from ..latest.classes import delete_class
 from ..latest.employee import create_employee
-from ..latest.employee import terminate as terminate_employee
+from ..latest.employee import terminate_employee
 from ..latest.employee import update_employee
 from ..latest.engagements import create_engagement
 from ..latest.engagements import terminate_engagement
@@ -62,9 +62,9 @@ from ..latest.inputs import RoleUpdateInput
 from ..latest.it_association import create_itassociation
 from ..latest.it_association import terminate_itassociation
 from ..latest.it_association import update_itassociation
-from ..latest.it_user import create as create_ituser
-from ..latest.it_user import terminate as terminate_ituser
-from ..latest.it_user import update as update_ituser
+from ..latest.it_user import create_ituser
+from ..latest.it_user import terminate_ituser
+from ..latest.it_user import update_ituser
 from ..latest.itsystem import create_itsystem
 from ..latest.itsystem import delete_itsystem
 from ..latest.itsystem import update_itsystem
@@ -210,7 +210,7 @@ class Mutation:
     async def address_terminate(
         self, input: AddressTerminateInput
     ) -> Response[Address]:
-        return uuid2response(await terminate_addr(input.to_pydantic()), AddressRead)
+        return uuid2response(await terminate_address(input.to_pydantic()), AddressRead)
 
     @strawberry.mutation(
         description="Deletes an address." + delete_warning,

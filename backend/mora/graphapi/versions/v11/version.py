@@ -3,7 +3,7 @@
 import strawberry
 from pydantic import Field
 
-from ..latest.it_user import create as create_ituser
+from ..latest.it_user import create_ituser
 from ..latest.models import ITUserCreate
 from ..latest.permissions import gen_create_permission
 from ..latest.permissions import IsAuthenticatedPermission

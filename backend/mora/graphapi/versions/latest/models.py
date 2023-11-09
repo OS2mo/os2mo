@@ -112,79 +112,17 @@ class ValidityTerminate(Validity):
         description="When the validity should end - required when terminating",
     )
 
+    def to_handler_dict(self) -> dict:
+        validity = {}
+        if self.from_date:
+            validity["from"] = self.from_date
+        if self.to_date:
+            validity["to"] = self.to_date
 
-class MoraTriggerRequest(BaseModel):
-    """Model representing a MoRa Trigger Request."""
-
-    type: str = Field(description="Type of the request, ex. 'org_unit'.")
-
-    uuid: UUID = Field(
-        description="UUID for the entity accessed in the request. "
-        "Ex type=ORG_UNIT, then this UUID will be the UUID of the ORG_UNIT"
-    )
-
-    validity: Validity = Field(description="Type of the request, ex. 'org_unit'.")
-
-
-class MoraTrigger(BaseModel):
-    """Model representing a MoRa Trigger."""
-
-    request_type: str = Field(
-        description="Request type to do, ex CREATE, EDIT, TERMINATE or REFRESH. "
-        "Ref: mora.mapping.RequestType"
-    )
-
-    request: MoraTriggerRequest = Field(description="The Request for the trigger.")
-
-    role_type: str = Field(description="Role type for the trigger, ex 'org_unit'.")
-
-    event_type: str = Field(
-        description="Trigger event-type. " "Ref: mora.mapping.EventType"
-    )
-
-    uuid: UUID = Field(
-        description="UUID of the entity being handled in the trigger. "
-        "Ex. type=ORG_UNIT, this this is the org-unit-uuid."
-    )
-
-    result: Any = Field(description="Result of the trigger", default=None)
-
-    def to_trigger_dict(self) -> dict:
-        trigger_dict = self.dict(by_alias=True)
-        return MoraTrigger.convert_trigger_dict_fields(trigger_dict)
-
-    @staticmethod
-    def convert_trigger_dict_fields(trigger_dict: dict) -> dict:
-        for key in trigger_dict.keys():
-            if isinstance(trigger_dict[key], dict):
-                trigger_dict[key] = MoraTrigger.convert_trigger_dict_fields(
-                    trigger_dict[key]
-                )
-                continue
-
-            if isinstance(trigger_dict[key], UUID):
-                trigger_dict[key] = str(trigger_dict[key])
-                continue
-
-            if isinstance(trigger_dict[key], datetime.datetime):
-                trigger_dict[key] = trigger_dict[key].isoformat()
-                continue
-
-        return trigger_dict
-
-
-class GenericUUIDModel(UUIDBase):
-    """Generic UUID model for return types."""
-
-
-class OrgFuncTrigger(MoraTrigger):
-    """General model for Mora-Organization-Function triggers."""
-
-    org_unit_uuid: UUID = Field(
-        description="UUID for the organization unit in question."
-    )
-
-    employee_id: UUID | None = Field(None, description="OrgFunc Related employee UUID.")
+        return {
+            "uuid": self.uuid,  # type: ignore
+            "validity": validity,
+        }
 
 
 # Root Organisation
@@ -197,10 +135,6 @@ class Organisation(UUIDBase):
 
 # Addresses
 # ---------
-class AddressTrigger(OrgFuncTrigger):
-    """Model representing a mora-trigger, specific for addresses."""
-
-
 class AddressUpsert(UUIDBase):
     """Model representing an address creation/update commonalities."""
 
@@ -288,33 +222,6 @@ class AddressTerminate(ValidityTerminate):
 
     uuid: UUID = Field(description="UUID for the address we want to terminate.")
 
-    def get_address_trigger(self) -> AddressTrigger:
-        return AddressTrigger(
-            org_unit_uuid=self.uuid,
-            request_type=mapping.RequestType.TERMINATE,
-            request=MoraTriggerRequest(
-                type=mapping.ADDRESS,
-                uuid=self.uuid,
-                validity=Validity(
-                    from_date=self.from_date,
-                    to_date=self.to_date,
-                ),
-            ),
-            role_type=mapping.ADDRESS,
-            event_type=mapping.EventType.ON_BEFORE,
-            uuid=self.uuid,
-        )  # type: ignore
-
-    def get_lora_payload(self) -> dict:
-        return {
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
-                ]
-            },
-            "note": "Afsluttet",
-        }
-
 
 # Associations
 # ------------
@@ -388,30 +295,6 @@ class AssociationTerminate(ValidityTerminate):
     """Model representing an association termination(or rather end-date update)."""
 
     uuid: UUID = Field(description="UUID for the association we want to terminate.")
-
-    def get_lora_payload(self) -> dict:
-        return {
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
-                ]
-            },
-            "note": "Afsluttet",
-        }
-
-    def get_association_trigger(self) -> OrgFuncTrigger:
-        return OrgFuncTrigger(
-            role_type=mapping.ASSOCIATION,
-            event_type=mapping.EventType.ON_BEFORE,
-            uuid=self.uuid,
-            org_unit_uuid=self.uuid,
-            request_type=mapping.RequestType.TERMINATE,
-            request=MoraTriggerRequest(
-                type=mapping.ASSOCIATION,
-                uuid=self.uuid,
-                validity=Validity(from_date=self.from_date, to_date=self.to_date),
-            ),
-        )
 
 
 # Classes
@@ -614,54 +497,10 @@ class EmployeeTerminate(ValidityTerminate):
 
 # Engagements
 # -----------
-class EngagementTrigger(OrgFuncTrigger):
-    """Model representing a mora-trigger, specific for engagements.
-
-    Has the folling fields:
-        request_type: str "Request type to do, ex CREATE, EDIT, TERMINATE or REFRESH. "
-
-        request: MoraTriggerRequest  description="The Request for the trigger."
-
-        role_type: str  description="Role type for the trigger, ex 'org_unit'."
-
-        event_type: str  description="Trigger event-type. " "Ref: mora.mapping.EventType"
-
-        uuid: UUID
-
-        org_unit_uuid: UUID
-
-        employee_id: Optional[UUID]
-    """
-
-
 class EngagementTerminate(ValidityTerminate):
     """Model representing an engagement termination(or rather end-date update)."""
 
     uuid: UUID = Field(description="UUID for the engagement we want to terminate.")
-
-    def get_lora_payload(self) -> dict:
-        return {
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
-                ]
-            },
-            "note": "Afsluttet",
-        }
-
-    def get_engagement_trigger(self) -> EngagementTrigger:
-        return EngagementTrigger(
-            role_type=mapping.ENGAGEMENT,
-            event_type=mapping.EventType.ON_BEFORE,
-            uuid=self.uuid,
-            org_unit_uuid=self.uuid,
-            request_type=mapping.RequestType.TERMINATE,
-            request=MoraTriggerRequest(
-                type=mapping.ENGAGEMENT,
-                uuid=self.uuid,
-                validity=Validity(from_date=self.from_date, to_date=self.to_date),
-            ),
-        )
 
 
 EXTENSION_FIELD_DESCRIPTION: str = dedent(
@@ -908,30 +747,6 @@ class ITAssociationTerminate(ValidityTerminate):
 
     uuid: UUID = Field(description="UUID for the ITAssociation we want to terminate.")
 
-    def get_lora_payload(self) -> dict:
-        return {
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
-                ]
-            },
-            "note": "Afsluttet",
-        }
-
-    def get_itassociation_trigger(self) -> OrgFuncTrigger:
-        return OrgFuncTrigger(
-            role_type=mapping.ASSOCIATION,
-            event_type=mapping.EventType.ON_BEFORE,
-            uuid=self.uuid,
-            org_unit_uuid=self.uuid,
-            request_type=mapping.RequestType.TERMINATE,
-            request=MoraTriggerRequest(
-                type=mapping.ASSOCIATION,
-                uuid=self.uuid,
-                validity=Validity(from_date=self.from_date, to_date=self.to_date),
-            ),
-        )
-
 
 # ITSystems
 # ---------
@@ -1092,30 +907,6 @@ class ITUserTerminate(ValidityTerminate):
 
     uuid: UUID = Field(description="UUID for the it-user we want to terminate.")
 
-    def get_lora_payload(self) -> dict:
-        return {
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
-                ]
-            },
-            "note": "Afsluttet",
-        }
-
-    def get_trigger(self) -> OrgFuncTrigger:
-        return OrgFuncTrigger(
-            role_type=mapping.IT,
-            event_type=mapping.EventType.ON_BEFORE,
-            uuid=self.uuid,
-            org_unit_uuid=self.uuid,
-            request_type=mapping.RequestType.TERMINATE,
-            request=MoraTriggerRequest(
-                type=mapping.IT,
-                uuid=self.uuid,
-                validity=Validity(from_date=self.from_date, to_date=self.to_date),
-            ),
-        )  # type: ignore
-
 
 # KLEs
 # --------
@@ -1129,9 +920,9 @@ class KLECreate(UUIDBase):
     validity: RAValidity = Field(description="Validity range for the KLE.")
 
     def to_handler_dict(self) -> dict:
-        aspects = [{"uuid": str(aspect)} for aspect in self.kle_aspects]
+        aspects = list(map(gen_uuid, self.kle_aspects))
         return {
-            "uuid": str(self.uuid),
+            "uuid": self.uuid,
             "user_key": self.user_key,
             "kle_number": gen_uuid(self.kle_number),
             "kle_aspect": aspects,
@@ -1168,7 +959,6 @@ class KLEUpdate(UUIDBase):
         data_dict: dict = {
             "user_key": self.user_key,
             "kle_number": gen_uuid(self.kle_number),
-            "kle_aspect": self.kle_aspects,
             "org_unit": gen_uuid(self.org_unit),
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
@@ -1178,9 +968,7 @@ class KLEUpdate(UUIDBase):
             },
         }
         if self.kle_aspects:
-            data_dict["kle_aspect"] = [
-                {"uuid": str(aspect)} for aspect in self.kle_aspects
-            ]
+            data_dict["kle_aspect"] = list(map(gen_uuid, self.kle_aspects))
 
         return {k: v for k, v in data_dict.items() if v}
 
@@ -1189,30 +977,6 @@ class KLETerminate(ValidityTerminate):
     """Model representing a KLE termination."""
 
     uuid: UUID = Field(description="UUID of the KLE annotation we want to terminate.")
-
-    def get_lora_payload(self) -> dict:
-        return {
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
-                ]
-            },
-            "note": "Afsluttet",
-        }
-
-    def get_kle_trigger(self) -> OrgFuncTrigger:
-        return OrgFuncTrigger(
-            role_type=mapping.KLE,
-            event_type=mapping.EventType.ON_BEFORE,
-            uuid=self.uuid,
-            org_unit_uuid=self.uuid,
-            request_type=mapping.RequestType.TERMINATE,
-            request=MoraTriggerRequest(
-                type=mapping.KLE,
-                uuid=self.uuid,
-                validity=Validity(from_date=self.from_date, to_date=self.to_date),
-            ),
-        )
 
 
 # Leaves
@@ -1230,7 +994,7 @@ class LeaveCreate(UUIDBase):
 
     def to_handler_dict(self) -> dict:
         return {
-            "uuid": str(self.uuid),
+            "uuid": self.uuid,
             "user_key": self.user_key,
             "person": gen_uuid(self.person),
             "engagement": gen_uuid(self.engagement),
@@ -1256,7 +1020,7 @@ class LeaveUpdate(UUIDBase):
 
     def to_handler_dict(self) -> dict:
         data_dict: dict = {
-            "uuid": str(self.uuid),
+            "uuid": self.uuid,
             "user_key": self.user_key,
             "person": gen_uuid(self.person),
             "engagement": gen_uuid(self.engagement),
@@ -1276,30 +1040,6 @@ class LeaveTerminate(ValidityTerminate):
 
     uuid: UUID = Field(description="UUID of the leave we want to terminate.")
 
-    def get_lora_payload(self) -> dict:
-        return {
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
-                ]
-            },
-            "note": "Afsluttet",
-        }
-
-    def get_leave_trigger(self) -> OrgFuncTrigger:
-        return OrgFuncTrigger(
-            role_type=mapping.LEAVE,
-            event_type=mapping.EventType.ON_BEFORE,
-            uuid=self.uuid,
-            org_unit_uuid=self.uuid,
-            request_type=mapping.RequestType.TERMINATE,
-            request=MoraTriggerRequest(
-                type=mapping.LEAVE,
-                uuid=self.uuid,
-                validity=Validity(from_date=self.from_date, to_date=self.to_date),
-            ),
-        )
-
 
 # Managers
 # --------
@@ -1317,12 +1057,9 @@ class ManagerCreate(UUIDBase):
     validity: RAValidity = Field(description="Validity range for the manager.")
 
     def to_handler_dict(self) -> dict:
-        responsibilities = [
-            {"uuid": str(responsib)} for responsib in self.responsibility
-        ]
-
+        responsibilities = list(map(gen_uuid, self.responsibility))
         return {
-            "uuid": str(self.uuid),
+            "uuid": self.uuid,
             "user_key": self.user_key,
             "type": "manager",
             "person": gen_uuid(self.person),
@@ -1379,15 +1116,12 @@ class ManagerUpdate(UUIDBase):
             },
             "user_key": self.user_key,
             "person": gen_uuid(self.person),
-            "responsibility": self.responsibility,
             "org_unit": gen_uuid(self.org_unit),
             "manager_type": gen_uuid(self.manager_type),
             "manager_level": gen_uuid(self.manager_level),
         }
         if self.responsibility:
-            data_dict["responsibility"] = [
-                {"uuid": str(responsib)} for responsib in self.responsibility
-            ]
+            data_dict["responsibility"] = list(map(gen_uuid, self.responsibility))
 
         return {k: v for k, v in data_dict.items() if v or k == "person"}
 
@@ -1397,51 +1131,13 @@ class ManagerTerminate(ValidityTerminate):
 
     uuid: UUID = Field(description="UUID of the manager we want to terminate.")
 
-    def get_lora_payload(self) -> dict:
-        return {
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
-                ]
-            },
-            "note": "Afsluttet",
-        }
-
-    def get_manager_trigger(self) -> OrgFuncTrigger:
-        return OrgFuncTrigger(
-            role_type=mapping.MANAGER,
-            event_type=mapping.EventType.ON_BEFORE,
-            uuid=self.uuid,
-            org_unit_uuid=self.uuid,
-            request_type=mapping.RequestType.TERMINATE,
-            request=MoraTriggerRequest(
-                type=mapping.MANAGER,
-                uuid=self.uuid,
-                validity=Validity(from_date=self.from_date, to_date=self.to_date),
-            ),
-        )
-
 
 # Organisational Units
 # --------------------
-class OrgUnitTrigger(OrgFuncTrigger):
-    """Model representing a mora-trigger, specific for organisation units."""
-
-
 class OrganisationUnitTerminate(ValidityTerminate):
     """Model representing an organisation unit termination."""
 
     uuid: UUID = Field(description="UUID for the org-unit we want to terminate.")
-
-    def get_lora_payload(self) -> dict:
-        return {
-            "tilstande": {
-                "organisationenhedgyldighed": [
-                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
-                ]
-            },
-            "note": "Afslut enhed",
-        }
 
 
 class OrganisationUnitCreate(UUIDBase):
@@ -1458,7 +1154,7 @@ class OrganisationUnitCreate(UUIDBase):
 
     def to_handler_dict(self) -> dict:
         return {
-            "uuid": str(self.uuid),
+            "uuid": self.uuid,
             "name": self.name,
             "user_key": self.user_key,
             "time_planning": gen_uuid(self.time_planning),
@@ -1511,7 +1207,7 @@ class OrganisationUnitUpdate(UUIDBase):
 
     def to_handler_dict(self) -> dict:
         data_dict: dict = {
-            "uuid": str(self.uuid),
+            "uuid": self.uuid,
             "name": self.name,
             "user_key": self.user_key,
             "parent": gen_uuid(self.parent),
@@ -1542,14 +1238,9 @@ class RelatedUnitsUpdate(UUIDBase):
     validity: RAValidity = Field(description="From date.")
 
     def to_handler_dict(self) -> dict:
-        def get_destination(destinations: list[UUID] | None) -> list[str]:
-            if destinations is None:
-                return []
-            return [str(dest) for dest in destinations]
-
         return {
-            "origin": str(self.origin),
-            "destination": get_destination(self.destination),
+            "origin": self.origin,
+            "destination": self.destination or [],
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
             },
@@ -1597,7 +1288,7 @@ class RoleUpdate(UUIDBase):
 
     def to_handler_dict(self) -> dict:
         data_dict: dict = {
-            "uuid": str(self.uuid),
+            "uuid": self.uuid,
             "user_key": self.user_key,
             "role_type": gen_uuid(self.role_type),
             "org_unit": gen_uuid(self.org_unit),
@@ -1615,30 +1306,6 @@ class RoleTerminate(ValidityTerminate):
     """Model representing a role termination."""
 
     uuid: UUID = Field(description="UUID of the role we want to terminate.")
-
-    def get_lora_payload(self) -> dict:
-        return {
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
-                ]
-            },
-            "note": "Afsluttet",
-        }
-
-    def get_role_trigger(self) -> OrgFuncTrigger:
-        return OrgFuncTrigger(
-            role_type=mapping.ROLE,
-            event_type=mapping.EventType.ON_BEFORE,
-            uuid=self.uuid,
-            org_unit_uuid=self.uuid,
-            request_type=mapping.RequestType.TERMINATE,
-            request=MoraTriggerRequest(
-                type=mapping.ROLE,
-                uuid=self.uuid,
-                validity=Validity(from_date=self.from_date, to_date=self.to_date),
-            ),
-        )
 
 
 # Files
