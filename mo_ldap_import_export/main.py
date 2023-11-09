@@ -48,6 +48,7 @@ from .config import Settings
 from .converters import LdapConverter
 from .converters import read_mapping_json
 from .customer_specific_checks import ExportChecks
+from .customer_specific_checks import ImportChecks
 from .dataloaders import DataLoader
 from .dependencies import valid_cpr
 from .exceptions import CPRFieldNotFound
@@ -311,10 +312,11 @@ async def initialize_sync_tool(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
 
 
 @asynccontextmanager
-async def initialize_export_checks(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
-    logger.info("Initializing Export checks")
+async def initialize_checks(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
+    logger.info("Initializing Import/Export checks")
     export_checks = ExportChecks(fastramqpi.get_context())
-    fastramqpi.add_context(export_checks=export_checks)
+    import_checks = ImportChecks(fastramqpi.get_context())
+    fastramqpi.add_context(export_checks=export_checks, import_checks=import_checks)
     yield
 
 
@@ -435,7 +437,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     internal_amqpsystem.router.registry.update(internal_amqp_router.registry)
     internal_amqpsystem.context = fastramqpi._context
 
-    fastramqpi.add_lifespan_manager(initialize_export_checks(fastramqpi), 2900)
+    fastramqpi.add_lifespan_manager(initialize_checks(fastramqpi), 2900)
     fastramqpi.add_lifespan_manager(initialize_sync_tool(fastramqpi), 3000)
 
     logger.info("Starting LDAP listener")

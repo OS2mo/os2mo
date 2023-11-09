@@ -176,6 +176,11 @@ class Settings(BaseSettings):
         ),
     )
 
+    check_holstebro_ou_issue_57426: list[str] = Field(
+        [],
+        description="Check that OU is below or equal one of these, see #57426",
+    )
+
     discriminator_function: Literal["exclude", "include", None] = Field(
         None,
         description="The type of discriminator function, either include or exclude",

@@ -221,6 +221,11 @@ def export_checks() -> AsyncMock:
     return AsyncMock()
 
 
+@pytest.fixture
+def import_checks() -> AsyncMock:
+    return AsyncMock()
+
+
 def read_mapping(filename):
     """
     Read a json mapping file

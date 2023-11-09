@@ -36,6 +36,7 @@ def context(
     dataloader: AsyncMock,
     converter: MagicMock,
     export_checks: AsyncMock,
+    import_checks: AsyncMock,
     settings: MagicMock,
     internal_amqpsystem: MagicMock,
 ) -> Context:
@@ -45,6 +46,7 @@ def context(
                 "dataloader": dataloader,
                 "converter": converter,
                 "export_checks": export_checks,
+                "import_checks": import_checks,
                 "internal_amqpsystem": internal_amqpsystem,
                 "settings": settings,
             }
@@ -1376,3 +1378,13 @@ async def test_publish_engagements_for_org_unit(
     assert sync_tool.refresh_object.awaited_once_with(engagements_employee1[0].uuid)
     assert sync_tool.refresh_object.awaited_once_with(engagements_employee2[0].uuid)
     assert sync_tool.refresh_object.awaited_once_with(engagements_employee2[1].uuid)
+
+
+async def test_holstebro_import_checks(sync_tool: SyncTool):
+    with patch(
+        "mo_ldap_import_export.import_export.SyncTool.perform_import_checks",
+        side_effect=IgnoreChanges("unique!error_msg"),
+    ):
+        with capture_logs() as cap_logs:
+            await sync_tool.import_single_user("CN=foo", force=True)
+            assert "[Import-single-user] unique!error_msg" in str(cap_logs)

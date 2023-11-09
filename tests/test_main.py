@@ -34,8 +34,8 @@ from mo_ldap_import_export.main import construct_gql_client
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
 from mo_ldap_import_export.main import get_delete_flag
+from mo_ldap_import_export.main import initialize_checks
 from mo_ldap_import_export.main import initialize_converters
-from mo_ldap_import_export.main import initialize_export_checks
 from mo_ldap_import_export.main import initialize_init_engine
 from mo_ldap_import_export.main import initialize_sync_tool
 from mo_ldap_import_export.main import open_ldap_connection
@@ -325,13 +325,16 @@ async def test_initialize_sync_tool(
 
 
 # Note: The module which is initialized by this test is also used by all other tests
-async def test_initialize_export_checks(fastramqpi: FastRAMQPI) -> None:
+async def test_initialize_checks(fastramqpi: FastRAMQPI) -> None:
     user_context = fastramqpi.get_context()["user_context"]
     assert user_context.get("export_checks") is None
+    assert user_context.get("import_checks") is None
 
     with patch("mo_ldap_import_export.main.ExportChecks", return_value=MagicMock()):
-        async with initialize_export_checks(fastramqpi):
-            assert user_context.get("export_checks") is not None
+        with patch("mo_ldap_import_export.main.ImportChecks", return_value=MagicMock()):
+            async with initialize_checks(fastramqpi):
+                assert user_context.get("export_checks") is not None
+                assert user_context.get("import_checks") is not None
 
 
 # Note: The module which is initialized by this test is also used by all other tests
