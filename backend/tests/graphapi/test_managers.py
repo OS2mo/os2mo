@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
+from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -459,3 +460,128 @@ async def test_update_manager_mutation_unit_test(
     assert response.data == {"manager_update": {"uuid": str(test_data.uuid)}}
 
     update_manager.assert_called_with(test_data)
+
+
+async def read_manager_validities(
+    graphapi_post: GraphAPIPost, uuid: UUID
+) -> list[dict[str, Any]]:
+    query = """
+        query ReadManager($uuid: UUID!) {
+          managers(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
+            objects {
+              objects {
+                employee_uuid
+                uuid
+                validity {
+                    from
+                    to
+                }
+              }
+            }
+          }
+        }
+    """
+    query_response = graphapi_post(query, {"uuid": str(uuid)})
+    assert query_response.errors is None
+    manager_validities = one(query_response.data["managers"]["objects"])
+    return manager_validities["objects"]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_terminate_manager_vacate_integration_test(
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Test that managers can be vacated via GraphQL."""
+
+    employee_uuid = UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a")
+    uuid = UUID("05609702-977f-4869-9fb4-50ad74c6999a")
+
+    manager_validities = await read_manager_validities(graphapi_post, uuid)
+    assert manager_validities == [
+        {
+            "employee_uuid": str(employee_uuid),
+            "uuid": str(uuid),
+            "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+        }
+    ]
+
+    mutation = """
+        mutation TerminateManager($input: ManagerTerminateInput!) {
+            manager_terminate(input: $input) {
+                uuid
+            }
+        }
+    """
+    input = {"uuid": uuid, "to": datetime(2020, 1, 1), "vacate": True}
+    mutation_response = graphapi_post(mutation, {"input": jsonable_encoder(input)})
+    assert mutation_response.errors is None
+    assert UUID(mutation_response.data["manager_terminate"]["uuid"]) == uuid
+
+    # Verify change
+    manager_validities = await read_manager_validities(graphapi_post, uuid)
+    assert manager_validities == [
+        {
+            "employee_uuid": str(employee_uuid),
+            "uuid": str(uuid),
+            "validity": {
+                "from": "2017-01-01T00:00:00+01:00",
+                "to": "2020-01-01T00:00:00+01:00",
+            },
+        },
+        {
+            "employee_uuid": None,
+            "uuid": str(uuid),
+            "validity": {"from": "2020-01-02T00:00:00+01:00", "to": None},
+        },
+    ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_update_manager_vacate_integration_test(
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Test that managers can be vacated via GraphQL."""
+
+    employee_uuid = UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a")
+    uuid = UUID("05609702-977f-4869-9fb4-50ad74c6999a")
+
+    manager_validities = await read_manager_validities(graphapi_post, uuid)
+    assert manager_validities == [
+        {
+            "employee_uuid": str(employee_uuid),
+            "uuid": str(uuid),
+            "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+        }
+    ]
+
+    mutation = """
+        mutation TerminateManager($input: ManagerUpdateInput!) {
+            manager_update(input: $input) {
+                uuid
+            }
+        }
+    """
+    input = {"uuid": uuid, "validity": {"from": datetime(2020, 1, 1)}, "person": None}
+    mutation_response = graphapi_post(mutation, {"input": jsonable_encoder(input)})
+    assert mutation_response.errors is None
+    assert UUID(mutation_response.data["manager_update"]["uuid"]) == uuid
+
+    # Verify change
+    manager_validities = await read_manager_validities(graphapi_post, uuid)
+    assert manager_validities == [
+        {
+            "employee_uuid": str(employee_uuid),
+            "uuid": str(uuid),
+            "validity": {
+                "from": "2017-01-01T00:00:00+01:00",
+                "to": "2019-12-31T00:00:00+01:00",
+            },
+        },
+        {
+            "employee_uuid": None,
+            "uuid": str(uuid),
+            "validity": {"from": "2020-01-01T00:00:00+01:00", "to": None},
+        },
+    ]

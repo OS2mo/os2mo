@@ -298,7 +298,7 @@ class AssociationTerminate(ValidityTerminate):
 
 
 # Classes
-# -----------------------
+# -------
 class ClassCreate(UUIDBase):
     """Model representing a Class creation."""
 
@@ -1135,6 +1135,14 @@ class ManagerTerminate(ValidityTerminate):
     """Model representing a manager termination."""
 
     uuid: UUID = Field(description="UUID of the manager we want to terminate.")
+    vacate: bool = Field(
+        False, description="Vacate the position, instead of terminating it"
+    )
+
+    def to_handler_dict(self) -> dict:
+        data_dict = super().to_handler_dict()
+        data_dict["vacate"] = self.vacate
+        return data_dict
 
 
 # Organisational Units
