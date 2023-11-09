@@ -1362,7 +1362,7 @@ class RoleUpdate(UUIDBase):
 
     def to_handler_dict(self) -> dict:
         data_dict: dict = {
-            "uuid": str(self.uuid),
+            "uuid": self.uuid,
             "user_key": self.user_key,
             "role_type": gen_uuid(self.role_type),
             "org_unit": gen_uuid(self.org_unit),
