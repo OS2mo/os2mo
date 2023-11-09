@@ -175,13 +175,7 @@ def combine_dn_strings(dn_strings: list[str]) -> str:
     >>> combine_dn_strings(["CN=Nick","","DC=bar"])
     >>> "CN=Nick,DC=bar"
     """
-    lst: list[str] = list(
-        filter(
-            None,
-            dn_strings,
-        )
-    )
-    dn: str = safe_dn(",".join(lst))
+    dn: str = safe_dn(",".join(filter(None, dn_strings)))
     return dn
 
 

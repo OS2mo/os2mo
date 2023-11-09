@@ -3,6 +3,8 @@ repos:
     rev: 3.9.1
     hooks:
       - id: flake8
+        args: [ "--max-line-length=999" ]
+
 
   - repo: https://github.com/psf/black
     rev: 22.8.0
