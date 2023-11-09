@@ -122,7 +122,7 @@ async def ldap_healthcheck(context: Union[dict, Context]) -> bool:
         context: To lookup ldap_connection in.
 
     Returns:
-        Whether the AMQPSystem is OK.
+        Whether the LDAP connection is OK.
     """
     ldap_connection = context["user_context"]["ldap_connection"]
     return cast(bool, ldap_connection.bound)
