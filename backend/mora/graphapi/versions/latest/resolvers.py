@@ -331,15 +331,17 @@ class FacetResolver(Resolver):
         ):
             kwargs["facettilhoerer"] = await self._get_parent_uuids(info, filter)
 
-        return await super()._resolve(
-            info=info,
-            # TODO: pass filter=filter directly when the object is non-static
-            filter=BaseFilter(
+        if info.context["version"] <= 19:
+            filter = BaseFilter(  # type: ignore[assignment]
                 uuids=filter.uuids,
                 user_keys=filter.user_keys,
                 from_date=None,  # from -inf
                 to_date=None,  # to inf
-            ),
+            )
+
+        return await super()._resolve(
+            info=info,
+            filter=filter,
             limit=limit,
             cursor=cursor,
             **kwargs,

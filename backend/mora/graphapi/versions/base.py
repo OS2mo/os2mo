@@ -129,7 +129,9 @@ class BaseGraphQLVersion:
     @classmethod
     async def get_context(cls) -> dict[str, Any]:
         """Strawberry context getter."""
-        return {}
+        return {
+            "version": cls.version,
+        }
 
     @classmethod
     def get_router(cls, is_latest: bool) -> APIRouter:

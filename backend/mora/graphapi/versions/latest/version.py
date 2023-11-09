@@ -55,6 +55,10 @@ class LatestGraphQLVersion(BaseGraphQLVersion):
     https://git.magenta.dk/rammearkitektur/os2mo/-/merge_requests/1184
     """
 
+    # Even though the latest version isn't exposed, we use it internally for the
+    # service API shims. Therefore, we must define a version number to avoid
+    # having None-checks everywhere.
+    version = 1000
     schema = LatestGraphQLSchema
 
     @classmethod
