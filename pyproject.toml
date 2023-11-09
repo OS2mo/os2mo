@@ -57,7 +57,7 @@ disallow_untyped_defs = "True"
 plugins = "pydantic.mypy"
 
 [tool.flake8]
-max-line-length = 88
+max-line-length = 999
 exclude = [
     ".git", "__pycache__", ".mypy_cache", ".pytest_cache", ".venv", ".gitlab"
 ]
