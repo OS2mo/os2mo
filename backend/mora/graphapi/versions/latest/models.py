@@ -298,7 +298,7 @@ class AssociationTerminate(ValidityTerminate):
 
 
 # Classes
-# -----------------------
+# -------
 class ClassCreate(UUIDBase):
     """Model representing a Class creation."""
 
