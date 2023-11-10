@@ -5,6 +5,8 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
+from fastapi import Body
+from fastapi import Depends
 from fastapi import Path
 from fastapi import Query
 from fastapi.encoders import jsonable_encoder
@@ -12,6 +14,8 @@ from more_itertools import one
 
 from .errors import handle_gql_error
 from mora import exceptions
+from mora import util
+from mora.auth.keycloak import oidc
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.shim import MOEmployee
@@ -88,3 +92,65 @@ async def get_employee(
         exceptions.ErrorCodes.E_USER_NOT_FOUND()
     # Transform graphql data into the original format
     return transformer(response.data)
+
+
+@employee_router.post(
+    "/e/{uuid}/terminate",
+    responses={
+        "400": {"description": "Invalid input"},
+    },
+    dependencies=[Depends(oidc.rbac_owner)],
+)
+async def terminate_employee(uuid: UUID, request: dict = Body(...)):
+    """Terminates an employee and all of his roles beginning at a
+    specified date. Except for the manager roles, which we vacate
+    instead.
+
+    .. :quickref: Employee; Terminate
+
+    :query boolean force: When ``true``, bypass validations.
+
+    :statuscode 200: The termination succeeded.
+
+    :param uuid: The UUID of the employee to be terminated.
+
+    :<json string to: When the termination should occur, as an ISO 8601 date.
+    :<json boolean vacate: *Optional* - mark applicable — currently
+        only ``manager`` -- functions as _vacant_, i.e. simply detach
+        the employee from them.
+
+    **Example Request**:
+
+    .. sourcecode:: json
+
+      {
+        "validity": {
+          "to": "2015-12-31"
+        }
+      }
+
+    """
+    mutation = """
+        mutation TerminateEmployee($input: EmployeeTerminateInput!) {
+            employee_terminate(input: $input) {
+                uuid
+            }
+        }
+    """
+
+    variables = {
+        "input": {
+            "uuid": uuid,
+            "from": request["validity"].get("from"),
+            "to": request["validity"].get("to"),
+            "vacate": util.checked_get(request, "vacate", False),
+        }
+    }
+    # Execute GraphQL query to fetch required data
+    response = await execute_graphql(
+        mutation,
+        variable_values=jsonable_encoder(variables),
+    )
+    handle_gql_error(response)
+    uuid = response.data["employee_terminate"]["uuid"]
+    return uuid

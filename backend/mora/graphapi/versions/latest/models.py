@@ -493,6 +493,11 @@ class EmployeeTerminate(ValidityTerminate):
     """Model representing an employee termination."""
 
     uuid: UUID = Field(description="UUID for the employee we want to terminate.")
+    vacate: bool = Field(
+        False,
+        description="Mark related manager functions as vacated",
+        deprecation_reason="Deal with relations seperately. Will be removed in a future version of OS2mo.",
+    )
 
 
 # Engagements
