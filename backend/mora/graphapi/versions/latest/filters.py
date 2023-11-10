@@ -414,6 +414,7 @@ class RegistrationFilter:
         )
         + gen_filter_table("actors"),
     )
+    # TODO: Turn this into an enum
     models: list[str] | None = strawberry.field(
         default=None,
         description=dedent(

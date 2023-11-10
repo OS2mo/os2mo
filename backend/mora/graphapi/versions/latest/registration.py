@@ -9,10 +9,13 @@ from typing import TypeVar
 from uuid import UUID
 
 import strawberry
+from sqlalchemy import case
 from sqlalchemy import column
 from sqlalchemy import literal
 from sqlalchemy import select
+from sqlalchemy import Text
 from sqlalchemy import union
+from sqlalchemy.sql.expression import Select
 from starlette_context import context
 from strawberry.types import Info
 
@@ -27,6 +30,7 @@ from mora.db import FacetRegistrering
 from mora.db import ITSystemRegistrering
 from mora.db import KlasseRegistrering
 from mora.db import OrganisationEnhedRegistrering
+from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRegistrering
 from mora.util import parsedatetime
 
@@ -169,7 +173,7 @@ class RegistrationResolver(PagedResolver):
         if filter is None:
             filter = RegistrationFilter()
 
-        tables = {
+        model2table = {
             "class": KlasseRegistrering,
             "employee": BrugerRegistrering,
             "facet": FacetRegistrering,
@@ -185,28 +189,67 @@ class RegistrationResolver(PagedResolver):
             "manager": OrganisationFunktionRegistrering,
         }
 
+        tables = set(model2table.values())
+        # If given a model filter, only query relevant tables
         if filter.models is not None:
-            tables = {
-                key: value for key, value in tables.items() if key in filter.models
-            }
+            valid_keys = set(filter.models) & model2table.keys()
+            tables = {model2table[key] for key in valid_keys}
+            # If only invalid model names were given, we can early return
+            if not tables:
+                return []
+
+        def generate_query(table: Any) -> Select:
+            common_fields = [
+                table.id.label("id"),
+                table.uuid.label("uuid"),
+                table.actor.label("actor"),
+                table.registreringstid_start.label("start"),
+                table.registreringstid_slut.label("end"),
+            ]
+
+            if table == OrganisationFunktionRegistrering:
+                return select(
+                    case(
+                        # Mapping from LoRa funktionsnavn to GraphQL names
+                        {
+                            "Adresse": "address",
+                            "Tilknytning": "association",
+                            "Engagement": "engagement",
+                            "IT-system": "ituser",
+                            "Orlov": "leave",
+                            "Rolle": "role",
+                            "Leder": "manager",
+                        },
+                        value=OrganisationFunktionAttrEgenskaber.funktionsnavn.cast(
+                            Text
+                        ),
+                        else_="unknown",
+                    ).label("model"),
+                    *common_fields
+                ).where(
+                    OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+                    == table.id
+                )
+            return select(
+                case(
+                    # Mapping from table names to GraphQL names
+                    {
+                        "KlasseRegistrering": "class",
+                        "BrugerRegistrering": "employee",
+                        "FacetRegistrering": "facet",
+                        "OrganisationEnhedRegistrering": "org_unit",
+                        "ITSystemRegistrering": "itsystem",
+                        # TODO: Handle KLE
+                        # "kle": KlasseRegistrering,
+                    },
+                    value=literal(table.__name__),
+                    else_="unknown",
+                ).label("model"),
+                *common_fields
+            )
 
         # Query all requested registation tables using a big union query
-        union_query = union(
-            *(
-                select(
-                    literal(model).label("model"),
-                    table.id.label("id"),
-                    # NOTE: mypy complains that _RegistreringMixin does not have a
-                    #       `uuid` attribute, but this code is ducktyped using the
-                    #       actual concrete type, which has a `uuid` attribute.
-                    table.uuid.label("uuid"),  # type: ignore
-                    table.actor.label("actor"),
-                    table.registreringstid_start.label("start"),
-                    table.registreringstid_slut.label("end"),
-                )
-                for model, table in tables.items()
-            )
-        )
+        union_query = union(*map(generate_query, tables))
         # Select using a subquery so we can filter and order the unioned result
         # Note: I have no idea why mypy dislikes this.
         query = select("*").select_from(union_query)  # type: ignore
@@ -216,6 +259,9 @@ class RegistrationResolver(PagedResolver):
 
         if filter.actors is not None:
             query = query.where(column("actor").in_(filter.actors))
+
+        if filter.models is not None:
+            query = query.where(column("model").in_(filter.models))
 
         if filter.start is not None or filter.end is not None:
             dates = get_date_interval(filter.start, filter.end)
