@@ -293,7 +293,13 @@ def seed_resolver(
         filter_args = {}
         # Pass user-provided filters from the bound filter
         if filter is not None:
-            filter_args.update(dataclasses.asdict(filter))
+            # We iterate the fields explicitly, rather than use dataclasses.asdict(),
+            # to create a shallow copy. This ensures nested Filter objects, which we do
+            # not seed anyway, are not converted to dicts.
+            filter_args.update(
+                (field.name, getattr(filter, field.name))
+                for field in dataclasses.fields(filter)
+            )
         # Resolve arguments from the root object
         for key, argument_callable in seeds.items():
             filter_args[key] = argument_callable(root)
