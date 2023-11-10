@@ -14,6 +14,8 @@ from more_itertools import first
 from mora.graphapi.versions.latest.filters import BaseFilter
 from mora.graphapi.versions.latest.resolvers import Resolver
 from mora.graphapi.versions.latest.schema import seed_resolver
+from tests.conftest import GQLResponse
+from tests.conftest import GraphAPIPost
 
 
 class DummyModel:
@@ -128,3 +130,41 @@ async def test_call_values(
     await seeded(info, root=root)
     assert resolver.args == ()
     assert resolver.kwargs["filter"] == BaseFilter(**expected)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_nested_filters(graphapi_post: GraphAPIPost) -> None:
+    """Test that seed_resolver doesn't break nested filters."""
+    query = """
+        query NestedRolesQuery {
+          roles(filter: {employee: {cpr_numbers: "0906340000"}}) {
+            objects {
+              current {
+                person(filter: {from_date: "2001-02-03", to_date: null}) {
+                  addresses(filter: {address_type: {user_keys: "BrugerEmail"}}) {
+                    user_key
+                  }
+                }
+              }
+            }
+          }
+        }
+    """
+    result: GQLResponse = graphapi_post(query)
+    assert result.errors is None
+    assert result.data == {
+        "roles": {
+            "objects": [
+                {
+                    "current": {
+                        "person": [
+                            {
+                                "addresses": [{"user_key": "bruger@example.comw"}],
+                            },
+                        ]
+                    }
+                }
+            ]
+        }
+    }
