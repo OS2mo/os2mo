@@ -279,8 +279,8 @@ class RegistrationResolver(PagedResolver):
         # Pagination
         if cursor:
             query = query.where(column("start") <= cursor.registration_time)
-        # Order by UUID so the order of pagination is well-defined
-        query = query.order_by(column("uuid"))
+        # Order by time, then by UUID so the order of pagination is well-defined
+        query = query.order_by(column("start"), column("uuid"))
         if limit is not None:
             # Fetch one extra element to see if there is another page
             query = query.limit(limit + 1)
