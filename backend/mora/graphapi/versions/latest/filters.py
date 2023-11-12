@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from textwrap import dedent
+from typing import Any
 from uuid import UUID
 
 import strawberry
@@ -96,6 +97,15 @@ class OrganisationUnitFiltered:
 
 @strawberry.input(description="Address filter.")
 class AddressFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
+    registration: AddressRegistrationFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Registration filter limiting which entries are returned.
+            """
+        ),
+    )
+
     address_type: ClassFilter | None = strawberry.field(
         default=None,
         description=dedent(
@@ -134,6 +144,15 @@ class AddressFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
 
 @strawberry.input(description="Association filter.")
 class AssociationFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
+    registration: AssociationRegistrationFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Registration filter limiting which entries are returned.
+            """
+        ),
+    )
+
     association_type: ClassFilter | None = strawberry.field(
         default=None,
         description=dedent(
@@ -169,6 +188,15 @@ class AssociationFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
 
 @strawberry.input(description="Class filter.")
 class ClassFilter(BaseFilter):
+    registration: ClassRegistrationFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Registration filter limiting which entries are returned.
+            """
+        ),
+    )
+
     facet: FacetFilter | None = strawberry.field(
         default=None,
         description=dedent(
@@ -227,6 +255,15 @@ class ConfigurationFilter:
 
 @strawberry.input(description="Employee filter.")
 class EmployeeFilter(BaseFilter):
+    registration: EmployeeRegistrationFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Registration filter limiting which entries are returned.
+            """
+        ),
+    )
+
     query: str | None = strawberry.field(
         default=UNSET,
         description=dedent(
@@ -245,11 +282,27 @@ class EmployeeFilter(BaseFilter):
 
 @strawberry.input(description="Engagement filter.")
 class EngagementFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
-    pass
+    registration: EngagementRegistrationFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Registration filter limiting which entries are returned.
+            """
+        ),
+    )
 
 
 @strawberry.input(description="Facet filter.")
 class FacetFilter(BaseFilter):
+    registration: FacetRegistrationFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Registration filter limiting which entries are returned.
+            """
+        ),
+    )
+
     parent: FacetFilter | None = strawberry.field(
         default=None,
         description=dedent(
@@ -291,11 +344,27 @@ class HealthFilter:
 
 @strawberry.input(description="IT system filter.")
 class ITSystemFilter(BaseFilter):
-    pass
+    registration: ITSystemRegistrationFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Registration filter limiting which entries are returned.
+            """
+        ),
+    )
 
 
 @strawberry.input(description="IT user filter.")
 class ITUserFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
+    registration: ITUserRegistrationFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Registration filter limiting which entries are returned.
+            """
+        ),
+    )
+
     itsystem: ITSystemFilter | None = strawberry.field(
         default=None,
         description=dedent(
@@ -315,21 +384,51 @@ class ITUserFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
 
 @strawberry.input(description="KLE filter.")
 class KLEFilter(BaseFilter, OrganisationUnitFiltered):
-    pass
+    registration: KLERegistrationFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Registration filter limiting which entries are returned.
+            """
+        ),
+    )
 
 
 @strawberry.input(description="Leave filter.")
 class LeaveFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
-    pass
+    registration: LeaveRegistrationFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Registration filter limiting which entries are returned.
+            """
+        ),
+    )
 
 
 @strawberry.input(description="Manager filter.")
 class ManagerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
-    pass
+    registration: ManagerRegistrationFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Registration filter limiting which entries are returned.
+            """
+        ),
+    )
 
 
 @strawberry.input(description="Organisation unit filter.")
 class OrganisationUnitFilter(BaseFilter):
+    registration: OrganisationUnitRegistrationFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Registration filter limiting which entries are returned.
+            """
+        ),
+    )
+
     query: str | None = strawberry.field(
         default=UNSET,
         description=dedent(
@@ -452,11 +551,101 @@ class RegistrationFilter:
     )
 
 
+def mutable_default(value: Any) -> Any:
+    return strawberry.field(default_factory=lambda: value)
+
+
+@strawberry.input(description="Address registration filter.")
+class AddressRegistrationFilter(RegistrationFilter):
+    uuids: strawberry.Private[list[UUID] | None] = None
+    models: strawberry.Private[list[str] | None] = mutable_default(["address"])
+
+
+@strawberry.input(description="Association registration filter.")
+class AssociationRegistrationFilter(RegistrationFilter):
+    uuids: strawberry.Private[list[UUID] | None] = None
+    models: strawberry.Private[list[str] | None] = mutable_default(["association"])
+
+
+@strawberry.input(description="Class registration filter.")
+class ClassRegistrationFilter(RegistrationFilter):
+    uuids: strawberry.Private[list[UUID] | None] = None
+    models: strawberry.Private[list[str] | None] = mutable_default(["class"])
+
+
+@strawberry.input(description="Employee registration filter.")
+class EmployeeRegistrationFilter(RegistrationFilter):
+    uuids: strawberry.Private[list[UUID] | None] = None
+    models: strawberry.Private[list[str] | None] = mutable_default(["employee"])
+
+
+@strawberry.input(description="Engagement registration filter.")
+class EngagementRegistrationFilter(RegistrationFilter):
+    uuids: strawberry.Private[list[UUID] | None] = None
+    models: strawberry.Private[list[str] | None] = mutable_default(["engagement"])
+
+
+@strawberry.input(description="Facet registration filter.")
+class FacetRegistrationFilter(RegistrationFilter):
+    uuids: strawberry.Private[list[UUID] | None] = None
+    models: strawberry.Private[list[str] | None] = mutable_default(["facet"])
+
+
+@strawberry.input(description="ITSystem registration filter.")
+class ITSystemRegistrationFilter(RegistrationFilter):
+    uuids: strawberry.Private[list[UUID] | None] = None
+    models: strawberry.Private[list[str] | None] = mutable_default(["itsystem"])
+
+
+@strawberry.input(description="ITUser registration filter.")
+class ITUserRegistrationFilter(RegistrationFilter):
+    uuids: strawberry.Private[list[UUID] | None] = None
+    models: strawberry.Private[list[str] | None] = mutable_default(["ituser"])
+
+
+@strawberry.input(description="KLE registration filter.")
+class KLERegistrationFilter(RegistrationFilter):
+    uuids: strawberry.Private[list[UUID] | None] = None
+    models: strawberry.Private[list[str] | None] = mutable_default(["kle"])
+
+
+@strawberry.input(description="Leave registration filter.")
+class LeaveRegistrationFilter(RegistrationFilter):
+    uuids: strawberry.Private[list[UUID] | None] = None
+    models: strawberry.Private[list[str] | None] = mutable_default(["leave"])
+
+
+@strawberry.input(description="Manager registration filter.")
+class ManagerRegistrationFilter(RegistrationFilter):
+    uuids: strawberry.Private[list[UUID] | None] = None
+    models: strawberry.Private[list[str] | None] = mutable_default(["manager"])
+
+
+@strawberry.input(description="OrganisationUnit registration filter.")
+class OrganisationUnitRegistrationFilter(RegistrationFilter):
+    uuids: strawberry.Private[list[UUID] | None] = None
+    models: strawberry.Private[list[str] | None] = mutable_default(["org_unit"])
+
+
+@strawberry.input(description="Role registration filter.")
+class RoleRegistrationFilter(RegistrationFilter):
+    uuids: strawberry.Private[list[UUID] | None] = None
+    models: strawberry.Private[list[str] | None] = mutable_default(["role"])
+
+
 @strawberry.input(description="Related unit filter.")
 class RelatedUnitFilter(BaseFilter, OrganisationUnitFiltered):
+    # TODO: registration filter
     pass
 
 
 @strawberry.input(description="Role filter.")
 class RoleFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
-    pass
+    registration: RoleRegistrationFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Registration filter limiting which entries are returned.
+            """
+        ),
+    )

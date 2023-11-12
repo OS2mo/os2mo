@@ -174,19 +174,21 @@ class RegistrationResolver(PagedResolver):
             filter = RegistrationFilter()
 
         model2table = {
-            "class": KlasseRegistrering,
-            "employee": BrugerRegistrering,
-            "facet": FacetRegistrering,
-            "org_unit": OrganisationEnhedRegistrering,
             "address": OrganisationFunktionRegistrering,
             "association": OrganisationFunktionRegistrering,
+            "class": KlasseRegistrering,
+            "employee": BrugerRegistrering,
             "engagement": OrganisationFunktionRegistrering,
+            "facet": FacetRegistrering,
             "itsystem": ITSystemRegistrering,
             "ituser": OrganisationFunktionRegistrering,
             "kle": KlasseRegistrering,
             "leave": OrganisationFunktionRegistrering,
-            "role": OrganisationFunktionRegistrering,
             "manager": OrganisationFunktionRegistrering,
+            "org_unit": OrganisationEnhedRegistrering,
+            "role": OrganisationFunktionRegistrering,
+            # TODO: Owner
+            # TODO: RelatedUnit
         }
 
         tables = set(model2table.values())
@@ -213,12 +215,12 @@ class RegistrationResolver(PagedResolver):
                         # Mapping from LoRa funktionsnavn to GraphQL names
                         {
                             "Adresse": "address",
-                            "Tilknytning": "association",
                             "Engagement": "engagement",
                             "IT-system": "ituser",
+                            "Leder": "manager",
                             "Orlov": "leave",
                             "Rolle": "role",
-                            "Leder": "manager",
+                            "Tilknytning": "association",
                         },
                         value=OrganisationFunktionAttrEgenskaber.funktionsnavn.cast(
                             Text
@@ -234,11 +236,11 @@ class RegistrationResolver(PagedResolver):
                 case(
                     # Mapping from table names to GraphQL names
                     {
-                        "KlasseRegistrering": "class",
                         "BrugerRegistrering": "employee",
                         "FacetRegistrering": "facet",
-                        "OrganisationEnhedRegistrering": "org_unit",
                         "ITSystemRegistrering": "itsystem",
+                        "KlasseRegistrering": "class",
+                        "OrganisationEnhedRegistrering": "org_unit",
                         # TODO: Handle KLE
                         # "kle": KlasseRegistrering,
                     },
