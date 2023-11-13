@@ -46,7 +46,7 @@
     "Active Directory": {
       "objectClass": "ramodels.mo.details.it_system.ITUser",
       "_import_to_mo_": "true",
-      "user_key": "{{ ldap.SAMAccountName }}",
+      "user_key": "{{ ldap.sAMAccountName }}",
       "itsystem": "{{ dict(uuid=get_it_system_uuid('Active Directory')) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "person": "{{ dict(uuid=employee_uuid) }}"
@@ -96,7 +96,7 @@
     "Active Directory": {
       "objectClass": "user",
       "_export_to_ldap_": "false",
-      "SAMAccountName": "{{ mo_employee_it_user.user_key }}",
+      "sAMAccountName": "{{ mo_employee_it_user.user_key }}",
       "extensionAttribute1": "{{ mo_employee.cpr_no }}"
     },
     "Custom": {
