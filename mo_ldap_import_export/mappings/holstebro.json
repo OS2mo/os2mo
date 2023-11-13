@@ -35,12 +35,12 @@
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('PhoneEmployee')) }}",
       "person": "{{ dict(uuid=employee_uuid) }}"
     },
-    "AdressePostEmployee": {
+    "LocationEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
       "_import_to_mo_": "true",
       "value": "{{ ldap.physicalDeliveryOfficeName or NONE }}",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_employee_address_type_uuid('AdressePostEmployee')) }}",
+      "address_type": "{{ dict(uuid=get_employee_address_type_uuid('LocationEmployee')) }}",
       "person": "{{ dict(uuid=employee_uuid) }}"
     },
     "Active Directory": {
@@ -87,7 +87,7 @@
       "telephoneNumber": "{{ mo_employee_address.value }}",
       "extensionAttribute1": "{{ mo_employee.cpr_no }}"
     },
-    "AdressePostEmployee": {
+    "LocationEmployee": {
       "objectClass": "user",
       "_export_to_ldap_": "false",
       "physicalDeliveryOfficeName": "{{ mo_employee_address.value }}",
