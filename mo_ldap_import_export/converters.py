@@ -227,9 +227,9 @@ class LdapConverter:
     def import_mo_object_class(self, json_key):
         return import_class(self.find_mo_object_class(json_key))
 
-    def get_ldap_attributes(self, json_key):
+    def get_ldap_attributes(self, json_key, remove_dn=True):
         ldap_attributes = list(self.mapping["mo_to_ldap"][json_key].keys())
-        if "dn" in ldap_attributes:
+        if "dn" in ldap_attributes and remove_dn:
             # "dn" is the key which all LDAP objects have, not an attribute.
             ldap_attributes.remove("dn")
         return ldap_attributes
@@ -372,7 +372,7 @@ class LdapConverter:
             object_class = self.find_ldap_object_class(json_key)
 
             accepted_attributes = list(self.overview[object_class]["attributes"].keys())
-            detected_attributes = self.get_ldap_attributes(json_key)
+            detected_attributes = self.get_ldap_attributes(json_key, remove_dn=False)
 
             self.check_attributes(detected_attributes, accepted_attributes + ["dn"])
 

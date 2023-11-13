@@ -159,7 +159,6 @@
       "objectClass": "user",
       "_export_to_ldap_": "true",
       "employeeID": "{{mo_employee.cpr_no}}",
-      "department": "{{get_org_unit_name(mo_employee_engagement.org_unit.uuid)}}",
       //"division": "{{get_org_unit_path_string(mo_employee_engagement.org_unit.uuid)}}",
       "dn": "{{make_dn_from_org_unit_path(dn, nonejoin_orgs('OS2MO', 'demo', get_org_unit_path_string(mo_employee_engagement.org_unit.uuid)))}}",
       "countryCode": "{{mo_employee_engagement.user_key}}",
