@@ -986,7 +986,7 @@ prompt_toolkit = ">=2.0,<=3.0.36"
 
 [[package]]
 name = "ra-utils"
-version = "1.13.9"
+version = "1.14.0"
 description = "Utilities for OS2mo/LoRa"
 category = "main"
 optional = false
@@ -1490,7 +1490,7 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "434ca8b9094fe1888c000d70ced218c8278dba7091270f590e743286bdb33117"
+content-hash = "402e829b10574077a8ee58e342486510e8777778de39848e8836f2f0d48b6816"
 
 [metadata.files]
 aio-pika = [
@@ -2402,8 +2402,8 @@ questionary = [
     {file = "questionary-2.0.1.tar.gz", hash = "sha256:bcce898bf3dbb446ff62830c86c5c6fb9a22a54146f0f5597d3da43b10d8fc8b"},
 ]
 ra-utils = [
-    {file = "ra_utils-1.13.9-py3-none-any.whl", hash = "sha256:3e3d55ab25d10df0360e950ffecddeac42786c0e0103783a1d9701fd5e538704"},
-    {file = "ra_utils-1.13.9.tar.gz", hash = "sha256:516ff9aee39d64f08b2373e353eb4a1891ddf4a655746dd7c791695a3e0c294c"},
+    {file = "ra_utils-1.14.0-py3-none-any.whl", hash = "sha256:d2103c56e0462ccb3aac284bc2cbcf4a80d59eaa85e0ce1b0ea9ea99e2987591"},
+    {file = "ra_utils-1.14.0.tar.gz", hash = "sha256:362f0ad9f6d965112bbcb51fc63c01a88fe84230f01e6af8eccb681f51e9fc29"},
 ]
 ramqp = [
     {file = "ramqp-9.1.0-py3-none-any.whl", hash = "sha256:ad579673fc9ae1dc8f2b595e096e99f624e4a1bd1a006aca4361933d12294a71"},
