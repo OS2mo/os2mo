@@ -27,17 +27,16 @@ For at anvende eksporten er det nødvendigt at oprette et antal nøgler i
   andet er sat i *rollekatalog_root_uuid*
 
 - `exporters.os2rollekatalog.ou_filter`: *true* eller *false*.
-
   Filtrer enheder og engagementer der ikke hører under
   main_root_org_unit fra. Default er *false*.
 
--
+- `exporters.os2rollekatalog.rollekatalog_root_uuid`: Optionelt. Hvis rod-uuid'en i rollekataloget allerede eksisterer kan den sættes ind her. Rod-enheden fra OS2MO vil så få overskrevet sit UUID med denne.
 
-`exporters.os2rollekatalog.rollekatalog_root_uuid`: Optionelt. Hvis rod-uuid'en i rollekataloget allerede eksisterer kan
-den sættes ind her.
+- `exporters.os2rollekatalog.sync_titles`: *true* eller *false*.
+Synkroniserer stillingsbetegnelser til rollekatalogets `titles` api. Kræver specifik adgang til et separat endepunkt i rollekatalogets API. Vedligeholder oversigten over samtlige stillingsbetegnelser samt sender engagementers stillingsbeteglelses uuid med så de kan knyttes sammen. Er denne slået fra sendes stillingsbetegnelser kun som tekst-felt. Default er *false*.
 
-Rod-enheden fra OS2MO vil så få overskrevet sit UUID med
-denne.
+- `exporters.os2rollekatalog.use_nickname`: *true* eller *false*.
+Anvender brugeres kaldenavn i stedet for navn hvis det er udfyldt i OS2MO. Default er *false*.
 
 ## Eksporteret data
 
