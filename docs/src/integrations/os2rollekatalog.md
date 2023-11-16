@@ -27,17 +27,10 @@ For at anvende eksporten er det nødvendigt at oprette et antal nøgler i
   andet er sat i *rollekatalog_root_uuid*
 
 - `exporters.os2rollekatalog.ou_filter`: *true* eller *false*.
-
   Filtrer enheder og engagementer der ikke hører under
   main_root_org_unit fra. Default er *false*.
 
--
-
-`exporters.os2rollekatalog.rollekatalog_root_uuid`: Optionelt. Hvis rod-uuid'en i rollekataloget allerede eksisterer kan
-den sættes ind her.
-
-Rod-enheden fra OS2MO vil så få overskrevet sit UUID med
-denne.
+- `exporters.os2rollekatalog.rollekatalog_root_uuid`: Optionelt. Hvis rod-uuid'en i rollekataloget allerede eksisterer kan den sættes ind her. Rod-enheden fra OS2MO vil så få overskrevet sit UUID med denne.
 
 ## Eksporteret data
 
