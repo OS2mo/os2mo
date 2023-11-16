@@ -986,7 +986,7 @@ prompt_toolkit = ">=2.0,<=3.0.36"
 
 [[package]]
 name = "ra-utils"
-version = "1.14.0"
+version = "1.13.9"
 description = "Utilities for OS2mo/LoRa"
 category = "main"
 optional = false
@@ -1091,7 +1091,7 @@ python-versions = ">=3.8"
 
 [[package]]
 name = "sentry-sdk"
-version = "1.34.0"
+version = "1.35.0"
 description = "Python client for Sentry (https://sentry.io)"
 category = "main"
 optional = false
@@ -1490,7 +1490,7 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "402e829b10574077a8ee58e342486510e8777778de39848e8836f2f0d48b6816"
+content-hash = "7fdc0e88d612576544ec6e6d2fbb3b515779e7b6944e4e625d24cae6738525b6"
 
 [metadata.files]
 aio-pika = [
@@ -2402,8 +2402,8 @@ questionary = [
     {file = "questionary-2.0.1.tar.gz", hash = "sha256:bcce898bf3dbb446ff62830c86c5c6fb9a22a54146f0f5597d3da43b10d8fc8b"},
 ]
 ra-utils = [
-    {file = "ra_utils-1.14.0-py3-none-any.whl", hash = "sha256:d2103c56e0462ccb3aac284bc2cbcf4a80d59eaa85e0ce1b0ea9ea99e2987591"},
-    {file = "ra_utils-1.14.0.tar.gz", hash = "sha256:362f0ad9f6d965112bbcb51fc63c01a88fe84230f01e6af8eccb681f51e9fc29"},
+    {file = "ra_utils-1.13.9-py3-none-any.whl", hash = "sha256:3e3d55ab25d10df0360e950ffecddeac42786c0e0103783a1d9701fd5e538704"},
+    {file = "ra_utils-1.13.9.tar.gz", hash = "sha256:516ff9aee39d64f08b2373e353eb4a1891ddf4a655746dd7c791695a3e0c294c"},
 ]
 ramqp = [
     {file = "ramqp-9.1.0-py3-none-any.whl", hash = "sha256:ad579673fc9ae1dc8f2b595e096e99f624e4a1bd1a006aca4361933d12294a71"},
@@ -2527,8 +2527,8 @@ rpds-py = [
     {file = "rpds_py-0.10.6.tar.gz", hash = "sha256:4ce5a708d65a8dbf3748d2474b580d606b1b9f91b5c6ab2a316e0b0cf7a4ba50"},
 ]
 sentry-sdk = [
-    {file = "sentry-sdk-1.34.0.tar.gz", hash = "sha256:e5d0d2b25931d88fa10986da59d941ac6037f742ab6ff2fce4143a27981d60c3"},
-    {file = "sentry_sdk-1.34.0-py2.py3-none-any.whl", hash = "sha256:76dd087f38062ac6c1e30ed6feb533ee0037ff9e709974802db7b5dbf2e5db21"},
+    {file = "sentry-sdk-1.35.0.tar.gz", hash = "sha256:04e392db9a0d59bd49a51b9e3a92410ac5867556820465057c2ef89a38e953e9"},
+    {file = "sentry_sdk-1.35.0-py2.py3-none-any.whl", hash = "sha256:a7865952701e46d38b41315c16c075367675c48d049b90a4cc2e41991ebc7efa"},
 ]
 service-person-stamdata-udvidet = [
     {file = "service_person_stamdata_udvidet-1.0.3-py3-none-any.whl", hash = "sha256:6f8025ff76a8e9ef62f7f6ef0e7fa0449b8795f0da00a2facb97c369c61ed4e7"},
