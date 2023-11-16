@@ -986,7 +986,7 @@ prompt_toolkit = ">=2.0,<=3.0.36"
 
 [[package]]
 name = "ra-utils"
-version = "1.14.0"
+version = "1.13.9"
 description = "Utilities for OS2mo/LoRa"
 category = "main"
 optional = false
@@ -1277,7 +1277,7 @@ starlette = "*"
 
 [[package]]
 name = "strawberry-graphql"
-version = "0.209.7"
+version = "0.214.0"
 description = "A library for creating GraphQL APIs"
 category = "main"
 optional = false
@@ -1302,6 +1302,7 @@ flask = ["flask (>=1.1)"]
 opentelemetry = ["opentelemetry-api (<2)", "opentelemetry-sdk (<2)"]
 pydantic = ["pydantic (>1.6.1)"]
 pyinstrument = ["pyinstrument (>=4.0.0)"]
+quart = ["quart (>=0.19.3)"]
 sanic = ["sanic (>=20.12.2)"]
 starlite = ["starlite (>=1.48.0)"]
 
@@ -1490,7 +1491,7 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "402e829b10574077a8ee58e342486510e8777778de39848e8836f2f0d48b6816"
+content-hash = "3cee11dabd18d82c097a858313b70448d10234ee301fb1ad4528b0629c803f2b"
 
 [metadata.files]
 aio-pika = [
@@ -2402,8 +2403,8 @@ questionary = [
     {file = "questionary-2.0.1.tar.gz", hash = "sha256:bcce898bf3dbb446ff62830c86c5c6fb9a22a54146f0f5597d3da43b10d8fc8b"},
 ]
 ra-utils = [
-    {file = "ra_utils-1.14.0-py3-none-any.whl", hash = "sha256:d2103c56e0462ccb3aac284bc2cbcf4a80d59eaa85e0ce1b0ea9ea99e2987591"},
-    {file = "ra_utils-1.14.0.tar.gz", hash = "sha256:362f0ad9f6d965112bbcb51fc63c01a88fe84230f01e6af8eccb681f51e9fc29"},
+    {file = "ra_utils-1.13.9-py3-none-any.whl", hash = "sha256:3e3d55ab25d10df0360e950ffecddeac42786c0e0103783a1d9701fd5e538704"},
+    {file = "ra_utils-1.13.9.tar.gz", hash = "sha256:516ff9aee39d64f08b2373e353eb4a1891ddf4a655746dd7c791695a3e0c294c"},
 ]
 ramqp = [
     {file = "ramqp-9.1.0-py3-none-any.whl", hash = "sha256:ad579673fc9ae1dc8f2b595e096e99f624e4a1bd1a006aca4361933d12294a71"},
@@ -2614,8 +2615,8 @@ starlette-context = [
     {file = "starlette_context-0.3.6.tar.gz", hash = "sha256:d361a36ba2d4acca3ab680f917b25e281533d725374752d47607a859041958cb"},
 ]
 strawberry-graphql = [
-    {file = "strawberry_graphql-0.209.7-py3-none-any.whl", hash = "sha256:4277d0365aca113fef7697ab7cfe430e151748e26b6d00f773d58a2bf5a18eb1"},
-    {file = "strawberry_graphql-0.209.7.tar.gz", hash = "sha256:e4fd764e6fa68130d106b84a3ef758b9a3bda472f98934d2a0256838023f9a1e"},
+    {file = "strawberry_graphql-0.214.0-py3-none-any.whl", hash = "sha256:d4ef92c8a62f3d387b3cee6da5c76ab6f68b50385ea97db65acb0724e1222e6d"},
+    {file = "strawberry_graphql-0.214.0.tar.gz", hash = "sha256:0a61effe83099c1ff542ed258fdd230c1fab27860fc857f6b59705d13950b70d"},
 ]
 structlog = [
     {file = "structlog-23.1.0-py3-none-any.whl", hash = "sha256:79b9e68e48b54e373441e130fa447944e6f87a05b35de23138e475c05d0f7e0e"},
