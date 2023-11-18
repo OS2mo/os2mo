@@ -139,6 +139,11 @@ def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
         # UUID filter
         ({"uuids": "05609702-977f-4869-9fb4-50ad74c6999a"}, 1),
         ({"uuids": "fa11c0de-baad-baaad-baad-cafebabebad"}, 0),
+        # Responsibility filters
+        ({"responsibility": {"uuids": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"}}, 1),
+        ({"responsibility": {"uuids": "fa11c0de-baad-baaad-baad-cafebabebad"}}, 0),
+        ({"responsibility": {"user_keys": "fak"}}, 1),
+        ({"responsibility": {"user_keys": "failcode"}}, 0),
     ],
 )
 async def test_manager_filters(graphapi_post: GraphAPIPost, filter, expected) -> None:

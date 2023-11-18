@@ -639,6 +639,9 @@ class ManagerResolver(Resolver):
             kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
         if filter.org_units is not None or filter.org_unit is not None:
             kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
+        if filter.responsibility is not None:
+            class_filter = filter.responsibility or ClassFilter()
+            kwargs["opgaver"] = await filter2uuids(ClassResolver(), info, class_filter)
 
         return await super()._resolve(
             info=info,

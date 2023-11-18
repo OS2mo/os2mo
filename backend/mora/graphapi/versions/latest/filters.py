@@ -417,6 +417,15 @@ class ManagerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         ),
     )
 
+    responsibility: ClassFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Responsibility filter limiting which entries are returned.
+            """
+        ),
+    )
+
 
 @strawberry.input(description="Organisation unit filter.")
 class OrganisationUnitFilter(BaseFilter):
