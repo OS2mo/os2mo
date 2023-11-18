@@ -244,6 +244,11 @@ class ClassFilter(BaseFilter):
         ),
     )
 
+    scope: list[str] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Scope", "scope"),
+    )
+
 
 @strawberry.input(description="Configuration filter.")
 class ConfigurationFilter:

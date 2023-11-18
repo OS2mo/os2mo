@@ -399,7 +399,7 @@ class ClassResolver(Resolver):
 
         await registration_filter(info, filter)
 
-        kwargs = {}
+        kwargs: dict[str, Any] = {}
         if (
             filter.facets is not None
             or filter.facet_user_keys is not None
@@ -416,6 +416,8 @@ class ClassResolver(Resolver):
             kwargs["mapninger"] = await filter2uuids(
                 ITSystemResolver(), info, filter.it_system
             )
+        if filter.scope is not None:
+            kwargs["omfang"] = filter.scope
 
         return await super()._resolve(
             info=info,
