@@ -128,24 +128,28 @@ async def test_create_it_systems_system_exists(
     dataloader.create_mo_class.assert_not_called()
 
 
-async def test_empty_mapping(dataloader: AsyncMock, init_engine: InitEngine):
+async def test_empty_mapping(dataloader: AsyncMock, context: dict):
     """
     If mapping is empty or not specified at all, the init_engine should not crash.
     It should just do nothing.
     """
-    init_engine.mapping = {}
+    context["user_context"]["mapping"] = {}
+    init_engine = InitEngine(context)
     await init_engine.create_it_systems()
     await init_engine.create_facets()
 
-    init_engine.mapping = {"init": {}}
+    context["user_context"]["mapping"] = {"init": {}}
+    init_engine = InitEngine(context)
     await init_engine.create_it_systems()
     await init_engine.create_facets()
 
-    init_engine.mapping = {"init": {"it_systems": {}}}
+    context["user_context"]["mapping"] = {"init": {"it_systems": {}}}
+    init_engine = InitEngine(context)
     await init_engine.create_it_systems()
     await init_engine.create_facets()
 
-    init_engine.mapping = {"init": {"facets": {}}}
+    context["user_context"]["mapping"] = {"init": {"facets": {}}}
+    init_engine = InitEngine(context)
     await init_engine.create_it_systems()
     await init_engine.create_facets()
 

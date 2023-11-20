@@ -1,16 +1,23 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from pydantic import parse_obj_as
+
+from .config import Init
 from .logging import logger
 
 
 class InitEngine:
     def __init__(self, context):
         user_context = context["user_context"]
-        self.mapping = user_context["mapping"]
+        self.init_mapping = parse_obj_as(
+            Init | None, user_context["mapping"].get("init")
+        )
         self.dataloader = user_context["dataloader"]
 
     async def create_facets(self):
-        facet_mapping = self.mapping.get("init", {}).get("facets", {})
+        if self.init_mapping is None:
+            return
+        facet_mapping = self.init_mapping.facets
 
         # Loop over facet user_keys. For example "employee_address_type"
         for facet_user_key, class_mapping in facet_mapping.items():
@@ -27,31 +34,34 @@ class InitEngine:
                     current_title = existing_class["name"]
                     current_scope = existing_class["scope"]
                     if (
-                        class_details["title"] == current_title
-                        and class_details["scope"] == current_scope
+                        class_details.title == current_title
+                        and class_details.scope == current_scope
                     ):
                         logger.info(f"[init] '{class_user_key}' class exists.")
                         continue
                     else:
                         await self.dataloader.update_mo_class(
-                            name=class_details["title"],
+                            name=class_details.title,
                             user_key=class_user_key,
                             facet_uuid=facet_uuid,
                             class_uuid=existing_class["uuid"],
-                            scope=class_details["scope"],
+                            scope=class_details.scope,
                         )
 
                 else:
                     await self.dataloader.create_mo_class(
-                        name=class_details["title"],
+                        name=class_details.title,
                         user_key=class_user_key,
                         facet_uuid=facet_uuid,
-                        scope=class_details["scope"],
+                        scope=class_details.scope,
                     )
 
     async def create_it_systems(self):
         logger.info("[init] Creating it systems")
-        it_system_mapping = self.mapping.get("init", {}).get("it_systems", {})
+        if self.init_mapping is None:
+            return
+        it_system_mapping = self.init_mapping.it_systems
+
         it_system_info = await self.dataloader.load_mo_it_systems()
 
         existing_it_systems = [i["user_key"] for i in it_system_info.values()]
