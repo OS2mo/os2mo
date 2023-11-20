@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 # -*- coding: utf-8 -*-
 import datetime
-import json
 import os
 from collections.abc import Iterator
 from unittest.mock import AsyncMock
@@ -10,6 +9,7 @@ from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
+import yaml
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
@@ -239,4 +239,4 @@ def read_mapping(filename):
         filename,
     )
     with open(file_path) as file:
-        return json.load(file)
+        return yaml.safe_load(file)

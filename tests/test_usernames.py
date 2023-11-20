@@ -106,7 +106,7 @@ def alleroed_username_generator(
     context: Context, existing_usernames_ldap: list
 ) -> Iterator[AlleroedUserNameGenerator]:
 
-    context["user_context"]["mapping"] = read_mapping("alleroed.json")
+    context["user_context"]["mapping"] = read_mapping("alleroed.yaml")
 
     with patch(
         "mo_ldap_import_export.usernames.paged_search",

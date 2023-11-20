@@ -3,18 +3,16 @@
 """Event handling."""
 import asyncio
 import datetime
-import json
 import os
 from collections.abc import AsyncIterator
-from collections.abc import Callable
 from contextlib import asynccontextmanager
 from functools import partial
 from functools import wraps
 from inspect import iscoroutinefunction
+from pathlib import Path
 from typing import Annotated
 from typing import Any
 from typing import Literal
-from typing import TextIO
 from uuid import UUID
 from uuid import uuid4
 
@@ -345,7 +343,7 @@ def get_conversion_map(settings: Settings) -> ConversionMapping:
     if settings.conversion_mapping:
         return settings.conversion_mapping
 
-    mappings_path = os.path.join(os.path.dirname(__file__), "mappings")
+    mappings_dir = os.path.join(os.path.dirname(__file__), "mappings")
     mappings_filename = os.environ.get("CONVERSION_MAP")
     if not mappings_filename:
         mappings_filename = "magenta_demo.yaml"
@@ -355,19 +353,22 @@ def get_conversion_map(settings: Settings) -> ConversionMapping:
     mappings_file = os.path.normpath(
         mappings_filename
         if mappings_filename.startswith("/")
-        else os.path.join(mappings_path, mappings_filename)
+        else os.path.join(mappings_dir, mappings_filename)
     )
-    if not os.path.isfile(mappings_file):
+
+    mappings_path = Path(mappings_file)
+    if mappings_path.suffix == ".json":
+        mappings_path = mappings_path.with_suffix(".yaml")
+
+    if not mappings_path.is_file():
         raise FileNotFoundError(
             f"Configured mapping file {mappings_file} does not exist "
             f"(this is set by the CONVERSION_MAP environment variable)"
         )
-    loader: Callable[[TextIO], dict[str, Any]] = (
-        yaml.safe_load if mappings_file.endswith(".yaml") else json.load  # type: ignore
-    )
-    with open(mappings_file) as file:
-        mapping = loader(file)
-        logger.info(f"Loaded mapping file {mappings_file}")
+
+    with open(mappings_path) as file:
+        mapping = yaml.safe_load(file)
+        logger.info(f"Loaded mapping file {mappings_path}")
         return parse_obj_as(ConversionMapping, mapping)
 
 

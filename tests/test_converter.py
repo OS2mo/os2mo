@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import copy
 import datetime
-import json
 import os.path
 import re
 import uuid
@@ -13,6 +12,7 @@ from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
+import yaml
 from fastramqpi.context import Context
 from jinja2 import Environment
 from jinja2 import Undefined
@@ -337,9 +337,9 @@ async def test_mo_to_ldap(converter: LdapConverter) -> None:
 
 
 async def test_mapping_loader() -> None:
-    file_path = os.path.join(os.path.dirname(__file__), "resources", "mapping.json")
+    file_path = os.path.join(os.path.dirname(__file__), "resources", "mapping.yaml")
     with open(file_path) as file:
-        mapping = json.load(file)
+        mapping = yaml.safe_load(file)
     expected = {
         "ldap_to_mo": {
             "Employee": {

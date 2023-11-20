@@ -43,7 +43,7 @@ def json_filenames() -> list[str]:
                 "mappings",
             )
         )
-        if f.lower().endswith(".json")
+        if f.lower().endswith(".yaml")
     ]
 
 
@@ -337,7 +337,7 @@ async def test_alleroed_employee_mapping(converters: dict[str, LdapConverter]):
     """
     Test that givenname, surname, nickname and so on get combined and split properly.
     """
-    converter = converters["alleroed.json"]
+    converter = converters["alleroed.yaml"]
     mo_employee = Employee(
         cpr_no="0101011234",
         givenname="Lukas",
