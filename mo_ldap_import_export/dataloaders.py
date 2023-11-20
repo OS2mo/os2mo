@@ -229,7 +229,7 @@ class DataLoader:
             searchParameters,
             search_base=search_base,
         )
-        return sorted(set([str(r["attributes"][attribute]) for r in responses]))
+        return sorted({str(r["attributes"][attribute]) for r in responses})
 
     def load_ldap_cpr_object(
         self,
