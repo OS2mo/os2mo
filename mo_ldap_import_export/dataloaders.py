@@ -81,11 +81,9 @@ class DataLoader:
         for key, value in result.items():
             if "objects" in value and len(value["objects"]) == 0:
                 raise NoObjectsReturnedException(
-                    (
-                        f"query_result['{key}'] is empty. "
-                        f"Does the '{key}' object still exist as a current object? "
-                        f"Does the '{key}' object exist in MO?"
-                    )
+                    f"query_result['{key}'] is empty. "
+                    f"Does the '{key}' object still exist as a current object? "
+                    f"Does the '{key}' object exist in MO?"
                 )
 
     @property
@@ -978,10 +976,8 @@ class DataLoader:
         # If there are multiple LDAP-it-users: Make some noise until this is fixed in MO
         if ldap_it_system_exists and len(dns) > 1:
             raise MultipleObjectsReturnedException(
-                (
-                    f"Could not find DN for employee with uuid = {uuid}; "
-                    f"Found multiple DNs for this employee: {dns}"
-                )
+                f"Could not find DN for employee with uuid = {uuid}; "
+                f"Found multiple DNs for this employee: {dns}"
             )
         # If there are no LDAP-it-users with valid dns, we generate a dn and create one.
         elif ldap_it_system_exists and len(dns) == 0:
@@ -1010,11 +1006,9 @@ class DataLoader:
         # Number we can end up here.
         else:
             raise DNNotFound(
-                (
-                    f"Could not find or generate DN for empoyee with uuid = '{uuid}' "
-                    "The LDAP it-system does not exist and a cpr-match could "
-                    "also not be obtained"
-                )
+                f"Could not find or generate DN for empoyee with uuid = '{uuid}' "
+                "The LDAP it-system does not exist and a cpr-match could "
+                "also not be obtained"
             )
 
     @staticmethod
@@ -1837,10 +1831,8 @@ class DataLoader:
                         service_type = "org_unit"
                     else:
                         raise InvalidQueryResponse(
-                            (
-                                f"{mo_object} object type '{object_type}' is "
-                                "neither 'employees' nor 'org_units'"
-                            )
+                            f"{mo_object} object type '{object_type}' is "
+                            "neither 'employees' nor 'org_units'"
                         )
 
                 mo_object["payload"] = UUID(mo_object["uuid"])

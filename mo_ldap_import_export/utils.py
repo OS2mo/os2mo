@@ -74,10 +74,8 @@ def add_filter_to_query(query: DocumentNode, filter_to_add: str) -> DocumentNode
         new_query_str = query_str[0:index] + ", " + filter_to_add + query_str[index:]
     except ValueError:
         raise InvalidQuery(
-            (
-                f"Could not modify query filters for '{query_str}'. "
-                "Looks like the query has no filters"
-            )
+            f"Could not modify query filters for '{query_str}'. "
+            "Looks like the query has no filters"
         )
 
     logger.info(f"Modified '{query_str}' to '{new_query_str}'")
@@ -155,10 +153,8 @@ async def countdown(
         minutes, seconds = divmod(seconds_remaining, 60)
         hours, minutes = divmod(minutes, 60)
         logger.info(
-            (
-                f"Starting {task_description} in "
-                f"{hours} hours, {minutes} min, {seconds} sec"
-            )
+            f"Starting {task_description} in "
+            f"{hours} hours, {minutes} min, {seconds} sec"
         )
         await asyncio.sleep(min(update_interval, seconds_remaining))
         seconds_remaining -= update_interval

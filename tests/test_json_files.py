@@ -69,10 +69,8 @@ async def converters(
             return str(uuid)
         else:
             raise Exception(
-                (
-                    f"Attempting to find org-unit uuid for '{org_unit_string}'. "
-                    f"But expecting '{expected_path}'"
-                )
+                f"Attempting to find org-unit uuid for '{org_unit_string}'. "
+                f"But expecting '{expected_path}'"
             )
 
     for json_filename in json_filenames:

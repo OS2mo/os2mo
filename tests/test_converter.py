@@ -671,10 +671,8 @@ async def test_check_mo_attributes(converter: LdapConverter):
         with pytest.raises(
             IncorrectMapping,
             match=(
-                (
-                    "attribute .* is mandatory. "
-                    "The following attributes are mandatory: .*primary.*"
-                )
+                "attribute .* is mandatory. "
+                "The following attributes are mandatory: .*primary.*"
             ),
         ):
             converter.check_mo_attributes()

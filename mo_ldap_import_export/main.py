@@ -116,10 +116,8 @@ def get_delete_flag(mo_object) -> bool:
     validity_to = mo_datestring_to_utc(mo_object["validity"]["to"])
     if validity_to and validity_to <= now:
         logger.info(
-            (
-                "[Get-delete-flag] Returning delete=True because "
-                f"to-date ({validity_to}) <= current date ({now})"
-            )
+            "[Get-delete-flag] Returning delete=True because "
+            f"to-date ({validity_to}) <= current date ({now})"
         )
         return True
     else:

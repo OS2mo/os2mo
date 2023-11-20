@@ -68,10 +68,8 @@ class ExportChecks:
 
         if not it_users:
             raise IgnoreChanges(
-                (
-                    f"employee with uuid = {employee_uuid} "
-                    f"does not have an it-user with user_key = {it_system_user_key}"
-                )
+                f"employee with uuid = {employee_uuid} "
+                f"does not have an it-user with user_key = {it_system_user_key}"
             )
 
 

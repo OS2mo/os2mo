@@ -606,10 +606,8 @@ class SyncTool:
 
             if ldap_object_class != employee_object_class:
                 raise NotSupportedException(
-                    (
-                        "Mapping organization unit addresses "
-                        "to non-employee objects is not supported"
-                    )
+                    "Mapping organization unit addresses "
+                    "to non-employee objects is not supported"
                 )
 
             affected_employees = set(
@@ -667,11 +665,9 @@ class SyncTool:
                 )
             else:
                 logger.info(
-                    (
-                        "[Format-converted-objects] Could not format converted "
-                        "objects: An address needs to have either a person uuid "
-                        "OR an org unit uuid"
-                    )
+                    "[Format-converted-objects] Could not format converted "
+                    "objects: An address needs to have either a person uuid "
+                    "OR an org unit uuid"
                 )
                 return []
             value_key = "value"
@@ -701,10 +697,8 @@ class SyncTool:
                         user_key=primary_engagement.user_key,
                     )
                     logger.info(
-                        (
-                            "[Format-converted-objects] Removing engagements "
-                            "with identical user keys"
-                        )
+                        "[Format-converted-objects] Removing engagements "
+                        "with identical user keys"
                     )
                     objects_in_mo = [
                         o
@@ -763,10 +757,8 @@ class SyncTool:
                         and key in converted_mo_object_dict.keys()
                     ):
                         logger.info(
-                            (
-                                "[Format-converted-objects] Setting "
-                                f"{key} = {converted_mo_object_dict[key]}"
-                            )
+                            "[Format-converted-objects] Setting "
+                            f"{key} = {converted_mo_object_dict[key]}"
                         )
                         mo_object_dict_to_upload[key] = converted_mo_object_dict[key]
 
@@ -777,10 +769,8 @@ class SyncTool:
                 # to be uploaded.
                 if converted_object_uuid_checked == matching_object:
                     logger.info(
-                        (
-                            "[Format-converted-objects] Converted object is identical "
-                            "to existing object. Skipping."
-                        )
+                        "[Format-converted-objects] Converted object is identical "
+                        "to existing object. Skipping."
                     )
                 else:
                     converted_objects_uuid_checked.append(converted_object_uuid_checked)

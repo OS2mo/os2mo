@@ -108,10 +108,8 @@ class UserNameGeneratorBase:
         for username in forbidden_usernames:
             if type(username) is not str:
                 raise IncorrectMapping(
-                    (
-                        f"Incorrect username in 'forbidden_usernames':{username}. "
-                        "Username must be a string"
-                    )
+                    f"Incorrect username in 'forbidden_usernames':{username}. "
+                    "Username must be a string"
                 )
 
     def _check_combinations_to_try(self):
@@ -121,10 +119,8 @@ class UserNameGeneratorBase:
         for combination in combinations:
             if not all([c in accepted_characters for c in combination]):
                 raise IncorrectMapping(
-                    (
-                        f"Incorrect combination found: '{combination}' username "
-                        f"combinations can only contain {accepted_characters}"
-                    )
+                    f"Incorrect combination found: '{combination}' username "
+                    f"combinations can only contain {accepted_characters}"
                 )
 
     def check_json_inputs(self):
