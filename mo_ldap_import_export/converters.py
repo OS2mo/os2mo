@@ -9,7 +9,6 @@ import re
 import string
 from json.decoder import JSONDecodeError
 from typing import Any
-from typing import Dict
 from uuid import UUID
 from uuid import uuid4
 
@@ -1190,7 +1189,7 @@ class LdapConverter:
         return json.loads(text.replace("'", '"').replace("Undefined", "null"))
 
     def _populate_mapping_with_templates(
-        self, mapping: Dict[str, Any], environment: Environment
+        self, mapping: dict[str, Any], environment: Environment
     ):
         globals_dict = {
             "now": datetime.datetime.utcnow,

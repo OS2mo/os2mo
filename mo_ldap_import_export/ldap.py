@@ -11,7 +11,6 @@ from typing import Any
 from typing import Callable
 from typing import cast
 from typing import ContextManager
-from typing import Dict
 from typing import Union
 from uuid import UUID
 
@@ -627,7 +626,7 @@ def _poller(
 
 
 def set_search_params_modify_timestamp(
-    search_parameters: Dict, timestamp: datetime.datetime
+    search_parameters: dict, timestamp: datetime.datetime
 ):
     changed_str = f"(modifyTimestamp>={datetime_to_ldap_timestamp(timestamp)})"
     search_filter = search_parameters["search_filter"]
