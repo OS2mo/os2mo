@@ -12,7 +12,6 @@ from inspect import iscoroutinefunction
 from typing import Annotated
 from typing import Any
 from typing import Literal
-from typing import Tuple
 from typing import Union
 from uuid import UUID
 from uuid import uuid4
@@ -287,7 +286,7 @@ def construct_model_client(settings: Settings):
 
 def construct_clients(
     settings: Settings,
-) -> Tuple[PersistentGraphQLClient, ModelClient]:
+) -> tuple[PersistentGraphQLClient, ModelClient]:
     """Construct clients froms settings.
 
     Args:
