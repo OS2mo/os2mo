@@ -757,7 +757,7 @@ class LdapConverter:
                 if "uuid" not in info:
                     raise IncorrectMapping("'uuid' key not found in info-dict")
                 uuid = info["uuid"]
-                if type(uuid) != str:
+                if not isinstance(uuid, str):
                     raise IncorrectMapping(f"{uuid} is not a string")
                 if not is_guid(uuid):
                     raise IncorrectMapping(f"{uuid} is not an uuid")
@@ -1223,11 +1223,10 @@ class LdapConverter:
             "get_current_primary_uuid_dict": self.get_current_primary_uuid_dict,
         }
         for key, value in mapping.items():
-            if type(value) == str:
+            if isinstance(value, str):
                 mapping[key] = environment.from_string(value)
                 mapping[key].globals.update(globals_dict)
-
-            elif type(value) == dict:
+            elif isinstance(value, dict):
                 mapping[key] = self._populate_mapping_with_templates(value, environment)
         return mapping
 
@@ -1310,7 +1309,7 @@ class LdapConverter:
             ldap_dict: CaseInsensitiveDict = CaseInsensitiveDict(
                 {
                     key: value[min(entry, len(value) - 1)]
-                    if type(value) == list and len(value) > 0
+                    if isinstance(value, list) and len(value) > 0
                     else value
                     for key, value in ldap_object.dict().items()
                 }

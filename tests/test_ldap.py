@@ -284,10 +284,10 @@ async def test_make_nested_ldap_object(cpr_field: str, context: Context):
         ldap_object = make_ldap_object(response, context, nest=True)
 
     # harry is an Employee because he has a cpr no.
-    assert type(ldap_object) == LdapObject
+    assert isinstance(ldap_object, LdapObject)
 
     # The manager is generic because she does not have a cpr no.
-    assert type(ldap_object.manager) == LdapObject  # type: ignore
+    assert isinstance(ldap_object.manager, LdapObject)  # type: ignore
 
     # The manager's buddies are dns because we only nest 1 level
     assert is_dn(ldap_object.manager.best_friend) is True  # type: ignore
@@ -295,9 +295,9 @@ async def test_make_nested_ldap_object(cpr_field: str, context: Context):
     assert is_dn(ldap_object.manager.buddies[1]) is True  # type: ignore
 
     # The band members are generic because they do not have a cpr no.
-    assert type(ldap_object.band_members) == list  # type: ignore
-    assert type(ldap_object.band_members[0]) == LdapObject  # type: ignore
-    assert type(ldap_object.band_members[1]) == LdapObject  # type: ignore
+    assert isinstance(ldap_object.band_members, list)  # type: ignore
+    assert isinstance(ldap_object.band_members[0], LdapObject)  # type: ignore
+    assert isinstance(ldap_object.band_members[1], LdapObject)  # type: ignore
 
 
 async def test_get_ldap_attributes():
