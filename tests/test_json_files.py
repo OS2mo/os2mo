@@ -102,7 +102,7 @@ async def converters(
             return_value=str(uuid),
         ), patch(
             "mo_ldap_import_export.converters.LdapConverter.get_org_unit_path_string",
-            return_value=str("org/unit/path"),
+            return_value="org/unit/path",
         ):
             converter = LdapConverter(context)
             await converter._init()
