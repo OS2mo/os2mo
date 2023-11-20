@@ -6,9 +6,10 @@ from copy import deepcopy
 
 import pandas as pd
 from fastramqpi.context import Context
+from pydantic import parse_obj_as
 from ramodels.mo.employee import Employee
 
-from .exceptions import IncorrectMapping
+from .config import UsernameGeneratorConfig
 from .ldap import paged_search
 from .logging import logger
 from .utils import combine_dn_strings
@@ -29,21 +30,24 @@ class UserNameGeneratorBase:
         self.settings = self.user_context["settings"]
 
         self.mapping = self.user_context["mapping"]
-        self.check_json_inputs()
 
-        self.json_inputs = self.mapping["username_generator"]
-        self.char_replacement = self.json_inputs["char_replacement"]
+        self.username_generator = parse_obj_as(
+            UsernameGeneratorConfig, self.mapping["username_generator"]
+        )
+        self.char_replacement = self.username_generator.char_replacement
         self.forbidden_usernames = [
             u.lower()
-            for u in self.json_inputs["forbidden_usernames"]
+            for u in self.username_generator.forbidden_usernames
             if not self.is_filename(u)
         ]
-        self.combinations = self.json_inputs["combinations_to_try"]
+        self.combinations = self.username_generator.combinations_to_try
 
         self.dataloader = self.user_context["dataloader"]
 
         self.files_with_forbidden_usernames = [
-            u for u in self.json_inputs["forbidden_usernames"] if self.is_filename(u)
+            u
+            for u in self.username_generator.forbidden_usernames
+            if self.is_filename(u)
         ]
 
         for file in self.files_with_forbidden_usernames:
@@ -81,55 +85,6 @@ class UserNameGeneratorBase:
         csv = pd.read_csv(full_path, names=["forbidden_usernames"])
 
         return [name.lower() for name in csv.loc[:, "forbidden_usernames"]]
-
-    def _check_key(self, key):
-        if key not in self.mapping["username_generator"]:
-            raise IncorrectMapping(
-                f"'{key}' key not present in mapping['username_generator']"
-            )
-
-    def _check_type(self, key, type_to_check):
-        object_to_check = self.mapping["username_generator"][key]
-        if type(object_to_check) is not type_to_check:
-            raise IncorrectMapping(f"{key} entry must be a {type_to_check}")
-        else:
-            return object_to_check
-
-    def _check_key_and_type(self, key, type_to_check):
-        self._check_key(key)
-        return self._check_type(key, type_to_check)
-
-    def _check_char_replacement(self):
-        self._check_key_and_type("char_replacement", dict)
-
-    def _check_forbidden_usernames(self):
-        forbidden_usernames = self._check_key_and_type("forbidden_usernames", list)
-
-        for username in forbidden_usernames:
-            if type(username) is not str:
-                raise IncorrectMapping(
-                    f"Incorrect username in 'forbidden_usernames':{username}. "
-                    "Username must be a string"
-                )
-
-    def _check_combinations_to_try(self):
-        combinations = self._check_key_and_type("combinations_to_try", list)
-
-        accepted_characters = ["F", "L", "1", "2", "3", "X"]
-        for combination in combinations:
-            if not all([c in accepted_characters for c in combination]):
-                raise IncorrectMapping(
-                    f"Incorrect combination found: '{combination}' username "
-                    f"combinations can only contain {accepted_characters}"
-                )
-
-    def check_json_inputs(self):
-
-        if "username_generator" not in self.mapping:
-            raise IncorrectMapping("'username_generator' key not present in mapping")
-        self._check_char_replacement()
-        self._check_forbidden_usernames()
-        self._check_combinations_to_try()
 
     def get_existing_values(self, attributes: list[str]):
         searchParameters = {

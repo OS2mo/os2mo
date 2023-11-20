@@ -14,6 +14,7 @@ from pydantic import Field
 from pydantic import parse_obj_as
 from pydantic import PositiveInt
 from pydantic import SecretStr
+from pydantic import validator
 from ramqp.config import AMQPConnectionSettings
 
 
@@ -103,6 +104,18 @@ class UsernameGeneratorConfig(MappingBaseModel):
     char_replacement: dict[str, str] = {}
     forbidden_usernames: list[str] = []
     combinations_to_try: list[str] = []
+
+    @validator("combinations_to_try")
+    def check_combinations(cls, v: list[str]) -> list[str]:
+        # Validator for combinations_to_try
+        accepted_characters = ["F", "L", "1", "2", "3", "X"]
+        for combination in v:
+            if not all([c in accepted_characters for c in combination]):
+                raise ValueError(
+                    f"Incorrect combination found: '{combination}' username "
+                    f"combinations can only contain {accepted_characters}"
+                )
+        return v
 
 
 class ConversionMapping(MappingBaseModel):
