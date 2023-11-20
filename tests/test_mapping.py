@@ -28,7 +28,7 @@ def test_file_and_environmental_variable_conversion_map_equivalence(
     file_result = get_conversion_map(settings)
 
     # Load using environmental variables
-    monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(file_result))
+    monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(file_result.dict()))
     settings = Settings()
     env_result = get_conversion_map(settings)
 

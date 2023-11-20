@@ -26,6 +26,7 @@ from fastapi.encoders import jsonable_encoder
 from fastramqpi.main import FastRAMQPI
 from gql.transport.exceptions import TransportQueryError
 from ldap3 import Connection
+from pydantic import parse_obj_as
 from pydantic import ValidationError
 from raclients.graph.client import PersistentGraphQLClient
 from raclients.modelclient.mo import ModelClient
@@ -41,6 +42,7 @@ from ramqp.utils import RequeueMessage
 from tqdm import tqdm
 
 from . import usernames
+from .config import ConversionMapping
 from .config import Settings
 from .converters import LdapConverter
 from .converters import read_mapping_json
@@ -336,9 +338,9 @@ async def initialize_init_engine(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
     yield
 
 
-def get_conversion_map(settings: Settings) -> Any:
+def get_conversion_map(settings: Settings) -> ConversionMapping:
     if settings.conversion_mapping:
-        return settings.conversion_mapping.dict(exclude_unset=True)
+        return settings.conversion_mapping
 
     mappings_path = os.path.join(os.path.dirname(__file__), "mappings")
     mappings_filename = os.environ.get("CONVERSION_MAP")
@@ -359,7 +361,7 @@ def get_conversion_map(settings: Settings) -> Any:
         )
     mapping = read_mapping_json(mappings_file)
     logger.info(f"Loaded mapping file {mappings_file}")
-    return mapping
+    return parse_obj_as(ConversionMapping, mapping)
 
 
 def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
@@ -407,7 +409,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     )
 
     logger.info("Loading mapping file")
-    mapping = get_conversion_map(settings)
+    mapping = get_conversion_map(settings).dict(exclude_unset=True)
     fastramqpi.add_context(mapping=mapping)
 
     mappings_path = os.path.join(os.path.dirname(__file__), "mappings")
