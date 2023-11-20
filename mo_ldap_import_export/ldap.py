@@ -4,11 +4,11 @@
 import datetime
 import signal
 import time
+from collections.abc import Callable
 from ssl import CERT_NONE
 from ssl import CERT_REQUIRED
 from threading import Thread
 from typing import Any
-from typing import Callable
 from typing import cast
 from typing import ContextManager
 from uuid import UUID

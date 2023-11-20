@@ -7,9 +7,9 @@ Created on Fri Mar  3 09:46:15 2023
 """
 import asyncio
 import datetime
+from collections.abc import Callable
 from functools import wraps
 from typing import Any
-from typing import Callable
 from uuid import UUID
 from uuid import uuid4
 
