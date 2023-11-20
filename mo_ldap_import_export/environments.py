@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-# -*- coding: utf-8 -*-
 import string
 
 import pandas as pd
