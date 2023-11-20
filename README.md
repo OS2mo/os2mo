@@ -110,7 +110,7 @@ to OS2mo, and takes the form:
     [other classes]
   }
 }
-    
+
 ```
 Note that the `Employee` key must always be present in the conversion file.
 
@@ -172,7 +172,7 @@ last space and using the first part of the result. Note also the `uuid` field, w
 must be present to map the employee to the proper object in OS2mo. In this case, the
 uuid attribute links to a [global](#filters-and-globals) variable called `employee_uuid`.
 
-Note that you can also choose not to export this information to LDAP, by setting 
+Note that you can also choose not to export this information to LDAP, by setting
 `_export_to_ldap_` equal to `false`. Similarly, you can choose not to import any information
 into OS2mo by setting `_import_to_mo_` equal to `false`
 
