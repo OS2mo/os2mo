@@ -70,7 +70,7 @@ class Settings(BaseSettings):
         env_nested_delimiter = "__"
 
     internal_amqp: InternalAMQPConnectionSettings = Field(
-        default_factory=InternalAMQPConnectionSettings,
+        default_factory=InternalAMQPConnectionSettings,  # type: ignore
         description="Internal amqp settings",
     )
 

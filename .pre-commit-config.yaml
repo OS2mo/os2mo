@@ -14,8 +14,20 @@ repos:
     rev: v1.7.0
     hooks:
       - id: mypy
-        language: system
-        types: [file, python]
+        args: [ --config-file=pyproject.toml ]
+        additional_dependencies:
+          - pydantic
+          - fastapi
+          - fastramqpi==1.5.4
+          - gql
+          - jinja2
+          - pytest
+          - raclients
+          - ramodels
+          - structlog
+          - types-ldap3
+          - types-tqdm
+          - pandas-stubs
 
   - repo: https://github.com/asottile/reorder_python_imports
     rev: v3.12.0

@@ -264,7 +264,7 @@ class LdapConverter:
         return self.get_json_keys("mo_to_ldap")
 
     def get_accepted_json_keys(self) -> list[str]:
-        accepted_json_keys = (
+        accepted_json_keys: list[str] = (
             ["Employee", "Engagement", "Custom"]
             + self.mo_address_types
             + self.mo_it_systems
