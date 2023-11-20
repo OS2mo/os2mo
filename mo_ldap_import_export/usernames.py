@@ -3,7 +3,6 @@
 import os
 import re
 from copy import deepcopy
-from typing import Union
 
 import pandas as pd
 from fastramqpi.context import Context
@@ -190,7 +189,7 @@ class UserNameGeneratorBase:
         """
         readable_combi = []
         max_position = -1
-        position: Union[int, None]
+        position: int | None
         for character in combi:
             # First name
             if character == "F":

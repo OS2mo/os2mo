@@ -10,7 +10,6 @@ import datetime
 from functools import wraps
 from typing import Any
 from typing import Callable
-from typing import Union
 from uuid import UUID
 from uuid import uuid4
 
@@ -33,7 +32,7 @@ class IgnoreMe:
     def __init__(self):
         self.ignore_dict: dict[str, list[datetime.datetime]] = {}
 
-    def __getitem__(self, key: Union[str, UUID]) -> list[datetime.datetime]:
+    def __getitem__(self, key: str | UUID) -> list[datetime.datetime]:
         key = self.format_entry(key)
         if key in self.ignore_dict:
             return self.ignore_dict[key]
@@ -43,7 +42,7 @@ class IgnoreMe:
     def __len__(self):
         return len(self.ignore_dict)
 
-    def format_entry(self, entry: Union[str, UUID]) -> str:
+    def format_entry(self, entry: str | UUID) -> str:
         if type(entry) is not str:
             entry = str(entry)
         return entry.lower()
@@ -67,7 +66,7 @@ class IgnoreMe:
         # Remove keys with empty lists
         self.ignore_dict = {k: v for k, v in self.ignore_dict.items() if v}
 
-    def add(self, str_to_add: Union[str, UUID]):
+    def add(self, str_to_add: str | UUID):
         # Add a string to the ignore dict
         str_to_add = self.format_entry(str_to_add)
 
@@ -76,7 +75,7 @@ class IgnoreMe:
         else:
             self.ignore_dict[str_to_add] = [datetime.datetime.now()]
 
-    def remove(self, str_to_remove: Union[str, UUID]):
+    def remove(self, str_to_remove: str | UUID):
         str_to_remove = self.format_entry(str_to_remove)
 
         if str_to_remove in self.ignore_dict:
@@ -84,7 +83,7 @@ class IgnoreMe:
             newest_timestamp = max(self.ignore_dict[str_to_remove])
             self.ignore_dict[str_to_remove].remove(newest_timestamp)
 
-    def check(self, str_to_check: Union[str, UUID]):
+    def check(self, str_to_check: str | UUID):
         # Raise ignoreChanges if the string to check is in self.ignore_dict
         str_to_check = self.format_entry(str_to_check)
         self.clean()

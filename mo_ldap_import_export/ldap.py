@@ -11,7 +11,6 @@ from typing import Any
 from typing import Callable
 from typing import cast
 from typing import ContextManager
-from typing import Union
 from uuid import UUID
 
 from fastramqpi.context import Context
@@ -113,7 +112,7 @@ def configure_ldap_connection(settings: Settings) -> ContextManager:
     return cast(ContextManager, connection)
 
 
-async def ldap_healthcheck(context: Union[dict, Context]) -> bool:
+async def ldap_healthcheck(context: dict | Context) -> bool:
     """LDAP connection Healthcheck.
 
     Args:
@@ -126,7 +125,7 @@ async def ldap_healthcheck(context: Union[dict, Context]) -> bool:
     return cast(bool, ldap_connection.bound)
 
 
-async def poller_healthcheck(context: Union[dict, Context]) -> bool:
+async def poller_healthcheck(context: dict | Context) -> bool:
     pollers = context["user_context"]["pollers"]
     for poller in pollers:
         if not poller.is_alive():
@@ -146,7 +145,7 @@ def get_ldap_object_schema(ldap_connection: Connection, ldap_object: str):
 def get_ldap_superiors(ldap_connection: Connection, root_ldap_object: str):
 
     superiors = []
-    ldap_object: Union[str, None] = root_ldap_object
+    ldap_object: str | None = root_ldap_object
     while ldap_object is not None:
         object_schema = get_ldap_object_schema(ldap_connection, ldap_object)
         ldap_object = only(always_iterable(object_schema.superior))
@@ -250,7 +249,7 @@ def _paged_search(
 def paged_search(
     context: Context,
     searchParameters: dict,
-    search_base: Union[str, None] = None,
+    search_base: str | None = None,
     **kwargs,
 ) -> list:
     """

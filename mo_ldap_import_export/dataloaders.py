@@ -4,7 +4,6 @@
 import datetime
 from typing import Any
 from typing import cast
-from typing import Union
 from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
@@ -313,10 +312,9 @@ class DataLoader:
     def modify_ldap(
         self,
         dn: str,
-        changes: Union[
-            dict[str, list[tuple[str, list[str]]]],
-            dict[str, list[tuple[str, str]]],
-        ],
+        changes: (
+            dict[str, list[tuple[str, list[str]]]] | dict[str, list[tuple[str, str]]]
+        ),
     ):
         """
         Modifies LDAP and adds the dn to dns_to_ignore
@@ -413,7 +411,7 @@ class DataLoader:
         self,
         json_key: str,
         additional_attributes: list[str] = [],
-        search_base: Union[str, None] = None,
+        search_base: str | None = None,
     ) -> list[LdapObject]:
         """
         Returns list with desired ldap objects
@@ -442,7 +440,7 @@ class DataLoader:
 
         return output
 
-    def load_ldap_OUs(self, search_base: Union[str, None] = None) -> dict:
+    def load_ldap_OUs(self, search_base: str | None = None) -> dict:
         """
         Returns a dictionary where the keys are OU strings and the items are dicts
         which contain information about the OU
@@ -730,7 +728,7 @@ class DataLoader:
         """
         Like load_ldap_overview but only returns fields which actually contain data
         """
-        nan_values: list[Union[None, list]] = [None, []]
+        nan_values: list[None | list] = [None, []]
 
         output = {}
         overview = self.load_ldap_overview()
@@ -769,7 +767,7 @@ class DataLoader:
 
         return output
 
-    def _return_mo_employee_uuid_result(self, result: dict) -> Union[None, UUID]:
+    def _return_mo_employee_uuid_result(self, result: dict) -> None | UUID:
         number_of_employees = len(result.get("employees", {}).get("objects", []))
         number_of_itusers = len(result["itusers"]["objects"])
         error_message = hide_cpr(f"Multiple matching employees in {result}")
@@ -795,7 +793,7 @@ class DataLoader:
         else:
             raise exception
 
-    async def find_mo_employee_uuid(self, dn: str) -> Union[None, UUID]:
+    async def find_mo_employee_uuid(self, dn: str) -> None | UUID:
         cpr_field = self.user_context["cpr_field"]
         if cpr_field:
             ldap_object = self.load_ldap_object(dn, [cpr_field])

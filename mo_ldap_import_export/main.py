@@ -12,7 +12,6 @@ from inspect import iscoroutinefunction
 from typing import Annotated
 from typing import Any
 from typing import Literal
-from typing import Union
 from uuid import UUID
 from uuid import uuid4
 
@@ -505,7 +504,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         delay_in_minutes: int = 0,
         delay_in_seconds: float = 0,
         cpr_indexed_entries_only: bool = True,
-        search_base: Union[str, None] = None,
+        search_base: str | None = None,
     ) -> Any:
         converter = user_context["converter"]
         cpr_field = converter.cpr_field
@@ -814,7 +813,7 @@ def create_app(**kwargs: Any) -> FastAPI:
 
     # Get LDAP overview
     @app.get("/Inspect/structure", status_code=202, tags=["LDAP"])
-    async def load_structure_from_LDAP(search_base: Union[str, None] = None) -> Any:
+    async def load_structure_from_LDAP(search_base: str | None = None) -> Any:
         return dataloader.load_ldap_OUs(search_base=search_base)
 
     # Get populated LDAP overview
@@ -899,7 +898,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     # Load all objects with to/from dates == today and send amqp messages for them
     @app.post("/Synchronize_todays_events", status_code=202, tags=["Maintenance"])
     async def synchronize_todays_events(
-        date: Union[datetime.date, None] = None,
+        date: datetime.date | None = None,
         params: SyncQueryParams = Depends(),
     ) -> Any:
 

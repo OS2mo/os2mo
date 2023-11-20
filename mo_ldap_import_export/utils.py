@@ -4,7 +4,6 @@ import asyncio
 import copy
 import datetime
 import re
-from typing import Union
 
 from gql import gql
 from graphql import DocumentNode
@@ -85,7 +84,7 @@ def add_filter_to_query(query: DocumentNode, filter_to_add: str) -> DocumentNode
     return gql(new_query_str)
 
 
-def mo_datestring_to_utc(datestring: Union[str, None]):
+def mo_datestring_to_utc(datestring: str | None):
     """
     Returns datetime object at UTC+0
 
