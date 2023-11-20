@@ -336,6 +336,32 @@ async def initialize_init_engine(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
     yield
 
 
+def get_conversion_map(settings: Settings) -> Any:
+    if settings.conversion_mapping:
+        return settings.conversion_mapping.dict(exclude_unset=True)
+
+    mappings_path = os.path.join(os.path.dirname(__file__), "mappings")
+    mappings_filename = os.environ.get("CONVERSION_MAP")
+    if not mappings_filename:
+        mappings_filename = "magenta_demo.json"
+        logger.warning(
+            f"CONVERSION_MAP is not set, falling back to {mappings_filename}"
+        )
+    mappings_file = os.path.normpath(
+        mappings_filename
+        if mappings_filename.startswith("/")
+        else os.path.join(mappings_path, mappings_filename)
+    )
+    if not os.path.isfile(mappings_file):
+        raise FileNotFoundError(
+            f"Configured mapping file {mappings_file} does not exist "
+            f"(this is set by the CONVERSION_MAP environment variable)"
+        )
+    mapping = read_mapping_json(mappings_file)
+    logger.info(f"Loaded mapping file {mappings_file}")
+    return mapping
+
+
 def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     """FastRAMQPI factory.
 
@@ -381,26 +407,12 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     )
 
     logger.info("Loading mapping file")
+    mapping = get_conversion_map(settings)
+    fastramqpi.add_context(mapping=mapping)
+
     mappings_path = os.path.join(os.path.dirname(__file__), "mappings")
     forbidden_usernames_path = os.path.join(mappings_path, "forbidden_usernames")
-    mappings_file = os.environ.get("CONVERSION_MAP")
-    if not mappings_file:
-        mappings_file = "magenta_demo.json"
-        logger.warning(f"CONVERSION_MAP is not set, falling back to {mappings_file}")
-    mappings_file = os.path.normpath(
-        mappings_file
-        if mappings_file.startswith("/")
-        else os.path.join(mappings_path, mappings_file)
-    )
-    if not os.path.isfile(mappings_file):
-        raise FileNotFoundError(
-            f"Configured mapping file {mappings_file} does not exist "
-            f"(this is set by the CONVERSION_MAP environment variable)"
-        )
-    mapping = read_mapping_json(mappings_file)
-    fastramqpi.add_context(mapping=mapping)
     fastramqpi.add_context(forbidden_usernames_path=forbidden_usernames_path)
-    logger.info(f"Loaded mapping file {mappings_file}")
 
     logger.info("Initializing dataloader")
     dataloader = DataLoader(fastramqpi.get_context())
