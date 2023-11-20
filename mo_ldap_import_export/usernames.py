@@ -185,7 +185,7 @@ class UserNameGeneratorBase:
         """
         readable_combi = []
         max_position = -1
-        position: int | None
+        position: int | None = None
         for character in combi:
             # First name
             if character == "F":
