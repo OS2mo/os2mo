@@ -15,7 +15,6 @@ import time
 from collections.abc import Iterator
 from typing import Any
 from typing import Dict
-from typing import List
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -371,7 +370,7 @@ async def test_paged_search_no_results(
     # Mock data
     dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
 
-    expected_results: List[Dict] = []
+    expected_results: list[Dict] = []
 
     # Mock LDAP connection
     ldap_connection.response = expected_results
@@ -702,7 +701,7 @@ async def test_setup_poller(context: Context):
 def test_poller(
     load_settings_overrides: Dict[str, str], ldap_connection: MagicMock
 ) -> None:
-    hits: List[str] = []
+    hits: list[str] = []
 
     def listener(event):
         cpr_no = event.get("attributes", {}).get("cpr_no", None)
