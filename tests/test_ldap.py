@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
 # -*- coding: utf-8 -*-
 """
 Created on Fri Oct 28 11:03:16 2022

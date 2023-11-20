@@ -24,7 +24,7 @@ repos:
       - id: reorder-python-imports
 
   - repo: https://github.com/fsfe/reuse-tool
-    rev: v0.12.1
+    rev: v2.1.0
     hooks:
       - id: reuse
 

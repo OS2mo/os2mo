@@ -1,5 +1,4 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
-#
 # SPDX-License-Identifier: MPL-2.0
 """
 Created on Fri Mar  3 09:46:15 2023
