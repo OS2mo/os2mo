@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import copy
 import datetime
+import json
 import os.path
 import re
 import uuid
@@ -23,7 +24,6 @@ from structlog.testing import capture_logs
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
 from mo_ldap_import_export.converters import LdapConverter
-from mo_ldap_import_export.converters import read_mapping_json
 from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.environments import environment
@@ -337,9 +337,9 @@ async def test_mo_to_ldap(converter: LdapConverter) -> None:
 
 
 async def test_mapping_loader() -> None:
-    mapping = read_mapping_json(
-        os.path.join(os.path.dirname(__file__), "resources", "mapping.json")
-    )
+    file_path = os.path.join(os.path.dirname(__file__), "resources", "mapping.json")
+    with open(file_path) as file:
+        mapping = json.load(file)
     expected = {
         "ldap_to_mo": {
             "Employee": {

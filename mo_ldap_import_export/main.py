@@ -3,8 +3,10 @@
 """Event handling."""
 import asyncio
 import datetime
+import json
 import os
 from collections.abc import AsyncIterator
+from collections.abc import Callable
 from contextlib import asynccontextmanager
 from functools import partial
 from functools import wraps
@@ -12,9 +14,11 @@ from inspect import iscoroutinefunction
 from typing import Annotated
 from typing import Any
 from typing import Literal
+from typing import TextIO
 from uuid import UUID
 from uuid import uuid4
 
+import yaml
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import FastAPI
@@ -45,7 +49,6 @@ from . import usernames
 from .config import ConversionMapping
 from .config import Settings
 from .converters import LdapConverter
-from .converters import read_mapping_json
 from .customer_specific_checks import ExportChecks
 from .customer_specific_checks import ImportChecks
 from .dataloaders import DataLoader
@@ -345,7 +348,7 @@ def get_conversion_map(settings: Settings) -> ConversionMapping:
     mappings_path = os.path.join(os.path.dirname(__file__), "mappings")
     mappings_filename = os.environ.get("CONVERSION_MAP")
     if not mappings_filename:
-        mappings_filename = "magenta_demo.json"
+        mappings_filename = "magenta_demo.yaml"
         logger.warning(
             f"CONVERSION_MAP is not set, falling back to {mappings_filename}"
         )
@@ -359,9 +362,13 @@ def get_conversion_map(settings: Settings) -> ConversionMapping:
             f"Configured mapping file {mappings_file} does not exist "
             f"(this is set by the CONVERSION_MAP environment variable)"
         )
-    mapping = read_mapping_json(mappings_file)
-    logger.info(f"Loaded mapping file {mappings_file}")
-    return parse_obj_as(ConversionMapping, mapping)
+    loader: Callable[[TextIO], dict[str, Any]] = (
+        yaml.safe_load if mappings_file.endswith(".yaml") else json.load  # type: ignore
+    )
+    with open(mappings_file) as file:
+        mapping = loader(file)
+        logger.info(f"Loaded mapping file {mappings_file}")
+        return parse_obj_as(ConversionMapping, mapping)
 
 
 def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:

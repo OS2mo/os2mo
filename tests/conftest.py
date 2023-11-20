@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 # -*- coding: utf-8 -*-
 import datetime
+import json
 import os
 from collections.abc import Iterator
 from unittest.mock import AsyncMock
@@ -13,7 +14,6 @@ from ramodels.mo.details.address import Address
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 
-from mo_ldap_import_export.converters import read_mapping_json
 from mo_ldap_import_export.ldap_classes import LdapObject
 
 
@@ -232,11 +232,11 @@ def read_mapping(filename):
     """
     Read a json mapping file
     """
-    return read_mapping_json(
-        os.path.join(
-            os.path.dirname(os.path.dirname(__file__)),
-            "mo_ldap_import_export",
-            "mappings",
-            filename,
-        )
+    file_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)),
+        "mo_ldap_import_export",
+        "mappings",
+        filename,
     )
+    with open(file_path) as file:
+        return json.load(file)

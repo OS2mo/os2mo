@@ -34,17 +34,6 @@ from .utils import extract_ou_from_dn
 from .utils import import_class
 
 
-def read_mapping_json(filename: str) -> Any:
-    with open(filename) as file:
-        data = "\n".join(file.readlines())
-        data = re.sub(r"/\*.*\*/", "", data, flags=re.DOTALL)  # Block comments
-        data = re.sub(r"//[^\n]*", "", data)  # Line comments
-        data = re.sub(
-            r",(\s*[}\]])", "\\1", data
-        )  # remove trailing commas after the last element in a list or dict
-        return json.loads(data)
-
-
 async def find_cpr_field(mapping):
     """
     Get the field which contains the CPR number in LDAP

@@ -34,6 +34,7 @@ repos:
           - types-ldap3
           - types-tqdm
           - pandas-stubs
+          - types-PyYAML
 
   - repo: https://github.com/asottile/reorder_python_imports
     rev: v3.12.0

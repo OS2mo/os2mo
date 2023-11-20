@@ -2,9 +2,9 @@
   "init": {
     "it_systems": {
       "ADGUID": "Active Directory GUID",
-      "ADSAMA": "Active Directory sAMAccountName",
+      "ADSAMA": "Active Directory sAMAccountName"
     },
-    "facets" : {
+    "facets": {
       "employee_address_type": {
         "EmailEmployee": {
           "title": "Email (AD)",
@@ -25,7 +25,7 @@
         "LocationEmployee": {
           "title": "Lokation (AD)",
           "scope": "TEXT"
-        },
+        }
       },
       "org_unit_address_type": {
         "StreetAdressUnit": {
@@ -47,9 +47,9 @@
         "PublicEmailUnit": {
           "title": "Public Email (AD)",
           "scope": "EMAIL"
-        },
-      },
-    },
+        }
+      }
+    }
   },
   "ldap_to_mo": {
     "Employee": {
@@ -144,7 +144,7 @@
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('PrivatePhoneEmployee')) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}",
-      "visibility": "{{ dict(uuid=get_visibility_uuid('Hemmelig')) }}",
+      "visibility": "{{ dict(uuid=get_visibility_uuid('Hemmelig')) }}"
     },
     "LocationEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
@@ -169,20 +169,20 @@
       "itsystem": "{{ dict(uuid=get_it_system_uuid('ADSAMA')) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
-    },
+    }
   },
   "mo_to_ldap": {
     "Employee": {
       "objectClass": "user",
       "_export_to_ldap_": "true",
       "employeeNumber": "{{mo_employee.cpr_no}}",
-      "givenName" : "{{mo_employee.givenname}}",
+      "givenName": "{{mo_employee.givenname}}",
       "sn": "{{mo_employee.surname}}",
       "displayName": "{{mo_employee.nickname_givenname or mo_employee.givenname}} {{mo_employee.nickname_surname or mo_employee.surname}}",
       "name": "{{mo_employee.givenname}} {{mo_employee.surname}}",
       "extensionAttribute6": "{{mo_employee.uuid}}"
     },
-    "Engagement" : {
+    "Engagement": {
       "objectClass": "user",
       "_export_to_ldap_": "true",
       "employeeNumber": "{{mo_employee.cpr_no}}",
@@ -192,7 +192,7 @@
       "extensionAttribute2": "{{mo_employee_engagement.org_unit.uuid}}",
       "extensionAttribute6": "{{mo_employee_engagement.person.uuid}}",
       "employeeID": "{{mo_employee_engagement.user_key}}",
-      "department": "{{get_org_unit_name(mo_employee_engagement.org_unit.uuid)}}",
+      "department": "{{get_org_unit_name(mo_employee_engagement.org_unit.uuid)}}"
     },
     "StreetAdressUnit": {
       "objectClass": "user",
@@ -271,222 +271,166 @@
     "ADGUID": {
       "objectClass": "user",
       "_export_to_ldap_": "false",
-      "objectGUID" : "{{ '{' + mo_employee_it_user.user_key + '}' }}",
+      "objectGUID": "{{ '{' + mo_employee_it_user.user_key + '}' }}",
       "employeeNumber": "{{mo_employee.cpr_no}}"
     },
     "ADSAMA": {
       "objectClass": "user",
       "_export_to_ldap_": "true",
-      "sAMAccountName" : "{{ mo_employee_it_user.user_key }}",
-      "userPrincipalName" : "{{ mo_employee_it_user.user_key + '@alleroed.dk'}}",
+      "sAMAccountName": "{{ mo_employee_it_user.user_key }}",
+      "userPrincipalName": "{{ mo_employee_it_user.user_key + '@alleroed.dk'}}",
       "employeeNumber": "{{mo_employee.cpr_no}}"
-    },
-
+    }
   },
   "username_generator": {
-     "objectClass" : "AlleroedUserNameGenerator",
-     "char_replacement":{
-         "â": "a",
-         "ä": "a",
-         "à": "a",
-         "å": "a",
-         "Ä": "a",
-         "Å": "a",
-         "æ": "a",
-         "Æ": "a",
-         "á": "a",
-         "Á": "a",
-         "Â": "a",
-         "À": "a",
-         "ã": "a",
-         "Ã": "a",
-         "é": "e",
-         "ê": "e",
-         "ë": "e",
-         "è": "e",
-         "É": "e",
-         "Ê": "e",
-         "Ë": "e",
-         "È": "e",
-         "ï": "i",
-         "î": "i",
-         "ì": "i",
-         "í": "i",
-         "Î": "i",
-         "Ï": "i",
-         "ô": "o",
-         "ö": "o",
-         "ò": "o",
-         "Ö": "o",
-         "ø": "o",
-         "Ø": "o",
-         "ó": "o",
-         "Ó": "o",
-         "Ô": "o",
-         "Ò": "o",
-         "õ": "o",
-         "Õ": "o",
-         "ü": "u",
-         "û": "u",
-         "ù": "u",
-         "Ü": "u",
-         "ú": "u",
-         "Ú": "u",
-         "Û": "u",
-         "Ù": "u",
-         "ÿ": "y",
-         "ý": "y",
-         "Ý": "y",
-         "Ç": "c",
-         "ç": "c",
-         "ñ": "n",
-         "Ñ": "n"
-     },
-     // Note: We need some 'X's in this list. to account for potential duplicates
-     // Note2: We need some short combinations in this list, to account for persons with
-     // short names.
-     //
-     // Index:
-     // F: First name
-     // 1: First middle name
-     // 2: Second middle name
-     // 3: Third middle name
-     // L: Last name
-     // X: Number
-     //
-     // Example1: If combination = "F11LL", 'Hans Jakob Hansen' returns username="hjaha"
-     // Example2: If combination = "FFLL", 'Hans Jakob Hansen' returns username="haha"
-     "combinations_to_try": [
-            // Try to make a username with 4 characters.
-            "F111",
-            "F112",
-            "F122",
-            "F222",
-            "F223",
-            "F233",
-            "F333",
-
-            "F11L",
-            "F12L",
-            "F22L",
-            "F23L",
-            "F33L",
-
-            "F1LL",
-            "F2LL",
-            "F3LL",
-
-            "FLLL",
-
-            // If we get to here, we failed to make a username with 4 characters.
-            "F111L",
-            "F112L",
-            "F122L",
-            "F222L",
-            "F223L",
-            "F233L",
-            "F333L",
-
-            "F11LL",
-            "F12LL",
-            "F22LL",
-            "F23LL",
-            "F33LL",
-
-            "F1LLL",
-            "F2LLL",
-            "F3LLL",
-
-            "FLLLL",
-
-            // If we get to here, we failed to make a username with only a single
-            // character for the first name
-
-            "FF11",
-            "FF12",
-            "FF22",
-            "FF23",
-            "FF33",
-            "FF1L",
-            "FF2L",
-            "FF3L",
-            "FFLL",
-
-            "FFF1",
-            "FFF2",
-            "FFF3",
-            "FFFL",
-
-            "FFFF",
-
-            // If we get to here, we failed to make a 4-character username with where
-            // we allow multiple characters for the first name
-
-            "FF111",
-            "FF112",
-            "FF122",
-            "FF222",
-            "FF223",
-            "FF233",
-            "FF333",
-
-            "FF11L",
-            "FF12L",
-            "FF22L",
-            "FF23L",
-            "FF33L",
-
-            "FF1LL",
-            "FF2LL",
-            "FF3LL",
-
-            "FFLLL",
-
-            "FFF11",
-            "FFF12",
-            "FFF22",
-            "FFF23",
-            "FFF33",
-            "FFF1L",
-            "FFF2L",
-            "FFF3L",
-            "FFFLL",
-
-            "FFFF1",
-            "FFFF2",
-            "FFFF3",
-            "FFFFL",
-
-            "FFFFF",
-
-            // If we get to here, we failed to make a username with 5 characters.
-            "F1L",
-            "F2L",
-            "F3L",
-            "FLL",
-
-            // If we get to here, we failed to make a username with 3 characters.
-            "FL",
-            "FLX",
-
-            // If we get to here, we failed to make a username that includes last-name
-            "FFF",
-            "FF",
-            "FFX",
-
-
-     ],
-     "forbidden_usernames":["itsm_brugere.csv",
-                            "CURA-76507-total-brugerliste-fhir.txt"
-                            ]
-   }
+    "objectClass": "AlleroedUserNameGenerator",
+    "char_replacement": {
+      "â": "a",
+      "ä": "a",
+      "à": "a",
+      "å": "a",
+      "Ä": "a",
+      "Å": "a",
+      "æ": "a",
+      "Æ": "a",
+      "á": "a",
+      "Á": "a",
+      "Â": "a",
+      "À": "a",
+      "ã": "a",
+      "Ã": "a",
+      "é": "e",
+      "ê": "e",
+      "ë": "e",
+      "è": "e",
+      "É": "e",
+      "Ê": "e",
+      "Ë": "e",
+      "È": "e",
+      "ï": "i",
+      "î": "i",
+      "ì": "i",
+      "í": "i",
+      "Î": "i",
+      "Ï": "i",
+      "ô": "o",
+      "ö": "o",
+      "ò": "o",
+      "Ö": "o",
+      "ø": "o",
+      "Ø": "o",
+      "ó": "o",
+      "Ó": "o",
+      "Ô": "o",
+      "Ò": "o",
+      "õ": "o",
+      "Õ": "o",
+      "ü": "u",
+      "û": "u",
+      "ù": "u",
+      "Ü": "u",
+      "ú": "u",
+      "Ú": "u",
+      "Û": "u",
+      "Ù": "u",
+      "ÿ": "y",
+      "ý": "y",
+      "Ý": "y",
+      "Ç": "c",
+      "ç": "c",
+      "ñ": "n",
+      "Ñ": "n"
+    },
+    "combinations_to_try": [
+      "F111",
+      "F112",
+      "F122",
+      "F222",
+      "F223",
+      "F233",
+      "F333",
+      "F11L",
+      "F12L",
+      "F22L",
+      "F23L",
+      "F33L",
+      "F1LL",
+      "F2LL",
+      "F3LL",
+      "FLLL",
+      "F111L",
+      "F112L",
+      "F122L",
+      "F222L",
+      "F223L",
+      "F233L",
+      "F333L",
+      "F11LL",
+      "F12LL",
+      "F22LL",
+      "F23LL",
+      "F33LL",
+      "F1LLL",
+      "F2LLL",
+      "F3LLL",
+      "FLLLL",
+      "FF11",
+      "FF12",
+      "FF22",
+      "FF23",
+      "FF33",
+      "FF1L",
+      "FF2L",
+      "FF3L",
+      "FFLL",
+      "FFF1",
+      "FFF2",
+      "FFF3",
+      "FFFL",
+      "FFFF",
+      "FF111",
+      "FF112",
+      "FF122",
+      "FF222",
+      "FF223",
+      "FF233",
+      "FF333",
+      "FF11L",
+      "FF12L",
+      "FF22L",
+      "FF23L",
+      "FF33L",
+      "FF1LL",
+      "FF2LL",
+      "FF3LL",
+      "FFLLL",
+      "FFF11",
+      "FFF12",
+      "FFF22",
+      "FFF23",
+      "FFF33",
+      "FFF1L",
+      "FFF2L",
+      "FFF3L",
+      "FFFLL",
+      "FFFF1",
+      "FFFF2",
+      "FFFF3",
+      "FFFFL",
+      "FFFFF",
+      "F1L",
+      "F2L",
+      "F3L",
+      "FLL",
+      "FL",
+      "FLX",
+      "FFF",
+      "FF",
+      "FFX"
+    ],
+    "forbidden_usernames": [
+      "itsm_brugere.csv",
+      "CURA-76507-total-brugerliste-fhir.txt"
+    ]
+  }
 }
-
-// *Valid address type names can be obtained by making a new address and folding out the
-// 'Addressetype' listbox
-
-// *Valid it system names can be obtained by making a new it-user and folding out the
-// 'IT-systemer' listbox
-
-// Note: Only keys in the relevant mo_to_ldap dicts are retrieved when requesting an
-// ldap object
