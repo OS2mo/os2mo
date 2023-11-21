@@ -3,6 +3,7 @@
 """Dataloaders to bulk requests."""
 import asyncio
 import datetime
+from contextlib import suppress
 from enum import auto
 from enum import Enum
 from typing import Any
@@ -811,14 +812,13 @@ class DataLoader:
 
     async def find_mo_employee_uuid(self, dn: str) -> None | UUID:
         cpr_field = self.user_context["cpr_field"]
+        cpr_no = None
         if cpr_field:
             ldap_object = self.load_ldap_object(dn, [cpr_field])
 
             # Try to get the cpr number from LDAP and use that.
-            try:
+            with suppress(ValueError):
                 cpr_no = validate_cpr(str(getattr(ldap_object, cpr_field)))
-            except ValueError:
-                cpr_no = None
 
         if cpr_field and cpr_no:
             cpr_query = f"""
