@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 # pylint: disable=too-few-public-methods
 """Settings handling."""
+from typing import Any
 from typing import Literal
 
 from fastramqpi.config import Settings as FastRAMQPISettings
@@ -13,6 +14,7 @@ from pydantic import Extra
 from pydantic import Field
 from pydantic import parse_obj_as
 from pydantic import PositiveInt
+from pydantic import root_validator
 from pydantic import SecretStr
 from pydantic import validator
 from ramqp.config import AMQPConnectionSettings
@@ -123,6 +125,25 @@ class ConversionMapping(MappingBaseModel):
     ldap_to_mo: dict[str, LDAP2MOMapping]
     mo_to_ldap: dict[str, MO2LDAPMapping]
     username_generator: UsernameGeneratorConfig
+
+    @root_validator
+    def validate_init_entries_used(cls, values: dict[str, Any]) -> dict[str, Any]:
+        """Ensure that all entries created on init are used in mappings."""
+        it_system_user_keys = set(values["init"].it_systems.keys())
+        class_user_keys = {
+            class_user_key
+            for classes in values["init"].facets.values()
+            for class_user_key in classes.keys()
+        }
+
+        init_user_keys = class_user_keys | it_system_user_keys
+        mapped_user_keys = set(values["mo_to_ldap"].keys())
+
+        unutilized_user_keys = init_user_keys - mapped_user_keys
+        if unutilized_user_keys:
+            raise ValueError("Unutilized elements in init configuration")
+
+        return values
 
 
 class Settings(BaseSettings):
