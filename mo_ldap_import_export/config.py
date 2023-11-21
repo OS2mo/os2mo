@@ -119,7 +119,7 @@ class UsernameGeneratorConfig(MappingBaseModel):
 
 
 class ConversionMapping(MappingBaseModel):
-    init: Init | None
+    init: Init = Field(default_factory=Init)
     ldap_to_mo: dict[str, LDAP2MOMapping]
     mo_to_ldap: dict[str, MO2LDAPMapping]
     username_generator: UsernameGeneratorConfig
@@ -131,7 +131,7 @@ class Settings(BaseSettings):
         env_nested_delimiter = "__"
 
     conversion_mapping: ConversionMapping | None = Field(
-        default_factory=None,  # type: ignore
+        default=None,
         description="Conversion mapping between LDAP and OS2mo",
     )
 

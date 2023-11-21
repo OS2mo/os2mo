@@ -133,11 +133,6 @@ async def test_empty_mapping(dataloader: AsyncMock, context: dict):
     If mapping is empty or not specified at all, the init_engine should not crash.
     It should just do nothing.
     """
-    context["user_context"]["mapping"] = {}
-    init_engine = InitEngine(context)
-    await init_engine.create_it_systems()
-    await init_engine.create_facets()
-
     context["user_context"]["mapping"] = {"init": {}}
     init_engine = InitEngine(context)
     await init_engine.create_it_systems()
