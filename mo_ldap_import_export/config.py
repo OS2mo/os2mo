@@ -19,6 +19,8 @@ from pydantic import SecretStr
 from pydantic import validator
 from ramqp.config import AMQPConnectionSettings
 
+from .utils import import_class
+
 
 class ServerConfig(BaseModel):
     """Settings model for domain controllers."""
@@ -85,12 +87,63 @@ class Init(MappingBaseModel):
     it_systems: dict[str, str] = {}
 
 
+def get_required_attributes(mo_class) -> set[str]:
+    if "required" not in mo_class.schema().keys():
+        return set()
+    return set(mo_class.schema()["required"])
+
+
+def check_attributes(
+    detected_attributes: set[str], accepted_attributes: set[str]
+) -> None:
+    unacceptable_attributes = detected_attributes - accepted_attributes
+    # SAM Account Name is specifically allowed
+    # TODO: Why?
+    unacceptable_attributes.discard("sAMAccountName")
+    # All extensionAttributes and special attributes are allowed
+    # TODO: Why?
+    unacceptable_attributes = {
+        attribute
+        for attribute in unacceptable_attributes
+        if not attribute.startswith("extensionAttribute")
+        and not attribute.startswith("__")
+    }
+    if unacceptable_attributes:
+        raise ValueError(
+            f"Attributes {unacceptable_attributes} are not allowed. "
+            f"The following attributes are allowed: {accepted_attributes}"
+        )
+
+
 class LDAP2MOMapping(MappingBaseModel):
     class Config:
         extra = Extra.allow
 
     objectClass: str
     _import_to_mo_: bool
+
+    @root_validator
+    def check_mo_attributes(cls, values: dict[str, Any]) -> dict[str, Any]:
+        mo_class = import_class(values["objectClass"])
+
+        accepted_attributes = set(mo_class.schema()["properties"].keys())
+        detected_attributes = set(values.keys()) - {"objectClass", "_import_to_mo_"}
+
+        check_attributes(detected_attributes, accepted_attributes)
+
+        required_attributes = get_required_attributes(mo_class)
+        if values["objectClass"] == "ramodels.mo.details.engagement.Engagement":
+            # We require a primary attribute. If primary is not desired you can set
+            # it to {{ NONE }} in the json dict
+            required_attributes.add("primary")
+
+        missing_attributes = required_attributes - detected_attributes
+        if missing_attributes:
+            raise ValueError(
+                f"Missing {missing_attributes} which are mandatory. "
+                f"The following attributes are mandatory: {required_attributes}"
+            )
+        return values
 
 
 class MO2LDAPMapping(MappingBaseModel):

@@ -298,32 +298,6 @@ class LdapConverter:
 
         return required_attributes
 
-    def check_mo_attributes(self):
-
-        ldap_to_mo_json_keys = self.get_ldap_to_mo_json_keys()
-        for json_key in ldap_to_mo_json_keys:
-            logger.info(f"[json check] checking ldap_to_mo[{json_key}]")
-
-            mo_class = self.import_mo_object_class(json_key)
-
-            accepted_attributes = list(mo_class.schema()["properties"].keys())
-            detected_attributes = self.get_mo_attributes(json_key)
-            self.check_attributes(detected_attributes, accepted_attributes)
-            required_attributes = self.get_required_attributes(mo_class).copy()
-
-            if json_key == "Engagement":
-                # We require a primary attribute. If primary is not desired you can set
-                # it to {{ NONE }} in the json dict
-                required_attributes.append("primary")
-
-            for attribute in required_attributes:
-                if attribute not in detected_attributes:
-                    raise IncorrectMapping(
-                        f"attribute '{attribute}' is mandatory. "
-                        f"The following attributes are mandatory: "
-                        f"{required_attributes}"
-                    )
-
     @staticmethod
     def clean_get_current_method_from_template_string(template_string):
         """
@@ -638,9 +612,6 @@ class LdapConverter:
 
         # Check to make sure that all keys are valid
         self.check_key_validity()
-
-        # check that the MO address attributes match the specified class
-        self.check_mo_attributes()
 
         # check that the LDAP attributes match what is available in LDAP
         self.check_ldap_attributes()

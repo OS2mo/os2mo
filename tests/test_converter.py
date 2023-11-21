@@ -19,11 +19,12 @@ from jinja2 import Undefined
 from pydantic import parse_obj_as
 from pydantic import ValidationError
 from ramodels.mo import Employee
-from ramodels.mo.details.engagement import Engagement
 from ramqp.utils import RequeueMessage
 from structlog.testing import capture_logs
 
+from mo_ldap_import_export.config import check_attributes
 from mo_ldap_import_export.config import ConversionMapping
+from mo_ldap_import_export.config import LDAP2MOMapping
 from mo_ldap_import_export.config import MO2LDAPMapping
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
@@ -542,21 +543,7 @@ def test_get_ldap_attributes(converter: LdapConverter, context: Context):
     assert attributes == expected_attributes
 
 
-def test_get_mo_attributes(converter: LdapConverter, context: Context):
-    attributes = converter.get_mo_attributes("Employee")
-
-    all_attributes = list(
-        context["user_context"]["mapping"]["ldap_to_mo"]["Employee"].keys()
-    )
-
-    expected_attributes = [
-        a for a in all_attributes if a != "objectClass" and not a.startswith("_")
-    ]
-
-    assert attributes == expected_attributes
-
-
-def test_check_attributes(converter: LdapConverter):
+def test_check_converter_attributes(converter: LdapConverter):
     detected_attributes = ["foo", "bar"]
     accepted_attributes = ["bar"]
 
@@ -566,6 +553,18 @@ def test_check_attributes(converter: LdapConverter):
     detected_attributes = ["bar", "extensionAttribute14", "sAMAccountName"]
     accepted_attributes = ["bar"]
     converter.check_attributes(detected_attributes, accepted_attributes)
+
+
+def test_check_attributes():
+    detected_attributes = {"foo", "bar"}
+    accepted_attributes = {"bar"}
+
+    with pytest.raises(ValueError):
+        check_attributes(detected_attributes, accepted_attributes)
+
+    detected_attributes = {"bar", "extensionAttribute14", "sAMAccountName"}
+    accepted_attributes = {"bar"}
+    check_attributes(detected_attributes, accepted_attributes)
 
 
 def test_get_accepted_json_keys(converter: LdapConverter):
@@ -654,32 +653,30 @@ async def test_check_for_objectClass(converter: LdapConverter):
         parse_obj_as(MO2LDAPMapping, {"foo": {}})
 
     converter.raw_mapping = {
-        "ldap_to_mo": {"foo": {"objectClass": "foo"}},
+        "ldap_to_mo": {"foo": {"objectClass": "ramodels.mo.employee.Employee"}},
         "mo_to_ldap": {"foo": {}},
     }
     with pytest.raises(ValidationError, match="objectClass\n  field required"):
         parse_obj_as(ConversionMapping, converter.raw_mapping)
 
 
-async def test_check_mo_attributes(converter: LdapConverter):
-    with patch(
-        "mo_ldap_import_export.converters.LdapConverter.get_ldap_to_mo_json_keys",
-        return_value=["Engagement"],
-    ), patch(
-        "mo_ldap_import_export.converters.LdapConverter.import_mo_object_class",
-        return_value=Engagement,
-    ), patch(
-        "mo_ldap_import_export.converters.LdapConverter.get_mo_attributes",
-        return_value=["user_key"],
+async def test_check_for_primary_specialcase():
+
+    with pytest.raises(
+        ValidationError, match="Missing {'primary'} which are mandatory."
     ):
-        with pytest.raises(
-            IncorrectMapping,
-            match=(
-                "attribute .* is mandatory. "
-                "The following attributes are mandatory: .*primary.*"
-            ),
-        ):
-            converter.check_mo_attributes()
+        parse_obj_as(
+            LDAP2MOMapping,
+            {
+                "objectClass": "ramodels.mo.details.engagement.Engagement",
+                "org_unit": "val",
+                "job_function": "val",
+                "user_key": "val",
+                "engagement_type": "val",
+                "person": "val",
+                "validity": "val",
+            },
+        )
 
 
 async def test_check_ldap_attributes_single_value_fields(converter: LdapConverter):
