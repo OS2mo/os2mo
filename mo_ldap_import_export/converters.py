@@ -258,20 +258,6 @@ class LdapConverter:
 
         return accepted_json_keys
 
-    def cross_check_keys(self):
-        mo_to_ldap_json_keys = self.get_mo_to_ldap_json_keys()
-        ldap_to_mo_json_keys = self.get_ldap_to_mo_json_keys()
-
-        # Check that all mo_to_ldap keys are also in ldap_to_mo
-        for json_key in mo_to_ldap_json_keys:
-            if json_key not in ldap_to_mo_json_keys:
-                raise IncorrectMapping(f"Missing key in 'ldap_to_mo': '{json_key}'")
-
-        # Check that all ldap_to_mo keys are also in mo_to_ldap
-        for json_key in ldap_to_mo_json_keys:
-            if json_key not in mo_to_ldap_json_keys:
-                raise IncorrectMapping(f"Missing key in 'mo_to_ldap': '{json_key}'")
-
     def check_key_validity(self):
         mo_to_ldap_json_keys = self.get_mo_to_ldap_json_keys()
         ldap_to_mo_json_keys = self.get_ldap_to_mo_json_keys()
@@ -605,10 +591,6 @@ class LdapConverter:
 
     async def check_mapping(self):
         logger.info("[json check] Checking json file")
-
-        # Check that all mo_to_ldap keys are also in ldap_to_mo
-        # Check that all ldap_to_mo keys are also in mo_to_ldap
-        self.cross_check_keys()
 
         # Check to make sure that all keys are valid
         self.check_key_validity()

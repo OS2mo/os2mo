@@ -610,26 +610,27 @@ def test_get_number_of_entries(converter: LdapConverter):
 
 
 async def test_cross_check_keys(converter: LdapConverter):
+    converter.raw_mapping["username_generator"] = {}
 
-    with patch(
-        "mo_ldap_import_export.converters.LdapConverter.get_mo_to_ldap_json_keys",
-        return_value=["foo", "bar"],
-    ), patch(
-        "mo_ldap_import_export.converters.LdapConverter.get_ldap_to_mo_json_keys",
-        return_value=["bar"],
-    ):
-        with pytest.raises(IncorrectMapping, match="Missing key in 'ldap_to_mo'"):
-            converter.cross_check_keys()
+    obj = {"objectClass": "ramodels.mo.employee.Employee"}
 
-    with patch(
-        "mo_ldap_import_export.converters.LdapConverter.get_mo_to_ldap_json_keys",
-        return_value=["foo"],
-    ), patch(
-        "mo_ldap_import_export.converters.LdapConverter.get_ldap_to_mo_json_keys",
-        return_value=["foo", "bar"],
-    ):
-        with pytest.raises(IncorrectMapping, match="Missing key in 'mo_to_ldap'"):
-            converter.cross_check_keys()
+    converter.raw_mapping.update(
+        {
+            "ldap_to_mo": {"foo": obj, "bar": obj},
+            "mo_to_ldap": {"bar": obj},
+        }
+    )
+    with pytest.raises(ValidationError, match="Missing keys in 'mo_to_ldap'"):
+        parse_obj_as(ConversionMapping, converter.raw_mapping)
+
+    converter.raw_mapping.update(
+        {
+            "ldap_to_mo": {"foo": obj},
+            "mo_to_ldap": {"foo": obj, "bar": obj},
+        }
+    )
+    with pytest.raises(ValidationError, match="Missing keys in 'ldap_to_mo'"):
+        parse_obj_as(ConversionMapping, converter.raw_mapping)
 
 
 async def test_check_key_validity(converter: LdapConverter):

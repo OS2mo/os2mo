@@ -180,6 +180,25 @@ class ConversionMapping(MappingBaseModel):
     username_generator: UsernameGeneratorConfig
 
     @root_validator(skip_on_failure=True)
+    def validate_cross_keys(cls, values: dict[str, Any]) -> dict[str, Any]:
+        # Check that all mo_to_ldap keys are also in ldap_to_mo
+        # Check that all ldap_to_mo keys are also in mo_to_ldap
+        mo_to_ldap_user_keys = set(values["mo_to_ldap"].keys())
+        ldap_to_mo_user_keys = set(values["ldap_to_mo"].keys())
+
+        # Check that all mo_to_ldap keys are also in ldap_to_mo
+        missing_ldap_to_mo = mo_to_ldap_user_keys - ldap_to_mo_user_keys
+        if missing_ldap_to_mo:
+            raise ValueError(f"Missing keys in 'ldap_to_mo': {missing_ldap_to_mo}")
+
+        # Check that all ldap_to_mo keys are also in mo_to_ldap
+        missing_mo_to_ldap = ldap_to_mo_user_keys - mo_to_ldap_user_keys
+        if missing_mo_to_ldap:
+            raise ValueError(f"Missing keys in 'mo_to_ldap': {missing_mo_to_ldap}")
+
+        return values
+
+    @root_validator(skip_on_failure=True)
     def validate_address_types(cls, values: dict[str, Any]) -> dict[str, Any]:
         """Ensure that address_type attributes are formatted properly."""
         for key, ldap2mo in values["ldap_to_mo"].items():

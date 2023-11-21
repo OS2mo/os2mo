@@ -356,6 +356,5 @@ def test_startup_checks_on_all_json_files(converters: dict[str, LdapConverter]):
     Run the startup checks which we can run without being connected to MO or LDAP
     """
     for converter in converters.values():
-        converter.cross_check_keys()
         converter.check_uuid_refs_in_mo_objects()
         converter.check_import_and_export_flags()
