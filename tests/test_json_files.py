@@ -349,11 +349,3 @@ async def test_objectguid_mappings(converters: dict[str, LdapConverter]):
                     assert UUID(objectGUID)
                     assert objectGUID.startswith("{")
                     assert objectGUID.endswith("}")
-
-
-def test_startup_checks_on_all_json_files(converters: dict[str, LdapConverter]):
-    """
-    Run the startup checks which we can run without being connected to MO or LDAP
-    """
-    for converter in converters.values():
-        converter.check_uuid_refs_in_mo_objects()

@@ -129,6 +129,48 @@ class LDAP2MOMapping(MappingBaseModel):
         return v.lower()
 
     @root_validator
+    def check_uuid_refs_in_mo_objects(cls, values: dict[str, Any]) -> dict[str, Any]:
+        # Check that MO objects have a uuid field
+        mo_class = import_class(values["objectClass"])
+
+        properties = mo_class.schema()["properties"]
+        # If we are dealing with an object that links to a person/org_unit
+        # TODO: Add `or "org_unit" in properties`?
+        if "person" in properties:
+            # Either person or org_unit needs to be set
+            has_person = "person" in values
+            has_org_unit = "org_unit" in values
+            if not has_person and not has_org_unit:
+                raise ValueError(
+                    "Either 'person' or 'org_unit' key needs to be present"
+                )
+
+            # Sometimes only one of them can be set
+            required_attributes = get_required_attributes(mo_class)
+            requires_person = "person" in required_attributes
+            requires_org_unit = "org_unit" in required_attributes
+            requires_both = requires_person and requires_org_unit
+            if has_person and has_org_unit and not requires_both:
+                raise ValueError(
+                    "Either 'person' or 'org_unit' key needs to be present. Not both"
+                )
+
+            # TODO: What if both are required?
+            uuid_key = "person" if "person" in values else "org_unit"
+            # And the corresponding item needs to be a dict with an uuid key
+            if "dict(uuid=" not in values[uuid_key].replace(" ", ""):
+                raise ValueError("Needs to be a dict with 'uuid' as one of its keys")
+        # Otherwise: We are dealing with the org_unit/person itself.
+        else:
+            # A field called 'uuid' needs to be present
+            if "uuid" not in values:
+                raise ValueError("Needs to contain a key called 'uuid'")
+            # And it needs to contain a reference to the employee_uuid global
+            if "employee_uuid" not in values["uuid"]:
+                raise ValueError("Needs to contain a reference to 'employee_uuid'")
+        return values
+
+    @root_validator
     def check_mo_attributes(cls, values: dict[str, Any]) -> dict[str, Any]:
         mo_class = import_class(values["objectClass"])
 

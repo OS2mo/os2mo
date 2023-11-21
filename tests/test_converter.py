@@ -612,7 +612,10 @@ def test_get_number_of_entries(converter: LdapConverter):
 async def test_cross_check_keys(converter: LdapConverter):
     converter.raw_mapping["username_generator"] = {}
 
-    obj = {"objectClass": "ramodels.mo.employee.Employee"}
+    obj = {
+        "objectClass": "ramodels.mo.employee.Employee",
+        "uuid": "{{ employee_uuid }}",
+    }
     mo_obj = {**obj, "_export_to_ldap_": "true"}
     ldap_obj = {**obj, "_import_to_mo_": "true"}
 
@@ -1222,69 +1225,90 @@ def test_check_org_unit_info_dict(converter: LdapConverter):
 
 
 def test_check_uuid_refs_in_mo_objects(converter: LdapConverter):
+    converter.raw_mapping["username_generator"] = {}
 
-    with pytest.raises(
-        IncorrectMapping, match="Either 'person' or 'org_unit' key needs to be present"
-    ):
-        converter.raw_mapping = converter.mapping = {
+    address_obj = {
+        "objectClass": "ramodels.mo.details.address.Address",
+        "_import_to_mo_": "true",
+        "value": "val",
+        "validity": "val",
+        "address_type": "val",
+    }
+
+    converter.raw_mapping.update(
+        {
             "ldap_to_mo": {
                 "EmailEmployee": {
-                    "objectClass": "ramodels.mo.details.address.Address",
+                    **address_obj,
                 }
             }
         }
-        converter.check_uuid_refs_in_mo_objects()
-
+    )
     with pytest.raises(
-        IncorrectMapping,
-        match="Either 'person' or 'org_unit' key needs to be present.*Not both",
+        ValidationError, match="Either 'person' or 'org_unit' key needs to be present"
     ):
-        converter.raw_mapping = converter.mapping = {
+        parse_obj_as(ConversionMapping, converter.raw_mapping)
+
+    converter.raw_mapping.update(
+        {
             "ldap_to_mo": {
                 "EmailEmployee": {
-                    "objectClass": "ramodels.mo.details.address.Address",
+                    **address_obj,
                     "person": "{{ dict(uuid=employee_uuid or NONE) }}",
                     "org_unit": "{{ dict(uuid=employee_uuid or NONE) }}",
                 }
             }
         }
-        converter.check_uuid_refs_in_mo_objects()
-
+    )
     with pytest.raises(
-        IncorrectMapping, match="needs to be a dict with 'uuid' as one of it's keys"
+        ValidationError,
+        match="Either 'person' or 'org_unit' key needs to be present.*Not both",
     ):
-        converter.raw_mapping = converter.mapping = {
+        parse_obj_as(ConversionMapping, converter.raw_mapping)
+
+    converter.raw_mapping.update(
+        {
             "ldap_to_mo": {
                 "EmailEmployee": {
-                    "objectClass": "ramodels.mo.details.address.Address",
+                    **address_obj,
                     "person": "{{ employee_uuid }}",
                 }
             }
         }
-        converter.check_uuid_refs_in_mo_objects()
+    )
+    with pytest.raises(
+        ValidationError, match="Needs to be a dict with 'uuid' as one of its keys"
+    ):
+        parse_obj_as(ConversionMapping, converter.raw_mapping)
 
-    with pytest.raises(IncorrectMapping, match="needs to contain a key called 'uuid'"):
-        converter.raw_mapping = converter.mapping = {
+    converter.raw_mapping.update(
+        {
             "ldap_to_mo": {
                 "Employee": {
                     "objectClass": "ramodels.mo.employee.Employee",
+                    "_import_to_mo_": "true",
                 }
             }
         }
-        converter.check_uuid_refs_in_mo_objects()
+    )
+    with pytest.raises(ValidationError, match="Needs to contain a key called 'uuid'"):
+        parse_obj_as(ConversionMapping, converter.raw_mapping)
 
-    with pytest.raises(
-        IncorrectMapping, match="needs to contain a reference to 'employee_uuid'"
-    ):
-        converter.raw_mapping = converter.mapping = {
+    converter.raw_mapping.update(
+        {
             "ldap_to_mo": {
                 "Employee": {
                     "objectClass": "ramodels.mo.employee.Employee",
                     "uuid": "{{ uuid4() }}",
+                    "_import_to_mo_": "true",
                 }
             }
         }
-        converter.check_uuid_refs_in_mo_objects()
+    )
+    with pytest.raises(
+        ValidationError, match="Needs to contain a reference to 'employee_uuid'"
+    ):
+        parse_obj_as(ConversionMapping, converter.raw_mapping)
 
 
 def test_check_get_uuid_functions(converter: LdapConverter):
@@ -1350,7 +1374,10 @@ def test_import_to_mo_and_export_to_ldap_(converter: LdapConverter):
 def test_check_import_and_export_flags(converter: LdapConverter):
     converter.raw_mapping["username_generator"] = {}
 
-    obj = {"objectClass": "ramodels.mo.employee.Employee"}
+    obj = {
+        "objectClass": "ramodels.mo.employee.Employee",
+        "uuid": "{{ employee_uuid }}",
+    }
 
     converter.raw_mapping.update(
         {
