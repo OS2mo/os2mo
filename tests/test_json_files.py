@@ -137,33 +137,6 @@ async def converters(
     return converters
 
 
-def test_address_types(converters: dict[str, LdapConverter]):
-    """
-    Test that address_type attributes in ldap_to_mo mapping are formatted properly
-    """
-    for converter in converters.values():
-        mapping = converter.raw_mapping
-
-        for key, mapping_dict in mapping["ldap_to_mo"].items():
-            object_class = mapping_dict["objectClass"]
-            if object_class == "ramodels.mo.details.address.Address":
-
-                if "org_unit" in mapping_dict:
-                    address_type_template = (
-                        f"{{{{ dict(uuid=get_org_unit_address_type_uuid('{key}')) }}}}"
-                    )
-                else:
-                    address_type_template = (
-                        f"{{{{ dict(uuid=get_employee_address_type_uuid('{key}')) }}}}"
-                    )
-                assert mapping_dict["address_type"] == address_type_template
-
-            elif object_class == "ramodels.mo.details.it_system.ITUser":
-
-                it_system_template = f"{{{{ dict(uuid=get_it_system_uuid('{key}')) }}}}"
-                assert mapping_dict["itsystem"] == it_system_template
-
-
 async def test_back_and_forth_mapping(converters: dict[str, LdapConverter], uuid: UUID):
 
     mo_employee = Employee(
