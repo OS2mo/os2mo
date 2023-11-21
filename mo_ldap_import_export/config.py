@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 # pylint: disable=too-few-public-methods
 """Settings handling."""
+from typing import Any
 from typing import Literal
 
 from fastramqpi.config import Settings as FastRAMQPISettings
@@ -13,9 +14,12 @@ from pydantic import Extra
 from pydantic import Field
 from pydantic import parse_obj_as
 from pydantic import PositiveInt
+from pydantic import root_validator
 from pydantic import SecretStr
 from pydantic import validator
 from ramqp.config import AMQPConnectionSettings
+
+from .utils import import_class
 
 
 class ServerConfig(BaseModel):
@@ -83,12 +87,111 @@ class Init(MappingBaseModel):
     it_systems: dict[str, str] = {}
 
 
+def get_required_attributes(mo_class) -> set[str]:
+    if "required" not in mo_class.schema().keys():
+        return set()
+    return set(mo_class.schema()["required"])
+
+
+def check_attributes(
+    detected_attributes: set[str], accepted_attributes: set[str]
+) -> None:
+    unacceptable_attributes = detected_attributes - accepted_attributes
+    # SAM Account Name is specifically allowed
+    # TODO: Why?
+    unacceptable_attributes.discard("sAMAccountName")
+    # All extensionAttributes and special attributes are allowed
+    # TODO: Why?
+    unacceptable_attributes = {
+        attribute
+        for attribute in unacceptable_attributes
+        if not attribute.startswith("extensionAttribute")
+        and not attribute.startswith("__")
+    }
+    if unacceptable_attributes:
+        raise ValueError(
+            f"Attributes {unacceptable_attributes} are not allowed. "
+            f"The following attributes are allowed: {accepted_attributes}"
+        )
+
+
 class LDAP2MOMapping(MappingBaseModel):
     class Config:
         extra = Extra.allow
 
     objectClass: str
-    _import_to_mo_: bool
+    import_to_mo: Literal["true", "false", "manual_import_only"] = Field(
+        alias="_import_to_mo_"
+    )
+
+    @validator("import_to_mo", pre=True)
+    def lower_import_to_mo(cls, v: str) -> str:
+        return v.lower()
+
+    @root_validator
+    def check_uuid_refs_in_mo_objects(cls, values: dict[str, Any]) -> dict[str, Any]:
+        # Check that MO objects have a uuid field
+        mo_class = import_class(values["objectClass"])
+
+        properties = mo_class.schema()["properties"]
+        # If we are dealing with an object that links to a person/org_unit
+        # TODO: Add `or "org_unit" in properties`?
+        if "person" in properties:
+            # Either person or org_unit needs to be set
+            has_person = "person" in values
+            has_org_unit = "org_unit" in values
+            if not has_person and not has_org_unit:
+                raise ValueError(
+                    "Either 'person' or 'org_unit' key needs to be present"
+                )
+
+            # Sometimes only one of them can be set
+            required_attributes = get_required_attributes(mo_class)
+            requires_person = "person" in required_attributes
+            requires_org_unit = "org_unit" in required_attributes
+            requires_both = requires_person and requires_org_unit
+            if has_person and has_org_unit and not requires_both:
+                raise ValueError(
+                    "Either 'person' or 'org_unit' key needs to be present. Not both"
+                )
+
+            # TODO: What if both are required?
+            uuid_key = "person" if "person" in values else "org_unit"
+            # And the corresponding item needs to be a dict with an uuid key
+            if "dict(uuid=" not in values[uuid_key].replace(" ", ""):
+                raise ValueError("Needs to be a dict with 'uuid' as one of its keys")
+        # Otherwise: We are dealing with the org_unit/person itself.
+        else:
+            # A field called 'uuid' needs to be present
+            if "uuid" not in values:
+                raise ValueError("Needs to contain a key called 'uuid'")
+            # And it needs to contain a reference to the employee_uuid global
+            if "employee_uuid" not in values["uuid"]:
+                raise ValueError("Needs to contain a reference to 'employee_uuid'")
+        return values
+
+    @root_validator
+    def check_mo_attributes(cls, values: dict[str, Any]) -> dict[str, Any]:
+        mo_class = import_class(values["objectClass"])
+
+        accepted_attributes = set(mo_class.schema()["properties"].keys())
+        detected_attributes = set(values.keys()) - {"objectClass", "import_to_mo"}
+
+        check_attributes(detected_attributes, accepted_attributes)
+
+        required_attributes = get_required_attributes(mo_class)
+        if values["objectClass"] == "ramodels.mo.details.engagement.Engagement":
+            # We require a primary attribute. If primary is not desired you can set
+            # it to {{ NONE }} in the json dict
+            required_attributes.add("primary")
+
+        missing_attributes = required_attributes - detected_attributes
+        if missing_attributes:
+            raise ValueError(
+                f"Missing {missing_attributes} which are mandatory. "
+                f"The following attributes are mandatory: {required_attributes}"
+            )
+        return values
 
 
 class MO2LDAPMapping(MappingBaseModel):
@@ -96,7 +199,11 @@ class MO2LDAPMapping(MappingBaseModel):
         extra = Extra.allow
 
     objectClass: str
-    _import_to_ldap_: bool
+    export_to_ldap: Literal["true", "false", "pause"] = Field(alias="_export_to_ldap_")
+
+    @validator("export_to_ldap", pre=True)
+    def lower_export_to_ldap(cls, v: str) -> str:
+        return v.lower()
 
 
 class UsernameGeneratorConfig(MappingBaseModel):
@@ -119,10 +226,67 @@ class UsernameGeneratorConfig(MappingBaseModel):
 
 
 class ConversionMapping(MappingBaseModel):
-    init: Init | None
+    init: Init = Field(default_factory=Init)
     ldap_to_mo: dict[str, LDAP2MOMapping]
     mo_to_ldap: dict[str, MO2LDAPMapping]
     username_generator: UsernameGeneratorConfig
+
+    @root_validator(skip_on_failure=True)
+    def validate_cross_keys(cls, values: dict[str, Any]) -> dict[str, Any]:
+        # Check that all mo_to_ldap keys are also in ldap_to_mo
+        # Check that all ldap_to_mo keys are also in mo_to_ldap
+        mo_to_ldap_user_keys = set(values["mo_to_ldap"].keys())
+        ldap_to_mo_user_keys = set(values["ldap_to_mo"].keys())
+
+        # Check that all mo_to_ldap keys are also in ldap_to_mo
+        missing_ldap_to_mo = mo_to_ldap_user_keys - ldap_to_mo_user_keys
+        if missing_ldap_to_mo:
+            raise ValueError(f"Missing keys in 'ldap_to_mo': {missing_ldap_to_mo}")
+
+        # Check that all ldap_to_mo keys are also in mo_to_ldap
+        missing_mo_to_ldap = ldap_to_mo_user_keys - mo_to_ldap_user_keys
+        if missing_mo_to_ldap:
+            raise ValueError(f"Missing keys in 'mo_to_ldap': {missing_mo_to_ldap}")
+
+        return values
+
+    @root_validator(skip_on_failure=True)
+    def validate_address_types(cls, values: dict[str, Any]) -> dict[str, Any]:
+        """Ensure that address_type attributes are formatted properly."""
+        for key, ldap2mo in values["ldap_to_mo"].items():
+            object_class = ldap2mo.objectClass
+            match object_class:
+                case "ramodels.mo.details.address.Address":
+                    if hasattr(ldap2mo, "org_unit"):
+                        address_type_template = f"{{{{ dict(uuid=get_org_unit_address_type_uuid('{key}')) }}}}"
+                    else:
+                        address_type_template = f"{{{{ dict(uuid=get_employee_address_type_uuid('{key}')) }}}}"
+                    assert ldap2mo.address_type == address_type_template
+                case "ramodels.mo.details.it_system.ITUser":
+                    it_system_template = (
+                        f"{{{{ dict(uuid=get_it_system_uuid('{key}')) }}}}"
+                    )
+                    assert ldap2mo.itsystem == it_system_template
+        return values
+
+    @root_validator(skip_on_failure=True)
+    def validate_init_entries_used(cls, values: dict[str, Any]) -> dict[str, Any]:
+        """Ensure that all entries created on init are used in mappings."""
+        it_system_user_keys = set(values["init"].it_systems.keys())
+        class_user_keys = {
+            class_user_key
+            for classes in values["init"].facets.values()
+            for class_user_key in classes.keys()
+        }
+
+        init_user_keys = class_user_keys | it_system_user_keys
+        mapped_user_keys = set(values["mo_to_ldap"].keys())
+
+        unutilized_user_keys = init_user_keys - mapped_user_keys
+        if unutilized_user_keys:
+            raise ValueError("Unutilized elements in init configuration")
+
+        return values
 
 
 class Settings(BaseSettings):
@@ -131,7 +295,7 @@ class Settings(BaseSettings):
         env_nested_delimiter = "__"
 
     conversion_mapping: ConversionMapping | None = Field(
-        default_factory=None,  # type: ignore
+        default=None,
         description="Conversion mapping between LDAP and OS2mo",
     )
 

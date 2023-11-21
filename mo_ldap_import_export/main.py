@@ -417,7 +417,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     )
 
     logger.info("Loading mapping file")
-    mapping = get_conversion_map(settings).dict(exclude_unset=True)
+    mapping = get_conversion_map(settings).dict(exclude_unset=True, by_alias=True)
     fastramqpi.add_context(mapping=mapping)
 
     mappings_path = os.path.join(os.path.dirname(__file__), "mappings")

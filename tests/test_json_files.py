@@ -137,55 +137,6 @@ async def converters(
     return converters
 
 
-def test_init_json_keys_in_mapping(converters: dict[str, LdapConverter]):
-    """
-    Checks that all classes which are being created on startup are also used in
-    the mapping
-    """
-    for converter in converters.values():
-        facet_mapping = converter.mapping.get("init", {}).get("facets", {})
-        it_system_mapping = converter.mapping.get("init", {}).get("it_systems", {})
-
-        it_system_json_keys = list(it_system_mapping.keys())
-
-        facet_json_keys = []
-        for facet in facet_mapping.values():
-            facet_json_keys.extend(list(facet.keys()))
-
-        init_json_keys = facet_json_keys + it_system_json_keys
-        mapped_json_keys = converter.get_mo_to_ldap_json_keys()
-
-        for init_json_key in init_json_keys:
-            assert init_json_key in mapped_json_keys
-
-
-def test_address_types(converters: dict[str, LdapConverter]):
-    """
-    Test that address_type attributes in ldap_to_mo mapping are formatted properly
-    """
-    for converter in converters.values():
-        mapping = converter.raw_mapping
-
-        for key, mapping_dict in mapping["ldap_to_mo"].items():
-            object_class = mapping_dict["objectClass"]
-            if object_class == "ramodels.mo.details.address.Address":
-
-                if "org_unit" in mapping_dict:
-                    address_type_template = (
-                        f"{{{{ dict(uuid=get_org_unit_address_type_uuid('{key}')) }}}}"
-                    )
-                else:
-                    address_type_template = (
-                        f"{{{{ dict(uuid=get_employee_address_type_uuid('{key}')) }}}}"
-                    )
-                assert mapping_dict["address_type"] == address_type_template
-
-            elif object_class == "ramodels.mo.details.it_system.ITUser":
-
-                it_system_template = f"{{{{ dict(uuid=get_it_system_uuid('{key}')) }}}}"
-                assert mapping_dict["itsystem"] == it_system_template
-
-
 async def test_back_and_forth_mapping(converters: dict[str, LdapConverter], uuid: UUID):
 
     mo_employee = Employee(
@@ -398,15 +349,3 @@ async def test_objectguid_mappings(converters: dict[str, LdapConverter]):
                     assert UUID(objectGUID)
                     assert objectGUID.startswith("{")
                     assert objectGUID.endswith("}")
-
-
-def test_startup_checks_on_all_json_files(converters: dict[str, LdapConverter]):
-    """
-    Run the startup checks which we can run without being connected to MO or LDAP
-    """
-    for converter in converters.values():
-        converter.cross_check_keys()
-        converter.check_for_objectClass()
-        converter.check_mo_attributes()
-        converter.check_uuid_refs_in_mo_objects()
-        converter.check_import_and_export_flags()

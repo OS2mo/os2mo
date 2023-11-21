@@ -33,7 +33,9 @@ def test_file_and_environmental_variable_conversion_map_equivalence(
     json_result = get_conversion_map(settings)
 
     # Load using environmental variables
-    monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(yaml_result.dict()))
+    monkeypatch.setenv(
+        "CONVERSION_MAPPING", json.dumps(yaml_result.dict(by_alias=True))
+    )
     settings = Settings()
     env_result = get_conversion_map(settings)
 

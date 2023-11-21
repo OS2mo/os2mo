@@ -258,20 +258,6 @@ class LdapConverter:
 
         return accepted_json_keys
 
-    def cross_check_keys(self):
-        mo_to_ldap_json_keys = self.get_mo_to_ldap_json_keys()
-        ldap_to_mo_json_keys = self.get_ldap_to_mo_json_keys()
-
-        # Check that all mo_to_ldap keys are also in ldap_to_mo
-        for json_key in mo_to_ldap_json_keys:
-            if json_key not in ldap_to_mo_json_keys:
-                raise IncorrectMapping(f"Missing key in 'ldap_to_mo': '{json_key}'")
-
-        # Check that all ldap_to_mo keys are also in mo_to_ldap
-        for json_key in ldap_to_mo_json_keys:
-            if json_key not in mo_to_ldap_json_keys:
-                raise IncorrectMapping(f"Missing key in 'mo_to_ldap': '{json_key}'")
-
     def check_key_validity(self):
         mo_to_ldap_json_keys = self.get_mo_to_ldap_json_keys()
         ldap_to_mo_json_keys = self.get_ldap_to_mo_json_keys()
@@ -290,17 +276,6 @@ class LdapConverter:
                 )
         logger.info("[json check] Keys OK")
 
-    def check_for_objectClass(self):
-        for conversion in ["mo_to_ldap", "ldap_to_mo"]:
-            for json_key in self.get_json_keys(conversion):
-                if "objectClass" not in list(
-                    self.raw_mapping[conversion][json_key].keys()
-                ):
-                    raise IncorrectMapping(
-                        "'objectClass' key not present in"
-                        f" ['{conversion}']['{json_key}'] json dict"
-                    )
-
     def get_required_attributes(self, mo_class):
         if "required" in mo_class.schema().keys():
             required_attributes = mo_class.schema()["required"]
@@ -308,32 +283,6 @@ class LdapConverter:
             required_attributes = []
 
         return required_attributes
-
-    def check_mo_attributes(self):
-
-        ldap_to_mo_json_keys = self.get_ldap_to_mo_json_keys()
-        for json_key in ldap_to_mo_json_keys:
-            logger.info(f"[json check] checking ldap_to_mo[{json_key}]")
-
-            mo_class = self.import_mo_object_class(json_key)
-
-            accepted_attributes = list(mo_class.schema()["properties"].keys())
-            detected_attributes = self.get_mo_attributes(json_key)
-            self.check_attributes(detected_attributes, accepted_attributes)
-            required_attributes = self.get_required_attributes(mo_class).copy()
-
-            if json_key == "Engagement":
-                # We require a primary attribute. If primary is not desired you can set
-                # it to {{ NONE }} in the json dict
-                required_attributes.append("primary")
-
-            for attribute in required_attributes:
-                if attribute not in detected_attributes:
-                    raise IncorrectMapping(
-                        f"attribute '{attribute}' is mandatory. "
-                        f"The following attributes are mandatory: "
-                        f"{required_attributes}"
-                    )
 
     @staticmethod
     def clean_get_current_method_from_template_string(template_string):
@@ -487,7 +436,7 @@ class LdapConverter:
             accepted_attributes = sorted(
                 list(self.overview[object_class]["attributes"].keys()) + ["dn"]
             )
-            for key, value in raw_mapping[json_key].items():
+            for value in raw_mapping[json_key].values():
                 if type(value) is not str:
                     continue
                 if "ldap." in value:
@@ -496,58 +445,6 @@ class LdapConverter:
                     for ldap_ref in ldap_refs:
                         ldap_attribute = re.split(invalid_chars_regex, ldap_ref)[0]
                         self.check_attributes([ldap_attribute], accepted_attributes)
-
-    def check_uuid_refs_in_mo_objects(self):
-        raw_mapping = self.raw_mapping["ldap_to_mo"]
-        for json_key in self.get_ldap_to_mo_json_keys():
-            object_class = self.import_mo_object_class(json_key)
-            mapping_dict = raw_mapping[json_key]
-            schema = object_class.schema()
-            if "required" in schema:
-                required_attributes = object_class.schema()["required"]
-            else:
-                required_attributes = []
-
-            # If we are dealing with an object that links to a person/org_unit
-            if "person" in schema["properties"]:
-                # either person or org_unit needs to be in the dict
-                if "person" not in mapping_dict and "org_unit" not in mapping_dict:
-                    raise IncorrectMapping(
-                        "Either 'person' or 'org_unit' key needs to be present in "
-                        f"ldap_to_mo['{json_key}']"
-                    )
-                if "person" in mapping_dict and "org_unit" in mapping_dict:
-                    if not (
-                        "person" in required_attributes
-                        and "org_unit" in required_attributes
-                    ):
-                        raise IncorrectMapping(
-                            "Either 'person' or 'org_unit' key needs to be present "
-                            f"in ldap_to_mo['{json_key}']. Not both"
-                        )
-                uuid_key = "person" if "person" in mapping_dict else "org_unit"
-
-                # And the corresponding item needs to be a dict with an uuid key
-                if "dict(uuid=" not in mapping_dict[uuid_key].replace(" ", ""):
-                    raise IncorrectMapping(
-                        f"ldap_to_mo['{json_key}']['{uuid_key}'] needs to be a "
-                        f"dict with 'uuid' as one of it's keys"
-                    )
-
-            # Otherwise: We are dealing with the org_unit/person itself.
-            else:
-                # A field called 'uuid' needs to be present
-                if "uuid" not in mapping_dict:
-                    raise IncorrectMapping(
-                        f"ldap_to_mo['{json_key}'] needs to contain a key called 'uuid'"
-                    )
-
-                # And it needs to contain a reference to the employee_uuid global
-                if "employee_uuid" not in mapping_dict["uuid"]:
-                    raise IncorrectMapping(
-                        f"ldap_to_mo['{json_key}']['uuid'] needs to contain a "
-                        "reference to 'employee_uuid'"
-                    )
 
     def check_get_uuid_functions(self):
 
@@ -595,39 +492,6 @@ class LdapConverter:
                                     f"={template}"
                                 )
 
-    def check_import_and_export_flags(self):
-        """
-        Checks that '_import_to_mo_' and '_export_to_ldap_' keys are present in
-        the json dict
-        """
-
-        expected_key_dict = {
-            "ldap_to_mo": "_import_to_mo_",
-            "mo_to_ldap": "_export_to_ldap_",
-        }
-
-        for conversion in ["ldap_to_mo", "mo_to_ldap"]:
-            ie_key = expected_key_dict[conversion]
-
-            if conversion == "ldap_to_mo":
-                accepted_strings = ["true", "false", "manual_import_only"]
-            elif conversion == "mo_to_ldap":
-                accepted_strings = ["true", "false", "pause"]
-
-            for json_key in self.get_json_keys(conversion):
-                if ie_key not in self.raw_mapping[conversion][json_key]:
-                    raise IncorrectMapping(
-                        f"Missing '{ie_key}' key in {conversion}['{json_key}']"
-                    )
-                if (
-                    self.raw_mapping[conversion][json_key][ie_key].lower()
-                    not in accepted_strings
-                ):
-                    raise IncorrectMapping(
-                        f"{conversion}['{json_key}']['{ie_key}'] "
-                        f"is not among {accepted_strings}"
-                    )
-
     async def check_cpr_field_or_it_system(self):
         """
         Check that we have either a cpr-field OR an it-system which maps to an LDAP DN
@@ -643,18 +507,8 @@ class LdapConverter:
     async def check_mapping(self):
         logger.info("[json check] Checking json file")
 
-        # Check that all mo_to_ldap keys are also in ldap_to_mo
-        # Check that all ldap_to_mo keys are also in mo_to_ldap
-        self.cross_check_keys()
-
         # Check to make sure that all keys are valid
         self.check_key_validity()
-
-        # Check that the 'objectClass' key is always present
-        self.check_for_objectClass()
-
-        # check that the MO address attributes match the specified class
-        self.check_mo_attributes()
 
         # check that the LDAP attributes match what is available in LDAP
         self.check_ldap_attributes()
@@ -672,14 +526,8 @@ class LdapConverter:
         # Check that fields referred to in ldap_to_mo actually exist in LDAP
         self.check_ldap_to_mo_references()
 
-        # Check that MO objects have a uuid field
-        self.check_uuid_refs_in_mo_objects()
-
         # Check that get_..._uuid functions have valid input strings
         self.check_get_uuid_functions()
-
-        # Check for import and export flags
-        self.check_import_and_export_flags()
 
         # Check to see if there is an existing link between LDAP and MO
         await self.check_cpr_field_or_it_system()
