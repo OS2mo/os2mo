@@ -544,39 +544,6 @@ class LdapConverter:
                                     f"={template}"
                                 )
 
-    def check_import_and_export_flags(self):
-        """
-        Checks that '_import_to_mo_' and '_export_to_ldap_' keys are present in
-        the json dict
-        """
-
-        expected_key_dict = {
-            "ldap_to_mo": "_import_to_mo_",
-            "mo_to_ldap": "_export_to_ldap_",
-        }
-
-        for conversion in ["ldap_to_mo", "mo_to_ldap"]:
-            ie_key = expected_key_dict[conversion]
-
-            if conversion == "ldap_to_mo":
-                accepted_strings = ["true", "false", "manual_import_only"]
-            elif conversion == "mo_to_ldap":
-                accepted_strings = ["true", "false", "pause"]
-
-            for json_key in self.get_json_keys(conversion):
-                if ie_key not in self.raw_mapping[conversion][json_key]:
-                    raise IncorrectMapping(
-                        f"Missing '{ie_key}' key in {conversion}['{json_key}']"
-                    )
-                if (
-                    self.raw_mapping[conversion][json_key][ie_key].lower()
-                    not in accepted_strings
-                ):
-                    raise IncorrectMapping(
-                        f"{conversion}['{json_key}']['{ie_key}'] "
-                        f"is not among {accepted_strings}"
-                    )
-
     async def check_cpr_field_or_it_system(self):
         """
         Check that we have either a cpr-field OR an it-system which maps to an LDAP DN
@@ -616,9 +583,6 @@ class LdapConverter:
 
         # Check that get_..._uuid functions have valid input strings
         self.check_get_uuid_functions()
-
-        # Check for import and export flags
-        self.check_import_and_export_flags()
 
         # Check to see if there is an existing link between LDAP and MO
         await self.check_cpr_field_or_it_system()

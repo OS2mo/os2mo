@@ -613,11 +613,13 @@ async def test_cross_check_keys(converter: LdapConverter):
     converter.raw_mapping["username_generator"] = {}
 
     obj = {"objectClass": "ramodels.mo.employee.Employee"}
+    mo_obj = {**obj, "_export_to_ldap_": "true"}
+    ldap_obj = {**obj, "_import_to_mo_": "true"}
 
     converter.raw_mapping.update(
         {
-            "ldap_to_mo": {"foo": obj, "bar": obj},
-            "mo_to_ldap": {"bar": obj},
+            "ldap_to_mo": {"foo": ldap_obj, "bar": ldap_obj},
+            "mo_to_ldap": {"bar": mo_obj},
         }
     )
     with pytest.raises(ValidationError, match="Missing keys in 'mo_to_ldap'"):
@@ -625,8 +627,8 @@ async def test_cross_check_keys(converter: LdapConverter):
 
     converter.raw_mapping.update(
         {
-            "ldap_to_mo": {"foo": obj},
-            "mo_to_ldap": {"foo": obj, "bar": obj},
+            "ldap_to_mo": {"foo": ldap_obj},
+            "mo_to_ldap": {"foo": mo_obj, "bar": mo_obj},
         }
     )
     with pytest.raises(ValidationError, match="Missing keys in 'ldap_to_mo'"):
@@ -1346,41 +1348,60 @@ def test_import_to_mo_and_export_to_ldap_(converter: LdapConverter):
 
 
 def test_check_import_and_export_flags(converter: LdapConverter):
-    converter.raw_mapping = converter.mapping = {
-        "mo_to_ldap": {
-            "Employee": {"_export_to_ldap_": "t"},
-        },
-        "ldap_to_mo": {
-            "Employee": {"_import_to_mo_": "f"},
-        },
-    }
+    converter.raw_mapping["username_generator"] = {}
 
-    with pytest.raises(IncorrectMapping, match="not among"):
-        converter.check_import_and_export_flags()
+    obj = {"objectClass": "ramodels.mo.employee.Employee"}
 
-    converter.raw_mapping = converter.mapping = {
-        "mo_to_ldap": {
-            "Employee": {"_export_to_ldap_": "True"},
-        },
-        "ldap_to_mo": {
-            "Employee": {},
-        },
-    }
+    converter.raw_mapping.update(
+        {
+            "mo_to_ldap": {
+                "Employee": {**obj, "_export_to_ldap_": "t"},
+            },
+            "ldap_to_mo": {
+                "Employee": {**obj, "_import_to_mo_": "f"},
+            },
+        }
+    )
+    with pytest.raises(ValidationError, match="unexpected value; permitted: "):
+        parse_obj_as(ConversionMapping, converter.raw_mapping)
 
-    with pytest.raises(IncorrectMapping, match="Missing '_import_to_mo_' key"):
-        converter.check_import_and_export_flags()
+    converter.raw_mapping.update(
+        {
+            "mo_to_ldap": {
+                "Employee": {**obj, "_export_to_ldap_": "true"},
+            },
+            "ldap_to_mo": {
+                "Employee": obj,
+            },
+        }
+    )
+    with pytest.raises(ValidationError, match="_import_to_mo_\n  field required"):
+        parse_obj_as(ConversionMapping, converter.raw_mapping)
 
-    converter.raw_mapping = converter.mapping = {
-        "mo_to_ldap": {
-            "Employee": {},
-        },
-        "ldap_to_mo": {
-            "Employee": {"_import_to_mo_": "True"},
-        },
-    }
+    converter.raw_mapping.update(
+        {
+            "mo_to_ldap": {
+                "Employee": obj,
+            },
+            "ldap_to_mo": {
+                "Employee": {**obj, "_import_to_mo_": "true"},
+            },
+        }
+    )
+    with pytest.raises(ValidationError, match="_export_to_ldap_\n  field required"):
+        parse_obj_as(ConversionMapping, converter.raw_mapping)
 
-    with pytest.raises(IncorrectMapping, match="Missing '_export_to_ldap_' key"):
-        converter.check_import_and_export_flags()
+    converter.raw_mapping.update(
+        {
+            "mo_to_ldap": {
+                "Employee": {**obj, "_export_to_ldap_": "True"},
+            },
+            "ldap_to_mo": {
+                "Employee": {**obj, "_import_to_mo_": "True"},
+            },
+        }
+    )
+    parse_obj_as(ConversionMapping, converter.raw_mapping)
 
 
 async def test_find_ldap_it_system():

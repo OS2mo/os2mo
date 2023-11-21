@@ -120,14 +120,20 @@ class LDAP2MOMapping(MappingBaseModel):
         extra = Extra.allow
 
     objectClass: str
-    _import_to_mo_: bool
+    import_to_mo: Literal["true", "false", "manual_import_only"] = Field(
+        alias="_import_to_mo_"
+    )
+
+    @validator("import_to_mo", pre=True)
+    def lower_import_to_mo(cls, v: str) -> str:
+        return v.lower()
 
     @root_validator
     def check_mo_attributes(cls, values: dict[str, Any]) -> dict[str, Any]:
         mo_class = import_class(values["objectClass"])
 
         accepted_attributes = set(mo_class.schema()["properties"].keys())
-        detected_attributes = set(values.keys()) - {"objectClass", "_import_to_mo_"}
+        detected_attributes = set(values.keys()) - {"objectClass", "import_to_mo"}
 
         check_attributes(detected_attributes, accepted_attributes)
 
@@ -151,7 +157,11 @@ class MO2LDAPMapping(MappingBaseModel):
         extra = Extra.allow
 
     objectClass: str
-    _import_to_ldap_: bool
+    export_to_ldap: Literal["true", "false", "pause"] = Field(alias="_export_to_ldap_")
+
+    @validator("export_to_ldap", pre=True)
+    def lower_export_to_ldap(cls, v: str) -> str:
+        return v.lower()
 
 
 class UsernameGeneratorConfig(MappingBaseModel):

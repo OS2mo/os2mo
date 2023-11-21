@@ -357,4 +357,3 @@ def test_startup_checks_on_all_json_files(converters: dict[str, LdapConverter]):
     """
     for converter in converters.values():
         converter.check_uuid_refs_in_mo_objects()
-        converter.check_import_and_export_flags()
