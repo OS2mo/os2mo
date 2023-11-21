@@ -353,7 +353,7 @@ username_generator:
 
     # If we get to here, we failed to make a username with only a single
     # character for the first name
-    #
+
     - FF11
     - FF12
     - FF22
@@ -421,7 +421,7 @@ username_generator:
     - FL
     - FLX
 
-      # If we get to here, we failed to make a username that includes last-name
+    # If we get to here, we failed to make a username that includes last-name
     - FFF
     - FF
     - FFX
