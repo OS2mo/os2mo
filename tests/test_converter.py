@@ -16,11 +16,15 @@ import yaml
 from fastramqpi.context import Context
 from jinja2 import Environment
 from jinja2 import Undefined
+from pydantic import parse_obj_as
+from pydantic import ValidationError
 from ramodels.mo import Employee
 from ramodels.mo.details.engagement import Engagement
 from ramqp.utils import RequeueMessage
 from structlog.testing import capture_logs
 
+from mo_ldap_import_export.config import ConversionMapping
+from mo_ldap_import_export.config import MO2LDAPMapping
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
 from mo_ldap_import_export.converters import LdapConverter
@@ -645,16 +649,16 @@ async def test_check_key_validity(converter: LdapConverter):
 
 
 async def test_check_for_objectClass(converter: LdapConverter):
+
+    with pytest.raises(ValidationError, match="objectClass\n  field required"):
+        parse_obj_as(MO2LDAPMapping, {"foo": {}})
+
     converter.raw_mapping = {
         "ldap_to_mo": {"foo": {"objectClass": "foo"}},
         "mo_to_ldap": {"foo": {}},
     }
-    with patch(
-        "mo_ldap_import_export.converters.LdapConverter.get_json_keys",
-        return_value=["foo"],
-    ):
-        with pytest.raises(IncorrectMapping, match="'objectClass' key not present"):
-            converter.check_for_objectClass()
+    with pytest.raises(ValidationError, match="objectClass\n  field required"):
+        parse_obj_as(ConversionMapping, converter.raw_mapping)
 
 
 async def test_check_mo_attributes(converter: LdapConverter):

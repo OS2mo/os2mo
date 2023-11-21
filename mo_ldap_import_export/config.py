@@ -126,7 +126,7 @@ class ConversionMapping(MappingBaseModel):
     mo_to_ldap: dict[str, MO2LDAPMapping]
     username_generator: UsernameGeneratorConfig
 
-    @root_validator
+    @root_validator(skip_on_failure=True)
     def validate_address_types(cls, values: dict[str, Any]) -> dict[str, Any]:
         """Ensure that address_type attributes are formatted properly."""
         for key, ldap2mo in values["ldap_to_mo"].items():
@@ -145,7 +145,7 @@ class ConversionMapping(MappingBaseModel):
                     assert ldap2mo.itsystem == it_system_template
         return values
 
-    @root_validator
+    @root_validator(skip_on_failure=True)
     def validate_init_entries_used(cls, values: dict[str, Any]) -> dict[str, Any]:
         """Ensure that all entries created on init are used in mappings."""
         it_system_user_keys = set(values["init"].it_systems.keys())

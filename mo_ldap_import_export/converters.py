@@ -290,17 +290,6 @@ class LdapConverter:
                 )
         logger.info("[json check] Keys OK")
 
-    def check_for_objectClass(self):
-        for conversion in ["mo_to_ldap", "ldap_to_mo"]:
-            for json_key in self.get_json_keys(conversion):
-                if "objectClass" not in list(
-                    self.raw_mapping[conversion][json_key].keys()
-                ):
-                    raise IncorrectMapping(
-                        "'objectClass' key not present in"
-                        f" ['{conversion}']['{json_key}'] json dict"
-                    )
-
     def get_required_attributes(self, mo_class):
         if "required" in mo_class.schema().keys():
             required_attributes = mo_class.schema()["required"]
@@ -649,9 +638,6 @@ class LdapConverter:
 
         # Check to make sure that all keys are valid
         self.check_key_validity()
-
-        # Check that the 'objectClass' key is always present
-        self.check_for_objectClass()
 
         # check that the MO address attributes match the specified class
         self.check_mo_attributes()
