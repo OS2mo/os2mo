@@ -32,4 +32,3 @@ services:
 networks:
   os2mo_default:
     external: true
-

@@ -1,5 +1,4 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
-#
 # SPDX-License-Identifier: MPL-2.0
 # pylint: disable=redefined-outer-name
 # pylint: disable=unused-argument
@@ -7,8 +6,8 @@
 import asyncio
 import datetime
 import re
+from collections.abc import Collection
 from collections.abc import Iterator
-from typing import Collection
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch

@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.logging import logger

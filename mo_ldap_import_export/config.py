@@ -1,9 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
-#
 # SPDX-License-Identifier: MPL-2.0
 # pylint: disable=too-few-public-methods
 """Settings handling."""
-from typing import List
 from typing import Literal
 
 from fastramqpi.config import Settings as FastRAMQPISettings
@@ -71,7 +69,7 @@ class Settings(BaseSettings):
         env_nested_delimiter = "__"
 
     internal_amqp: InternalAMQPConnectionSettings = Field(
-        default_factory=InternalAMQPConnectionSettings,
+        default_factory=InternalAMQPConnectionSettings,  # type: ignore
         description="Internal amqp settings",
     )
 
@@ -111,14 +109,14 @@ class Settings(BaseSettings):
     ldap_search_base: str = Field(
         ..., description="Search base to utilize for all LDAP requests"
     )
-    ldap_ous_to_search_in: List[str] = Field(
+    ldap_ous_to_search_in: list[str] = Field(
         [""],
         description=(
             "List of OUs to search in. If this contains an empty string; "
             "Searches in all OUs in the search base"
         ),
     )
-    ldap_ous_to_write_to: List[str] = Field(
+    ldap_ous_to_write_to: list[str] = Field(
         [""],
         description=(
             "List of OUs to write to. If this contains an empty string; "
@@ -190,6 +188,6 @@ class Settings(BaseSettings):
         None, description="The field to look for discriminator values in"
     )
 
-    discriminator_values: List[str] = Field(
+    discriminator_values: list[str] = Field(
         [], description="The values used for discrimination"
     )

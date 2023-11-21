@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
 # -*- coding: utf-8 -*-
 """
 Created on Fri Oct 28 11:03:16 2022
@@ -12,8 +14,6 @@ import re
 import time
 from collections.abc import Iterator
 from typing import Any
-from typing import Dict
-from typing import List
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -284,10 +284,10 @@ async def test_make_nested_ldap_object(cpr_field: str, context: Context):
         ldap_object = make_ldap_object(response, context, nest=True)
 
     # harry is an Employee because he has a cpr no.
-    assert type(ldap_object) == LdapObject
+    assert isinstance(ldap_object, LdapObject)
 
     # The manager is generic because she does not have a cpr no.
-    assert type(ldap_object.manager) == LdapObject  # type: ignore
+    assert isinstance(ldap_object.manager, LdapObject)  # type: ignore
 
     # The manager's buddies are dns because we only nest 1 level
     assert is_dn(ldap_object.manager.best_friend) is True  # type: ignore
@@ -295,9 +295,9 @@ async def test_make_nested_ldap_object(cpr_field: str, context: Context):
     assert is_dn(ldap_object.manager.buddies[1]) is True  # type: ignore
 
     # The band members are generic because they do not have a cpr no.
-    assert type(ldap_object.band_members) == list  # type: ignore
-    assert type(ldap_object.band_members[0]) == LdapObject  # type: ignore
-    assert type(ldap_object.band_members[1]) == LdapObject  # type: ignore
+    assert isinstance(ldap_object.band_members, list)  # type: ignore
+    assert isinstance(ldap_object.band_members[0], LdapObject)  # type: ignore
+    assert isinstance(ldap_object.band_members[1], LdapObject)  # type: ignore
 
 
 async def test_get_ldap_attributes():
@@ -369,7 +369,7 @@ async def test_paged_search_no_results(
     # Mock data
     dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
 
-    expected_results: List[Dict] = []
+    expected_results: list[dict] = []
 
     # Mock LDAP connection
     ldap_connection.response = expected_results
@@ -698,9 +698,9 @@ async def test_setup_poller(context: Context):
 
 
 def test_poller(
-    load_settings_overrides: Dict[str, str], ldap_connection: MagicMock
+    load_settings_overrides: dict[str, str], ldap_connection: MagicMock
 ) -> None:
-    hits: List[str] = []
+    hits: list[str] = []
 
     def listener(event):
         cpr_no = event.get("attributes", {}).get("cpr_no", None)
@@ -738,7 +738,7 @@ def test_poller(
 
 
 def test_poller_invalidQuery(
-    load_settings_overrides: Dict[str, str], ldap_connection: MagicMock
+    load_settings_overrides: dict[str, str], ldap_connection: MagicMock
 ) -> None:
     def listener(event):
         pass

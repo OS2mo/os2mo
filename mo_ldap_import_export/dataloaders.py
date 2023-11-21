@@ -1,11 +1,9 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
-#
 # SPDX-License-Identifier: MPL-2.0
 """Dataloaders to bulk requests."""
 import datetime
 from typing import Any
 from typing import cast
-from typing import Union
 from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
@@ -83,11 +81,9 @@ class DataLoader:
         for key, value in result.items():
             if "objects" in value and len(value["objects"]) == 0:
                 raise NoObjectsReturnedException(
-                    (
-                        f"query_result['{key}'] is empty. "
-                        f"Does the '{key}' object still exist as a current object? "
-                        f"Does the '{key}' object exist in MO?"
-                    )
+                    f"query_result['{key}'] is empty. "
+                    f"Does the '{key}' object still exist as a current object? "
+                    f"Does the '{key}' object exist in MO?"
                 )
 
     @property
@@ -233,7 +229,7 @@ class DataLoader:
             searchParameters,
             search_base=search_base,
         )
-        return sorted(set([str(r["attributes"][attribute]) for r in responses]))
+        return sorted({str(r["attributes"][attribute]) for r in responses})
 
     def load_ldap_cpr_object(
         self,
@@ -314,10 +310,9 @@ class DataLoader:
     def modify_ldap(
         self,
         dn: str,
-        changes: Union[
-            dict[str, list[tuple[str, list[str]]]],
-            dict[str, list[tuple[str, str]]],
-        ],
+        changes: (
+            dict[str, list[tuple[str, list[str]]]] | dict[str, list[tuple[str, str]]]
+        ),
     ):
         """
         Modifies LDAP and adds the dn to dns_to_ignore
@@ -414,7 +409,7 @@ class DataLoader:
         self,
         json_key: str,
         additional_attributes: list[str] = [],
-        search_base: Union[str, None] = None,
+        search_base: str | None = None,
     ) -> list[LdapObject]:
         """
         Returns list with desired ldap objects
@@ -443,7 +438,7 @@ class DataLoader:
 
         return output
 
-    def load_ldap_OUs(self, search_base: Union[str, None] = None) -> dict:
+    def load_ldap_OUs(self, search_base: str | None = None) -> dict:
         """
         Returns a dictionary where the keys are OU strings and the items are dicts
         which contain information about the OU
@@ -731,7 +726,7 @@ class DataLoader:
         """
         Like load_ldap_overview but only returns fields which actually contain data
         """
-        nan_values: list[Union[None, list]] = [None, []]
+        nan_values: list[None | list] = [None, []]
 
         output = {}
         overview = self.load_ldap_overview()
@@ -770,7 +765,7 @@ class DataLoader:
 
         return output
 
-    def _return_mo_employee_uuid_result(self, result: dict) -> Union[None, UUID]:
+    def _return_mo_employee_uuid_result(self, result: dict) -> None | UUID:
         number_of_employees = len(result.get("employees", {}).get("objects", []))
         number_of_itusers = len(result["itusers"]["objects"])
         error_message = hide_cpr(f"Multiple matching employees in {result}")
@@ -796,7 +791,7 @@ class DataLoader:
         else:
             raise exception
 
-    async def find_mo_employee_uuid(self, dn: str) -> Union[None, UUID]:
+    async def find_mo_employee_uuid(self, dn: str) -> None | UUID:
         cpr_field = self.user_context["cpr_field"]
         if cpr_field:
             ldap_object = self.load_ldap_object(dn, [cpr_field])
@@ -981,10 +976,8 @@ class DataLoader:
         # If there are multiple LDAP-it-users: Make some noise until this is fixed in MO
         if ldap_it_system_exists and len(dns) > 1:
             raise MultipleObjectsReturnedException(
-                (
-                    f"Could not find DN for employee with uuid = {uuid}; "
-                    f"Found multiple DNs for this employee: {dns}"
-                )
+                f"Could not find DN for employee with uuid = {uuid}; "
+                f"Found multiple DNs for this employee: {dns}"
             )
         # If there are no LDAP-it-users with valid dns, we generate a dn and create one.
         elif ldap_it_system_exists and len(dns) == 0:
@@ -1013,11 +1006,9 @@ class DataLoader:
         # Number we can end up here.
         else:
             raise DNNotFound(
-                (
-                    f"Could not find or generate DN for empoyee with uuid = '{uuid}' "
-                    "The LDAP it-system does not exist and a cpr-match could "
-                    "also not be obtained"
-                )
+                f"Could not find or generate DN for empoyee with uuid = '{uuid}' "
+                "The LDAP it-system does not exist and a cpr-match could "
+                "also not be obtained"
             )
 
     @staticmethod
@@ -1840,10 +1831,8 @@ class DataLoader:
                         service_type = "org_unit"
                     else:
                         raise InvalidQueryResponse(
-                            (
-                                f"{mo_object} object type '{object_type}' is "
-                                "neither 'employees' nor 'org_units'"
-                            )
+                            f"{mo_object} object type '{object_type}' is "
+                            "neither 'employees' nor 'org_units'"
                         )
 
                 mo_object["payload"] = UUID(mo_object["uuid"])

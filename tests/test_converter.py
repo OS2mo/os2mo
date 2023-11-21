@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
 import copy
 import datetime
 import os.path
@@ -669,10 +671,8 @@ async def test_check_mo_attributes(converter: LdapConverter):
         with pytest.raises(
             IncorrectMapping,
             match=(
-                (
-                    "attribute .* is mandatory. "
-                    "The following attributes are mandatory: .*primary.*"
-                )
+                "attribute .* is mandatory. "
+                "The following attributes are mandatory: .*primary.*"
             ),
         ):
             converter.check_mo_attributes()

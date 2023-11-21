@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
 from uuid import UUID
 
 from fastramqpi.context import Context
@@ -66,10 +67,8 @@ class ExportChecks:
 
         if not it_users:
             raise IgnoreChanges(
-                (
-                    f"employee with uuid = {employee_uuid} "
-                    f"does not have an it-user with user_key = {it_system_user_key}"
-                )
+                f"employee with uuid = {employee_uuid} "
+                f"does not have an it-user with user_key = {it_system_user_key}"
             )
 
 

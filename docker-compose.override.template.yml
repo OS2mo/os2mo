@@ -4,5 +4,3 @@ services:
       environment:
         LDAP_USER: "ini"
         LDAP_PASSWORD: "..."
-
-

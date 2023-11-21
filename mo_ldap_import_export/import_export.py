@@ -1,5 +1,4 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
-#
 # SPDX-License-Identifier: MPL-2.0
 """
 Created on Fri Mar  3 09:46:15 2023
@@ -8,10 +7,9 @@ Created on Fri Mar  3 09:46:15 2023
 """
 import asyncio
 import datetime
+from collections.abc import Callable
 from functools import wraps
 from typing import Any
-from typing import Callable
-from typing import Union
 from uuid import UUID
 from uuid import uuid4
 
@@ -34,7 +32,7 @@ class IgnoreMe:
     def __init__(self):
         self.ignore_dict: dict[str, list[datetime.datetime]] = {}
 
-    def __getitem__(self, key: Union[str, UUID]) -> list[datetime.datetime]:
+    def __getitem__(self, key: str | UUID) -> list[datetime.datetime]:
         key = self.format_entry(key)
         if key in self.ignore_dict:
             return self.ignore_dict[key]
@@ -44,7 +42,7 @@ class IgnoreMe:
     def __len__(self):
         return len(self.ignore_dict)
 
-    def format_entry(self, entry: Union[str, UUID]) -> str:
+    def format_entry(self, entry: str | UUID) -> str:
         if type(entry) is not str:
             entry = str(entry)
         return entry.lower()
@@ -68,7 +66,7 @@ class IgnoreMe:
         # Remove keys with empty lists
         self.ignore_dict = {k: v for k, v in self.ignore_dict.items() if v}
 
-    def add(self, str_to_add: Union[str, UUID]):
+    def add(self, str_to_add: str | UUID):
         # Add a string to the ignore dict
         str_to_add = self.format_entry(str_to_add)
 
@@ -77,7 +75,7 @@ class IgnoreMe:
         else:
             self.ignore_dict[str_to_add] = [datetime.datetime.now()]
 
-    def remove(self, str_to_remove: Union[str, UUID]):
+    def remove(self, str_to_remove: str | UUID):
         str_to_remove = self.format_entry(str_to_remove)
 
         if str_to_remove in self.ignore_dict:
@@ -85,7 +83,7 @@ class IgnoreMe:
             newest_timestamp = max(self.ignore_dict[str_to_remove])
             self.ignore_dict[str_to_remove].remove(newest_timestamp)
 
-    def check(self, str_to_check: Union[str, UUID]):
+    def check(self, str_to_check: str | UUID):
         # Raise ignoreChanges if the string to check is in self.ignore_dict
         str_to_check = self.format_entry(str_to_check)
         self.clean()
@@ -608,10 +606,8 @@ class SyncTool:
 
             if ldap_object_class != employee_object_class:
                 raise NotSupportedException(
-                    (
-                        "Mapping organization unit addresses "
-                        "to non-employee objects is not supported"
-                    )
+                    "Mapping organization unit addresses "
+                    "to non-employee objects is not supported"
                 )
 
             affected_employees = set(
@@ -669,11 +665,9 @@ class SyncTool:
                 )
             else:
                 logger.info(
-                    (
-                        "[Format-converted-objects] Could not format converted "
-                        "objects: An address needs to have either a person uuid "
-                        "OR an org unit uuid"
-                    )
+                    "[Format-converted-objects] Could not format converted "
+                    "objects: An address needs to have either a person uuid "
+                    "OR an org unit uuid"
                 )
                 return []
             value_key = "value"
@@ -703,10 +697,8 @@ class SyncTool:
                         user_key=primary_engagement.user_key,
                     )
                     logger.info(
-                        (
-                            "[Format-converted-objects] Removing engagements "
-                            "with identical user keys"
-                        )
+                        "[Format-converted-objects] Removing engagements "
+                        "with identical user keys"
                     )
                     objects_in_mo = [
                         o
@@ -765,10 +757,8 @@ class SyncTool:
                         and key in converted_mo_object_dict.keys()
                     ):
                         logger.info(
-                            (
-                                "[Format-converted-objects] Setting "
-                                f"{key} = {converted_mo_object_dict[key]}"
-                            )
+                            "[Format-converted-objects] Setting "
+                            f"{key} = {converted_mo_object_dict[key]}"
                         )
                         mo_object_dict_to_upload[key] = converted_mo_object_dict[key]
 
@@ -779,10 +769,8 @@ class SyncTool:
                 # to be uploaded.
                 if converted_object_uuid_checked == matching_object:
                     logger.info(
-                        (
-                            "[Format-converted-objects] Converted object is identical "
-                            "to existing object. Skipping."
-                        )
+                        "[Format-converted-objects] Converted object is identical "
+                        "to existing object. Skipping."
                     )
                 else:
                     converted_objects_uuid_checked.append(converted_object_uuid_checked)

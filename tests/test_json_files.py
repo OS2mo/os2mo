@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
 # -*- coding: utf-8 -*-
 import os
 from typing import Any
@@ -67,10 +69,8 @@ async def converters(
             return str(uuid)
         else:
             raise Exception(
-                (
-                    f"Attempting to find org-unit uuid for '{org_unit_string}'. "
-                    f"But expecting '{expected_path}'"
-                )
+                f"Attempting to find org-unit uuid for '{org_unit_string}'. "
+                f"But expecting '{expected_path}'"
             )
 
     for json_filename in json_filenames:
@@ -102,7 +102,7 @@ async def converters(
             return_value=str(uuid),
         ), patch(
             "mo_ldap_import_export.converters.LdapConverter.get_org_unit_path_string",
-            return_value=str("org/unit/path"),
+            return_value="org/unit/path",
         ):
             converter = LdapConverter(context)
             await converter._init()

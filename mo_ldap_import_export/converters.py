@@ -1,5 +1,4 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
-#
 # SPDX-License-Identifier: MPL-2.0
 from __future__ import annotations
 
@@ -10,7 +9,6 @@ import re
 import string
 from json.decoder import JSONDecodeError
 from typing import Any
-from typing import Dict
 from uuid import UUID
 from uuid import uuid4
 
@@ -37,7 +35,7 @@ from .utils import import_class
 
 
 def read_mapping_json(filename: str) -> Any:
-    with open(filename, "r") as file:
+    with open(filename) as file:
         data = "\n".join(file.readlines())
         data = re.sub(r"/\*.*\*/", "", data, flags=re.DOTALL)  # Block comments
         data = re.sub(r"//[^\n]*", "", data)  # Line comments
@@ -246,10 +244,8 @@ class LdapConverter:
                 and not attribute == "sAMAccountName"
             ):
                 raise IncorrectMapping(
-                    (
-                        f"Attribute '{attribute}' not allowed."
-                        f" Allowed attributes are {accepted_attributes}"
-                    )
+                    f"Attribute '{attribute}' not allowed."
+                    f" Allowed attributes are {accepted_attributes}"
                 )
 
     def get_json_keys(self, conversion):
@@ -265,7 +261,7 @@ class LdapConverter:
         return self.get_json_keys("mo_to_ldap")
 
     def get_accepted_json_keys(self) -> list[str]:
-        accepted_json_keys = (
+        accepted_json_keys: list[str] = (
             ["Employee", "Engagement", "Custom"]
             + self.mo_address_types
             + self.mo_it_systems
@@ -300,10 +296,8 @@ class LdapConverter:
         for key in json_keys:
             if key not in accepted_json_keys:
                 raise IncorrectMapping(
-                    (
-                        f"'{key}' is not a valid key. "
-                        f"Accepted keys are {accepted_json_keys}"
-                    )
+                    f"'{key}' is not a valid key. "
+                    f"Accepted keys are {accepted_json_keys}"
                 )
         logger.info("[json check] Keys OK")
 
@@ -314,10 +308,8 @@ class LdapConverter:
                     self.raw_mapping[conversion][json_key].keys()
                 ):
                     raise IncorrectMapping(
-                        (
-                            "'objectClass' key not present in"
-                            f" ['{conversion}']['{json_key}'] json dict"
-                        )
+                        "'objectClass' key not present in"
+                        f" ['{conversion}']['{json_key}'] json dict"
                     )
 
     def get_required_attributes(self, mo_class):
@@ -349,11 +341,9 @@ class LdapConverter:
             for attribute in required_attributes:
                 if attribute not in detected_attributes:
                     raise IncorrectMapping(
-                        (
-                            f"attribute '{attribute}' is mandatory. "
-                            f"The following attributes are mandatory: "
-                            f"{required_attributes}"
-                        )
+                        f"attribute '{attribute}' is mandatory. "
+                        f"The following attributes are mandatory: "
+                        f"{required_attributes}"
                     )
 
     @staticmethod
@@ -426,13 +416,11 @@ class LdapConverter:
                 for field_to_check in fields_to_check:
                     if field_to_check in template:
                         logger.warning(
-                            (
-                                f"[json check] {object_class}['{attribute}'] LDAP "
-                                "attribute cannot contain multiple values. "
-                                "Values in LDAP will be overwritten if "
-                                f"multiple objects of the '{json_key}' type are "
-                                "added in MO."
-                            )
+                            f"[json check] {object_class}['{attribute}'] LDAP "
+                            "attribute cannot contain multiple values. "
+                            "Values in LDAP will be overwritten if "
+                            f"multiple objects of the '{json_key}' type are "
+                            "added in MO."
                         )
 
             # Make sure that all attributes are single-value or multi-value. Not a mix.
@@ -447,11 +435,9 @@ class LdapConverter:
 
                 if len(matching_attributes) != len(fields_to_check):
                     raise IncorrectMapping(
-                        (
-                            "Could not find all attributes belonging to "
-                            f"{fields_to_check}. Only found the following "
-                            f"attributes: {matching_attributes}."
-                        )
+                        "Could not find all attributes belonging to "
+                        f"{fields_to_check}. Only found the following "
+                        f"attributes: {matching_attributes}."
                     )
 
                 matching_single_value_attributes = [
@@ -470,13 +456,11 @@ class LdapConverter:
                     len(fields_to_check),
                 ]:
                     raise IncorrectMapping(
-                        (
-                            f"LDAP Attributes mapping to '{json_key}' are a mix "
-                            "of multi- and single-value. The following attributes are "
-                            f"single-value: {matching_single_value_attributes} "
-                            "while the following are multi-value attributes: "
-                            f"{matching_multi_value_attributes}"
-                        )
+                        f"LDAP Attributes mapping to '{json_key}' are a mix "
+                        "of multi- and single-value. The following attributes are "
+                        f"single-value: {matching_single_value_attributes} "
+                        "while the following are multi-value attributes: "
+                        f"{matching_multi_value_attributes}"
                     )
 
     def check_dar_scope(self):
@@ -540,10 +524,8 @@ class LdapConverter:
                 # either person or org_unit needs to be in the dict
                 if "person" not in mapping_dict and "org_unit" not in mapping_dict:
                     raise IncorrectMapping(
-                        (
-                            "Either 'person' or 'org_unit' key needs to be present in "
-                            f"ldap_to_mo['{json_key}']"
-                        )
+                        "Either 'person' or 'org_unit' key needs to be present in "
+                        f"ldap_to_mo['{json_key}']"
                     )
                 if "person" in mapping_dict and "org_unit" in mapping_dict:
                     if not (
@@ -551,20 +533,16 @@ class LdapConverter:
                         and "org_unit" in required_attributes
                     ):
                         raise IncorrectMapping(
-                            (
-                                "Either 'person' or 'org_unit' key needs to be present "
-                                f"in ldap_to_mo['{json_key}']. Not both"
-                            )
+                            "Either 'person' or 'org_unit' key needs to be present "
+                            f"in ldap_to_mo['{json_key}']. Not both"
                         )
                 uuid_key = "person" if "person" in mapping_dict else "org_unit"
 
                 # And the corresponding item needs to be a dict with an uuid key
                 if "dict(uuid=" not in mapping_dict[uuid_key].replace(" ", ""):
                     raise IncorrectMapping(
-                        (
-                            f"ldap_to_mo['{json_key}']['{uuid_key}'] needs to be a "
-                            f"dict with 'uuid' as one of it's keys"
-                        )
+                        f"ldap_to_mo['{json_key}']['{uuid_key}'] needs to be a "
+                        f"dict with 'uuid' as one of it's keys"
                     )
 
             # Otherwise: We are dealing with the org_unit/person itself.
@@ -578,10 +556,8 @@ class LdapConverter:
                 # And it needs to contain a reference to the employee_uuid global
                 if "employee_uuid" not in mapping_dict["uuid"]:
                     raise IncorrectMapping(
-                        (
-                            f"ldap_to_mo['{json_key}']['uuid'] needs to contain a "
-                            "reference to 'employee_uuid'"
-                        )
+                        f"ldap_to_mo['{json_key}']['uuid'] needs to contain a "
+                        "reference to 'employee_uuid'"
                     )
 
     def check_get_uuid_functions(self):
@@ -624,12 +600,10 @@ class LdapConverter:
                             user_key = argument.replace("'", "")
                             if user_key not in all_user_keys:
                                 raise IncorrectMapping(
-                                    (
-                                        f"'{user_key}' not found in any info dict. "
-                                        "Please check "
-                                        f"ldap_to_mo['{json_key}']['{mo_attribute}']"
-                                        f"={template}"
-                                    )
+                                    f"'{user_key}' not found in any info dict. "
+                                    "Please check "
+                                    f"ldap_to_mo['{json_key}']['{mo_attribute}']"
+                                    f"={template}"
                                 )
 
     def check_import_and_export_flags(self):
@@ -661,10 +635,8 @@ class LdapConverter:
                     not in accepted_strings
                 ):
                     raise IncorrectMapping(
-                        (
-                            f"{conversion}['{json_key}']['{ie_key}'] "
-                            f"is not among {accepted_strings}"
-                        )
+                        f"{conversion}['{json_key}']['{ie_key}'] "
+                        f"is not among {accepted_strings}"
                     )
 
     async def check_cpr_field_or_it_system(self):
@@ -757,7 +729,7 @@ class LdapConverter:
                 if "uuid" not in info:
                     raise IncorrectMapping("'uuid' key not found in info-dict")
                 uuid = info["uuid"]
-                if type(uuid) != str:
+                if not isinstance(uuid, str):
                     raise IncorrectMapping(f"{uuid} is not a string")
                 if not is_guid(uuid):
                     raise IncorrectMapping(f"{uuid} is not an uuid")
@@ -904,11 +876,9 @@ class LdapConverter:
             )
 
         logger.info(
-            (
-                f"Looking for '{attribute}' in existing engagement with "
-                f"user_key = '{engagement_user_key}' "
-                f"and employee_uuid = '{employee_uuid}'"
-            )
+            f"Looking for '{attribute}' in existing engagement with "
+            f"user_key = '{engagement_user_key}' "
+            f"and employee_uuid = '{employee_uuid}'"
         )
         engagement_dicts = await self.dataloader.load_mo_employee_engagement_dicts(
             employee_uuid, engagement_user_key
@@ -916,17 +886,13 @@ class LdapConverter:
 
         if not engagement_dicts:
             raise UUIDNotFoundException(
-                (
-                    f"Employee with uuid = {employee_uuid} has no engagements "
-                    f"with user_key = '{engagement_user_key}'"
-                )
+                f"Employee with uuid = {employee_uuid} has no engagements "
+                f"with user_key = '{engagement_user_key}'"
             )
         elif len(engagement_dicts) > 1:
             raise UUIDNotFoundException(
-                (
-                    f"Employee with uuid = {employee_uuid} has multiple engagements "
-                    f"with user_key = '{engagement_user_key}'"
-                )
+                f"Employee with uuid = {employee_uuid} has multiple engagements "
+                f"with user_key = '{engagement_user_key}'"
             )
         else:
             engagement = engagement_dicts[0]
@@ -1178,7 +1144,7 @@ class LdapConverter:
             return await self.get_org_unit_uuid_from_path(org_unit_path_string)
         except UUIDNotFoundException:
             logger.info(
-                (f"Could not find '{org_unit_path_string}'. " "Creating organisation.")
+                f"Could not find '{org_unit_path_string}'. " "Creating organisation."
             )
             await self.create_org_unit(org_unit_path_string)
             return await self.get_org_unit_uuid_from_path(org_unit_path_string)
@@ -1191,7 +1157,7 @@ class LdapConverter:
         return json.loads(text.replace("'", '"').replace("Undefined", "null"))
 
     def _populate_mapping_with_templates(
-        self, mapping: Dict[str, Any], environment: Environment
+        self, mapping: dict[str, Any], environment: Environment
     ):
         globals_dict = {
             "now": datetime.datetime.utcnow,
@@ -1223,11 +1189,10 @@ class LdapConverter:
             "get_current_primary_uuid_dict": self.get_current_primary_uuid_dict,
         }
         for key, value in mapping.items():
-            if type(value) == str:
+            if isinstance(value, str):
                 mapping[key] = environment.from_string(value)
                 mapping[key].globals.update(globals_dict)
-
-            elif type(value) == dict:
+            elif isinstance(value, dict):
                 mapping[key] = self._populate_mapping_with_templates(value, environment)
         return mapping
 
@@ -1310,7 +1275,7 @@ class LdapConverter:
             ldap_dict: CaseInsensitiveDict = CaseInsensitiveDict(
                 {
                     key: value[min(entry, len(value) - 1)]
-                    if type(value) == list and len(value) > 0
+                    if isinstance(value, list) and len(value) > 0
                     else value
                     for key, value in ldap_object.dict().items()
                 }
@@ -1347,10 +1312,8 @@ class LdapConverter:
                         value = self.str_to_dict(value)
                     except JSONDecodeError:
                         raise IncorrectMapping(
-                            (
-                                f"Could not convert {value} in "
-                                f"{json_key}['{mo_field_name}'] to dict"
-                            )
+                            f"Could not convert {value} in "
+                            f"{json_key}['{mo_field_name}'] to dict"
                         )
 
                 if value:
@@ -1370,10 +1333,8 @@ class LdapConverter:
                     r for r in required_attributes if r not in mo_dict
                 ]
                 logger.info(
-                    (
-                        f"Could not convert {mo_dict}. "
-                        f"The following attributes are missing: {missing_attributes}"
-                    )
+                    f"Could not convert {mo_dict}. "
+                    f"The following attributes are missing: {missing_attributes}"
                 )
 
         return converted_objects
