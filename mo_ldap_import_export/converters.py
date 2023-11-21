@@ -436,7 +436,7 @@ class LdapConverter:
             accepted_attributes = sorted(
                 list(self.overview[object_class]["attributes"].keys()) + ["dn"]
             )
-            for key, value in raw_mapping[json_key].items():
+            for value in raw_mapping[json_key].values():
                 if type(value) is not str:
                     continue
                 if "ldap." in value:
