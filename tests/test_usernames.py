@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-# -*- coding: utf-8 -*-
 import os
 from collections.abc import Iterator
 from unittest.mock import AsyncMock
@@ -9,10 +8,12 @@ from unittest.mock import patch
 
 import pytest
 from fastramqpi.context import Context
+from pydantic import parse_obj_as
+from pydantic import ValidationError
 from ramodels.mo import Employee
 
 from .conftest import read_mapping
-from mo_ldap_import_export.exceptions import IncorrectMapping
+from mo_ldap_import_export.config import UsernameGeneratorConfig
 from mo_ldap_import_export.usernames import AlleroedUserNameGenerator
 from mo_ldap_import_export.usernames import UserNameGenerator
 
@@ -30,6 +31,7 @@ def context(dataloader: MagicMock, converter: MagicMock) -> Context:
     mapping = {
         "mo_to_ldap": {"Employee": {"objectClass": "user"}},
         "username_generator": {
+            "objectClass": "UserNameGenerator",
             "char_replacement": {"ø": "oe", "æ": "ae", "å": "aa"},
             "forbidden_usernames": ["holes", "hater"],
             "combinations_to_try": ["F123L", "F12LL", "F1LLL", "FLLLL", "FLLLLX"],
@@ -104,7 +106,7 @@ def alleroed_username_generator(
     context: Context, existing_usernames_ldap: list
 ) -> Iterator[AlleroedUserNameGenerator]:
 
-    context["user_context"]["mapping"] = read_mapping("alleroed.json")
+    context["user_context"]["mapping"] = read_mapping("alleroed.yaml")
 
     with patch(
         "mo_ldap_import_export.usernames.paged_search",
@@ -256,44 +258,10 @@ def test_create_from_combi(username_generator: UserNameGenerator):
     assert username is None
 
 
-def test_check_json_inputs(username_generator: UserNameGenerator):
-    username_generator.mapping = {}
-    with pytest.raises(IncorrectMapping, match="'username_generator' key not present"):
-        username_generator.check_json_inputs()
-
-
-def test_check_combinations_to_try(username_generator: UserNameGenerator):
-    username_generator.mapping = {"username_generator": {}}
-    with pytest.raises(IncorrectMapping, match="'combinations_to_try' key not present"):
-        username_generator._check_combinations_to_try()
-
-    username_generator.mapping = {
-        "username_generator": {"combinations_to_try": ["GAK"]}
-    }
-    with pytest.raises(IncorrectMapping, match="Incorrect combination"):
-        username_generator._check_combinations_to_try()
-
-
-def test_check_forbidden_usernames(username_generator: UserNameGenerator):
-    username_generator.mapping = {"username_generator": {}}
-    with pytest.raises(IncorrectMapping, match="'forbidden_usernames' key not present"):
-        username_generator._check_forbidden_usernames()
-
-    username_generator.mapping = {
-        "username_generator": {"forbidden_usernames": ["foo", 23]}
-    }
-    with pytest.raises(IncorrectMapping, match="Incorrect username"):
-        username_generator._check_forbidden_usernames()
-
-
-def test_check_check_char_replacement(username_generator: UserNameGenerator):
-    username_generator.mapping = {"username_generator": {}}
-    with pytest.raises(IncorrectMapping, match="'char_replacement' key not present"):
-        username_generator._check_char_replacement()
-
-    username_generator.mapping = {"username_generator": {"char_replacement": [1, 2, 3]}}
-    with pytest.raises(IncorrectMapping, match="entry must be a <class 'dict'>"):
-        username_generator._check_char_replacement()
+def test_check_combinations_to_try():
+    config = {"combinations_to_try": ["GAK"]}
+    with pytest.raises(ValidationError, match="Incorrect combination"):
+        parse_obj_as(UsernameGeneratorConfig, config)
 
 
 def test_alleroed_username_generator(

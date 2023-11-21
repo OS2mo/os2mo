@@ -12,6 +12,7 @@ from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
+import yaml
 from fastramqpi.context import Context
 from jinja2 import Environment
 from jinja2 import Undefined
@@ -23,7 +24,6 @@ from structlog.testing import capture_logs
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
 from mo_ldap_import_export.converters import LdapConverter
-from mo_ldap_import_export.converters import read_mapping_json
 from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.environments import environment
@@ -337,9 +337,9 @@ async def test_mo_to_ldap(converter: LdapConverter) -> None:
 
 
 async def test_mapping_loader() -> None:
-    mapping = read_mapping_json(
-        os.path.join(os.path.dirname(__file__), "resources", "mapping.json")
-    )
+    file_path = os.path.join(os.path.dirname(__file__), "resources", "mapping.yaml")
+    with open(file_path) as file:
+        mapping = yaml.safe_load(file)
     expected = {
         "ldap_to_mo": {
             "Employee": {

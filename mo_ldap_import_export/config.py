@@ -9,10 +9,12 @@ from pydantic import AnyHttpUrl
 from pydantic import BaseModel
 from pydantic import BaseSettings
 from pydantic import ConstrainedList
+from pydantic import Extra
 from pydantic import Field
 from pydantic import parse_obj_as
 from pydantic import PositiveInt
 from pydantic import SecretStr
+from pydantic import validator
 from ramqp.config import AMQPConnectionSettings
 
 
@@ -63,10 +65,75 @@ class FastFAMQPIApplicationSettings(FastRAMQPISettings):
     amqp: ExternalAMQPConnectionSettings
 
 
+class MappingBaseModel(BaseModel):
+    class Config:
+        frozen = True
+        extra = Extra.forbid
+
+
+class Class(MappingBaseModel):
+    title: str
+    scope: str
+
+
+class Init(MappingBaseModel):
+    # facet_user_key: {class_user_key: class}
+    facets: dict[str, dict[str, Class]] = {}
+    # user_key: name
+    it_systems: dict[str, str] = {}
+
+
+class LDAP2MOMapping(MappingBaseModel):
+    class Config:
+        extra = Extra.allow
+
+    objectClass: str
+    _import_to_mo_: bool
+
+
+class MO2LDAPMapping(MappingBaseModel):
+    class Config:
+        extra = Extra.allow
+
+    objectClass: str
+    _import_to_ldap_: bool
+
+
+class UsernameGeneratorConfig(MappingBaseModel):
+    objectClass: str = "UserNameGenerator"
+    char_replacement: dict[str, str] = {}
+    forbidden_usernames: list[str] = []
+    combinations_to_try: list[str] = []
+
+    @validator("combinations_to_try")
+    def check_combinations(cls, v: list[str]) -> list[str]:
+        # Validator for combinations_to_try
+        accepted_characters = ["F", "L", "1", "2", "3", "X"]
+        for combination in v:
+            if not all([c in accepted_characters for c in combination]):
+                raise ValueError(
+                    f"Incorrect combination found: '{combination}' username "
+                    f"combinations can only contain {accepted_characters}"
+                )
+        return v
+
+
+class ConversionMapping(MappingBaseModel):
+    init: Init | None
+    ldap_to_mo: dict[str, LDAP2MOMapping]
+    mo_to_ldap: dict[str, MO2LDAPMapping]
+    username_generator: UsernameGeneratorConfig
+
+
 class Settings(BaseSettings):
     class Config:
         frozen = True
         env_nested_delimiter = "__"
+
+    conversion_mapping: ConversionMapping | None = Field(
+        default_factory=None,  # type: ignore
+        description="Conversion mapping between LDAP and OS2mo",
+    )
 
     internal_amqp: InternalAMQPConnectionSettings = Field(
         default_factory=InternalAMQPConnectionSettings,  # type: ignore
