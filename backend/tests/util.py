@@ -131,6 +131,7 @@ async def load_sample_structures():
         "orlov_eriksmidthansen": "0895b7f5-86ac-45c5-8fb1-c3047d45b643",
         "leder": "05609702-977f-4869-9fb4-50ad74c6999a",
         "ejer": "c16ff527-3501-42f7-a942-e606c6c1a0a7",
+        "ejer_2": "c21574ad-ab5e-456d-bc39-83886c0eff50",
         "itsystem_user": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
         "itsystem_user_2": "4de484d9-f577-4fe0-965f-2d4be11b348c",
         "itsystem_unit": "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276",

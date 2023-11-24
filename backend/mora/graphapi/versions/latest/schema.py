@@ -40,6 +40,7 @@ from .health import health_map
 from .models import ClassRead
 from .models import FacetRead
 from .models import FileStore
+from .models import OwnerInferencePriority
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
 from .registration import Registration
@@ -3206,7 +3207,7 @@ class Manager:
     model=OwnerRead,
     description=dedent(
         """
-        Owner of organisation units and their connected identities.
+        Owner of organisation units/employees and their connected identities.
         """
     ),
 )
@@ -3237,6 +3238,30 @@ class Owner:
     # TODO: Document this
     user_key: str = strawberry.auto
 
+    org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
+        resolver=force_none_return_wrapper(
+            seed_resolver_list(
+                OrganisationUnitResolver(),
+                {
+                    "uuids": partial(
+                        raise_force_none_return_if_uuid_none,
+                        get_uuid=lambda root: root.org_unit_uuid,
+                    )
+                },
+            ),
+        ),
+        description=dedent(
+            """\
+            The owned organisation unit.
+
+            Note:
+            This field is mutually exclusive with the `employee` field.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+    )
+
     @strawberry.field(
         description="UUID of the organisation unit related to the owner.",
         deprecation_reason=gen_uuid_field_deprecation("org_unit"),
@@ -3244,12 +3269,72 @@ class Owner:
     async def org_unit_uuid(self, root: OwnerRead) -> UUID | None:
         return root.org_unit_uuid
 
+    person: list[LazyEmployee] | None = strawberry.field(
+        resolver=force_none_return_wrapper(
+            seed_resolver_list(
+                EmployeeResolver(),
+                {
+                    "uuids": partial(
+                        raise_force_none_return_if_uuid_none,
+                        get_uuid=lambda root: root.employee_uuid,
+                    )
+                },
+            ),
+        ),
+        description=dedent(
+            """\
+            The owned person.
+
+            Note:
+            This field is mutually exclusive with the `org_unit` field.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+    )
+
     @strawberry.field(
         description="UUID of the employee related to the owner.",
         deprecation_reason=gen_uuid_field_deprecation("employee"),
     )
     async def employee_uuid(self, root: OwnerRead) -> UUID | None:
         return root.employee_uuid
+
+    owner: list[LazyEmployee] | None = strawberry.field(
+        resolver=force_none_return_wrapper(
+            seed_resolver_list(
+                EmployeeResolver(),
+                {
+                    "uuids": partial(
+                        raise_force_none_return_if_uuid_none,
+                        get_uuid=lambda root: root.owner_uuid,
+                    )
+                },
+            ),
+        ),
+        description=dedent(
+            """\
+        Owner of the connected person or organisation unit.
+        """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("owner")],
+    )
+
+    @strawberry.field(
+        description="UUID of the owner.",
+        deprecation_reason=gen_uuid_field_deprecation("owner"),
+    )
+    async def owner_uuid(self, root: OwnerRead) -> UUID | None:
+        return root.owner_uuid
+
+    owner_inference_priority: OwnerInferencePriority | None = strawberry.field(
+        description=dedent(
+            """\
+        Inference priority, if set: `engagement_priority` or `association_priority`
+        """
+        )
+    )
 
     validity: Validity = strawberry.auto
 

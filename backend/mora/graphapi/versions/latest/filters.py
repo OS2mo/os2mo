@@ -395,7 +395,14 @@ class OrganisationUnitFilter(BaseFilter):
 
 @strawberry.input(description="Owner filter.")
 class OwnerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
-    pass
+    owner: EmployeeFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Owner filter limiting which entries are returned.
+            """
+        ),
+    )
 
 
 @strawberry.input(description="Registration filter.")
