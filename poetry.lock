@@ -1091,7 +1091,7 @@ python-versions = ">=3.8"
 
 [[package]]
 name = "sentry-sdk"
-version = "1.34.0"
+version = "1.37.1"
 description = "Python client for Sentry (https://sentry.io)"
 category = "main"
 optional = false
@@ -1490,7 +1490,7 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "402e829b10574077a8ee58e342486510e8777778de39848e8836f2f0d48b6816"
+content-hash = "a91b206c215c21710cbf33f323132b8efddccd08320e9a63996c8cc5be98d55d"
 
 [metadata.files]
 aio-pika = [
@@ -2527,8 +2527,8 @@ rpds-py = [
     {file = "rpds_py-0.10.6.tar.gz", hash = "sha256:4ce5a708d65a8dbf3748d2474b580d606b1b9f91b5c6ab2a316e0b0cf7a4ba50"},
 ]
 sentry-sdk = [
-    {file = "sentry-sdk-1.34.0.tar.gz", hash = "sha256:e5d0d2b25931d88fa10986da59d941ac6037f742ab6ff2fce4143a27981d60c3"},
-    {file = "sentry_sdk-1.34.0-py2.py3-none-any.whl", hash = "sha256:76dd087f38062ac6c1e30ed6feb533ee0037ff9e709974802db7b5dbf2e5db21"},
+    {file = "sentry-sdk-1.37.1.tar.gz", hash = "sha256:7cd324dd2877fdc861f75cba4242bce23a58272a6fea581fcb218bb718bd9cc5"},
+    {file = "sentry_sdk-1.37.1-py2.py3-none-any.whl", hash = "sha256:a249c7364827ee89daaa078bb8b56ece0b3d52d9130961bef2302b79bdf7fe70"},
 ]
 service-person-stamdata-udvidet = [
     {file = "service_person_stamdata_udvidet-1.0.3-py3-none-any.whl", hash = "sha256:6f8025ff76a8e9ef62f7f6ef0e7fa0449b8795f0da00a2facb97c369c61ed4e7"},
