@@ -589,6 +589,13 @@ class LdapConverter:
         sep = self.org_unit_path_string_separator
         return sep.join(items_to_join)
 
+    def remove_first_org(self, orgstr):
+        """
+        Remove first org from orgstr
+        """
+        _, *rest = orgstr.split(self.org_unit_path_string_separator)
+        return self.nonejoin_orgs(*rest)
+
     async def get_object_item_from_uuid(
         self, info_dict: str, uuid: str, key: str
     ) -> Any:
@@ -1000,6 +1007,7 @@ class LdapConverter:
             "now": datetime.datetime.utcnow,
             "nonejoin": self.nonejoin,
             "nonejoin_orgs": self.nonejoin_orgs,
+            "remove_first_org": self.remove_first_org,
             "get_employee_address_type_uuid": self.get_employee_address_type_uuid,
             "get_org_unit_address_type_uuid": self.get_org_unit_address_type_uuid,
             "get_it_system_uuid": self.get_it_system_uuid,

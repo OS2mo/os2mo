@@ -9,7 +9,7 @@ ldap_to_mo:
   Engagement:
     objectClass: ramodels.mo.details.engagement.Engagement
     _import_to_mo_: "true"
-    org_unit: '{{ dict(uuid=get_or_create_org_unit_uuid(org_unit_path_string_from_dn(ldap.dn, 1))) }}'
+    org_unit: '{{ dict(uuid=get_or_create_org_unit_uuid(nonejoin_orgs("Holstebro", org_unit_path_string_from_dn(ldap.dn, 1)))) }}'
     job_function: '{{ dict(uuid=get_or_create_job_function_uuid(ldap.title)) }}'
     engagement_type: '{{ dict(uuid=get_or_create_engagement_type_uuid(''Ekstern'')) }}'
     user_key: '-'
@@ -60,7 +60,7 @@ mo_to_ldap:
   Engagement:
     objectClass: user
     _export_to_ldap_: "false"
-    dn: '{{ make_dn_from_org_unit_path(dn, nonejoin_orgs(''HK'', get_org_unit_path_string(mo_employee_engagement.org_unit.uuid))) }}'
+    dn: '{{ make_dn_from_org_unit_path(dn, nonejoin_orgs(''HK'', remove_first_org(get_org_unit_path_string(mo_employee_engagement.org_unit.uuid)))) }}'
     title: '{{ get_job_function_name(mo_employee_engagement.job_function.uuid) }}'
     extensionAttribute1: '{{ mo_employee.cpr_no }}'
     extensionAttribute9: '{{ mo_employee_engagement.validity.to_date|mo_datestring }}'
