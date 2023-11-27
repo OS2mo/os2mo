@@ -21,7 +21,6 @@ spec:
   lifecycle: production
   owner: user:default/emil
   system: os2mo-core
-  apiProvidedBy: OS2mo
   definition:
     $text: https://moradev.magentahosted.dk/graphql/v20/schema.graphql
 # TODO: Add v2 --> v19 too?
