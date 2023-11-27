@@ -22,7 +22,6 @@ spec:
   lifecycle: deprecated
   owner: user:default/emil
   system: os2mo-core
-  apiProvidedBy: OS2mo
   definition: |
     asyncapi: 2.6.0
     info:

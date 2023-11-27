@@ -21,6 +21,5 @@ spec:
   lifecycle: deprecated
   owner: user:default/emil
   system: os2mo-core
-  apiProvidedBy: OS2mo
   definition:
     $text: https://moradev.magentahosted.dk/openapi.json

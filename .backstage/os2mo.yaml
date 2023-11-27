@@ -30,3 +30,8 @@ spec:
   lifecycle: production
   owner: user:default/emil
   system: os2mo-core
+  providesApis:
+    - os2mo-amqp
+    - os2mo-legacy-amqp
+    - service-api
+    - os2mo-graphql-v20
