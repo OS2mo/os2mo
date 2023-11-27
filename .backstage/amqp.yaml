@@ -14,14 +14,60 @@ metadata:
     backstage.io/source-location: url:https://git.magenta.dk/rammearkitektur/os2mo
     backstage.io/view-url: https://git.magenta.dk/rammearkitektur/os2mo/-/blob/master/.backstage/amqp.yaml
     backstage.io/edit-url: https://git.magenta.dk/rammearkitektur/os2mo/-/edit/master/.backstage/amqp.yaml
-
-    backstage.io/definition-at-location: 'url:https://moradev.magentahosted.dk/openapi.json'
   tags:
     - os2mo
     - amqp
 spec:
-  type: amqp
+  type: asyncapi
   lifecycle: production
   owner: user:default/cbh
   system: OS2mo-core
   apiProvidedBy: OS2mo
+  definition: |
+    asyncapi: 3.0.0
+    info:
+      title: OS2mo AMQP API
+      version: 1.0.0
+      description: The new OS2mo AMQP API
+      license:
+        name: MPL-2.0
+        url: 'https://spdx.org/licenses/MPL-2.0.html'
+    servers:
+      production:
+        host: 'username:password@os2mo.server.dk:{port}/'
+        protocol: amqp
+        description: OS2mo broker
+        variables:
+          port:
+            description: Secure connection (TLS) is available through port 5671.
+            default: '5672'
+            enum:
+              - '5672'
+              - '5671'
+    channels:
+      topcs:
+        address: '<object-type>'
+        messages:
+          payload:
+            $ref: '#/components/messages/UUIDPayload'
+        description: |
+          Notify that an {object-type} entity may have changed state.
+
+          Object-Type can be one of: address, association, class, engagement, facet, itsystem, ituser, kle, leave, manager, org_unit, owner, person, related_unit, role.
+    components:
+      messages:
+        UUIDPayload:
+          name: uuid
+          title: UUID payload
+          summary: Inform that an entity may have changed state
+          contentType: text/plain
+          payload:
+            $ref: '#/components/schemas/UUID'
+      schemas:
+        UUID:
+          type: string
+          description: Universally Unique Identifier (UUID)
+          format: uuid
+          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+          minLength: 36
+          maxLength: 36
