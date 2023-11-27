@@ -2,6 +2,10 @@
 # SPDX-License-Identifier: MPL-2.0
 # -*- coding: utf-8 -*-
 import os
+from collections.abc import AsyncIterator
+from collections.abc import Callable
+from contextlib import AbstractAsyncContextManager
+from contextlib import asynccontextmanager
 from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
@@ -29,51 +33,49 @@ def uuid() -> UUID:
     return UUID("3f090b29-46b2-4ec4-898f-af244d47dcd4")
 
 
-@pytest.fixture
-def json_filenames() -> list[str]:
-    """
-    Return filenames of all json-formatted mapping files
-    """
-    return [
-        f
-        for f in os.listdir(
-            os.path.join(
-                os.path.dirname(os.path.dirname(__file__)),
-                "mo_ldap_import_export",
-                "mappings",
-            )
+json_filenames = [
+    f
+    for f in os.listdir(
+        os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            "mo_ldap_import_export",
+            "mappings",
         )
-        if f.lower().endswith(".yaml")
-    ]
+    )
+    if f.lower().endswith(".yaml")
+]
+
+GetConverter = Callable[[str], AbstractAsyncContextManager[LdapConverter]]
 
 
 @pytest.fixture
-async def converters(
-    json_filenames: str,
+async def get_converter(
     settings: MagicMock,
     dataloader: MagicMock,
     username_generator: MagicMock,
     uuid: UUID,
-) -> dict[str, LdapConverter]:
+) -> GetConverter:
     """
     dictionary where each key is the json filename and value is the
     corresponding converter
     """
-    converters = {}
 
-    def get_org_unit_uuid_from_path_mock(org_unit_string):
+    @asynccontextmanager
+    async def converter(json_filename: str) -> AsyncIterator[LdapConverter]:
+        org_unit_path_string = "org/unit/path"
+        if "holstebro" in json_filename:
+            org_unit_path_string = "Holstebro/org/unit/path"
 
-        # This is the only correct path for the purpose of these tests
-        expected_path = "org/unit/path"
-        if org_unit_string == expected_path:
-            return str(uuid)
-        else:
-            raise Exception(
-                f"Attempting to find org-unit uuid for '{org_unit_string}'. "
-                f"But expecting '{expected_path}'"
-            )
+        def get_org_unit_uuid_from_path_mock(org_unit_string):
+            if org_unit_string == org_unit_path_string:
+                return str(uuid)
+            else:
+                print("EER", json_filename, org_unit_path_string)
+                raise Exception(
+                    f"Attempting to find org-unit uuid for '{org_unit_string}'. "
+                    f"But expecting '{org_unit_path_string}'"
+                )
 
-    for json_filename in json_filenames:
         user_context = {}
         user_context["mapping"] = read_mapping(json_filename)
         user_context["settings"] = settings
@@ -102,7 +104,7 @@ async def converters(
             return_value=str(uuid),
         ), patch(
             "mo_ldap_import_export.converters.LdapConverter.get_org_unit_path_string",
-            return_value="org/unit/path",
+            return_value=org_unit_path_string,
         ):
             converter = LdapConverter(context)
             await converter._init()
@@ -132,13 +134,15 @@ async def converters(
                 "uuid": str(uuid)
             }
 
-            converters[json_filename] = converter
+            yield converter
 
-    return converters
+    return converter
 
 
-async def test_back_and_forth_mapping(converters: dict[str, LdapConverter], uuid: UUID):
-
+@pytest.mark.parametrize("json_filename", json_filenames)
+async def test_back_and_forth_mapping(
+    get_converter: GetConverter, uuid: UUID, json_filename: str
+):
     mo_employee = Employee(
         givenname="Bill",
         surname="Cosby",
@@ -227,9 +231,9 @@ async def test_back_and_forth_mapping(converters: dict[str, LdapConverter], uuid
 
     dn = "CN=Bill Cosby,OU=foo,DC=US_of_A"
 
-    for json_file, converter in converters.items():
+    async with get_converter(json_filename) as converter:
         print("-" * 40)
-        print(f"Testing '{json_file}' mapping")
+        print(f"Testing '{json_filename}' mapping")
         print("-" * 40)
         json_keys = converter.get_json_keys("ldap_to_mo")
         raw_mapping = converter.raw_mapping
@@ -284,37 +288,38 @@ async def convert_address_to_ldap(address, json_key, converter):
     return await converter.to_ldap(mo_object_dict, json_key, "CN=foo")
 
 
-async def test_alleroed_employee_mapping(converters: dict[str, LdapConverter]):
+async def test_alleroed_employee_mapping(get_converter: GetConverter):
     """
     Test that givenname, surname, nickname and so on get combined and split properly.
     """
-    converter = converters["alleroed.yaml"]
-    mo_employee = Employee(
-        cpr_no="0101011234",
-        givenname="Lukas",
-        surname="Skywalker",
-        nickname_givenname="Lucky",
-        nickname_surname="Luke",
-    )
+    async with get_converter("alleroed.yaml") as converter:
+        mo_employee = Employee(
+            cpr_no="0101011234",
+            givenname="Lukas",
+            surname="Skywalker",
+            nickname_givenname="Lucky",
+            nickname_surname="Luke",
+        )
 
-    mo_object_dict = {
-        "mo_employee": mo_employee,
-    }
+        mo_object_dict = {
+            "mo_employee": mo_employee,
+        }
 
-    ldap_employee = await converter.to_ldap(mo_object_dict, "Employee", "CN=foo")
+        ldap_employee = await converter.to_ldap(mo_object_dict, "Employee", "CN=foo")
 
-    assert ldap_employee.givenName == "Lukas"  # type: ignore
-    assert ldap_employee.sn == "Skywalker"  # type: ignore
-    assert ldap_employee.displayName == "Lucky Luke"  # type: ignore
+        assert ldap_employee.givenName == "Lukas"  # type: ignore
+        assert ldap_employee.sn == "Skywalker"  # type: ignore
+        assert ldap_employee.displayName == "Lucky Luke"  # type: ignore
 
-    mo_employee_converted = (
-        await converter.from_ldap(ldap_employee, "Employee", mo_employee.uuid)
-    )[0]
+        mo_employee_converted = (
+            await converter.from_ldap(ldap_employee, "Employee", mo_employee.uuid)
+        )[0]
 
-    assert mo_employee_converted == mo_employee
+        assert mo_employee_converted == mo_employee
 
 
-async def test_objectguid_mappings(converters: dict[str, LdapConverter]):
+@pytest.mark.parametrize("json_filename", json_filenames)
+async def test_objectguid_mappings(get_converter: GetConverter, json_filename: str):
     """
     Validate that objectGUIDs get written to LDAP properly
     """
@@ -334,7 +339,7 @@ async def test_objectguid_mappings(converters: dict[str, LdapConverter]):
         "mo_employee_it_user": mo_employee_it_user,
     }
 
-    for converter in converters.values():
+    async with get_converter(json_filename) as converter:
         json_keys = converter.get_json_keys("mo_to_ldap")
         for json_key in json_keys:
             attributes = converter.get_ldap_attributes(json_key)
