@@ -20,7 +20,7 @@ spec:
   type: graphql
   lifecycle: production
   owner: user:default/emil
-  system: OS2mo-core
+  system: os2mo-core
   apiProvidedBy: OS2mo
   definition:
     $text: https://moradev.magentahosted.dk/graphql/v20/schema.graphql

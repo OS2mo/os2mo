@@ -4,7 +4,7 @@
 apiVersion: backstage.io/v1alpha1
 kind: System
 metadata:
-  name: os2mo-system
+  name: os2mo-core
   title: OS2mo Core
   description: The OS2mo core system
   annotations:
