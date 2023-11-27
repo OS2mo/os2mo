@@ -4,7 +4,8 @@
 apiVersion: backstage.io/v1alpha1
 kind: API
 metadata:
-  name: OS2mo GraphQL v20
+  name: os2mo-graphql-v20
+  title: OS2mo GraphQL v20
   description: The new OS2mo API
   annotations:
     github.com/project-slug: OS2mo/os2mo

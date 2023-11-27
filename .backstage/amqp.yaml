@@ -4,7 +4,8 @@
 apiVersion: backstage.io/v1alpha1
 kind: API
 metadata:
-  name: OS2mo AMQP
+  name: os2mo-amqp
+  title: OS2mo AMQP
   description: The new OS2mo AMQP
   annotations:
     github.com/project-slug: OS2mo/os2mo

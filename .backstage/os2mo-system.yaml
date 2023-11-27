@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: os2mo-system
+  title: OS2mo Core
+  description: The OS2mo core system
+  annotations:
+    github.com/project-slug: OS2mo/os2mo
+    github.com/team-slug: OS2mo/developers
+    sentry.io/project-slug: magenta/rammearkitektur
+    backstage.io/source-location: url:https://git.magenta.dk/rammearkitektur/os2mo
+    backstage.io/view-url: https://git.magenta.dk/rammearkitektur/os2mo/-/blob/master/.backstage/os2mo-system.yaml
+    backstage.io/edit-url: https://git.magenta.dk/rammearkitektur/os2mo/-/edit/master/.backstage/os2mo-system.yaml
+spec:
+  owner: rammearkitektur
+  domain: rammearkitektur

@@ -5,6 +5,7 @@ apiVersion: backstage.io/v1alpha1
 kind: Location
 metadata:
   name: OS2mo-repository
+  description: Collection of OS2mo resources
   annotations:
     github.com/project-slug: OS2mo/os2mo
     github.com/team-slug: OS2mo/developers
@@ -15,11 +16,16 @@ metadata:
 spec:
   type: url
   targets:
+    # Meta
+    - ./.backstage/rammearkitektur.yaml
+    - ./.backstage/os2mo-system.yaml
+    # Component
     - ./.backstage/os2mo.yaml
-    # AMQP Systems
+    # APIs
+    # - AMQP Systems
     - ./.backstage/amqp.yaml
     - ./.backstage/old_amqp.yaml
-    # WebAPIs
+    # - WebAPIs
     - ./.backstage/graphql_api.yaml
     - ./.backstage/service_api.yaml
   owner: user:default/emil

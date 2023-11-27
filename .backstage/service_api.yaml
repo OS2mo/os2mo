@@ -4,7 +4,8 @@
 apiVersion: backstage.io/v1alpha1
 kind: API
 metadata:
-  name: ServiceAPI
+  name: service-api
+  title: ServiceAPI
   description: The old OS2mo API
   annotations:
     github.com/project-slug: OS2mo/os2mo
