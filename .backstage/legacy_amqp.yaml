@@ -4,34 +4,34 @@
 apiVersion: backstage.io/v1alpha1
 kind: API
 metadata:
-  name: os2mo-amqp
-  title: OS2mo AMQP
-  description: The new OS2mo AMQP
+  name: os2mo-legacy-amqp
+  title: OS2mo Legacy AMQP
+  description: The old OS2mo AMQP
   annotations:
     github.com/project-slug: OS2mo/os2mo
     github.com/team-slug: OS2mo/developers
     sentry.io/project-slug: magenta/rammearkitektur
     backstage.io/source-location: url:https://git.magenta.dk/rammearkitektur/os2mo
-    backstage.io/view-url: https://git.magenta.dk/rammearkitektur/os2mo/-/blob/master/.backstage/amqp.yaml
-    backstage.io/edit-url: https://git.magenta.dk/rammearkitektur/os2mo/-/edit/master/.backstage/amqp.yaml
+    backstage.io/view-url: https://git.magenta.dk/rammearkitektur/os2mo/-/blob/master/.backstage/old_amqp.yaml
+    backstage.io/edit-url: https://git.magenta.dk/rammearkitektur/os2mo/-/edit/master/.backstage/old_amqp.yaml
   tags:
     - os2mo
     - amqp
 spec:
   type: asyncapi
-  lifecycle: production
-  owner: user:default/cbh
+  lifecycle: deprecated
+  owner: user:default/emil
   system: os2mo-core
   apiProvidedBy: OS2mo
   definition: |
     asyncapi: 2.6.0
     info:
-      title: OS2mo AMQP API
+      title: OS2mo Legacy AMQP API
       version: 1.0.0
       description: |
-        The OS2mo AMQP API
+        The Legacy OS2mo AMQP API
 
-        Whenever a MO object is registered or goes into or out of effect, an AMQP message is sent to the MO message broker.
+        Whenever a MO object is registered an AMQP message is sent to the MO message broker.
 
         The purpose of the message broker is to make it easier to build software that integrates with MO.
       license:
@@ -76,42 +76,62 @@ spec:
         subscribe:
           message:
             messageId: Change Event
-            summary: Message send whenever a change is registered or effectuated
+            summary: Message send whenever a change is registered
             payload:
               $ref: '#/components/messages/UUIDPayload'
         description: |
-          Events are sent on a topic exchange, where the topic is the type of the MO object, e.g. engagement.
+          Events are sent on a topic exchange, where the topic is on the following format:
+          `<service>.<object-type>.<action>`
 
-          The valid topics are:
+          For instance `employee.address.create` to signify that an employee has a new address.
+
+          The valid `service`s are:
+            * employee
+            * org_unit
+
+          The valid `object-type`s are:
             * address
             * association
-            * class
+            * employee
             * engagement
-            * facet
-            * itsystem
-            * ituser
-            * kle
+            * it
             * leave
             * manager
             * org_unit
-            * owner
-            * person
             * related_unit
             * role
+
+          The valid `action`s are:
+            * create
+            * update
+            * delete
     components:
       messages:
         UUIDPayload:
           name: uuid
           title: UUID payload
           summary: Inform that an entity may have changed state
-          contentType: text/plain
+          contentType: application/json
           payload:
-            $ref: '#/components/schemas/UUID'
+            $ref: '#/components/schemas/PayloadType'
           examples:
             - name: Change Event
-              summary: Notification that an entity has changed
-              payload: c390b9a2-7202-48e6-972b-ce36a90065c4
+              summary: Notification that an entity has changed at a certain time
+              payload:
+                uuid: c390b9a2-7202-48e6-972b-ce36a90065c4
+                time: "2019-03-24T13:02:15.132025"
       schemas:
+        PayloadType:
+          type: object
+          properties:
+            uuid:
+              $ref: '#/components/schemas/UUID'
+            time:
+              $ref: '#/components/schemas/changedAt'
+        changedAt:
+          type: string
+          format: date-time
+          description: Date and time when the change was made.
         UUID:
           type: string
           description: Universally Unique Identifier (UUID)

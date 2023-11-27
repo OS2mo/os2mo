@@ -24,7 +24,7 @@ spec:
     # APIs
     # - AMQP Systems
     - ./.backstage/amqp.yaml
-    - ./.backstage/old_amqp.yaml
+    - ./.backstage/legacy_amqp.yaml
     # - WebAPIs
     - ./.backstage/graphql_api.yaml
     - ./.backstage/service_api.yaml
