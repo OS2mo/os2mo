@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: keycloak
+  title: Keycloak
+  description: The Keycloak access management solution under OS2mo
+  links:
+    - title: Upstream
+      url: https://www.keycloak.org/
+  annotations:
+    github.com/project-slug: OS2mo/os2mo
+    github.com/team-slug: OS2mo/developers
+    sentry.io/project-slug: magenta/rammearkitektur
+    backstage.io/source-location: url:https://git.magenta.dk/rammearkitektur/os2mo
+    backstage.io/view-url: https://git.magenta.dk/rammearkitektur/os2mo/-/blob/master/.backstage/keycloak.yaml
+    backstage.io/edit-url: https://git.magenta.dk/rammearkitektur/os2mo/-/edit/master/.backstage/keycloak.yaml
+spec:
+  type: database
+  owner: rammearkitektur
+  system: os2mo-core
+  dependsOn:
+    - resource:default/mox-db
