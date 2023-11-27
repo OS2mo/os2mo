@@ -64,6 +64,7 @@ include:
     file:
       - gitlab-ci-templates/common/no-interrupt-meta.v1.yml
       - gitlab-ci-templates/common/conventional-commits.v1.yml
+      - gitlab-ci-templates/common/conventional-commits-changelog-meta.v1.yml
       - gitlab-ci-templates/python/pytest-meta.v1.yml
       - gitlab-ci-templates/common/docker-build-meta.v2.yml
       - gitlab-ci-templates/common/docker-release.v1.yml
@@ -259,23 +260,15 @@ Export GQL Schema:
     paths:
       - $OUT
 
+
 Export Changelog:
-  stage: docs
   extends:
     - .docs:rules:build-docs
-  needs: []
-  image: python:3
+    - .docs:export-changelog
   variables:
     OUT: $CI_PROJECT_DIR/docs/.dynamic_changelog.md
-    GIT_STRATEGY: clone
-    GIT_DEPTH: 0
-  before_script:
-    - pip3 install commitizen
-  script:
-    - cz changelog --dry-run >> $OUT
-  artifacts:
-    paths:
-      - $OUT
+    CHANGELOG_EXTRA_FLAGS: --start-rev=12.11.1
+
 
 .build-docs:
   stage: docs
