@@ -4,7 +4,8 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: OS2mo
+  name: os2mo
+  title: OS2mo
   description: |
     OS2mo er en webapplikation til organisations- og brugerstyring.
   links:
