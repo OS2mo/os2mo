@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: OS2mo GraphQL v20
+  description: The new OS2mo API
+  annotations:
+    github.com/project-slug: OS2mo/os2mo
+    github.com/team-slug: OS2mo/developers
+    sentry.io/project-slug: magenta/rammearkitektur
+    backstage.io/source-location: url:https://git.magenta.dk/rammearkitektur/os2mo
+    backstage.io/view-url: https://git.magenta.dk/rammearkitektur/os2mo/-/blob/master/.backstage/graphql_api.yaml
+    backstage.io/edit-url: https://git.magenta.dk/rammearkitektur/os2mo/-/edit/master/.backstage/graphql_api.yaml
+
+    backstage.io/definition-at-location: 'url:https://moradev.magentahosted.dk/graphql/v20/schema.graphql'
+  tags:
+    - os2mo
+spec:
+  type: graphql
+  lifecycle: production
+  owner: user:default/emil
+  system: OS2mo-core
+  apiProvidedBy: OS2mo
+# TODO: Add v2 --> v19 too?
