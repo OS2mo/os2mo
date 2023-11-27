@@ -1,8 +1,49 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from backend.ramodels.mo.details.owner import OwnerRead
+from backend.tests.graphapi.strategies import graph_data_strat
+
+from hypothesis import given
+from hypothesis import strategies as st
 import pytest
+from pytest import MonkeyPatch
+
+from mora.graphapi.versions.latest import dataloaders
+
+from mora.graphapi.shim import flatten_data
 
 from tests.conftest import GraphAPIPost
+
+@given(test_data=graph_data_strat(OwnerRead))
+def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
+    """Test that we can query all attributes of the role data model."""
+    # Patch dataloader
+    with MonkeyPatch.context() as patch:
+        patch.setattr(dataloaders, "search_role_type", patch_loader(test_data))
+        query = """
+            query {
+                owners {
+                    objects {
+                        uuid
+                        objects {
+                            uuid
+                            user_key
+                            employee_uuid
+                            org_unit_uuid
+                            owner_uuid
+                            owner_inference_priority
+                            type
+                            validity {from to}
+                        }
+                    }
+                }
+            }
+        """
+        response = graphapi_post(query)
+
+    assert response.errors is None
+    assert response.data
+    assert flatten_data(response.data["owners"]["objects"]) == test_data
 
 
 @pytest.mark.integration_test
@@ -100,3 +141,4 @@ async def test_owner_employees_filters(
     response = graphapi_post(owner_query, variables=dict(filter=filter))
     assert response.errors is None
     assert len(response.data["owners"]["objects"]) == expected
+
