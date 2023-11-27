@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: OS2mo AMQP
+  description: The new OS2mo AMQP
+  annotations:
+    github.com/project-slug: OS2mo/os2mo
+    github.com/team-slug: OS2mo/developers
+    sentry.io/project-slug: magenta/rammearkitektur
+    backstage.io/source-location: url:https://git.magenta.dk/rammearkitektur/os2mo
+    backstage.io/view-url: https://git.magenta.dk/rammearkitektur/os2mo/-/blob/master/.backstage/amqp.yaml
+    backstage.io/edit-url: https://git.magenta.dk/rammearkitektur/os2mo/-/edit/master/.backstage/amqp.yaml
+
+    backstage.io/definition-at-location: 'url:https://moradev.magentahosted.dk/openapi.json'
+  tags:
+    - os2mo
+    - amqp
+spec:
+  type: amqp
+  lifecycle: production
+  owner: user:default/cbh
+  system: OS2mo-core
+  apiProvidedBy: OS2mo

@@ -1,96 +1,25 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+---
 apiVersion: backstage.io/v1alpha1
-kind: Component
+kind: Location
 metadata:
-  name: OS2mo
-  description: |
-    OS2mo er en webapplikation til organisations- og brugerstyring.
-  links:
-    - title: Website
-      url: https://os2mo.dk/
-    - title: Documentation
-      url: https://rammearkitektur.docs.magenta.dk/os2mo/
+  name: OS2mo-repository
   annotations:
     github.com/project-slug: OS2mo/os2mo
     github.com/team-slug: OS2mo/developers
-
     sentry.io/project-slug: magenta/rammearkitektur
-
-    backstage.io/techdocs-ref: dir:docs
-
+    backstage.io/source-location: url:https://git.magenta.dk/rammearkitektur/os2mo
     backstage.io/view-url: https://git.magenta.dk/rammearkitektur/os2mo/-/blob/master/catalog-info.yaml
     backstage.io/edit-url: https://git.magenta.dk/rammearkitektur/os2mo/-/edit/master/catalog-info.yaml
-
-    backstage.io/source-location: url:https://git.magenta.dk/rammearkitektur/os2mo
-  tags:
-    - os2mo
-    - python
 spec:
-  type: service
-  lifecycle: production
-  owner: Emil Madsen
-  system: OS2mo-core
----
-apiVersion: backstage.io/v1alpha1
-kind: API
-metadata:
-  name: ServiceAPI
-  description: The old OS2mo API
-  annotations:
-    backstage.io/definition-at-location: 'url:https://moradev.magentahosted.dk/openapi.json'
-  tags:
-    - os2mo
-spec:
-  type: openapi
-  lifecycle: deprecated
-  owner: Emil Madsen
-  system: OS2mo-core
-  apiProvidedBy: OS2mo
----
-apiVersion: backstage.io/v1alpha1
-kind: API
-metadata:
-  name: OS2mo GraphQL v20
-  description: The new OS2mo API
-  annotations:
-    backstage.io/definition-at-location: 'url:https://moradev.magentahosted.dk/graphql/v20/schema.graphql'
-  tags:
-    - os2mo
-spec:
-  type: graphql
-  lifecycle: production
-  owner: Emil Madsen
-  system: OS2mo-core
-  apiProvidedBy: OS2mo
-# TODO: Add v2 --> v19 too?
----
-apiVersion: backstage.io/v1alpha1
-kind: API
-metadata:
-  name: OS2mo Legacy AMQP
-  description: The old OS2mo AMQP
-  tags:
-    - os2mo
-    - amqp
-spec:
-  type: amqp
-  lifecycle: deprecated
-  owner: Emil Madsen
-  system: OS2mo-core
-  apiProvidedBy: OS2mo
----
-apiVersion: backstage.io/v1alpha1
-kind: API
-metadata:
-  name: OS2mo AMQP
-  description: The new OS2mo AMQP
-  tags:
-    - os2mo
-    - amqp
-spec:
-  type: amqp
-  lifecycle: production
-  owner: Emil Madsen
-  system: OS2mo-core
-  apiProvidedBy: OS2mo
+  type: url
+  targets:
+    - ./.backstage/os2mo.yaml
+    # AMQP Systems
+    - ./.backstage/amqp.yaml
+    - ./.backstage/old_amqp.yaml
+    # WebAPIs
+    - ./.backstage/graphql_api.yaml
+    - ./.backstage/service_api.yaml
+  owner: user:default/emil
