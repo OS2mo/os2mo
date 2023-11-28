@@ -28,4 +28,8 @@ spec:
     # - WebAPIs
     - ./.backstage/graphql_api.yaml
     - ./.backstage/service_api.yaml
+    # Resources
+    - ./.backstage/mox-db.yaml
+    - ./.backstage/msg-broker.yaml
+    - ./.backstage/keycloak.yaml
   owner: user:default/emil
