@@ -470,6 +470,23 @@ async def test_find_cpr_field(converter: LdapConverter) -> None:
         await find_cpr_field(populated_incorrect_mapping)
 
 
+async def test_find_cpr_field_jinja_compile_fail(converter: LdapConverter) -> None:
+    mapping = {
+        "mo_to_ldap": {
+            "Employee": {
+                "objectClass": "user",
+                "_export_to_ldap_": "True",
+                # Some internal jinja thing going on here. It does not crash
+                # if it is not an expression like `+ " "` 🤷
+                "shouldFail": '{{ mo_employee.crash + " " }}',
+                "employeeID": "{{mo_employee.cpr_no or None}}",
+            }
+        },
+    }
+    mapping = converter._populate_mapping_with_templates(mapping, environment)
+    assert await find_cpr_field(mapping) == "employeeID"
+
+
 async def test_template_lenience(context: Context, converter: LdapConverter) -> None:
 
     mapping = {
