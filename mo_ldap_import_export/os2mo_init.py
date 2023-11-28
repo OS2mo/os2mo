@@ -9,7 +9,7 @@ from .logging import logger
 class InitEngine:
     def __init__(self, context):
         user_context = context["user_context"]
-        self.init_mapping = parse_obj_as(Init, user_context["mapping"].get("init"))
+        self.init_mapping = parse_obj_as(Init, user_context["mapping"].get("init", {}))
         self.dataloader = user_context["dataloader"]
 
     async def create_facets(self):
