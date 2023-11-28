@@ -15,6 +15,7 @@ from uuid import uuid4
 import pydantic
 from fastramqpi.context import Context
 from jinja2 import Environment
+from jinja2 import exceptions as jinja_exceptions
 from ldap3.utils.ciDict import CaseInsensitiveDict
 from ldap3.utils.dn import parse_dn
 from ramodels.mo.organisation_unit import OrganisationUnit
@@ -52,7 +53,10 @@ async def find_cpr_field(mapping):
     mo_dict = {search_field: search_result}
     cpr_field = None
     for ldap_field_name, template in employee_mapping.items():
-        value = (await template.render_async({"mo_employee": mo_dict})).strip()
+        try:
+            value = (await template.render_async({"mo_employee": mo_dict})).strip()
+        except jinja_exceptions.UndefinedError:
+            continue
 
         if value == search_result:
             cpr_field = ldap_field_name
