@@ -1,0 +1,1822 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: oio-rest-api
+  title: OIO-REST API
+  description: The very old LoRa API
+  annotations:
+    github.com/project-slug: OS2mo/os2mo
+    github.com/team-slug: OS2mo/developers
+    sentry.io/project-slug: magenta/rammearkitektur
+    backstage.io/source-location: url:https://git.magenta.dk/rammearkitektur/os2mo
+    backstage.io/view-url: https://git.magenta.dk/rammearkitektur/os2mo/-/blob/master/.backstage/oio_rest_api.yaml
+    backstage.io/edit-url: https://git.magenta.dk/rammearkitektur/os2mo/-/edit/master/.backstage/oio_rest_api.yaml
+  tags:
+    - os2mo
+spec:
+  type: openapi
+  lifecycle: deprecated
+  owner: user:default/emil
+  system: os2mo-core
+  definition: |
+    openapi: 3.1.0
+    info:
+      title: FastAPI
+      version: 0.1.0
+    servers:
+      - url: /lora
+    paths:
+      /:
+        get:
+          tags:
+            - Meta
+          summary: Root
+          operationId: root__get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /site-map:
+        get:
+          tags:
+            - Meta
+          summary: Sitemap
+          description: |-
+            Returns a site map over all valid urls.
+
+            .. :quickref: :http:get:`/site-map`
+          operationId: sitemap_site_map_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /version:
+        get:
+          tags:
+            - Meta
+          summary: Version
+          operationId: version_version_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /autocomplete/bruger:
+        get:
+          summary: Autocomplete User
+          operationId: autocomplete_user_autocomplete_bruger_get
+          parameters:
+            - required: true
+              schema:
+                type: string
+                title: Phrase
+              name: phrase
+              in: query
+            - required: false
+              schema:
+                items:
+                  type: string
+                  format: uuid
+                type: array
+                title: Class Uuids
+              name: class_uuids
+              in: query
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+      /autocomplete/organisationsenhed:
+        get:
+          summary: Autocomplete Org Unit
+          operationId: autocomplete_org_unit_autocomplete_organisationsenhed_get
+          parameters:
+            - required: true
+              schema:
+                type: string
+                title: Phrase
+              name: phrase
+              in: query
+            - required: false
+              schema:
+                items:
+                  type: string
+                  format: uuid
+                type: array
+                title: Class Uuids
+              name: class_uuids
+              in: query
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+      /klassifikation/facet:
+        get:
+          tags:
+            - Klassifikation
+          summary: Facet Get Objects
+          description: |-
+            A :ref:`ListOperation` or :ref:`SearchOperation` depending on parameters.
+
+            With any the of ``uuid``, ``virking*`` and ``registeret*`` parameters,
+            it is a :ref:`ListOperation` and will return one or more whole JSON
+            objects.
+
+            Given any other parameters, the operation is a :ref:`SearchOperation`
+            and will only return a list of UUIDs to the objects.
+
+            .. :quickref: :ref:`ListOperation` or :ref:`SearchOperation`
+          operationId: Facet_get_objects_klassifikation_facet_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+        post:
+          tags:
+            - Klassifikation
+          summary: Facet Create Object
+          description: |-
+            A :ref:`CreateOperation` that creates a new object from the JSON
+            payload. It returns a newly generated UUID for the created object.
+
+            .. :quickref: :ref:`CreateOperation`
+          operationId: Facet_create_object_klassifikation_facet_post
+          responses:
+            "201":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /klassifikation/facet/fields:
+        get:
+          tags:
+            - Klassifikation
+          summary: Facet Fields
+          description: |-
+            Return a list of all fields a given object has.
+
+            .. :quickref: :http:get:`/(service)/(object)/fields`
+          operationId: Facet_fields_klassifikation_facet_fields_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /klassifikation/facet/schema:
+        get:
+          tags:
+            - Klassifikation
+          summary: Facet Schema
+          description: |-
+            Returns the JSON schema of an object.
+
+            .. :quickref: :http:get:`/(service)/(object)/schema`
+          operationId: Facet_schema_klassifikation_facet_schema_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /klassifikation/facet/{uuid}:
+        get:
+          tags:
+            - Klassifikation
+          summary: Facet Get Object
+          description: |-
+            A :ref:`ReadOperation`. Return a single whole object as a JSON object.
+
+            .. :quickref: :ref:`ReadOperation`
+          operationId: Facet_get_object_klassifikation_facet__uuid__get
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        put:
+          tags:
+            - Klassifikation
+          summary: Facet Put Object
+          description: |-
+            A :ref:`ImportOperation` that creates or overwrites an object from
+            the JSON payload.  It returns the UUID for the object.
+
+            If there is no object with the UUID or the object with that UUID was
+            :ref:`deleted <DeleteOperation>` or :ref:`passivated
+            <PassivateOperation>`, it creates a new object at the specified UUID.
+            It sets ``livscykluskode: "Importeret"``.
+
+            If an object with the UUID exists, it completely overwrites the object
+            including all ``virkning`` periods. It sets
+            ``livscykluskode: "Rettet"``.
+
+            .. :quickref: :ref:`ImportOperation`
+          operationId: Facet_put_object_klassifikation_facet__uuid__put
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        delete:
+          tags:
+            - Klassifikation
+          summary: Facet Delete Object
+          description: |-
+            A :ref:`DeleteOperation`. Delete the object and return the UUID.
+
+            .. :quickref: :ref:`DeleteOperation`
+          operationId: Facet_delete_object_klassifikation_facet__uuid__delete
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "202":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        patch:
+          tags:
+            - Klassifikation
+          summary: Facet Patch Object
+          description: |-
+            An :ref:`UpdateOperation` or :ref:`PassivateOperation`. Apply the
+            JSON payload as a change to the object. Return the UUID of the object.
+
+            If ``livscyklus: "Passiv"`` is set it is a :ref:`PassivateOperation`.
+
+            .. :quickref: :ref:`UpdateOperation` or :ref:`PassivateOperation`
+          operationId: Facet_patch_object_klassifikation_facet__uuid__patch
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+      /klassifikation/klasse:
+        get:
+          tags:
+            - Klassifikation
+          summary: Klasse Get Objects
+          description: |-
+            A :ref:`ListOperation` or :ref:`SearchOperation` depending on parameters.
+
+            With any the of ``uuid``, ``virking*`` and ``registeret*`` parameters,
+            it is a :ref:`ListOperation` and will return one or more whole JSON
+            objects.
+
+            Given any other parameters, the operation is a :ref:`SearchOperation`
+            and will only return a list of UUIDs to the objects.
+
+            .. :quickref: :ref:`ListOperation` or :ref:`SearchOperation`
+          operationId: Klasse_get_objects_klassifikation_klasse_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+        post:
+          tags:
+            - Klassifikation
+          summary: Klasse Create Object
+          description: |-
+            A :ref:`CreateOperation` that creates a new object from the JSON
+            payload. It returns a newly generated UUID for the created object.
+
+            .. :quickref: :ref:`CreateOperation`
+          operationId: Klasse_create_object_klassifikation_klasse_post
+          responses:
+            "201":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /klassifikation/klasse/fields:
+        get:
+          tags:
+            - Klassifikation
+          summary: Klasse Fields
+          description: |-
+            Return a list of all fields a given object has.
+
+            .. :quickref: :http:get:`/(service)/(object)/fields`
+          operationId: Klasse_fields_klassifikation_klasse_fields_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /klassifikation/klasse/schema:
+        get:
+          tags:
+            - Klassifikation
+          summary: Klasse Schema
+          description: |-
+            Returns the JSON schema of an object.
+
+            .. :quickref: :http:get:`/(service)/(object)/schema`
+          operationId: Klasse_schema_klassifikation_klasse_schema_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /klassifikation/klasse/{uuid}:
+        get:
+          tags:
+            - Klassifikation
+          summary: Klasse Get Object
+          description: |-
+            A :ref:`ReadOperation`. Return a single whole object as a JSON object.
+
+            .. :quickref: :ref:`ReadOperation`
+          operationId: Klasse_get_object_klassifikation_klasse__uuid__get
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        put:
+          tags:
+            - Klassifikation
+          summary: Klasse Put Object
+          description: |-
+            A :ref:`ImportOperation` that creates or overwrites an object from
+            the JSON payload.  It returns the UUID for the object.
+
+            If there is no object with the UUID or the object with that UUID was
+            :ref:`deleted <DeleteOperation>` or :ref:`passivated
+            <PassivateOperation>`, it creates a new object at the specified UUID.
+            It sets ``livscykluskode: "Importeret"``.
+
+            If an object with the UUID exists, it completely overwrites the object
+            including all ``virkning`` periods. It sets
+            ``livscykluskode: "Rettet"``.
+
+            .. :quickref: :ref:`ImportOperation`
+          operationId: Klasse_put_object_klassifikation_klasse__uuid__put
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        delete:
+          tags:
+            - Klassifikation
+          summary: Klasse Delete Object
+          description: |-
+            A :ref:`DeleteOperation`. Delete the object and return the UUID.
+
+            .. :quickref: :ref:`DeleteOperation`
+          operationId: Klasse_delete_object_klassifikation_klasse__uuid__delete
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "202":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        patch:
+          tags:
+            - Klassifikation
+          summary: Klasse Patch Object
+          description: |-
+            An :ref:`UpdateOperation` or :ref:`PassivateOperation`. Apply the
+            JSON payload as a change to the object. Return the UUID of the object.
+
+            If ``livscyklus: "Passiv"`` is set it is a :ref:`PassivateOperation`.
+
+            .. :quickref: :ref:`UpdateOperation` or :ref:`PassivateOperation`
+          operationId: Klasse_patch_object_klassifikation_klasse__uuid__patch
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+      /klassifikation/klassifikation:
+        get:
+          tags:
+            - Klassifikation
+          summary: Klassifikation Get Objects
+          description: |-
+            A :ref:`ListOperation` or :ref:`SearchOperation` depending on parameters.
+
+            With any the of ``uuid``, ``virking*`` and ``registeret*`` parameters,
+            it is a :ref:`ListOperation` and will return one or more whole JSON
+            objects.
+
+            Given any other parameters, the operation is a :ref:`SearchOperation`
+            and will only return a list of UUIDs to the objects.
+
+            .. :quickref: :ref:`ListOperation` or :ref:`SearchOperation`
+          operationId: Klassifikation_get_objects_klassifikation_klassifikation_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+        post:
+          tags:
+            - Klassifikation
+          summary: Klassifikation Create Object
+          description: |-
+            A :ref:`CreateOperation` that creates a new object from the JSON
+            payload. It returns a newly generated UUID for the created object.
+
+            .. :quickref: :ref:`CreateOperation`
+          operationId: Klassifikation_create_object_klassifikation_klassifikation_post
+          responses:
+            "201":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /klassifikation/klassifikation/fields:
+        get:
+          tags:
+            - Klassifikation
+          summary: Klassifikation Fields
+          description: |-
+            Return a list of all fields a given object has.
+
+            .. :quickref: :http:get:`/(service)/(object)/fields`
+          operationId: Klassifikation_fields_klassifikation_klassifikation_fields_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /klassifikation/klassifikation/schema:
+        get:
+          tags:
+            - Klassifikation
+          summary: Klassifikation Schema
+          description: |-
+            Returns the JSON schema of an object.
+
+            .. :quickref: :http:get:`/(service)/(object)/schema`
+          operationId: Klassifikation_schema_klassifikation_klassifikation_schema_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /klassifikation/klassifikation/{uuid}:
+        get:
+          tags:
+            - Klassifikation
+          summary: Klassifikation Get Object
+          description: |-
+            A :ref:`ReadOperation`. Return a single whole object as a JSON object.
+
+            .. :quickref: :ref:`ReadOperation`
+          operationId: Klassifikation_get_object_klassifikation_klassifikation__uuid__get
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        put:
+          tags:
+            - Klassifikation
+          summary: Klassifikation Put Object
+          description: |-
+            A :ref:`ImportOperation` that creates or overwrites an object from
+            the JSON payload.  It returns the UUID for the object.
+
+            If there is no object with the UUID or the object with that UUID was
+            :ref:`deleted <DeleteOperation>` or :ref:`passivated
+            <PassivateOperation>`, it creates a new object at the specified UUID.
+            It sets ``livscykluskode: "Importeret"``.
+
+            If an object with the UUID exists, it completely overwrites the object
+            including all ``virkning`` periods. It sets
+            ``livscykluskode: "Rettet"``.
+
+            .. :quickref: :ref:`ImportOperation`
+          operationId: Klassifikation_put_object_klassifikation_klassifikation__uuid__put
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        delete:
+          tags:
+            - Klassifikation
+          summary: Klassifikation Delete Object
+          description: |-
+            A :ref:`DeleteOperation`. Delete the object and return the UUID.
+
+            .. :quickref: :ref:`DeleteOperation`
+          operationId: Klassifikation_delete_object_klassifikation_klassifikation__uuid__delete
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "202":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        patch:
+          tags:
+            - Klassifikation
+          summary: Klassifikation Patch Object
+          description: |-
+            An :ref:`UpdateOperation` or :ref:`PassivateOperation`. Apply the
+            JSON payload as a change to the object. Return the UUID of the object.
+
+            If ``livscyklus: "Passiv"`` is set it is a :ref:`PassivateOperation`.
+
+            .. :quickref: :ref:`UpdateOperation` or :ref:`PassivateOperation`
+          operationId: Klassifikation_patch_object_klassifikation_klassifikation__uuid__patch
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+      /klassifikation/classes:
+        get:
+          tags:
+            - Klassifikation
+          summary: Klassifikation Classes
+          description: |-
+            Return the classes including their fields under this service.
+
+            .. :quickref: :http:get:`/(service)/classes`
+          operationId: klassifikation_classes_klassifikation_classes_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /organisation/bruger:
+        get:
+          tags:
+            - Organisation
+          summary: Bruger Get Objects
+          description: |-
+            A :ref:`ListOperation` or :ref:`SearchOperation` depending on parameters.
+
+            With any the of ``uuid``, ``virking*`` and ``registeret*`` parameters,
+            it is a :ref:`ListOperation` and will return one or more whole JSON
+            objects.
+
+            Given any other parameters, the operation is a :ref:`SearchOperation`
+            and will only return a list of UUIDs to the objects.
+
+            .. :quickref: :ref:`ListOperation` or :ref:`SearchOperation`
+          operationId: Bruger_get_objects_organisation_bruger_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+        post:
+          tags:
+            - Organisation
+          summary: Bruger Create Object
+          description: |-
+            A :ref:`CreateOperation` that creates a new object from the JSON
+            payload. It returns a newly generated UUID for the created object.
+
+            .. :quickref: :ref:`CreateOperation`
+          operationId: Bruger_create_object_organisation_bruger_post
+          responses:
+            "201":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /organisation/bruger/fields:
+        get:
+          tags:
+            - Organisation
+          summary: Bruger Fields
+          description: |-
+            Return a list of all fields a given object has.
+
+            .. :quickref: :http:get:`/(service)/(object)/fields`
+          operationId: Bruger_fields_organisation_bruger_fields_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /organisation/bruger/schema:
+        get:
+          tags:
+            - Organisation
+          summary: Bruger Schema
+          description: |-
+            Returns the JSON schema of an object.
+
+            .. :quickref: :http:get:`/(service)/(object)/schema`
+          operationId: Bruger_schema_organisation_bruger_schema_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /organisation/bruger/{uuid}:
+        get:
+          tags:
+            - Organisation
+          summary: Bruger Get Object
+          description: |-
+            A :ref:`ReadOperation`. Return a single whole object as a JSON object.
+
+            .. :quickref: :ref:`ReadOperation`
+          operationId: Bruger_get_object_organisation_bruger__uuid__get
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        put:
+          tags:
+            - Organisation
+          summary: Bruger Put Object
+          description: |-
+            A :ref:`ImportOperation` that creates or overwrites an object from
+            the JSON payload.  It returns the UUID for the object.
+
+            If there is no object with the UUID or the object with that UUID was
+            :ref:`deleted <DeleteOperation>` or :ref:`passivated
+            <PassivateOperation>`, it creates a new object at the specified UUID.
+            It sets ``livscykluskode: "Importeret"``.
+
+            If an object with the UUID exists, it completely overwrites the object
+            including all ``virkning`` periods. It sets
+            ``livscykluskode: "Rettet"``.
+
+            .. :quickref: :ref:`ImportOperation`
+          operationId: Bruger_put_object_organisation_bruger__uuid__put
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        delete:
+          tags:
+            - Organisation
+          summary: Bruger Delete Object
+          description: |-
+            A :ref:`DeleteOperation`. Delete the object and return the UUID.
+
+            .. :quickref: :ref:`DeleteOperation`
+          operationId: Bruger_delete_object_organisation_bruger__uuid__delete
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "202":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        patch:
+          tags:
+            - Organisation
+          summary: Bruger Patch Object
+          description: |-
+            An :ref:`UpdateOperation` or :ref:`PassivateOperation`. Apply the
+            JSON payload as a change to the object. Return the UUID of the object.
+
+            If ``livscyklus: "Passiv"`` is set it is a :ref:`PassivateOperation`.
+
+            .. :quickref: :ref:`UpdateOperation` or :ref:`PassivateOperation`
+          operationId: Bruger_patch_object_organisation_bruger__uuid__patch
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+      /organisation/itsystem:
+        get:
+          tags:
+            - Organisation
+          summary: Itsystem Get Objects
+          description: |-
+            A :ref:`ListOperation` or :ref:`SearchOperation` depending on parameters.
+
+            With any the of ``uuid``, ``virking*`` and ``registeret*`` parameters,
+            it is a :ref:`ListOperation` and will return one or more whole JSON
+            objects.
+
+            Given any other parameters, the operation is a :ref:`SearchOperation`
+            and will only return a list of UUIDs to the objects.
+
+            .. :quickref: :ref:`ListOperation` or :ref:`SearchOperation`
+          operationId: ItSystem_get_objects_organisation_itsystem_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+        post:
+          tags:
+            - Organisation
+          summary: Itsystem Create Object
+          description: |-
+            A :ref:`CreateOperation` that creates a new object from the JSON
+            payload. It returns a newly generated UUID for the created object.
+
+            .. :quickref: :ref:`CreateOperation`
+          operationId: ItSystem_create_object_organisation_itsystem_post
+          responses:
+            "201":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /organisation/itsystem/fields:
+        get:
+          tags:
+            - Organisation
+          summary: Itsystem Fields
+          description: |-
+            Return a list of all fields a given object has.
+
+            .. :quickref: :http:get:`/(service)/(object)/fields`
+          operationId: ItSystem_fields_organisation_itsystem_fields_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /organisation/itsystem/schema:
+        get:
+          tags:
+            - Organisation
+          summary: Itsystem Schema
+          description: |-
+            Returns the JSON schema of an object.
+
+            .. :quickref: :http:get:`/(service)/(object)/schema`
+          operationId: ItSystem_schema_organisation_itsystem_schema_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /organisation/itsystem/{uuid}:
+        get:
+          tags:
+            - Organisation
+          summary: Itsystem Get Object
+          description: |-
+            A :ref:`ReadOperation`. Return a single whole object as a JSON object.
+
+            .. :quickref: :ref:`ReadOperation`
+          operationId: ItSystem_get_object_organisation_itsystem__uuid__get
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        put:
+          tags:
+            - Organisation
+          summary: Itsystem Put Object
+          description: |-
+            A :ref:`ImportOperation` that creates or overwrites an object from
+            the JSON payload.  It returns the UUID for the object.
+
+            If there is no object with the UUID or the object with that UUID was
+            :ref:`deleted <DeleteOperation>` or :ref:`passivated
+            <PassivateOperation>`, it creates a new object at the specified UUID.
+            It sets ``livscykluskode: "Importeret"``.
+
+            If an object with the UUID exists, it completely overwrites the object
+            including all ``virkning`` periods. It sets
+            ``livscykluskode: "Rettet"``.
+
+            .. :quickref: :ref:`ImportOperation`
+          operationId: ItSystem_put_object_organisation_itsystem__uuid__put
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        delete:
+          tags:
+            - Organisation
+          summary: Itsystem Delete Object
+          description: |-
+            A :ref:`DeleteOperation`. Delete the object and return the UUID.
+
+            .. :quickref: :ref:`DeleteOperation`
+          operationId: ItSystem_delete_object_organisation_itsystem__uuid__delete
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "202":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        patch:
+          tags:
+            - Organisation
+          summary: Itsystem Patch Object
+          description: |-
+            An :ref:`UpdateOperation` or :ref:`PassivateOperation`. Apply the
+            JSON payload as a change to the object. Return the UUID of the object.
+
+            If ``livscyklus: "Passiv"`` is set it is a :ref:`PassivateOperation`.
+
+            .. :quickref: :ref:`UpdateOperation` or :ref:`PassivateOperation`
+          operationId: ItSystem_patch_object_organisation_itsystem__uuid__patch
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+      /organisation/organisation:
+        get:
+          tags:
+            - Organisation
+          summary: Organisation Get Objects
+          description: |-
+            A :ref:`ListOperation` or :ref:`SearchOperation` depending on parameters.
+
+            With any the of ``uuid``, ``virking*`` and ``registeret*`` parameters,
+            it is a :ref:`ListOperation` and will return one or more whole JSON
+            objects.
+
+            Given any other parameters, the operation is a :ref:`SearchOperation`
+            and will only return a list of UUIDs to the objects.
+
+            .. :quickref: :ref:`ListOperation` or :ref:`SearchOperation`
+          operationId: Organisation_get_objects_organisation_organisation_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+        post:
+          tags:
+            - Organisation
+          summary: Organisation Create Object
+          description: |-
+            A :ref:`CreateOperation` that creates a new object from the JSON
+            payload. It returns a newly generated UUID for the created object.
+
+            .. :quickref: :ref:`CreateOperation`
+          operationId: Organisation_create_object_organisation_organisation_post
+          responses:
+            "201":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /organisation/organisation/fields:
+        get:
+          tags:
+            - Organisation
+          summary: Organisation Fields
+          description: |-
+            Return a list of all fields a given object has.
+
+            .. :quickref: :http:get:`/(service)/(object)/fields`
+          operationId: Organisation_fields_organisation_organisation_fields_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /organisation/organisation/schema:
+        get:
+          tags:
+            - Organisation
+          summary: Organisation Schema
+          description: |-
+            Returns the JSON schema of an object.
+
+            .. :quickref: :http:get:`/(service)/(object)/schema`
+          operationId: Organisation_schema_organisation_organisation_schema_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /organisation/organisation/{uuid}:
+        get:
+          tags:
+            - Organisation
+          summary: Organisation Get Object
+          description: |-
+            A :ref:`ReadOperation`. Return a single whole object as a JSON object.
+
+            .. :quickref: :ref:`ReadOperation`
+          operationId: Organisation_get_object_organisation_organisation__uuid__get
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        put:
+          tags:
+            - Organisation
+          summary: Organisation Put Object
+          description: |-
+            A :ref:`ImportOperation` that creates or overwrites an object from
+            the JSON payload.  It returns the UUID for the object.
+
+            If there is no object with the UUID or the object with that UUID was
+            :ref:`deleted <DeleteOperation>` or :ref:`passivated
+            <PassivateOperation>`, it creates a new object at the specified UUID.
+            It sets ``livscykluskode: "Importeret"``.
+
+            If an object with the UUID exists, it completely overwrites the object
+            including all ``virkning`` periods. It sets
+            ``livscykluskode: "Rettet"``.
+
+            .. :quickref: :ref:`ImportOperation`
+          operationId: Organisation_put_object_organisation_organisation__uuid__put
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        delete:
+          tags:
+            - Organisation
+          summary: Organisation Delete Object
+          description: |-
+            A :ref:`DeleteOperation`. Delete the object and return the UUID.
+
+            .. :quickref: :ref:`DeleteOperation`
+          operationId: Organisation_delete_object_organisation_organisation__uuid__delete
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "202":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        patch:
+          tags:
+            - Organisation
+          summary: Organisation Patch Object
+          description: |-
+            An :ref:`UpdateOperation` or :ref:`PassivateOperation`. Apply the
+            JSON payload as a change to the object. Return the UUID of the object.
+
+            If ``livscyklus: "Passiv"`` is set it is a :ref:`PassivateOperation`.
+
+            .. :quickref: :ref:`UpdateOperation` or :ref:`PassivateOperation`
+          operationId: Organisation_patch_object_organisation_organisation__uuid__patch
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+      /organisation/organisationenhed:
+        get:
+          tags:
+            - Organisation
+          summary: Organisationenhed Get Objects
+          description: |-
+            A :ref:`ListOperation` or :ref:`SearchOperation` depending on parameters.
+
+            With any the of ``uuid``, ``virking*`` and ``registeret*`` parameters,
+            it is a :ref:`ListOperation` and will return one or more whole JSON
+            objects.
+
+            Given any other parameters, the operation is a :ref:`SearchOperation`
+            and will only return a list of UUIDs to the objects.
+
+            .. :quickref: :ref:`ListOperation` or :ref:`SearchOperation`
+          operationId: OrganisationEnhed_get_objects_organisation_organisationenhed_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+        post:
+          tags:
+            - Organisation
+          summary: Organisationenhed Create Object
+          description: |-
+            A :ref:`CreateOperation` that creates a new object from the JSON
+            payload. It returns a newly generated UUID for the created object.
+
+            .. :quickref: :ref:`CreateOperation`
+          operationId: OrganisationEnhed_create_object_organisation_organisationenhed_post
+          responses:
+            "201":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /organisation/organisationenhed/fields:
+        get:
+          tags:
+            - Organisation
+          summary: Organisationenhed Fields
+          description: |-
+            Return a list of all fields a given object has.
+
+            .. :quickref: :http:get:`/(service)/(object)/fields`
+          operationId: OrganisationEnhed_fields_organisation_organisationenhed_fields_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /organisation/organisationenhed/schema:
+        get:
+          tags:
+            - Organisation
+          summary: Organisationenhed Schema
+          description: |-
+            Returns the JSON schema of an object.
+
+            .. :quickref: :http:get:`/(service)/(object)/schema`
+          operationId: OrganisationEnhed_schema_organisation_organisationenhed_schema_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /organisation/organisationenhed/{uuid}:
+        get:
+          tags:
+            - Organisation
+          summary: Organisationenhed Get Object
+          description: |-
+            A :ref:`ReadOperation`. Return a single whole object as a JSON object.
+
+            .. :quickref: :ref:`ReadOperation`
+          operationId: OrganisationEnhed_get_object_organisation_organisationenhed__uuid__get
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        put:
+          tags:
+            - Organisation
+          summary: Organisationenhed Put Object
+          description: |-
+            A :ref:`ImportOperation` that creates or overwrites an object from
+            the JSON payload.  It returns the UUID for the object.
+
+            If there is no object with the UUID or the object with that UUID was
+            :ref:`deleted <DeleteOperation>` or :ref:`passivated
+            <PassivateOperation>`, it creates a new object at the specified UUID.
+            It sets ``livscykluskode: "Importeret"``.
+
+            If an object with the UUID exists, it completely overwrites the object
+            including all ``virkning`` periods. It sets
+            ``livscykluskode: "Rettet"``.
+
+            .. :quickref: :ref:`ImportOperation`
+          operationId: OrganisationEnhed_put_object_organisation_organisationenhed__uuid__put
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        delete:
+          tags:
+            - Organisation
+          summary: Organisationenhed Delete Object
+          description: |-
+            A :ref:`DeleteOperation`. Delete the object and return the UUID.
+
+            .. :quickref: :ref:`DeleteOperation`
+          operationId: OrganisationEnhed_delete_object_organisation_organisationenhed__uuid__delete
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "202":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        patch:
+          tags:
+            - Organisation
+          summary: Organisationenhed Patch Object
+          description: |-
+            An :ref:`UpdateOperation` or :ref:`PassivateOperation`. Apply the
+            JSON payload as a change to the object. Return the UUID of the object.
+
+            If ``livscyklus: "Passiv"`` is set it is a :ref:`PassivateOperation`.
+
+            .. :quickref: :ref:`UpdateOperation` or :ref:`PassivateOperation`
+          operationId: OrganisationEnhed_patch_object_organisation_organisationenhed__uuid__patch
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+      /organisation/organisationfunktion:
+        get:
+          tags:
+            - Organisation
+          summary: Organisationfunktion Get Objects
+          description: |-
+            A :ref:`ListOperation` or :ref:`SearchOperation` depending on parameters.
+
+            With any the of ``uuid``, ``virking*`` and ``registeret*`` parameters,
+            it is a :ref:`ListOperation` and will return one or more whole JSON
+            objects.
+
+            Given any other parameters, the operation is a :ref:`SearchOperation`
+            and will only return a list of UUIDs to the objects.
+
+            .. :quickref: :ref:`ListOperation` or :ref:`SearchOperation`
+          operationId: OrganisationFunktion_get_objects_organisation_organisationfunktion_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+        post:
+          tags:
+            - Organisation
+          summary: Organisationfunktion Create Object
+          description: |-
+            A :ref:`CreateOperation` that creates a new object from the JSON
+            payload. It returns a newly generated UUID for the created object.
+
+            .. :quickref: :ref:`CreateOperation`
+          operationId: OrganisationFunktion_create_object_organisation_organisationfunktion_post
+          responses:
+            "201":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /organisation/organisationfunktion/fields:
+        get:
+          tags:
+            - Organisation
+          summary: Organisationfunktion Fields
+          description: |-
+            Return a list of all fields a given object has.
+
+            .. :quickref: :http:get:`/(service)/(object)/fields`
+          operationId: OrganisationFunktion_fields_organisation_organisationfunktion_fields_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /organisation/organisationfunktion/schema:
+        get:
+          tags:
+            - Organisation
+          summary: Organisationfunktion Schema
+          description: |-
+            Returns the JSON schema of an object.
+
+            .. :quickref: :http:get:`/(service)/(object)/schema`
+          operationId: OrganisationFunktion_schema_organisation_organisationfunktion_schema_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /organisation/organisationfunktion/{uuid}:
+        get:
+          tags:
+            - Organisation
+          summary: Organisationfunktion Get Object
+          description: |-
+            A :ref:`ReadOperation`. Return a single whole object as a JSON object.
+
+            .. :quickref: :ref:`ReadOperation`
+          operationId: OrganisationFunktion_get_object_organisation_organisationfunktion__uuid__get
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        put:
+          tags:
+            - Organisation
+          summary: Organisationfunktion Put Object
+          description: |-
+            A :ref:`ImportOperation` that creates or overwrites an object from
+            the JSON payload.  It returns the UUID for the object.
+
+            If there is no object with the UUID or the object with that UUID was
+            :ref:`deleted <DeleteOperation>` or :ref:`passivated
+            <PassivateOperation>`, it creates a new object at the specified UUID.
+            It sets ``livscykluskode: "Importeret"``.
+
+            If an object with the UUID exists, it completely overwrites the object
+            including all ``virkning`` periods. It sets
+            ``livscykluskode: "Rettet"``.
+
+            .. :quickref: :ref:`ImportOperation`
+          operationId: OrganisationFunktion_put_object_organisation_organisationfunktion__uuid__put
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        delete:
+          tags:
+            - Organisation
+          summary: Organisationfunktion Delete Object
+          description: |-
+            A :ref:`DeleteOperation`. Delete the object and return the UUID.
+
+            .. :quickref: :ref:`DeleteOperation`
+          operationId: OrganisationFunktion_delete_object_organisation_organisationfunktion__uuid__delete
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "202":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+        patch:
+          tags:
+            - Organisation
+          summary: Organisationfunktion Patch Object
+          description: |-
+            An :ref:`UpdateOperation` or :ref:`PassivateOperation`. Apply the
+            JSON payload as a change to the object. Return the UUID of the object.
+
+            If ``livscyklus: "Passiv"`` is set it is a :ref:`PassivateOperation`.
+
+            .. :quickref: :ref:`UpdateOperation` or :ref:`PassivateOperation`
+          operationId: OrganisationFunktion_patch_object_organisation_organisationfunktion__uuid__patch
+          parameters:
+            - required: true
+              schema:
+                type: string
+                format: uuid
+                title: Uuid
+              name: uuid
+              in: path
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+            "422":
+              description: Validation Error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/HTTPValidationError'
+      /organisation/classes:
+        get:
+          tags:
+            - Organisation
+          summary: Organisation Classes
+          description: |-
+            Return the classes including their fields under this service.
+
+            .. :quickref: :http:get:`/(service)/classes`
+          operationId: organisation_classes_organisation_classes_get
+          responses:
+            "200":
+              description: Successful Response
+              content:
+                application/json:
+                  schema: {}
+      /kubernetes/live:
+        get:
+          summary: Liveness
+          description: Endpoint to be used as a liveness probe for Kubernetes
+          operationId: liveness_kubernetes_live_get
+          responses:
+            "204":
+              description: Successful Response
+      /kubernetes/ready:
+        get:
+          summary: Readiness
+          operationId: readiness_kubernetes_ready_get
+          responses:
+            "204":
+              description: Successful Response
+    components:
+      schemas:
+        HTTPValidationError:
+          properties:
+            detail:
+              items:
+                $ref: '#/components/schemas/ValidationError'
+              type: array
+              title: Detail
+          type: object
+          title: HTTPValidationError
+        ValidationError:
+          properties:
+            loc:
+              items:
+                anyOf:
+                  - type: string
+                  - type: integer
+              type: array
+              title: Location
+            msg:
+              type: string
+              title: Message
+            type:
+              type: string
+              title: Error Type
+          type: object
+          required:
+            - loc
+            - msg
+            - type
+          title: ValidationError

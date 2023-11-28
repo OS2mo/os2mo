@@ -33,9 +33,10 @@ spec:
   providesApis:
     - os2mo-amqp
     - os2mo-legacy-amqp
-    - service-api
+    - oio-rest-api
     - os2mo-graphql-v20
+    - service-api
   dependsOn:
-    - resource:default/mox-db
-    - resource:default/message-broker
     - resource:default/keycloak
+    - resource:default/mox-db
+    - resource:default/msg-broker

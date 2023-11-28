@@ -27,9 +27,10 @@ spec:
     - ./.backstage/legacy_amqp.yaml
     # - WebAPIs
     - ./.backstage/graphql_api.yaml
+    - ./.backstage/oio_rest_api.yaml
     - ./.backstage/service_api.yaml
     # Resources
+    - ./.backstage/keycloak.yaml
     - ./.backstage/mox-db.yaml
     - ./.backstage/msg-broker.yaml
-    - ./.backstage/keycloak.yaml
   owner: user:default/emil
