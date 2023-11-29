@@ -241,7 +241,7 @@ class AuditLogResolver(PagedResolver):
         if cursor:
             # Make sure we only see objects created before pagination started
             query = query.where(AuditLogOperation.time <= cursor.registration_time)
-        # Order by UUID so the order of pagination is well-defined
+        # Order by time, then by UUID so the order of pagination is well-defined
         query = query.order_by(AuditLogOperation.time, AuditLogOperation.id)
         if limit is not None:
             # Fetch one extra element to see if there is another page
