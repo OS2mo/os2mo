@@ -313,6 +313,7 @@ class ClassCreate(UUIDBase):
     example: str | None = Field(description="Example usage.")
     owner: UUID | None = Field(description="Owner of class")
     validity: Validity = Field(description="Validity range for the class.")
+    it_system_uuid: UUID | None = Field(description="UUID of the associated IT-system.")
 
     class Config:
         frozen = True
@@ -368,6 +369,15 @@ class ClassCreate(UUIDBase):
                 }
             ]
 
+        if self.it_system_uuid is not None:
+            relations["mapninger"] = [
+                {
+                    "uuid": str(self.it_system_uuid),
+                    "virkning": {"from": from_time, "to": to_time},
+                    "objekttype": "itsystem",
+                }
+            ]
+
         lora_registration = {
             "tilstande": {
                 "klassepubliceret": [
@@ -410,6 +420,7 @@ class ClassTerminate(ValidityTerminate):
 
 class ClassRead(RAClassRead):
     validity: Validity = Field(description="Validity of the class.")
+    it_system_uuid: UUID | None = Field(description="UUID of the associated IT-system.")
 
 
 # Employees

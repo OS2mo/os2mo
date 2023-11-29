@@ -390,6 +390,10 @@ class ClassResolver(Resolver):
             or filter.parent is not None
         ):
             kwargs["overordnetklasse"] = await self._get_parent_uuids(info, filter)
+        if filter.it_system is not None:
+            kwargs["mapninger"] = await filter2uuids(
+                ITSystemResolver(), info, filter.it_system
+            )
 
         return await super()._resolve(
             info=info,

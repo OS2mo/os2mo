@@ -55,7 +55,13 @@ class ClassReader(reading.ReadingHandler):
     async def _get_effects(cls, c: lora.Connector, obj, **params):
         relevant = {
             "attributter": ("klasseegenskaber",),
-            "relationer": ("ansvarlig", "ejer", "facet", "overordnetklasse"),
+            "relationer": (
+                "ansvarlig",
+                "ejer",
+                "facet",
+                "mapninger",
+                "overordnetklasse",
+            ),
             "tilstande": ("klassepubliceret",),
         }
         also = {}
