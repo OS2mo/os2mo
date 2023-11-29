@@ -1231,6 +1231,35 @@ class OrganisationUnitUpdate(UUIDBase):
         return {k: v for k, v in data_dict.items() if v}
 
 
+# Owners
+
+
+@strawberry.enum(
+    description=dedent(
+        """\
+    Enum for the supported inference priorities.
+    """
+    )
+)
+class OwnerInferencePriority(Enum):
+    ENGAGEMENT = strawberry.enum_value(
+        "engagement_priority",
+        description=dedent(
+            """\
+        The engagement priority.
+        """
+        ),
+    )
+    ASSOCIATION = strawberry.enum_value(
+        "association_priority",
+        description=dedent(
+            """\
+        The association priority.
+        """
+        ),
+    )
+
+
 # Related units
 # -----
 

@@ -18,9 +18,13 @@ class OwnerBase(MOBase):
 class OwnerRead(OwnerBase):
     """A MO OwnerRead object."""
 
+    owner_uuid: UUID | None = Field(description="UUID of the owner.")
     org_unit_uuid: UUID | None = Field(
         description="UUID of the organisation unit related to the owner."
     )
     employee_uuid: UUID | None = Field(
         description="UUID of the employee related to the owner."
+    )
+    owner_inference_priority: str | None = Field(
+        description="Inference priority, if set: `engagement_priority` or `association_priority`"
     )

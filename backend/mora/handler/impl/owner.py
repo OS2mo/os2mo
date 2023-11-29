@@ -174,8 +174,10 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         if is_graphql():
             return {
                 **base_obj,
-                "employee_uuid": owner_uuid,
+                "owner_uuid": owner_uuid,
+                "employee_uuid": owned_person,
                 "org_unit_uuid": org_unit,
+                "owner_inference_priority": inference_priority_str,
             }
 
         owner_task = None

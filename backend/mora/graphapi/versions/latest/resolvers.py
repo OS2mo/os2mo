@@ -630,10 +630,13 @@ class OwnerResolver(Resolver):
 
         kwargs = {}
         if filter.employee is not None or filter.employees is not None:
-            # TODO: Figure out why this uses personer instead of brugere
-            kwargs["tilknyttedepersoner"] = await get_employee_uuids(info, filter)
+            kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
         if filter.org_units is not None or filter.org_unit is not None:
             kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
+        if filter.owner is not None:
+            kwargs["tilknyttedepersoner"] = await filter2uuids(
+                EmployeeResolver(), info, filter.owner
+            )
 
         return await super()._resolve(
             info=info,
