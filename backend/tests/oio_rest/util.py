@@ -15,7 +15,6 @@ import pytest
 from fastapi.testclient import TestClient
 
 from oio_rest.app import create_app
-from oio_rest.auth.oidc import auth
 from oio_rest.db import dbname_context
 from tests.cases import sort_inner_lists
 from tests.conftest import create_test_database
@@ -24,28 +23,6 @@ from tests.db_testing import reset_testing_database
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
 FIXTURE_DIR = os.path.join(TESTS_DIR, "fixtures")
-
-
-async def mock_auth():
-    return {
-        "acr": "1",
-        "allowed-origins": ["http://localhost:5000"],
-        "azp": "vue",
-        "email": "bruce@kung.fu",
-        "email_verified": False,
-        "exp": 1621779689,
-        "family_name": "Lee",
-        "given_name": "Bruce",
-        "iat": 1621779389,
-        "iss": "http://keycloak:8080/auth/realms/lora",
-        "jti": "25dbb58d-b3cb-4880-8b51-8b92ada4528a",
-        "name": "Bruce Lee",
-        "preferred_username": "bruce",
-        "scope": "email profile",
-        "session_state": "d94f8dc3-d930-49b3-a9dd-9cdc1893b86a",
-        "sub": "c420894f-36ba-4cd5-b4f8-1b24bd8c53db",
-        "typ": "Bearer",
-    }
 
 
 def get_fixture(fixture_name, mode="rt", as_text=True):
@@ -65,19 +42,6 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.app = create_app()
         self.client = TestClient(self.app)
-
-        # Bypass Keycloak per default
-        self.app.dependency_overrides[auth] = mock_auth
-
-    def setup(self):
-        stack = contextlib.ExitStack()
-        self.addCleanup(stack.close)
-
-        for p in (
-            mock.patch("oio_rest.settings.FILE_UPLOAD_FOLDER", "./mox-upload"),
-            mock.patch("oio_rest.settings.LOG_AMQP_SERVER", None),
-        ):
-            stack.enter_context(p)
 
     def assertRequestResponse(
         self, path, expected, message=None, status_code=None, drop_keys=(), **kwargs

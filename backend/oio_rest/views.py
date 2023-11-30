@@ -4,7 +4,6 @@ import os
 from operator import attrgetter
 from uuid import UUID
 
-from fastapi import Depends
 from fastapi import HTTPException
 from fastapi import Query
 from fastapi import Request
@@ -15,12 +14,9 @@ from jinja2 import FileSystemLoader
 from psycopg2 import DataError
 from structlog import get_logger
 
-from oio_rest import config
 from oio_rest import klassifikation
 from oio_rest import organisation
-from oio_rest.auth.oidc import auth
 from oio_rest.custom_exceptions import OIOException
-from oio_rest.kubernetes import kubernetes_router
 from oio_rest.mo.autocomplete import find_org_units_matching
 from oio_rest.mo.autocomplete import find_users_matching
 
@@ -50,22 +46,14 @@ def setup_views(app):
         links = map(attrgetter("path"), links)
         return {"site-map": sorted(links)}
 
-    @app.get("/version", tags=["Meta"])
-    async def version():
-        settings = config.get_settings()
-        return {
-            "lora_version": f"{settings.commit_tag}",
-            "lora_commit_sha": f"{settings.commit_sha}",
-        }
-
-    @app.get("/autocomplete/bruger", dependencies=[Depends(auth)])
+    @app.get("/autocomplete/bruger")
     def autocomplete_user(
         phrase: str,
         class_uuids: list[UUID] | None = Query(None),
     ):
         return {"results": find_users_matching(phrase, class_uuids=class_uuids)}
 
-    @app.get("/autocomplete/organisationsenhed", dependencies=[Depends(auth)])
+    @app.get("/autocomplete/organisationsenhed")
     def autocomplete_org_unit(
         phrase: str, class_uuids: list[UUID] | None = Query(None)
     ):
@@ -74,16 +62,12 @@ def setup_views(app):
     app.include_router(
         klassifikation.KlassifikationsHierarki.setup_api(),
         tags=["Klassifikation"],
-        dependencies=[Depends(auth)],
     )
 
     app.include_router(
         organisation.OrganisationsHierarki.setup_api(),
         tags=["Organisation"],
-        dependencies=[Depends(auth)],
     )
-
-    app.include_router(kubernetes_router)
 
     @app.exception_handler(OIOException)
     def handle_not_allowed(request: Request, exc: OIOException):

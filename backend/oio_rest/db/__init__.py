@@ -31,10 +31,7 @@ from psycopg2.sql import SQL
 
 from ..custom_exceptions import BadRequestException
 from ..custom_exceptions import DBException
-from ..custom_exceptions import NotAllowedException
 from ..custom_exceptions import NotFoundException
-from ..restrictions import get_restrictions
-from ..restrictions import Operation
 from .db_helpers import AktoerAttr
 from .db_helpers import DokumentVariantType
 from .db_helpers import get_attribute_fields
@@ -367,39 +364,6 @@ def sql_get_registration(
     return sql
 
 
-def sql_convert_restrictions(class_name, restrictions):
-    """Convert a list of restrictions to SQL."""
-    from ..utils import build_registration
-
-    registrations = [
-        build_registration.restriction_to_registration(class_name, r)
-        for r in restrictions
-    ]
-    sql_restrictions = [
-        sql_get_registration(
-            class_name, None, None, None, None, sql_convert_registration(r, class_name)
-        )
-        for r in registrations
-    ]
-    return sql_restrictions
-
-
-def get_restrictions_as_sql(user, class_name, operation):
-    """Get restrictions for user and operation, return as array of SQL."""
-    if not config.get_settings().enable_restrictions:
-        return None
-    restrictions = get_restrictions(user, class_name, operation)
-    if restrictions == []:
-        raise NotAllowedException("Not allowed!")
-    elif restrictions is None:
-        return None
-
-    sql_restrictions = sql_convert_restrictions(class_name, restrictions)
-    sql_template = jinja_env.get_template("restrictions.sql")
-    sql = sql_template.render(restrictions=sql_restrictions)
-    return sql
-
-
 """
     GENERAL OBJECT RELATED FUNCTIONS
 """
@@ -455,8 +419,6 @@ def create_or_import_object(class_name, note, registration, uuid=None):
         class_name, None, life_cycle_code, user_ref, note, registration
     )
 
-    sql_restrictions = get_restrictions_as_sql(user_ref, class_name, Operation.CREATE)
-
     sql_template = jinja_env.get_template("create_object.sql")
     sql = sql_template.render(
         class_name=class_name,
@@ -465,7 +427,6 @@ def create_or_import_object(class_name, note, registration, uuid=None):
         user_ref=user_ref,
         note=note,
         registration=sql_registration,
-        restrictions=sql_restrictions,
     )
 
     # Call Postgres! Return OK or not accordingly
@@ -502,7 +463,6 @@ def delete_object(class_name, registration, note, uuid):
     user_ref = str(get_authenticated_user())
     sql_template = jinja_env.get_template("update_object.sql")
     registration = sql_convert_registration(registration, class_name)
-    sql_restrictions = get_restrictions_as_sql(user_ref, class_name, Operation.DELETE)
     sql = sql_template.render(
         class_name=class_name,
         uuid=uuid,
@@ -513,7 +473,6 @@ def delete_object(class_name, registration, note, uuid):
         attributes=registration["attributes"],
         relations=registration["relations"],
         variants=registration.get("variants", None),
-        restrictions=sql_restrictions,
     )
 
     # Call Postgres! Return OK or not accordingly
@@ -539,9 +498,6 @@ def passivate_object(class_name, note, registration, uuid):
     life_cycle_code = Livscyklus.PASSIVERET.value
     sql_template = jinja_env.get_template("update_object.sql")
     registration = sql_convert_registration(registration, class_name)
-    sql_restrictions = get_restrictions_as_sql(
-        user_ref, class_name, Operation.PASSIVATE
-    )
     sql = sql_template.render(
         class_name=class_name,
         uuid=uuid,
@@ -552,7 +508,6 @@ def passivate_object(class_name, note, registration, uuid):
         attributes=registration["attributes"],
         relations=registration["relations"],
         variants=registration.get("variants", None),
-        restrictions=sql_restrictions,
     )
 
     # Call PostgreSQL
@@ -579,8 +534,6 @@ def update_object(
 
     registration = sql_convert_registration(registration, class_name)
 
-    sql_restrictions = get_restrictions_as_sql(user_ref, class_name, Operation.UPDATE)
-
     sql_template = jinja_env.get_template("update_object.sql")
     sql = sql_template.render(
         class_name=class_name,
@@ -592,7 +545,6 @@ def update_object(
         attributes=registration["attributes"],
         relations=registration["relations"],
         variants=registration.get("variants", None),
-        restrictions=sql_restrictions,
     )
 
     # Call PostgreSQL
@@ -651,11 +603,7 @@ def list_objects(
 
     sql_template = jinja_env.get_template("list_objects.sql")
 
-    sql_restrictions = get_restrictions_as_sql(
-        str(get_authenticated_user()), class_name, Operation.READ
-    )
-
-    sql = sql_template.render(class_name=class_name, restrictions=sql_restrictions)
+    sql = sql_template.render(class_name=class_name)
 
     registration_period = None
     if registreret_fra is not None or registreret_til is not None:
@@ -1016,9 +964,6 @@ def search_objects(
     if virkning_fra is not None or virkning_til is not None:
         virkning_soeg = DateTimeTZRange(virkning_fra, virkning_til)
 
-    sql_restrictions = get_restrictions_as_sql(
-        str(get_authenticated_user()), class_name, Operation.READ
-    )
     sql = sql_template.render(
         first_result=first_result,
         uuid=uuid,
@@ -1028,8 +973,6 @@ def search_objects(
         any_rel_uuid_arr=any_rel_uuid_arr,
         max_results=max_results,
         virkning_soeg=virkning_soeg,
-        # TODO: Get this into the SQL function signature!
-        restrictions=sql_restrictions,
     )
     with get_connection().cursor() as cursor:
         try:

@@ -20,10 +20,6 @@ class OIOException(Exception):
         return rv
 
 
-class NotAllowedException(OIOException):
-    status_code = 403
-
-
 class NotFoundException(OIOException):
     status_code = 404
 
