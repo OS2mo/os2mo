@@ -58,7 +58,6 @@ def test_site_map(lora_client: TestClient) -> None:
             "/organisation/organisationfunktion/" + UUID_PATTERN,
             "/redoc",
             "/site-map",
-            "/version",
         ]
     }
 

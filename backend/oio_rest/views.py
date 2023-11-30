@@ -15,7 +15,6 @@ from jinja2 import FileSystemLoader
 from psycopg2 import DataError
 from structlog import get_logger
 
-from oio_rest import config
 from oio_rest import klassifikation
 from oio_rest import organisation
 from oio_rest.auth.oidc import auth
@@ -49,14 +48,6 @@ def setup_views(app):
         links = filter(lambda route: "GET" in route.methods, links)
         links = map(attrgetter("path"), links)
         return {"site-map": sorted(links)}
-
-    @app.get("/version", tags=["Meta"])
-    async def version():
-        settings = config.get_settings()
-        return {
-            "lora_version": f"{settings.commit_tag}",
-            "lora_commit_sha": f"{settings.commit_sha}",
-        }
 
     @app.get("/autocomplete/bruger", dependencies=[Depends(auth)])
     def autocomplete_user(
