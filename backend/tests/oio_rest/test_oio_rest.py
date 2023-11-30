@@ -26,6 +26,9 @@ from oio_rest.custom_exceptions import BadRequestException
 from oio_rest.custom_exceptions import GoneException
 from oio_rest.custom_exceptions import NotFoundException
 from oio_rest.db import db_helpers
+from oio_rest.oio_base import _get_args_from_request
+from oio_rest.oio_base import _get_json_from_request
+from oio_rest.oio_base import _process_args
 from oio_rest.oio_base import ConfiguredDBInterface
 from oio_rest.oio_base import OIORestObject
 from oio_rest.oio_base import OIOStandardHierarchy
@@ -33,6 +36,10 @@ from tests.oio_rest.util import ExtTestCase
 
 
 CallableReturnType = TypeVar("CallableReturnType")
+
+
+async def get_args(request, as_lists=False):
+    return _process_args(await _get_args_from_request(request), as_lists)
 
 
 def async_to_sync(
@@ -235,7 +242,7 @@ class TestOIORestObject(ExtTestCase):
 
         # Act
         request = self.create_request(method="POST", params=params)
-        actual_result = await self.testclass._get_args(request)
+        actual_result = await get_args(request)
 
         # Assert
         assert expected_result == actual_result
@@ -248,7 +255,7 @@ class TestOIORestObject(ExtTestCase):
 
         # Act
         request = self.create_request(method="POST", params=params)
-        actual_result = await self.testclass._get_args(request)
+        actual_result = await get_args(request)
 
         # Assert
         assert expected_result == actual_result
@@ -261,7 +268,7 @@ class TestOIORestObject(ExtTestCase):
 
         # Act
         request = self.create_request(method="POST", params=params)
-        actual_result = await self.testclass._get_args(request, as_lists=True)
+        actual_result = await get_args(request, as_lists=True)
 
         # Assert
         assert expected_result == actual_result
@@ -283,7 +290,7 @@ class TestOIORestObject(ExtTestCase):
             },
             data=json.dumps(params),
         )
-        actual_result = await self.testclass._get_args(request)
+        actual_result = await get_args(request)
 
         # Assert
         assert expected_result == actual_result
@@ -302,7 +309,7 @@ class TestOIORestObject(ExtTestCase):
             ],
             data=json.dumps(params),
         )
-        actual_result = await self.testclass._get_args(request)
+        actual_result = await get_args(request)
 
         # Assert
         assert expected_result == actual_result
@@ -321,7 +328,7 @@ class TestOIORestObject(ExtTestCase):
             ],
             data=json.dumps(params),
         )
-        actual_result = await self.testclass._get_args(request, as_lists=True)
+        actual_result = await get_args(request, as_lists=True)
 
         # Assert
         assert expected_result == actual_result
@@ -337,7 +344,7 @@ class TestOIORestObject(ExtTestCase):
             headers=[["accept", "application/json"]],
             data=json.dumps(expected_json),
         )
-        actual_json = await self.testclass.get_json(request)
+        actual_json = await _get_json_from_request(request)
 
         # Assert
         assert expected_json == actual_json
@@ -352,7 +359,7 @@ class TestOIORestObject(ExtTestCase):
             headers=[[b"content-type", b"application/x-www-form-urlencoded"]],
             data=urlencode({"json": json.dumps(expected_json)}),
         )
-        actual_json = await self.testclass.get_json(request)
+        actual_json = await _get_json_from_request(request)
 
         # Assert
         assert expected_json == actual_json
@@ -368,7 +375,7 @@ class TestOIORestObject(ExtTestCase):
         )
 
         with pytest.raises(HTTPException):
-            await self.testclass.get_json(request)
+            await _get_json_from_request(request)
 
     @async_to_sync
     async def test_get_json_returns_none_if_request_json_is_none(self):
@@ -379,7 +386,7 @@ class TestOIORestObject(ExtTestCase):
             method="POST",
             data=json.dumps(expected_json),
         )
-        actual_json = await self.testclass.get_json(request)
+        actual_json = await _get_json_from_request(request)
 
         # Assert
         assert expected_json == actual_json

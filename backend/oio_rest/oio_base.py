@@ -317,6 +317,61 @@ class OIOStandardHierarchy:
         return oio_router
 
 
+async def _get_json_from_request(request: Request):
+    """Return the JSON input from the request.
+
+    The JSON input typically comes from the body of the request with
+    Content-Type: application/json. However, for POST/PUT operations
+    involving multipart/form-data, the JSON input is expected to be
+    contained in a form field called 'json'. This method handles this in a
+    consistent way.
+    """
+    try:
+        return await request.json()
+    except json.decoder.JSONDecodeError:
+        formset = await request.form()
+        data = formset.get("json", None)
+        if data is not None:
+            try:
+                return json.loads(data)
+            except ValueError:
+                raise HTTPException(
+                    status_code=400, detail={"message": "unparsable json"}
+                )
+        else:
+            return None
+
+
+async def _get_args_from_request(request: Request):
+    """Get args from request.
+
+    If supplied, arguments will be extracted from the json body of GET requests.
+    """
+    if request.method == "GET" and await request.body():
+        json_body: dict[str, Any] = await request.json()
+        # Flatten into list of two-tuples, as required by ArgumentDict
+        return list(
+            (key, value)
+            for key, values in json_body.items()
+            for value in more_itertools.collapse(values)
+        )
+    return request.query_params.multi_items()
+
+
+def _process_args(args, as_lists: bool = False) -> dict:
+    """Convert arguments to lowercase, optionally getting them as lists."""
+    args_dict = defaultdict(list)
+    for key, value in args:
+        key = to_lower_param(key)
+        if key == "bvn":
+            key = "brugervendtnoegle"
+        args_dict[key].append(value)
+
+    if as_lists:
+        return dict(args_dict)
+    return {k: more_itertools.first(v) for k, v in args_dict.items()}
+
+
 class OIORestObject:
     """
     Implement an OIO object - manage access to database layer for this object.
@@ -328,46 +383,19 @@ class OIORestObject:
     service_name = None
 
     @classmethod
-    async def get_json(cls, request: Request):
-        """
-        Return the JSON input from the request.
-        The JSON input typically comes from the body of the request with
-        Content-Type: application/json. However, for POST/PUT operations
-        involving multipart/form-data, the JSON input is expected to be
-        contained in a form field called 'json'. This method handles this in a
-        consistent way.
-        """
-        try:
-            return await request.json()
-        except json.decoder.JSONDecodeError:
-            formset = await request.form()
-            data = formset.get("json", None)
-            if data is not None:
-                try:
-                    return json.loads(data)
-                except ValueError:
-                    raise HTTPException(
-                        status_code=400, detail={"message": "unparsable json"}
-                    )
-            else:
-                return None
-
-    @classmethod
-    async def create_object(cls, request: Request):
+    async def create_object_direct(cls, input, args):
         """A :ref:`CreateOperation` that creates a new object from the JSON
         payload. It returns a newly generated UUID for the created object.
 
         .. :quickref: :ref:`CreateOperation`
 
         """
-
-        await cls.verify_args(request)
-
-        input = await cls.get_json(request)
-        if not input:
-            raise HTTPException(status_code=400, detail={"uuid": None})
+        args = _process_args(args)
+        await cls.verify_args(args)
 
         # Validate JSON input
+        if not input:
+            raise HTTPException(status_code=400, detail={"uuid": None})
         try:
             validate.validate(input, cls.__name__.lower())
         except jsonschema.exceptions.ValidationError as e:
@@ -384,35 +412,13 @@ class OIORestObject:
         return {"uuid": uuid}
 
     @classmethod
-    async def _get_args(cls, request: Request, as_lists: bool = False) -> dict:
-        """
-        Convert arguments to lowercase, optionally getting them as lists.
-        If supplied, arguments will be extracted from the json body of GET requests.
-        """
-        if request.method == "GET" and await request.body():
-            json_body: dict[str, Any] = await request.json()
-            # Flatten into list of two-tuples, as required by ArgumentDict
-            args = (
-                (key, value)
-                for key, values in json_body.items()
-                for value in more_itertools.collapse(values)
-            )
-        else:
-            args = request.query_params.multi_items()
-
-        args_dict = defaultdict(list)
-        for key, value in args:
-            key = to_lower_param(key)
-            if key == "bvn":
-                key = "brugervendtnoegle"
-            args_dict[key].append(value)
-
-        if as_lists:
-            return dict(args_dict)
-        return {k: more_itertools.first(v) for k, v in args_dict.items()}
+    async def create_object(cls, request: Request):
+        args = await _get_args_from_request(request)
+        input = await _get_json_from_request(request)
+        return await cls.create_object_direct(input, args)
 
     @classmethod
-    async def get_objects(cls, request: Request):
+    async def get_objects_direct(cls, raw_args):
         """A :ref:`ListOperation` or :ref:`SearchOperation` depending on parameters.
 
         With any the of ``uuid``, ``virking*`` and ``registeret*`` parameters,
@@ -425,11 +431,10 @@ class OIORestObject:
         .. :quickref: :ref:`ListOperation` or :ref:`SearchOperation`
 
         """
-        await cls.verify_args(request, search=True, temporality=True, consolidate=True)
+        list_args = _process_args(raw_args, as_lists=True)
+        args = _process_args(raw_args)
+        await cls.verify_args(args, search=True, temporality=True, consolidate=True)
 
-        # Convert arguments to lowercase, getting them as lists
-        list_args = await cls._get_args(request, as_lists=True)
-        args = await cls._get_args(request)
         registreret_fra, registreret_til = get_registreret_dates(args)
         virkning_fra, virkning_til = get_virkning_dates(args)
 
@@ -524,21 +529,28 @@ class OIORestObject:
         return {"results": results}
 
     @classmethod
-    async def get_object(cls, uuid: UUID, request: Request):
+    async def get_objects(cls, request: Request):
+        # Convert arguments to lowercase, getting them as lists
+        raw_args = await _get_args_from_request(request)
+        return await cls.get_objects_direct(raw_args)
+
+    @classmethod
+    async def get_object_direct(cls, uuid: UUID, args):
         """A :ref:`ReadOperation`. Return a single whole object as a JSON object.
 
         .. :quickref: :ref:`ReadOperation`
 
         """
-        uuid = str(uuid)
-        await cls.verify_args(request, temporality=True, consolidate=True)
+        args = _process_args(args)
+        await cls.verify_args(args, temporality=True, consolidate=True)
 
-        args = await cls._get_args(request)
+        uuid = str(uuid)
+
         registreret_fra, registreret_til = get_registreret_dates(args)
 
         virkning_fra, virkning_til = get_virkning_dates(args)
 
-        consolidate_param = (await cls._get_args(request)).get("konsolider") is not None
+        consolidate_param = args.get("konsolider") is not None
         if consolidate_param:
             list_fn = db.list_and_consolidate_objects
         else:
@@ -573,6 +585,11 @@ class OIORestObject:
         return {uuid: object}
 
     @classmethod
+    async def get_object(cls, uuid: UUID, request: Request):
+        args = await _get_args_from_request(request)
+        return await cls.get_object_direct(uuid, args)
+
+    @classmethod
     def gather_registration(cls, input):
         """Return a registration dict from the input dict."""
         attributes = typed_get(input, "attributter", {})
@@ -588,7 +605,7 @@ class OIORestObject:
         }
 
     @classmethod
-    async def put_object(cls, uuid: UUID, request: Request):
+    async def put_object_direct(cls, uuid: UUID, input, args):
         """A :ref:`ImportOperation` that creates or overwrites an object from
         the JSON payload.  It returns the UUID for the object.
 
@@ -604,10 +621,10 @@ class OIORestObject:
         .. :quickref: :ref:`ImportOperation`
 
         """
-        uuid = str(uuid)
-        await cls.verify_args(request)
+        args = _process_args(args)
+        await cls.verify_args(args)
 
-        input = await cls.get_json(request)
+        uuid = str(uuid)
         if not input:
             raise HTTPException(status_code=400, detail={"uuid": None})
 
@@ -658,7 +675,13 @@ class OIORestObject:
         return {"uuid": uuid}
 
     @classmethod
-    async def patch_object(cls, uuid: UUID, request: Request):
+    async def put_object(cls, uuid: UUID, request: Request):
+        args = await _get_args_from_request(request)
+        input = await _get_json_from_request(request)
+        return await cls.put_object_direct(uuid, input, args)
+
+    @classmethod
+    async def patch_object_direct(cls, uuid: UUID, input):
         """An :ref:`UpdateOperation` or :ref:`PassivateOperation`. Apply the
         JSON payload as a change to the object. Return the UUID of the object.
 
@@ -678,7 +701,6 @@ class OIORestObject:
                 )
             )
 
-        input = await cls.get_json(request)
         if not input:
             raise HTTPException(status_code=400, detail={"uuid": None})
 
@@ -708,7 +730,14 @@ class OIORestObject:
         return {"uuid": uuid}
 
     @classmethod
-    async def delete_object(cls, uuid: UUID, request: Request):
+    async def patch_object(cls, uuid: UUID, request: Request):
+        # TODO: Why no cls.verify_args here
+        uuid = str(uuid)
+        input = await _get_json_from_request(request)
+        return await cls.patch_object_direct(uuid, input)
+
+    @classmethod
+    async def delete_object_direct(cls, uuid: UUID, input):
         """A :ref:`DeleteOperation`. Delete the object and return the UUID.
 
         .. :quickref: :ref:`DeleteOperation`
@@ -716,9 +745,6 @@ class OIORestObject:
         """
         uuid = str(uuid)
 
-        await cls.verify_args(request)
-
-        input = await cls.get_json(request) or {}
         note = typed_get(input, "note", "")
         class_name = cls.__name__
         # Gather a blank registration
@@ -730,15 +756,26 @@ class OIORestObject:
         return {"uuid": uuid}
 
     @classmethod
+    async def delete_object(cls, uuid: UUID, request: Request):
+        """A :ref:`DeleteOperation`. Delete the object and return the UUID.
+
+        .. :quickref: :ref:`DeleteOperation`
+
+        """
+        await cls.verify_args(_process_args(await _get_args_from_request(request)))
+        input = (await _get_json_from_request(request)) or {}
+        return await cls.delete_object_direct(uuid, input)
+
+    @classmethod
     async def get_fields(cls, request: Request):
         """Return a list of all fields a given object has.
 
         .. :quickref: :http:get:`/(service)/(object)/fields`
 
         """
-        await cls.verify_args(request)
 
         """Set up API with correct database access functions."""
+        await cls.verify_args(_process_args(await _get_args_from_request(request)))
         structure = db_structure.REAL_DB_STRUCTURE
         class_key = cls.__name__.lower()
         # TODO: Perform some transformations to improve readability.
@@ -746,14 +783,12 @@ class OIORestObject:
         return class_dict
 
     @classmethod
-    async def get_schema(cls, request: Request):
+    async def get_schema(cls):
         """Returns the JSON schema of an object.
 
         .. :quickref: :http:get:`/(service)/(object)/schema`
 
         """
-        await cls.verify_args(request)
-
         return validate.get_schema(cls.__name__.lower())
 
     @classmethod
@@ -824,14 +859,12 @@ class OIORestObject:
     @classmethod
     async def verify_args(
         cls,
-        request: Request,
+        args,
         temporality=False,
         search=False,
         consolidate=False,
-        *args,
-        **kwargs,
     ):
-        req_args = set(await cls._get_args(request, *args, **kwargs))
+        req_args = set(args)
 
         if temporality:
             req_args -= TEMPORALITY_PARAMS
