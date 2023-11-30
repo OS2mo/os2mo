@@ -1273,16 +1273,16 @@ class OwnerInferencePriority(Enum):
 
 
 class OwnerCreate(UUIDBase):
-    """Model for creating role."""
+    """Model for creating owner."""
 
     user_key: str | None = Field(description="Extra info or uuid.")
-    org_unit: UUID | None = Field(description="UUID of the org_unit")
+    org_unit: UUID | None = Field(description="UUID of the org unit")
     person: UUID | None = Field(description="UUID of the person")
     owner: UUID | None = Field(description="UUID of the owner")
     inference_priority: OwnerInferencePriority | None = Field(
         description="Inference priority, if set: `engagement_priority` or `association_priority`"
     )
-    validity: RAValidity = Field(description="Validity range for the role.")
+    validity: RAValidity = Field(description="Validity range for the owner.")
 
     def to_handler_dict(self) -> dict:
         return {
