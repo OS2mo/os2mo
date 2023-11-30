@@ -31,8 +31,6 @@ def test_site_map(lora_client: TestClient) -> None:
             "/klassifikation/klassifikation/fields",
             "/klassifikation/klassifikation/schema",
             "/klassifikation/klassifikation/" + UUID_PATTERN,
-            "/kubernetes/live",
-            "/kubernetes/ready",
             # "/metrics",
             "/openapi.json",
             "/organisation/bruger",

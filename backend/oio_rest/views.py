@@ -19,7 +19,6 @@ from oio_rest import klassifikation
 from oio_rest import organisation
 from oio_rest.auth.oidc import auth
 from oio_rest.custom_exceptions import OIOException
-from oio_rest.kubernetes import kubernetes_router
 from oio_rest.mo.autocomplete import find_org_units_matching
 from oio_rest.mo.autocomplete import find_users_matching
 
@@ -73,8 +72,6 @@ def setup_views(app):
         tags=["Organisation"],
         dependencies=[Depends(auth)],
     )
-
-    app.include_router(kubernetes_router)
 
     @app.exception_handler(OIOException)
     def handle_not_allowed(request: Request, exc: OIOException):
