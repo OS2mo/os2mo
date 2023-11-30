@@ -20,7 +20,4 @@ SELECT * from as_update_{{ class_name|lower }}(
     -- variants
     {{ variants }}
     {% endif -%}
-    {% if restrictions -%},
-        {{restrictions}}
-            {% endif %}
 );

@@ -25,10 +25,6 @@ class Settings(BaseSettings):
     # If enabled, uses alternative search implementation
     quick_search: bool = True
 
-    # Whether authorization is enabled.
-    # If not, the restrictions module is not called.
-    enable_restrictions: bool = False
-
 
 @lru_cache
 def get_settings():

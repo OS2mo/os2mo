@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import itertools
 import uuid
-from collections import defaultdict
 
 from oio_rest.db.db_helpers import DokumentDelEgenskaberType
 from oio_rest.db.db_helpers import DokumentVariantEgenskaberType
@@ -183,18 +181,3 @@ def build_registration(class_name, list_args):
                     part_relations[rel_name].append(build_relation(rel, objekttype))
 
     return registration
-
-
-def restriction_to_registration(class_name, restriction):
-    states, attributes, relations = restriction
-
-    tuples = itertools.chain(
-        states.items(),
-        attributes.items(),
-        relations.items(),
-    )
-    list_args = defaultdict(list)
-    for key, value in tuples:
-        list_args[key.lower()].append(value)
-
-    return build_registration(class_name, dict(list_args))
