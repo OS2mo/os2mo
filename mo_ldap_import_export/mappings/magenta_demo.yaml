@@ -35,6 +35,7 @@ ldap_to_mo:
     itsystem: '{{ dict(uuid=get_it_system_uuid(''ADGUID'')) }}'
     validity: '{{ dict(from_date=now()|mo_datestring) }}'
     person: '{{ dict(uuid=employee_uuid or NONE) }}'
+    engagement: '{{ dict(uuid=engagement_uuid) if engagement_uuid else NONE }}'
   # Note: This key needs to be a valid MO address type user_key*
   EmailEmployee:
     objectClass: ramodels.mo.details.address.Address
@@ -43,6 +44,7 @@ ldap_to_mo:
     validity: '{{ dict(from_date = now()|mo_datestring) }}'
     address_type: '{{ dict(uuid=get_employee_address_type_uuid(''EmailEmployee'')) }}'
     person: '{{ dict(uuid=employee_uuid or NONE) }}'
+    engagement: '{{ dict(uuid=engagement_uuid) if engagement_uuid else NONE }}'
   # Note: This key needs to be a valid MO address type user_key*
   AddressEmployeeText:
     objectClass: ramodels.mo.details.address.Address
@@ -51,6 +53,7 @@ ldap_to_mo:
     validity: '{{ dict(from_date=now()|mo_datestring) }}'
     address_type: '{{ dict(uuid=get_employee_address_type_uuid(''AddressEmployeeText'')) }}'
     person: '{{ dict(uuid=employee_uuid or NONE) }}'
+    engagement: '{{ dict(uuid=engagement_uuid) if engagement_uuid else NONE }}'
   # Note: This key needs to be a valid MO address type user_key*
   LocationUnit:
     objectClass: ramodels.mo.details.address.Address

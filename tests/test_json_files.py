@@ -235,14 +235,19 @@ async def test_back_and_forth_mapping(
         print("-" * 40)
         print(f"Testing '{json_filename}' mapping")
         print("-" * 40)
+
+        engagement_uuid: UUID = uuid4()
         json_keys = converter.get_json_keys("ldap_to_mo")
         raw_mapping = converter.raw_mapping
+
         for json_key in json_keys:
             print(f"Testing '{json_key}' json_key")
 
             ldap_object = await converter.to_ldap(mo_object_dict, json_key, dn)
             converted_mo_object = (
-                await converter.from_ldap(ldap_object, json_key, uuid)
+                await converter.from_ldap(
+                    ldap_object, json_key, uuid, engagement_uuid=engagement_uuid
+                )
             )[0]
 
             # Skip validity, because we often set from_date = now()

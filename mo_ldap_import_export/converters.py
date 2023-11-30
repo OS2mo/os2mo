@@ -405,6 +405,14 @@ class LdapConverter:
                         f"{matching_multi_value_attributes}"
                     )
 
+                if json_key == "Engagement":
+                    if len(matching_multi_value_attributes) > 0:
+                        raise IncorrectMapping(
+                            f"LDAP Attributes mapping to 'Engagement' contain one or "
+                            f"more multi-value attributes "
+                            f"{matching_multi_value_attributes}, which is not allowed"
+                        )
+
     def check_dar_scope(self):
         logger.info("[json check] checking DAR scope")
         ldap_to_mo_json_keys = self.get_ldap_to_mo_json_keys()
@@ -1105,12 +1113,18 @@ class LdapConverter:
         return number_of_entries_in_this_ldap_object
 
     async def from_ldap(
-        self, ldap_object: LdapObject, json_key: str, employee_uuid: UUID
+        self,
+        ldap_object: LdapObject,
+        json_key: str,
+        employee_uuid: UUID,
+        engagement_uuid: UUID | None = None,
     ) -> Any:
         """
         uuid : UUID
             Uuid of the employee whom this object belongs to. If None: Generates a new
             uuid
+        engagement_uuid: UUID
+            Engagement UUID to use when creating `Address` and `ITUser` instances.
         """
 
         # This is how many MO objects we need to return - a MO object can have only
@@ -1130,7 +1144,11 @@ class LdapConverter:
                 }
             )
             mo_dict = {}
-            context = {"ldap": ldap_dict, "employee_uuid": str(employee_uuid)}
+            context = {
+                "ldap": ldap_dict,
+                "employee_uuid": str(employee_uuid),
+                "engagement_uuid": str(engagement_uuid) if engagement_uuid else None,
+            }
             try:
                 mapping = self.mapping["ldap_to_mo"]
             except KeyError:
@@ -1162,7 +1180,8 @@ class LdapConverter:
                     except JSONDecodeError:
                         raise IncorrectMapping(
                             f"Could not convert {value} in "
-                            f"{json_key}['{mo_field_name}'] to dict"
+                            f"{json_key}['{mo_field_name}'] to dict "
+                            f"(context={context!r})"
                         )
 
                 if value:
@@ -1182,7 +1201,7 @@ class LdapConverter:
                     r for r in required_attributes if r not in mo_dict
                 ]
                 logger.info(
-                    f"Could not convert {mo_dict}. "
+                    f"Could not convert {mo_dict} to {mo_class}. "
                     f"The following attributes are missing: {missing_attributes}"
                 )
 
