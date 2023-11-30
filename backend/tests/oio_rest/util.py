@@ -43,16 +43,6 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         self.app = create_app()
         self.client = TestClient(self.app)
 
-    def setup(self):
-        stack = contextlib.ExitStack()
-        self.addCleanup(stack.close)
-
-        for p in (
-            mock.patch("oio_rest.settings.FILE_UPLOAD_FOLDER", "./mox-upload"),
-            mock.patch("oio_rest.settings.LOG_AMQP_SERVER", None),
-        ):
-            stack.enter_context(p)
-
     def assertRequestResponse(
         self, path, expected, message=None, status_code=None, drop_keys=(), **kwargs
     ):
