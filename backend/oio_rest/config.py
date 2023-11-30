@@ -19,15 +19,6 @@ class Settings(BaseSettings):
     db_port: str = "5432"
     db_sslmode: str | None
 
-    # Authentication
-    lora_auth: bool = True
-    keycloak_schema: str = "https"
-    keycloak_host: str = "keycloak"
-    keycloak_port: int = 8080
-    keycloak_realm: str = "lora"
-    keycloak_signing_alg: str = "RS256"
-    keycloak_verify_audience: bool = True
-
     # The log level for the Python application
     lora_log_level: str = "WARNING"
 
