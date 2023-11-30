@@ -716,7 +716,7 @@ prometheus-client = ">=0.8.0,<1.0.0"
 
 [[package]]
 name = "psycopg"
-version = "3.1.12"
+version = "3.1.13"
 description = "PostgreSQL database adapter for Python"
 category = "main"
 optional = false
@@ -727,8 +727,8 @@ typing-extensions = ">=4.1"
 tzdata = {version = "*", markers = "sys_platform == \"win32\""}
 
 [package.extras]
-binary = ["psycopg-binary (==3.1.12)"]
-c = ["psycopg-c (==3.1.12)"]
+binary = ["psycopg-binary (==3.1.13)"]
+c = ["psycopg-c (==3.1.13)"]
 dev = ["black (>=23.1.0)", "dnspython (>=2.1)", "flake8 (>=4.0)", "mypy (>=1.4.1)", "types-setuptools (>=57.4)", "wheel (>=0.37)"]
 docs = ["Sphinx (>=5.0)", "furo (==2022.6.21)", "sphinx-autobuild (>=2021.3.14)", "sphinx-autodoc-typehints (>=1.12)"]
 pool = ["psycopg-pool"]
@@ -1374,7 +1374,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "7cf28517c9b9a9a597721b28fc8e4ad4b8aa227282cf2866f38458ccae2559da"
+content-hash = "bbc4c237cc88eb9d600615e2cc4174c355682d61cacafed6ed01258ff1e436c1"
 
 [metadata.files]
 aio-pika = [
@@ -2051,8 +2051,8 @@ prometheus-fastapi-instrumentator = [
     {file = "prometheus_fastapi_instrumentator-6.1.0.tar.gz", hash = "sha256:1820d7a90389ce100f7d1285495ead388818ae0882e761c1f3e6e62a410bdf13"},
 ]
 psycopg = [
-    {file = "psycopg-3.1.12-py3-none-any.whl", hash = "sha256:8ec5230d6a7eb654b4fb3cf2d3eda8871d68f24807b934790504467f1deee9f8"},
-    {file = "psycopg-3.1.12.tar.gz", hash = "sha256:cec7ad2bc6a8510e56c45746c631cf9394148bdc8a9a11fd8cf8554ce129ae78"},
+    {file = "psycopg-3.1.13-py3-none-any.whl", hash = "sha256:1253010894cfb64e2da4556d4eff5f05e45cafee641f64e02453be849c8f7687"},
+    {file = "psycopg-3.1.13.tar.gz", hash = "sha256:e6d047ce16950651d6e26c7c19ca57cc42e1d4841b58729f691244baeee46e30"},
 ]
 psycopg2-binary = [
     {file = "psycopg2-binary-2.9.9.tar.gz", hash = "sha256:7f01846810177d829c7692f1f5ada8096762d9172af1b1a28d4ab5b77c923c1c"},
