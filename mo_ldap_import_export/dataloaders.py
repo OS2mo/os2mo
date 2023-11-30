@@ -17,12 +17,14 @@ from ldap3.protocol import oid
 from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
 from more_itertools import only
+from ramodels.mo._shared import EngagementRef
 from ramodels.mo._shared import validate_cpr
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 
+from .environments import filter_remove_curly_brackets
 from .exceptions import AttributeNotFound
 from .exceptions import DNNotFound
 from .exceptions import InvalidChangeDict
@@ -48,6 +50,9 @@ from .utils import extract_cn_from_dn
 from .utils import extract_ou_from_dn
 from .utils import mo_datestring_to_utc
 from .utils import remove_cn_from_dn
+
+
+DNList = list[str]
 
 
 class DataLoader:
@@ -836,15 +841,52 @@ class DataLoader:
         result = await self.query_mo(query, raise_if_empty=False)
         return self._return_mo_employee_uuid_result(result)
 
-    def get_ldap_it_system_uuid(self):
+    async def find_mo_engagement_uuid(self, dn: str) -> None | UUID:
+        # Get ObjectGUID from DN, then get engagement by looking for IT user with that
+        # ObjectGUID in MO.
+
+        ldap_object = self.load_ldap_object(dn, ["objectGUID"])
+
+        query = gql(
+            """
+            query FindEngagementUUID($objectGUID: String!) {
+              itusers(user_keys: [$objectGUID]) {
+                objects {
+                  current {
+                    engagement { uuid }
+                    itsystem { uuid }
+                  }
+                }
+              }
+            }
+            """
+        )
+
+        result = await self.query_mo(
+            query,
+            variable_values={  # type: ignore
+                "objectGUID": filter_remove_curly_brackets(ldap_object.objectGUID),
+            },
+            raise_if_empty=False,
+        )
+
+        for it_user in result["itusers"]["objects"]:
+            obj = it_user["current"]
+            if obj["itsystem"]["uuid"] == self.get_ldap_it_system_uuid():
+                if obj["engagement"] is not None and len(obj["engagement"]) > 0:
+                    return UUID(obj["engagement"][0]["uuid"])
+
+        return None
+
+    def get_ldap_it_system_uuid(self) -> str | None:
         """
-        Return the ID system uuid belonging to the LDAP-it-system
+        Return the IT system uuid belonging to the LDAP-it-system
         Return None if the LDAP-it-system is not found.
         """
         converter = self.user_context["converter"]
         user_key = self.user_context["ldap_it_system_user_key"]
         try:
-            return converter.get_it_system_uuid(user_key)
+            return cast(str, converter.get_it_system_uuid(user_key))
         except UUIDNotFoundException:
             logger.info(
                 "[Get-ldap-it-system-uuid] UUID Not found.",
@@ -897,7 +939,7 @@ class DataLoader:
         objectGUIDs = self.extract_unique_objectGUIDs(it_users)
         return [self.get_ldap_dn(objectGUID) for objectGUID in objectGUIDs]
 
-    async def find_or_make_mo_employee_dn(self, uuid: UUID) -> str:
+    async def find_or_make_mo_employee_dn(self, uuid: UUID) -> DNList:
         """
         Tries to find the LDAP DN belonging to a MO employee UUID. If such a DN does not
         exist, generates a new one and returns that.
@@ -916,26 +958,26 @@ class DataLoader:
             employee_uuid=uuid,
         )
         username_generator = self.user_context["username_generator"]
-        it_system_uuid = self.get_ldap_it_system_uuid()
+        raw_it_system_uuid: str | None = self.get_ldap_it_system_uuid()
+        if raw_it_system_uuid is not None:
+            it_system_uuid: UUID = UUID(raw_it_system_uuid)
 
         # The LDAP-it-system only exists, if it was configured as such in OS2mo-init.
         # It is not strictly needed; If we purely rely on cpr-lookup we can live
         # without it
-        ldap_it_system_exists = True if it_system_uuid else False
+        ldap_it_system_exists = True if raw_it_system_uuid else False
 
         if ldap_it_system_exists:
             it_users = await self.load_mo_employee_it_users(uuid, it_system_uuid)
             dns = self.extract_unique_dns(it_users)
-
-        # If we have an it-user (with a valid dn), use that dn
-        if ldap_it_system_exists and len(dns) == 1:
-            dn = dns[0]
-            logger.info(
-                "[Find-or-make-employee-dn] Found DN using it-user lookup",
-                dn=dn,
-                employee_uuid=uuid,
-            )
-            return dn
+            if dns:
+                # If we have an it-user (with a valid dn), use that dn
+                logger.info(
+                    "[Find-or-make-employee-dn] Found DN(s) using it-user lookup",
+                    dns=dns,
+                    employee_uuid=uuid,
+                )
+                return dns
 
         # If the employee has a cpr-no, try using that to find a matching dn
         employee = await self.load_mo_employee(uuid)
@@ -954,7 +996,7 @@ class DataLoader:
                     employee_uuid=uuid,
                     cpr_no=cpr_no,
                 )
-                return dn
+                return [dn]
             except NoObjectsReturnedException:
                 if not ldap_it_system_exists:
                     # If the LDAP-it-system is not configured, we can just generate the
@@ -971,16 +1013,10 @@ class DataLoader:
                         dn, force=True, manual_import=True
                     )
                     await self.sync_tool.refresh_employee(employee.uuid)
-                    return dn
+                    return [dn]
 
-        # If there are multiple LDAP-it-users: Make some noise until this is fixed in MO
-        if ldap_it_system_exists and len(dns) > 1:
-            raise MultipleObjectsReturnedException(
-                f"Could not find DN for employee with uuid = {uuid}; "
-                f"Found multiple DNs for this employee: {dns}"
-            )
         # If there are no LDAP-it-users with valid dns, we generate a dn and create one.
-        elif ldap_it_system_exists and len(dns) == 0:
+        if ldap_it_system_exists and len(dns) == 0:
             logger.info(
                 "[Find-or-make-employee-dn] No it-user found.",
                 task="Generating DN and creating it-user",
@@ -1001,7 +1037,7 @@ class DataLoader:
             await self.upload_mo_objects([it_user])
             await self.sync_tool.import_single_user(dn, force=True, manual_import=True)
             await self.sync_tool.refresh_employee(employee.uuid)
-            return dn
+            return [dn]
         # If the LDAP-it-system is not configured and the user also does not have a cpr-
         # Number we can end up here.
         else:
@@ -1010,6 +1046,56 @@ class DataLoader:
                 "The LDAP it-system does not exist and a cpr-match could "
                 "also not be obtained"
             )
+
+    async def find_dn_by_engagement_uuid(
+        self,
+        employee_uuid: UUID,
+        engagement: EngagementRef,
+        dns: DNList,
+    ) -> str:
+        if len(dns) == 1:
+            return dns[0]
+        engagement_uuid: UUID | None = getattr(engagement, "uuid", None)
+        ldap_it_system_uuid: UUID = UUID(self.get_ldap_it_system_uuid())
+
+        it_users: list[ITUser] = await self.load_mo_employee_it_users(
+            employee_uuid,
+            ldap_it_system_uuid,
+        )
+        matching_it_users: list[ITUser] = [
+            it_user
+            for it_user in it_users
+            if (engagement_uuid is None and it_user.engagement is None)
+            or (
+                engagement_uuid is not None
+                and getattr(it_user.engagement, "uuid", None) == engagement_uuid
+            )
+        ]
+
+        if len(matching_it_users) == 1:
+            # Single match, ObjectGUID is stored in ITUser.user_key
+            object_guid: UUID = UUID(matching_it_users[0].user_key)
+            dn: str = self.get_ldap_dn(object_guid)
+            assert dn in dns
+            return dn
+        elif len(matching_it_users) > 1:
+            # Multiple matches
+            logger.info(
+                "[Multiple-matches]",
+                engagement_uuid=engagement_uuid,
+                matching_it_users=matching_it_users,
+            )
+            raise MultipleObjectsReturnedException(
+                f"More than one matching 'ObjectGUID' IT user found for "
+                f"{employee_uuid=} and {engagement_uuid=}"
+            )
+        else:
+            logger.info(
+                "[No-matches]",
+                engagement_uuid=engagement_uuid,
+                it_users=it_users,
+            )
+            raise NoObjectsReturnedException("Could not find any matching IT users")
 
     @staticmethod
     def extract_current_or_latest_object(objects: list[dict]):
@@ -1291,6 +1377,7 @@ class DataLoader:
                     }}
                     employee_uuid
                     itsystem_uuid
+                    engagement_uuid
                   }}
                 }}
               }}
@@ -1309,6 +1396,7 @@ class DataLoader:
             uuid=uuid,
             to_date=entry["validity"]["to"],
             person_uuid=entry["employee_uuid"],
+            engagement_uuid=entry["engagement_uuid"],
         )
 
     async def load_mo_address(
@@ -1333,6 +1421,7 @@ class DataLoader:
                     visibility_uuid
                     employee_uuid
                     org_unit_uuid
+                    engagement_uuid
                     person: employee {{
                       cpr_no
                     }}
@@ -1368,6 +1457,7 @@ class DataLoader:
             person_uuid=entry["employee_uuid"],
             visibility_uuid=entry["visibility_uuid"],
             org_unit_uuid=entry["org_unit_uuid"],
+            engagement_uuid=entry["engagement_uuid"],
         )
 
         return address

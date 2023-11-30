@@ -829,6 +829,89 @@ async def test_import_single_object_from_LDAP_but_import_equals_false(
             )
 
 
+async def test_import_single_object_forces_json_key_ordering(
+    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
+) -> None:
+    """
+    Verify that `import_single_object` visits each "JSON key" in a specific order.
+    `Employee` keys must be visited first, then `Engagement` keys, and finally all other
+    keys.
+    """
+    # Arrange: inject a list of JSON keys that have the wrong order
+    converter.get_ldap_to_mo_json_keys.return_value = [
+        "Address",
+        "Engagement",
+        "Employee",
+    ]
+    converter.from_ldap.return_value = [MagicMock()]  # list of (at least) one item
+    # Act: run the method and collect logs
+    with capture_logs() as cap_logs:
+        await asyncio.gather(sync_tool.import_single_user("CN=foo"))
+        # Assert: verify that we process JSON keys in the expected order, regardless of
+        # the original ordering.
+        logged_json_keys: list[str] = [
+            m["json_key"]
+            for m in cap_logs
+            if m.get("json_key") and "Loaded object" in m["event"]
+        ]
+        assert logged_json_keys == ["Employee", "Engagement", "Address"]
+
+
+async def test_import_single_object_collects_engagement_uuid(
+    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
+) -> None:
+    """
+    Test that the engagement UUID is saved when importing an engagement, and used when
+    importing subsequent MO objects.
+    """
+    # Arrange
+    converter.get_ldap_to_mo_json_keys.return_value = ["Engagement", "Address"]
+    converter.from_ldap.return_value = [
+        Engagement.from_simplified_fields(
+            person_uuid=uuid4(),
+            org_unit_uuid=uuid4(),
+            job_function_uuid=uuid4(),
+            engagement_type_uuid=uuid4(),
+            user_key="user_key",
+            from_date="2020-01-01",
+        ),
+        Address.from_simplified_fields(
+            value="Address value",
+            address_type_uuid=uuid4(),
+            from_date="2020-01-01",
+        ),
+    ]
+    # Act
+    await asyncio.gather(sync_tool.import_single_user("CN=foo"))
+    # Assert
+    from_ldap_args: list[tuple[str, UUID | None]] = [
+        (call.args[1], call.kwargs["engagement_uuid"])
+        for call in converter.from_ldap.call_args_list
+    ]
+    # Assert: first call to `from_ldap` is for "Employee", engagement UUID is None
+    assert from_ldap_args[0][0] == "Employee"
+    assert isinstance(from_ldap_args[0][1], AsyncMock)
+    # Assert: second call to `from_ldap` is for "Engagement", engagement UUID is None
+    assert from_ldap_args[1][0] == "Engagement"
+    assert isinstance(from_ldap_args[1][1], AsyncMock)
+    # Assert: third call to `from_ldap` is for "Address", engagement UUID is an UUID
+    assert from_ldap_args[2][0] == "Address"
+    assert isinstance(from_ldap_args[2][1], UUID)
+
+
+async def test_import_single_user_logs_empty_engagement_uuid(
+    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
+) -> None:
+    # Arrange
+    dataloader.find_mo_engagement_uuid.return_value = None
+    with capture_logs() as cap_logs:
+        # Act
+        await asyncio.gather(sync_tool.import_single_user("CN=foo"))
+        # Assert
+        logged_events: list[str] = [log["event"] for log in cap_logs]
+        assert "[Import-single-user] Engagement UUID not found in MO." in logged_events
+
+
 async def test_import_address_objects(
     context: Context, converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):

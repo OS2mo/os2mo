@@ -1,3 +1,6 @@
+init:
+  it_systems:
+    ADGUID: Active Directory GUID
 ldap_to_mo:
   Employee:
     objectClass: ramodels.mo.employee.Employee
@@ -23,6 +26,7 @@ ldap_to_mo:
     validity: '{{ dict(from_date = now()|mo_datestring) }}'
     address_type: '{{ dict(uuid=get_employee_address_type_uuid(''EmailEmployee'')) }}'
     person: '{{ dict(uuid=employee_uuid) }}'
+    engagement: '{{ dict(uuid=engagement_uuid) }}'
   PhoneEmployee:
     objectClass: ramodels.mo.details.address.Address
     _import_to_mo_: "true"
@@ -30,6 +34,7 @@ ldap_to_mo:
     validity: '{{ dict(from_date = now()|mo_datestring) }}'
     address_type: '{{ dict(uuid=get_employee_address_type_uuid(''PhoneEmployee'')) }}'
     person: '{{ dict(uuid=employee_uuid) }}'
+    engagement: '{{ dict(uuid=engagement_uuid) }}'
   LocationEmployee:
     objectClass: ramodels.mo.details.address.Address
     _import_to_mo_: "true"
@@ -37,6 +42,15 @@ ldap_to_mo:
     validity: '{{ dict(from_date = now()|mo_datestring) }}'
     address_type: '{{ dict(uuid=get_employee_address_type_uuid(''LocationEmployee'')) }}'
     person: '{{ dict(uuid=employee_uuid) }}'
+    engagement: '{{ dict(uuid=engagement_uuid) }}'
+  ADGUID:
+    objectClass: ramodels.mo.details.it_system.ITUser
+    _import_to_mo_: "true"
+    user_key: '{{ ldap.objectGUID|remove_curly_brackets }}'
+    itsystem: '{{ dict(uuid=get_it_system_uuid(''ADGUID'')) }}'
+    validity: '{{ dict(from_date=now()|mo_datestring) }}'
+    person: '{{ dict(uuid=employee_uuid or NONE) }}'
+    engagement: '{{ dict(uuid=engagement_uuid) }}'
   Active Directory:
     objectClass: ramodels.mo.details.it_system.ITUser
     _import_to_mo_: "true"
@@ -44,6 +58,7 @@ ldap_to_mo:
     itsystem: '{{ dict(uuid=get_it_system_uuid(''Active Directory'')) }}'
     validity: '{{ dict(from_date=now()|mo_datestring) }}'
     person: '{{ dict(uuid=employee_uuid) }}'
+    engagement: '{{ dict(uuid=engagement_uuid) }}'
   Custom:
     objectClass: Custom.JobTitleFromADToMO
     _import_to_mo_: "true"
@@ -84,6 +99,11 @@ mo_to_ldap:
     _export_to_ldap_: "false"
     sAMAccountName: '{{ mo_employee_it_user.user_key }}'
     extensionAttribute1: '{{ mo_employee.cpr_no }}'
+  ADGUID:
+    objectClass: user
+    _export_to_ldap_: "false"
+    objectGUID: '{{ ''{'' + mo_employee_it_user.user_key + ''}'' }}'
+    extensionAttribute1: '{{mo_employee.cpr_no}}'
   Custom:
     objectClass: user
     _export_to_ldap_: "false"

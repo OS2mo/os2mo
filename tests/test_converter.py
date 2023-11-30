@@ -9,6 +9,7 @@ from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
+from uuid import UUID
 from uuid import uuid4
 
 import pytest
@@ -326,6 +327,41 @@ async def test_ldap_to_mo_dict_validation_error(converter: LdapConverter) -> Non
 
         info_messages = [w for w in cap_logs if w["log_level"] == "info"]
         assert "not a valid uuid" in str(info_messages)
+
+
+async def test_ldap_to_mo_uses_engagement_uuid(converter: LdapConverter) -> None:
+    """
+    Passing an optional `engagement_uuid` to `from_ldap` should inject the engagement
+    UUID in the returned MO object (if that object is an `Address` or `ITUser`.)
+    """
+
+    # Arrange
+    employee_uuid: UUID = uuid4()
+    engagement_uuid: UUID = uuid4()
+    # Arrange: replace the 'render_async' method on one of the field templates with a
+    # mock, so we can test the arguments passed to it.
+    with patch.object(
+        converter.mapping["ldap_to_mo"]["Email"]["value"],
+        "render_async",
+        return_value="<value>",
+    ) as mock_render_async:
+        # Act
+        await converter.from_ldap(
+            LdapObject(
+                dn="",
+                mail="foo@bar.dk",
+                mail_validity_from=datetime.datetime(2019, 1, 1, 0, 10, 0),
+            ),
+            "Email",
+            employee_uuid,
+            engagement_uuid=engagement_uuid,
+        )
+        # Assert: check that `render_async` was awaited
+        mock_render_async.assert_awaited_once()
+        # Assert: check actual engagement UUID vs. the one passed to `from_ldap`
+        context: dict = mock_render_async.await_args.args[0]  # type: ignore
+        actual_engagement_uuid: UUID = UUID(context["engagement_uuid"])
+        assert actual_engagement_uuid == engagement_uuid
 
 
 async def test_mo_to_ldap(converter: LdapConverter) -> None:
@@ -820,6 +856,73 @@ async def test_check_ldap_attributes_single_value_fields(converter: LdapConverte
             converter.check_ldap_attributes()
 
 
+async def test_check_ldap_attributes_engagement_requires_single_value_fields(
+    converter: LdapConverter,
+) -> None:
+    """
+    Verify that `LdapConverter.check_ldap_attributes` checks that all AD fields mapped
+    to a MO Engagement are indeed single-value fields. Otherwise, an `IncorrectMapping`
+    exception is raised.
+    """
+    # Much of this is copied from `test_check_ldap_attributes_single_value_fields`.
+
+    # Arrange
+    dataloader = MagicMock()
+    dataloader.load_ldap_overview.return_value = {
+        "user": {"attributes": ["attr1", "attr2", "attr3", "attr4"]}
+    }
+    mapping = {
+        "mo_to_ldap": {
+            "Engagement": {
+                "attr1": "{{ mo_employee_engagement.user_key }}",
+                "attr2": "{{ mo_employee_engagement.org_unit.uuid }}",
+                "attr3": "{{ mo_employee_engagement.engagement_type.uuid }}",
+                "attr4": "{{ mo_employee_engagement.job_function.uuid }}",
+                "cpr_field": "{{ foo }}",
+            },
+        },
+        "ldap_to_mo": {
+            "Engagement": {
+                "user_key": "ldap.user_key",
+                "org_unit": "ldap.org_unit",
+                "engagement_type": "ldap.engagement_type",
+                "job_function": "ldap.job_function",
+            },
+        },
+    }
+    converter.raw_mapping = mapping.copy()
+    converter.mapping = mapping.copy()
+
+    with patch(
+        "mo_ldap_import_export.converters.find_cpr_field",
+        return_value="cpr_field",
+    ), patch(
+        "mo_ldap_import_export.converters.LdapConverter.check_attributes",
+        return_value=None,
+    ), patch(
+        "mo_ldap_import_export.converters.LdapConverter.find_ldap_object_class",
+        return_value="user",
+    ):
+        # Assert
+        with pytest.raises(
+            IncorrectMapping,
+            match="LDAP Attributes mapping to 'Engagement' contain one or more "
+            "multi-value attributes .*, which is not allowed",
+        ):
+            dataloader.single_value = {
+                # *All* mapped AD fields must be multi-value to reach the relevant
+                # check.
+                "attr1": False,
+                "attr2": False,
+                "attr3": False,
+                "attr4": False,
+                "cpr_field": False,
+            }
+            converter.dataloader = dataloader
+            # Act
+            converter.check_ldap_attributes()
+
+
 async def test_check_ldap_attributes_fields_to_check(converter: LdapConverter):
 
     dataloader = MagicMock()
@@ -1003,6 +1106,13 @@ async def test_get_job_function_uuid(converter: LdapConverter):
 
     with pytest.raises(UUIDNotFoundException):
         await converter.get_or_create_job_function_uuid([])  # type: ignore
+
+
+async def test_get_org_unit_name(converter: LdapConverter) -> None:
+    org_unit_uuid: str = str(uuid4())
+    converter.org_unit_info = {org_unit_uuid: {"name": "Name"}}
+    name = await converter.get_org_unit_name(org_unit_uuid)
+    assert name == "Name"
 
 
 async def test_get_engagement_type_uuid(converter: LdapConverter):

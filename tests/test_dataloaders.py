@@ -20,6 +20,7 @@ from gql import gql
 from gql.transport.exceptions import TransportQueryError
 from graphql import print_ast
 from ldap3.core.exceptions import LDAPInvalidValueError
+from ramodels.mo._shared import EngagementRef
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
@@ -720,6 +721,7 @@ async def test_load_mo_address(dataloader: DataLoader, gql_client: AsyncMock) ->
         "person": {"uuid": uuid},
         "org_unit": {"uuid": uuid},
         "visibility": {"uuid": uuid},
+        "engagement": {"uuid": uuid},
     }
 
     # Note that 'Address' requires 'person' to be a dict
@@ -732,6 +734,7 @@ async def test_load_mo_address(dataloader: DataLoader, gql_client: AsyncMock) ->
     address_dict["visibility_uuid"] = uuid
     address_dict["employee_uuid"] = uuid
     address_dict["org_unit_uuid"] = uuid
+    address_dict["engagement_uuid"] = uuid
 
     gql_client.execute.return_value = {
         "addresses": {
@@ -1037,6 +1040,7 @@ async def test_load_mo_it_user(dataloader: DataLoader, gql_client: AsyncMock):
                             "validity": {"from": "2021-01-01", "to": None},
                             "employee_uuid": uuid1,
                             "itsystem_uuid": uuid2,
+                            "engagement_uuid": uuid1,
                         }
                     ]
                 }
@@ -1052,6 +1056,7 @@ async def test_load_mo_it_user(dataloader: DataLoader, gql_client: AsyncMock):
     assert output[0].user_key == "foo"
     assert output[0].itsystem.uuid == uuid2
     assert output[0].person.uuid == uuid1  # type: ignore
+    assert output[0].engagement.uuid == uuid1  # type: ignore
     assert output[0].validity.from_date.strftime("%Y-%m-%d") == "2021-01-01"
     assert len(output) == 1
 
@@ -1807,25 +1812,25 @@ async def test_find_or_make_mo_employee_dn(
     # Case where there is an IT-system that contains the DN
     dataloader.load_mo_employee.return_value = Employee(cpr_no=None)
     dataloader.load_mo_employee_it_users.return_value = []
-    dataloader.get_ldap_it_system_uuid.return_value = it_system_uuid
+    dataloader.get_ldap_it_system_uuid.return_value = str(it_system_uuid)
     dataloader.extract_unique_dns.return_value = ["CN=foo,DC=bar"]
-    dn = (await asyncio.gather(dataloader.find_or_make_mo_employee_dn(uuid4())))[0]
-    assert dn == "CN=foo,DC=bar"
+    dns = await dataloader.find_or_make_mo_employee_dn(uuid4())
+    assert dns == ["CN=foo,DC=bar"]
 
     # Same as above, but the it-system contains an invalid value
     dataloader.extract_unique_dns.return_value = []
     username_generator.generate_dn.return_value = "CN=generated_dn_1,DC=DN"
     dataloader.get_ldap_objectGUID.return_value = uuid_1
-    dn = (await asyncio.gather(dataloader.find_or_make_mo_employee_dn(uuid4())))[0]
+    dns = await dataloader.find_or_make_mo_employee_dn(uuid4())
     uploaded_uuid = dataloader.upload_mo_objects.await_args_list[0].args[0][0].user_key
-    assert dn == "CN=generated_dn_1,DC=DN"
+    assert dns == ["CN=generated_dn_1,DC=DN"]
     assert uploaded_uuid == str(uuid_1)
     dataloader.upload_mo_objects.reset_mock()
 
     # Same as above, but there are multiple IT-users
     dataloader.extract_unique_dns.return_value = ["CN=foo,DC=bar", "CN=foo2,DC=bar"]
-    with pytest.raises(MultipleObjectsReturnedException):
-        await asyncio.gather(dataloader.find_or_make_mo_employee_dn(uuid4()))
+    dns = await dataloader.find_or_make_mo_employee_dn(uuid4())
+    assert dns == ["CN=foo,DC=bar", "CN=foo2,DC=bar"]
 
     # Case where there is no IT-system that contains the DN, but the cpr lookup succeeds
     dataloader.load_mo_employee.return_value = Employee(cpr_no="0101911234")
@@ -1833,31 +1838,31 @@ async def test_find_or_make_mo_employee_dn(
     dataloader.load_ldap_cpr_object.return_value = LdapObject(
         dn="CN=dn_already_in_ldap,DC=foo"
     )
-    dn = (await asyncio.gather(dataloader.find_or_make_mo_employee_dn(uuid4())))[0]
-    assert dn == "CN=dn_already_in_ldap,DC=foo"
+    dns = await dataloader.find_or_make_mo_employee_dn(uuid4())
+    assert dns == ["CN=dn_already_in_ldap,DC=foo"]
 
     # Same as above, but the cpr-lookup does not succeed
     dataloader.load_ldap_cpr_object.side_effect = NoObjectsReturnedException("foo")
     username_generator.generate_dn.return_value = "CN=generated_dn_2,DC=DN"
     dataloader.get_ldap_objectGUID.return_value = uuid_2
-    dn = (await asyncio.gather(dataloader.find_or_make_mo_employee_dn(uuid4())))[0]
+    dns = await dataloader.find_or_make_mo_employee_dn(uuid4())
     uploaded_uuid = dataloader.upload_mo_objects.await_args_list[0].args[0][0].user_key
-    assert dn == "CN=generated_dn_2,DC=DN"
+    assert dns == ["CN=generated_dn_2,DC=DN"]
     assert uploaded_uuid == str(uuid_2)
     dataloader.upload_mo_objects.reset_mock()
 
     # Same as above, but an it-system does not exist
     dataloader.get_ldap_it_system_uuid.return_value = None
     username_generator.generate_dn.return_value = "CN=generated_dn_3,DC=DN"
-    dn = (await asyncio.gather(dataloader.find_or_make_mo_employee_dn(uuid4())))[0]
-    assert dn == "CN=generated_dn_3,DC=DN"
+    dns = await dataloader.find_or_make_mo_employee_dn(uuid4())
+    assert dns == ["CN=generated_dn_3,DC=DN"]
     dataloader.upload_mo_objects.assert_not_awaited()
     dataloader.upload_mo_objects.reset_mock()
 
     # Same as above, but the user also has no cpr number
     dataloader.load_mo_employee.return_value = Employee(cpr_no=None)
     with pytest.raises(DNNotFound):
-        await asyncio.gather(dataloader.find_or_make_mo_employee_dn(uuid4()))
+        await dataloader.find_or_make_mo_employee_dn(uuid4())
 
 
 def test_extract_unique_objectGUIDs(dataloader: DataLoader):
@@ -2527,3 +2532,181 @@ def test_move_ldap_object(dataloader: DataLoader):
 
     with pytest.raises(NotEnabledException):
         dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
+
+
+async def test_find_dn_by_engagement_uuid_uses_single_dn() -> None:
+    """If passed a single-item `dns` list, simply return the first (and only) DN in that
+    list.
+    """
+
+    # Arrange
+    dataloader: DataLoader = DataLoader(
+        {
+            "user_context": {
+                "ldap_connection": MagicMock(),
+                "gql_client": AsyncMock(),
+                "converter": AsyncMock(),
+            }
+        }
+    )
+    # Act
+    dn: str = await dataloader.find_dn_by_engagement_uuid(
+        MagicMock(),
+        MagicMock(),
+        ["CN=foo"],
+    )
+    # Assert
+    assert dn == "CN=foo"
+
+
+async def test_find_dn_by_engagement_uuid_finds_single_dn() -> None:
+    # We can't use the `dataloader` fixture here, as we are testing
+    # `DataLoader.find_dn_by_engagement_uuid` itself (which is mocked by the
+    # `dataloader` fixture.)
+
+    # Arrange
+    engagement_uuid: UUID = uuid4()
+    engagement_ref: EngagementRef = EngagementRef(uuid=engagement_uuid)
+    it_system_uuid: UUID = uuid4()
+    it_user_object_guid: UUID = uuid4()
+    dataloader: DataLoader = DataLoader(
+        {
+            "user_context": {
+                "ldap_connection": MagicMock(),
+                "gql_client": AsyncMock(),
+                "converter": AsyncMock(),
+            }
+        }
+    )
+    dataloader.get_ldap_it_system_uuid = MagicMock()  # type: ignore
+    dataloader.get_ldap_it_system_uuid.return_value = str(it_system_uuid)
+    dataloader.load_mo_employee_it_users = AsyncMock()  # type: ignore
+    dataloader.load_mo_employee_it_users.return_value = [
+        ITUser.from_simplified_fields(
+            str(it_user_object_guid),  # user_key
+            it_system_uuid,
+            "2020-01-01",  # from_date
+            engagement_uuid=engagement_uuid,
+        )
+    ]
+    dataloader.get_ldap_dn = MagicMock()  # type: ignore
+    dataloader.get_ldap_dn.return_value = "CN=foo"
+    dns = MagicMock()
+    dns.__contains__.return_value = True
+
+    # Act
+    dn: str | None = await dataloader.find_dn_by_engagement_uuid(
+        uuid4(), engagement_ref, dns
+    )
+
+    # Assert
+    assert dn == "CN=foo"
+
+
+async def test_find_dn_by_engagement_uuid_raises_exception_on_multiple_hits() -> None:
+    # We can't use the `dataloader` fixture here, as we are testing
+    # `DataLoader.find_dn_by_engagement_uuid` itself (which is mocked by the
+    # `dataloader` fixture.)
+
+    # Arrange
+    engagement_uuid: UUID = uuid4()
+    engagement_ref: EngagementRef = EngagementRef(uuid=engagement_uuid)
+    it_system_uuid: UUID = uuid4()
+    it_user_object_guid: UUID = uuid4()
+    dataloader: DataLoader = DataLoader(
+        {
+            "user_context": {
+                "ldap_connection": MagicMock(),
+                "gql_client": AsyncMock(),
+                "converter": AsyncMock(),
+            }
+        }
+    )
+    dataloader.get_ldap_it_system_uuid = MagicMock()  # type: ignore
+    dataloader.get_ldap_it_system_uuid.return_value = str(it_system_uuid)
+    dataloader.load_mo_employee_it_users = AsyncMock()  # type: ignore
+    dataloader.load_mo_employee_it_users.return_value = [
+        ITUser.from_simplified_fields(
+            str(it_user_object_guid),  # user_key
+            it_system_uuid,
+            "2020-01-01",  # from_date
+            engagement_uuid=engagement_uuid,
+        )
+    ] * 2
+    dataloader.get_ldap_dn = MagicMock()  # type: ignore
+    dataloader.get_ldap_dn.return_value = "CN=foo"
+    dns = MagicMock()
+    dns.__contains__.return_value = True
+
+    # Assert
+    with pytest.raises(
+        MultipleObjectsReturnedException,
+        match=r"More than one matching 'ObjectGUID' IT user found for .*? and .*?",
+    ):
+        # Act
+        await dataloader.find_dn_by_engagement_uuid(uuid4(), engagement_ref, dns)
+
+
+async def test_find_dn_by_engagement_uuid_raises_exception_if_no_hits() -> None:
+    # We can't use the `dataloader` fixture here, as we are testing
+    # `DataLoader.find_dn_by_engagement_uuid` itself (which is mocked by the
+    # `dataloader` fixture.)
+
+    # Arrange
+    engagement_uuid: UUID = uuid4()
+    engagement_ref: EngagementRef = EngagementRef(uuid=engagement_uuid)
+    it_system_uuid: UUID = uuid4()
+    dataloader: DataLoader = DataLoader(
+        {
+            "user_context": {
+                "ldap_connection": MagicMock(),
+                "gql_client": AsyncMock(),
+                "converter": AsyncMock(),
+            }
+        }
+    )
+    dataloader.get_ldap_it_system_uuid = MagicMock()  # type: ignore
+    dataloader.get_ldap_it_system_uuid.return_value = str(it_system_uuid)
+    dataloader.load_mo_employee_it_users = AsyncMock()  # type: ignore
+    dataloader.load_mo_employee_it_users.return_value = []
+
+    # Assert
+    with pytest.raises(NoObjectsReturnedException):
+        # Act
+        await dataloader.find_dn_by_engagement_uuid(
+            uuid4(), engagement_ref, MagicMock()
+        )
+
+
+async def test_find_mo_engagement_uuid(dataloader: DataLoader) -> None:
+    """Check that `find_mo_engagement_uuid` returns the expected engagement UUID, by
+    looking at any previously created "ADGUID" `ITUser` objects in MO for the given
+    employee.
+    """
+
+    # Arrange
+    object_guid: UUID = uuid4()
+    engagement_uuid: UUID = uuid4()
+    mock_ldap_object: LdapObject = LdapObject(
+        dn="CN=foo", objectGUID=f"{{{object_guid}}}"
+    )
+    mock_mo_it_user: dict = {
+        "itsystem": {"uuid": dataloader.get_ldap_it_system_uuid()},
+        "engagement": [{"uuid": str(engagement_uuid)}],
+    }
+    mock_mo_response: dict = {"itusers": {"objects": [{"current": mock_mo_it_user}]}}
+    with patch.object(dataloader, "load_ldap_object", return_value=mock_ldap_object):
+        with patch.object(dataloader, "query_mo", return_value=mock_mo_response):
+            # Act
+            actual_engagement_uuid = await dataloader.find_mo_engagement_uuid("CN=foo")
+            # Assert
+            assert actual_engagement_uuid == engagement_uuid
+
+    # Test behavior if MO has no IT users for the given employee
+    mock_mo_response = {"itusers": {"objects": []}}
+    with patch.object(dataloader, "load_ldap_object", return_value=mock_ldap_object):
+        with patch.object(dataloader, "query_mo", return_value=mock_mo_response):
+            # Act
+            empty = await dataloader.find_mo_engagement_uuid("CN=foo")
+            # Assert
+            assert empty is None
