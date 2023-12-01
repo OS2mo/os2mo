@@ -631,6 +631,13 @@ def test_get_accepted_json_keys(converter: LdapConverter):
     assert "Active Directory" in output
 
 
+def test_min(converter: LdapConverter):
+    assert converter.min(1, None) == 1
+    assert converter.min(None, 1) == 1
+    assert converter.min(9, 10) == 9
+    assert converter.min(10, 9) == 9
+
+
 def test_nonejoin(converter: LdapConverter):
     output = converter.nonejoin("foo", "bar", None)
     assert output == "foo, bar"
