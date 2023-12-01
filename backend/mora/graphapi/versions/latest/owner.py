@@ -5,6 +5,7 @@ from uuid import UUID
 from fastapi.encoders import jsonable_encoder
 
 from .models import OwnerCreate
+from .models import OwnerTerminate
 from .models import OwnerUpdate
 from mora import mapping
 from mora.service.owner import OwnerRequestHandler
@@ -35,3 +36,14 @@ async def update_owner(input: OwnerUpdate) -> UUID:
     uuid = await request.submit()
 
     return UUID(uuid)
+
+
+async def terminate_owner(input: OwnerTerminate) -> UUID:
+    input_dict = jsonable_encoder(input.to_handler_dict())
+
+    request = await OwnerRequestHandler.construct(
+        input_dict, mapping.RequestType.TERMINATE
+    )
+    await request.submit()
+
+    return input.uuid

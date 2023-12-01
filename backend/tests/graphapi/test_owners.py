@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
@@ -407,3 +408,58 @@ async def test_update_owner_integration_test(
     }
 
     assert expected_updated_owner == owner_objects_post_update
+
+
+@pytest.mark.integration_test
+@freezegun.freeze_time("2023-07-13", tz_offset=1)
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "test_data",
+    [
+        {
+            "uuid": "c21574ad-ab5e-456d-bc39-83886c0eff50",
+            "to": "2023-07-25T00:00:00+02:00",
+        },
+        {
+            "uuid": "c21574ad-ab5e-456d-bc39-83886c0eff50",
+            "to": "2040-01-01T00:00:00+01:00",
+        },
+    ],
+)
+async def test_owner_terminate_integration_test(
+    test_data, graphapi_post: GraphAPIPost
+) -> None:
+    uuid = test_data["uuid"]
+    mutation = """
+        mutation TerminateOwner($input: OwnerTerminateInput!) {
+            owner_terminate(input: $input) {
+                uuid
+            }
+        }
+    """
+    mutation_response = graphapi_post(mutation, {"input": jsonable_encoder(test_data)})
+
+    assert mutation_response.errors is None
+
+    verify_query = """
+        query VerifyQuery($uuid: UUID!) {
+            owners(filter: {uuids: [$uuid]}){
+                objects {
+                    objects {
+                        uuid
+                        validity {
+                            to
+                        }
+                    }
+                }
+            }
+        }
+    """
+
+    verify_response = graphapi_post(verify_query, {"uuid": str(uuid)})
+    assert verify_response.errors is None
+    owner_objects_post_terminate = one(
+        one(verify_response.data["owners"]["objects"])["objects"]
+    )
+    assert test_data["uuid"] == owner_objects_post_terminate["uuid"]
+    assert test_data["to"] == owner_objects_post_terminate["validity"]["to"]

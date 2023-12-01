@@ -1331,6 +1331,12 @@ class OwnerUpdate(UUIDBase):
         return {k: v for k, v in data_dict.items() if v or k == "owner"}
 
 
+class OwnerTerminate(ValidityTerminate):
+    """Model representing an owner termination."""
+
+    uuid: UUID = Field(description="UUID of the owner we want to terminate.")
+
+
 # Related units
 # -----
 
