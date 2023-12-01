@@ -907,6 +907,15 @@ class SyncTool:
                 engagement_uuid=engagement_uuid,
             )
 
+            # In case the engagement does not exist yet:
+            if json_key == "Engagement" and len(converted_objects):
+                engagement_uuid = converted_objects[0].uuid
+                logger.info(
+                    "[Import-single-user] Saving engagement UUID for DN",
+                    engagement_uuid=engagement_uuid,
+                    dn=dn,
+                )
+
             if len(converted_objects) == 0:
                 logger.info("[Import-single-user] No converted objects", dn=dn)
                 continue
@@ -921,6 +930,15 @@ class SyncTool:
                 converted_objects = await self.format_converted_objects(
                     converted_objects, json_key
                 )
+                # In case the engagement exists, but is outdated. If it exists,
+                # but is identical, the list will be empty.
+                if json_key == "Engagement" and len(converted_objects):
+                    engagement_uuid = converted_objects[0].uuid
+                    logger.info(
+                        "[Import-single-user] Updating engagement UUID",
+                        engagement_uuid=engagement_uuid,
+                        dn=dn,
+                    )
             except NoObjectsReturnedException:
                 # If any of the objects which this object links to does not exist
                 # The dataloader will raise NoObjectsReturnedException
@@ -959,13 +977,6 @@ class SyncTool:
                 else:
                     for mo_object in converted_objects:
                         self.uuids_to_ignore.add(mo_object.uuid)
-                        if json_key == "Engagement":
-                            engagement_uuid = mo_object.uuid
-                            logger.info(
-                                "[Import-single-user] Saving engagement UUID for DN",
-                                engagement_uuid=engagement_uuid,
-                                dn=dn,
-                            )
                     try:
                         await self.dataloader.upload_mo_objects(converted_objects)
                     except HTTPStatusError as e:
