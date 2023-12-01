@@ -16,7 +16,7 @@ ldap_to_mo:
     job_function: '{{ dict(uuid=get_or_create_job_function_uuid(ldap.title)) }}'
     engagement_type: '{{ dict(uuid=get_or_create_engagement_type_uuid(''Ekstern'')) }}'
     user_key: '-'
-    validity: '{{ dict(from_date=now()|mo_datestring, to_date=ldap.extensionAttribute9|parse_datetime|mo_datestring or NONE) }}'
+    validity: '{{ dict(from_date=min(now(), ldap.extensionAttribute9|parse_datetime)|mo_datestring, to_date=ldap.extensionAttribute9|parse_datetime|mo_datestring or NONE) }}'
     person: '{{ dict(uuid=employee_uuid) }}'
     primary: '{{ dict(uuid=get_primary_type_uuid(''status0'')) }}'
   EmailEmployee:
