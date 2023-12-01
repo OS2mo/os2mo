@@ -1482,6 +1482,20 @@ class Class:
         parent_node = await Class.parent(root=root, info=info)  # type: ignore[operator,misc]
         return await Class.top_level_facet(self=self, root=parent_node, info=info)
 
+    it_system: LazyITSystem | None = strawberry.field(
+        resolver=seed_resolver_only(
+            ITSystemResolver(), {"uuids": lambda root: uuid2list(root.it_system_uuid)}
+        ),
+        description=dedent(
+            """\
+            The IT-System associated with the class.
+
+            This is intended to be used for (IT) roles.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
+    )
+
     @strawberry.field(
         description=dedent(
             """\
@@ -1660,6 +1674,13 @@ class Class:
     )
     async def parent_uuid(self, root: ClassRead) -> UUID | None:
         return root.parent_uuid
+
+    @strawberry.field(
+        description="The IT-System associated with the class.",
+        deprecation_reason=gen_uuid_field_deprecation("it_system"),
+    )
+    async def it_system_uuid(self, root: ClassRead) -> UUID | None:
+        return root.it_system_uuid
 
     validity: OpenValidity = strawberry.auto
 

@@ -36,6 +36,7 @@ from .. import lora
 from .. import mapping
 from .. import util
 from ..exceptions import ErrorCodes
+from ..graphapi.middleware import is_graphql
 from ..lora import LoraObjectType
 from .tree_helper import prepare_ancestor_tree
 from mora.request_scoped.bulking import get_lora_object
@@ -342,6 +343,11 @@ async def get_one_class(
         response["org_uuid"] = last(clazz["relationer"]["ansvarlig"])["uuid"]
         validities = clazz["tilstande"]["klassepubliceret"]
         response[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
+
+    if is_graphql():
+        response["it_system_uuid"] = last(
+            clazz["relationer"].get("mapninger", []), default={}
+        ).get("uuid")
 
     return response
 

@@ -164,6 +164,7 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
                             published
                             scope
                             type
+                            it_system_uuid
                             validity {
                                 from
                                 to
@@ -587,3 +588,175 @@ async def test_terminate_class(graphapi_post) -> None:
             },
         }
     ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_integration_it_system() -> None:
+    role_type_facet_uuid = "68ba77bc-4d57-43e2-9c24-0c9eda5fddc7"
+    sap_it_system_uuid = "14466fb0-f9de-439c-a6c2-b3262c367da7"
+    ad_it_system_uuid = "59c135c9-2b15-41cc-97c8-b5dff7180beb"
+
+    # Create
+    create_response = await execute_graphql(
+        query="""
+            mutation Create($facet_uuid: UUID!, $it_system_uuid: UUID!) {
+              class_create(
+                input: {
+                    facet_uuid: $facet_uuid,
+                    user_key: "test",
+                    name: "test",
+                    it_system_uuid: $it_system_uuid,
+                    validity: {from: "2010-02-03"}
+                }
+              ) {
+                uuid
+              }
+            }
+        """,
+        variable_values={
+            "facet_uuid": role_type_facet_uuid,
+            "it_system_uuid": sap_it_system_uuid,
+        },
+    )
+    assert create_response.errors is None
+    class_uuid = create_response.data["class_create"]["uuid"]
+
+    # Verify
+    read_query = """
+        query Read($uuid: UUID!) {
+          classes(filter: {uuids: [$uuid]}) {
+            objects {
+              current {
+                it_system {
+                  uuid
+                }
+              }
+            }
+          }
+        }
+    """
+    response = await execute_graphql(
+        query=read_query,
+        variable_values={"uuid": class_uuid},
+    )
+    assert response.errors is None
+    assert response.data == {
+        "classes": {
+            "objects": [{"current": {"it_system": {"uuid": sap_it_system_uuid}}}]
+        }
+    }
+
+    # Update
+    update_response = await execute_graphql(
+        query="""
+            mutation Update(
+                $class_uuid: UUID!,
+                $facet_uuid: UUID!,
+                $it_system_uuid: UUID!,
+            ) {
+              class_update(
+                input: {
+                    uuid: $class_uuid,
+                    facet_uuid: $facet_uuid,
+                    user_key: "test",
+                    name: "test",
+                    it_system_uuid: $it_system_uuid,
+                    validity: {from: "2020-03-04"}
+                }
+              ) {
+                uuid
+              }
+            }
+        """,
+        variable_values={
+            "class_uuid": class_uuid,
+            "facet_uuid": role_type_facet_uuid,
+            "it_system_uuid": ad_it_system_uuid,
+        },
+    )
+    assert update_response.errors is None
+
+    # Verify
+    response = await execute_graphql(
+        query=read_query,
+        variable_values={"uuid": class_uuid},
+    )
+    assert response.errors is None
+    assert response.data == {
+        "classes": {
+            "objects": [{"current": {"it_system": {"uuid": ad_it_system_uuid}}}]
+        }
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_integration_it_system_filter() -> None:
+    role_type_facet_uuid = "68ba77bc-4d57-43e2-9c24-0c9eda5fddc7"
+    sap_it_system_uuid = "14466fb0-f9de-439c-a6c2-b3262c367da7"
+    ad_it_system_uuid = "59c135c9-2b15-41cc-97c8-b5dff7180beb"
+
+    # Create
+    create_mutation = """
+        mutation Create(
+            $facet_uuid: UUID!,
+            $it_system_uuid: UUID!,
+            $user_key: String!,
+        ) {
+          class_create(
+            input: {
+                facet_uuid: $facet_uuid,
+                user_key: $user_key,
+                name: "test",
+                it_system_uuid: $it_system_uuid,
+                validity: {from: "2010-02-03"}
+            }
+          ) {
+            uuid
+          }
+        }
+    """
+    await execute_graphql(
+        query=create_mutation,
+        variable_values={
+            "facet_uuid": role_type_facet_uuid,
+            "it_system_uuid": sap_it_system_uuid,
+            "user_key": "sap",
+        },
+    )
+    await execute_graphql(
+        query=create_mutation,
+        variable_values={
+            "facet_uuid": role_type_facet_uuid,
+            "it_system_uuid": ad_it_system_uuid,
+            "user_key": "ad",
+        },
+    )
+
+    # Filter SAP
+    read_query = """
+        query Read($it_system_uuid: UUID!) {
+          classes(filter: {it_system: {uuids: [$it_system_uuid]}}) {
+            objects {
+              current {
+                user_key
+              }
+            }
+          }
+        }
+    """
+    response = await execute_graphql(
+        query=read_query,
+        variable_values={"it_system_uuid": sap_it_system_uuid},
+    )
+    assert response.errors is None
+    assert response.data == {"classes": {"objects": [{"current": {"user_key": "sap"}}]}}
+
+    # Filter AD
+    response = await execute_graphql(
+        query=read_query,
+        variable_values={"it_system_uuid": ad_it_system_uuid},
+    )
+    assert response.errors is None
+    assert response.data == {"classes": {"objects": [{"current": {"user_key": "ad"}}]}}

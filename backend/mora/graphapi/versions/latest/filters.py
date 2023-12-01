@@ -207,6 +207,15 @@ class ClassFilter(BaseFilter):
         deprecation_reason="Replaced by the 'parent' filter",
     )
 
+    it_system: ITSystemFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            IT-System filter limiting which entries are returned.
+            """
+        ),
+    )
+
 
 @strawberry.input(description="Configuration filter.")
 class ConfigurationFilter:
