@@ -1300,6 +1300,37 @@ class OwnerCreate(UUIDBase):
         }
 
 
+class OwnerUpdate(UUIDBase):
+    """Model for updating an owner."""
+
+    uuid: UUID = Field(description="UUID of the owner to be updated.")
+    user_key: str | None = Field(description="Extra info or uuid.")
+    org_unit: UUID | None = Field(description="UUID of the org unit")
+    person: UUID | None = Field(description="UUID of the person")
+    owner: UUID | None = Field(description="UUID of the owner")
+    inference_priority: OwnerInferencePriority | None = Field(
+        description="Inference priority, if set: `engagement_priority` or `association_priority`"
+    )
+    validity: RAValidity = Field(description="Validity range for the owner.")
+
+    def to_handler_dict(self) -> dict:
+        data_dict = {
+            "user_key": self.user_key,
+            "org_unit": gen_uuid(self.org_unit),
+            "person": gen_uuid(self.person),
+            "owner": gen_uuid(self.owner),
+            "owner_inference_priority": self.inference_priority,
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+        }
+        # Same garbage as with `manager.person` and `org_unit.parent`
+        return {k: v for k, v in data_dict.items() if v or k == "owner"}
+
+
 # Related units
 # -----
 

@@ -254,3 +254,156 @@ async def test_create_owner_integration_test(
     created_owner = one(one(verify_response.data["owners"]["objects"])["objects"])
 
     assert test_data == created_owner
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "test_data, expected_fail",
+    # person or org_unit has to be set, otherwise we get:
+    # `Must supply at most one of org_unit UUID, person UUID`
+    [
+        (
+            {
+                # owned org_unit
+                "uuid": "c16ff527-3501-42f7-a942-e606c6c1a0a7",
+                "person": None,
+                "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                "owner": None,
+                "inference_priority": None,
+                "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+            },
+            0,
+        ),
+        (
+            {
+                # owned org_unit
+                "uuid": "c16ff527-3501-42f7-a942-e606c6c1a0a7",
+                "person": None,
+                "org_unit": "5942ce50-2be8-476f-914b-6769a888a7c8",
+                "owner": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                "inference_priority": None,
+                "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+            },
+            0,
+        ),
+        (
+            {
+                # owned org_unit
+                "uuid": "c16ff527-3501-42f7-a942-e606c6c1a0a7",
+                "person": "7626ad64-327d-481f-8b32-36c78eb12f8c",
+                "org_unit": "5942ce50-2be8-476f-914b-6769a888a7c8",
+                "owner": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                "inference_priority": None,
+                "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+            },
+            1,
+        ),
+        (
+            {
+                # owned org_unit
+                "uuid": "c16ff527-3501-42f7-a942-e606c6c1a0a7",
+                "person": None,
+                "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                "owner": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                "inference_priority": "ASSOCIATION",
+                "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+            },
+            1,
+        ),
+        (
+            {
+                # owned person
+                "uuid": "c21574ad-ab5e-456d-bc39-83886c0eff50",
+                "person": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "org_unit": None,
+                "owner": None,
+                "inference_priority": None,
+                "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+            },
+            0,
+        ),
+        (
+            {
+                # owned person
+                "uuid": "c21574ad-ab5e-456d-bc39-83886c0eff50",
+                "person": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "org_unit": None,
+                "owner": None,
+                "inference_priority": "ENGAGEMENT",
+                "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+            },
+            0,
+        ),
+        (
+            {
+                # owned person
+                "uuid": "c21574ad-ab5e-456d-bc39-83886c0eff50",
+                "person": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "org_unit": None,
+                "owner": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                "inference_priority": "ENGAGEMENT",
+                "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+            },
+            1,
+        ),
+    ],
+)
+async def test_update_owner_integration_test(
+    graphapi_post: GraphAPIPost, test_data, expected_fail
+) -> None:
+    uuid = test_data["uuid"]
+
+    query = """
+        query OwnerQuery($uuid: UUID!) {
+            owners(filter: {uuids: [$uuid]}){
+                objects {
+                    objects {
+                        uuid
+                        person: employee_uuid
+                        org_unit: org_unit_uuid
+                        owner: owner_uuid
+                        inference_priority: owner_inference_priority
+                        validity {
+                            from
+                            to
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response = graphapi_post(query, {"uuid": str(uuid)})
+
+    assert response.errors is None
+
+    pre_update_owner = one(one(response.data["owners"]["objects"])["objects"])
+
+    mutation = """
+        mutation UpdateOwner($input: OwnerUpdateInput!) {
+            owner_update(input: $input) {
+                uuid
+            }
+        }
+    """
+    mutation_response = graphapi_post(mutation, {"input": jsonable_encoder(test_data)})
+
+    if expected_fail:
+        assert mutation_response.errors is not None
+        return
+
+    assert mutation_response.errors is None
+
+    verify_response = graphapi_post(query, {"uuid": str(uuid)})
+    assert verify_response.errors is None
+
+    owner_objects_post_update = one(
+        one(verify_response.data["owners"]["objects"])["objects"]
+    )
+
+    expected_updated_owner = {
+        k: v if v is not None or k == "owner" else pre_update_owner[k]
+        for k, v in test_data.items()
+    }
+
+    assert expected_updated_owner == owner_objects_post_update

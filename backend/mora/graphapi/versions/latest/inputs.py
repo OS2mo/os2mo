@@ -45,6 +45,7 @@ from .models import OrganisationUnitCreate
 from .models import OrganisationUnitTerminate
 from .models import OrganisationUnitUpdate
 from .models import OwnerCreate
+from .models import OwnerUpdate
 from .models import RelatedUnitsUpdate
 from .models import RoleCreate
 from .models import RoleTerminate
@@ -468,6 +469,14 @@ class OrganisationUnitUpdateInput:
 )
 class OwnerCreateInput:
     """Input model for creating owners."""
+
+
+@strawberry.experimental.pydantic.input(
+    model=OwnerUpdate,
+    all_fields=True,
+)
+class OwnerUpdateInput:
+    """Input model for updating owners."""
 
 
 # Related Units
