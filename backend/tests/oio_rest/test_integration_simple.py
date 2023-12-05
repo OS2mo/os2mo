@@ -14,8 +14,6 @@ def test_site_map(lora_client: TestClient) -> None:
     assert response.json() == {
         "site-map": [
             "/",
-            "/autocomplete/bruger",
-            "/autocomplete/organisationsenhed",
             "/docs",
             "/docs/oauth2-redirect",
             "/klassifikation/classes",

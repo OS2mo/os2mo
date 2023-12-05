@@ -12,6 +12,7 @@ from operator import itemgetter
 from typing import Any
 from typing import Protocol
 from typing import TypeVar
+from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
 from uuid import uuid4
@@ -22,7 +23,6 @@ import requests
 from _pytest.monkeypatch import MonkeyPatch
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from httpx import Response
 from hypothesis import settings as h_settings
 from hypothesis import strategies as st
 from hypothesis import Verbosity
@@ -32,7 +32,6 @@ from more_itertools import one
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette_context import request_cycle_context
 
-from mora import lora
 from mora.app import create_app
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import Token
@@ -48,6 +47,7 @@ from oio_rest.config import get_settings as lora_get_settings
 from oio_rest.db import _get_dbname
 from oio_rest.db import dbname_context
 from oio_rest.db import get_connection
+from oio_rest.organisation import Organisation
 from ramodels.mo import Validity
 from tests.db_testing import create_new_testing_database
 from tests.db_testing import remove_testing_database
@@ -78,12 +78,6 @@ asyncio_mode = "strict"
 def pytest_collection_modifyitems(items):
     for item in items:
         item.add_marker(pytest.mark.respx(using="httpx"))
-
-
-@pytest.fixture(autouse=True, scope="session")
-def seed_lora_client() -> None:
-    os.environ["PYTEST_RUNNING"] = "True"
-    lora.client = asyncio.run(lora.create_lora_client(create_app()))
 
 
 def pytest_runtest_protocol(item) -> None:
@@ -489,12 +483,14 @@ def passthrough_test_app_calls(request, respx_mock) -> None:
 
 
 @pytest.fixture
-def mock_organisation(respx_mock) -> UUID:
+def mock_organisation(monkeypatch) -> UUID:
     organisation = gen_organisation()
 
-    respx_mock.get(
-        "http://localhost/lora/organisation/organisation",
-    ).mock(return_value=Response(200, json={"results": [[organisation]]}))
+    monkeypatch.setattr(
+        Organisation,
+        "get_objects_direct",
+        AsyncMock(return_value={"results": [[organisation]]}),
+    )
     return organisation["id"]
 
 

@@ -2,10 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 import os
 from operator import attrgetter
-from uuid import UUID
 
 from fastapi import HTTPException
-from fastapi import Query
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from fastapi.responses import RedirectResponse
@@ -17,8 +15,6 @@ from structlog import get_logger
 from oio_rest import klassifikation
 from oio_rest import organisation
 from oio_rest.custom_exceptions import OIOException
-from oio_rest.mo.autocomplete import find_org_units_matching
-from oio_rest.mo.autocomplete import find_users_matching
 
 logger = get_logger()
 
@@ -45,19 +41,6 @@ def setup_views(app):
         links = filter(lambda route: "GET" in route.methods, links)
         links = map(attrgetter("path"), links)
         return {"site-map": sorted(links)}
-
-    @app.get("/autocomplete/bruger")
-    def autocomplete_user(
-        phrase: str,
-        class_uuids: list[UUID] | None = Query(None),
-    ):
-        return {"results": find_users_matching(phrase, class_uuids=class_uuids)}
-
-    @app.get("/autocomplete/organisationsenhed")
-    def autocomplete_org_unit(
-        phrase: str, class_uuids: list[UUID] | None = Query(None)
-    ):
-        return {"results": find_org_units_matching(phrase, class_uuids=class_uuids)}
 
     app.include_router(
         klassifikation.KlassifikationsHierarki.setup_api(),

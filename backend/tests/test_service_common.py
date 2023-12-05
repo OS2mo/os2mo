@@ -1,32 +1,25 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import json
+from unittest.mock import AsyncMock
 
 import freezegun
 import pytest
-from fastapi.testclient import TestClient
-from httpx import Response
 
 from mora import common
 from mora import exceptions
 from mora import lora
 from mora import mapping
 from mora import util as mora_util
+from oio_rest.organisation import Bruger
 
 
 @freezegun.freeze_time("2018-01-01")
-async def test_history_missing(respx_mock, service_client: TestClient) -> None:
+async def test_history_missing(monkeypatch):
     userid = "00000000-0000-0000-0000-000000000000"
 
-    url = "http://localhost/lora/organisation/bruger"
-    route = respx_mock.get(url).mock(
-        return_value=Response(
-            200,
-            json={
-                "results": [],
-            },
-        )
-    )
+    arrange = AsyncMock(return_value={"results": []})
+
+    monkeypatch.setattr(Bruger, "get_objects_direct", arrange)
 
     with pytest.raises(exceptions.HTTPException) as cm:
         await common.add_history_entry(
@@ -35,12 +28,14 @@ async def test_history_missing(respx_mock, service_client: TestClient) -> None:
             "kaflaflibob",
         )
 
-    assert json.loads(route.calls[0].request.read()) == {
-        "uuid": [userid],
-        "virkningfra": "2018-01-01T01:00:00+01:00",
-        "virkningtil": "2018-01-01T01:00:00.000001+01:00",
-        "konsolider": "True",
-    }
+    arrange.assert_awaited_with(
+        [
+            ("virkningfra", "2018-01-01T01:00:00+01:00"),
+            ("virkningtil", "2018-01-01T01:00:00.000001+01:00"),
+            ("konsolider", "True"),
+            ("uuid", userid),
+        ]
+    )
 
     assert cm.value.detail == {
         "description": "Not found.",

@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import json
+from unittest.mock import AsyncMock
 
 import pytest
-from httpx import Response
 
 from mora import lora
 from mora import util as mora_util
 from mora.service.validation import validator
+from oio_rest.organisation import OrganisationEnhed
 
 
 async def test_startdate_should_be_smaller_than_enddate() -> None:
@@ -77,45 +77,50 @@ async def test_startdate_should_be_smaller_than_enddate() -> None:
     ],
 )
 async def test_validity_ranges(
-    respx_mock, expect: bool, validities: list[tuple[str, str, str]]
+    monkeypatch, expect: bool, validities: list[tuple[str, str, str]]
 ) -> None:
-    url = "http://localhost/lora/organisation/organisationenhed"
     c = lora.Connector(
         virkningfra="2000-01-01", virkningtil="3000-01-01"
     ).organisationenhed
 
-    payload = {
-        "results": [
-            [
-                {
-                    "id": "00000000-0000-0000-0000-000000000000",
-                    "registreringer": [
-                        {
-                            "tilstande": {
-                                "organisationenhedgyldighed": [
-                                    {
-                                        "gyldighed": v,
-                                        "virkning": {
-                                            "from": mora_util.to_lora_time(
-                                                t1,
-                                            ),
-                                            "from_included": True,
-                                            "to": mora_util.to_lora_time(
-                                                t2,
-                                            ),
-                                            "to_included": False,
-                                        },
-                                    }
-                                    for t1, t2, v in validities
-                                ]
-                            },
-                        }
-                    ],
-                }
+    get_objects = AsyncMock(
+        return_value={
+            "results": [
+                [
+                    {
+                        "id": "00000000-0000-0000-0000-000000000000",
+                        "registreringer": [
+                            {
+                                "tilstande": {
+                                    "organisationenhedgyldighed": [
+                                        {
+                                            "gyldighed": v,
+                                            "virkning": {
+                                                "from": mora_util.to_lora_time(
+                                                    t1,
+                                                ),
+                                                "from_included": True,
+                                                "to": mora_util.to_lora_time(
+                                                    t2,
+                                                ),
+                                                "to_included": False,
+                                            },
+                                        }
+                                        for t1, t2, v in validities
+                                    ]
+                                },
+                            }
+                        ],
+                    }
+                ]
             ]
-        ]
-    }
-    route = respx_mock.get(url).mock(Response(200, json=payload))
+        }
+    )
+    monkeypatch.setattr(
+        OrganisationEnhed,
+        "get_objects_direct",
+        get_objects,
+    )
 
     assert expect is (
         await validator._is_date_range_valid(
@@ -127,9 +132,11 @@ async def test_validity_ranges(
         )
     )
 
-    assert json.loads(route.calls[0].request.read()) == {
-        "uuid": ["00000000-0000-0000-0000-000000000000"],
-        "virkningfra": "2000-01-01T00:00:00+01:00",
-        "virkningtil": "3000-01-01T00:00:00+01:00",
-        "konsolider": "True",
-    }
+    get_objects.assert_awaited_once_with(
+        [
+            ("virkningfra", "2000-01-01T00:00:00+01:00"),
+            ("virkningtil", "3000-01-01T00:00:00+01:00"),
+            ("konsolider", "True"),
+            ("uuid", "00000000-0000-0000-0000-000000000000"),
+        ]
+    )

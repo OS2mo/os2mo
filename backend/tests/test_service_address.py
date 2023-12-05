@@ -1,47 +1,48 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import json
+from unittest.mock import AsyncMock
+from unittest.mock import call
 
 import freezegun
 from fastapi.testclient import TestClient
-from httpx import Response
+
+from oio_rest.organisation import Organisation
 
 
 @freezegun.freeze_time("2016-06-06")
-def test_autocomplete_no_municipality(respx_mock, service_client: TestClient) -> None:
-    route = respx_mock.get("http://localhost/lora/organisation/organisation").mock(
-        return_value=Response(
-            200,
-            json={
-                "results": [
-                    [
-                        {
-                            "id": "00000000-0000-0000-0000-000000000000",
-                            "registreringer": [
-                                {
-                                    "attributter": {
-                                        "organisationegenskaber": [
-                                            {
-                                                "brugervendtnoegle": "bvn",
-                                                "organisationsnavn": "onvn",
-                                            }
-                                        ]
-                                    },
-                                    "tilstande": {
-                                        "organisationgyldighed": [
-                                            {
-                                                "gyldighed": "Aktiv",
-                                            }
-                                        ]
-                                    },
-                                }
-                            ],
-                        }
-                    ]
+def test_autocomplete_no_municipality(monkeypatch, service_client: TestClient) -> None:
+    arrange = AsyncMock(
+        return_value={
+            "results": [
+                [
+                    {
+                        "id": "00000000-0000-0000-0000-000000000000",
+                        "registreringer": [
+                            {
+                                "attributter": {
+                                    "organisationegenskaber": [
+                                        {
+                                            "brugervendtnoegle": "bvn",
+                                            "organisationsnavn": "onvn",
+                                        }
+                                    ]
+                                },
+                                "tilstande": {
+                                    "organisationgyldighed": [
+                                        {
+                                            "gyldighed": "Aktiv",
+                                        }
+                                    ]
+                                },
+                            }
+                        ],
+                    }
                 ]
-            },
-        )
+            ]
+        },
     )
+
+    monkeypatch.setattr(Organisation, "get_objects_direct", arrange)
 
     mo_url = (
         "/service/o/00000000-0000-0000-0000-000000000000/address_autocomplete/?q=42"
@@ -55,67 +56,75 @@ def test_autocomplete_no_municipality(respx_mock, service_client: TestClient) ->
         "description": "No local municipality found.",
         "status": 400,
     }
-    assert len(route.calls) == 2
+    assert arrange.await_count == 2
 
-    assert json.loads(route.calls[0].request.read()) == {
-        "bvn": "%",
-        "virkningfra": "-infinity",
-        "list": "True",
-        "virkningtil": "infinity",
-        "konsolider": "True",
-    }
-    assert json.loads(route.calls[1].request.read()) == {
-        "uuid": "00000000-0000-0000-0000-000000000000",
-        "virkningfra": "2016-06-06T00:00:00+00:00",
-        "virkningtil": "2016-06-06T00:00:00.001000+00:00",
-        "konsolider": "True",
-    }
+    arrange.assert_has_calls(
+        [
+            call(
+                [
+                    ("virkningfra", "-infinity"),
+                    ("virkningtil", "infinity"),
+                    ("konsolider", "True"),
+                    ("bvn", "%"),
+                    ("list", "True"),
+                ]
+            ),
+            call(
+                [
+                    ("virkningfra", "2016-06-06T00:00:00+00:00"),
+                    ("virkningtil", "2016-06-06T00:00:00.001000+00:00"),
+                    ("konsolider", "True"),
+                    ("uuid", "00000000-0000-0000-0000-000000000000"),
+                ]
+            ),
+        ]
+    )
 
 
 @freezegun.freeze_time("2016-06-06")
 def test_autocomplete_invalid_municipality(
-    respx_mock, service_client: TestClient
+    monkeypatch, service_client: TestClient
 ) -> None:
-    route = respx_mock.get("http://localhost/lora/organisation/organisation").mock(
-        return_value=Response(
-            200,
-            json={
-                "results": [
-                    [
-                        {
-                            "id": "00000000-0000-0000-0000-000000000000",
-                            "registreringer": [
-                                {
-                                    "attributter": {
-                                        "organisationegenskaber": [
-                                            {
-                                                "brugervendtnoegle": "bvn",
-                                                "organisationsnavn": "onavn",
-                                            }
-                                        ]
-                                    },
-                                    "relationer": {
-                                        "myndighed": [
-                                            {
-                                                "urn": "kaflaflibob",
-                                            }
-                                        ]
-                                    },
-                                    "tilstande": {
-                                        "organisationgyldighed": [
-                                            {
-                                                "gyldighed": "Aktiv",
-                                            }
-                                        ]
-                                    },
-                                }
-                            ],
-                        }
-                    ]
+    arrange = AsyncMock(
+        return_value={
+            "results": [
+                [
+                    {
+                        "id": "00000000-0000-0000-0000-000000000000",
+                        "registreringer": [
+                            {
+                                "attributter": {
+                                    "organisationegenskaber": [
+                                        {
+                                            "brugervendtnoegle": "bvn",
+                                            "organisationsnavn": "onavn",
+                                        }
+                                    ]
+                                },
+                                "relationer": {
+                                    "myndighed": [
+                                        {
+                                            "urn": "kaflaflibob",
+                                        }
+                                    ]
+                                },
+                                "tilstande": {
+                                    "organisationgyldighed": [
+                                        {
+                                            "gyldighed": "Aktiv",
+                                        }
+                                    ]
+                                },
+                            }
+                        ],
+                    }
                 ]
-            },
-        )
+            ]
+        },
     )
+
+    monkeypatch.setattr(Organisation, "get_objects_direct", arrange)
+
     mo_url = (
         "/service/o/00000000-0000-0000-0000-000000000000/address_autocomplete/?q=42"
     )
@@ -128,31 +137,40 @@ def test_autocomplete_invalid_municipality(
         "description": "No local municipality found.",
         "status": 400,
     }
-    assert len(route.calls) == 2
+    assert arrange.await_count == 2
 
-    assert json.loads(route.calls[0].request.read()) == {
-        "bvn": "%",
-        "virkningfra": "-infinity",
-        "list": "True",
-        "virkningtil": "infinity",
-        "konsolider": "True",
-    }
-    assert json.loads(route.calls[1].request.read()) == {
-        "uuid": "00000000-0000-0000-0000-000000000000",
-        "virkningfra": "2016-06-06T00:00:00+00:00",
-        "virkningtil": "2016-06-06T00:00:00.001000+00:00",
-        "konsolider": "True",
-    }
+    arrange.assert_has_calls(
+        [
+            call(
+                [
+                    ("virkningfra", "-infinity"),
+                    ("virkningtil", "infinity"),
+                    ("konsolider", "True"),
+                    ("bvn", "%"),
+                    ("list", "True"),
+                ]
+            ),
+            call(
+                [
+                    ("virkningfra", "2016-06-06T00:00:00+00:00"),
+                    ("virkningtil", "2016-06-06T00:00:00.001000+00:00"),
+                    ("konsolider", "True"),
+                    ("uuid", "00000000-0000-0000-0000-000000000000"),
+                ]
+            ),
+        ]
+    )
 
 
 @freezegun.freeze_time("2016-06-06")
-def test_autocomplete_missing_org(respx_mock, service_client: TestClient) -> None:
-    route = respx_mock.get("http://localhost/lora/organisation/organisation").mock(
-        return_value=Response(200, json={"results": []})
-    )
+def test_autocomplete_missing_org(monkeypatch, service_client: TestClient) -> None:
+    arrange = AsyncMock(return_value={"results": []})
+
     mo_url = (
         "/service/o/00000000-0000-0000-0000-000000000000/address_autocomplete/?q=42"
     )
+
+    monkeypatch.setattr(Organisation, "get_objects_direct", arrange)
 
     response = service_client.request("GET", mo_url)
     assert response.status_code == 400
@@ -162,14 +180,16 @@ def test_autocomplete_missing_org(respx_mock, service_client: TestClient) -> Non
         "description": "No local municipality found.",
         "status": 400,
     }
-    assert len(route.calls) == 1
-    assert json.loads(route.calls[0].request.read()) == {
-        "bvn": "%",
-        "virkningfra": "-infinity",
-        "list": "True",
-        "virkningtil": "infinity",
-        "konsolider": "True",
-    }
+
+    arrange.assert_called_once_with(
+        [
+            ("virkningfra", "-infinity"),
+            ("virkningtil", "infinity"),
+            ("konsolider", "True"),
+            ("bvn", "%"),
+            ("list", "True"),
+        ]
+    )
 
 
 @freezegun.freeze_time("2017-07-28")

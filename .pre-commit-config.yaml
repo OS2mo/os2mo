@@ -37,7 +37,7 @@ repos:
           - ramqp==9.1.0
           - sqlalchemy
           - starlette_context
-          - strawberry-graphql
+          - strawberry-graphql==0.209.6
           - structlog
           - types-python-dateutil
 
