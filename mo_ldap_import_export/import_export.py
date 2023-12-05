@@ -887,6 +887,12 @@ class SyncTool:
                 "[Import-single-user] Engagement UUID not found in MO.",
                 dn=dn,
             )
+        else:
+            logger.info(
+                "[Import-single-user] Engagement UUID found in MO.",
+                engagement_uuid=engagement_uuid,
+                dn=dn,
+            )
 
         # First import the Employee.
         # Then import the Engagement, if present in `detected_json_keys`.
@@ -898,7 +904,6 @@ class SyncTool:
         json_keys = priority_keys + [
             k for k in detected_json_keys if k not in priority_keys
         ]
-        # skip_keys: set = set()  # Empty set of JSON keys to skip in for-loop
 
         for json_key in json_keys:
             try:

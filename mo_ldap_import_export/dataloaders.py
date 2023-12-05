@@ -855,6 +855,7 @@ class DataLoader:
         # ObjectGUID in MO.
 
         ldap_object = self.load_ldap_object(dn, ["objectGUID"])
+        object_guid = filter_remove_curly_brackets(ldap_object.objectGUID)
 
         query = gql(
             """
@@ -874,7 +875,7 @@ class DataLoader:
         result = await self.query_mo(
             query,
             variable_values={  # type: ignore
-                "objectGUID": filter_remove_curly_brackets(ldap_object.objectGUID),
+                "objectGUID": object_guid,
             },
             raise_if_empty=False,
         )
@@ -883,8 +884,21 @@ class DataLoader:
             obj = it_user["current"]
             if obj["itsystem"]["uuid"] == self.get_ldap_it_system_uuid():
                 if obj["engagement"] is not None and len(obj["engagement"]) > 0:
-                    return UUID(obj["engagement"][0]["uuid"])
+                    engagement_uuid = UUID(obj["engagement"][0]["uuid"])
+                    logger.info(
+                        "[Find-mo-engagement-uuid] Found engagement UUID for DN",
+                        dn=dn,
+                        object_guid=object_guid,
+                        engagement_uuid=engagement_uuid,
+                    )
+                    return engagement_uuid
 
+        logger.info(
+            "[Find-mo-engagement-uuid] Could not find engagement UUID for DN",
+            dn=dn,
+            object_guid=object_guid,
+            objects=result["itusers"]["objects"],
+        )
         return None
 
     def get_ldap_it_system_uuid(self) -> str | None:
@@ -1988,7 +2002,6 @@ class DataLoader:
             - If an Address object is supplied, the address is updated/created
             - And so on...
         """
-
         model_client = self.user_context["model_client"]
         return cast(list[Any | None], await model_client.upload(objects))
 
