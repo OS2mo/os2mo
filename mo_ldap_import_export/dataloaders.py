@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 """Dataloaders to bulk requests."""
 import datetime
+from enum import Enum
+from enum import auto
 from typing import Any
 from typing import cast
 from uuid import UUID
@@ -17,6 +19,8 @@ from ldap3.protocol import oid
 from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
 from more_itertools import only
+from more_itertools import partition
+from ramodels.mo import MOBase
 from ramodels.mo._shared import EngagementRef
 from ramodels.mo._shared import validate_cpr
 from ramodels.mo.details.address import Address
@@ -53,6 +57,11 @@ from .utils import remove_cn_from_dn
 
 
 DNList = list[str]
+
+
+class Verb(Enum):
+    CREATE = auto()
+    EDIT = auto()
 
 
 class DataLoader:
@@ -1982,6 +1991,13 @@ class DataLoader:
 
         model_client = self.user_context["model_client"]
         return cast(list[Any | None], await model_client.upload(objects))
+
+    async def create_or_edit_mo_objects(self, objects: list[tuple[MOBase, Verb]]):
+        model_client = self.user_context["model_client"]
+        creates, edits = partition(lambda tup: tup[1] == Verb.EDIT, objects)
+        create_results = await model_client.upload([obj for obj, verb in creates])
+        edit_results = await model_client.edit([obj for obj, verb in edits])
+        return cast(list[Any | None], create_results + edit_results)
 
     async def create_mo_class(
         self,

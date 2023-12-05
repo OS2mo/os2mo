@@ -15,9 +15,12 @@ from uuid import uuid4
 
 from fastramqpi.context import Context
 from httpx import HTTPStatusError
+from ramodels.mo import MOBase
+from ramodels.mo.details import ITUser
 from ramqp.mo import MORoutingKey
 
 from .dataloaders import DNList
+from .dataloaders import Verb
 from .exceptions import DNNotFound
 from .exceptions import IgnoreChanges
 from .exceptions import NoObjectsReturnedException
@@ -659,7 +662,11 @@ class SyncTool:
                     logger.info("[Listen-to-changes-in-orgs] " + str(e), **logger_args)
                     continue
 
-    async def format_converted_objects(self, converted_objects, json_key):
+    async def format_converted_objects(
+        self,
+        converted_objects,
+        json_key,
+    ) -> list[tuple[MOBase, Verb]]:
         """
         for Address and Engagement objects:
             Loops through the objects, and sets the uuid if an existing matching object
@@ -735,16 +742,34 @@ class SyncTool:
             it_users_in_mo = await self.dataloader.load_mo_employee_it_users(
                 converted_objects[0].person.uuid, converted_objects[0].itsystem.uuid
             )
-            user_keys_in_mo = [a.user_key for a in it_users_in_mo]
+            user_keys_in_mo = {a.user_key: a.uuid for a in it_users_in_mo}
+
+            def mark_edit(obj) -> tuple[MOBase, Verb]:
+                if obj.user_key in user_keys_in_mo:
+                    obj = ITUser(
+                        # Use the UUID of the existing IT user
+                        uuid=user_keys_in_mo[obj.user_key],
+                        # Copy all other values from the new IT user object
+                        user_key=obj.user_key,
+                        itsystem=obj.itsystem,
+                        person=obj.person,
+                        org_unit=obj.org_unit,
+                        engagement=obj.engagement,
+                        validity=obj.validity,
+                    )
+                    return obj, Verb.EDIT
+                else:
+                    return obj, Verb.CREATE
 
             return [
-                converted_object
-                for converted_object in converted_objects
-                if converted_object.user_key not in user_keys_in_mo
+                mark_edit(converted_object) for converted_object in converted_objects
             ]
 
         else:
-            return converted_objects
+            return [
+                (converted_object, Verb.CREATE)
+                for converted_object in converted_objects
+            ]
 
         objects_in_mo_dict = {a.uuid: a for a in objects_in_mo}
         mo_attributes = self.converter.get_mo_attributes(json_key)
@@ -805,7 +830,10 @@ class SyncTool:
                     f"{value_key}='{converted_object_value}' belongs to. Skipping"
                 )
 
-        return converted_objects_uuid_checked
+            return [
+                (converted_object, Verb.CREATE)
+                for converted_object in converted_objects_uuid_checked
+            ]
 
     @wait_for_import_to_finish
     async def import_single_user(self, dn: str, force=False, manual_import=False):
@@ -908,11 +936,12 @@ class SyncTool:
             )
 
             # In case the engagement does not exist yet:
-            if json_key == "Engagement" and len(converted_objects):
+            if json_key == "Engagement" and len(converted_objects): # and engagement_uuid is None:
                 engagement_uuid = converted_objects[0].uuid
                 logger.info(
                     "[Import-single-user] Saving engagement UUID for DN",
                     engagement_uuid=engagement_uuid,
+                    source_object=converted_objects[0],
                     dn=dn,
                 )
 
@@ -933,10 +962,11 @@ class SyncTool:
                 # In case the engagement exists, but is outdated. If it exists,
                 # but is identical, the list will be empty.
                 if json_key == "Engagement" and len(converted_objects):
-                    engagement_uuid = converted_objects[0].uuid
+                    engagement_uuid = converted_objects[0][0].uuid
                     logger.info(
                         "[Import-single-user] Updating engagement UUID",
                         engagement_uuid=engagement_uuid,
+                        source_object=converted_objects[0][0],
                         dn=dn,
                     )
             except NoObjectsReturnedException:
@@ -965,7 +995,7 @@ class SyncTool:
                 )
 
                 if json_key == "Custom":
-                    for obj in converted_objects:
+                    for obj, verb in converted_objects:
                         job_list = await obj.sync_to_mo(self.context)
                         for job in job_list:
                             self.uuids_to_ignore.add(job["uuid_to_ignore"])
@@ -975,15 +1005,21 @@ class SyncTool:
                             )
 
                 else:
-                    for mo_object in converted_objects:
+                    for mo_object, verb in converted_objects:
                         self.uuids_to_ignore.add(mo_object.uuid)
                     try:
-                        await self.dataloader.upload_mo_objects(converted_objects)
+                        await self.dataloader.create_or_edit_mo_objects(converted_objects)
                     except HTTPStatusError as e:
                         # This can happen, for example if a phone number in LDAP is
                         # invalid
-                        logger.warning(e, dn=dn)
-                        for mo_object in converted_objects:
+                        logger.warning(
+                            "[Import-single-user] Failed to upload objects",
+                            error=e,
+                            converted_objects=converted_objects,
+                            request=e.request,
+                            dn=dn,
+                        )
+                        for mo_object, verb in converted_objects:
                             self.uuids_to_ignore.remove(mo_object.uuid)
 
     async def refresh_object(self, uuid: UUID, object_type: str):
