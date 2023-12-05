@@ -812,15 +812,16 @@ class SyncTool:
                 mo_class = self.converter.import_mo_object_class(json_key)
                 converted_object_uuid_checked = mo_class(**mo_object_dict_to_upload)
 
-                # If an object is identical to the one already there, it does not need
-                # to be uploaded.
-                if converted_object_uuid_checked == matching_object:
-                    logger.info(
-                        "[Format-converted-objects] Converted object is identical "
-                        "to existing object. Skipping."
-                    )
-                else:
-                    converted_objects_uuid_checked.append(converted_object_uuid_checked)
+                # # If an object is identical to the one already there, it does not need
+                # # to be uploaded.
+                # if converted_object_uuid_checked == matching_object:
+                #     logger.info(
+                #         "[Format-converted-objects] Converted object is identical "
+                #         "to existing object. Skipping."
+                #     )
+                # else:
+                #     converted_objects_uuid_checked.append(converted_object_uuid_checked)
+                converted_objects_uuid_checked.append(converted_object_uuid_checked)
 
             elif values_in_mo.count(converted_object_value) == 0:
                 converted_objects_uuid_checked.append(converted_object)
