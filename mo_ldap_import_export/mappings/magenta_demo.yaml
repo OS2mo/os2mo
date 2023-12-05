@@ -63,6 +63,7 @@ ldap_to_mo:
     address_type: '{{ dict(uuid=get_org_unit_address_type_uuid(''LocationUnit'')) }}'
     # org_unit: '{{ dict(uuid=get_or_create_org_unit_uuid(ldap.division)) }}'
     org_unit: '{{ dict(uuid=get_or_create_org_unit_uuid(org_unit_path_string_from_dn(ldap.dn, 2))) }}'
+    engagement: '{{ dict(uuid=engagement_uuid) if engagement_uuid else NONE }}'
   Engagement:
     objectClass: ramodels.mo.details.engagement.Engagement
     _import_to_mo_: "true"
@@ -83,6 +84,7 @@ ldap_to_mo:
     validity: '{{ dict(from_date = now()|mo_datestring) }}'
     address_type: '{{ dict(uuid=get_employee_address_type_uuid(''PhoneEmployee'')) }}'
     person: '{{ dict(uuid=employee_uuid or NONE) }}'
+    engagement: '{{ dict(uuid=engagement_uuid) if engagement_uuid else NONE }}'
   ADSAMA:
     objectClass: ramodels.mo.details.it_system.ITUser
     _import_to_mo_: manual_import_only
@@ -90,6 +92,7 @@ ldap_to_mo:
     itsystem: '{{ dict(uuid=get_it_system_uuid(''ADSAMA'')) }}'
     validity: '{{ dict(from_date=now()|mo_datestring) }}'
     person: '{{ dict(uuid=employee_uuid or NONE) }}'
+    engagement: '{{ dict(uuid=engagement_uuid) if engagement_uuid else NONE }}'
 #  Custom:
 #    objectClass": "Custom.JobTitleFromADToMO"
 #    _import_to_mo_: "true"
