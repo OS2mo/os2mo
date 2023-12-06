@@ -1,8 +1,48 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import pytest
+from fastapi.encoders import jsonable_encoder
+from hypothesis import given
+from more_itertools import one
+from pytest import MonkeyPatch
 
+from .strategies import graph_data_strat
+from mora.graphapi.shim import flatten_data
+from mora.graphapi.versions.latest import dataloaders
+from ramodels.mo.details.owner import OwnerRead
 from tests.conftest import GraphAPIPost
+
+
+@given(test_data=graph_data_strat(OwnerRead))
+def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
+    """Test that we can query all attributes of the owner data model."""
+    # Patch dataloader
+    with MonkeyPatch.context() as patch:
+        patch.setattr(dataloaders, "search_role_type", patch_loader(test_data))
+        query = """
+            query {
+                owners {
+                    objects {
+                        uuid
+                        objects {
+                            uuid
+                            user_key
+                            employee_uuid
+                            org_unit_uuid
+                            owner_uuid
+                            owner_inference_priority
+                            type
+                            validity {from to}
+                        }
+                    }
+                }
+            }
+        """
+        response = graphapi_post(query)
+
+    assert response.errors is None
+    assert response.data
+    assert flatten_data(response.data["owners"]["objects"]) == test_data
 
 
 @pytest.mark.integration_test
@@ -100,3 +140,117 @@ async def test_owner_employees_filters(
     response = graphapi_post(owner_query, variables=dict(filter=filter))
     assert response.errors is None
     assert len(response.data["owners"]["objects"]) == expected
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "test_data, expected_fail",
+    [
+        (
+            {
+                "person": "7626ad64-327d-481f-8b32-36c78eb12f8c",
+                "org_unit": None,
+                "owner": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                "inference_priority": None,
+                "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+            },
+            0,
+        ),
+        (
+            {
+                "person": None,
+                "org_unit": "5942ce50-2be8-476f-914b-6769a888a7c8",
+                "owner": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                "inference_priority": None,
+                "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+            },
+            0,
+        ),
+        (
+            {
+                "person": "7626ad64-327d-481f-8b32-36c78eb12f8c",
+                "org_unit": "5942ce50-2be8-476f-914b-6769a888a7c8",
+                "owner": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                "inference_priority": None,
+                "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+            },
+            1,
+        ),
+        (
+            {
+                "person": "7626ad64-327d-481f-8b32-36c78eb12f8c",
+                "org_unit": None,
+                "owner": None,
+                "inference_priority": None,
+                "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+            },
+            0,
+        ),
+        (
+            {
+                "person": "7626ad64-327d-481f-8b32-36c78eb12f8c",
+                "org_unit": None,
+                "owner": None,
+                "inference_priority": "ENGAGEMENT",
+                "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+            },
+            0,
+        ),
+        (
+            {
+                "person": "7626ad64-327d-481f-8b32-36c78eb12f8c",
+                "org_unit": None,
+                "owner": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                "inference_priority": "ENGAGEMENT",
+                "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+            },
+            1,
+        ),
+    ],
+)
+async def test_create_owner_integration_test(
+    graphapi_post: GraphAPIPost, test_data, expected_fail
+) -> None:
+    mutation = """
+        mutation CreateOwner($input: OwnerCreateInput!) {
+            owner_create(input: $input) {
+                uuid
+            }
+        }
+    """
+    mutation_response = graphapi_post(mutation, {"input": jsonable_encoder(test_data)})
+
+    if expected_fail:
+        assert mutation_response.errors is not None
+        return
+
+    assert mutation_response.errors is None
+
+    verify_query = """
+        query VerifyQuery($uuid: UUID!) {
+            owners(filter: {uuids: [$uuid]}){
+                objects {
+                    objects {
+                        person: employee_uuid
+                        org_unit: org_unit_uuid
+                        owner: owner_uuid
+                        inference_priority: owner_inference_priority
+                        validity {
+                            from
+                            to
+                        }
+                    }
+                }
+            }
+        }
+    """
+
+    verify_response = graphapi_post(
+        verify_query, {"uuid": str(mutation_response.data["owner_create"]["uuid"])}
+    )
+    assert verify_response.errors is None
+
+    created_owner = one(one(verify_response.data["owners"]["objects"])["objects"])
+
+    assert test_data == created_owner
