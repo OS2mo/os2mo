@@ -85,6 +85,7 @@ from .inputs import OrganisationUnitCreateInput
 from .inputs import OrganisationUnitTerminateInput
 from .inputs import OrganisationUnitUpdateInput
 from .inputs import OwnerCreateInput
+from .inputs import OwnerTerminateInput
 from .inputs import OwnerUpdateInput
 from .inputs import RelatedUnitsUpdateInput
 from .inputs import RoleCreateInput
@@ -117,6 +118,7 @@ from .org_unit import create_org_unit
 from .org_unit import terminate_org_unit
 from .org_unit import update_org_unit
 from .owner import create_owner
+from .owner import terminate_owner
 from .owner import update_owner
 from .permissions import gen_create_permission
 from .permissions import gen_delete_permission
@@ -1132,7 +1134,16 @@ class Mutation:
     async def owner_update(self, input: OwnerUpdateInput) -> Response[Owner]:
         return uuid2response(await update_owner(input.to_pydantic()), OwnerRead)
 
-    # TODO: owner_terminate
+    @strawberry.mutation(
+        description="Terminates an owner.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("owner"),
+        ],
+    )
+    async def owner_terminate(self, input: OwnerTerminateInput) -> Response[Owner]:
+        return uuid2response(await terminate_owner(input.to_pydantic()), OwnerRead)
+
     # TODO: owner_delete
 
     @strawberry.mutation(
