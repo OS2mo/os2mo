@@ -84,6 +84,7 @@ from .inputs import ManagerUpdateInput
 from .inputs import OrganisationUnitCreateInput
 from .inputs import OrganisationUnitTerminateInput
 from .inputs import OrganisationUnitUpdateInput
+from .inputs import OwnerCreateInput
 from .inputs import RelatedUnitsUpdateInput
 from .inputs import RoleCreateInput
 from .inputs import RoleTerminateInput
@@ -114,6 +115,7 @@ from .org import OrganisationCreate
 from .org_unit import create_org_unit
 from .org_unit import terminate_org_unit
 from .org_unit import update_org_unit
+from .owner import create_owner
 from .permissions import gen_create_permission
 from .permissions import gen_delete_permission
 from .permissions import gen_refresh_permission
@@ -157,6 +159,7 @@ from .schema import Leave
 from .schema import Manager
 from .schema import Organisation
 from .schema import OrganisationUnit
+from .schema import Owner
 from .schema import Paged
 from .schema import RelatedUnit
 from .schema import Response
@@ -173,6 +176,7 @@ from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead
 from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import ManagerRead
+from ramodels.mo.details import OwnerRead
 from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
 
@@ -1106,8 +1110,16 @@ class Mutation:
 
     # Owner
     # -------------
+    @strawberry.mutation(
+        description="Creates an owner.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("owner"),
+        ],
+    )
+    async def owner_create(self, input: OwnerCreateInput) -> Response[Owner]:
+        return uuid2response(await create_owner(input.to_pydantic()), OwnerRead)
 
-    # TODO: owner_create
     # TODO: owner_update
     # TODO: owner_terminate
     # TODO: owner_delete
