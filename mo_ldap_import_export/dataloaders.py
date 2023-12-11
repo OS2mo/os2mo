@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 """Dataloaders to bulk requests."""
 import datetime
-from enum import Enum
 from enum import auto
+from enum import Enum
 from typing import Any
 from typing import cast
 from uuid import UUID
