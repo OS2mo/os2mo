@@ -824,7 +824,9 @@ class SyncTool:
                 converted_objects_uuid_checked.append(converted_object_uuid_checked)
 
             elif values_in_mo.count(converted_object_value) == 0:  # pragma: no cover
-                converted_objects_uuid_checked.append(converted_object)  # pragma: no cover
+                converted_objects_uuid_checked.append(
+                    converted_object
+                )  # pragma: no cover
             else:  # pragma: no cover
                 logger.warning(  # pragma: no cover
                     f"Could not determine which '{json_key}' MO object "
