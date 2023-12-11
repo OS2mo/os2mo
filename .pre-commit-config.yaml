@@ -35,6 +35,7 @@ repos:
           - types-tqdm
           - pandas-stubs
           - types-PyYAML
+          - httpx
 
   - repo: https://github.com/asottile/reorder_python_imports
     rev: v3.12.0
