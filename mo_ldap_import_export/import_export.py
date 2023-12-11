@@ -942,7 +942,7 @@ class SyncTool:
             )
 
             # In case the engagement does not exist yet:
-            if json_key == "Engagement" and len(converted_objects): # and engagement_uuid is None:
+            if json_key == "Engagement" and len(converted_objects):
                 engagement_uuid = converted_objects[0].uuid
                 logger.info(
                     "[Import-single-user] Saving engagement UUID for DN",
@@ -1014,7 +1014,9 @@ class SyncTool:
                     for mo_object, verb in converted_objects:
                         self.uuids_to_ignore.add(mo_object.uuid)
                     try:
-                        await self.dataloader.create_or_edit_mo_objects(converted_objects)
+                        await self.dataloader.create_or_edit_mo_objects(
+                            converted_objects
+                        )
                     except HTTPStatusError as e:
                         # This can happen, for example if a phone number in LDAP is
                         # invalid
