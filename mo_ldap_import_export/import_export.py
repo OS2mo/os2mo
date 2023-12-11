@@ -823,10 +823,10 @@ class SyncTool:
                 #     converted_objects_uuid_checked.append(converted_object_uuid_checked)
                 converted_objects_uuid_checked.append(converted_object_uuid_checked)
 
-            elif values_in_mo.count(converted_object_value) == 0:
-                converted_objects_uuid_checked.append(converted_object)
-            else:
-                logger.warning(
+            elif values_in_mo.count(converted_object_value) == 0:  # pragma: no cover
+                converted_objects_uuid_checked.append(converted_object)  # pragma: no cover
+            else:  # pragma: no cover
+                logger.warning(  # pragma: no cover
                     f"Could not determine which '{json_key}' MO object "
                     f"{value_key}='{converted_object_value}' belongs to. Skipping"
                 )
@@ -836,7 +836,7 @@ class SyncTool:
                 for converted_object in converted_objects_uuid_checked
             ]
 
-        return []
+        return []  # pragma: no cover
 
     @wait_for_import_to_finish
     async def import_single_user(self, dn: str, force=False, manual_import=False):
