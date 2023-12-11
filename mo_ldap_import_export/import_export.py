@@ -836,6 +836,8 @@ class SyncTool:
                 for converted_object in converted_objects_uuid_checked
             ]
 
+        return []
+
     @wait_for_import_to_finish
     async def import_single_user(self, dn: str, force=False, manual_import=False):
         """
