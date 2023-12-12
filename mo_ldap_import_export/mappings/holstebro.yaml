@@ -13,7 +13,7 @@ ldap_to_mo:
     objectClass: ramodels.mo.details.engagement.Engagement
     _import_to_mo_: "true"
     org_unit: '{{ dict(uuid=get_or_create_org_unit_uuid(nonejoin_orgs("Holstebro", org_unit_path_string_from_dn(ldap.dn, 1)))) }}'
-    job_function: '{{ dict(uuid=get_or_create_job_function_uuid(ldap.title)) }}'
+    job_function: '{{ dict(uuid=get_or_create_job_function_uuid(ldap.title, default="Uspecificeret i AD")) }}'
     engagement_type: '{{ dict(uuid=get_or_create_engagement_type_uuid(''Ekstern'')) }}'
     user_key: '-'
     validity: '{{ dict(from_date=min(now(), ldap.extensionAttribute9|parse_datetime)|mo_datestring, to_date=ldap.extensionAttribute9|parse_datetime|mo_datestring or NONE) }}'
