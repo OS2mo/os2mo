@@ -678,9 +678,20 @@ class LdapConverter:
     def get_job_function_uuid(self, job_function: str) -> str:
         return self.get_object_uuid_from_name(self.job_function_info, job_function)
 
-    async def get_or_create_job_function_uuid(self, job_function: str) -> str:
+    async def get_or_create_job_function_uuid(
+        self,
+        job_function: str,
+        default: str | None = None,
+    ) -> str:
         if not job_function:
-            raise UUIDNotFoundException("job_function is empty")
+            if default is None:
+                raise UUIDNotFoundException("job_function is empty")
+            else:
+                logger.info(
+                    "job_function is empty, using provided default",
+                    default=default,
+                )
+                job_function = default
         try:
             return self.get_job_function_uuid(job_function)
         except UUIDNotFoundException:

@@ -1115,6 +1115,41 @@ async def test_get_job_function_uuid(converter: LdapConverter):
         await converter.get_or_create_job_function_uuid([])  # type: ignore
 
 
+async def test_get_job_function_uuid_default_kwarg(converter: LdapConverter) -> None:
+    """Test that a provided `default` is used if the value of `job_function` is falsy."""
+    # Arrange: mock the UUID of a newly created job function
+    uuid_for_new_job_function = str(uuid4())
+    dataloader = AsyncMock()
+    dataloader.create_mo_job_function.return_value = uuid_for_new_job_function
+    converter.dataloader = dataloader
+    converter.job_function_info = {
+        uuid_for_new_job_function: {"uuid": uuid_for_new_job_function, "name": "Name"}
+    }
+    # Act
+    result = await converter.get_or_create_job_function_uuid("", default="Default")
+    # Assert
+    assert result == uuid_for_new_job_function
+
+
+async def test_get_job_function_uuid_default_kwarg_does_not_override(
+    converter: LdapConverter,
+) -> None:
+    """Test that a provided `default` is *not* used if the value of `job_function` is
+    truthy."""
+    # Arrange
+    uuid = str(uuid4())
+    dataloader = AsyncMock()
+    dataloader.create_mo_job_function.return_value = uuid
+    converter.dataloader = dataloader
+    converter.job_function_info = {uuid: {"uuid": uuid, "name": "Something"}}
+    # Act
+    result = await converter.get_or_create_job_function_uuid(
+        "Something", default="Default"
+    )
+    # Assert
+    assert result == uuid
+
+
 async def test_get_org_unit_name(converter: LdapConverter) -> None:
     org_unit_uuid: str = str(uuid4())
     converter.org_unit_info = {org_unit_uuid: {"name": "Name"}}
