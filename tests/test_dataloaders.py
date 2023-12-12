@@ -29,6 +29,7 @@ from structlog.testing import capture_logs
 from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.dataloaders import LdapObject
+from mo_ldap_import_export.dataloaders import Verb
 from mo_ldap_import_export.exceptions import AttributeNotFound
 from mo_ldap_import_export.exceptions import DNNotFound
 from mo_ldap_import_export.exceptions import InvalidChangeDict
@@ -2710,3 +2711,20 @@ async def test_find_mo_engagement_uuid(dataloader: DataLoader) -> None:
             empty = await dataloader.find_mo_engagement_uuid("CN=foo")
             # Assert
             assert empty is None
+
+
+async def test_create_or_edit_mo_objects_empty(dataloader: DataLoader) -> None:
+    # *Empty* list of object/verb pairs.
+    await dataloader.create_or_edit_mo_objects([])
+    dataloader.user_context["model_client"].upload.assert_called_once_with([])
+    dataloader.user_context["model_client"].edit.assert_called_once_with([])
+
+
+async def test_create_or_edit_mo_objects(dataloader: DataLoader) -> None:
+    # One object is created and another is edited.
+    create = MagicMock()
+    edit = MagicMock()
+    objs = [(create, Verb.CREATE), (edit, Verb.EDIT)]
+    await dataloader.create_or_edit_mo_objects(objs)  # type: ignore
+    dataloader.user_context["model_client"].upload.assert_called_once_with([create])
+    dataloader.user_context["model_client"].edit.assert_called_once_with([edit])

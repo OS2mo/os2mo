@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 """Dataloaders to bulk requests."""
 import datetime
+from enum import auto
+from enum import Enum
 from typing import Any
 from typing import cast
 from uuid import UUID
@@ -17,6 +19,8 @@ from ldap3.protocol import oid
 from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
 from more_itertools import only
+from more_itertools import partition
+from ramodels.mo import MOBase
 from ramodels.mo._shared import EngagementRef
 from ramodels.mo._shared import validate_cpr
 from ramodels.mo.details.address import Address
@@ -53,6 +57,11 @@ from .utils import remove_cn_from_dn
 
 
 DNList = list[str]
+
+
+class Verb(Enum):
+    CREATE = auto()
+    EDIT = auto()
 
 
 class DataLoader:
@@ -846,6 +855,7 @@ class DataLoader:
         # ObjectGUID in MO.
 
         ldap_object = self.load_ldap_object(dn, ["objectGUID"])
+        object_guid = filter_remove_curly_brackets(ldap_object.objectGUID)
 
         query = gql(
             """
@@ -865,7 +875,7 @@ class DataLoader:
         result = await self.query_mo(
             query,
             variable_values={  # type: ignore
-                "objectGUID": filter_remove_curly_brackets(ldap_object.objectGUID),
+                "objectGUID": object_guid,
             },
             raise_if_empty=False,
         )
@@ -874,8 +884,21 @@ class DataLoader:
             obj = it_user["current"]
             if obj["itsystem"]["uuid"] == self.get_ldap_it_system_uuid():
                 if obj["engagement"] is not None and len(obj["engagement"]) > 0:
-                    return UUID(obj["engagement"][0]["uuid"])
+                    engagement_uuid = UUID(obj["engagement"][0]["uuid"])
+                    logger.info(
+                        "[Find-mo-engagement-uuid] Found engagement UUID for DN",
+                        dn=dn,
+                        object_guid=object_guid,
+                        engagement_uuid=engagement_uuid,
+                    )
+                    return engagement_uuid
 
+        logger.info(
+            "[Find-mo-engagement-uuid] Could not find engagement UUID for DN",
+            dn=dn,
+            object_guid=object_guid,
+            objects=result["itusers"]["objects"],
+        )
         return None
 
     def get_ldap_it_system_uuid(self) -> str | None:
@@ -1979,9 +2002,15 @@ class DataLoader:
             - If an Address object is supplied, the address is updated/created
             - And so on...
         """
-
         model_client = self.user_context["model_client"]
         return cast(list[Any | None], await model_client.upload(objects))
+
+    async def create_or_edit_mo_objects(self, objects: list[tuple[MOBase, Verb]]):
+        model_client = self.user_context["model_client"]
+        creates, edits = partition(lambda tup: tup[1] == Verb.EDIT, objects)
+        create_results = await model_client.upload([obj for obj, verb in creates])
+        edit_results = await model_client.edit([obj for obj, verb in edits])
+        return cast(list[Any | None], create_results + edit_results)
 
     async def create_mo_class(
         self,
