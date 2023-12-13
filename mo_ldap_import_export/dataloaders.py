@@ -2042,31 +2042,31 @@ class DataLoader:
             }}
             """
         )
-        await self.create_mo_class_lock.acquire()
-        existing_classes = await self.query_mo(query, raise_if_empty=False)
-        if existing_classes["classes"]["objects"]:
-            logger.info("[Create-mo-class] MO class exists.", user_key=user_key)
-            self.create_mo_class_lock.release()
-            return UUID(existing_classes["classes"]["objects"][0]["objects"][0]["uuid"])
+        async with self.create_mo_class_lock:
+            existing_classes = await self.query_mo(query, raise_if_empty=False)
+            if existing_classes["classes"]["objects"]:
+                logger.info("[Create-mo-class] MO class exists.", user_key=user_key)
+                return UUID(
+                    existing_classes["classes"]["objects"][0]["objects"][0]["uuid"]
+                )
 
-        logger.info("[Create-mo-class] Creating MO class.", user_key=user_key)
-        query = gql(
-            f"""
-            mutation CreateClass {{
-              class_create(
-                input: {{name: "{name}",
-                        user_key: "{user_key}",
-                        facet_uuid: "{facet_uuid}",
-                        scope: "{scope}"}}
-              ) {{
-                uuid
-              }}
-            }}
-            """
-        )
-        result = await self.query_mo(query)
-        self.create_mo_class_lock.release()
-        return UUID(result["class_create"]["uuid"])
+            logger.info("[Create-mo-class] Creating MO class.", user_key=user_key)
+            query = gql(
+                f"""
+                mutation CreateClass {{
+                  class_create(
+                    input: {{name: "{name}",
+                            user_key: "{user_key}",
+                            facet_uuid: "{facet_uuid}",
+                            scope: "{scope}"}}
+                  ) {{
+                    uuid
+                  }}
+                }}
+                """
+            )
+            result = await self.query_mo(query)
+            return UUID(result["class_create"]["uuid"])
 
     async def update_mo_class(
         self,
