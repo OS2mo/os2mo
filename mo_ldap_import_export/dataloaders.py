@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 """Dataloaders to bulk requests."""
+import asyncio
 import datetime
 from enum import auto
 from enum import Enum
@@ -55,7 +56,6 @@ from .utils import extract_ou_from_dn
 from .utils import mo_datestring_to_utc
 from .utils import remove_cn_from_dn
 
-
 DNList = list[str]
 
 
@@ -75,6 +75,7 @@ class DataLoader:
         }
         self._mo_to_ldap_attributes = []
         self._sync_tool = None
+        self.create_mo_class_lock = asyncio.Lock()
 
         # Relate graphQL object types (left) to AMQP routing key object types (right)
         self.object_type_dict = {
@@ -2027,6 +2028,27 @@ class DataLoader:
         uuid: UUID
             The uuid of the created class
         """
+
+        query = gql(
+            f"""
+            query GetExistingClass{{
+              classes(user_keys: "{user_key}") {{
+                objects {{
+                  objects {{
+                    uuid
+                  }}
+                }}
+              }}
+            }}
+            """
+        )
+        await self.create_mo_class_lock.acquire()
+        existing_classes = await self.query_mo(query, raise_if_empty=False)
+        if existing_classes["classes"]["objects"]:
+            logger.info("[Create-mo-class] MO class exists.", user_key=user_key)
+            self.create_mo_class_lock.release()
+            return UUID(existing_classes["classes"]["objects"][0]["objects"][0]["uuid"])
+
         logger.info("[Create-mo-class] Creating MO class.", user_key=user_key)
         query = gql(
             f"""
@@ -2043,6 +2065,7 @@ class DataLoader:
             """
         )
         result = await self.query_mo(query)
+        self.create_mo_class_lock.release()
         return UUID(result["class_create"]["uuid"])
 
     async def update_mo_class(
