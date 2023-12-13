@@ -79,6 +79,7 @@ def test_queries(data, field, graphapi_post: GraphAPIPost):
                 # For details, see: backend/tests/graphapi/test_registration.py
                 and "registrations" not in query
                 and "query" not in query
+                and "registration" not in query
             )
         )
     )

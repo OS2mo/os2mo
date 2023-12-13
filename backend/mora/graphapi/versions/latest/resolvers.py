@@ -232,20 +232,24 @@ class Resolver(PagedResolver):
 
 
 async def filter2uuids(
-    resolver: Resolver,
+    resolver: PagedResolver,
     info: Info,
     filter: BaseFilter,
+    mapper: Callable[[Any], list[UUID]] | None = None,
 ) -> list[UUID]:
     """Resolve into a list of UUIDs with the given filter.
 
     Args:
-        resolver: The resolver used to resolve user-keys to UUIDs.
+        resolver: The resolver used to resolve filters to UUIDs.
         info: The strawberry execution context.
         filter: Filter instance passed to the resolver.
+        mapper: Mapping function from resolver return to UUIDs.
 
     Returns:
         A list of UUIDs.
     """
+    mapper = mapper or (lambda objects: list(objects.keys()))
+
     # The current resolver implementation disallows combining UUIDs with other filters.
     # As the UUIDs returned from this function are only used for further filtering,
     # we can simply return them as-is, bypassing another lookup.
@@ -253,8 +257,7 @@ async def filter2uuids(
     if filter.uuids is not None:
         return filter.uuids
 
-    objects = await resolver.resolve(info, filter=filter)
-    uuids = list(objects.keys())
+    uuids = mapper(await resolver.resolve(info, filter=filter))
     if uuids:
         return uuids
 
@@ -301,6 +304,21 @@ async def get_org_unit_uuids(info: Info, filter: Any) -> list[UUID]:
     return await filter2uuids(OrganisationUnitResolver(), info, org_unit_filter)
 
 
+async def registration_filter(info: Info, filter: Any) -> None:
+    if filter.registration is None:
+        return
+
+    from .registration import RegistrationResolver
+
+    uuids = await filter2uuids(
+        RegistrationResolver(),
+        info,
+        filter.registration,
+        lambda objects: [x.uuid for x in objects],
+    )
+    extend_uuids(filter, uuids)
+
+
 class FacetResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(FacetRead)
@@ -322,6 +340,8 @@ class FacetResolver(Resolver):
         """Resolve facets."""
         if filter is None:
             filter = FacetFilter()
+
+        await registration_filter(info, filter)
 
         kwargs = {}
         if (
@@ -377,6 +397,8 @@ class ClassResolver(Resolver):
         if filter is None:
             filter = ClassFilter()
 
+        await registration_filter(info, filter)
+
         kwargs = {}
         if (
             filter.facets is not None
@@ -428,6 +450,8 @@ class AddressResolver(Resolver):
         if filter is None:
             filter = AddressFilter()
 
+        await registration_filter(info, filter)
+
         kwargs = {}
         if filter.employee is not None or filter.employees is not None:
             kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
@@ -476,6 +500,8 @@ class AssociationResolver(Resolver):
         """Resolve associations."""
         if filter is None:
             filter = AssociationFilter()
+
+        await registration_filter(info, filter)
 
         kwargs = {}
         if filter.employee is not None or filter.employees is not None:
@@ -536,6 +562,8 @@ class EmployeeResolver(Resolver):
         if filter is None:
             filter = EmployeeFilter()
 
+        await registration_filter(info, filter)
+
         if filter.query:
             if filter.uuids:
                 raise ValueError("Cannot supply both filter.uuids and filter.query")
@@ -572,6 +600,8 @@ class EngagementResolver(Resolver):
         if filter is None:
             filter = EngagementFilter()
 
+        await registration_filter(info, filter)
+
         kwargs = {}
         if filter.employee is not None or filter.employees is not None:
             kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
@@ -602,6 +632,8 @@ class ManagerResolver(Resolver):
         if filter is None:
             filter = ManagerFilter()
 
+        await registration_filter(info, filter)
+
         kwargs = {}
         if filter.employee is not None or filter.employees is not None:
             kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
@@ -631,6 +663,8 @@ class OwnerResolver(Resolver):
         """Resolve owners."""
         if filter is None:
             filter = OwnerFilter()
+
+        # TODO: Owner filter
 
         kwargs = {}
         if filter.employee is not None or filter.employees is not None:
@@ -694,6 +728,8 @@ class OrganisationUnitResolver(Resolver):
         if filter is None:
             filter = OrganisationUnitFilter()
 
+        await registration_filter(info, filter)
+
         if filter.query:
             if filter.uuids:
                 raise ValueError("Cannot supply both filter.uuids and filter.query")
@@ -732,6 +768,8 @@ class ITSystemResolver(Resolver):
         if filter is None:
             filter = ITSystemFilter()
 
+        await registration_filter(info, filter)
+
         return await super()._resolve(
             info=info,
             filter=filter,
@@ -760,6 +798,8 @@ class ITUserResolver(Resolver):
         """Resolve it-users."""
         if filter is None:
             filter = ITUserFilter()
+
+        await registration_filter(info, filter)
 
         kwargs = {}
         if filter.employee is not None or filter.employees is not None:
@@ -795,6 +835,8 @@ class KLEResolver(Resolver):
         if filter is None:
             filter = KLEFilter()
 
+        await registration_filter(info, filter)
+
         kwargs = {}
         if filter.org_units is not None or filter.org_unit is not None:
             kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
@@ -822,6 +864,8 @@ class LeaveResolver(Resolver):
         """Resolve leaves."""
         if filter is None:
             filter = LeaveFilter()
+
+        await registration_filter(info, filter)
 
         kwargs = {}
         if filter.employee is not None or filter.employees is not None:
@@ -853,6 +897,8 @@ class RelatedUnitResolver(Resolver):
         if filter is None:
             filter = RelatedUnitFilter()
 
+        # TODO: Related unit filter
+
         kwargs = {}
         if filter.org_units is not None or filter.org_unit is not None:
             kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
@@ -880,6 +926,8 @@ class RoleResolver(Resolver):
         """Resolve roles."""
         if filter is None:
             filter = RoleFilter()
+
+        await registration_filter(info, filter)
 
         kwargs = {}
         if filter.employee is not None or filter.employees is not None:
