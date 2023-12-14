@@ -368,6 +368,8 @@ async def test_unit_create_class(
     "filter,expected",
     [
         ({}, 39),
+        # Facet filters
+        # -------------
         ({"facet_user_keys": "employee_address_type"}, 3),
         ({"facets": "baddc4eb-406e-4c6b-8229-17e4a21d3550"}, 3),
         ({"facet_user_keys": "org_unit_address_type"}, 6),
@@ -382,12 +384,26 @@ async def test_unit_create_class(
             },
             9,
         ),
+        # Scope filters
+        # -------------
+        ({"scope": ""}, 0),
+        ({"scope": "360NoScope"}, 0),
+        # Address type scopes
+        ({"scope": "DAR"}, 2),
+        ({"scope": "EMAIL"}, 2),
+        ({"scope": "EAN"}, 1),
+        ({"scope": "PHONE"}, 2),
+        ({"scope": "WWW"}, 0),
+        # Text input scopes
+        ({"scope": "TEXT"}, 6),
+        ({"scope": "INTEGER"}, 0),
+        # Engagement type scopes
+        ({"scope": "10"}, 1),
+        ({"scope": "1000"}, 1),
     ],
 )
-async def test_class_facet_filter(
-    graphapi_post: GraphAPIPost, filter, expected
-) -> None:
-    """Test facet filters on classes."""
+async def test_class_filter(graphapi_post: GraphAPIPost, filter, expected) -> None:
+    """Test class filters on classes."""
     class_query = """
         query Classes($filter: ClassFilter!) {
             classes(filter: $filter) {

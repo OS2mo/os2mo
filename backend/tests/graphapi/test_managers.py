@@ -136,11 +136,17 @@ def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
             },
             1,
         ),
+        # UUID filter
+        ({"uuids": "05609702-977f-4869-9fb4-50ad74c6999a"}, 1),
+        ({"uuids": "fa11c0de-baad-baaad-baad-cafebabebad"}, 0),
+        # Responsibility filters
+        ({"responsibility": {"uuids": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"}}, 1),
+        ({"responsibility": {"uuids": "fa11c0de-baad-baaad-baad-cafebabebad"}}, 0),
+        ({"responsibility": {"user_keys": "fak"}}, 1),
+        ({"responsibility": {"user_keys": "failcode"}}, 0),
     ],
 )
-async def test_manager_employees_filters(
-    graphapi_post: GraphAPIPost, filter, expected
-) -> None:
+async def test_manager_filters(graphapi_post: GraphAPIPost, filter, expected) -> None:
     """Test filters on managers."""
     manager_query = """
         query Managers($filter: ManagerFilter!) {
@@ -154,6 +160,28 @@ async def test_manager_employees_filters(
     response = graphapi_post(manager_query, variables=dict(filter=filter))
     assert response.errors is None
     assert len(response.data["managers"]["objects"]) == expected
+
+    # Org-unit filters are implicit in org-unit manager queries, and thus ignored here
+    if "org_units" in filter:
+        return
+
+    manager_query = """
+        query OrgUnitManagers($filter: ManagerFilter!) {
+            org_units(filter: {uuids: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"}) {
+                objects {
+                    current {
+                        managers(filter: $filter) {
+                            uuid
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response = graphapi_post(manager_query, variables=dict(filter=filter))
+    assert response.errors is None
+    org_unit = one(response.data["org_units"]["objects"])
+    assert len(org_unit["current"]["managers"]) == expected
 
 
 @given(test_data=...)

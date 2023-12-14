@@ -3718,6 +3718,7 @@ class OrganisationUnit:
         self,
         root: OrganisationUnitRead,
         info: Info,
+        filter: ManagerFilter | None = None,
         inherit: Annotated[
             bool,
             strawberry.argument(
@@ -3736,10 +3737,12 @@ class OrganisationUnit:
             ),
         ] = False,
     ) -> list["Manager"]:
+        if filter is None:
+            filter = ManagerFilter()
+        filter.org_units = [root.uuid]
+
         resolver = seed_resolver_list(ManagerResolver())
-        result = await resolver(
-            root=root, info=info, filter=ManagerFilter(org_units=[root.uuid])
-        )
+        result = await resolver(root=root, info=info, filter=filter)
         if result:
             return result  # type: ignore
         if not inherit:

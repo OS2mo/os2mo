@@ -399,7 +399,7 @@ class ClassResolver(Resolver):
 
         await registration_filter(info, filter)
 
-        kwargs = {}
+        kwargs: dict[str, Any] = {}
         if (
             filter.facets is not None
             or filter.facet_user_keys is not None
@@ -416,6 +416,8 @@ class ClassResolver(Resolver):
             kwargs["mapninger"] = await filter2uuids(
                 ITSystemResolver(), info, filter.it_system
             )
+        if filter.scope is not None:
+            kwargs["omfang"] = filter.scope
 
         return await super()._resolve(
             info=info,
@@ -639,6 +641,9 @@ class ManagerResolver(Resolver):
             kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
         if filter.org_units is not None or filter.org_unit is not None:
             kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
+        if filter.responsibility is not None:
+            class_filter = filter.responsibility or ClassFilter()
+            kwargs["opgaver"] = await filter2uuids(ClassResolver(), info, class_filter)
 
         return await super()._resolve(
             info=info,

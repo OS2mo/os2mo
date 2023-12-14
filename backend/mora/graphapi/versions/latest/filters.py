@@ -244,6 +244,11 @@ class ClassFilter(BaseFilter):
         ),
     )
 
+    scope: list[str] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string("Scope", "scope"),
+    )
+
 
 @strawberry.input(description="Configuration filter.")
 class ConfigurationFilter:
@@ -413,6 +418,15 @@ class ManagerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         description=dedent(
             """\
             Registration filter limiting which entries are returned.
+            """
+        ),
+    )
+
+    responsibility: ClassFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Responsibility filter limiting which entries are returned.
             """
         ),
     )
