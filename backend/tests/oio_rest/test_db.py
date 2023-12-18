@@ -10,10 +10,8 @@ from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
-from fastapi.testclient import TestClient
 
 from oio_rest import db
-from oio_rest.app import create_app
 from oio_rest.custom_exceptions import BadRequestException
 from oio_rest.custom_exceptions import DBException
 from oio_rest.custom_exceptions import NotFoundException
@@ -27,10 +25,6 @@ def get_mocked_cursor(mock):
 
 
 class TestDB(TestCase):
-    def setUp(self):
-        app = create_app()
-        self.client = TestClient(app)
-
     @patch("oio_rest.db.get_relation_field_type")
     def test_convert_relation_value_default(self, mock_get_rel):
         mock_get_rel.return_value = "not a known field type"

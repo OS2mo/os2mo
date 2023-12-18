@@ -8,7 +8,7 @@ from tests.oio_rest.util import DBTestCase
 class TestItSystem(DBTestCase):
     def test_it_system(self):
         result = self.client.post(
-            "organisation/itsystem",
+            "lora/organisation/itsystem",
             data={
                 "json": util.get_fixture("itsystem_opret.json", as_text=False),
             },

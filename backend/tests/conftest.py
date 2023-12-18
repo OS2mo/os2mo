@@ -256,6 +256,14 @@ def admin_client(fastapi_admin_test_app: FastAPI) -> YieldFixture[TestClient]:
         yield client
 
 
+@pytest.fixture(scope="session")
+def service_client_not_raising() -> YieldFixture[TestClient]:
+    """Fixture yielding a FastAPI test client."""
+    app = test_app()
+    with TestClient(app, raise_server_exceptions=False) as client:
+        yield client
+
+
 @contextmanager
 def create_test_database(identifier: str) -> YieldFixture[str]:
     new_db_name = create_new_testing_database(identifier)
@@ -351,13 +359,6 @@ def event_loop() -> YieldFixture[asyncio.AbstractEventLoop]:
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
-
-
-@pytest.fixture(scope="session")
-def service_client_not_raising(fastapi_test_app: FastAPI) -> YieldFixture[TestClient]:
-    """Fixture yielding a FastAPI test client."""
-    with TestClient(fastapi_test_app, raise_server_exceptions=False) as client:
-        yield client
 
 
 @dataclass

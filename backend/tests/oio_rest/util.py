@@ -14,7 +14,7 @@ from uuid import uuid4
 import pytest
 from fastapi.testclient import TestClient
 
-from oio_rest.app import create_app
+from mora.app import create_app
 from oio_rest.db import dbname_context
 from tests.cases import sort_inner_lists
 from tests.conftest import create_test_database
@@ -111,7 +111,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             kwargs.setdefault("data", json.dumps(kwargs.pop("json"), indent=2))
             kwargs.setdefault("headers", {"Content-Type": "application/json"})
         kwargs.setdefault("method", "GET")
-        return self.client.request(url=path, **kwargs)
+        return self.client.request(url="/lora" + path, **kwargs)
 
     def assertRegistrationsEqual(self, expected, actual, message=None):
         # drop lora-generated timestamps & users

@@ -15,7 +15,6 @@ from pydantic import root_validator
 from pydantic import validator
 from pydantic.types import DirectoryPath
 from pydantic.types import FilePath
-from pydantic.types import PositiveInt
 from pydantic.types import UUID
 from ramqp.config import AMQPConnectionSettings
 from structlog import get_logger
@@ -145,9 +144,6 @@ class Settings(BaseSettings):
     http_endpoints: list[str] | None
     fetch_trigger_timeout: int = 5
     run_trigger_timeout: int = 5
-
-    # HTTPX
-    httpx_timeout: PositiveInt = 60
 
     # AuditLog settings
     audit_readlog_enable: bool = Field(
