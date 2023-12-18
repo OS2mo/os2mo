@@ -1,12 +1,15 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from unittest.mock import AsyncMock
+
 from fastapi.testclient import TestClient
-from httpx import Response
+
+from oio_rest.organisation import Organisation
 
 
-def test_no_orgs_in_mo(service_client: TestClient, respx_mock) -> None:
-    respx_mock.get("http://localhost/lora/organisation/organisation").mock(
-        return_value=Response(200, json={"results": []})
+def test_no_orgs_in_mo(service_client: TestClient, monkeypatch) -> None:
+    monkeypatch.setattr(
+        Organisation, "get_objects_direct", AsyncMock(return_value={"results": []})
     )
 
     response = service_client.request("GET", "/service/o/")
@@ -19,11 +22,12 @@ def test_no_orgs_in_mo(service_client: TestClient, respx_mock) -> None:
     }
 
 
-def test_more_than_one_org_in_mo(service_client: TestClient, respx_mock) -> None:
-    respx_mock.get("http://localhost/lora/organisation/organisation").mock(
-        return_value=Response(
-            200,
-            json={
+def test_more_than_one_org_in_mo(service_client: TestClient, monkeypatch) -> None:
+    monkeypatch.setattr(
+        Organisation,
+        "get_objects_direct",
+        AsyncMock(
+            return_value={
                 "results": [
                     [
                         {
@@ -37,7 +41,7 @@ def test_more_than_one_org_in_mo(service_client: TestClient, respx_mock) -> None
                     ]
                 ]
             },
-        )
+        ),
     )
 
     response = service_client.request("GET", "/service/o/")

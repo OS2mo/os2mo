@@ -21,7 +21,6 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette_context.middleware import RawContextMiddleware
 from structlog import get_logger
 
-from . import lora
 from . import service
 from . import testing
 from . import triggers
@@ -164,16 +163,13 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
     async def lifespan(app: FastAPI):
         if not settings.is_under_test():
             instrumentator.expose(app)
+
         await triggers.register(app)
-        if lora.client is None:
-            lora.client = await lora.create_lora_client(app)
+
         if settings.amqp_enable:
             await app.state.amqp_system.start()
 
         yield
-
-        # Leaking intentional so the test suite will re-use the lora.client.
-        # await lora.client.aclose()
 
     app = FastAPI(
         lifespan=lifespan,

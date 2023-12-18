@@ -1,28 +1,25 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from itertools import chain
+from unittest.mock import AsyncMock
 
 import pytest
-from httpx import Response
 from more_itertools import distinct_permutations
 from more_itertools import one
 
 from mora.service.org import get_configured_organisation
+from oio_rest.organisation import Organisation
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 
 
-async def test_mocking_and_cache_clearing(respx_mock, mock_organisation):
+async def test_mocking_and_cache_clearing(mock_organisation):
     """Test that we can mock organisation endpoints and avoid caching.
 
     The purpose of this test is to easily be able to debug mocking / caching issues.
     """
     uuid = mock_organisation
     raw_org = await get_configured_organisation()
-
-    # We expect only one outgoing request to be done
-    assert respx_mock.calls.call_count == 1
-
     assert raw_org == {"uuid": str(uuid), "name": "name", "user_key": "user_key"}
 
 
@@ -42,18 +39,14 @@ def test_query_organisation(graphapi_post: GraphAPIPost, mock_organisation):
     }
 
 
-async def test_invalid_query_no_organisation(graphapi_post: GraphAPIPost, respx_mock):
+async def test_invalid_query_no_organisation(graphapi_post: GraphAPIPost, monkeypatch):
     """Test that we get an error when querying with no organisation."""
-    respx_mock.get("http://localhost/lora/organisation/organisation").mock(
-        return_value=Response(200, json={"results": []})
+    monkeypatch.setattr(
+        Organisation, "get_objects_direct", AsyncMock(return_value={"results": []})
     )
 
     query = "query { org { uuid, name, user_key }}"
     result: GQLResponse = graphapi_post(query)
-
-    # We expect two outgoing request to be done; the GraphQL request and the underlying
-    # (mocked) LoRa organisation call.
-    assert respx_mock.calls.call_count == 2
 
     # We expect one and only one error
     error = one(result.errors)
@@ -89,9 +82,8 @@ async def test_query_all_permutations_of_organisation(
     query = "query { org { %s }}" % combined_fields
     result: GQLResponse = graphapi_post(query)
 
-    # We expect two outgoing request to be done; the GraphQL request and the underlying
-    # (mocked) LoRa organisation call.
-    assert respx_mock.calls.call_count == 2
+    # We expect only expect the GraphQL request.
+    assert respx_mock.calls.call_count == 1
 
     assert result.errors is None
     # Check that all expected fields are in output

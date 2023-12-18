@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
-import json
 import re
 import uuid
 from asyncio import gather
@@ -12,6 +11,9 @@ from collections.abc import Container
 from collections.abc import Coroutine
 from collections.abc import ItemsView
 from collections.abc import Iterable
+from collections.abc import Iterator
+from collections.abc import Sequence
+from contextlib import contextmanager
 from contextlib import suppress
 from datetime import date
 from datetime import datetime
@@ -26,14 +28,12 @@ from typing import overload
 from typing import TypeVar
 from uuid import UUID
 
-import httpx
 import lora_utils
-from fastapi import FastAPI
 from fastapi import Request
 from fastapi import Response
 from fastapi.encoders import jsonable_encoder
-from httpx import AsyncClient
 from more_itertools import one
+from psycopg2 import DataError
 from starlette_context import context
 from starlette_context import request_cycle_context
 from strawberry.dataloader import DataLoader
@@ -44,6 +44,11 @@ from . import exceptions
 from . import util
 from .graphapi.middleware import is_graphql
 from mora.auth.middleware import get_authenticated_user
+from oio_rest import custom_exceptions as loraexc
+from oio_rest import klassifikation
+from oio_rest import organisation
+from oio_rest.mo.autocomplete import find_org_units_matching
+from oio_rest.mo.autocomplete import find_users_matching
 
 
 T = TypeVar("T")
@@ -52,22 +57,6 @@ ValidityLiteral = Literal["past", "present", "future"]
 
 
 logger = get_logger()
-
-
-async def create_lora_client(app: FastAPI) -> httpx.AsyncClient:
-    """Return lora client.
-
-    IThis transparently sends requests to the internal LoRa ASGI app.
-    """
-    return AsyncClient(
-        app=app,
-        base_url="http://localhost/lora/",
-        timeout=config.get_settings().httpx_timeout,
-    )
-
-
-# Singleton LoRa client:
-client = None
 
 
 def filter_registrations(
@@ -118,22 +107,29 @@ async def lora_noop_change_context(request: Request, call_next) -> Response:
         return response
 
 
-def raise_on_status(status_code: int, msg, cause=None) -> None:
-    """
-    unified raising error codes
+def get_msg_and_cause(e: loraexc.OIOException) -> dict[str, Any]:
+    d = e.to_dict()
+    return {"message": d.get("message", ""), "cause": d.get("context")}
 
-    @param status_code: status code from response (http status code)
-    @param msg: something informative
-    @param cause: same
-    @return:
-    """
-    # Check status code 400 against this regex to detect "no-op" data updates.
-    noop_pattern = re.compile(
-        r"Aborted updating \w+ with id \[.*\] as the given data, does not "
-        r"give raise to a new registration"
-    )
 
-    if status_code == 400:
+@contextmanager
+def lora_to_mo_exception() -> Iterator[None]:
+    try:
+        yield
+    except loraexc.NotFoundException as e:
+        exceptions.ErrorCodes.E_NOT_FOUND(**get_msg_and_cause(e))
+    except loraexc.UnauthorizedException as e:
+        exceptions.ErrorCodes.E_UNAUTHORIZED(**get_msg_and_cause(e))
+    except loraexc.AuthorizationFailedException as e:
+        exceptions.ErrorCodes.E_FORBIDDEN(**get_msg_and_cause(e))
+    except (loraexc.BadRequestException, loraexc.DBException) as e:
+        d = get_msg_and_cause(e)
+        msg, cause = d["message"], d["cause"]
+
+        noop_pattern = re.compile(
+            r"Aborted updating \w+ with id \[.*\] as the given data, does not "
+            r"give raise to a new registration"
+        )
         # If LoRa returns HTTP status code 400, first check if the error
         # reported indicates a "no-op" change (no data was actually changed in
         # the update.)
@@ -146,28 +142,17 @@ def raise_on_status(status_code: int, msg, cause=None) -> None:
             context[_MIDDLEWARE_KEY] = True
         else:
             exceptions.ErrorCodes.E_INVALID_INPUT(message=msg, cause=cause)
-    elif status_code == 401:
-        exceptions.ErrorCodes.E_UNAUTHORIZED(message=msg, cause=cause)
-    elif status_code == 403:
-        exceptions.ErrorCodes.E_FORBIDDEN(message=msg, cause=cause)
-    elif status_code == 404:
-        exceptions.ErrorCodes.E_NOT_FOUND(message=msg, cause=cause)
-    else:
-        exceptions.ErrorCodes.E_UNKNOWN(message=msg, cause=cause)
-
-
-async def _check_response(r: httpx.Response) -> httpx.Response:
-    if 400 <= r.status_code < 600:
+    except ValueError as e:
+        exceptions.ErrorCodes.E_INVALID_INPUT(message=e.args[0], cause=None)
+    except DataError as e:
+        message = e.diag.message_primary
+        cause = e.diag.context or e.pgerror.split("\n", 1)[-1]
+        exceptions.ErrorCodes.E_INVALID_INPUT(message=message, cause=cause)
+    except Exception as e:
         try:
-            cause = r.json()
-            msg = cause["message"]
-        except (ValueError, KeyError):
-            cause = None
-            msg = r.text
-
-        raise_on_status(status_code=r.status_code, msg=msg, cause=cause)
-
-    return r
+            exceptions.ErrorCodes.E_UNKNOWN(message=e.args[0], cause=None)
+        except IndexError:
+            exceptions.ErrorCodes.E_UNKNOWN()
 
 
 def uuid_to_str(value):
@@ -408,6 +393,24 @@ class BaseScope:
         self.connector = connector
         self.path = path
 
+        _, class_str = path.split("/")
+
+        match class_str:
+            case "facet":
+                self.lora_class = klassifikation.Facet
+            case "klasse":
+                self.lora_class = klassifikation.Klasse
+            case "bruger":
+                self.lora_class = organisation.Bruger
+            case "itsystem":
+                self.lora_class = organisation.ItSystem
+            case "organisation":
+                self.lora_class = organisation.Organisation
+            case "organisationenhed":
+                self.lora_class = organisation.OrganisationEnhed
+            case "organisationfunktion":
+                self.lora_class = organisation.OrganisationFunktion
+
     def request_headers(self):
         headers = {}
 
@@ -585,24 +588,23 @@ class Scope(BaseScope):
 
         return results_for_calls
 
-    def encode_params(self, params: dict[str, Any]) -> bytes:
-        return json.dumps(
-            jsonable_encoder(param_exotics_to_strings({**params}))
-        ).encode()
-
     async def fetch(self, **params):
-        response = await client.request(
-            method="GET",
-            url=self.path,
-            # We send the parameters as JSON through the body of the GET request to
-            # allow arbitrarily many, as opposed to being limited by the length of a
-            # URL if we were using query parameters.
-            content=self.encode_params({**self.connector.defaults, **params}),
-            headers=self.request_headers(),
-        )
-        await _check_response(response)
+        # Yea, this is an ugly way to format the args. We do this as long as we
+        # still need to expose the LoRa HTTP/json API.
+        args = []
+        for k, v in jsonable_encoder(
+            param_exotics_to_strings({**self.connector.defaults, **params})
+        ).items():
+            if isinstance(v, Sequence) and not isinstance(v, str):
+                for v2 in v:
+                    args.append((k, v2))
+            else:
+                args.append((k, v))
+
+        with lora_to_mo_exception():
+            result = await self.lora_class.get_objects_direct(args)
         with suppress(IndexError):
-            return response.json()["results"][0]
+            return jsonable_encoder(result["results"][0])
 
         # The requested GraphQL pagination is out of range if LoRa returned no results
         # _because_ of the provided pagination parameters. This check cannot easily be
@@ -748,38 +750,32 @@ class Scope(BaseScope):
         # If we did not include an interval, we expect only one registration
         return one(registrations)
 
-    async def create(self, obj, uuid=None):
+    async def create(self, obj, uuid=None) -> str:
         # TODO: Use jsonable_encoder
         obj = uuid_to_str(obj)
 
-        if uuid:
-            uuid_path = f"{self.path}/{uuid}"
-            response = await client.put(
-                uuid_path, json=obj, headers=self.request_headers()
-            )
-            await _check_response(response)
-            return response.json()["uuid"]
-        else:
-            response = await client.post(
-                self.path, json=obj, headers=self.request_headers()
-            )
-            await _check_response(response)
-            return response.json()["uuid"]
+        with lora_to_mo_exception():
+            if uuid:
+                result = await self.lora_class.put_object_direct(uuid, obj, {})
+            else:
+                result = await self.lora_class.create_object_direct(obj, {})
+
+        return str(result["uuid"])
 
     async def delete(self, uuid: uuid.UUID) -> uuid.UUID:
-        url = f"{self.path}/{uuid}"
-        response = await client.delete(url, headers=self.request_headers())
-        await _check_response(response)
-        return response.json().get("uuid", uuid)
+        with lora_to_mo_exception():
+            result = await self.lora_class.delete_object_direct(uuid, {})
+        return result.get("uuid", uuid)
 
     async def update(self, obj, uuid):
-        url = f"{self.path}/{uuid}"
-        response = await client.patch(url, json=obj, headers=self.request_headers())
-        if response.status_code == 404:
-            logger.warning("could not update nonexistent LoRa object", url=url)
-        else:
-            await _check_response(response)
-            return response.json().get("uuid", uuid)
+        result = {}
+        with lora_to_mo_exception():
+            try:
+                result = await self.lora_class.patch_object_direct(uuid, obj)
+            except loraexc.NotFoundException:
+                logger.warning("could not update nonexistent LoRa object", uuid=uuid)
+                return None
+        return result.get("uuid", uuid)
 
     async def get_effects(self, obj, relevant, also=None, **params):
         reg = (
@@ -800,14 +796,15 @@ class Scope(BaseScope):
 class AutocompleteScope(BaseScope):
     def __init__(self, connector, path):
         self.connector = connector
-        self.path = f"autocomplete/{path}"
+        if path == "bruger":
+            self.autocomplete = find_users_matching
+        elif path == "organisationsenhed":
+            self.autocomplete = find_org_units_matching
+        else:
+            raise ValueError(f'{path} must be "bruger" or "organisationsenhed')
 
-    async def fetch(self, phrase, class_uuids=None):
-        params = {"phrase": phrase}
-        if class_uuids:
-            params["class_uuids"] = list(map(str, class_uuids))
-        response = await client.get(
-            url=self.path, params=params, headers=self.request_headers()
-        )
-        await _check_response(response)
-        return {"items": response.json()["results"]}
+    async def fetch(
+        self, phrase: str, class_uuids: list[UUID] | None = None
+    ) -> dict[str, Any]:
+        with lora_to_mo_exception():
+            return {"items": self.autocomplete(phrase, class_uuids=class_uuids)}

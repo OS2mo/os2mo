@@ -12,6 +12,7 @@ from starlette.status import HTTP_204_NO_CONTENT
 from starlette.status import HTTP_503_SERVICE_UNAVAILABLE
 
 from mora.graphapi.versions.latest import health
+from oio_rest.organisation import Organisation
 
 
 HTTPX_MOCK_RESPONSE_404 = Response(
@@ -22,9 +23,9 @@ HTTPX_MOCK_RESPONSE_200 = Response(
 )
 
 
-async def test_dataset_returns_false_if_no_data_found(respx_mock) -> None:
-    respx_mock.get("http://localhost/lora/organisation/organisation").mock(
-        return_value=Response(200, json={"results": [[]]})
+async def test_dataset_returns_false_if_no_data_found(monkeypatch) -> None:
+    monkeypatch.setattr(
+        Organisation, "get_objects_direct", AsyncMock(return_value={"results": [[]]})
     )
     actual = await health.dataset()
     assert actual is False

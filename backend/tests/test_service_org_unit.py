@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import json
 from asyncio import Future
 from copy import deepcopy
+from unittest.mock import AsyncMock
 from unittest.mock import call
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -11,7 +11,6 @@ from uuid import UUID
 import freezegun
 import pytest
 from fastapi.testclient import TestClient
-from httpx import Response
 from os2mo_http_trigger_protocol import MOTriggerRegister
 from starlette.datastructures import ImmutableMultiDict
 
@@ -25,11 +24,12 @@ from mora.service.orgunit import UnitDetails
 from mora.triggers import Trigger
 from mora.triggers.internal.http_trigger import HTTPTriggerException
 from mora.triggers.internal.http_trigger import register
+from oio_rest.organisation import OrganisationEnhed
 from tests import util
 
 
 @freezegun.freeze_time("2018-03-15")
-def test_unit_past(respx_mock, service_client: TestClient) -> None:
+def test_unit_past(monkeypatch, service_client: TestClient) -> None:
     unitid = "ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc"
 
     reg = {
@@ -145,24 +145,22 @@ def test_unit_past(respx_mock, service_client: TestClient) -> None:
         "tiltidspunkt": {"tidsstempeldatotid": "infinity"},
     }
 
-    url = "http://localhost/lora/organisation/organisationenhed"
-    route = respx_mock.get(url).mock(
-        return_value=Response(
-            200,
-            json={
-                "results": [
-                    [
-                        {
-                            "id": "ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc",
-                            "registreringer": [
-                                reg,
-                            ],
-                        }
-                    ]
+    route = AsyncMock(
+        return_value={
+            "results": [
+                [
+                    {
+                        "id": "ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc",
+                        "registreringer": [
+                            reg,
+                        ],
+                    }
                 ]
-            },
-        )
+            ]
+        }
     )
+
+    monkeypatch.setattr(OrganisationEnhed, "get_objects_direct", route)
 
     mo_url = f"/service/ou/{unitid}/details/org_unit?validity=past"
     with util.patch_query_args({"validity": "past"}):
@@ -170,12 +168,14 @@ def test_unit_past(respx_mock, service_client: TestClient) -> None:
         assert response.status_code == 200
         assert response.json() == []
 
-    assert json.loads(route.calls[0].request.read()) == {
-        "uuid": [unitid],
-        "virkningfra": "-infinity",
-        "virkningtil": "2018-03-15T01:00:00+01:00",
-        "konsolider": "True",
-    }
+    route.assert_awaited_with(
+        [
+            ("virkningfra", "-infinity"),
+            ("virkningtil", "2018-03-15T01:00:00+01:00"),
+            ("konsolider", "True"),
+            ("uuid", unitid),
+        ]
+    )
 
 
 class CopyingMock(MagicMock):

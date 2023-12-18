@@ -8,7 +8,6 @@ from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import pytest
-from httpx import Response
 
 from mora.graphapi.versions.v14.version import GraphQLVersion as GraphQLVersionV14
 from mora.lora import AutocompleteScope
@@ -25,12 +24,10 @@ from mora.service.autocomplete.orgunits import search_orgunits
         ("organisationsenhed", []),
     ],
 )
-async def test_autocomplete(respx_mock, path: str, expected_result: list) -> None:
-    respx_mock.get(f"http://localhost/lora/autocomplete/{path}?phrase=phrase").mock(
-        return_value=Response(200, json={"results": []})
-    )
+async def test_autocomplete(path: str, expected_result: list) -> None:
     connector = Connector()
     scope = AutocompleteScope(connector, path)
+    scope.autocomplete = lambda *_, **__: []
     response = await scope.fetch("phrase")
     assert "items" in response
     result = response["items"]

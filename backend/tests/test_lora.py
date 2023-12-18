@@ -1,93 +1,93 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import json
 from datetime import date
 from datetime import datetime
 from datetime import timezone
+from unittest.mock import AsyncMock
 
 import freezegun
 import pytest
-from httpx import Response
 
+import oio_rest.custom_exceptions as loraexc
 from mora import exceptions
 from mora import lora
 from mora import util as mora_util
+from oio_rest.organisation import Bruger
+from oio_rest.organisation import OrganisationEnhed
 
 
 @freezegun.freeze_time("2010-06-01", tz_offset=2)
-async def test_get_effects(respx_mock) -> None:
-    respx_mock.get("http://localhost/lora/organisation/organisationenhed").mock(
-        return_value=Response(
-            200,
-            json={
-                "results": [
-                    [
-                        {
-                            "id": "00000000-0000-0000-0000-000000000000",
-                            "registreringer": [
-                                {
-                                    "tilstande": {
-                                        "organisationenhedgyldighed": [
-                                            {
-                                                "gyldighed": v,
-                                                "virkning": {
-                                                    "from": mora_util.to_lora_time(
-                                                        t1,
-                                                    ),
-                                                    "from_included": True,
-                                                    "to": mora_util.to_lora_time(
-                                                        t2,
-                                                    ),
-                                                    "to_included": False,
-                                                },
-                                            }
-                                            for t1, t2, v in (
-                                                (
-                                                    "01-01-1950",
-                                                    "01-01-2100",
-                                                    "Aktiv",
+async def test_get_effects(monkeypatch) -> None:
+    async def arrange(_):
+        return {
+            "results": [
+                [
+                    {
+                        "id": "00000000-0000-0000-0000-000000000000",
+                        "registreringer": [
+                            {
+                                "tilstande": {
+                                    "organisationenhedgyldighed": [
+                                        {
+                                            "gyldighed": v,
+                                            "virkning": {
+                                                "from": mora_util.to_lora_time(
+                                                    t1,
                                                 ),
-                                                (
-                                                    "01-01-2100",
-                                                    "01-01-2300",
-                                                    "Inaktiv",
+                                                "from_included": True,
+                                                "to": mora_util.to_lora_time(
+                                                    t2,
                                                 ),
-                                                (
-                                                    "01-01-2300",
-                                                    "01-01-2500",
-                                                    "Aktiv",
-                                                ),
-                                                (
-                                                    "01-01-2500",
-                                                    "01-01-2700",
-                                                    "Inaktiv",
-                                                ),
-                                                (
-                                                    "01-01-2700",
-                                                    "01-01-2900",
-                                                    "Aktiv",
-                                                ),
-                                                (
-                                                    "01-01-2900",
-                                                    "01-01-3100",
-                                                    "Inaktiv",
-                                                ),
-                                                (
-                                                    "01-01-3100",
-                                                    "01-01-3300",
-                                                    "Aktiv",
-                                                ),
-                                            )
-                                        ]
-                                    },
-                                }
-                            ],
-                        }
-                    ]
+                                                "to_included": False,
+                                            },
+                                        }
+                                        for t1, t2, v in (
+                                            (
+                                                "01-01-1950",
+                                                "01-01-2100",
+                                                "Aktiv",
+                                            ),
+                                            (
+                                                "01-01-2100",
+                                                "01-01-2300",
+                                                "Inaktiv",
+                                            ),
+                                            (
+                                                "01-01-2300",
+                                                "01-01-2500",
+                                                "Aktiv",
+                                            ),
+                                            (
+                                                "01-01-2500",
+                                                "01-01-2700",
+                                                "Inaktiv",
+                                            ),
+                                            (
+                                                "01-01-2700",
+                                                "01-01-2900",
+                                                "Aktiv",
+                                            ),
+                                            (
+                                                "01-01-2900",
+                                                "01-01-3100",
+                                                "Inaktiv",
+                                            ),
+                                            (
+                                                "01-01-3100",
+                                                "01-01-3300",
+                                                "Aktiv",
+                                            ),
+                                        )
+                                    ]
+                                },
+                            }
+                        ],
+                    }
                 ]
-            },
-        )
-    )
+            ]
+        }
+
+    monkeypatch.setattr(OrganisationEnhed, "get_objects_direct", arrange)
 
     c = lora.Connector(validity="future")
 
@@ -218,36 +218,21 @@ async def test_get_effects(respx_mock) -> None:
 
 
 @pytest.mark.parametrize(
-    "status_in,status_out,error_key",
+    "lora_exception,status_out,error_key",
     [
-        (400, 400, "E_INVALID_INPUT"),
-        (401, 401, "E_UNAUTHORIZED"),
-        (403, 403, "E_FORBIDDEN"),
-        (426, 500, "E_UNKNOWN"),
-        (500, 500, "E_UNKNOWN"),
+        (loraexc.BadRequestException, 400, "E_INVALID_INPUT"),
+        (loraexc.UnauthorizedException, 401, "E_UNAUTHORIZED"),
+        (loraexc.AuthorizationFailedException, 403, "E_FORBIDDEN"),
+        (Exception, 500, "E_UNKNOWN"),
     ],
 )
-@freezegun.freeze_time("2010-06-01", tz_offset=2)
 async def test_errors_json(
-    respx_mock, status_in: int, status_out: int, error_key: str
+    monkeypatch, lora_exception: Exception, status_out: int, error_key: str
 ) -> None:
-    respx_mock.request(
-        "GET",
-        "http://localhost/lora/organisation/organisationenhed",
-        json={
-            "uuid": ["42"],
-            "virkningfra": "2010-06-01T04:00:00+02:00",
-            "virkningtil": "2010-06-01T04:00:00.000001+02:00",
-            "konsolider": "True",
-        },
-    ).mock(
-        return_value=Response(
-            status_in,
-            json={
-                "message": "go away",
-            },
-        )
-    )
+    async def arrange(*_, **__):
+        raise lora_exception("go away")
+
+    monkeypatch.setattr(OrganisationEnhed, "get_objects_direct", arrange)
 
     with pytest.raises(exceptions.HTTPException) as ctxt:
         await lora.Connector().organisationenhed.get("42")
@@ -260,175 +245,85 @@ async def test_errors_json(
     }
 
 
-@pytest.mark.parametrize(
-    "status_in,status_out,error_key",
-    [
-        (400, 400, "E_INVALID_INPUT"),
-        (401, 401, "E_UNAUTHORIZED"),
-        (403, 403, "E_FORBIDDEN"),
-        (426, 500, "E_UNKNOWN"),
-        (500, 500, "E_UNKNOWN"),
-    ],
-)
-@freezegun.freeze_time("2010-06-01", tz_offset=2)
-async def test_errors_text(
-    respx_mock, status_in: int, status_out: int, error_key: str
-) -> None:
-    respx_mock.request(
-        "GET",
-        "http://localhost/lora/organisation/organisationenhed",
-        json={
-            "uuid": ["42"],
-            "virkningfra": "2010-06-01T04:00:00+02:00",
-            "virkningtil": "2010-06-01T04:00:00.000001+02:00",
-            "konsolider": "True",
-        },
-    ).mock(
-        return_value=Response(
-            status_in,
-            text="I hate you",
-        )
+async def test_finding_nothing(monkeypatch) -> None:
+    monkeypatch.setattr(
+        OrganisationEnhed, "get_objects_direct", AsyncMock(return_value={"results": []})
     )
-
-    with pytest.raises(exceptions.HTTPException) as ctxt:
-        await lora.Connector().organisationenhed.get("42")
-
-    assert ctxt.value.detail == {
-        "error": True,
-        "status": status_out,
-        "error_key": error_key,
-        "description": "I hate you",
-    }
-
-
-@freezegun.freeze_time("2010-06-01", tz_offset=2)
-async def test_error_debug(respx_mock) -> None:
-    respx_mock.request(
-        "GET",
-        "http://localhost/lora/organisation/organisationenhed",
-        json={
-            "uuid": ["42"],
-            "virkningfra": "2010-06-01T04:00:00+02:00",
-            "virkningtil": "2010-06-01T04:00:00.000001+02:00",
-            "konsolider": "True",
-        },
-    ).mock(
-        return_value=Response(
-            500,
-            json={
-                "message": "go away",
-                "something": "other",
-            },
-        )
-    )
-
-    with pytest.raises(exceptions.HTTPException) as ctxt:
-        await lora.Connector().organisationenhed.get("42")
-
-    assert ctxt.value.detail == {
-        "error": True,
-        "status": 500,
-        "error_key": "E_UNKNOWN",
-        "description": "go away",
-    }
-
-
-@freezegun.freeze_time("2010-06-01", tz_offset=2)
-async def test_finding_nothing(respx_mock) -> None:
-    respx_mock.request(
-        "GET",
-        "http://localhost/lora/organisation/organisationenhed",
-        json={
-            "uuid": ["42"],
-            "virkningfra": "2010-06-01T04:00:00+02:00",
-            "virkningtil": "2010-06-01T04:00:00.000001+02:00",
-            "konsolider": "True",
-        },
-    ).mock(
-        return_value=Response(
-            200,
-            json={"results": []},
-        )
-    )
-
     assert (await lora.Connector().organisationenhed.get("42")) is None
 
 
 @freezegun.freeze_time("2001-01-01 15:30:00")
-async def test_get_effects_2(respx_mock) -> None:
-    url = "http://localhost/lora/organisation/organisationenhed"
-    route = respx_mock.get(url).mock(
-        return_value=Response(
-            200,
-            json={
-                "results": [
-                    [
+async def test_get_effects_2(monkeypatch) -> None:
+    arrange = {
+        "results": [
+            [
+                {
+                    "id": "00000000-0000-0000-0000-000000000000",
+                    "registreringer": [
                         {
-                            "id": "00000000-0000-0000-0000-000000000000",
-                            "registreringer": [
-                                {
-                                    "tilstande": {
-                                        "organisationenhedgyldighed": [
-                                            {
-                                                "gyldighed": v,
-                                                "virkning": {
-                                                    "from": mora_util.to_lora_time(
-                                                        t1,
-                                                    ),
-                                                    "from_included": True,
-                                                    "to": mora_util.to_lora_time(
-                                                        t2,
-                                                    ),
-                                                    "to_included": False,
-                                                },
-                                            }
-                                            for t1, t2, v in (
-                                                (
-                                                    "01-01-1950",
-                                                    "01-01-2100",
-                                                    "Aktiv",
-                                                ),
-                                                (
-                                                    "01-01-2100",
-                                                    "01-01-2300",
-                                                    "Inaktiv",
-                                                ),
-                                                (
-                                                    "01-01-2300",
-                                                    "01-01-2500",
-                                                    "Aktiv",
-                                                ),
-                                                (
-                                                    "01-01-2500",
-                                                    "01-01-2700",
-                                                    "Inaktiv",
-                                                ),
-                                                (
-                                                    "01-01-2700",
-                                                    "01-01-2900",
-                                                    "Aktiv",
-                                                ),
-                                                (
-                                                    "01-01-2900",
-                                                    "01-01-3100",
-                                                    "Inaktiv",
-                                                ),
-                                                (
-                                                    "01-01-3100",
-                                                    "01-01-3300",
-                                                    "Aktiv",
-                                                ),
-                                            )
-                                        ]
-                                    },
-                                }
-                            ],
+                            "tilstande": {
+                                "organisationenhedgyldighed": [
+                                    {
+                                        "gyldighed": v,
+                                        "virkning": {
+                                            "from": mora_util.to_lora_time(
+                                                t1,
+                                            ),
+                                            "from_included": True,
+                                            "to": mora_util.to_lora_time(
+                                                t2,
+                                            ),
+                                            "to_included": False,
+                                        },
+                                    }
+                                    for t1, t2, v in (
+                                        (
+                                            "01-01-1950",
+                                            "01-01-2100",
+                                            "Aktiv",
+                                        ),
+                                        (
+                                            "01-01-2100",
+                                            "01-01-2300",
+                                            "Inaktiv",
+                                        ),
+                                        (
+                                            "01-01-2300",
+                                            "01-01-2500",
+                                            "Aktiv",
+                                        ),
+                                        (
+                                            "01-01-2500",
+                                            "01-01-2700",
+                                            "Inaktiv",
+                                        ),
+                                        (
+                                            "01-01-2700",
+                                            "01-01-2900",
+                                            "Aktiv",
+                                        ),
+                                        (
+                                            "01-01-2900",
+                                            "01-01-3100",
+                                            "Inaktiv",
+                                        ),
+                                        (
+                                            "01-01-3100",
+                                            "01-01-3300",
+                                            "Aktiv",
+                                        ),
+                                    )
+                                ]
+                            },
                         }
-                    ]
-                ]
-            },
-        )
-    )
+                    ],
+                }
+            ]
+        ]
+    }
+
+    get_objects = AsyncMock(return_value=arrange)
+    monkeypatch.setattr(OrganisationEnhed, "get_objects_direct", get_objects)
 
     c = lora.Connector(validity="future")
 
@@ -557,28 +452,27 @@ async def test_get_effects_2(respx_mock) -> None:
         )
     ]
 
-    assert json.loads(route.calls[0].request.read()) == {
-        "uuid": ["00000000-0000-0000-0000-000000000000"],
-        "virkningfra": "2001-01-01T16:30:00+01:00",
-        "virkningtil": "infinity",
-        "konsolider": "True",
-    }
+    get_objects.assert_awaited_once_with(
+        [
+            ("virkningfra", "2001-01-01T16:30:00+01:00"),
+            ("virkningtil", "infinity"),
+            ("konsolider", "True"),
+            ("uuid", "00000000-0000-0000-0000-000000000000"),
+        ]
+    )
 
 
-async def test_noop_update_returns_null(respx_mock) -> None:
+async def test_noop_update_returns_null(monkeypatch) -> None:
     # A "no-op" update in LoRa returns a response with an error message,
     # but no "uuid" key.
     uuid = "cbd4d304-9466-4524-b8e6-aa4a5a5cb787"
-    respx_mock.patch(f"http://localhost/lora/organisation/bruger/{uuid}").mock(
-        return_value=Response(
-            400,
-            json={
-                "message": "ERROR:  Aborted updating bruger with id "
-                "[cbd4d304-9466-4524-b8e6-aa4a5a5cb787] as the given data, does "
-                "not give raise to a new registration. Aborted reg: ..."
-            },
+
+    async def patch_object(_, __):
+        raise loraexc.BadRequestException(
+            "ERROR:  Aborted updating bruger with id [cbd4d304-9466-4524-b8e6-aa4a5a5cb787] as the given data, does not give raise to a new registration. Aborted reg: ..."
         )
-    )
+
+    monkeypatch.setattr(Bruger, "patch_object_direct", patch_object)
     # Assert that `Scope.update` tolerates the missing 'uuid' key in the
     # LoRa response, and instead just returns the original UUID back to its
     # caller.
@@ -587,12 +481,12 @@ async def test_noop_update_returns_null(respx_mock) -> None:
     assert uuid == same_uuid
 
 
-async def test_actual_update_returns_uuid(respx_mock) -> None:
+async def test_actual_update_returns_uuid(monkeypatch) -> None:
     # A normal update in LoRa returns a response with a 'uuid' key which
     # matches the object that was updated.
     uuid = "cbd4d304-9466-4524-b8e6-aa4a5a5cb787"
-    respx_mock.patch(f"http://localhost/lora/organisation/bruger/{uuid}").mock(
-        return_value=Response(200, json={"uuid": uuid})
+    monkeypatch.setattr(
+        Bruger, "patch_object_direct", AsyncMock(return_value={"uuid": uuid})
     )
     # Assert that `Scope.update` parses the JSON response and returns the
     # value of the 'uuid' key to its caller.
@@ -601,41 +495,21 @@ async def test_actual_update_returns_uuid(respx_mock) -> None:
     assert uuid == updated_uuid
 
 
-async def test_update_returns_nothing_on_lora_404(respx_mock) -> None:
+async def test_update_returns_nothing_on_lora_404(monkeypatch) -> None:
     # Updating a nonexistent LoRa object returns a 404 status code, which
     # should not be converted into a MO exception.
     uuid = "00000000-0000-0000-0000-000000000000"
-    respx_mock.patch(f"http://localhost/lora/organisation/bruger/{uuid}").mock(
-        return_value=Response(404)
-    )
+
+    async def patch_object(_, __):
+        raise loraexc.NotFoundException()
+
+    monkeypatch.setattr(Bruger, "patch_object_direct", patch_object)
+
     # Assert that `Scope.update` does not raise an exception nor return a
     # UUID in this case.
     c = lora.Connector()
     response = await c.bruger.update({}, uuid)
     assert response is None
-
-
-@freezegun.freeze_time("2010-06-01", tz_offset=2)
-def test_raise_on_status_detects_noop_change() -> None:
-    status_code = 400
-    msg_noop = (
-        "ERROR:  Aborted updating bruger with id "
-        "[cbd4d304-9466-4524-b8e6-aa4a5a5cb787] as the given data, does "
-        "not give raise to a new registration. Aborted reg: ..."
-    )
-    msg_other = "ERROR: Some other error"
-    # Assert the 'noop' error does not raise an exception
-    assert lora.raise_on_status(status_code, msg_noop) is None
-
-    # Assert that any other error does raise an exception
-    with pytest.raises(exceptions.HTTPException) as ctxt:
-        lora.raise_on_status(status_code, msg_other)
-    assert ctxt.value.detail == {
-        "error": True,
-        "status": status_code,
-        "error_key": "E_INVALID_INPUT",
-        "description": msg_other,
-    }
 
 
 @pytest.mark.parametrize(
