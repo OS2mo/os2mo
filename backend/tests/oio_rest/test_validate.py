@@ -1230,7 +1230,7 @@ class TestSchemaEndPoints(util.BaseTestCase):
         # Careful now - no logic in the test code!
 
         for obj in hierarchy._classes:
-            url = f"/{hierarchy._name.lower()}/{obj.__name__.lower()}/schema"
+            url = f"/lora/{hierarchy._name.lower()}/{obj.__name__.lower()}/schema"
             r = self.client.get(url)
             assert r.status_code == 200
             json.loads(r.text)

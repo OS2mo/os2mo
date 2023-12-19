@@ -352,7 +352,7 @@ class Tests(DBTestCase):
         objid = self.load_fixture("/klassifikation/klasse", "klasse_opret.json")
 
         r = self.client.delete(
-            "/klassifikation/klasse/" + objid,
+            "/lora/klassifikation/klasse/" + objid,
         )
 
         assert r.status_code == 202

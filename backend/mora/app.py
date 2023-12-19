@@ -10,10 +10,12 @@ from fastapi import FastAPI
 from fastapi import HTTPException as FastAPIHTTPException
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from more_itertools import only
 from prometheus_client import Gauge
 from prometheus_client import Info
 from prometheus_fastapi_instrumentator import Instrumentator
+from psycopg2 import DataError
 from ramqp import AMQPSystem
 from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -48,9 +50,11 @@ from mora.graphapi.middleware import is_graphql_context
 from mora.request_scoped.query_args_context_plugin import query_args_context
 from mora.service.address_handler.dar import dar_loader_context
 from mora.service.shimmed.meta import meta_router
-from oio_rest.app import create_app as create_lora_app
 from oio_rest.config import get_settings as lora_get_settings
+from oio_rest.custom_exceptions import OIOException
 from oio_rest.db import _get_dbname
+from oio_rest.views import create_lora_router
+
 
 logger = get_logger()
 
@@ -280,9 +284,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         )
 
     if settings.expose_lora:
-        # Mount all of Lora in
-        lora_app = create_lora_app()
-        app.mount("/lora", lora_app)
+        app.include_router(create_lora_router(), prefix="/lora")
 
     lora_settings = lora_get_settings()
 
@@ -303,6 +305,20 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
     app.add_exception_handler(HTTPException, http_exception_handler)
     app.add_exception_handler(AuthenticationError, get_auth_exception_handler(logger))
     app.add_exception_handler(AuthorizationError, authorization_exception_handler)
+
+    # These two exception handlers are for LoRas API:
+    @app.exception_handler(OIOException)
+    def handle_not_allowed(request: Request, exc: OIOException):
+        dct = exc.to_dict()
+        return JSONResponse(status_code=exc.status_code, content=dct)
+
+    @app.exception_handler(DataError)
+    def handle_db_error(request: Request, exc: DataError):
+        message = exc.diag.message_primary
+        context = exc.diag.context or exc.pgerror.split("\n", 1)[-1]
+        return JSONResponse(
+            status_code=400, content={"message": message, "context": context}
+        )
 
     if settings.sentry_dsn:
         sentry_sdk.init(dsn=settings.sentry_dsn)

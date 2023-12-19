@@ -10,7 +10,7 @@ from tests.oio_rest.util import DBTestCase
 class Test21660PutUpdate(DBTestCase):
     def test_21660(self):
         result = self.client.post(
-            "klassifikation/facet",
+            "lora/klassifikation/facet",
             data={
                 "json": util.get_fixture("facet_opret.json", as_text=False),
             },
@@ -20,7 +20,7 @@ class Test21660PutUpdate(DBTestCase):
         assert is_uuid(uuid_)
 
         result_put = self.client.put(
-            "klassifikation/facet/%s" % uuid_,
+            "lora/klassifikation/facet/%s" % uuid_,
             data={
                 "json": util.get_fixture(
                     "facet_reduce_effective_time_21660.json",
@@ -35,7 +35,7 @@ class Test21660PutUpdate(DBTestCase):
 class TestKlasse(DBTestCase):
     def test_klasse(self):
         result = self.client.post(
-            "klassifikation/klasse",
+            "lora/klassifikation/klasse",
             data={
                 "json": util.get_fixture("klasse_opret.json", as_text=False),
             },
@@ -45,7 +45,7 @@ class TestKlasse(DBTestCase):
         assert is_uuid(uuid_)
 
         result_patch = self.client.patch(
-            "klassifikation/klasse/%s" % uuid_,
+            "lora/klassifikation/klasse/%s" % uuid_,
             data={
                 "json": util.get_fixture("klasse_opdater.json", as_text=False),
             },
@@ -57,7 +57,7 @@ class TestKlasse(DBTestCase):
 class TestImportDeletedPassivated(DBTestCase):
     def test_import_delete_passivated(self):
         result = self.client.post(
-            "klassifikation/facet",
+            "lora/klassifikation/facet",
             data={
                 "json": util.get_fixture("facet_opret.json", as_text=False),
             },
@@ -68,7 +68,7 @@ class TestImportDeletedPassivated(DBTestCase):
 
         with self.subTest("Passivate object"):
             result_patch = self.client.patch(
-                "klassifikation/facet/%s" % uuid_,
+                "lora/klassifikation/facet/%s" % uuid_,
                 data={
                     "json": util.get_fixture("facet_passiv.json", as_text=False),
                 },
@@ -78,7 +78,7 @@ class TestImportDeletedPassivated(DBTestCase):
 
         with self.subTest("Import object"):
             result_put = self.client.put(
-                "klassifikation/facet/%s" % uuid_,
+                "lora/klassifikation/facet/%s" % uuid_,
                 data={
                     "json": util.get_fixture("facet_opret.json", as_text=False),
                 },
@@ -89,7 +89,7 @@ class TestImportDeletedPassivated(DBTestCase):
         with self.subTest("Delete object"):
             result_delete = self.client.request(
                 "DELETE",
-                "klassifikation/facet/%s" % uuid_,
+                "lora/klassifikation/facet/%s" % uuid_,
                 data={
                     "json": util.get_fixture("facet_slet.json", as_text=False),
                 },
@@ -99,7 +99,7 @@ class TestImportDeletedPassivated(DBTestCase):
 
         with self.subTest("Import object"):
             result_import = self.client.put(
-                "klassifikation/facet/%s" % uuid_,
+                "lora/klassifikation/facet/%s" % uuid_,
                 data={
                     "json": util.get_fixture("facet_opret.json", as_text=False),
                 },
@@ -111,7 +111,7 @@ class TestImportDeletedPassivated(DBTestCase):
 class TestFacet(DBTestCase):
     def test_facet(self):
         result = self.client.post(
-            "klassifikation/facet",
+            "lora/klassifikation/facet",
             data={
                 "json": util.get_fixture("facet_opret.json", as_text=False),
             },
@@ -123,7 +123,7 @@ class TestFacet(DBTestCase):
         import_uuid = str(uuid.uuid4())
         with self.subTest("Import new facet"):
             result_import = self.client.put(
-                "klassifikation/facet/%s" % import_uuid,
+                "lora/klassifikation/facet/%s" % import_uuid,
                 data={
                     "json": util.get_fixture("facet_opret.json", as_text=False),
                 },
@@ -133,7 +133,7 @@ class TestFacet(DBTestCase):
 
         with self.subTest("Update facet"):
             result_patch = self.client.patch(
-                "klassifikation/facet/%s" % uuid_,
+                "lora/klassifikation/facet/%s" % uuid_,
                 data={
                     "json": util.get_fixture("facet_opdater.json", as_text=False),
                 },
@@ -143,7 +143,7 @@ class TestFacet(DBTestCase):
 
         with self.subTest("Replace the facet content with old ones"):
             result_put = self.client.put(
-                "klassifikation/facet/%s" % uuid_,
+                "lora/klassifikation/facet/%s" % uuid_,
                 data={
                     "json": util.get_fixture("facet_opret.json", as_text=False),
                 },
@@ -153,7 +153,7 @@ class TestFacet(DBTestCase):
 
         with self.subTest("Passivate facet"):
             result_patch = self.client.patch(
-                "klassifikation/facet/%s" % uuid_,
+                "lora/klassifikation/facet/%s" % uuid_,
                 data={
                     "json": util.get_fixture("facet_passiv.json", as_text=False),
                 },
@@ -164,7 +164,7 @@ class TestFacet(DBTestCase):
         with self.subTest("Delete facet"):
             result_delete = self.client.request(
                 "DELETE",
-                "klassifikation/facet/%s" % uuid_,
+                "lora/klassifikation/facet/%s" % uuid_,
                 data={
                     "json": util.get_fixture("facet_slet.json", as_text=False),
                 },

@@ -43,7 +43,6 @@ from . import config
 from . import exceptions
 from . import util
 from .graphapi.middleware import is_graphql
-from mora.auth.middleware import get_authenticated_user
 from oio_rest import custom_exceptions as loraexc
 from oio_rest import klassifikation
 from oio_rest import organisation
@@ -410,14 +409,6 @@ class BaseScope:
                 self.lora_class = organisation.OrganisationEnhed
             case "organisationfunktion":
                 self.lora_class = organisation.OrganisationFunktion
-
-    def request_headers(self):
-        headers = {}
-
-        # LoRa needs the user to keep the audit log
-        headers["X-Authenticated-User"] = str(get_authenticated_user())
-
-        return headers
 
 
 class Scope(BaseScope):
