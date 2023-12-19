@@ -1,8 +1,12 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 # flake8: noqa
+from collections.abc import AsyncIterator
+
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine
+from starlette_context import context
+from starlette_context import request_cycle_context
 
 from . import files
 from ._amqp import AMQPSubsystem
@@ -56,7 +60,7 @@ from ._organisationsfunktion import OrganisationFunktionTilsGyldighed
 from .files import FileToken
 
 
-def get_sessionmaker(user, password, host, name):
+def create_sessionmaker(user, password, host, name):
     engine = create_async_engine(
         f"postgresql+psycopg://{user}:{password}@{host}/{name}",
         # Transparently reconnect on connection errors so the calling application does
@@ -65,3 +69,19 @@ def get_sessionmaker(user, password, host, name):
         pool_pre_ping=True,
     )
     return async_sessionmaker(engine)
+
+
+_DB_SESSION_CONTEXT_KEY = "db_session"
+
+
+def set_sessionmaker_context(sessionmaker):
+    async def set_sessionmaker_context_inner() -> AsyncIterator[None]:
+        data = {**context, _DB_SESSION_CONTEXT_KEY: sessionmaker}
+        with request_cycle_context(data):
+            yield
+
+    return set_sessionmaker_context_inner
+
+
+def get_sessionmaker():
+    return context[_DB_SESSION_CONTEXT_KEY]

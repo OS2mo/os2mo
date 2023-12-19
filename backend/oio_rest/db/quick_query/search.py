@@ -5,9 +5,10 @@ from datetime import datetime
 from uuid import UUID
 
 from more_itertools import flatten
+from sqlalchemy import text
 
-from mora.audit import audit_log_lora
-from oio_rest.db import get_connection
+from mora.audit import audit_log
+from mora.db import get_sessionmaker
 from oio_rest.db import Livscyklus
 from oio_rest.db import to_bool
 from oio_rest.db.quick_query.registration_parsing import Attribute
@@ -425,7 +426,7 @@ def ensure_uuid(uuid: UUID | str) -> UUID:
     return UUID(uuid)
 
 
-def quick_search(
+async def quick_search(
     class_name: str,
     uuid: str | None,
     registration: dict,
@@ -525,33 +526,31 @@ def quick_search(
     for x in relations:
         qb.add_relation(x)
 
-    sql = qb.get_query()
+    sql = text(qb.get_query())
+    audit_log_arguments = {
+        "uuid": uuid,
+        "virkning_fra": virkning_fra,
+        "virkning_til": virkning_til,
+        "registreret_fra": registreret_fra,
+        "registreret_til": registreret_til,
+        "life_cycle_code": life_cycle_code,
+        "user_ref": user_ref,
+        "note": note,
+        "any_attr_value_arr": any_attr_value_arr,
+        "any_rel_uuid_arr": any_rel_uuid_arr,
+        "first_result": first_result,
+        "max_results": max_results,
+    }
 
-    # execute query against LoRa
-    with get_connection().cursor() as cursor:
-        cursor.execute(sql)
-        output = cursor.fetchall()
-
-        arguments = {
-            "uuid": uuid,
-            "virkning_fra": virkning_fra,
-            "virkning_til": virkning_til,
-            "registreret_fra": registreret_fra,
-            "registreret_til": registreret_til,
-            "life_cycle_code": life_cycle_code,
-            "user_ref": user_ref,
-            "note": note,
-            "any_attr_value_arr": any_attr_value_arr,
-            "any_rel_uuid_arr": any_rel_uuid_arr,
-            "first_result": first_result,
-            "max_results": max_results,
-        }
+    async with get_sessionmaker().begin() as session:
+        result = await session.execute(sql)
+        output = result.fetchall()
         uuids = list(flatten(output))
-        audit_log_lora(
-            cursor,
+        audit_log(
+            session,
             "quick_search",
             org_class_name,
-            arguments,
+            audit_log_arguments,
             list(map(ensure_uuid, uuids)),
         )
 

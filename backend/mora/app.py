@@ -29,7 +29,8 @@ from . import testing
 from . import triggers
 from .auth.exceptions import get_auth_exception_handler
 from .config import Environment
-from .db import get_sessionmaker
+from .db import create_sessionmaker
+from .db import set_sessionmaker_context
 from .exceptions import ErrorCodes
 from .exceptions import http_exception_to_json_response
 from .exceptions import HTTPException
@@ -176,6 +177,14 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
 
         yield
 
+    lora_settings = lora_get_settings()
+    sessionmaker = create_sessionmaker(
+        user=lora_settings.db_user,
+        password=lora_settings.db_password,
+        host=lora_settings.db_host,
+        name=_get_dbname(),
+    )
+
     app = FastAPI(
         lifespan=lifespan,
         middleware=[
@@ -230,6 +239,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             Depends(is_graphql_context),
             Depends(graphql_dates_context),
             Depends(set_graphql_context_dependencies),
+            Depends(set_sessionmaker_context(sessionmaker)),
         ],
         openapi_tags=list(tags_metadata),
     )
@@ -287,15 +297,8 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
     if settings.expose_lora:
         app.include_router(create_lora_router(), prefix="/lora")
 
-    lora_settings = lora_get_settings()
-
     # Set up lifecycle state for depends.py
-    app.state.sessionmaker = get_sessionmaker(
-        user=lora_settings.db_user,
-        password=lora_settings.db_password,
-        host=lora_settings.db_host,
-        name=_get_dbname(),
-    )
+    app.state.sessionmaker = sessionmaker
     amqp_system = AMQPSystem(settings.amqp)
     app.state.amqp_system = amqp_system
 

@@ -28,6 +28,7 @@ from psycopg2.extras import Json
 from psycopg2.extras import register_uuid
 from psycopg2.sql import Identifier
 from psycopg2.sql import SQL
+from sqlalchemy import text
 
 from ..custom_exceptions import BadRequestException
 from ..custom_exceptions import DBException
@@ -46,8 +47,8 @@ from .db_helpers import Soegeord
 from .db_helpers import to_bool
 from .db_helpers import VaerdiRelationAttr
 from mora.audit import audit_log
-from mora.audit import audit_log_lora
 from mora.auth.middleware import get_authenticated_user
+from mora.db import get_sessionmaker
 from oio_rest import config
 
 """
@@ -370,7 +371,7 @@ def sql_get_registration(
 """
 
 
-def object_exists(class_name: str, uuid: str) -> bool:
+async def object_exists(class_name: str, uuid: str) -> bool:
     """Check if an object with this class name and UUID exists already."""
     sql = SQL(
         """
@@ -380,26 +381,28 @@ def object_exists(class_name: str, uuid: str) -> bool:
         registration_table=Identifier(class_name.lower() + "_registrering"),
         id_column=Identifier(class_name.lower() + "_id"),
     )
+    arguments = {"uuid": uuid}
 
     with get_connection().cursor() as cursor:
-        try:
-            arguments = {"uuid": uuid}
-            audit_log_lora(cursor, "object_exists", class_name, arguments, [UUID(uuid)])
-            cursor.execute(sql, arguments)
-        except psycopg2.Error as e:
-            if e.pgcode is not None and e.pgcode[:2] == "MO":
-                status_code = int(e.pgcode[2:])
-                raise DBException(status_code, e.pgerror)
-            else:
-                raise
+        resulting_sql = cursor.mogrify(sql, arguments)
 
-        result = one(cursor.fetchone())
+    async with get_sessionmaker().begin() as session:
+        audit_log(session, "object_exists", class_name, arguments, [UUID(uuid)])
+        # cursor.execute(sql, arguments)
+        result = await session.scalar(text(resulting_sql.decode("UTF-8")))
+        # This is the old error-handling. We need the equivalent:
+        # except psycopg2.Error as e:
+        #     if e.pgcode is not None and e.pgcode[:2] == "MO":
+        #         status_code = int(e.pgcode[2:])
+        #         raise DBException(status_code, e.pgerror)
+        #     else:
+        #         raise
 
     assert isinstance(result, bool)
     return result
 
 
-def create_or_import_object(class_name, note, registration, uuid=None):
+async def create_or_import_object(class_name, note, registration, uuid=None):
     """Create a new object by calling the corresponding stored procedure.
 
     Create a new object by calling actual_state_create_or_import_{class_name}.
@@ -408,7 +411,7 @@ def create_or_import_object(class_name, note, registration, uuid=None):
 
     if uuid is None:
         life_cycle_code = Livscyklus.OPSTAAET.value
-    elif object_exists(class_name, uuid):
+    elif await object_exists(class_name, uuid):
         life_cycle_code = Livscyklus.RETTET.value
     else:
         life_cycle_code = Livscyklus.IMPORTERET.value
@@ -421,113 +424,108 @@ def create_or_import_object(class_name, note, registration, uuid=None):
     )
 
     sql_template = jinja_env.get_template("create_object.sql")
-    sql = sql_template.render(
-        class_name=class_name,
-        uuid=uuid,
-        life_cycle_code=life_cycle_code,
-        user_ref=user_ref,
-        note=note,
-        registration=sql_registration,
+    sql = text(
+        sql_template.render(
+            class_name=class_name,
+            uuid=uuid,
+            life_cycle_code=life_cycle_code,
+            user_ref=user_ref,
+            note=note,
+            registration=sql_registration,
+        )
     )
 
-    # Call Postgres! Return OK or not accordingly
-    with get_connection().cursor() as cursor:
-        try:
-            cursor.execute(sql)
-        except psycopg2.Error as e:
-            if e.pgcode is not None and e.pgcode[:2] == "MO":
-                status_code = int(e.pgcode[2:])
-                raise DBException(status_code, e.pgerror)
-            else:
-                raise
-
-        output = cursor.fetchone()
-
-    return output[0]
+    async with get_sessionmaker().begin() as session:
+        result = await session.execute(sql)
+        return result.fetchone()[0]
+        # This is the old error-handling. We need the equivalent:
+        # except psycopg2.Error as e:
+        #     if e.pgcode is not None and e.pgcode[:2] == "MO":
+        #         status_code = int(e.pgcode[2:])
+        #         raise DBException(status_code, e.pgerror)
+        #     else:
+        #         raise
 
 
-def delete_object(class_name, registration, note, uuid):
+async def delete_object(class_name, registration, note, uuid):
     """Delete object by using the stored procedure.
 
     Deleting is the same as updating with the life cycle code "Slettet".
     """
 
-    if not object_exists(class_name, uuid):
+    if not (await object_exists(class_name, uuid)):
         raise NotFoundException(f"No {class_name} with ID {uuid} found.")
 
     life_cycle_code = Livscyklus.SLETTET.value
 
-    if get_life_cycle_code(class_name, uuid) == life_cycle_code:
+    if (await get_life_cycle_code(class_name, uuid)) == life_cycle_code:
         # Already deleted, no problem as DELETE is idempotent.
         return
 
     user_ref = str(get_authenticated_user())
     sql_template = jinja_env.get_template("update_object.sql")
     registration = sql_convert_registration(registration, class_name)
-    sql = sql_template.render(
-        class_name=class_name,
-        uuid=uuid,
-        life_cycle_code=life_cycle_code,
-        user_ref=user_ref,
-        note=note,
-        states=registration["states"],
-        attributes=registration["attributes"],
-        relations=registration["relations"],
-        variants=registration.get("variants", None),
+    sql = text(
+        sql_template.render(
+            class_name=class_name,
+            uuid=uuid,
+            life_cycle_code=life_cycle_code,
+            user_ref=user_ref,
+            note=note,
+            states=registration["states"],
+            attributes=registration["attributes"],
+            relations=registration["relations"],
+            variants=registration.get("variants", None),
+        )
     )
 
-    # Call Postgres! Return OK or not accordingly
-    with get_connection().cursor() as cursor:
-        try:
-            cursor.execute(sql)
-        except psycopg2.Error as e:
-            if e.pgcode is not None and e.pgcode[:2] == "MO":
-                status_code = int(e.pgcode[2:])
-                raise DBException(status_code, e.pgerror)
-            else:
-                raise
+    async with get_sessionmaker().begin() as session:
+        result = await session.execute(sql)
+        return result.fetchone()[0]
 
-        output = cursor.fetchone()
-
-    return output[0]
+        # This is the old error-handling. We need the equivalent:
+        #   except psycopg2.Error as e:
+        #       if e.pgcode is not None and e.pgcode[:2] == "MO":
+        #           status_code = int(e.pgcode[2:])
+        #           raise DBException(status_code, e.pgerror)
+        #       else:
+        #           raise
 
 
-def passivate_object(class_name, note, registration, uuid):
+async def passivate_object(class_name, note, registration, uuid):
     """Passivate object by calling the stored procedure."""
 
     user_ref = str(get_authenticated_user())
     life_cycle_code = Livscyklus.PASSIVERET.value
     sql_template = jinja_env.get_template("update_object.sql")
     registration = sql_convert_registration(registration, class_name)
-    sql = sql_template.render(
-        class_name=class_name,
-        uuid=uuid,
-        life_cycle_code=life_cycle_code,
-        user_ref=user_ref,
-        note=note,
-        states=registration["states"],
-        attributes=registration["attributes"],
-        relations=registration["relations"],
-        variants=registration.get("variants", None),
+    sql = text(
+        sql_template.render(
+            class_name=class_name,
+            uuid=uuid,
+            life_cycle_code=life_cycle_code,
+            user_ref=user_ref,
+            note=note,
+            states=registration["states"],
+            attributes=registration["attributes"],
+            relations=registration["relations"],
+            variants=registration.get("variants", None),
+        )
     )
 
-    # Call PostgreSQL
-    with get_connection().cursor() as cursor:
-        try:
-            cursor.execute(sql)
-        except psycopg2.Error as e:
-            if e.pgcode is not None and e.pgcode[:2] == "MO":
-                status_code = int(e.pgcode[2:])
-                raise DBException(status_code, e.pgerror)
-            else:
-                raise
-
-        output = cursor.fetchone()
-
-    return output[0]
+    async with get_sessionmaker().begin() as session:
+        result = await session.execute(sql)
+        return result.fetchone()[0]
+    # This is the old error-handling. We need the equivalent:
+    # except psycopg2.Error as e:
+    #     if e.pgcode is not None and e.pgcode[:2] == "MO":
+    #         status_code = int(e.pgcode[2:])
+    #         raise DBException(status_code, e.pgerror)
+    #     else:
+    #         raise
 
 
-def update_object(
+async def update_object(
     class_name, note, registration, uuid=None, life_cycle_code=Livscyklus.RETTET.value
 ):
     """Update object with the partial data supplied."""
@@ -536,38 +534,41 @@ def update_object(
     registration = sql_convert_registration(registration, class_name)
 
     sql_template = jinja_env.get_template("update_object.sql")
-    sql = sql_template.render(
-        class_name=class_name,
-        uuid=uuid,
-        life_cycle_code=life_cycle_code,
-        user_ref=user_ref,
-        note=note,
-        states=registration["states"],
-        attributes=registration["attributes"],
-        relations=registration["relations"],
-        variants=registration.get("variants", None),
+    sql = text(
+        sql_template.render(
+            class_name=class_name,
+            uuid=uuid,
+            life_cycle_code=life_cycle_code,
+            user_ref=user_ref,
+            note=note,
+            states=registration["states"],
+            attributes=registration["attributes"],
+            relations=registration["relations"],
+            variants=registration.get("variants", None),
+        )
     )
 
-    # Call PostgreSQL
-    with get_connection().cursor() as cursor:
-        try:
-            cursor.execute(sql)
-            cursor.fetchone()
-        except psycopg2.Error as e:
-            noop_msg = (
-                "Aborted updating {} with id [{}] as the given data, "
-                "does not give raise to a new registration.".format(
-                    class_name.lower(), uuid
-                )
-            )
+    async with get_sessionmaker().begin() as session:
+        await session.execute(sql)
+    # This is the old error-handling. We need the equivalent:
+    # try:
+    #     cursor.execute(sql)
+    #     cursor.fetchone()
+    # except psycopg2.Error as e:
+    #     noop_msg = (
+    #         "Aborted updating {} with id [{}] as the given data, "
+    #         "does not give raise to a new registration.".format(
+    #             class_name.lower(), uuid
+    #         )
+    #     )
 
-            if e.pgerror.startswith(noop_msg):
-                return uuid
-            elif e.pgcode is not None and e.pgcode[:2] == "MO":
-                status_code = int(e.pgcode[2:])
-                raise DBException(status_code, e.pgerror)
-            else:
-                raise
+    #     if e.pgerror.startswith(noop_msg):
+    #         return uuid
+    #     elif e.pgcode is not None and e.pgcode[:2] == "MO":
+    #         status_code = int(e.pgcode[2:])
+    #         raise DBException(status_code, e.pgerror)
+    #     else:
+    #         raise
 
     return uuid
 
@@ -610,19 +611,6 @@ async def list_objects(
     if registreret_fra is not None or registreret_til is not None:
         registration_period = DateTimeTZRange(registreret_fra, registreret_til)
 
-    from oio_rest.config import get_settings as lora_get_settings
-    from mora.db import get_sessionmaker
-    from oio_rest.db import _get_dbname
-    from sqlalchemy.sql import text
-
-    lora_settings = lora_get_settings()
-    sessionmaker = get_sessionmaker(
-        user=lora_settings.db_user,
-        password=lora_settings.db_password,
-        host=lora_settings.db_host,
-        name=_get_dbname(),
-    )
-
     arguments = {
         "uuid": uuid,
         "registrering_tstzrange": registration_period,
@@ -632,15 +620,15 @@ async def list_objects(
     with get_connection().cursor() as cursor:
         resulting_sql = cursor.mogrify(sql, arguments)
 
-    async with sessionmaker() as session, session.begin():
-        try:
-            result = await session.execute(text(resulting_sql.decode("UTF-8")))
-        except psycopg2.Error as e:
-            if e.pgcode is not None and e.pgcode[:2] == "MO":
-                status_code = int(e.pgcode[2:])
-                raise DBException(status_code, e.pgerror)
-            else:
-                raise
+    async with get_sessionmaker().begin() as session:
+        result = await session.execute(text(resulting_sql.decode("UTF-8")))
+        # This is the old error-handling. We need the equivalent:
+        # except psycopg2.Error as e:
+        #     if e.pgcode is not None and e.pgcode[:2] == "MO":
+        #         status_code = int(e.pgcode[2:])
+        #         raise DBException(status_code, e.pgerror)
+        #     else:
+        #         raise
 
         output = one(result.fetchone())
         uuids = []
@@ -944,7 +932,7 @@ def _trim_virkninger(virkninger_list, valid_from, valid_to):
     return list(filter(filter_fn, virkninger_list))
 
 
-def search_objects(
+async def search_objects(
     class_name,
     uuid,
     registration,
@@ -982,49 +970,49 @@ def search_objects(
     if virkning_fra is not None or virkning_til is not None:
         virkning_soeg = DateTimeTZRange(virkning_fra, virkning_til)
 
-    sql = sql_template.render(
-        first_result=first_result,
-        uuid=uuid,
-        class_name=class_name,
-        registration=sql_registration,
-        any_attr_value_arr=any_attr_value_arr,
-        any_rel_uuid_arr=any_rel_uuid_arr,
-        max_results=max_results,
-        virkning_soeg=virkning_soeg,
+    sql = text(
+        sql_template.render(
+            first_result=first_result,
+            uuid=uuid,
+            class_name=class_name,
+            registration=sql_registration,
+            any_attr_value_arr=any_attr_value_arr,
+            any_rel_uuid_arr=any_rel_uuid_arr,
+            max_results=max_results,
+            virkning_soeg=virkning_soeg,
+        )
     )
-    with get_connection().cursor() as cursor:
-        try:
-            cursor.execute(sql)
-        except psycopg2.Error as e:
-            if e.pgcode is not None and e.pgcode[:2] == "MO":
-                status_code = int(e.pgcode[2:])
-                raise DBException(status_code, e.pgerror)
-            else:
-                raise
+    arguments = {
+        "uuid": uuid,
+        "virkning_fra": virkning_fra,
+        "virkning_til": virkning_til,
+        "registreret_fra": registreret_fra,
+        "registreret_til": registreret_til,
+        "life_cycle_code": life_cycle_code,
+        "user_ref": user_ref,
+        "note": note,
+        "any_attr_value_arr": any_attr_value_arr,
+        "any_rel_uuid_arr": any_rel_uuid_arr,
+        "first_result": first_result,
+        "max_results": max_results,
+    }
 
-        arguments = {
-            "uuid": uuid,
-            "virkning_fra": virkning_fra,
-            "virkning_til": virkning_til,
-            "registreret_fra": registreret_fra,
-            "registreret_til": registreret_til,
-            "life_cycle_code": life_cycle_code,
-            "user_ref": user_ref,
-            "note": note,
-            "any_attr_value_arr": any_attr_value_arr,
-            "any_rel_uuid_arr": any_rel_uuid_arr,
-            "first_result": first_result,
-            "max_results": max_results,
-        }
-        uuids = one(cursor.fetchone())
-        audit_log_lora(
-            cursor, "search_objects", class_name, arguments, list(map(UUID, uuids))
+    async with get_sessionmaker().begin() as session:
+        result = await session.execute(sql)
+        # except psycopg2.Error as e:
+        #     if e.pgcode is not None and e.pgcode[:2] == "MO":
+        #         status_code = int(e.pgcode[2:])
+        #         raise DBException(status_code, e.pgerror)
+        #     else:
+        #         raise
+        uuids = one(result.fetchone())
+        audit_log(
+            session, "search_objects", class_name, arguments, list(map(UUID, uuids))
         )
 
     return (uuids,)
 
 
-# TODO: Asyncify callers
 async def get_life_cycle_code(class_name, uuid):
     n = datetime.datetime.now()
     n1 = n + datetime.timedelta(seconds=1)

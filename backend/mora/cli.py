@@ -23,13 +23,13 @@ from . import config
 from . import log
 from mora.amqp import start_amqp_subsystem
 from mora.db import AMQPSubsystem
-from mora.db import get_sessionmaker
+from mora.db import create_sessionmaker
 from oio_rest.config import get_settings as oio_rest_get_settings
 
 logger = get_logger()
 settings = config.get_settings()
 oio_rest_settings = oio_rest_get_settings()
-sessionmaker = get_sessionmaker(
+sessionmaker = create_sessionmaker(
     user=oio_rest_settings.db_user,
     password=oio_rest_settings.db_password,
     host=oio_rest_settings.db_host,

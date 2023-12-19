@@ -38,7 +38,7 @@ from mora.auth.keycloak.oidc import Token
 from mora.auth.keycloak.oidc import token_getter
 from mora.auth.middleware import fetch_authenticated_user
 from mora.config import get_settings
-from mora.db import get_sessionmaker
+from mora.db import create_sessionmaker as mo_create_sessionmaker
 from mora.graphapi.main import graphql_versions
 from mora.graphapi.versions.latest.dataloaders import MOModel
 from mora.graphapi.versions.latest.permissions import ALL_PERMISSIONS
@@ -220,7 +220,7 @@ def fastapi_session_test_app(
     fixture_db: str,
 ) -> FastAPI:
     lora_settings = lora_get_settings()
-    fastapi_test_app.state.sessionmaker = get_sessionmaker(
+    fastapi_test_app.state.sessionmaker = create_sessionmaker(
         user=lora_settings.db_user,
         password=lora_settings.db_password,
         host=lora_settings.db_host,
@@ -712,7 +712,7 @@ def sp_configuration(monkeypatch, tmp_path) -> None:
 
 def create_sessionmaker():
     lora_settings = lora_get_settings()
-    return get_sessionmaker(
+    return mo_create_sessionmaker(
         user=lora_settings.db_user,
         password=lora_settings.db_password,
         host=lora_settings.db_host,
