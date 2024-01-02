@@ -3472,8 +3472,8 @@ class Organisation:
     description="Organisation unit within the organisation tree",
 )
 class OrganisationUnit:
-    parent: LazyOrganisationUnit | None = strawberry.field(
-        resolver=seed_resolver_only(
+    parent: list[LazyOrganisationUnit] = strawberry.field(
+        resolver=seed_resolver_list(
             OrganisationUnitResolver(),
             {"uuids": lambda root: uuid2list(root.parent_uuid)},
         ),
