@@ -6,6 +6,7 @@
 import asyncio
 import datetime
 import re
+import time
 from collections.abc import Collection
 from collections.abc import Iterator
 from unittest.mock import AsyncMock
@@ -1949,11 +1950,50 @@ def test_load_ldap_attribute_values(dataloader: DataLoader):
 async def test_create_mo_class(dataloader: DataLoader):
 
     uuid = uuid4()
+    existing_class_uuid = uuid4()
 
     dataloader.query_mo = AsyncMock()  # type: ignore
-    dataloader.query_mo.return_value = {"class_create": {"uuid": str(uuid)}}
 
+    class_not_found_response: dict = {"classes": {"objects": []}}
+    class_create_response: dict = {"class_create": {"uuid": str(uuid)}}
+    class_exists_response = {
+        "classes": {"objects": [{"objects": [{"uuid": str(existing_class_uuid)}]}]}
+    }
+
+    async def query_mo_mock(query, *args, **kwargs):
+        query_str = print_ast(query)
+        if "CreateClass" in query_str:
+            await asyncio.sleep(0.1)
+            return class_create_response
+        else:
+            return class_not_found_response
+
+    async def query_mo_mock_class_exists(query, *args, **kwargs):
+        query_str = print_ast(query)
+        if "CreateClass" in query_str:
+            return class_create_response
+        else:
+            return class_exists_response
+
+    # Case1: The class does not exist yet
+    dataloader.query_mo = query_mo_mock  # type: ignore
     assert await dataloader.create_mo_class("", "", uuid4()) == uuid
+
+    # Case2: The class already exists
+    dataloader.query_mo = query_mo_mock_class_exists  # type: ignore
+    assert await dataloader.create_mo_class("", "", uuid4()) == existing_class_uuid
+
+    # Case3: We call the function twice and the first one needs to wait for the second
+    dataloader.query_mo = query_mo_mock  # type: ignore
+
+    # Because of the lock, only one instance can run at the time.
+    t1 = time.time()
+    await asyncio.gather(
+        dataloader.create_mo_class("n", "user_key", uuid4()),
+        dataloader.create_mo_class("n", "user_key", uuid4()),
+    )
+    t2 = time.time()
+    assert (t2 - t1) > 0.2  # each task takes 0.1 second
 
 
 async def test_update_mo_class(dataloader: DataLoader):
