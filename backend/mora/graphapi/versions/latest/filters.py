@@ -60,6 +60,11 @@ class BaseFilter:
         description="Limit the elements returned by their ending validity.",
     )
 
+    registration_time: datetime | None = strawberry.field(
+        default=UNSET,
+        description="Limit the elements returned by their registration time.",
+    )
+
 
 @strawberry.interface
 class EmployeeFiltered:

@@ -215,6 +215,10 @@ class Resolver(PagedResolver):
             kwargs["foersteresultat"] = cursor.offset
             kwargs["registreringstid"] = str(cursor.registration_time)
 
+        # Registration time filter
+        if filter.registration_time:
+            kwargs["registreringstid"] = str(filter.registration_time)
+
         resolver_name = resolver_map[self.model]["getter"]
         return await info.context[resolver_name](**kwargs)
 
