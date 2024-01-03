@@ -514,7 +514,7 @@ class Response(Generic[MOObject]):
             RegistrationResolver(),  # type: ignore
             {
                 "uuids": lambda root: uuid2list(root.uuid),
-                "models": lambda root: model2name(root.model),
+                "models": lambda root: [model2name(root.model)],
             },
         ),
     )
