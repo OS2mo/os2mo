@@ -103,6 +103,13 @@ variables:
   parallel: 2
   variables:
     PYTEST_ADDOPTS: "-m 'integration_test'"
+    # Define FastRAMQPI settings for the recommended settings structure
+    FASTRAMQPI__MO_URL: "http://mo:5000"
+    FASTRAMQPI__CLIENT_ID: "dipex"
+    FASTRAMQPI__CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
+    FASTRAMQPI__AUTH_SERVER: "http://keycloak:8080/auth"
+    FASTRAMQPI__AUTH_REALM: "mo"
+    FASTRAMQPI__AMQP__URL: "amqp://guest:guest@msg-broker:5672/"
   services:
     - !reference [ .services:mo-backing, services ]
     # `:latest` here is actually latest and not a cached version because we run
