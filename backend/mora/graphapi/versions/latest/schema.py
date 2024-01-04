@@ -53,6 +53,7 @@ from .resolvers import ManagerResolver
 from .resolvers import OrganisationUnitResolver
 from .resolvers import OwnerResolver
 from .resolvers import RelatedUnitResolver
+from .resolvers import Resolver
 from .resolvers import RoleResolver
 from .seed_resolver import seed_resolver
 from .types import CPRType
@@ -146,23 +147,6 @@ def force_none_return_wrapper(func: Callable) -> Callable:
             return None
 
     return wrapper
-
-
-# seed_resolver functions pre-seeded with result_translation functions assuming that
-# only a single UUID will be returned, converting the objects list to either a list or
-# an optional entity.
-seed_resolver_list: Callable[..., Any] = partial(
-    seed_resolver,
-    result_translation=lambda _, result: list(chain.from_iterable(result.values())),
-)
-seed_resolver_only: Callable[..., Any] = partial(
-    seed_resolver,
-    result_translation=lambda _, result: only(chain.from_iterable(result.values())),
-)
-seed_resolver_one: Callable[..., Any] = partial(
-    seed_resolver,
-    result_translation=lambda _, result: one(chain.from_iterable(result.values())),
-)
 
 
 def uuid2list(uuid: UUID | None) -> list[UUID]:
@@ -339,6 +323,34 @@ class Response(Generic[MOObject]):
             },
         ),
     )
+
+
+def to_response(resolver: Resolver, result: dict[UUID, list[dict]]) -> list[Response]:
+    return [
+        Response(uuid=uuid, model=resolver.model, object_cache=objects)  # type: ignore[call-arg]
+        for uuid, objects in result.items()
+    ]
+
+
+# seed_resolver functions pre-seeded with result_translation functions assuming that
+# only a single UUID will be returned, converting the objects list to either a list or
+# an optional entity.
+seed_resolver_response_only: Callable[..., Any] = partial(
+    seed_resolver,
+    result_translation=lambda resolver, result: only(to_response(resolver, result)),
+)
+seed_resolver_list: Callable[..., Any] = partial(
+    seed_resolver,
+    result_translation=lambda _, result: list(chain.from_iterable(result.values())),
+)
+seed_resolver_only: Callable[..., Any] = partial(
+    seed_resolver,
+    result_translation=lambda _, result: only(chain.from_iterable(result.values())),
+)
+seed_resolver_one: Callable[..., Any] = partial(
+    seed_resolver,
+    result_translation=lambda _, result: one(chain.from_iterable(result.values())),
+)
 
 
 LazySchema = strawberry.lazy(".schema")
@@ -3293,8 +3305,8 @@ class Organisation:
     description="Organisation unit within the organisation tree",
 )
 class OrganisationUnit:
-    parent: LazyOrganisationUnit | None = strawberry.field(
-        resolver=seed_resolver_only(
+    parent: Response[LazyOrganisationUnit] | None = strawberry.field(
+        resolver=seed_resolver_response_only(
             OrganisationUnitResolver(),
             {"uuids": lambda root: uuid2list(root.parent_uuid)},
         ),

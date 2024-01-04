@@ -60,6 +60,7 @@ from .schema import Owner
 from .schema import RelatedUnit
 from .schema import Response
 from .schema import Role
+from .schema import to_response
 from .schema import Version
 from mora.audit import audit_log
 from mora.config import get_public_settings
@@ -158,13 +159,6 @@ class ConfigurationResolver(PagedResolver):
             context["lora_page_out_of_range"] = True
 
         return [Configuration(key=key) for key in settings]  # type: ignore[call-arg]
-
-
-def to_response(resolver: Resolver, result: dict[UUID, list[dict]]) -> list[Response]:
-    return [
-        Response(uuid=uuid, model=resolver.model, object_cache=objects)  # type: ignore[call-arg]
-        for uuid, objects in result.items()
-    ]
 
 
 def to_uuids(resolver: Resolver, result: dict[UUID, list[dict]]) -> list[UUID]:
