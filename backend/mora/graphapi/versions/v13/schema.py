@@ -36,7 +36,6 @@ from ..latest.permissions import IsAuthenticatedPermission
 from ..latest.resolver_map import resolver_map
 from ..latest.resolvers import Resolver
 from ..latest.schema import force_none_return_wrapper
-from ..latest.schema import identity
 from ..latest.schema import model2name
 from ..latest.schema import MOObject
 from ..latest.schema import R
@@ -101,7 +100,7 @@ def seed_resolver(
     # If no seeds was provided, default to the empty dict
     seeds = seeds or {}
     # If no result_translation function was provided, default to the identity function
-    result_translation = result_translation or identity
+    result_translation = result_translation or (lambda x: x)
 
     async def seeded_resolver(*args: Any, root: Any, **kwargs: Any) -> R:
         # Resolve arguments from the root object

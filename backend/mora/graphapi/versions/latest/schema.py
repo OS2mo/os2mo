@@ -104,18 +104,6 @@ MOObject = TypeVar("MOObject")
 R = TypeVar("R")
 
 
-def identity(x: R) -> R:
-    """Identity function.
-
-    Args:
-        x: Random argument.
-
-    Returns:
-        `x` completely unmodified.
-    """
-    return x
-
-
 def raise_force_none_return_if_uuid_none(
     root: Any, get_uuid: Callable[[Any], UUID | None]
 ) -> list[UUID]:
@@ -206,7 +194,7 @@ def get_bound_filter(
 def seed_resolver(
     resolver: Resolver,
     seeds: dict[str, Callable[[Any], Any]] | None = None,
-    result_translation: Callable[[Any], R] | None = None,
+    result_translation: Callable[[Resolver, Any], R] | None = None,
 ) -> Callable[..., Awaitable[R]]:
     """Seed the provided top-level resolver to be used in a field-level context.
 
@@ -257,8 +245,12 @@ def seed_resolver(
     """
     # If no seeds was provided, default to the empty dict
     seeds = seeds or {}
-    # If no result_translation function was provided, default to the identity function
-    result_translation = result_translation or identity
+
+    def no_translation(_: Resolver, result: Any) -> Any:
+        return result
+
+    # If no result_translation function was provided, default to no translation
+    result_translation = result_translation or no_translation
 
     # Extract the original `filter` class from the provided resolver
     sig = signature(resolver.resolve)
@@ -308,7 +300,7 @@ def seed_resolver(
         assert "filter" not in kwargs
         result = await resolver.resolve(*args, filter=filter, **kwargs)  # type: ignore[misc]
         assert result_translation is not None
-        return result_translation(result)
+        return result_translation(resolver, result)
 
     # Generate and apply our new signature to the seeded_resolver function. The `root`
     # parameter is required for all the `seeds` resolvers to determine call-time
@@ -331,15 +323,15 @@ def seed_resolver(
 # an optional entity.
 seed_resolver_list: Callable[..., Any] = partial(
     seed_resolver,
-    result_translation=lambda result: list(chain.from_iterable(result.values())),
+    result_translation=lambda _, result: list(chain.from_iterable(result.values())),
 )
 seed_resolver_only: Callable[..., Any] = partial(
     seed_resolver,
-    result_translation=lambda result: only(chain.from_iterable(result.values())),
+    result_translation=lambda _, result: only(chain.from_iterable(result.values())),
 )
 seed_resolver_one: Callable[..., Any] = partial(
     seed_resolver,
-    result_translation=lambda result: one(chain.from_iterable(result.values())),
+    result_translation=lambda _, result: one(chain.from_iterable(result.values())),
 )
 
 
@@ -3528,7 +3520,7 @@ class OrganisationUnit:
             seed_resolver(
                 OrganisationUnitResolver(),
                 {"parents": lambda root: [root.uuid]},
-                lambda result: len(result.keys()),
+                lambda _, result: len(result.keys()),
             ),
         ),
         description="Children count of the organisation unit.",
