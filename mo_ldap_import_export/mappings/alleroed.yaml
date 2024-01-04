@@ -428,6 +428,7 @@ username_generator:
   forbidden_usernames:
     - itsm_brugere.csv
     - CURA-76507-total-brugerliste-fhir.txt
+    - windows.txt
 
 # *Valid address type names can be obtained by making a new address and folding out the
 # 'Addressetype' listbox
