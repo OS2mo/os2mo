@@ -120,6 +120,7 @@ from .org_unit import update_org_unit
 from .owner import create_owner
 from .owner import terminate_owner
 from .owner import update_owner
+from .paged import Paged
 from .permissions import gen_create_permission
 from .permissions import gen_delete_permission
 from .permissions import gen_refresh_permission
@@ -164,7 +165,6 @@ from .schema import Manager
 from .schema import Organisation
 from .schema import OrganisationUnit
 from .schema import Owner
-from .schema import Paged
 from .schema import RelatedUnit
 from .schema import Response
 from .schema import Role

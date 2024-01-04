@@ -10,12 +10,12 @@ from ..latest.audit import AuditLogFilter as AuditLogFilterLatest
 from ..latest.audit import AuditLogModel
 from ..latest.audit import AuditLogResolver as AuditLogResolverLatest
 from ..latest.filters import gen_filter_table
+from ..latest.paged import Paged
 from ..latest.permissions import gen_read_permission
 from ..latest.permissions import IsAuthenticatedPermission
 from ..latest.query import to_paged
 from ..latest.resolvers import CursorType
 from ..latest.resolvers import LimitType
-from ..latest.schema import Paged
 from ..v18.version import GraphQLVersion as NextGraphQLVersion
 
 

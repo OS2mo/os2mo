@@ -1,10 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
 from functools import partial
-from functools import wraps
 from textwrap import dedent
-from typing import Any
 from typing import TypeVar
 from uuid import UUID
 
@@ -18,6 +15,8 @@ from .filters import ConfigurationFilter
 from .filters import FileFilter
 from .filters import HealthFilter
 from .health import health_map
+from .paged import Paged
+from .paged import to_paged
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
 from .registration import Registration
@@ -58,16 +57,12 @@ from .schema import Manager
 from .schema import Organisation
 from .schema import OrganisationUnit
 from .schema import Owner
-from .schema import Paged
-from .schema import PageInfo
 from .schema import RelatedUnit
 from .schema import Response
 from .schema import Role
 from .schema import Version
-from .types import Cursor
 from mora.audit import audit_log
 from mora.config import get_public_settings
-from mora.util import now
 
 
 T = TypeVar("T")
@@ -174,37 +169,6 @@ def to_response(resolver: Resolver, result: dict[UUID, list[dict]]) -> list[Resp
 
 def to_uuids(resolver: Resolver, result: dict[UUID, list[dict]]) -> list[UUID]:
     return list(result.keys())
-
-
-def to_paged(resolver: PagedResolver, result_transformer: Callable[[PagedResolver, Any], list[Any]] | None = None):  # type: ignore
-    result_transformer = result_transformer or (lambda _, x: x)
-
-    @wraps(resolver.resolve)
-    async def resolve_response(*args, limit: LimitType, cursor: CursorType, **kwargs):  # type: ignore
-        if limit and cursor is None:
-            cursor = Cursor(
-                offset=0,
-                registration_time=str(now()),
-            )
-
-        result = await resolver.resolve(*args, limit=limit, cursor=cursor, **kwargs)
-
-        end_cursor: CursorType = None
-        if limit and cursor is not None:
-            end_cursor = Cursor(
-                offset=cursor.offset + limit,
-                registration_time=cursor.registration_time,
-            )
-        if context.get("lora_page_out_of_range"):
-            end_cursor = None
-
-        assert result_transformer is not None
-        return Paged(  # type: ignore[call-arg]
-            objects=result_transformer(resolver, result),
-            page_info=PageInfo(next_cursor=end_cursor),  # type: ignore[call-arg]
-        )
-
-    return resolve_response
 
 
 to_paged_response = partial(to_paged, result_transformer=to_response)
