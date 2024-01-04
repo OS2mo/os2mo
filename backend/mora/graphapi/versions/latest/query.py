@@ -38,7 +38,7 @@ from .resolvers import ManagerResolver
 from .resolvers import OrganisationUnitResolver
 from .resolvers import OwnerResolver
 from .resolvers import PagedResolver
-from .resolvers import RelatedUnitResolver
+from .resolvers import related_unit_resolver
 from .resolvers import Resolver
 from .resolvers import RoleResolver
 from .schema import Address
@@ -172,7 +172,18 @@ def to_response(resolver: Resolver, result: dict[UUID, list[dict]]) -> list[Resp
     ]
 
 
+def to_func_response(model: Any, result: dict[UUID, list[dict]]) -> list[Response]:
+    return [
+        Response(uuid=uuid, model=model, object_cache=objects)  # type: ignore[call-arg]
+        for uuid, objects in result.items()
+    ]
+
+
 def to_uuids(resolver: Resolver, result: dict[UUID, list[dict]]) -> list[UUID]:
+    return list(result.keys())
+
+
+def to_func_uuids(model: Any, result: dict[UUID, list[dict]]) -> list[UUID]:
     return list(result.keys())
 
 
@@ -206,6 +217,40 @@ def to_paged(resolver: PagedResolver, result_transformer: Callable[[PagedResolve
 
     return resolve_response
 
+
+def to_paged_func(resolver_func: Callable, model: Any, result_transformer: Any | None = None):  # type: ignore
+    result_transformer = result_transformer or (lambda _, x: x)
+
+    @wraps(resolver_func)
+    async def resolve_response(*args, limit: LimitType, cursor: CursorType, **kwargs):  # type: ignore
+        if limit and cursor is None:
+            cursor = Cursor(
+                offset=0,
+                registration_time=str(now()),
+            )
+
+        result = await resolver_func(*args, limit=limit, cursor=cursor, **kwargs)
+
+        end_cursor: CursorType = None
+        if limit and cursor is not None:
+            end_cursor = Cursor(
+                offset=cursor.offset + limit,
+                registration_time=cursor.registration_time,
+            )
+        if context.get("lora_page_out_of_range"):
+            end_cursor = None
+
+        assert result_transformer is not None
+        return Paged(  # type: ignore[call-arg]
+            objects=result_transformer(model, result),
+            page_info=PageInfo(next_cursor=end_cursor),  # type: ignore[call-arg]
+        )
+
+    return resolve_response
+
+
+to_paged_func_response = partial(to_paged_func, result_transformer=to_func_response)
+to_paged_func_uuids = partial(to_paged_func, result_transformer=to_func_uuids)
 
 to_paged_response = partial(to_paged, result_transformer=to_response)
 to_paged_uuids = partial(to_paged, result_transformer=to_uuids)
@@ -333,7 +378,7 @@ class Query:
     # Related Units
     # -------------
     related_units: Paged[Response[RelatedUnit]] = strawberry.field(
-        resolver=to_paged_response(RelatedUnitResolver()),
+        resolver=to_paged_func_response(related_unit_resolver, RelatedUnit),
         description="Get related organisation units.",
         permission_classes=[
             IsAuthenticatedPermission,

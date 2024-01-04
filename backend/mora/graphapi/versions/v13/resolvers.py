@@ -49,9 +49,11 @@ from ..latest.resolvers import LimitType
 from ..latest.resolvers import ManagerResolver as NextManagerResolver
 from ..latest.resolvers import OrganisationUnitResolver as NextOrganisationUnitResolver
 from ..latest.resolvers import OwnerResolver as NextOwnerResolver
-from ..latest.resolvers import RelatedUnitResolver as NextRelatedUnitResolver
+from ..latest.resolvers import related_unit_resolver
+from ..latest.resolvers import Resolver
 from ..latest.resolvers import RoleResolver as NextRoleResolver
 from mora.util import CPR
+from ramodels.mo.details import RelatedUnitRead
 
 UUIDsFilterType = Annotated[
     list[UUID] | None,
@@ -650,7 +652,10 @@ class LeaveResolver(NextLeaveResolver):
         )
 
 
-class RelatedUnitResolver(NextRelatedUnitResolver):
+class RelatedUnitResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(RelatedUnitRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -669,7 +674,7 @@ class RelatedUnitResolver(NextRelatedUnitResolver):
             to_date=to_date,
             org_units=org_units,
         )
-        return await super().resolve(
+        return await related_unit_resolver(
             info=info,
             filter=filter,
             limit=limit,
