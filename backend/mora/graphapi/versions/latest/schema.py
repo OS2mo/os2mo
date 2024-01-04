@@ -59,6 +59,7 @@ from .seed_resolver import seed_resolver
 from .types import CPRType
 from .validity import OpenValidity
 from .validity import Validity
+from .paged import Paged
 from mora import common
 from mora import config
 from mora.common import _create_graphql_connector

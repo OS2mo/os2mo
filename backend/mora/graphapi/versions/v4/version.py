@@ -12,7 +12,6 @@ from pydantic import PositiveInt
 
 from ..latest.permissions import gen_read_permission
 from ..latest.permissions import IsAuthenticatedPermission
-from ..latest.query import to_paged
 from ..latest.types import Cursor
 from ..v13.query import ConfigurationResolver
 from ..v13.query import FileResolver
@@ -240,7 +239,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # Health
     # ------
     healths: Paged[Health] = strawberry.field(
-        resolver=to_paged(HealthResolver()),
+        resolver=HealthResolver().paged_resolve,
         description="Get a list of all health checks, optionally by identifier(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("health")],
     )

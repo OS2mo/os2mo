@@ -2,14 +2,15 @@
 # SPDX-License-Identifier: MPL-2.0
 from functools import partial
 from uuid import UUID
+from typing import TypeVar
 
 import strawberry
 from more_itertools import flatten
 
 from ..latest.permissions import gen_read_permission
 from ..latest.permissions import IsAuthenticatedPermission
-from ..latest.query import to_paged
 from ..latest.resolvers import Resolver
+from ..latest.paged import Paged
 from ..v13.resolvers import ClassResolver
 from ..v13.resolvers import FacetResolver
 from ..v13.resolvers import ITSystemResolver
@@ -20,11 +21,11 @@ from ..v13.schema import Paged
 from ..v7.version import GraphQLVersion as NextGraphQLVersion
 
 
-def to_list(resolver: Resolver, result: dict[UUID, list[dict]]) -> list:
-    return list(flatten(result.values()))
+T = TypeVar("T")
 
 
-to_paged_list = partial(to_paged, result_transformer=to_list)
+def to_paged_list(func) -> Paged[list[T]]:
+    pass
 
 
 @strawberry.type(description="Entrypoint for all read-operations")
@@ -32,7 +33,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # Classes
     # -------
     classes: Paged[Class] = strawberry.field(
-        resolver=to_paged_list(ClassResolver()),
+        resolver=to_paged_list(ClassResolver().paged_resolve),
         description="Get a list of all classes, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
@@ -40,7 +41,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # Facets
     # ------
     facets: Paged[Facet] = strawberry.field(
-        resolver=to_paged_list(FacetResolver()),
+        resolver=to_paged_list(FacetResolver().paged_resolve),
         description="Get a list of all facets, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
     )
@@ -48,7 +49,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # ITSystems
     # ---------
     itsystems: Paged[ITSystem] = strawberry.field(
-        resolver=to_paged_list(ITSystemResolver()),
+        resolver=to_paged_list(ITSystemResolver().paged_resolve),
         description="Get a list of all ITSystems, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
     )

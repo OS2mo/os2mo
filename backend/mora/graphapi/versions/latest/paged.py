@@ -1,23 +1,65 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
-from functools import wraps
 from textwrap import dedent
-from typing import Any
 from typing import Generic
 from typing import TypeVar
+from typing import Annotated
+from pydantic import PositiveInt
 
 import strawberry
 from starlette_context import context
-
-from .resolvers import CursorType
-from .resolvers import LimitType
-from .resolvers import PagedResolver
 from .types import Cursor
-from mora.util import now
 
 
 T = TypeVar("T")
+
+
+LimitType = Annotated[
+    PositiveInt | None,
+    strawberry.argument(
+        description=dedent(
+            r"""
+    Limit the maximum number of elements to fetch.
+
+    | `limit`      | \# elements fetched |
+    |--------------|---------------------|
+    | not provided | All                 |
+    | `null`       | All                 |
+    | `0`          | `0` (`*`)           |
+    | `x`          | Between `0` and `x` |
+
+    `*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.
+
+    Note:
+
+    Sometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.
+
+    This may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.
+
+    Not to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.
+    """
+        )
+    ),
+]
+
+CursorType = Annotated[
+    Cursor | None,
+    strawberry.argument(
+        description=dedent(
+            """\
+    Cursor defining the next elements to fetch.
+
+    | `cursor`       | Next element is    |
+    |----------------|--------------------|
+    | not provided   | First              |
+    | `null`         | First              |
+    | `"MA=="` (`*`) | First after Cursor |
+
+    `*`: Placeholder for the cursor returned by the previous iteration.
+    """
+        )
+    ),
+]
 
 
 @strawberry.type(
@@ -64,34 +106,3 @@ class Paged(Generic[T]):
             """
         )
     )
-
-
-def to_paged(resolver: PagedResolver, result_transformer: Callable[[PagedResolver, Any], list[Any]] | None = None):  # type: ignore
-    result_transformer = result_transformer or (lambda _, x: x)
-
-    @wraps(resolver.resolve)
-    async def resolve_response(*args, limit: LimitType, cursor: CursorType, **kwargs):  # type: ignore
-        if limit and cursor is None:
-            cursor = Cursor(
-                offset=0,
-                registration_time=str(now()),
-            )
-
-        result = await resolver.resolve(*args, limit=limit, cursor=cursor, **kwargs)
-
-        end_cursor: CursorType = None
-        if limit and cursor is not None:
-            end_cursor = Cursor(
-                offset=cursor.offset + limit,
-                registration_time=cursor.registration_time,
-            )
-        if context.get("lora_page_out_of_range"):
-            end_cursor = None
-
-        assert result_transformer is not None
-        return Paged(  # type: ignore[call-arg]
-            objects=result_transformer(resolver, result),
-            page_info=PageInfo(next_cursor=end_cursor),  # type: ignore[call-arg]
-        )
-
-    return resolve_response

@@ -21,6 +21,7 @@ from .resolvers import CursorType
 from .resolvers import get_date_interval
 from .resolvers import LimitType
 from .resolvers import PagedResolver
+from .paged import Paged
 from mora.audit import audit_log
 from mora.db import AuditLogOperation as AuditLogOperation
 from mora.db import AuditLogRead as AuditLogRead
@@ -201,6 +202,9 @@ class AuditLogFilter:
 
 class AuditLogResolver(PagedResolver):
     # TODO: Implement using a dataloader
+    async def paged_resolve(self) -> Paged[AuditLog]:
+        pass
+
     async def resolve(  # type: ignore[override]
         self,
         info: Info,

@@ -5,8 +5,6 @@ from collections.abc import Callable
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
-from textwrap import dedent
-from typing import Annotated
 from typing import Any
 from uuid import UUID
 
@@ -16,6 +14,8 @@ from pydantic import ValidationError
 from strawberry import UNSET
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
+from starlette_context import context
+from mora.util import now
 
 from ...middleware import set_graphql_dates
 from .filters import AddressFilter
@@ -39,6 +39,11 @@ from .models import FacetRead
 from .resolver_map import resolver_map
 from .types import Cursor
 from .validity import OpenValidityModel
+from .paged import Paged
+from .paged import PageInfo
+from .paged import LimitType
+from .paged import CursorType
+import inspect
 from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.orgunits import search_orgunits
 from ramodels.mo import EmployeeRead
@@ -54,53 +59,6 @@ from ramodels.mo.details import ManagerRead
 from ramodels.mo.details import OwnerRead
 from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
-
-LimitType = Annotated[
-    PositiveInt | None,
-    strawberry.argument(
-        description=dedent(
-            r"""
-    Limit the maximum number of elements to fetch.
-
-    | `limit`      | \# elements fetched |
-    |--------------|---------------------|
-    | not provided | All                 |
-    | `null`       | All                 |
-    | `0`          | `0` (`*`)           |
-    | `x`          | Between `0` and `x` |
-
-    `*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.
-
-    Note:
-
-    Sometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.
-
-    This may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.
-
-    Not to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.
-    """
-        )
-    ),
-]
-
-CursorType = Annotated[
-    Cursor | None,
-    strawberry.argument(
-        description=dedent(
-            """\
-    Cursor defining the next elements to fetch.
-
-    | `cursor`       | Next element is    |
-    |----------------|--------------------|
-    | not provided   | First              |
-    | `null`         | First              |
-    | `"MA=="` (`*`) | First after Cursor |
-
-    `*`: Placeholder for the cursor returned by the previous iteration.
-    """
-        )
-    ),
-]
 
 
 class PagedResolver:
@@ -124,6 +82,8 @@ class Resolver(PagedResolver):
             model: The MOModel.
         """
         self.model: type = model
+        # Copy the signature of resolve
+        self.paged_resolve.__func__.__signature__ = inspect.signature(self.resolve.__func__)
 
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,

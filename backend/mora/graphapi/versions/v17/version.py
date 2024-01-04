@@ -13,7 +13,6 @@ from ..latest.filters import gen_filter_table
 from ..latest.paged import Paged
 from ..latest.permissions import gen_read_permission
 from ..latest.permissions import IsAuthenticatedPermission
-from ..latest.query import to_paged
 from ..latest.resolvers import CursorType
 from ..latest.resolvers import LimitType
 from ..v18.version import GraphQLVersion as NextGraphQLVersion
@@ -119,7 +118,7 @@ class AuditLogResolver(AuditLogResolverLatest):
 @strawberry.type(description="Entrypoint for all read-operations")
 class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     auditlog: Paged[AuditLog] = strawberry.field(
-        resolver=to_paged(AuditLogResolver()),
+        resolver=AuditLogResolver().paged_resolve,
         description=dedent(
             """\
             Get a list of audit events.

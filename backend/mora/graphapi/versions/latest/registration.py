@@ -24,6 +24,7 @@ from .resolvers import CursorType
 from .resolvers import get_date_interval
 from .resolvers import LimitType
 from .resolvers import PagedResolver
+from .paged import Paged
 from mora.audit import audit_log
 from mora.db import BrugerRegistrering
 from mora.db import FacetRegistrering
@@ -162,6 +163,9 @@ def row2registration(
 
 
 class RegistrationResolver(PagedResolver):
+    async def paged_resolve(self) -> Paged[Registration]:
+        pass
+
     # TODO: Implement using a dataloader
     async def resolve(  # type: ignore[override]
         self,

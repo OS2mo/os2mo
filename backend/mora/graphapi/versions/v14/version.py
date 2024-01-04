@@ -18,7 +18,6 @@ from ..latest.permissions import gen_create_permission
 from ..latest.permissions import gen_read_permission
 from ..latest.permissions import gen_update_permission
 from ..latest.permissions import IsAuthenticatedPermission
-from ..latest.query import to_paged_response
 from ..latest.resolvers import Resolver
 from ..latest.schema import ITSystem
 from ..latest.schema import Response
@@ -84,7 +83,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # ITSystems
     # ---------
     itsystems: Paged[Response[ITSystem]] = strawberry.field(
-        resolver=to_paged_response(ITSystemResolver()),
+        resolver=ITSystemResolver().paged_resolve,
         description="Get it-systems.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
     )

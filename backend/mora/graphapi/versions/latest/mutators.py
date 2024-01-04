@@ -4,6 +4,7 @@ import logging
 from textwrap import dedent
 from typing import Annotated
 from uuid import UUID
+from typing import TypeVar
 
 import strawberry
 from ra_utils.asyncio_utils import gather_with_concurrency
@@ -128,7 +129,6 @@ from .permissions import gen_role_permission
 from .permissions import gen_terminate_permission
 from .permissions import gen_update_permission
 from .permissions import IsAuthenticatedPermission
-from .query import to_paged_uuids
 from .related_units import update_related_units
 from .resolvers import AddressResolver
 from .resolvers import AssociationResolver
@@ -168,6 +168,7 @@ from .schema import Owner
 from .schema import RelatedUnit
 from .schema import Response
 from .schema import Role
+from .paged import Paged
 from mora.audit import audit_log
 from mora.common import get_connector
 from ramodels.mo import EmployeeRead
@@ -185,6 +186,16 @@ from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
 
 logger = logging.getLogger(__name__)
+
+
+T = TypeVar("T")
+
+
+def to_uuids(paged: Paged[Response[T]]) -> Paged[UUID]:
+    return Paged(  # type: ignore[call-arg]
+        objects=[x.uuid for x in paged.objects],
+        page_info = paged.page_info,
+    )
 
 
 def ensure_uuid(uuid: UUID | str) -> UUID:
@@ -288,14 +299,14 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(AddressResolver())
+        resolve = AddressResolver().paged_resolve
         page = await resolve(
             info=info,
             filter=filter,
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="address", queue=queue)
+        return await refresh(info=info, page=to_uuids(page), model="address", queue=queue)
 
     # Associations
     # ------------
@@ -358,14 +369,14 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(AssociationResolver())
+        resolve = AssociationResolver().paged_resolve
         page = await resolve(
             info=info,
             filter=filter,
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="association", queue=queue)
+        return await refresh(info=info, page=to_uuids(page), model="association", queue=queue)
 
     # Classes
     # -------
@@ -433,14 +444,14 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(ClassResolver())
+        resolve = ClassResolver().paged_resolve
         page = await resolve(
             info=info,
             filter=filter,
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="class", queue=queue)
+        return await refresh(info=info, page=to_uuids(page), model="class", queue=queue)
 
     # Employees
     # ---------
@@ -496,7 +507,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(EmployeeResolver())
+        resolve = EmployeeResolver().paged_resolve
         page = await resolve(
             info=info,
             filter=filter,
@@ -504,7 +515,7 @@ class Mutation:
             cursor=cursor,
         )
         # NOTE: "employee" is called "person" in the new AMQP system
-        return await refresh(info=info, page=page, model="person", queue=queue)
+        return await refresh(info=info, page=to_uuids(page), model="person", queue=queue)
 
     # Engagements
     # -----------
@@ -575,14 +586,14 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(EngagementResolver())
+        resolve = EngagementResolver().paged_resolve
         page = await resolve(
             info=info,
             filter=filter,
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="engagement", queue=queue)
+        return await refresh(info=info, page=to_uuids(page), model="engagement", queue=queue)
 
     # Facets
     # ------
@@ -650,14 +661,14 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(FacetResolver())
+        resolve = FacetResolver().paged_resolve
         page = await resolve(
             info=info,
             filter=filter,
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="facet", queue=queue)
+        return await refresh(info=info, page=to_uuids(page), model="facet", queue=queue)
 
     # ITAssociations
     # ---------
@@ -772,14 +783,14 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(ITSystemResolver())
+        resolve = ITSystemResolver().paged_resolve
         page = await resolve(
             info=info,
             filter=filter,
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="itsystem", queue=queue)
+        return await refresh(info=info, page=to_uuids(page), model="itsystem", queue=queue)
 
     # ITUsers
     # -------
@@ -838,14 +849,14 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(ITUserResolver())
+        resolve = ITUserResolver().paged_resolve
         page = await resolve(
             info=info,
             filter=filter,
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="ituser", queue=queue)
+        return await refresh(info=info, page=to_uuids(page), model="ituser", queue=queue)
 
     # KLEs
     # ----
@@ -896,14 +907,14 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(KLEResolver())
+        resolve = KLEResolver().paged_resolve
         page = await resolve(
             info=info,
             filter=filter,
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="kle", queue=queue)
+        return await refresh(info=info, page=to_uuids(page), model="kle", queue=queue)
 
     # Leave
     # -----
@@ -954,14 +965,14 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(LeaveResolver())
+        resolve = LeaveResolver().paged_resolve
         page = await resolve(
             info=info,
             filter=filter,
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="leave", queue=queue)
+        return await refresh(info=info, page=to_uuids(page), model="leave", queue=queue)
 
     # Managers
     # --------
@@ -1014,14 +1025,14 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(ManagerResolver())
+        resolve = ManagerResolver().paged_resolve
         page = await resolve(
             info=info,
             filter=filter,
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="manager", queue=queue)
+        return await refresh(info=info, page=to_uuids(page), model="manager", queue=queue)
 
     # Root Organisation
     # -----------------
@@ -1103,14 +1114,14 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(OrganisationUnitResolver())
+        resolve = OrganisationUnitResolver().paged_resolve
         page = await resolve(
             info=info,
             filter=filter,
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="org_unit", queue=queue)
+        return await refresh(info=info, page=to_uuids(page), model="org_unit", queue=queue)
 
     # Owner
     # -------------
@@ -1161,14 +1172,14 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(OwnerResolver())
+        resolve = OwnerResolver().paged_resolve
         page = await resolve(
             info=info,
             filter=filter,
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="owner", queue=queue)
+        return await refresh(info=info, page=to_uuids(page), model="owner", queue=queue)
 
     # Related Units
     # -------------
@@ -1202,14 +1213,14 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(RelatedUnitResolver())
+        resolve = RelatedUnitResolver().paged_resolve
         page = await resolve(
             info=info,
             filter=filter,
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="related_unit", queue=queue)
+        return await refresh(info=info, page=to_uuids(page), model="related_unit", queue=queue)
 
     # Roles
     # -----
@@ -1261,14 +1272,14 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(RoleResolver())
+        resolve = RoleResolver().paged_resolve
         page = await resolve(
             info=info,
             filter=filter,
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="role", queue=queue)
+        return await refresh(info=info, page=to_uuids(page), model="role", queue=queue)
 
     # Files
     # -----
