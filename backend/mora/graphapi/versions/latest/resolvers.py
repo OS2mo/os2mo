@@ -172,63 +172,15 @@ class Resolver(PagedResolver):
         **kwargs: Any,
     ):
         """The internal resolve interface, allowing for kwargs."""
-        # Filter
-        if filter is None:
-            filter = BaseFilter()
-
-        # Dates
-        dates = get_date_interval(filter.from_date, filter.to_date)
-        set_graphql_dates(dates)
-
-        # UUIDs
-        if filter.uuids is not None:
-            if limit is not None or cursor is not None:
-                raise ValueError("Cannot filter 'uuid' with 'limit' or 'cursor'")
-            # Early return on empty UUID list
-            if not filter.uuids:
-                return self.neutral_element_constructor()
-            resolver_name = resolver_map[self.model]["loader"]
-            return await self.get_by_uuid(info.context[resolver_name], filter.uuids)
-
-        # User keys
-        if filter.user_keys is not None:
-            # Early return on empty user-key list
-            if not filter.user_keys:
-                return self.neutral_element_constructor()
-            # We need to explicitly use a 'SIMILAR TO' search in LoRa, as the default is
-            # to 'AND' filters of the same name, i.e. 'http://lora?bvn=x&bvn=y' means
-            # "bvn is x AND Y", which is never true. Ideally, we'd use a different query
-            # parameter key for these queries - such as '&bvn~=foo' - but unfortunately
-            # such keys are hard-coded in a LOT of different places throughout LoRa.
-            # For this reason, it is easier to pass the sentinel in the VALUE at this
-            # point in time.
-            # Additionally, the values are regex-escaped since the joined string will be
-            # interpreted as one big regular expression in LoRa's SQL.
-            use_is_similar_sentinel = "|LORA-PLEASE-USE-IS-SIMILAR|"
-            escaped_user_keys = (re.escape(k) for k in filter.user_keys)
-            kwargs["bvn"] = use_is_similar_sentinel + "|".join(escaped_user_keys)
-
-        # Pagination
-        if limit is not None:
-            kwargs["maximalantalresultater"] = limit
-        if cursor is not None:
-            kwargs["foersteresultat"] = cursor.offset
-            kwargs["registreringstid"] = str(cursor.registration_time)
-
-        resolver_name = resolver_map[self.model]["getter"]
-        return await info.context[resolver_name](**kwargs)
-
-    @staticmethod
-    # type: ignore[no-untyped-def,override]
-    async def get_by_uuid(dataloader: DataLoader, uuids: list[UUID]):
-        deduplicated_uuids = list(set(uuids))
-        responses = await dataloader.load_many(deduplicated_uuids)
-        # Filter empty objects, see: https://redmine.magenta-aps.dk/issues/51523.
-        return {
-            uuid: objects
-            for uuid, objects in zip(deduplicated_uuids, responses)
-            if objects != []
-        }
+        return await generic_resolver(
+            self.model,
+            self.neutral_element_constructor,
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+            **kwargs,
+        )
 
 
 async def filter2uuids(
@@ -887,34 +839,105 @@ class LeaveResolver(Resolver):
         )
 
 
-class RelatedUnitResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(RelatedUnitRead)
+# type: ignore[no-untyped-def,override]
+async def get_by_uuid(
+    dataloader: DataLoader, uuids: list[UUID]
+) -> dict[UUID, dict[str, Any]]:
+    deduplicated_uuids = list(set(uuids))
+    responses = await dataloader.load_many(deduplicated_uuids)
+    # Filter empty objects, see: https://redmine.magenta-aps.dk/issues/51523.
+    return {
+        uuid: objects
+        for uuid, objects in zip(deduplicated_uuids, responses)
+        if objects != []
+    }
 
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        filter: RelatedUnitFilter | None = None,
-        limit: LimitType = None,
-        cursor: CursorType = None,
-    ):
-        """Resolve related units."""
-        if filter is None:
-            filter = RelatedUnitFilter()
 
-        # TODO: Related unit filter
+async def generic_resolver(
+    model: Any,
+    neutral_element_constructor: Callable[[], Any] | None,
+    # Ordinary
+    info: Info,
+    filter: BaseFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+    **kwargs: Any,
+) -> Any:
+    """The internal resolve interface, allowing for kwargs."""
+    neutral_element_constructor = neutral_element_constructor or dict
 
-        kwargs = {}
-        if filter.org_units is not None or filter.org_unit is not None:
-            kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
+    # Filter
+    if filter is None:
+        filter = BaseFilter()
 
-        return await super()._resolve(
-            info=info,
-            filter=filter,
-            limit=limit,
-            cursor=cursor,
-            **kwargs,
-        )
+    # Dates
+    dates = get_date_interval(filter.from_date, filter.to_date)
+    set_graphql_dates(dates)
+
+    # UUIDs
+    if filter.uuids is not None:
+        if limit is not None or cursor is not None:
+            raise ValueError("Cannot filter 'uuid' with 'limit' or 'cursor'")
+        # Early return on empty UUID list
+        if not filter.uuids:
+            return neutral_element_constructor()
+        resolver_name = resolver_map[model]["loader"]
+        return await get_by_uuid(info.context[resolver_name], filter.uuids)
+
+    # User keys
+    if filter.user_keys is not None:
+        # Early return on empty user-key list
+        if not filter.user_keys:
+            return neutral_element_constructor()
+        # We need to explicitly use a 'SIMILAR TO' search in LoRa, as the default is
+        # to 'AND' filters of the same name, i.e. 'http://lora?bvn=x&bvn=y' means
+        # "bvn is x AND Y", which is never true. Ideally, we'd use a different query
+        # parameter key for these queries - such as '&bvn~=foo' - but unfortunately
+        # such keys are hard-coded in a LOT of different places throughout LoRa.
+        # For this reason, it is easier to pass the sentinel in the VALUE at this
+        # point in time.
+        # Additionally, the values are regex-escaped since the joined string will be
+        # interpreted as one big regular expression in LoRa's SQL.
+        use_is_similar_sentinel = "|LORA-PLEASE-USE-IS-SIMILAR|"
+        escaped_user_keys = (re.escape(k) for k in filter.user_keys)
+        kwargs["bvn"] = use_is_similar_sentinel + "|".join(escaped_user_keys)
+
+    # Pagination
+    if limit is not None:
+        kwargs["maximalantalresultater"] = limit
+    if cursor is not None:
+        kwargs["foersteresultat"] = cursor.offset
+        kwargs["registreringstid"] = str(cursor.registration_time)
+
+    resolver_name = resolver_map[model]["getter"]
+    return await info.context[resolver_name](**kwargs)
+
+
+async def related_unit_resolver(
+    info: Info,
+    filter: RelatedUnitFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Any:
+    """Resolve related units."""
+    if filter is None:
+        filter = RelatedUnitFilter()
+
+    # TODO: Related unit filter
+
+    kwargs = {}
+    if filter.org_units is not None or filter.org_unit is not None:
+        kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
+
+    return await generic_resolver(
+        RelatedUnitRead,
+        None,
+        info=info,
+        filter=filter,
+        limit=limit,
+        cursor=cursor,
+        **kwargs,
+    )
 
 
 class RoleResolver(Resolver):

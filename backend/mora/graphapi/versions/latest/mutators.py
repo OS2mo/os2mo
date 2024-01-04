@@ -127,6 +127,7 @@ from .permissions import gen_role_permission
 from .permissions import gen_terminate_permission
 from .permissions import gen_update_permission
 from .permissions import IsAuthenticatedPermission
+from .query import to_paged_func_uuids
 from .query import to_paged_uuids
 from .related_units import update_related_units
 from .resolvers import AddressResolver
@@ -144,7 +145,7 @@ from .resolvers import LimitType
 from .resolvers import ManagerResolver
 from .resolvers import OrganisationUnitResolver
 from .resolvers import OwnerResolver
-from .resolvers import RelatedUnitResolver
+from .resolvers import related_unit_resolver
 from .resolvers import RoleResolver
 from .role import create_role
 from .role import terminate_role
@@ -1202,7 +1203,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(RelatedUnitResolver())
+        resolve = to_paged_func_uuids(related_unit_resolver, RelatedUnit)
         page = await resolve(
             info=info,
             filter=filter,
