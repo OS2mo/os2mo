@@ -20,9 +20,9 @@ from starlette_context import context
 from strawberry.types import Info
 
 from .filters import RegistrationFilter
-from .resolvers import CursorType
+from .paged import CursorType
+from .paged import LimitType
 from .resolvers import get_date_interval
-from .resolvers import LimitType
 from mora.audit import audit_log
 from mora.db import BrugerRegistrering
 from mora.db import FacetRegistrering

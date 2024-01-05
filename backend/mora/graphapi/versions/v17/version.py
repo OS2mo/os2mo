@@ -14,12 +14,12 @@ from ..latest.audit import AuditLog as AuditLogLatest
 from ..latest.audit import AuditLogFilter as AuditLogFilterLatest
 from ..latest.audit import AuditLogModel
 from ..latest.filters import gen_filter_table
+from ..latest.paged import CursorType
+from ..latest.paged import LimitType
+from ..latest.paged import Paged
+from ..latest.paged import PageInfo
 from ..latest.permissions import gen_read_permission
 from ..latest.permissions import IsAuthenticatedPermission
-from ..latest.resolvers import CursorType
-from ..latest.resolvers import LimitType
-from ..latest.schema import Paged
-from ..latest.schema import PageInfo
 from ..latest.types import Cursor
 from ..v18.version import GraphQLVersion as NextGraphQLVersion
 from mora.util import now
