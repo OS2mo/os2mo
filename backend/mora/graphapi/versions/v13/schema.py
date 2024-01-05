@@ -34,7 +34,6 @@ from ..latest.models import OwnerInferencePriority
 from ..latest.permissions import gen_read_permission
 from ..latest.permissions import IsAuthenticatedPermission
 from ..latest.resolver_map import resolver_map
-from ..latest.resolvers import Resolver
 from ..latest.schema import force_none_return_wrapper
 from ..latest.schema import identity
 from ..latest.schema import model2name
@@ -62,6 +61,7 @@ from .resolvers import ManagerResolver
 from .resolvers import OrganisationUnitResolver
 from .resolvers import OwnerResolver
 from .resolvers import RelatedUnitResolver
+from .resolvers import Resolver
 from .resolvers import RoleResolver
 from mora import common
 from mora import config
