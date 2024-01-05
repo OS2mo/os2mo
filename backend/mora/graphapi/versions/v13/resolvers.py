@@ -1,9 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Resolver shims, converting from function arguments to a filter object."""
+from collections.abc import Callable
 from datetime import datetime
 from textwrap import dedent
 from typing import Annotated
+from typing import Any
 from uuid import UUID
 
 import strawberry
@@ -12,6 +14,7 @@ from strawberry.types import Info
 
 from ..latest.filters import AddressFilter
 from ..latest.filters import AssociationFilter
+from ..latest.filters import BaseFilter
 from ..latest.filters import ClassFilter
 from ..latest.filters import ConfigurationFilter
 from ..latest.filters import EmployeeFilter
@@ -41,6 +44,7 @@ from ..latest.resolvers import CursorType
 from ..latest.resolvers import employee_resolver
 from ..latest.resolvers import engagement_resolver
 from ..latest.resolvers import facet_resolver
+from ..latest.resolvers import generic_resolver
 from ..latest.resolvers import it_system_resolver
 from ..latest.resolvers import it_user_resolver
 from ..latest.resolvers import kle_resolver
@@ -51,7 +55,6 @@ from ..latest.resolvers import organisation_unit_resolver
 from ..latest.resolvers import owner_resolver
 from ..latest.resolvers import PagedResolver
 from ..latest.resolvers import related_unit_resolver
-from ..latest.resolvers import Resolver
 from ..latest.resolvers import role_resolver
 from mora.util import CPR
 from ramodels.mo import ClassRead
@@ -207,6 +210,75 @@ HierarchiesUUIDsFilterType = Annotated[
         + gen_filter_table("hierarchies")
     ),
 ]
+
+
+class Resolver(PagedResolver):
+    neutral_element_constructor: Callable[[], Any] = dict
+
+    def __init__(self, model: type) -> None:
+        """Create a field resolver by specifying a model.
+
+        Args:
+            model: The MOModel.
+        """
+        self.model: type = model
+
+    async def resolve(  # type: ignore[no-untyped-def,override]
+        self,
+        info: Info,
+        filter: BaseFilter | None = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+    ):
+        """Resolve a query using the specified arguments.
+
+        Args:
+            uuids: Only retrieve these UUIDs. Defaults to None.
+            user_keys: Only retrieve these user_keys. Defaults to None.
+            limit: The maximum number of elements to return. Fewer elements may be
+                returned if the query itself yields fewer elements.
+            from_date: Lower bound of the object validity (bitemporal lookup).
+                Defaults to UNSET, in which case from_date is today.
+            to_date: Upper bound of the object validity (bitemporal lookup).
+                Defaults to UNSET, in which case to_date is from_date + 1 ms.
+
+        Note:
+            While OFFSET and LIMITing is done in LoRa/SQL, further filtering is
+            sometimes applied in MO. Confusingly, this means that receiving a list
+            shorter than the requested limit does not imply that we are at the end.
+
+        Returns:
+            List of response objects based on getters/loaders.
+
+        Note:
+            The default behaviour of from_date and to_date, i.e. both being
+            UNSET, is equivalent to validity=present in the service API.
+        """
+        return await self._resolve(
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+        )
+
+    async def _resolve(  # type: ignore[no-untyped-def,override]
+        self,
+        info: Info,
+        filter: BaseFilter | None = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        **kwargs: Any,
+    ):
+        """The internal resolve interface, allowing for kwargs."""
+        return await generic_resolver(
+            self.model,
+            self.neutral_element_constructor,
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+            **kwargs,
+        )
 
 
 class FacetResolver(Resolver):
