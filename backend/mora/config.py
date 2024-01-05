@@ -344,6 +344,7 @@ def get_public_settings() -> set[str]:
         "show_it_associations_tab",
         "keycloak_rbac_enabled",
         "file_storage",
+        "enable_sp",
     }
     confdb_keys = filter(
         lambda key: key.startswith("confdb_"), Settings.__fields__.keys()
