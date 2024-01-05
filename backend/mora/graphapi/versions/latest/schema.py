@@ -62,7 +62,7 @@ from .resolvers import OrganisationUnitResolver
 from .resolvers import OwnerResolver
 from .resolvers import related_unit_resolver
 from .resolvers import Resolver
-from .resolvers import RoleResolver
+from .resolvers import role_resolver
 from .types import CPRType
 from .validity import OpenValidity
 from .validity import Validity
@@ -1931,8 +1931,8 @@ class Employee:
     )
 
     roles: list[LazyRole] = strawberry.field(
-        resolver=seed_resolver_list(
-            RoleResolver(),
+        resolver=seed_resolver_func_list(
+            role_resolver,
             {"employees": lambda root: [root.uuid]},
         ),
         description=dedent(
@@ -3945,8 +3945,8 @@ class OrganisationUnit:
     )
 
     roles: list[LazyRole] = strawberry.field(
-        resolver=seed_resolver_list(
-            RoleResolver(),
+        resolver=seed_resolver_func_list(
+            role_resolver,
             {"org_units": lambda root: [root.uuid]},
         ),
         description=dedent(

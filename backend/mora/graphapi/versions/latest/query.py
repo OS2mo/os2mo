@@ -40,7 +40,7 @@ from .resolvers import OwnerResolver
 from .resolvers import PagedResolver
 from .resolvers import related_unit_resolver
 from .resolvers import Resolver
-from .resolvers import RoleResolver
+from .resolvers import role_resolver
 from .schema import Address
 from .schema import Association
 from .schema import Class
@@ -389,7 +389,7 @@ class Query:
     # Roles
     # -----
     roles: Paged[Response[Role]] = strawberry.field(
-        resolver=to_paged_response(RoleResolver()),
+        resolver=to_paged_func_response(role_resolver, Role),
         description="Get role-mappings.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("role")],
     )
