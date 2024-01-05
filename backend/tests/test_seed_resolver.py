@@ -15,7 +15,7 @@ from strawberry.types import Info
 from mora.graphapi.versions.latest.filters import BaseFilter
 from mora.graphapi.versions.latest.resolvers import CursorType
 from mora.graphapi.versions.latest.resolvers import LimitType
-from mora.graphapi.versions.latest.schema import seed_resolver_func
+from mora.graphapi.versions.latest.seed_resolver import seed_resolver
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 
@@ -71,7 +71,7 @@ async def test_signature_changes(
 
     # Seeding the resolver adds a root parameter and removes the seeded keys from the
     # filter.
-    seeded_resolver = seed_resolver_func(original_resolver, seeds)
+    seeded_resolver = seed_resolver(original_resolver, seeds)
     seeded_paramters = signature(seeded_resolver).parameters
     assert seeded_paramters["root"] == Parameter(
         "root",
@@ -111,7 +111,7 @@ async def test_call_values(
     }
 
     # Calling a seeded function sets the value to the seed result
-    seeded = seed_resolver_func(dummy_resolver, seeds=seeds)
+    seeded = seed_resolver(dummy_resolver, seeds=seeds)
     result = await seeded(info, root=root)
     assert result == {
         "info": info,
