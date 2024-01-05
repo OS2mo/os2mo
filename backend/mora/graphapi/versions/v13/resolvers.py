@@ -33,7 +33,7 @@ from ..latest.filters import RoleFilter
 from ..latest.models import FileStore
 from ..latest.query import ConfigurationResolver as NextConfigurationResolver
 from ..latest.query import FileResolver as NextFileResolver
-from ..latest.query import HealthResolver as NextHealthResolver
+from ..latest.query import health_resolver
 from ..latest.resolvers import address_resolver
 from ..latest.resolvers import association_resolver
 from ..latest.resolvers import class_resolver
@@ -49,6 +49,7 @@ from ..latest.resolvers import LimitType
 from ..latest.resolvers import manager_resolver
 from ..latest.resolvers import organisation_unit_resolver
 from ..latest.resolvers import owner_resolver
+from ..latest.resolvers import PagedResolver
 from ..latest.resolvers import related_unit_resolver
 from ..latest.resolvers import Resolver
 from ..latest.resolvers import role_resolver
@@ -463,7 +464,7 @@ class FileResolver(NextFileResolver):
         )
 
 
-class HealthResolver(NextHealthResolver):
+class HealthResolver(PagedResolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -479,8 +480,7 @@ class HealthResolver(NextHealthResolver):
         filter = HealthFilter(
             identifiers=identifiers,
         )
-        return await super().resolve(
-            info=info,
+        return await health_resolver(
             filter=filter,
             limit=limit,
             cursor=cursor,
