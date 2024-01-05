@@ -53,8 +53,8 @@ from .resolvers import CursorType
 from .resolvers import EmployeeResolver
 from .resolvers import EngagementResolver
 from .resolvers import FacetResolver
+from .resolvers import it_system_resolver
 from .resolvers import it_user_resolver
-from .resolvers import ITSystemResolver
 from .resolvers import kle_resolver
 from .resolvers import leave_resolver
 from .resolvers import ManagerResolver
@@ -468,6 +468,10 @@ seed_resolver_func_only: Callable[..., Any] = partial(
 seed_resolver_only: Callable[..., Any] = partial(
     seed_resolver,
     result_translation=lambda result: only(chain.from_iterable(result.values())),
+)
+seed_resolver_func_one: Callable[..., Any] = partial(
+    seed_resolver_func,
+    result_translation=lambda result: one(chain.from_iterable(result.values())),
 )
 seed_resolver_one: Callable[..., Any] = partial(
     seed_resolver,
@@ -1614,8 +1618,8 @@ class Class:
         return await Class.top_level_facet(self=self, root=parent_node, info=info)
 
     it_system: LazyITSystem | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ITSystemResolver(), {"uuids": lambda root: uuid2list(root.it_system_uuid)}
+        resolver=seed_resolver_func_only(
+            it_system_resolver, {"uuids": lambda root: uuid2list(root.it_system_uuid)}
         ),
         description=dedent(
             """\
@@ -2754,8 +2758,8 @@ class ITUser:
     )
 
     itsystem: LazyITSystem = strawberry.field(
-        resolver=seed_resolver_one(
-            ITSystemResolver(), {"uuids": lambda root: [root.itsystem_uuid]}
+        resolver=seed_resolver_func_one(
+            it_system_resolver, {"uuids": lambda root: [root.itsystem_uuid]}
         ),
         description=dedent(
             """\
