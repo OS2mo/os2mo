@@ -284,7 +284,7 @@ async def get_engagement_uuids(info: Info, filter: Any) -> list[UUID]:
     engagement_filter = filter.engagement or EngagementFilter()
     # Handle deprecated filter
     extend_uuids(engagement_filter, filter.engagements)
-    return await filter2uuids(EngagementResolver(), info, engagement_filter)
+    return await filter2uuids_func(engagement_resolver, info, engagement_filter)
 
 
 async def get_org_unit_uuids(info: Info, filter: Any) -> list[UUID]:
@@ -577,36 +577,33 @@ class EmployeeResolver(Resolver):
         )
 
 
-class EngagementResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(EngagementRead)
+async def engagement_resolver(
+    info: Info,
+    filter: EngagementFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Any:
+    """Resolve engagements."""
+    if filter is None:
+        filter = EngagementFilter()
 
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        filter: EngagementFilter | None = None,
-        limit: LimitType = None,
-        cursor: CursorType = None,
-    ):
-        """Resolve engagements."""
-        if filter is None:
-            filter = EngagementFilter()
+    await registration_filter(info, filter)
 
-        await registration_filter(info, filter)
+    kwargs = {}
+    if filter.employee is not None or filter.employees is not None:
+        kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
+    if filter.org_units is not None or filter.org_unit is not None:
+        kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
 
-        kwargs = {}
-        if filter.employee is not None or filter.employees is not None:
-            kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
-        if filter.org_units is not None or filter.org_unit is not None:
-            kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
-
-        return await super()._resolve(
-            info=info,
-            filter=filter,
-            limit=limit,
-            cursor=cursor,
-            **kwargs,
-        )
+    return await generic_resolver(
+        EngagementRead,
+        None,
+        info=info,
+        filter=filter,
+        limit=limit,
+        cursor=cursor,
+        **kwargs,
+    )
 
 
 async def manager_resolver(

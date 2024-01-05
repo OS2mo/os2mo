@@ -51,7 +51,7 @@ from .resolvers import AssociationResolver
 from .resolvers import ClassResolver
 from .resolvers import CursorType
 from .resolvers import EmployeeResolver
-from .resolvers import EngagementResolver
+from .resolvers import engagement_resolver
 from .resolvers import FacetResolver
 from .resolvers import it_system_resolver
 from .resolvers import it_user_resolver
@@ -981,8 +981,8 @@ class Address:
 
     engagement: list[LazyEngagement] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                EngagementResolver(),
+            seed_resolver_func_list(
+                engagement_resolver,
                 {
                     "uuids": partial(
                         raise_force_none_return_if_uuid_none,
@@ -1852,8 +1852,8 @@ class Employee:
         return root.user_key
 
     engagements: list[LazyEngagement] = strawberry.field(
-        resolver=seed_resolver_list(
-            EngagementResolver(),
+        resolver=seed_resolver_func_list(
+            engagement_resolver,
             {"employees": lambda root: [root.uuid]},
         ),
         description=dedent(
@@ -2732,8 +2732,8 @@ class ITUser:
 
     engagement: list[LazyEngagement] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                EngagementResolver(),
+            seed_resolver_func_list(
+                engagement_resolver,
                 {
                     "uuids": partial(
                         raise_force_none_return_if_uuid_none,
@@ -3103,8 +3103,8 @@ class Leave:
     )
 
     engagement: LazyEngagement = strawberry.field(
-        resolver=seed_resolver_only(
-            EngagementResolver(),
+        resolver=seed_resolver_func_only(
+            engagement_resolver,
             {"uuids": lambda root: [root.engagement_uuid]},
         ),
         description=dedent(
@@ -3763,8 +3763,8 @@ class OrganisationUnit:
     )
 
     engagements: list[LazyEngagement] = strawberry.field(
-        resolver=seed_resolver_list(
-            EngagementResolver(),
+        resolver=seed_resolver_func_list(
+            engagement_resolver,
             {"org_units": lambda root: [root.uuid]},
         ),
         description=dedent(
