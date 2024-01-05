@@ -39,7 +39,6 @@ from .resolvers import organisation_unit_resolver
 from .resolvers import owner_resolver
 from .resolvers import PagedResolver
 from .resolvers import related_unit_resolver
-from .resolvers import Resolver
 from .resolvers import role_resolver
 from .schema import Address
 from .schema import Association
@@ -165,13 +164,6 @@ class ConfigurationResolver(PagedResolver):
         return [Configuration(key=key) for key in settings]  # type: ignore[call-arg]
 
 
-def to_response(resolver: Resolver, result: dict[UUID, list[dict]]) -> list[Response]:
-    return [
-        Response(uuid=uuid, model=resolver.model, object_cache=objects)  # type: ignore[call-arg]
-        for uuid, objects in result.items()
-    ]
-
-
 def to_func_response(model: Any, result: dict[UUID, list[dict]]) -> list[Response]:
     return [
         Response(uuid=uuid, model=model, object_cache=objects)  # type: ignore[call-arg]
@@ -247,8 +239,6 @@ def to_paged_func(resolver_func: Callable, model: Any, result_transformer: Any |
 
 to_paged_func_response = partial(to_paged_func, result_transformer=to_func_response)
 to_paged_func_uuids = partial(to_paged_func, result_transformer=to_func_uuids)
-
-to_paged_response = partial(to_paged, result_transformer=to_response)
 
 
 @strawberry.type(description="Entrypoint for all read-operations")

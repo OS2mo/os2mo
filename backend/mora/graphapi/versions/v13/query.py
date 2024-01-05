@@ -1,7 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Like latest, but with schema models from this version, with old resolvers."""
+from functools import partial
 from textwrap import dedent
+from uuid import UUID
 
 import strawberry
 from strawberry.types import Info
@@ -9,7 +11,6 @@ from strawberry.types import Info
 from ..latest.permissions import gen_read_permission
 from ..latest.permissions import IsAuthenticatedPermission
 from ..latest.query import to_paged
-from ..latest.query import to_paged_response
 from .registration import Registration
 from .registration import RegistrationResolver
 from .resolvers import AddressResolver
@@ -29,6 +30,7 @@ from .resolvers import ManagerResolver
 from .resolvers import OrganisationUnitResolver
 from .resolvers import OwnerResolver
 from .resolvers import RelatedUnitResolver
+from .resolvers import Resolver
 from .resolvers import RoleResolver
 from .schema import Address
 from .schema import Association
@@ -52,6 +54,16 @@ from .schema import RelatedUnit
 from .schema import Response
 from .schema import Role
 from .schema import Version
+
+
+def to_response(resolver: Resolver, result: dict[UUID, list[dict]]) -> list[Response]:
+    return [
+        Response(uuid=uuid, model=resolver.model, object_cache=objects)  # type: ignore[call-arg]
+        for uuid, objects in result.items()
+    ]
+
+
+to_paged_response = partial(to_paged, result_transformer=to_response)
 
 
 @strawberry.type(description="Entrypoint for all read-operations")
