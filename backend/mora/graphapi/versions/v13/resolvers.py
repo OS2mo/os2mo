@@ -34,13 +34,14 @@ from ..latest.filters import OwnerFilter
 from ..latest.filters import RelatedUnitFilter
 from ..latest.filters import RoleFilter
 from ..latest.models import FileStore
+from ..latest.paged import CursorType
+from ..latest.paged import LimitType
 from ..latest.query import configuration_resolver
 from ..latest.query import file_resolver
 from ..latest.query import health_resolver
 from ..latest.resolvers import address_resolver
 from ..latest.resolvers import association_resolver
 from ..latest.resolvers import class_resolver
-from ..latest.resolvers import CursorType
 from ..latest.resolvers import employee_resolver
 from ..latest.resolvers import engagement_resolver
 from ..latest.resolvers import facet_resolver
@@ -49,7 +50,6 @@ from ..latest.resolvers import it_system_resolver
 from ..latest.resolvers import it_user_resolver
 from ..latest.resolvers import kle_resolver
 from ..latest.resolvers import leave_resolver
-from ..latest.resolvers import LimitType
 from ..latest.resolvers import manager_resolver
 from ..latest.resolvers import organisation_unit_resolver
 from ..latest.resolvers import owner_resolver
