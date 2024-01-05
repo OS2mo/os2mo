@@ -38,7 +38,7 @@ from ..latest.resolvers import AddressResolver as NextAddressResolver
 from ..latest.resolvers import AssociationResolver as NextAssociationResolver
 from ..latest.resolvers import ClassResolver as NextClassResolver
 from ..latest.resolvers import CursorType
-from ..latest.resolvers import EmployeeResolver as NextEmployeeResolver
+from ..latest.resolvers import employee_resolver
 from ..latest.resolvers import engagement_resolver
 from ..latest.resolvers import FacetResolver as NextFacetResolver
 from ..latest.resolvers import it_system_resolver
@@ -53,6 +53,7 @@ from ..latest.resolvers import related_unit_resolver
 from ..latest.resolvers import Resolver
 from ..latest.resolvers import role_resolver
 from mora.util import CPR
+from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import EngagementRead
 from ramodels.mo.details import ITSystemRead
@@ -349,7 +350,10 @@ class ConfigurationResolver(NextConfigurationResolver):
         )
 
 
-class EmployeeResolver(NextEmployeeResolver):
+class EmployeeResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(EmployeeRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -368,7 +372,7 @@ class EmployeeResolver(NextEmployeeResolver):
             to_date=to_date,
             cpr_numbers=cpr_numbers,
         )
-        return await super().resolve(
+        return await employee_resolver(
             info=info,
             filter=filter,
             limit=limit,

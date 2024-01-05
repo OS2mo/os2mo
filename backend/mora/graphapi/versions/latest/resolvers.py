@@ -277,7 +277,7 @@ async def get_employee_uuids(info: Info, filter: Any) -> list[UUID]:
     employee_filter = filter.employee or EmployeeFilter()
     # Handle deprecated filter
     extend_uuids(employee_filter, filter.employees)
-    return await filter2uuids(EmployeeResolver(), info, employee_filter)
+    return await filter2uuids_func(employee_resolver, info, employee_filter)
 
 
 async def get_engagement_uuids(info: Info, filter: Any) -> list[UUID]:
@@ -539,42 +539,40 @@ class AssociationResolver(Resolver):
         return associations
 
 
-class EmployeeResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(EmployeeRead)
+async def employee_resolver(
+    info: Info,
+    filter: EmployeeFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Any:
+    """Resolve employees."""
+    if filter is None:
+        filter = EmployeeFilter()
 
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        filter: EmployeeFilter | None = None,
-        limit: LimitType = None,
-        cursor: CursorType = None,
-    ):
-        """Resolve employees."""
-        if filter is None:
-            filter = EmployeeFilter()
+    await registration_filter(info, filter)
 
-        await registration_filter(info, filter)
-
-        if filter.query:
-            if filter.uuids:
-                raise ValueError("Cannot supply both filter.uuids and filter.query")
-            filter.uuids = await search_employees(
-                info.context["sessionmaker"], filter.query
-            )
-
-        kwargs = {}
-        if filter.cpr_numbers is not None:
-            kwargs["tilknyttedepersoner"] = [
-                f"urn:dk:cpr:person:{c}" for c in filter.cpr_numbers
-            ]
-        return await super()._resolve(
-            info=info,
-            filter=filter,
-            limit=limit,
-            cursor=cursor,
-            **kwargs,
+    if filter.query:
+        if filter.uuids:
+            raise ValueError("Cannot supply both filter.uuids and filter.query")
+        filter.uuids = await search_employees(
+            info.context["sessionmaker"], filter.query
         )
+
+    kwargs = {}
+    if filter.cpr_numbers is not None:
+        kwargs["tilknyttedepersoner"] = [
+            f"urn:dk:cpr:person:{c}" for c in filter.cpr_numbers
+        ]
+
+    return await generic_resolver(
+        EmployeeRead,
+        None,
+        info=info,
+        filter=filter,
+        limit=limit,
+        cursor=cursor,
+        **kwargs,
+    )
 
 
 async def engagement_resolver(
@@ -656,8 +654,8 @@ async def owner_resolver(
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
     if filter.owner is not None:
-        kwargs["tilknyttedepersoner"] = await filter2uuids(
-            EmployeeResolver(), info, filter.owner
+        kwargs["tilknyttedepersoner"] = await filter2uuids_func(
+            employee_resolver, info, filter.owner
         )
 
     return await generic_resolver(
