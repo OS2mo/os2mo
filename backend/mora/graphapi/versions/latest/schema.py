@@ -57,7 +57,7 @@ from .resolvers import it_system_resolver
 from .resolvers import it_user_resolver
 from .resolvers import kle_resolver
 from .resolvers import leave_resolver
-from .resolvers import ManagerResolver
+from .resolvers import manager_resolver
 from .resolvers import organisation_unit_resolver
 from .resolvers import owner_resolver
 from .resolvers import related_unit_resolver
@@ -1870,8 +1870,8 @@ class Employee:
     )
 
     manager_roles: list[LazyManager] = strawberry.field(
-        resolver=seed_resolver_list(
-            ManagerResolver(),
+        resolver=seed_resolver_func_list(
+            manager_resolver,
             {"employees": lambda root: [root.uuid]},
         ),
         description=dedent(
@@ -3876,7 +3876,7 @@ class OrganisationUnit:
             filter = ManagerFilter()
         filter.org_units = [root.uuid]
 
-        resolver = seed_resolver_list(ManagerResolver())
+        resolver = seed_resolver_func_list(manager_resolver)
         result = await resolver(root=root, info=info, filter=filter)
         if result:
             return result  # type: ignore
