@@ -50,7 +50,7 @@ from .resolvers import AddressResolver
 from .resolvers import AssociationResolver
 from .resolvers import ClassResolver
 from .resolvers import CursorType
-from .resolvers import EmployeeResolver
+from .resolvers import employee_resolver
 from .resolvers import engagement_resolver
 from .resolvers import FacetResolver
 from .resolvers import it_system_resolver
@@ -909,8 +909,8 @@ class Address:
 
     employee: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                EmployeeResolver(),
+            seed_resolver_func_list(
+                employee_resolver,
                 {
                     "uuids": partial(
                         raise_force_none_return_if_uuid_none,
@@ -934,8 +934,8 @@ class Address:
 
     person: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                EmployeeResolver(),
+            seed_resolver_func_list(
+                employee_resolver,
                 {
                     "uuids": partial(
                         raise_force_none_return_if_uuid_none,
@@ -1311,8 +1311,8 @@ class Association:
     )
 
     employee: list[LazyEmployee] = strawberry.field(
-        resolver=seed_resolver_list(
-            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        resolver=seed_resolver_func_list(
+            employee_resolver, {"uuids": lambda root: uuid2list(root.employee_uuid)}
         ),
         description=dedent(
             """\
@@ -1325,8 +1325,8 @@ class Association:
     )
 
     person: list[LazyEmployee] = strawberry.field(
-        resolver=seed_resolver_list(
-            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        resolver=seed_resolver_func_list(
+            employee_resolver, {"uuids": lambda root: uuid2list(root.employee_uuid)}
         ),
         description=dedent(
             """\
@@ -1352,8 +1352,8 @@ class Association:
     )
 
     substitute: list[LazyEmployee] = strawberry.field(
-        resolver=seed_resolver_list(
-            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.substitute_uuid)}
+        resolver=seed_resolver_func_list(
+            employee_resolver, {"uuids": lambda root: uuid2list(root.substitute_uuid)}
         ),
         description=dedent(
             """\
@@ -2257,8 +2257,8 @@ class Engagement:
     )
 
     employee: list[LazyEmployee] = strawberry.field(
-        resolver=seed_resolver_list(
-            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        resolver=seed_resolver_func_list(
+            employee_resolver, {"uuids": lambda root: uuid2list(root.employee_uuid)}
         ),
         description=dedent(
             """\
@@ -2271,8 +2271,8 @@ class Engagement:
     )
 
     person: list[LazyEmployee] = strawberry.field(
-        resolver=seed_resolver_list(
-            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        resolver=seed_resolver_func_list(
+            employee_resolver, {"uuids": lambda root: uuid2list(root.employee_uuid)}
         ),
         description=dedent(
             """\
@@ -2657,8 +2657,8 @@ class ITUser:
 
     employee: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                EmployeeResolver(),
+            seed_resolver_func_list(
+                employee_resolver,
                 {
                     "uuids": partial(
                         raise_force_none_return_if_uuid_none,
@@ -2682,8 +2682,8 @@ class ITUser:
 
     person: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                EmployeeResolver(),
+            seed_resolver_func_list(
+                employee_resolver,
                 {
                     "uuids": partial(
                         raise_force_none_return_if_uuid_none,
@@ -3076,8 +3076,8 @@ class Leave:
     )
 
     employee: list[LazyEmployee] = strawberry.field(
-        resolver=seed_resolver_list(
-            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        resolver=seed_resolver_func_list(
+            employee_resolver, {"uuids": lambda root: uuid2list(root.employee_uuid)}
         ),
         description=dedent(
             """\
@@ -3090,8 +3090,8 @@ class Leave:
     )
 
     person: list[LazyEmployee] = strawberry.field(
-        resolver=seed_resolver_list(
-            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        resolver=seed_resolver_func_list(
+            employee_resolver, {"uuids": lambda root: uuid2list(root.employee_uuid)}
         ),
         description=dedent(
             """\
@@ -3236,8 +3236,8 @@ class Manager:
 
     employee: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                EmployeeResolver(),
+            seed_resolver_func_list(
+                employee_resolver,
                 {
                     "uuids": partial(
                         raise_force_none_return_if_uuid_none,
@@ -3260,8 +3260,8 @@ class Manager:
 
     person: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                EmployeeResolver(),
+            seed_resolver_func_list(
+                employee_resolver,
                 {
                     "uuids": partial(
                         raise_force_none_return_if_uuid_none,
@@ -3427,8 +3427,8 @@ class Owner:
 
     person: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                EmployeeResolver(),
+            seed_resolver_func_list(
+                employee_resolver,
                 {
                     "uuids": partial(
                         raise_force_none_return_if_uuid_none,
@@ -3458,8 +3458,8 @@ class Owner:
 
     owner: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                EmployeeResolver(),
+            seed_resolver_func_list(
+                employee_resolver,
                 {
                     "uuids": partial(
                         raise_force_none_return_if_uuid_none,
@@ -4302,8 +4302,8 @@ class Role:
     )
 
     employee: list[LazyEmployee] = strawberry.field(
-        resolver=seed_resolver_list(
-            EmployeeResolver(), {"uuids": lambda root: [root.employee_uuid]}
+        resolver=seed_resolver_func_list(
+            employee_resolver, {"uuids": lambda root: [root.employee_uuid]}
         ),
         description=dedent(
             """\
@@ -4316,8 +4316,8 @@ class Role:
     )
 
     person: list[LazyEmployee] = strawberry.field(
-        resolver=seed_resolver_list(
-            EmployeeResolver(), {"uuids": lambda root: [root.employee_uuid]}
+        resolver=seed_resolver_func_list(
+            employee_resolver, {"uuids": lambda root: [root.employee_uuid]}
         ),
         description=dedent(
             """\
