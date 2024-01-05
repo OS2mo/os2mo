@@ -143,7 +143,7 @@ from .resolvers import kle_resolver
 from .resolvers import leave_resolver
 from .resolvers import LimitType
 from .resolvers import ManagerResolver
-from .resolvers import OrganisationUnitResolver
+from .resolvers import organisation_unit_resolver
 from .resolvers import OwnerResolver
 from .resolvers import related_unit_resolver
 from .resolvers import role_resolver
@@ -1104,7 +1104,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(OrganisationUnitResolver())
+        resolve = to_paged_func_uuids(organisation_unit_resolver, OrganisationUnit)
         page = await resolve(
             info=info,
             filter=filter,

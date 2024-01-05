@@ -58,7 +58,7 @@ from .resolvers import it_user_resolver
 from .resolvers import kle_resolver
 from .resolvers import leave_resolver
 from .resolvers import ManagerResolver
-from .resolvers import OrganisationUnitResolver
+from .resolvers import organisation_unit_resolver
 from .resolvers import OwnerResolver
 from .resolvers import related_unit_resolver
 from .resolvers import Resolver
@@ -958,8 +958,8 @@ class Address:
 
     org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                OrganisationUnitResolver(),
+            seed_resolver_func_list(
+                organisation_unit_resolver,
                 {
                     "uuids": partial(
                         raise_force_none_return_if_uuid_none,
@@ -1338,8 +1338,8 @@ class Association:
     )
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
-        resolver=seed_resolver_list(
-            OrganisationUnitResolver(),
+        resolver=seed_resolver_func_list(
+            organisation_unit_resolver,
             {"uuids": lambda root: [root.org_unit_uuid]},
         ),
         description=dedent(
@@ -2284,8 +2284,8 @@ class Engagement:
     )
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
-        resolver=seed_resolver_list(
-            OrganisationUnitResolver(),
+        resolver=seed_resolver_func_list(
+            organisation_unit_resolver,
             {"uuids": lambda root: uuid2list(root.org_unit_uuid)},
         ),
         description=dedent(
@@ -2706,8 +2706,8 @@ class ITUser:
 
     org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                OrganisationUnitResolver(),
+            seed_resolver_func_list(
+                organisation_unit_resolver,
                 {
                     "uuids": partial(
                         raise_force_none_return_if_uuid_none,
@@ -2959,8 +2959,8 @@ class KLE:
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                OrganisationUnitResolver(),
+            seed_resolver_func_list(
+                organisation_unit_resolver,
                 {
                     "uuids": partial(
                         raise_force_none_return_if_uuid_none,
@@ -3282,8 +3282,8 @@ class Manager:
     )
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
-        resolver=seed_resolver_list(
-            OrganisationUnitResolver(),
+        resolver=seed_resolver_func_list(
+            organisation_unit_resolver,
             {"uuids": lambda root: [root.org_unit_uuid]},
         ),
         description=dedent(
@@ -3396,8 +3396,8 @@ class Owner:
 
     org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                OrganisationUnitResolver(),
+            seed_resolver_func_list(
+                organisation_unit_resolver,
                 {
                     "uuids": partial(
                         raise_force_none_return_if_uuid_none,
@@ -3608,8 +3608,8 @@ class Organisation:
 )
 class OrganisationUnit:
     parent: LazyOrganisationUnit | None = strawberry.field(
-        resolver=seed_resolver_only(
-            OrganisationUnitResolver(),
+        resolver=seed_resolver_func_only(
+            organisation_unit_resolver,
             {"uuids": lambda root: uuid2list(root.parent_uuid)},
         ),
         description=dedent(
@@ -3646,8 +3646,8 @@ class OrganisationUnit:
         return [parent] + ancestors
 
     children: list[LazyOrganisationUnit] = strawberry.field(
-        resolver=seed_resolver_list(
-            OrganisationUnitResolver(),
+        resolver=seed_resolver_func_list(
+            organisation_unit_resolver,
             {"parents": lambda root: [root.uuid]},
         ),
         description=dedent(
@@ -3661,8 +3661,8 @@ class OrganisationUnit:
     child_count: int = strawberry.field(
         resolver=cast(
             Callable[..., Any],
-            seed_resolver(
-                OrganisationUnitResolver(),
+            seed_resolver_func(
+                organisation_unit_resolver,
                 {"parents": lambda root: [root.uuid]},
                 lambda result: len(result.keys()),
             ),
@@ -4221,8 +4221,8 @@ class RelatedUnit:
         return root.type_
 
     org_units: list[LazyOrganisationUnit] = strawberry.field(
-        resolver=seed_resolver_list(
-            OrganisationUnitResolver(),
+        resolver=seed_resolver_func_list(
+            organisation_unit_resolver,
             {"uuids": lambda root: root.org_unit_uuids or []},
         ),
         description=dedent(
@@ -4329,8 +4329,8 @@ class Role:
     )
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
-        resolver=seed_resolver_list(
-            OrganisationUnitResolver(),
+        resolver=seed_resolver_func_list(
+            organisation_unit_resolver,
             {"uuids": lambda root: [root.org_unit_uuid]},
         ),
         description=dedent(
