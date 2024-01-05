@@ -51,9 +51,10 @@ from ..latest.resolvers import OrganisationUnitResolver as NextOrganisationUnitR
 from ..latest.resolvers import OwnerResolver as NextOwnerResolver
 from ..latest.resolvers import related_unit_resolver
 from ..latest.resolvers import Resolver
-from ..latest.resolvers import RoleResolver as NextRoleResolver
+from ..latest.resolvers import role_resolver
 from mora.util import CPR
 from ramodels.mo.details import RelatedUnitRead
+from ramodels.mo.details import RoleRead
 
 UUIDsFilterType = Annotated[
     list[UUID] | None,
@@ -682,7 +683,10 @@ class RelatedUnitResolver(Resolver):
         )
 
 
-class RoleResolver(NextRoleResolver):
+class RoleResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(RoleRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -703,7 +707,7 @@ class RoleResolver(NextRoleResolver):
             employees=employees,
             org_units=org_units,
         )
-        return await super().resolve(
+        return await role_resolver(
             info=info,
             filter=filter,
             limit=limit,
