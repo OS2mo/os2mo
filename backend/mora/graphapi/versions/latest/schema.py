@@ -208,13 +208,13 @@ def seed_resolver_func(
     seeds: dict[str, Callable[[Any], Any]] | None = None,
     result_translation: Callable[[Any], R] | None = None,
 ) -> Callable[..., Awaitable[R]]:
-    """Seed the provided top-level resolver to be used in a field-level context.
+    """Seed the provided resolver function to be used in a field-level context.
 
-    This function serves to create a new function which calls the `resolver.resolve`
-    method with seeded `filter` values from the field-context in which it is called.
+    This function serves to create a new function which calls the provided resolver
+    function with a seeded `filter` values from the field-context in which it is called.
 
     Example:
-        A resolver exists to load organisation units, namely `OrganisationUnitResolver`.
+        A resolver exists to load organisation units, namely `organisation_unit_resolver`.
         This resolver accepts a `filter` parameter with a `parents` field, which, given
         a UUID of an existing organisation unit, loads all of its children.
 
@@ -230,7 +230,7 @@ def seed_resolver_func(
         child_count: int = strawberry.field(
             description="Children count of the organisation unit.",
             resolver=seed_resolver(
-                OrganisationUnitResolver(),
+                organisation_unit_resolver,
                 {"parents": lambda root: [root.uuid]},
                 lambda result: len(result.keys()),
             ),
@@ -241,7 +241,7 @@ def seed_resolver_func(
         of OrganisationUnits returned by the resolver to the number of children found.
 
     Args:
-        resolver: The top-level resolver to seed arguments to.
+        resolver_func: The top-level resolver function to seed arguments to.
         seeds:
             A dictionary mapping from parameter name to callables resolving the argument
             values from the root object.
@@ -250,10 +250,9 @@ def seed_resolver_func(
             from one type to another. Uses the identity function if not provided.
 
     Returns:
-        A seeded resolver function that accepts the same parameters as the
-        `resolver.resolve` function, except with a new `filter` object type with the
-        `seeds` keys removed as fields, and a `root` parameter with the 'any' type
-        added.
+        A seeded resolver function that accepts the same parameters as `resolver_func`,
+        except with a new `filter` object type with the `seeds` keys removed as fields,
+        and a `root` parameter with the 'any' type added.
     """
     # If no seeds was provided, default to the empty dict
     seeds = seeds or {}
