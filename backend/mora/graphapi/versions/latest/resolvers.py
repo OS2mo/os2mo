@@ -807,36 +807,33 @@ class KLEResolver(Resolver):
         )
 
 
-class LeaveResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(LeaveRead)
+async def leave_resolver(
+    info: Info,
+    filter: LeaveFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Any:
+    """Resolve leaves."""
+    if filter is None:
+        filter = LeaveFilter()
 
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        filter: LeaveFilter | None = None,
-        limit: LimitType = None,
-        cursor: CursorType = None,
-    ):
-        """Resolve leaves."""
-        if filter is None:
-            filter = LeaveFilter()
+    await registration_filter(info, filter)
 
-        await registration_filter(info, filter)
+    kwargs = {}
+    if filter.employee is not None or filter.employees is not None:
+        kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
+    if filter.org_units is not None or filter.org_unit is not None:
+        kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
 
-        kwargs = {}
-        if filter.employee is not None or filter.employees is not None:
-            kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
-        if filter.org_units is not None or filter.org_unit is not None:
-            kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
-
-        return await super()._resolve(
-            info=info,
-            filter=filter,
-            limit=limit,
-            cursor=cursor,
-            **kwargs,
-        )
+    return await generic_resolver(
+        LeaveRead,
+        None,
+        info=info,
+        filter=filter,
+        limit=limit,
+        cursor=cursor,
+        **kwargs,
+    )
 
 
 # type: ignore[no-untyped-def,override]

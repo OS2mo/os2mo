@@ -56,7 +56,7 @@ from .resolvers import FacetResolver
 from .resolvers import ITSystemResolver
 from .resolvers import ITUserResolver
 from .resolvers import KLEResolver
-from .resolvers import LeaveResolver
+from .resolvers import leave_resolver
 from .resolvers import ManagerResolver
 from .resolvers import OrganisationUnitResolver
 from .resolvers import OwnerResolver
@@ -460,6 +460,10 @@ seed_resolver_func_list: Callable[..., Any] = partial(
 seed_resolver_list: Callable[..., Any] = partial(
     seed_resolver,
     result_translation=lambda result: list(chain.from_iterable(result.values())),
+)
+seed_resolver_func_only: Callable[..., Any] = partial(
+    seed_resolver_func,
+    result_translation=lambda result: only(chain.from_iterable(result.values())),
 )
 seed_resolver_only: Callable[..., Any] = partial(
     seed_resolver,
@@ -1898,8 +1902,8 @@ class Employee:
     )
 
     leaves: list[LazyLeave] = strawberry.field(
-        resolver=seed_resolver_list(
-            LeaveResolver(),
+        resolver=seed_resolver_func_list(
+            leave_resolver,
             {"employees": lambda root: [root.uuid]},
         ),
         description=dedent(
@@ -2241,8 +2245,8 @@ class Engagement:
         return await is_class_uuid_primary(str(root.primary_uuid))
 
     leave: LazyLeave | None = strawberry.field(
-        resolver=seed_resolver_only(
-            LeaveResolver(), {"uuids": lambda root: uuid2list(root.leave_uuid)}
+        resolver=seed_resolver_func_only(
+            leave_resolver, {"uuids": lambda root: uuid2list(root.leave_uuid)}
         ),
         description="Related leave",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
@@ -3913,8 +3917,8 @@ class OrganisationUnit:
     )
 
     leaves: list[LazyLeave] = strawberry.field(
-        resolver=seed_resolver_list(
-            LeaveResolver(),
+        resolver=seed_resolver_func_list(
+            leave_resolver,
             {"org_units": lambda root: [root.uuid]},
         ),
         description=dedent(
