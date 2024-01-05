@@ -40,7 +40,7 @@ from ..latest.resolvers import class_resolver
 from ..latest.resolvers import CursorType
 from ..latest.resolvers import employee_resolver
 from ..latest.resolvers import engagement_resolver
-from ..latest.resolvers import FacetResolver as NextFacetResolver
+from ..latest.resolvers import facet_resolver
 from ..latest.resolvers import it_system_resolver
 from ..latest.resolvers import it_user_resolver
 from ..latest.resolvers import kle_resolver
@@ -55,6 +55,7 @@ from ..latest.resolvers import role_resolver
 from mora.util import CPR
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
+from ramodels.mo import FacetRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead
 from ramodels.mo.details import AssociationRead
@@ -207,7 +208,10 @@ HierarchiesUUIDsFilterType = Annotated[
 ]
 
 
-class FacetResolver(NextFacetResolver):
+class FacetResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(FacetRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -224,7 +228,7 @@ class FacetResolver(NextFacetResolver):
             parents=parents,
             parent_user_keys=parent_user_keys,
         )
-        return await super().resolve(
+        return await facet_resolver(
             info=info,
             filter=filter,
             limit=limit,
