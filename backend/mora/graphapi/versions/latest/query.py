@@ -99,44 +99,42 @@ async def health_resolver(
     ]
 
 
-class FileResolver(PagedResolver):
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        filter: FileFilter,
-        limit: LimitType = None,
-        cursor: CursorType = None,
-    ):
-        if filter is None:
-            filter = FileFilter()
+async def file_resolver(
+    info: Info,
+    filter: FileFilter,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> list[File]:
+    if filter is None:
+        filter = FileFilter()
 
-        session = info.context["sessionmaker"]()
-        async with session.begin():
-            audit_log(
-                session,
-                "file_resolver",
-                "File",
-                {
-                    "filter": filter,
-                    "limit": limit,
-                    "cursor": cursor,
-                },
-                [],
-            )
+    session = info.context["sessionmaker"]()
+    async with session.begin():
+        audit_log(
+            session,
+            "file_resolver",
+            "File",
+            {
+                "filter": filter,
+                "limit": limit,
+                "cursor": cursor,
+            },
+            [],
+        )
 
-        filestorage = info.context["filestorage"]
-        found_files = filestorage.list_files(filter.file_store)
-        if filter.file_names is not None:
-            found_files = found_files.intersection(set(filter.file_names))
+    filestorage = info.context["filestorage"]
+    found_files = filestorage.list_files(filter.file_store)
+    if filter.file_names is not None:
+        found_files = found_files.intersection(set(filter.file_names))
 
-        files = paginate(list(found_files), cursor, limit)
-        if not files:
-            context["lora_page_out_of_range"] = True
+    files = paginate(list(found_files), cursor, limit)
+    if not files:
+        context["lora_page_out_of_range"] = True
 
-        return [
-            File(file_store=filter.file_store, file_name=file_name)  # type: ignore[call-arg]
-            for file_name in files
-        ]
+    return [
+        File(file_store=filter.file_store, file_name=file_name)  # type: ignore[call-arg]
+        for file_name in files
+    ]
 
 
 class ConfigurationResolver(PagedResolver):
@@ -387,7 +385,7 @@ class Query:
     # Files
     # -----
     files: Paged[File] = strawberry.field(
-        resolver=to_paged(FileResolver()),
+        resolver=to_paged_func(file_resolver, File),
         description="Fetch files from the configured file backend (if any).",
         deprecation_reason="The file-store functionality will be removed in a future version of OS2mo.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("file")],
