@@ -8,7 +8,6 @@ from more_itertools import flatten
 
 from ..latest.permissions import gen_read_permission
 from ..latest.permissions import IsAuthenticatedPermission
-from ..latest.query import to_paged
 from ..latest.resolvers import Resolver
 from ..v13.resolvers import ClassResolver
 from ..v13.resolvers import FacetResolver
@@ -17,6 +16,7 @@ from ..v13.schema import Class
 from ..v13.schema import Facet
 from ..v13.schema import ITSystem
 from ..v13.schema import Paged
+from ..v17.version import to_paged
 from ..v7.version import GraphQLVersion as NextGraphQLVersion
 
 
