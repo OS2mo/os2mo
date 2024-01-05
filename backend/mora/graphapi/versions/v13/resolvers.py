@@ -31,7 +31,7 @@ from ..latest.filters import OwnerFilter
 from ..latest.filters import RelatedUnitFilter
 from ..latest.filters import RoleFilter
 from ..latest.models import FileStore
-from ..latest.query import ConfigurationResolver as NextConfigurationResolver
+from ..latest.query import configuration_resolver
 from ..latest.query import file_resolver
 from ..latest.query import health_resolver
 from ..latest.resolvers import address_resolver
@@ -345,7 +345,7 @@ class AssociationResolver(Resolver):
         )
 
 
-class ConfigurationResolver(NextConfigurationResolver):
+class ConfigurationResolver(PagedResolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -359,8 +359,7 @@ class ConfigurationResolver(NextConfigurationResolver):
         filter = ConfigurationFilter(
             identifiers=identifiers,
         )
-        return await super().resolve(
-            info=info,
+        return await configuration_resolver(
             filter=filter,
             limit=limit,
             cursor=cursor,
