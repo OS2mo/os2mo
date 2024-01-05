@@ -46,7 +46,7 @@ from .permissions import IsAuthenticatedPermission
 from .registration import Registration
 from .registration import RegistrationResolver
 from .resolver_map import resolver_map
-from .resolvers import AddressResolver
+from .resolvers import address_resolver
 from .resolvers import association_resolver
 from .resolvers import ClassResolver
 from .resolvers import CursorType
@@ -1885,8 +1885,8 @@ class Employee:
     )
 
     addresses: list[LazyAddress] = strawberry.field(
-        resolver=seed_resolver_list(
-            AddressResolver(),
+        resolver=seed_resolver_func_list(
+            address_resolver,
             {"employees": lambda root: [root.uuid]},
         ),
         description=dedent(
@@ -3903,8 +3903,8 @@ class OrganisationUnit:
     )
 
     addresses: list[LazyAddress] = strawberry.field(
-        resolver=seed_resolver_list(
-            AddressResolver(),
+        resolver=seed_resolver_func_list(
+            address_resolver,
             {"org_units": lambda root: [root.uuid]},
         ),
         description=dedent(

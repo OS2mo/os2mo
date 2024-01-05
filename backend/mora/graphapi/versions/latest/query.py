@@ -22,7 +22,7 @@ from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
 from .registration import Registration
 from .registration import RegistrationResolver
-from .resolvers import AddressResolver
+from .resolvers import address_resolver
 from .resolvers import association_resolver
 from .resolvers import ClassResolver
 from .resolvers import CursorType
@@ -268,7 +268,7 @@ class Query:
     # Addresses
     # ---------
     addresses: Paged[Response[Address]] = strawberry.field(
-        resolver=to_paged_response(AddressResolver()),
+        resolver=to_paged_func_response(address_resolver, Address),
         description="Get addresses.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
