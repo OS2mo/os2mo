@@ -55,7 +55,7 @@ from .resolvers import EngagementResolver
 from .resolvers import FacetResolver
 from .resolvers import ITSystemResolver
 from .resolvers import ITUserResolver
-from .resolvers import KLEResolver
+from .resolvers import kle_resolver
 from .resolvers import leave_resolver
 from .resolvers import ManagerResolver
 from .resolvers import OrganisationUnitResolver
@@ -3981,8 +3981,8 @@ class OrganisationUnit:
     )
 
     kles: list[LazyKLE] = strawberry.field(
-        resolver=seed_resolver_list(
-            KLEResolver(),
+        resolver=seed_resolver_func_list(
+            kle_resolver,
             {"org_units": lambda root: [root.uuid]},
         ),
         description=dedent(

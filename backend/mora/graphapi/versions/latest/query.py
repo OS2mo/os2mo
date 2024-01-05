@@ -31,7 +31,7 @@ from .resolvers import EngagementResolver
 from .resolvers import FacetResolver
 from .resolvers import ITSystemResolver
 from .resolvers import ITUserResolver
-from .resolvers import KLEResolver
+from .resolvers import kle_resolver
 from .resolvers import leave_resolver
 from .resolvers import LimitType
 from .resolvers import ManagerResolver
@@ -338,7 +338,7 @@ class Query:
     # KLEs
     # ----
     kles: Paged[Response[KLE]] = strawberry.field(
-        resolver=to_paged_response(KLEResolver()),
+        resolver=to_paged_func_response(kle_resolver, KLE),
         description="Get kles.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("kle")],
     )

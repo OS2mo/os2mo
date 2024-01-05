@@ -43,7 +43,7 @@ from ..latest.resolvers import EngagementResolver as NextEngagementResolver
 from ..latest.resolvers import FacetResolver as NextFacetResolver
 from ..latest.resolvers import ITSystemResolver as NextITSystemResolver
 from ..latest.resolvers import ITUserResolver as NextITUserResolver
-from ..latest.resolvers import KLEResolver as NextKLEResolver
+from ..latest.resolvers import kle_resolver
 from ..latest.resolvers import leave_resolver
 from ..latest.resolvers import LimitType
 from ..latest.resolvers import ManagerResolver as NextManagerResolver
@@ -53,6 +53,7 @@ from ..latest.resolvers import related_unit_resolver
 from ..latest.resolvers import Resolver
 from ..latest.resolvers import role_resolver
 from mora.util import CPR
+from ramodels.mo.details import KLERead
 from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
@@ -598,7 +599,10 @@ class ITUserResolver(NextITUserResolver):
         )
 
 
-class KLEResolver(NextKLEResolver):
+class KLEResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(KLERead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -617,7 +621,7 @@ class KLEResolver(NextKLEResolver):
             to_date=to_date,
             org_units=org_units,
         )
-        return await super().resolve(
+        return await kle_resolver(
             info=info,
             filter=filter,
             limit=limit,
