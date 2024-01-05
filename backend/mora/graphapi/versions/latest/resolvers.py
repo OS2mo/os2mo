@@ -358,64 +358,62 @@ class FacetResolver(Resolver):
         )
 
 
-class ClassResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(ClassRead)
+async def class_resolver(
+    info: Info,
+    filter: ClassFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Any:
+    """Resolve classes."""
 
-    async def _get_facet_uuids(self, info: Info, filter: ClassFilter) -> list[UUID]:
+    async def _get_facet_uuids(info: Info, filter: ClassFilter) -> list[UUID]:
         facet_filter = filter.facet or FacetFilter()
         # Handle deprecated filter
         extend_uuids(facet_filter, filter.facets)
         extend_user_keys(facet_filter, filter.facet_user_keys)
         return await filter2uuids(FacetResolver(), info, facet_filter)
 
-    async def _get_parent_uuids(self, info: Info, filter: ClassFilter) -> list[UUID]:
+    async def _get_parent_uuids(info: Info, filter: ClassFilter) -> list[UUID]:
         class_filter = filter.parent or ClassFilter()
         # Handle deprecated filter
         extend_uuids(class_filter, filter.parents)
         extend_user_keys(class_filter, filter.parent_user_keys)
-        return await filter2uuids(ClassResolver(), info, class_filter)
+        return await filter2uuids_func(class_resolver, info, class_filter)
 
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        filter: ClassFilter | None = None,
-        limit: LimitType = None,
-        cursor: CursorType = None,
+    if filter is None:
+        filter = ClassFilter()
+
+    await registration_filter(info, filter)
+
+    kwargs: dict[str, Any] = {}
+    if (
+        filter.facets is not None
+        or filter.facet_user_keys is not None
+        or filter.facet is not None
     ):
-        """Resolve classes."""
-        if filter is None:
-            filter = ClassFilter()
-
-        await registration_filter(info, filter)
-
-        kwargs: dict[str, Any] = {}
-        if (
-            filter.facets is not None
-            or filter.facet_user_keys is not None
-            or filter.facet is not None
-        ):
-            kwargs["facet"] = await self._get_facet_uuids(info, filter)
-        if (
-            filter.parents is not None
-            or filter.parent_user_keys is not None
-            or filter.parent is not None
-        ):
-            kwargs["overordnetklasse"] = await self._get_parent_uuids(info, filter)
-        if filter.it_system is not None:
-            kwargs["mapninger"] = await filter2uuids_func(
-                it_system_resolver, info, filter.it_system
-            )
-        if filter.scope is not None:
-            kwargs["omfang"] = filter.scope
-
-        return await super()._resolve(
-            info=info,
-            filter=filter,
-            limit=limit,
-            cursor=cursor,
-            **kwargs,
+        kwargs["facet"] = await _get_facet_uuids(info, filter)
+    if (
+        filter.parents is not None
+        or filter.parent_user_keys is not None
+        or filter.parent is not None
+    ):
+        kwargs["overordnetklasse"] = await _get_parent_uuids(info, filter)
+    if filter.it_system is not None:
+        kwargs["mapninger"] = await filter2uuids_func(
+            it_system_resolver, info, filter.it_system
         )
+    if filter.scope is not None:
+        kwargs["omfang"] = filter.scope
+
+    return await generic_resolver(
+        ClassRead,
+        None,
+        info=info,
+        filter=filter,
+        limit=limit,
+        cursor=cursor,
+        **kwargs,
+    )
 
 
 async def address_resolver(
@@ -431,7 +429,7 @@ async def address_resolver(
         # Handle deprecated filter
         extend_uuids(class_filter, filter.address_types)
         extend_user_keys(class_filter, filter.address_type_user_keys)
-        return await filter2uuids(ClassResolver(), info, class_filter)
+        return await filter2uuids_func(class_resolver, info, class_filter)
 
     if filter is None:
         filter = AddressFilter()
@@ -480,7 +478,7 @@ async def association_resolver(
         # Handle deprecated filter
         extend_uuids(class_filter, filter.association_types)
         extend_user_keys(class_filter, filter.association_type_user_keys)
-        return await filter2uuids(ClassResolver(), info, class_filter)
+        return await filter2uuids_func(class_resolver, info, class_filter)
 
     if filter is None:
         filter = AssociationFilter()
@@ -617,7 +615,7 @@ async def manager_resolver(
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
     if filter.responsibility is not None:
         class_filter = filter.responsibility or ClassFilter()
-        kwargs["opgaver"] = await filter2uuids(ClassResolver(), info, class_filter)
+        kwargs["opgaver"] = await filter2uuids_func(class_resolver, info, class_filter)
 
     return await generic_resolver(
         ManagerRead,
@@ -699,7 +697,7 @@ async def organisation_unit_resolver(
         class_filter = filter.hierarchy or ClassFilter()
         # Handle deprecated filter
         extend_uuids(class_filter, filter.hierarchies)
-        return await filter2uuids(ClassResolver(), info, class_filter)
+        return await filter2uuids_func(class_resolver, info, class_filter)
 
     if filter is None:
         filter = OrganisationUnitFilter()

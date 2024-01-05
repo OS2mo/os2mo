@@ -36,7 +36,7 @@ from ..latest.query import FileResolver as NextFileResolver
 from ..latest.query import HealthResolver as NextHealthResolver
 from ..latest.resolvers import address_resolver
 from ..latest.resolvers import association_resolver
-from ..latest.resolvers import ClassResolver as NextClassResolver
+from ..latest.resolvers import class_resolver
 from ..latest.resolvers import CursorType
 from ..latest.resolvers import employee_resolver
 from ..latest.resolvers import engagement_resolver
@@ -53,6 +53,7 @@ from ..latest.resolvers import related_unit_resolver
 from ..latest.resolvers import Resolver
 from ..latest.resolvers import role_resolver
 from mora.util import CPR
+from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead
@@ -231,7 +232,10 @@ class FacetResolver(NextFacetResolver):
         )
 
 
-class ClassResolver(NextClassResolver):
+class ClassResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(ClassRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -252,7 +256,7 @@ class ClassResolver(NextClassResolver):
             parents=parents,
             parent_user_keys=parent_user_keys,
         )
-        return await super().resolve(
+        return await class_resolver(
             info=info,
             filter=filter,
             limit=limit,

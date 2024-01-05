@@ -24,7 +24,7 @@ from .registration import Registration
 from .registration import RegistrationResolver
 from .resolvers import address_resolver
 from .resolvers import association_resolver
-from .resolvers import ClassResolver
+from .resolvers import class_resolver
 from .resolvers import CursorType
 from .resolvers import employee_resolver
 from .resolvers import engagement_resolver
@@ -287,7 +287,7 @@ class Query:
     # Classes
     # -------
     classes: Paged[Response[Class]] = strawberry.field(
-        resolver=to_paged_response(ClassResolver()),
+        resolver=to_paged_func_response(class_resolver, Class),
         description="Get classes.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
