@@ -291,7 +291,7 @@ async def get_org_unit_uuids(info: Info, filter: Any) -> list[UUID]:
     org_unit_filter = filter.org_unit or OrganisationUnitFilter()
     # Handle deprecated filter
     extend_uuids(org_unit_filter, filter.org_units)
-    return await filter2uuids(OrganisationUnitResolver(), info, org_unit_filter)
+    return await filter2uuids_func(organisation_unit_resolver, info, org_unit_filter)
 
 
 async def registration_filter(info: Info, filter: Any) -> None:
@@ -680,12 +680,16 @@ class OwnerResolver(Resolver):
         )
 
 
-class OrganisationUnitResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(OrganisationUnitRead)
+async def organisation_unit_resolver(
+    info: Info,
+    filter: OrganisationUnitFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Any:
+    """Resolve organisation units."""
 
     async def _get_parent_uuids(
-        self, info: Info, filter: OrganisationUnitFilter
+        info: Info, filter: OrganisationUnitFilter
     ) -> list[UUID]:
         org_unit_filter = filter.parent or OrganisationUnitFilter()
         # Handle deprecated filter
@@ -702,51 +706,45 @@ class OrganisationUnitResolver(Resolver):
             extend_uuids(org_unit_filter, [org.uuid])
         if filter.parents is not UNSET:
             extend_uuids(org_unit_filter, filter.parents)
-        return await filter2uuids(OrganisationUnitResolver(), info, org_unit_filter)
+        return await filter2uuids_func(
+            organisation_unit_resolver, info, org_unit_filter
+        )
 
     async def _get_hierarchy_uuids(
-        self, info: Info, filter: OrganisationUnitFilter
+        info: Info, filter: OrganisationUnitFilter
     ) -> list[UUID]:
         class_filter = filter.hierarchy or ClassFilter()
         # Handle deprecated filter
         extend_uuids(class_filter, filter.hierarchies)
         return await filter2uuids(ClassResolver(), info, class_filter)
 
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        filter: OrganisationUnitFilter | None = None,
-        limit: LimitType = None,
-        cursor: CursorType = None,
-    ):
-        """Resolve organisation units."""
-        if filter is None:
-            filter = OrganisationUnitFilter()
+    if filter is None:
+        filter = OrganisationUnitFilter()
 
-        await registration_filter(info, filter)
+    await registration_filter(info, filter)
 
-        if filter.query:
-            if filter.uuids:
-                raise ValueError("Cannot supply both filter.uuids and filter.query")
-            filter.uuids = await search_orgunits(
-                info.context["sessionmaker"], filter.query
-            )
+    if filter.query:
+        if filter.uuids:
+            raise ValueError("Cannot supply both filter.uuids and filter.query")
+        filter.uuids = await search_orgunits(info.context["sessionmaker"], filter.query)
 
-        kwargs = {}
-        # Parents
-        if filter.parents is not UNSET or filter.parent is not UNSET:
-            kwargs["overordnet"] = await self._get_parent_uuids(info, filter)
-        # Hierarchy
-        if filter.hierarchies is not None or filter.hierarchy is not None:
-            kwargs["opmærkning"] = await self._get_hierarchy_uuids(info, filter)
+    kwargs = {}
+    # Parents
+    if filter.parents is not UNSET or filter.parent is not UNSET:
+        kwargs["overordnet"] = await _get_parent_uuids(info, filter)
+    # Hierarchy
+    if filter.hierarchies is not None or filter.hierarchy is not None:
+        kwargs["opmærkning"] = await _get_hierarchy_uuids(info, filter)
 
-        return await super()._resolve(
-            info=info,
-            filter=filter,
-            limit=limit,
-            cursor=cursor,
-            **kwargs,
-        )
+    return await generic_resolver(
+        OrganisationUnitRead,
+        None,
+        info=info,
+        filter=filter,
+        limit=limit,
+        cursor=cursor,
+        **kwargs,
+    )
 
 
 async def it_system_resolver(

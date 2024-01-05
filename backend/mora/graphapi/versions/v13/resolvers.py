@@ -47,12 +47,13 @@ from ..latest.resolvers import kle_resolver
 from ..latest.resolvers import leave_resolver
 from ..latest.resolvers import LimitType
 from ..latest.resolvers import ManagerResolver as NextManagerResolver
-from ..latest.resolvers import OrganisationUnitResolver as NextOrganisationUnitResolver
+from ..latest.resolvers import organisation_unit_resolver
 from ..latest.resolvers import OwnerResolver as NextOwnerResolver
 from ..latest.resolvers import related_unit_resolver
 from ..latest.resolvers import Resolver
 from ..latest.resolvers import role_resolver
 from mora.util import CPR
+from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import ITSystemRead
 from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead
@@ -546,7 +547,10 @@ class OwnerResolver(NextOwnerResolver):
         )
 
 
-class OrganisationUnitResolver(NextOrganisationUnitResolver):
+class OrganisationUnitResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(OrganisationUnitRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -567,7 +571,7 @@ class OrganisationUnitResolver(NextOrganisationUnitResolver):
             parents=parents,
             hierarchies=hierarchies,
         )
-        return await super().resolve(
+        return await organisation_unit_resolver(
             info=info,
             filter=filter,
             limit=limit,

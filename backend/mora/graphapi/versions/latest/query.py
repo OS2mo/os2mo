@@ -35,7 +35,7 @@ from .resolvers import kle_resolver
 from .resolvers import leave_resolver
 from .resolvers import LimitType
 from .resolvers import ManagerResolver
-from .resolvers import OrganisationUnitResolver
+from .resolvers import organisation_unit_resolver
 from .resolvers import OwnerResolver
 from .resolvers import PagedResolver
 from .resolvers import related_unit_resolver
@@ -370,7 +370,7 @@ class Query:
     # Organisational Units
     # --------------------
     org_units: Paged[Response[OrganisationUnit]] = strawberry.field(
-        resolver=to_paged_response(OrganisationUnitResolver()),
+        resolver=to_paged_func_response(organisation_unit_resolver, OrganisationUnit),
         description="Get organisation units.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
