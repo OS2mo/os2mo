@@ -103,17 +103,6 @@ CursorType = Annotated[
 ]
 
 
-class PagedResolver:
-    async def resolve(
-        self,
-        *args: Any,
-        limit: LimitType = None,
-        cursor: CursorType = None,
-        **kwargs: Any,
-    ) -> Any:
-        raise NotImplementedError
-
-
 async def filter2uuids_func(
     resolver_func: Callable,
     info: Info,

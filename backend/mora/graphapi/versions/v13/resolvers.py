@@ -53,9 +53,9 @@ from ..latest.resolvers import LimitType
 from ..latest.resolvers import manager_resolver
 from ..latest.resolvers import organisation_unit_resolver
 from ..latest.resolvers import owner_resolver
-from ..latest.resolvers import PagedResolver
 from ..latest.resolvers import related_unit_resolver
 from ..latest.resolvers import role_resolver
+from ..v17.version import PagedResolver
 from mora.util import CPR
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead

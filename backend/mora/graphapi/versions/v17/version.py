@@ -18,12 +18,22 @@ from ..latest.permissions import gen_read_permission
 from ..latest.permissions import IsAuthenticatedPermission
 from ..latest.resolvers import CursorType
 from ..latest.resolvers import LimitType
-from ..latest.resolvers import PagedResolver
 from ..latest.schema import Paged
 from ..latest.schema import PageInfo
 from ..latest.types import Cursor
 from ..v18.version import GraphQLVersion as NextGraphQLVersion
 from mora.util import now
+
+
+class PagedResolver:
+    async def resolve(
+        self,
+        *args: Any,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        **kwargs: Any,
+    ) -> Any:
+        raise NotImplementedError
 
 
 def to_paged(resolver: PagedResolver, result_transformer: Callable[[PagedResolver, Any], list[Any]] | None = None):  # type: ignore
