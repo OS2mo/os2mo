@@ -34,8 +34,8 @@ from .resolvers import it_user_resolver
 from .resolvers import kle_resolver
 from .resolvers import leave_resolver
 from .resolvers import LimitType
-from .resolvers import ManagerResolver
 from .resolvers import organisation_unit_resolver
+from .resolvers import manager_resolver
 from .resolvers import owner_resolver
 from .resolvers import PagedResolver
 from .resolvers import related_unit_resolver
@@ -354,7 +354,7 @@ class Query:
     # Managers
     # --------
     managers: Paged[Response[Manager]] = strawberry.field(
-        resolver=to_paged_response(ManagerResolver()),
+        resolver=to_paged_func_response(manager_resolver, Manager),
         description="Get manager roles.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
     )
