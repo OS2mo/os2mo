@@ -28,7 +28,7 @@ from .resolvers import class_resolver
 from .resolvers import CursorType
 from .resolvers import employee_resolver
 from .resolvers import engagement_resolver
-from .resolvers import FacetResolver
+from .resolvers import facet_resolver
 from .resolvers import it_system_resolver
 from .resolvers import it_user_resolver
 from .resolvers import kle_resolver
@@ -179,10 +179,6 @@ def to_func_response(model: Any, result: dict[UUID, list[dict]]) -> list[Respons
     ]
 
 
-def to_uuids(resolver: Resolver, result: dict[UUID, list[dict]]) -> list[UUID]:
-    return list(result.keys())
-
-
 def to_func_uuids(model: Any, result: dict[UUID, list[dict]]) -> list[UUID]:
     return list(result.keys())
 
@@ -253,7 +249,6 @@ to_paged_func_response = partial(to_paged_func, result_transformer=to_func_respo
 to_paged_func_uuids = partial(to_paged_func, result_transformer=to_func_uuids)
 
 to_paged_response = partial(to_paged, result_transformer=to_response)
-to_paged_uuids = partial(to_paged, result_transformer=to_uuids)
 
 
 @strawberry.type(description="Entrypoint for all read-operations")
@@ -314,7 +309,7 @@ class Query:
     # Facets
     # ------
     facets: Paged[Response[Facet]] = strawberry.field(
-        resolver=to_paged_response(FacetResolver()),
+        resolver=to_paged_func_response(facet_resolver, Facet),
         description="Get facets.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
     )

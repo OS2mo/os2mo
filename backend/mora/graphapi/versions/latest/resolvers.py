@@ -309,53 +309,51 @@ async def registration_filter(info: Info, filter: Any) -> None:
     extend_uuids(filter, uuids)
 
 
-class FacetResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(FacetRead)
+async def facet_resolver(
+    info: Info,
+    filter: FacetFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Any:
+    """Resolve facets."""
 
-    async def _get_parent_uuids(self, info: Info, filter: FacetFilter) -> list[UUID]:
+    async def _get_parent_uuids(info: Info, filter: FacetFilter) -> list[UUID]:
         facet_filter = filter.parent or FacetFilter()
         # Handle deprecated filter
         extend_uuids(facet_filter, filter.parents)
         extend_user_keys(facet_filter, filter.parent_user_keys)
-        return await filter2uuids(FacetResolver(), info, facet_filter)
+        return await filter2uuids_func(facet_resolver, info, facet_filter)
 
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        filter: FacetFilter | None = None,
-        limit: LimitType = None,
-        cursor: CursorType = None,
+    if filter is None:
+        filter = FacetFilter()
+
+    await registration_filter(info, filter)
+
+    kwargs = {}
+    if (
+        filter.parents is not None
+        or filter.parent_user_keys is not None
+        or filter.parent is not None
     ):
-        """Resolve facets."""
-        if filter is None:
-            filter = FacetFilter()
+        kwargs["facettilhoerer"] = await _get_parent_uuids(info, filter)
 
-        await registration_filter(info, filter)
-
-        kwargs = {}
-        if (
-            filter.parents is not None
-            or filter.parent_user_keys is not None
-            or filter.parent is not None
-        ):
-            kwargs["facettilhoerer"] = await self._get_parent_uuids(info, filter)
-
-        if info.context["version"] <= 19:
-            filter = BaseFilter(  # type: ignore[assignment]
-                uuids=filter.uuids,
-                user_keys=filter.user_keys,
-                from_date=None,  # from -inf
-                to_date=None,  # to inf
-            )
-
-        return await super()._resolve(
-            info=info,
-            filter=filter,
-            limit=limit,
-            cursor=cursor,
-            **kwargs,
+    if info.context["version"] <= 19:
+        filter = BaseFilter(  # type: ignore[assignment]
+            uuids=filter.uuids,
+            user_keys=filter.user_keys,
+            from_date=None,  # from -inf
+            to_date=None,  # to inf
         )
+
+    return await generic_resolver(
+        FacetRead,
+        None,
+        info=info,
+        filter=filter,
+        limit=limit,
+        cursor=cursor,
+        **kwargs,
+    )
 
 
 async def class_resolver(
@@ -371,7 +369,7 @@ async def class_resolver(
         # Handle deprecated filter
         extend_uuids(facet_filter, filter.facets)
         extend_user_keys(facet_filter, filter.facet_user_keys)
-        return await filter2uuids(FacetResolver(), info, facet_filter)
+        return await filter2uuids_func(facet_resolver, info, facet_filter)
 
     async def _get_parent_uuids(info: Info, filter: ClassFilter) -> list[UUID]:
         class_filter = filter.parent or ClassFilter()

@@ -128,7 +128,6 @@ from .permissions import gen_terminate_permission
 from .permissions import gen_update_permission
 from .permissions import IsAuthenticatedPermission
 from .query import to_paged_func_uuids
-from .query import to_paged_uuids
 from .related_units import update_related_units
 from .resolvers import address_resolver
 from .resolvers import association_resolver
@@ -136,7 +135,7 @@ from .resolvers import class_resolver
 from .resolvers import CursorType
 from .resolvers import employee_resolver
 from .resolvers import engagement_resolver
-from .resolvers import FacetResolver
+from .resolvers import facet_resolver
 from .resolvers import it_system_resolver
 from .resolvers import it_user_resolver
 from .resolvers import kle_resolver
@@ -651,7 +650,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(FacetResolver())
+        resolve = to_paged_func_uuids(facet_resolver, Facet)
         page = await resolve(
             info=info,
             filter=filter,

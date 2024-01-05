@@ -52,7 +52,7 @@ from .resolvers import class_resolver
 from .resolvers import CursorType
 from .resolvers import employee_resolver
 from .resolvers import engagement_resolver
-from .resolvers import FacetResolver
+from .resolvers import facet_resolver
 from .resolvers import it_system_resolver
 from .resolvers import it_user_resolver
 from .resolvers import kle_resolver
@@ -1575,8 +1575,8 @@ class Class:
     )
 
     facet: LazyFacet = strawberry.field(
-        resolver=seed_resolver_one(
-            FacetResolver(), {"uuids": lambda root: [root.facet_uuid]}
+        resolver=seed_resolver_func_one(
+            facet_resolver, {"uuids": lambda root: [root.facet_uuid]}
         ),
         description=dedent(
             """\
@@ -2424,8 +2424,8 @@ class Facet:
     )
 
     parent: LazyFacet | None = strawberry.field(
-        resolver=seed_resolver_only(
-            FacetResolver(), {"uuids": lambda root: uuid2list(root.parent_uuid)}
+        resolver=seed_resolver_func_only(
+            facet_resolver, {"uuids": lambda root: uuid2list(root.parent_uuid)}
         ),
         description=dedent(
             """\
@@ -2441,8 +2441,8 @@ class Facet:
     )
 
     children: list[LazyFacet] = strawberry.field(
-        resolver=seed_resolver_list(
-            FacetResolver(),
+        resolver=seed_resolver_func_list(
+            facet_resolver,
             {"parents": lambda root: [root.uuid]},
         ),
         description=dedent(
