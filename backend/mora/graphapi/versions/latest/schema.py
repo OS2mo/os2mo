@@ -208,7 +208,7 @@ def model2name(model: Any) -> Any:
     | entrypoint      | temporal axis | validity time | assertion time |
     |-----------------|---------------|---------------|----------------|
     | `current`       | actual state  | current       | current        |
-    | `objects`       | temporal      | varying       | current        |
+    | `validities`    | temporal      | varying       | current        |
     | `registrations` | bitemporal    | varying       | varying        |
 
     The argument for having three different entrypoints into the data is limiting complexity according to use-case.
@@ -274,15 +274,15 @@ class Response(Generic[MOObject]):
 
         # TODO: This should really do its own instantaneous query to find whatever is
         #       active right now, regardless of the values in objects.
-        objects = await Response.objects(self, root, info)
-        objects_active_now = filter(active_now, objects)
+        validities = await Response.validities(self, root, info)
+        validities_active_now = filter(active_now, validities)
 
         # HACK: Due to legacy systems, ex dipex, we must use .date() to compare dates instead of datetimes.
         #       because of this, if we update entities on the same date shortly after each other,
         #       we may end up with multiple entities which are "active now", where only one is expected.
         #       To handle this, we first try to find an entity which is active now and has no end date.
         #       If we cannot find such an entity, we find the entity with largest to_date
-        return max(objects_active_now, key=activity_tuple, default=None)
+        return max(validities_active_now, key=activity_tuple, default=None)
 
     @strawberry.field(
         description=dedent(
@@ -300,7 +300,7 @@ class Response(Generic[MOObject]):
         ),
         permission_classes=[IsAuthenticatedPermission],
     )
-    async def objects(self, root: "Response", info: Info) -> list[MOObject]:
+    async def validities(self, root: "Response", info: Info) -> list[MOObject]:
         # If the object_cache is filled our request has already been resolved elsewhere
         if root.object_cache != UNSET:
             return root.object_cache
@@ -320,7 +320,7 @@ class Response(Generic[MOObject]):
 
             Note:
             This the entrypoint should only be used for bitemporal integrations and UIs, such as for auditing purposes.
-            For temporal integration, please consider using `objects` instead.
+            For temporal integration, please consider using `validities` instead.
             For actual-state integrations, please consider using `current` instead.
 
             **Warning**:
