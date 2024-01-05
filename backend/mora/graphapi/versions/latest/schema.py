@@ -49,7 +49,6 @@ from .resolver_map import resolver_map
 from .resolvers import address_resolver
 from .resolvers import association_resolver
 from .resolvers import class_resolver
-from .resolvers import CursorType
 from .resolvers import employee_resolver
 from .resolvers import engagement_resolver
 from .resolvers import facet_resolver
@@ -4490,55 +4489,6 @@ class Health:
     )
     async def status(self) -> bool | None:
         return await health_map[self.identifier]()
-
-
-T = TypeVar("T")
-
-
-@strawberry.type(
-    description=dedent(
-        """\
-    Container for page information.
-
-    Contains the cursors necessary to fetch other pages.
-    Contains information on when to stop iteration.
-    """
-    )
-)
-class PageInfo:
-    next_cursor: CursorType = strawberry.field(
-        description=dedent(
-            """\
-            Cursor for the next page of results.
-
-            Should be provided to the `cursor` argument to iterate forwards.
-            """
-        ),
-        default=None,
-    )
-
-
-@strawberry.type(description="Result page in cursor-based pagination.")
-class Paged(Generic[T]):
-    objects: list[T] = strawberry.field(
-        description=dedent(
-            """\
-            List of results.
-
-            The number of elements is defined by the `limit` argument.
-            """
-        )
-    )
-    page_info: PageInfo = strawberry.field(
-        description=dedent(
-            """\
-            Container for page information.
-
-            Contains the cursors necessary to fetch other pages.
-            Contains information on when to stop iteration.
-            """
-        )
-    )
 
 
 # File

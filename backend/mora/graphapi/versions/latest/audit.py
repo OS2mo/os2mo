@@ -17,9 +17,9 @@ from strawberry.types import Info
 
 from ..latest.filters import gen_filter_string
 from ..latest.filters import gen_filter_table
-from .resolvers import CursorType
+from .paged import CursorType
+from .paged import LimitType
 from .resolvers import get_date_interval
-from .resolvers import LimitType
 from mora.audit import audit_log
 from mora.db import AuditLogOperation as AuditLogOperation
 from mora.db import AuditLogRead as AuditLogRead

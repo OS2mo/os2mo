@@ -120,6 +120,9 @@ from .org_unit import update_org_unit
 from .owner import create_owner
 from .owner import terminate_owner
 from .owner import update_owner
+from .paged import CursorType
+from .paged import LimitType
+from .paged import Paged
 from .permissions import gen_create_permission
 from .permissions import gen_delete_permission
 from .permissions import gen_refresh_permission
@@ -127,12 +130,11 @@ from .permissions import gen_role_permission
 from .permissions import gen_terminate_permission
 from .permissions import gen_update_permission
 from .permissions import IsAuthenticatedPermission
-from .query import to_paged_func_uuids
+from .query import to_paged_uuids
 from .related_units import update_related_units
 from .resolvers import address_resolver
 from .resolvers import association_resolver
 from .resolvers import class_resolver
-from .resolvers import CursorType
 from .resolvers import employee_resolver
 from .resolvers import engagement_resolver
 from .resolvers import facet_resolver
@@ -140,7 +142,6 @@ from .resolvers import it_system_resolver
 from .resolvers import it_user_resolver
 from .resolvers import kle_resolver
 from .resolvers import leave_resolver
-from .resolvers import LimitType
 from .resolvers import manager_resolver
 from .resolvers import organisation_unit_resolver
 from .resolvers import owner_resolver
@@ -164,7 +165,6 @@ from .schema import Manager
 from .schema import Organisation
 from .schema import OrganisationUnit
 from .schema import Owner
-from .schema import Paged
 from .schema import RelatedUnit
 from .schema import Response
 from .schema import Role
@@ -288,7 +288,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_func_uuids(address_resolver, Address)
+        resolve = to_paged_uuids(address_resolver, Address)
         page = await resolve(
             info=info,
             filter=filter,
@@ -358,7 +358,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_func_uuids(association_resolver, Association)
+        resolve = to_paged_uuids(association_resolver, Association)
         page = await resolve(
             info=info,
             filter=filter,
@@ -433,7 +433,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_func_uuids(class_resolver, Class)
+        resolve = to_paged_uuids(class_resolver, Class)
         page = await resolve(
             info=info,
             filter=filter,
@@ -496,7 +496,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_func_uuids(employee_resolver, Employee)
+        resolve = to_paged_uuids(employee_resolver, Employee)
         page = await resolve(
             info=info,
             filter=filter,
@@ -575,7 +575,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_func_uuids(engagement_resolver, Engagement)
+        resolve = to_paged_uuids(engagement_resolver, Engagement)
         page = await resolve(
             info=info,
             filter=filter,
@@ -650,7 +650,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_func_uuids(facet_resolver, Facet)
+        resolve = to_paged_uuids(facet_resolver, Facet)
         page = await resolve(
             info=info,
             filter=filter,
@@ -772,7 +772,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_func_uuids(it_system_resolver, ITSystem)
+        resolve = to_paged_uuids(it_system_resolver, ITSystem)
         page = await resolve(
             info=info,
             filter=filter,
@@ -838,7 +838,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_func_uuids(it_user_resolver, ITUser)
+        resolve = to_paged_uuids(it_user_resolver, ITUser)
         page = await resolve(
             info=info,
             filter=filter,
@@ -896,7 +896,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_func_uuids(kle_resolver, KLE)
+        resolve = to_paged_uuids(kle_resolver, KLE)
         page = await resolve(
             info=info,
             filter=filter,
@@ -954,7 +954,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_func_uuids(leave_resolver, Leave)
+        resolve = to_paged_uuids(leave_resolver, Leave)
         page = await resolve(
             info=info,
             filter=filter,
@@ -1014,7 +1014,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_func_uuids(manager_resolver, Manager)
+        resolve = to_paged_uuids(manager_resolver, Manager)
         page = await resolve(
             info=info,
             filter=filter,
@@ -1103,7 +1103,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_func_uuids(organisation_unit_resolver, OrganisationUnit)
+        resolve = to_paged_uuids(organisation_unit_resolver, OrganisationUnit)
         page = await resolve(
             info=info,
             filter=filter,
@@ -1161,7 +1161,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_func_uuids(owner_resolver, Owner)
+        resolve = to_paged_uuids(owner_resolver, Owner)
         page = await resolve(
             info=info,
             filter=filter,
@@ -1202,7 +1202,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_func_uuids(related_unit_resolver, RelatedUnit)
+        resolve = to_paged_uuids(related_unit_resolver, RelatedUnit)
         page = await resolve(
             info=info,
             filter=filter,
@@ -1261,7 +1261,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_func_uuids(role_resolver, RoleRead)
+        resolve = to_paged_uuids(role_resolver, RoleRead)
         page = await resolve(
             info=info,
             filter=filter,

@@ -15,16 +15,16 @@ from ..latest.inputs import ITSystemCreateInput as LatestITSystemCreateInput
 from ..latest.inputs import ITSystemUpdateInput as LatestITSystemUpdateInput
 from ..latest.models import ITSystemCreate as LatestITSystemCreate
 from ..latest.models import ITSystemUpdate as LatestITSystemUpdate
+from ..latest.paged import CursorType
+from ..latest.paged import LimitType
+from ..latest.paged import Paged
 from ..latest.permissions import gen_create_permission
 from ..latest.permissions import gen_read_permission
 from ..latest.permissions import gen_update_permission
 from ..latest.permissions import IsAuthenticatedPermission
-from ..latest.query import to_paged_func_response
-from ..latest.resolvers import CursorType
+from ..latest.query import to_paged_response
 from ..latest.resolvers import it_system_resolver as latest_it_system_resolver
-from ..latest.resolvers import LimitType
 from ..latest.schema import ITSystem
-from ..latest.schema import Paged
 from ..latest.schema import Response
 from ..v15.version import GraphQLVersion as NextGraphQLVersion
 from ramodels.mo._shared import UUIDBase
@@ -102,7 +102,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # ITSystems
     # ---------
     itsystems: Paged[Response[ITSystem]] = strawberry.field(
-        resolver=to_paged_func_response(it_system_resolver, ITSystem),
+        resolver=to_paged_response(it_system_resolver, ITSystem),
         description="Get it-systems.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
     )
