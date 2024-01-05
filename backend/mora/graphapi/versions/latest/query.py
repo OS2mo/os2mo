@@ -36,7 +36,7 @@ from .resolvers import leave_resolver
 from .resolvers import LimitType
 from .resolvers import ManagerResolver
 from .resolvers import organisation_unit_resolver
-from .resolvers import OwnerResolver
+from .resolvers import owner_resolver
 from .resolvers import PagedResolver
 from .resolvers import related_unit_resolver
 from .resolvers import Resolver
@@ -362,7 +362,7 @@ class Query:
     # Owners
     # ------
     owners: Paged[Response[Owner]] = strawberry.field(
-        resolver=to_paged_response(OwnerResolver()),
+        resolver=to_paged_func_response(owner_resolver, Owner),
         description="Get owners.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("owner")],
     )

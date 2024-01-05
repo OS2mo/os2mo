@@ -644,40 +644,37 @@ class ManagerResolver(Resolver):
         )
 
 
-class OwnerResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(OwnerRead)
+async def owner_resolver(
+    info: Info,
+    filter: OwnerFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Any:
+    """Resolve owners."""
+    if filter is None:
+        filter = OwnerFilter()
 
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        filter: OwnerFilter | None = None,
-        limit: LimitType = None,
-        cursor: CursorType = None,
-    ):
-        """Resolve owners."""
-        if filter is None:
-            filter = OwnerFilter()
+    # TODO: Owner filter
 
-        # TODO: Owner filter
-
-        kwargs = {}
-        if filter.employee is not None or filter.employees is not None:
-            kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
-        if filter.org_units is not None or filter.org_unit is not None:
-            kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
-        if filter.owner is not None:
-            kwargs["tilknyttedepersoner"] = await filter2uuids(
-                EmployeeResolver(), info, filter.owner
-            )
-
-        return await super()._resolve(
-            info=info,
-            filter=filter,
-            limit=limit,
-            cursor=cursor,
-            **kwargs,
+    kwargs = {}
+    if filter.employee is not None or filter.employees is not None:
+        kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
+    if filter.org_units is not None or filter.org_unit is not None:
+        kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
+    if filter.owner is not None:
+        kwargs["tilknyttedepersoner"] = await filter2uuids(
+            EmployeeResolver(), info, filter.owner
         )
+
+    return await generic_resolver(
+        OwnerRead,
+        None,
+        info=info,
+        filter=filter,
+        limit=limit,
+        cursor=cursor,
+        **kwargs,
+    )
 
 
 async def organisation_unit_resolver(

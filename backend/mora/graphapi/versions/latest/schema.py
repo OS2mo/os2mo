@@ -59,7 +59,7 @@ from .resolvers import kle_resolver
 from .resolvers import leave_resolver
 from .resolvers import ManagerResolver
 from .resolvers import organisation_unit_resolver
-from .resolvers import OwnerResolver
+from .resolvers import owner_resolver
 from .resolvers import related_unit_resolver
 from .resolvers import Resolver
 from .resolvers import role_resolver
@@ -3890,8 +3890,8 @@ class OrganisationUnit:
         )
 
     owners: list[LazyOwner] = strawberry.field(
-        resolver=seed_resolver_list(
-            OwnerResolver(),
+        resolver=seed_resolver_func_list(
+            owner_resolver,
             {"org_units": lambda root: [root.uuid]},
         ),
         description=dedent(

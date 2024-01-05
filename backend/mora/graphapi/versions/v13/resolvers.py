@@ -48,7 +48,7 @@ from ..latest.resolvers import leave_resolver
 from ..latest.resolvers import LimitType
 from ..latest.resolvers import ManagerResolver as NextManagerResolver
 from ..latest.resolvers import organisation_unit_resolver
-from ..latest.resolvers import OwnerResolver as NextOwnerResolver
+from ..latest.resolvers import owner_resolver
 from ..latest.resolvers import related_unit_resolver
 from ..latest.resolvers import Resolver
 from ..latest.resolvers import role_resolver
@@ -58,6 +58,7 @@ from ramodels.mo.details import ITSystemRead
 from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead
 from ramodels.mo.details import LeaveRead
+from ramodels.mo.details import OwnerRead
 from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
 
@@ -518,7 +519,10 @@ class ManagerResolver(NextManagerResolver):
         )
 
 
-class OwnerResolver(NextOwnerResolver):
+class OwnerResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(OwnerRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -539,7 +543,7 @@ class OwnerResolver(NextOwnerResolver):
             employees=employees,
             org_units=org_units,
         )
-        return await super().resolve(
+        return await owner_resolver(
             info=info,
             filter=filter,
             limit=limit,
