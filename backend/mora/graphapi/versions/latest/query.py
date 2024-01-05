@@ -32,7 +32,7 @@ from .resolvers import FacetResolver
 from .resolvers import ITSystemResolver
 from .resolvers import ITUserResolver
 from .resolvers import KLEResolver
-from .resolvers import LeaveResolver
+from .resolvers import leave_resolver
 from .resolvers import LimitType
 from .resolvers import ManagerResolver
 from .resolvers import OrganisationUnitResolver
@@ -346,7 +346,7 @@ class Query:
     # Leave
     # -----
     leaves: Paged[Response[Leave]] = strawberry.field(
-        resolver=to_paged_response(LeaveResolver()),
+        resolver=to_paged_func_response(leave_resolver, Leave),
         description="Get leaves.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
