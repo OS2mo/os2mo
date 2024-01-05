@@ -11,7 +11,8 @@ from strawberry.types import Info
 from ..latest.filters import gen_filter_table
 from ..latest.filters import RegistrationFilter
 from ..latest.registration import Registration
-from ..latest.registration import RegistrationResolver as NextRegistrationResolver
+from ..latest.registration import registration_resolver
+from ..latest.resolvers import PagedResolver
 from .resolvers import CursorType
 from .resolvers import FromDateFilterType
 from .resolvers import LimitType
@@ -49,7 +50,7 @@ ModelFilterType = Annotated[
 ]
 
 
-class RegistrationResolver(NextRegistrationResolver):
+class RegistrationResolver(PagedResolver):
     # TODO: Implement using a dataloader
     async def resolve(  # type: ignore[override]
         self,
@@ -69,7 +70,7 @@ class RegistrationResolver(NextRegistrationResolver):
             start=start,
             end=end,
         )
-        return await super().resolve(
+        return await registration_resolver(
             info=info,
             filter=filter,
             limit=limit,
