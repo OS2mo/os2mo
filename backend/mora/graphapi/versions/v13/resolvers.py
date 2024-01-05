@@ -32,7 +32,7 @@ from ..latest.filters import RelatedUnitFilter
 from ..latest.filters import RoleFilter
 from ..latest.models import FileStore
 from ..latest.query import ConfigurationResolver as NextConfigurationResolver
-from ..latest.query import FileResolver as NextFileResolver
+from ..latest.query import file_resolver
 from ..latest.query import health_resolver
 from ..latest.resolvers import address_resolver
 from ..latest.resolvers import association_resolver
@@ -429,7 +429,7 @@ class EngagementResolver(Resolver):
         )
 
 
-class FileResolver(NextFileResolver):
+class FileResolver(PagedResolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -456,7 +456,7 @@ class FileResolver(NextFileResolver):
             file_store=file_store,
             file_names=file_names,
         )
-        return await super().resolve(
+        return await file_resolver(
             info=info,
             filter=filter,
             limit=limit,
