@@ -1,10 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from functools import partial
 from textwrap import dedent
-from typing import Any
 from typing import TypeVar
-from uuid import UUID
 
 import strawberry
 from starlette_context import context
@@ -60,6 +57,7 @@ from .schema import RelatedUnit
 from .schema import Response
 from .schema import Role
 from .schema import Version
+from .schema import to_paged_response
 from mora.audit import audit_log
 from mora.config import get_public_settings
 
@@ -149,21 +147,6 @@ async def configuration_resolver(
         context["lora_page_out_of_range"] = True
 
     return [Configuration(key=key) for key in settings]  # type: ignore[call-arg]
-
-
-def to_func_response(model: Any, result: dict[UUID, list[dict]]) -> list[Response]:
-    return [
-        Response(uuid=uuid, model=model, object_cache=objects)  # type: ignore[call-arg]
-        for uuid, objects in result.items()
-    ]
-
-
-def to_func_uuids(model: Any, result: dict[UUID, list[dict]]) -> list[UUID]:
-    return list(result.keys())
-
-
-to_paged_response = partial(to_paged, result_transformer=to_func_response)
-to_paged_uuids = partial(to_paged, result_transformer=to_func_uuids)
 
 
 @strawberry.type(description="Entrypoint for all read-operations")

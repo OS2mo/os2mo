@@ -56,6 +56,8 @@ from .seed_resolver import seed_resolver
 from .types import CPRType
 from .validity import OpenValidity
 from .validity import Validity
+from .paged import Paged
+from .paged import to_paged
 from mora import common
 from mora import config
 from mora.service.address_handler import dar
@@ -138,29 +140,6 @@ def force_none_return_wrapper(func: Callable) -> Callable:
             return None
 
     return wrapper
-
-
-def result_translation(mapper: Callable) -> Callable:
-    def wrapper(resolver_func: Callable) -> Callable:
-        @wraps(resolver_func)
-        async def mapped_resolver(*args: Any, **kwargs: Any) -> Any:
-            result = await resolver_func(*args, **kwargs)
-            return mapper(result)
-
-        return mapped_resolver
-
-    return wrapper
-
-
-to_list = result_translation(
-    lambda result: list(chain.from_iterable(result.values())),
-)
-to_only = result_translation(
-    lambda result: only(chain.from_iterable(result.values())),
-)
-to_one = result_translation(
-    lambda result: one(chain.from_iterable(result.values())),
-)
 
 
 def uuid2list(uuid: UUID | None) -> list[UUID]:
@@ -337,6 +316,52 @@ class Response(Generic[MOObject]):
             },
         ),
     )
+
+
+def result_translation(mapper: Callable) -> Callable:
+    def wrapper(resolver_func: Callable) -> Callable:
+        @wraps(resolver_func)
+        async def mapped_resolver(*args: Any, **kwargs: Any) -> Any:
+            result = await resolver_func(*args, **kwargs)
+            return mapper(result)
+
+        return mapped_resolver
+
+    return wrapper
+
+
+def to_func_response(model: Any, result: dict[UUID, list[dict]]) -> list[Response]:
+    return [
+        Response(uuid=uuid, model=model, object_cache=objects)  # type: ignore[call-arg]
+        for uuid, objects in result.items()
+    ]
+
+
+def to_func_uuids(model: Any, result: dict[UUID, list[dict]]) -> list[UUID]:
+    return list(result.keys())
+
+
+to_paged_response = partial(to_paged, result_transformer=to_func_response)
+to_paged_uuids = partial(to_paged, result_transformer=to_func_uuids)
+
+
+to_list = result_translation(
+    lambda result: list(chain.from_iterable(result.values())),
+)
+to_only = result_translation(
+    lambda result: only(chain.from_iterable(result.values())),
+)
+
+def to_response(model: Any) -> Callable:
+    return result_translation(
+        lambda result: only(to_func_response(model, result))
+    )
+
+to_one = result_translation(
+    lambda result: one(chain.from_iterable(result.values())),
+)
+
+
 
 
 LazySchema = strawberry.lazy(".schema")
@@ -3104,8 +3129,8 @@ class Organisation:
     description="Organisation unit within the organisation tree",
 )
 class OrganisationUnit:
-    parent: LazyOrganisationUnit | None = strawberry.field(
-        resolver=to_only(
+    parent: Response[LazyOrganisationUnit] | None = strawberry.field(
+        resolver=to_response(LazyOrganisationUnit)(
             seed_resolver(
                 organisation_unit_resolver,
                 {"uuids": lambda root: uuid2list(root.parent_uuid)},
@@ -3275,12 +3300,13 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    engagements: list[LazyEngagement] = strawberry.field(
-        resolver=to_list(
+    engagements: Paged[Response[LazyEngagement]] = strawberry.field(
+        resolver=to_paged_response(
             seed_resolver(
                 engagement_resolver,
                 {"org_units": lambda root: [root.uuid]},
-            )
+            ),
+            LazyEngagement
         ),
         description=dedent(
             """\

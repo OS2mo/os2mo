@@ -130,7 +130,7 @@ from .permissions import gen_role_permission
 from .permissions import gen_terminate_permission
 from .permissions import gen_update_permission
 from .permissions import IsAuthenticatedPermission
-from .query import to_paged_uuids
+from .schema import to_paged_uuids
 from .related_units import update_related_units
 from .resolvers import address_resolver
 from .resolvers import association_resolver
