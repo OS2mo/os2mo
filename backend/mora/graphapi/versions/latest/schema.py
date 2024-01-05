@@ -47,7 +47,7 @@ from .registration import Registration
 from .registration import RegistrationResolver
 from .resolver_map import resolver_map
 from .resolvers import AddressResolver
-from .resolvers import AssociationResolver
+from .resolvers import association_resolver
 from .resolvers import ClassResolver
 from .resolvers import CursorType
 from .resolvers import employee_resolver
@@ -1921,8 +1921,8 @@ class Employee:
     )
 
     associations: list[LazyAssociation] = strawberry.field(
-        resolver=seed_resolver_list(
-            AssociationResolver(),
+        resolver=seed_resolver_func_list(
+            association_resolver,
             {"employees": lambda root: [root.uuid]},
         ),
         description=dedent(
@@ -3934,8 +3934,8 @@ class OrganisationUnit:
     )
 
     associations: list[LazyAssociation] = strawberry.field(
-        resolver=seed_resolver_list(
-            AssociationResolver(),
+        resolver=seed_resolver_func_list(
+            association_resolver,
             {"org_units": lambda root: [root.uuid]},
         ),
         description=dedent(
