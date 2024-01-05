@@ -735,46 +735,42 @@ class ITSystemResolver(Resolver):
         )
 
 
-class ITUserResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(ITUserRead)
+async def it_user_resolver(
+    info: Info,
+    filter: ITUserFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Any:
+    """Resolve it-users."""
 
-    async def _get_itsystem_uuids(self, info: Info, filter: ITUserFilter) -> list[UUID]:
+    async def _get_itsystem_uuids(info: Info, filter: ITUserFilter) -> list[UUID]:
         itsystem_filter = filter.itsystem or ITSystemFilter()
         # Handle deprecated filter
         extend_uuids(itsystem_filter, filter.itsystem_uuids)
         return await filter2uuids(ITSystemResolver(), info, itsystem_filter)
 
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        filter: ITUserFilter | None = None,
-        limit: LimitType = None,
-        cursor: CursorType = None,
-    ):
-        """Resolve it-users."""
-        if filter is None:
-            filter = ITUserFilter()
+    if filter is None:
+        filter = ITUserFilter()
 
-        await registration_filter(info, filter)
+    await registration_filter(info, filter)
 
-        kwargs = {}
-        if filter.employee is not None or filter.employees is not None:
-            kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
-        if filter.org_units is not None or filter.org_unit is not None:
-            kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
-        if filter.itsystem_uuids is not None or filter.itsystem is not None:
-            kwargs["tilknyttedeitsystemer"] = await self._get_itsystem_uuids(
-                info, filter
-            )
+    kwargs = {}
+    if filter.employee is not None or filter.employees is not None:
+        kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
+    if filter.org_units is not None or filter.org_unit is not None:
+        kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
+    if filter.itsystem_uuids is not None or filter.itsystem is not None:
+        kwargs["tilknyttedeitsystemer"] = await _get_itsystem_uuids(info, filter)
 
-        return await super()._resolve(
-            info=info,
-            filter=filter,
-            limit=limit,
-            cursor=cursor,
-            **kwargs,
-        )
+    return await generic_resolver(
+        ITUserRead,
+        None,
+        info=info,
+        filter=filter,
+        limit=limit,
+        cursor=cursor,
+        **kwargs,
+    )
 
 
 async def kle_resolver(

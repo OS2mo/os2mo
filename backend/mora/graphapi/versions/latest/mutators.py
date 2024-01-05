@@ -137,8 +137,8 @@ from .resolvers import CursorType
 from .resolvers import EmployeeResolver
 from .resolvers import EngagementResolver
 from .resolvers import FacetResolver
+from .resolvers import it_user_resolver
 from .resolvers import ITSystemResolver
-from .resolvers import ITUserResolver
 from .resolvers import kle_resolver
 from .resolvers import leave_resolver
 from .resolvers import LimitType
@@ -839,7 +839,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(ITUserResolver())
+        resolve = to_paged_func_uuids(it_user_resolver, ITUser)
         page = await resolve(
             info=info,
             filter=filter,

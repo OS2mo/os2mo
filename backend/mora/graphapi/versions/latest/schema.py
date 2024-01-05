@@ -53,8 +53,8 @@ from .resolvers import CursorType
 from .resolvers import EmployeeResolver
 from .resolvers import EngagementResolver
 from .resolvers import FacetResolver
+from .resolvers import it_user_resolver
 from .resolvers import ITSystemResolver
-from .resolvers import ITUserResolver
 from .resolvers import kle_resolver
 from .resolvers import leave_resolver
 from .resolvers import ManagerResolver
@@ -1378,8 +1378,8 @@ class Association:
     )
 
     it_user: list[LazyITUser] = strawberry.field(
-        resolver=seed_resolver_list(
-            ITUserResolver(), {"uuids": lambda root: uuid2list(root.it_user_uuid)}
+        resolver=seed_resolver_func_list(
+            it_user_resolver, {"uuids": lambda root: uuid2list(root.it_user_uuid)}
         ),
         description=dedent(
             """\
@@ -1950,8 +1950,8 @@ class Employee:
     )
 
     itusers: list[LazyITUser] = strawberry.field(
-        resolver=seed_resolver_list(
-            ITUserResolver(),
+        resolver=seed_resolver_func_list(
+            it_user_resolver,
             {"employees": lambda root: [root.uuid]},
         ),
         description=dedent(
@@ -3965,8 +3965,8 @@ class OrganisationUnit:
     )
 
     itusers: list[LazyITUser] = strawberry.field(
-        resolver=seed_resolver_list(
-            ITUserResolver(),
+        resolver=seed_resolver_func_list(
+            it_user_resolver,
             {"org_units": lambda root: [root.uuid]},
         ),
         description=dedent(

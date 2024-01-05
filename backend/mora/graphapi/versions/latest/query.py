@@ -29,8 +29,8 @@ from .resolvers import CursorType
 from .resolvers import EmployeeResolver
 from .resolvers import EngagementResolver
 from .resolvers import FacetResolver
+from .resolvers import it_user_resolver
 from .resolvers import ITSystemResolver
-from .resolvers import ITUserResolver
 from .resolvers import kle_resolver
 from .resolvers import leave_resolver
 from .resolvers import LimitType
@@ -330,7 +330,7 @@ class Query:
     # ITUsers
     # -------
     itusers: Paged[Response[ITUser]] = strawberry.field(
-        resolver=to_paged_response(ITUserResolver()),
+        resolver=to_paged_func_response(it_user_resolver, ITUser),
         description="Get it-users.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )

@@ -41,8 +41,8 @@ from ..latest.resolvers import CursorType
 from ..latest.resolvers import EmployeeResolver as NextEmployeeResolver
 from ..latest.resolvers import EngagementResolver as NextEngagementResolver
 from ..latest.resolvers import FacetResolver as NextFacetResolver
+from ..latest.resolvers import it_user_resolver
 from ..latest.resolvers import ITSystemResolver as NextITSystemResolver
-from ..latest.resolvers import ITUserResolver as NextITUserResolver
 from ..latest.resolvers import kle_resolver
 from ..latest.resolvers import leave_resolver
 from ..latest.resolvers import LimitType
@@ -53,6 +53,7 @@ from ..latest.resolvers import related_unit_resolver
 from ..latest.resolvers import Resolver
 from ..latest.resolvers import role_resolver
 from mora.util import CPR
+from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead
 from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import RelatedUnitRead
@@ -570,7 +571,10 @@ class OrganisationUnitResolver(NextOrganisationUnitResolver):
         )
 
 
-class ITUserResolver(NextITUserResolver):
+class ITUserResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(ITUserRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -591,7 +595,7 @@ class ITUserResolver(NextITUserResolver):
             employees=employees,
             org_units=org_units,
         )
-        return await super().resolve(
+        return await it_user_resolver(
             info=info,
             filter=filter,
             limit=limit,
