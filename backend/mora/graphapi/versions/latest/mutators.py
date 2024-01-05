@@ -139,7 +139,7 @@ from .resolvers import EngagementResolver
 from .resolvers import FacetResolver
 from .resolvers import ITSystemResolver
 from .resolvers import ITUserResolver
-from .resolvers import KLEResolver
+from .resolvers import kle_resolver
 from .resolvers import leave_resolver
 from .resolvers import LimitType
 from .resolvers import ManagerResolver
@@ -897,7 +897,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(KLEResolver())
+        resolve = to_paged_func_uuids(kle_resolver, KLE)
         page = await resolve(
             info=info,
             filter=filter,

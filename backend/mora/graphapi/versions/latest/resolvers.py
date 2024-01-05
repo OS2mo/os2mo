@@ -777,34 +777,31 @@ class ITUserResolver(Resolver):
         )
 
 
-class KLEResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(KLERead)
+async def kle_resolver(
+    info: Info,
+    filter: KLEFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Any:
+    """Resolve kle."""
+    if filter is None:
+        filter = KLEFilter()
 
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        filter: KLEFilter | None = None,
-        limit: LimitType = None,
-        cursor: CursorType = None,
-    ):
-        """Resolve kle."""
-        if filter is None:
-            filter = KLEFilter()
+    await registration_filter(info, filter)
 
-        await registration_filter(info, filter)
+    kwargs = {}
+    if filter.org_units is not None or filter.org_unit is not None:
+        kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
 
-        kwargs = {}
-        if filter.org_units is not None or filter.org_unit is not None:
-            kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
-
-        return await super()._resolve(
-            info=info,
-            filter=filter,
-            limit=limit,
-            cursor=cursor,
-            **kwargs,
-        )
+    return await generic_resolver(
+        KLERead,
+        None,
+        info=info,
+        filter=filter,
+        limit=limit,
+        cursor=cursor,
+        **kwargs,
+    )
 
 
 async def leave_resolver(
