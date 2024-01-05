@@ -78,28 +78,25 @@ def paginate(obj: list[T], cursor: CursorType, limit: LimitType) -> list[T]:
     return obj[cursor.offset :][:limit]
 
 
-class HealthResolver(PagedResolver):
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        filter: HealthFilter | None = None,
-        limit: LimitType = None,
-        cursor: CursorType = None,
-    ):
-        if filter is None:
-            filter = HealthFilter()
+async def health_resolver(
+    filter: HealthFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> list[Health]:
+    if filter is None:
+        filter = HealthFilter()
 
-        healthchecks = set(health_map.keys())
-        if filter.identifiers is not None:
-            healthchecks = healthchecks.intersection(set(filter.identifiers))
+    healthchecks = set(health_map.keys())
+    if filter.identifiers is not None:
+        healthchecks = healthchecks.intersection(set(filter.identifiers))
 
-        healths = paginate(list(healthchecks), cursor, limit)
-        if not healths:
-            context["lora_page_out_of_range"] = True
-        return [
-            Health(identifier=identifier)  # type: ignore[call-arg]
-            for identifier in healths
-        ]
+    healths = paginate(list(healthchecks), cursor, limit)
+    if not healths:
+        context["lora_page_out_of_range"] = True
+    return [
+        Health(identifier=identifier)  # type: ignore[call-arg]
+        for identifier in healths
+    ]
 
 
 class FileResolver(PagedResolver):
@@ -382,7 +379,7 @@ class Query:
     # Health
     # ------
     healths: Paged[Health] = strawberry.field(
-        resolver=to_paged(HealthResolver()),
+        resolver=to_paged_func(health_resolver, Health),
         description="Query healthcheck status.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("health")],
     )
