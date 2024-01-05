@@ -137,26 +137,23 @@ async def file_resolver(
     ]
 
 
-class ConfigurationResolver(PagedResolver):
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        filter: ConfigurationFilter | None = None,
-        limit: LimitType = None,
-        cursor: CursorType = None,
-    ):
-        if filter is None:
-            filter = ConfigurationFilter()
+async def configuration_resolver(
+    filter: ConfigurationFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> list[Configuration]:
+    if filter is None:
+        filter = ConfigurationFilter()
 
-        settings_keys = get_public_settings()
-        if filter.identifiers is not None:
-            settings_keys = settings_keys.intersection(set(filter.identifiers))
+    settings_keys = get_public_settings()
+    if filter.identifiers is not None:
+        settings_keys = settings_keys.intersection(set(filter.identifiers))
 
-        settings = paginate(list(settings_keys), cursor, limit)
-        if not settings:
-            context["lora_page_out_of_range"] = True
+    settings = paginate(list(settings_keys), cursor, limit)
+    if not settings:
+        context["lora_page_out_of_range"] = True
 
-        return [Configuration(key=key) for key in settings]  # type: ignore[call-arg]
+    return [Configuration(key=key) for key in settings]  # type: ignore[call-arg]
 
 
 def to_func_response(model: Any, result: dict[UUID, list[dict]]) -> list[Response]:
@@ -394,7 +391,7 @@ class Query:
     # Configuration
     # -------------
     configuration: Paged[Configuration] = strawberry.field(
-        resolver=to_paged(ConfigurationResolver()),
+        resolver=to_paged_func(configuration_resolver, Configuration),
         description="Get configuration variables.",
         permission_classes=[
             IsAuthenticatedPermission,
