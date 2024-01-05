@@ -44,7 +44,7 @@ from .models import OwnerInferencePriority
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
 from .registration import Registration
-from .registration import RegistrationResolver
+from .registration import registration_resolver
 from .resolver_map import resolver_map
 from .resolvers import address_resolver
 from .resolvers import association_resolver
@@ -645,8 +645,8 @@ class Response(Generic[MOObject]):
             """
         ),
         permission_classes=[IsAuthenticatedPermission],
-        resolver=seed_resolver(
-            RegistrationResolver(),  # type: ignore
+        resolver=seed_resolver_func(
+            registration_resolver,
             {
                 "uuids": lambda root: uuid2list(root.uuid),
                 "models": lambda root: [model2name(root.model)],

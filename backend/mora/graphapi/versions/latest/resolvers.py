@@ -298,10 +298,10 @@ async def registration_filter(info: Info, filter: Any) -> None:
     if filter.registration is None:
         return
 
-    from .registration import RegistrationResolver
+    from .registration import registration_resolver
 
-    uuids = await filter2uuids(
-        RegistrationResolver(),
+    uuids = await filter2uuids_func(
+        registration_resolver,
         info,
         filter.registration,
         lambda objects: [x.uuid for x in objects],

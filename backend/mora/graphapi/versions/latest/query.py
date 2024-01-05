@@ -21,7 +21,7 @@ from .health import health_map
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
 from .registration import Registration
-from .registration import RegistrationResolver
+from .registration import registration_resolver
 from .resolvers import address_resolver
 from .resolvers import association_resolver
 from .resolvers import class_resolver
@@ -408,7 +408,7 @@ class Query:
     )
 
     registrations: Paged[Registration] = strawberry.field(
-        resolver=to_paged(RegistrationResolver()),
+        resolver=to_paged_func(registration_resolver, Registration),
         description=dedent(
             """\
             Get a list of registrations.
