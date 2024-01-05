@@ -10,7 +10,7 @@ from strawberry.types import Info
 
 from ..latest.permissions import gen_read_permission
 from ..latest.permissions import IsAuthenticatedPermission
-from ..latest.query import to_paged
+from ..v17.version import to_paged
 from .registration import Registration
 from .registration import RegistrationResolver
 from .resolvers import AddressResolver

@@ -37,7 +37,6 @@ from .resolvers import LimitType
 from .resolvers import manager_resolver
 from .resolvers import organisation_unit_resolver
 from .resolvers import owner_resolver
-from .resolvers import PagedResolver
 from .resolvers import related_unit_resolver
 from .resolvers import role_resolver
 from .schema import Address
@@ -165,37 +164,6 @@ def to_func_response(model: Any, result: dict[UUID, list[dict]]) -> list[Respons
 
 def to_func_uuids(model: Any, result: dict[UUID, list[dict]]) -> list[UUID]:
     return list(result.keys())
-
-
-def to_paged(resolver: PagedResolver, result_transformer: Callable[[PagedResolver, Any], list[Any]] | None = None):  # type: ignore
-    result_transformer = result_transformer or (lambda _, x: x)
-
-    @wraps(resolver.resolve)
-    async def resolve_response(*args, limit: LimitType, cursor: CursorType, **kwargs):  # type: ignore
-        if limit and cursor is None:
-            cursor = Cursor(
-                offset=0,
-                registration_time=str(now()),
-            )
-
-        result = await resolver.resolve(*args, limit=limit, cursor=cursor, **kwargs)
-
-        end_cursor: CursorType = None
-        if limit and cursor is not None:
-            end_cursor = Cursor(
-                offset=cursor.offset + limit,
-                registration_time=cursor.registration_time,
-            )
-        if context.get("lora_page_out_of_range"):
-            end_cursor = None
-
-        assert result_transformer is not None
-        return Paged(  # type: ignore[call-arg]
-            objects=result_transformer(resolver, result),
-            page_info=PageInfo(next_cursor=end_cursor),  # type: ignore[call-arg]
-        )
-
-    return resolve_response
 
 
 def to_paged_func(resolver_func: Callable, model: Any, result_transformer: Any | None = None):  # type: ignore
