@@ -418,55 +418,51 @@ class ClassResolver(Resolver):
         )
 
 
-class AddressResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(AddressRead)
+async def address_resolver(
+    info: Info,
+    filter: AddressFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Any:
+    """Resolve addresses."""
 
-    async def _get_address_type_uuids(
-        self, info: Info, filter: AddressFilter
-    ) -> list[UUID]:
+    async def _get_address_type_uuids(info: Info, filter: AddressFilter) -> list[UUID]:
         class_filter = filter.address_type or ClassFilter()
         # Handle deprecated filter
         extend_uuids(class_filter, filter.address_types)
         extend_user_keys(class_filter, filter.address_type_user_keys)
         return await filter2uuids(ClassResolver(), info, class_filter)
 
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        filter: AddressFilter | None = None,
-        limit: LimitType = None,
-        cursor: CursorType = None,
+    if filter is None:
+        filter = AddressFilter()
+
+    await registration_filter(info, filter)
+
+    kwargs = {}
+    if filter.employee is not None or filter.employees is not None:
+        kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
+    if filter.org_units is not None or filter.org_unit is not None:
+        kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
+    if filter.engagements is not None or filter.engagement is not None:
+        kwargs["tilknyttedefunktioner"] = await get_engagement_uuids(info, filter)
+    if (
+        filter.address_types is not None
+        or filter.address_type_user_keys is not None
+        or filter.address_type is not None
     ):
-        """Resolve addresses."""
-        if filter is None:
-            filter = AddressFilter()
-
-        await registration_filter(info, filter)
-
-        kwargs = {}
-        if filter.employee is not None or filter.employees is not None:
-            kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
-        if filter.org_units is not None or filter.org_unit is not None:
-            kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
-        if filter.engagements is not None or filter.engagement is not None:
-            kwargs["tilknyttedefunktioner"] = await get_engagement_uuids(info, filter)
-        if (
-            filter.address_types is not None
-            or filter.address_type_user_keys is not None
-            or filter.address_type is not None
-        ):
-            kwargs["organisatoriskfunktionstype"] = await self._get_address_type_uuids(
-                info, filter
-            )
-
-        return await super()._resolve(
-            info=info,
-            filter=filter,
-            limit=limit,
-            cursor=cursor,
-            **kwargs,
+        kwargs["organisatoriskfunktionstype"] = await _get_address_type_uuids(
+            info, filter
         )
+
+    return await generic_resolver(
+        AddressRead,
+        None,
+        info=info,
+        filter=filter,
+        limit=limit,
+        cursor=cursor,
+        **kwargs,
+    )
 
 
 async def association_resolver(

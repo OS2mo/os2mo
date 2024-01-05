@@ -34,7 +34,7 @@ from ..latest.models import FileStore
 from ..latest.query import ConfigurationResolver as NextConfigurationResolver
 from ..latest.query import FileResolver as NextFileResolver
 from ..latest.query import HealthResolver as NextHealthResolver
-from ..latest.resolvers import AddressResolver as NextAddressResolver
+from ..latest.resolvers import address_resolver
 from ..latest.resolvers import association_resolver
 from ..latest.resolvers import ClassResolver as NextClassResolver
 from ..latest.resolvers import CursorType
@@ -55,6 +55,7 @@ from ..latest.resolvers import role_resolver
 from mora.util import CPR
 from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationUnitRead
+from ramodels.mo.details import AddressRead
 from ramodels.mo.details import AssociationRead
 from ramodels.mo.details import EngagementRead
 from ramodels.mo.details import ITSystemRead
@@ -259,7 +260,10 @@ class ClassResolver(NextClassResolver):
         )
 
 
-class AddressResolver(NextAddressResolver):
+class AddressResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(AddressRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -286,7 +290,7 @@ class AddressResolver(NextAddressResolver):
             engagements=engagements,
             org_units=org_units,
         )
-        return await super().resolve(
+        return await address_resolver(
             info=info,
             filter=filter,
             limit=limit,
