@@ -114,44 +114,6 @@ class PagedResolver:
         raise NotImplementedError
 
 
-async def filter2uuids(
-    resolver: PagedResolver,
-    info: Info,
-    filter: BaseFilter,
-    mapper: Callable[[Any], list[UUID]] | None = None,
-) -> list[UUID]:
-    """Resolve into a list of UUIDs with the given filter.
-
-    Args:
-        resolver: The resolver used to resolve filters to UUIDs.
-        info: The strawberry execution context.
-        filter: Filter instance passed to the resolver.
-        mapper: Mapping function from resolver return to UUIDs.
-
-    Returns:
-        A list of UUIDs.
-    """
-    mapper = mapper or (lambda objects: list(objects.keys()))
-
-    # The current resolver implementation disallows combining UUIDs with other filters.
-    # As the UUIDs returned from this function are only used for further filtering,
-    # we can simply return them as-is, bypassing another lookup.
-    # This is purely a performance optimization
-    if filter.uuids is not None:
-        return filter.uuids
-
-    uuids = mapper(await resolver.resolve(info, filter=filter))
-    if uuids:
-        return uuids
-
-    # If the user key(s) were not in found in LoRa, we would return an empty list here.
-    # Unfortunately, filtering a key on an empty list in LoRa is equivalent to _not
-    # filtering on that key at all_. This is obviously very confusing to anyone who has
-    # ever used SQL, but we are too scared to change the behaviour. Instead, to
-    # circumvent this issue, we send a UUID which we know (hope) is never present.
-    return [UUID("00000000-baad-1dea-ca11-fa11fa11c0de")]
-
-
 async def filter2uuids_func(
     resolver_func: Callable,
     info: Info,
