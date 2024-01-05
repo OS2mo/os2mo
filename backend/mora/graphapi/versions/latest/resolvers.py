@@ -221,6 +221,44 @@ async def filter2uuids(
     return [UUID("00000000-baad-1dea-ca11-fa11fa11c0de")]
 
 
+async def filter2uuids_func(
+    resolver_func: Callable,
+    info: Info,
+    filter: BaseFilter,
+    mapper: Callable[[Any], list[UUID]] | None = None,
+) -> list[UUID]:
+    """Resolve into a list of UUIDs with the given filter.
+
+    Args:
+        resolver: The resolver used to resolve filters to UUIDs.
+        info: The strawberry execution context.
+        filter: Filter instance passed to the resolver.
+        mapper: Mapping function from resolver return to UUIDs.
+
+    Returns:
+        A list of UUIDs.
+    """
+    mapper = mapper or (lambda objects: list(objects.keys()))
+
+    # The current resolver implementation disallows combining UUIDs with other filters.
+    # As the UUIDs returned from this function are only used for further filtering,
+    # we can simply return them as-is, bypassing another lookup.
+    # This is purely a performance optimization
+    if filter.uuids is not None:
+        return filter.uuids
+
+    uuids = mapper(await resolver_func(info, filter=filter))
+    if uuids:
+        return uuids
+
+    # If the user key(s) were not in found in LoRa, we would return an empty list here.
+    # Unfortunately, filtering a key on an empty list in LoRa is equivalent to _not
+    # filtering on that key at all_. This is obviously very confusing to anyone who has
+    # ever used SQL, but we are too scared to change the behaviour. Instead, to
+    # circumvent this issue, we send a UUID which we know (hope) is never present.
+    return [UUID("00000000-baad-1dea-ca11-fa11fa11c0de")]
+
+
 def extend_uuids(output_filter: BaseFilter, input: list[UUID] | None) -> None:
     if input is None:
         return
@@ -365,8 +403,8 @@ class ClassResolver(Resolver):
         ):
             kwargs["overordnetklasse"] = await self._get_parent_uuids(info, filter)
         if filter.it_system is not None:
-            kwargs["mapninger"] = await filter2uuids(
-                ITSystemResolver(), info, filter.it_system
+            kwargs["mapninger"] = await filter2uuids_func(
+                it_system_resolver, info, filter.it_system
             )
         if filter.scope is not None:
             kwargs["omfang"] = filter.scope
@@ -711,28 +749,25 @@ class OrganisationUnitResolver(Resolver):
         )
 
 
-class ITSystemResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(ITSystemRead)
+async def it_system_resolver(
+    info: Info,
+    filter: ITSystemFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Any:
+    if filter is None:
+        filter = ITSystemFilter()
 
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        filter: ITSystemFilter | None = None,
-        limit: LimitType = None,
-        cursor: CursorType = None,
-    ):
-        if filter is None:
-            filter = ITSystemFilter()
+    await registration_filter(info, filter)
 
-        await registration_filter(info, filter)
-
-        return await super()._resolve(
-            info=info,
-            filter=filter,
-            limit=limit,
-            cursor=cursor,
-        )
+    return await generic_resolver(
+        ITSystemRead,
+        None,
+        info=info,
+        filter=filter,
+        limit=limit,
+        cursor=cursor,
+    )
 
 
 async def it_user_resolver(
@@ -747,7 +782,7 @@ async def it_user_resolver(
         itsystem_filter = filter.itsystem or ITSystemFilter()
         # Handle deprecated filter
         extend_uuids(itsystem_filter, filter.itsystem_uuids)
-        return await filter2uuids(ITSystemResolver(), info, itsystem_filter)
+        return await filter2uuids_func(it_system_resolver, info, itsystem_filter)
 
     if filter is None:
         filter = ITUserFilter()
