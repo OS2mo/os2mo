@@ -35,7 +35,6 @@ from ..latest.permissions import gen_read_permission
 from ..latest.permissions import IsAuthenticatedPermission
 from ..latest.resolver_map import resolver_map
 from ..latest.schema import force_none_return_wrapper
-from ..latest.schema import identity
 from ..latest.schema import model2name
 from ..latest.schema import MOObject
 from ..latest.schema import R
@@ -91,6 +90,18 @@ from ramodels.mo.details import ManagerRead
 from ramodels.mo.details import OwnerRead
 from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
+
+
+def identity(x: R) -> R:
+    """Identity function.
+
+    Args:
+        x: Random argument.
+
+    Returns:
+        `x` completely unmodified.
+    """
+    return x
 
 
 def seed_resolver(
