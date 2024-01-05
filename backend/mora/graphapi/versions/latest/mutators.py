@@ -131,7 +131,7 @@ from .query import to_paged_func_uuids
 from .query import to_paged_uuids
 from .related_units import update_related_units
 from .resolvers import AddressResolver
-from .resolvers import AssociationResolver
+from .resolvers import association_resolver
 from .resolvers import ClassResolver
 from .resolvers import CursorType
 from .resolvers import employee_resolver
@@ -359,7 +359,7 @@ class Mutation:
         cursor: CursorType = None,
         queue: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(AssociationResolver())
+        resolve = to_paged_func_uuids(association_resolver, Association)
         page = await resolve(
             info=info,
             filter=filter,

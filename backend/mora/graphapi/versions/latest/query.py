@@ -23,7 +23,7 @@ from .permissions import IsAuthenticatedPermission
 from .registration import Registration
 from .registration import RegistrationResolver
 from .resolvers import AddressResolver
-from .resolvers import AssociationResolver
+from .resolvers import association_resolver
 from .resolvers import ClassResolver
 from .resolvers import CursorType
 from .resolvers import employee_resolver
@@ -34,8 +34,8 @@ from .resolvers import it_user_resolver
 from .resolvers import kle_resolver
 from .resolvers import leave_resolver
 from .resolvers import LimitType
-from .resolvers import organisation_unit_resolver
 from .resolvers import manager_resolver
+from .resolvers import organisation_unit_resolver
 from .resolvers import owner_resolver
 from .resolvers import PagedResolver
 from .resolvers import related_unit_resolver
@@ -276,7 +276,7 @@ class Query:
     # Associations
     # ------------
     associations: Paged[Response[Association]] = strawberry.field(
-        resolver=to_paged_response(AssociationResolver()),
+        resolver=to_paged_func_response(association_resolver, Association),
         description="Get associations.",
         permission_classes=[
             IsAuthenticatedPermission,

@@ -35,7 +35,7 @@ from ..latest.query import ConfigurationResolver as NextConfigurationResolver
 from ..latest.query import FileResolver as NextFileResolver
 from ..latest.query import HealthResolver as NextHealthResolver
 from ..latest.resolvers import AddressResolver as NextAddressResolver
-from ..latest.resolvers import AssociationResolver as NextAssociationResolver
+from ..latest.resolvers import association_resolver
 from ..latest.resolvers import ClassResolver as NextClassResolver
 from ..latest.resolvers import CursorType
 from ..latest.resolvers import employee_resolver
@@ -55,6 +55,7 @@ from ..latest.resolvers import role_resolver
 from mora.util import CPR
 from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationUnitRead
+from ramodels.mo.details import AssociationRead
 from ramodels.mo.details import EngagementRead
 from ramodels.mo.details import ITSystemRead
 from ramodels.mo.details import ITUserRead
@@ -293,7 +294,10 @@ class AddressResolver(NextAddressResolver):
         )
 
 
-class AssociationResolver(NextAssociationResolver):
+class AssociationResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(AssociationRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -320,7 +324,7 @@ class AssociationResolver(NextAssociationResolver):
             association_type_user_keys=association_type_user_keys,
             it_association=it_association,
         )
-        return await super().resolve(
+        return await association_resolver(
             info=info,
             filter=filter,
             limit=limit,

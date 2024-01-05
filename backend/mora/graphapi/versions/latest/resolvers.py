@@ -469,12 +469,16 @@ class AddressResolver(Resolver):
         )
 
 
-class AssociationResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(AssociationRead)
+async def association_resolver(
+    info: Info,
+    filter: AssociationFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Any:
+    """Resolve associations."""
 
     async def _get_association_type_uuids(
-        self, info: Info, filter: AssociationFilter
+        info: Info, filter: AssociationFilter
     ) -> list[UUID]:
         class_filter = filter.association_type or ClassFilter()
         # Handle deprecated filter
@@ -482,61 +486,55 @@ class AssociationResolver(Resolver):
         extend_user_keys(class_filter, filter.association_type_user_keys)
         return await filter2uuids(ClassResolver(), info, class_filter)
 
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        filter: AssociationFilter | None = None,
-        limit: LimitType = None,
-        cursor: CursorType = None,
+    if filter is None:
+        filter = AssociationFilter()
+
+    await registration_filter(info, filter)
+
+    kwargs = {}
+    if filter.employee is not None or filter.employees is not None:
+        kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
+    if filter.org_units is not None or filter.org_unit is not None:
+        kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
+    if (
+        filter.association_types is not None
+        or filter.association_type_user_keys is not None
+        or filter.association_type is not None
     ):
-        """Resolve associations."""
-        if filter is None:
-            filter = AssociationFilter()
-
-        await registration_filter(info, filter)
-
-        kwargs = {}
-        if filter.employee is not None or filter.employees is not None:
-            kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
-        if filter.org_units is not None or filter.org_unit is not None:
-            kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
-        if (
-            filter.association_types is not None
-            or filter.association_type_user_keys is not None
-            or filter.association_type is not None
-        ):
-            kwargs[
-                "organisatoriskfunktionstype"
-            ] = await self._get_association_type_uuids(info, filter)
-
-        associations = await super()._resolve(
-            info=info,
-            filter=filter,
-            limit=limit,
-            cursor=cursor,
-            **kwargs,
+        kwargs["organisatoriskfunktionstype"] = await _get_association_type_uuids(
+            info, filter
         )
 
-        if filter.it_association is not None:
-            filtered_data = {}
-            for uuid, association_fields in associations.items():
-                if filter.it_association:
-                    filtered_associations = [
-                        association
-                        for association in association_fields
-                        if association.it_user_uuid is not None
-                    ]
-                else:
-                    filtered_associations = [
-                        association
-                        for association in association_fields
-                        if association.it_user_uuid is None
-                    ]
-                if filtered_associations:
-                    filtered_data[uuid] = filtered_associations
-            associations = filtered_data
+    associations = await generic_resolver(
+        AssociationRead,
+        None,
+        info=info,
+        filter=filter,
+        limit=limit,
+        cursor=cursor,
+        **kwargs,
+    )
 
-        return associations
+    if filter.it_association is not None:
+        filtered_data = {}
+        for uuid, association_fields in associations.items():
+            if filter.it_association:
+                filtered_associations = [
+                    association
+                    for association in association_fields
+                    if association.it_user_uuid is not None
+                ]
+            else:
+                filtered_associations = [
+                    association
+                    for association in association_fields
+                    if association.it_user_uuid is None
+                ]
+            if filtered_associations:
+                filtered_data[uuid] = filtered_associations
+        associations = filtered_data
+
+    return associations
 
 
 async def employee_resolver(
