@@ -12,10 +12,10 @@ from ..latest.filters import gen_filter_table
 from ..latest.filters import RegistrationFilter
 from ..latest.registration import Registration
 from ..latest.registration import registration_resolver
-from ..latest.resolvers import PagedResolver
 from .resolvers import CursorType
 from .resolvers import FromDateFilterType
 from .resolvers import LimitType
+from .resolvers import PagedResolver
 from .resolvers import ToDateFilterType
 from .resolvers import UUIDsFilterType
 
