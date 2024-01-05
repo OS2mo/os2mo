@@ -44,25 +44,24 @@ from .models import OwnerInferencePriority
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
 from .registration import Registration
-from .registration import RegistrationResolver
+from .registration import registration_resolver
 from .resolver_map import resolver_map
-from .resolvers import AddressResolver
-from .resolvers import AssociationResolver
-from .resolvers import ClassResolver
+from .resolvers import address_resolver
+from .resolvers import association_resolver
+from .resolvers import class_resolver
 from .resolvers import CursorType
-from .resolvers import EmployeeResolver
-from .resolvers import EngagementResolver
-from .resolvers import FacetResolver
-from .resolvers import ITSystemResolver
-from .resolvers import ITUserResolver
-from .resolvers import KLEResolver
-from .resolvers import LeaveResolver
-from .resolvers import ManagerResolver
-from .resolvers import OrganisationUnitResolver
-from .resolvers import OwnerResolver
-from .resolvers import RelatedUnitResolver
-from .resolvers import Resolver
-from .resolvers import RoleResolver
+from .resolvers import employee_resolver
+from .resolvers import engagement_resolver
+from .resolvers import facet_resolver
+from .resolvers import it_system_resolver
+from .resolvers import it_user_resolver
+from .resolvers import kle_resolver
+from .resolvers import leave_resolver
+from .resolvers import manager_resolver
+from .resolvers import organisation_unit_resolver
+from .resolvers import owner_resolver
+from .resolvers import related_unit_resolver
+from .resolvers import role_resolver
 from .types import CPRType
 from .validity import OpenValidity
 from .validity import Validity
@@ -103,18 +102,6 @@ from ramodels.mo.details import RoleRead
 
 MOObject = TypeVar("MOObject")
 R = TypeVar("R")
-
-
-def identity(x: R) -> R:
-    """Identity function.
-
-    Args:
-        x: Random argument.
-
-    Returns:
-        `x` completely unmodified.
-    """
-    return x
 
 
 def raise_force_none_return_if_uuid_none(
@@ -204,18 +191,17 @@ def get_bound_filter(
     return strawberry.input(bound_filter_class)
 
 
-def seed_resolver(
-    resolver: Resolver,
+def seed_resolver_func(
+    resolver_func: Callable[..., Awaitable[R]],
     seeds: dict[str, Callable[[Any], Any]] | None = None,
-    result_translation: Callable[[Any], R] | None = None,
 ) -> Callable[..., Awaitable[R]]:
-    """Seed the provided top-level resolver to be used in a field-level context.
+    """Seed the provided resolver function to be used in a field-level context.
 
-    This function serves to create a new function which calls the `resolver.resolve`
-    method with seeded `filter` values from the field-context in which it is called.
+    This function serves to create a new function which calls the provided resolver
+    function with a seeded `filter` values from the field-context in which it is called.
 
     Example:
-        A resolver exists to load organisation units, namely `OrganisationUnitResolver`.
+        A resolver exists to load organisation units, namely `organisation_unit_resolver`.
         This resolver accepts a `filter` parameter with a `parents` field, which, given
         a UUID of an existing organisation unit, loads all of its children.
 
@@ -231,38 +217,29 @@ def seed_resolver(
         child_count: int = strawberry.field(
             description="Children count of the organisation unit.",
             resolver=seed_resolver(
-                OrganisationUnitResolver(),
+                organisation_unit_resolver,
                 {"parents": lambda root: [root.uuid]},
-                lambda result: len(result.keys()),
             ),
             ...
         )
         ```
-        In this example a `result_translation` lambda is also used to map from the list
-        of OrganisationUnits returned by the resolver to the number of children found.
 
     Args:
-        resolver: The top-level resolver to seed arguments to.
+        resolver_func: The top-level resolver function to seed arguments to.
         seeds:
             A dictionary mapping from parameter name to callables resolving the argument
             values from the root object.
-        result_translation:
-            A result translation callable translating the resolver return value
-            from one type to another. Uses the identity function if not provided.
 
     Returns:
-        A seeded resolver function that accepts the same parameters as the
-        `resolver.resolve` function, except with a new `filter` object type with the
-        `seeds` keys removed as fields, and a `root` parameter with the 'any' type
-        added.
+        A seeded resolver function that accepts the same parameters as `resolver_func`,
+        except with a new `filter` object type with the `seeds` keys removed as fields,
+        and a `root` parameter with the 'any' type added.
     """
     # If no seeds was provided, default to the empty dict
     seeds = seeds or {}
-    # If no result_translation function was provided, default to the identity function
-    result_translation = result_translation or identity
 
     # Extract the original `filter` class from the provided resolver
-    sig = signature(resolver.resolve)
+    sig = signature(resolver_func)
     parameters = sig.parameters.copy()
     original_filter_parameter = parameters.pop("filter")
     original_filter_type = typing.get_args(original_filter_parameter.annotation)
@@ -307,9 +284,7 @@ def seed_resolver(
         # Create an instance of the original filter, as expected by the resolver
         filter = original_filter_class(**filter_args)
         assert "filter" not in kwargs
-        result = await resolver.resolve(*args, filter=filter, **kwargs)  # type: ignore[misc]
-        assert result_translation is not None
-        return result_translation(result)
+        return await resolver_func(*args, filter=filter, **kwargs)  # type: ignore[misc]
 
     # Generate and apply our new signature to the seeded_resolver function. The `root`
     # parameter is required for all the `seeds` resolvers to determine call-time
@@ -327,20 +302,26 @@ def seed_resolver(
     return seeded_resolver
 
 
-# seed_resolver functions pre-seeded with result_translation functions assuming that
-# only a single UUID will be returned, converting the objects list to either a list or
-# an optional entity.
-seed_resolver_list: Callable[..., Any] = partial(
-    seed_resolver,
-    result_translation=lambda result: list(chain.from_iterable(result.values())),
+def result_translation(mapper: Callable) -> Callable:
+    def wrapper(resolver_func: Callable) -> Callable:
+        @wraps(resolver_func)
+        async def mapped_resolver(*args: Any, **kwargs: Any) -> Any:
+            result = await resolver_func(*args, **kwargs)
+            return mapper(result)
+
+        return mapped_resolver
+
+    return wrapper
+
+
+to_list = result_translation(
+    lambda result: list(chain.from_iterable(result.values())),
 )
-seed_resolver_only: Callable[..., Any] = partial(
-    seed_resolver,
-    result_translation=lambda result: only(chain.from_iterable(result.values())),
+to_only = result_translation(
+    lambda result: only(chain.from_iterable(result.values())),
 )
-seed_resolver_one: Callable[..., Any] = partial(
-    seed_resolver,
-    result_translation=lambda result: one(chain.from_iterable(result.values())),
+to_one = result_translation(
+    lambda result: one(chain.from_iterable(result.values())),
 )
 
 
@@ -510,8 +491,8 @@ class Response(Generic[MOObject]):
             """
         ),
         permission_classes=[IsAuthenticatedPermission],
-        resolver=seed_resolver(
-            RegistrationResolver(),  # type: ignore
+        resolver=seed_resolver_func(
+            registration_resolver,
             {
                 "uuids": lambda root: uuid2list(root.uuid),
                 "models": lambda root: [model2name(root.model)],
@@ -721,8 +702,10 @@ class DARAddress(ResolvedAddress):
 )
 class Address:
     address_type: LazyClass = strawberry.field(
-        resolver=seed_resolver_one(
-            ClassResolver(), {"uuids": lambda root: [root.address_type_uuid]}
+        resolver=to_one(
+            seed_resolver_func(
+                class_resolver, {"uuids": lambda root: [root.address_type_uuid]}
+            )
         ),
         description=dedent(
             """\
@@ -746,8 +729,10 @@ class Address:
     )
 
     visibility: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.visibility_uuid)}
+        resolver=to_only(
+            seed_resolver_func(
+                class_resolver, {"uuids": lambda root: uuid2list(root.visibility_uuid)}
+            )
         ),
         description=dedent(
             """\
@@ -774,14 +759,16 @@ class Address:
 
     employee: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                EmployeeResolver(),
-                {
-                    "uuids": partial(
-                        raise_force_none_return_if_uuid_none,
-                        get_uuid=lambda root: root.employee_uuid,
-                    )
-                },
+            to_list(
+                seed_resolver_func(
+                    employee_resolver,
+                    {
+                        "uuids": partial(
+                            raise_force_none_return_if_uuid_none,
+                            get_uuid=lambda root: root.employee_uuid,
+                        )
+                    },
+                )
             ),
         ),
         description=dedent(
@@ -799,14 +786,16 @@ class Address:
 
     person: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                EmployeeResolver(),
-                {
-                    "uuids": partial(
-                        raise_force_none_return_if_uuid_none,
-                        get_uuid=lambda root: root.employee_uuid,
-                    )
-                },
+            to_list(
+                seed_resolver_func(
+                    employee_resolver,
+                    {
+                        "uuids": partial(
+                            raise_force_none_return_if_uuid_none,
+                            get_uuid=lambda root: root.employee_uuid,
+                        )
+                    },
+                )
             ),
         ),
         description=dedent(
@@ -823,14 +812,16 @@ class Address:
 
     org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                OrganisationUnitResolver(),
-                {
-                    "uuids": partial(
-                        raise_force_none_return_if_uuid_none,
-                        get_uuid=lambda root: root.org_unit_uuid,
-                    )
-                },
+            to_list(
+                seed_resolver_func(
+                    organisation_unit_resolver,
+                    {
+                        "uuids": partial(
+                            raise_force_none_return_if_uuid_none,
+                            get_uuid=lambda root: root.org_unit_uuid,
+                        )
+                    },
+                )
             ),
         ),
         description=dedent(
@@ -846,14 +837,16 @@ class Address:
 
     engagement: list[LazyEngagement] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                EngagementResolver(),
-                {
-                    "uuids": partial(
-                        raise_force_none_return_if_uuid_none,
-                        get_uuid=lambda root: root.engagement_uuid,
-                    )
-                },
+            to_list(
+                seed_resolver_func(
+                    engagement_resolver,
+                    {
+                        "uuids": partial(
+                            raise_force_none_return_if_uuid_none,
+                            get_uuid=lambda root: root.engagement_uuid,
+                        )
+                    },
+                )
             )
         ),
         description=dedent(
@@ -1108,9 +1101,11 @@ class Address:
 )
 class Association:
     association_type: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(),
-            {"uuids": lambda root: uuid2list(root.association_type_uuid)},
+        resolver=to_only(
+            seed_resolver_func(
+                class_resolver,
+                {"uuids": lambda root: uuid2list(root.association_type_uuid)},
+            )
         ),
         description=dedent(
             """\
@@ -1126,8 +1121,11 @@ class Association:
     )
 
     dynamic_class: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.dynamic_class_uuid)}
+        resolver=to_only(
+            seed_resolver_func(
+                class_resolver,
+                {"uuids": lambda root: uuid2list(root.dynamic_class_uuid)},
+            )
         ),
         # TODO: Document this
         # https://git.magenta.dk/rammearkitektur/os2mo/-/merge_requests/1694#note_216859
@@ -1149,8 +1147,10 @@ class Association:
     )
 
     primary: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.primary_uuid)}
+        resolver=to_only(
+            seed_resolver_func(
+                class_resolver, {"uuids": lambda root: uuid2list(root.primary_uuid)}
+            )
         ),
         description=dedent(
             """\
@@ -1176,8 +1176,10 @@ class Association:
     )
 
     employee: list[LazyEmployee] = strawberry.field(
-        resolver=seed_resolver_list(
-            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        resolver=to_list(
+            seed_resolver_func(
+                employee_resolver, {"uuids": lambda root: uuid2list(root.employee_uuid)}
+            )
         ),
         description=dedent(
             """\
@@ -1190,8 +1192,10 @@ class Association:
     )
 
     person: list[LazyEmployee] = strawberry.field(
-        resolver=seed_resolver_list(
-            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        resolver=to_list(
+            seed_resolver_func(
+                employee_resolver, {"uuids": lambda root: uuid2list(root.employee_uuid)}
+            )
         ),
         description=dedent(
             """\
@@ -1203,9 +1207,11 @@ class Association:
     )
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
-        resolver=seed_resolver_list(
-            OrganisationUnitResolver(),
-            {"uuids": lambda root: [root.org_unit_uuid]},
+        resolver=to_list(
+            seed_resolver_func(
+                organisation_unit_resolver,
+                {"uuids": lambda root: [root.org_unit_uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -1217,8 +1223,11 @@ class Association:
     )
 
     substitute: list[LazyEmployee] = strawberry.field(
-        resolver=seed_resolver_list(
-            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.substitute_uuid)}
+        resolver=to_list(
+            seed_resolver_func(
+                employee_resolver,
+                {"uuids": lambda root: uuid2list(root.substitute_uuid)},
+            )
         ),
         description=dedent(
             """\
@@ -1230,8 +1239,11 @@ class Association:
     )
 
     job_function: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.job_function_uuid)}
+        resolver=to_only(
+            seed_resolver_func(
+                class_resolver,
+                {"uuids": lambda root: uuid2list(root.job_function_uuid)},
+            )
         ),
         description=dedent(
             """\
@@ -1247,8 +1259,10 @@ class Association:
     )
 
     it_user: list[LazyITUser] = strawberry.field(
-        resolver=seed_resolver_list(
-            ITUserResolver(), {"uuids": lambda root: uuid2list(root.it_user_uuid)}
+        resolver=to_list(
+            seed_resolver_func(
+                it_user_resolver, {"uuids": lambda root: uuid2list(root.it_user_uuid)}
+            )
         ),
         description=dedent(
             """\
@@ -1405,8 +1419,10 @@ class Association:
 )
 class Class:
     parent: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.parent_uuid)}
+        resolver=to_only(
+            seed_resolver_func(
+                class_resolver, {"uuids": lambda root: uuid2list(root.parent_uuid)}
+            )
         ),
         description=dedent(
             """\
@@ -1422,9 +1438,11 @@ class Class:
     )
 
     children: list[LazyClass] = strawberry.field(
-        resolver=seed_resolver_list(
-            ClassResolver(),
-            {"parents": lambda root: [root.uuid]},
+        resolver=to_list(
+            seed_resolver_func(
+                class_resolver,
+                {"parents": lambda root: [root.uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -1440,8 +1458,10 @@ class Class:
     )
 
     facet: LazyFacet = strawberry.field(
-        resolver=seed_resolver_one(
-            FacetResolver(), {"uuids": lambda root: [root.facet_uuid]}
+        resolver=to_one(
+            seed_resolver_func(
+                facet_resolver, {"uuids": lambda root: [root.facet_uuid]}
+            )
         ),
         description=dedent(
             """\
@@ -1483,8 +1503,11 @@ class Class:
         return await Class.top_level_facet(self=self, root=parent_node, info=info)
 
     it_system: LazyITSystem | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ITSystemResolver(), {"uuids": lambda root: uuid2list(root.it_system_uuid)}
+        resolver=to_only(
+            seed_resolver_func(
+                it_system_resolver,
+                {"uuids": lambda root: uuid2list(root.it_system_uuid)},
+            )
         ),
         description=dedent(
             """\
@@ -1717,9 +1740,11 @@ class Employee:
         return root.user_key
 
     engagements: list[LazyEngagement] = strawberry.field(
-        resolver=seed_resolver_list(
-            EngagementResolver(),
-            {"employees": lambda root: [root.uuid]},
+        resolver=to_list(
+            seed_resolver_func(
+                engagement_resolver,
+                {"employees": lambda root: [root.uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -1735,9 +1760,11 @@ class Employee:
     )
 
     manager_roles: list[LazyManager] = strawberry.field(
-        resolver=seed_resolver_list(
-            ManagerResolver(),
-            {"employees": lambda root: [root.uuid]},
+        resolver=to_list(
+            seed_resolver_func(
+                manager_resolver,
+                {"employees": lambda root: [root.uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -1750,9 +1777,11 @@ class Employee:
     )
 
     addresses: list[LazyAddress] = strawberry.field(
-        resolver=seed_resolver_list(
-            AddressResolver(),
-            {"employees": lambda root: [root.uuid]},
+        resolver=to_list(
+            seed_resolver_func(
+                address_resolver,
+                {"employees": lambda root: [root.uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -1771,9 +1800,11 @@ class Employee:
     )
 
     leaves: list[LazyLeave] = strawberry.field(
-        resolver=seed_resolver_list(
-            LeaveResolver(),
-            {"employees": lambda root: [root.uuid]},
+        resolver=to_list(
+            seed_resolver_func(
+                leave_resolver,
+                {"employees": lambda root: [root.uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -1786,9 +1817,11 @@ class Employee:
     )
 
     associations: list[LazyAssociation] = strawberry.field(
-        resolver=seed_resolver_list(
-            AssociationResolver(),
-            {"employees": lambda root: [root.uuid]},
+        resolver=to_list(
+            seed_resolver_func(
+                association_resolver,
+                {"employees": lambda root: [root.uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -1804,9 +1837,11 @@ class Employee:
     )
 
     roles: list[LazyRole] = strawberry.field(
-        resolver=seed_resolver_list(
-            RoleResolver(),
-            {"employees": lambda root: [root.uuid]},
+        resolver=to_list(
+            seed_resolver_func(
+                role_resolver,
+                {"employees": lambda root: [root.uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -1819,9 +1854,11 @@ class Employee:
     )
 
     itusers: list[LazyITUser] = strawberry.field(
-        resolver=seed_resolver_list(
-            ITUserResolver(),
-            {"employees": lambda root: [root.uuid]},
+        resolver=to_list(
+            seed_resolver_func(
+                it_user_resolver,
+                {"employees": lambda root: [root.uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -2035,9 +2072,11 @@ class Engagement:
         return root.user_key
 
     engagement_type: LazyClass = strawberry.field(
-        resolver=seed_resolver_one(
-            ClassResolver(),
-            {"uuids": lambda root: [root.engagement_type_uuid]},
+        resolver=to_one(
+            seed_resolver_func(
+                class_resolver,
+                {"uuids": lambda root: [root.engagement_type_uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -2053,9 +2092,11 @@ class Engagement:
     )
 
     job_function: LazyClass = strawberry.field(
-        resolver=seed_resolver_one(
-            ClassResolver(),
-            {"uuids": lambda root: [root.job_function_uuid]},
+        resolver=to_one(
+            seed_resolver_func(
+                class_resolver,
+                {"uuids": lambda root: [root.job_function_uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -2071,8 +2112,10 @@ class Engagement:
     )
 
     primary: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.primary_uuid)}
+        resolver=to_only(
+            seed_resolver_func(
+                class_resolver, {"uuids": lambda root: uuid2list(root.primary_uuid)}
+            )
         ),
         description=dedent(
             """\
@@ -2114,16 +2157,20 @@ class Engagement:
         return await is_class_uuid_primary(str(root.primary_uuid))
 
     leave: LazyLeave | None = strawberry.field(
-        resolver=seed_resolver_only(
-            LeaveResolver(), {"uuids": lambda root: uuid2list(root.leave_uuid)}
+        resolver=to_only(
+            seed_resolver_func(
+                leave_resolver, {"uuids": lambda root: uuid2list(root.leave_uuid)}
+            )
         ),
         description="Related leave",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
 
     employee: list[LazyEmployee] = strawberry.field(
-        resolver=seed_resolver_list(
-            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        resolver=to_list(
+            seed_resolver_func(
+                employee_resolver, {"uuids": lambda root: uuid2list(root.employee_uuid)}
+            )
         ),
         description=dedent(
             """\
@@ -2136,8 +2183,10 @@ class Engagement:
     )
 
     person: list[LazyEmployee] = strawberry.field(
-        resolver=seed_resolver_list(
-            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        resolver=to_list(
+            seed_resolver_func(
+                employee_resolver, {"uuids": lambda root: uuid2list(root.employee_uuid)}
+            )
         ),
         description=dedent(
             """\
@@ -2149,9 +2198,11 @@ class Engagement:
     )
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
-        resolver=seed_resolver_list(
-            OrganisationUnitResolver(),
-            {"uuids": lambda root: uuid2list(root.org_unit_uuid)},
+        resolver=to_list(
+            seed_resolver_func(
+                organisation_unit_resolver,
+                {"uuids": lambda root: uuid2list(root.org_unit_uuid)},
+            )
         ),
         description=dedent(
             """\
@@ -2281,16 +2332,18 @@ class Engagement:
 )
 class Facet:
     classes: list[LazyClass] = strawberry.field(
-        resolver=seed_resolver_list(
-            ClassResolver(), {"facets": lambda root: [root.uuid]}
+        resolver=to_list(
+            seed_resolver_func(class_resolver, {"facets": lambda root: [root.uuid]})
         ),
         description="Associated classes",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
     parent: LazyFacet | None = strawberry.field(
-        resolver=seed_resolver_only(
-            FacetResolver(), {"uuids": lambda root: uuid2list(root.parent_uuid)}
+        resolver=to_only(
+            seed_resolver_func(
+                facet_resolver, {"uuids": lambda root: uuid2list(root.parent_uuid)}
+            )
         ),
         description=dedent(
             """\
@@ -2306,9 +2359,11 @@ class Facet:
     )
 
     children: list[LazyFacet] = strawberry.field(
-        resolver=seed_resolver_list(
-            FacetResolver(),
-            {"parents": lambda root: [root.uuid]},
+        resolver=to_list(
+            seed_resolver_func(
+                facet_resolver,
+                {"parents": lambda root: [root.uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -2522,14 +2577,16 @@ class ITUser:
 
     employee: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                EmployeeResolver(),
-                {
-                    "uuids": partial(
-                        raise_force_none_return_if_uuid_none,
-                        get_uuid=lambda root: root.employee_uuid,
-                    )
-                },
+            to_list(
+                seed_resolver_func(
+                    employee_resolver,
+                    {
+                        "uuids": partial(
+                            raise_force_none_return_if_uuid_none,
+                            get_uuid=lambda root: root.employee_uuid,
+                        )
+                    },
+                )
             ),
         ),
         description=dedent(
@@ -2547,14 +2604,16 @@ class ITUser:
 
     person: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                EmployeeResolver(),
-                {
-                    "uuids": partial(
-                        raise_force_none_return_if_uuid_none,
-                        get_uuid=lambda root: root.employee_uuid,
-                    )
-                },
+            to_list(
+                seed_resolver_func(
+                    employee_resolver,
+                    {
+                        "uuids": partial(
+                            raise_force_none_return_if_uuid_none,
+                            get_uuid=lambda root: root.employee_uuid,
+                        )
+                    },
+                )
             ),
         ),
         description=dedent(
@@ -2571,14 +2630,16 @@ class ITUser:
 
     org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                OrganisationUnitResolver(),
-                {
-                    "uuids": partial(
-                        raise_force_none_return_if_uuid_none,
-                        get_uuid=lambda root: root.org_unit_uuid,
-                    )
-                },
+            to_list(
+                seed_resolver_func(
+                    organisation_unit_resolver,
+                    {
+                        "uuids": partial(
+                            raise_force_none_return_if_uuid_none,
+                            get_uuid=lambda root: root.org_unit_uuid,
+                        )
+                    },
+                )
             ),
         ),
         description=dedent(
@@ -2597,14 +2658,16 @@ class ITUser:
 
     engagement: list[LazyEngagement] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                EngagementResolver(),
-                {
-                    "uuids": partial(
-                        raise_force_none_return_if_uuid_none,
-                        get_uuid=lambda root: root.engagement_uuid,
-                    )
-                },
+            to_list(
+                seed_resolver_func(
+                    engagement_resolver,
+                    {
+                        "uuids": partial(
+                            raise_force_none_return_if_uuid_none,
+                            get_uuid=lambda root: root.engagement_uuid,
+                        )
+                    },
+                )
             ),
         ),
         description=dedent(
@@ -2623,8 +2686,10 @@ class ITUser:
     )
 
     itsystem: LazyITSystem = strawberry.field(
-        resolver=seed_resolver_one(
-            ITSystemResolver(), {"uuids": lambda root: [root.itsystem_uuid]}
+        resolver=to_one(
+            seed_resolver_func(
+                it_system_resolver, {"uuids": lambda root: [root.itsystem_uuid]}
+            )
         ),
         description=dedent(
             """\
@@ -2635,8 +2700,10 @@ class ITUser:
     )
 
     primary: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.primary_uuid)}
+        resolver=to_only(
+            seed_resolver_func(
+                class_resolver, {"uuids": lambda root: uuid2list(root.primary_uuid)}
+            )
         ),
         description=dedent(
             """\
@@ -2789,8 +2856,10 @@ class ITUser:
 )
 class KLE:
     kle_number: LazyClass = strawberry.field(
-        resolver=seed_resolver_one(
-            ClassResolver(), {"uuids": lambda root: [root.kle_number_uuid]}
+        resolver=to_one(
+            seed_resolver_func(
+                class_resolver, {"uuids": lambda root: [root.kle_number_uuid]}
+            )
         ),
         description=dedent(
             """\
@@ -2803,9 +2872,11 @@ class KLE:
     )
 
     kle_aspects: list[LazyClass] = strawberry.field(
-        resolver=seed_resolver_list(
-            ClassResolver(),
-            {"uuids": lambda root: root.kle_aspect_uuids or []},
+        resolver=to_list(
+            seed_resolver_func(
+                class_resolver,
+                {"uuids": lambda root: root.kle_aspect_uuids or []},
+            )
         ),
         description=dedent(
             """\
@@ -2824,14 +2895,16 @@ class KLE:
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                OrganisationUnitResolver(),
-                {
-                    "uuids": partial(
-                        raise_force_none_return_if_uuid_none,
-                        get_uuid=lambda root: root.org_unit_uuid,
-                    )
-                },
+            to_list(
+                seed_resolver_func(
+                    organisation_unit_resolver,
+                    {
+                        "uuids": partial(
+                            raise_force_none_return_if_uuid_none,
+                            get_uuid=lambda root: root.org_unit_uuid,
+                        )
+                    },
+                )
             ),
         ),
         description=dedent(
@@ -2923,8 +2996,10 @@ class KLE:
 )
 class Leave:
     leave_type: LazyClass = strawberry.field(
-        resolver=seed_resolver_one(
-            ClassResolver(), {"uuids": lambda root: [root.leave_type_uuid]}
+        resolver=to_one(
+            seed_resolver_func(
+                class_resolver, {"uuids": lambda root: [root.leave_type_uuid]}
+            )
         ),
         description=dedent(
             """\
@@ -2941,8 +3016,10 @@ class Leave:
     )
 
     employee: list[LazyEmployee] = strawberry.field(
-        resolver=seed_resolver_list(
-            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        resolver=to_list(
+            seed_resolver_func(
+                employee_resolver, {"uuids": lambda root: uuid2list(root.employee_uuid)}
+            )
         ),
         description=dedent(
             """\
@@ -2955,8 +3032,10 @@ class Leave:
     )
 
     person: list[LazyEmployee] = strawberry.field(
-        resolver=seed_resolver_list(
-            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        resolver=to_list(
+            seed_resolver_func(
+                employee_resolver, {"uuids": lambda root: uuid2list(root.employee_uuid)}
+            )
         ),
         description=dedent(
             """\
@@ -2968,9 +3047,11 @@ class Leave:
     )
 
     engagement: LazyEngagement = strawberry.field(
-        resolver=seed_resolver_only(
-            EngagementResolver(),
-            {"uuids": lambda root: [root.engagement_uuid]},
+        resolver=to_only(
+            seed_resolver_func(
+                engagement_resolver,
+                {"uuids": lambda root: [root.engagement_uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -3047,8 +3128,11 @@ class Leave:
 )
 class Manager:
     manager_type: LazyClass = strawberry.field(
-        resolver=seed_resolver_one(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.manager_type_uuid)}
+        resolver=to_one(
+            seed_resolver_func(
+                class_resolver,
+                {"uuids": lambda root: uuid2list(root.manager_type_uuid)},
+            )
         ),
         description=dedent(
             """\
@@ -3064,8 +3148,11 @@ class Manager:
     )
 
     manager_level: LazyClass = strawberry.field(
-        resolver=seed_resolver_one(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.manager_level_uuid)}
+        resolver=to_one(
+            seed_resolver_func(
+                class_resolver,
+                {"uuids": lambda root: uuid2list(root.manager_level_uuid)},
+            )
         ),
         # TODO: Check production system values
         description=dedent(
@@ -3082,9 +3169,11 @@ class Manager:
     )
 
     responsibilities: list[LazyClass] = strawberry.field(
-        resolver=seed_resolver_list(
-            ClassResolver(),
-            {"uuids": lambda root: root.responsibility_uuids or []},
+        resolver=to_list(
+            seed_resolver_func(
+                class_resolver,
+                {"uuids": lambda root: root.responsibility_uuids or []},
+            )
         ),
         description=dedent(
             """\
@@ -3101,14 +3190,16 @@ class Manager:
 
     employee: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                EmployeeResolver(),
-                {
-                    "uuids": partial(
-                        raise_force_none_return_if_uuid_none,
-                        get_uuid=lambda root: root.employee_uuid,
-                    )
-                },
+            to_list(
+                seed_resolver_func(
+                    employee_resolver,
+                    {
+                        "uuids": partial(
+                            raise_force_none_return_if_uuid_none,
+                            get_uuid=lambda root: root.employee_uuid,
+                        )
+                    },
+                )
             ),
         ),
         description=dedent(
@@ -3125,14 +3216,16 @@ class Manager:
 
     person: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                EmployeeResolver(),
-                {
-                    "uuids": partial(
-                        raise_force_none_return_if_uuid_none,
-                        get_uuid=lambda root: root.employee_uuid,
-                    )
-                },
+            to_list(
+                seed_resolver_func(
+                    employee_resolver,
+                    {
+                        "uuids": partial(
+                            raise_force_none_return_if_uuid_none,
+                            get_uuid=lambda root: root.employee_uuid,
+                        )
+                    },
+                )
             ),
         ),
         description=dedent(
@@ -3147,9 +3240,11 @@ class Manager:
     )
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
-        resolver=seed_resolver_list(
-            OrganisationUnitResolver(),
-            {"uuids": lambda root: [root.org_unit_uuid]},
+        resolver=to_list(
+            seed_resolver_func(
+                organisation_unit_resolver,
+                {"uuids": lambda root: [root.org_unit_uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -3261,14 +3356,16 @@ class Owner:
 
     org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                OrganisationUnitResolver(),
-                {
-                    "uuids": partial(
-                        raise_force_none_return_if_uuid_none,
-                        get_uuid=lambda root: root.org_unit_uuid,
-                    )
-                },
+            to_list(
+                seed_resolver_func(
+                    organisation_unit_resolver,
+                    {
+                        "uuids": partial(
+                            raise_force_none_return_if_uuid_none,
+                            get_uuid=lambda root: root.org_unit_uuid,
+                        )
+                    },
+                )
             ),
         ),
         description=dedent(
@@ -3292,14 +3389,16 @@ class Owner:
 
     person: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                EmployeeResolver(),
-                {
-                    "uuids": partial(
-                        raise_force_none_return_if_uuid_none,
-                        get_uuid=lambda root: root.employee_uuid,
-                    )
-                },
+            to_list(
+                seed_resolver_func(
+                    employee_resolver,
+                    {
+                        "uuids": partial(
+                            raise_force_none_return_if_uuid_none,
+                            get_uuid=lambda root: root.employee_uuid,
+                        )
+                    },
+                )
             ),
         ),
         description=dedent(
@@ -3323,14 +3422,16 @@ class Owner:
 
     owner: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
-            seed_resolver_list(
-                EmployeeResolver(),
-                {
-                    "uuids": partial(
-                        raise_force_none_return_if_uuid_none,
-                        get_uuid=lambda root: root.owner_uuid,
-                    )
-                },
+            to_list(
+                seed_resolver_func(
+                    employee_resolver,
+                    {
+                        "uuids": partial(
+                            raise_force_none_return_if_uuid_none,
+                            get_uuid=lambda root: root.owner_uuid,
+                        )
+                    },
+                )
             ),
         ),
         description=dedent(
@@ -3473,9 +3574,11 @@ class Organisation:
 )
 class OrganisationUnit:
     parent: LazyOrganisationUnit | None = strawberry.field(
-        resolver=seed_resolver_only(
-            OrganisationUnitResolver(),
-            {"uuids": lambda root: uuid2list(root.parent_uuid)},
+        resolver=to_only(
+            seed_resolver_func(
+                organisation_unit_resolver,
+                {"uuids": lambda root: uuid2list(root.parent_uuid)},
+            )
         ),
         description=dedent(
             """\
@@ -3511,9 +3614,11 @@ class OrganisationUnit:
         return [parent] + ancestors
 
     children: list[LazyOrganisationUnit] = strawberry.field(
-        resolver=seed_resolver_list(
-            OrganisationUnitResolver(),
-            {"parents": lambda root: [root.uuid]},
+        resolver=to_list(
+            seed_resolver_func(
+                organisation_unit_resolver,
+                {"parents": lambda root: [root.uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -3526,10 +3631,11 @@ class OrganisationUnit:
     child_count: int = strawberry.field(
         resolver=cast(
             Callable[..., Any],
-            seed_resolver(
-                OrganisationUnitResolver(),
-                {"parents": lambda root: [root.uuid]},
-                lambda result: len(result.keys()),
+            result_translation(lambda result: len(result.keys()))(
+                seed_resolver_func(
+                    organisation_unit_resolver,
+                    {"parents": lambda root: [root.uuid]},
+                ),
             ),
         ),
         description="Children count of the organisation unit.",
@@ -3546,8 +3652,11 @@ class OrganisationUnit:
     # TODO: Add _uuid suffix to RAModel and remove _model suffix here
     # TODO: Should this be a list?
     org_unit_hierarchy_model: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.org_unit_hierarchy)}
+        resolver=to_only(
+            seed_resolver_func(
+                class_resolver,
+                {"uuids": lambda root: uuid2list(root.org_unit_hierarchy)},
+            )
         ),
         description=dedent(
             """\
@@ -3569,8 +3678,10 @@ class OrganisationUnit:
     )
 
     unit_type: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.unit_type_uuid)}
+        resolver=to_only(
+            seed_resolver_func(
+                class_resolver, {"uuids": lambda root: uuid2list(root.unit_type_uuid)}
+            )
         ),
         description=dedent(
             """\
@@ -3597,8 +3708,11 @@ class OrganisationUnit:
 
     # TODO: Remove org prefix from RAModel and remove it here too
     org_unit_level: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.org_unit_level_uuid)}
+        resolver=to_only(
+            seed_resolver_func(
+                class_resolver,
+                {"uuids": lambda root: uuid2list(root.org_unit_level_uuid)},
+            )
         ),
         # TODO: Document this
         description=dedent(
@@ -3615,8 +3729,11 @@ class OrganisationUnit:
     )
 
     time_planning: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.time_planning_uuid)}
+        resolver=to_only(
+            seed_resolver_func(
+                class_resolver,
+                {"uuids": lambda root: uuid2list(root.time_planning_uuid)},
+            )
         ),
         # TODO: DOcument this
         description=dedent(
@@ -3628,9 +3745,11 @@ class OrganisationUnit:
     )
 
     engagements: list[LazyEngagement] = strawberry.field(
-        resolver=seed_resolver_list(
-            EngagementResolver(),
-            {"org_units": lambda root: [root.uuid]},
+        resolver=to_list(
+            seed_resolver_func(
+                engagement_resolver,
+                {"org_units": lambda root: [root.uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -3741,7 +3860,7 @@ class OrganisationUnit:
             filter = ManagerFilter()
         filter.org_units = [root.uuid]
 
-        resolver = seed_resolver_list(ManagerResolver())
+        resolver = to_list(seed_resolver_func(manager_resolver))
         result = await resolver(root=root, info=info, filter=filter)
         if result:
             return result  # type: ignore
@@ -3755,9 +3874,11 @@ class OrganisationUnit:
         )
 
     owners: list[LazyOwner] = strawberry.field(
-        resolver=seed_resolver_list(
-            OwnerResolver(),
-            {"org_units": lambda root: [root.uuid]},
+        resolver=to_list(
+            seed_resolver_func(
+                owner_resolver,
+                {"org_units": lambda root: [root.uuid]},
+            )
         ),
         description=dedent(
             """
@@ -3768,9 +3889,11 @@ class OrganisationUnit:
     )
 
     addresses: list[LazyAddress] = strawberry.field(
-        resolver=seed_resolver_list(
-            AddressResolver(),
-            {"org_units": lambda root: [root.uuid]},
+        resolver=to_list(
+            seed_resolver_func(
+                address_resolver,
+                {"org_units": lambda root: [root.uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -3786,9 +3909,11 @@ class OrganisationUnit:
     )
 
     leaves: list[LazyLeave] = strawberry.field(
-        resolver=seed_resolver_list(
-            LeaveResolver(),
-            {"org_units": lambda root: [root.uuid]},
+        resolver=to_list(
+            seed_resolver_func(
+                leave_resolver,
+                {"org_units": lambda root: [root.uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -3799,9 +3924,11 @@ class OrganisationUnit:
     )
 
     associations: list[LazyAssociation] = strawberry.field(
-        resolver=seed_resolver_list(
-            AssociationResolver(),
-            {"org_units": lambda root: [root.uuid]},
+        resolver=to_list(
+            seed_resolver_func(
+                association_resolver,
+                {"org_units": lambda root: [root.uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -3818,9 +3945,11 @@ class OrganisationUnit:
     )
 
     roles: list[LazyRole] = strawberry.field(
-        resolver=seed_resolver_list(
-            RoleResolver(),
-            {"org_units": lambda root: [root.uuid]},
+        resolver=to_list(
+            seed_resolver_func(
+                role_resolver,
+                {"org_units": lambda root: [root.uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -3834,9 +3963,11 @@ class OrganisationUnit:
     )
 
     itusers: list[LazyITUser] = strawberry.field(
-        resolver=seed_resolver_list(
-            ITUserResolver(),
-            {"org_units": lambda root: [root.uuid]},
+        resolver=to_list(
+            seed_resolver_func(
+                it_user_resolver,
+                {"org_units": lambda root: [root.uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -3850,9 +3981,11 @@ class OrganisationUnit:
     )
 
     kles: list[LazyKLE] = strawberry.field(
-        resolver=seed_resolver_list(
-            KLEResolver(),
-            {"org_units": lambda root: [root.uuid]},
+        resolver=to_list(
+            seed_resolver_func(
+                kle_resolver,
+                {"org_units": lambda root: [root.uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -3865,9 +3998,11 @@ class OrganisationUnit:
     )
 
     related_units: list[LazyRelatedUnit] = strawberry.field(
-        resolver=seed_resolver_list(
-            RelatedUnitResolver(),
-            {"org_units": lambda root: [root.uuid]},
+        resolver=to_list(
+            seed_resolver_func(
+                related_unit_resolver,
+                {"org_units": lambda root: [root.uuid]},
+            )
         ),
         description=dedent(
             """\
@@ -4086,9 +4221,11 @@ class RelatedUnit:
         return root.type_
 
     org_units: list[LazyOrganisationUnit] = strawberry.field(
-        resolver=seed_resolver_list(
-            OrganisationUnitResolver(),
-            {"uuids": lambda root: root.org_unit_uuids or []},
+        resolver=to_list(
+            seed_resolver_func(
+                organisation_unit_resolver,
+                {"uuids": lambda root: root.org_unit_uuids or []},
+            )
         ),
         description=dedent(
             """\
@@ -4150,8 +4287,10 @@ class Role:
         return root.type_
 
     role_type: LazyClass = strawberry.field(
-        resolver=seed_resolver_one(
-            ClassResolver(), {"uuids": lambda root: [root.role_type_uuid]}
+        resolver=to_one(
+            seed_resolver_func(
+                class_resolver, {"uuids": lambda root: [root.role_type_uuid]}
+            )
         ),
         description=dedent(
             """\
@@ -4167,8 +4306,10 @@ class Role:
     )
 
     employee: list[LazyEmployee] = strawberry.field(
-        resolver=seed_resolver_list(
-            EmployeeResolver(), {"uuids": lambda root: [root.employee_uuid]}
+        resolver=to_list(
+            seed_resolver_func(
+                employee_resolver, {"uuids": lambda root: [root.employee_uuid]}
+            )
         ),
         description=dedent(
             """\
@@ -4181,8 +4322,10 @@ class Role:
     )
 
     person: list[LazyEmployee] = strawberry.field(
-        resolver=seed_resolver_list(
-            EmployeeResolver(), {"uuids": lambda root: [root.employee_uuid]}
+        resolver=to_list(
+            seed_resolver_func(
+                employee_resolver, {"uuids": lambda root: [root.employee_uuid]}
+            )
         ),
         description=dedent(
             """\
@@ -4194,9 +4337,11 @@ class Role:
     )
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
-        resolver=seed_resolver_list(
-            OrganisationUnitResolver(),
-            {"uuids": lambda root: [root.org_unit_uuid]},
+        resolver=to_list(
+            seed_resolver_func(
+                organisation_unit_resolver,
+                {"uuids": lambda root: [root.org_unit_uuid]},
+            )
         ),
         description=dedent(
             """\

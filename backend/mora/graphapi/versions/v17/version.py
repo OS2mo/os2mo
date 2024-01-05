@@ -1,22 +1,70 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
+from functools import wraps
 from textwrap import dedent
+from typing import Any
 
 import strawberry
+from starlette_context import context
 from strawberry.types import Info
 
+from ..latest.audit import audit_log_resolver
 from ..latest.audit import AuditLog as AuditLogLatest
 from ..latest.audit import AuditLogFilter as AuditLogFilterLatest
 from ..latest.audit import AuditLogModel
-from ..latest.audit import AuditLogResolver as AuditLogResolverLatest
 from ..latest.filters import gen_filter_table
 from ..latest.permissions import gen_read_permission
 from ..latest.permissions import IsAuthenticatedPermission
-from ..latest.query import to_paged
 from ..latest.resolvers import CursorType
 from ..latest.resolvers import LimitType
 from ..latest.schema import Paged
+from ..latest.schema import PageInfo
+from ..latest.types import Cursor
 from ..v18.version import GraphQLVersion as NextGraphQLVersion
+from mora.util import now
+
+
+class PagedResolver:
+    async def resolve(
+        self,
+        *args: Any,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        **kwargs: Any,
+    ) -> Any:
+        raise NotImplementedError
+
+
+def to_paged(resolver: PagedResolver, result_transformer: Callable[[PagedResolver, Any], list[Any]] | None = None):  # type: ignore
+    result_transformer = result_transformer or (lambda _, x: x)
+
+    @wraps(resolver.resolve)
+    async def resolve_response(*args, limit: LimitType, cursor: CursorType, **kwargs):  # type: ignore
+        if limit and cursor is None:
+            cursor = Cursor(
+                offset=0,
+                registration_time=str(now()),
+            )
+
+        result = await resolver.resolve(*args, limit=limit, cursor=cursor, **kwargs)
+
+        end_cursor: CursorType = None
+        if limit and cursor is not None:
+            end_cursor = Cursor(
+                offset=cursor.offset + limit,
+                registration_time=cursor.registration_time,
+            )
+        if context.get("lora_page_out_of_range"):
+            end_cursor = None
+
+        assert result_transformer is not None
+        return Paged(  # type: ignore[call-arg]
+            objects=result_transformer(resolver, result),
+            page_info=PageInfo(next_cursor=end_cursor),  # type: ignore[call-arg]
+        )
+
+    return resolve_response
 
 
 @strawberry.input(description="Audit log filter.")
@@ -78,7 +126,7 @@ class AuditLog(AuditLogLatest):
             return root.model  # type: ignore
 
 
-class AuditLogResolver(AuditLogResolverLatest):
+class AuditLogResolver(PagedResolver):
     # TODO: Implement using a dataloader
     async def resolve(  # type: ignore[override]
         self,
@@ -89,7 +137,7 @@ class AuditLogResolver(AuditLogResolverLatest):
     ) -> list[AuditLog]:
         # Unaffected query, only new behavior if filter.models is set
         if filter is None or filter.models is None:
-            return await super().resolve(  # type: ignore
+            return await audit_log_resolver(  # type: ignore
                 info=info, filter=filter, limit=limit, cursor=cursor
             )
 
@@ -111,7 +159,7 @@ class AuditLogResolver(AuditLogResolverLatest):
             start=filter.start,
             end=filter.end,
         )
-        return await super().resolve(  # type: ignore
+        return await audit_log_resolver(  # type: ignore
             info=info, filter=new_filter, limit=limit, cursor=cursor
         )
 

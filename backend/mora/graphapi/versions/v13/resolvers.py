@@ -1,9 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Resolver shims, converting from function arguments to a filter object."""
+from collections.abc import Callable
 from datetime import datetime
 from textwrap import dedent
 from typing import Annotated
+from typing import Any
 from uuid import UUID
 
 import strawberry
@@ -12,6 +14,7 @@ from strawberry.types import Info
 
 from ..latest.filters import AddressFilter
 from ..latest.filters import AssociationFilter
+from ..latest.filters import BaseFilter
 from ..latest.filters import ClassFilter
 from ..latest.filters import ConfigurationFilter
 from ..latest.filters import EmployeeFilter
@@ -31,27 +34,44 @@ from ..latest.filters import OwnerFilter
 from ..latest.filters import RelatedUnitFilter
 from ..latest.filters import RoleFilter
 from ..latest.models import FileStore
-from ..latest.query import ConfigurationResolver as NextConfigurationResolver
-from ..latest.query import FileResolver as NextFileResolver
-from ..latest.query import HealthResolver as NextHealthResolver
-from ..latest.resolvers import AddressResolver as NextAddressResolver
-from ..latest.resolvers import AssociationResolver as NextAssociationResolver
-from ..latest.resolvers import ClassResolver as NextClassResolver
+from ..latest.query import configuration_resolver
+from ..latest.query import file_resolver
+from ..latest.query import health_resolver
+from ..latest.resolvers import address_resolver
+from ..latest.resolvers import association_resolver
+from ..latest.resolvers import class_resolver
 from ..latest.resolvers import CursorType
-from ..latest.resolvers import EmployeeResolver as NextEmployeeResolver
-from ..latest.resolvers import EngagementResolver as NextEngagementResolver
-from ..latest.resolvers import FacetResolver as NextFacetResolver
-from ..latest.resolvers import ITSystemResolver as NextITSystemResolver
-from ..latest.resolvers import ITUserResolver as NextITUserResolver
-from ..latest.resolvers import KLEResolver as NextKLEResolver
-from ..latest.resolvers import LeaveResolver as NextLeaveResolver
+from ..latest.resolvers import employee_resolver
+from ..latest.resolvers import engagement_resolver
+from ..latest.resolvers import facet_resolver
+from ..latest.resolvers import generic_resolver
+from ..latest.resolvers import it_system_resolver
+from ..latest.resolvers import it_user_resolver
+from ..latest.resolvers import kle_resolver
+from ..latest.resolvers import leave_resolver
 from ..latest.resolvers import LimitType
-from ..latest.resolvers import ManagerResolver as NextManagerResolver
-from ..latest.resolvers import OrganisationUnitResolver as NextOrganisationUnitResolver
-from ..latest.resolvers import OwnerResolver as NextOwnerResolver
-from ..latest.resolvers import RelatedUnitResolver as NextRelatedUnitResolver
-from ..latest.resolvers import RoleResolver as NextRoleResolver
+from ..latest.resolvers import manager_resolver
+from ..latest.resolvers import organisation_unit_resolver
+from ..latest.resolvers import owner_resolver
+from ..latest.resolvers import related_unit_resolver
+from ..latest.resolvers import role_resolver
+from ..v17.version import PagedResolver
 from mora.util import CPR
+from ramodels.mo import ClassRead
+from ramodels.mo import EmployeeRead
+from ramodels.mo import FacetRead
+from ramodels.mo import OrganisationUnitRead
+from ramodels.mo.details import AddressRead
+from ramodels.mo.details import AssociationRead
+from ramodels.mo.details import EngagementRead
+from ramodels.mo.details import ITSystemRead
+from ramodels.mo.details import ITUserRead
+from ramodels.mo.details import KLERead
+from ramodels.mo.details import LeaveRead
+from ramodels.mo.details import ManagerRead
+from ramodels.mo.details import OwnerRead
+from ramodels.mo.details import RelatedUnitRead
+from ramodels.mo.details import RoleRead
 
 UUIDsFilterType = Annotated[
     list[UUID] | None,
@@ -192,7 +212,79 @@ HierarchiesUUIDsFilterType = Annotated[
 ]
 
 
-class FacetResolver(NextFacetResolver):
+class Resolver(PagedResolver):
+    neutral_element_constructor: Callable[[], Any] = dict
+
+    def __init__(self, model: type) -> None:
+        """Create a field resolver by specifying a model.
+
+        Args:
+            model: The MOModel.
+        """
+        self.model: type = model
+
+    async def resolve(  # type: ignore[no-untyped-def,override]
+        self,
+        info: Info,
+        filter: BaseFilter | None = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+    ):
+        """Resolve a query using the specified arguments.
+
+        Args:
+            uuids: Only retrieve these UUIDs. Defaults to None.
+            user_keys: Only retrieve these user_keys. Defaults to None.
+            limit: The maximum number of elements to return. Fewer elements may be
+                returned if the query itself yields fewer elements.
+            from_date: Lower bound of the object validity (bitemporal lookup).
+                Defaults to UNSET, in which case from_date is today.
+            to_date: Upper bound of the object validity (bitemporal lookup).
+                Defaults to UNSET, in which case to_date is from_date + 1 ms.
+
+        Note:
+            While OFFSET and LIMITing is done in LoRa/SQL, further filtering is
+            sometimes applied in MO. Confusingly, this means that receiving a list
+            shorter than the requested limit does not imply that we are at the end.
+
+        Returns:
+            List of response objects based on getters/loaders.
+
+        Note:
+            The default behaviour of from_date and to_date, i.e. both being
+            UNSET, is equivalent to validity=present in the service API.
+        """
+        return await self._resolve(
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+        )
+
+    async def _resolve(  # type: ignore[no-untyped-def,override]
+        self,
+        info: Info,
+        filter: BaseFilter | None = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        **kwargs: Any,
+    ):
+        """The internal resolve interface, allowing for kwargs."""
+        return await generic_resolver(
+            self.model,
+            self.neutral_element_constructor,
+            info=info,
+            filter=filter,
+            limit=limit,
+            cursor=cursor,
+            **kwargs,
+        )
+
+
+class FacetResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(FacetRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -209,7 +301,7 @@ class FacetResolver(NextFacetResolver):
             parents=parents,
             parent_user_keys=parent_user_keys,
         )
-        return await super().resolve(
+        return await facet_resolver(
             info=info,
             filter=filter,
             limit=limit,
@@ -217,7 +309,10 @@ class FacetResolver(NextFacetResolver):
         )
 
 
-class ClassResolver(NextClassResolver):
+class ClassResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(ClassRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -238,7 +333,7 @@ class ClassResolver(NextClassResolver):
             parents=parents,
             parent_user_keys=parent_user_keys,
         )
-        return await super().resolve(
+        return await class_resolver(
             info=info,
             filter=filter,
             limit=limit,
@@ -246,7 +341,10 @@ class ClassResolver(NextClassResolver):
         )
 
 
-class AddressResolver(NextAddressResolver):
+class AddressResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(AddressRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -273,7 +371,7 @@ class AddressResolver(NextAddressResolver):
             engagements=engagements,
             org_units=org_units,
         )
-        return await super().resolve(
+        return await address_resolver(
             info=info,
             filter=filter,
             limit=limit,
@@ -281,7 +379,10 @@ class AddressResolver(NextAddressResolver):
         )
 
 
-class AssociationResolver(NextAssociationResolver):
+class AssociationResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(AssociationRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -308,7 +409,7 @@ class AssociationResolver(NextAssociationResolver):
             association_type_user_keys=association_type_user_keys,
             it_association=it_association,
         )
-        return await super().resolve(
+        return await association_resolver(
             info=info,
             filter=filter,
             limit=limit,
@@ -316,7 +417,7 @@ class AssociationResolver(NextAssociationResolver):
         )
 
 
-class ConfigurationResolver(NextConfigurationResolver):
+class ConfigurationResolver(PagedResolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -330,15 +431,17 @@ class ConfigurationResolver(NextConfigurationResolver):
         filter = ConfigurationFilter(
             identifiers=identifiers,
         )
-        return await super().resolve(
-            info=info,
+        return await configuration_resolver(
             filter=filter,
             limit=limit,
             cursor=cursor,
         )
 
 
-class EmployeeResolver(NextEmployeeResolver):
+class EmployeeResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(EmployeeRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -357,7 +460,7 @@ class EmployeeResolver(NextEmployeeResolver):
             to_date=to_date,
             cpr_numbers=cpr_numbers,
         )
-        return await super().resolve(
+        return await employee_resolver(
             info=info,
             filter=filter,
             limit=limit,
@@ -365,7 +468,10 @@ class EmployeeResolver(NextEmployeeResolver):
         )
 
 
-class EngagementResolver(NextEngagementResolver):
+class EngagementResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(EngagementRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -386,7 +492,7 @@ class EngagementResolver(NextEngagementResolver):
             employees=employees,
             org_units=org_units,
         )
-        return await super().resolve(
+        return await engagement_resolver(
             info=info,
             filter=filter,
             limit=limit,
@@ -394,7 +500,7 @@ class EngagementResolver(NextEngagementResolver):
         )
 
 
-class FileResolver(NextFileResolver):
+class FileResolver(PagedResolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -421,7 +527,7 @@ class FileResolver(NextFileResolver):
             file_store=file_store,
             file_names=file_names,
         )
-        return await super().resolve(
+        return await file_resolver(
             info=info,
             filter=filter,
             limit=limit,
@@ -429,7 +535,7 @@ class FileResolver(NextFileResolver):
         )
 
 
-class HealthResolver(NextHealthResolver):
+class HealthResolver(PagedResolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -445,15 +551,17 @@ class HealthResolver(NextHealthResolver):
         filter = HealthFilter(
             identifiers=identifiers,
         )
-        return await super().resolve(
-            info=info,
+        return await health_resolver(
             filter=filter,
             limit=limit,
             cursor=cursor,
         )
 
 
-class ITSystemResolver(NextITSystemResolver):
+class ITSystemResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(ITSystemRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -470,7 +578,7 @@ class ITSystemResolver(NextITSystemResolver):
             from_date=from_date,
             to_date=to_date,
         )
-        return await super().resolve(
+        return await it_system_resolver(
             info=info,
             filter=filter,
             limit=limit,
@@ -478,7 +586,10 @@ class ITSystemResolver(NextITSystemResolver):
         )
 
 
-class ManagerResolver(NextManagerResolver):
+class ManagerResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(ManagerRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -499,7 +610,7 @@ class ManagerResolver(NextManagerResolver):
             employees=employees,
             org_units=org_units,
         )
-        return await super().resolve(
+        return await manager_resolver(
             info=info,
             filter=filter,
             limit=limit,
@@ -507,7 +618,10 @@ class ManagerResolver(NextManagerResolver):
         )
 
 
-class OwnerResolver(NextOwnerResolver):
+class OwnerResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(OwnerRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -528,7 +642,7 @@ class OwnerResolver(NextOwnerResolver):
             employees=employees,
             org_units=org_units,
         )
-        return await super().resolve(
+        return await owner_resolver(
             info=info,
             filter=filter,
             limit=limit,
@@ -536,7 +650,10 @@ class OwnerResolver(NextOwnerResolver):
         )
 
 
-class OrganisationUnitResolver(NextOrganisationUnitResolver):
+class OrganisationUnitResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(OrganisationUnitRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -557,7 +674,7 @@ class OrganisationUnitResolver(NextOrganisationUnitResolver):
             parents=parents,
             hierarchies=hierarchies,
         )
-        return await super().resolve(
+        return await organisation_unit_resolver(
             info=info,
             filter=filter,
             limit=limit,
@@ -565,7 +682,10 @@ class OrganisationUnitResolver(NextOrganisationUnitResolver):
         )
 
 
-class ITUserResolver(NextITUserResolver):
+class ITUserResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(ITUserRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -586,7 +706,7 @@ class ITUserResolver(NextITUserResolver):
             employees=employees,
             org_units=org_units,
         )
-        return await super().resolve(
+        return await it_user_resolver(
             info=info,
             filter=filter,
             limit=limit,
@@ -594,7 +714,10 @@ class ITUserResolver(NextITUserResolver):
         )
 
 
-class KLEResolver(NextKLEResolver):
+class KLEResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(KLERead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -613,7 +736,7 @@ class KLEResolver(NextKLEResolver):
             to_date=to_date,
             org_units=org_units,
         )
-        return await super().resolve(
+        return await kle_resolver(
             info=info,
             filter=filter,
             limit=limit,
@@ -621,7 +744,10 @@ class KLEResolver(NextKLEResolver):
         )
 
 
-class LeaveResolver(NextLeaveResolver):
+class LeaveResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(LeaveRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -642,7 +768,7 @@ class LeaveResolver(NextLeaveResolver):
             employees=employees,
             org_units=org_units,
         )
-        return await super().resolve(
+        return await leave_resolver(
             info=info,
             filter=filter,
             limit=limit,
@@ -650,7 +776,10 @@ class LeaveResolver(NextLeaveResolver):
         )
 
 
-class RelatedUnitResolver(NextRelatedUnitResolver):
+class RelatedUnitResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(RelatedUnitRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -669,7 +798,7 @@ class RelatedUnitResolver(NextRelatedUnitResolver):
             to_date=to_date,
             org_units=org_units,
         )
-        return await super().resolve(
+        return await related_unit_resolver(
             info=info,
             filter=filter,
             limit=limit,
@@ -677,7 +806,10 @@ class RelatedUnitResolver(NextRelatedUnitResolver):
         )
 
 
-class RoleResolver(NextRoleResolver):
+class RoleResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(RoleRead)
+
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
@@ -698,7 +830,7 @@ class RoleResolver(NextRoleResolver):
             employees=employees,
             org_units=org_units,
         )
-        return await super().resolve(
+        return await role_resolver(
             info=info,
             filter=filter,
             limit=limit,

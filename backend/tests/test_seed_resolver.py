@@ -10,30 +10,28 @@ from typing import Any
 
 import pytest
 from more_itertools import first
+from strawberry.types import Info
 
 from mora.graphapi.versions.latest.filters import BaseFilter
-from mora.graphapi.versions.latest.resolvers import Resolver
-from mora.graphapi.versions.latest.schema import seed_resolver
+from mora.graphapi.versions.latest.resolvers import CursorType
+from mora.graphapi.versions.latest.resolvers import LimitType
+from mora.graphapi.versions.latest.schema import seed_resolver_func
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 
 
-class DummyModel:
-    """Dummy MOModel for testing."""
-
-
-class DummyResolver(Resolver):
-    """Dummy Resolver for testing."""
-
-    def __init__(self):
-        super().__init__(DummyModel)
-        self.args = ()
-        self.kwargs = {}
-
-    async def _resolve(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
-        return {}
+async def dummy_resolver(
+    info: Info,
+    filter: BaseFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Any:
+    return {
+        "info": info,
+        "filter": filter,
+        "limit": limit,
+        "cursor": cursor,
+    }
 
 
 @pytest.mark.parametrize(
@@ -62,8 +60,8 @@ async def test_signature_changes(
         seeds: The seeds to set on seed_resolver.
     """
     # Check the original signature
-    original_resolver = DummyResolver()
-    original_parameters = signature(original_resolver.resolve).parameters
+    original_resolver = dummy_resolver
+    original_parameters = signature(original_resolver).parameters
     assert original_parameters["filter"] == Parameter(
         "filter",
         kind=Parameter.POSITIONAL_OR_KEYWORD,
@@ -73,7 +71,7 @@ async def test_signature_changes(
 
     # Seeding the resolver adds a root parameter and removes the seeded keys from the
     # filter.
-    seeded_resolver = seed_resolver(original_resolver, seeds)
+    seeded_resolver = seed_resolver_func(original_resolver, seeds)
     seeded_paramters = signature(seeded_resolver).parameters
     assert seeded_paramters["root"] == Parameter(
         "root",
@@ -111,25 +109,16 @@ async def test_call_values(
         "fake": "val1",
         "object": "val2",
     }
-    resolver = DummyResolver()
 
-    # Calling unseeded sets the expected kwargs
-    assert resolver.args == ()
-    assert resolver.kwargs == {}
-    await resolver.resolve(info)
-    assert resolver.args == ()
-    assert resolver.kwargs == {
+    # Calling a seeded function sets the value to the seed result
+    seeded = seed_resolver_func(dummy_resolver, seeds=seeds)
+    result = await seeded(info, root=root)
+    assert result == {
         "info": info,
-        "filter": None,
+        "filter": BaseFilter(**expected),
         "limit": None,
         "cursor": None,
     }
-
-    # Calling a seeded function sets the value to the seed result
-    seeded = seed_resolver(resolver, seeds=seeds)
-    await seeded(info, root=root)
-    assert resolver.args == ()
-    assert resolver.kwargs["filter"] == BaseFilter(**expected)
 
 
 @pytest.mark.integration_test

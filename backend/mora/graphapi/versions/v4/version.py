@@ -12,7 +12,6 @@ from pydantic import PositiveInt
 
 from ..latest.permissions import gen_read_permission
 from ..latest.permissions import IsAuthenticatedPermission
-from ..latest.query import to_paged
 from ..latest.types import Cursor
 from ..v13.query import ConfigurationResolver
 from ..v13.query import FileResolver
@@ -50,6 +49,7 @@ from ..v13.schema import Paged
 from ..v13.schema import RelatedUnit
 from ..v13.schema import Response
 from ..v13.schema import Role
+from ..v17.version import to_paged
 from ..v5.version import GraphQLVersion as NextGraphQLVersion
 from mora.util import now
 
