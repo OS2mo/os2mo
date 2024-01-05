@@ -5,16 +5,17 @@ from textwrap import dedent
 import strawberry
 from strawberry.types import Info
 
+from ..latest.audit import audit_log_resolver
 from ..latest.audit import AuditLog as AuditLogLatest
 from ..latest.audit import AuditLogFilter as AuditLogFilterLatest
 from ..latest.audit import AuditLogModel
-from ..latest.audit import AuditLogResolver as AuditLogResolverLatest
 from ..latest.filters import gen_filter_table
 from ..latest.permissions import gen_read_permission
 from ..latest.permissions import IsAuthenticatedPermission
 from ..latest.query import to_paged
 from ..latest.resolvers import CursorType
 from ..latest.resolvers import LimitType
+from ..latest.resolvers import PagedResolver
 from ..latest.schema import Paged
 from ..v18.version import GraphQLVersion as NextGraphQLVersion
 
@@ -78,7 +79,7 @@ class AuditLog(AuditLogLatest):
             return root.model  # type: ignore
 
 
-class AuditLogResolver(AuditLogResolverLatest):
+class AuditLogResolver(PagedResolver):
     # TODO: Implement using a dataloader
     async def resolve(  # type: ignore[override]
         self,
@@ -89,7 +90,7 @@ class AuditLogResolver(AuditLogResolverLatest):
     ) -> list[AuditLog]:
         # Unaffected query, only new behavior if filter.models is set
         if filter is None or filter.models is None:
-            return await super().resolve(  # type: ignore
+            return await audit_log_resolver(  # type: ignore
                 info=info, filter=filter, limit=limit, cursor=cursor
             )
 
@@ -111,7 +112,7 @@ class AuditLogResolver(AuditLogResolverLatest):
             start=filter.start,
             end=filter.end,
         )
-        return await super().resolve(  # type: ignore
+        return await audit_log_resolver(  # type: ignore
             info=info, filter=new_filter, limit=limit, cursor=cursor
         )
 

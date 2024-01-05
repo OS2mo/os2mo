@@ -12,8 +12,8 @@ import strawberry
 from starlette_context import context
 from strawberry.types import Info
 
+from .audit import audit_log_resolver
 from .audit import AuditLog
-from .audit import AuditLogResolver
 from .filters import ConfigurationFilter
 from .filters import FileFilter
 from .filters import HealthFilter
@@ -427,7 +427,7 @@ class Query:
     )
 
     auditlog: Paged[AuditLog] = strawberry.field(
-        resolver=to_paged(AuditLogResolver()),
+        resolver=to_paged_func(audit_log_resolver, AuditLog),
         description=dedent(
             """\
             Get a list of audit events.

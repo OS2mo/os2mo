@@ -20,7 +20,6 @@ from ..latest.filters import gen_filter_table
 from .resolvers import CursorType
 from .resolvers import get_date_interval
 from .resolvers import LimitType
-from .resolvers import PagedResolver
 from mora.audit import audit_log
 from mora.db import AuditLogOperation as AuditLogOperation
 from mora.db import AuditLogRead as AuditLogRead
@@ -199,88 +198,85 @@ class AuditLogFilter:
     )
 
 
-class AuditLogResolver(PagedResolver):
-    # TODO: Implement using a dataloader
-    async def resolve(  # type: ignore[override]
-        self,
-        info: Info,
-        filter: AuditLogFilter | None = None,
-        limit: LimitType = None,
-        cursor: CursorType = None,
-    ) -> list[AuditLog]:
-        if filter is None:
-            filter = AuditLogFilter()
+async def audit_log_resolver(
+    info: Info,
+    filter: AuditLogFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> list[AuditLog]:
+    if filter is None:
+        filter = AuditLogFilter()
 
-        query = select(AuditLogOperation)
-        if filter.ids is not None:
-            query = query.where(AuditLogOperation.id.in_(filter.ids))
+    query = select(AuditLogOperation)
+    if filter.ids is not None:
+        query = query.where(AuditLogOperation.id.in_(filter.ids))
 
-        if filter.uuids is not None:
-            subquery = select(AuditLogRead.operation_id).filter(
-                AuditLogRead.uuid.in_(filter.uuids)
+    if filter.uuids is not None:
+        subquery = select(AuditLogRead.operation_id).filter(
+            AuditLogRead.uuid.in_(filter.uuids)
+        )
+        query = query.where(AuditLogOperation.id.in_(subquery))
+
+    if filter.actors is not None:
+        query = query.where(AuditLogOperation.actor.in_(filter.actors))
+
+    if filter.models is not None:
+        models = [model.value for model in filter.models]
+        query = query.where(AuditLogOperation.model.in_(models))
+
+    if filter.start is not None or filter.end is not None:
+        dates = get_date_interval(filter.start, filter.end)
+        query = query.where(
+            AuditLogOperation.time.between(
+                dates.from_date or datetime(1, 1, 1),
+                dates.to_date or datetime(9999, 12, 31),
             )
-            query = query.where(AuditLogOperation.id.in_(subquery))
+        )
 
-        if filter.actors is not None:
-            query = query.where(AuditLogOperation.actor.in_(filter.actors))
+    # Pagination
+    if cursor:
+        # Make sure we only see objects created before pagination started
+        query = query.where(AuditLogOperation.time <= cursor.registration_time)
+    # Order by time, then by UUID so the order of pagination is well-defined
+    query = query.order_by(AuditLogOperation.time, AuditLogOperation.id)
+    if limit is not None:
+        # Fetch one extra element to see if there is another page
+        query = query.limit(limit + 1)
+    query = query.offset(cursor.offset if cursor else 0)
 
-        if filter.models is not None:
-            models = [model.value for model in filter.models]
-            query = query.where(AuditLogOperation.model.in_(models))
+    session = info.context["sessionmaker"]()
+    async with session.begin():
+        result = list(await session.scalars(query))
+        audit_log(
+            session,
+            "resolve_auditlog",
+            "AuditLog",
+            {
+                "limit": limit,
+                "cursor": cursor,
+                "uuids": filter.uuids,
+                "actors": filter.actors,
+                "models": filter.models,
+                "start": filter.start,
+                "end": filter.end,
+            },
+            [auditlog.id for auditlog in result],
+        )
 
-        if filter.start is not None or filter.end is not None:
-            dates = get_date_interval(filter.start, filter.end)
-            query = query.where(
-                AuditLogOperation.time.between(
-                    dates.from_date or datetime(1, 1, 1),
-                    dates.to_date or datetime(9999, 12, 31),
-                )
-            )
-
-        # Pagination
-        if cursor:
-            # Make sure we only see objects created before pagination started
-            query = query.where(AuditLogOperation.time <= cursor.registration_time)
-        # Order by time, then by UUID so the order of pagination is well-defined
-        query = query.order_by(AuditLogOperation.time, AuditLogOperation.id)
         if limit is not None:
-            # Fetch one extra element to see if there is another page
-            query = query.limit(limit + 1)
-        query = query.offset(cursor.offset if cursor else 0)
+            # Not enough results == no more pages
+            if len(result) <= limit:
+                context["lora_page_out_of_range"] = True
+            # Strip the extra element that was only used for page-checking
+            elif len(result) == limit + 1:
+                result = result[:-1]
 
-        session = info.context["sessionmaker"]()
-        async with session.begin():
-            result = list(await session.scalars(query))
-            audit_log(
-                session,
-                "resolve_auditlog",
-                "AuditLog",
-                {
-                    "limit": limit,
-                    "cursor": cursor,
-                    "uuids": filter.uuids,
-                    "actors": filter.actors,
-                    "models": filter.models,
-                    "start": filter.start,
-                    "end": filter.end,
-                },
-                [auditlog.id for auditlog in result],
+        return [
+            AuditLog(
+                id=auditlog.id,
+                time=auditlog.time,
+                actor=auditlog.actor,
+                model=auditlog.model,
             )
-
-            if limit is not None:
-                # Not enough results == no more pages
-                if len(result) <= limit:
-                    context["lora_page_out_of_range"] = True
-                # Strip the extra element that was only used for page-checking
-                elif len(result) == limit + 1:
-                    result = result[:-1]
-
-            return [
-                AuditLog(
-                    id=auditlog.id,
-                    time=auditlog.time,
-                    actor=auditlog.actor,
-                    model=auditlog.model,
-                )
-                for auditlog in result
-            ]
+            for auditlog in result
+        ]
