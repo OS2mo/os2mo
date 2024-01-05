@@ -48,7 +48,7 @@ from .registration import RegistrationResolver
 from .resolver_map import resolver_map
 from .resolvers import address_resolver
 from .resolvers import association_resolver
-from .resolvers import ClassResolver
+from .resolvers import class_resolver
 from .resolvers import CursorType
 from .resolvers import employee_resolver
 from .resolvers import engagement_resolver
@@ -856,8 +856,8 @@ class DARAddress(ResolvedAddress):
 )
 class Address:
     address_type: LazyClass = strawberry.field(
-        resolver=seed_resolver_one(
-            ClassResolver(), {"uuids": lambda root: [root.address_type_uuid]}
+        resolver=seed_resolver_func_one(
+            class_resolver, {"uuids": lambda root: [root.address_type_uuid]}
         ),
         description=dedent(
             """\
@@ -881,8 +881,8 @@ class Address:
     )
 
     visibility: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.visibility_uuid)}
+        resolver=seed_resolver_func_only(
+            class_resolver, {"uuids": lambda root: uuid2list(root.visibility_uuid)}
         ),
         description=dedent(
             """\
@@ -1243,8 +1243,8 @@ class Address:
 )
 class Association:
     association_type: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(),
+        resolver=seed_resolver_func_only(
+            class_resolver,
             {"uuids": lambda root: uuid2list(root.association_type_uuid)},
         ),
         description=dedent(
@@ -1261,8 +1261,8 @@ class Association:
     )
 
     dynamic_class: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.dynamic_class_uuid)}
+        resolver=seed_resolver_func_only(
+            class_resolver, {"uuids": lambda root: uuid2list(root.dynamic_class_uuid)}
         ),
         # TODO: Document this
         # https://git.magenta.dk/rammearkitektur/os2mo/-/merge_requests/1694#note_216859
@@ -1284,8 +1284,8 @@ class Association:
     )
 
     primary: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.primary_uuid)}
+        resolver=seed_resolver_func_only(
+            class_resolver, {"uuids": lambda root: uuid2list(root.primary_uuid)}
         ),
         description=dedent(
             """\
@@ -1365,8 +1365,8 @@ class Association:
     )
 
     job_function: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.job_function_uuid)}
+        resolver=seed_resolver_func_only(
+            class_resolver, {"uuids": lambda root: uuid2list(root.job_function_uuid)}
         ),
         description=dedent(
             """\
@@ -1540,8 +1540,8 @@ class Association:
 )
 class Class:
     parent: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.parent_uuid)}
+        resolver=seed_resolver_func_only(
+            class_resolver, {"uuids": lambda root: uuid2list(root.parent_uuid)}
         ),
         description=dedent(
             """\
@@ -1557,8 +1557,8 @@ class Class:
     )
 
     children: list[LazyClass] = strawberry.field(
-        resolver=seed_resolver_list(
-            ClassResolver(),
+        resolver=seed_resolver_func_list(
+            class_resolver,
             {"parents": lambda root: [root.uuid]},
         ),
         description=dedent(
@@ -2170,8 +2170,8 @@ class Engagement:
         return root.user_key
 
     engagement_type: LazyClass = strawberry.field(
-        resolver=seed_resolver_one(
-            ClassResolver(),
+        resolver=seed_resolver_func_one(
+            class_resolver,
             {"uuids": lambda root: [root.engagement_type_uuid]},
         ),
         description=dedent(
@@ -2188,8 +2188,8 @@ class Engagement:
     )
 
     job_function: LazyClass = strawberry.field(
-        resolver=seed_resolver_one(
-            ClassResolver(),
+        resolver=seed_resolver_func_one(
+            class_resolver,
             {"uuids": lambda root: [root.job_function_uuid]},
         ),
         description=dedent(
@@ -2206,8 +2206,8 @@ class Engagement:
     )
 
     primary: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.primary_uuid)}
+        resolver=seed_resolver_func_only(
+            class_resolver, {"uuids": lambda root: uuid2list(root.primary_uuid)}
         ),
         description=dedent(
             """\
@@ -2416,8 +2416,8 @@ class Engagement:
 )
 class Facet:
     classes: list[LazyClass] = strawberry.field(
-        resolver=seed_resolver_list(
-            ClassResolver(), {"facets": lambda root: [root.uuid]}
+        resolver=seed_resolver_func_list(
+            class_resolver, {"facets": lambda root: [root.uuid]}
         ),
         description="Associated classes",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -2770,8 +2770,8 @@ class ITUser:
     )
 
     primary: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.primary_uuid)}
+        resolver=seed_resolver_func_only(
+            class_resolver, {"uuids": lambda root: uuid2list(root.primary_uuid)}
         ),
         description=dedent(
             """\
@@ -2924,8 +2924,8 @@ class ITUser:
 )
 class KLE:
     kle_number: LazyClass = strawberry.field(
-        resolver=seed_resolver_one(
-            ClassResolver(), {"uuids": lambda root: [root.kle_number_uuid]}
+        resolver=seed_resolver_func_one(
+            class_resolver, {"uuids": lambda root: [root.kle_number_uuid]}
         ),
         description=dedent(
             """\
@@ -2938,8 +2938,8 @@ class KLE:
     )
 
     kle_aspects: list[LazyClass] = strawberry.field(
-        resolver=seed_resolver_list(
-            ClassResolver(),
+        resolver=seed_resolver_func_list(
+            class_resolver,
             {"uuids": lambda root: root.kle_aspect_uuids or []},
         ),
         description=dedent(
@@ -3058,8 +3058,8 @@ class KLE:
 )
 class Leave:
     leave_type: LazyClass = strawberry.field(
-        resolver=seed_resolver_one(
-            ClassResolver(), {"uuids": lambda root: [root.leave_type_uuid]}
+        resolver=seed_resolver_func_one(
+            class_resolver, {"uuids": lambda root: [root.leave_type_uuid]}
         ),
         description=dedent(
             """\
@@ -3182,8 +3182,8 @@ class Leave:
 )
 class Manager:
     manager_type: LazyClass = strawberry.field(
-        resolver=seed_resolver_one(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.manager_type_uuid)}
+        resolver=seed_resolver_func_one(
+            class_resolver, {"uuids": lambda root: uuid2list(root.manager_type_uuid)}
         ),
         description=dedent(
             """\
@@ -3199,8 +3199,8 @@ class Manager:
     )
 
     manager_level: LazyClass = strawberry.field(
-        resolver=seed_resolver_one(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.manager_level_uuid)}
+        resolver=seed_resolver_func_one(
+            class_resolver, {"uuids": lambda root: uuid2list(root.manager_level_uuid)}
         ),
         # TODO: Check production system values
         description=dedent(
@@ -3217,8 +3217,8 @@ class Manager:
     )
 
     responsibilities: list[LazyClass] = strawberry.field(
-        resolver=seed_resolver_list(
-            ClassResolver(),
+        resolver=seed_resolver_func_list(
+            class_resolver,
             {"uuids": lambda root: root.responsibility_uuids or []},
         ),
         description=dedent(
@@ -3681,8 +3681,8 @@ class OrganisationUnit:
     # TODO: Add _uuid suffix to RAModel and remove _model suffix here
     # TODO: Should this be a list?
     org_unit_hierarchy_model: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.org_unit_hierarchy)}
+        resolver=seed_resolver_func_only(
+            class_resolver, {"uuids": lambda root: uuid2list(root.org_unit_hierarchy)}
         ),
         description=dedent(
             """\
@@ -3704,8 +3704,8 @@ class OrganisationUnit:
     )
 
     unit_type: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.unit_type_uuid)}
+        resolver=seed_resolver_func_only(
+            class_resolver, {"uuids": lambda root: uuid2list(root.unit_type_uuid)}
         ),
         description=dedent(
             """\
@@ -3732,8 +3732,8 @@ class OrganisationUnit:
 
     # TODO: Remove org prefix from RAModel and remove it here too
     org_unit_level: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.org_unit_level_uuid)}
+        resolver=seed_resolver_func_only(
+            class_resolver, {"uuids": lambda root: uuid2list(root.org_unit_level_uuid)}
         ),
         # TODO: Document this
         description=dedent(
@@ -3750,8 +3750,8 @@ class OrganisationUnit:
     )
 
     time_planning: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
-            ClassResolver(), {"uuids": lambda root: uuid2list(root.time_planning_uuid)}
+        resolver=seed_resolver_func_only(
+            class_resolver, {"uuids": lambda root: uuid2list(root.time_planning_uuid)}
         ),
         # TODO: DOcument this
         description=dedent(
@@ -4285,8 +4285,8 @@ class Role:
         return root.type_
 
     role_type: LazyClass = strawberry.field(
-        resolver=seed_resolver_one(
-            ClassResolver(), {"uuids": lambda root: [root.role_type_uuid]}
+        resolver=seed_resolver_func_one(
+            class_resolver, {"uuids": lambda root: [root.role_type_uuid]}
         ),
         description=dedent(
             """\
