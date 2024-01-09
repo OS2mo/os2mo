@@ -160,3 +160,136 @@ gen_delete_permission = partial(
 gen_refresh_permission = partial(
     gen_permission, permission_type="refresh", force_permission_check=True
 )
+
+
+import casbin
+import casbin_sqlalchemy_adapter
+
+
+class VaktPermission(BasePermission):
+    """Permission class that checks that the request is authorized."""
+
+    message = "Vakt rejected"
+
+    async def has_permission(self, source: Any, info: Info, **kwargs: Any) -> bool:
+        """Evaluate the request against all vakt policies."""
+
+        auth_enabled = get_settings().os2mo_auth
+
+        try:
+            token = await info.context["get_token"]()
+        except HTTPException:
+            token = None
+
+        def nt2dict(obj) -> dict[str, Any]:
+            if hasattr(obj, "_asdict"):
+                return {k: nt2dict(v) for k, v in obj._asdict().items()}
+            return obj
+
+        # TODO: Determine from top-level typename
+        # If Query == 'read'
+        # If Mutation, check mutator name structure
+        action='read'  # read, create, delete, refresh, terminate, update
+
+        # Has the format of:
+        # {
+        #     "azp": 'mo-frontend',
+        #     "email": 'alvidan@kolding.dk',
+        #     "preferred_username": 'alvida',
+        #     "realm_access": {
+        #         "roles": {'read_version', 'file_admin', ...},
+        #     }
+        #     "uuid": UUID('0fb62199-cb9e-4083-ba45-2a63bfd142d7')
+        # }
+        subject=token.dict(by_alias=True)
+
+        # Has the format of:
+        # {
+        #     "prev": {
+        #         "prev": None,
+        #         "key": 'org_units',
+        #         "typename": 'Query'
+        #     },
+        #     "key": 'objects',
+        #     "typename": 'OrganisationUnitResponsePaged'
+        # }
+        # for:
+        # query {
+        #   org_units {
+        #     objects {
+        #       ...
+        #     }
+        #   }
+        # }
+        object=nt2dict(info.path)
+
+        context={
+            # True/False
+            "os2mo_auth": auth_enabled,
+            # Contains the object we are extracting fields on
+            "source": source,
+            # 20
+            "version": info.context["version"],
+
+            # "field_name": info.field_name,
+            # "selected_fields": info.selected_fields,
+            # "request": info.context["request"],
+            # "response": info.context["response"],
+        }
+
+        # Ask casbin to run the inquiry through all policies
+        guard = info.context["guard"]
+        return guard.enforce(
+            subject,
+            object,
+            action,
+            context,
+        )
+
+
+def get_guard() -> casbin.Enforcer:
+    # NOTE: If no matching policies allow access, access is denied
+
+#    query MyQuery {
+#      org_units(limit: "1") {
+#        objects {
+#          uuid
+#          current {
+#            name  # This is OK
+#            uuid  # This is blocked by last policy
+#          }
+#        }
+#      }
+#    }
+
+    def role_checker(user_roles, operation, action):
+        collection_map = {
+            "OrganisationUnit": "org_unit"
+        }
+
+        collection = collection_map[operation["typename"]]
+        # field = operation["key"]
+
+        role_name = "_".join([action, collection])  # ,field])
+        print(role_name)
+        return role_name in user_roles
+
+    model = casbin.Enforcer.new_model(text="""
+    [request_definition]
+    r = sub, obj, act, ctx
+
+    [policy_definition]
+    p = sub, obj, act, ctx
+
+    [policy_effect]
+    e = some(where (p.eft == allow))
+
+    [matchers]
+    m = role_checker(r.sub.realm_access.roles, r.obj, r.act) || (r.ctx.os2mo_auth == False)
+    """)
+    adapter = casbin_sqlalchemy_adapter.Adapter('sqlite://')
+    enforcer = casbin.Enforcer(model=model, adapter=adapter, enable_log=True)
+    enforcer.add_function("role_checker", role_checker)
+
+    # enforcer.add_policy("alice", "data1", "read", "{}")
+    return enforcer
