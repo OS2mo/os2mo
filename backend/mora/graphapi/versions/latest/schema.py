@@ -34,7 +34,7 @@ from .models import ClassRead
 from .models import FacetRead
 from .models import FileStore
 from .models import OwnerInferencePriority
-from .permissions import gen_read_permission
+from .permissions import VaktPermission, gen_read_permission
 from .permissions import IsAuthenticatedPermission
 from .registration import Registration
 from .registration import registration_resolver
@@ -3628,7 +3628,10 @@ class OrganisationUnit:
         """Implemented for backwards compatability."""
         return root.type_
 
-    @strawberry.field(description="UUID of the entity")
+    @strawberry.field(
+        description="UUID of the entity",
+        permission_classes=[VaktPermission]
+    )
     async def uuid(self, root: OrganisationUnitRead) -> UUID:
         return root.uuid
 
@@ -3661,7 +3664,8 @@ class OrganisationUnit:
             * `"IT-Support"`
             * `"Teknik og Miljø"`
             """
-        )
+        ),
+        permission_classes=[VaktPermission]
     )
     async def name(self, root: OrganisationUnitRead) -> str:
         return root.name

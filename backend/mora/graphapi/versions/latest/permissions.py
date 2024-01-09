@@ -160,3 +160,186 @@ gen_delete_permission = partial(
 gen_refresh_permission = partial(
     gen_permission, permission_type="refresh", force_permission_check=True
 )
+
+
+import vakt
+from vakt.rules.base import Rule
+from vakt.rules import Eq, Any, Falsy, Truthy
+from uuid import uuid4
+from operator import itemgetter
+
+
+class VaktPermission(BasePermission):
+    """Permission class that checks that the request is authorized."""
+
+    message = "Vakt rejected"
+
+    async def has_permission(self, source: Any, info: Info, **kwargs: Any) -> bool:
+        """Evaluate the request against all vakt policies."""
+
+        auth_enabled = get_settings().os2mo_auth
+
+        try:
+            token = await info.context["get_token"]()
+        except HTTPException:
+            token = None
+
+        def nt2dict(obj) -> dict[str, Any]:
+            if hasattr(obj, "_asdict"):
+                return {k: nt2dict(v) for k, v in obj._asdict().items()}
+            return obj
+
+        inquiry = vakt.Inquiry(
+            # TODO: Determine from top-level typename
+            # If Query == 'read'
+            # If Mutation, check mutator name structure
+            action='read',  # read, create, delete, refresh, terminate, update
+#            # Has the format of:
+#            {
+#                "prev": {
+#                    "prev": None,
+#                    "key": 'org_units',
+#                    "typename": 'Query'
+#                },
+#                "key": 'objects',
+#                "typename": 'OrganisationUnitResponsePaged'
+#            }
+# for:
+#            query {
+#              org_units {
+#                objects {
+#                  ...
+#                }
+#              }
+#            }
+            resource=nt2dict(info.path),
+#            # Has the format of:
+#            {
+#                "azp": 'mo-frontend',
+#                "email": 'alvidan@kolding.dk',
+#                "preferred_username": 'alvida',
+#                "realm_access": {
+#                    "roles": {'read_version', 'file_admin', ...},
+#                }
+#                "uuid": UUID('0fb62199-cb9e-4083-ba45-2a63bfd142d7')
+#            }
+            subject=token.dict(by_alias=True),
+            context={
+                # True/False
+                "os2mo_auth": auth_enabled,
+                # Contains the object we are extracting fields on
+                "source": source,
+                # 20
+                "version": info.context["version"],
+
+                # "field_name": info.field_name,
+                # "selected_fields": info.selected_fields,
+                # "request": info.context["request"],
+                # "response": info.context["response"],
+            }
+        )
+        # Ask Vakt to run the inquiry through all policies
+        guard = info.context["guard"]
+        return guard.is_allowed(inquiry)
+
+
+class TranslateRule(Rule):
+    def __init__(self, func, rule):
+        assert isinstance(rule, Rule)
+        self.func = func
+        self.rule = rule
+
+    def satisfied(self, what, inquiry=None):
+        return self.rule.satisfied(self.func(what), inquiry)
+
+
+def GetItemRule(name: str, rule) -> TranslateRule:
+    return TranslateRule(itemgetter(name), rule)
+
+
+class SubsetContains(Rule):
+    def __init__(self, roles):
+        assert isinstance(roles, set)
+        self.roles = roles
+
+    def satisfied(self, what, inquiry=None):
+        assert isinstance(what, set)
+        return self.roles.issubset(what)
+
+
+def get_guard() -> vakt.Guard:
+    storage = vakt.MemoryStorage()
+    storage.add(vakt.Policy(
+        uuid4(),
+        # No matter the action
+        actions=[Any()],
+        # No matter the resource
+        resources=[Any()],
+        # No matter who
+        subjects=[Any()],
+        # If OS2mo_auth is disabled
+        context={
+            "os2mo_auth": Falsy()
+        },
+        effect=vakt.ALLOW_ACCESS,
+        description="Allow all access if os2mo_auth is disabled"
+    ))
+    storage.add(vakt.Policy(
+        uuid4(),
+        # If a read operation
+        actions=[Eq('read')],
+        # If we are looking up a random field on orgunits
+        resources=[{
+            "typename": Eq('OrganisationUnit'),
+            "key": Any()
+        }],
+        # If we have the read_org_unit role
+        subjects=[
+            {
+                "realm_access": GetItemRule(
+                    "roles",
+                    SubsetContains({'read_org_unit',})
+                )
+            }
+        ],
+        # If OS2mo_auth is enabled
+        context={
+            "os2mo_auth": Truthy(),
+        },
+        effect=vakt.ALLOW_ACCESS,
+        description="""
+        Allow access to read OrganisationUnits if the appropriate role is found
+        """
+    ))
+    storage.add(vakt.Policy(
+        uuid4(),
+        actions=[Eq('read')],
+        resources=[{
+            "typename": Eq('OrganisationUnit'),
+            "key": Eq('uuid')
+        }],
+        subjects=[Any()],
+        # If OS2mo_auth is enabled
+        context={
+            "os2mo_auth": Truthy(),
+        },
+        effect=vakt.DENY_ACCESS,  # Reject for testing
+        description="""
+        Disallow reading OrganisationUnit.uuid
+        """
+    ))
+    # NOTE: If no matching policies allow access, access is denied
+
+#    query MyQuery {
+#      org_units(limit: "1") {
+#        objects {
+#          uuid
+#          current {
+#            name  # This is OK
+#            uuid  # This is blocked by last policy
+#          }
+#        }
+#      }
+#    }
+
+    return vakt.Guard(storage, vakt.RulesChecker())

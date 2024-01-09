@@ -18,6 +18,7 @@ from .files import get_filestorage
 from .mutators import Mutation as LatestMutation
 from .query import Query as LatestQuery
 from .types import CPRType
+from .permissions import get_guard
 from mora import depends
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import token_getter
@@ -77,5 +78,6 @@ class LatestGraphQLVersion(BaseGraphQLVersion):
             "filestorage": get_filestorage(),
             "amqp_system": amqp_system,
             "sessionmaker": sessionmaker,
+            "guard": get_guard(),
             **get_audit_loaders(sessionmaker),
         }
