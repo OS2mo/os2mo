@@ -414,6 +414,9 @@ async def engagement_resolver(
         kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
+    if filter.job_function is not None:
+        class_filter = filter.job_function or ClassFilter()
+        kwargs["opgaver"] = await filter2uuids_func(class_resolver, info, class_filter)
 
     return await generic_resolver(
         EngagementRead,

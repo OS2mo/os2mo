@@ -296,6 +296,15 @@ class EngagementFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         ),
     )
 
+    job_function: ClassFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Job function filter limiting which entries are returned.
+            """
+        ),
+    )
+
 
 @strawberry.input(description="Facet filter.")
 class FacetFilter(BaseFilter):

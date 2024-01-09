@@ -155,44 +155,72 @@ def test_query_is_primary(test_data, graphapi_post: GraphAPIPost, patch_loader):
     [
         ({}, 3),
         # Employee filters
-        ({"employees": "236e0a78-11a0-4ed9-8545-6286bb8611c7"}, 2),
-        ({"employees": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"}, 1),
-        ({"employees": "6ee24785-ee9a-4502-81c2-7697009c9053"}, 0),
+        ({"employee": {"uuids": "236e0a78-11a0-4ed9-8545-6286bb8611c7"}}, 2),
+        ({"employee": {"uuids": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"}}, 1),
+        ({"employee": {"uuids": "6ee24785-ee9a-4502-81c2-7697009c9053"}}, 0),
         (
             {
-                "employees": [
-                    "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                    "6ee24785-ee9a-4502-81c2-7697009c9053",
-                ]
+                "employee": {
+                    "uuids": [
+                        "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                        "6ee24785-ee9a-4502-81c2-7697009c9053",
+                    ]
+                }
             },
             1,
         ),
         # Organisation Unit filter
-        ({"org_units": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"}, 3),
-        ({"org_units": "2874e1dc-85e6-4269-823a-e1125484dfd3"}, 0),
+        ({"org_unit": {"uuids": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"}}, 3),
+        ({"org_unit": {"uuids": "2874e1dc-85e6-4269-823a-e1125484dfd3"}}, 0),
         (
             {
-                "org_units": [
-                    "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                    "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                ]
+                "org_unit": {
+                    "uuids": [
+                        "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                        "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                    ]
+                }
+            },
+            3,
+        ),
+        # Job function filter
+        ({"job_function": {"uuids": "ca76a441-6226-404f-88a9-31e02e420e52"}}, 1),
+        ({"job_function": {"uuids": "2874e1dc-85e6-4269-823a-e1125484dfd3"}}, 0),
+        (
+            {
+                "job_function": {
+                    "uuids": [
+                        "ca76a441-6226-404f-88a9-31e02e420e52",
+                        "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+                    ]
+                }
             },
             3,
         ),
         # Mixed filters
         (
             {
-                "employees": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
-                "org_units": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "employee": {"uuids": "236e0a78-11a0-4ed9-8545-6286bb8611c7"},
+                "org_unit": {"uuids": "2874e1dc-85e6-4269-823a-e1125484dfd3"},
+                "job_function": {"uuids": "2874e1dc-85e6-4269-823a-e1125484dfd3"},
             },
             0,
         ),
         (
             {
-                "employees": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
-                "org_units": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                "employee": {"uuids": "236e0a78-11a0-4ed9-8545-6286bb8611c7"},
+                "org_unit": {"uuids": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "job_function": {"uuids": None},
             },
             2,
+        ),
+        (
+            {
+                "employee": {"uuids": "236e0a78-11a0-4ed9-8545-6286bb8611c7"},
+                "org_unit": {"uuids": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "job_function": {"uuids": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"},
+            },
+            1,
         ),
     ],
 )
