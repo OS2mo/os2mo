@@ -724,3 +724,67 @@ async def test_create_engagement_with_extensions_fields_integrations_test(
     assert obj["extension_8"] == test_data.extension_8
     assert obj["extension_9"] == test_data.extension_9
     assert obj["extension_10"] == test_data.extension_10
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_clear_extension_field(graphapi_post: GraphAPIPost) -> None:
+    """Test that extension fields can be cleared via GraphQL."""
+
+    def read_extension_field3(uuid: UUID) -> str | None:
+        verify_query = """
+        query ReadExtensionField(
+            $uuid: UUID!
+        ) {
+          engagements(filter: {uuids: [$uuid]}) {
+            objects {
+              current {
+                extension_3
+              }
+            }
+          }
+        }
+        """
+        response = graphapi_post(verify_query, {"uuid": str(uuid)})
+        assert response.errors is None
+        extension_3 = one(response.data["engagements"]["objects"])["current"][
+            "extension_3"
+        ]
+        return extension_3
+
+    def set_extension_field3(uuid: UUID, extension_3: str) -> None:
+        mutate_query = """
+        mutation UpdateExtensionField(
+          $uuid: UUID!, $extension_3: String
+        ) {
+          engagement_update(
+            input: {
+              uuid: $uuid,
+              validity: {from: "2020-01-01"},
+              extension_3: $extension_3
+            }
+          ) {
+            uuid
+          }
+        }
+        """
+        response = graphapi_post(
+            mutate_query, {"uuid": str(uuid), "extension_3": extension_3}
+        )
+        assert response.errors is None
+        response_uuid = UUID(response.data["engagement_update"]["uuid"])
+        assert response_uuid == uuid
+
+    uuid = UUID("d000591f-8705-4324-897a-075e3623f37b")
+
+    extension_3 = read_extension_field3(uuid)
+    assert extension_3 is None
+
+    new_value = "Testing"
+    set_extension_field3(uuid, new_value)
+    extension_3 = read_extension_field3(uuid)
+    assert extension_3 == new_value
+
+    set_extension_field3(uuid, "")
+    extension_3 = read_extension_field3(uuid)
+    assert extension_3 is None

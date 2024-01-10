@@ -214,7 +214,7 @@ class AddressUpdate(AddressUpsert):
         data_dict = super().to_handler_dict()
         data_dict["value"] = self.value
         data_dict["address_type"] = gen_uuid(self.address_type)
-        return {k: v for k, v in data_dict.items() if v}
+        return {k: v for k, v in data_dict.items() if v is not None}
 
 
 class AddressTerminate(ValidityTerminate):
@@ -288,7 +288,7 @@ class AssociationUpdate(AssociationUpsert):
         data_dict = super().to_handler_dict()
         data_dict["org_unit"] = gen_uuid(self.org_unit)
         data_dict["association_type"] = gen_uuid(self.association_type)
-        return {k: v for k, v in data_dict.items() if v}
+        return {k: v for k, v in data_dict.items() if v is not None}
 
 
 class AssociationTerminate(ValidityTerminate):
@@ -497,7 +497,7 @@ class EmployeeUpdate(EmployeeUpsert):
             if self.validity.to_date
             else None,
         }
-        return {k: v for k, v in data_dict.items() if v}
+        return {k: v for k, v in data_dict.items() if v is not None}
 
 
 class EmployeeTerminate(ValidityTerminate):
@@ -614,7 +614,7 @@ class EngagementUpdate(EngagementUpsert):
         data_dict["org_unit"] = gen_uuid(self.org_unit)
         data_dict["engagement_type"] = gen_uuid(self.engagement_type)
         data_dict["job_function"] = gen_uuid(self.job_function)
-        return {k: v for k, v in data_dict.items() if v}
+        return {k: v for k, v in data_dict.items() if v is not None}
 
 
 # EngagementsAssociations
@@ -755,7 +755,7 @@ class ITAssociationUpdate(ITAssociationUpsert):
         data_dict["org_unit"] = gen_uuid(self.org_unit)
         data_dict["it"] = gen_uuid(self.it_user)
         data_dict["job_function"] = gen_uuid(self.job_function)
-        return {k: v for k, v in data_dict.items() if v}
+        return {k: v for k, v in data_dict.items() if v is not None}
 
 
 class ITAssociationTerminate(ValidityTerminate):
@@ -913,7 +913,7 @@ class ITUserUpdate(ITUserUpsert):
         data_dict = super().to_handler_dict()
         data_dict["user_key"] = self.user_key
         data_dict["itsystem"] = gen_uuid(self.itsystem)
-        return {k: v for k, v in data_dict.items() if v}
+        return {k: v for k, v in data_dict.items() if v is not None}
 
 
 class ITUserTerminate(ValidityTerminate):
@@ -986,7 +986,7 @@ class KLEUpdate(UUIDBase):
         if self.kle_aspects:
             data_dict["kle_aspect"] = list(map(gen_uuid, self.kle_aspects))
 
-        return {k: v for k, v in data_dict.items() if v}
+        return {k: v for k, v in data_dict.items() if v is not None}
 
 
 class KLETerminate(ValidityTerminate):
@@ -1048,7 +1048,7 @@ class LeaveUpdate(UUIDBase):
                 else None,
             },
         }
-        return {k: v for k, v in data_dict.items() if v}
+        return {k: v for k, v in data_dict.items() if v is not None}
 
 
 class LeaveTerminate(ValidityTerminate):
@@ -1139,7 +1139,7 @@ class ManagerUpdate(UUIDBase):
         if self.responsibility:
             data_dict["responsibility"] = list(map(gen_uuid, self.responsibility))
 
-        return {k: v for k, v in data_dict.items() if v or k == "person"}
+        return {k: v for k, v in data_dict.items() if (v is not None) or k == "person"}
 
 
 class ManagerTerminate(ValidityTerminate):
@@ -1239,7 +1239,7 @@ class OrganisationUnitUpdate(UUIDBase):
             },
         }
 
-        return {k: v for k, v in data_dict.items() if v}
+        return {k: v for k, v in data_dict.items() if v is not None}
 
 
 # Owners
@@ -1328,7 +1328,7 @@ class OwnerUpdate(UUIDBase):
             },
         }
         # Same garbage as with `manager.person` and `org_unit.parent`
-        return {k: v for k, v in data_dict.items() if v or k == "owner"}
+        return {k: v for k, v in data_dict.items() if (v is not None) or k == "owner"}
 
 
 class OwnerTerminate(ValidityTerminate):
@@ -1410,7 +1410,7 @@ class RoleUpdate(UUIDBase):
                 else None,
             },
         }
-        return {k: v for k, v in data_dict.items() if v}
+        return {k: v for k, v in data_dict.items() if v is not None}
 
 
 class RoleTerminate(ValidityTerminate):

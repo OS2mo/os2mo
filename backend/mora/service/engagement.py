@@ -277,7 +277,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
     def get_extension_attribute_fields(req: dict) -> dict:
         """
         Filters all but the generic attribute extension fields, and returns
-        them mapped to the LoRa data moedl
+        them mapped to the LoRa data model
         :param extensions: A dict of all request values
         :return: A dict of mapped attribute extension fields
         """
