@@ -710,13 +710,7 @@ async def generic_resolver(
 
     # UUIDs
     if filter.uuids is not None:
-        if limit is not None or cursor is not None:
-            raise ValueError("Cannot filter 'uuid' with 'limit' or 'cursor'")
-        # Early return on empty UUID list
-        if not filter.uuids:
-            return neutral_element_constructor()
-        resolver_name = resolver_map[model]["loader"]
-        return await get_by_uuid(info.context[resolver_name], filter.uuids)
+        kwargs["uuid"] = filter.uuids
 
     # User keys
     if filter.user_keys is not None:
