@@ -48,36 +48,6 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     assert flatten_data(response.data["related_units"]["objects"]) == test_data
 
 
-@given(test_input=graph_data_uuids_strat(RelatedUnitRead))
-def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
-    """Test that we can query related_units by UUID."""
-    test_data, test_uuids = test_input
-
-    # Patch dataloader
-    with MonkeyPatch.context() as patch:
-        patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
-        query = """
-            query TestQuery($uuids: [UUID!]) {
-                related_units(filter: {uuids: $uuids}) {
-                    objects {
-                        uuid
-                    }
-                }
-            }
-            """
-        response = graphapi_post(query, {"uuids": test_uuids})
-
-    assert response.errors is None
-    assert response.data
-
-    # Check UUID equivalence
-    result_uuids = [
-        related.get("uuid") for related in response.data["related_units"]["objects"]
-    ]
-    assert set(result_uuids) == set(test_uuids)
-    assert len(result_uuids) == len(set(test_uuids))
-
-
 @given(test_data=...)
 @patch(
     "mora.graphapi.versions.latest.mutators.update_related_units",

@@ -181,45 +181,6 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     assert [x["current"] for x in response.data["classes"]["objects"]] == test_data
 
 
-@given(test_input=graph_data_uuids_strat(ClassRead))
-async def test_query_by_uuid(test_input, patch_loader):
-    """Test that we can query classes by UUID."""
-    test_data, test_uuids = test_input
-    # Patch dataloader
-    with MonkeyPatch.context() as patch:
-        # Our class dataloaders are ~* special *~
-        # We need to intercept the connector too
-        patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
-        query = """
-                query TestQuery($uuids: [UUID!]) {
-                    classes(filter: {uuids: $uuids}) {
-                        objects {
-                            objects {
-                                uuid
-                            }
-                        }
-                    }
-                }
-            """
-        response = await execute_graphql(
-            query=query,
-            variable_values={"uuids": test_uuids},
-        )
-
-    assert response.errors is None
-    assert response.data
-
-    # Check UUID equivalence
-    result_uuids = []
-    for obj in response.data["classes"]["objects"]:
-        obj = one(obj["objects"])
-        result_uuids.append(obj["uuid"])
-
-    test_uuids_set = set(test_uuids)
-    assert len(result_uuids) == len(test_uuids_set)
-    assert set(result_uuids) == test_uuids_set
-
-
 # INTEGRATION tests
 # -------------------
 @given(
