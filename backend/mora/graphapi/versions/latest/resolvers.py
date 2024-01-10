@@ -178,7 +178,7 @@ async def facet_resolver(
         )
 
     return await generic_resolver(
-        FacetRead,
+        info.context["facet_getter"],
         None,
         info=info,
         filter=filter,
@@ -236,7 +236,7 @@ async def class_resolver(
         kwargs["omfang"] = filter.scope
 
     return await generic_resolver(
-        ClassRead,
+        info.context["class_getter"],
         None,
         info=info,
         filter=filter,
@@ -283,7 +283,7 @@ async def address_resolver(
         )
 
     return await generic_resolver(
-        AddressRead,
+        info.context["address_getter"],
         None,
         info=info,
         filter=filter,
@@ -330,7 +330,7 @@ async def association_resolver(
         )
 
     associations = await generic_resolver(
-        AssociationRead,
+        info.context["association_getter"],
         None,
         info=info,
         filter=filter,
@@ -387,7 +387,7 @@ async def employee_resolver(
         ]
 
     return await generic_resolver(
-        EmployeeRead,
+        info.context["employee_getter"],
         None,
         info=info,
         filter=filter,
@@ -416,7 +416,7 @@ async def engagement_resolver(
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
 
     return await generic_resolver(
-        EngagementRead,
+        info.context["engagement_getter"],
         None,
         info=info,
         filter=filter,
@@ -448,7 +448,7 @@ async def manager_resolver(
         kwargs["opgaver"] = await filter2uuids_func(class_resolver, info, class_filter)
 
     return await generic_resolver(
-        ManagerRead,
+        info.context["manager_getter"],
         None,
         info=info,
         filter=filter,
@@ -481,7 +481,7 @@ async def owner_resolver(
         )
 
     return await generic_resolver(
-        OwnerRead,
+        info.context["owner_getter"],
         None,
         info=info,
         filter=filter,
@@ -548,7 +548,7 @@ async def organisation_unit_resolver(
         kwargs["opmærkning"] = await _get_hierarchy_uuids(info, filter)
 
     return await generic_resolver(
-        OrganisationUnitRead,
+        info.context["org_unit_getter"],
         None,
         info=info,
         filter=filter,
@@ -570,7 +570,7 @@ async def it_system_resolver(
     await registration_filter(info, filter)
 
     return await generic_resolver(
-        ITSystemRead,
+        info.context["itystem_getter"],
         None,
         info=info,
         filter=filter,
@@ -607,7 +607,7 @@ async def it_user_resolver(
         kwargs["tilknyttedeitsystemer"] = await _get_itsystem_uuids(info, filter)
 
     return await generic_resolver(
-        ITUserRead,
+        info.context["ituser_getter"],
         None,
         info=info,
         filter=filter,
@@ -634,7 +634,7 @@ async def kle_resolver(
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
 
     return await generic_resolver(
-        KLERead,
+        info.context["kle_getter"],
         None,
         info=info,
         filter=filter,
@@ -663,7 +663,7 @@ async def leave_resolver(
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
 
     return await generic_resolver(
-        LeaveRead,
+        info.context["leave_getter"],
         None,
         info=info,
         filter=filter,
@@ -688,7 +688,7 @@ async def get_by_uuid(
 
 
 async def generic_resolver(
-    model: Any,
+    getter: Callable[[...], Any],
     neutral_element_constructor: Callable[[], Any] | None,
     # Ordinary
     info: Info,
@@ -737,8 +737,7 @@ async def generic_resolver(
         kwargs["foersteresultat"] = cursor.offset
         kwargs["registreringstid"] = str(cursor.registration_time)
 
-    resolver_name = resolver_map[model]["getter"]
-    return await info.context[resolver_name](**kwargs)
+    return await getter(**kwargs)
 
 
 async def related_unit_resolver(
@@ -758,7 +757,7 @@ async def related_unit_resolver(
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
 
     return await generic_resolver(
-        RelatedUnitRead,
+        info.context["rel_unit_getter"],
         None,
         info=info,
         filter=filter,
@@ -787,7 +786,7 @@ async def role_resolver(
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
 
     return await generic_resolver(
-        RoleRead,
+        info.context["role_getter"],
         None,
         info=info,
         filter=filter,
