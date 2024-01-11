@@ -714,25 +714,13 @@ If these patterns are highly undesirable, put them in the bottom of the list, an
 will only be used if everything else fails.
 
 
-#### CRON jobs
-The application is configured with three CRON jobs, which run on a periodic schedule:
-
-* Daily at 23:00: Info dictionaries are reloaded by calling
-  [POST:/reload_info_dicts][post_reload_info_dicts]. This is necessary, in case new
-  object types are added to OS2mo. For example by using `OS2mo init`.
-* Daily at 03:00: Objects which enter or leave validity are exported to the LDAP
-  database by calling [POST:/synchronize_todays_events][post_synchronize_todays_events].
-
-
 [swagger]:http://localhost:8000/docs
 [get_overview]:http://localhost:8000/docs#/LDAP/load_overview_from_LDAP_LDAP_overview_get
 [get_employee_address_types]:http://localhost:8000/docs#/MO/load_employee_address_types_from_MO_MO_Address_types_employee_get
 [get_org_unit_address_types]:http://localhost:8000/docs#/MO/load_org_unit_address_types_from_MO_MO_Address_types_org_unit_get
 [get_it_systems]:http://localhost:8000/docs#/MO/load_it_systems_from_MO_MO_IT_systems_get
 [get_primary_types]:http://localhost:8000/docs#/MO/load_primary_types_from_MO_MO_Primary_types_get
-[post_reload_info_dicts]:http://localhost:8000/docs#/Maintenance/reload_info_dicts_reload_info_dicts_post
 [get_import_all]:http://localhost:8000/docs#/Import/import_all_objects_from_LDAP_Import_all_get
 [get_import_single]:http://localhost:8000/docs#/Import/import_single_user_from_LDAP_Import__dn__get
-[post_synchronize_todays_events]:http://localhost:8000/docs#/Maintenance/synchronize_todays_events_Synchronize_todays_events_post
 [jinja2_filters]:https://jinja.palletsprojects.com/en/3.1.x/templates/#builtin-filters
 [post_export_all]:http://localhost:8000/docs#/Export/export_mo_objects_Export_post

@@ -620,11 +620,6 @@ def test_load_it_systems_from_MO_endpoint(test_client: TestClient):
     assert response.status_code == 202
 
 
-def test_reload_info_dicts_endpoint(test_client: TestClient):
-    response = test_client.post("/reload_info_dicts")
-    assert response.status_code == 202
-
-
 def test_load_primary_types_from_MO_endpoint(test_client: TestClient):
     response = test_client.get("/MO/Primary_types")
     assert response.status_code == 202
@@ -726,40 +721,6 @@ async def test_load_faulty_username_generator() -> None:
             mock.generate_dn = lambda a: a
             usernames_mock.UserNameGenerator.return_value = mock
             create_fastramqpi()
-
-
-async def test_synchronize_todays_events(
-    test_client: TestClient,
-    internal_amqpsystem: MagicMock,
-    test_mo_objects: list,
-):
-    today = datetime.datetime.today().strftime("%Y-%m-%d")
-    json = {
-        "date": today,
-        "publish_amqp_messages": True,
-    }
-    response = test_client.post("/Synchronize_todays_events", json=json)
-    assert response.status_code == 202
-
-    n = 0
-    for mo_object in test_mo_objects:
-        payload = mo_object["payload"]
-
-        from_date = str(mo_object["validity"]["from"])
-        to_date = str(mo_object["validity"]["to"])
-
-        if from_date.startswith(today):
-            routing_key = "person"
-        elif to_date.startswith(today):
-            routing_key = "person"
-        else:
-            routing_key = None
-
-        if routing_key:
-            internal_amqpsystem.publish_message.assert_any_await(routing_key, payload)
-            n += 1
-
-    assert internal_amqpsystem.publish_message.await_count == n
 
 
 async def test_export_endpoint(
