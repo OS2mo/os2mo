@@ -67,7 +67,7 @@ include:
       - gitlab-ci-templates/common/conventional-commits-changelog-meta.v1.yml
       - gitlab-ci-templates/python/pytest-meta.v1.yml
       - gitlab-ci-templates/common/docker-build-meta.v2.yml
-      - gitlab-ci-templates/common/docker-release.v1.yml
+      - gitlab-ci-templates/common/docker-release-meta.v1.yml
       - gitlab-ci-templates/common/config-updater-salt.v1.yml
       - gitlab-ci-templates/common/config-updater-flux.v1.yml
   - project: labs/salt-automation
@@ -173,6 +173,19 @@ Build OS2mo:
       when: never
     - when: on_success
 
+Build OS2mo Keycloak:
+  extends:
+    - .build-docker
+  variables:
+    IMAGE_SHA: ${CI_REGISTRY_IMAGE}/keycloak:${CI_COMMIT_SHA}
+  before_script:
+    - export CONTEXT=${CI_PROJECT_DIR}/keycloak
+    - export DOCKERFILE=${CONTEXT}/Dockerfile
+  rules:
+    - <<: *if-schedule
+      when: never
+    - when: on_success
+
 
 # Tests
 ########
@@ -225,6 +238,28 @@ Check coverage:
   needs:
     - Unit-test
     - Integration-test
+
+
+# Release
+##########
+
+Release master:
+  extends: .release-master
+
+Release version:
+  extends: .release-version
+
+Release Keycloak master:
+  extends: .release-master
+  variables:
+    CI_IMAGE: ${CI_REGISTRY_IMAGE}/keycloak:${CI_COMMIT_SHA}
+    RELEASE_IMAGE: ${RELEASE_REGISTRY_IMAGE}-keycloak
+
+Release Keycloak version:
+  extends: .release-version
+  variables:
+    CI_IMAGE: ${CI_REGISTRY_IMAGE}/keycloak:${CI_COMMIT_SHA}
+    RELEASE_IMAGE: ${RELEASE_REGISTRY_IMAGE}-keycloak
 
 
 # Docs
