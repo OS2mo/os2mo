@@ -488,11 +488,11 @@ async def test_upload_mo_employee(
 
 async def test_make_overview_entry(dataloader: DataLoader):
 
-    attributes = ["attr1", "attr2"]
+    attributes = ["attr1", "attr2", "unknownattr"]
     superiors = ["sup1", "sup2"]
     entry = dataloader.make_overview_entry(attributes, superiors)
 
-    assert list(entry["attributes"].keys()) == attributes
+    assert list(entry["attributes"].keys()) == ["attr1", "attr2"]
     assert entry["superiors"] == superiors
 
     assert entry["attributes"]["attr1"]["single_value"] is False

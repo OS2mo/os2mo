@@ -702,6 +702,9 @@ class DataLoader:
 
         attribute_dict = {}
         for attribute in attributes:
+            # skip unmapped types
+            if attribute not in self.attribute_types:
+                continue
             syntax = self.attribute_types[attribute].syntax
 
             # decoded syntax tuple structure: (oid, kind, name, docs)
