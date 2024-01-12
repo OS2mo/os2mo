@@ -28,7 +28,6 @@ from ldap3.core.exceptions import LDAPInvalidDnError
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from more_itertools import always_iterable
-from more_itertools import only
 from ramodels.mo.employee import Employee
 
 from .config import AuthBackendEnum
@@ -170,16 +169,13 @@ def get_ldap_object_schema(ldap_connection: Connection, ldap_object: str):
     return schema.object_classes[ldap_object]
 
 
-def get_ldap_superiors(ldap_connection: Connection, root_ldap_object: str):
-
+def get_ldap_superiors(ldap_connection: Connection, root_ldap_object: str) -> list:
+    object_schema = get_ldap_object_schema(ldap_connection, root_ldap_object)
+    ldap_objects = list(always_iterable(object_schema.superior))
     superiors = []
-    ldap_object: str | None = root_ldap_object
-    while ldap_object is not None:
-        object_schema = get_ldap_object_schema(ldap_connection, ldap_object)
-        ldap_object = only(always_iterable(object_schema.superior))
-        if ldap_object is not None:
-            superiors.append(ldap_object)
-
+    for ldap_object in ldap_objects:
+        superiors.append(ldap_object)
+        superiors.extend(get_ldap_superiors(ldap_connection, ldap_object))
     return superiors
 
 
