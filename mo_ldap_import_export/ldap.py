@@ -13,6 +13,7 @@ from typing import cast
 from typing import ContextManager
 from uuid import UUID
 
+import ldap3.core.exceptions
 from fastramqpi.context import Context
 from ldap3 import BASE
 from ldap3 import Connection
@@ -21,6 +22,7 @@ from ldap3 import RANDOM
 from ldap3 import RESTARTABLE
 from ldap3 import Server
 from ldap3 import ServerPool
+from ldap3 import SIMPLE
 from ldap3 import Tls
 from ldap3.core.exceptions import LDAPInvalidDnError
 from ldap3.utils.dn import parse_dn
@@ -29,6 +31,7 @@ from more_itertools import always_iterable
 from more_itertools import only
 from ramodels.mo.employee import Employee
 
+from .config import AuthBackendEnum
 from .config import ServerConfig
 from .config import Settings
 from .exceptions import MultipleObjectsReturnedException
@@ -97,17 +100,42 @@ def configure_ldap_connection(settings: Settings) -> ContextManager:
 
     logger.info(f"Connecting to {server_pool}")
     logger.info(f"Client strategy: {client_strategy}")
-    connection = Connection(
-        server=server_pool,
-        user=settings.ldap_domain + "\\" + settings.ldap_user,
-        password=settings.ldap_password.get_secret_value(),
-        authentication=NTLM,
-        client_strategy=get_client_strategy(),
-        auto_bind=True,  # type: ignore
-    )
+    logger.info(f"Auth strategy: {settings.ldap_auth_method.value}")
 
-    # Turn off the alarm
-    signal.alarm(0)
+    connection_kwargs = {
+        "server": server_pool,
+        "client_strategy": get_client_strategy(),
+        "password": settings.ldap_password.get_secret_value(),
+        "auto_bind": True,
+    }
+    match settings.ldap_auth_method:
+        case AuthBackendEnum.NTLM:
+            connection_kwargs.update(
+                {
+                    "user": settings.ldap_domain + "\\" + settings.ldap_user,
+                    "authentication": NTLM,
+                }
+            )
+        case AuthBackendEnum.SIMPLE:
+            connection_kwargs.update(
+                {
+                    "user": settings.ldap_user,
+                    "authentication": SIMPLE,
+                }
+            )
+        case _:
+            # Turn off the alarm
+            signal.alarm(0)
+            raise ValueError("Unknown authentication backend")
+
+    try:
+        connection = Connection(**connection_kwargs)
+    except ldap3.core.exceptions.LDAPBindError as exc:
+        logger.error("Exception during LDAP auth", exc_info=exc)
+        raise exc
+    finally:
+        # Turn off the alarm
+        signal.alarm(0)
 
     return cast(ContextManager, connection)
 

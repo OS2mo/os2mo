@@ -20,6 +20,7 @@ from unittest.mock import patch
 from uuid import UUID
 from uuid import uuid4
 
+import ldap3.core.exceptions
 import pytest
 from fastramqpi.context import Context
 from ldap3 import Connection
@@ -31,6 +32,8 @@ from ramodels.mo.employee import Employee
 from structlog.testing import capture_logs
 
 from .test_dataloaders import mock_ldap_response
+from mo_ldap_import_export.config import AuthBackendEnum
+from mo_ldap_import_export.config import ServerConfig
 from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
@@ -191,6 +194,7 @@ def test_configure_ldap_connection_timeout(
     ldap_controller.timeout = 1
 
     settings = MagicMock()
+    settings.ldap_auth_method = AuthBackendEnum.NTLM
     settings.ldap_controllers = [ldap_controller]
 
     def connection_mock(*args, **kwargs):
@@ -206,6 +210,46 @@ def test_configure_ldap_connection_timeout(
     ):
         with pytest.raises(TimeOutException):
             configure_ldap_connection(settings)
+
+
+def test_configure_ldap_connection_simple(
+    load_settings_overrides: dict[str, str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("ldap_auth_method", "simple")
+    settings = Settings()
+
+    reason = "Error binding to server: {}".format("BOOM")
+
+    def connection_mock(*args, **kwargs):
+        raise ldap3.core.exceptions.LDAPBindError(reason)
+
+    with capture_logs() as cap_logs:
+        with patch(
+            "mo_ldap_import_export.ldap.get_client_strategy", return_value=MOCK_SYNC
+        ), patch("mo_ldap_import_export.ldap.Connection", connection_mock):
+            with pytest.raises(ldap3.core.exceptions.LDAPBindError):
+                configure_ldap_connection(settings)
+    assert {
+        "event": "Auth strategy: simple",
+        "log_level": "info",
+    } in cap_logs
+
+
+def test_configure_ldap_connection_unknown(
+    load_settings_overrides: dict[str, str]
+) -> None:
+    ldap_controller = ServerConfig(host="0.0.0.0")
+
+    invalid_auth_method = MagicMock()
+    invalid_auth_method.value = "invalid"
+
+    settings = MagicMock()
+    settings.ldap_auth_method = invalid_auth_method
+    settings.ldap_controllers = [ldap_controller]
+
+    with pytest.raises(ValueError) as exc_info:
+        configure_ldap_connection(settings)
+    assert "Unknown authentication backend" in str(exc_info.value)
 
 
 def test_get_client_strategy() -> None:

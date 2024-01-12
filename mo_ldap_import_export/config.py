@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 # pylint: disable=too-few-public-methods
 """Settings handling."""
+from enum import Enum
 from typing import Any
 from typing import Literal
 
@@ -289,6 +290,11 @@ class ConversionMapping(MappingBaseModel):
         return values
 
 
+class AuthBackendEnum(str, Enum):
+    NTLM = "ntlm"
+    SIMPLE = "simple"
+
+
 class Settings(BaseSettings):
     class Config:
         frozen = True
@@ -356,6 +362,9 @@ class Settings(BaseSettings):
     )
     ldap_ou_for_new_users: str = Field(
         "", description="OU to create new users in. For example 'OU=Test'"
+    )
+    ldap_auth_method: AuthBackendEnum = Field(
+        AuthBackendEnum.NTLM, description="The auth backend to use."
     )
 
     mo_url: AnyHttpUrl = Field(
