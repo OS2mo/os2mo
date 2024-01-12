@@ -1,0 +1,6 @@
+dn: ou=os2mo,o=magenta,{{ LDAP_BASE_DN }}
+changetype: add
+ou: os2mo
+objectclass: top
+objectclass: organizationalUnit
+description: organizational unit for os2mo users
