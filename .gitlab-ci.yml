@@ -4,12 +4,19 @@
 variables:
   RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo-ldap-import-export
   RELEASE_REGISTRY: docker.io
+
   IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
+
   PYTEST_COV_MODULE: mo_ldap_import_export
   PYTEST_COV_FAIL_UNDER: 100
   PYTEST_EXTRA_FLAGS: "-n auto"
+
   POETRY_VERSION: "1.4.2"
   PRECOMMIT_USE_POETRY: "true"
+
+  PRODUCT: os2mo
+  COMPONENT: ldapimportexport
+
 
 stages:
   - lint
@@ -57,10 +64,6 @@ include:
     ref: master
     file: /gitlab-ci-templates/python/pytest.v1.yml
 
-  # Includes til at køre config-updateren, se anvendelse længere nede
-  - project: labs/salt-automation
-    file: /gitlab-ci-templates/common/config-updater-meta.v1.yml
-
   # Kører build
   - project: labs/salt-automation
     file: /gitlab-ci-templates/common/docker-build.v1.yml
@@ -73,22 +76,6 @@ include:
   - project: labs/salt-automation
     file: /gitlab-ci-templates/common/conventional-commits.v1.yml
 
-
-# Kører config-updater for dev. Kører på semantiske versioner
-Deploy to Dev:
-  extends: .release-to-dev
-  needs: ["Build", "Release version"]
-  variables:
-    ENDPOINT: os2mo/salt/ldapimportexport/update-dev
-
-# Kører config-updater for test. Kører kun scheduleret
-Deploy to Test:
-  extends: .release-to-test
-  variables:
-    ENDPOINT: os2mo/salt/ldapimportexport/update-test
-
-# Kører config-updater for prod. Kører kun scheduleret
-Deploy to Prod:
-  extends: .release-to-prod
-  variables:
-    ENDPOINT: os2mo/salt/ldapimportexport/update-prod
+  # Runs config-updater
+  - project: labs/salt-automation
+    file: /gitlab-ci-templates/common/config-updater-salt.v1.yml
