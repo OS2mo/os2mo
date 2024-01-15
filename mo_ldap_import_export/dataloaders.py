@@ -42,7 +42,7 @@ from .ldap import get_attribute_types
 from .ldap import get_ldap_attributes
 from .ldap import get_ldap_schema
 from .ldap import get_ldap_superiors
-from .ldap import is_guid
+from .ldap import is_uuid
 from .ldap import make_ldap_object
 from .ldap import paged_search
 from .ldap import single_object_search
@@ -952,7 +952,7 @@ class DataLoader:
         objectGUIDs: list[UUID] = []
         for it_user in it_users:
             user_key = it_user.user_key
-            if is_guid(user_key):
+            if is_uuid(user_key):
                 objectGUIDs.append(UUID(user_key))
             else:
                 logger.info(

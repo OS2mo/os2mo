@@ -5,6 +5,7 @@ import datetime
 import signal
 import time
 from collections.abc import Callable
+from contextlib import suppress
 from ssl import CERT_NONE
 from ssl import CERT_REQUIRED
 from threading import Thread
@@ -661,20 +662,14 @@ def set_search_params_modify_timestamp(
     }
 
 
-def is_guid(objectGUID: Any):
+def is_uuid(entity: Any) -> bool:
     """
-    Check if a string is a valid UUID
+    Check if a entity is a valid UUID
     """
-    if type(objectGUID) is UUID:
+    with suppress(ValueError):
+        UUID(str(entity))
         return True
-    elif type(objectGUID) is not str:
-        return False
-    else:
-        try:
-            UUID(objectGUID)
-            return True
-        except Exception:
-            return False
+    return False
 
 
 def check_ou_in_list_of_ous(ou_to_check, list_of_ous):

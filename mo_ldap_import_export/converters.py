@@ -27,7 +27,7 @@ from .exceptions import IncorrectMapping
 from .exceptions import InvalidNameException
 from .exceptions import NotSupportedException
 from .exceptions import UUIDNotFoundException
-from .ldap import is_guid
+from .ldap import is_uuid
 from .ldap_classes import LdapObject
 from .logging import logger
 from .utils import delete_keys_from_dict
@@ -599,7 +599,7 @@ class LdapConverter:
                 uuid = info["uuid"]
                 if not isinstance(uuid, str):
                     raise IncorrectMapping(f"{uuid} is not a string")
-                if not is_guid(uuid):
+                if not is_uuid(uuid):
                     raise IncorrectMapping(f"{uuid} is not an uuid")
 
         self.check_org_unit_info_dict()

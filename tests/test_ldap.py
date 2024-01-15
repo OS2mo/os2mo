@@ -47,7 +47,7 @@ from mo_ldap_import_export.ldap import get_attribute_types
 from mo_ldap_import_export.ldap import get_client_strategy
 from mo_ldap_import_export.ldap import get_ldap_attributes
 from mo_ldap_import_export.ldap import is_dn
-from mo_ldap_import_export.ldap import is_guid
+from mo_ldap_import_export.ldap import is_uuid
 from mo_ldap_import_export.ldap import ldap_healthcheck
 from mo_ldap_import_export.ldap import make_ldap_object
 from mo_ldap_import_export.ldap import paged_search
@@ -826,11 +826,11 @@ def test_poller_invalidQuery(
         )
 
 
-def test_is_guid():
-    assert is_guid(str(uuid4())) is True
-    assert is_guid("not_an_uuid") is False
-    assert is_guid(None) is False
-    assert is_guid(uuid4()) is True
+def test_is_uuid():
+    assert is_uuid(str(uuid4())) is True
+    assert is_uuid("not_an_uuid") is False
+    assert is_uuid(None) is False
+    assert is_uuid(uuid4()) is True
 
 
 async def test_poller_healthcheck():
