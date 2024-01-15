@@ -1615,20 +1615,32 @@ def test_check_import_and_export_flags(
 
 
 async def test_find_ldap_it_system():
+    settings = MagicMock()
+    settings.ldap_unique_id_field = "objectGUID"
+
     template_str = "{{ ldap.objectGUID }}"
     template = environment.from_string(template_str)
 
     mapping = {"ldap_to_mo": {"AD": {"user_key": template}}}
     mo_it_systems = ["AD"]
-    assert await find_ldap_it_system(mapping, mo_it_systems) == "AD"
+    assert await find_ldap_it_system(settings, mapping, mo_it_systems) == "AD"
 
     mapping = {"ldap_to_mo": {"Wrong AD user_key": {"user_key": template}}}
     mo_it_systems = ["AD"]
-    assert await find_ldap_it_system(mapping, mo_it_systems) is None
+    assert await find_ldap_it_system(settings, mapping, mo_it_systems) is None
 
     mapping = {"ldap_to_mo": {"AD": {"user_key": template}}}
     mo_it_systems = []
-    assert await find_ldap_it_system(mapping, mo_it_systems) is None
+    assert await find_ldap_it_system(settings, mapping, mo_it_systems) is None
+
+    mapping = {
+        "ldap_to_mo": {
+            "AD": {"user_key": template},
+            "LDAP": {"user_key": template},
+        }
+    }
+    mo_it_systems = ["AD", "LDAP"]
+    assert await find_ldap_it_system(settings, mapping, mo_it_systems) is None
 
 
 async def test_check_cpr_field_or_it_system(converter: LdapConverter):

@@ -1809,7 +1809,7 @@ async def test_find_or_make_mo_employee_dn(
     dataloader.load_ldap_cpr_object = MagicMock()  # type: ignore
     dataloader.upload_mo_objects = AsyncMock()  # type: ignore
     dataloader.extract_unique_dns = MagicMock()  # type: ignore
-    dataloader.get_ldap_objectGUID = MagicMock()  # type: ignore
+    dataloader.get_ldap_unique_ldap_uuid = MagicMock()  # type: ignore
 
     # Case where there is an IT-system that contains the DN
     dataloader.load_mo_employee.return_value = Employee(cpr_no=None)
@@ -1822,7 +1822,7 @@ async def test_find_or_make_mo_employee_dn(
     # Same as above, but the it-system contains an invalid value
     dataloader.extract_unique_dns.return_value = []
     username_generator.generate_dn.return_value = "CN=generated_dn_1,DC=DN"
-    dataloader.get_ldap_objectGUID.return_value = uuid_1
+    dataloader.get_ldap_unique_ldap_uuid.return_value = uuid_1
     dns = await dataloader.find_or_make_mo_employee_dn(uuid4())
     uploaded_uuid = dataloader.upload_mo_objects.await_args_list[0].args[0][0].user_key
     assert dns == ["CN=generated_dn_1,DC=DN"]
@@ -1846,7 +1846,7 @@ async def test_find_or_make_mo_employee_dn(
     # Same as above, but the cpr-lookup does not succeed
     dataloader.load_ldap_cpr_object.side_effect = NoObjectsReturnedException("foo")
     username_generator.generate_dn.return_value = "CN=generated_dn_2,DC=DN"
-    dataloader.get_ldap_objectGUID.return_value = uuid_2
+    dataloader.get_ldap_unique_ldap_uuid.return_value = uuid_2
     dns = await dataloader.find_or_make_mo_employee_dn(uuid4())
     uploaded_uuid = dataloader.upload_mo_objects.await_args_list[0].args[0][0].user_key
     assert dns == ["CN=generated_dn_2,DC=DN"]
@@ -1888,7 +1888,7 @@ def test_extract_unique_objectGUIDs(dataloader: DataLoader):
         person_uuid=uuid4(),
     )
 
-    objectGUIDs = dataloader.extract_unique_objectGUIDs(
+    objectGUIDs = dataloader.extract_unique_ldap_uuids(
         [ad_it_user_1, ad_it_user_2, ad_it_user_3]
     )
 
@@ -1899,8 +1899,8 @@ def test_extract_unique_objectGUIDs(dataloader: DataLoader):
 
 def test_extract_unique_dns(dataloader: DataLoader):
 
-    dataloader.extract_unique_objectGUIDs = MagicMock()  # type: ignore
-    dataloader.extract_unique_objectGUIDs.return_value = [uuid4(), uuid4()]
+    dataloader.extract_unique_ldap_uuids = MagicMock()  # type: ignore
+    dataloader.extract_unique_ldap_uuids.return_value = [uuid4(), uuid4()]
 
     dataloader.get_ldap_dn = MagicMock()  # type: ignore
     dataloader.get_ldap_dn.return_value = "CN=foo"
@@ -1920,14 +1920,14 @@ def test_get_ldap_dn(dataloader: DataLoader):
         assert dataloader.get_ldap_dn(uuid4()) == "CN=foo"
 
 
-def test_get_ldap_objectGUID(dataloader: DataLoader):
+def test_get_ldap_unique_ldap_uuid(dataloader: DataLoader):
     uuid = uuid4()
     dataloader.load_ldap_object = MagicMock()  # type: ignore
     dataloader.load_ldap_object.return_value = LdapObject(
         dn="foo", objectGUID=str(uuid)
     )
 
-    assert dataloader.get_ldap_objectGUID("") == uuid
+    assert dataloader.get_ldap_unique_ldap_uuid("") == uuid
 
 
 def test_load_ldap_attribute_values(dataloader: DataLoader):
@@ -2682,7 +2682,7 @@ async def test_find_dn_by_engagement_uuid_raises_exception_on_multiple_hits() ->
     # Assert
     with pytest.raises(
         MultipleObjectsReturnedException,
-        match=r"More than one matching 'ObjectGUID' IT user found for .*? and .*?",
+        match=r"More than one matching 'Unique LDAP UUID' IT user found for .*? and .*?",
     ):
         # Act
         await dataloader.find_dn_by_engagement_uuid(uuid4(), engagement_ref, dns)

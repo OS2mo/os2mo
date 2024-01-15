@@ -22,6 +22,7 @@ from more_itertools import one
 from ramodels.mo.organisation_unit import OrganisationUnit
 from ramqp.utils import RequeueMessage
 
+from .config import Settings
 from .environments import environment
 from .exceptions import IncorrectMapping
 from .exceptions import InvalidNameException
@@ -71,7 +72,7 @@ async def find_cpr_field(mapping):
 
 
 async def find_ldap_it_system(
-    mapping: dict[str, Any], mo_it_system_user_keys: list[str]
+    settings: Settings, mapping: dict[str, Any], mo_it_system_user_keys: list[str]
 ) -> str | None:
     """
     Loop over all of MO's IT-systems and determine if one of them contains the AD-DN
@@ -89,7 +90,7 @@ async def find_ldap_it_system(
         # TODO: XXX: Could we simply check the template string??
         template = mapping["ldap_to_mo"][user_key]["user_key"]
         unique_id: str = await template.render_async(
-            {"ldap": {"objectGUID": detection_key}}
+            {"ldap": {settings.ldap_unique_id_field: detection_key}}
         )
         return unique_id == detection_key
 
@@ -145,7 +146,7 @@ class LdapConverter:
         await self.check_mapping()
         self.cpr_field = await find_cpr_field(self.mapping)
         self.ldap_it_system = await find_ldap_it_system(
-            self.mapping, self.mo_it_systems
+            self.settings, self.mapping, self.mo_it_systems
         )
 
     async def load_info_dicts(self):
@@ -254,6 +255,7 @@ class LdapConverter:
                 and not attribute.startswith("extensionAttribute")
                 and not attribute.startswith("__")
                 and not attribute == "sAMAccountName"
+                and not attribute == "entryUUID"
             ):
                 raise IncorrectMapping(
                     f"Attribute '{attribute}' not allowed."
@@ -529,7 +531,9 @@ class LdapConverter:
         """
 
         cpr_field = await find_cpr_field(self.mapping)
-        ldap_it_system = await find_ldap_it_system(self.mapping, self.mo_it_systems)
+        ldap_it_system = await find_ldap_it_system(
+            self.settings, self.mapping, self.mo_it_systems
+        )
         if not cpr_field and not ldap_it_system:
             raise IncorrectMapping(
                 "Neither a cpr-field or an ldap it-system could be found"

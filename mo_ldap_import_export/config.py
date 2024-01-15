@@ -366,6 +366,10 @@ class Settings(BaseSettings):
     ldap_auth_method: AuthBackendEnum = Field(
         AuthBackendEnum.NTLM, description="The auth backend to use."
     )
+    ldap_unique_id_field: str = Field(
+        "objectGUID",
+        description="Name of the attribute that holds the server-assigned unique identifier. `objectGUID` on Active Directory and `entryUUID` on most standard LDAP implementations (per RFC4530).",
+    )
 
     mo_url: AnyHttpUrl = Field(
         parse_obj_as(AnyHttpUrl, "http://mo-service:5000"),
