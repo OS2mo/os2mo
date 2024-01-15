@@ -508,7 +508,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     accepted_json_keys = tuple(sorted(mapping["mo_to_ldap"].keys()))
 
     @app.post("/reload_info_dicts", status_code=202, tags=["Maintenance"])
-    async def reload_info_dicts():
+    async def reload_info_dicts() -> None:
         """
         Endpoint to reload info dicts on the converter. To make sure that they are
         up-to-date and represent the information in OS2mo.

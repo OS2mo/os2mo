@@ -18,6 +18,7 @@ from jinja2 import Environment
 from jinja2 import exceptions as jinja_exceptions
 from ldap3.utils.ciDict import CaseInsensitiveDict
 from ldap3.utils.dn import parse_dn
+from more_itertools import one
 from ramodels.mo.organisation_unit import OrganisationUnit
 from ramqp.utils import RequeueMessage
 
@@ -69,25 +70,43 @@ async def find_cpr_field(mapping):
     return cpr_field
 
 
-async def find_ldap_it_system(mapping, mo_it_system_user_keys):
+async def find_ldap_it_system(
+    mapping: dict[str, Any], mo_it_system_user_keys: list[str]
+) -> str | None:
     """
     Loop over all of MO's IT-systems and determine if one of them contains the AD-DN
     as a user_key
     """
-    ldap_it_system = None
-    for mo_it_system_user_key in mo_it_system_user_keys:
-        if mo_it_system_user_key in mapping["ldap_to_mo"]:
-            template = mapping["ldap_to_mo"][mo_it_system_user_key]["user_key"]
-            objectGUID = await template.render_async({"ldap": {"objectGUID": "foo"}})
-            if objectGUID == "foo":
-                ldap_it_system = mo_it_system_user_key
-                logger.info(f"Found LDAP IT-system: '{ldap_it_system}'")
-                break
+    detection_key = str(uuid4())
+    relevant_keys: set[str] = set(mo_it_system_user_keys) & mapping["ldap_to_mo"].keys()
 
-    if ldap_it_system is None:
+    async def template_contains_unique_field(user_key: str) -> bool:
+        """Check if the template found at user-key utilizes the unique id.
+
+        The check is done by templating the unique id using a known string and checking
+        whether the known string is in the output.
+        """
+        # TODO: XXX: Could we simply check the template string??
+        template = mapping["ldap_to_mo"][user_key]["user_key"]
+        unique_id: str = await template.render_async(
+            {"ldap": {"objectGUID": detection_key}}
+        )
+        return unique_id == detection_key
+
+    found_itsystems = {
+        user_key
+        for user_key in relevant_keys
+        if await template_contains_unique_field(user_key)
+    }
+    if len(found_itsystems) == 0:
         logger.warning("LDAP IT-system not found")
-
-    return ldap_it_system
+        return None
+    if len(found_itsystems) > 1:
+        logger.error("Multiple LDAP IT-system found!")
+        return None
+    found_itsystem = one(found_itsystems)
+    logger.info(f"Found LDAP IT-system: '{found_itsystem}'")
+    return found_itsystem
 
 
 class LdapConverter:
