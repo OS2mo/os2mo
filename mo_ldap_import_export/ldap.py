@@ -5,6 +5,7 @@ import datetime
 import signal
 import time
 from collections.abc import Callable
+from contextlib import suppress
 from ssl import CERT_NONE
 from ssl import CERT_REQUIRED
 from threading import Thread
@@ -13,6 +14,7 @@ from typing import cast
 from typing import ContextManager
 from uuid import UUID
 
+import ldap3.core.exceptions
 from fastramqpi.context import Context
 from ldap3 import BASE
 from ldap3 import Connection
@@ -21,14 +23,15 @@ from ldap3 import RANDOM
 from ldap3 import RESTARTABLE
 from ldap3 import Server
 from ldap3 import ServerPool
+from ldap3 import SIMPLE
 from ldap3 import Tls
 from ldap3.core.exceptions import LDAPInvalidDnError
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from more_itertools import always_iterable
-from more_itertools import only
 from ramodels.mo.employee import Employee
 
+from .config import AuthBackendEnum
 from .config import ServerConfig
 from .config import Settings
 from .exceptions import MultipleObjectsReturnedException
@@ -97,17 +100,42 @@ def configure_ldap_connection(settings: Settings) -> ContextManager:
 
     logger.info(f"Connecting to {server_pool}")
     logger.info(f"Client strategy: {client_strategy}")
-    connection = Connection(
-        server=server_pool,
-        user=settings.ldap_domain + "\\" + settings.ldap_user,
-        password=settings.ldap_password.get_secret_value(),
-        authentication=NTLM,
-        client_strategy=get_client_strategy(),
-        auto_bind=True,  # type: ignore
-    )
+    logger.info(f"Auth strategy: {settings.ldap_auth_method.value}")
 
-    # Turn off the alarm
-    signal.alarm(0)
+    connection_kwargs = {
+        "server": server_pool,
+        "client_strategy": get_client_strategy(),
+        "password": settings.ldap_password.get_secret_value(),
+        "auto_bind": True,
+    }
+    match settings.ldap_auth_method:
+        case AuthBackendEnum.NTLM:
+            connection_kwargs.update(
+                {
+                    "user": settings.ldap_domain + "\\" + settings.ldap_user,
+                    "authentication": NTLM,
+                }
+            )
+        case AuthBackendEnum.SIMPLE:
+            connection_kwargs.update(
+                {
+                    "user": settings.ldap_user,
+                    "authentication": SIMPLE,
+                }
+            )
+        case _:
+            # Turn off the alarm
+            signal.alarm(0)
+            raise ValueError("Unknown authentication backend")
+
+    try:
+        connection = Connection(**connection_kwargs)
+    except ldap3.core.exceptions.LDAPBindError as exc:
+        logger.error("Exception during LDAP auth", exc_info=exc)
+        raise exc
+    finally:
+        # Turn off the alarm
+        signal.alarm(0)
 
     return cast(ContextManager, connection)
 
@@ -142,16 +170,13 @@ def get_ldap_object_schema(ldap_connection: Connection, ldap_object: str):
     return schema.object_classes[ldap_object]
 
 
-def get_ldap_superiors(ldap_connection: Connection, root_ldap_object: str):
-
+def get_ldap_superiors(ldap_connection: Connection, root_ldap_object: str) -> list:
+    object_schema = get_ldap_object_schema(ldap_connection, root_ldap_object)
+    ldap_objects = list(always_iterable(object_schema.superior))
     superiors = []
-    ldap_object: str | None = root_ldap_object
-    while ldap_object is not None:
-        object_schema = get_ldap_object_schema(ldap_connection, ldap_object)
-        ldap_object = only(always_iterable(object_schema.superior))
-        if ldap_object is not None:
-            superiors.append(ldap_object)
-
+    for ldap_object in ldap_objects:
+        superiors.append(ldap_object)
+        superiors.extend(get_ldap_superiors(ldap_connection, ldap_object))
     return superiors
 
 
@@ -637,20 +662,14 @@ def set_search_params_modify_timestamp(
     }
 
 
-def is_guid(objectGUID: Any):
+def is_uuid(entity: Any) -> bool:
     """
-    Check if a string is a valid UUID
+    Check if a entity is a valid UUID
     """
-    if type(objectGUID) is UUID:
+    with suppress(ValueError):
+        UUID(str(entity))
         return True
-    elif type(objectGUID) is not str:
-        return False
-    else:
-        try:
-            UUID(objectGUID)
-            return True
-        except Exception:
-            return False
+    return False
 
 
 def check_ou_in_list_of_ous(ou_to_check, list_of_ous):

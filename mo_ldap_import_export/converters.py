@@ -18,15 +18,17 @@ from jinja2 import Environment
 from jinja2 import exceptions as jinja_exceptions
 from ldap3.utils.ciDict import CaseInsensitiveDict
 from ldap3.utils.dn import parse_dn
+from more_itertools import one
 from ramodels.mo.organisation_unit import OrganisationUnit
 from ramqp.utils import RequeueMessage
 
+from .config import Settings
 from .environments import environment
 from .exceptions import IncorrectMapping
 from .exceptions import InvalidNameException
 from .exceptions import NotSupportedException
 from .exceptions import UUIDNotFoundException
-from .ldap import is_guid
+from .ldap import is_uuid
 from .ldap_classes import LdapObject
 from .logging import logger
 from .utils import delete_keys_from_dict
@@ -69,25 +71,43 @@ async def find_cpr_field(mapping):
     return cpr_field
 
 
-async def find_ldap_it_system(mapping, mo_it_system_user_keys):
+async def find_ldap_it_system(
+    settings: Settings, mapping: dict[str, Any], mo_it_system_user_keys: list[str]
+) -> str | None:
     """
     Loop over all of MO's IT-systems and determine if one of them contains the AD-DN
     as a user_key
     """
-    ldap_it_system = None
-    for mo_it_system_user_key in mo_it_system_user_keys:
-        if mo_it_system_user_key in mapping["ldap_to_mo"]:
-            template = mapping["ldap_to_mo"][mo_it_system_user_key]["user_key"]
-            objectGUID = await template.render_async({"ldap": {"objectGUID": "foo"}})
-            if objectGUID == "foo":
-                ldap_it_system = mo_it_system_user_key
-                logger.info(f"Found LDAP IT-system: '{ldap_it_system}'")
-                break
+    detection_key = str(uuid4())
+    relevant_keys: set[str] = set(mo_it_system_user_keys) & mapping["ldap_to_mo"].keys()
 
-    if ldap_it_system is None:
+    async def template_contains_unique_field(user_key: str) -> bool:
+        """Check if the template found at user-key utilizes the unique id.
+
+        The check is done by templating the unique id using a known string and checking
+        whether the known string is in the output.
+        """
+        # TODO: XXX: Could we simply check the template string??
+        template = mapping["ldap_to_mo"][user_key]["user_key"]
+        unique_id: str = await template.render_async(
+            {"ldap": {settings.ldap_unique_id_field: detection_key}}
+        )
+        return unique_id == detection_key
+
+    found_itsystems = {
+        user_key
+        for user_key in relevant_keys
+        if await template_contains_unique_field(user_key)
+    }
+    if len(found_itsystems) == 0:
         logger.warning("LDAP IT-system not found")
-
-    return ldap_it_system
+        return None
+    if len(found_itsystems) > 1:
+        logger.error("Multiple LDAP IT-system found!")
+        return None
+    found_itsystem = one(found_itsystems)
+    logger.info(f"Found LDAP IT-system: '{found_itsystem}'")
+    return found_itsystem
 
 
 class LdapConverter:
@@ -126,7 +146,7 @@ class LdapConverter:
         await self.check_mapping()
         self.cpr_field = await find_cpr_field(self.mapping)
         self.ldap_it_system = await find_ldap_it_system(
-            self.mapping, self.mo_it_systems
+            self.settings, self.mapping, self.mo_it_systems
         )
 
     async def load_info_dicts(self):
@@ -235,6 +255,7 @@ class LdapConverter:
                 and not attribute.startswith("extensionAttribute")
                 and not attribute.startswith("__")
                 and not attribute == "sAMAccountName"
+                and not attribute == "entryUUID"
             ):
                 raise IncorrectMapping(
                     f"Attribute '{attribute}' not allowed."
@@ -510,7 +531,9 @@ class LdapConverter:
         """
 
         cpr_field = await find_cpr_field(self.mapping)
-        ldap_it_system = await find_ldap_it_system(self.mapping, self.mo_it_systems)
+        ldap_it_system = await find_ldap_it_system(
+            self.settings, self.mapping, self.mo_it_systems
+        )
         if not cpr_field and not ldap_it_system:
             raise IncorrectMapping(
                 "Neither a cpr-field or an ldap it-system could be found"
@@ -580,7 +603,7 @@ class LdapConverter:
                 uuid = info["uuid"]
                 if not isinstance(uuid, str):
                     raise IncorrectMapping(f"{uuid} is not a string")
-                if not is_guid(uuid):
+                if not is_uuid(uuid):
                     raise IncorrectMapping(f"{uuid} is not an uuid")
 
         self.check_org_unit_info_dict()

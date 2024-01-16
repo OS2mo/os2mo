@@ -187,7 +187,7 @@ def dataloader(
     dataloader.load_mo_object.return_value = test_mo_objects[0]
     dataloader.load_ldap_attribute_values = sync_dataloader
     dataloader.modify_ldap_object.return_value = [{"description": "success"}]
-    dataloader.get_ldap_objectGUID = sync_dataloader
+    dataloader.get_ldap_unique_ldap_uuid = sync_dataloader
     dataloader.get_ldap_it_system_uuid = sync_dataloader
     dataloader.supported_object_types = ["address", "person"]
 
@@ -504,8 +504,8 @@ def test_ldap_get_object_by_objectGUID_endpoint(test_client: TestClient) -> None
     """Test the LDAP get endpoint on our app."""
 
     uuid = uuid4()
-    params = {"objectGUID": str(uuid)}
-    response = test_client.get("/Inspect/object/objectGUID", params=params)
+    params = {"unique_ldap_uuid": str(uuid)}
+    response = test_client.get("/Inspect/object/unique_ldap_uuid", params=params)
     assert response.status_code == 202
 
 
@@ -520,7 +520,7 @@ def test_ldap_get_object_by_dn_endpoint(test_client: TestClient) -> None:
 def test_ldap_get_objectGUID_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get endpoint on our app."""
 
-    response = test_client.get("/objectGUID/CN=foo")
+    response = test_client.get("/unique_ldap_uuid/CN=foo")
     assert response.status_code == 202
 
 
@@ -939,15 +939,15 @@ async def test_get_non_existing_objectGUIDs_from_MO(
     employee = Employee(givenname="Jim", surname="")
     dataloader.load_mo_employee.return_value = employee
 
-    response = test_client.get("/Inspect/non_existing_objectGUIDs")
+    response = test_client.get("/Inspect/non_existing_unique_ldap_uuids")
     assert response.status_code == 202
 
     result = response.json()
     assert len(result) == 2
     assert result[0]["MO employee uuid"] == str(employee.uuid)
     assert result[0]["name"] == "Jim"
-    assert result[0]["objectGUID in MO"] == it_users[1]["user_key"]
-    assert result[1]["objectGUID in MO"] == it_users[2]["user_key"]
+    assert result[0]["unique_ldap_uuid in MO"] == it_users[1]["user_key"]
+    assert result[1]["unique_ldap_uuid in MO"] == it_users[2]["user_key"]
 
 
 async def test_get_non_existing_objectGUIDs_from_MO_404(
@@ -955,5 +955,5 @@ async def test_get_non_existing_objectGUIDs_from_MO_404(
     test_client: TestClient,
 ) -> None:
     dataloader.get_ldap_it_system_uuid.return_value = None
-    response = test_client.get("/Inspect/non_existing_objectGUIDs")
+    response = test_client.get("/Inspect/non_existing_unique_ldap_uuids")
     assert response.status_code == 404

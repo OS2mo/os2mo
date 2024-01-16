@@ -1,0 +1,16 @@
+dn: uid=abk,ou=os2mo,o=magenta,{{ LDAP_BASE_DN }}
+changetype: add
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: abk
+cn: Aage Bach Klarskov
+givenName: Aage
+sn: Bach Klarskov
+ou: os2mo
+mail: abk@ad.kolding.dk
+userPassword: {SSHA}j3lBh1Seqe4rqF1+NuWmjhvtAni1JC5A
+description: Fictional person for example purposes
+employeeNumber: 2108613133
+title: Skole underviser

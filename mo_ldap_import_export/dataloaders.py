@@ -42,7 +42,7 @@ from .ldap import get_attribute_types
 from .ldap import get_ldap_attributes
 from .ldap import get_ldap_schema
 from .ldap import get_ldap_superiors
-from .ldap import is_guid
+from .ldap import is_uuid
 from .ldap import make_ldap_object
 from .ldap import paged_search
 from .ldap import single_object_search
@@ -702,6 +702,9 @@ class DataLoader:
 
         attribute_dict = {}
         for attribute in attributes:
+            # skip unmapped types
+            if attribute not in self.attribute_types:
+                continue
             syntax = self.attribute_types[attribute].syntax
 
             # decoded syntax tuple structure: (oid, kind, name, docs)
@@ -828,9 +831,9 @@ class DataLoader:
         else:
             cpr_query = ""
 
-        objectGUID = self.get_ldap_objectGUID(dn)
+        unique_uuid = self.get_ldap_unique_ldap_uuid(dn)
         ituser_query = f"""
-        itusers(user_keys: "{objectGUID}") {{
+        itusers(user_keys: "{unique_uuid}") {{
           objects {{
             objects {{
                employee_uuid
@@ -852,16 +855,19 @@ class DataLoader:
         return self._return_mo_employee_uuid_result(result)
 
     async def find_mo_engagement_uuid(self, dn: str) -> None | UUID:
-        # Get ObjectGUID from DN, then get engagement by looking for IT user with that
-        # ObjectGUID in MO.
+        # Get Unique LDAP UUID from DN, then get engagement by looking for IT user with that
+        # Unique LADP UUID in MO.
 
-        ldap_object = self.load_ldap_object(dn, ["objectGUID"])
-        object_guid = filter_remove_curly_brackets(ldap_object.objectGUID)
+        settings = self.user_context["settings"]
+        ldap_object = self.load_ldap_object(dn, [settings.ldap_unique_id_field])
+        unique_uuid = filter_remove_curly_brackets(
+            getattr(ldap_object, settings.ldap_unique_id_field)
+        )
 
         query = gql(
             """
-            query FindEngagementUUID($objectGUID: String!) {
-              itusers(user_keys: [$objectGUID]) {
+            query FindEngagementUUID($user_key: String!) {
+              itusers(user_keys: [$user_key]) {
                 objects {
                   current {
                     engagement { uuid }
@@ -876,7 +882,7 @@ class DataLoader:
         result = await self.query_mo(
             query,
             variable_values={  # type: ignore
-                "objectGUID": object_guid,
+                "user_key": unique_uuid,
             },
             raise_if_empty=False,
         )
@@ -889,7 +895,7 @@ class DataLoader:
                     logger.info(
                         "[Find-mo-engagement-uuid] Found engagement UUID for DN",
                         dn=dn,
-                        object_guid=object_guid,
+                        unique_ldap_uuid=unique_uuid,
                         engagement_uuid=engagement_uuid,
                     )
                     return engagement_uuid
@@ -897,7 +903,7 @@ class DataLoader:
         logger.info(
             "[Find-mo-engagement-uuid] Could not find engagement UUID for DN",
             dn=dn,
-            object_guid=object_guid,
+            unique_ldap_uuid=unique_uuid,
             objects=result["itusers"]["objects"],
         )
         return None
@@ -918,13 +924,15 @@ class DataLoader:
             )
             return None
 
-    def get_ldap_dn(self, objectGUID: UUID) -> str:
+    def get_ldap_dn(self, unique_ldap_uuid: UUID) -> str:
         """
-        Given an objectGUID, find the DistinguishedName
+        Given an unique_ldap_uuid, find the DistinguishedName
         """
-        logger.info("[Get-ldap-dn] Looking for LDAP object.", objectGUID=objectGUID)
+        logger.info(
+            "[Get-ldap-dn] Looking for LDAP object.", unique_ldap_uuid=unique_ldap_uuid
+        )
         searchParameters = {
-            "search_base": f"<GUID={objectGUID}>",
+            "search_base": f"<GUID={unique_ldap_uuid}>",
             "search_filter": "(objectclass=*)",
             "attributes": [],
             "search_scope": BASE,
@@ -934,34 +942,31 @@ class DataLoader:
         dn: str = search_result["dn"]
         return dn
 
-    def get_ldap_objectGUID(self, dn: str) -> UUID:
+    def get_ldap_unique_ldap_uuid(self, dn: str) -> UUID:
         """
-        Given a DN, find the objectGUID
+        Given a DN, find the unique_ldap_uuid
         """
-        logger.info("[Get-ldap-objectGUID] Looking for LDAP object.", dn=dn)
-        ldap_object = self.load_ldap_object(dn, ["objectGUID"])
-        return UUID(ldap_object.objectGUID)
+        settings = self.user_context["settings"]
+        logger.info("[Get-ldap-unique_ldap_uuid] Looking for LDAP object.", dn=dn)
+        ldap_object = self.load_ldap_object(dn, [settings.ldap_unique_id_field])
+        return UUID(getattr(ldap_object, settings.ldap_unique_id_field))
 
-    def extract_unique_objectGUIDs(self, it_users: list[ITUser]) -> set[UUID]:
+    def extract_unique_ldap_uuids(self, it_users: list[ITUser]) -> set[UUID]:
         """
-        Extracts unique objectGUIDs from a list of it-users
+        Extracts unique ldap uuids from a list of it-users
         """
-        objectGUIDs: list[UUID] = []
-        for it_user in it_users:
-            user_key = it_user.user_key
-            if is_guid(user_key):
-                objectGUIDs.append(UUID(user_key))
-            else:
-                logger.info(
-                    "[Extract-unique-objectGUIDs] it-user is not an objectGUID",
-                    user_key=user_key,
-                )
-
-        return set(objectGUIDs)
+        it_user_keys = {ituser.user_key for ituser in it_users}
+        not_uuids, uuids = partition(is_uuid, it_user_keys)
+        for user_key in not_uuids:
+            logger.info(
+                "[Extract-unique-unique_ldap_uuids] it-user is not a UUID",
+                user_key=user_key,
+            )
+        return {UUID(user_key) for user_key in uuids}
 
     def extract_unique_dns(self, it_users: list[ITUser]) -> list[str]:
-        objectGUIDs = self.extract_unique_objectGUIDs(it_users)
-        return [self.get_ldap_dn(objectGUID) for objectGUID in objectGUIDs]
+        unique_uuids = self.extract_unique_ldap_uuids(it_users)
+        return list(map(self.get_ldap_dn, unique_uuids))
 
     async def find_or_make_mo_employee_dn(self, uuid: UUID) -> DNList:
         """
@@ -1048,12 +1053,12 @@ class DataLoader:
             )
             dn = await username_generator.generate_dn(employee)
 
-            # Get it's objectGUID
-            objectGUID = self.get_ldap_objectGUID(dn)
+            # Get its unique ldap uuid
+            unique_uuid = self.get_ldap_unique_ldap_uuid(dn)
 
             # Make a new it-user
             it_user = ITUser.from_simplified_fields(
-                str(objectGUID),
+                str(unique_uuid),
                 it_system_uuid,
                 datetime.datetime.today().strftime("%Y-%m-%d"),
                 person_uuid=uuid,
@@ -1097,9 +1102,9 @@ class DataLoader:
         ]
 
         if len(matching_it_users) == 1:
-            # Single match, ObjectGUID is stored in ITUser.user_key
-            object_guid: UUID = UUID(matching_it_users[0].user_key)
-            dn: str = self.get_ldap_dn(object_guid)
+            # Single match, unique ldap UUID is stored in ITUser.user_key
+            unique_uuid: UUID = UUID(matching_it_users[0].user_key)
+            dn: str = self.get_ldap_dn(unique_uuid)
             assert dn in dns
             return dn
         elif len(matching_it_users) > 1:
@@ -1110,7 +1115,7 @@ class DataLoader:
                 matching_it_users=matching_it_users,
             )
             raise MultipleObjectsReturnedException(
-                f"More than one matching 'ObjectGUID' IT user found for "
+                f"More than one matching 'Unique LDAP UUID' IT user found for "
                 f"{employee_uuid=} and {engagement_uuid=}"
             )
         else:

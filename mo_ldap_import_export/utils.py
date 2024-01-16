@@ -129,6 +129,7 @@ def listener(context, event):
     sync_tool = user_context["sync_tool"]
 
     dn = event.get("attributes", {}).get("distinguishedName", None)
+    dn = dn or event.get("dn", None)
 
     if dn:
         logger.info(f"Registered change for LDAP object with dn={dn}")

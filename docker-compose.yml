@@ -1,6 +1,23 @@
 version: "3"
-
 services:
+  ldap:
+    container_name: ldap
+    image: osixia/openldap:1.5.0
+    command: ["--copy-service", "--loglevel", "debug"]
+    environment:
+      LDAP_ORGANISATION: "magenta"
+      LDAP_DOMAIN: "magenta.dk"
+      LDAP_ADMIN_PASSWORD: "AdminPassword123"
+      LDAP_CONFIG_PASSWORD: "ConfigPassword123"
+
+      LDAP_LOG_LEVEL: 512
+    volumes:
+      - ./dev-environment/ldif/:/container/service/slapd/assets/config/bootstrap/ldif/custom/:ro
+      - ./dev-environment/schema/:/container/service/slapd/assets/config/bootstrap/schema/custom/:ro
+    networks:
+      - os2mo_default
+#    ports:
+#      - "389:389"
 
   mo_ldap_import_export:
     container_name: mo_ldap_ie

@@ -1,0 +1,5 @@
+dn: o=magenta,{{ LDAP_BASE_DN }}
+changetype: add
+objectClass: top
+objectClass: organization
+o: magenta
