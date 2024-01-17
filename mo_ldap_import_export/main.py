@@ -25,6 +25,7 @@ from fastapi import Request
 from fastapi import Response
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
+from fastapi_utils.tasks import repeat_every
 from fastramqpi.main import FastRAMQPI
 from gql.transport.exceptions import TransportQueryError
 from ldap3 import Connection
@@ -475,7 +476,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
 def encode_result(result):
     # This removes all bytes objects from the result. for example images
     json_compatible_result = jsonable_encoder(
-        result, custom_encoder={bytes: lambda v: None}
+        result, custom_encoder={bytes: lambda _: None}
     )
     return json_compatible_result
 
@@ -487,7 +488,6 @@ def create_app(**kwargs: Any) -> FastAPI:
         FastAPI application.
     """
     fastramqpi = create_fastramqpi(**kwargs)
-    settings = Settings(**kwargs)
 
     app = fastramqpi.get_app()
     app.include_router(fastapi_router)
@@ -508,8 +508,11 @@ def create_app(**kwargs: Any) -> FastAPI:
     default_ldap_class = mapping["mo_to_ldap"]["Employee"]["objectClass"]
     accepted_json_keys = tuple(sorted(mapping["mo_to_ldap"].keys()))
 
-    @app.post("/reload_info_dicts", status_code=202, tags=["Maintenance"])
-    async def reload_info_dicts() -> None:
+    # TODO: Eliminate this function and make reloading dicts eventdriven
+    #       When this method is eliminated the fastapi_utils package can be removed
+    @app.on_event("startup")
+    @repeat_every(seconds=60 * 60 * 24)
+    async def reload_info_dicts() -> None:  # pragma: no cover
         """
         Endpoint to reload info dicts on the converter. To make sure that they are
         up-to-date and represent the information in OS2mo.
@@ -909,59 +912,5 @@ def create_app(**kwargs: Any) -> FastAPI:
     @app.get("/MO/Primary_types", status_code=202, tags=["MO"])
     async def load_primary_types_from_MO() -> Any:
         return await dataloader.load_mo_primary_types()
-
-    class SyncQueryParams:
-        def __init__(
-            self,
-            publish_amqp_messages: bool = Query(
-                True,
-                description=(
-                    "If False, do not publish anything, "
-                    "just inspect what would be published"
-                ),
-            ),
-        ):
-            self.publish_amqp_messages = publish_amqp_messages
-
-    # Load all objects with to/from dates == today and send amqp messages for them
-    @app.post("/Synchronize_todays_events", status_code=202, tags=["Maintenance"])
-    async def synchronize_todays_events(
-        date: datetime.date | None = None,
-        params: SyncQueryParams = Depends(),
-    ) -> Any:
-
-        date = date or datetime.date.today()
-
-        # Load all objects
-        all_objects = await dataloader.load_all_mo_objects(add_validity=True)
-
-        # Filter out all that is not from/to today and determine request type
-        # Note: It is not possible in graphql (yet?) To load just today's objects
-        todays_objects = []
-        for mo_object in all_objects:
-            from_date = mo_datestring_to_utc(mo_object["validity"]["from"])
-            to_date = mo_datestring_to_utc(mo_object["validity"]["to"])
-            if from_date and from_date.date() == date:
-                todays_objects.append(mo_object)
-            elif to_date and to_date.date() == date:
-                todays_objects.append(mo_object)
-
-        todays_objects = todays_objects
-
-        logger.info(
-            f"Found {len(todays_objects)} objects which are valid from/to today"
-        )
-
-        for mo_object in todays_objects:
-            routing_key = mo_object["object_type"]
-            payload = mo_object["payload"]
-
-            logger.info(
-                "[Sync-todays-events] Publishing.",
-                routing_key=routing_key,
-                payload=payload,
-            )
-            if params.publish_amqp_messages and settings.listen_to_changes_in_mo:
-                await internal_amqpsystem.publish_message(routing_key, payload)
 
     return app

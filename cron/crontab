@@ -1,1 +1,0 @@
-0 23 * * *  /cron/reload_info_dicts.sh

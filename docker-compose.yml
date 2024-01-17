@@ -35,17 +35,6 @@ services:
     ports:
       - "8000:8000"
 
-  mo_ldap_import_export-cron:
-    container_name: mo_ldap_ie-cron
-    image: mo_ldap_ie
-    env_file:
-      ./dev-environment/mo_ldap_import_export.env
-    volumes:
-      - ./cron/crontab:/etc/crontab
-    command: ["supercronic", "/cron/crontab"]
-    networks:
-      - os2mo_default
-
 networks:
   os2mo_default:
     external: true
