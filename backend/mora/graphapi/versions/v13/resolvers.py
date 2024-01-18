@@ -270,8 +270,37 @@ class Resolver(PagedResolver):
         **kwargs: Any,
     ):
         """The internal resolve interface, allowing for kwargs."""
+        _resolver_tuples = [
+            (FacetRead, "facet_getter", "facet_loader"),
+            (ClassRead, "class_getter", "class_loader"),
+            (AddressRead, "address_getter", "address_loader"),
+            (AssociationRead, "association_getter", "association_loader"),
+            (EmployeeRead, "employee_getter", "employee_loader"),
+            (EngagementRead, "engagement_getter", "engagement_loader"),
+            (ManagerRead, "manager_getter", "manager_loader"),
+            (OwnerRead, "owner_getter", "owner_loader"),
+            (OrganisationUnitRead, "org_unit_getter", "org_unit_loader"),
+            (ITSystemRead, "itsystem_getter", "itsystem_loader"),
+            (ITUserRead, "ituser_getter", "ituser_loader"),
+            (KLERead, "kle_getter", "kle_loader"),
+            (LeaveRead, "leave_getter", "leave_loader"),
+            (RelatedUnitRead, "rel_unit_getter", "rel_unit_loader"),
+            (RoleRead, "role_getter", "role_loader"),
+        ]
+        resolver_map: dict[Any, Any] = {
+            model: {
+                "getter": getter,
+                "loader": loader,
+            }
+            for model, getter, loader in _resolver_tuples
+        }
+        loader_name = resolver_map[self.model]["loader"]
+        getter_name = resolver_map[self.model]["getter"]
+        loader = info.context[loader_name]
+        getter = info.context[getter_name]
         return await generic_resolver(
-            self.model,
+            loader,
+            getter,
             info=info,
             filter=filter,
             limit=limit,

@@ -33,7 +33,7 @@ from ..latest.models import FileStore
 from ..latest.models import OwnerInferencePriority
 from ..latest.permissions import gen_read_permission
 from ..latest.permissions import IsAuthenticatedPermission
-from ..latest.resolver_map import resolver_map
+from ..latest.resolver_map import loader_map
 from ..latest.schema import force_none_return_wrapper
 from ..latest.schema import model2name
 from ..latest.schema import MOObject
@@ -254,7 +254,7 @@ class Response(Generic[MOObject]):
         if root.object_cache != UNSET:
             return root.object_cache
         # If the object cache has not been filled we must resolve objects using the uuid
-        resolver = resolver_map[root.model]["loader"]
+        resolver = loader_map[root.model]
         return await info.context[resolver].load(root.uuid)
 
     # TODO: Implement using a dataloader

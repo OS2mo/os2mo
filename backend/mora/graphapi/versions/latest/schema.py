@@ -38,7 +38,7 @@ from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
 from .registration import Registration
 from .registration import registration_resolver
-from .resolver_map import resolver_map
+from .resolver_map import loader_map
 from .resolvers import address_resolver
 from .resolvers import association_resolver
 from .resolvers import class_resolver
@@ -313,7 +313,7 @@ class Response(Generic[MOObject]):
         if root.object_cache != UNSET:
             return root.object_cache
         # If the object cache has not been filled we must resolve objects using the uuid
-        resolver = resolver_map[root.model]["loader"]
+        resolver = loader_map[root.model]
         return await info.context[resolver].load(root.uuid)
 
     # TODO: Implement using a dataloader

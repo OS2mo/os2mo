@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import re
+from collections.abc import Awaitable
 from collections.abc import Callable
 from datetime import datetime
 from datetime import timedelta
@@ -30,27 +31,11 @@ from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
 from .filters import RelatedUnitFilter
 from .filters import RoleFilter
-from .models import ClassRead
-from .models import FacetRead
 from .paged import CursorType
 from .paged import LimitType
-from .resolver_map import resolver_map
 from .validity import OpenValidityModel
 from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.orgunits import search_orgunits
-from ramodels.mo import EmployeeRead
-from ramodels.mo import OrganisationUnitRead
-from ramodels.mo.details import AddressRead
-from ramodels.mo.details import AssociationRead
-from ramodels.mo.details import EngagementRead
-from ramodels.mo.details import ITSystemRead
-from ramodels.mo.details import ITUserRead
-from ramodels.mo.details import KLERead
-from ramodels.mo.details import LeaveRead
-from ramodels.mo.details import ManagerRead
-from ramodels.mo.details import OwnerRead
-from ramodels.mo.details import RelatedUnitRead
-from ramodels.mo.details import RoleRead
 
 
 async def filter2uuids_func(
@@ -177,8 +162,11 @@ async def facet_resolver(
             to_date=None,  # to inf
         )
 
+    loader = info.context["facet_loader"]
+    getter = info.context["facet_getter"]
     return await generic_resolver(
-        FacetRead,
+        loader,
+        getter,
         info=info,
         filter=filter,
         limit=limit,
@@ -234,8 +222,11 @@ async def class_resolver(
     if filter.scope is not None:
         kwargs["omfang"] = filter.scope
 
+    loader = info.context["class_loader"]
+    getter = info.context["class_getter"]
     return await generic_resolver(
-        ClassRead,
+        loader,
+        getter,
         info=info,
         filter=filter,
         limit=limit,
@@ -280,8 +271,11 @@ async def address_resolver(
             info, filter
         )
 
+    loader = info.context["address_loader"]
+    getter = info.context["address_getter"]
     return await generic_resolver(
-        AddressRead,
+        loader,
+        getter,
         info=info,
         filter=filter,
         limit=limit,
@@ -326,8 +320,11 @@ async def association_resolver(
             info, filter
         )
 
+    loader = info.context["association_loader"]
+    getter = info.context["association_getter"]
     associations = await generic_resolver(
-        AssociationRead,
+        loader,
+        getter,
         info=info,
         filter=filter,
         limit=limit,
@@ -382,8 +379,11 @@ async def employee_resolver(
             f"urn:dk:cpr:person:{c}" for c in filter.cpr_numbers
         ]
 
+    loader = info.context["employee_loader"]
+    getter = info.context["employee_getter"]
     return await generic_resolver(
-        EmployeeRead,
+        loader,
+        getter,
         info=info,
         filter=filter,
         limit=limit,
@@ -410,8 +410,11 @@ async def engagement_resolver(
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
 
+    loader = info.context["engagement_loader"]
+    getter = info.context["engagement_getter"]
     return await generic_resolver(
-        EngagementRead,
+        loader,
+        getter,
         info=info,
         filter=filter,
         limit=limit,
@@ -441,8 +444,11 @@ async def manager_resolver(
         class_filter = filter.responsibility or ClassFilter()
         kwargs["opgaver"] = await filter2uuids_func(class_resolver, info, class_filter)
 
+    loader = info.context["manager_loader"]
+    getter = info.context["manager_getter"]
     return await generic_resolver(
-        ManagerRead,
+        loader,
+        getter,
         info=info,
         filter=filter,
         limit=limit,
@@ -473,8 +479,11 @@ async def owner_resolver(
             employee_resolver, info, filter.owner
         )
 
+    loader = info.context["owner_loader"]
+    getter = info.context["owner_getter"]
     return await generic_resolver(
-        OwnerRead,
+        loader,
+        getter,
         info=info,
         filter=filter,
         limit=limit,
@@ -539,8 +548,11 @@ async def organisation_unit_resolver(
     if filter.hierarchies is not None or filter.hierarchy is not None:
         kwargs["opmærkning"] = await _get_hierarchy_uuids(info, filter)
 
+    loader = info.context["org_unit_loader"]
+    getter = info.context["org_unit_getter"]
     return await generic_resolver(
-        OrganisationUnitRead,
+        loader,
+        getter,
         info=info,
         filter=filter,
         limit=limit,
@@ -560,8 +572,11 @@ async def it_system_resolver(
 
     await registration_filter(info, filter)
 
+    loader = info.context["itsystem_loader"]
+    getter = info.context["itsystem_getter"]
     return await generic_resolver(
-        ITSystemRead,
+        loader,
+        getter,
         info=info,
         filter=filter,
         limit=limit,
@@ -596,8 +611,11 @@ async def it_user_resolver(
     if filter.itsystem_uuids is not None or filter.itsystem is not None:
         kwargs["tilknyttedeitsystemer"] = await _get_itsystem_uuids(info, filter)
 
+    loader = info.context["ituser_loader"]
+    getter = info.context["ituser_getter"]
     return await generic_resolver(
-        ITUserRead,
+        loader,
+        getter,
         info=info,
         filter=filter,
         limit=limit,
@@ -622,8 +640,11 @@ async def kle_resolver(
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
 
+    loader = info.context["kle_loader"]
+    getter = info.context["kle_getter"]
     return await generic_resolver(
-        KLERead,
+        loader,
+        getter,
         info=info,
         filter=filter,
         limit=limit,
@@ -650,8 +671,11 @@ async def leave_resolver(
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
 
+    loader = info.context["leave_loader"]
+    getter = info.context["leave_getter"]
     return await generic_resolver(
-        LeaveRead,
+        loader,
+        getter,
         info=info,
         filter=filter,
         limit=limit,
@@ -675,7 +699,8 @@ async def get_by_uuid(
 
 
 async def generic_resolver(
-    model: Any,
+    loader: DataLoader,
+    getter: Callable[..., Awaitable],
     # Ordinary
     info: Info,
     filter: BaseFilter | None = None,
@@ -699,8 +724,7 @@ async def generic_resolver(
         # Early return on empty UUID list
         if not filter.uuids:
             return dict()
-        resolver_name = resolver_map[model]["loader"]
-        return await get_by_uuid(info.context[resolver_name], filter.uuids)
+        return await get_by_uuid(loader, filter.uuids)
 
     # User keys
     if filter.user_keys is not None:
@@ -727,8 +751,7 @@ async def generic_resolver(
         kwargs["foersteresultat"] = cursor.offset
         kwargs["registreringstid"] = str(cursor.registration_time)
 
-    resolver_name = resolver_map[model]["getter"]
-    return await info.context[resolver_name](**kwargs)
+    return await getter(**kwargs)
 
 
 async def related_unit_resolver(
@@ -747,8 +770,11 @@ async def related_unit_resolver(
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
 
+    loader = info.context["rel_unit_loader"]
+    getter = info.context["rel_unit_getter"]
     return await generic_resolver(
-        RelatedUnitRead,
+        loader,
+        getter,
         info=info,
         filter=filter,
         limit=limit,
@@ -775,8 +801,11 @@ async def role_resolver(
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
 
+    loader = info.context["role_loader"]
+    getter = info.context["role_getter"]
     return await generic_resolver(
-        RoleRead,
+        loader,
+        getter,
         info=info,
         filter=filter,
         limit=limit,
