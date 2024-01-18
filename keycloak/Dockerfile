@@ -12,4 +12,4 @@ COPY ./keycloak.conf /opt/keycloak/conf/
 
 RUN /opt/keycloak/bin/kc.sh build
 
-CMD ["start"]
+CMD ["start", "-Dkeycloak.saml.deprecated.encryption=true"]
