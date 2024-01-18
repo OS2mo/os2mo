@@ -16,6 +16,7 @@ from typing import Annotated
 from typing import Any
 from typing import cast
 from typing import Generic
+from typing import get_args
 from typing import TypeVar
 from uuid import UUID
 
@@ -232,11 +233,6 @@ class Response(Generic[MOObject]):
     # working as-is while also allowing for lazy resolution based entirely on the UUID.
     object_cache: strawberry.Private[list[MOObject]] = UNSET
 
-    # Due to a limitation in Pythons typing support, it does not seem possible to fetch
-    # the concrete class of generics from the generic definition, thus it must be
-    # provided explicitly.
-    model: strawberry.Private[type[MOObject]]
-
     @strawberry.field(
         description=dedent(
             """\
@@ -313,7 +309,7 @@ class Response(Generic[MOObject]):
         if root.object_cache != UNSET:
             return root.object_cache
         # If the object cache has not been filled we must resolve objects using the uuid
-        resolver = resolver_map[root.model]["loader"]
+        resolver = resolver_map[response2model(root)]["loader"]
         return await info.context[resolver].load(root.uuid)
 
     # TODO: Implement using a dataloader
@@ -341,10 +337,19 @@ class Response(Generic[MOObject]):
             registration_resolver,
             {
                 "uuids": lambda root: uuid2list(root.uuid),
-                "models": lambda root: [model2name(root.model)],
+                "models": lambda root: [model2name(response2model(root))],
             },
         ),
     )
+
+
+def response2model(response: Response[MOObject]) -> MOObject:
+    if not hasattr(response, "__orig_class__"):
+        raise ValueError(
+            "Please ensure that `Response` is always instantiated with a type parameter, such as Response[Address](...) instead of Response(...)"
+        )
+    model = get_args(response.__orig_class__)[0]
+    return model
 
 
 LazySchema = strawberry.lazy(".schema")

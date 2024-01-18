@@ -168,7 +168,7 @@ async def configuration_resolver(
 
 def to_func_response(model: Any, result: dict[UUID, list[dict]]) -> list[Response]:
     return [
-        Response(uuid=uuid, model=model, object_cache=objects)  # type: ignore[call-arg]
+        Response[model](uuid=uuid, object_cache=objects)
         for uuid, objects in result.items()
     ]
 

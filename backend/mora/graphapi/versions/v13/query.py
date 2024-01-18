@@ -58,7 +58,7 @@ from .schema import Version
 
 def to_response(resolver: Resolver, result: dict[UUID, list[dict]]) -> list[Response]:
     return [
-        Response(uuid=uuid, model=resolver.model, object_cache=objects)  # type: ignore[call-arg]
+        Response[resolver.model](uuid=uuid, object_cache=objects)  # type: ignore[call-arg,name-defined]
         for uuid, objects in result.items()
     ]
 

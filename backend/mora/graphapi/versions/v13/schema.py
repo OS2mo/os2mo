@@ -39,6 +39,7 @@ from ..latest.schema import model2name
 from ..latest.schema import MOObject
 from ..latest.schema import R
 from ..latest.schema import raise_force_none_return_if_uuid_none
+from ..latest.schema import response2model
 from ..latest.schema import uuid2list
 from ..latest.types import CPRType
 from ..latest.validity import OpenValidity
@@ -187,11 +188,6 @@ class Response(Generic[MOObject]):
     # working as-is while also allowing for lazy resolution based entirely on the UUID.
     object_cache: strawberry.Private[list[MOObject]] = UNSET
 
-    # Due to a limitation in Pythons typing support, it does not seem possible to fetch
-    # the concrete class of generics from the generic definition, thus it must be
-    # provided explicitly.
-    model: strawberry.Private[type[MOObject]]
-
     @strawberry.field(
         description=dedent(
             """\
@@ -254,7 +250,7 @@ class Response(Generic[MOObject]):
         if root.object_cache != UNSET:
             return root.object_cache
         # If the object cache has not been filled we must resolve objects using the uuid
-        resolver = resolver_map[root.model]["loader"]
+        resolver = resolver_map[response2model(root)]["loader"]  # type: ignore
         return await info.context[resolver].load(root.uuid)
 
     # TODO: Implement using a dataloader
@@ -282,7 +278,7 @@ class Response(Generic[MOObject]):
             RegistrationResolver(),  # type: ignore
             {
                 "uuids": lambda root: uuid2list(root.uuid),
-                "models": lambda root: model2name(root.model),
+                "models": lambda root: model2name(response2model(root)),
             },
         ),
     )

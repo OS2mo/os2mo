@@ -3,6 +3,7 @@
 import logging
 from textwrap import dedent
 from typing import Annotated
+from typing import Any
 from uuid import UUID
 
 import strawberry
@@ -193,8 +194,8 @@ def ensure_uuid(uuid: UUID | str) -> UUID:
     return UUID(uuid)
 
 
-def uuid2response(uuid: UUID | str, model: type) -> Response:
-    return Response(uuid=ensure_uuid(uuid), model=model)  # type: ignore[call-arg]
+def uuid2response(uuid: UUID | str, model: Any) -> Response:
+    return Response[model](uuid=ensure_uuid(uuid))
 
 
 delete_warning = dedent(
