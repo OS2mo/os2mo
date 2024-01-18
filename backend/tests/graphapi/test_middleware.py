@@ -130,28 +130,6 @@ def test_graphql_dates_failure(graphapi_test_no_exc, dates, latest_graphql_url):
                 }
             }
             """
-    dates = jsonable_encoder(dates)
-    response = graphapi_test_no_exc.post(
-        latest_graphql_url,
-        json={
-            "query": query,
-            "variables": {
-                "from_date": dates[0],
-                "to_date": dates[1],
-            },
-        },
-    )
-    data, errors = response.json().get("data"), response.json().get("errors")
-    graphql_dates = response.json()["extensions"]["graphql_dates"]
-    assert data is None
-    assert errors is not None
-    assert graphql_dates is None
-    for error in errors:
-        assert re.match(
-            r"from_date .* must be less than or equal to to_date .*",
-            error["message"],
-        )
-
     # Test the specific case where from is None and to is UNSET
     response = graphapi_test_no_exc.post(
         latest_graphql_url,
@@ -165,6 +143,17 @@ def test_graphql_dates_failure(graphapi_test_no_exc, dates, latest_graphql_url):
         assert re.match(
             r"Cannot infer UNSET to_date from interval starting at -infinity",
             error["message"],
+        )
+
+
+def test_get_date_interval_from_less_than_to() -> None:
+    with pytest.raises(
+        ValueError,
+        match=r"from_date .* must be less than or equal to to_date .*",
+    ):
+        get_date_interval(
+            from_date=datetime(2000, 1, 1),
+            to_date=datetime(1900, 1, 1),
         )
 
 
