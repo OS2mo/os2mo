@@ -286,7 +286,7 @@ async def list_addresses_employee(
               employees(filter: {uuids: [$uuid], from_date: $from_date, to_date: $to_date}) {
                 objects {
                   objects {
-                    addresses {
+                    addresses(filter: {from_date: $from_date, to_date: $to_date}) {
                       uuid
                       user_key
                       href
@@ -312,7 +312,7 @@ async def list_addresses_employee(
               employees(filter: {uuids: [$uuid], from_date: $from_date, to_date: $to_date}) {
                 objects {
                   objects {
-                    addresses {
+                    addresses(filter: {from_date: $from_date, to_date: $to_date}) {
                       uuid
                       user_key
                       href
@@ -619,7 +619,7 @@ async def list_addresses_ou(
               org_units(filter: {uuids: [$uuid], from_date: $from_date, to_date: $to_date}) {
                 objects {
                   objects {
-                    addresses {
+                    addresses(filter: {from_date: $from_date, to_date: $to_date}) {
                       uuid
                       user_key
                       href
@@ -644,7 +644,7 @@ async def list_addresses_ou(
               org_units(filter: {uuids: [$uuid], from_date: $from_date, to_date: $to_date}) {
                 objects {
                   objects {
-                    addresses {
+                    addresses(filter: {from_date: $from_date, to_date: $to_date}) {
                       uuid
                       user_key
                       href
