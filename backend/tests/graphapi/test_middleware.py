@@ -1,114 +1,104 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import re
 from datetime import datetime
-from datetime import timedelta
+from unittest import TestCase
 
-import freezegun
 import pytest
-import strawberry
-from dateutil.tz import tzutc
 from fastapi.encoders import jsonable_encoder
-from hypothesis import given
-from hypothesis import strategies as st
-from starlette_context import context
+from strawberry import UNSET
 
-from mora.graphapi.versions.latest import dataloaders
-from ramodels.mo import OpenValidity
+from mora.graphapi.versions.latest.resolvers import get_date_interval
+from tests.conftest import GraphAPIPost
 
 
-@pytest.fixture(autouse=True)
-def get_context_from_ext(monkeypatch):
-    """Patch strawberry extensions to return the Starlette context in responses."""
-
-    # We must capture is_grapqhl during execution, as it is cleared after processing
-    extension_context = {}
-
-    def seed_extension_context(self):
-        extension_context.update(
-            {
-                "is_graphql": jsonable_encoder(context.data["is_graphql"]),
-                "lora_args": jsonable_encoder(
-                    context.data["lora_connector"]().defaults
-                ),
-            }
-        )
-        yield
-
-    monkeypatch.setattr(
-        strawberry.extensions.SchemaExtension,
-        "on_execute",
-        seed_extension_context,
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_dates(graphapi_post: GraphAPIPost):
+    """Test that GraphQL dates are passed correctly."""
+    facet_create = graphapi_post(
+        """
+        mutation CreateFacet {
+          facet_create(input: {user_key: "test", validity: {from: null, to: null}}) {
+            uuid
+          }
+        }
+        """
     )
+    facet_uuid = facet_create.data["facet_create"]["uuid"]
 
-    monkeypatch.setattr(
-        strawberry.extensions.SchemaExtension,
-        "get_results",
-        lambda *args: {
-            **extension_context,
-            "graphql_dates": jsonable_encoder(
-                context.data["graphql_dates"], by_alias=False
-            ),
-        },
-    )
-    yield
-
-
-@pytest.fixture(autouse=True)
-def patch_dataloader(patch_loader, monkeypatch):
-    """Automatically patch dataloader to return an empty list."""
-    monkeypatch.setattr(dataloaders, "search_role_type", patch_loader([]))
-    yield
-
-
-@freezegun.freeze_time("1337-04-20")
-def test_is_graphql(graphapi_test, latest_graphql_url):
-    """Test that is_graphql is set on graphql requests."""
-    response = graphapi_test.post(latest_graphql_url, json={"query": "{ __typename }"})
-    assert response.json()["extensions"]["is_graphql"]
-
-
-@freezegun.freeze_time("1337-04-20")
-def test_graphql_dates_default(graphapi_test, latest_graphql_url):
-    """Test default GraphQL date arguments."""
-    response = graphapi_test.post(
-        latest_graphql_url, json={"query": "{ employees { objects { uuid } } }"}
-    )
-    data, errors = response.json().get("data"), response.json().get("errors")
-    graphql_dates = response.json()["extensions"]["graphql_dates"]
-    assert data is not None
-    assert errors is None
-    assert "from_date", "to_date" in graphql_dates
-    now = datetime.now(tz=tzutc())
-    assert graphql_dates["from_date"] == now.isoformat()
-    assert graphql_dates["to_date"] == (now + timedelta(milliseconds=1)).isoformat()
-
-
-@freezegun.freeze_time("1337-04-20")
-@given(dates=st.builds(OpenValidity))
-def test_graphql_dates_explicit(graphapi_test, dates, latest_graphql_url):
-    """Test explicit GraphQL date arguments."""
-    query = """
-            query TestQuery($from_date: DateTime, $to_date: DateTime) {
-                employees(filter: {from_date: $from_date, to_date: $to_date}) {
-                    objects {
-                        uuid
-                    }
-                }
-            }
+    def create_class(parent, from_date, to_date) -> str:
+        r = graphapi_post(
             """
-    response = graphapi_test.post(
-        latest_graphql_url,
-        json={
-            "query": query,
-            "variables": {"from_date": dates.from_date, "to_date": dates.to_date},
-        },
+                mutation CreateClass(
+                  $facet_uuid: UUID!,
+                  $parent_uuid: UUID,
+                  $from_date: DateTime,
+                  $to_date: DateTime,
+                ) {
+                  class_create(
+                    input: {
+                      facet_uuid: $facet_uuid,
+                      parent_uuid: $parent_uuid,
+                      name: "test",
+                      user_key: "test",
+                      validity: {from: $from_date, to: $to_date}
+                    }
+                  ) {
+                    uuid
+                  }
+                }
+            """,
+            variables=jsonable_encoder(
+                {
+                    "facet_uuid": facet_uuid,
+                    "parent_uuid": parent,
+                    "from_date": from_date,
+                    "to_date": to_date,
+                }
+            ),
+        )
+        return r.data["class_create"]["uuid"]
+
+    before = create_class(None, None, "2000-01-01")  # noqa
+    after = create_class(None, "2000-01-05", None)
+    after_10_days = create_class(after, "2000-01-10", "2000-01-15")
+    after_20_days = create_class(after, "2000-01-20", "2000-01-25")
+
+    query = """
+        query TestQuery($facet_uuid: UUID!) {
+          classes(
+            filter: {from_date: "2000-01-05", to_date: null, facet: {uuids: [$facet_uuid]}}
+          ) {
+            objects {
+              objects {
+                uuid
+                children(filter: {from_date: "2000-01-05", to_date: "2000-01-15"}) {
+                  uuid
+                }
+              }
+            }
+          }
+        }
+    """
+    response = graphapi_post(query, variables={"facet_uuid": facet_uuid})
+    assert response.errors is None
+    TestCase().assertCountEqual(
+        response.data["classes"]["objects"],
+        [
+            {"objects": [{"uuid": after_10_days, "children": []}]},
+            {"objects": [{"uuid": after_20_days, "children": []}]},
+            {
+                "objects": [
+                    {
+                        "uuid": after,
+                        "children": [
+                            {"uuid": after_10_days},
+                        ],
+                    }
+                ]
+            },
+        ],
     )
-    data, errors = response.json().get("data"), response.json().get("errors")
-    graphql_dates = response.json()["extensions"]["graphql_dates"]
-    assert data is not None
-    assert errors is None
-    assert graphql_dates == dates.dict()
 
 
 def test_get_date_interval_from_less_than_to() -> None:
@@ -128,15 +118,3 @@ def test_get_date_interval_from_none_to_unset() -> None:
         match="Cannot infer UNSET to_date from interval starting at -infinity",
     ):
         get_date_interval(from_date=None, to_date=UNSET)
-
-@freezegun.freeze_time("1337-04-20")
-def test_graphql_dates_to_lora(graphapi_test, latest_graphql_url):
-    """Test that GraphQL arguments propagate to the LoRa connector."""
-    response = graphapi_test.post(
-        latest_graphql_url,
-        json={"query": "{ employees (filter: {to_date: null}) { objects { uuid } } }"},
-    )
-    lora_args = response.json()["extensions"]["lora_args"]
-    now = datetime.now(tz=tzutc())
-    assert lora_args["virkningfra"] == now.isoformat()
-    assert lora_args["virkningtil"] == (now + timedelta(milliseconds=1)).isoformat()
