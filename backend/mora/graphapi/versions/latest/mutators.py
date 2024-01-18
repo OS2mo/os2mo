@@ -110,6 +110,7 @@ from .leave import update_leave
 from .manager import create_manager
 from .manager import terminate_manager
 from .manager import update_manager
+from .models import ClassRead
 from .models import FacetRead
 from .models import FileStore
 from .org import create_org
@@ -153,7 +154,6 @@ from .role import update_role
 from .schema import Address
 from .schema import Association
 from .schema import Class
-from .schema import ClassRead
 from .schema import Employee
 from .schema import Engagement
 from .schema import Facet
