@@ -111,41 +111,6 @@ def test_graphql_dates_explicit(graphapi_test, dates, latest_graphql_url):
     assert graphql_dates == dates.dict()
 
 
-@given(
-    dates=st.tuples(st.datetimes(), st.datetimes()).filter(lambda dts: dts[0] > dts[1]),
-)
-@freezegun.freeze_time("1337-04-20")
-def test_graphql_dates_failure(graphapi_test_no_exc, dates, latest_graphql_url):
-    """Test failing GraphQL date arguments.
-
-    We use a test client that silences server side errors in order to
-    check GraphQL's error response.
-    """
-    query = """
-            query TestQuery($from_date: DateTime, $to_date: DateTime) {
-                employees(filter: {from_date: $from_date, to_date: $to_date}) {
-                    objects {
-                        uuid
-                    }
-                }
-            }
-            """
-    # Test the specific case where from is None and to is UNSET
-    response = graphapi_test_no_exc.post(
-        latest_graphql_url,
-        json={"query": query, "variables": {"from_date": None}},
-    )
-    data, errors = response.json().get("data"), response.json().get("errors")
-    graphql_dates = response.json()["extensions"]["graphql_dates"]
-    assert data is None
-    assert errors is not None
-    for error in errors:
-        assert re.match(
-            r"Cannot infer UNSET to_date from interval starting at -infinity",
-            error["message"],
-        )
-
-
 def test_get_date_interval_from_less_than_to() -> None:
     with pytest.raises(
         ValueError,
@@ -156,6 +121,13 @@ def test_get_date_interval_from_less_than_to() -> None:
             to_date=datetime(1900, 1, 1),
         )
 
+
+def test_get_date_interval_from_none_to_unset() -> None:
+    with pytest.raises(
+        ValueError,
+        match="Cannot infer UNSET to_date from interval starting at -infinity",
+    ):
+        get_date_interval(from_date=None, to_date=UNSET)
 
 @freezegun.freeze_time("1337-04-20")
 def test_graphql_dates_to_lora(graphapi_test, latest_graphql_url):
