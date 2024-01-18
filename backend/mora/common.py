@@ -34,17 +34,16 @@ _MIDDLEWARE_KEY = "lora_connector"
 
 async def lora_connector_context() -> AsyncIterator[None]:
     @functools.lru_cache
-    def cached_create_connector(**kwargs):
-        return _create_connector(**kwargs)
+    def cached_connector(**kwargs):
+        return lora.Connector(**kwargs)
 
-    data = {**context, _MIDDLEWARE_KEY: cached_create_connector}
+    data = {**context, _MIDDLEWARE_KEY: cached_connector}
     with request_cycle_context(data):
         yield
 
 
-def get_connector(**loraparams) -> lora.Connector:
-    create_connector = context.get(_MIDDLEWARE_KEY, _create_connector)
-    return create_connector(**loraparams)
+def _construct_connector_cached(**loraparams):
+    return context.get(_MIDDLEWARE_KEY, lora.Connector)(**loraparams)
 
 
 def _create_service_connector(**loraparams) -> lora.Connector:
@@ -65,7 +64,7 @@ def _create_service_connector(**loraparams) -> lora.Connector:
         else:
             loraparams.setdefault("validity", args["validity"])
 
-    return lora.Connector(**loraparams)
+    return _construct_connector_cached(**loraparams)
 
 
 def _create_graphql_connector(**loraparams) -> lora.Connector:
@@ -84,24 +83,13 @@ def _create_graphql_connector(**loraparams) -> lora.Connector:
     loraparams["virkningfra"] = from_date
     loraparams["virkningtil"] = to_date
 
-    return lora.Connector(**loraparams)
+    return _construct_connector_cached(**loraparams)
 
 
-def _create_connector(**loraparams) -> lora.Connector:
+def get_connector(**loraparams) -> lora.Connector:
     if is_graphql():
         return _create_graphql_connector(**loraparams)
     return _create_service_connector(**loraparams)
-
-
-class cache(collections.defaultdict):
-    """combination of functools.partial & defaultdict into one"""
-
-    def __init__(self, func, *args, **kwargs):
-        super().__init__(functools.partial(func, *args, **kwargs))
-
-    def __missing__(self, key):
-        v = self[key] = self.default_factory(key)
-        return v
 
 
 def inactivate_old_interval(
