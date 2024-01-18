@@ -171,6 +171,7 @@ from .schema import Response
 from .schema import Role
 from mora.audit import audit_log
 from mora.common import get_connector
+from ramodels.lora.organisation import OrganisationRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead
@@ -380,7 +381,7 @@ class Mutation:
     async def class_create(
         self, info: Info, input: ClassCreateInput
     ) -> Response[Class]:
-        org = await info.context["org_loader"].load(0)
+        org = await info.context[OrganisationRead]["loader"].load(0)
         uuid = await create_class(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, ClassRead)
 
@@ -394,7 +395,7 @@ class Mutation:
     async def class_update(
         self, info: Info, input: ClassUpdateInput
     ) -> Response[Class]:
-        org = await info.context["org_loader"].load(0)
+        org = await info.context[OrganisationRead]["loader"].load(0)
         uuid = await update_class(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, ClassRead)
 
@@ -597,7 +598,7 @@ class Mutation:
     async def facet_create(
         self, info: Info, input: FacetCreateInput
     ) -> Response[Facet]:
-        org = await info.context["org_loader"].load(0)
+        org = await info.context[OrganisationRead]["loader"].load(0)
         uuid = await create_facet(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, FacetRead)
 
@@ -611,7 +612,7 @@ class Mutation:
     async def facet_update(
         self, info: Info, input: FacetUpdateInput
     ) -> Response[Facet]:
-        org = await info.context["org_loader"].load(0)
+        org = await info.context[OrganisationRead]["loader"].load(0)
         uuid = await update_facet(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, FacetRead)
 
@@ -716,7 +717,7 @@ class Mutation:
     async def itsystem_create(
         self, info: Info, input: ITSystemCreateInput
     ) -> Response[ITSystem]:
-        org = await info.context["org_loader"].load(0)
+        org = await info.context[OrganisationRead]["loader"].load(0)
         uuid = await create_itsystem(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, ITSystemRead)
 
@@ -730,7 +731,7 @@ class Mutation:
     async def itsystem_update(
         self, info: Info, input: ITSystemUpdateInput
     ) -> Response[ITSystem]:
-        org = await info.context["org_loader"].load(0)
+        org = await info.context[OrganisationRead]["loader"].load(0)
         uuid = await update_itsystem(input.to_pydantic(), org.uuid)  # type: ignore
         return uuid2response(uuid, ITSystemRead)
 
@@ -1037,7 +1038,7 @@ class Mutation:
     async def org_create(self, info: Info, input: OrganisationCreate) -> Organisation:
         # Called for side-effect
         await create_org(input)
-        return await info.context["org_loader"].load(0)
+        return await info.context[OrganisationRead]["loader"].load(0)
 
     # TODO: org_update
     # TODO: org_terminate

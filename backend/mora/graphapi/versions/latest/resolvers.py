@@ -34,7 +34,6 @@ from .models import ClassRead
 from .models import FacetRead
 from .paged import CursorType
 from .paged import LimitType
-from .resolver_map import resolver_map
 from .validity import OpenValidityModel
 from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.orgunits import search_orgunits
@@ -508,7 +507,7 @@ async def organisation_unit_resolver(
         # The above assignment handles all parent=ys cases
         # Thus we only need to check for parents=xs and Nones
         if filter.parents is None or filter.parent is None:
-            org = await info.context["org_loader"].load(0)
+            org = await info.context[OrganisationUnitRead]["loader"].load(0)
             extend_uuids(org_unit_filter, [org.uuid])
         if filter.parents is not UNSET:
             extend_uuids(org_unit_filter, filter.parents)
@@ -702,8 +701,7 @@ async def generic_resolver(
         # Early return on empty UUID list
         if not filter.uuids:
             return dict()
-        resolver_name = resolver_map[model]["loader"]
-        return await get_by_uuid(info.context[resolver_name], filter.uuids)
+        return await get_by_uuid(info.context[model]["loader"], filter.uuids)
 
     # User keys
     if filter.user_keys is not None:
@@ -730,8 +728,7 @@ async def generic_resolver(
         kwargs["foersteresultat"] = cursor.offset
         kwargs["registreringstid"] = str(cursor.registration_time)
 
-    resolver_name = resolver_map[model]["getter"]
-    return await info.context[resolver_name](**kwargs)
+    return await info.context[model]["getter"](**kwargs)
 
 
 async def related_unit_resolver(

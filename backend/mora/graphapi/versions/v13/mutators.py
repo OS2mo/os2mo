@@ -122,6 +122,7 @@ from mora.common import get_connector
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import FacetRead
+from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead
 from ramodels.mo.details import AssociationRead
@@ -505,7 +506,7 @@ class Mutation:
     async def itsystem_create(
         self, info: Info, input: ITSystemCreateInput
     ) -> Response[ITSystem]:
-        org = await info.context["org_loader"].load(0)
+        org = await info.context[OrganisationRead]["loader"].load(0)
         v13_model = input.to_pydantic()
         latest_model = parse_obj_as(LatestITSystemCreate, v13_model.to_latest_dict())
         uuid = await create_itsystem(latest_model, org.uuid)
@@ -521,7 +522,7 @@ class Mutation:
     async def itsystem_update(
         self, info: Info, input: ITSystemCreateInput
     ) -> Response[ITSystem]:
-        org = await info.context["org_loader"].load(0)
+        org = await info.context[OrganisationRead]["loader"].load(0)
         v13_model = input.to_pydantic()
         latest_model = parse_obj_as(LatestITSystemUpdate, v13_model.to_latest_dict())
         uuid = await update_itsystem(latest_model, org.uuid)  # type: ignore
@@ -698,7 +699,7 @@ class Mutation:
     async def org_create(self, info: Info, input: OrganisationCreate) -> Organisation:
         # Called for side-effect
         await create_org(input)
-        return await info.context["org_loader"].load(0)
+        return await info.context[OrganisationRead]["loader"].load(0)
 
     # TODO: org_update
     # TODO: org_terminate

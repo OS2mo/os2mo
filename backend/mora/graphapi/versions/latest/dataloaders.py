@@ -125,58 +125,70 @@ async def load_org(keys: list[int]) -> list[OrganisationRead]:
     return [OrganisationRead.parse_obj(obj)] * len(keys)
 
 
-async def get_loaders() -> dict[str, DataLoader | Callable]:
+async def get_loaders() -> dict[Any, dict[str, DataLoader | Callable]]:
     """Get all available dataloaders as a dictionary."""
     return {
-        # Organisation
-        "org_loader": DataLoader(load_fn=load_org),
-        # Organisation Unit
-        "org_unit_loader": DataLoader(
-            load_fn=partial(load_mo, model=OrganisationUnitRead)
-        ),
-        "org_unit_getter": partial(get_mo, model=OrganisationUnitRead),
-        # Person
-        "employee_loader": DataLoader(load_fn=partial(load_mo, model=EmployeeRead)),
-        "employee_getter": partial(get_mo, model=EmployeeRead),
-        # Engagement
-        "engagement_loader": DataLoader(load_fn=partial(load_mo, model=EngagementRead)),
-        "engagement_getter": partial(get_mo, model=EngagementRead),
-        # KLE
-        "kle_loader": DataLoader(load_fn=partial(load_mo, model=KLERead)),
-        "kle_getter": partial(get_mo, model=KLERead),
-        # Address
-        "address_loader": DataLoader(load_fn=partial(load_mo, model=AddressRead)),
-        "address_getter": partial(get_mo, model=AddressRead),
-        # Leave
-        "leave_loader": DataLoader(load_fn=partial(load_mo, model=LeaveRead)),
-        "leave_getter": partial(get_mo, model=LeaveRead),
-        # Association
-        "association_loader": DataLoader(
-            load_fn=partial(load_mo, model=AssociationRead)
-        ),
-        "association_getter": partial(get_mo, model=AssociationRead),
-        # Role
-        "role_loader": DataLoader(load_fn=partial(load_mo, model=RoleRead)),
-        "role_getter": partial(get_mo, model=RoleRead),
-        # ITUser
-        "ituser_loader": DataLoader(load_fn=partial(load_mo, model=ITUserRead)),
-        "ituser_getter": partial(get_mo, model=ITUserRead),
-        # Manager
-        "manager_loader": DataLoader(load_fn=partial(load_mo, model=ManagerRead)),
-        "manager_getter": partial(get_mo, model=ManagerRead),
-        # Owner
-        "owner_loader": DataLoader(load_fn=partial(load_mo, model=OwnerRead)),
-        "owner_getter": partial(get_mo, model=OwnerRead),
-        # Class
-        "class_loader": DataLoader(load_fn=partial(load_mo, model=ClassRead)),
-        "class_getter": partial(get_mo, model=ClassRead),
-        # Related Organisation Unit
-        "rel_unit_loader": DataLoader(load_fn=partial(load_mo, model=RelatedUnitRead)),
-        "rel_unit_getter": partial(get_mo, model=RelatedUnitRead),
-        # Facet
-        "facet_loader": DataLoader(load_fn=partial(load_mo, model=FacetRead)),
-        "facet_getter": partial(get_mo, model=FacetRead),
-        # ITSysterm
-        "itsystem_loader": DataLoader(load_fn=partial(load_mo, model=ITSystemRead)),
-        "itsystem_getter": partial(get_mo, model=ITSystemRead),
+        OrganisationRead: {
+            "loader": DataLoader(load_fn=load_org),
+        },
+        OrganisationUnitRead: {
+            "loader": DataLoader(load_fn=partial(load_mo, model=OrganisationUnitRead)),
+            "getter": partial(get_mo, model=OrganisationUnitRead),
+        },
+        EmployeeRead: {
+            "loader": DataLoader(load_fn=partial(load_mo, model=EmployeeRead)),
+            "getter": partial(get_mo, model=EmployeeRead),
+        },
+        EngagementRead: {
+            "loader": DataLoader(load_fn=partial(load_mo, model=EngagementRead)),
+            "getter": partial(get_mo, model=EngagementRead),
+        },
+        KLERead: {
+            "loader": DataLoader(load_fn=partial(load_mo, model=KLERead)),
+            "getter": partial(get_mo, model=KLERead),
+        },
+        AddressRead: {
+            "loader": DataLoader(load_fn=partial(load_mo, model=AddressRead)),
+            "getter": partial(get_mo, model=AddressRead),
+        },
+        LeaveRead: {
+            "loader": DataLoader(load_fn=partial(load_mo, model=LeaveRead)),
+            "getter": partial(get_mo, model=LeaveRead),
+        },
+        AssociationRead: {
+            "loader": DataLoader(load_fn=partial(load_mo, model=AssociationRead)),
+            "getter": partial(get_mo, model=AssociationRead),
+        },
+        RoleRead: {
+            "loader": DataLoader(load_fn=partial(load_mo, model=RoleRead)),
+            "getter": partial(get_mo, model=RoleRead),
+        },
+        ITUserRead: {
+            "loader": DataLoader(load_fn=partial(load_mo, model=ITUserRead)),
+            "getter": partial(get_mo, model=ITUserRead),
+        },
+        ManagerRead: {
+            "loader": DataLoader(load_fn=partial(load_mo, model=ManagerRead)),
+            "getter": partial(get_mo, model=ManagerRead),
+        },
+        OwnerRead: {
+            "loader": DataLoader(load_fn=partial(load_mo, model=OwnerRead)),
+            "getter": partial(get_mo, model=OwnerRead),
+        },
+        ClassRead: {
+            "loader": DataLoader(load_fn=partial(load_mo, model=ClassRead)),
+            "getter": partial(get_mo, model=ClassRead),
+        },
+        RelatedUnitRead: {
+            "loader": DataLoader(load_fn=partial(load_mo, model=RelatedUnitRead)),
+            "getter": partial(get_mo, model=RelatedUnitRead),
+        },
+        FacetRead: {
+            "loader": DataLoader(load_fn=partial(load_mo, model=FacetRead)),
+            "getter": partial(get_mo, model=FacetRead),
+        },
+        ITSystemRead: {
+            "loader": DataLoader(load_fn=partial(load_mo, model=ITSystemRead)),
+            "getter": partial(get_mo, model=ITSystemRead),
+        },
     }

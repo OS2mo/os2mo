@@ -392,7 +392,7 @@ class Query:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org")],
     )
     async def org(self, info: Info) -> Organisation:
-        return await info.context["org_loader"].load(0)
+        return await info.context[OrganisationUnitRead]["loader"].load(0)
 
     # Version
     # -------
