@@ -59,7 +59,7 @@ def to_response(resolver):  # type: ignore
     async def resolve_response(*args, **kwargs):  # type: ignore
         result = await resolver.resolve(*args, **kwargs)
         return [
-            Response(uuid=uuid, model=resolver.model, object_cache=objects)
+            Response[resolver.model](uuid=uuid, object_cache=objects)
             for uuid, objects in result.items()
         ]
 
