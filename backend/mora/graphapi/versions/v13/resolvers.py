@@ -272,7 +272,6 @@ class Resolver(PagedResolver):
         """The internal resolve interface, allowing for kwargs."""
         return await generic_resolver(
             self.model,
-            self.neutral_element_constructor,
             info=info,
             filter=filter,
             limit=limit,

@@ -179,7 +179,6 @@ async def facet_resolver(
 
     return await generic_resolver(
         FacetRead,
-        None,
         info=info,
         filter=filter,
         limit=limit,
@@ -237,7 +236,6 @@ async def class_resolver(
 
     return await generic_resolver(
         ClassRead,
-        None,
         info=info,
         filter=filter,
         limit=limit,
@@ -284,7 +282,6 @@ async def address_resolver(
 
     return await generic_resolver(
         AddressRead,
-        None,
         info=info,
         filter=filter,
         limit=limit,
@@ -331,7 +328,6 @@ async def association_resolver(
 
     associations = await generic_resolver(
         AssociationRead,
-        None,
         info=info,
         filter=filter,
         limit=limit,
@@ -388,7 +384,6 @@ async def employee_resolver(
 
     return await generic_resolver(
         EmployeeRead,
-        None,
         info=info,
         filter=filter,
         limit=limit,
@@ -420,7 +415,6 @@ async def engagement_resolver(
 
     return await generic_resolver(
         EngagementRead,
-        None,
         info=info,
         filter=filter,
         limit=limit,
@@ -452,7 +446,6 @@ async def manager_resolver(
 
     return await generic_resolver(
         ManagerRead,
-        None,
         info=info,
         filter=filter,
         limit=limit,
@@ -485,7 +478,6 @@ async def owner_resolver(
 
     return await generic_resolver(
         OwnerRead,
-        None,
         info=info,
         filter=filter,
         limit=limit,
@@ -552,7 +544,6 @@ async def organisation_unit_resolver(
 
     return await generic_resolver(
         OrganisationUnitRead,
-        None,
         info=info,
         filter=filter,
         limit=limit,
@@ -574,7 +565,6 @@ async def it_system_resolver(
 
     return await generic_resolver(
         ITSystemRead,
-        None,
         info=info,
         filter=filter,
         limit=limit,
@@ -611,7 +601,6 @@ async def it_user_resolver(
 
     return await generic_resolver(
         ITUserRead,
-        None,
         info=info,
         filter=filter,
         limit=limit,
@@ -638,7 +627,6 @@ async def kle_resolver(
 
     return await generic_resolver(
         KLERead,
-        None,
         info=info,
         filter=filter,
         limit=limit,
@@ -667,7 +655,6 @@ async def leave_resolver(
 
     return await generic_resolver(
         LeaveRead,
-        None,
         info=info,
         filter=filter,
         limit=limit,
@@ -692,7 +679,6 @@ async def get_by_uuid(
 
 async def generic_resolver(
     model: Any,
-    neutral_element_constructor: Callable[[], Any] | None,
     # Ordinary
     info: Info,
     filter: BaseFilter | None = None,
@@ -701,8 +687,6 @@ async def generic_resolver(
     **kwargs: Any,
 ) -> Any:
     """The internal resolve interface, allowing for kwargs."""
-    neutral_element_constructor = neutral_element_constructor or dict
-
     # Filter
     if filter is None:
         filter = BaseFilter()
@@ -717,7 +701,7 @@ async def generic_resolver(
             raise ValueError("Cannot filter 'uuid' with 'limit' or 'cursor'")
         # Early return on empty UUID list
         if not filter.uuids:
-            return neutral_element_constructor()
+            return dict()
         resolver_name = resolver_map[model]["loader"]
         return await get_by_uuid(info.context[resolver_name], filter.uuids)
 
@@ -725,7 +709,7 @@ async def generic_resolver(
     if filter.user_keys is not None:
         # Early return on empty user-key list
         if not filter.user_keys:
-            return neutral_element_constructor()
+            return dict()
         # We need to explicitly use a 'SIMILAR TO' search in LoRa, as the default is
         # to 'AND' filters of the same name, i.e. 'http://lora?bvn=x&bvn=y' means
         # "bvn is x AND Y", which is never true. Ideally, we'd use a different query
@@ -768,7 +752,6 @@ async def related_unit_resolver(
 
     return await generic_resolver(
         RelatedUnitRead,
-        None,
         info=info,
         filter=filter,
         limit=limit,
@@ -797,7 +780,6 @@ async def role_resolver(
 
     return await generic_resolver(
         RoleRead,
-        None,
         info=info,
         filter=filter,
         limit=limit,
