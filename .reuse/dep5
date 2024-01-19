@@ -17,7 +17,7 @@ Files: *.json *.xml *.rst *.odt *.pdf *.md *.docx *.png *.html *.svg *.ico *.dra
 Copyright: Magenta ApS <https://magenta.dk>
 License: MPL-2.0
 
-Files: *poetry.lock
+Files: *poetry.lock backend/.test_durations
 Copyright: Magenta ApS <https://magenta.dk>
 License: MPL-2.0
 
