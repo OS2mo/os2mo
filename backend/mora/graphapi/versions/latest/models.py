@@ -853,8 +853,8 @@ class ITUserUpsert(UUIDBase):
     org_unit: UUID | None = Field(
         description="Reference to the organisation unit of the IT user (if any)."
     )
-    engagement: UUID | None = Field(
-        description="Reference to the engagement of the IT user (if any)."
+    engagements: list[UUID] = Field(
+        description="Reference to the engagement of the IT user (if any).", default=[]
     )
     validity: RAValidity = Field(description="Validity of the created IT user object.")
 
@@ -864,7 +864,7 @@ class ITUserUpsert(UUIDBase):
             "primary": gen_uuid(self.primary),
             "person": gen_uuid(self.person),
             "org_unit": gen_uuid(self.org_unit),
-            "engagement": gen_uuid(self.engagement),
+            "engagements": self.engagements,
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()
@@ -896,6 +896,8 @@ class ITUserCreate(ITUserUpsert):
         data_dict["type"] = "it"
         data_dict["user_key"] = self.user_key
         data_dict["itsystem"] = gen_uuid(self.itsystem)
+        if self.engagements:
+            data_dict["engagements"] = list(map(gen_uuid, self.engagements))
         return data_dict
 
 
@@ -913,6 +915,8 @@ class ITUserUpdate(ITUserUpsert):
         data_dict = super().to_handler_dict()
         data_dict["user_key"] = self.user_key
         data_dict["itsystem"] = gen_uuid(self.itsystem)
+        if self.engagements:
+            data_dict["engagements"] = list(map(gen_uuid, self.engagements))
         return {k: v for k, v in data_dict.items() if v is not None}
 
 

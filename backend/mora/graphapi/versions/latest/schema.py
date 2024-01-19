@@ -2504,27 +2504,19 @@ class ITUser:
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-
-    engagement: list[LazyEngagement] | None = strawberry.field(
-        resolver=force_none_return_wrapper(
-            to_list(
-                seed_resolver(
-                    engagement_resolver,
-                    {
-                        "uuids": partial(
-                            raise_force_none_return_if_uuid_none,
-                            get_uuid=lambda root: root.engagement_uuid,
-                        )
-                    },
-                )
-            ),
+    engagements: list[LazyEngagement] = strawberry.field(
+        resolver=to_list(
+            seed_resolver(
+                engagement_resolver,
+                {"uuids": lambda root: root.engagement_uuids},
+            )
         ),
         description=dedent(
             """\
             Engagement scoping of the account.
 
-            A person may have multiple IT accounts with each account being relevant for only a single engagement.
-            This field allows scoping IT accounts such that it is obvious which engagement has given which it-access.
+            A person may have multiple IT accounts each of which may be relevant for a list of engagements.
+            This field allows scoping IT accounts such that it is obvious which engagements has given which it-access.
             """
         )
         + list_to_optional_field_warning,
@@ -2615,11 +2607,11 @@ class ITUser:
         return root.org_unit_uuid
 
     @strawberry.field(
-        description="UUID of the engagement related to the user.",
+        description="UUIDs of the engagements related to the user.",
         deprecation_reason=gen_uuid_field_deprecation("engagement"),
     )
-    async def engagement_uuid(self, root: ITUserRead) -> UUID | None:
-        return root.engagement_uuid
+    async def engagement_uuids(self, root: ITUserRead) -> list[UUID]:
+        return root.engagement_uuids
 
     @strawberry.field(
         description="UUID of the primary klasse of the user.",

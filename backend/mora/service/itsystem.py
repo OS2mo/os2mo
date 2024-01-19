@@ -100,8 +100,8 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         employee = util.checked_get(req, mapping.PERSON, {}, required=False)
         employee_uuid = util.get_uuid(employee, required=False)
 
-        engagement = util.checked_get(req, mapping.ENGAGEMENT, {}, required=False)
-        engagement_uuid = util.get_uuid(engagement, required=False)
+        engagements = util.checked_get(req, mapping.ENGAGEMENT, {}, required=False)
+        engagement_uuids = util.get_uuid(engagements, required=False)
 
         org_uuid = (
             await org.get_configured_organisation(
@@ -154,6 +154,17 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 ),
             ).validate()
 
+        org_funcs = []
+        if engagement_uuids:
+            org_funcs.extend(
+                [
+                    common.associated_orgfunc(
+                        uuid=engagement_uuid, orgfunc_type=mapping.MoOrgFunk.ENGAGEMENT
+                    )
+                    for engagement_uuid in engagement_uuids
+                ]
+            )
+
         # TODO: validate that the date range is in
         # the validity of the IT system!
 
@@ -167,13 +178,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
             tilknyttedeitsystemer=[systemid],
-            tilknyttedefunktioner=[
-                common.associated_orgfunc(
-                    uuid=engagement_uuid, orgfunc_type=mapping.MoOrgFunk.ENGAGEMENT
-                )
-            ]
-            if engagement_uuid
-            else [],
+            tilknyttedefunktioner=org_funcs,
         )
 
         self.payload = func
@@ -235,16 +240,18 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        if data.get(mapping.ENGAGEMENT):
-            update_fields.append(
-                (
-                    mapping.ASSOCIATED_FUNCTION_FIELD,
-                    {
-                        "uuid": util.get_mapping_uuid(data, mapping.ENGAGEMENT),
-                        mapping.OBJECTTYPE: mapping.ENGAGEMENT,
-                    },
+        if data.get(mapping.ENGAGEMENTS):
+            for eng_uuid in util.checked_get(data, mapping.ENGAGEMENTS, []):
+                update_fields.append(
+                    (
+                        mapping.ASSOCIATED_FUNCTION_FIELD,
+                        {
+                            "uuid": util.get_uuid(eng_uuid),
+                            mapping.OBJECTTYPE: mapping.ENGAGEMENT,
+                        },
+                    )
                 )
-            )
+            # breakpoint()
         if data.get(mapping.ORG_UNIT):
             update_fields.append(
                 (

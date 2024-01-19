@@ -67,6 +67,7 @@ ENGAGEMENT_KEY = "Engagement"
 ENGAGEMENT_TYPE = "engagement_type"
 FRACTION = "fraction"
 ENGAGEMENT = "engagement"
+ENGAGEMENTS = "engagements"
 
 # Extensions
 EXTENSION_1 = "udvidelse_1"

@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import gather
 
+from more_itertools import bucket
+from more_itertools import only
 from structlog import get_logger
 
 from .. import reading
@@ -65,7 +67,15 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
         org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         itsystem_uuid = mapping.SINGLE_ITSYSTEM_FIELD.get_uuid(effect)
         primary_uuid = mapping.PRIMARY_FIELD.get_uuid(effect)
-        engagement_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
+        org_funcs = mapping.ASSOCIATED_FUNCTION_FIELD(effect)
+        # Engagements and it_users are both associated functions that can be grouped by objecttype
+        grouped_org_funcs = bucket(org_funcs, key=lambda o: o.get(mapping.OBJECTTYPE))
+        engagements = grouped_org_funcs[mapping.ENGAGEMENT]
+
+        engagement_uuids = {e["uuid"] for e in engagements}
+        # TODO: #59192 add addresses
+        # addresses = grouped_org_funcs[mapping.ADDRESS]
+        # address_uuids = {a["uuid"] for a in addresses}
 
         base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)
 
@@ -74,7 +84,8 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
                 **base_obj,
                 "employee_uuid": person_uuid,
                 "org_unit_uuid": org_unit_uuid,
-                "engagement_uuid": engagement_uuid,
+                "engagement_uuids": engagement_uuids,
+                # "address_uuids": address_uuids,
                 "itsystem_uuid": itsystem_uuid,
                 "primary_uuid": primary_uuid,
             }
@@ -100,8 +111,10 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
         else:
             org_unit_task = noop_task()
 
-        if engagement_uuid:
-            engagement_task = get_engagement(get_connector(), uuid=engagement_uuid)
+        if engagement_uuids:
+            engagement_task = get_engagement(
+                get_connector(), uuid=only(engagement_uuids)
+            )
         else:
             engagement_task = noop_task()
 

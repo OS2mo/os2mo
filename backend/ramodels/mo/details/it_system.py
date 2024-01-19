@@ -47,8 +47,8 @@ class ITUserRead(ITUserBase):
     org_unit_uuid: UUID | None = Field(
         description="UUID organisation unit related to the user."
     )
-    engagement_uuid: UUID | None = Field(
-        description="UUID of the engagement related to the user."
+    engagement_uuids: list[UUID] = Field(
+        description="UUID of the engagement related to the user.", default=[]
     )
     primary_uuid: UUID | None = Field(
         description="UUID of an associated `primary_type` class."
@@ -64,8 +64,8 @@ class ITUserWrite(ITUserBase):
     employee: EmployeeRef | None = Field(
         description="Reference to the employee for the IT user."
     )
-    engagement_uuid: UUID | None = Field(
-        description="UUID of the engagement related to the user."
+    engagement_uuids: list[UUID] = Field(
+        description="UUID of the engagement related to the user.", default=[]
     )
     org_unit: OrgUnitRef | None = Field(
         description="Reference to the organisation unit for the IT user."
@@ -88,8 +88,8 @@ class ITUser(MOBase):
     org_unit: OrgUnitRef | None = Field(
         description="Reference to the organisation unit for the IT user."
     )
-    engagement: EngagementRef | None = Field(
-        description="Reference to the engagement for the IT user."
+    engagements: list[EngagementRef] = Field(
+        description="Reference to the engagement for the IT user.", default=[]
     )
     validity: Validity = Field(description="Validity of the created IT user object.")
 
@@ -103,13 +103,15 @@ class ITUser(MOBase):
         to_date: str | None = None,
         person_uuid: UUID | None = None,
         org_unit_uuid: UUID | None = None,
-        engagement_uuid: UUID | None = None,
+        engagement_uuids: list[UUID] = [],
     ) -> "ITUser":
         """Create an IT User from simplified fields."""
         it_system = ITSystemRef(uuid=itsystem_uuid)
         person = PersonRef(uuid=person_uuid) if person_uuid else None
         org_unit = OrgUnitRef(uuid=org_unit_uuid) if org_unit_uuid else None
-        engagement = EngagementRef(uuid=engagement_uuid) if engagement_uuid else None
+        # engagements = [
+        #     EngagementRef(uuid=engagement_uuid) for engagement_uuid in engagement_uuids
+        # ]
         validity = Validity(from_date=from_date, to_date=to_date)
 
         return cls(
@@ -118,6 +120,6 @@ class ITUser(MOBase):
             itsystem=it_system,
             person=person,
             org_unit=org_unit,
-            engagement=engagement,
+            engagements=engagement_uuids,
             validity=validity,
         )
