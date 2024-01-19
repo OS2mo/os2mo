@@ -12,7 +12,6 @@ from pydantic import parse_obj_as
 from pydantic import ValidationError
 from ramodels.mo import Employee
 
-from .conftest import read_mapping
 from mo_ldap_import_export.config import UsernameGeneratorConfig
 from mo_ldap_import_export.usernames import AlleroedUserNameGenerator
 from mo_ldap_import_export.usernames import UserNameGenerator
@@ -106,7 +105,89 @@ def alleroed_username_generator(
     context: Context, existing_usernames_ldap: list
 ) -> Iterator[AlleroedUserNameGenerator]:
 
-    context["user_context"]["mapping"] = read_mapping("alleroed.yaml")
+    context["user_context"]["mapping"] = {}
+    context["user_context"]["mapping"]["username_generator"] = {
+        "objectClass": "AlleroedUserNameGenerator",
+        "char_replacement": {},
+        # Note: We need some 'X's in this list. to account for potential duplicates
+        # Note2: We need some short combinations in this list, to account for persons with
+        # short names.
+        #
+        # Index:
+        # F: First name
+        # 1: First middle name
+        # 2: Second middle name
+        # 3: Third middle name
+        # L: Last name
+        # X: Number
+        #
+        # Example1: If combination = "F11LL", 'Hans Jakob Hansen' returns username="hjaha"
+        # Example2: If combination = "FFLL", 'Hans Jakob Hansen' returns username="haha"
+        "combinations_to_try": [
+            # Try to make a username with 4 characters.
+            "F111",
+            "F112",
+            "F122",
+            "F222",
+            "F223",
+            "F233",
+            "F333",
+            #
+            "F11L",
+            "F12L",
+            "F22L",
+            "F23L",
+            "F33L",
+            #
+            "F1LL",
+            "F2LL",
+            "F3LL",
+            #
+            "FLLL",
+            #
+            # If we get to here, we failed to make a username with 4 characters.
+            "F111L",
+            "F112L",
+            "F122L",
+            "F222L",
+            "F223L",
+            "F233L",
+            "F333L",
+            #
+            "F11LL",
+            "F12LL",
+            "F22LL",
+            "F23LL",
+            "F33LL",
+            #
+            "F1LLL",
+            "F2LLL",
+            "F3LLL",
+            #
+            "FLLLL",
+            #
+            # If we get to here, we failed to make a username with only a single
+            # character for the first name
+            #
+            "FF11",
+            "FF12",
+            "FF22",
+            "FF23",
+            "FF33",
+            "FF1L",
+            "FF2L",
+            "FF3L",
+            "FFLL",
+            #
+            "FFF1",
+            "FFF2",
+            "FFF3",
+            "FFFL",
+            #
+            "FFFF",
+        ],
+        "forbidden_usernames": ["itsm_brugere.csv"],
+    }
 
     with patch(
         "mo_ldap_import_export.usernames.paged_search",

@@ -293,36 +293,6 @@ async def convert_address_to_ldap(address, json_key, converter):
     return await converter.to_ldap(mo_object_dict, json_key, "CN=foo")
 
 
-async def test_alleroed_employee_mapping(get_converter: GetConverter):
-    """
-    Test that givenname, surname, nickname and so on get combined and split properly.
-    """
-    async with get_converter("alleroed.yaml") as converter:
-        mo_employee = Employee(
-            cpr_no="0101011234",
-            givenname="Lukas",
-            surname="Skywalker",
-            nickname_givenname="Lucky",
-            nickname_surname="Luke",
-        )
-
-        mo_object_dict = {
-            "mo_employee": mo_employee,
-        }
-
-        ldap_employee = await converter.to_ldap(mo_object_dict, "Employee", "CN=foo")
-
-        assert ldap_employee.givenName == "Lukas"  # type: ignore
-        assert ldap_employee.sn == "Skywalker"  # type: ignore
-        assert ldap_employee.displayName == "Lucky Luke"  # type: ignore
-
-        mo_employee_converted = (
-            await converter.from_ldap(ldap_employee, "Employee", mo_employee.uuid)
-        )[0]
-
-        assert mo_employee_converted == mo_employee
-
-
 @pytest.mark.parametrize("json_filename", json_filenames)
 async def test_objectguid_mappings(get_converter: GetConverter, json_filename: str):
     """
