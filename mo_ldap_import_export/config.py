@@ -230,7 +230,9 @@ class ConversionMapping(MappingBaseModel):
     init: Init = Field(default_factory=Init)
     ldap_to_mo: dict[str, LDAP2MOMapping]
     mo_to_ldap: dict[str, MO2LDAPMapping]
-    username_generator: UsernameGeneratorConfig
+    username_generator: UsernameGeneratorConfig = Field(
+        default_factory=UsernameGeneratorConfig
+    )
 
     @root_validator(skip_on_failure=True)
     def validate_cross_keys(cls, values: dict[str, Any]) -> dict[str, Any]:
@@ -262,12 +264,14 @@ class ConversionMapping(MappingBaseModel):
                         address_type_template = f"{{{{ dict(uuid=get_org_unit_address_type_uuid('{key}')) }}}}"
                     else:
                         address_type_template = f"{{{{ dict(uuid=get_employee_address_type_uuid('{key}')) }}}}"
-                    assert ldap2mo.address_type == address_type_template
+                    if ldap2mo.address_type != address_type_template:
+                        raise ValueError("Address not templating address type UUID")
                 case "ramodels.mo.details.it_system.ITUser":
                     it_system_template = (
                         f"{{{{ dict(uuid=get_it_system_uuid('{key}')) }}}}"
                     )
-                    assert ldap2mo.itsystem == it_system_template
+                    if ldap2mo.itsystem != it_system_template:
+                        raise ValueError("IT-System not templating it-system UUID")
         return values
 
     @root_validator(skip_on_failure=True)
@@ -300,8 +304,7 @@ class Settings(BaseSettings):
         frozen = True
         env_nested_delimiter = "__"
 
-    conversion_mapping: ConversionMapping | None = Field(
-        default=None,
+    conversion_mapping: ConversionMapping = Field(
         description="Conversion mapping between LDAP and OS2mo",
     )
 

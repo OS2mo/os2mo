@@ -87,8 +87,12 @@ def model_client() -> Iterator[AsyncMock]:
 
 @pytest.fixture
 def settings(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv(
+        "CONVERSION_MAPPING",
+        '{"ldap_to_mo": {}, "mo_to_ldap": {}, "username_generator": {}}',
+    )
     monkeypatch.setenv("CLIENT_ID", "foo")
-    monkeypatch.setenv("client_secret", "bar")
+    monkeypatch.setenv("CLIENT_SECRET", "bar")
     monkeypatch.setenv("LDAP_CONTROLLERS", '[{"host": "0.0.0.0"}]')
     monkeypatch.setenv("LDAP_DOMAIN", "LDAP")
     monkeypatch.setenv("LDAP_USER", "foo")

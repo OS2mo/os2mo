@@ -582,18 +582,30 @@ def test_find_mo_object_class(converter: LdapConverter):
     assert object_class == "ramodels.mo.employee.Employee"
 
 
-def test_get_ldap_attributes(converter: LdapConverter, context: Context):
-    attributes = converter.get_ldap_attributes("Employee")
-
-    all_attributes = list(
+def test_get_ldap_attributes(converter: LdapConverter, context: Context) -> None:
+    attributes = set(converter.get_ldap_attributes("Employee"))
+    all_attributes = set(
         context["user_context"]["mapping"]["mo_to_ldap"]["Employee"].keys()
     )
+    assert all_attributes - attributes == {"objectClass", "_export_to_ldap_"}
 
-    expected_attributes = [
-        a for a in all_attributes if a != "objectClass" and not a.startswith("_")
-    ]
 
-    assert attributes == expected_attributes
+async def test_get_ldap_attributes_dn_removed(context: Context) -> None:
+    context["user_context"]["mapping"]["mo_to_ldap"]["Employee"]["dn"] = "fixed"
+
+    converter = LdapConverter(context)
+    await converter._init()
+
+    attributes = set(converter.get_ldap_attributes("Employee"))
+    all_attributes = set(
+        context["user_context"]["mapping"]["mo_to_ldap"]["Employee"].keys()
+    )
+    assert all_attributes - attributes == {"objectClass", "_export_to_ldap_", "dn"}
+
+
+def test_get_mo_attributes(converter: LdapConverter) -> None:
+    attributes = set(converter.get_mo_attributes("Employee"))
+    assert attributes == {"uuid", "cpr_no", "surname", "givenname"}
 
 
 def test_check_converter_attributes(converter: LdapConverter):

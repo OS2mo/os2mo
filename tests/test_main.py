@@ -18,6 +18,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from fastramqpi.main import FastRAMQPI
 from gql.transport.exceptions import TransportQueryError
+from pydantic import parse_obj_as
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
@@ -25,6 +26,7 @@ from ramqp.utils import RejectMessage
 from ramqp.utils import RequeueMessage
 from structlog.testing import capture_logs
 
+from mo_ldap_import_export.config import ConversionMapping
 from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import NotSupportedException
@@ -53,7 +55,28 @@ def settings_overrides() -> Iterator[dict[str, str]]:
     Yields:
         Minimal set of overrides.
     """
+    conversion_mapping_dict = {
+        "ldap_to_mo": {
+            "Employee": {
+                "objectClass": "ramodels.mo.employee.Employee",
+                "_import_to_mo_": "false",
+                "uuid": "{{ employee_uuid or NONE }}",
+            }
+        },
+        "mo_to_ldap": {
+            "Employee": {
+                "objectClass": "inetOrgPerson",
+                "_export_to_ldap_": "false",
+            }
+        },
+        "username_generator": {"objectClass": "UserNameGenerator"},
+    }
+    conversion_mapping = parse_obj_as(ConversionMapping, conversion_mapping_dict)
+    conversion_mapping_setting = conversion_mapping.json(
+        exclude_unset=True, by_alias=True
+    )
     overrides = {
+        "CONVERSION_MAPPING": conversion_mapping_setting,
         "CLIENT_ID": "Foo",
         "CLIENT_SECRET": "bar",
         "LDAP_CONTROLLERS": '[{"host": "localhost"}]',
@@ -680,18 +703,6 @@ async def test_import_all_objects_from_LDAP_invalid_cpr(
             ".*not a valid cpr number",
             str(messages),
         )
-
-
-async def test_load_mapping_file_environment() -> None:
-
-    mp = pytest.MonkeyPatch()
-    mp.setenv("CONVERSION_MAP", "nonexisting_file")
-
-    with pytest.raises(FileNotFoundError):
-        fastramqpi = create_fastramqpi()
-        assert isinstance(fastramqpi, FastRAMQPI)
-
-    mp.setenv("CONVERSION_MAP", "")
 
 
 async def test_incorrect_ous_to_search_in() -> None:
