@@ -63,8 +63,6 @@ async def get_converter(
     @asynccontextmanager
     async def converter(json_filename: str) -> AsyncIterator[LdapConverter]:
         org_unit_path_string = "org/unit/path"
-        if "holstebro" in json_filename:
-            org_unit_path_string = "Holstebro/org/unit/path"
 
         def get_org_unit_uuid_from_path_mock(org_unit_string):
             if org_unit_string == org_unit_path_string:

@@ -1913,3 +1913,14 @@ def test_unutilized_init_elements(converter: LdapConverter) -> None:
     )
     with pytest.raises(ValidationError, match="Unutilized elements in init"):
         parse_obj_as(ConversionMapping, converter.raw_mapping)
+
+
+async def test_remove_first_org(converter: LdapConverter) -> None:
+    result = converter.remove_first_org("")
+    assert result == ""
+
+    result = converter.remove_first_org("a\\b")
+    assert result == "b"
+
+    result = converter.remove_first_org("a\\b\\c")
+    assert result == "b\\c"

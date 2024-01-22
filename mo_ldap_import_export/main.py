@@ -341,7 +341,12 @@ async def initialize_init_engine(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
 
 
 def get_conversion_map(settings: Settings) -> ConversionMapping:
+    mappings_filename = os.environ.get("CONVERSION_MAP")
     if settings.conversion_mapping:
+        if mappings_filename:
+            logger.warning(
+                "CONVERSION_MAP is set, but unused as CONVERSION_MAPPING is set."
+            )
         return settings.conversion_mapping
 
     mappings_dir = os.path.join(os.path.dirname(__file__), "mappings")
