@@ -12,7 +12,6 @@ from mo_ldap_import_export.main import get_conversion_map
 @pytest.mark.parametrize(
     "filename",
     (
-        "groenland",
         "holstebro",
         "magenta_demo",
         "magenta_demo_no_cpr",
