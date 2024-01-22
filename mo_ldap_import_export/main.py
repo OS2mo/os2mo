@@ -137,7 +137,8 @@ async def unpack_payload(
     """
 
     # If we are not supposed to listen: reject and turn the message into a dead letter.
-    if not Settings().listen_to_changes_in_mo:
+    settings = context["user_context"]["settings"]
+    if not settings.listen_to_changes_in_mo:
         logger.info("[Unpack-payload] listen_to_changes_in_mo = False. Aborting.")
         raise RejectMessage()
 

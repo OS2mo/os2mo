@@ -526,7 +526,16 @@ def test_ldap_get_objectGUID_endpoint(test_client: TestClient) -> None:
 
 async def test_listen_to_changes(dataloader: AsyncMock, sync_tool: AsyncMock):
 
-    context = {"user_context": {"dataloader": dataloader, "sync_tool": sync_tool}}
+    settings = MagicMock()
+    settings.listen_to_changes_in_mo = True
+
+    context = {
+        "user_context": {
+            "dataloader": dataloader,
+            "sync_tool": sync_tool,
+            "settings": settings,
+        }
+    }
     payload = uuid4()
 
     dataloader.load_mo_object.return_value = {
@@ -567,17 +576,16 @@ async def test_listen_to_changes(dataloader: AsyncMock, sync_tool: AsyncMock):
 
 
 async def test_listen_to_changes_not_listening() -> None:
+    settings = MagicMock()
+    settings.listen_to_changes_in_mo = False
 
-    mp = pytest.MonkeyPatch()
-    mp.setenv("LISTEN_TO_CHANGES_IN_MO", "False")
+    context: dict = {"user_context": {"settings": settings}}
+    payload = uuid4()
 
     mo_routing_key = "person"
-    context: dict = {}
-    payload = uuid4()
 
     with pytest.raises(RejectMessage):
         await process_person(context, payload, mo_routing_key, _=None)
-    mp.setenv("LISTEN_TO_CHANGES_IN_MO", "True")
 
 
 def test_ldap_get_all_converted_endpoint_failure(
