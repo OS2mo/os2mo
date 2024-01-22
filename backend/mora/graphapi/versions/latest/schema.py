@@ -1768,17 +1768,31 @@ class Employee:
     # TODO: Deprecate this?
     @strawberry.field(description="Full nickname of the employee")
     async def nickname(self, root: EmployeeRead) -> str:
-        return f"{root.nickname_givenname} {root.nickname_surname}".strip()
+        return f"{root.nickname_givenname or ''} {root.nickname_surname or ''}".strip()
 
-    nickname_givenname: str | None = strawberry.field(
-        deprecation_reason="Use 'nickname_given_name' instead. Will be removed in a future version of OS2mo."
+    @strawberry.field(
+        description="Full nickname of the employee",
+        deprecation_reason="Use 'nickname_given_name' instead. Will be removed in a future version of OS2mo.",
     )
+    async def nickname_givenname(self, root: EmployeeRead) -> str | None:
+        # The Service API / ramodel models missing nicknames as the empty string.
+        # GraphQL is typed to return a string or None; so we convert. In the future,
+        # when the Service API has been removed, this should be pushed down the stack.
+        return root.nickname_givenname or None
 
     @strawberry.field(description="Given name part of nickname of the employee.")
     async def nickname_given_name(self, root: EmployeeRead) -> str | None:
-        return root.nickname_givenname
+        # The Service API / ramodel models missing nicknames as the empty string.
+        # GraphQL is typed to return a string or None; so we convert. In the future,
+        # when the Service API has been removed, this should be pushed down the stack.
+        return root.nickname_givenname or None
 
-    nickname_surname: str | None = strawberry.auto
+    @strawberry.field(description="Surname part of nickname of the employee.")
+    async def nickname_surname(self, root: EmployeeRead) -> str | None:
+        # The Service API / ramodel models missing nicknames as the empty string.
+        # GraphQL is typed to return a string or None; so we convert. In the future,
+        # when the Service API has been removed, this should be pushed down the stack.
+        return root.nickname_surname or None
 
     validity: OpenValidity = strawberry.auto
 
