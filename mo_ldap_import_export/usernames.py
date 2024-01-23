@@ -2,7 +2,11 @@
 # SPDX-License-Identifier: MPL-2.0
 import os
 import re
+from collections.abc import Iterator
 from copy import deepcopy
+from itertools import filterfalse
+from typing import Any
+from typing import cast
 
 import pandas as pd
 from fastramqpi.context import Context
@@ -224,7 +228,7 @@ class UserNameGeneratorBase:
                 username += code2char(x, current_char)
         return username
 
-    def _create_username(self, name: list, existing_usernames: list[str]) -> str:
+    def _create_username(self, name: list[str], existing_usernames: list[str]) -> str:
         """
         Create a new username in accordance with the rules specified in the json file.
         The username will be the highest quality available and the value will be
@@ -237,29 +241,53 @@ class UserNameGeneratorBase:
 
         Inspired by ad_integration/usernames.py
         """
-        name = self._name_fixer(name)
 
-        # The permutation is a number inside the username, it is normally only used in
-        # case a username is already occupied. It can be specified using 'X' in the
-        # username template.
-        #
-        # The first attempted permutation should be '2':
-        # For example; If 'cvt' is occupied, a username 'cvt2' will be generated.
-        #
-        # The last attempted permutation is '9' - because we would like to limit the
-        # permutation counter to a single digit.
-        for combi in self.combinations:
+        def permutations(username: str) -> Iterator[str]:
+            # The permutation is a number inside the username, it is normally only used in
+            # case a username is already occupied. It can be specified using 'X' in the
+            # username template.
+            #
+            # The first attempted permutation should be '2':
+            # For example; If 'cvt' is occupied, a username 'cvt2' will be generated.
+            #
+            # The last attempted permutation is '9' - because we would like to limit the
+            # permutation counter to a single digit.
             for permutation_counter in range(2, 10):
-                username = self._create_from_combi(name, combi)
-                if not username:
-                    continue
-                final_username: str = username.replace("X", str(permutation_counter))
-                if final_username not in existing_usernames:
-                    if username.replace("X", "") not in self.forbidden_usernames:
-                        return final_username
+                yield username.replace("X", str(permutation_counter))
 
-        # If we get to here, we completely failed to make a username
-        raise RuntimeError("Failed to create user name.")
+        def forbidden(username: str) -> bool:
+            # Check if core username is legal
+            return username.replace("X", "") in self.forbidden_usernames
+
+        def existing(username: str) -> bool:
+            return username in existing_usernames
+
+        def is_none(value: Any | None) -> bool:
+            return value is None
+
+        # Cleanup names
+        name = self._name_fixer(name)
+        # Generate usernames from names and combinations
+        potential_usernames: Iterator[str | None] = (
+            self._create_from_combi(name, combi) for combi in self.combinations
+        )
+        # Remove all invalid and forbidden usernames
+        usernames = cast(Iterator[str], filterfalse(is_none, potential_usernames))
+        usernames = filterfalse(forbidden, usernames)
+        # Generate username permutations
+        usernames = (
+            perm_username
+            for username in usernames
+            for perm_username in permutations(username)
+        )
+        # Filter existing usernames
+        usernames = filterfalse(existing, usernames)
+        # Get the first valid username
+        username = next(usernames, None)
+        # If no valid name was found, we completely failed to make a username
+        if username is None:
+            raise RuntimeError("Failed to create user name.")
+        return username
 
     def _create_common_name(self, name: list, existing_common_names: list[str]) -> str:
         """
