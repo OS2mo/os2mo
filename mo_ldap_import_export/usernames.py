@@ -6,6 +6,7 @@ from copy import deepcopy
 
 import pandas as pd
 from fastramqpi.context import Context
+from more_itertools import split_when
 from pydantic import parse_obj_as
 from ramodels.mo.employee import Employee
 
@@ -176,66 +177,51 @@ class UserNameGeneratorBase:
         max_position = max((x for x in readable_combi if x is not None), default=-1)
         return (readable_combi, max_position)
 
-    def _create_from_combi(self, name: list, combi: str):
+    def _create_from_combi(self, name_parts: list[str], combi: str) -> str | None:
+        """Create a username from a name and a combination.
+
+        Args:
+            name_parts: An array of names; given_name, middlenames, surname.
+            combi: Combination to create a username from. For example "F123LX".
+
+        Returns:
+            A username generated according to the combination.
+            Note that this username may still contain 'X' characters, which need
+            to be replaced with a number.
         """
-        Create a username from a name and a combination.
-
-        Parameters
-        -------------
-        name : list
-            Name of the user given as a list with at least two elements.
-        combi : str
-            Combination to create a username from. For example "F123LX"
-
-        Returns
-        -----------
-        username : str
-            Username which was generated according to the combi. Note that this
-            username still contains 'X' characters, which need to be replaced with
-            a number
-
-        Notes
-        ---------
-        Inspired by ad_integration/usernames.py
-        """
-
         # Convert combi into machine readable code.
         # For example: combi = "F123LX" returns code = [0,1,2,3,-1,None]
         (code, max_position) = self._machine_readable_combi(combi)
 
         # Do not use codes that uses more names than the actual person has
-        if max_position > len(name) - 2:
+        if max_position > len(name_parts) - 2:
             return None
 
         # Do not use codes that require a last name if the person has no last name
-        if not name[-1] and -1 in code:
+        if not name_parts[-1] and -1 in code:
             return None
 
-        # First letter is always first letter of first position
-        if code[0] is not None:
-            relevant_name = code[0]
-            username = name[relevant_name][0].lower()
-        else:
+        # Split code into groups on changes
+        # For example [0, 1, 1, 1, -1] returns [[0], [1,1,1], [-1]]
+        splits = split_when(code, lambda x, y: x != y)
+        # Transform into code + count
+        # For example [[0], [1,1,1], [-1]] returns [(0,1), (1,3), (-1,1)]
+        groups = [(x[0], len(x)) for x in splits]
+
+        def code2char(x: int | None, current_char: int) -> str:
             # None translates to 'X'. This is replaced with a number later on.
-            username = "X"
+            if x is None:
+                return "X"
+            return name_parts[x][current_char].lower()
 
-        # Loop over all remaining entries in the combi
-        current_char = 0
-        for i in range(1, len(code)):
-            if code[i] == code[i - 1]:
-                current_char += 1
-            else:
-                current_char = 0
-
-            if code[i] is not None:
-                relevant_name = code[i]
-                if current_char >= len(name[relevant_name]):
-                    username = None
-                    break
-                username += name[relevant_name][current_char].lower()
-            else:
-                # None translates to 'X'. This is replaced with a number later on.
-                username += "X"
+        username = ""
+        # Each group has the same character
+        for x, num in groups:
+            # Sanity check that the name is long enough
+            if x is not None and num > len(name_parts[x]):
+                return None
+            for current_char in range(num):
+                username += code2char(x, current_char)
         return username
 
     def _create_username(self, name: list, existing_usernames: list[str]) -> str:
