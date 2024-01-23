@@ -186,7 +186,7 @@ def alleroed_username_generator(
             #
             "FFFF",
         ],
-        "forbidden_usernames": ["itsm_brugere.csv"],
+        "forbidden_usernames": ["abrn", "anls"],
     }
 
     with patch(
@@ -422,27 +422,14 @@ async def test_alleroed_dn_generator(
     assert dn == "CN=Patrick Bateman,DC=bar"
 
 
-def test_read_usernames_from_text_file(username_generator: UserNameGenerator):
-
-    usernames = username_generator.read_usernames_from_text_file("itsm_brugere.csv")
-    assert "anls" in usernames
-
-    usernames = username_generator.read_usernames_from_text_file(
-        "CURA-76507-total-brugerliste-fhir.txt"
-    )
-    assert "abrn" in usernames
-
-
 def test_alleroed_username_generator_forbidden_names_from_files(
     alleroed_username_generator: AlleroedUserNameGenerator,
 ):
-
-    # Try to generate a name that is in CURA-76507-total-brugerliste-fhir.txt
+    # Try to generate a name that is forbidden
     name = ["Anders", "Broon"]
     username = alleroed_username_generator.generate_username(name, [])
     assert username != "abrn"
 
-    # Try to generate a name that is in itsm_brugere.csv
     name = ["Anders", "Nolus"]
     username = alleroed_username_generator.generate_username(name, [])
     assert username != "anls"
@@ -457,12 +444,3 @@ def test_alleroed_username_generator_forbidden_names_from_files(
     name = ["Anders", "Nolus"]
     username = alleroed_username_generator.generate_username(name, [])
     assert username == "anls"
-
-
-def test_is_filename(username_generator: UserNameGenerator):
-
-    assert username_generator.is_filename("foo.txt") is True
-    assert username_generator.is_filename("foo.TXT") is True
-    assert username_generator.is_filename("foo.csv") is True
-    assert username_generator.is_filename("foo.CSV") is True
-    assert username_generator.is_filename("foo") is False
