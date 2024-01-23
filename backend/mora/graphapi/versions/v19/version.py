@@ -6,8 +6,9 @@ from ..v20.version import GraphQLVersion as NextGraphQLVersion
 class GraphQLSchema(NextGraphQLVersion.schema):  # type: ignore
     """Version 19 of the GraphQL Schema.
 
-    Prior to this version, facets ignored start_date and end_date filtering. This is no
-    longer the case.
+    Version 20 introduced a breaking change so facets no longer ignore start_date and
+    end_date filtering.
+    Version 19 ensures that the old functionality is still available.
     """
 
 

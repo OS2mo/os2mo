@@ -9,6 +9,60 @@ code is up-to-date with the latest version.
 
 Below follows the migration guide for each version.
 
+## Version 21
+Prior to this version, the first `from_date` or `to_date` filter parameters were
+automatically, implicitly, and forcefully inherited in all the following levels of the
+query. For example, a query such as:
+```graphql
+query GetOrgUnitEngagements {
+  org_units(filter: {from_date: null, to_date: null}) {
+    objects {
+      objects {
+        engagements(filter: {from_date: "1760-01-01", to_date: "1840-01-01"}) {
+          uuid
+        }
+      }
+    }
+  }
+}
+```
+could, confusingly, return engagements from today, instead of only those from the
+industrial revolution, as requested. This is no longer the case, and as such date
+filtering is correctly applied at each level of the query. This also means that for a
+query such as
+```graphql
+query GetOrgUnitEngagements {
+  org_units(filter: {from_date: null, to_date: null}) {
+    objects {
+      objects {
+        engagements {
+          uuid
+        }
+      }
+    }
+  }
+}
+```
+`engagements` will no longer implicitly inherit the `{from_date: null, to_date: null}`
+filter from `org_units`.
+
+Users who wish to maintain the old behaviour should explicitly pass the same date
+filters at each level of their query:
+```graphql
+query GetOrgUnitEngagements {
+  org_units(filter: {from_date: null, to_date: null}) {
+    objects {
+      objects {
+        engagements(filter: {from_date: null, to_date: null}) {
+          uuid
+        }
+      }
+    }
+  }
+}
+```
+
+
 ## Version 20
 
 Prior to this version, `facets` ignored `start_date` and `end_date` filtering.

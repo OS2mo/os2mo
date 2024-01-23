@@ -13,9 +13,11 @@ import collections
 import copy
 import datetime
 import functools
+import re
 import uuid
 from collections.abc import AsyncIterator
 
+from starlette.requests import Request
 from starlette_context import context
 from starlette_context import request_cycle_context
 
@@ -29,21 +31,38 @@ from mora.graphapi.middleware import get_graphql_dates
 from mora.graphapi.middleware import is_graphql
 
 
-_MIDDLEWARE_KEY = "lora_connector"
+_LORA_CONNECTOR_MIDDLEWARE_KEY = "lora_connector"
+_CREATE_CONNECTOR_MIDDLEWARE_KEY = "create_connector"
 
 
-async def lora_connector_context() -> AsyncIterator[None]:
+async def lora_connector_context(request: Request) -> AsyncIterator[None]:
     @functools.lru_cache
-    def cached_connector(**kwargs):
+    def cached_lora_connector(**kwargs):
         return lora.Connector(**kwargs)
 
-    data = {**context, _MIDDLEWARE_KEY: cached_connector}
+    @functools.lru_cache
+    def cached_create_connector(**kwargs):
+        return _create_connector(**kwargs)
+
+    graphql_match = re.match(r"/graphql/v(\d+)", request.url.path)
+    if graphql_match is not None and int(graphql_match.group(1)) <= 20:
+        lora_connector = lora.Connector
+        create_connector = cached_create_connector
+    else:
+        lora_connector = cached_lora_connector
+        create_connector = _create_connector
+
+    data = {
+        **context,
+        _LORA_CONNECTOR_MIDDLEWARE_KEY: lora_connector,
+        _CREATE_CONNECTOR_MIDDLEWARE_KEY: create_connector,
+    }
     with request_cycle_context(data):
         yield
 
 
 def _construct_connector_cached(**loraparams):
-    return context.get(_MIDDLEWARE_KEY, lora.Connector)(**loraparams)
+    return context.get(_LORA_CONNECTOR_MIDDLEWARE_KEY, lora.Connector)(**loraparams)
 
 
 def _create_service_connector(**loraparams) -> lora.Connector:
@@ -86,10 +105,15 @@ def _create_graphql_connector(**loraparams) -> lora.Connector:
     return _construct_connector_cached(**loraparams)
 
 
-def get_connector(**loraparams) -> lora.Connector:
+def _create_connector(**loraparams) -> lora.Connector:
     if is_graphql():
         return _create_graphql_connector(**loraparams)
     return _create_service_connector(**loraparams)
+
+
+def get_connector(**loraparams) -> lora.Connector:
+    create_connector = context.get(_CREATE_CONNECTOR_MIDDLEWARE_KEY, _create_connector)
+    return create_connector(**loraparams)
 
 
 def inactivate_old_interval(
