@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import os
 from collections.abc import Iterator
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
@@ -47,12 +46,6 @@ def context(dataloader: MagicMock, converter: MagicMock) -> Context:
             "settings": settings_mock,
             "dataloader": dataloader,
             "converter": converter,
-            "forbidden_usernames_path": os.path.join(
-                os.path.dirname(os.path.dirname(__file__)),
-                "mo_ldap_import_export",
-                "mappings",
-                "forbidden_usernames",
-            ),
         }
     }
 
