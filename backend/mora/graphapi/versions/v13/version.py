@@ -15,6 +15,7 @@ class GraphQLVersion(NextGraphQLVersion):
 
     Version 14 introduced a breaking change to all filter variables taken by the
     resolvers, moving them from top-level arguments to a `Filter` object.
+    Version 13 ensures that the old functionality is still available.
     """
 
     version = 13

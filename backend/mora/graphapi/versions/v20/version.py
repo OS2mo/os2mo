@@ -6,9 +6,11 @@ from ..v21.version import GraphQLVersion as NextGraphQLVersion
 class GraphQLVersion(NextGraphQLVersion):
     """GraphQL Version 20.
 
-    Prior to this version, the first `from_date` or `to_date` filter parameters were
-    automatically, implicitly, and forcefully inherited in all the following levels of
-    the query. This is no longer the case.
+    Version 21 introduced a breaking change so the first `from_date` or `to_date`
+    filter parameters were no longer automatically, implicitly, and forcefully
+    inherited in all the following levels of the query.
+
+    Version 20 ensures that the old functionality is still available.
     """
 
     version = 20
