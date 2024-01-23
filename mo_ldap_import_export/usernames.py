@@ -119,20 +119,29 @@ class UserNameGeneratorBase:
 
         return dn
 
-    def _name_fixer(self, name_to_fix: list[str]) -> list[str]:
+    def _name_fixer(self, name_parts: list[str]) -> list[str]:
+        """Cleanup a structured name to remove non-ascii characters.
+
+        Context:
+            self.char_replacement:
+                Dictionary from one set of characters to their replacements.
+
+        Args:
+            name_parts: An array of names; given_name, middlenames, surname.
+
+        Returns:
+            `name_parts` where non-ascii characters have been replaced
+            according to the char_replacement map, or if unmatched, removed.
         """
-        Inspired by ad_integration/usernames.py
-        """
-        name = deepcopy(name_to_fix)
-        for i in range(0, len(name)):
+
+        def fix_name(name: str) -> str:
             # Replace according to replacement list
             for char, replacement in self.char_replacement.items():
-                name[i] = name[i].replace(char, replacement)
-
+                name = name.replace(char, replacement)
             # Remove all remaining characters outside a-z
-            name[i] = re.sub(r"[^a-z]+", "", name[i].lower())
+            return re.sub(r"[^a-z]+", "", name.lower())
 
-        return name
+        return list(map(fix_name, name_parts))
 
     def _machine_readable_combi(self, combi: str):
         """
