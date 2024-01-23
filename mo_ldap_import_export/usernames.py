@@ -143,34 +143,37 @@ class UserNameGeneratorBase:
 
         return list(map(fix_name, name_parts))
 
-    def _machine_readable_combi(self, combi: str):
+    def _machine_readable_combi(self, combi: str) -> tuple[list[int | None], int]:
+        """Converts a name to a machine processable internal format.
+
+        Args:
+            combi: Combination to create a username from. For example "F123LX".
+
+        Returns:
+            A two-tuple containing the internal combi format and the max name
+            entry we will look up.
+
+        Example:
+            Given `combi = "F123LX"`, we return `([0,1,2,3,-1,None], 3)`.
+            The name name entry `3` is simply the highest number contained
+            within the internal combi format, and the internal combi format
+            is produced according to the following lookup table.
         """
-        Inspired by ad_integration/usernames.py
-        """
-        readable_combi = []
-        max_position = -1
-        position: int | None = None
-        for character in combi:
+        char2pos = {
             # First name
-            if character == "F":
-                position = 0
+            "F": 0,
             # First middle name
-            if character == "1":
-                position = 1
+            "1": 1,
             # Second middle name
-            if character == "2":
-                position = 2
+            "2": 2,
             # Third middle name
-            if character == "3":
-                position = 3
+            "3": 3,
             # Last name (independent of middle names)
-            if character == "L":
-                position = -1
-            if character == "X":
-                position = None
-            if position is not None and position > max_position:
-                max_position = position
-            readable_combi.append(position)
+            "L": -1,
+            "X": None,
+        }
+        readable_combi = [char2pos[x] for x in combi]
+        max_position = max((x for x in readable_combi if x is not None), default=-1)
         return (readable_combi, max_position)
 
     def _create_from_combi(self, name: list, combi: str):
