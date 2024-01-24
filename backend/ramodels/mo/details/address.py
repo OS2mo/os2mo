@@ -49,7 +49,7 @@ class AddressRead(AddressBase):
         description="Optional UUID of an associated engagement."
     )
     it_user_uuids: list[UUID] | None = Field(
-        description="Optional UUID of an associated it account."
+        description="Optional list of UUIDs of associated it accounts."
     )
     visibility_uuid: UUID | None = Field(
         description="UUID of the visibility klasse of the address."
@@ -81,7 +81,7 @@ class AddressWrite(AddressBase):
         description="Optional association to an engagement."
     )
     it_users: list[ITUserRef] | None = Field(
-        description="Optional association to an it account."
+        description="Optional association to it accounts."
     )
     visibility: Visibility | None = Field(
         description="Reference to the Visibility klasse of the created address object."
@@ -148,7 +148,7 @@ class Address(MOBase):
         description="Optional association to an engagement."
     )
     it_users: list[ITUserRef] | None = Field(
-        description="Optional association to an it account.", default=[]
+        description="Optional association to a list of it-accounts."
     )
     validity: Validity = Field(description="Validity of the created address object.")
     visibility: Visibility | None = Field(

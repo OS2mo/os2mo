@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import create_task
 
+from more_itertools import bucket
+from more_itertools import only
 from structlog import get_logger
 
 from .. import reading
@@ -31,7 +33,15 @@ class AddressReader(reading.OrgFunkReadingHandler):
         person_uuid = mapping.USER_FIELD.get_uuid(effect)
         org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         address_type_uuid = mapping.ADDRESS_TYPE_FIELD.get_uuid(effect)
-        engagement_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
+        org_funcs = mapping.ASSOCIATED_FUNCTION_FIELD(effect)
+
+        # Engagements and it_users are both associated functions that can be grouped by objecttype
+        grouped_org_funcs = bucket(org_funcs, key=lambda o: o.get(mapping.OBJECTTYPE))
+        engagement = only(grouped_org_funcs[mapping.ENGAGEMENT])
+        engagement_uuid = engagement["uuid"] if engagement else None
+        it_users = grouped_org_funcs[mapping.IT]
+        it_user_uuids = [it_user["uuid"] for it_user in it_users]
+
         visibility_uuid = mapping.VISIBILITY_FIELD.get_uuid(effect)
 
         scope = mapping.ADDRESSES_FIELD(effect)[0].get("objekttype")
@@ -60,6 +70,7 @@ class AddressReader(reading.OrgFunkReadingHandler):
                 "employee_uuid": person_uuid,
                 "org_unit_uuid": org_unit_uuid,
                 "engagement_uuid": engagement_uuid,
+                "it_user_uuids": it_user_uuids,
                 "visibility_uuid": visibility_uuid,
             }
 

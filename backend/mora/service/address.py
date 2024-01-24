@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import uuid
+from uuid import uuid4
 
 from fastapi import APIRouter
 
@@ -30,6 +30,8 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
         employee_uuid = util.get_mapping_uuid(req, mapping.PERSON, required=False)
 
         engagement_uuid = util.get_mapping_uuid(req, mapping.ENGAGEMENT, required=False)
+
+        it_user_uuids = util.checked_get(req, mapping.ITUSERS, [], required=False)
 
         number_of_uuids = len(
             list(
@@ -69,7 +71,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
 
         handler = await base.get_handler_for_scope(scope).from_request(req)
 
-        func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        func_id = util.get_uuid(req, required=False) or str(uuid4())
         bvn = handler.name or func_id
 
         # Validation
@@ -85,6 +87,20 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
 
         lora_addr = handler.get_lora_address()
         addresses = ensure_list(lora_addr)
+        org_funcs = []
+        if engagement_uuid:
+            org_funcs.append(
+                common.associated_orgfunc(
+                    uuid=engagement_uuid, orgfunc_type=mapping.MoOrgFunk.ENGAGEMENT
+                )
+            )
+        if it_user_uuids:
+            for it_user in it_user_uuids:
+                org_funcs.append(
+                    common.associated_orgfunc(
+                        uuid=it_user["uuid"], orgfunc_type=mapping.MoOrgFunk.IT
+                    )
+                )
 
         func = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ADDRESS_KEY,
@@ -96,13 +112,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedebrugere=[employee_uuid] if employee_uuid else [],
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
-            tilknyttedefunktioner=[
-                common.associated_orgfunc(
-                    uuid=engagement_uuid, orgfunc_type=mapping.MoOrgFunk.ENGAGEMENT
-                )
-            ]
-            if engagement_uuid
-            else [],
+            tilknyttedefunktioner=org_funcs,
             opgaver=handler.get_lora_properties(),
         )
 
@@ -204,7 +214,17 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
                     },
                 )
             )
-
+        if mapping.ITUSERS in data:
+            for u in util.checked_get(data, mapping.ITUSERS, []):
+                update_fields.append(
+                    (
+                        mapping.ASSOCIATED_FUNCTION_FIELD,
+                        {
+                            "uuid": u["uuid"],
+                            mapping.OBJECTTYPE: mapping.IT,
+                        },
+                    )
+                )
         try:
             attributes = mapping.ORG_FUNK_EGENSKABER_FIELD(original)[-1].copy()
         except (TypeError, LookupError):

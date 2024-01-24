@@ -55,6 +55,10 @@ engagement_type_employee = UUID("06f95678-166a-455a-a2ab-121a8d92ea23")
 
 visibility_uuid_public = UUID("f63ad763-0e53-4972-a6a9-63b42a0f8cb7")
 
+it_user_uuid_1 = "3ebdcc5c-6ab5-440e-a8ab-6f7b1a3849b1"
+it_user_uuid_2 = "beac8129-4b96-4c5e-87af-6114864ba9a9"
+it_user_uuids = [UUID(it_user_uuid_1), UUID(it_user_uuid_2)]
+
 tz_cph = ZoneInfo("Europe/Copenhagen")
 now_min_cph = datetime.datetime.combine(
     datetime.datetime.now().date(), datetime.datetime.min.time()
@@ -104,6 +108,7 @@ def _get_address_query():
                 }
 
                 engagement_uuid
+                it_user_uuids
               }
             }
           }
@@ -119,6 +124,7 @@ def _create_address_create_hypothesis_test_data(
         test_data_person_uuid,
         test_data_engagement_uuid,
         address_type,
+        it_users,
     ) = data.draw(st.sampled_from(test_data_samples))
 
     dt_options_min_from = datetime.datetime(1930, 1, 1, 1)
@@ -188,6 +194,7 @@ def _create_address_create_hypothesis_test_data(
             org_unit=st.just(test_data_org_unit_uuid),
             person=st.just(test_data_person_uuid),
             engagement=st.just(test_data_engagement_uuid),
+            it_users=st.just(it_users),
             validity=st.builds(
                 RAValidity,
                 from_date=st.just(test_data_from),
@@ -220,6 +227,7 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
                             address_type_uuid
                             employee_uuid
                             org_unit_uuid
+                            it_user_uuids
                             engagement_uuid
                             visibility_uuid
                             type
@@ -278,54 +286,27 @@ async def test_create_mutator(create_address: AsyncMock, data):
     # Prepare test_data
     test_data_samples = [
         # org units
-        (
-            org_unit_l1,
-            None,
-            None,
-            addr_type_orgunit_address,
-        ),
-        (
-            org_unit_l1,
-            None,
-            None,
-            addr_type_orgunit_email,
-        ),
-        (
-            org_unit_l1,
-            None,
-            None,
-            addr_type_orgunit_phone,
-        ),
-        (
-            org_unit_l1,
-            None,
-            None,
-            addr_type_orgunit_ean,
-        ),
-        (
-            org_unit_l1,
-            None,
-            engagement_andersand,
-            addr_type_orgunit_openhours,
-        ),
+        (org_unit_l1, None, None, addr_type_orgunit_address, it_user_uuids),
+        (org_unit_l1, None, None, addr_type_orgunit_email, None),
+        (org_unit_l1, None, None, addr_type_orgunit_phone, [it_user_uuid_2]),
+        (org_unit_l1, None, None, addr_type_orgunit_ean, [it_user_uuid_1]),
+        (org_unit_l1, None, engagement_andersand, addr_type_orgunit_openhours, []),
         # Users
+        (None, user_andersand, None, addr_type_user_address, it_user_uuids),
+        (None, user_andersand, None, addr_type_user_email, None),
         (
             None,
             user_andersand,
-            None,
-            addr_type_user_address,
-        ),
-        (
-            None,
-            user_andersand,
-            None,
-            addr_type_user_email,
+            engagement_andersand,
+            addr_type_user_phone,
+            [it_user_uuid_1],
         ),
         (
             None,
             user_andersand,
             engagement_andersand,
             addr_type_user_phone,
+            [],
         ),
     ]
 
@@ -422,99 +403,52 @@ async def test_create_integration(data, graphapi_post: GraphAPIPost):
             None,
             None,
             addr_type_orgunit_address,
+            it_user_uuids,
         ),
         (
             None,
             UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
             None,
             addr_type_user_address,
+            [it_user_uuid_1],
         ),
         (
             None,
             UUID("6ee24785-ee9a-4502-81c2-7697009c9053"),
             None,
             addr_type_user_address,
+            None,
         ),
         (
             None,
             UUID("236e0a78-11a0-4ed9-8545-6286bb8611c7"),
             None,
             addr_type_user_address,
+            [],
         ),
     ]
 
     test_data_samples_emails = [
-        (
-            org_unit_l1,
-            None,
-            None,
-            addr_type_orgunit_email,
-        ),
-        (
-            None,
-            user_andersand,
-            None,
-            addr_type_user_email,
-        ),
-        (
-            None,
-            user_fedtmule,
-            None,
-            addr_type_user_email,
-        ),
-        (
-            None,
-            user_erik,
-            None,
-            addr_type_user_email,
-        ),
+        (org_unit_l1, None, None, addr_type_orgunit_email, it_user_uuids),
+        (None, user_andersand, None, addr_type_user_email, [it_user_uuid_1]),
+        (None, user_fedtmule, None, addr_type_user_email, None),
+        (None, user_erik, None, addr_type_user_email, []),
     ]
 
     test_data_samples_phone = [
-        (
-            org_unit_l1,
-            None,
-            None,
-            addr_type_orgunit_phone,
-        ),
-        (
-            None,
-            user_andersand,
-            None,
-            addr_type_user_phone,
-        ),
-        (
-            None,
-            user_fedtmule,
-            None,
-            addr_type_user_phone,
-        ),
-        (
-            None,
-            user_erik,
-            None,
-            addr_type_user_phone,
-        ),
+        (org_unit_l1, None, None, addr_type_orgunit_phone, it_user_uuids),
+        (None, user_andersand, None, addr_type_user_phone, [it_user_uuid_1]),
+        (None, user_fedtmule, None, addr_type_user_phone, None),
+        (None, user_erik, None, addr_type_user_phone, []),
     ]
 
     test_data_samples_ean = [
-        (
-            org_unit_l1,
-            None,
-            None,
-            addr_type_orgunit_ean,
-        ),
+        (org_unit_l1, None, None, addr_type_orgunit_ean, None),
     ]
 
     test_data_samples_openhours = [
-        (
-            org_unit_l1,
-            None,
-            None,
-            addr_type_orgunit_openhours,
-        ),
+        (org_unit_l1, None, None, addr_type_orgunit_openhours, None),
     ]
-
     test_data_samples = (
         test_data_samples_addrs
         + test_data_samples_emails
@@ -580,7 +514,12 @@ async def test_create_integration(data, graphapi_post: GraphAPIPost):
     assert new_addr[mapping.VALUE] == test_data.value
     assert new_addr[mapping.ADDRESS_TYPE][mapping.UUID] == str(test_data.address_type)
     assert new_addr[mapping.VISIBILITY][mapping.UUID] == str(test_data.visibility)
-
+    # Use set to avoid errors from sorting
+    test_set_of_it_users = (
+        {str(uuid) for uuid in test_data.it_users} if test_data.it_users else set()
+    )
+    assert set(new_addr["it_user_uuids"]) == test_set_of_it_users
+    assert len(new_addr["it_user_uuids"]) == len(test_data.it_users or [])
     if test_data.org_unit:
         assert one(new_addr[mapping.ORG_UNIT])[mapping.UUID] == str(test_data.org_unit)
     elif test_data.person:
@@ -671,6 +610,7 @@ async def test_address_filters(graphapi_post: GraphAPIPost, filter, expected) ->
             "employee": None,
             "address_type": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
             "engagement": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab",
+            "it_users": [it_user_uuid_2, it_user_uuid_1],
             "value": "Giraf@elefant.nu",
             "visibility": None,
             "validity": {"to": None, "from": "1934-06-09T00:00:00+01:00"},
@@ -682,6 +622,7 @@ async def test_address_filters(graphapi_post: GraphAPIPost, filter, expected) ->
             "employee": "6ee24785-ee9a-4502-81c2-7697009c9053",
             "address_type": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
             "engagement": None,
+            "it_users": [it_user_uuid_1],
             "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
             "visibility": None,
             "validity": {"to": None, "from": "1932-05-12T00:00:00+01:00"},
@@ -693,6 +634,7 @@ async def test_address_filters(graphapi_post: GraphAPIPost, filter, expected) ->
             "employee": None,
             "address_type": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
             "engagement": None,
+            "it_users": None,
             "value": "+4587150222",
             "visibility": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
             "validity": {"to": None, "from": "2016-01-01T00:00:00+01:00"},
@@ -704,6 +646,7 @@ async def test_address_filters(graphapi_post: GraphAPIPost, filter, expected) ->
             "employee": None,
             "address_type": "e34d4426-9845-4c72-b31e-709be85d6fa2",
             "engagement": None,
+            "it_users": [],
             "value": "5798000420526",
             "visibility": None,
             "validity": {"to": None, "from": "2016-01-01T00:00:00+01:00"},
@@ -715,6 +658,7 @@ async def test_address_filters(graphapi_post: GraphAPIPost, filter, expected) ->
             "employee": None,
             "address_type": "e34d4426-9845-4c72-b31e-709be85d6fa2",
             "engagement": "00e96933-91e4-42ac-9881-0fe1738b2e59",
+            "it_users": None,
             "value": "5798000420526",
             "visibility": None,
             "validity": {"to": None, "from": "2016-01-01T00:00:00+01:00"},
@@ -736,6 +680,7 @@ async def test_update_address_integration_test(
                             org_unit: org_unit_uuid
                             employee: employee_uuid
                             address_type: address_type_uuid
+                            it_users: it_user_uuids
                             engagement: engagement_uuid
                             value
                             visibility: visibility_uuid

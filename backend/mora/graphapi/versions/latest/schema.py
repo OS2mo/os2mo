@@ -713,6 +713,28 @@ class Address:
             gen_read_permission("engagement"),
         ],
     )
+    it_users: list[LazyITUser] | None = strawberry.field(
+        resolver=force_none_return_wrapper(
+            to_list(
+                seed_resolver(
+                    it_user_resolver,
+                    {
+                        "uuids": lambda root: root.it_user_uuids or [],
+                    },
+                )
+            )
+        ),
+        description=dedent(
+            """\
+            Connected it accounts.
+
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("ituser"),
+        ],
+    )
 
     @strawberry.field(
         description=dedent(
@@ -865,6 +887,13 @@ class Address:
     )
     async def engagement_uuid(self, root: AddressRead) -> UUID | None:
         return root.engagement_uuid
+
+    @strawberry.field(
+        description="Optional list of UUIDs of associated it accounts.",
+        deprecation_reason=gen_uuid_field_deprecation("it_user"),
+    )
+    async def it_user_uuids(self, root: AddressRead) -> list[UUID] | None:
+        return root.it_user_uuids
 
     @strawberry.field(
         description="UUID of the visibility class of the address.",

@@ -146,6 +146,8 @@ class AddressUpsert(UUIDBase):
 
     engagement: UUID | None = Field(description="UUID for the related engagement.")
 
+    it_users: list[UUID] | None = Field(description="UUID for the related it account.")
+
     visibility: UUID | None = Field(description="Visibility for the address.")
     validity: RAValidity = Field(description="Validity range for the org-unit.")
     user_key: str | None = Field(description="Extra info or uuid.")
@@ -164,6 +166,7 @@ class AddressUpsert(UUIDBase):
             "org_unit": gen_uuid(self.org_unit),
             "person": gen_uuid(self.person) or gen_uuid(self.employee),
             "engagement": gen_uuid(self.engagement),
+            "it_users": [gen_uuid(u) for u in self.it_users] if self.it_users else None,
         }
 
 
