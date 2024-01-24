@@ -27,6 +27,7 @@ from ldap3 import Connection
 from ldap3 import MOCK_SYNC
 from ldap3 import Server
 from more_itertools import collapse
+from more_itertools import one
 from ramodels.mo.details.address import Address
 from ramodels.mo.employee import Employee
 from structlog.testing import capture_logs
@@ -38,6 +39,7 @@ from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import TimeOutException
+from mo_ldap_import_export.ldap import _poll
 from mo_ldap_import_export.ldap import apply_discriminator
 from mo_ldap_import_export.ldap import check_ou_in_list_of_ous
 from mo_ldap_import_export.ldap import cleanup
@@ -744,12 +746,6 @@ async def test_setup_poller(context: Context):
 def test_poller(
     load_settings_overrides: dict[str, str], ldap_connection: MagicMock
 ) -> None:
-    hits: list[str] = []
-
-    def listener(event):
-        cpr_no = event.get("attributes", {}).get("cpr_no", None)
-        hits.append(cpr_no)
-
     event = {
         "type": "searchResEntry",
         "attributes": {
@@ -762,31 +758,71 @@ def test_poller(
     settings = MagicMock()
     settings.discriminator_function = None
 
-    setup_poller(
+    hits: list[str] = []
+
+    def listener(event):
+        cpr_no = event.get("attributes", {}).get("cpr_no", None)
+        hits.append(cpr_no)
+
+    last_search_time = datetime.datetime.utcnow()
+    events_to_ignore, search_time = _poll(
         context={
             "user_context": {"ldap_connection": ldap_connection, "settings": settings}
         },
-        callback=listener,
         search_parameters={
             "search_base": "dc=ad",
             "search_filter": "cn=*",
             "attributes": ["cpr_no"],
         },
-        init_search_time=datetime.datetime.utcnow(),
-        poll_time=0.1,
+        callback=listener,
+        last_search_time=last_search_time,
+        events_to_ignore=[],
     )
-    time.sleep(0.15)
+    assert events_to_ignore == [event]
+    assert search_time > last_search_time
 
-    assert len(hits) == 1
-    assert hits[0] == "010101-1234"
+    assert one(hits) == "010101-1234"
+
+
+@pytest.mark.parametrize(
+    "response",
+    [
+        [],
+        [{"type": "NOT_searchResEntry"}],
+    ],
+)
+def test_poller_bad_result(
+    load_settings_overrides: dict[str, str], ldap_connection: MagicMock, response: Any
+) -> None:
+    ldap_connection.response = response
+
+    settings = MagicMock()
+    settings.discriminator_function = None
+
+    listener = MagicMock()
+
+    last_search_time = datetime.datetime.utcnow()
+    events_to_ignore, search_time = _poll(
+        context={
+            "user_context": {"ldap_connection": ldap_connection, "settings": settings}
+        },
+        search_parameters={
+            "search_base": "dc=ad",
+            "search_filter": "cn=*",
+            "attributes": ["cpr_no"],
+        },
+        callback=listener,
+        last_search_time=last_search_time,
+        events_to_ignore=[],
+    )
+    assert events_to_ignore == []
+    assert search_time > last_search_time
+    assert listener.call_count == 0
 
 
 def test_poller_invalidQuery(
     load_settings_overrides: dict[str, str], ldap_connection: MagicMock
 ) -> None:
-    def listener(event):
-        pass
-
     # Event without modifyTimeStamp makes it impossible to determine if it
     # is duplicate - so we expect a warning
     event = {
@@ -796,34 +832,81 @@ def test_poller_invalidQuery(
         },
     }
     ldap_connection.response = [event]
+
     settings = MagicMock()
     settings.discriminator_function = None
 
+    listener = MagicMock()
+
     with capture_logs() as cap_logs:
-        setup_poller(
+        last_search_time = datetime.datetime.utcnow()
+        events_to_ignore, search_time = _poll(
             context={
                 "user_context": {
                     "ldap_connection": ldap_connection,
                     "settings": settings,
                 }
             },
-            callback=listener,
             search_parameters={
                 "search_base": "dc=ad",
                 "search_filter": "cn=*",
                 "attributes": ["cpr_no"],
             },
-            init_search_time=datetime.datetime.utcnow(),
-            poll_time=0.1,
+            callback=listener,
+            last_search_time=last_search_time,
+            events_to_ignore=[],
         )
-        time.sleep(0.15)
+        assert events_to_ignore == []
+        assert search_time > last_search_time
+        assert listener.call_count == 0
 
-        log_messages = [log for log in cap_logs if log["log_level"] == "warning"]
+        last_log_message = cap_logs[-1]["event"]
+        assert "'modifyTimeStamp' not found in event['attributes']" in last_log_message
 
-        assert re.match(
-            ".*modifyTimeStamp' not found.*",
-            log_messages[-1]["event"],
+
+def test_poller_duplicate_event(
+    load_settings_overrides: dict[str, str], ldap_connection: MagicMock
+) -> None:
+    # Event without modifyTimeStamp makes it impossible to determine if it
+    # is duplicate - so we expect a warning
+    event = {
+        "type": "searchResEntry",
+        "attributes": {
+            "modifyTimeStamp": datetime.datetime.utcnow(),
+            "cpr_no": "010101-1234",
+        },
+    }
+    ldap_connection.response = [event]
+
+    settings = MagicMock()
+    settings.discriminator_function = None
+
+    listener = MagicMock()
+
+    with capture_logs() as cap_logs:
+        last_search_time = datetime.datetime.utcnow()
+        events_to_ignore, search_time = _poll(
+            context={
+                "user_context": {
+                    "ldap_connection": ldap_connection,
+                    "settings": settings,
+                }
+            },
+            search_parameters={
+                "search_base": "dc=ad",
+                "search_filter": "cn=*",
+                "attributes": ["cpr_no"],
+            },
+            callback=listener,
+            last_search_time=last_search_time,
+            events_to_ignore=[event],
         )
+        assert events_to_ignore == []
+        assert search_time > last_search_time
+        assert listener.call_count == 0
+
+        last_log_message = cap_logs[-1]["event"]
+        assert "Ignored duplicate event" in last_log_message
 
 
 def test_is_uuid():
