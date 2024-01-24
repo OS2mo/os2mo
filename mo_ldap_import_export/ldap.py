@@ -155,10 +155,7 @@ async def ldap_healthcheck(context: dict | Context) -> bool:
 
 async def poller_healthcheck(context: dict | Context) -> bool:
     pollers = context["user_context"]["pollers"]
-    for poller in pollers:
-        if not poller.is_alive():
-            return False
-    return True
+    return all(poller.is_alive() for poller in pollers)
 
 
 def get_ldap_schema(ldap_connection: Connection):
