@@ -3,7 +3,6 @@
 import os
 import re
 from collections.abc import Iterator
-from copy import deepcopy
 
 import pandas as pd
 from fastramqpi.context import Context
@@ -277,7 +276,9 @@ class UserNameGeneratorBase:
                 return p_username
         raise RuntimeError("Failed to create user name.")
 
-    def _create_common_name(self, name: list, existing_common_names: list[str]) -> str:
+    def _create_common_name(
+        self, name: list[str], existing_common_names: list[str]
+    ) -> str:
         """
         Create an LDAP-style common name (CN) based on first and last name
 
@@ -289,31 +290,38 @@ class UserNameGeneratorBase:
         >>> _create_common_name(["Keanu","Reeves"])
         >>> "Keanu Reeves"
         """
-        clean_name = deepcopy([n for n in name if n])
-        common_name = " ".join(clean_name)
+
+        def permutations(username: str) -> Iterator[str]:
+            yield username
+            for permutation_counter in range(2, 1000):
+                yield username + "_" + str(permutation_counter)
+
+        def existing(potential_name: str) -> bool:
+            return potential_name.lower() in existing_common_names
+
+        name = [n for n in name if n]
+        num_middlenames = len(name) - 2
 
         # Shorten a name if it is over 64 chars
         # see http://msdn.microsoft.com/en-us/library/ms675449(VS.85).aspx
-        while len(common_name) > 60:
-            if len(clean_name) <= 2:
-                # Cut off the name (leave place for the permutation counter)
-                common_name = " ".join(clean_name)[:60]
-            else:
-                clean_name.pop(-2)  # Remove the last middle name
-                common_name = " ".join(clean_name)  # Try to make a name again
+        common_name = " ".join(name)
+        while len(common_name) > 60 and num_middlenames > 0:
+            # Remove one middlename
+            num_middlenames -= 1
+            # Try to make a name with the selected number of middlenames
+            givenname, *middlenames, surname = name
+            middlenames = middlenames[:num_middlenames]
+            common_name = " ".join([givenname] + middlenames + [surname])
 
-        permutation_counter = 2
-        while common_name.lower() in existing_common_names:
-            common_name = (
-                common_name.replace(f"_{permutation_counter-1}", "")
-                + f"_{permutation_counter}"
-            )
-            permutation_counter += 1
+        # Cut off the name (leave place for the permutation counter)
+        common_name = common_name[:60]
 
-            if permutation_counter >= 1000:
-                raise RuntimeError("Failed to create common name")
+        for potential_name in permutations(common_name):
+            if existing(potential_name):
+                continue
+            return potential_name
 
-        return common_name
+        raise RuntimeError("Failed to create common name")
 
     async def _get_employee_ldap_attributes(self, employee: Employee, dn: str):
         converter = self.user_context["converter"]
