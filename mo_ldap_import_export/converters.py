@@ -198,17 +198,15 @@ class LdapConverter:
         import_flag = self.raw_mapping["ldap_to_mo"][json_key]["_import_to_mo_"]
         import_flag = import_flag.lower()
 
-        if import_flag == "true":
-            return True
-        elif import_flag == "manual_import_only":
-            if manual_import:
+        match import_flag:
+            case "true":
                 return True
-            else:
+            case "manual_import_only":
+                return manual_import
+            case "false":
                 return False
-        elif import_flag == "false":
-            return False
-        else:
-            raise IncorrectMapping(f"Import flag = '{import_flag}' not recognized")
+            case _:
+                raise IncorrectMapping(f"Import flag = '{import_flag}' not recognized")
 
     def _export_to_ldap_(self, json_key):
         """
