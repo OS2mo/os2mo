@@ -580,6 +580,8 @@ async def test_create_integration(data, graphapi_post: GraphAPIPost):
             },
             1,
         ),
+        # IT-user filter
+        ({"it_users": {"uuids": "6ee24785-ee9a-4502-81c2-7697009c9053"}}, 0),
     ],
 )
 async def test_address_filters(graphapi_post: GraphAPIPost, filter, expected) -> None:

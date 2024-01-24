@@ -135,6 +135,14 @@ class AddressFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
             """
         ),
     )
+    it_users: ITUserFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            IT User filter limiting which entries are returned.
+            """
+        ),
+    )
     engagements: list[UUID] | None = strawberry.field(
         default=None,
         description=gen_filter_string("Engagement UUID", "engagements"),
