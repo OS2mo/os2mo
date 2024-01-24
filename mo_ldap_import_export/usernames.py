@@ -4,9 +4,6 @@ import os
 import re
 from collections.abc import Iterator
 from copy import deepcopy
-from itertools import filterfalse
-from typing import Any
-from typing import cast
 
 import pandas as pd
 from fastramqpi.context import Context
@@ -262,32 +259,23 @@ class UserNameGeneratorBase:
         def existing(username: str) -> bool:
             return username in existing_usernames
 
-        def is_none(value: Any | None) -> bool:
-            return value is None
-
         # Cleanup names
         name = self._name_fixer(name)
         # Generate usernames from names and combinations
-        potential_usernames: Iterator[str | None] = (
+        usernames = (
             self._create_from_combi(name, combi) for combi in self.combinations
         )
-        # Remove all invalid and forbidden usernames
-        usernames = cast(Iterator[str], filterfalse(is_none, potential_usernames))
-        usernames = filterfalse(forbidden, usernames)
-        # Generate username permutations
-        usernames = (
-            perm_username
-            for username in usernames
-            for perm_username in permutations(username)
-        )
-        # Filter existing usernames
-        usernames = filterfalse(existing, usernames)
-        # Get the first valid username
-        username = next(usernames, None)
-        # If no valid name was found, we completely failed to make a username
-        if username is None:
-            raise RuntimeError("Failed to create user name.")
-        return username
+        for username in usernames:
+            if username is None:
+                continue
+            if forbidden(username):
+                continue
+            p_usernames = permutations(username)
+            for p_username in p_usernames:
+                if existing(p_username):
+                    continue
+                return p_username
+        raise RuntimeError("Failed to create user name.")
 
     def _create_common_name(self, name: list, existing_common_names: list[str]) -> str:
         """
