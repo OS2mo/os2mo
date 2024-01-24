@@ -224,8 +224,7 @@ class LdapConverter:
         mapping = self.raw_mapping[conversion]
         if json_key not in mapping.keys():
             raise IncorrectMapping(f"{json_key} not found in {conversion} json dict")
-        else:
-            return mapping[json_key]["objectClass"]
+        return mapping[json_key]["objectClass"]
 
     def find_ldap_object_class(self, json_key):
         return self.find_object_class(json_key, "mo_to_ldap")
@@ -351,6 +350,7 @@ class LdapConverter:
 
                 return fields_with_ldap_reference
 
+            fields_to_check = []
             if json_key in self.mo_address_types:
                 fields_to_check = filter_fields_to_check(["mo_employee_address.value"])
             elif json_key in self.mo_it_systems:
@@ -366,8 +366,6 @@ class LdapConverter:
                         "mo_employee_engagement.job_function.uuid",
                     ]
                 )
-            else:
-                fields_to_check = []
 
             for attribute in detected_single_value_attributes:
                 template = self.raw_mapping["mo_to_ldap"][json_key][attribute]
