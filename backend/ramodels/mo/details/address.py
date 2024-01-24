@@ -11,6 +11,7 @@ from .._shared import AddressType
 from .._shared import DictStrAny
 from .._shared import EmployeeRef
 from .._shared import EngagementRef
+from .._shared import ITUserRef
 from .._shared import MOBase
 from .._shared import OrganisationRef
 from .._shared import OrgUnitRef
@@ -47,6 +48,9 @@ class AddressRead(AddressBase):
     engagement_uuid: UUID | None = Field(
         description="Optional UUID of an associated engagement."
     )
+    it_user_uuids: list[UUID] | None = Field(
+        description="Optional UUID of an associated it account."
+    )
     visibility_uuid: UUID | None = Field(
         description="UUID of the visibility klasse of the address."
     )
@@ -75,6 +79,9 @@ class AddressWrite(AddressBase):
     )
     engagement: EngagementRef | None = Field(
         description="Optional association to an engagement."
+    )
+    it_users: list[ITUserRef] | None = Field(
+        description="Optional association to an it account."
     )
     visibility: Visibility | None = Field(
         description="Reference to the Visibility klasse of the created address object."
@@ -140,6 +147,9 @@ class Address(MOBase):
     engagement: EngagementRef | None = Field(
         description="Optional association to an engagement."
     )
+    it_users: list[ITUserRef] | None = Field(
+        description="Optional association to an it account.", default=[]
+    )
     validity: Validity = Field(description="Validity of the created address object.")
     visibility: Visibility | None = Field(
         description="Reference to the Visibility klasse of the created address object."
@@ -157,6 +167,7 @@ class Address(MOBase):
         person_uuid: UUID | None = None,
         org_unit_uuid: UUID | None = None,
         engagement_uuid: UUID | None = None,
+        it_user_uuids: list[UUID] | None = None,
         visibility_uuid: UUID | None = None,
         org_uuid: UUID | None = None,
     ) -> "Address":
@@ -167,6 +178,9 @@ class Address(MOBase):
         person = PersonRef(uuid=person_uuid) if person_uuid else None
         org_unit = OrgUnitRef(uuid=org_unit_uuid) if org_unit_uuid else None
         engagement = EngagementRef(uuid=engagement_uuid) if engagement_uuid else None
+        it_users = (
+            [ITUserRef(uuid=uuid) for uuid in it_user_uuids] if it_user_uuids else None
+        )
         visibility = Visibility(uuid=visibility_uuid) if visibility_uuid else None
         return cls(
             uuid=uuid,
@@ -177,6 +191,7 @@ class Address(MOBase):
             person=person,
             org_unit=org_unit,
             engagement=engagement,
+            it_users=it_users,
             visibility=visibility,
             validity=validity,
         )

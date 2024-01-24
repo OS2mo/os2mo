@@ -12,6 +12,7 @@ from ramodels_tests.conftest import unexpected_value_error
 from ramodels.mo._shared import AddressType
 from ramodels.mo._shared import EmployeeRef
 from ramodels.mo._shared import EngagementRef
+from ramodels.mo._shared import ITUserRef
 from ramodels.mo._shared import OrganisationRef
 from ramodels.mo._shared import OrgUnitRef
 from ramodels.mo._shared import PersonRef
@@ -40,6 +41,7 @@ def read_strat(draw):
         "employee_uuid": st.none() | st.uuids(),
         "org_unit_uuid": st.none() | st.uuids(),
         "engagement_uuid": st.none() | st.uuids(),
+        "it_user_uuids": st.none() | st.lists(st.uuids()),
         "visibility_uuid": st.none() | st.uuids(),
     }
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
@@ -55,6 +57,7 @@ def write_strat(draw):
     optional = {
         "visibility": st.none() | st.builds(Visibility),
         "engagement": st.none() | st.builds(EngagementRef),
+        "it_users": st.none() | st.lists(st.builds(ITUserRef)),
     }
     ref_dict = draw(st.one_of(employee, org_unit))
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
@@ -83,6 +86,7 @@ def address_strat(draw):
         "person": st.none() | st.builds(PersonRef),
         "org_unit": st.none() | st.builds(OrgUnitRef),
         "engagement": st.none() | st.builds(EngagementRef),
+        "it_users": st.none() | st.lists(st.builds(ITUserRef)),
         "visibility": st.none() | st.builds(Visibility),
         "org": st.none() | st.builds(OrganisationRef),
     }
@@ -104,6 +108,7 @@ def address_fsf_strat(draw):
         "person_uuid": st.none() | st.uuids(),
         "org_unit_uuid": st.none() | st.uuids(),
         "engagement_uuid": st.none() | st.uuids(),
+        "it_user_uuids": st.none() | st.lists(st.uuids()),
         "visibility_uuid": st.none() | st.uuids(),
         "org_uuid": st.none() | st.uuids(),
     }
