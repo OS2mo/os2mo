@@ -192,31 +192,34 @@ def get_ldap_attributes(ldap_connection: Connection, root_ldap_object: str):
     return all_attributes
 
 
-def apply_discriminator(search_result: list, context: Context):
+def apply_discriminator(search_result: list, context: Context) -> list:
     settings = context["user_context"]["settings"]
-    if settings.discriminator_function is None:
-        return search_result
 
-    discriminator_function = settings.discriminator_function
     discriminator_field = settings.discriminator_field
     discriminator_values = settings.discriminator_values
+    match settings.discriminator_function:
+        case None:
+            return search_result
+        case "include":
 
-    if discriminator_function == "include":
-        return list(
-            filter(
-                lambda res: discriminator_field in res
-                and str(res[discriminator_field]) in discriminator_values,
-                search_result,
-            )
-        )
-    if discriminator_function == "exclude":
-        return list(
-            filter(
-                lambda res: discriminator_field not in res
-                or str(res[discriminator_field]) not in discriminator_values,
-                search_result,
-            )
-        )
+            def discriminator(res: Any) -> bool:
+                return (
+                    discriminator_field in res
+                    and str(res[discriminator_field]) in discriminator_values
+                )
+
+        case "exclude":
+
+            def discriminator(res: Any) -> bool:
+                return (
+                    discriminator_field not in res
+                    or str(res[discriminator_field]) not in discriminator_values
+                )
+
+        case _:  # pragma: no cover
+            assert False
+
+    return list(filter(discriminator, search_result))
 
 
 def _paged_search(
