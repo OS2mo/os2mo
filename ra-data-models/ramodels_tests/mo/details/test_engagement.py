@@ -8,6 +8,7 @@ from ramodels_tests.conftest import to_date_strat
 from ramodels_tests.conftest import unexpected_value_error
 
 from ramodels.mo._shared import EngagementType
+from ramodels.mo._shared import ITUserRef
 from ramodels.mo._shared import JobFunction
 from ramodels.mo._shared import LeaveRef
 from ramodels.mo._shared import OrgUnitRef
@@ -51,6 +52,7 @@ def read_strat(draw):
         "job_function_uuid": st.uuids(),
     }
     optional = {
+        "it_user_uuids": st.none() | st.lists(st.uuids()),
         "leave_uuid": st.none() | st.uuids(),
         "primary_uuid": st.none() | st.uuids(),
     }
@@ -69,6 +71,7 @@ def write_strat(draw):
         "job_function": st.builds(JobFunction),
     }
     optional = {
+        "it_users": st.none() | st.lists(st.builds(ITUserRef)),
         "leave": st.none() | st.builds(LeaveRef),
         "primary": st.none() | st.builds(Primary),
     }
@@ -90,6 +93,7 @@ def engagement_strat(draw):
     optional = {
         "type": st.just("engagement"),
         "primary": st.none() | st.builds(Primary),
+        "it_users": st.none() | st.lists(st.builds(ITUserRef)),
         "extension_1": st.none() | st.text(),
         "extension_2": st.none() | st.text(),
         "extension_3": st.none() | st.text(),
@@ -118,6 +122,7 @@ def engagement_fsf_strat(draw):
     optional = {
         "uuid": st.none() | st.uuids(),
         "primary_uuid": st.none() | st.uuids(),
+        "it_user_uuids": st.none() | st.lists(st.uuids()),
         "to_date": st.none() | to_date_strat(),
         "extension_1": st.none() | st.text(),
         "extension_2": st.none() | st.text(),

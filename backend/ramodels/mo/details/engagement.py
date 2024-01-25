@@ -6,6 +6,7 @@ from uuid import UUID
 from pydantic import Field
 
 from .._shared import EngagementType
+from .._shared import ITUserRef
 from .._shared import JobFunction
 from .._shared import LeaveRef
 from .._shared import MOBase
@@ -42,20 +43,23 @@ class EngagementBase(MOBase):
 class EngagementRead(EngagementBase):
     """A MO engagement read object."""
 
-    org_unit_uuid: UUID = Field(
-        description="UUID of the organisation unit related to the engagement."
-    )
     employee_uuid: UUID = Field(
         description="UUID of the employee related to the engagement."
     )
     engagement_type_uuid: UUID = Field(
         description="UUID of the engagement type klasse of the engagement."
     )
+    it_user_uuids: list[UUID] | None = Field(
+        description="Optional list of UUIDs of associated it accounts."
+    )
     job_function_uuid: UUID = Field(
         description="UUID of the job function klasse of the engagement."
     )
     leave_uuid: UUID | None = Field(
         description="UUID of the leave related to the engagement."
+    )
+    org_unit_uuid: UUID = Field(
+        description="UUID of the organisation unit related to the engagement."
     )
     primary_uuid: UUID | None = Field(
         description="UUID of the primary klasse of the engagement."
@@ -81,6 +85,10 @@ class EngagementWrite(EngagementBase):
             "Reference to the engagement type klasse for the created engagement object."
         )
     )
+    it_users: list[ITUserRef] | None = Field(
+        description="Optional association to it accounts."
+    )
+
     # NOTE: Job function is set to optional in the current MO write code,
     # but that's an error. If payloads without a job function are posted,
     # MO fails spectacularly when reading the resulting engagement objects.
@@ -128,6 +136,10 @@ class Engagement(MOBase):
             "Reference to the engagement type klasse for the created engagement object."
         )
     )
+    it_users: list[ITUserRef] | None = Field(
+        description="Optional association to it accounts."
+    )
+
     validity: Validity = Field(description="Validity of the created engagement object.")
     primary: Primary | None = Field(
         description="Reference to the primary klasse for the created engagement object."
@@ -153,6 +165,7 @@ class Engagement(MOBase):
         engagement_type_uuid: UUID,
         user_key: str,
         from_date: str,
+        it_user_uuids: list[UUID] | None = None,
         to_date: str | None = None,
         uuid: UUID | None = None,
         primary_uuid: UUID | None = None,
@@ -172,6 +185,10 @@ class Engagement(MOBase):
         person = PersonRef(uuid=person_uuid)
         job_function = JobFunction(uuid=job_function_uuid)
         engagement_type = EngagementType(uuid=engagement_type_uuid)
+        it_users = (
+            [ITUserRef(uuid=uuid) for uuid in it_user_uuids] if it_user_uuids else None
+        )
+
         validity = Validity(from_date=from_date, to_date=to_date)
         primary = Primary(uuid=primary_uuid) if primary_uuid else None
         return cls(
@@ -180,6 +197,7 @@ class Engagement(MOBase):
             person=person,
             job_function=job_function,
             engagement_type=engagement_type,
+            it_users=it_users,
             validity=validity,
             primary=primary,
             user_key=user_key,
