@@ -41,6 +41,14 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         extensions = extensions[0] if extensions else {}
         fraction = extensions.get("fraktion", None)
 
+        # Find associated it-accounts
+        org_funcs = mapping.ASSOCIATED_FUNCTION_FIELD(effect)
+        it_user_uuids = [
+            it_user["uuid"]
+            for it_user in org_funcs
+            if it_user[mapping.OBJECTTYPE] == mapping.IT
+        ]
+
         base_obj = await create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid)
         )
@@ -52,6 +60,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
                 "org_unit_uuid": org_unit,
                 "employee_uuid": person,
                 "engagement_type_uuid": engagement_type,
+                "it_user_uuids": it_user_uuids,
                 "job_function_uuid": job_function,
                 "primary_uuid": primary or None,
                 "fraction": fraction,

@@ -47,6 +47,7 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
                             employee_uuid
                             engagement_type_uuid
                             job_function_uuid
+                            it_user_uuids
                             leave_uuid
                             primary_uuid
                             type
@@ -305,6 +306,7 @@ async def test_create_engagement_integration_test(
             engagement_type=st.sampled_from(engagement_type_uuids),
             job_function=st.sampled_from(job_function_uuids),
             primary=st.sampled_from(primary_uuids),
+            it_users=st.lists(st.uuids()),
             validity=st.builds(
                 RAValidity,
                 from_date=st.just(test_data_validity_start),
