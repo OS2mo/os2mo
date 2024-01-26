@@ -298,6 +298,8 @@ def test_query_is_primary_multiple_on_same_person(graphapi_post: GraphAPIPost) -
             },
             1,
         ),
+        # IT-user filter
+        ({"it_users": {"uuids": [str(uuid4())]}}, 0),
     ],
 )
 async def test_engagement_filters(

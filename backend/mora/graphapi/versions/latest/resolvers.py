@@ -141,6 +141,11 @@ async def get_engagement_uuids(info: Info, filter: Any) -> list[UUID]:
     return await filter2uuids_func(engagement_resolver, info, engagement_filter)
 
 
+async def get_it_user_uuids(info: Info, filter: Any) -> list[UUID]:
+    it_user_filter = filter.it_users or ITUserFilter()
+    return await filter2uuids_func(it_user_resolver, info, it_user_filter)
+
+
 async def get_org_unit_uuids(info: Info, filter: Any) -> list[UUID]:
     org_unit_filter = filter.org_unit or OrganisationUnitFilter()
     # Handle deprecated filter
@@ -452,6 +457,8 @@ async def engagement_resolver(
         kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
+    if filter.it_users is not None:
+        kwargs["tilknyttedefunktioner"] = await get_it_user_uuids(info, filter)
     if filter.job_function is not None:
         class_filter = filter.job_function or ClassFilter()
         kwargs["opgaver"] = await filter2uuids_func(class_resolver, info, class_filter)
