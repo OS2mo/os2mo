@@ -301,11 +301,8 @@ class LdapConverter:
 
     def get_required_attributes(self, mo_class):
         if "required" in mo_class.schema().keys():
-            required_attributes = mo_class.schema()["required"]
-        else:
-            required_attributes = []
-
-        return required_attributes
+            return mo_class.schema()["required"]
+        return []
 
     @staticmethod
     def clean_get_current_method_from_template_string(template_string):
