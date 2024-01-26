@@ -9,14 +9,12 @@ from contextlib import asynccontextmanager
 from functools import partial
 from functools import wraps
 from inspect import iscoroutinefunction
-from pathlib import Path
 from typing import Annotated
 from typing import Any
 from typing import Literal
 from uuid import UUID
 from uuid import uuid4
 
-import yaml
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import FastAPI
@@ -29,7 +27,6 @@ from fastapi_utils.tasks import repeat_every
 from fastramqpi.main import FastRAMQPI
 from gql.transport.exceptions import TransportQueryError
 from ldap3 import Connection
-from pydantic import parse_obj_as
 from pydantic import ValidationError
 from raclients.graph.client import PersistentGraphQLClient
 from raclients.modelclient.mo import ModelClient
@@ -45,7 +42,6 @@ from ramqp.utils import RequeueMessage
 from tqdm import tqdm
 
 from . import usernames
-from .config import ConversionMapping
 from .config import Settings
 from .converters import LdapConverter
 from .customer_specific_checks import ExportChecks
@@ -341,44 +337,6 @@ async def initialize_init_engine(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
     yield
 
 
-def get_conversion_map(settings: Settings) -> ConversionMapping:
-    mappings_filename = os.environ.get("CONVERSION_MAP")
-    if settings.conversion_mapping:
-        if mappings_filename:
-            logger.warning(
-                "CONVERSION_MAP is set, but unused as CONVERSION_MAPPING is set."
-            )
-        return settings.conversion_mapping
-
-    mappings_dir = os.path.join(os.path.dirname(__file__), "mappings")
-    mappings_filename = os.environ.get("CONVERSION_MAP")
-    if not mappings_filename:
-        mappings_filename = "magenta_demo.yaml"
-        logger.warning(
-            f"CONVERSION_MAP is not set, falling back to {mappings_filename}"
-        )
-    mappings_file = os.path.normpath(
-        mappings_filename
-        if mappings_filename.startswith("/")
-        else os.path.join(mappings_dir, mappings_filename)
-    )
-
-    mappings_path = Path(mappings_file)
-    if mappings_path.suffix == ".json":
-        mappings_path = mappings_path.with_suffix(".yaml")
-
-    if not mappings_path.is_file():
-        raise FileNotFoundError(
-            f"Configured mapping file {mappings_file} does not exist "
-            f"(this is set by the CONVERSION_MAP environment variable)"
-        )
-
-    with open(mappings_path) as file:
-        mapping = yaml.safe_load(file)
-        logger.info(f"Loaded mapping file {mappings_path}")
-        return parse_obj_as(ConversionMapping, mapping)
-
-
 def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     """FastRAMQPI factory.
 
@@ -424,7 +382,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     )
 
     logger.info("Loading mapping file")
-    mapping = get_conversion_map(settings).dict(exclude_unset=True, by_alias=True)
+    mapping = settings.conversion_mapping.dict(exclude_unset=True, by_alias=True)
     fastramqpi.add_context(mapping=mapping)
 
     mappings_path = os.path.join(os.path.dirname(__file__), "mappings")

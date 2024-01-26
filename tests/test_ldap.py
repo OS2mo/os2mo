@@ -28,12 +28,14 @@ from ldap3 import MOCK_SYNC
 from ldap3 import Server
 from more_itertools import collapse
 from more_itertools import one
+from pydantic import parse_obj_as
 from ramodels.mo.details.address import Address
 from ramodels.mo.employee import Employee
 from structlog.testing import capture_logs
 
 from .test_dataloaders import mock_ldap_response
 from mo_ldap_import_export.config import AuthBackendEnum
+from mo_ldap_import_export.config import ConversionMapping
 from mo_ldap_import_export.config import ServerConfig
 from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
@@ -82,8 +84,12 @@ def model_client() -> Iterator[AsyncMock]:
 
 @pytest.fixture
 def settings(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv(
+        "CONVERSION_MAPPING",
+        '{"ldap_to_mo": {}, "mo_to_ldap": {}, "username_generator": {}}',
+    )
     monkeypatch.setenv("CLIENT_ID", "foo")
-    monkeypatch.setenv("client_secret", "bar")
+    monkeypatch.setenv("CLIENT_SECRET", "bar")
     monkeypatch.setenv("LDAP_CONTROLLERS", '[{"host": "0.0.0.0"}]')
     monkeypatch.setenv("LDAP_DOMAIN", "LDAP")
     monkeypatch.setenv("LDAP_USER", "foo")
@@ -133,7 +139,28 @@ def settings_overrides() -> Iterator[dict[str, str]]:
     Yields:
         Minimal set of overrides.
     """
+    conversion_mapping_dict = {
+        "ldap_to_mo": {
+            "Employee": {
+                "objectClass": "ramodels.mo.employee.Employee",
+                "_import_to_mo_": "false",
+                "uuid": "{{ employee_uuid or NONE }}",
+            }
+        },
+        "mo_to_ldap": {
+            "Employee": {
+                "objectClass": "inetOrgPerson",
+                "_export_to_ldap_": "false",
+            }
+        },
+        "username_generator": {"objectClass": "UserNameGenerator"},
+    }
+    conversion_mapping = parse_obj_as(ConversionMapping, conversion_mapping_dict)
+    conversion_mapping_setting = conversion_mapping.json(
+        exclude_unset=True, by_alias=True
+    )
     overrides = {
+        "CONVERSION_MAPPING": conversion_mapping_setting,
         "LDAP_CONTROLLERS": '[{"host": "111.111.111.111"}]',
         "CLIENT_ID": "foo",
         "CLIENT_SECRET": "bar",
