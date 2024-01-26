@@ -296,6 +296,15 @@ class EngagementFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         ),
     )
 
+    it_users: ITUserFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            IT User filter limiting which entries are returned.
+            """
+        ),
+    )
+
     job_function: ClassFilter | None = strawberry.field(
         default=None,
         description=dedent(
