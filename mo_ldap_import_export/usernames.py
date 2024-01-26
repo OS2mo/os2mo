@@ -2,10 +2,11 @@
 # SPDX-License-Identifier: MPL-2.0
 import os
 import re
-from copy import deepcopy
+from collections.abc import Iterator
 
 import pandas as pd
 from fastramqpi.context import Context
+from more_itertools import split_when
 from pydantic import parse_obj_as
 from ramodels.mo.employee import Employee
 
@@ -119,114 +120,111 @@ class UserNameGeneratorBase:
 
         return dn
 
-    def _name_fixer(self, name_to_fix: list[str]) -> list[str]:
+    def _name_fixer(self, name_parts: list[str]) -> list[str]:
+        """Cleanup a structured name to remove non-ascii characters.
+
+        Context:
+            self.char_replacement:
+                Dictionary from one set of characters to their replacements.
+
+        Args:
+            name_parts: An array of names; given_name, middlenames, surname.
+
+        Returns:
+            `name_parts` where non-ascii characters have been replaced
+            according to the char_replacement map, or if unmatched, removed.
         """
-        Inspired by ad_integration/usernames.py
-        """
-        name = deepcopy(name_to_fix)
-        for i in range(0, len(name)):
+
+        def fix_name(name: str) -> str:
             # Replace according to replacement list
             for char, replacement in self.char_replacement.items():
-                name[i] = name[i].replace(char, replacement)
-
+                name = name.replace(char, replacement)
             # Remove all remaining characters outside a-z
-            name[i] = re.sub(r"[^a-z]+", "", name[i].lower())
+            return re.sub(r"[^a-z]+", "", name.lower())
 
-        return name
+        return list(map(fix_name, name_parts))
 
-    def _machine_readable_combi(self, combi: str):
+    def _machine_readable_combi(self, combi: str) -> tuple[list[int | None], int]:
+        """Converts a name to a machine processable internal format.
+
+        Args:
+            combi: Combination to create a username from. For example "F123LX".
+
+        Returns:
+            A two-tuple containing the internal combi format and the max name
+            entry we will look up.
+
+        Example:
+            Given `combi = "F123LX"`, we return `([0,1,2,3,-1,None], 3)`.
+            The name name entry `3` is simply the highest number contained
+            within the internal combi format, and the internal combi format
+            is produced according to the following lookup table.
         """
-        Inspired by ad_integration/usernames.py
-        """
-        readable_combi = []
-        max_position = -1
-        position: int | None = None
-        for character in combi:
+        char2pos = {
             # First name
-            if character == "F":
-                position = 0
+            "F": 0,
             # First middle name
-            if character == "1":
-                position = 1
+            "1": 1,
             # Second middle name
-            if character == "2":
-                position = 2
+            "2": 2,
             # Third middle name
-            if character == "3":
-                position = 3
+            "3": 3,
             # Last name (independent of middle names)
-            if character == "L":
-                position = -1
-            if character == "X":
-                position = None
-            if position is not None and position > max_position:
-                max_position = position
-            readable_combi.append(position)
+            "L": -1,
+            "X": None,
+        }
+        readable_combi = [char2pos[x] for x in combi]
+        max_position = max((x for x in readable_combi if x is not None), default=-1)
         return (readable_combi, max_position)
 
-    def _create_from_combi(self, name: list, combi: str):
+    def _create_from_combi(self, name_parts: list[str], combi: str) -> str | None:
+        """Create a username from a name and a combination.
+
+        Args:
+            name_parts: An array of names; given_name, middlenames, surname.
+            combi: Combination to create a username from. For example "F123LX".
+
+        Returns:
+            A username generated according to the combination.
+            Note that this username may still contain 'X' characters, which need
+            to be replaced with a number.
         """
-        Create a username from a name and a combination.
-
-        Parameters
-        -------------
-        name : list
-            Name of the user given as a list with at least two elements.
-        combi : str
-            Combination to create a username from. For example "F123LX"
-
-        Returns
-        -----------
-        username : str
-            Username which was generated according to the combi. Note that this
-            username still contains 'X' characters, which need to be replaced with
-            a number
-
-        Notes
-        ---------
-        Inspired by ad_integration/usernames.py
-        """
-
         # Convert combi into machine readable code.
         # For example: combi = "F123LX" returns code = [0,1,2,3,-1,None]
         (code, max_position) = self._machine_readable_combi(combi)
 
         # Do not use codes that uses more names than the actual person has
-        if max_position > len(name) - 2:
+        if max_position > len(name_parts) - 2:
             return None
 
         # Do not use codes that require a last name if the person has no last name
-        if not name[-1] and -1 in code:
+        if not name_parts[-1] and -1 in code:
             return None
 
-        # First letter is always first letter of first position
-        if code[0] is not None:
-            relevant_name = code[0]
-            username = name[relevant_name][0].lower()
-        else:
+        # Split code into groups on changes
+        # For example [0, 1, 1, 1, -1] returns [[0], [1,1,1], [-1]]
+        splits = split_when(code, lambda x, y: x != y)
+        # Transform into code + count
+        # For example [[0], [1,1,1], [-1]] returns [(0,1), (1,3), (-1,1)]
+        groups = [(x[0], len(x)) for x in splits]
+
+        def code2char(x: int | None, current_char: int) -> str:
             # None translates to 'X'. This is replaced with a number later on.
-            username = "X"
+            if x is None:
+                return "X"
+            return name_parts[x][current_char].lower()
 
-        # Loop over all remaining entries in the combi
-        current_char = 0
-        for i in range(1, len(code)):
-            if code[i] == code[i - 1]:
-                current_char += 1
-            else:
-                current_char = 0
-
-            if code[i] is not None:
-                relevant_name = code[i]
-                if current_char >= len(name[relevant_name]):
-                    username = None
-                    break
-                username += name[relevant_name][current_char].lower()
-            else:
-                # None translates to 'X'. This is replaced with a number later on.
-                username += "X"
+        username = ""
+        # Each group has the same character
+        for x, num in groups:
+            # Sanity check that the name is long enough
+            if x is not None and num > len(name_parts[x]):
+                return None
+            for current_char in range(num):
+                username += code2char(x, current_char)
         return username
 
-    def _create_username(self, name: list, existing_usernames: list[str]) -> str:
+    def _create_username(self, name: list[str], existing_usernames: list[str]) -> str:
         """
         Create a new username in accordance with the rules specified in the json file.
         The username will be the highest quality available and the value will be
@@ -239,31 +237,48 @@ class UserNameGeneratorBase:
 
         Inspired by ad_integration/usernames.py
         """
-        name = self._name_fixer(name)
 
-        # The permutation is a number inside the username, it is normally only used in
-        # case a username is already occupied. It can be specified using 'X' in the
-        # username template.
-        #
-        # The first attempted permutation should be '2':
-        # For example; If 'cvt' is occupied, a username 'cvt2' will be generated.
-        #
-        # The last attempted permutation is '9' - because we would like to limit the
-        # permutation counter to a single digit.
-        for combi in self.combinations:
+        def permutations(username: str) -> Iterator[str]:
+            # The permutation is a number inside the username, it is normally only used in
+            # case a username is already occupied. It can be specified using 'X' in the
+            # username template.
+            #
+            # The first attempted permutation should be '2':
+            # For example; If 'cvt' is occupied, a username 'cvt2' will be generated.
+            #
+            # The last attempted permutation is '9' - because we would like to limit the
+            # permutation counter to a single digit.
             for permutation_counter in range(2, 10):
-                username = self._create_from_combi(name, combi)
-                if not username:
-                    continue
-                final_username: str = username.replace("X", str(permutation_counter))
-                if final_username not in existing_usernames:
-                    if username.replace("X", "") not in self.forbidden_usernames:
-                        return final_username
+                yield username.replace("X", str(permutation_counter))
 
-        # If we get to here, we completely failed to make a username
+        def forbidden(username: str) -> bool:
+            # Check if core username is legal
+            return username.replace("X", "") in self.forbidden_usernames
+
+        def existing(username: str) -> bool:
+            return username in existing_usernames
+
+        # Cleanup names
+        name = self._name_fixer(name)
+        # Generate usernames from names and combinations
+        usernames = (
+            self._create_from_combi(name, combi) for combi in self.combinations
+        )
+        for username in usernames:
+            if username is None:
+                continue
+            if forbidden(username):
+                continue
+            p_usernames = permutations(username)
+            for p_username in p_usernames:
+                if existing(p_username):
+                    continue
+                return p_username
         raise RuntimeError("Failed to create user name.")
 
-    def _create_common_name(self, name: list, existing_common_names: list[str]) -> str:
+    def _create_common_name(
+        self, name: list[str], existing_common_names: list[str]
+    ) -> str:
         """
         Create an LDAP-style common name (CN) based on first and last name
 
@@ -275,31 +290,38 @@ class UserNameGeneratorBase:
         >>> _create_common_name(["Keanu","Reeves"])
         >>> "Keanu Reeves"
         """
-        clean_name = deepcopy([n for n in name if n])
-        common_name = " ".join(clean_name)
+
+        def permutations(username: str) -> Iterator[str]:
+            yield username
+            for permutation_counter in range(2, 1000):
+                yield username + "_" + str(permutation_counter)
+
+        def existing(potential_name: str) -> bool:
+            return potential_name.lower() in existing_common_names
+
+        name = [n for n in name if n]
+        num_middlenames = len(name) - 2
 
         # Shorten a name if it is over 64 chars
         # see http://msdn.microsoft.com/en-us/library/ms675449(VS.85).aspx
-        while len(common_name) > 60:
-            if len(clean_name) <= 2:
-                # Cut off the name (leave place for the permutation counter)
-                common_name = " ".join(clean_name)[:60]
-            else:
-                clean_name.pop(-2)  # Remove the last middle name
-                common_name = " ".join(clean_name)  # Try to make a name again
+        common_name = " ".join(name)
+        while len(common_name) > 60 and num_middlenames > 0:
+            # Remove one middlename
+            num_middlenames -= 1
+            # Try to make a name with the selected number of middlenames
+            givenname, *middlenames, surname = name
+            middlenames = middlenames[:num_middlenames]
+            common_name = " ".join([givenname] + middlenames + [surname])
 
-        permutation_counter = 2
-        while common_name.lower() in existing_common_names:
-            common_name = (
-                common_name.replace(f"_{permutation_counter-1}", "")
-                + f"_{permutation_counter}"
-            )
-            permutation_counter += 1
+        # Cut off the name (leave place for the permutation counter)
+        common_name = common_name[:60]
 
-            if permutation_counter >= 1000:
-                raise RuntimeError("Failed to create common name")
+        for potential_name in permutations(common_name):
+            if existing(potential_name):
+                continue
+            return potential_name
 
-        return common_name
+        raise RuntimeError("Failed to create common name")
 
     async def _get_employee_ldap_attributes(self, employee: Employee, dn: str):
         converter = self.user_context["converter"]

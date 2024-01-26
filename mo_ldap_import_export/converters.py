@@ -198,17 +198,15 @@ class LdapConverter:
         import_flag = self.raw_mapping["ldap_to_mo"][json_key]["_import_to_mo_"]
         import_flag = import_flag.lower()
 
-        if import_flag == "true":
-            return True
-        elif import_flag == "manual_import_only":
-            if manual_import:
+        match import_flag:
+            case "true":
                 return True
-            else:
+            case "manual_import_only":
+                return manual_import
+            case "false":
                 return False
-        elif import_flag == "false":
-            return False
-        else:
-            raise IncorrectMapping(f"Import flag = '{import_flag}' not recognized")
+            case _:
+                raise IncorrectMapping(f"Import flag = '{import_flag}' not recognized")
 
     def _export_to_ldap_(self, json_key):
         """
@@ -226,8 +224,7 @@ class LdapConverter:
         mapping = self.raw_mapping[conversion]
         if json_key not in mapping.keys():
             raise IncorrectMapping(f"{json_key} not found in {conversion} json dict")
-        else:
-            return mapping[json_key]["objectClass"]
+        return mapping[json_key]["objectClass"]
 
     def find_ldap_object_class(self, json_key):
         return self.find_object_class(json_key, "mo_to_ldap")
@@ -303,11 +300,8 @@ class LdapConverter:
 
     def get_required_attributes(self, mo_class):
         if "required" in mo_class.schema().keys():
-            required_attributes = mo_class.schema()["required"]
-        else:
-            required_attributes = []
-
-        return required_attributes
+            return mo_class.schema()["required"]
+        return []
 
     @staticmethod
     def clean_get_current_method_from_template_string(template_string):
@@ -356,6 +350,7 @@ class LdapConverter:
 
                 return fields_with_ldap_reference
 
+            fields_to_check = []
             if json_key in self.mo_address_types:
                 fields_to_check = filter_fields_to_check(["mo_employee_address.value"])
             elif json_key in self.mo_it_systems:
@@ -371,8 +366,6 @@ class LdapConverter:
                         "mo_employee_engagement.job_function.uuid",
                     ]
                 )
-            else:
-                fields_to_check = []
 
             for attribute in detected_single_value_attributes:
                 template = self.raw_mapping["mo_to_ldap"][json_key][attribute]

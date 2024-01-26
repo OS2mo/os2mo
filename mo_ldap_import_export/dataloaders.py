@@ -71,9 +71,7 @@ class DataLoader:
         self.user_context = context["user_context"]
         self.ldap_connection = self.user_context["ldap_connection"]
         self.attribute_types = get_attribute_types(self.ldap_connection)
-        self.single_value = {
-            a: self.attribute_types[a].single_value for a in self.attribute_types.keys()
-        }
+        self.single_value = {k: v.single_value for k, v in self.attribute_types.items()}
         self._mo_to_ldap_attributes = []
         self._sync_tool = None
         self.create_mo_class_lock = asyncio.Lock()
