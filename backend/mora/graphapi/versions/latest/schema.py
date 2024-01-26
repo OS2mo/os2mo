@@ -2675,6 +2675,13 @@ class ITUser:
             """
         )
         + list_to_optional_field_warning,
+        deprecation_reason=dedent(
+            """\
+            The relation between engagements and it-users is now a many-to-many relation maintained on engagement objects
+            as a list of uuids matching it-accounts.
+
+            """
+        ),
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
