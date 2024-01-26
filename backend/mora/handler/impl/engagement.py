@@ -40,6 +40,14 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         fraction = extensions.get("fraktion", None)
 
         base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)
+        # Find associated it-accounts
+        org_funcs = mapping.ASSOCIATED_FUNCTION_FIELD(effect)
+        it_user_uuids = [
+            it_user["uuid"]
+            for it_user in org_funcs
+            if it_user[mapping.OBJECTTYPE] == mapping.IT
+        ]
+
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
         if is_graphql():
@@ -48,6 +56,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
                 "org_unit_uuid": org_unit,
                 "employee_uuid": person,
                 "engagement_type_uuid": engagement_type,
+                "it_user_uuids": it_user_uuids,
                 "job_function_uuid": job_function,
                 "primary_uuid": primary or None,
                 "fraction": fraction,

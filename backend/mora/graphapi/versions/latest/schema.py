@@ -2119,6 +2119,32 @@ class Engagement:
         # Check whether the current (root) engagement is the primary engagement for this user.
         return root.uuid == primary_engagement.uuid
 
+    it_users: list[LazyITUser] | None = strawberry.field(
+        resolver=force_none_return_wrapper(
+            to_list(
+                seed_resolver(
+                    it_user_resolver,
+                    {
+                        "uuids": partial(
+                            raise_force_none_return_if_uuid_none,
+                            get_uuid=lambda root: root.it_user_uuids or [],
+                        )
+                    },
+                )
+            )
+        ),
+        description=dedent(
+            """\
+            Connected it accounts.
+
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("ituser"),
+        ],
+    )
+
     leave: LazyLeave | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
@@ -2215,6 +2241,13 @@ class Engagement:
     )
     async def org_unit_uuid(self, root: EngagementRead) -> UUID:
         return root.org_unit_uuid
+
+    @strawberry.field(
+        description="Optional list of UUIDs of associated it accounts.",
+        deprecation_reason=gen_uuid_field_deprecation("it_user"),
+    )
+    async def it_user_uuids(self, root: EngagementRead) -> list[UUID] | None:
+        return root.it_user_uuids
 
     @strawberry.field(
         description="UUID of the job function class.",

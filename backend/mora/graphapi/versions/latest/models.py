@@ -552,6 +552,9 @@ class EngagementUpsert(UUIDBase):
     user_key: str | None = Field(description="Name or UUID of the related engagement.")
     primary: UUID | None = Field(description="Primary field of the engagement")
     validity: RAValidity = Field(description="Validity of the engagement object.")
+    it_users: list[UUID] | None = Field(
+        description="UUIDs for the related it accounts."
+    )
 
     extension_1: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
     extension_2: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
@@ -580,6 +583,7 @@ class EngagementUpsert(UUIDBase):
                 else None,
             },
             "person": gen_uuid(self.person) or gen_uuid(self.employee),
+            "it_users": [gen_uuid(u) for u in self.it_users] if self.it_users else None,
             "extension_1": self.extension_1,
             "extension_2": self.extension_2,
             "extension_3": self.extension_3,

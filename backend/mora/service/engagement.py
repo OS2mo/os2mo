@@ -37,6 +37,21 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
 
         employee = util.checked_get(req, mapping.PERSON, {}, required=True)
         employee_uuid = util.get_uuid(employee, required=True)
+
+        it_user_uuids = util.checked_get(req, mapping.ITUSERS, [], required=False)
+
+        org_funcs = (
+            [
+                common.associated_orgfunc(
+                    uuid=it_user["uuid"],
+                    orgfunc_type=mapping.MoOrgFunk.IT,
+                )
+                for it_user in it_user_uuids
+            ]
+            if it_user_uuids
+            else None
+        )
+
         await validator.is_date_range_in_employee_range(employee, valid_from, valid_to)
 
         await validator.is_date_range_in_org_unit_range(org_unit, valid_from, valid_to)
@@ -69,6 +84,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedebrugere=[employee_uuid],
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid],
+            tilknyttedefunktioner=org_funcs,
             funktionstype=engagement_type_uuid,
             opgaver=[{"uuid": job_function_uuid}] if job_function_uuid else [],
             udvidelse_attributter=extension_attributes,
@@ -194,6 +210,17 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
 
             update_fields.append((mapping.PRIMARY_FIELD, {"uuid": primary}))
 
+        if mapping.ITUSERS in data:
+            for u in util.checked_get(data, mapping.ITUSERS, []):
+                update_fields.append(
+                    (
+                        mapping.ASSOCIATED_FUNCTION_FIELD,
+                        {
+                            "uuid": u["uuid"],
+                            mapping.OBJECTTYPE: mapping.IT,
+                        },
+                    )
+                )
         # Attribute extensions
         new_extensions = {}
 
