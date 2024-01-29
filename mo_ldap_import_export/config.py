@@ -379,16 +379,6 @@ class Settings(BaseSettings):
         description="Base URL for OS2mo.",
     )
 
-    client_id: str = Field("bruce", description="Client ID for OIDC client.")
-    client_secret: SecretStr = Field(..., description="Client Secret for OIDC client.")
-    auth_server: AnyHttpUrl = Field(
-        parse_obj_as(AnyHttpUrl, "http://keycloak-service:8080/auth"),
-        description="Base URL for OIDC server (Keycloak).",
-    )
-    auth_realm: str = Field("mo", description="Realm to authenticate against")
-
-    graphql_timeout: int = 120
-
     default_org_unit_type: str = Field(
         ..., description="Type to set onto imported organization units"
     )

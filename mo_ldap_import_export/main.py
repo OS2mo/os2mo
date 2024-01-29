@@ -262,23 +262,23 @@ async def open_ldap_connection(ldap_connection: Connection) -> AsyncIterator[Non
 
 def construct_gql_client(settings: Settings, version: str = "v7"):
     return PersistentGraphQLClient(
-        url=settings.mo_url + "/graphql/" + version,
-        client_id=settings.client_id,
-        client_secret=settings.client_secret.get_secret_value(),
-        auth_server=settings.auth_server,
-        auth_realm=settings.auth_realm,
-        execute_timeout=settings.graphql_timeout,
-        httpx_client_kwargs={"timeout": settings.graphql_timeout},
+        url=settings.fastramqpi.mo_url + "/graphql/" + version,
+        client_id=settings.fastramqpi.client_id,
+        client_secret=settings.fastramqpi.client_secret.get_secret_value(),
+        auth_server=settings.fastramqpi.auth_server,
+        auth_realm=settings.fastramqpi.auth_realm,
+        execute_timeout=settings.fastramqpi.graphql_timeout,
+        httpx_client_kwargs={"timeout": settings.fastramqpi.graphql_timeout},
     )
 
 
 def construct_model_client(settings: Settings):
     return ModelClient(
-        base_url=settings.mo_url,
-        client_id=settings.client_id,
-        client_secret=settings.client_secret.get_secret_value(),
-        auth_server=settings.auth_server,
-        auth_realm=settings.auth_realm,
+        base_url=settings.fastramqpi.mo_url,
+        client_id=settings.fastramqpi.client_id,
+        client_secret=settings.fastramqpi.client_secret.get_secret_value(),
+        auth_server=settings.fastramqpi.auth_server,
+        auth_realm=settings.fastramqpi.auth_realm,
     )
 
 
