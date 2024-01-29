@@ -304,6 +304,9 @@ class Settings(BaseSettings):
         frozen = True
         env_nested_delimiter = "__"
 
+        env_file = "/var/run/.env"
+        env_file_encoding = "utf-8"
+
     conversion_mapping: ConversionMapping = Field(
         description="Conversion mapping between LDAP and OS2mo",
     )

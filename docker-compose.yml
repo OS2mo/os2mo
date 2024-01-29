@@ -23,10 +23,9 @@ services:
     container_name: mo_ldap_ie
     build: .
     command: ["uvicorn", "--factory", "app.main:create_app", "--host", "0.0.0.0", "--reload"]
-    env_file:
-      ./dev-environment/mo_ldap_import_export.env
     volumes:
       - ./mo_ldap_import_export:/opt/app/
+      - ./dev-environment/mo_ldap_import_export.env:/var/run/.env
     networks:
       - os2mo_default
     ports:
