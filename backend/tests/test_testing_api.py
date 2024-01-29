@@ -4,13 +4,11 @@ import asyncio
 import secrets
 
 import pytest
-from pytest import MonkeyPatch
 from ramqp import AMQPSystem
 from ramqp.mo import PayloadUUID
 from starlette.testclient import TestClient
 
 from mora.config import get_settings
-from oio_rest.db import close_connection
 from tests.conftest import GraphAPIPost
 
 
@@ -67,35 +65,36 @@ def read_employee_surname(graphapi_post: GraphAPIPost, uuid: str) -> str:
     return employee.data["employees"]["objects"][0]["current"]["surname"]
 
 
-@pytest.mark.integration_test
-async def test_database_snapshot(
-    monkeypatch: MonkeyPatch,
-    raw_client: TestClient,
-    graphapi_post: GraphAPIPost,
-) -> None:
-    # Clear singleton database connection, and ensure it is recreated as in a normally
-    # running application, i.e. without the pytest TESTING environment variable.
-    close_connection()
-    monkeypatch.delenv("TESTING")
-
-    # Create employee
-    employee_uuid = create_employee(graphapi_post, surname="foo")
-    assert read_employee_surname(graphapi_post, employee_uuid) == "foo"
-
-    # Snapshot database
-    assert raw_client.post("/testing/database/snapshot").is_success
-
-    # Update surname
-    update_employee(graphapi_post, uuid=employee_uuid, surname="bar")
-    assert read_employee_surname(graphapi_post, employee_uuid) == "bar"
-
-    # Restore to original surname
-    assert raw_client.post("/testing/database/restore").is_success
-    assert read_employee_surname(graphapi_post, employee_uuid) == "foo"
-
-    # Close connection to ensure the next test will recreate it with settings expected
-    # during testing.
-    close_connection()
+# TODO: This test destroys test isolation. Reintroduce once #58757 is fixed.
+# @pytest.mark.integration_test
+# async def test_database_snapshot(
+#     monkeypatch: MonkeyPatch,
+#     raw_client: TestClient,
+#     graphapi_post: GraphAPIPost,
+# ) -> None:
+#     # Clear singleton database connection, and ensure it is recreated as in a normally
+#     # running application, i.e. without the pytest TESTING environment variable.
+#     close_connection()
+#     monkeypatch.delenv("TESTING")
+#
+#     # Create employee
+#     employee_uuid = create_employee(graphapi_post, surname="foo")
+#     assert read_employee_surname(graphapi_post, employee_uuid) == "foo"
+#
+#     # Snapshot database
+#     assert raw_client.post("/testing/database/snapshot").is_success
+#
+#     # Update surname
+#     update_employee(graphapi_post, uuid=employee_uuid, surname="bar")
+#     assert read_employee_surname(graphapi_post, employee_uuid) == "bar"
+#
+#     # Restore to original surname
+#     assert raw_client.post("/testing/database/restore").is_success
+#     assert read_employee_surname(graphapi_post, employee_uuid) == "foo"
+#
+#     # Close connection to ensure the next test will recreate it with settings expected
+#     # during testing.
+#     close_connection()
 
 
 # NOTE: Read "backend/tests/graphapi/test_registration.py:11",
