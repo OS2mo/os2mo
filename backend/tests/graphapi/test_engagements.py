@@ -489,6 +489,7 @@ async def test_update_engagement_unit_test(
             "org_unit": None,
             "primary": "2f16d140-d743-4c9f-9e0e-361da91a06f6",
             "employee": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            "it_users": [str(uuid4())],
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
         },
         {
@@ -498,6 +499,7 @@ async def test_update_engagement_unit_test(
             "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
             "primary": "89b6cef8-3d03-49ac-816f-f7530b383411",
             "employee": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            "it_users": [str(uuid4()), str(uuid4())],
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
         },
         {
@@ -506,6 +508,7 @@ async def test_update_engagement_unit_test(
             "job_function": None,
             "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
             "primary": "89b6cef8-3d03-49ac-816f-f7530b383411",
+            "it_users": [],
             "employee": None,
             "validity": {
                 "from": "2017-01-01T00:00:00+01:00",
@@ -518,6 +521,7 @@ async def test_update_engagement_unit_test(
             "job_function": None,
             "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
             "primary": None,
+            "it_users": None,
             "employee": None,
             "validity": {
                 "from": "2017-01-01T00:00:00+01:00",
@@ -540,6 +544,7 @@ async def test_update_engagement_integration_test(
                         job_function: job_function_uuid
                         primary: primary_uuid
                         org_unit: org_unit_uuid
+                        it_users: it_user_uuids
                         employee: employee_uuid
                         validity {
                             from
@@ -578,6 +583,7 @@ async def test_update_engagement_integration_test(
                         job_function: job_function_uuid
                         primary: primary_uuid
                         org_unit: org_unit_uuid
+                        it_users: it_user_uuids
                         employee: employee_uuid
                         validity {
                             from
