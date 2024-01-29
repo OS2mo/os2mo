@@ -895,7 +895,8 @@ def test_get_duplicate_cpr_numbers_from_LDAP_endpoint(
 
 def test_construct_gql_client():
 
-    settings = MagicMock(mo_url="mo-url")
+    fastramqpi_settings = MagicMock(mo_url="mo-url")
+    settings = MagicMock(fastramqpi=fastramqpi_settings)
 
     with patch("mo_ldap_import_export.main.PersistentGraphQLClient", MagicMock):
         gql_client = construct_gql_client(settings)
