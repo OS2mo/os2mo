@@ -284,18 +284,18 @@ class LdapConverter:
         mo_to_ldap_json_keys = self.get_mo_to_ldap_json_keys()
         ldap_to_mo_json_keys = self.get_ldap_to_mo_json_keys()
 
-        json_keys = list(set(mo_to_ldap_json_keys + ldap_to_mo_json_keys))
-        accepted_json_keys = self.get_accepted_json_keys()
+        json_keys = set(mo_to_ldap_json_keys + ldap_to_mo_json_keys)
+        accepted_json_keys = set(self.get_accepted_json_keys())
 
         logger.info(f"[json check] Accepted keys: {accepted_json_keys}")
         logger.info(f"[json check] Detected keys: {json_keys}")
 
-        for key in json_keys:
-            if key not in accepted_json_keys:
-                raise IncorrectMapping(
-                    f"'{key}' is not a valid key. "
-                    f"Accepted keys are {accepted_json_keys}"
-                )
+        unaccepted_keys = json_keys - accepted_json_keys
+        if unaccepted_keys:
+            raise IncorrectMapping(
+                f"{unaccepted_keys} are not valid keys. "
+                f"Accepted keys are {accepted_json_keys}"
+            )
         logger.info("[json check] Keys OK")
 
     def get_required_attributes(self, mo_class):
