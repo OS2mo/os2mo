@@ -731,7 +731,10 @@ async def test_check_key_validity(converter: LdapConverter):
         "mo_ldap_import_export.converters.LdapConverter.get_accepted_json_keys",
         return_value=["foo"],
     ):
-        with pytest.raises(IncorrectMapping, match="'bar' is not a valid key"):
+        with pytest.raises(
+            IncorrectMapping,
+            match="{'bar'} are not valid keys. Accepted keys are {'foo'}",
+        ):
             converter.check_key_validity()
 
 
