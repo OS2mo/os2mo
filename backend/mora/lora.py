@@ -42,6 +42,7 @@ from structlog import get_logger
 from . import config
 from . import exceptions
 from . import util
+from .db import get_sessionmaker
 from .graphapi.middleware import is_graphql
 from oio_rest import custom_exceptions as loraexc
 from oio_rest import klassifikation
@@ -798,4 +799,8 @@ class AutocompleteScope(BaseScope):
         self, phrase: str, class_uuids: list[UUID] | None = None
     ) -> dict[str, Any]:
         with lora_to_mo_exception():
-            return {"items": self.autocomplete(phrase, class_uuids=class_uuids)}
+            async with get_sessionmaker().begin() as session:
+                items = await self.autocomplete(
+                    session, phrase, class_uuids=class_uuids
+                )
+                return {"items": items}

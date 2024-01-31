@@ -54,7 +54,6 @@ from mora.service.address_handler.dar import dar_loader_context
 from mora.service.shimmed.meta import meta_router
 from oio_rest.config import get_settings as lora_get_settings
 from oio_rest.custom_exceptions import OIOException
-from oio_rest.db import _get_dbname
 from oio_rest.views import create_lora_router
 
 
@@ -182,7 +181,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         user=lora_settings.db_user,
         password=lora_settings.db_password,
         host=lora_settings.db_host,
-        name=_get_dbname(),
+        name=lora_settings.db_name,
     )
 
     app = FastAPI(

@@ -54,6 +54,9 @@ async def get_results(
             "title": title,
         }
 
+    # Convert RowMapping to dict to make it mutable
+    results["items"] = [dict(x) for x in results["items"]]
+
     # Add class title to each attr of each result
     for result in results["items"]:
         attrs = result.get("attrs")
