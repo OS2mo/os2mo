@@ -800,8 +800,6 @@ CREATE TABLE aktivitet (
 WITH (
     OIDS=FALSE
 );
-ALTER TABLE aktivitet
-    OWNER TO {{ mox_user }};
 
 
 /****************************************************************************/
@@ -812,8 +810,6 @@ CREATE SEQUENCE aktivitet_registrering_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE aktivitet_registrering_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE aktivitet_registrering (
@@ -831,8 +827,6 @@ WITH (
   OIDS=FALSE
 );
 
-ALTER TABLE aktivitet_registrering
-  OWNER TO {{ mox_user }};
 
 
 CREATE INDEX aktivitet_registrering_idx_livscykluskode
@@ -879,8 +873,6 @@ CREATE SEQUENCE aktivitet_attr_egenskaber_id_seq
     START 1
     CACHE 1;
 
-ALTER TABLE aktivitet_attr_egenskaber_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE aktivitet_attr_egenskaber (
@@ -903,8 +895,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE aktivitet_attr_egenskaber
-  OWNER TO {{ mox_user }};
 
 
 
@@ -1037,8 +1027,6 @@ CREATE SEQUENCE aktivitet_tils_status_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE aktivitet_tils_status_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE aktivitet_tils_status (
@@ -1054,8 +1042,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE aktivitet_tils_status
-    OWNER TO {{ mox_user }};
 
 
 CREATE INDEX aktivitet_tils_status_idx_status
@@ -1090,8 +1076,6 @@ CREATE SEQUENCE aktivitet_tils_publiceret_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE aktivitet_tils_publiceret_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE aktivitet_tils_publiceret (
@@ -1107,8 +1091,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE aktivitet_tils_publiceret
-    OWNER TO {{ mox_user }};
 
 
 CREATE INDEX aktivitet_tils_publiceret_idx_publiceret
@@ -1146,8 +1128,6 @@ CREATE SEQUENCE aktivitet_relation_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE aktivitet_relation_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE aktivitet_relation (
@@ -1172,8 +1152,6 @@ CREATE TABLE aktivitet_relation (
     CONSTRAINT aktivitet_relation_check_aktoer_attr_rel_type CHECK (aktoer_attr IS NULL OR rel_type=('udfoerer'::AktivitetRelationKode) OR rel_type=('deltager'::AktivitetRelationKode) OR rel_type=('ansvarlig'::AktivitetRelationKode)),
     CONSTRAINT aktivitet_relation_aktoer_repr_either_uri_or_urn CHECK (aktoer_attr IS NULL OR ( _aktivitet_aktoer_attr_repr_uuid_to_text(aktoer_attr) IS NULL AND _aktivitet_aktoer_attr_repr_urn_to_text(aktoer_attr) IS NULL ) OR ((_aktivitet_aktoer_attr_repr_urn_to_text(aktoer_attr) IS NOT NULL AND _aktivitet_aktoer_attr_repr_uuid_to_text(aktoer_attr) IS NULL ) OR (_aktivitet_aktoer_attr_repr_urn_to_text(aktoer_attr) IS NULL AND _aktivitet_aktoer_attr_repr_uuid_to_text(aktoer_attr) IS NOT NULL )))
 );
-ALTER TABLE aktivitet_relation
-  OWNER TO {{ mox_user }};
 
 
 
@@ -4783,8 +4761,6 @@ CREATE TABLE bruger (
 WITH (
     OIDS=FALSE
 );
-ALTER TABLE bruger
-    OWNER TO {{ mox_user }};
 
 
 /****************************************************************************/
@@ -4795,8 +4771,6 @@ CREATE SEQUENCE bruger_registrering_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE bruger_registrering_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE bruger_registrering (
@@ -4814,8 +4788,6 @@ WITH (
   OIDS=FALSE
 );
 
-ALTER TABLE bruger_registrering
-  OWNER TO {{ mox_user }};
 
 
 CREATE INDEX bruger_registrering_idx_livscykluskode
@@ -4862,8 +4834,6 @@ CREATE SEQUENCE bruger_attr_egenskaber_id_seq
     START 1
     CACHE 1;
 
-ALTER TABLE bruger_attr_egenskaber_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE bruger_attr_egenskaber (
@@ -4882,8 +4852,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE bruger_attr_egenskaber
-  OWNER TO {{ mox_user }};
 
 
 
@@ -4962,8 +4930,6 @@ CREATE SEQUENCE bruger_attr_udvidelser_id_seq
     START 1
     CACHE 1;
 
-ALTER TABLE bruger_attr_udvidelser_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE bruger_attr_udvidelser (
@@ -4983,8 +4949,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE bruger_attr_udvidelser
-  OWNER TO {{ mox_user }};
 
 
 
@@ -5081,8 +5045,6 @@ CREATE SEQUENCE bruger_tils_gyldighed_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE bruger_tils_gyldighed_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE bruger_tils_gyldighed (
@@ -5098,8 +5060,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE bruger_tils_gyldighed
-    OWNER TO {{ mox_user }};
 
 
 CREATE INDEX bruger_tils_gyldighed_idx_gyldighed
@@ -5137,8 +5097,6 @@ CREATE SEQUENCE bruger_relation_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE bruger_relation_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE bruger_relation (
@@ -5158,8 +5116,6 @@ CREATE TABLE bruger_relation (
     CONSTRAINT bruger_relation_no_virkning_overlap EXCLUDE USING gist (bruger_registrering_id WITH =, _as_convert_bruger_relation_kode_to_txt(rel_type) WITH =, _composite_type_to_time_range(virkning) WITH &&)  WHERE ( rel_type<>('adresser'::BrugerRelationKode ) AND rel_type<>('brugertyper'::BrugerRelationKode ) AND rel_type<>('opgaver'::BrugerRelationKode ) AND rel_type<>('tilknyttedeenheder'::BrugerRelationKode ) AND rel_type<>('tilknyttedefunktioner'::BrugerRelationKode ) AND rel_type<>('tilknyttedeinteressefaellesskaber'::BrugerRelationKode ) AND rel_type<>('tilknyttedeorganisationer'::BrugerRelationKode ) AND rel_type<>('tilknyttedepersoner'::BrugerRelationKode ) AND rel_type<>('tilknyttedeitsystemer'::BrugerRelationKode )) ,-- no overlapping virkning except for 0..n --relations
     CONSTRAINT bruger_relation_either_uri_or_urn CHECK (NOT (rel_maal_uuid IS NOT NULL AND (rel_maal_urn IS NOT NULL AND rel_maal_urn<>'')))
 );
-ALTER TABLE bruger_relation
-  OWNER TO {{ mox_user }};
 
 
 
@@ -8415,8 +8371,6 @@ CREATE TABLE dokument (
 WITH (
     OIDS=FALSE
 );
-ALTER TABLE dokument
-    OWNER TO {{ mox_user }};
 
 
 /****************************************************************************/
@@ -8427,8 +8381,6 @@ CREATE SEQUENCE dokument_registrering_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE dokument_registrering_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE dokument_registrering (
@@ -8446,8 +8398,6 @@ WITH (
   OIDS=FALSE
 );
 
-ALTER TABLE dokument_registrering
-  OWNER TO {{ mox_user }};
 
 
 CREATE INDEX dokument_registrering_idx_livscykluskode
@@ -8494,8 +8444,6 @@ CREATE SEQUENCE dokument_attr_egenskaber_id_seq
     START 1
     CACHE 1;
 
-ALTER TABLE dokument_attr_egenskaber_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE dokument_attr_egenskaber (
@@ -8520,8 +8468,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE dokument_attr_egenskaber
-  OWNER TO {{ mox_user }};
 
 
 
@@ -8691,8 +8637,6 @@ CREATE SEQUENCE dokument_tils_fremdrift_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE dokument_tils_fremdrift_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE dokument_tils_fremdrift (
@@ -8708,8 +8652,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE dokument_tils_fremdrift
-    OWNER TO {{ mox_user }};
 
 
 CREATE INDEX dokument_tils_fremdrift_idx_fremdrift
@@ -8747,8 +8689,6 @@ CREATE SEQUENCE dokument_relation_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE dokument_relation_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE dokument_relation (
@@ -8768,8 +8708,6 @@ CREATE TABLE dokument_relation (
     CONSTRAINT dokument_relation_no_virkning_overlap EXCLUDE USING gist (dokument_registrering_id WITH =, _as_convert_dokument_relation_kode_to_txt(rel_type) WITH =, _composite_type_to_time_range(virkning) WITH &&)  WHERE ( rel_type<>('arkiver'::DokumentRelationKode ) AND rel_type<>('besvarelser'::DokumentRelationKode ) AND rel_type<>('udgangspunkter'::DokumentRelationKode ) AND rel_type<>('kommentarer'::DokumentRelationKode ) AND rel_type<>('bilag'::DokumentRelationKode ) AND rel_type<>('andredokumenter'::DokumentRelationKode ) AND rel_type<>('andreklasser'::DokumentRelationKode ) AND rel_type<>('andrebehandlere'::DokumentRelationKode ) AND rel_type<>('parter'::DokumentRelationKode ) AND rel_type<>('kopiparter'::DokumentRelationKode ) AND rel_type<>('tilknyttedesager'::DokumentRelationKode )) ,-- no overlapping virkning except for 0..n --relations
     CONSTRAINT dokument_relation_either_uri_or_urn CHECK (NOT (rel_maal_uuid IS NOT NULL AND (rel_maal_urn IS NOT NULL AND rel_maal_urn<>'')))
 );
-ALTER TABLE dokument_relation
-  OWNER TO {{ mox_user }};
 
 
 
@@ -8839,8 +8777,6 @@ CREATE SEQUENCE dokument_variant_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE dokument_variant_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE dokument_variant(
@@ -8855,8 +8791,6 @@ WITH (
   OIDS=FALSE
 );
 
-ALTER TABLE dokument_variant
-  OWNER TO {{ mox_user }};
 
 
 CREATE SEQUENCE dokument_variant_egenskaber_id_seq
@@ -8865,8 +8799,6 @@ CREATE SEQUENCE dokument_variant_egenskaber_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE dokument_variant_egenskaber_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE dokument_variant_egenskaber(
@@ -8884,8 +8816,6 @@ CREATE TABLE dokument_variant_egenskaber(
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE dokument_variant_egenskaber
-    OWNER TO {{ mox_user }};
 
 
 CREATE INDEX dokument_variant_egenskaber_idx_arkivering
@@ -8939,8 +8869,6 @@ CREATE SEQUENCE dokument_del_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE dokument_del_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE dokument_del(
@@ -8955,8 +8883,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE dokument_del
-    OWNER TO {{ mox_user }};
 
 
 CREATE SEQUENCE dokument_del_egenskaber_id_seq
@@ -8965,8 +8891,6 @@ CREATE SEQUENCE dokument_del_egenskaber_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE dokument_del_egenskaber_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE dokument_del_egenskaber(
@@ -8985,8 +8909,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE dokument_del_egenskaber
-    OWNER TO {{ mox_user }};
 
 CREATE INDEX dokument_del_egenskaber_idx_indeks
     ON dokument_del_egenskaber
@@ -9050,8 +8972,6 @@ CREATE SEQUENCE dokument_del_relation_id_seq
   START 1
   CACHE 1;
 
-ALTER TABLE dokument_del_relation_id_seq
-  OWNER TO {{ mox_user }};
 
 
 CREATE TABLE dokument_del_relation (
@@ -9067,8 +8987,6 @@ CREATE TABLE dokument_del_relation (
     -- CONSTRAINT dokument_del_relation_no_virkning_overlap EXCLUDE USING gist (dokument_del_registrering_id WITH =, _as_convert_dokument_del_relation_kode_to_txt(rel_type) WITH =, _composite_type_to_time_range(virkning) WITH &&)  WHERE ( rel_type<>('underredigeringaf'::dokument_delRelationKode )) ,-- no overlapping virkning except for 0..n --relations
     CONSTRAINT dokument_del_relation_either_uri_or_urn CHECK (NOT (rel_maal_uuid IS NOT NULL AND (rel_maal_urn IS NOT NULL AND rel_maal_urn<>'')))
 );
-ALTER TABLE dokument_del_relation
-  OWNER TO {{ mox_user }};
 
 
 CREATE INDEX dokument_del_relation_idx_rel_maal_obj_uuid
@@ -13284,8 +13202,6 @@ CREATE TABLE facet (
 WITH (
     OIDS=FALSE
 );
-ALTER TABLE facet
-    OWNER TO {{ mox_user }};
 
 
 /****************************************************************************/
@@ -13296,8 +13212,6 @@ CREATE SEQUENCE facet_registrering_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE facet_registrering_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE facet_registrering (
@@ -13315,8 +13229,6 @@ WITH (
   OIDS=FALSE
 );
 
-ALTER TABLE facet_registrering
-  OWNER TO {{ mox_user }};
 
 
 CREATE INDEX facet_registrering_idx_livscykluskode
@@ -13363,8 +13275,6 @@ CREATE SEQUENCE facet_attr_egenskaber_id_seq
     START 1
     CACHE 1;
 
-ALTER TABLE facet_attr_egenskaber_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE facet_attr_egenskaber (
@@ -13387,8 +13297,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE facet_attr_egenskaber
-  OWNER TO {{ mox_user }};
 
 
 
@@ -13518,8 +13426,6 @@ CREATE SEQUENCE facet_tils_publiceret_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE facet_tils_publiceret_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE facet_tils_publiceret (
@@ -13535,8 +13441,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE facet_tils_publiceret
-    OWNER TO {{ mox_user }};
 
 
 CREATE INDEX facet_tils_publiceret_idx_publiceret
@@ -13574,8 +13478,6 @@ CREATE SEQUENCE facet_relation_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE facet_relation_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE facet_relation (
@@ -13595,8 +13497,6 @@ CREATE TABLE facet_relation (
     CONSTRAINT facet_relation_no_virkning_overlap EXCLUDE USING gist (facet_registrering_id WITH =, _as_convert_facet_relation_kode_to_txt(rel_type) WITH =, _composite_type_to_time_range(virkning) WITH &&)  WHERE ( rel_type<>('redaktoerer'::FacetRelationKode )) ,-- no overlapping virkning except for 0..n --relations
     CONSTRAINT facet_relation_either_uri_or_urn CHECK (NOT (rel_maal_uuid IS NOT NULL AND (rel_maal_urn IS NOT NULL AND rel_maal_urn<>'')))
 );
-ALTER TABLE facet_relation
-  OWNER TO {{ mox_user }};
 
 
 
@@ -16309,8 +16209,6 @@ CREATE TABLE indsats (
 WITH (
     OIDS=FALSE
 );
-ALTER TABLE indsats
-    OWNER TO {{ mox_user }};
 
 
 /****************************************************************************/
@@ -16321,8 +16219,6 @@ CREATE SEQUENCE indsats_registrering_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE indsats_registrering_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE indsats_registrering (
@@ -16340,8 +16236,6 @@ WITH (
   OIDS=FALSE
 );
 
-ALTER TABLE indsats_registrering
-  OWNER TO {{ mox_user }};
 
 
 CREATE INDEX indsats_registrering_idx_livscykluskode
@@ -16388,8 +16282,6 @@ CREATE SEQUENCE indsats_attr_egenskaber_id_seq
     START 1
     CACHE 1;
 
-ALTER TABLE indsats_attr_egenskaber_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE indsats_attr_egenskaber (
@@ -16409,8 +16301,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE indsats_attr_egenskaber
-  OWNER TO {{ mox_user }};
 
 
 
@@ -16509,8 +16399,6 @@ CREATE SEQUENCE indsats_tils_publiceret_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE indsats_tils_publiceret_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE indsats_tils_publiceret (
@@ -16526,8 +16414,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE indsats_tils_publiceret
-    OWNER TO {{ mox_user }};
 
 
 CREATE INDEX indsats_tils_publiceret_idx_publiceret
@@ -16562,8 +16448,6 @@ CREATE SEQUENCE indsats_tils_fremdrift_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE indsats_tils_fremdrift_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE indsats_tils_fremdrift (
@@ -16579,8 +16463,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE indsats_tils_fremdrift
-    OWNER TO {{ mox_user }};
 
 
 CREATE INDEX indsats_tils_fremdrift_idx_fremdrift
@@ -16618,8 +16500,6 @@ CREATE SEQUENCE indsats_relation_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE indsats_relation_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE indsats_relation (
@@ -16641,8 +16521,6 @@ CREATE TABLE indsats_relation (
     CONSTRAINT indsats_relation_no_virkning_overlap EXCLUDE USING gist (indsats_registrering_id WITH =, _as_convert_indsats_relation_kode_to_txt(rel_type) WITH =, _composite_type_to_time_range(virkning) WITH &&)  WHERE ( rel_type<>('indsatskvalitet'::IndsatsRelationKode ) AND rel_type<>('indsatsaktoer'::IndsatsRelationKode ) AND rel_type<>('samtykke'::IndsatsRelationKode ) AND rel_type<>('indsatssag'::IndsatsRelationKode ) AND rel_type<>('indsatsdokument'::IndsatsRelationKode )) ,-- no overlapping virkning except for 0..n --relations
     CONSTRAINT indsats_relation_either_uri_or_urn CHECK (NOT (rel_maal_uuid IS NOT NULL AND (rel_maal_urn IS NOT NULL AND rel_maal_urn<>'')))
 );
-ALTER TABLE indsats_relation
-  OWNER TO {{ mox_user }};
 
 
 
@@ -20042,8 +19920,6 @@ CREATE TABLE interessefaellesskab (
 WITH (
     OIDS=FALSE
 );
-ALTER TABLE interessefaellesskab
-    OWNER TO {{ mox_user }};
 
 
 /****************************************************************************/
@@ -20054,8 +19930,6 @@ CREATE SEQUENCE interessefaellesskab_registrering_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE interessefaellesskab_registrering_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE interessefaellesskab_registrering (
@@ -20073,8 +19947,6 @@ WITH (
   OIDS=FALSE
 );
 
-ALTER TABLE interessefaellesskab_registrering
-  OWNER TO {{ mox_user }};
 
 
 CREATE INDEX interessefaellesskab_registrering_idx_livscykluskode
@@ -20121,8 +19993,6 @@ CREATE SEQUENCE interessefaellesskab_attr_egenskaber_id_seq
     START 1
     CACHE 1;
 
-ALTER TABLE interessefaellesskab_attr_egenskaber_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE interessefaellesskab_attr_egenskaber (
@@ -20141,8 +20011,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE interessefaellesskab_attr_egenskaber
-  OWNER TO {{ mox_user }};
 
 
 
@@ -20228,8 +20096,6 @@ CREATE SEQUENCE interessefaellesskab_tils_gyldighed_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE interessefaellesskab_tils_gyldighed_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE interessefaellesskab_tils_gyldighed (
@@ -20245,8 +20111,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE interessefaellesskab_tils_gyldighed
-    OWNER TO {{ mox_user }};
 
 
 CREATE INDEX interessefaellesskab_tils_gyldighed_idx_gyldighed
@@ -20284,8 +20148,6 @@ CREATE SEQUENCE interessefaellesskab_relation_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE interessefaellesskab_relation_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE interessefaellesskab_relation (
@@ -20305,8 +20167,6 @@ CREATE TABLE interessefaellesskab_relation (
     CONSTRAINT interessefaellesskab_relation_no_virkning_overlap EXCLUDE USING gist (interessefaellesskab_registrering_id WITH =, _as_convert_interessefaellesskab_relation_kode_to_txt(rel_type) WITH =, _composite_type_to_time_range(virkning) WITH &&)  WHERE ( rel_type<>('adresser'::InteressefaellesskabRelationKode ) AND rel_type<>('opgaver'::InteressefaellesskabRelationKode ) AND rel_type<>('tilknyttedebrugere'::InteressefaellesskabRelationKode ) AND rel_type<>('tilknyttedeenheder'::InteressefaellesskabRelationKode ) AND rel_type<>('tilknyttedefunktioner'::InteressefaellesskabRelationKode ) AND rel_type<>('tilknyttedeinteressefaellesskaber'::InteressefaellesskabRelationKode ) AND rel_type<>('tilknyttedeorganisationer'::InteressefaellesskabRelationKode ) AND rel_type<>('tilknyttedepersoner'::InteressefaellesskabRelationKode ) AND rel_type<>('tilknyttedeitsystemer'::InteressefaellesskabRelationKode )) ,-- no overlapping virkning except for 0..n --relations
     CONSTRAINT interessefaellesskab_relation_either_uri_or_urn CHECK (NOT (rel_maal_uuid IS NOT NULL AND (rel_maal_urn IS NOT NULL AND rel_maal_urn<>'')))
 );
-ALTER TABLE interessefaellesskab_relation
-  OWNER TO {{ mox_user }};
 
 
 
@@ -22906,8 +22766,6 @@ CREATE TABLE itsystem (
 WITH (
     OIDS=FALSE
 );
-ALTER TABLE itsystem
-    OWNER TO {{ mox_user }};
 
 
 /****************************************************************************/
@@ -22918,8 +22776,6 @@ CREATE SEQUENCE itsystem_registrering_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE itsystem_registrering_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE itsystem_registrering (
@@ -22937,8 +22793,6 @@ WITH (
   OIDS=FALSE
 );
 
-ALTER TABLE itsystem_registrering
-  OWNER TO {{ mox_user }};
 
 
 CREATE INDEX itsystem_registrering_idx_livscykluskode
@@ -22985,8 +22839,6 @@ CREATE SEQUENCE itsystem_attr_egenskaber_id_seq
     START 1
     CACHE 1;
 
-ALTER TABLE itsystem_attr_egenskaber_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE itsystem_attr_egenskaber (
@@ -23006,8 +22858,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE itsystem_attr_egenskaber
-  OWNER TO {{ mox_user }};
 
 
 
@@ -23097,8 +22947,6 @@ CREATE SEQUENCE itsystem_tils_gyldighed_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE itsystem_tils_gyldighed_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE itsystem_tils_gyldighed (
@@ -23114,8 +22962,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE itsystem_tils_gyldighed
-    OWNER TO {{ mox_user }};
 
 
 CREATE INDEX itsystem_tils_gyldighed_idx_gyldighed
@@ -23153,8 +22999,6 @@ CREATE SEQUENCE itsystem_relation_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE itsystem_relation_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE itsystem_relation (
@@ -23174,8 +23018,6 @@ CREATE TABLE itsystem_relation (
     CONSTRAINT itsystem_relation_no_virkning_overlap EXCLUDE USING gist (itsystem_registrering_id WITH =, _as_convert_itsystem_relation_kode_to_txt(rel_type) WITH =, _composite_type_to_time_range(virkning) WITH &&)  WHERE ( rel_type<>('tilknyttedeorganisationer'::ItsystemRelationKode ) AND rel_type<>('tilknyttedeenheder'::ItsystemRelationKode ) AND rel_type<>('tilknyttedefunktioner'::ItsystemRelationKode ) AND rel_type<>('tilknyttedebrugere'::ItsystemRelationKode ) AND rel_type<>('tilknyttedeinteressefaellesskaber'::ItsystemRelationKode ) AND rel_type<>('tilknyttedeitsystemer'::ItsystemRelationKode ) AND rel_type<>('tilknyttedepersoner'::ItsystemRelationKode ) AND rel_type<>('systemtyper'::ItsystemRelationKode ) AND rel_type<>('opgaver'::ItsystemRelationKode ) AND rel_type<>('adresser'::ItsystemRelationKode )) ,-- no overlapping virkning except for 0..n --relations
     CONSTRAINT itsystem_relation_either_uri_or_urn CHECK (NOT (rel_maal_uuid IS NOT NULL AND (rel_maal_urn IS NOT NULL AND rel_maal_urn<>'')))
 );
-ALTER TABLE itsystem_relation
-  OWNER TO {{ mox_user }};
 
 
 
@@ -25811,8 +25653,6 @@ CREATE TABLE klasse (
 WITH (
     OIDS=FALSE
 );
-ALTER TABLE klasse
-    OWNER TO {{ mox_user }};
 
 
 /****************************************************************************/
@@ -25823,8 +25663,6 @@ CREATE SEQUENCE klasse_registrering_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE klasse_registrering_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE klasse_registrering (
@@ -25842,8 +25680,6 @@ WITH (
   OIDS=FALSE
 );
 
-ALTER TABLE klasse_registrering
-  OWNER TO {{ mox_user }};
 
 
 CREATE INDEX klasse_registrering_idx_livscykluskode
@@ -25890,8 +25726,6 @@ CREATE SEQUENCE klasse_attr_egenskaber_id_seq
     START 1
     CACHE 1;
 
-ALTER TABLE klasse_attr_egenskaber_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE klasse_attr_egenskaber (
@@ -25914,8 +25748,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE klasse_attr_egenskaber
-  OWNER TO {{ mox_user }};
 
 
 
@@ -26039,8 +25871,6 @@ CREATE SEQUENCE klasse_attr_egenskaber_soegeord_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE klasse_attr_egenskaber_soegeord_id_seq
-    OWNER TO {{ mox_user }};
 
 CREATE TABLE klasse_attr_egenskaber_soegeord (
     id bigint NOT NULL DEFAULT nextval('klasse_attr_egenskaber_soegeord_id_seq'::regclass),
@@ -26056,8 +25886,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE klasse_attr_egenskaber_soegeord
-    OWNER TO {{ mox_user }};
 
 
 CREATE INDEX klasse_attr_egenskaber_soegeord_idx_soegeordidentifikator
@@ -26102,8 +25930,6 @@ CREATE SEQUENCE klasse_tils_publiceret_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE klasse_tils_publiceret_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE klasse_tils_publiceret (
@@ -26119,8 +25945,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE klasse_tils_publiceret
-    OWNER TO {{ mox_user }};
 
 
 CREATE INDEX klasse_tils_publiceret_idx_publiceret
@@ -26158,8 +25982,6 @@ CREATE SEQUENCE klasse_relation_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE klasse_relation_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE klasse_relation (
@@ -26179,8 +26001,6 @@ CREATE TABLE klasse_relation (
     CONSTRAINT klasse_relation_no_virkning_overlap EXCLUDE USING gist (klasse_registrering_id WITH =, _as_convert_klasse_relation_kode_to_txt(rel_type) WITH =, _composite_type_to_time_range(virkning) WITH &&)  WHERE ( rel_type<>('redaktoerer'::KlasseRelationKode ) AND rel_type<>('sideordnede'::KlasseRelationKode ) AND rel_type<>('mapninger'::KlasseRelationKode ) AND rel_type<>('tilfoejelser'::KlasseRelationKode ) AND rel_type<>('erstatter'::KlasseRelationKode ) AND rel_type<>('lovligekombinationer'::KlasseRelationKode )) ,-- no overlapping virkning except for 0..n --relations
     CONSTRAINT klasse_relation_either_uri_or_urn CHECK (NOT (rel_maal_uuid IS NOT NULL AND (rel_maal_urn IS NOT NULL AND rel_maal_urn<>'')))
 );
-ALTER TABLE klasse_relation
-  OWNER TO {{ mox_user }};
 
 
 
@@ -29119,8 +28939,6 @@ CREATE TABLE klassifikation (
 WITH (
     OIDS=FALSE
 );
-ALTER TABLE klassifikation
-    OWNER TO {{ mox_user }};
 
 
 /****************************************************************************/
@@ -29131,8 +28949,6 @@ CREATE SEQUENCE klassifikation_registrering_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE klassifikation_registrering_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE klassifikation_registrering (
@@ -29150,8 +28966,6 @@ WITH (
   OIDS=FALSE
 );
 
-ALTER TABLE klassifikation_registrering
-  OWNER TO {{ mox_user }};
 
 
 CREATE INDEX klassifikation_registrering_idx_livscykluskode
@@ -29198,8 +29012,6 @@ CREATE SEQUENCE klassifikation_attr_egenskaber_id_seq
     START 1
     CACHE 1;
 
-ALTER TABLE klassifikation_attr_egenskaber_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE klassifikation_attr_egenskaber (
@@ -29219,8 +29031,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE klassifikation_attr_egenskaber
-  OWNER TO {{ mox_user }};
 
 
 
@@ -29317,8 +29127,6 @@ CREATE SEQUENCE klassifikation_tils_publiceret_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE klassifikation_tils_publiceret_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE klassifikation_tils_publiceret (
@@ -29334,8 +29142,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE klassifikation_tils_publiceret
-    OWNER TO {{ mox_user }};
 
 
 CREATE INDEX klassifikation_tils_publiceret_idx_publiceret
@@ -29373,8 +29179,6 @@ CREATE SEQUENCE klassifikation_relation_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE klassifikation_relation_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE klassifikation_relation (
@@ -29394,8 +29198,6 @@ CREATE TABLE klassifikation_relation (
     CONSTRAINT klassifikation_relation_no_virkning_overlap EXCLUDE USING gist (klassifikation_registrering_id WITH =, _as_convert_klassifikation_relation_kode_to_txt(rel_type) WITH =, _composite_type_to_time_range(virkning) WITH &&) ,-- no overlapping virkning except for 0..n --relations
     CONSTRAINT klassifikation_relation_either_uri_or_urn CHECK (NOT (rel_maal_uuid IS NOT NULL AND (rel_maal_urn IS NOT NULL AND rel_maal_urn<>'')))
 );
-ALTER TABLE klassifikation_relation
-  OWNER TO {{ mox_user }};
 
 
 
@@ -32023,8 +31825,6 @@ CREATE TABLE loghaendelse (
 WITH (
     OIDS=FALSE
 );
-ALTER TABLE loghaendelse
-    OWNER TO {{ mox_user }};
 
 
 /****************************************************************************/
@@ -32035,8 +31835,6 @@ CREATE SEQUENCE loghaendelse_registrering_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE loghaendelse_registrering_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE loghaendelse_registrering (
@@ -32054,8 +31852,6 @@ WITH (
   OIDS=FALSE
 );
 
-ALTER TABLE loghaendelse_registrering
-  OWNER TO {{ mox_user }};
 
 
 CREATE INDEX loghaendelse_registrering_idx_livscykluskode
@@ -32102,8 +31898,6 @@ CREATE SEQUENCE loghaendelse_attr_egenskaber_id_seq
     START 1
     CACHE 1;
 
-ALTER TABLE loghaendelse_attr_egenskaber_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE loghaendelse_attr_egenskaber (
@@ -32127,8 +31921,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE loghaendelse_attr_egenskaber
-  OWNER TO {{ mox_user }};
 
 
 
@@ -32269,8 +32061,6 @@ CREATE SEQUENCE loghaendelse_tils_gyldighed_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE loghaendelse_tils_gyldighed_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE loghaendelse_tils_gyldighed (
@@ -32286,8 +32076,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE loghaendelse_tils_gyldighed
-    OWNER TO {{ mox_user }};
 
 
 CREATE INDEX loghaendelse_tils_gyldighed_idx_gyldighed
@@ -32325,8 +32113,6 @@ CREATE SEQUENCE loghaendelse_relation_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE loghaendelse_relation_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE loghaendelse_relation (
@@ -32346,8 +32132,6 @@ CREATE TABLE loghaendelse_relation (
     CONSTRAINT loghaendelse_relation_no_virkning_overlap EXCLUDE USING gist (loghaendelse_registrering_id WITH =, _as_convert_loghaendelse_relation_kode_to_txt(rel_type) WITH =, _composite_type_to_time_range(virkning) WITH &&) ,-- no overlapping virkning except for 0..n --relations
     CONSTRAINT loghaendelse_relation_either_uri_or_urn CHECK (NOT (rel_maal_uuid IS NOT NULL AND (rel_maal_urn IS NOT NULL AND rel_maal_urn<>'')))
 );
-ALTER TABLE loghaendelse_relation
-  OWNER TO {{ mox_user }};
 
 
 
@@ -35065,8 +34849,6 @@ CREATE TABLE organisation (
 WITH (
     OIDS=FALSE
 );
-ALTER TABLE organisation
-    OWNER TO {{ mox_user }};
 
 
 /****************************************************************************/
@@ -35077,8 +34859,6 @@ CREATE SEQUENCE organisation_registrering_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE organisation_registrering_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE organisation_registrering (
@@ -35096,8 +34876,6 @@ WITH (
   OIDS=FALSE
 );
 
-ALTER TABLE organisation_registrering
-  OWNER TO {{ mox_user }};
 
 
 CREATE INDEX organisation_registrering_idx_livscykluskode
@@ -35144,8 +34922,6 @@ CREATE SEQUENCE organisation_attr_egenskaber_id_seq
     START 1
     CACHE 1;
 
-ALTER TABLE organisation_attr_egenskaber_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE organisation_attr_egenskaber (
@@ -35163,8 +34939,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE organisation_attr_egenskaber
-  OWNER TO {{ mox_user }};
 
 
 
@@ -35239,8 +35013,6 @@ CREATE SEQUENCE organisation_tils_gyldighed_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE organisation_tils_gyldighed_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE organisation_tils_gyldighed (
@@ -35256,8 +35028,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE organisation_tils_gyldighed
-    OWNER TO {{ mox_user }};
 
 
 CREATE INDEX organisation_tils_gyldighed_idx_gyldighed
@@ -35295,8 +35065,6 @@ CREATE SEQUENCE organisation_relation_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE organisation_relation_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE organisation_relation (
@@ -35316,8 +35084,6 @@ CREATE TABLE organisation_relation (
     CONSTRAINT organisation_relation_no_virkning_overlap EXCLUDE USING gist (organisation_registrering_id WITH =, _as_convert_organisation_relation_kode_to_txt(rel_type) WITH =, _composite_type_to_time_range(virkning) WITH &&)  WHERE ( rel_type<>('adresser'::OrganisationRelationKode ) AND rel_type<>('ansatte'::OrganisationRelationKode ) AND rel_type<>('opgaver'::OrganisationRelationKode ) AND rel_type<>('tilknyttedebrugere'::OrganisationRelationKode ) AND rel_type<>('tilknyttedeenheder'::OrganisationRelationKode ) AND rel_type<>('tilknyttedefunktioner'::OrganisationRelationKode ) AND rel_type<>('tilknyttedeinteressefaellesskaber'::OrganisationRelationKode ) AND rel_type<>('tilknyttedeorganisationer'::OrganisationRelationKode ) AND rel_type<>('tilknyttedepersoner'::OrganisationRelationKode ) AND rel_type<>('tilknyttedeitsystemer'::OrganisationRelationKode )) ,-- no overlapping virkning except for 0..n --relations
     CONSTRAINT organisation_relation_either_uri_or_urn CHECK (NOT (rel_maal_uuid IS NOT NULL AND (rel_maal_urn IS NOT NULL AND rel_maal_urn<>'')))
 );
-ALTER TABLE organisation_relation
-  OWNER TO {{ mox_user }};
 
 
 
@@ -37891,8 +37657,6 @@ CREATE TABLE organisationenhed (
 WITH (
     OIDS=FALSE
 );
-ALTER TABLE organisationenhed
-    OWNER TO {{ mox_user }};
 
 
 /****************************************************************************/
@@ -37903,8 +37667,6 @@ CREATE SEQUENCE organisationenhed_registrering_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE organisationenhed_registrering_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE organisationenhed_registrering (
@@ -37922,8 +37684,6 @@ WITH (
   OIDS=FALSE
 );
 
-ALTER TABLE organisationenhed_registrering
-  OWNER TO {{ mox_user }};
 
 
 CREATE INDEX organisationenhed_registrering_idx_livscykluskode
@@ -37970,8 +37730,6 @@ CREATE SEQUENCE organisationenhed_attr_egenskaber_id_seq
     START 1
     CACHE 1;
 
-ALTER TABLE organisationenhed_attr_egenskaber_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE organisationenhed_attr_egenskaber (
@@ -37989,8 +37747,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE organisationenhed_attr_egenskaber
-  OWNER TO {{ mox_user }};
 
 
 
@@ -38065,8 +37821,6 @@ CREATE SEQUENCE organisationenhed_tils_gyldighed_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE organisationenhed_tils_gyldighed_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE organisationenhed_tils_gyldighed (
@@ -38082,8 +37836,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE organisationenhed_tils_gyldighed
-    OWNER TO {{ mox_user }};
 
 
 CREATE INDEX organisationenhed_tils_gyldighed_idx_gyldighed
@@ -38121,8 +37873,6 @@ CREATE SEQUENCE organisationenhed_relation_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE organisationenhed_relation_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE organisationenhed_relation (
@@ -38142,8 +37892,6 @@ CREATE TABLE organisationenhed_relation (
     CONSTRAINT organisationenhed_relation_no_virkning_overlap EXCLUDE USING gist (organisationenhed_registrering_id WITH =, _as_convert_organisationenhed_relation_kode_to_txt(rel_type) WITH =, _composite_type_to_time_range(virkning) WITH &&)  WHERE ( rel_type<>('adresser'::OrganisationenhedRelationKode ) AND rel_type<>('ansatte'::OrganisationenhedRelationKode ) AND rel_type<>('opgaver'::OrganisationenhedRelationKode ) AND rel_type<>('tilknyttedebrugere'::OrganisationenhedRelationKode ) AND rel_type<>('tilknyttedeenheder'::OrganisationenhedRelationKode ) AND rel_type<>('tilknyttedefunktioner'::OrganisationenhedRelationKode ) AND rel_type<>('tilknyttedeinteressefaellesskaber'::OrganisationenhedRelationKode ) AND rel_type<>('tilknyttedeorganisationer'::OrganisationenhedRelationKode ) AND rel_type<>('tilknyttedepersoner'::OrganisationenhedRelationKode ) AND rel_type<>('tilknyttedeitsystemer'::OrganisationenhedRelationKode ) AND rel_type<>('opmærkning'::OrganisationenhedRelationKode )) ,-- no overlapping virkning except for 0..n --relations
     CONSTRAINT organisationenhed_relation_either_uri_or_urn CHECK (NOT (rel_maal_uuid IS NOT NULL AND (rel_maal_urn IS NOT NULL AND rel_maal_urn<>'')))
 );
-ALTER TABLE organisationenhed_relation
-  OWNER TO {{ mox_user }};
 
 
 
@@ -40737,8 +40485,6 @@ CREATE TABLE organisationfunktion (
 WITH (
     OIDS=FALSE
 );
-ALTER TABLE organisationfunktion
-    OWNER TO {{ mox_user }};
 
 
 /****************************************************************************/
@@ -40749,8 +40495,6 @@ CREATE SEQUENCE organisationfunktion_registrering_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE organisationfunktion_registrering_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE organisationfunktion_registrering (
@@ -40768,8 +40512,6 @@ WITH (
   OIDS=FALSE
 );
 
-ALTER TABLE organisationfunktion_registrering
-  OWNER TO {{ mox_user }};
 
 
 CREATE INDEX organisationfunktion_registrering_idx_livscykluskode
@@ -40816,8 +40558,6 @@ CREATE SEQUENCE organisationfunktion_attr_egenskaber_id_seq
     START 1
     CACHE 1;
 
-ALTER TABLE organisationfunktion_attr_egenskaber_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE organisationfunktion_attr_egenskaber (
@@ -40835,8 +40575,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE organisationfunktion_attr_egenskaber
-  OWNER TO {{ mox_user }};
 
 
 
@@ -40904,8 +40642,6 @@ CREATE SEQUENCE organisationfunktion_attr_udvidelser_id_seq
     START 1
     CACHE 1;
 
-ALTER TABLE organisationfunktion_attr_udvidelser_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE organisationfunktion_attr_udvidelser (
@@ -40932,8 +40668,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE organisationfunktion_attr_udvidelser
-  OWNER TO {{ mox_user }};
 
 
 
@@ -41109,8 +40843,6 @@ CREATE SEQUENCE organisationfunktion_tils_gyldighed_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE organisationfunktion_tils_gyldighed_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE organisationfunktion_tils_gyldighed (
@@ -41126,8 +40858,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE organisationfunktion_tils_gyldighed
-    OWNER TO {{ mox_user }};
 
 
 CREATE INDEX organisationfunktion_tils_gyldighed_idx_gyldighed
@@ -41165,8 +40895,6 @@ CREATE SEQUENCE organisationfunktion_relation_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE organisationfunktion_relation_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE organisationfunktion_relation (
@@ -41186,8 +40914,6 @@ CREATE TABLE organisationfunktion_relation (
     CONSTRAINT organisationfunktion_relation_no_virkning_overlap EXCLUDE USING gist (organisationfunktion_registrering_id WITH =, _as_convert_organisationfunktion_relation_kode_to_txt(rel_type) WITH =, _composite_type_to_time_range(virkning) WITH &&)  WHERE ( rel_type<>('adresser'::OrganisationfunktionRelationKode ) AND rel_type<>('opgaver'::OrganisationfunktionRelationKode ) AND rel_type<>('tilknyttedebrugere'::OrganisationfunktionRelationKode ) AND rel_type<>('tilknyttedeenheder'::OrganisationfunktionRelationKode ) AND rel_type<>('tilknyttedeorganisationer'::OrganisationfunktionRelationKode ) AND rel_type<>('tilknyttedeitsystemer'::OrganisationfunktionRelationKode ) AND rel_type<>('tilknyttedeinteressefaellesskaber'::OrganisationfunktionRelationKode ) AND rel_type<>('tilknyttedepersoner'::OrganisationfunktionRelationKode ) AND rel_type<>('tilknyttedefunktioner'::OrganisationfunktionRelationKode ) AND rel_type<>('tilknyttedeklasser'::OrganisationfunktionRelationKode )) ,-- no overlapping virkning except for 0..n --relations
     CONSTRAINT organisationfunktion_relation_either_uri_or_urn CHECK (NOT (rel_maal_uuid IS NOT NULL AND (rel_maal_urn IS NOT NULL AND rel_maal_urn<>'')))
 );
-ALTER TABLE organisationfunktion_relation
-  OWNER TO {{ mox_user }};
 
 
 
@@ -44557,8 +44283,6 @@ CREATE TABLE sag (
 WITH (
     OIDS=FALSE
 );
-ALTER TABLE sag
-    OWNER TO {{ mox_user }};
 
 
 /****************************************************************************/
@@ -44569,8 +44293,6 @@ CREATE SEQUENCE sag_registrering_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE sag_registrering_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE sag_registrering (
@@ -44588,8 +44310,6 @@ WITH (
   OIDS=FALSE
 );
 
-ALTER TABLE sag_registrering
-  OWNER TO {{ mox_user }};
 
 
 CREATE INDEX sag_registrering_idx_livscykluskode
@@ -44636,8 +44356,6 @@ CREATE SEQUENCE sag_attr_egenskaber_id_seq
     START 1
     CACHE 1;
 
-ALTER TABLE sag_attr_egenskaber_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE sag_attr_egenskaber (
@@ -44662,8 +44380,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE sag_attr_egenskaber
-  OWNER TO {{ mox_user }};
 
 
 
@@ -44832,8 +44548,6 @@ CREATE SEQUENCE sag_tils_fremdrift_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE sag_tils_fremdrift_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE sag_tils_fremdrift (
@@ -44849,8 +44563,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE sag_tils_fremdrift
-    OWNER TO {{ mox_user }};
 
 
 CREATE INDEX sag_tils_fremdrift_idx_fremdrift
@@ -44888,8 +44600,6 @@ CREATE SEQUENCE sag_relation_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE sag_relation_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE sag_relation (
@@ -44917,8 +44627,6 @@ CREATE TABLE sag_relation (
     CONSTRAINT sag_relation_journal_dok_attr_only_vedlagtdok_tilakteretdok CHECK (journal_dokument_attr IS NULL OR rel_type_spec IN ('vedlagtdokument'::SagRelationJournalPostSpecifikKode,'tilakteretdokument'::SagRelationJournalPostSpecifikKode)),
     CONSTRAINT sag_journal_notat_only_for_notat_type CHECK (journal_notat IS NULL OR rel_type_spec='journalnotat' )
 );
-ALTER TABLE sag_relation
-  OWNER TO {{ mox_user }};
 
 
 
@@ -47995,8 +47703,6 @@ CREATE TABLE tilstand (
 WITH (
     OIDS=FALSE
 );
-ALTER TABLE tilstand
-    OWNER TO {{ mox_user }};
 
 
 /****************************************************************************/
@@ -48007,8 +47713,6 @@ CREATE SEQUENCE tilstand_registrering_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE tilstand_registrering_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE tilstand_registrering (
@@ -48026,8 +47730,6 @@ WITH (
   OIDS=FALSE
 );
 
-ALTER TABLE tilstand_registrering
-  OWNER TO {{ mox_user }};
 
 
 CREATE INDEX tilstand_registrering_idx_livscykluskode
@@ -48074,8 +47776,6 @@ CREATE SEQUENCE tilstand_attr_egenskaber_id_seq
     START 1
     CACHE 1;
 
-ALTER TABLE tilstand_attr_egenskaber_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE tilstand_attr_egenskaber (
@@ -48093,8 +47793,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE tilstand_attr_egenskaber
-  OWNER TO {{ mox_user }};
 
 
 
@@ -48169,8 +47867,6 @@ CREATE SEQUENCE tilstand_tils_status_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE tilstand_tils_status_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE tilstand_tils_status (
@@ -48186,8 +47882,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE tilstand_tils_status
-    OWNER TO {{ mox_user }};
 
 
 CREATE INDEX tilstand_tils_status_idx_status
@@ -48222,8 +47916,6 @@ CREATE SEQUENCE tilstand_tils_publiceret_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE tilstand_tils_publiceret_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE tilstand_tils_publiceret (
@@ -48239,8 +47931,6 @@ WITH (
     OIDS=FALSE
 );
 
-ALTER TABLE tilstand_tils_publiceret
-    OWNER TO {{ mox_user }};
 
 
 CREATE INDEX tilstand_tils_publiceret_idx_publiceret
@@ -48278,8 +47968,6 @@ CREATE SEQUENCE tilstand_relation_id_seq
     MAXVALUE 9223372036854775807
     START 1
     CACHE 1;
-ALTER TABLE tilstand_relation_id_seq
-    OWNER TO {{ mox_user }};
 
 
 CREATE TABLE tilstand_relation (
@@ -48303,8 +47991,6 @@ CREATE TABLE tilstand_relation (
     CONSTRAINT tilstand_relation_either_uri_or_urn CHECK (NOT (rel_maal_uuid IS NOT NULL AND (rel_maal_urn IS NOT NULL AND rel_maal_urn<>''))),
     CONSTRAINT tilstand_relation_nominel_vaerdi_relevant_null_check CHECK (tilstand_vaerdi_attr IS NULL OR rel_type='tilstandsvaerdi')
 );
-ALTER TABLE tilstand_relation
-  OWNER TO {{ mox_user }};
 
 
 

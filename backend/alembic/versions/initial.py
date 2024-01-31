@@ -8,12 +8,8 @@ Create Date: 2022-02-01 16:54:19.119687
 """
 import os
 
-from sqlalchemy import text
-from sqlalchemy.orm import sessionmaker
-
 from alembic import op
-from oio_rest import config
-from oio_rest.db.alembic_helpers import get_prerequisites
+from sqlalchemy import text
 
 # revision identifiers, used by Alembic.
 revision = "initial"
@@ -22,36 +18,28 @@ branch_labels = None
 depends_on = None
 
 
-Session = sessionmaker()
-
-schema_name = "actual_state"
-
-
 def downgrade():
-    drop_schema = text(f"drop schema if exists {schema_name} cascade")
-    bind = op.get_bind()
-    session = Session(bind=bind)
-    session.execute(drop_schema)
+    op.execute(text("drop schema if exists actual_state cascade"))
 
 
 def upgrade():
-    settings = config.get_settings()
-
-    prerequisites = get_prerequisites(
-        schema_name=schema_name,
-        db_user=settings.db_user,
-        db_name=settings.db_name,
-    )
+    """
+    These steps are also performed by the "mox-db-init" container. We perform them here
+    as well as part of the setup/teardown process of each unittest.
+    """
+    database_name = op.get_bind().engine.url.database
+    op.execute("create schema if not exists actual_state")
+    op.execute('create extension if not exists "uuid-ossp" with schema actual_state')
+    op.execute("create extension if not exists btree_gist with schema actual_state")
+    op.execute("create extension if not exists pg_trgm with schema actual_state")
+    op.execute(f"alter database {database_name} set search_path to actual_state, public")
+    op.execute(f"alter database {database_name} set datestyle to 'ISO, YMD'")
+    op.execute(f"alter database {database_name} set intervalstyle to 'sql_standard'")
+    # These steps are required by the LoRa test suite, which assumes that
+    # API responses will use the Copenhagen time zone.
+    # TODO: Are we _really_ sure OS2mo does not assume the same as well?
+    op.execute(f"alter database {database_name} set time zone 'Europe/Copenhagen'")
 
     initial_schema_path = os.path.join(os.path.dirname(__file__), "initial_schema.sql")
-
-    bind = op.get_bind()
-    session = Session(bind=bind)
-
-    for prerequisite in prerequisites:
-        session.execute(text(prerequisite))
-
     with open(initial_schema_path) as initial_schema:
-        session.execute(
-            text(initial_schema.read().replace("{{ mox_user }}", settings.db_user))
-        )
+        op.execute(text(initial_schema.read()))
