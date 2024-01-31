@@ -3,6 +3,7 @@
 # flake8: noqa
 from collections.abc import AsyncIterator
 
+from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine
 from starlette_context import context
@@ -60,14 +61,18 @@ from ._organisationsfunktion import OrganisationFunktionTilsGyldighed
 from .files import FileToken
 
 
-def create_sessionmaker(user, password, host, name):
-    engine = create_async_engine(
+def create_engine(user, password, host, name) -> AsyncEngine:
+    return create_async_engine(
         f"postgresql+psycopg://{user}:{password}@{host}/{name}",
         # Transparently reconnect on connection errors so the calling application does
         # not need to be concerned with error handling. This is required for the
         # testing APIs to function correctly.
         pool_pre_ping=True,
     )
+
+
+def create_sessionmaker(user, password, host, name):
+    engine = create_engine(user, password, host, name)
     return async_sessionmaker(engine)
 
 
