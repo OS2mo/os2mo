@@ -61,12 +61,8 @@ jinja_env = Environment(
 
 
 def adapt(value):
-    connection = get_connection()
-
     adapter = psyco_adapt(value)
-    if hasattr(adapter, "prepare"):
-        adapter.prepare(connection)
-    return str(adapter.getquoted(), connection.encoding)
+    return str(adapter.getquoted(), "UTF8")
 
 
 jinja_env.filters["adapt"] = adapt
