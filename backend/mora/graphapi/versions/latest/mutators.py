@@ -169,7 +169,8 @@ from .schema import Owner
 from .schema import RelatedUnit
 from .schema import Response
 from .schema import Role
-from mora.audit import audit_log
+from mora import db
+from mora.auth.middleware import get_authenticated_user
 from mora.common import get_connector
 from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationUnitRead
@@ -1338,26 +1339,17 @@ class Mutation:
             strawberry.argument(description="Whether to override pre-existing files."),
         ] = False,
     ) -> str:
-        # TODO: This logging should be superfluous with files in the database
-        session = info.context["sessionmaker"]()
-        async with session.begin():
-            audit_log(
-                session,
-                "upload_file",
-                "File",
-                {
-                    "file_store": file_store,
-                    "file": file.filename,
-                    "force": force,
-                },
-                [],
-            )
-
-        filestorage = info.context["filestorage"]
-
         file_name = file.filename
         file_bytes = await file.read()
-        filestorage.save_file(file_store, file_name, file_bytes, force)
+
+        session = info.context["sessionmaker"]()
+        actor = get_authenticated_user()
+
+        async with session.begin():
+            await db.files.write(
+                session, actor, file_store, file_name, file_bytes, force
+            )
+
         return "OK"
 
 

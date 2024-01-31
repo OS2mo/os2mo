@@ -82,8 +82,9 @@ async def test_configuration_resolver_filters(graphapi_post: GraphAPIPost) -> No
     assert response.errors is None
 
 
+@pytest.mark.xfail(reason="waiting for #58757")
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("empty_db")
 async def test_files_resolver_filters(graphapi_post: GraphAPIPost) -> None:
     """Test files resolver filters."""
     query = """

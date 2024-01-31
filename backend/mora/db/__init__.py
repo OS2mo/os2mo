@@ -4,6 +4,7 @@
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine
 
+from . import files
 from ._amqp import AMQPSubsystem
 from ._audit import AuditLogOperation
 from ._audit import AuditLogRead
@@ -22,7 +23,6 @@ from ._facet import FacetRegistrering
 from ._facet import FacetRelation
 from ._facet import FacetRelationKode
 from ._facet import FacetTilsPubliceret
-from ._files import FileToken
 from ._itsystem import ITSystem
 from ._itsystem import ITSystemAttrEgenskaber
 from ._itsystem import ITSystemRegistrering
@@ -53,6 +53,7 @@ from ._organisationsfunktion import OrganisationFunktionRegistrering
 from ._organisationsfunktion import OrganisationFunktionRelation
 from ._organisationsfunktion import OrganisationFunktionRelationKode
 from ._organisationsfunktion import OrganisationFunktionTilsGyldighed
+from .files import FileToken
 
 
 def get_sessionmaker(user, password, host, name):

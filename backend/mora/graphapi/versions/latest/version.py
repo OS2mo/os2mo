@@ -14,7 +14,6 @@ from ..base import BaseGraphQLSchema
 from ..base import BaseGraphQLVersion
 from .audit import get_audit_loaders
 from .dataloaders import get_loaders
-from .files import get_filestorage
 from .mutators import Mutation as LatestMutation
 from .query import Query as LatestQuery
 from .types import CPRType
@@ -74,7 +73,6 @@ class LatestGraphQLVersion(BaseGraphQLVersion):
             **await super().get_context(),
             **await get_loaders(),
             "get_token": get_token,
-            "filestorage": get_filestorage(),
             "amqp_system": amqp_system,
             "sessionmaker": sessionmaker,
             **get_audit_loaders(sessionmaker),

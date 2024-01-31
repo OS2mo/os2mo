@@ -62,6 +62,7 @@ from .schema import RelatedUnit
 from .schema import Response
 from .schema import Role
 from .schema import Version
+from mora import db
 from mora.audit import audit_log
 from mora.config import get_public_settings
 from ramodels.mo.details.address import AddressRead
@@ -120,6 +121,8 @@ async def file_resolver(
 
     session = info.context["sessionmaker"]()
     async with session.begin():
+        # We do not need the audit log elsewhere for files, because this is the
+        # only way to resolve a `File` (which is needed to read the content).
         audit_log(
             session,
             "file_resolver",
@@ -132,10 +135,7 @@ async def file_resolver(
             [],
         )
 
-    filestorage = info.context["filestorage"]
-    found_files = filestorage.list_files(filter.file_store)
-    if filter.file_names is not None:
-        found_files = found_files.intersection(set(filter.file_names))
+        found_files = await db.files.ls(session, filter)
 
     files = paginate(list(found_files), cursor, limit)
     if not files:
