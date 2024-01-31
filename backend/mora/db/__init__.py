@@ -71,7 +71,7 @@ def create_engine(user, password, host, name) -> AsyncEngine:
     )
 
 
-def create_sessionmaker(user, password, host, name):
+def create_sessionmaker(user, password, host, name) -> async_sessionmaker:
     engine = create_engine(user, password, host, name)
     return async_sessionmaker(engine)
 
@@ -88,5 +88,5 @@ def set_sessionmaker_context(sessionmaker):
     return set_sessionmaker_context_inner
 
 
-def get_sessionmaker():
+def get_sessionmaker() -> async_sessionmaker:
     return context[_DB_SESSION_CONTEXT_KEY]

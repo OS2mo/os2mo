@@ -4,10 +4,10 @@
 from collections import namedtuple
 from urllib.parse import urlparse
 
-from psycopg2._range import DateTimeTZRange
-from psycopg2.extensions import adapt as psyco_adapt
-from psycopg2.extensions import ISQLQuote
-from psycopg2.extensions import register_adapter as psyco_register_adapter
+from psycopg import adapters
+from psycopg.adapt import RecursiveDumper
+from psycopg.pq import Format
+from psycopg.types.range import TimestamptzRange
 
 from oio_rest.db import db_structure
 
@@ -208,7 +208,7 @@ class Virkning(namedtuple("Virkning", "timeperiod aktoerref aktoertypekode notet
         if i is None:
             return None
         return cls(
-            DateTimeTZRange(i.get("from", None), i.get("to", None)),
+            TimestamptzRange(i.get("from", None), i.get("to", None)),
             i.get("aktoerref", None),
             i.get("aktoertypekode", None),
             i.get("notetekst", None),
@@ -274,44 +274,24 @@ class DokumentDelRelationType(
         )
 
 
-class NamedTupleAdapter:
-    """Adapt namedtuples, while performing a cast to the tuple's classname."""
+class NamedTupleDumper(RecursiveDumper):
+    format = Format.BINARY
 
-    def __init__(self, tuple_obj):
-        self._tuple_obj = tuple_obj
-
-    def __conform__(self, proto):
-        if proto is ISQLQuote:
-            return self
-
-    def prepare(self, conn):
-        self._conn = conn
-
-    def prepare_and_adapt(self, x):
-        x = psyco_adapt(x)
-        if hasattr(x, "prepare"):
-            x.prepare(self._conn)
-        return x
-
-    def getquoted(self):
-        values = list(map(self.prepare_and_adapt, self._tuple_obj))
-        values = [v.getquoted() for v in values]
-        sql = (
+    def dump(self, obj) -> bytes:
+        values = list(map(self._tx.as_literal, obj))
+        return (
             b"ROW("
             + b",".join(values)
             + b") :: "
-            + self._tuple_obj.__class__.__name__.encode("ascii")
+            + obj.__class__.__name__.encode("ascii")
         )
-        return sql
-
-    def __str__(self):
-        return self.getquoted()
 
 
-class AktoerAttrAdapter(NamedTupleAdapter):
-    def getquoted(self):
-        values = list(map(self.prepare_and_adapt, self._tuple_obj))
-        values = [v.getquoted() for v in values]
+class AktoerAttrDumper(RecursiveDumper):
+    format = Format.BINARY
+
+    def dump(self, obj) -> bytes:
+        values = list(map(self._tx.as_literal, obj))
         qaa = AktoerAttr(*values)  # quoted_aktoer_attr
         values = [
             qaa.obligatorisk + b"::AktivitetAktoerAttrObligatoriskKode",
@@ -319,28 +299,25 @@ class AktoerAttrAdapter(NamedTupleAdapter):
             qaa.repraesentation_uuid + b"::uuid",
             qaa.repraesentation_urn,
         ]
-
-        sql = (
+        return (
             b"ROW("
             + b",".join(values)
             + b") :: "
-            + self._tuple_obj.__class__.__name__.encode("ascii")
+            + obj.__class__.__name__.encode("ascii")
         )
-        return sql
 
-
-psyco_register_adapter(Virkning, NamedTupleAdapter)
-psyco_register_adapter(Soegeord, NamedTupleAdapter)
-psyco_register_adapter(OffentlighedUndtaget, NamedTupleAdapter)
-psyco_register_adapter(JournalNotat, NamedTupleAdapter)
-psyco_register_adapter(JournalDokument, NamedTupleAdapter)
-psyco_register_adapter(VaerdiRelationAttr, NamedTupleAdapter)
-psyco_register_adapter(AktoerAttr, AktoerAttrAdapter)
+adapters.register_dumper(Virkning, NamedTupleDumper)
+adapters.register_dumper(Soegeord, NamedTupleDumper)
+adapters.register_dumper(OffentlighedUndtaget, NamedTupleDumper)
+adapters.register_dumper(JournalNotat, NamedTupleDumper)
+adapters.register_dumper(JournalDokument, NamedTupleDumper)
+adapters.register_dumper(VaerdiRelationAttr, NamedTupleDumper)
+adapters.register_dumper(AktoerAttr, AktoerAttrDumper)
 
 # Dokument variants
-psyco_register_adapter(DokumentVariantType, NamedTupleAdapter)
-psyco_register_adapter(DokumentVariantEgenskaberType, NamedTupleAdapter)
+adapters.register_dumper(DokumentVariantType, NamedTupleDumper)
+adapters.register_dumper(DokumentVariantEgenskaberType, NamedTupleDumper)
 # Dokument parts
-psyco_register_adapter(DokumentDelType, NamedTupleAdapter)
-psyco_register_adapter(DokumentDelEgenskaberType, NamedTupleAdapter)
-psyco_register_adapter(DokumentDelRelationType, NamedTupleAdapter)
+adapters.register_dumper(DokumentDelType, NamedTupleDumper)
+adapters.register_dumper(DokumentDelEgenskaberType, NamedTupleDumper)
+adapters.register_dumper(DokumentDelRelationType, NamedTupleDumper)

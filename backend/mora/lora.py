@@ -33,7 +33,7 @@ from fastapi import Request
 from fastapi import Response
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
-from psycopg2 import DataError
+from psycopg import DataError
 from starlette_context import context
 from starlette_context import request_cycle_context
 from strawberry.dataloader import DataLoader
@@ -145,7 +145,7 @@ def lora_to_mo_exception() -> Iterator[None]:
         exceptions.ErrorCodes.E_INVALID_INPUT(message=e.args[0], cause=None)
     except DataError as e:
         message = e.diag.message_primary
-        cause = e.diag.context or e.pgerror.split("\n", 1)[-1]
+        cause = e.diag.context
         exceptions.ErrorCodes.E_INVALID_INPUT(message=message, cause=cause)
     except Exception as e:
         try:

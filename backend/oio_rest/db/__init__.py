@@ -4,52 +4,43 @@ import collections
 import copy
 import datetime
 import enum
-import os
 import pathlib
 from contextlib import suppress
-from contextvars import ContextVar
 from typing import Any
 from uuid import UUID
 
 import dateutil
-import psycopg2
 from dateutil import parser as date_parser
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from more_itertools import one
-from psycopg2.extensions import adapt as psyco_adapt
-from psycopg2.extensions import AsIs
-from psycopg2.extensions import Boolean
-from psycopg2.extensions import QuotedString
-from psycopg2.extensions import register_adapter
-from psycopg2.extensions import TRANSACTION_STATUS_INERROR
-from psycopg2.extras import DateTimeTZRange
-from psycopg2.extras import Json
-from psycopg2.extras import register_uuid
-from psycopg2.sql import Identifier
-from psycopg2.sql import SQL
+from psycopg import ClientCursor
+from psycopg import sql
+from psycopg.adapt import Transformer
+from psycopg.sql import Identifier
+from psycopg.sql import SQL
+from psycopg.types.range import TimestamptzRange
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..custom_exceptions import BadRequestException
-from ..custom_exceptions import DBException
-from ..custom_exceptions import NotFoundException
+from mora.audit import audit_log
+from mora.auth.middleware import get_authenticated_user
+from mora.db import get_sessionmaker
 from .db_helpers import AktoerAttr
 from .db_helpers import DokumentVariantType
+from .db_helpers import JournalDokument
+from .db_helpers import JournalNotat
+from .db_helpers import OffentlighedUndtaget
+from .db_helpers import Soegeord
+from .db_helpers import VaerdiRelationAttr
 from .db_helpers import get_attribute_fields
 from .db_helpers import get_attribute_names
 from .db_helpers import get_field_type
 from .db_helpers import get_relation_field_type
 from .db_helpers import get_state_names
-from .db_helpers import JournalDokument
-from .db_helpers import JournalNotat
-from .db_helpers import OffentlighedUndtaget
-from .db_helpers import Soegeord
 from .db_helpers import to_bool
-from .db_helpers import VaerdiRelationAttr
-from mora.audit import audit_log
-from mora.auth.middleware import get_authenticated_user
-from mora.db import get_sessionmaker
-from oio_rest import config
+from ..custom_exceptions import BadRequestException
+from ..custom_exceptions import NotFoundException
 
 """
     Jinja2 Environment
@@ -58,23 +49,28 @@ from oio_rest import config
 jinja_env = Environment(
     loader=FileSystemLoader(
         str(pathlib.Path(__file__).parent / "sql" / "invocations" / "templates"),
-    )
+    ),
+    enable_async=True
 )
 
 
-def adapt(value):
-    connection = get_connection()
-
-    adapter = psyco_adapt(value)
-    if hasattr(adapter, "prepare"):
-        adapter.prepare(connection)
-    return str(adapter.getquoted(), connection.encoding)
+async def adapt(value):
+    async with get_sessionmaker().begin() as session:
+        connection = await session.connection()
+        raw_connection = await connection.get_raw_connection()
+        driver_connection = raw_connection.driver_connection
+        transformer = Transformer(driver_connection)
+        literal = transformer.as_literal(value)
+        string = str(literal, transformer.encoding)
+        # The SQL templates return statements ready to be executed as-is but SQLAlchemy
+        # insists on binding parameters (':myparam') before execution. This won't work
+        # until we get rid of templating, and do everything properly in SQLAlchemy,
+        # so we have to escape colons before returning the templated statement.
+        escaped = string.replace(":", "\\:")
+        return escaped
 
 
 jinja_env.filters["adapt"] = adapt
-
-register_adapter(dict, Json)
-register_uuid()
 
 # We only have one connection, so we cannot benefit from the gunicorn gthread
 # worker class, which is intended to reduce memory footprint anyway. This
@@ -185,10 +181,10 @@ def convert_attr_value(attribute_name, attribute_field_name, attribute_field_val
     elif field_type == "interval(0)":
         # delegate actual interval parsing to PostgreSQL in all cases,
         # bypassing psycopg2 cleverness
-        s = QuotedString(attribute_field_value or "0")
-        return AsIs(f"{s} :: interval")
+        s = sql.quote(attribute_field_value or "0")
+        return sql.Literal(f"{s} :: interval")
     elif field_type == "boolean":
-        return Boolean(to_bool(attribute_field_value))
+        return to_bool(attribute_field_value)
     else:
         return attribute_field_value
 
@@ -286,28 +282,28 @@ class Livscyklus(enum.Enum):
 """
 
 
-def sql_state_array(state, periods, class_name):
+async def sql_state_array(state, periods, class_name):
     """Return an SQL array of type <state>TilsType."""
     t = jinja_env.get_template("state_array.sql")
-    sql = t.render(class_name=class_name, state_name=state, state_periods=periods)
+    sql = await t.render_async(class_name=class_name, state_name=state, state_periods=periods)
     return sql
 
 
-def sql_attribute_array(attribute, periods):
+async def sql_attribute_array(attribute, periods):
     """Return an SQL array of type <attribute>AttrType[]."""
     t = jinja_env.get_template("attribute_array.sql")
-    sql = t.render(attribute_name=attribute, attribute_periods=periods)
+    sql = await t.render_async(attribute_name=attribute, attribute_periods=periods)
     return sql
 
 
-def sql_relations_array(class_name, relations):
+async def sql_relations_array(class_name, relations):
     """Return an SQL array of type <class_name>RelationType[]."""
     t = jinja_env.get_template("relations_array.sql")
-    sql = t.render(class_name=class_name, relations=relations)
+    sql = await t.render_async(class_name=class_name, relations=relations)
     return sql
 
 
-def sql_convert_registration(registration, class_name):
+async def sql_convert_registration(registration, class_name):
     """Convert input JSON to the SQL arrays we need."""
     registration["attributes"] = convert_attributes(registration["attributes"])
     registration["relations"] = convert_relations(registration["relations"], class_name)
@@ -324,18 +320,18 @@ def sql_convert_registration(registration, class_name):
         else:
             periods = None
 
-        sql_states.append(sql_state_array(sn, periods, class_name))
+        sql_states.append(await sql_state_array(sn, periods, class_name))
     registration["states"] = sql_states
 
     attributes = registration["attributes"]
     sql_attributes = []
     for a in get_attribute_names(class_name):
         periods = attributes[a] if a in attributes else None
-        sql_attributes.append(sql_attribute_array(a, periods))
+        sql_attributes.append(await sql_attribute_array(a, periods))
     registration["attributes"] = sql_attributes
 
     relations = registration["relations"]
-    sql_relations = sql_relations_array(class_name, relations)
+    sql_relations = await sql_relations_array(class_name, relations)
     # print "CLASS", class_name
 
     registration["relations"] = sql_relations
@@ -343,7 +339,7 @@ def sql_convert_registration(registration, class_name):
     return registration
 
 
-def sql_get_registration(
+async def sql_get_registration(
     class_name, time_period, life_cycle_code, user_ref, note, registration
 ):
     """
@@ -352,7 +348,7 @@ def sql_get_registration(
     Expects a Registration object returned from sql_convert_registration.
     """
     sql_template = jinja_env.get_template("registration.sql")
-    sql = sql_template.render(
+    sql = await sql_template.render_async(
         class_name=class_name,
         time_period=time_period,
         life_cycle_code=life_cycle_code,
@@ -371,6 +367,15 @@ def sql_get_registration(
 """
 
 
+async def mogrify(sql, arguments, session: AsyncSession):
+    connection = await session.connection()
+    raw_connection = await connection.get_raw_connection()
+    driver_connection = raw_connection.driver_connection
+    client_cursor = ClientCursor(driver_connection)
+    resulting_sql = client_cursor.mogrify(sql, arguments)
+    return resulting_sql
+
+
 async def object_exists(class_name: str, uuid: str) -> bool:
     """Check if an object with this class name and UUID exists already."""
     sql = SQL(
@@ -383,14 +388,11 @@ async def object_exists(class_name: str, uuid: str) -> bool:
     )
     arguments = {"uuid": uuid}
 
-    with get_connection().cursor() as cursor:
-        resulting_sql = cursor.mogrify(sql, arguments)
-
     async with get_sessionmaker().begin() as session:
+        resulting_sql = await mogrify(sql, arguments, session)
         audit_log(session, "object_exists", class_name, arguments, [UUID(uuid)])
-        # cursor.execute(sql, arguments)
-        result = await session.scalar(text(resulting_sql.decode("UTF-8")))
-        # This is the old error-handling. We need the equivalent:
+        result = await session.scalar(text(resulting_sql))
+        # TODO: This is the old error-handling. We need the equivalent:
         # except psycopg2.Error as e:
         #     if e.pgcode is not None and e.pgcode[:2] == "MO":
         #         status_code = int(e.pgcode[2:])
@@ -418,14 +420,14 @@ async def create_or_import_object(class_name, note, registration, uuid=None):
 
     user_ref = str(get_authenticated_user())
 
-    registration = sql_convert_registration(registration, class_name)
-    sql_registration = sql_get_registration(
+    registration = await sql_convert_registration(registration, class_name)
+    sql_registration = await sql_get_registration(
         class_name, None, life_cycle_code, user_ref, note, registration
     )
 
     sql_template = jinja_env.get_template("create_object.sql")
     sql = text(
-        sql_template.render(
+        await sql_template.render_async(
             class_name=class_name,
             uuid=uuid,
             life_cycle_code=life_cycle_code,
@@ -438,7 +440,7 @@ async def create_or_import_object(class_name, note, registration, uuid=None):
     async with get_sessionmaker().begin() as session:
         result = await session.execute(sql)
         return result.fetchone()[0]
-        # This is the old error-handling. We need the equivalent:
+        # TODO: This is the old error-handling. We need the equivalent:
         # except psycopg2.Error as e:
         #     if e.pgcode is not None and e.pgcode[:2] == "MO":
         #         status_code = int(e.pgcode[2:])
@@ -464,9 +466,9 @@ async def delete_object(class_name, registration, note, uuid):
 
     user_ref = str(get_authenticated_user())
     sql_template = jinja_env.get_template("update_object.sql")
-    registration = sql_convert_registration(registration, class_name)
+    registration = await sql_convert_registration(registration, class_name)
     sql = text(
-        sql_template.render(
+        await sql_template.render_async(
             class_name=class_name,
             uuid=uuid,
             life_cycle_code=life_cycle_code,
@@ -483,7 +485,7 @@ async def delete_object(class_name, registration, note, uuid):
         result = await session.execute(sql)
         return result.fetchone()[0]
 
-        # This is the old error-handling. We need the equivalent:
+        # TODO: This is the old error-handling. We need the equivalent:
         #   except psycopg2.Error as e:
         #       if e.pgcode is not None and e.pgcode[:2] == "MO":
         #           status_code = int(e.pgcode[2:])
@@ -498,9 +500,9 @@ async def passivate_object(class_name, note, registration, uuid):
     user_ref = str(get_authenticated_user())
     life_cycle_code = Livscyklus.PASSIVERET.value
     sql_template = jinja_env.get_template("update_object.sql")
-    registration = sql_convert_registration(registration, class_name)
+    registration = await sql_convert_registration(registration, class_name)
     sql = text(
-        sql_template.render(
+        await sql_template.render_async(
             class_name=class_name,
             uuid=uuid,
             life_cycle_code=life_cycle_code,
@@ -516,7 +518,7 @@ async def passivate_object(class_name, note, registration, uuid):
     async with get_sessionmaker().begin() as session:
         result = await session.execute(sql)
         return result.fetchone()[0]
-    # This is the old error-handling. We need the equivalent:
+    # TODO: This is the old error-handling. We need the equivalent:
     # except psycopg2.Error as e:
     #     if e.pgcode is not None and e.pgcode[:2] == "MO":
     #         status_code = int(e.pgcode[2:])
@@ -531,11 +533,11 @@ async def update_object(
     """Update object with the partial data supplied."""
     user_ref = str(get_authenticated_user())
 
-    registration = sql_convert_registration(registration, class_name)
+    registration = await sql_convert_registration(registration, class_name)
 
     sql_template = jinja_env.get_template("update_object.sql")
     sql = text(
-        sql_template.render(
+        await sql_template.render_async(
             class_name=class_name,
             uuid=uuid,
             life_cycle_code=life_cycle_code,
@@ -550,7 +552,7 @@ async def update_object(
 
     async with get_sessionmaker().begin() as session:
         await session.execute(sql)
-    # This is the old error-handling. We need the equivalent:
+    # TODO: This is the old error-handling. We need the equivalent:
     # try:
     #     cursor.execute(sql)
     #     cursor.fetchone()
@@ -605,24 +607,22 @@ async def list_objects(
 
     sql_template = jinja_env.get_template("list_objects.sql")
 
-    sql = sql_template.render(class_name=class_name)
+    sql = await sql_template.render_async(class_name=class_name)
 
     registration_period = None
     if registreret_fra is not None or registreret_til is not None:
-        registration_period = DateTimeTZRange(registreret_fra, registreret_til)
+        registration_period = TimestamptzRange(registreret_fra, registreret_til)
 
     arguments = {
         "uuid": uuid,
         "registrering_tstzrange": registration_period,
-        "virkning_tstzrange": DateTimeTZRange(virkning_fra, virkning_til),
+        "virkning_tstzrange": TimestamptzRange(virkning_fra, virkning_til),
     }
 
-    with get_connection().cursor() as cursor:
-        resulting_sql = cursor.mogrify(sql, arguments)
-
     async with get_sessionmaker().begin() as session:
-        result = await session.execute(text(resulting_sql.decode("UTF-8")))
-        # This is the old error-handling. We need the equivalent:
+        resulting_sql = await mogrify(sql, arguments, session)
+        result = await session.execute(text(resulting_sql))
+        # TODO: This is the old error-handling. We need the equivalent:
         # except psycopg2.Error as e:
         #     if e.pgcode is not None and e.pgcode[:2] == "MO":
         #         status_code = int(e.pgcode[2:])
@@ -957,10 +957,10 @@ async def search_objects(
 
     time_period = None
     if registreret_fra is not None or registreret_til is not None:
-        time_period = DateTimeTZRange(registreret_fra, registreret_til)
+        time_period = TimestamptzRange(registreret_fra, registreret_til)
 
-    registration = sql_convert_registration(registration, class_name)
-    sql_registration = sql_get_registration(
+    registration = await sql_convert_registration(registration, class_name)
+    sql_registration = await sql_get_registration(
         class_name, time_period, life_cycle_code, user_ref, note, registration
     )
 
@@ -968,10 +968,10 @@ async def search_objects(
 
     virkning_soeg = None
     if virkning_fra is not None or virkning_til is not None:
-        virkning_soeg = DateTimeTZRange(virkning_fra, virkning_til)
+        virkning_soeg = TimestamptzRange(virkning_fra, virkning_til)
 
     sql = text(
-        sql_template.render(
+        await sql_template.render_async(
             first_result=first_result,
             uuid=uuid,
             class_name=class_name,
@@ -999,6 +999,7 @@ async def search_objects(
 
     async with get_sessionmaker().begin() as session:
         result = await session.execute(sql)
+        # TODO: This is the old error-handling. We need the equivalent:
         # except psycopg2.Error as e:
         #     if e.pgcode is not None and e.pgcode[:2] == "MO":
         #         status_code = int(e.pgcode[2:])
