@@ -34,15 +34,6 @@ resultegenskaberArr2	KlasseegenskaberAttrType[];
 resultegenskaberArr3	KlasseegenskaberAttrType[];
 resultegenskaberArr4	KlasseegenskaberAttrType[];
 resultegenskaberArr5	KlasseegenskaberAttrType[];
-soegeordArr	KlasseSoegeordType[];
-soegeordArr2	KlasseSoegeordType[];
-soegeordArr3	KlasseSoegeordType[];
-soegeordArr4	KlasseSoegeordType[];
-resultsoegeordArr	KlasseSoegeordType[];
-resultsoegeordArr2	KlasseSoegeordType[];
-resultsoegeordArr3	KlasseSoegeordType[];
-resultsoegeordArr4	KlasseSoegeordType[];
-resultsoegeordArr5	KlasseSoegeordType[];
 
 BEGIN
 
@@ -293,7 +284,6 @@ ROW(
    'titel_E',
    'retskilde_E',
    'aendringsnotat',
-    ARRAY[ROW('soegeordidentifikator_klasseEgenskabE_Soegeord1','beskrivelse_klasseEgenskabE_Soegeord1','soegeordskategori_klasseEgenskabE_Soegeord1')::KlasseSoegeordType]
 	,ROW ('[2015-04-13, infinity)' :: TSTZRANGE,'30ba2a98-2c2e-4628-b030-e39e25c81669'::uuid,'Bruger','NoteEx30') :: Virkning
 ):: KlasseEgenskaberAttrType
 );

@@ -356,28 +356,6 @@ class TestDB(TestCase):
         assert value == actual_result
 
     @patch("oio_rest.db.get_field_type")
-    def test_convert_attr_value_soegeord(self, mock_get_field_type):
-        # type: (MagicMock) -> None
-        from oio_rest.db.db_helpers import Soegeord
-
-        # Arrange
-        mock_get_field_type.return_value = "soegeord"
-
-        value = [
-            ["identifier1", "description1", "category1"],
-            ["identifier2", "description2", "category2"],
-        ]
-
-        expected_result = [Soegeord(*value[0]), Soegeord(*value[1])]
-
-        # Act
-        actual_result = db.convert_attr_value(
-            "attribute_name", "attribute_field_name", value
-        )
-        # Assert
-        assert expected_result == actual_result
-
-    @patch("oio_rest.db.get_field_type")
     def test_convert_attr_value_offentlighedundtagettype(self, mock_get_field_type):
         # type: (MagicMock) -> None
         from oio_rest.db.db_helpers import OffentlighedUndtaget

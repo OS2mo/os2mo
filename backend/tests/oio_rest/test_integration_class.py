@@ -26,18 +26,6 @@ class Tests(DBTestCase):
                             "to": "infinity",
                         },
                         "retskilde": "Ja",
-                        "soegeord": [
-                            {
-                                "beskrivelse": "\u00e6Vores kunde",
-                                "soegeordidentifikator": "KL",
-                                "soegeordskategori": "info",
-                            },
-                            {
-                                "beskrivelse": "Vores firma",
-                                "soegeordidentifikator": "Magenta\u00f8",
-                                "soegeordskategori": "info",
-                            },
-                        ],
                         "eksempel": "Hierarkisk",
                     }
                 ]
@@ -129,18 +117,6 @@ class Tests(DBTestCase):
                         "eksempel": "Hierarkisk",
                         "omfang": "Magenta",
                         "retskilde": "Nej",
-                        "soegeord": [
-                            {
-                                "beskrivelse": "Vores firma",
-                                "soegeordidentifikator": "Magenta",
-                                "soegeordskategori": "info",
-                            },
-                            {
-                                "beskrivelse": "Vores kunde",
-                                "soegeordidentifikator": "KL",
-                                "soegeordskategori": "info",
-                            },
-                        ],
                         "titel": "XYZ",
                         "virkning": {
                             "aktoerref": "ddc99abd-c1b0-48c2-aef7-74fea841adae",
@@ -297,13 +273,6 @@ class Tests(DBTestCase):
                             "from": "2014-05-22 12:02:32+02",
                         },
                         "brugervendtnoegle": "ORGFUNK",
-                        "soegeord": [
-                            {
-                                "beskrivelse": "med",
-                                "soegeordidentifikator": "hej",
-                                "soegeordskategori": "dig",
-                            }
-                        ],
                         "eksempel": "Hierarkisk",
                         "titel": "XYZ",
                     }

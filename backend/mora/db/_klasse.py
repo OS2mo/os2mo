@@ -44,20 +44,6 @@ class KlasseAttrEgenskaber(_AttrEgenskaberMixin, Base):
     klasse_registrering_id = Column(ForeignKey("klasse_registrering.id"), index=True)
 
 
-class KlasseAttrEgenskaberSoegeord(Base):
-    __tablename__ = "klasse_attr_egenskaber_soegeord"
-
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-
-    soegeordidentifikator: Mapped[str | None] = mapped_column(Text, index=True)
-    beskrivelse: Mapped[str | None] = mapped_column(Text, index=True)
-    soegeordskategori: Mapped[str | None] = mapped_column(Text, index=True)
-
-    klasse_attr_egenskaber_id = Column(
-        ForeignKey("klasse_attr_egenskaber.id"), index=True
-    )
-
-
 KlasseRelationKode = Literal[
     "ansvarlig",
     "ejer",

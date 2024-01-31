@@ -18,19 +18,7 @@ klasseRelRedaktoer2 KlasseRelationType;
 klasserelredaktoer1 KlasseRelationType;
 klassePubliceret KlassePubliceretTilsType;
 klassePubliceretB KlassePubliceretTilsType;
-klasseEgenskabA_Soegeord1 KlasseSoegeordType;
-klasseEgenskabA_Soegeord2 KlasseSoegeordType;
 klasseEgenskabA KlasseEgenskaberAttrType;
-klasseEgenskabB_Soegeord1  KlasseSoegeordType;
-klasseEgenskabB_Soegeord2  KlasseSoegeordType;
-klasseEgenskabB_Soegeord3 KlasseSoegeordType;
-klasseEgenskabB_Soegeord4 KlasseSoegeordType;
-
-klasseEgenskabE_Soegeord1 KlasseSoegeordType;
-klasseEgenskabE_Soegeord2 KlasseSoegeordType;
-klasseEgenskabE_Soegeord3 KlasseSoegeordType;
-klasseEgenskabE_Soegeord4 KlasseSoegeordType;
-klasseEgenskabE_Soegeord5 KlasseSoegeordType;
 
 klasseEgenskabB KlasseEgenskaberAttrType;
 registreringA KlasseRegistreringType;

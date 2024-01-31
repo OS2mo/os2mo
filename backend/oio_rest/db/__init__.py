@@ -42,7 +42,6 @@ from .db_helpers import get_state_names
 from .db_helpers import JournalDokument
 from .db_helpers import JournalNotat
 from .db_helpers import OffentlighedUndtaget
-from .db_helpers import Soegeord
 from .db_helpers import to_bool
 from .db_helpers import VaerdiRelationAttr
 from mora.audit import audit_log_lora
@@ -159,9 +158,7 @@ def convert_attr_value(attribute_name, attribute_field_name, attribute_field_val
     # pass on. For complex types like "Soegeord" with specialized adapters,
     # convert to the class for which the adapter is registered.
     field_type = get_field_type(attribute_name, attribute_field_name)
-    if field_type == "soegeord":
-        return [Soegeord(*ord) for ord in attribute_field_value]
-    elif field_type == "offentlighedundtagettype":
+    if field_type == "offentlighedundtagettype":
         if not ("alternativtitel" in attribute_field_value) and not (
             "hjemmel" in attribute_field_value
         ):

@@ -92,7 +92,6 @@ def get_document_part_relation_names():
 
 
 # Helper classers for adapting special types
-Soegeord = namedtuple("KlasseSoegeordType", "identifier description category")
 OffentlighedUndtaget = namedtuple("OffentlighedUndtagetType", "alternativtitel hjemmel")
 JournalNotat = namedtuple("JournalNotatType", "titel notat format")
 JournalDokument = namedtuple(
@@ -330,7 +329,6 @@ class AktoerAttrAdapter(NamedTupleAdapter):
 
 
 psyco_register_adapter(Virkning, NamedTupleAdapter)
-psyco_register_adapter(Soegeord, NamedTupleAdapter)
 psyco_register_adapter(OffentlighedUndtaget, NamedTupleAdapter)
 psyco_register_adapter(JournalNotat, NamedTupleAdapter)
 psyco_register_adapter(JournalDokument, NamedTupleAdapter)

@@ -560,11 +560,6 @@ class TestGenerateJSONSchema(TestBase):
                             "titel": {"type": "string"},
                             "retskilde": {"type": "string"},
                             "aendringsnotat": {"type": "string"},
-                            "soegeord": {
-                                "type": "array",
-                                "items": {"type": "array", "items": {"type": "string"}},
-                                "maxItems": 2,
-                            },
                             "virkning": {"$ref": "#/definitions/virkning"},
                         },
                         "required": ["brugervendtnoegle", "titel", "virkning"],
