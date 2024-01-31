@@ -5,9 +5,16 @@
 
 set -ex
 
-# Run prerequisites that are the same across dev, CI and prod.
-# (Currently this means applying Alembic migrations to the `mox` database.)
-. ./docker/prestart.sh
+# If DISABLE_ALEMBIC is unset or false, run alembic
+if [ -z "$DISABLE_ALEMBIC" ] || [ "$DISABLE_ALEMBIC" = "false" ]; then
+    echo "Upgrading database schema"
+    alembic upgrade head
+elif [ "$DISABLE_ALEMBIC" = "true" ]; then
+    echo "Alembic disabled by switch"
+else
+    echo "UNKNOWN DISABLE_ALEMBIC value: $DISABLE_ALEMBIC"
+    exit 1
+fi
 
 # In production, we use gunicorn with the worker class
 # "uvicorn.workers.UvicornWorker", but that does not work with --reload, so we
