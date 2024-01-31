@@ -1,10 +1,8 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import os
 import re
 from collections.abc import Iterator
 
-import pandas as pd
 from fastramqpi.context import Context
 from more_itertools import split_when
 from pydantic import parse_obj_as
@@ -37,55 +35,13 @@ class UserNameGeneratorBase:
         )
         self.char_replacement = self.username_generator.char_replacement
         self.forbidden_usernames = [
-            u.lower()
-            for u in self.username_generator.forbidden_usernames
-            if not self.is_filename(u)
+            u.lower() for u in self.username_generator.forbidden_usernames
         ]
         self.combinations = self.username_generator.combinations_to_try
 
         self.dataloader = self.user_context["dataloader"]
 
-        self.files_with_forbidden_usernames = [
-            u
-            for u in self.username_generator.forbidden_usernames
-            if self.is_filename(u)
-        ]
-
-        for file in self.files_with_forbidden_usernames:
-            self.forbidden_usernames.extend(self.read_usernames_from_text_file(file))
-
         logger.info(f"Found {len(self.forbidden_usernames)} forbidden usernames")
-
-    @staticmethod
-    def is_filename(string):
-        """
-        Return True if the string is a csv-formatted file
-        """
-        if string.lower().endswith(".csv"):
-            return True
-        elif string.lower().endswith(".txt"):
-            return True
-        else:
-            return False
-
-    def read_usernames_from_text_file(self, filename: str) -> list[str]:
-        """
-        Read usernames from a csv-formatted text file.
-
-        Notes
-        ----------
-        - The text file can only contain one column and shall only contain usernames
-        - The text file should not have a header.
-        """
-        logger.info(f"Reading {filename}")
-
-        full_path = os.path.join(
-            self.user_context["forbidden_usernames_path"],
-            filename,
-        )
-        csv = pd.read_csv(full_path, names=["forbidden_usernames"])
-
-        return [name.lower() for name in csv.loc[:, "forbidden_usernames"]]
 
     def get_existing_values(self, attributes: list[str]):
         searchParameters = {

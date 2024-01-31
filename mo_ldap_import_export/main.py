@@ -3,7 +3,6 @@
 """Event handling."""
 import asyncio
 import datetime
-import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from functools import partial
@@ -384,10 +383,6 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     logger.info("Loading mapping file")
     mapping = settings.conversion_mapping.dict(exclude_unset=True, by_alias=True)
     fastramqpi.add_context(mapping=mapping)
-
-    mappings_path = os.path.join(os.path.dirname(__file__), "mappings")
-    forbidden_usernames_path = os.path.join(mappings_path, "forbidden_usernames")
-    fastramqpi.add_context(forbidden_usernames_path=forbidden_usernames_path)
 
     logger.info("Initializing dataloader")
     dataloader = DataLoader(fastramqpi.get_context())
