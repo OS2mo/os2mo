@@ -1175,9 +1175,11 @@ class LdapConverter:
 
             ldap_dict: CaseInsensitiveDict = CaseInsensitiveDict(
                 {
-                    key: value[min(entry, len(value) - 1)]
-                    if isinstance(value, list) and len(value) > 0
-                    else value
+                    key: (
+                        value[min(entry, len(value) - 1)]
+                        if isinstance(value, list) and len(value) > 0
+                        else value
+                    )
                     for key, value in ldap_object.dict().items()
                 }
             )
