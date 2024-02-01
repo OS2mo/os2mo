@@ -13,7 +13,6 @@ from pydantic import Field
 from pydantic import parse_obj_as
 from pydantic import root_validator
 from pydantic import validator
-from pydantic.types import DirectoryPath
 from pydantic.types import FilePath
 from pydantic.types import UUID
 from ramqp.config import AMQPConnectionSettings
@@ -65,11 +64,6 @@ class ServicePlatformenSettings(BaseSettings):
         return v
 
 
-class FileSystemSettings(BaseSettings):
-    query_export_dir: DirectoryPath = "/queries"
-    query_insight_dir: DirectoryPath | None = None
-
-
 class Settings(BaseSettings):
     """
     These settings can be overwritten by environment variables
@@ -91,18 +85,6 @@ class Settings(BaseSettings):
 
     # Testing
     insecure_enable_testing_api: bool = False
-
-    # File Store settings
-    file_storage: str = "noop"
-    filesystem_settings: FileSystemSettings | None = None
-
-    @root_validator
-    def check_filesystem_settings(cls, values: dict[str, Any]) -> dict[str, Any]:
-        if values.get("file_storage") != "filesystem":
-            return values
-
-        values["filesystem_settings"] = FileSystemSettings()
-        return values
 
     # Enable auth-endpoints and auth
     os2mo_auth: bool = True
@@ -343,7 +325,6 @@ def get_public_settings() -> set[str]:
         "navlinks",
         "show_it_associations_tab",
         "keycloak_rbac_enabled",
-        "file_storage",
         "enable_sp",
     }
     confdb_keys = filter(

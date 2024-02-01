@@ -61,6 +61,7 @@ from .validity import OpenValidity
 from .validity import Validity
 from mora import common
 from mora import config
+from mora import db
 from mora.common import _create_graphql_connector
 from mora.graphapi.middleware import set_graphql_dates
 from mora.graphapi.versions.latest.readers import _extract_search_params
@@ -4392,9 +4393,11 @@ class File:
         """
         )
     )
-    def text_contents(self, info: Info) -> str:
-        filestorage = info.context["filestorage"]
-        return cast(str, filestorage.load_file(self.file_store, self.file_name))
+    async def text_contents(self, info: Info) -> str:
+        session = info.context["sessionmaker"]()
+        async with session.begin():
+            content = await db.files.read(session, self.file_store, self.file_name)
+        return content.decode("utf-8")
 
     @strawberry.field(
         description=dedent(
@@ -4418,12 +4421,12 @@ class File:
         """
         )
     )
-    def base64_contents(self, info: Info) -> str:
-        filestorage = info.context["filestorage"]
-        data = cast(
-            bytes, filestorage.load_file(self.file_store, self.file_name, binary=True)
-        )
-        data = b64encode(data)
+    async def base64_contents(self, info: Info) -> str:
+        session = info.context["sessionmaker"]()
+        async with session.begin():
+            content = await db.files.read(session, self.file_store, self.file_name)
+
+        data = b64encode(content)
         return data.decode("ascii")
 
 
