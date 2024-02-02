@@ -13,7 +13,7 @@ keywords = ["os2mo", "data models"]
 packages = [ { include = "ramodels" } ]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 pydantic = "^1.10.2"
 more-itertools = "^9.0.0"
 python-dateutil = "^2.8.2"
