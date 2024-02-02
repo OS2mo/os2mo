@@ -45,6 +45,7 @@ DATA = "data"
 TYPE = "type"
 INFINITY = "infinity"
 SCOPE = "scope"
+NOTE = "note"
 
 MINIMUM_PRIMARY_SCOPE_VALUE = 3000
 

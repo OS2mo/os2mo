@@ -90,6 +90,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
         systemid = util.get_mapping_uuid(req, mapping.ITSYSTEM, required=True)
         system = await c.itsystem.get(systemid)
+        note = req.get(mapping.NOTE)
 
         if not system:
             exceptions.ErrorCodes.E_NOT_FOUND()
@@ -174,6 +175,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
             ]
             if engagement_uuid
             else [],
+            note=note,
         )
 
         self.payload = func
@@ -196,7 +198,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         new_from, new_to = util.get_validities(data)
 
         payload = {
-            "note": "Rediger IT-system",
+            "note": data.get(mapping.NOTE, "Rediger IT-system"),
         }
 
         original_data = req.get("original")
