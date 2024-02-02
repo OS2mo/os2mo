@@ -279,7 +279,7 @@ class Response(Generic[MOObject]):
 
         # TODO: This should really do its own instantaneous query to find whatever is
         #       active right now, regardless of the values in objects.
-        objects = await Response.objects(self, root, info)
+        objects = await Response.validities(self, root, info)
         objects_active_now = filter(active_now, objects)
 
         # HACK: Due to legacy systems, ex dipex, we must use .date() to compare dates instead of datetimes.
@@ -304,8 +304,34 @@ class Response(Generic[MOObject]):
             """
         ),
         permission_classes=[IsAuthenticatedPermission],
+        deprecation_reason=dedent(
+            """
+            Will be removed in a future version of GraphQL.
+            Use validities instead.
+            """
+        ),
     )
     async def objects(self, root: "Response", info: Info) -> list[MOObject]:
+        objects = await Response.validities(self, root, info)
+        return objects
+
+    @strawberry.field(
+        description=dedent(
+            """\
+            Temporal state entrypoint.
+
+            Returns the state of the object at varying validities and current assertion time.
+
+            A list of objects are returned as only many different validity intervals can be active at a given assertion time.
+
+            Note:
+            This the entrypoint should be used for temporal integrations and UIs.
+            For actual-state integrations, please consider using `current` instead.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission],
+    )
+    async def validities(self, root: "Response", info: Info) -> list[MOObject]:
         # If the object_cache is filled our request has already been resolved elsewhere
         if root.object_cache != UNSET:
             return root.object_cache
