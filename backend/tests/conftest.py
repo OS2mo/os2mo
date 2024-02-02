@@ -354,9 +354,43 @@ def load_fixture_data_with_reset(load_fixture: None) -> YieldFixture[None]:
         dbname_context.reset(token)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def event_loop() -> YieldFixture[asyncio.AbstractEventLoop]:
+    """Custom implementation of pytest-asyncio's event_loop fixture[1].
+
+    This fixture is used by pytest-asyncio to run test's setup/run/teardown. It
+    is needed to share contextvars between these stages; without it,
+    contextvars from async coroutine fixtures are not passed correctly to the
+    individual tests. See the issue[2] with solution implementation[3].
+
+    The fixture name shadows the default fixture from pytest-asyncio, and thus
+    overrides it.
+
+    [1] https://github.com/pytest-dev/pytest-asyncio/blob/e92efad68146469228b3ac3478b254b692c6bc90/pytest_asyncio/plugin.py#L957-L970
+    [2] https://github.com/pytest-dev/pytest-asyncio/issues/127
+    [3] https://github.com/Donate4Fun/donate4fun/blob/cdf047365b7d2df83a952f5bb9544c29051fbdbd/tests/fixtures.py#L87-L113
+    """
+    def task_factory(loop, coro, context=None):
+        # The task_factory breaks context isolation for asyncio tasks, so we need to
+        # check the calling context.
+        stack = traceback.extract_stack()
+        for frame in stack[-2::-1]:
+            package_name = Path(frame.filename).parts[-2]
+            if package_name != 'asyncio':
+                if package_name == 'pytest_asyncio':
+                    # This function was called from pytest_asyncio, use shared context
+                    break
+                else:
+                    # This function was called from somewhere else, create context copy
+                    context = None
+                break
+        return Task(coro, loop=loop, context=context)
+
     loop = asyncio.get_event_loop_policy().new_event_loop()
+    context = contextvars.copy_context()
+
+    loop.set_task_factory(partial(task_factory, context=context))
+    asyncio.set_event_loop(loop)
     yield loop
     loop.close()
 
