@@ -24,6 +24,8 @@ pandas = "^2.2.0"
 fastapi-utils = "^0.2.1"
 python-dotenv = "^1.0.1"
 httpx = "^0.26.0"
+# pycryptodome is needed due to https://github.com/cannatag/ldap3/issues/1051
+pycryptodome = "^3.20.0"
 
 [tool.poetry.group.pre-commit.dependencies]
 black = "^24.1.1"
