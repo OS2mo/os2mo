@@ -254,7 +254,7 @@ async def registration_resolver(
     union_query = union(*map(generate_query, tables))
     # Select using a subquery so we can filter and order the unioned result
     # Note: I have no idea why mypy dislikes this.
-    query = select("*").select_from(union_query)  # type: ignore
+    query = select("*").select_from(union_query).distinct()  # type: ignore
 
     if filter.uuids is not None:
         query = query.where(column("uuid").in_(filter.uuids))
