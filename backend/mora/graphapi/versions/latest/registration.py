@@ -127,9 +127,13 @@ class Registration:
         )
     )
 
+    note: str | None = strawberry.field(
+        description="Note associated with the registration."
+    )
+
 
 def row2registration(
-    model: str, id: int, uuid: UUID, actor: UUID, start_t: Any, end_t: Any
+    model: str, id: int, uuid: UUID, actor: UUID, note: str, start_t: Any, end_t: Any
 ) -> Registration:
     """Construct a registration model.
 
@@ -157,6 +161,7 @@ def row2registration(
         start=start,
         end=end,
         actor=actor,
+        note=note,
     )
 
 
@@ -201,6 +206,7 @@ async def registration_resolver(
             table.id.label("id"),
             table.uuid.label("uuid"),
             table.actor.label("actor"),
+            table.note.label("note"),
             table.registreringstid_start.label("start"),
             table.registreringstid_slut.label("end"),
         ]
@@ -248,7 +254,7 @@ async def registration_resolver(
     union_query = union(*map(generate_query, tables))
     # Select using a subquery so we can filter and order the unioned result
     # Note: I have no idea why mypy dislikes this.
-    query = select("*").select_from(union_query)  # type: ignore
+    query = select("*").select_from(union_query).distinct()  # type: ignore
 
     if filter.uuids is not None:
         query = query.where(column("uuid").in_(filter.uuids))
@@ -298,7 +304,7 @@ async def registration_resolver(
                 "start": filter.start,
                 "end": filter.end,
             },
-            [uuid for _, _, uuid, _, _, _ in result],
+            [uuid for _, _, uuid, _, _, _, _ in result],
         )
 
         if limit is not None:

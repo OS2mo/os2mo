@@ -405,11 +405,15 @@ def create_organisationsfunktion_payload(
     fraktion: str | None = None,
     udvidelse_attributter: dict | None = None,
     tilknyttedepersoner: list[str] | None = None,
+    note: str | None = None,
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
+    if note is None:
+        note = "Oprettet i MO"
+
     org_funk = {
-        "note": "Oprettet i MO",
+        "note": note,
         "attributter": {
             "organisationfunktionegenskaber": [
                 {

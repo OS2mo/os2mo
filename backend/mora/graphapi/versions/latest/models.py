@@ -879,6 +879,9 @@ class ITUserCreate(ITUserUpsert):
 
     user_key: str = Field(description="The IT user account name.")
     itsystem: UUID = Field(description="Reference to the IT system for the IT user.")
+    note: str | None = Field(
+        description="Note associated with the creation of this IT user."
+    )
 
     @root_validator
     def validation(cls, values: dict[str, Any]) -> dict[str, Any]:
@@ -896,6 +899,7 @@ class ITUserCreate(ITUserUpsert):
         data_dict["type"] = "it"
         data_dict["user_key"] = self.user_key
         data_dict["itsystem"] = gen_uuid(self.itsystem)
+        data_dict["note"] = self.note
         return data_dict
 
 
@@ -908,11 +912,15 @@ class ITUserUpdate(ITUserUpsert):
     itsystem: UUID | None = Field(
         description="Reference to the IT system for the IT user."
     )
+    note: str | None = Field(
+        description="Note associated with the update of this IT user."
+    )
 
     def to_handler_dict(self) -> dict:
         data_dict = super().to_handler_dict()
         data_dict["user_key"] = self.user_key
         data_dict["itsystem"] = gen_uuid(self.itsystem)
+        data_dict["note"] = self.note
         return {k: v for k, v in data_dict.items() if v is not None}
 
 
