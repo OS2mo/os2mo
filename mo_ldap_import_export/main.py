@@ -359,7 +359,9 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     )
 
     logger.info("Setting up FastRAMQPI")
-    fastramqpi = FastRAMQPI(application_name="ldap_ie", settings=settings.fastramqpi)
+    fastramqpi = FastRAMQPI(
+        application_name="ldap_ie", settings=settings.fastramqpi, graphql_version=7
+    )
     fastramqpi.add_context(settings=settings)
 
     logger.info("AMQP router setup")

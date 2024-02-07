@@ -131,7 +131,7 @@ class JobTitleFromADToMO(CustomerSpecific):
             return jobs
 
         engagement_details = await get_engagement_details(
-            gql_session=context["graphql_session"],
+            gql_session=context["legacy_graphql_session"],
             employee_uuid=self.user.uuid,
         )
         return await set_job_title(engagement_details=engagement_details)

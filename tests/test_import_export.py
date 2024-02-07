@@ -1342,7 +1342,7 @@ async def test_import_jobtitlefromadtomo_objects(
         }
     ]
 
-    context["graphql_session"] = AsyncMock()
+    context["legacy_graphql_session"] = AsyncMock()
 
     with patch(
         "mo_ldap_import_export.import_export.SyncTool.format_converted_objects",
@@ -1488,4 +1488,4 @@ async def test_holstebro_import_checks(sync_tool: SyncTool):
     ):
         with capture_logs() as cap_logs:
             await sync_tool.import_single_user("CN=foo", force=True)
-            assert "[Import-single-user] unique!error_msg" in str(cap_logs)
+            assert "[Import-single-user] 404: unique!error_msg" in str(cap_logs)

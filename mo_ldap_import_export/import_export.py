@@ -1009,7 +1009,7 @@ class SyncTool:
                         job_list = await obj.sync_to_mo(self.context)
                         for job in job_list:
                             self.uuids_to_ignore.add(job["uuid_to_ignore"])
-                            await self.context["graphql_session"].execute(
+                            await self.context["legacy_graphql_session"].execute(
                                 document=job["document"],
                                 variable_values=job["variable_values"],
                             )
