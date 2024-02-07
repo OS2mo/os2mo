@@ -1342,7 +1342,7 @@ async def test_import_jobtitlefromadtomo_objects(
         }
     ]
 
-    context["graphql_session"] = AsyncMock()
+    context["legacy_graphql_session"] = AsyncMock()
 
     with patch(
         "mo_ldap_import_export.import_export.SyncTool.format_converted_objects",

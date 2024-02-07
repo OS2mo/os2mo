@@ -68,7 +68,7 @@ async def test_import_jobtitlefromadtomo_objects(context: Context):
         }
     }
 
-    context["graphql_session"] = test_mock
+    context["legacy_graphql_session"] = test_mock
 
     test_object = JobTitleFromADToMO.from_simplified_fields(
         user_uuid=test_user_uuid,
