@@ -14,7 +14,6 @@ from pydantic import ConstrainedList
 from pydantic import Extra
 from pydantic import Field
 from pydantic import parse_obj_as
-from pydantic import PositiveInt
 from pydantic import root_validator
 from pydantic import SecretStr
 from pydantic import validator
@@ -66,7 +65,6 @@ class ExternalAMQPConnectionSettings(AMQPConnectionSettings):
 
 
 class FastFAMQPIApplicationSettings(FastRAMQPISettings):
-    mo_graphql_version: PositiveInt = 7
     amqp: ExternalAMQPConnectionSettings
 
 
