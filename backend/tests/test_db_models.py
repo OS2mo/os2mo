@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import pytest
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from mora.db import Bruger
 from mora.db import BrugerAttrEgenskaber
@@ -42,7 +43,6 @@ from mora.db import OrganisationTilsGyldighed
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @pytest.mark.parametrize(
     "db_object",
     [
@@ -84,7 +84,7 @@ from mora.db import OrganisationTilsGyldighed
         OrganisationTilsGyldighed,
     ],
 )
-async def test_db_models_simple(fastapi_session_test_app, db_object):
-    async with fastapi_session_test_app.state.sessionmaker() as session:
+async def test_db_models_simple(load_fixture_data_with_reset: async_sessionmaker, db_object):
+    async with load_fixture_data_with_reset.begin() as session:
         r = await session.scalar(select(db_object).limit(1))
         assert r is not None
