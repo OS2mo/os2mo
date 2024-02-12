@@ -122,8 +122,11 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         new_from, new_to = util.get_validities(data)
 
         try:
-            exts = mapping.ORG_FUNK_UDVIDELSER_FIELD(original)[-1].copy()
-        except (TypeError, LookupError):
+            exts = max(
+                mapping.ORG_FUNK_UDVIDELSER_FIELD(original),
+                key=lambda x: x["from_date"],
+            )
+        except (ValueError, TypeError, LookupError):
             exts = {}
 
         payload = {"note": "Rediger engagement"}
