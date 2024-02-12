@@ -12,7 +12,7 @@ def sort_inner_lists(obj):
 
     """
     if isinstance(obj, dict):
-        return {k: sort_inner_lists(v) for k, v in obj.items()}
+        return {k: sort_inner_lists(v) for k, v in sorted(obj.items())}
     elif isinstance(obj, (list, tuple)):
         return sorted(
             map(sort_inner_lists, obj),
