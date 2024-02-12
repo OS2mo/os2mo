@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
 from datetime import timedelta
+from hypothesis import HealthCheck
+from hypothesis import settings
+from sqlalchemy.ext.asyncio import async_sessionmaker
 from typing import Any
 from unittest.mock import ANY
 from uuid import UUID
@@ -28,11 +31,10 @@ from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.orgunits import search_orgunits
 from mora.util import DEFAULT_TIMEZONE
 from tests.conftest import admin_auth_uuid
-from tests.conftest import create_sessionmaker
 from tests.conftest import GraphAPIPost
 
 
-async def ensure_empty_audit_tables(sessionmaker) -> None:
+async def assert_empty_audit_tables(sessionmaker) -> None:
     session = sessionmaker()
     async with session.begin():
         query = select(AuditLogOperation)
@@ -81,22 +83,20 @@ async def assert_one_audit_entry(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("empty_db")
-async def test_auditlog_database(set_settings: MonkeyPatch) -> None:
+async def test_auditlog_database(
+    empty_db: async_sessionmaker, set_settings: MonkeyPatch
+) -> None:
     """Integrationtest for reading and writing the auditlog."""
 
     set_settings(AUDIT_READLOG_ENABLE="True")
 
-    sessionmaker = create_sessionmaker()
-    await ensure_empty_audit_tables(sessionmaker)
+    await assert_empty_audit_tables(empty_db)
 
     uuid = uuid4()
-
-    session = sessionmaker()
-    async with session.begin():
+    async with empty_db.begin() as session:
         audit_log(session, "test_auditlog", "AuditLog", {}, [uuid])
 
-    await assert_one_audit_entry(sessionmaker, "AuditLog", "test_auditlog", [uuid])
+    await assert_one_audit_entry(empty_db, "AuditLog", "test_auditlog", [uuid])
 
 
 @pytest.mark.integration_test
@@ -151,34 +151,34 @@ async def test_auditlog_graphql_self(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("empty_db")
-async def test_search_employees(set_settings: MonkeyPatch) -> None:
+async def test_search_employees(
+    empty_db: async_sessionmaker, set_settings: MonkeyPatch
+) -> None:
     set_settings(AUDIT_READLOG_ENABLE="True")
 
-    sessionmaker = create_sessionmaker()
-    await ensure_empty_audit_tables(sessionmaker)
+    await assert_empty_audit_tables(empty_db)
 
-    results = await search_employees(sessionmaker, "")
+    results = await search_employees(empty_db, "")
     assert results == []
 
     await assert_one_audit_entry(
-        sessionmaker, "Bruger", "search_employees", arguments={"at": None, "query": ""}
+        empty_db, "Bruger", "search_employees", arguments={"at": None, "query": ""}
     )
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("empty_db")
-async def test_search_orgunits(set_settings: MonkeyPatch) -> None:
+async def test_search_orgunits(
+    empty_db: async_sessionmaker, set_settings: MonkeyPatch
+) -> None:
     set_settings(AUDIT_READLOG_ENABLE="True")
 
-    sessionmaker = create_sessionmaker()
-    await ensure_empty_audit_tables(sessionmaker)
+    await assert_empty_audit_tables(empty_db)
 
-    results = await search_orgunits(sessionmaker, "")
+    results = await search_orgunits(empty_db, "")
     assert results == []
 
     await assert_one_audit_entry(
-        sessionmaker,
+        empty_db,
         "OrganisationEnhed",
         "search_orgunits",
         arguments={"at": None, "query": ""},
@@ -225,13 +225,19 @@ def audit_log_entries_and_filter(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("testing_db")
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay; we clear the auditlog
+        # table manually in the beginning of each test.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(audit_log_entries_and_filter=audit_log_entries_and_filter())
 # TODO: Add support for id filtering
 async def test_auditlog_filters(
     graphapi_post: GraphAPIPost,
     set_session_settings: MonkeyPatch,
-    testing_db_session: AsyncSession,
+    empty_db: async_sessionmaker,
     audit_log_entries_and_filter: tuple[
         list[dict[str, Any]],
         list[UUID],
@@ -243,7 +249,6 @@ async def test_auditlog_filters(
 
     This test ensures that filters on their own AND filters being combined works as expected.
     """
-    session = testing_db_session
     (
         audit_log_entries,
         uuid_filter,
@@ -251,8 +256,9 @@ async def test_auditlog_filters(
         model_filter,
     ) = audit_log_entries_and_filter
 
-    # Remove all audit log entries present
-    async with session.begin():
+    # Remove all audit log entries present since hypothesis doesn't work with
+    # function-scoped fixtures.
+    async with empty_db.begin() as session:
         await session.execute(delete(AuditLogRead))
         await session.execute(delete(AuditLogOperation))
 
@@ -278,7 +284,7 @@ async def test_auditlog_filters(
     # Add auditlog entries
     set_session_settings(AUDIT_READLOG_ENABLE="True")
 
-    async with session.begin():
+    async with empty_db.begin() as session:
         for audit_event in audit_log_entries:
             async for _ in set_authenticated_user(audit_event["actor"]):
                 # TODO: Set time somehow
@@ -344,41 +350,33 @@ async def test_auditlog_filters(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("empty_db")
-async def test_auditlog_disabled(set_settings: MonkeyPatch) -> None:
+async def test_auditlog_disabled(
+    empty_db: async_sessionmaker, set_settings: MonkeyPatch
+) -> None:
     """Integrationtest for enabling the auditlog."""
 
-    sessionmaker = create_sessionmaker()
-    session = sessionmaker()
-    await ensure_empty_audit_tables(sessionmaker)
+    await assert_empty_audit_tables(empty_db)
 
     set_settings(AUDIT_READLOG_ENABLE="False")
     uuid = uuid4()
-    async with session.begin():
+    async with empty_db.begin() as session:
         audit_log(session, "test_auditlog", "AuditLog", {}, [uuid])
-    await ensure_empty_audit_tables(sessionmaker)
+    await assert_empty_audit_tables(empty_db)
 
     set_settings(AUDIT_READLOG_ENABLE="True")
     uuid = uuid4()
     async with session.begin():
         audit_log(session, "test_auditlog", "AuditLog", {}, [uuid])
-    await assert_one_audit_entry(sessionmaker, "AuditLog", "test_auditlog", [uuid])
+    await assert_one_audit_entry(empty_db, "AuditLog", "test_auditlog", [uuid])
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("testing_db")
+@pytest.mark.usefixtures("empty_db")
 async def test_auditlog_disabled_for_user_graphql(
     set_settings: MonkeyPatch,
     graphapi_post: GraphAPIPost,
-    testing_db_session: AsyncSession,
 ) -> None:
     """Integrationtest for selectively disabling the auditlog (GraphQL)."""
-
-    session = testing_db_session
-    # Remove all audit log entries present
-    async with session.begin():
-        await session.execute(delete(AuditLogRead))
-        await session.execute(delete(AuditLogOperation))
 
     set_settings(AUDIT_READLOG_ENABLE="True")
 
@@ -421,43 +419,35 @@ async def test_auditlog_disabled_for_user_graphql(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("empty_db")
-async def test_auditlog_disabled_for_user(set_settings: MonkeyPatch) -> None:
+async def test_auditlog_disabled_for_user(
+    empty_db: async_sessionmaker, set_settings: MonkeyPatch
+) -> None:
     """Integrationtest for selectively disabling the auditlog."""
 
     set_settings(AUDIT_READLOG_ENABLE="True")
 
-    sessionmaker = create_sessionmaker()
-    session = sessionmaker()
-    await ensure_empty_audit_tables(sessionmaker)
+    await assert_empty_audit_tables(empty_db)
 
     set_settings(AUDIT_READLOG_NO_LOG_UUIDS=f'["{LORA_USER_UUID}"]')
     uuid = uuid4()
-    async with session.begin():
+    async with empty_db.begin() as session:
         audit_log(session, "test_auditlog", "AuditLog", {}, [uuid])
-    await ensure_empty_audit_tables(sessionmaker)
+    await assert_empty_audit_tables(empty_db)
 
     set_settings(AUDIT_READLOG_NO_LOG_UUIDS="[]")
     uuid = uuid4()
-    async with session.begin():
+    async with empty_db.begin() as session:
         audit_log(session, "test_auditlog", "AuditLog", {}, [uuid])
-    await assert_one_audit_entry(sessionmaker, "AuditLog", "test_auditlog", [uuid])
+    await assert_one_audit_entry(empty_db, "AuditLog", "test_auditlog", [uuid])
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("testing_db")
+@pytest.mark.usefixtures("empty_db")
 async def test_auditlog_graphql_cursor(
     set_settings: MonkeyPatch,
     graphapi_post: GraphAPIPost,
-    testing_db_session: AsyncSession,
 ) -> None:
     """Ensure that auditlogs can be iterated without running indefinitely."""
-
-    session = testing_db_session
-    # Remove all audit log entries present
-    async with session.begin():
-        await session.execute(delete(AuditLogRead))
-        await session.execute(delete(AuditLogOperation))
 
     set_settings(AUDIT_READLOG_ENABLE="True")
 
