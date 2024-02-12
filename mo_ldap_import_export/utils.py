@@ -123,19 +123,19 @@ def listener(context, event):
     """
     Calls import_single_user if changes are registered
     """
+    dn = event.get("attributes", {}).get("distinguishedName", None)
+    dn = dn or event.get("dn", None)
+
+    if not dn:
+        logger.info(f"Got event without dn: {event}")
+        return
 
     user_context = context["user_context"]
     event_loop = user_context["event_loop"]
     sync_tool = user_context["sync_tool"]
 
-    dn = event.get("attributes", {}).get("distinguishedName", None)
-    dn = dn or event.get("dn", None)
-
-    if dn:
-        logger.info(f"Registered change for LDAP object with dn={dn}")
-        event_loop.create_task(sync_tool.import_single_user(dn))
-    else:
-        logger.info(f"Got event without dn: {event}")
+    logger.info(f"Registered change for LDAP object with dn={dn}")
+    event_loop.create_task(sync_tool.import_single_user(dn))
 
 
 async def countdown(
