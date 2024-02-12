@@ -135,7 +135,7 @@ def listener(context, event):
     sync_tool = user_context["sync_tool"]
 
     logger.info(f"Registered change for LDAP object with dn={dn}")
-    event_loop.create_task(sync_tool.import_single_user(dn))
+    asyncio.run_coroutine_threadsafe(sync_tool.import_single_user(dn), event_loop)
 
 
 async def countdown(

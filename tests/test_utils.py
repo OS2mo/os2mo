@@ -5,6 +5,7 @@ import datetime
 import re
 import time
 from unittest.mock import MagicMock
+from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
@@ -138,9 +139,13 @@ async def test_datetime_to_ldap_timestamp():
     assert result == "20210101104520.2-0529"
 
 
-async def test_listener():
+@patch("asyncio.run_coroutine_threadsafe")
+async def test_listener(run_coroutine_threadsafe):
+    callback = MagicMock()
     event_loop = MagicMock()
     sync_tool = MagicMock()
+    sync_tool.import_single_user.return_value = callback
+
     user_context = {
         "event_loop": event_loop,
         "sync_tool": sync_tool,
@@ -158,8 +163,8 @@ async def test_listener():
             "Registered change for LDAP object",
             str(messages[0]["event"]),
         )
-        event_loop.create_task.assert_called()
         sync_tool.import_single_user.assert_called_with("CN=foo")
+        run_coroutine_threadsafe.assert_called_with(callback, event_loop)
 
         assert re.match(
             "Got event without dn",
