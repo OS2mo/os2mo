@@ -4,9 +4,6 @@ from tests.oio_rest.test_integration_helper import TestCreateObject
 
 
 class TestCreateKlassifikation(TestCreateObject):
-    def setUp(self):
-        super().setUp()
-
     def test_create_klassifikation(self):
         klassifikation = {
             "attributter": {

@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
-from unittest import TestCase
 
 import pytest
 
@@ -12,7 +11,7 @@ from oio_rest.db.quick_query.registration_parsing import State
 from oio_rest.db.quick_query.registration_parsing import ValueType
 
 
-class TestParseAttribute(TestCase):
+class TestParseAttribute:
     def test_get_valid_attribute_format(self):
         for class_name in REAL_DB_STRUCTURE.keys():
             attr_cand = Attribute.get_valid_attr(class_name)
@@ -123,7 +122,7 @@ class TestParseAttribute(TestCase):
         self.assertEqual(first=expected, second=actual)
 
 
-class TestParseState(TestCase):
+class TestParseState:
     def test_get_valid_states_format(self):
         for class_name in REAL_DB_STRUCTURE.keys():
             state_cand = State.get_valid_states(class_name)
@@ -212,7 +211,7 @@ class TestParseState(TestCase):
         self.assertEqual(first=expected, second=actual)
 
 
-class TestParseRelation(TestCase):
+class TestParseRelation:
     def test_get_valid_relations_format(self):
         for class_name in REAL_DB_STRUCTURE.keys():
             relation_cand = Relation.get_valid_relations(class_name)

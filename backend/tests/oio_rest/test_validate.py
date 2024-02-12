@@ -11,26 +11,13 @@ import pytest
 from . import util
 from oio_rest import db
 from oio_rest import klassifikation
-from oio_rest import oio_base
 from oio_rest import organisation
 from oio_rest import validate
 
 
-class TestBase(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-
-        # once per class will suffice, since none of them touch the db
-        # structure
-        validate.SCHEMAS = {}
-
-    @classmethod
-    def tearDownClass(cls):
-        super().setUpClass()
-
-        # once per class will suffice, since none of them touch the db
-        # structure
+class TestBase:
+    @pytest.fixture(autouse=True)
+    def setup_schemas(self):
         validate.SCHEMAS = {}
 
 
@@ -71,11 +58,8 @@ class TestGetMandatory(TestBase):
 
 
 class TestGenerateJSONSchema(TestBase):
-    maxDiff = None
-
-    def setUp(self):
-        super().setUp()
-
+    @pytest.fixture(autouse=True)
+    def setup_relations(self):
         self.relation_nul_til_mange = {
             "type": "array",
             "items": {
@@ -731,11 +715,10 @@ class TestGenerateJSONSchema(TestBase):
             in relationer["properties"]["ansatte"]["items"]["oneOf"][1]["properties"]
         )
 
-    def test_create_request_valid(self):
-        for obj in db.db_structure.REAL_DB_STRUCTURE:
-            with self.subTest(obj):
-                req = self._json_to_dict(f"{obj}_opret.json")
-                validate.validate(req, obj)
+    @pytest.mark.parametrize("obj", db.db_structure.REAL_DB_STRUCTURE)
+    def test_create_request_valid(self, obj):
+        req = self._json_to_dict(f"{obj}_opret.json")
+        validate.validate(req, obj)
 
     def test_create_facet_request_invalid(self):
         req = self._json_to_dict("facet_opret.json")
@@ -758,9 +741,8 @@ class TestGenerateJSONSchema(TestBase):
 
 
 class TestFacetSystematically(TestBase):
-    def setUp(self):
-        super().setUp()
-
+    @pytest.fixture(autouse=True)
+    def setup_objects(self):
         self.standard_virkning1 = {
             "from": "2000-01-01 12:00:00+01",
             "from_included": True,
@@ -1184,43 +1166,7 @@ class TestFacetSystematically(TestBase):
         self.assertValidationError()
 
 
-class TestSchemaEndPoints(util.BaseTestCase):
-    def setUp(self):
-        super().setUp()
-
-        validate.SCHEMAS = {}
-
-        # extract a list of all OIO hierarchies and classes
-        def get_subclasses(cls):
-            for subcls in cls.__subclasses__():
-                if subcls.__module__.startswith("oio_rest."):
-                    yield subcls
-                    yield from get_subclasses(subcls)
-
-        self.hierarchies = list(get_subclasses(oio_base.OIOStandardHierarchy))
-
-        # app = create_app()
-        # self.client = TestClient(app)
-
-    # TODO: Remove
-    @unittest.expectedFailure
-    async def test_schemas_unchanged(self):
-        """Check that the schema have not changed from last commit. The
-        intention of the test is not to force schema stagenation, but to inform
-        the developers of schmea changes in commits by updating `schemas.json`.
-        """
-
-        expected = util.get_fixture("schemas.json")
-        expected_path = os.path.join(util.FIXTURE_DIR, "schemas.json")
-
-        actual = {
-            cls.__name__: await cls.get_schema().json()
-            for hier in self.hierarchies
-            for cls in hier._classes
-        }
-
-        assert expected == actual, f"schemas changed. Please update {expected_path}"
-
+class TestSchemaEndPoints(util.DBTestCase):
     def assertSchemaOK(self, hierarchy):
         """
         Check that the schema endpoints for the classes in the given hierarchy

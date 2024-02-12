@@ -2,8 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import collections
 import datetime
-import unittest
-from unittest import TestCase
 from unittest.mock import call
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -24,7 +22,7 @@ def get_mocked_cursor(mock):
     return cursor
 
 
-class TestDB(TestCase):
+class TestDB:
     @patch("oio_rest.db.get_relation_field_type")
     def test_convert_relation_value_default(self, mock_get_rel):
         mock_get_rel.return_value = "not a known field type"
@@ -855,7 +853,7 @@ class TestDB(TestCase):
         assert actual_result == "Importeret"
 
 
-class TestConsolidateVirkninger(unittest.TestCase):
+class TestConsolidateVirkninger:
     def test_consolidate_effects_works_correctly(self):
         # Arrange
         effects = [
@@ -1402,7 +1400,7 @@ class TestConsolidateVirkninger(unittest.TestCase):
 
 
 @patch("oio_rest.db.sql_convert_registration", new=MagicMock())
-class TestDBObjectFunctions(unittest.TestCase):
+class TestDBObjectFunctions:
     @patch("oio_rest.db.get_connection")
     @patch("oio_rest.db.jinja_env")
     def test_update_object_returns_uuid(self, mock_jinja_env, mock_get_conn):
@@ -1473,7 +1471,7 @@ class TestDBObjectFunctions(unittest.TestCase):
         )
 
 
-class TestDBGeneralSQL(unittest.TestCase):
+class TestDBGeneralSQL:
     @patch("oio_rest.db.sql_attribute_array")
     @patch("oio_rest.db.sql_relations_array")
     @patch("oio_rest.db.get_attribute_names")
@@ -1625,7 +1623,7 @@ Diagnostics = collections.namedtuple("Diagnostics", ["message_primary"])
 @patch("oio_rest.db.sql_get_registration", new=MagicMock())
 @patch("oio_rest.db.sql_convert_registration", new=MagicMock())
 @patch("oio_rest.db.jinja_env.get_template", new=MagicMock())
-class TestPGErrors(unittest.TestCase):
+class TestPGErrors:
     class TestException(Exception):
         def __init__(self, code="MO123", message="1 2 3 testing..."):
             self.pgcode = code

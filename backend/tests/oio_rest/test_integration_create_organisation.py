@@ -2,14 +2,16 @@
 # SPDX-License-Identifier: MPL-2.0
 import copy
 import json
+import pytest
 import unittest
+from sqlalchemy.exc import IntegrityError
 
 from tests.oio_rest.test_integration_helper import TestCreateObject
 
 
 class TestCreateOrganisation(TestCreateObject):
-    def setUp(self):
-        super().setUp()
+    @pytest.fixture(autouse=True)
+    def setup_org(self):
         self.org = {
             "attributter": {
                 "organisationegenskaber": [
@@ -157,7 +159,6 @@ class TestCreateOrganisation(TestCreateObject):
         }
         self.assertRequestFails(self.URL, 400, json=self.org)
 
-    @unittest.expectedFailure
     def test_different_org_names_for_overlapping_virkninger(self):
         """Sending org names that overlap in virkning should fail
 
@@ -178,7 +179,8 @@ class TestCreateOrganisation(TestCreateObject):
                 },
             }
         )
-        self.assertRequestFails(self.URL, 400, json=self.org)
+        with pytest.raises(IntegrityError):
+            self.assertRequestFails(self.URL, 400, json=self.org)
 
     def test_empty_org_not_allowed(self):
         """
@@ -200,7 +202,6 @@ class TestCreateOrganisation(TestCreateObject):
         del self.org["attributter"]
         self.assertRequestFails(self.URL, 400, json=self.org)
 
-    @unittest.expectedFailure
     def test_attributter_key_not_allowed_twice(self):
         """Setting "attributter" several times in the request JSON should fail
 
@@ -217,7 +218,8 @@ class TestCreateOrganisation(TestCreateObject):
         )
         self.org = json.loads(org)
 
-        self.assertRequestFails(self.URL, 400, json=self.org)
+        with pytest.raises(IntegrityError):
+            self.assertRequestFails(self.URL, 400, json=self.org)
 
     def test_two_valid_org_gyldigheder_one_gyldighed_inactive(self):
         """
@@ -256,7 +258,6 @@ class TestCreateOrganisation(TestCreateObject):
         del self.org["tilstande"]
         self.assertRequestFails(self.URL, 400, json=self.org)
 
-    @unittest.expectedFailure
     def test_tilstande_key_not_allowed_twice(self):
         """Setting "tilstande" several times in the request should fail
 
@@ -273,7 +274,8 @@ class TestCreateOrganisation(TestCreateObject):
         )
         self.org = json.loads(org)
 
-        self.assertRequestFails(self.URL, 400, json=self.org)
+        with pytest.raises(IntegrityError):
+            self.assertRequestFails(self.URL, 400, json=self.org)
 
     def test_org_gyldighed_missing(self):
         """
@@ -328,7 +330,6 @@ class TestCreateOrganisation(TestCreateObject):
         }
         self.assertRequestFails(self.URL, 400, json=self.org)
 
-    @unittest.expectedFailure
     def test_different_gyldigheder_for_overlapping_virkninger(self):
         """Sending gyldigheder that overlap in virkning should fail
 
@@ -348,7 +349,8 @@ class TestCreateOrganisation(TestCreateObject):
                 },
             }
         )
-        self.assertRequestFails(self.URL, 400, json=self.org)
+        with pytest.raises(IntegrityError):
+            self.assertRequestFails(self.URL, 400, json=self.org)
 
     def test_empty_list_of_relations(self):
         """
@@ -508,7 +510,6 @@ class TestCreateOrganisation(TestCreateObject):
         self.org["relationer"] = {"unknown": [self.reference]}
         self.assertRequestFails(self.URL, 400, json=self.org)
 
-    @unittest.expectedFailure
     def test_relationer_key_not_allowed_twice(self):
         """Setting "relationer" several times in the request JSON should fail
 
@@ -526,4 +527,5 @@ class TestCreateOrganisation(TestCreateObject):
         )
         self.org = json.loads(org)
 
-        self.assertRequestFails(self.URL, 400, json=self.org)
+        with pytest.raises(IntegrityError):
+            self.assertRequestFails(self.URL, 400, json=self.org)

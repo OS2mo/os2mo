@@ -1,24 +1,18 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from unittest import mock
+
 import contextlib
 import json
 import os
 import pprint
+import pytest
 import types
-import unittest
 import uuid
 from contextlib import suppress
-from unittest import mock
-from uuid import uuid4
-
-import pytest
 from fastapi.testclient import TestClient
 
-from mora.app import create_app
-from oio_rest.db import dbname_context
 from tests.cases import sort_inner_lists
-from tests.conftest import create_test_database
-from tests.db_testing import reset_testing_database
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
@@ -36,12 +30,13 @@ def get_fixture(fixture_name, mode="rt", as_text=True):
             return fp.read()
 
 
-class BaseTestCase(unittest.IsolatedAsyncioTestCase):
+class BaseTestCase:
     """Basic testcase without database support, but with various helper functions."""
 
-    def setUp(self):
-        self.app = create_app()
-        self.client = TestClient(self.app)
+    @pytest.fixture(autouse=True)
+    def setup(self, service_client: TestClient):
+        self.app = service_client.app  # TODO: unused?
+        self.client = service_client
 
     def assertRequestResponse(
         self, path, expected, message=None, status_code=None, drop_keys=(), **kwargs
@@ -239,8 +234,8 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             assert objid
         except AssertionError:
             print(path)
-            print(r.status)
-            print(r.get_data(as_text=True))
+            print(r.status_code)
+            print(r.text)
 
             raise
 
@@ -282,19 +277,6 @@ class ExtTestCase(BaseTestCase):
 
 
 @pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 class DBTestCase(BaseTestCase):
     """Testcase with database access"""
-
-    def setUp(self):
-        super().setUp()
-        random_id = str(uuid4())[:8]
-        self.testing_db = create_test_database("empty_" + random_id)
-        db_name = self.testing_db.__enter__()
-
-        self.token = dbname_context.set(db_name)
-        # Truncate tables before each test
-        reset_testing_database()
-
-    def tearDown(self):
-        dbname_context.reset(self.token)
-        self.testing_db.__exit__(None, None, None)

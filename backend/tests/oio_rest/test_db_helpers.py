@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from unittest import skip
-from unittest import TestCase
 from unittest.mock import call
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -15,9 +14,8 @@ from tests.oio_rest.util import ExtTestCase
 
 
 class TestDBHelpers(ExtTestCase):
-    maxDiff = None
-
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setup_db_helpers(self):
         db_helpers._attribute_fields = {}
         db_helpers._attribute_names = {}
         db_helpers._relation_names = {}
@@ -42,7 +40,7 @@ class TestDBHelpers(ExtTestCase):
         actual_fields = db_helpers._attribute_fields
 
         # Assert
-        self.assertDictEqual(expected_fields, actual_fields)
+        assert expected_fields == actual_fields
         assert expected_result == actual_result
 
     def test_get_attribute_fields_uses_cache(self):
@@ -878,33 +876,34 @@ class TestDBHelpers(ExtTestCase):
         assert expected_result == actual_result
 
 
-class TestSearchable(TestCase):
-    from oio_rest.db.db_helpers import Searchable
-
-    class TestSearchableClass(Searchable):
-        _fields = ()
-
-    def setUp(self):
-        self.TestSearchableClass._fields = ()
+class TestSearchable:
 
     def test_searchable_get_fields(self):
         # Arrange
-        self.TestSearchableClass._fields = ("field1", "field2")
+        from oio_rest.db.db_helpers import Searchable
+
+        class TestSearchableClass(Searchable):
+            _fields = ("field1", "field2")
+
         expected_result = ("field1", "field2")
 
         # Act
-        actual_result = self.TestSearchableClass.get_fields()
+        actual_result = TestSearchableClass.get_fields()
 
         # Assert
         assert expected_result == actual_result
 
     def test_searchable_get_fields_with_virkning(self):
         # Arrange
-        self.TestSearchableClass._fields = ("field1", "field2", "virkning")
+        from oio_rest.db.db_helpers import Searchable
+
+        class TestSearchableClass(Searchable):
+            _fields = ("field1", "field2", "virkning")
+
         expected_result = ("field1", "field2")
 
         # Act
-        actual_result = self.TestSearchableClass.get_fields()
+        actual_result = TestSearchableClass.get_fields()
 
         # Assert - Cast to set for comparison,
         # as result is converted from set with no ordering

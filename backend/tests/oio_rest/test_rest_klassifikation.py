@@ -66,46 +66,46 @@ class TestImportDeletedPassivated(DBTestCase):
         uuid_ = result.json()["uuid"]
         assert is_uuid(uuid_)
 
-        with self.subTest("Passivate object"):
-            result_patch = self.client.patch(
-                "lora/klassifikation/facet/%s" % uuid_,
-                data={
-                    "json": util.get_fixture("facet_passiv.json", as_text=False),
-                },
-            )
-            assert result_patch.status_code == 200
-            assert result_patch.json()["uuid"] == uuid_
+        # Passivate object
+        result_patch = self.client.patch(
+            "lora/klassifikation/facet/%s" % uuid_,
+            data={
+                "json": util.get_fixture("facet_passiv.json", as_text=False),
+            },
+        )
+        assert result_patch.status_code == 200
+        assert result_patch.json()["uuid"] == uuid_
 
-        with self.subTest("Import object"):
-            result_put = self.client.put(
-                "lora/klassifikation/facet/%s" % uuid_,
-                data={
-                    "json": util.get_fixture("facet_opret.json", as_text=False),
-                },
-            )
-            assert result_put.status_code == 200
-            assert result_put.json()["uuid"] == uuid_
+        # Import object
+        result_put = self.client.put(
+            "lora/klassifikation/facet/%s" % uuid_,
+            data={
+                "json": util.get_fixture("facet_opret.json", as_text=False),
+            },
+        )
+        assert result_put.status_code == 200
+        assert result_put.json()["uuid"] == uuid_
 
-        with self.subTest("Delete object"):
-            result_delete = self.client.request(
-                "DELETE",
-                "lora/klassifikation/facet/%s" % uuid_,
-                data={
-                    "json": util.get_fixture("facet_slet.json", as_text=False),
-                },
-            )
-            assert result_delete.status_code == 202
-            assert result_delete.json()["uuid"] == uuid_
+        # Delete object
+        result_delete = self.client.request(
+            "DELETE",
+            "lora/klassifikation/facet/%s" % uuid_,
+            data={
+                "json": util.get_fixture("facet_slet.json", as_text=False),
+            },
+        )
+        assert result_delete.status_code == 202
+        assert result_delete.json()["uuid"] == uuid_
 
-        with self.subTest("Import object"):
-            result_import = self.client.put(
-                "lora/klassifikation/facet/%s" % uuid_,
-                data={
-                    "json": util.get_fixture("facet_opret.json", as_text=False),
-                },
-            )
-            assert result_import.status_code == 200
-            assert result_import.json()["uuid"] == uuid_
+        # Import object
+        result_import = self.client.put(
+            "lora/klassifikation/facet/%s" % uuid_,
+            data={
+                "json": util.get_fixture("facet_opret.json", as_text=False),
+            },
+        )
+        assert result_import.status_code == 200
+        assert result_import.json()["uuid"] == uuid_
 
 
 class TestFacet(DBTestCase):
@@ -121,53 +121,53 @@ class TestFacet(DBTestCase):
         assert is_uuid(uuid_)
 
         import_uuid = str(uuid.uuid4())
-        with self.subTest("Import new facet"):
-            result_import = self.client.put(
-                "lora/klassifikation/facet/%s" % import_uuid,
-                data={
-                    "json": util.get_fixture("facet_opret.json", as_text=False),
-                },
-            )
-            assert result_import.status_code == 200
-            assert result_import.json()["uuid"] == import_uuid
+        # Import new facet
+        result_import = self.client.put(
+            "lora/klassifikation/facet/%s" % import_uuid,
+            data={
+                "json": util.get_fixture("facet_opret.json", as_text=False),
+            },
+        )
+        assert result_import.status_code == 200
+        assert result_import.json()["uuid"] == import_uuid
 
-        with self.subTest("Update facet"):
-            result_patch = self.client.patch(
-                "lora/klassifikation/facet/%s" % uuid_,
-                data={
-                    "json": util.get_fixture("facet_opdater.json", as_text=False),
-                },
-            )
-            assert result_patch.status_code == 200
-            assert result_patch.json()["uuid"] == uuid_
+        # Update facet
+        result_patch = self.client.patch(
+            "lora/klassifikation/facet/%s" % uuid_,
+            data={
+                "json": util.get_fixture("facet_opdater.json", as_text=False),
+            },
+        )
+        assert result_patch.status_code == 200
+        assert result_patch.json()["uuid"] == uuid_
 
-        with self.subTest("Replace the facet content with old ones"):
-            result_put = self.client.put(
-                "lora/klassifikation/facet/%s" % uuid_,
-                data={
-                    "json": util.get_fixture("facet_opret.json", as_text=False),
-                },
-            )
-            assert result_put.status_code == 200
-            assert result_put.json()["uuid"] == uuid_
+        # Replace the facet content with old ones
+        result_put = self.client.put(
+            "lora/klassifikation/facet/%s" % uuid_,
+            data={
+                "json": util.get_fixture("facet_opret.json", as_text=False),
+            },
+        )
+        assert result_put.status_code == 200
+        assert result_put.json()["uuid"] == uuid_
 
-        with self.subTest("Passivate facet"):
-            result_patch = self.client.patch(
-                "lora/klassifikation/facet/%s" % uuid_,
-                data={
-                    "json": util.get_fixture("facet_passiv.json", as_text=False),
-                },
-            )
-            assert result_patch.status_code == 200
-            assert result_patch.json()["uuid"] == uuid_
+        # Passivate facet
+        result_patch = self.client.patch(
+            "lora/klassifikation/facet/%s" % uuid_,
+            data={
+                "json": util.get_fixture("facet_passiv.json", as_text=False),
+            },
+        )
+        assert result_patch.status_code == 200
+        assert result_patch.json()["uuid"] == uuid_
 
-        with self.subTest("Delete facet"):
-            result_delete = self.client.request(
-                "DELETE",
-                "lora/klassifikation/facet/%s" % uuid_,
-                data={
-                    "json": util.get_fixture("facet_slet.json", as_text=False),
-                },
-            )
-            assert result_delete.status_code == 202
-            assert result_delete.json()["uuid"] == uuid_
+        # Delete facet
+        result_delete = self.client.request(
+            "DELETE",
+            "lora/klassifikation/facet/%s" % uuid_,
+            data={
+                "json": util.get_fixture("facet_slet.json", as_text=False),
+            },
+        )
+        assert result_delete.status_code == 202
+        assert result_delete.json()["uuid"] == uuid_

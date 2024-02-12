@@ -1,14 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import asyncio
 import datetime
 import json
 import types
-from collections.abc import Awaitable
-from collections.abc import Callable
-from functools import wraps
 from typing import TypeVar
-from unittest import TestCase
 from unittest.mock import MagicMock
 from unittest.mock import patch
 from urllib.parse import urlencode
@@ -42,34 +37,6 @@ async def get_args(request, as_lists=False):
     return _process_args(await _get_args_from_request(request), as_lists)
 
 
-def async_to_sync(
-    func: Callable[..., Awaitable[CallableReturnType]]
-) -> Callable[..., CallableReturnType]:
-    """Decorator to run an async function to completion.
-
-    Example:
-
-        @async_to_sync
-        async def sleepy(seconds):
-            await asyncio.sleep(seconds)
-            return seconds
-
-        print(sleepy(5))  # --> 5
-
-    Args:
-        func (async function): The asynchronous function to wrap.
-
-    Returns:
-        :obj:`sync function`: The synchronous function wrapping the async one.
-    """
-
-    @wraps(func)
-    def wrapper(*args, **kwargs) -> CallableReturnType:
-        return asyncio.run(func(*args, **kwargs))
-
-    return wrapper
-
-
 class TestClassRestObject(OIORestObject):
     pass
 
@@ -79,8 +46,9 @@ class TestClassStandardHierarchy(OIOStandardHierarchy):
     _classes = []
 
 
-class TestOIORestObjectCreateApi(TestCase):
-    def setUp(self):
+class TestOIORestObjectCreateApi:
+    @pytest.fixture(autouse=True)
+    def setup_testclass(self):
         self.testclass = TestClassRestObject
 
     def assert_api_rule(self, router, name, method, function):
@@ -169,8 +137,6 @@ class TestOIORestObjectCreateApi(TestCase):
 
 
 class TestOIORestObject(ExtTestCase):
-    maxDiff = None
-
     db_struct = {
         "testclassrestobject": {
             "attributter": {"egenskaber": ["attribut"]},
@@ -180,7 +146,8 @@ class TestOIORestObject(ExtTestCase):
         }
     }
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setup_helpers(self):
         self.testclass = TestClassRestObject()
         db_helpers._search_params = {}
         db_helpers._attribute_fields = {}
@@ -333,7 +300,6 @@ class TestOIORestObject(ExtTestCase):
         # Assert
         assert expected_result == actual_result
 
-    @async_to_sync
     async def test_get_json_returns_json_if_request_json(self):
         # Arrange
         expected_json = {"testkey": "testvalue"}
@@ -349,7 +315,6 @@ class TestOIORestObject(ExtTestCase):
         # Assert
         assert expected_json == actual_json
 
-    @async_to_sync
     async def test_get_json_returns_json_if_form_json(self):
         # Arrange
         expected_json = {"testkey": "testvalue"}
@@ -364,7 +329,6 @@ class TestOIORestObject(ExtTestCase):
         # Assert
         assert expected_json == actual_json
 
-    @async_to_sync
     async def test_get_json_returns_badrequest_if_malformed_form_json(self):
         # Arrange
         # Act
@@ -377,7 +341,6 @@ class TestOIORestObject(ExtTestCase):
         with pytest.raises(HTTPException):
             await _get_json_from_request(request)
 
-    @async_to_sync
     async def test_get_json_returns_none_if_request_json_is_none(self):
         # Arrange
         expected_json = None
@@ -392,7 +355,6 @@ class TestOIORestObject(ExtTestCase):
         assert expected_json == actual_json
 
     @patch("oio_rest.db.create_or_import_object")
-    @async_to_sync
     async def test_create_object_with_input_returns_uuid_and_code_201(self, mock):
         # Arrange
         uuid = "c98d1e8b-0655-40a0-8e86-bb0cc07b0d59"
@@ -431,9 +393,8 @@ class TestOIORestObject(ExtTestCase):
         actual_data = await organisation.Organisation.create_object(request)
 
         # Assert
-        self.assertDictEqual(expected_data, actual_data)
+        assert expected_data == actual_data
 
-    @async_to_sync
     async def test_create_object_with_no_input_returns_uuid_none_and_code_400(self):
         # Arrange
         expected_data = {"uuid": None}
@@ -445,10 +406,9 @@ class TestOIORestObject(ExtTestCase):
         with pytest.raises(HTTPException) as exp:
             await self.testclass.create_object(request)
             # Assert
-            self.assertDictEqual(exp.detail, expected_data)
+            assert exp.detail == expected_data
             assert exp.status_code == 400
 
-    @async_to_sync
     async def test_create_object_raises_on_unknown_args(self):
         # Arrange
         params = {"a": "b"}
@@ -486,7 +446,6 @@ class TestOIORestObject(ExtTestCase):
     @freezegun.freeze_time("2017-01-01", tz_offset=1)
     @patch("oio_rest.db.list_objects")
     @ExtTestCase.patch_db_struct(db_struct)
-    @async_to_sync
     async def test_get_objects_list_uses_default_params(self, mock_list):
         # Arrange
         data = ["1", "2", "3"]
@@ -515,11 +474,10 @@ class TestOIORestObject(ExtTestCase):
         actual_args = mock_list.call_args[0]
 
         assert expected_args == actual_args
-        self.assertDictEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @patch("oio_rest.db.list_objects")
     @ExtTestCase.patch_db_struct(db_struct)
-    @async_to_sync
     async def test_get_objects_list_uses_supplied_params(self, mock):
         # Arrange
         data = ["1", "2", "3"]
@@ -562,10 +520,9 @@ class TestOIORestObject(ExtTestCase):
         actual_args = mock.call_args[0]
 
         assert expected_args == actual_args
-        self.assertDictEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @ExtTestCase.patch_db_struct(db_struct)
-    @async_to_sync
     async def test_get_objects_multiple_of_same_relation(self):
         # Arrange
         mock_searcher = MagicMock(search_objects=MagicMock(return_value=None))
@@ -596,18 +553,11 @@ class TestOIORestObject(ExtTestCase):
         relations = mock_searcher.search_objects.call_args.kwargs["registration"][
             "relations"
         ]
-        self.assertSequenceEqual(
-            relation_en_uuids,
-            [r["uuid"] for r in relations["relation_en"]],
-        )
-        self.assertSequenceEqual(
-            relation_mange_uuids,
-            [r["uuid"] for r in relations["relation_mange"]],
-        )
+        assert relation_en_uuids == [r["uuid"] for r in relations["relation_en"]]
+        assert relation_mange_uuids == [r["uuid"] for r in relations["relation_mange"]]
 
     @patch("oio_rest.db.list_objects")
     @ExtTestCase.patch_db_struct(db_struct)
-    @async_to_sync
     async def test_get_objects_returns_empty_list_on_no_results(self, mock):
         # Arrange
 
@@ -619,12 +569,11 @@ class TestOIORestObject(ExtTestCase):
 
         expected_result = {"results": []}
 
-        self.assertDictEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @freezegun.freeze_time("2017-01-01", tz_offset=1)
     @ExtTestCase.patch_db_struct(db_struct)
     @patch("oio_rest.oio_base.build_registration")
-    @async_to_sync
     async def test_get_objects_search_uses_default_params(self, mock_br):
         # Arrange
         data = ["1", "2", "3"]
@@ -667,11 +616,10 @@ class TestOIORestObject(ExtTestCase):
         # Assert
         actual_args = mock_searcher.search_objects.call_args.kwargs
         assert expected_args == actual_args
-        self.assertDictEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @ExtTestCase.patch_db_struct(db_struct)
     @patch("oio_rest.oio_base.build_registration")
-    @async_to_sync
     async def test_get_objects_search_uses_supplied_params(self, mock_br):
         # Arrange
         data = ["1", "2", "3"]
@@ -735,12 +683,11 @@ class TestOIORestObject(ExtTestCase):
         # Assert
         actual_args = mock_searcher.search_objects.call_args.kwargs
         assert expected_args == actual_args
-        self.assertDictEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @ExtTestCase.patch_db_struct(db_struct)
     @patch("oio_rest.oio_base.build_registration")
     @patch("oio_rest.db.search_objects")
-    @async_to_sync
     async def test_get_objects_search_raises_exception_on_multi_uuid(
         self, mock_search, mock_br
     ):
@@ -768,7 +715,6 @@ class TestOIORestObject(ExtTestCase):
 
     @ExtTestCase.patch_db_struct(db_struct)
     @patch("oio_rest.db.search_objects")
-    @async_to_sync
     async def test_get_objects_search_raises_exception_on_unknown_args(
         self, mock_search
     ):
@@ -784,7 +730,6 @@ class TestOIORestObject(ExtTestCase):
 
     @ExtTestCase.patch_db_struct(db_struct)
     @patch("oio_rest.db.list_objects")
-    @async_to_sync
     async def test_get_objects_filters_deleted_objects(self, mock_list):
         # Arrange
         uuid = "d5995ed0-d527-4841-9e33-112b22aaade1"
@@ -805,7 +750,6 @@ class TestOIORestObject(ExtTestCase):
 
     @patch("oio_rest.db.list_objects")
     @freezegun.freeze_time("2017-01-01", tz_offset=1)
-    @async_to_sync
     async def test_get_object_uses_default_params(self, mock_list):
         # Arrange
         data = [{"registreringer": [{"livscykluskode": "whatever"}]}]
@@ -838,7 +782,6 @@ class TestOIORestObject(ExtTestCase):
         assert expected_result == actual_result
 
     @patch("oio_rest.db.list_objects")
-    @async_to_sync
     async def test_get_object_uses_supplied_params(self, mock):
         # Arrange
         data = [{"registreringer": [{"livscykluskode": "whatever"}]}]
@@ -879,7 +822,6 @@ class TestOIORestObject(ExtTestCase):
         assert expected_result == actual_result
 
     @patch("oio_rest.db.list_objects")
-    @async_to_sync
     async def test_get_object_raises_on_no_results(self, mock):
         # Arrange
         data = []
@@ -893,7 +835,6 @@ class TestOIORestObject(ExtTestCase):
             await self.testclass.get_object(uuid, request)
 
     @patch("oio_rest.db.list_objects")
-    @async_to_sync
     async def test_get_object_raises_on_deleted_object(self, mock_list):
         # Arrange
         data = [{"registreringer": [{"livscykluskode": db.Livscyklus.SLETTET.value}]}]
@@ -908,7 +849,6 @@ class TestOIORestObject(ExtTestCase):
 
     @ExtTestCase.patch_db_struct(db_struct)
     @patch("oio_rest.db.list_objects")
-    @async_to_sync
     async def test_get_object_raises_on_unknown_args(self, mock_list):
         # Arrange
         uuid = "4efbbbde-e197-47be-9d40-e08f1cd00259"
@@ -921,7 +861,6 @@ class TestOIORestObject(ExtTestCase):
         with pytest.raises(BadRequestException):
             await self.testclass.get_object(uuid, request)
 
-    @async_to_sync
     async def test_put_object_with_no_input_returns_uuid_none_and_code_400(self):
         # Arrange
         expected_data = {"uuid": None}
@@ -933,12 +872,11 @@ class TestOIORestObject(ExtTestCase):
         with pytest.raises(HTTPException) as exp:
             await self.testclass.put_object(uuid, request)
             # Assert
-            self.assertDictEqual(exp.detail, expected_data)
+            assert exp.detail == expected_data
             assert exp.status_code == 400
 
     @patch("oio_rest.db.object_exists")
     @patch("oio_rest.db.create_or_import_object")
-    @async_to_sync
     async def test_put_object_create_if_not_exists(self, mock_create, mock_exists):
         # type: (MagicMock, MagicMock) -> None
         # Arrange
@@ -979,13 +917,12 @@ class TestOIORestObject(ExtTestCase):
 
         # Assert
         mock_create.assert_called()
-        self.assertDictEqual(expected_data, actual_data)
+        assert expected_data == actual_data
 
     @patch("oio_rest.db.get_life_cycle_code")
     @patch("oio_rest.db.object_exists")
     @patch("oio_rest.db.update_object")
     @patch("oio_rest.validate.validate")
-    @async_to_sync
     async def test_patch_object_update_if_deleted_or_passive(
         self, mock_validate, mock_update, mock_exists, mock_life_cycle
     ):
@@ -1012,13 +949,12 @@ class TestOIORestObject(ExtTestCase):
 
         # Assert
         mock_update.assert_called()
-        self.assertDictEqual(expected_data, actual_data)
+        assert expected_data == actual_data
 
     @patch("oio_rest.db.get_life_cycle_code")
     @patch("oio_rest.db.object_exists")
     @patch("oio_rest.db.update_object")
     @patch("oio_rest.validate.validate")
-    @async_to_sync
     async def test_patch_object_update_if_not_deleted_or_passive(
         self, mock_validate, mock_update, mock_exists, mock_life_cycle
     ):
@@ -1044,13 +980,12 @@ class TestOIORestObject(ExtTestCase):
 
         # Assert
         mock_update.assert_called()
-        self.assertDictEqual(expected_data, actual_data)
+        assert expected_data == actual_data
 
     @patch("oio_rest.db.get_life_cycle_code")
     @patch("oio_rest.db.object_exists")
     @patch("oio_rest.db.passivate_object")
     @patch("oio_rest.validate.validate")
-    @async_to_sync
     async def test_patch_object_passivate_if_livscyklus_passiv(
         self, mock_validate, mock_passivate, mock_exists, mock_life_cycle
     ):
@@ -1076,9 +1011,8 @@ class TestOIORestObject(ExtTestCase):
 
         # Assert
         mock_passivate.assert_called()
-        self.assertDictEqual(expected_data, actual_data)
+        assert expected_data == actual_data
 
-    @async_to_sync
     async def test_put_object_raises_on_unknown_args(self):
         # Arrange
         params = {"a": "b"}
@@ -1091,7 +1025,6 @@ class TestOIORestObject(ExtTestCase):
             await self.testclass.put_object(uuid, request)
 
     @patch("oio_rest.db.delete_object")
-    @async_to_sync
     async def test_delete_object_returns_expected_result_and_202(self, mock_delete):
         # type: (MagicMock) -> None
         # Arrange
@@ -1108,10 +1041,9 @@ class TestOIORestObject(ExtTestCase):
         )
         actual_data = await self.testclass.delete_object(uuid, request)
         # Assert
-        self.assertDictEqual(expected_data, actual_data)
+        assert expected_data == actual_data
 
     @patch("oio_rest.db.delete_object")
-    @async_to_sync
     async def test_delete_object_called_with_empty_reg_and_uuid(self, mock_delete):
         # type: (MagicMock) -> None
         # Arrange
@@ -1135,7 +1067,6 @@ class TestOIORestObject(ExtTestCase):
         assert expected_reg == actual_reg
         assert uuid == actual_uuid
 
-    @async_to_sync
     async def test_delete_object_raises_on_unknown_args(self):
         # Arrange
         params = {"a": "b"}
@@ -1219,11 +1150,9 @@ class TestOIORestObject(ExtTestCase):
 
 
 class TestOIOStandardHierarchy(ExtTestCase):
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setup_and_reset(self):
         self.testclass = TestClassStandardHierarchy()
-        self.resetClassFields()
-
-    def resetClassFields(self):
         TestClassStandardHierarchy._classes = []
 
     def test_setup_api_calls_create_api_on_classes(self):
@@ -1277,10 +1206,10 @@ class TestOIOStandardHierarchy(ExtTestCase):
             get_classes = route.endpoint
 
             actual_result = await get_classes()
-            self.assertDictEqual(actual_result, expected_result)
+            assert expected_result == actual_result
 
 
-class TestOIORest(TestCase):
+class TestOIORest:
     def test_typed_get_returns_value(self):
         # Arrange
         expected_result = "value"
