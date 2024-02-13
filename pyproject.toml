@@ -38,7 +38,7 @@ os2mo-dar-client = "^1.0.3"
 ra-utils = "^1.14.0"
 ramqp = "^9.1.0"
 uvicorn = "^0.23.2"
-strawberry-graphql = "^0.209.6"
+strawberry-graphql = "^0.219.2"
 jsonschema = "^4.20.0"
 psycopg2-binary = "~2.9"
 sentry-sdk = {extras = ["fastapi"], version = "^1.34.0"}

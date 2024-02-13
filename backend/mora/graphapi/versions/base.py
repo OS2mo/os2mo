@@ -18,7 +18,6 @@ from strawberry.custom_scalar import ScalarDefinition
 from strawberry.custom_scalar import ScalarWrapper
 from strawberry.exceptions import StrawberryGraphQLError
 from strawberry.extensions import SchemaExtension
-from strawberry.extensions.tracing import SentryTracingExtension
 from strawberry.printer import print_schema
 from strawberry.schema.config import StrawberryConfig
 from strawberry.utils.await_maybe import AsyncIteratorOrIterator
@@ -87,7 +86,6 @@ class BaseGraphQLSchema:
 
     extensions: Sequence[type[SchemaExtension] | SchemaExtension] = [
         StarletteContextExtension,
-        SentryTracingExtension,
         ExtendedErrorFormatExtension,
         IntrospectionQueryCacheExtension,
     ]
@@ -137,6 +135,7 @@ class BaseGraphQLVersion:
     def get_router(cls, is_latest: bool) -> APIRouter:
         """Get Strawberry FastAPI router serving this GraphQL API version."""
         router = CustomGraphQLRouter(
+            graphql_ide="graphiql",  # TODO: pathfinder seems a lot nicer
             is_latest=is_latest,
             schema=cls.schema.get(),
             context_getter=cls.get_context,

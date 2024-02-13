@@ -17,6 +17,7 @@ from prometheus_client import Info
 from prometheus_fastapi_instrumentator import Instrumentator
 from psycopg2 import DataError
 from ramqp import AMQPSystem
+from sentry_sdk.integrations.strawberry import StrawberryIntegration
 from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
@@ -321,6 +322,11 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         )
 
     if settings.sentry_dsn:
-        sentry_sdk.init(dsn=settings.sentry_dsn)
+        sentry_sdk.init(
+            dsn=settings.sentry_dsn,
+            integrations=[
+                StrawberryIntegration(async_execution=True),
+            ],
+        )
 
     return app
