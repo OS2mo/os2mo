@@ -6,7 +6,6 @@
 Used for shimming the service API.
 """
 from datetime import date
-from functools import cache
 from typing import Any
 from typing import Optional
 from uuid import UUID
@@ -18,7 +17,6 @@ from pydantic import root_validator
 from pydantic import validator
 from starlette_context import context
 from starlette_context import request_cycle_context
-from strawberry import Schema
 from strawberry.types import ExecutionResult
 
 from .versions.base import BaseGraphQLVersion
@@ -199,15 +197,6 @@ class MOAddress(AddressRead):
     name: str | None
 
 
-@cache
-def get_schema(graphql_version: type[BaseGraphQLVersion]) -> Schema:
-    """Cache GraphQL version schema for performance.
-
-    Without the cache, we would block the event loop for ~500ms on shimmed call.
-    """
-    return graphql_version.schema.get()
-
-
 async def set_graphql_context_dependencies(
     amqp_system: depends.AMQPSystem, sessionmaker: depends.async_sessionmaker
 ):
@@ -247,7 +236,7 @@ async def execute_graphql(
             sessionmaker=context.get("sessionmaker"),
         )
 
-    schema = get_schema(graphql_version)
+    schema = graphql_version.schema.get()
     return await schema.execute(*args, **kwargs)
 
 
