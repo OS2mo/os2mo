@@ -5,7 +5,6 @@ from typing import Any
 from fastapi import Request
 from starlette.responses import HTMLResponse
 from strawberry.fastapi import GraphQLRouter
-from strawberry.utils.graphiql import get_graphiql_html
 
 from mora.config import get_settings
 
@@ -76,8 +75,9 @@ class CustomGraphQLRouter(GraphQLRouter):
         super().__init__(*args, **kwargs)
         self.is_latest = is_latest
 
-    def render_graphiql(self, request: Request) -> HTMLResponse:
-        html = get_graphiql_html()
+    async def render_graphql_ide(self, request: Request) -> HTMLResponse:
+        assert self.graphql_ide == "graphiql"  # type: ignore[attr-defined]
+        html = self.graphql_ide_html  # type: ignore[attr-defined]
 
         # Show deprecation notice at the top of the page if accessing an old version
         # of GraphQL.
