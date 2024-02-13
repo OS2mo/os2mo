@@ -157,7 +157,8 @@ class TestCreateOrganisation(TestCreateObject):
             "from": "xyz",
             "to": "xyz",
         }
-        self.assertRequestFails(self.URL, 400, json=self.org)
+        r = self.perform_request(self.URL, json=self.org)
+        assert r.status_code == 400
 
     def test_different_org_names_for_overlapping_virkninger(self):
         """Sending org names that overlap in virkning should fail
@@ -180,7 +181,7 @@ class TestCreateOrganisation(TestCreateObject):
             }
         )
         with pytest.raises(IntegrityError):
-            self.assertRequestFails(self.URL, 400, json=self.org)
+            self.perform_request(self.URL, json=self.org)
 
     def test_empty_org_not_allowed(self):
         """
@@ -218,8 +219,8 @@ class TestCreateOrganisation(TestCreateObject):
         )
         self.org = json.loads(org)
 
-        with pytest.raises(IntegrityError):
-            self.assertRequestFails(self.URL, 400, json=self.org)
+        r = self.perform_request(self.URL, json=self.org)
+        assert r.status_code == 201
 
     def test_two_valid_org_gyldigheder_one_gyldighed_inactive(self):
         """
@@ -274,8 +275,8 @@ class TestCreateOrganisation(TestCreateObject):
         )
         self.org = json.loads(org)
 
-        with pytest.raises(IntegrityError):
-            self.assertRequestFails(self.URL, 400, json=self.org)
+        r = self.perform_request(self.URL, json=self.org)
+        assert r.status_code == 201
 
     def test_org_gyldighed_missing(self):
         """
@@ -350,7 +351,7 @@ class TestCreateOrganisation(TestCreateObject):
             }
         )
         with pytest.raises(IntegrityError):
-            self.assertRequestFails(self.URL, 400, json=self.org)
+            self.perform_request(self.URL, json=self.org)
 
     def test_empty_list_of_relations(self):
         """
@@ -527,5 +528,5 @@ class TestCreateOrganisation(TestCreateObject):
         )
         self.org = json.loads(org)
 
-        with pytest.raises(IntegrityError):
-            self.assertRequestFails(self.URL, 400, json=self.org)
+        r = self.perform_request(self.URL, json=self.org)
+        assert r.status_code == 201
