@@ -239,7 +239,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             Depends(is_graphql_context),
             Depends(graphql_dates_context),
             Depends(set_graphql_context_dependencies),
-            Depends(set_sessionmaker_context(sessionmaker)),
+            Depends(set_sessionmaker_context),
         ],
         openapi_tags=list(tags_metadata),
     )

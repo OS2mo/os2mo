@@ -59,6 +59,7 @@ from ._organisationsfunktion import OrganisationFunktionRelation
 from ._organisationsfunktion import OrganisationFunktionRelationKode
 from ._organisationsfunktion import OrganisationFunktionTilsGyldighed
 from .files import FileToken
+from .. import depends
 
 
 def create_engine(user, password, host, name) -> AsyncEngine:
@@ -79,13 +80,10 @@ def create_sessionmaker(user, password, host, name) -> async_sessionmaker:
 _DB_SESSION_CONTEXT_KEY = "db_session"
 
 
-def set_sessionmaker_context(sessionmaker):
-    async def set_sessionmaker_context_inner() -> AsyncIterator[None]:
-        data = {**context, _DB_SESSION_CONTEXT_KEY: sessionmaker}
-        with request_cycle_context(data):
-            yield
-
-    return set_sessionmaker_context_inner
+async def set_sessionmaker_context(sessionmaker: depends.async_sessionmaker):
+    data = {**context, _DB_SESSION_CONTEXT_KEY: sessionmaker}
+    with request_cycle_context(data):
+        yield
 
 
 def get_sessionmaker() -> async_sessionmaker:
