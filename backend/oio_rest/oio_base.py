@@ -633,7 +633,7 @@ class OIORestObject:
         exists = await db.object_exists(cls.__name__, str(uuid))
         deleted_or_passive = False
         if exists:
-            livscyklus = db.get_life_cycle_code(cls.__name__, uuid)
+            livscyklus = await db.get_life_cycle_code(cls.__name__, uuid)
             if livscyklus in (
                 db.Livscyklus.PASSIVERET.value,
                 db.Livscyklus.SLETTET.value,

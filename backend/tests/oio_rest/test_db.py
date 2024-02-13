@@ -825,7 +825,7 @@ class TestDB(TestCase):
         assert expected_result == actual_value
 
     @patch("oio_rest.db.list_objects")
-    def test_get_life_cycle_code(self, mock_list_objs):
+    async def test_get_life_cycle_code(self, mock_list_objs):
         # type: (MagicMock) -> None
         # Arrange
         class_name = ""
@@ -849,7 +849,7 @@ class TestDB(TestCase):
         mock_list_objs.return_value = results
 
         # Act
-        actual_result = db.get_life_cycle_code(class_name, uuid)
+        actual_result = await db.get_life_cycle_code(class_name, uuid)
 
         # Assert
         assert actual_result == "Importeret"
