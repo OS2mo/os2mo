@@ -4,6 +4,7 @@ from collections.abc import AsyncIterator
 from collections.abc import Iterable
 from collections.abc import Sequence
 from contextlib import suppress
+from functools import cache
 from textwrap import dedent
 from typing import Any
 
@@ -106,6 +107,7 @@ class BaseGraphQLSchema:
     ] | None = None
 
     @classmethod
+    @cache
     def get(cls) -> Schema:
         """Instantiate Strawberry Schema."""
         return Schema(
