@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 from contextlib import asynccontextmanager
 from itertools import chain
+
+from sqlalchemy.exc import DataError
 from typing import Any
 
 import sentry_sdk
@@ -15,7 +17,6 @@ from more_itertools import only
 from prometheus_client import Gauge
 from prometheus_client import Info
 from prometheus_fastapi_instrumentator import Instrumentator
-from psycopg import DataError
 from ramqp import AMQPSystem
 from sentry_sdk.integrations.strawberry import StrawberryIntegration
 from starlette.middleware import Middleware
@@ -317,8 +318,8 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
 
     @app.exception_handler(DataError)
     def handle_db_error(request: Request, exc: DataError):
-        message = exc.diag.message_primary
-        context = exc.diag.context
+        message = exc.orig.diag.message_primary
+        context = exc.orig.diag.context
         return JSONResponse(
             status_code=400, content={"message": message, "context": context}
         )

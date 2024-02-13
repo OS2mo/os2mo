@@ -21,6 +21,7 @@ from psycopg.sql import Identifier
 from psycopg.sql import SQL
 from psycopg.types.range import TimestamptzRange
 from sqlalchemy import text
+from sqlalchemy.exc import StatementError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from mora.audit import audit_log
@@ -40,6 +41,7 @@ from .db_helpers import get_relation_field_type
 from .db_helpers import get_state_names
 from .db_helpers import to_bool
 from ..custom_exceptions import BadRequestException
+from ..custom_exceptions import DBException
 from ..custom_exceptions import NotFoundException
 
 """
@@ -315,17 +317,16 @@ async def object_exists(class_name: str, uuid: str) -> bool:
     arguments = {"uuid": uuid}
 
     async with get_sessionmaker().begin() as session:
-        resulting_sql = await mogrify(sql, arguments, session)
-        audit_log(session, "object_exists", class_name, arguments, [UUID(uuid)])
-        result = await session.scalar(text(resulting_sql))
-        # TODO: This is the old error-handling. We need the equivalent:
-        # except psycopg2.Error as e:
-        #     if e.pgcode is not None and e.pgcode[:2] == "MO":
-        #         status_code = int(e.pgcode[2:])
-        #         raise DBException(status_code, e.pgerror)
-        #     else:
-        #         raise
-
+        try:
+            resulting_sql = await mogrify(sql, arguments, session)
+            audit_log(session, "object_exists", class_name, arguments, [UUID(uuid)])
+            result = await session.scalar(text(resulting_sql))
+        except StatementError as e:
+            if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
+                status_code = int(e.orig.sqlstate[2:])
+                raise DBException(status_code, e.orig.diag.message_primary)
+            else:
+                raise
     assert isinstance(result, bool)
     return result
 
@@ -364,15 +365,15 @@ async def create_or_import_object(class_name, note, registration, uuid=None):
     )
 
     async with get_sessionmaker().begin() as session:
-        result = await session.execute(sql)
+        try:
+            result = await session.execute(sql)
+        except StatementError as e:
+            if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
+                status_code = int(e.orig.sqlstate[2:])
+                raise DBException(status_code, e.orig.diag.message_primary)
+            else:
+                raise
         return result.fetchone()[0]
-        # TODO: This is the old error-handling. We need the equivalent:
-        # except psycopg2.Error as e:
-        #     if e.pgcode is not None and e.pgcode[:2] == "MO":
-        #         status_code = int(e.pgcode[2:])
-        #         raise DBException(status_code, e.pgerror)
-        #     else:
-        #         raise
 
 
 async def delete_object(class_name, registration, note, uuid):
@@ -408,16 +409,15 @@ async def delete_object(class_name, registration, note, uuid):
     )
 
     async with get_sessionmaker().begin() as session:
-        result = await session.execute(sql)
+        try:
+            result = await session.execute(sql)
+        except StatementError as e:
+            if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
+                status_code = int(e.orig.sqlstate[2:])
+                raise DBException(status_code, e.orig.diag.message_primary)
+            else:
+                raise
         return result.fetchone()[0]
-
-        # TODO: This is the old error-handling. We need the equivalent:
-        #   except psycopg2.Error as e:
-        #       if e.pgcode is not None and e.pgcode[:2] == "MO":
-        #           status_code = int(e.pgcode[2:])
-        #           raise DBException(status_code, e.pgerror)
-        #       else:
-        #           raise
 
 
 async def passivate_object(class_name, note, registration, uuid):
@@ -442,15 +442,15 @@ async def passivate_object(class_name, note, registration, uuid):
     )
 
     async with get_sessionmaker().begin() as session:
-        result = await session.execute(sql)
+        try:
+            result = await session.execute(sql)
+        except StatementError as e:
+            if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
+                status_code = int(e.orig.sqlstate[2:])
+                raise DBException(status_code, e.orig.diag.message_primary)
+            else:
+                raise
         return result.fetchone()[0]
-    # TODO: This is the old error-handling. We need the equivalent:
-    # except psycopg2.Error as e:
-    #     if e.pgcode is not None and e.pgcode[:2] == "MO":
-    #         status_code = int(e.pgcode[2:])
-    #         raise DBException(status_code, e.pgerror)
-    #     else:
-    #         raise
 
 
 async def update_object(
@@ -477,26 +477,22 @@ async def update_object(
     )
 
     async with get_sessionmaker().begin() as session:
-        await session.execute(sql)
-    # TODO: This is the old error-handling. We need the equivalent:
-    # try:
-    #     cursor.execute(sql)
-    #     cursor.fetchone()
-    # except psycopg2.Error as e:
-    #     noop_msg = (
-    #         "Aborted updating {} with id [{}] as the given data, "
-    #         "does not give raise to a new registration.".format(
-    #             class_name.lower(), uuid
-    #         )
-    #     )
-
-    #     if e.pgerror.startswith(noop_msg):
-    #         return uuid
-    #     elif e.pgcode is not None and e.pgcode[:2] == "MO":
-    #         status_code = int(e.pgcode[2:])
-    #         raise DBException(status_code, e.pgerror)
-    #     else:
-    #         raise
+        try:
+            await session.execute(sql)
+        except StatementError as e:
+            noop_msg = (
+                "Aborted updating {} with id [{}] as the given data, "
+                "does not give raise to a new registration.".format(
+                    class_name.lower(), uuid
+                )
+            )
+            if e.orig.diag.message_primary.startswith(noop_msg):
+                return uuid
+            elif e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
+                status_code = int(e.orig.sqlstate[2:])
+                raise DBException(status_code, e.orig.diag.message_primary)
+            else:
+                raise
 
     return uuid
 
@@ -546,16 +542,15 @@ async def list_objects(
     }
 
     async with get_sessionmaker().begin() as session:
-        resulting_sql = await mogrify(sql, arguments, session)
-        result = await session.execute(text(resulting_sql))
-        # TODO: This is the old error-handling. We need the equivalent:
-        # except psycopg2.Error as e:
-        #     if e.pgcode is not None and e.pgcode[:2] == "MO":
-        #         status_code = int(e.pgcode[2:])
-        #         raise DBException(status_code, e.pgerror)
-        #     else:
-        #         raise
-
+        try:
+            resulting_sql = await mogrify(sql, arguments, session)
+            result = await session.execute(text(resulting_sql))
+        except StatementError as e:
+            if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
+                status_code = int(e.orig.sqlstate[2:])
+                raise DBException(status_code, e.orig.diag.message_primary)
+            else:
+                raise
         output = one(result.fetchone())
         uuids = []
         if output is not None:
@@ -924,14 +919,14 @@ async def search_objects(
     }
 
     async with get_sessionmaker().begin() as session:
-        result = await session.execute(sql)
-        # TODO: This is the old error-handling. We need the equivalent:
-        # except psycopg2.Error as e:
-        #     if e.pgcode is not None and e.pgcode[:2] == "MO":
-        #         status_code = int(e.pgcode[2:])
-        #         raise DBException(status_code, e.pgerror)
-        #     else:
-        #         raise
+        try:
+            result = await session.execute(sql)
+        except StatementError as e:
+            if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
+                status_code = int(e.orig.sqlstate[2:])
+                raise DBException(status_code, e.orig.diag.message_primary)
+            else:
+                raise
         uuids = one(result.fetchone())
         audit_log(
             session, "search_objects", class_name, arguments, list(map(UUID, uuids))

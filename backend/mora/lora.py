@@ -22,6 +22,8 @@ from enum import Enum
 from enum import unique
 from functools import partial
 from itertools import starmap
+
+from sqlalchemy.exc import DataError
 from typing import Any
 from typing import Literal
 from typing import overload
@@ -33,7 +35,6 @@ from fastapi import Request
 from fastapi import Response
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
-from psycopg import DataError
 from starlette_context import context
 from starlette_context import request_cycle_context
 from strawberry.dataloader import DataLoader
@@ -145,8 +146,8 @@ def lora_to_mo_exception() -> Iterator[None]:
     except ValueError as e:
         exceptions.ErrorCodes.E_INVALID_INPUT(message=e.args[0], cause=None)
     except DataError as e:
-        message = e.diag.message_primary
-        cause = e.diag.context
+        message = e.orig.diag.message_primary
+        cause = e.orig.diag.context
         exceptions.ErrorCodes.E_INVALID_INPUT(message=message, cause=cause)
     except Exception as e:
         try:
