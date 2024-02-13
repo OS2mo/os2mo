@@ -150,7 +150,7 @@ def no_auth_endpoints():
     yield no_auth_endpoints | graphql_endpoints
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def all_routes(fastapi_test_app: FastAPI) -> list[APIRoute]:
     """Fixture yields all routes defined in the FASTAPI app, excluding endpoints that
     which are NOT to be evaluated."""
@@ -194,6 +194,7 @@ def test_ensure_no_auth_endpoints_do_not_depend_on_auth_function(
 
 
 @pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "url",
     [
@@ -216,6 +217,7 @@ async def test_auth_service(raw_client: TestClient, url: str) -> None:
 
 
 @pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "url",
     [
@@ -230,6 +232,8 @@ async def test_auth_service_with_payload(raw_client: TestClient, url: str) -> No
     assert response.text == '"Not authenticated"'
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 async def test_no_auth_graphql(raw_client: TestClient, latest_graphql_url: str) -> None:
     response = raw_client.post(latest_graphql_url, json={"query": "{ org { uuid } }"})
     assert response.status_code == 200
@@ -247,8 +251,8 @@ async def test_no_auth_graphql(raw_client: TestClient, latest_graphql_url: str) 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-def test_auth_service_org(raw_client: TestClient, auth_headers: dict[str, str]) -> None:
-    response = raw_client.get("/service/o/", headers=auth_headers)
+def test_auth_service_org(admin_client: TestClient, auth_headers: dict[str, str]) -> None:
+    response = admin_client.get("/service/o/", headers=auth_headers)
     assert response.status_code == 200
 
 
