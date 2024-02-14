@@ -11,7 +11,6 @@ from starlette.status import HTTP_503_SERVICE_UNAVAILABLE
 
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.health import keycloak
-from mora.graphapi.versions.latest.health import oio_rest
 
 
 router = APIRouter()
@@ -33,15 +32,12 @@ async def liveness():
     },
 )
 async def readiness(response: Response):
-    """
-    Endpoint to be used as a readiness probe for Kubernetes.
-    If MO itself is ready (FastAPI is running), LoRa is running,
-    and Keycloak all are healthy then MO is considered to be ready.
-    """
+    """Endpoint to be used as a readiness probe for Kubernetes.
 
-    lora_ready, keycloak_ready = await asyncio.gather(oio_rest(), keycloak())
-
-    if not (lora_ready and keycloak_ready):
+    If MO itself is ready (FastAPI is running), and Keycloak is healthy then MO is
+    considered to be ready.
+    """
+    if not await keycloak():
         response.status_code = HTTP_503_SERVICE_UNAVAILABLE
 
 

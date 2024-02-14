@@ -21,16 +21,6 @@ def register_health_endpoint(func: Callable) -> Callable:
 
 
 @register_health_endpoint
-async def oio_rest() -> bool:
-    """Check if the configured oio_rest can be reached.
-
-    Returns:
-        bool: True, since we're hosting LoRa internally 😎
-    """
-    return True
-
-
-@register_health_endpoint
 async def dataset() -> bool:
     """Check if LoRa contains data.
 
