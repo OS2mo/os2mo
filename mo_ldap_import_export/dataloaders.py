@@ -1750,36 +1750,42 @@ class DataLoader:
     async def load_mo_employee_engagement_dicts(
         self,
         employee_uuid: UUID,
-        user_key: str,
+        user_key: str | None = None,
     ) -> list[dict]:
         query = gql(
-            f"""
-            query EngagementQuery {{
-              employees(filter: {{uuids: "{employee_uuid}"}}) {{
-                objects {{
-                  objects {{
-                    engagements(filter: {{user_keys: "{user_key}"}}) {{
-                      uuid
-                      user_key
-                      org_unit_uuid
-                      job_function_uuid
-                      engagement_type_uuid
-                      primary_uuid
-                    }}
-                  }}
-                }}
-              }}
-            }}
+            """
+            query EngagementQuery($engagements_filter: EngagementFilter) {
+              engagements(filter: $engagements_filter) {
+                objects {
+                  current {
+                    uuid
+                    user_key
+                    org_unit_uuid
+                    job_function_uuid
+                    engagement_type_uuid
+                    primary_uuid
+                  }
+                }
+              }
+            }
             """
         )
         try:
-            result = await self.query_mo(query)
-            output: list[dict] = result["employees"]["objects"][0]["objects"][0][
-                "engagements"
-            ]
+            engagements_filter: dict[str, Any] = {
+                "employee": {"uuids": [employee_uuid]}
+            }
+            if user_key:
+                engagements_filter["user_keys"] = [user_key]
+            result = await self.query_mo(
+                query,
+                variable_values={
+                    "engagements_filter": engagements_filter,
+                },
+            )
+            engagements = result["engagements"]["objects"]
+            return [x["current"] for x in engagements]
         except NoObjectsReturnedException:
-            output = []
-        return output
+            return []
 
     async def load_mo_employee_engagements(
         self, employee_uuid: UUID
@@ -1788,30 +1794,22 @@ class DataLoader:
         Load all current engagements linked to an employee
         """
         query = gql(
-            f"""
-            query EngagementQuery {{
-              employees(uuids: "{employee_uuid}") {{
-                objects {{
-                  objects {{
-                    engagements {{
-                      uuid
-                    }}
-                  }}
-                }}
-              }}
-            }}
+            """
+            query EngagementQuery($employee_uuid: UUID!) {
+              engagements(filter: {employee: {uuids: [$employee_uuid]}}) {
+                objects {
+                  uuid
+                }
+              }
+            }
             """
         )
-
-        result = await self.query_mo(query)
-
-        output = []
-        for engagement_dict in result["employees"]["objects"][0]["objects"][0][
-            "engagements"
-        ]:
-            engagement = await self.load_mo_engagement(engagement_dict["uuid"])
-            output.append(engagement)
-        return output
+        result = await self.query_mo(
+            query, variable_values={"employee_uuid": employee_uuid}
+        )
+        engagements = result["engagements"]["objects"]
+        engagement_uuids = [x["uuid"] for x in engagements]
+        return [await self.load_mo_engagement(uuid) for uuid in engagement_uuids]
 
     async def load_all_mo_objects(
         self,

@@ -7,6 +7,7 @@ import datetime
 import json
 import re
 import string
+from itertools import compress
 from json.decoder import JSONDecodeError
 from typing import Any
 from uuid import UUID
@@ -814,8 +815,20 @@ class LdapConverter:
 
         if not primary_dict["uuid"]:
             return None
-        else:
-            return primary_dict
+        return primary_dict
+
+    async def get_primary_engagement_dict(self, employee_uuid: UUID) -> dict:
+        engagements = await self.dataloader.load_mo_employee_engagement_dicts(
+            employee_uuid
+        )
+        # TODO: Make is_primary a GraphQL filter in MO and clean this up
+        is_primary_engagement = [
+            await self.dataloader.is_primary(engagement["uuid"])
+            for engagement in engagements
+        ]
+        engagements = compress(engagements, is_primary_engagement)
+        primary_engagement: dict = one(engagements)
+        return primary_engagement
 
     async def get_or_create_engagement_type_uuid(self, engagement_type: str) -> str:
         if not engagement_type:
@@ -1082,6 +1095,7 @@ class LdapConverter:
                 self.get_current_engagement_type_uuid_dict
             ),
             "get_current_primary_uuid_dict": self.get_current_primary_uuid_dict,
+            "get_primary_engagement_dict": self.get_primary_engagement_dict,
         }
         for key, value in mapping.items():
             if isinstance(value, str):

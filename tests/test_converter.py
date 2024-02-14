@@ -1939,3 +1939,96 @@ async def test_remove_first_org(converter: LdapConverter) -> None:
 
     result = converter.remove_first_org("a\\b\\c")
     assert result == "b\\c"
+
+
+async def test_get_primary_engagement_dict(converter: LdapConverter):
+
+    engagement1 = {
+        "uuid": str(uuid4()),
+        "user_key": "foo",
+        "org_unit_uuid": str(uuid4()),
+        "job_function_uuid": str(uuid4()),
+        "engagement_type_uuid": str(uuid4()),
+        "primary_uuid": str(uuid4()),
+    }
+
+    engagement2 = {
+        "uuid": str(uuid4()),
+        "user_key": "bar",
+        "org_unit_uuid": str(uuid4()),
+        "job_function_uuid": str(uuid4()),
+        "engagement_type_uuid": str(uuid4()),
+        "primary_uuid": None,
+    }
+
+    engagement3 = {
+        "uuid": str(uuid4()),
+        "user_key": "baz",
+        "org_unit_uuid": str(uuid4()),
+        "job_function_uuid": str(uuid4()),
+        "engagement_type_uuid": str(uuid4()),
+        "primary_uuid": None,
+    }
+
+    employee_uuid = uuid4()
+
+    dataloader = AsyncMock()
+    converter.dataloader = dataloader
+
+    # 3 engagements
+    # -------------
+    dataloader.load_mo_employee_engagement_dicts.return_value = [
+        engagement1,
+        engagement2,
+        engagement3,
+    ]
+    # One primary
+    # -----------
+    dataloader.is_primary.side_effect = [True, False, False]
+    result = await converter.get_primary_engagement_dict(employee_uuid)
+    assert result["user_key"] == "foo"
+
+    dataloader.is_primary.side_effect = [False, True, False]
+    result = await converter.get_primary_engagement_dict(employee_uuid)
+    assert result["user_key"] == "bar"
+
+    dataloader.is_primary.side_effect = [False, False, True]
+    result = await converter.get_primary_engagement_dict(employee_uuid)
+    assert result["user_key"] == "baz"
+
+    # Two primaries
+    # -------------
+    with pytest.raises(ValueError) as exc_info:
+        dataloader.is_primary.side_effect = [False, True, True]
+        await converter.get_primary_engagement_dict(employee_uuid)
+    assert "Expected exactly one item in iterable" in str(exc_info.value)
+
+    # No primary
+    # ----------
+    with pytest.raises(ValueError) as exc_info:
+        dataloader.is_primary.side_effect = [False, False, False]
+        await converter.get_primary_engagement_dict(employee_uuid)
+    assert "too few items in iterable (expected 1)" in str(exc_info.value)
+
+    # 1 engagement
+    # ------------
+    dataloader.load_mo_employee_engagement_dicts.return_value = [engagement3]
+    # One primary
+    # -----------
+    dataloader.is_primary.side_effect = [True]
+    result = await converter.get_primary_engagement_dict(employee_uuid)
+    assert result["user_key"] == "baz"
+
+    # No primary
+    with pytest.raises(ValueError) as exc_info:
+        dataloader.is_primary.side_effect = [False]
+        await converter.get_primary_engagement_dict(employee_uuid)
+    assert "too few items in iterable (expected 1)" in str(exc_info.value)
+
+    # 0 engagements
+    # -------------
+    with pytest.raises(ValueError) as exc_info:
+        dataloader.load_mo_employee_engagement_dicts.return_value = []
+        dataloader.is_primary.side_effect = []
+        await converter.get_primary_engagement_dict(employee_uuid)
+    assert "too few items in iterable (expected 1)" in str(exc_info.value)
