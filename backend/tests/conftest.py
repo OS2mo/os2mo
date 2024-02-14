@@ -133,11 +133,14 @@ def set_session_settings(
 
 
 @pytest.fixture(autouse=True, scope="session")
-def mocked_context() -> YieldFixture[None]:
+async def mocked_context() -> YieldFixture[None]:
     """
     Testing code that relies on context vars without a full test client / app.
     https://starlette-context.readthedocs.io/en/latest/testing.html
     """
+    # NOTE: This fixture MUST be async to ensure the context is propagated correctly
+    # to the tests.
+    assert asyncio.get_running_loop()
     with request_cycle_context({}):
         yield
 
