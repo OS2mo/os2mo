@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 import datetime
 from functools import partial
+from hypothesis import HealthCheck
+from hypothesis import settings
 from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import patch
@@ -126,8 +128,13 @@ read_history = partial(
 )
 
 
-# UNIT tests
-# -------------------
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(
     test_data=graph_data_momodel_validity_strat_list(
         ClassRead,
@@ -181,6 +188,13 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     assert [x["current"] for x in response.data["classes"]["objects"]] == test_data
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_input=graph_data_uuids_strat(ClassRead))
 async def test_query_by_uuid(test_input, patch_loader):
     """Test that we can query classes by UUID."""
@@ -220,8 +234,12 @@ async def test_query_by_uuid(test_input, patch_loader):
     assert set(result_uuids) == test_uuids_set
 
 
-# INTEGRATION tests
-# -------------------
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay in this instance
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(
     test_data=graph_data_momodel_validity_strat(
         ClassCreate,

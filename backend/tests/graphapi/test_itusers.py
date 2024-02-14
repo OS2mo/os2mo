@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
+from hypothesis import HealthCheck
+from hypothesis import settings
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -30,6 +32,13 @@ from ramodels.mo.details import ITUserRead
 from tests.conftest import GQLResponse
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_data=graph_data_strat(ITUserRead))
 def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all attributes of the ituser data model."""
@@ -63,6 +72,13 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     assert flatten_data(response.data["itusers"]["objects"]) == test_data
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_input=graph_data_uuids_strat(ITUserRead))
 def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query itusers by UUID."""
@@ -136,6 +152,12 @@ async def test_create_ituser(create_ituser: AsyncMock, data: DataObject) -> None
     assert response.data == {"ituser_create": {"uuid": str(test_data.uuid)}}
 
 
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay in this instance
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @patch(
     "mora.service.validation.models.GroupValidation.validate_unique_constraint",
     new_callable=AsyncMock,
@@ -251,6 +273,12 @@ async def test_create_ituser_employee_integration_test(
             )
 
 
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay in this instance
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @patch(
     "mora.service.validation.models.GroupValidation.validate_unique_constraint",
     new_callable=AsyncMock,

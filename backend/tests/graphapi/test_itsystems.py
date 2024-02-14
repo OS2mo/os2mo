@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from hypothesis import HealthCheck
+from hypothesis import settings
 from unittest.mock import patch
 from uuid import UUID
 
@@ -16,7 +18,13 @@ from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from ramodels.mo.details import ITSystemRead
 
-
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_data=graph_data_strat(ITSystemRead))
 def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all attributes of the ITSystem data model."""
@@ -50,6 +58,13 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     assert flatten_data(response.data["itsystems"]["objects"]) == test_data
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_input=graph_data_uuids_strat(ITSystemRead))
 def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query ITSystems by UUID."""
@@ -314,6 +329,13 @@ def test_itsystem_delete(graphapi_post) -> None:
     assert itsystem_map.keys() == existing_itsystem_uuids - {deleted_uuid}
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(uuid=...)
 def test_itsystem_delete_mocked(uuid: UUID, graphapi_post: GraphAPIPost) -> None:
     """Test that delete_object is called as expected."""

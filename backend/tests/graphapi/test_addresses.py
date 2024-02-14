@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import datetime
+from hypothesis import HealthCheck
+from hypothesis import settings
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -200,6 +202,13 @@ def _create_address_create_hypothesis_test_data(
 # TESTS
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_data=graph_data_strat(AddressRead))
 def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all attributes of the address data model."""
@@ -241,6 +250,13 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     assert flatten_data(response.data["addresses"]["objects"]) == test_data
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_input=graph_data_uuids_strat(AddressRead))
 def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query addresses by UUID."""
@@ -406,6 +422,12 @@ async def test_create_mutator_fails(create_address: AsyncMock, given_mutator_arg
     create_address.assert_not_called()
 
 
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay in this instance
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")

@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
 from unittest import mock
+
+from hypothesis import HealthCheck
+from hypothesis import settings
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -30,6 +33,13 @@ from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import EngagementRead
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_data=graph_data_strat(EngagementRead))
 def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all attributes of the engagement data model."""
@@ -75,6 +85,13 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     assert flatten_data(response.data["engagements"]["objects"]) == test_data
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_input=graph_data_uuids_strat(EngagementRead))
 def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query engagements by UUID."""
@@ -105,6 +122,13 @@ def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     assert len(result_uuids) == len(set(test_uuids))
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_data=graph_data_strat(EngagementRead))
 def test_query_is_primary(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query 'is_primary' from the engagement data model."""
@@ -270,6 +294,12 @@ async def test_create_engagement(
     create_engagement.assert_called_with(test_data)
 
 
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay in this instance
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
@@ -640,6 +670,12 @@ async def test_update_extensions_field_integrations_test(
     assert post_update_engagement_with_new_extensions == expected_extension_field
 
 
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay in this instance
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")

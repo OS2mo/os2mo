@@ -3,7 +3,9 @@
 import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
+from hypothesis import HealthCheck
 from hypothesis import given
+from hypothesis import settings
 from more_itertools import one
 from pytest import MonkeyPatch
 
@@ -13,7 +15,13 @@ from mora.graphapi.versions.latest import dataloaders
 from ramodels.mo.details.owner import OwnerRead
 from tests.conftest import GraphAPIPost
 
-
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_data=graph_data_strat(OwnerRead))
 def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all attributes of the owner data model."""

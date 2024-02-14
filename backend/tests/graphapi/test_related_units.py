@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from hypothesis import HealthCheck
+from hypothesis import settings
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 
@@ -18,7 +20,13 @@ from mora.graphapi.versions.latest.models import RelatedUnitsUpdate
 from ramodels.mo.details import RelatedUnitRead
 from tests.conftest import GQLResponse
 
-
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_data=graph_data_strat(RelatedUnitRead))
 def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all attributes of the related_unit data model."""
@@ -47,7 +55,13 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     assert response.data
     assert flatten_data(response.data["related_units"]["objects"]) == test_data
 
-
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_input=graph_data_uuids_strat(RelatedUnitRead))
 def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query related_units by UUID."""

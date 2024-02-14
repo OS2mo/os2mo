@@ -32,7 +32,8 @@ from ramodels.mo.details import ManagerRead
 
 @settings(
     suppress_health_check=[
-        # Running multiple tests on the same database is okay in this instance
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
         HealthCheck.function_scoped_fixture,
     ],
 )
@@ -71,7 +72,8 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
 
 @settings(
     suppress_health_check=[
-        # Running multiple tests on the same database is okay in this instance
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
         HealthCheck.function_scoped_fixture,
     ],
 )
