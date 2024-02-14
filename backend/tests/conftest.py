@@ -548,8 +548,9 @@ def mock_get_valid_organisations() -> YieldFixture[UUID]:
         yield UUID(mocked_organisation["uuid"])
 
 
-@pytest.fixture(scope="session", name="org_uuids")
-def fetch_org_uuids(load_fixture, graphapi_post: GraphAPIPost) -> list[UUID]:
+@pytest.fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def org_uuids(graphapi_post: GraphAPIPost) -> list[UUID]:
     parent_uuids_query = """
         query FetchOrgUUIDs {
             org_units {
@@ -567,8 +568,9 @@ def fetch_org_uuids(load_fixture, graphapi_post: GraphAPIPost) -> list[UUID]:
     return uuids
 
 
-@pytest.fixture(scope="session", name="employee_uuids")
-def fetch_employee_uuids(load_fixture, graphapi_post: GraphAPIPost) -> list[UUID]:
+@pytest.fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def employee_uuids(graphapi_post: GraphAPIPost) -> list[UUID]:
     parent_uuids_query = """
         query FetchEmployeeUUIDs {
             employees {
@@ -586,10 +588,9 @@ def fetch_employee_uuids(load_fixture, graphapi_post: GraphAPIPost) -> list[UUID
     return uuids
 
 
-@pytest.fixture(scope="session", name="employee_and_engagement_uuids")
-def fetch_employee_and_engagement_uuids(
-    load_fixture, graphapi_post: GraphAPIPost
-) -> list[tuple[UUID, UUID]]:
+@pytest.fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def employee_and_engagement_uuids(graphapi_post: GraphAPIPost) -> list[tuple[UUID, UUID]]:
     employee_and_engagement_uuids_query = """
         query FetchEmployeeUUIDs {
             employees {
@@ -621,8 +622,9 @@ def fetch_employee_and_engagement_uuids(
     return uuids_and_engagements
 
 
-@pytest.fixture(scope="session", name="itsystem_uuids")
-def fetch_itsystem_uuids(load_fixture, graphapi_post: GraphAPIPost) -> list[UUID]:
+@pytest.fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def itsystem_uuids(graphapi_post: GraphAPIPost) -> list[UUID]:
     itsystem_uuids_query = """
         query FetchITSystemUUIDs {
             itsystems {
@@ -640,8 +642,9 @@ def fetch_itsystem_uuids(load_fixture, graphapi_post: GraphAPIPost) -> list[UUID
     return uuids
 
 
-@pytest.fixture(scope="session", name="ituser_uuids")
-def fetch_ituser_uuids(load_fixture, graphapi_post: GraphAPIPost) -> list[UUID]:
+@pytest.fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def ituser_uuids(graphapi_post: GraphAPIPost) -> list[UUID]:
     ituser_uuids_query = """
         query FetchITSystemUUIDs {
             itusers {
