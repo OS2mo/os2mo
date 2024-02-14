@@ -49,16 +49,3 @@ async def dar() -> bool:
     async with adarclient:
         return await adarclient.healthcheck()
     return False
-
-
-@register_health_endpoint
-async def keycloak() -> bool:
-    """Check nothing.
-
-    Keycloak healthchecking has been removed completely, as we only communicate
-    with Keycloak once on startup when we fetch the JWKS.
-
-    Returns:
-        bool: True always
-    """
-    return True
