@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import asyncio
 from uuid import UUID
 from uuid import uuid4
 
@@ -41,7 +40,5 @@ async def delete_facet(facet_uuid: UUID) -> UUID:
         "relations": {},
     }
     # Let LoRa's SQL templates do their magic
-    await asyncio.to_thread(
-        db.delete_object, "facet", registration, "", str(facet_uuid)
-    )
+    await db.delete_object("facet", registration, "", str(facet_uuid))
     return facet_uuid

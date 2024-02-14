@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import asyncio
 from uuid import UUID
 from uuid import uuid4
 
@@ -42,7 +41,5 @@ async def delete_itsystem(itsystem_uuid: UUID, note: str) -> UUID:
         "relations": {},
     }
     # Let LoRa's SQL templates do their magic
-    await asyncio.to_thread(
-        db.delete_object, "itsystem", registration, note, str(itsystem_uuid)
-    )
+    await db.delete_object("itsystem", registration, note, str(itsystem_uuid))
     return itsystem_uuid
