@@ -259,7 +259,7 @@ async def open_ldap_connection(ldap_connection: Connection) -> AsyncIterator[Non
         yield
 
 
-def construct_gql_client(settings: Settings, version: str = "v7"):
+def construct_gql_client(settings: Settings, version: str = "v21"):
     return PersistentGraphQLClient(
         url=settings.fastramqpi.mo_url + "/graphql/" + version,
         client_id=settings.fastramqpi.client_id,
@@ -360,7 +360,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
 
     logger.info("Setting up FastRAMQPI")
     fastramqpi = FastRAMQPI(
-        application_name="ldap_ie", settings=settings.fastramqpi, graphql_version=7
+        application_name="ldap_ie", settings=settings.fastramqpi, graphql_version=21
     )
     fastramqpi.add_context(settings=settings)
 

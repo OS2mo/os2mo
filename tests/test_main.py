@@ -900,7 +900,7 @@ def test_construct_gql_client():
 
     with patch("mo_ldap_import_export.main.PersistentGraphQLClient", MagicMock):
         gql_client = construct_gql_client(settings)
-        assert gql_client.url == "mo-url/graphql/v7"
+        assert gql_client.url == "mo-url/graphql/v21"
 
 
 async def test_get_non_existing_objectGUIDs_from_MO(

@@ -820,7 +820,7 @@ class DataLoader:
 
         if cpr_field and cpr_no:
             cpr_query = f"""
-            employees(cpr_numbers: "{cpr_no}") {{
+            employees(filter: {{cpr_numbers: "{cpr_no}"}}) {{
               objects {{
                  uuid
               }}
@@ -831,7 +831,7 @@ class DataLoader:
 
         unique_uuid = self.get_ldap_unique_ldap_uuid(dn)
         ituser_query = f"""
-        itusers(user_keys: "{unique_uuid}") {{
+        itusers(filter: {{user_keys: "{unique_uuid}"}}) {{
           objects {{
             objects {{
                employee_uuid
@@ -865,7 +865,7 @@ class DataLoader:
         query = gql(
             """
             query FindEngagementUUID($user_key: String!) {
-              itusers(user_keys: [$user_key]) {
+              itusers(filter: {user_keys: [$user_key]}) {
                 objects {
                   current {
                     engagement { uuid }
@@ -1177,7 +1177,7 @@ class DataLoader:
         query = gql(
             f"""
             query SingleEmployee {{
-              employees(uuids:"{uuid}") {{
+              employees(filter: {{uuids: "{uuid}"}}) {{
                 objects {{
                   objects {{
                     uuid
@@ -1215,7 +1215,7 @@ class DataLoader:
         query = gql(
             f"""
             query EmployeeOrgUnitUUIDs {{
-              org_units(uuids: "{org_unit_uuid}") {{
+              org_units(filter: {{uuids: "{org_unit_uuid}"}}) {{
                 objects {{
                   objects {{
                     engagements {{
@@ -1242,7 +1242,7 @@ class DataLoader:
         query = gql(
             f"""
             query FacetQuery {{
-              facets(user_keys: "{user_key}") {{
+              facets(filter: {{user_keys: "{user_key}"}}) {{
                 objects {{
                   current {{
                     classes {{
@@ -1273,7 +1273,7 @@ class DataLoader:
         query = gql(
             f"""
             query FacetUUIDQuery {{
-              facets(user_keys: "{user_key}") {{
+              facets(filter: {{user_keys: "{user_key}"}}) {{
                 objects {{
                   current {{
                     uuid
@@ -1359,7 +1359,7 @@ class DataLoader:
         query = gql(
             """
             query OrgUnit {
-              org_units(from_date: null, to_date: null) {
+              org_units(filter: {from_date: null, to_date: null}) {
                 objects {
                   objects {
                     uuid
@@ -1394,7 +1394,7 @@ class DataLoader:
         query = gql(
             f"""
             query MyQuery {{
-              itusers(uuids: "{uuid}") {{
+              itusers(filter: {{uuids: "{uuid}"}}) {{
                 objects {{
                   objects {{
                     user_key
@@ -1439,7 +1439,7 @@ class DataLoader:
         query = gql(
             f"""
             query SingleAddress {{
-              addresses(uuids: "{uuid}") {{
+              addresses(filter: {{uuids: "{uuid}"}}) {{
                 objects {{
                   objects {{
                     value: name
@@ -1496,7 +1496,7 @@ class DataLoader:
         query = gql(
             f"""
             query IsPrimary {{
-              engagements(uuids: "{engagement_uuid}") {{
+              engagements(filter: {{uuids: "{engagement_uuid}"}}) {{
                 objects {{
                   objects {{
                     is_primary
@@ -1522,7 +1522,7 @@ class DataLoader:
         query = gql(
             f"""
             query SingleEngagement {{
-              engagements(uuids: "{uuid}") {{
+              engagements(filter: {{uuids: "{uuid}"}}) {{
                 objects {{
                   objects {{
                     user_key
@@ -1592,10 +1592,10 @@ class DataLoader:
         query = gql(
             f"""
             query GetEmployeeAddresses {{
-              employees(uuids: "{employee_uuid}") {{
+              employees(filter: {{uuids: "{employee_uuid}"}}) {{
                 objects {{
                   objects {{
-                    addresses(address_types: "{address_type_uuid}") {{
+                    addresses(filter: {{address_types: "{address_type_uuid}"}}) {{
                       uuid
                     }}
                   }}
@@ -1624,10 +1624,10 @@ class DataLoader:
         query = gql(
             f"""
             query GetOrgUnitAddresses {{
-              org_units(uuids: "{org_unit_uuid}") {{
+              org_units(filter: {{uuids: "{org_unit_uuid}"}}) {{
                 objects {{
                   objects {{
-                    addresses(address_types: "{address_type_uuid}") {{
+                    addresses(filter: {{address_types: "{address_type_uuid}"}}) {{
                       uuid
                     }}
                   }}
@@ -1687,7 +1687,7 @@ class DataLoader:
         query = gql(
             """
             query AllEmployees($cursor: Cursor) {
-              itusers (limit: 100, cursor: $cursor, to_date: null, from_date: null) {
+                itusers (limit: 100, cursor: $cursor, filter: {to_date: null, from_date: null}) {
                 objects {
                   objects {
                     itsystem_uuid
@@ -1724,7 +1724,7 @@ class DataLoader:
         query = gql(
             f"""
             query ItUserQuery {{
-              employees(uuids: "{employee_uuid}") {{
+              employees(filter: {{uuids: "{employee_uuid}"}}) {{
                 objects {{
                   objects {{
                     itusers {{
@@ -1755,10 +1755,10 @@ class DataLoader:
         query = gql(
             f"""
             query EngagementQuery {{
-              employees(uuids: "{employee_uuid}") {{
+              employees(filter: {{uuids: "{employee_uuid}"}}) {{
                 objects {{
                   objects {{
-                    engagements(user_keys: "{user_key}") {{
+                    engagements(filter: {{user_keys: "{user_key}"}}) {{
                       uuid
                       user_key
                       org_unit_uuid
@@ -1895,7 +1895,7 @@ class DataLoader:
             query = gql(
                 f"""
                 query SingleObject {{
-                    {object_type} (uuids: "{uuid}" {validity_filter}) {{
+                    {object_type} (filter: {{uuids: "{uuid}" {validity_filter}}}) {{
                         objects {{
                             objects {{
                                 uuid
@@ -2035,7 +2035,7 @@ class DataLoader:
         query = gql(
             f"""
             query GetExistingClass{{
-              classes(user_keys: "{user_key}") {{
+              classes(filter: {{user_keys: "{user_key}"}}) {{
                 objects {{
                   objects {{
                     uuid
