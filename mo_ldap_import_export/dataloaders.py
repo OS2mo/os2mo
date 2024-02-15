@@ -2012,8 +2012,8 @@ class DataLoader:
     async def create_or_edit_mo_objects(self, objects: list[tuple[MOBase, Verb]]):
         model_client = self.user_context["model_client"]
         creates, edits = partition(lambda tup: tup[1] == Verb.EDIT, objects)
-        create_results = await model_client.upload([obj for obj, verb in creates])
-        edit_results = await model_client.edit([obj for obj, verb in edits])
+        create_results = await model_client.upload([obj for obj, _ in creates])
+        edit_results = await model_client.edit([obj for obj, _ in edits])
         return cast(list[Any | None], create_results + edit_results)
 
     async def create_mo_class(
@@ -2033,42 +2033,47 @@ class DataLoader:
         """
 
         query = gql(
-            f"""
-            query GetExistingClass{{
-              classes(filter: {{user_keys: "{user_key}"}}) {{
-                objects {{
-                  objects {{
-                    uuid
-                  }}
-                }}
-              }}
-            }}
+            """
+            query GetExistingClass($user_key: String!) {
+              classes(filter: {user_keys: [$user_key]}) {
+                objects {
+                  uuid
+                }
+              }
+            }
             """
         )
         async with self.create_mo_class_lock:
-            existing_classes = await self.query_mo(query, raise_if_empty=False)
-            if existing_classes["classes"]["objects"]:
+            existing_classes = await self.query_mo(
+                query, raise_if_empty=False, variable_values={"user_key": user_key}
+            )
+            existing_class = only(existing_classes["classes"]["objects"])
+            if existing_class:
                 logger.info("[Create-mo-class] MO class exists.", user_key=user_key)
-                return UUID(
-                    existing_classes["classes"]["objects"][0]["objects"][0]["uuid"]
-                )
+                return UUID(existing_class["uuid"])
 
             logger.info("[Create-mo-class] Creating MO class.", user_key=user_key)
             query = gql(
-                f"""
-                mutation CreateClass {{
-                  class_create(
-                    input: {{name: "{name}",
-                            user_key: "{user_key}",
-                            facet_uuid: "{facet_uuid}",
-                            scope: "{scope}"}}
-                  ) {{
+                """
+                mutation CreateClass($input: ClassCreateInput!) {
+                  class_create(input: $input) {
                     uuid
-                  }}
-                }}
+                  }
+                }
                 """
             )
-            result = await self.query_mo(query)
+            result = await self.query_mo(
+                query,
+                variable_values={
+                    "input": {
+                        "name": name,
+                        "user_key": user_key,
+                        "facet_uuid": facet_uuid,
+                        "scope": scope,
+                        "validity": {"from": None},
+                    }
+                },
+            )
             return UUID(result["class_create"]["uuid"])
 
     async def update_mo_class(
@@ -2089,22 +2094,27 @@ class DataLoader:
         """
         logger.info("[Update-mo-class] Modifying MO class.", user_key=user_key)
         query = gql(
-            f"""
-            mutation UpdateClass {{
-              class_update(
-                input: {{name: "{name}",
-                        user_key: "{user_key}",
-                        facet_uuid: "{facet_uuid}",
-                        scope: "{scope}",
-                        uuid: "{class_uuid}"}},
-                uuid: "{class_uuid}"
-              ) {{
+            """
+            mutation UpdateClass($input: ClassUpdateInput!) {
+              class_update(input: $input) {
                 uuid
-              }}
-            }}
+              }
+            }
             """
         )
-        result = await self.query_mo(query)
+        result = await self.query_mo(
+            query,
+            variable_values={
+                "input": {
+                    "uuid": class_uuid,
+                    "name": name,
+                    "user_key": user_key,
+                    "facet_uuid": facet_uuid,
+                    "scope": scope,
+                    "validity": {"from": None},
+                }
+            },
+        )
         return UUID(result["class_update"]["uuid"])
 
     async def create_mo_job_function(self, name) -> UUID:
@@ -2148,16 +2158,22 @@ class DataLoader:
         """
         logger.info("[Create-mo-it-system] Creating MO it-system", user_key=user_key)
         query = gql(
-            f"""
-            mutation CreateITSystem {{
-              itsystem_create(
-                input: {{name: "{name}",
-                        user_key: "{user_key}"}}
-              ) {{
+            """
+            mutation CreateITSystem($input: ITSystemCreateInput!) {
+              itsystem_create(input: $input) {
                 uuid
-              }}
-            }}
+              }
+            }
             """
         )
-        result = await self.query_mo(query)
+        result = await self.query_mo(
+            query,
+            variable_values={
+                "input": {
+                    "name": name,
+                    "user_key": user_key,
+                    "validity": {"from": None},
+                }
+            },
+        )
         return UUID(result["itsystem_create"]["uuid"])

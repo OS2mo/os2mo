@@ -1961,7 +1961,7 @@ async def test_create_mo_class(dataloader: DataLoader):
     class_not_found_response: dict = {"classes": {"objects": []}}
     class_create_response: dict = {"class_create": {"uuid": str(uuid)}}
     class_exists_response = {
-        "classes": {"objects": [{"objects": [{"uuid": str(existing_class_uuid)}]}]}
+        "classes": {"objects": [{"uuid": str(existing_class_uuid)}]}
     }
 
     async def query_mo_mock(query, *args, **kwargs):
