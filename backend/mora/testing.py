@@ -1,19 +1,25 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Iterator
-from contextlib import contextmanager
+import asyncio
+
+from contextlib import AbstractAsyncContextManager
+from contextlib import asynccontextmanager
 
 from fastapi import APIRouter
-from psycopg import Cursor
-from psycopg2 import sql
+from sqlalchemy import text
+from sqlalchemy.exc import OperationalError
+from sqlalchemy.ext.asyncio import AsyncConnection
 from starlette.status import HTTP_204_NO_CONTENT
 from structlog import get_logger
 
+from mora.depends import async_sessionmaker
+from oio_rest.config import Settings as LoraSettings
+from oio_rest.config import get_settings as lora_get_settings
+
+
 from mora import amqp
 from mora import depends
-from oio_rest.db import _get_dbname
-from oio_rest.db import close_connection
-from oio_rest.db import get_new_connection
+from mora.db import create_engine
 
 logger = get_logger()
 
@@ -32,79 +38,132 @@ async def emit(
     are always sent immediately.
     """
     logger.warning("Emitting AMQP events")
-    await amqp._emit_events(sessionmaker, amqp_system)
+    while True:
+        try:
+            await amqp._emit_events(sessionmaker, amqp_system)
+            return
+        except OperationalError as e:
+            # The database is unavailable while being snapshot or restored. Retry until
+            # we succeed.
+            logger.warning("Error emitting AMQP events", error=e)
+            await asyncio.sleep(0.5)
 
 
-@contextmanager
-def database_snapshot_restore() -> Iterator[Cursor, str, str]:
-    # Ideally, we would use settings.db_name directly, but it is overwritten during CI
-    # integration tests.
-    main_db = _get_dbname()
-    snapshot_db = f"{main_db}_snapshot"
+@asynccontextmanager
+async def superuser_connection(
+    lora_settings: LoraSettings,
+) -> AbstractAsyncContextManager[AsyncConnection]:
+    """Managing databases requires a superuser connection."""
+    engine = create_engine(
+        user=lora_settings.db_user,
+        password=lora_settings.db_password,
+        host=lora_settings.db_host,
+        name="postgres",
+    )
+    # AUTOCOMMIT disables transactions to allow for create/drop database operations
+    engine.update_execution_options(isolation_level="AUTOCOMMIT")
+    async with engine.connect() as connection:
+        yield connection
 
-    # A database cannot be copied or dropped while it has connections. Create a new
-    # database connection to a different one.
-    connection = get_new_connection(dbname="postgres")
-    with connection.cursor() as cursor:
-        # Disallow new connections and terminate existing
-        cursor.execute(
+
+async def _terminate_database_connections(
+    superuser: AsyncConnection, database: str
+) -> None:
+    await superuser.execute(
+        text(
+            f"""
+            select pg_terminate_backend(pid)
+            from pg_stat_activity
+            where datname = '{database}' and pid <> pg_backend_pid()
             """
-            UPDATE pg_database SET datallowconn = FALSE WHERE datname = %s;
-            """,
-            [main_db],
         )
-        cursor.execute(
-            """
-            SELECT pg_terminate_backend(pid)
-            FROM pg_stat_activity
-            WHERE datname = %s AND pid <> pg_backend_pid()
-            """,
-            [main_db],
-        )
-        # Yield for caller's operation
-        yield cursor, sql.Identifier(main_db), sql.Identifier(snapshot_db)
-        # Allow connections again
-        cursor.execute(
-            """
-            UPDATE pg_database SET datallowconn = TRUE WHERE datname = %s;
-            """,
-            [main_db],
-        )
+    )
 
-    # Whereas the SQLAlchemy async_sessionmaker does pessimistic and transparent error
-    # handling, so the callers don't need to, LoRas get_connection() does not.
-    # Explicitly close the connection so the next caller gets a fresh, working one.
-    close_connection()
+
+async def _set_database_connectable(
+    superuser: AsyncConnection, database: str, allow: bool
+) -> None:
+    await superuser.execute(
+        text(
+            f"""
+            update pg_database
+            set datallowconn = :allow
+            where datname = '{database}'
+        """
+        ),
+        dict(allow=allow),
+    )
+
+
+async def drop_database(superuser: AsyncConnection, database: str) -> None:
+    await _terminate_database_connections(superuser, database)
+    await superuser.execute(text(f"drop database if exists {database}"))
+
+
+async def copy_database(
+    superuser: AsyncConnection, source: str, destination: str
+) -> None:
+    """Copy database, overwriting (dropping) destination if it already exists."""
+    # A database cannot be copied or dropped while it has connections; disallow new
+    # connections and terminate existing.
+    await _set_database_connectable(superuser, source, False)
+    await _set_database_connectable(superuser, destination, False)
+    await _terminate_database_connections(superuser, source)
+    await _terminate_database_connections(superuser, destination)
+    # Copy database
+    await drop_database(superuser, destination)
+    await superuser.execute(text(f"create database {destination} template {source}"))
+    # Copying a database does not copy its configuration parameters. These statements
+    # are copied from the initial alembic migration.
+    await superuser.execute(
+        text(f"ALTER DATABASE {destination} SET search_path = actual_state,public")
+    )
+    await superuser.execute(
+        text(f"ALTER DATABASE {destination} SET datestyle to 'ISO, YMD'")
+    )
+    await superuser.execute(
+        text(f"ALTER DATABASE {destination} SET intervalstyle to 'sql_standard'")
+    )
+    await superuser.execute(
+        text(f"ALTER DATABASE {destination} SET time zone 'Europe/Copenhagen'")
+    )
+    # Allow connections again
+    await _set_database_connectable(superuser, source, True)
+    await _set_database_connectable(superuser, destination, True)
+
+
+def _get_current_database(sessionmaker: async_sessionmaker) -> str:
+    return sessionmaker.kw["bind"].engine.url.database
+
+
+def _get_snapshot_database(sessionmaker: async_sessionmaker) -> str:
+    current_database = _get_current_database(sessionmaker)
+    return f"{current_database}_snapshot"
 
 
 @router.post("/database/snapshot", status_code=HTTP_204_NO_CONTENT)
-async def snapshot() -> None:
+async def snapshot(sessionmaker: async_sessionmaker) -> None:
     """
     Snapshot the database.
     """
     logger.warning("Snapshotting database")
-    with database_snapshot_restore() as (cursor, main_db, snapshot_db):
-        cursor.execute(sql.SQL("DROP DATABASE IF EXISTS {}").format(snapshot_db))
-        cursor.execute(
-            sql.SQL("CREATE DATABASE {} TEMPLATE {}").format(snapshot_db, main_db)
+    async with (superuser_connection(lora_get_settings()) as superuser):
+        await copy_database(
+            superuser,
+            source=_get_current_database(sessionmaker),
+            destination=_get_snapshot_database(sessionmaker),
         )
 
 
 @router.post("/database/restore", status_code=HTTP_204_NO_CONTENT)
-async def restore() -> None:
+async def restore(sessionmaker: async_sessionmaker) -> None:
     """
     Restore database snapshot.
     """
     logger.warning("Restoring database")
-    with database_snapshot_restore() as (cursor, main_db, snapshot_db):
-        cursor.execute(sql.SQL("DROP DATABASE IF EXISTS {}").format(main_db))
-        cursor.execute(
-            sql.SQL("CREATE DATABASE {} TEMPLATE {}").format(main_db, snapshot_db)
-        )
-        # Copying a database does not copy its search path; since we use 'actual_state'
-        # instead of the default 'public', we need to re-set it manually.
-        cursor.execute(
-            sql.SQL("ALTER DATABASE {} SET search_path = actual_state,public").format(
-                main_db
-            )
+    async with (superuser_connection(lora_get_settings()) as superuser):
+        await copy_database(
+            superuser,
+            source=_get_snapshot_database(sessionmaker),
+            destination=_get_current_database(sessionmaker),
         )
