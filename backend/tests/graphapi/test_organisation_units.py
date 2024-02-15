@@ -141,7 +141,7 @@ async def test_create_org_unit(
 )
 @given(data=st.data())
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_create_org_unit_integration_test(
     data, graphapi_post: GraphAPIPost, org_uuids
 ) -> None:
@@ -256,7 +256,7 @@ def test_create_org_unit_integration_test(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "filter,expected",
     [
@@ -296,7 +296,7 @@ async def test_org_unit_parent_filter(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "filter,expected",
     [
@@ -340,7 +340,7 @@ async def test_org_unit_hierarchy_filter(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data",
     [
@@ -500,7 +500,7 @@ async def test_update_org_unit_mutation_unit_test(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "expected",
     [

@@ -108,7 +108,7 @@ def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "filter,expected",
     [
@@ -234,7 +234,7 @@ async def test_create_manager_mutation_unit_test(
 )
 @given(data=st.data())
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_manager_integration_test(
     data, graphapi_post: GraphAPIPost, employee_uuids, org_uuids
 ) -> None:
@@ -345,7 +345,7 @@ async def test_create_manager_integration_test(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data",
     [
@@ -538,7 +538,7 @@ async def read_manager_validities(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_update_manager_vacate_integration_test(
     graphapi_post: GraphAPIPost,
 ) -> None:

@@ -19,7 +19,7 @@ from mora.util import DEFAULT_TIMEZONE
 # This forceful termination of database connections does not play nicely with SQLAlchemy
 # which manage the database connections used by the MO db module.
 #
-# Additionally we cannot use load_fixture_data_with_reset here as LoRa changes are made
+# Additionally we cannot use fixture_db here as LoRa changes are made
 # within an uncommitted transaction and thus invisible to the database connection used
 # by the MO db module.
 #
@@ -45,7 +45,7 @@ from mora.util import DEFAULT_TIMEZONE
 # The test can be reenabled once we got the LoRa database connection under control.
 @pytest.mark.xfail
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_writing_registration(graphapi_post) -> None:
     """Integrationtest for reading and writing registrations."""
     query = """
@@ -129,7 +129,7 @@ def assert_around_now(time: datetime) -> None:
 
 @pytest.mark.xfail
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_read_object_registration(graphapi_post) -> None:
     """Object registration reading integration-test."""
     query = """
@@ -167,7 +167,7 @@ async def test_read_object_registration(graphapi_post) -> None:
 
 @pytest.mark.xfail
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_read_top_level_registration(graphapi_post) -> None:
     """Top-level registration reading integration-test."""
     query = """

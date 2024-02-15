@@ -67,7 +67,7 @@ HIST = {
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-06-01", tz_offset=2)
 @pytest.mark.parametrize(
     "url,expected,message",
@@ -109,7 +109,7 @@ def test_reading(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "url,json,status_code,overrides,freeze_time",
     [
@@ -221,7 +221,7 @@ def test_validation(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_writing(service_client: TestClient) -> None:
     response = service_client.request(
         "POST",

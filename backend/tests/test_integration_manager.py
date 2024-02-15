@@ -21,9 +21,9 @@ manager_uuid = "05609702-977f-4869-9fb4-50ad74c6999a"
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "operation,userid,payload,expected",
     [
@@ -560,7 +560,7 @@ async def test_create_manager(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @patch("uuid.uuid4", new=lambda: UUID(mock_uuid))
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_read_manager_multiple_responsibilities(
@@ -660,7 +660,7 @@ async def test_read_manager_multiple_responsibilities(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @patch("uuid.uuid4", new=lambda: UUID(mock_uuid))
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_create_manager_missing_unit(service_client: TestClient) -> None:
@@ -686,7 +686,7 @@ def test_create_manager_missing_unit(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @patch("uuid.uuid4", new=lambda: UUID(mock_uuid))
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_create_vacant_manager(service_client: TestClient) -> None:
@@ -786,7 +786,7 @@ def test_create_vacant_manager(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @patch("uuid.uuid4", new=lambda: UUID(mock_uuid))
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_edit_manager_on_unit(service_client: TestClient) -> None:
@@ -892,7 +892,7 @@ def test_edit_manager_on_unit(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_read_no_inherit_manager(service_client: TestClient) -> None:
     # Anders And is manager at humfak
@@ -904,7 +904,7 @@ def test_read_no_inherit_manager(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_read_inherit_manager_one_level(service_client: TestClient) -> None:
     # Anders And is manager at humfak
@@ -921,7 +921,7 @@ def test_read_inherit_manager_one_level(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_read_inherit_manager_none_found_all_the_way_up(
     service_client: TestClient,

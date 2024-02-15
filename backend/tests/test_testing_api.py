@@ -67,7 +67,7 @@ def read_employee_surname(graphapi_post: GraphAPIPost, uuid: UUID) -> str:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_database_snapshot(
     admin_client: TestClient, graphapi_post: GraphAPIPost
 ) -> None:
@@ -92,7 +92,7 @@ async def test_database_snapshot(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_amqp_emit(
     admin_client: TestClient,
     graphapi_post: GraphAPIPost,

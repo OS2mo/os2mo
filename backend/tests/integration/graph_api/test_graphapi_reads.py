@@ -15,7 +15,7 @@ from tests.conftest import GraphAPIPost
 
 
 @pytest.fixture(autouse=True)
-async def load_fixture_data(load_fixture_data_with_reset):
+async def load_fixture_data(fixture_db):
     """Class scoped sample structure.
 
     We only do reads in this integration test, so there is no reason for us to

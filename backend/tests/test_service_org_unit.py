@@ -340,7 +340,7 @@ def test_returns_404_on_unknown_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @util.patch_query_args()
 async def test_get_one_orgunit_with_association_count() -> None:
     _connector = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -354,7 +354,7 @@ async def test_get_one_orgunit_with_association_count() -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "details,expected_keys",
     [
@@ -395,7 +395,7 @@ def _assert_matching_ou_has(doc, user_key=None, **attrs):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "collection,attrs",
     [

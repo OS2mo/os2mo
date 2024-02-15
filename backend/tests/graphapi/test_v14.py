@@ -8,7 +8,7 @@ from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_query_itsystems(graphapi_post: GraphAPIPost) -> None:
     """Test update_employee v12 validators."""
     test_input = {"filter": {}}
@@ -68,7 +68,7 @@ async def test_query_itsystems(graphapi_post: GraphAPIPost) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_itsystem(graphapi_post: GraphAPIPost) -> None:
     """Test update_employee v12 validators."""
     # create under v14 schema
@@ -150,7 +150,7 @@ async def test_create_itsystem(graphapi_post: GraphAPIPost) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_update_itsystem(graphapi_post: GraphAPIPost) -> None:
     """Test update_employee v12 validators."""
     # update under v14 schema

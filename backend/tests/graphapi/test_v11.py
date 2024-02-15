@@ -7,7 +7,7 @@ from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_mutator_format(graphapi_post: GraphAPIPost) -> None:
     """Test create_ituser v11 vs v12."""
     test_input = {

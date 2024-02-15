@@ -7,7 +7,7 @@ from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "resolver,filter_uuid,expected_user_key",
     [
@@ -66,7 +66,7 @@ async def test_top_level_resolver_uuid_filters(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_configuration_resolver_filters(graphapi_post: GraphAPIPost) -> None:
     """Test configuration resolver filters."""
     query = """
@@ -101,7 +101,7 @@ async def test_files_resolver_filters(graphapi_post: GraphAPIPost) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_healths_resolver_fclearilters(graphapi_post: GraphAPIPost) -> None:
     """Test healths resolver filters."""
     query = """
@@ -118,7 +118,7 @@ async def test_healths_resolver_fclearilters(graphapi_post: GraphAPIPost) -> Non
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_nested_resolver_filters(graphapi_post: GraphAPIPost) -> None:
     """Test nested resolver filters."""
     query = """

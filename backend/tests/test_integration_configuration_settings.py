@@ -56,7 +56,7 @@ def test_ou_user_settings(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_ou_service_response(service_client: TestClient) -> None:
     """
     Test that the service endpoint for units returns the correct

@@ -374,7 +374,7 @@ async def fixture_database_template(
 
 
 @pytest.fixture
-async def empty_db(  # TODO: rename `empty_database`
+async def empty_db(
     superuser: AsyncConnection,
     lora_settings: LoraSettings,
     sessionmaker_dependency: _SessionmakerDependency,
@@ -389,7 +389,7 @@ async def empty_db(  # TODO: rename `empty_database`
 
 
 @pytest.fixture
-async def load_fixture_data_with_reset(  # TODO: rename `fixture_database`
+async def fixture_db(
     superuser: AsyncConnection,
     lora_settings: LoraSettings,
     sessionmaker_dependency: _SessionmakerDependency,
@@ -596,7 +596,7 @@ def mock_get_valid_organisations() -> YieldFixture[UUID]:
 
 
 @pytest.fixture
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def org_uuids(graphapi_post: GraphAPIPost) -> list[UUID]:
     parent_uuids_query = """
         query FetchOrgUUIDs {
@@ -616,7 +616,7 @@ def org_uuids(graphapi_post: GraphAPIPost) -> list[UUID]:
 
 
 @pytest.fixture
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def employee_uuids(graphapi_post: GraphAPIPost) -> list[UUID]:
     parent_uuids_query = """
         query FetchEmployeeUUIDs {
@@ -636,7 +636,7 @@ def employee_uuids(graphapi_post: GraphAPIPost) -> list[UUID]:
 
 
 @pytest.fixture
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def employee_and_engagement_uuids(
     graphapi_post: GraphAPIPost,
 ) -> list[tuple[UUID, UUID]]:
@@ -672,7 +672,7 @@ def employee_and_engagement_uuids(
 
 
 @pytest.fixture
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def itsystem_uuids(graphapi_post: GraphAPIPost) -> list[UUID]:
     itsystem_uuids_query = """
         query FetchITSystemUUIDs {
@@ -692,7 +692,7 @@ def itsystem_uuids(graphapi_post: GraphAPIPost) -> list[UUID]:
 
 
 @pytest.fixture
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def ituser_uuids(graphapi_post: GraphAPIPost) -> list[UUID]:
     ituser_uuids_query = """
         query FetchITSystemUUIDs {

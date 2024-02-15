@@ -96,7 +96,7 @@ def current_response(expected):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "query_time,from_date,to_date,expected",
     [

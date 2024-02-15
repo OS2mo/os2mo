@@ -353,7 +353,7 @@ def valid_cprs(draw) -> str:
     )
 )
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_employee_integration_test(
     does_employee_with_cpr_already_exist: AsyncMock,
     test_data: EmployeeCreate,
@@ -398,7 +398,7 @@ async def test_create_employee_integration_test(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_employee_with_nickname(graphapi_post) -> None:
     """Test that employees can be created with nicknames via GraphQL."""
 
@@ -639,7 +639,7 @@ async def test_update_mutator_fails(
     ],
 )
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_update_integration(given_data, graphapi_post: GraphAPIPost):
     # Create test data
     test_data = EmployeeUpdate(

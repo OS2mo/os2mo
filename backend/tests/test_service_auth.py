@@ -250,14 +250,14 @@ async def test_no_auth_graphql(raw_client: TestClient, latest_graphql_url: str) 
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_auth_service_org(admin_client: TestClient, auth_headers: dict[str, str]) -> None:
     response = admin_client.get("/service/o/", headers=auth_headers)
     assert response.status_code == 200
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_auth_graphql(
     raw_client: TestClient,
     auth_headers: dict[str, str],
@@ -303,7 +303,7 @@ def test_uuid_parse_fails_on_garbage():
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_401_when_uuid_missing_in_token(
     raw_client: TestClient, auth_headers: dict[str, str]
 ) -> None:

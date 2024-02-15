@@ -8,7 +8,7 @@ from mora.auth.middleware import LORA_USER_UUID
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_register_brugerref(
     raw_client: TestClient, auth_headers: dict[str, str]
 ) -> None:

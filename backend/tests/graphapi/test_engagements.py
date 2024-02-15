@@ -173,7 +173,7 @@ def test_query_is_primary(test_data, graphapi_post: GraphAPIPost, patch_loader):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "filter,expected",
     [
@@ -302,7 +302,7 @@ async def test_create_engagement(
 )
 @given(data=st.data())
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_engagement_integration_test(
     data, graphapi_post: GraphAPIPost, org_uuids, employee_uuids
 ) -> None:
@@ -435,7 +435,7 @@ async def test_update_engagement_unit_test(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data",
     [
@@ -564,7 +564,7 @@ async def test_update_engagement_integration_test(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "update_input, expected_extension_field",
     [
@@ -678,7 +678,7 @@ async def test_update_extensions_field_integrations_test(
 )
 @given(data=st.data())
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_engagement_with_extensions_fields_integrations_test(
     data, graphapi_post: GraphAPIPost, org_uuids, employee_uuids
 ) -> None:
@@ -791,7 +791,7 @@ async def test_create_engagement_with_extensions_fields_integrations_test(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_clear_extension_field(graphapi_post: GraphAPIPost) -> None:
     """Test that extension fields can be cleared via GraphQL."""
 

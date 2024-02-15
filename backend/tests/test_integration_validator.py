@@ -41,7 +41,7 @@ def expire_org_unit(service_client: TestClient, org_unit: dict) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_should_return_true_when_interval_contained(
     service_client: TestClient,
 ) -> None:
@@ -62,7 +62,7 @@ async def test_should_return_true_when_interval_contained(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_should_return_true_when_interval_contained2(
     service_client: TestClient,
 ) -> None:
@@ -83,7 +83,7 @@ async def test_should_return_true_when_interval_contained2(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_should_return_true_when_interval_contained3(
     service_client: TestClient,
 ) -> None:
@@ -104,7 +104,7 @@ async def test_should_return_true_when_interval_contained3(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_should_false_true_when_interval_not_contained1(
     service_client: TestClient,
 ) -> None:
@@ -126,7 +126,7 @@ async def test_should_false_true_when_interval_not_contained1(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_should_return_false_when_interval_not_contained2(
     service_client: TestClient,
 ) -> None:
@@ -148,7 +148,7 @@ async def test_should_return_false_when_interval_not_contained2(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_should_return_false_when_interval_not_contained3(
     service_client: TestClient,
 ) -> None:
@@ -170,7 +170,7 @@ async def test_should_return_false_when_interval_not_contained3(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_is_date_range_in_employee_valid_raises_outside_range() -> None:
     """Assert that a validation error is raised when the range exceeds
     employee range"""
@@ -187,7 +187,7 @@ async def test_is_date_range_in_employee_valid_raises_outside_range() -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_is_date_range_in_employee_valid_inside_range() -> None:
     """Assert that a validation error is not raised when the range is
     inside employee range"""
@@ -204,7 +204,7 @@ async def test_is_date_range_in_employee_valid_inside_range() -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_is_distinct_responsibility_with_duplicate() -> None:
     with pytest.raises(exceptions.HTTPException) as ctxt:
         validator.is_distinct_responsibility(
@@ -243,7 +243,7 @@ def test_is_distinct_responsibility_with_duplicate() -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_is_distinct_responsibility_no_duplicate() -> None:
     validator.is_distinct_responsibility(
         [
@@ -273,7 +273,7 @@ def test_is_distinct_responsibility_no_duplicate() -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @set_settings_contextmanager(
     confdb_substitute_roles="bcd05828-cc10-48b1-bc48-2f0d204859b2"
 )
@@ -287,7 +287,7 @@ def test_is_substitute_allowed() -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_is_substitute_self() -> None:
     # This should pass
     validator.is_substitute_self(
@@ -307,7 +307,7 @@ UNIT_TO_MOVE = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"  # Hum
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_cannot_move_unit_to_own_subtree() -> None:
     candidate_parent = "04c78fc2-72d2-4d02-b55f-807af19eac48"  # Frem
 
@@ -319,7 +319,7 @@ async def test_cannot_move_unit_to_own_subtree() -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_should_allow_move_unit_to_valid_orgtree_location() -> None:
     candidate_parent = "b688513d-11f7-4efc-b679-ab082a2055d0"  # Samf
 
@@ -331,7 +331,7 @@ async def test_should_allow_move_unit_to_valid_orgtree_location() -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_should_not_move_root_org_unit() -> None:
     root_org_unit = "2874e1dc-85e6-4269-823a-e1125484dfd3"
     candidate_parent = "b688513d-11f7-4efc-b679-ab082a2055d0"  # Samf
@@ -346,7 +346,7 @@ async def test_should_not_move_root_org_unit() -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_should_not_move_org_unit_to_child() -> None:
     candidate_parent = "85715fc7-925d-401b-822d-467eb4b163b6"  # Fil
 
@@ -358,7 +358,7 @@ async def test_should_not_move_org_unit_to_child() -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_should_not_move_org_unit_to_itself() -> None:
     move_date = "01-02-2017"
 
@@ -367,7 +367,7 @@ async def test_should_not_move_org_unit_to_itself() -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_should_return_false_when_candidate_parent_is_inactive(
     service_client: TestClient,
 ) -> None:

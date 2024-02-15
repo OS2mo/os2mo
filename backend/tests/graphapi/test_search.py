@@ -12,7 +12,7 @@ from more_itertools import one
 # For more details, see: test_registrations.py
 @pytest.mark.xfail
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_search(graphapi_post) -> None:
     """Integrationtest for searching in GraphQL."""
     query = """

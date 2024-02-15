@@ -38,7 +38,7 @@ async def test_employee_empty_db(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_employee(service_client: TestClient) -> None:
     # invalid
@@ -565,7 +565,7 @@ async def test_employee(service_client: TestClient) -> None:
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_children(service_client: TestClient) -> None:
     response = service_client.request(
         "GET", "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children"
@@ -610,7 +610,7 @@ def test_children(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_facet_create_and_update(service_client: TestClient) -> None:
     # Tests new creation - 200 message
     response = service_client.request(
@@ -733,7 +733,7 @@ def test_facet_create_and_update(service_client: TestClient) -> None:
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "params,expected",
     [
@@ -970,7 +970,7 @@ def test_orgunit_search(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "type,uuid,params,has_data",
     [
@@ -1053,7 +1053,7 @@ def test_engagement(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "type,uuid,count",
     [
@@ -1073,7 +1073,7 @@ def test_engagement_count(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "type,uuid,params,has_data",
     [
@@ -1159,7 +1159,7 @@ def test_role(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_leave(service_client: TestClient) -> None:
     expected = [
         {
@@ -1182,7 +1182,7 @@ def test_leave(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "type,uuid,params,has_data",
     [
@@ -1275,7 +1275,7 @@ not_found_error = {
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "url,status_code,expected",
     [
@@ -1626,7 +1626,7 @@ def test_facet(service_client: TestClient, url, status_code, expected) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "type,uuid,expected",
     [
@@ -1767,7 +1767,7 @@ def test_detail_list(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_facet_children(service_client: TestClient) -> None:
     expected = [
         {

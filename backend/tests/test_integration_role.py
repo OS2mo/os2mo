@@ -18,7 +18,7 @@ role_uuid = "1b20d0b9-96a0-42a6-b196-293bb86e62e8"
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "operation,payload,expected",
     [
@@ -846,7 +846,7 @@ async def test_create_role(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_terminate_role(service_client: TestClient) -> None:
     # Check the POST request
@@ -955,7 +955,7 @@ async def test_terminate_role(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_reading(service_client: TestClient) -> None:
     response = service_client.request(
@@ -983,7 +983,7 @@ def test_reading(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "missing,expected",
     [

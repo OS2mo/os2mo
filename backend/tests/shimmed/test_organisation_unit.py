@@ -15,7 +15,7 @@ org_unit_type_facet = {
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_nonexistent(service_client: TestClient):
     response = service_client.request(
         "GET", "/service/ou/00000000-0000-0000-0000-000000000000/"
@@ -24,7 +24,7 @@ def test_nonexistent(service_client: TestClient):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_nonexistent_at(service_client: TestClient):
     response = service_client.request(
         "GET",
@@ -35,7 +35,7 @@ def test_nonexistent_at(service_client: TestClient):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @set_get_configuration("mora.service.shimmed.org_unit.get_configuration")
 def test_get(service_client: TestClient):
     response = service_client.request(
@@ -75,7 +75,7 @@ def test_get(service_client: TestClient):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_get_with_counts(service_client: TestClient):
     response = service_client.request(
         "GET",
@@ -88,7 +88,7 @@ def test_get_with_counts(service_client: TestClient):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @set_get_configuration("mora.service.orgunit.get_configuration")
 def test_ou_details(service_client: TestClient):
     response = service_client.request(
@@ -132,7 +132,7 @@ def test_ou_details(service_client: TestClient):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_get_children(service_client: TestClient):
     response = service_client.request(
         "GET", "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children"
@@ -171,7 +171,7 @@ def test_get_children(service_client: TestClient):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_get_children_with_counts(service_client: TestClient):
     response = service_client.request(
         "GET",
@@ -220,7 +220,7 @@ def test_get_children_with_counts(service_client: TestClient):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_no_children(service_client: TestClient):
     # b688513d-11f7-4efc-b679-ab082a2055d0 samf has no children
     response = service_client.request(
@@ -232,7 +232,7 @@ def test_no_children(service_client: TestClient):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_get_children_invalid(service_client: TestClient):
     # Doesn't exist
     response = service_client.request(
@@ -247,7 +247,7 @@ def test_get_children_invalid(service_client: TestClient):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @set_get_configuration("mora.service.shimmed.org_unit.get_configuration")
 def test_read_root(service_client: TestClient):
     response = service_client.request(
@@ -287,7 +287,7 @@ def test_read_root(service_client: TestClient):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_children_filtered(service_client: TestClient):
     # When asking for "&org_unit_hierarchy=<uuid>", the result should only
     # contain org units which have an 'opmærkning' with a UUID of '<uuid>'.
@@ -302,7 +302,7 @@ def test_children_filtered(service_client: TestClient):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_create_root_unit_without_org_id(service_client: TestClient) -> None:
     unitid = "00000000-0000-0000-0000-000000000000"

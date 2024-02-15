@@ -12,7 +12,7 @@ from tests.conftest import fake_auth
 
 @pytest.mark.integration_test
 async def test_create_facet(
-    load_fixture_data_with_reset: async_sessionmaker, graphapi_post
+    fixture_db: async_sessionmaker, graphapi_post
 ):
     """Integrationtest for testing user references in LoRa."""
     payload = {
@@ -33,7 +33,7 @@ async def test_create_facet(
     assert result.data
     facet_uuid = UUID(result.data["facet_create"]["uuid"])
 
-    async with load_fixture_data_with_reset.begin() as session:
+    async with fixture_db.begin() as session:
         brugerref = await session.scalar(
             select(FacetRegistrering.actor).where(
                 FacetRegistrering.facet_id == str(facet_uuid)

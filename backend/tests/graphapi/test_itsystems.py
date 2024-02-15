@@ -96,7 +96,7 @@ def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_itsystem_create(graphapi_post) -> None:
     """Test that we can create new itsystems."""
 
@@ -168,7 +168,7 @@ def test_itsystem_create(graphapi_post) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_itsystem_infinite_dates(graphapi_post) -> None:
     """Test that itsystems allow for infinite validity dates."""
 
@@ -215,7 +215,7 @@ def test_itsystem_infinite_dates(graphapi_post) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_itsystem_update(graphapi_post) -> None:
     """Test that we can update itsystems."""
     existing_itsystem_uuid = UUID("0872fb72-926d-4c5c-a063-ff800b8ee697")
@@ -274,7 +274,7 @@ def test_itsystem_update(graphapi_post) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_itsystem_delete(graphapi_post) -> None:
     """Test that we can delete an itsystem."""
 

@@ -8,7 +8,7 @@ from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "resolver,expected_length",
     [

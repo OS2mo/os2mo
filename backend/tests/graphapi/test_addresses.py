@@ -430,7 +430,7 @@ async def test_create_mutator_fails(create_address: AsyncMock, given_mutator_arg
 )
 @given(data=st.data())
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_integration(data, graphapi_post: GraphAPIPost):
     """Integration test for create address.
 
@@ -613,7 +613,7 @@ async def test_create_integration(data, graphapi_post: GraphAPIPost):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "filter,expected",
     [
@@ -682,7 +682,7 @@ async def test_address_filters(graphapi_post: GraphAPIPost, filter, expected) ->
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data",
     [
@@ -836,7 +836,7 @@ async def test_update_address_unit_test(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_address_resolver(graphapi_post: GraphAPIPost) -> None:
     query = """
         query ResolveAddresses {

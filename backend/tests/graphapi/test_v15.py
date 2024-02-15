@@ -8,7 +8,7 @@ from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_facet(graphapi_post: GraphAPIPost) -> None:
     """Test create_facet v15 shim."""
     # create under v15 schema
@@ -84,7 +84,7 @@ async def test_create_facet(graphapi_post: GraphAPIPost) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_update_facet(graphapi_post: GraphAPIPost) -> None:
     """Test update_facet v15 shim."""
     # update under v15 schema

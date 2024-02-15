@@ -156,7 +156,7 @@ def create_employment_payload(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "role, userid, status_code",
     # Test of write access for the following cases:
@@ -197,7 +197,7 @@ def test_create_employee(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_lis_owner")
+@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
 @parametrize_roles_create
 @override_config(Settings(keycloak_rbac_enabled=True))
 def test_creating_detail_address(
@@ -220,7 +220,7 @@ def test_creating_detail_address(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_lis_owner")
+@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
 @override_config(Settings(keycloak_rbac_enabled=True))
 def test_201_when_creating_it_system_detail_as_owner_of_employee(
     fastapi_test_app: FastAPI,
@@ -237,7 +237,7 @@ def test_201_when_creating_it_system_detail_as_owner_of_employee(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_lis_owner")
+@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
 @override_config(Settings(keycloak_rbac_enabled=True))
 def test_201_when_creating_multiple_it_system_details_as_owner_of_employee(
     fastapi_test_app: FastAPI,
@@ -259,7 +259,7 @@ def test_201_when_creating_multiple_it_system_details_as_owner_of_employee(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_lis_owner")
+@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
 @parametrize_roles_create
 @override_config(Settings(keycloak_rbac_enabled=True))
 def test_create_employment(
@@ -279,7 +279,7 @@ def test_create_employment(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_lis_owner")
+@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
 @override_config(Settings(keycloak_rbac_enabled=True))
 def test_create_multiple_employments_owns_one_unit_but_not_the_other(
     fastapi_test_app: FastAPI,
@@ -294,7 +294,7 @@ def test_create_multiple_employments_owns_one_unit_but_not_the_other(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_lis_owner")
+@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
 @override_config(Settings(keycloak_rbac_enabled=True))
 def test_create_multiple_employments_owns_all_units(
     fastapi_test_app: FastAPI,
@@ -311,7 +311,7 @@ def test_create_multiple_employments_owns_all_units(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_lis_owner")
+@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
 @override_config(Settings(keycloak_rbac_enabled=True))
 def test_create_multiple_associations_owns_one_unit_but_not_the_other(
     fastapi_test_app: FastAPI,
@@ -330,7 +330,7 @@ def test_create_multiple_associations_owns_one_unit_but_not_the_other(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_lis_owner")
+@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
 @override_config(Settings(keycloak_rbac_enabled=True))
 def test_create_multiple_associations_owns_all_units(
     fastapi_test_app: FastAPI,
@@ -350,7 +350,7 @@ def test_create_multiple_associations_owns_all_units(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_fedtmule_owner")
+@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
 @parametrize_roles_create
 @override_config(Settings(keycloak_rbac_enabled=True))
 def test_create_role(
@@ -379,7 +379,7 @@ def test_create_role(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_fedtmule_owner")
+@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
 @parametrize_roles_create
 @override_config(Settings(keycloak_rbac_enabled=True))
 def test_create_association(
@@ -408,7 +408,7 @@ def test_create_association(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_fedtmule_owner")
+@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
 @parametrize_roles_create
 @override_config(Settings(keycloak_rbac_enabled=True))
 def test_create_manager(
@@ -455,7 +455,7 @@ def test_create_manager(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_fedtmule_owner")
+@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
 @override_config(Settings(keycloak_rbac_enabled=True))
 def test_object_types_in_list_must_be_identical(
     fastapi_test_app: FastAPI,
@@ -477,7 +477,7 @@ def test_object_types_in_list_must_be_identical(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_fedtmule_owner")
+@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
 @pytest.mark.parametrize(
     "fixture",
     [
@@ -508,7 +508,7 @@ def test_edit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_fedtmule_owner")
+@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
 @pytest.mark.parametrize(
     "payload",
     [
@@ -544,7 +544,7 @@ def test_terminate_details(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_lis_owner")
+@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
 @parametrize_roles
 @override_config(Settings(keycloak_rbac_enabled=True))
 def test_terminate_employee(
@@ -564,7 +564,7 @@ def test_terminate_employee(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_erik_owner")
+@pytest.mark.usefixtures("fixture_db", "create_erik_owner")
 @parametrize_roles_create
 @override_config(Settings(keycloak_rbac_enabled=True))
 def test_employee_leave(

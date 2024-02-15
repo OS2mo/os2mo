@@ -10,7 +10,7 @@ serialize_cursor = Cursor._scalar_definition.serialize
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "resolver,limit,offset,expected_length",
     [
@@ -123,7 +123,7 @@ async def test_pagination(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "resolver,limit,offset",
     [
@@ -193,7 +193,7 @@ async def test_pagination_out_of_range(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize("limit", [1, 5, 10, 100])
 @pytest.mark.parametrize(
     "resolver,expected",
@@ -253,7 +253,7 @@ async def test_cursor_based_pagination(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_cursor_stable_registration(
     graphapi_post: GraphAPIPost,
 ) -> None:

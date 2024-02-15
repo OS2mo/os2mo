@@ -122,7 +122,7 @@ async def test_update_related_units_mutation_unit_test(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data",
     [

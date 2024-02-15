@@ -148,7 +148,7 @@ read_history = partial(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_facet(graphapi_post):
     """Test that we can create new facets."""
     # Verify existing state
@@ -192,7 +192,7 @@ async def test_create_facet(graphapi_post):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_update_facet(graphapi_post) -> None:
     """Test that we can update facets."""
     # Verify existing state
@@ -249,7 +249,7 @@ async def test_update_facet(graphapi_post) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_delete_facet(graphapi_post) -> None:
     """Test that we can delete facets."""
     # Verify existing state
@@ -278,7 +278,7 @@ async def test_delete_facet(graphapi_post) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_terminate_facet(graphapi_post) -> None:
     """Test that we can terminate facets."""
     # Verify existing state

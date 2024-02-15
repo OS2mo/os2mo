@@ -15,7 +15,7 @@ from tests.cases import assert_registrations_equal
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_edit_employee_overwrite(service_client: TestClient) -> None:
     # A generic example of editing an employee
@@ -156,7 +156,7 @@ async def test_edit_employee_overwrite(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_edit_remove_seniority(service_client: TestClient) -> None:
     # A generic example of editing an employee
@@ -229,7 +229,7 @@ async def test_edit_remove_seniority(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "cpr_validate_birthdate,cpr,valid_from",
     [
@@ -375,7 +375,7 @@ def _get_expected_response(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_edit_employee(service_client: TestClient) -> None:
     # A generic example of editing an employee
@@ -503,7 +503,7 @@ async def test_edit_employee(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_edit_employee_without_cpr(service_client: TestClient) -> None:
     # Add a cpr_no to an employee who doesn't have one
@@ -574,7 +574,7 @@ userid = "ef78f929-2eb4-4d9e-8891-f9e8dcb47533"
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "payload,status_code,expected",
     [
@@ -681,7 +681,7 @@ def test_create_employee_import_and_errors(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_create_employee_with_details(service_client: TestClient) -> None:
     """Test creating an employee with added details.
     Also add three names to a single name parameter and check
@@ -742,7 +742,7 @@ employee_uuid = "d2e1b69e-def1-41b1-b652-e704af02591c"
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "payload,expected",
     [

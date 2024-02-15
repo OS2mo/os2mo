@@ -12,7 +12,7 @@ from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_dates(graphapi_post: GraphAPIPost):
     """Test that GraphQL dates are passed correctly."""
     facet_create = graphapi_post(

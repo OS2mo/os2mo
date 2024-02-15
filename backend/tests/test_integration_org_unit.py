@@ -71,7 +71,7 @@ org_unit_uuid = "85715fc7-925d-401b-822d-467eb4b163b6"
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "payload, expected",
     [
@@ -390,7 +390,7 @@ async def test_edit_org_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2016-01-01")
 async def test_edit_org_unit_earlier_start_on_created(
     service_client: TestClient,
@@ -522,7 +522,7 @@ async def test_edit_org_unit_earlier_start_on_created(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01")
 async def test_create_org_unit(service_client: TestClient) -> None:
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -731,7 +731,7 @@ async def test_create_org_unit(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2016-01-01")
 async def test_rename_root_org_unit(service_client: TestClient) -> None:
     # Test renaming root units
@@ -838,7 +838,7 @@ async def test_rename_root_org_unit(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2016-01-01")
 async def test_rename_root_org_unit_no_parent(service_client: TestClient) -> None:
     # Test renaming root units
@@ -944,7 +944,7 @@ async def test_rename_root_org_unit_no_parent(service_client: TestClient) -> Non
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2016-01-01")
 async def test_move_org_unit(service_client: TestClient):
     "Test successfully moving organisational units"
@@ -1060,7 +1060,7 @@ async def test_move_org_unit(service_client: TestClient):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2016-01-01")
 async def test_move_org_unit_to_root(service_client: TestClient):
     "Test successfully moving organisational units"
@@ -1176,7 +1176,7 @@ async def test_move_org_unit_to_root(service_client: TestClient):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2016-01-01")
 async def test_move_org_unit_wrong_org(service_client: TestClient) -> None:
     """Verify that we cannot move a unit into another organisation"""
@@ -1225,7 +1225,7 @@ async def test_move_org_unit_wrong_org(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2016-01-01")
 async def test_edit_parent_reads_from_previous_relation(
     service_client: TestClient,
@@ -1293,7 +1293,7 @@ async def test_edit_parent_reads_from_previous_relation(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2016-01-01")
 async def test_terminate_not_allowed_with_addrs(service_client: TestClient) -> None:
     response = service_client.request(
@@ -1452,7 +1452,7 @@ past_org_unit = {
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "params, expected",
     [
@@ -1482,7 +1482,7 @@ def test_org_unit_temporality(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_create_org_unit_fails_validation_outside_org_unit(
     service_client: TestClient,
 ) -> None:
@@ -1549,7 +1549,7 @@ def test_create_org_unit_fails_validation_outside_org_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_edit_missing_org_unit(service_client: TestClient) -> None:
     req = [
         {
@@ -1576,7 +1576,7 @@ def test_edit_missing_org_unit(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2010-01-01")
 def test_edit_org_unit_earlier_start(service_client: TestClient) -> None:
     """Test setting the start date to something earlier (#23182)"""
@@ -1612,7 +1612,7 @@ def test_edit_org_unit_earlier_start(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2016-01-01")
 def test_edit_org_unit_extending_end(service_client: TestClient) -> None:
     unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
@@ -1683,7 +1683,7 @@ def test_edit_org_unit_extending_end(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2016-01-01")
 def test_create_missing_parent(service_client: TestClient) -> None:
     payload = {
@@ -1709,7 +1709,7 @@ def test_create_missing_parent(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_edit_time_planning(service_client: TestClient) -> None:
     org_unit_uuid = "85715fc7-925d-401b-822d-467eb4b163b6"
 
@@ -1744,7 +1744,7 @@ def test_edit_time_planning(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "payload, expected",
     [
@@ -1821,7 +1821,7 @@ def test_move_fail_validation(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_edit_org_unit_should_fail_validation_when_end_before_start(
     service_client: TestClient,
 ) -> None:
@@ -1853,7 +1853,7 @@ def test_edit_org_unit_should_fail_validation_when_end_before_start(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "inactive_validity, expected_validity",
     [
@@ -1923,7 +1923,7 @@ def test_terminate_org_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "validity",
     [
@@ -1952,7 +1952,7 @@ def test_terminate_org_unit_invalid_uuid(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "org_unit_uuid, validity, expected_error_response",
     [
@@ -2026,7 +2026,7 @@ def test_terminate_org_unit_active_children_and_roles(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_terminate_org_unit_validations_other(service_client: TestClient) -> None:
     unitid_a = "85715fc7-925d-401b-822d-467eb4b163b6"
     unitid_b = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
@@ -2058,7 +2058,7 @@ def test_terminate_org_unit_validations_other(service_client: TestClient) -> Non
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "org_unit_uuid, validity, expected_error_response, message",
     [
@@ -2130,7 +2130,7 @@ def test_terminate_org_unit_date_outside_org_unit_range(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize("path, expected", util.get_fixture("test_trees.json").items())
 def test_tree(service_client: TestClient, path: str, expected: dict[str, Any]) -> None:
     response = service_client.request("GET", path)

@@ -12,7 +12,7 @@ CPR_NUMBERS = [
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize("cpr", CPR_NUMBERS)
 async def test_database_isolation(graphapi_post: GraphAPIPost, cpr: str) -> None:
     """Test that two different tests each access a clean database."""

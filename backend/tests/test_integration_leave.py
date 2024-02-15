@@ -13,7 +13,7 @@ mock_uuid = "1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5"
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2018-01-01", tz_offset=1)
 async def test_edit_leave_no_overwrite(service_client: TestClient) -> None:
     leave_uuid = "b807628c-030c-4f5f-a438-de41c1f26ba5"
@@ -158,7 +158,7 @@ async def test_edit_leave_no_overwrite(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2018-01-01", tz_offset=1)
 def test_create_leave(service_client: TestClient) -> None:
     # Check the POST request
@@ -217,7 +217,7 @@ def test_create_leave(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2018-01-01", tz_offset=1)
 def test_create_leave_fails_on_empty_payload(service_client: TestClient) -> None:
     payload = [
@@ -238,7 +238,7 @@ def test_create_leave_fails_on_empty_payload(service_client: TestClient) -> None
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2018-01-01", tz_offset=1)
 def test_create_leave_fails_when_no_active_engagement(
     service_client: TestClient,
@@ -275,7 +275,7 @@ def test_create_leave_fails_when_no_active_engagement(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2018-01-01", tz_offset=1)
 def test_edit_leave(service_client: TestClient) -> None:
     leave_uuid = "b807628c-030c-4f5f-a438-de41c1f26ba5"
@@ -326,7 +326,7 @@ def test_edit_leave(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2018-01-01", tz_offset=1)
 def test_edit_leave_fails_when_no_active_engagement(service_client: TestClient) -> None:
     leave_uuid = "b807628c-030c-4f5f-a438-de41c1f26ba5"
@@ -356,7 +356,7 @@ def test_edit_leave_fails_when_no_active_engagement(service_client: TestClient) 
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2018-01-01", tz_offset=1)
 def test_terminate_leave(service_client: TestClient) -> None:
     userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -392,7 +392,7 @@ def test_terminate_leave(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2018-01-01", tz_offset=1)
 def test_create_leave_missing_user(service_client: TestClient) -> None:
     # Check the POST request

@@ -164,7 +164,7 @@ async def test_create_ituser(create_ituser: AsyncMock, data: DataObject) -> None
 )
 @given(data=st.data())
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_ituser_employee_integration_test(
     validate_unique_constraint: AsyncMock,
     data: DataObject,
@@ -285,7 +285,7 @@ async def test_create_ituser_employee_integration_test(
 )
 @given(data=st.data())
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_ituser_org_unit_integration_test(
     validate_unique_constraint: AsyncMock,
     data: DataObject,
@@ -421,7 +421,7 @@ async def test_update_ituser(update_ituser: AsyncMock, test_data: ITUserUpdate) 
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data",
     [
@@ -537,7 +537,7 @@ async def test_update_ituser_integration_test(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_it_user_systems_uuid_filter(graphapi_post):
     ACTIVE_DIRECTORY = "59c135c9-2b15-41cc-97c8-b5dff7180beb"
 

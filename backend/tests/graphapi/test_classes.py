@@ -249,7 +249,7 @@ async def test_query_by_uuid(test_input, patch_loader):
     )
 )
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_integration_create_class(test_data, graphapi_post: GraphAPIPost) -> None:
     """Integrationtest for create class mutator."""
 
@@ -381,7 +381,7 @@ async def test_unit_create_class(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "filter,expected",
     [
@@ -439,7 +439,7 @@ async def test_class_filter(graphapi_post: GraphAPIPost, filter, expected) -> No
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_integration_delete_class() -> None:
     read_query = """
         query ($uuid: [UUID!]!) {
@@ -489,7 +489,7 @@ async def test_integration_delete_class() -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_update_class() -> None:
     """Unit test for create class mutator."""
     read_query = """
@@ -577,7 +577,7 @@ async def test_update_class() -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_terminate_class(graphapi_post) -> None:
     """Test that we can terminate class."""
 
@@ -625,7 +625,7 @@ async def test_terminate_class(graphapi_post) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_integration_it_system() -> None:
     role_type_facet_uuid = "68ba77bc-4d57-43e2-9c24-0c9eda5fddc7"
     sap_it_system_uuid = "14466fb0-f9de-439c-a6c2-b3262c367da7"
@@ -725,7 +725,7 @@ async def test_integration_it_system() -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_integration_it_system_filter() -> None:
     role_type_facet_uuid = "68ba77bc-4d57-43e2-9c24-0c9eda5fddc7"
     sap_it_system_uuid = "14466fb0-f9de-439c-a6c2-b3262c367da7"

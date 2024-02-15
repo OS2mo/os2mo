@@ -83,7 +83,7 @@ def prepare_query_data(test_data, query_response):
 )
 @given(test_data=write_strat())
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_integration_create_class(test_data, graphapi_post: GraphAPIPost):
     """Integrationtest for create class mutator."""
 

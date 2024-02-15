@@ -88,7 +88,7 @@ def simplified_owner(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_inherit_top_level_empty(service_client: TestClient) -> None:
     """When hitting top-level simply return nothing."""
@@ -102,7 +102,7 @@ def test_inherit_top_level_empty(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "payload, status_code, verifying_org_unit, verifying_response",
     [
@@ -275,7 +275,7 @@ def test_create_org_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "payload, status_code",
     [
@@ -335,7 +335,7 @@ def test_create_person(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "payload, status_code, verifying_response",
     [

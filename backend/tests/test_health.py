@@ -16,7 +16,7 @@ async def test_dataset_returns_false_if_no_data_found() -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_dataset_returns_true_if_data_found() -> None:
     actual = await health.dataset()
     assert actual is True
@@ -53,7 +53,7 @@ def test_readiness(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_healths(darmocked, service_client: TestClient) -> None:
     darmocked.get("https://api.dataforsyningen.dk/autocomplete", status=200)
     response = service_client.request("GET", "/health/")
@@ -66,7 +66,7 @@ async def test_healths(darmocked, service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize("identifier", ["amqp", "dar", "dataset"])
 async def test_healthidentifier(darmocked, service_client: TestClient, identifier: str) -> None:
     darmocked.get("https://api.dataforsyningen.dk/autocomplete", status=200)

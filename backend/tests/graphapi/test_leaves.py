@@ -137,7 +137,7 @@ async def test_create_leave_mutation_unit_test(
 )
 @given(data=st.data())
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_leave_integration_test(
     data, graphapi_post: GraphAPIPost, employee_and_engagement_uuids
 ) -> None:
@@ -265,7 +265,7 @@ async def test_update_leave_unit_test(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data",
     [
@@ -381,7 +381,7 @@ async def test_update_leave_integration_test(
 
 @pytest.mark.integration_test
 @freezegun.freeze_time("2023-07-13", tz_offset=1)
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data",
     [

@@ -55,7 +55,7 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "filter,expected",
     [
@@ -152,7 +152,7 @@ async def test_owner_employees_filters(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data, expected_fail",
     [
@@ -266,7 +266,7 @@ async def test_create_owner_integration_test(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data, expected_fail",
     # person or org_unit has to be set, otherwise we get:
@@ -420,7 +420,7 @@ async def test_update_owner_integration_test(
 
 @pytest.mark.integration_test
 @freezegun.freeze_time("2023-07-13", tz_offset=1)
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data",
     [

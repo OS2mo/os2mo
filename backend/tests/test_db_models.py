@@ -84,7 +84,7 @@ from mora.db import OrganisationTilsGyldighed
         OrganisationTilsGyldighed,
     ],
 )
-async def test_db_models_simple(load_fixture_data_with_reset: async_sessionmaker, db_object):
-    async with load_fixture_data_with_reset.begin() as session:
+async def test_db_models_simple(fixture_db: async_sessionmaker, db_object):
+    async with fixture_db.begin() as session:
         r = await session.scalar(select(db_object).limit(1))
         assert r is not None
