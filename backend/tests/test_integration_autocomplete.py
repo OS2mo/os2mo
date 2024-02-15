@@ -1,16 +1,15 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import uuid
-from datetime import datetime
-from unittest.mock import MagicMock
-from unittest.mock import patch
-
 import freezegun
 import pytest
+import uuid
+from datetime import datetime
 from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
+from pytest import MonkeyPatch
+from unittest.mock import patch
 
-from mora.service.orgunit import config as orgunit_config
+from mora.config import Settings
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 
@@ -20,21 +19,19 @@ from tests.conftest import GraphAPIPost
 
 
 @pytest.fixture
-def mock_get_settings():
-    with patch.object(
-        orgunit_config,
-        "get_settings",
-        return_value=MagicMock(confdb_autocomplete_v2_use_legacy=False),
-    ) as mock_get_settings:
-        yield mock_get_settings
+def mock_get_settings(monkeypatch: MonkeyPatch):
+    def mock():
+        return Settings(
+            confdb_autocomplete_v2_use_legacy=False,
+        )
+
+    monkeypatch.setattr("mora.service.orgunit.config.get_settings", mock)
 
 
 @pytest.fixture
-def mock_get_settings_custom_attrs():
-    with patch.object(
-        orgunit_config,
-        "get_settings",
-        return_value=MagicMock(
+def mock_get_settings_custom_attrs(monkeypatch: MonkeyPatch):
+    def mock():
+        return Settings(
             confdb_autocomplete_v2_use_legacy=False,
             confdb_autocomplete_attrs_orgunit=[
                 uuid.UUID("e8ea1a09-d3d4-4203-bfe9-d9a213371337"),
@@ -54,9 +51,9 @@ def mock_get_settings_custom_attrs():
                 ),  # itsystem = Active Directory
                 uuid.UUID("14466fb0-f9de-439c-a6c2-b3262c367da7"),  # itsystem = SAP
             ],
-        ),
-    ) as mock_get_settings:
-        yield mock_get_settings
+        )
+
+    monkeypatch.setattr("mora.service.orgunit.config.get_settings", mock)
 
 
 @pytest.mark.xfail
@@ -64,10 +61,6 @@ def mock_get_settings_custom_attrs():
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 def test_v2_search_employee_by_uuid(mock_get_settings, service_client: TestClient):
-    mock_get_settings.return_value = MagicMock(
-        confdb_autocomplete_v2_use_legacy=False,
-    )
-
     at = datetime.now().date()
     query = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
     response = service_client.request(
@@ -298,10 +291,6 @@ def test_v2_search_employee_by_itsystem(mock_get_settings, service_client: TestC
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 def test_v2_search_orgunit_by_uuid(mock_get_settings, service_client: TestClient):
-    mock_get_settings.return_value = MagicMock(
-        confdb_autocomplete_v2_use_legacy=False,
-    )
-
     at = datetime.now().date()
     query = "f494ad89-039d-478e-91f2-a63566554666"
     response = service_client.request(
