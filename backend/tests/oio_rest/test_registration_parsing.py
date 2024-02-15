@@ -86,7 +86,7 @@ class TestParseAttribute:
         actual = Attribute.from_attr_egenskaber(
             attr=attr_cand, valid_attr=valid_attr, class_name=class_name
         )
-        self.assertEqual(first=expected, second=actual)
+        assert expected == actual
 
     def test_parse_registration_attributes(self):
         class_name = "organisationfunktion"
@@ -119,7 +119,7 @@ class TestParseAttribute:
         actual = Attribute.parse_registration_attributes(
             class_name=class_name, attributes=attrs
         )
-        self.assertEqual(first=expected, second=actual)
+        assert expected == actual
 
 
 class TestParseState:
@@ -187,7 +187,7 @@ class TestParseState:
         state_cand = {"gyldighed": "Aktiv", "virkning": None}
         expected = State(key="gyldighed", value="Aktiv")
         actual = State.from_state_dict(state=state_cand, valid_states=valid_states)
-        self.assertEqual(first=expected, second=actual)
+        assert expected == actual
 
     def test_parse_registration_state(self):
         # commonly used
@@ -195,7 +195,7 @@ class TestParseState:
         states = {"gyldighed": [{"gyldighed": "Aktiv", "virkning": None}]}
         expected = [State(key="gyldighed", value="Aktiv")]
         actual = State.parse_registration_states(class_name=class_name, states=states)
-        self.assertEqual(first=expected, second=actual)
+        assert expected == actual
 
         # less common, but should be valid
         class_name = "tilstand"
@@ -208,7 +208,7 @@ class TestParseState:
             State(key="publiceret", value="IkkePubliceret"),
         ]
         actual = State.parse_registration_states(class_name=class_name, states=states)
-        self.assertEqual(first=expected, second=actual)
+        assert expected == actual
 
 
 class TestParseRelation:
@@ -377,7 +377,7 @@ class TestParseRelation:
             relation_values=relation_values,
             valid_relations=valid_relations,
         )
-        self.assertEqual(first=expected, second=actual)
+        assert expected == actual
 
         # uuid without objekttype ok
         relation_values = [
@@ -400,7 +400,7 @@ class TestParseRelation:
             relation_values=relation_values,
             valid_relations=valid_relations,
         )
-        self.assertEqual(first=expected, second=actual)
+        assert expected == actual
 
         # multiple ok
         relation_values = [
@@ -430,7 +430,7 @@ class TestParseRelation:
             relation_values=relation_values,
             valid_relations=valid_relations,
         )
-        self.assertEqual(first=expected, second=actual)
+        assert expected == actual
 
     def test_parse_registration_relation(self):
         class_name = "organisationfunktion"
@@ -475,4 +475,4 @@ class TestParseRelation:
         actual = Relation.parse_registration_relations(
             class_name=class_name, relations=relations
         )
-        self.assertEqual(first=expected, second=actual)
+        assert expected == actual
