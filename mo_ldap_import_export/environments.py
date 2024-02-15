@@ -1,10 +1,15 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import string
+import warnings
 
-import pandas as pd
-from jinja2 import Environment
-from jinja2 import Undefined
+# Pandas emits a warning to request input on a pdep
+# https://pandas.pydata.org/pdeps/0010-required-pyarrow-dependency.html
+# This line silences that warning, since its irrelevant to us
+warnings.filterwarnings("ignore", "\nPyarrow", DeprecationWarning)
+import pandas as pd  # noqa: E402
+from jinja2 import Environment  # noqa: E402
+from jinja2 import Undefined  # noqa: E402
 
 
 def filter_parse_datetime(datestring):
