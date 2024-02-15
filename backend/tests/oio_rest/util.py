@@ -35,7 +35,6 @@ class BaseTestCase:
 
     @pytest.fixture(autouse=True)
     def setup(self, service_client: TestClient):
-        self.app = service_client.app  # TODO: unused?
         self.client = service_client
 
     def assertRequestResponse(
