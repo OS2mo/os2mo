@@ -1,13 +1,14 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import freezegun
-import pytest
 import uuid
 from datetime import datetime
+from unittest.mock import patch
+
+import freezegun
+import pytest
 from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
 from pytest import MonkeyPatch
-from unittest.mock import patch
 
 from mora.config import Settings
 from tests.conftest import GQLResponse

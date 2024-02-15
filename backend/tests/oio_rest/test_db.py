@@ -2,15 +2,15 @@
 # SPDX-License-Identifier: MPL-2.0
 import collections
 import datetime
-from psycopg.sql import Literal
 from unittest.mock import AsyncMock
-from unittest.mock import Mock
 from unittest.mock import call
 from unittest.mock import MagicMock
+from unittest.mock import Mock
 from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
+from psycopg.sql import Literal
 from pytest import MonkeyPatch
 
 from oio_rest import db
@@ -1656,6 +1656,7 @@ class TestDBGeneralSQL:
 
 Orig = collections.namedtuple("Orig", ["sqlstate", "diag"])
 Diagnostics = collections.namedtuple("Diagnostics", ["message_primary"])
+
 
 @patch("oio_rest.db.sql_get_registration", new=AsyncMock())
 @patch("oio_rest.db.sql_convert_registration", new=AsyncMock())

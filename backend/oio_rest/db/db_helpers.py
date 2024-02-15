@@ -306,6 +306,7 @@ class AktoerAttrDumper(RecursiveDumper):
             + obj.__class__.__name__.encode("ascii")
         )
 
+
 adapters.register_dumper(Virkning, NamedTupleDumper)
 adapters.register_dumper(Soegeord, NamedTupleDumper)
 adapters.register_dumper(OffentlighedUndtaget, NamedTupleDumper)

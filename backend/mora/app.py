@@ -2,8 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from contextlib import asynccontextmanager
 from itertools import chain
-
-from sqlalchemy.exc import DataError
 from typing import Any
 
 import sentry_sdk
@@ -19,6 +17,7 @@ from prometheus_client import Info
 from prometheus_fastapi_instrumentator import Instrumentator
 from ramqp import AMQPSystem
 from sentry_sdk.integrations.strawberry import StrawberryIntegration
+from sqlalchemy.exc import DataError
 from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware

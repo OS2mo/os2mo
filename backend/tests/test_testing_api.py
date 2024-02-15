@@ -2,12 +2,12 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import secrets
+from uuid import UUID
 
 import pytest
 from ramqp import AMQPSystem
 from ramqp.mo import PayloadUUID
 from starlette.testclient import TestClient
-from uuid import UUID
 
 from mora.config import get_settings
 from tests.conftest import GraphAPIPost

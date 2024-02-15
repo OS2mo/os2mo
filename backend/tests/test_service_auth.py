@@ -251,7 +251,9 @@ async def test_no_auth_graphql(raw_client: TestClient, latest_graphql_url: str) 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_auth_service_org(admin_client: TestClient, auth_headers: dict[str, str]) -> None:
+def test_auth_service_org(
+    admin_client: TestClient, auth_headers: dict[str, str]
+) -> None:
     response = admin_client.get("/service/o/", headers=auth_headers)
     assert response.status_code == 200
 

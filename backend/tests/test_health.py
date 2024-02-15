@@ -68,7 +68,9 @@ async def test_healths(darmocked, service_client: TestClient) -> None:
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize("identifier", ["amqp", "dar", "dataset"])
-async def test_healthidentifier(darmocked, service_client: TestClient, identifier: str) -> None:
+async def test_healthidentifier(
+    darmocked, service_client: TestClient, identifier: str
+) -> None:
     darmocked.get("https://api.dataforsyningen.dk/autocomplete", status=200)
     response = service_client.request("GET", f"/health/{identifier}")
     assert response.status_code == 200

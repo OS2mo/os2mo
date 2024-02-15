@@ -877,7 +877,6 @@ class TestDBHelpers(ExtTestCase):
 
 
 class TestSearchable:
-
     def test_searchable_get_fields(self):
         # Arrange
         from oio_rest.db.db_helpers import Searchable

@@ -1,10 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import pytest
 from typing import Any
 from unittest.mock import patch
 
 import freezegun
+import pytest
 
 from oio_rest.oio_base import ConfiguredDBInterface
 from oio_rest.oio_base import DefaultSearcher
@@ -14,7 +14,6 @@ from tests.oio_rest.util import DBTestCase
 
 @freezegun.freeze_time("2018-01-01")
 class TestCreateObject(DBTestCase):
-
     @pytest.fixture(autouse=True)
     def setup_objects(self):
         self.standard_virkning1 = {

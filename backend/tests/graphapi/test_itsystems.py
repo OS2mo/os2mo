@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from hypothesis import HealthCheck
-from hypothesis import settings
 from unittest.mock import patch
 from uuid import UUID
 
 import pytest
 from hypothesis import given
+from hypothesis import HealthCheck
+from hypothesis import settings
 from more_itertools import first
 from more_itertools import one
 from pytest import MonkeyPatch
@@ -17,6 +17,7 @@ from .strategies import graph_data_uuids_strat
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from ramodels.mo.details import ITSystemRead
+
 
 @settings(
     suppress_health_check=[

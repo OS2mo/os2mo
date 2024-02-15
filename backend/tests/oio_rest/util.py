@@ -1,15 +1,15 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from unittest import mock
-
 import contextlib
 import json
 import os
 import pprint
-import pytest
 import types
 import uuid
 from contextlib import suppress
+from unittest import mock
+
+import pytest
 from fastapi.testclient import TestClient
 
 from tests.cases import sort_inner_lists

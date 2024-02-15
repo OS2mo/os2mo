@@ -8,8 +8,9 @@ Create Date: 2022-02-01 16:54:19.119687
 """
 import os
 
-from alembic import op
 from sqlalchemy import text
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "initial"
@@ -32,7 +33,9 @@ def upgrade():
     op.execute('create extension if not exists "uuid-ossp" with schema actual_state')
     op.execute("create extension if not exists btree_gist with schema actual_state")
     op.execute("create extension if not exists pg_trgm with schema actual_state")
-    op.execute(f"alter database {database_name} set search_path to actual_state, public")
+    op.execute(
+        f"alter database {database_name} set search_path to actual_state, public"
+    )
     op.execute(f"alter database {database_name} set datestyle to 'ISO, YMD'")
     op.execute(f"alter database {database_name} set intervalstyle to 'sql_standard'")
     # These steps are required by the LoRa test suite, which assumes that

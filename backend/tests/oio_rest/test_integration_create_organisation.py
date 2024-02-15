@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 import copy
 import json
+
 import pytest
-import unittest
 from sqlalchemy.exc import IntegrityError
 
 from tests.oio_rest.test_integration_helper import TestCreateObject

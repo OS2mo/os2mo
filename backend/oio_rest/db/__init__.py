@@ -24,25 +24,25 @@ from sqlalchemy import text
 from sqlalchemy.exc import StatementError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from mora.audit import audit_log
-from mora.auth.middleware import get_authenticated_user
-from mora.db import get_sessionmaker
+from ..custom_exceptions import BadRequestException
+from ..custom_exceptions import DBException
+from ..custom_exceptions import NotFoundException
 from .db_helpers import AktoerAttr
 from .db_helpers import DokumentVariantType
-from .db_helpers import JournalDokument
-from .db_helpers import JournalNotat
-from .db_helpers import OffentlighedUndtaget
-from .db_helpers import Soegeord
-from .db_helpers import VaerdiRelationAttr
 from .db_helpers import get_attribute_fields
 from .db_helpers import get_attribute_names
 from .db_helpers import get_field_type
 from .db_helpers import get_relation_field_type
 from .db_helpers import get_state_names
+from .db_helpers import JournalDokument
+from .db_helpers import JournalNotat
+from .db_helpers import OffentlighedUndtaget
+from .db_helpers import Soegeord
 from .db_helpers import to_bool
-from ..custom_exceptions import BadRequestException
-from ..custom_exceptions import DBException
-from ..custom_exceptions import NotFoundException
+from .db_helpers import VaerdiRelationAttr
+from mora.audit import audit_log
+from mora.auth.middleware import get_authenticated_user
+from mora.db import get_sessionmaker
 
 """
     Jinja2 Environment
@@ -52,7 +52,7 @@ jinja_env = Environment(
     loader=FileSystemLoader(
         str(pathlib.Path(__file__).parent / "sql" / "invocations" / "templates"),
     ),
-    enable_async=True
+    enable_async=True,
 )
 
 
@@ -213,7 +213,9 @@ class Livscyklus(enum.Enum):
 async def sql_state_array(state, periods, class_name):
     """Return an SQL array of type <state>TilsType."""
     t = jinja_env.get_template("state_array.sql")
-    sql = await t.render_async(class_name=class_name, state_name=state, state_periods=periods)
+    sql = await t.render_async(
+        class_name=class_name, state_name=state, state_periods=periods
+    )
     return sql
 
 

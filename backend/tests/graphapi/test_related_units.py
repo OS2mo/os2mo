@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from hypothesis import HealthCheck
-from hypothesis import settings
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
+from hypothesis import HealthCheck
+from hypothesis import settings
 from pytest import MonkeyPatch
 
 from ..conftest import GraphAPIPost
@@ -19,6 +19,7 @@ from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.models import RelatedUnitsUpdate
 from ramodels.mo.details import RelatedUnitRead
 from tests.conftest import GQLResponse
+
 
 @settings(
     suppress_health_check=[
@@ -54,6 +55,7 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     assert response.errors is None
     assert response.data
     assert flatten_data(response.data["related_units"]["objects"]) == test_data
+
 
 @settings(
     suppress_health_check=[

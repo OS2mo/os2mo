@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
-
 from contextlib import AbstractAsyncContextManager
 from contextlib import asynccontextmanager
 
@@ -12,14 +11,12 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 from starlette.status import HTTP_204_NO_CONTENT
 from structlog import get_logger
 
-from mora.depends import async_sessionmaker
-from oio_rest.config import Settings as LoraSettings
-from oio_rest.config import get_settings as lora_get_settings
-
-
 from mora import amqp
 from mora import depends
 from mora.db import create_engine
+from mora.depends import async_sessionmaker
+from oio_rest.config import get_settings as lora_get_settings
+from oio_rest.config import Settings as LoraSettings
 
 logger = get_logger()
 

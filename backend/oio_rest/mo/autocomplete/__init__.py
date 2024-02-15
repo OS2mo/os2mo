@@ -7,9 +7,9 @@
 from uuid import UUID
 
 from psycopg import AsyncConnection
+from sqlalchemy import cast
 from sqlalchemy import Table
 from sqlalchemy import Text
-from sqlalchemy import cast
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import func

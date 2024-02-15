@@ -2,8 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import datetime
 from functools import partial
-from hypothesis import HealthCheck
-from hypothesis import settings
 from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import patch
@@ -13,6 +11,8 @@ from uuid import uuid4
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
+from hypothesis import HealthCheck
+from hypothesis import settings
 from hypothesis import strategies as st
 from more_itertools import one
 from pydantic import parse_obj_as

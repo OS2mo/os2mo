@@ -3,7 +3,6 @@
 import copy
 import json
 import os.path
-import unittest
 
 import jsonschema
 import pytest

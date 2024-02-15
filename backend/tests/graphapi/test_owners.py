@@ -3,8 +3,8 @@
 import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
-from hypothesis import HealthCheck
 from hypothesis import given
+from hypothesis import HealthCheck
 from hypothesis import settings
 from more_itertools import one
 from pytest import MonkeyPatch
@@ -14,6 +14,7 @@ from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from ramodels.mo.details.owner import OwnerRead
 from tests.conftest import GraphAPIPost
+
 
 @settings(
     suppress_health_check=[

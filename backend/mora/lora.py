@@ -22,8 +22,6 @@ from enum import Enum
 from enum import unique
 from functools import partial
 from itertools import starmap
-
-from sqlalchemy.exc import DataError
 from typing import Any
 from typing import Literal
 from typing import overload
@@ -35,6 +33,7 @@ from fastapi import Request
 from fastapi import Response
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
+from sqlalchemy.exc import DataError
 from starlette_context import context
 from starlette_context import request_cycle_context
 from strawberry.dataloader import DataLoader

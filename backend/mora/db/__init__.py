@@ -3,13 +3,14 @@
 # flake8: noqa
 from collections.abc import AsyncIterator
 
-from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.ext.asyncio import create_async_engine
 from starlette_context import context
 from starlette_context import request_cycle_context
 
 from . import files
+from .. import depends
 from ._amqp import AMQPSubsystem
 from ._audit import AuditLogOperation
 from ._audit import AuditLogRead
@@ -59,7 +60,6 @@ from ._organisationsfunktion import OrganisationFunktionRelation
 from ._organisationsfunktion import OrganisationFunktionRelationKode
 from ._organisationsfunktion import OrganisationFunktionTilsGyldighed
 from .files import FileToken
-from .. import depends
 
 
 def create_engine(user, password, host, name) -> AsyncEngine:

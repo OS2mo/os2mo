@@ -1,19 +1,18 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from uuid import UUID
+
 import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker
-from uuid import UUID
 
 from mora.db import FacetRegistrering
-from tests.conftest import GQLResponse
 from tests.conftest import fake_auth
+from tests.conftest import GQLResponse
 
 
 @pytest.mark.integration_test
-async def test_create_facet(
-    fixture_db: async_sessionmaker, graphapi_post
-):
+async def test_create_facet(fixture_db: async_sessionmaker, graphapi_post):
     """Integrationtest for testing user references in LoRa."""
     payload = {
         "user_key": "TestFacet",

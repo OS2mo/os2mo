@@ -21,8 +21,6 @@ from typing import Never
 from typing import Protocol
 from typing import TypeVar
 from unittest.mock import AsyncMock
-from unittest.mock import MagicMock
-from unittest.mock import Mock
 from unittest.mock import patch
 from uuid import UUID
 from uuid import uuid4
@@ -38,7 +36,6 @@ from hypothesis import Verbosity
 from hypothesis.database import InMemoryExampleDatabase
 from more_itertools import last
 from more_itertools import one
-from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio import AsyncConnection
 from starlette_context import request_cycle_context

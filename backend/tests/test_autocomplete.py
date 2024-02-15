@@ -7,7 +7,6 @@ from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-
 from mora.graphapi.versions.v14.version import GraphQLVersion as GraphQLVersionV14
 from mora.service.autocomplete.employees import decorate_employee_search_result
 from mora.service.autocomplete.orgunits import decorate_orgunit_search_result

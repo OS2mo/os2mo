@@ -2,9 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
 from datetime import timedelta
-from hypothesis import HealthCheck
-from hypothesis import settings
-from sqlalchemy.ext.asyncio import async_sessionmaker
 from typing import Any
 from unittest.mock import ANY
 from uuid import UUID
@@ -15,11 +12,13 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
+from hypothesis import HealthCheck
+from hypothesis import settings
 from more_itertools import flatten
 from more_itertools import one
 from sqlalchemy import delete
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from mora.audit import audit_log
 from mora.auth.middleware import LORA_USER_UUID
