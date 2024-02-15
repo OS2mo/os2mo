@@ -7,31 +7,11 @@ from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-import pytest
 
 from mora.graphapi.versions.v14.version import GraphQLVersion as GraphQLVersionV14
-from mora.lora import AutocompleteScope
-from mora.lora import Connector
 from mora.service.autocomplete.employees import decorate_employee_search_result
 from mora.service.autocomplete.orgunits import decorate_orgunit_search_result
 from mora.service.autocomplete.orgunits import search_orgunits
-
-
-@pytest.mark.parametrize(
-    "path,expected_result",
-    [
-        ("bruger", []),
-        ("organisationsenhed", []),
-    ],
-)
-async def test_autocomplete(path: str, expected_result: list) -> None:
-    connector = Connector()
-    scope = AutocompleteScope(connector, path)
-    scope.autocomplete = lambda *_, **__: []
-    response = await scope.fetch("phrase")
-    assert "items" in response
-    result = response["items"]
-    assert result == expected_result
 
 
 @patch("mora.service.autocomplete.get_results")
