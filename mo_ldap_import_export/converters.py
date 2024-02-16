@@ -24,6 +24,7 @@ from ramodels.mo.organisation_unit import OrganisationUnit
 from ramqp.utils import RequeueMessage
 
 from .config import Settings
+from .dataloaders import DataLoader
 from .environments import environment
 from .exceptions import IncorrectMapping
 from .exceptions import InvalidNameException
@@ -117,7 +118,7 @@ class LdapConverter:
         self.user_context = context["user_context"]
         self.settings = self.user_context["settings"]
         self.raw_mapping = self.user_context["mapping"]
-        self.dataloader = self.user_context["dataloader"]
+        self.dataloader: DataLoader = self.user_context["dataloader"]
         self.org_unit_path_string_separator: str = (
             self.settings.org_unit_path_string_separator
         )
@@ -826,8 +827,7 @@ class LdapConverter:
             await self.dataloader.is_primary(engagement["uuid"])
             for engagement in engagements
         ]
-        engagements = compress(engagements, is_primary_engagement)
-        primary_engagement: dict = one(engagements)
+        primary_engagement = one(compress(engagements, is_primary_engagement))
         return primary_engagement
 
     async def get_or_create_engagement_type_uuid(self, engagement_type: str) -> str:
@@ -917,7 +917,7 @@ class LdapConverter:
                     org_unit_type_uuid=UUID(self.default_org_unit_type_uuid),
                     org_unit_level_uuid=UUID(self.default_org_unit_level_uuid),
                     from_date=from_date,
-                    parent_uuid=parent_uuid,
+                    parent_uuid=UUID(parent_uuid) if parent_uuid else None,
                     uuid=uuid,
                 )
 
