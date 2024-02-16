@@ -5,6 +5,8 @@ import contextvars
 import os
 import secrets
 import traceback
+from asyncio import AbstractEventLoopPolicy
+from asyncio import DefaultEventLoopPolicy
 from asyncio import Task
 from collections.abc import AsyncGenerator
 from collections.abc import AsyncIterator
@@ -36,6 +38,7 @@ from hypothesis import Verbosity
 from hypothesis.database import InMemoryExampleDatabase
 from more_itertools import last
 from more_itertools import one
+from pytest_asyncio import is_async_test
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio import AsyncConnection
 from starlette_context import request_cycle_context
@@ -80,12 +83,17 @@ h_settings.register_profile(
 )
 h_settings.load_profile(os.getenv("HYPOTHESIS_PROFILE", "dev"))
 
-asyncio_mode = "strict"
-
 
 def pytest_collection_modifyitems(items):
+    # httpx
     for item in items:
         item.add_marker(pytest.mark.respx(using="httpx"))
+    # pytest-asyncio
+    # https://pytest-asyncio.readthedocs.io/en/latest/how-to-guides/run_session_tests_in_same_loop.html
+    pytest_asyncio_tests = (item for item in items if is_async_test(item))
+    session_scope_marker = pytest.mark.asyncio(scope="session")
+    for async_test in pytest_asyncio_tests:
+        async_test.add_marker(session_scope_marker)
 
 
 def pytest_runtest_protocol(item) -> None:
@@ -400,9 +408,9 @@ async def fixture_db(
         yield sessionmaker
 
 
-@pytest.fixture(scope="session")
-def event_loop() -> YieldFixture[asyncio.AbstractEventLoop]:
-    """Custom implementation of pytest-asyncio's event_loop fixture[1].
+@pytest.fixture(scope="session", autouse=True)
+def event_loop_policy() -> AbstractEventLoopPolicy:
+    """Custom implementation of pytest-asyncio's event_loop_policy fixture[1].
 
     This fixture is used by pytest-asyncio to run test's setup/run/teardown. It
     is needed to share contextvars between these stages; without it,
@@ -410,7 +418,8 @@ def event_loop() -> YieldFixture[asyncio.AbstractEventLoop]:
     individual tests. See the issue[2] with solution implementation[3].
 
     The fixture name shadows the default fixture from pytest-asyncio, and thus
-    overrides it.
+    overrides it. Note that the links below reference overwriting the event_loop
+    fixture instead of the event_loop_policy -- this has been deprecated.
 
     [1] https://github.com/pytest-dev/pytest-asyncio/blob/e92efad68146469228b3ac3478b254b692c6bc90/pytest_asyncio/plugin.py#L957-L970
     [2] https://github.com/pytest-dev/pytest-asyncio/issues/127
@@ -433,13 +442,15 @@ def event_loop() -> YieldFixture[asyncio.AbstractEventLoop]:
                 break
         return Task(coro, loop=loop, context=context)
 
-    loop = asyncio.get_event_loop_policy().new_event_loop()
     context = contextvars.copy_context()
 
-    loop.set_task_factory(partial(task_factory, context=context))
-    asyncio.set_event_loop(loop)
-    yield loop
-    loop.close()
+    class CustomEventLoopPolicy(DefaultEventLoopPolicy):
+        def new_event_loop(self):
+            loop = super().new_event_loop()
+            loop.set_task_factory(partial(task_factory, context=context))
+            return loop
+
+    return CustomEventLoopPolicy()
 
 
 @dataclass
