@@ -4,6 +4,7 @@ import datetime
 import json
 import types
 from typing import TypeVar
+from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
 from urllib.parse import urlencode
@@ -525,7 +526,7 @@ class TestOIORestObject(ExtTestCase):
     @ExtTestCase.patch_db_struct(db_struct)
     async def test_get_objects_multiple_of_same_relation(self):
         # Arrange
-        mock_searcher = MagicMock(search_objects=MagicMock(return_value=None))
+        mock_searcher = MagicMock(search_objects=AsyncMock(return_value=None))
         relation_en_uuids = [
             "942f2aae-6151-4894-ac47-842ab93b161b",
             "18ac08a3-8158-4b68-81aa-adacb1ea0fb3",
@@ -577,7 +578,7 @@ class TestOIORestObject(ExtTestCase):
     async def test_get_objects_search_uses_default_params(self, mock_br):
         # Arrange
         data = ["1", "2", "3"]
-        mock_searcher = MagicMock(search_objects=MagicMock(return_value=data))
+        mock_searcher = MagicMock(search_objects=AsyncMock(return_value=data))
 
         mock_br.return_value = "REGISTRATION"
 
@@ -623,7 +624,7 @@ class TestOIORestObject(ExtTestCase):
     async def test_get_objects_search_uses_supplied_params(self, mock_br):
         # Arrange
         data = ["1", "2", "3"]
-        mock_searcher = MagicMock(search_objects=MagicMock(return_value=data))
+        mock_searcher = MagicMock(search_objects=AsyncMock(return_value=data))
 
         registration = "REGISTRATION"
         mock_br.return_value = registration
