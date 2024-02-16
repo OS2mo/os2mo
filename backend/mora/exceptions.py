@@ -161,7 +161,7 @@ class HTTPException(fastapiHTTPException):
             self.key = error_key
 
         self.traceback: str | None = None
-        self.stack: list[str] | None = None
+        self.stack: str | None = None
 
         body = {
             "error": True,
@@ -176,7 +176,7 @@ class HTTPException(fastapiHTTPException):
             if cause is None:
                 cause = self.__cause__ or self
             # just for debugging, remove or change as needed:
-            self.stack = traceback.format_stack()
+            self.stack = "".join(traceback.format_stack())
             if isinstance(cause, Exception):
                 self.traceback = traceback.format_exc()
 
