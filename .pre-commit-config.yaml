@@ -6,17 +6,17 @@ repos:
         args: [ "--py310-plus" ]
         language: system
 
+  - repo: https://github.com/psf/black
+    rev: 22.8.0
+    hooks:
+      - id: black
+        language: system
+
   - repo: https://github.com/pycqa/flake8
     rev: 6.1.0
     hooks:
       - id: flake8
         args: [ "--max-line-length=999" ]
-        language: system
-
-  - repo: https://github.com/psf/black
-    rev: 22.8.0
-    hooks:
-      - id: black
         language: system
 
   - repo: https://github.com/pre-commit/mirrors-mypy
