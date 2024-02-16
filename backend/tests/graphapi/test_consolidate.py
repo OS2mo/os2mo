@@ -83,7 +83,7 @@ async def test_consolidate_feature_flag(
     ]
 
     # Check that response is not consolidated if disabled
-    set_settings(CONSOLIDATE=False)
+    set_settings(CONSOLIDATE="false")
     response = graphapi_post(org_unit_read_query, dict(uuids=org_unit_uuid))
     assert response.data["org_units"]["objects"][0]["objects"] == [
         {

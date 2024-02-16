@@ -176,7 +176,7 @@ def test_all_endpoints() -> None:
 
 
 def test_testing_endpoints(set_settings: Callable[..., None]) -> None:
-    set_settings(INSECURE_ENABLE_TESTING_API=True)
+    set_settings(INSECURE_ENABLE_TESTING_API="true")
     app = create_app()
     routes = {r.path for r in app.routes} | {""}
     assert routes == all_endpoints | testing_endpoints
