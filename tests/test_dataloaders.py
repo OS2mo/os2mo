@@ -1252,19 +1252,11 @@ async def test_load_mo_employee_engagements(
     employee_uuid = uuid4()
 
     return_value = {
-        "employees": {
+        "engagements": {
             "objects": [
                 {
-                    "objects": [
-                        {
-                            "engagements": [
-                                {
-                                    "uuid": uuid1,
-                                },
-                            ]
-                        }
-                    ]
-                }
+                    "uuid": uuid1,
+                },
             ]
         }
     }
@@ -2107,9 +2099,7 @@ async def test_load_mo_employee_engagement_dicts(dataloader: DataLoader):
         "engagement_type_uuid": uuid4(),
     }
     dataloader.query_mo.return_value = {
-        "employees": {
-            "objects": [{"objects": [{"engagements": [engagement1, engagement2]}]}]
-        }
+        "engagements": {"objects": [{"current": engagement1}, {"current": engagement2}]}
     }
 
     result = await dataloader.load_mo_employee_engagement_dicts(uuid4(), "foo")
