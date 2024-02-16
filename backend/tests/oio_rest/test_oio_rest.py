@@ -427,7 +427,7 @@ class TestOIORestObject(ExtTestCase):
         db_structure = {"testclassrestobject": expected_fields, "garbage": ["garbage"]}
 
         request = self.create_request()
-        with self.patch_db_struct(db_structure):
+        async with self.patch_db_struct(db_structure):
             # Act
             actual_fields = await self.testclass.get_fields(request)
 
@@ -1197,7 +1197,7 @@ class TestOIOStandardHierarchy(ExtTestCase):
         db_structure = expected_result.copy()
         db_structure.update({"garbage": "1234"})
 
-        with self.patch_db_struct(db_structure):
+        async with self.patch_db_struct(db_structure):
             # Act
             router = self.testclass.setup_api()
             routes = router.routes

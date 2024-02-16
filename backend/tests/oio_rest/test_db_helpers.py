@@ -26,7 +26,7 @@ class TestDBHelpers(ExtTestCase):
             "testclass2": {"attributter": {"testattribut": ["value3", "value4"]}},
         }
     )
-    def test_get_attribute_reads_db_struct(self):
+    async def test_get_attribute_reads_db_struct(self):
         # Arrange
         expected_fields = {
             "testclass1testattribut": ["value1", "value2", "virkning"],
@@ -73,7 +73,7 @@ class TestDBHelpers(ExtTestCase):
             }
         }
     )
-    def test_get_field_type_override(self):
+    async def test_get_field_type_override(self):
         # Arrange
         expected_result = "value_override"
 
@@ -92,7 +92,7 @@ class TestDBHelpers(ExtTestCase):
             }
         }
     )
-    def test_get_field_type_override_field_not_found(self):
+    async def test_get_field_type_override_field_not_found(self):
         # Arrange
         expected_result = "text"
 
@@ -105,7 +105,7 @@ class TestDBHelpers(ExtTestCase):
         assert expected_result == actual_result
 
     @ExtTestCase.patch_db_struct(MagicMock())
-    def test_get_relation_field_type_default(self):
+    async def test_get_relation_field_type_default(self):
         # Arrange
         expected_result = "text"
 
@@ -130,7 +130,7 @@ class TestDBHelpers(ExtTestCase):
             }
         }
     )
-    def test_get_relation_field_type_override(self):
+    async def test_get_relation_field_type_override(self):
         # Arrange
         expected_result1 = "value_override1"
         expected_result2 = "value_override2"
@@ -158,7 +158,7 @@ class TestDBHelpers(ExtTestCase):
             }
         }
     )
-    def test_get_relation_field_type_override_field_not_found(self):
+    async def test_get_relation_field_type_override_field_not_found(self):
         # Arrange
         expected_result = "text"
 
@@ -180,7 +180,7 @@ class TestDBHelpers(ExtTestCase):
             }
         }
     )
-    def test_get_attribute_names_reads_db_struct(self):
+    async def test_get_attribute_names_reads_db_struct(self):
         # Arrange
         expected_result = ["testclass1testattribut1", "testclass1testattribut2"]
 
@@ -232,8 +232,8 @@ class TestDBHelpers(ExtTestCase):
         # Assert
         assert expected_result == actual_result
 
-    def test_get_state_names(self):
-        with self.patch_db_struct(
+    async def test_get_state_names(self):
+        async with self.patch_db_struct(
             {
                 "testclass1": {
                     "tilstande": {
@@ -255,7 +255,7 @@ class TestDBHelpers(ExtTestCase):
             # Assert
             assert expected_result == sorted(actual_result)
 
-        with self.patch_db_struct(
+        async with self.patch_db_struct(
             {
                 "testclass1": {
                     "tilstande": [
@@ -285,7 +285,7 @@ class TestDBHelpers(ExtTestCase):
             }
         }
     )
-    def test_get_relation_names(self):
+    async def test_get_relation_names(self):
         # Arrange
         expected_result = ["value1", "value2", "value3", "value4"]
 

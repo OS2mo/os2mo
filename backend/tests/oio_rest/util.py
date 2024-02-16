@@ -245,8 +245,8 @@ class ExtTestCase(BaseTestCase):
     """Testcase with extension helper functions, but no database access"""
 
     @classmethod
-    @contextlib.contextmanager
-    def patch_db_struct(cls, new: types.ModuleType | dict):
+    @contextlib.asynccontextmanager
+    async def patch_db_struct(cls, new: types.ModuleType | dict):
         """Context manager for overriding db_structures"""
 
         patches = [
