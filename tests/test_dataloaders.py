@@ -76,12 +76,12 @@ def ldap_connection(ldap_attributes: dict) -> Iterator[MagicMock]:
 
 
 @pytest.fixture
-def gql_client() -> Iterator[AsyncMock]:
+def legacy_graphql_session() -> Iterator[AsyncMock]:
     yield AsyncMock()
 
 
 @pytest.fixture
-def model_client() -> Iterator[AsyncMock]:
+def legacy_model_client() -> Iterator[AsyncMock]:
     yield AsyncMock()
 
 
@@ -131,8 +131,8 @@ def sync_tool() -> AsyncMock:
 @pytest.fixture
 def context(
     ldap_connection: MagicMock,
-    gql_client: AsyncMock,
-    model_client: AsyncMock,
+    legacy_graphql_session: AsyncMock,
+    legacy_model_client: AsyncMock,
     settings: Settings,
     cpr_field: str,
     converter: MagicMock,
@@ -140,11 +140,11 @@ def context(
     username_generator: MagicMock,
 ) -> Context:
     return {
+        "legacy_graphql_session": legacy_graphql_session,
+        "legacy_model_client": legacy_model_client,
         "user_context": {
             "settings": settings,
             "ldap_connection": ldap_connection,
-            "gql_client": gql_client,
-            "model_client": model_client,
             "cpr_field": cpr_field,
             "converter": converter,
             "sync_tool": sync_tool,
@@ -438,11 +438,13 @@ async def test_modify_ldap_object_but_export_equals_false(
         )
 
 
-async def test_load_mo_employee(dataloader: DataLoader, gql_client: AsyncMock) -> None:
+async def test_load_mo_employee(
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
+) -> None:
     cpr_no = "1407711900"
     uuid = uuid4()
 
-    gql_client.execute.return_value = {
+    legacy_graphql_session.execute.return_value = {
         "employees": {
             "objects": [
                 {
@@ -464,20 +466,20 @@ async def test_load_mo_employee(dataloader: DataLoader, gql_client: AsyncMock) -
 
 
 async def test_upload_mo_employee(
-    model_client: AsyncMock, dataloader: DataLoader
+    legacy_model_client: AsyncMock, dataloader: DataLoader
 ) -> None:
     """Test that test_upload_mo_employee works as expected."""
 
     return_values = ["1", None, "3"]
     input_values = [1, 2, 3]
     for input_value, return_value in zip(input_values, return_values):
-        model_client.upload.return_value = return_value
+        legacy_model_client.upload.return_value = return_value
 
         result = await asyncio.gather(
             dataloader.upload_mo_objects([input_value]),
         )
         assert result[0] == return_value
-        model_client.upload.assert_called_with([input_value])
+        legacy_model_client.upload.assert_called_with([input_value])
 
 
 async def test_make_overview_entry(dataloader: DataLoader):
@@ -559,12 +561,12 @@ async def test_get_populated_overview(dataloader: DataLoader):
 
 
 async def test_load_mo_address_types(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ) -> None:
     uuid = uuid4()
     name = "Email"
 
-    gql_client.execute.return_value = {
+    legacy_graphql_session.execute.return_value = {
         "facets": {
             "objects": [
                 {"current": {"classes": [{"uuid": uuid, "name": name}]}},
@@ -577,12 +579,12 @@ async def test_load_mo_address_types(
 
 
 async def test_load_mo_primary_types(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ) -> None:
     uuid = uuid4()
     value_key = "primary"
 
-    gql_client.execute.return_value = {
+    legacy_graphql_session.execute.return_value = {
         "facets": {
             "objects": [
                 {"current": {"classes": [{"uuid": uuid, "value_key": value_key}]}},
@@ -595,12 +597,12 @@ async def test_load_mo_primary_types(
 
 
 async def test_load_mo_job_functions(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ) -> None:
     uuid = uuid4()
     name = "Manager"
 
-    gql_client.execute.return_value = {
+    legacy_graphql_session.execute.return_value = {
         "facets": {
             "objects": [
                 {"current": {"classes": [{"uuid": uuid, "name": name}]}},
@@ -613,12 +615,12 @@ async def test_load_mo_job_functions(
 
 
 async def test_load_mo_visibility(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ) -> None:
     uuid = uuid4()
     name = "Hemmelig"
 
-    gql_client.execute.return_value = {
+    legacy_graphql_session.execute.return_value = {
         "facets": {
             "objects": [
                 {"current": {"classes": [{"uuid": uuid, "name": name}]}},
@@ -631,12 +633,12 @@ async def test_load_mo_visibility(
 
 
 async def test_load_mo_engagement_types(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ) -> None:
     uuid = uuid4()
     name = "Ansat"
 
-    gql_client.execute.return_value = {
+    legacy_graphql_session.execute.return_value = {
         "facets": {
             "objects": [
                 {"current": {"classes": [{"uuid": uuid, "name": name}]}},
@@ -649,12 +651,12 @@ async def test_load_mo_engagement_types(
 
 
 async def test_load_mo_org_unit_types(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ) -> None:
     uuid = uuid4()
     name = "Direktørområde"
 
-    gql_client.execute.return_value = {
+    legacy_graphql_session.execute.return_value = {
         "facets": {
             "objects": [
                 {"current": {"classes": [{"uuid": uuid, "name": name}]}},
@@ -667,12 +669,12 @@ async def test_load_mo_org_unit_types(
 
 
 async def test_load_mo_org_unit_levels(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ) -> None:
     uuid = uuid4()
     name = "N1"
 
-    gql_client.execute.return_value = {
+    legacy_graphql_session.execute.return_value = {
         "facets": {
             "objects": [
                 {"current": {"classes": [{"uuid": uuid, "name": name}]}},
@@ -685,17 +687,19 @@ async def test_load_mo_org_unit_levels(
 
 
 async def test_load_mo_address_no_valid_addresses(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ) -> None:
     uuid = uuid4()
 
-    gql_client.execute.return_value = {"addresses": {"objects": []}}
+    legacy_graphql_session.execute.return_value = {"addresses": {"objects": []}}
 
     with pytest.raises(NoObjectsReturnedException):
         await asyncio.gather(dataloader.load_mo_address(uuid))
 
 
-async def test_load_mo_address(dataloader: DataLoader, gql_client: AsyncMock) -> None:
+async def test_load_mo_address(
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
+) -> None:
     uuid = uuid4()
 
     address_dict: dict = {
@@ -721,7 +725,7 @@ async def test_load_mo_address(dataloader: DataLoader, gql_client: AsyncMock) ->
     address_dict["org_unit_uuid"] = uuid
     address_dict["engagement_uuid"] = uuid
 
-    gql_client.execute.return_value = {
+    legacy_graphql_session.execute.return_value = {
         "addresses": {
             "objects": [
                 {"objects": [address_dict]},
@@ -782,12 +786,12 @@ def test_cleanup_attributes_in_ldap(dataloader: DataLoader):
 
 
 async def test_load_mo_employee_addresses(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ):
     address1_uuid = uuid4()
     address2_uuid = uuid4()
 
-    gql_client.execute.return_value = {
+    legacy_graphql_session.execute.return_value = {
         "employees": {
             "objects": [
                 {
@@ -819,9 +823,9 @@ async def test_load_mo_employee_addresses(
 
 
 async def test_load_mo_employee_addresses_not_found(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ):
-    gql_client.execute.return_value = {"employees": {"objects": []}}
+    legacy_graphql_session.execute.return_value = {"employees": {"objects": []}}
 
     with pytest.raises(NoObjectsReturnedException):
         await asyncio.gather(
@@ -829,7 +833,9 @@ async def test_load_mo_employee_addresses_not_found(
         )
 
 
-async def test_find_mo_employee_uuid(dataloader: DataLoader, gql_client: AsyncMock):
+async def test_find_mo_employee_uuid(
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
+):
     uuid = uuid4()
     objectGUID = uuid4()
     dataloader.user_context["cpr_field"] = "employeeID"
@@ -848,7 +854,7 @@ async def test_find_mo_employee_uuid(dataloader: DataLoader, gql_client: AsyncMo
             "itusers": {"objects": []},
         }
 
-        gql_client.execute.return_value = return_value
+        legacy_graphql_session.execute.return_value = return_value
 
         output = await asyncio.gather(
             dataloader.find_mo_employee_uuid("CN=foo"),
@@ -869,14 +875,14 @@ async def test_find_mo_employee_uuid(dataloader: DataLoader, gql_client: AsyncMo
             }
         }
 
-        gql_client.execute.return_value = return_value
+        legacy_graphql_session.execute.return_value = return_value
 
         output = await asyncio.gather(dataloader.find_mo_employee_uuid("CN=foo"))
         assert output[0] == uuid
 
 
 async def test_find_mo_employee_uuid_not_found(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ):
     with patch(
         "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_object",
@@ -884,7 +890,7 @@ async def test_find_mo_employee_uuid_not_found(
             dn="CN=foo", employeeID="0101011221", objectGUID=str(uuid4())
         ),
     ):
-        gql_client.execute.return_value = {
+        legacy_graphql_session.execute.return_value = {
             "employees": {"objects": []},
             "itusers": {"objects": []},
         }
@@ -895,7 +901,7 @@ async def test_find_mo_employee_uuid_not_found(
 
 
 async def test_find_mo_employee_uuid_multiple_matches(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ):
     with patch(
         "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_object",
@@ -903,7 +909,7 @@ async def test_find_mo_employee_uuid_multiple_matches(
             dn="CN=foo", employeeID="0101011221", objectGUID=str(uuid4())
         ),
     ):
-        gql_client.execute.return_value = {
+        legacy_graphql_session.execute.return_value = {
             "employees": {"objects": [{"uuid": uuid4()}, {"uuid": uuid4()}]},
             "itusers": {"objects": []},
         }
@@ -913,9 +919,9 @@ async def test_find_mo_employee_uuid_multiple_matches(
 
 
 async def test_load_mo_employee_not_found(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ):
-    gql_client.execute.return_value = {"employees": {"objects": []}}
+    legacy_graphql_session.execute.return_value = {"employees": {"objects": []}}
 
     uuid = uuid4()
 
@@ -926,15 +932,17 @@ async def test_load_mo_employee_not_found(
 
 
 async def test_load_mo_address_types_not_found(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ):
-    gql_client.execute.return_value = {"facets": {"objects": []}}
+    legacy_graphql_session.execute.return_value = {"facets": {"objects": []}}
 
     assert await dataloader.load_mo_employee_address_types() == {}
     assert await dataloader.load_mo_org_unit_address_types() == {}
 
 
-async def test_load_mo_it_systems(dataloader: DataLoader, gql_client: AsyncMock):
+async def test_load_mo_it_systems(
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
+):
     uuid1 = uuid4()
     uuid2 = uuid4()
 
@@ -947,14 +955,16 @@ async def test_load_mo_it_systems(dataloader: DataLoader, gql_client: AsyncMock)
         }
     }
 
-    gql_client.execute.return_value = return_value
+    legacy_graphql_session.execute.return_value = return_value
 
     output = await dataloader.load_mo_it_systems()
     assert output[uuid1]["user_key"] == "AD"
     assert output[uuid2]["user_key"] == "Office365"
 
 
-async def test_load_mo_org_units(dataloader: DataLoader, gql_client: AsyncMock):
+async def test_load_mo_org_units(
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
+):
     uuid1 = str(uuid4())
     uuid2 = str(uuid4())
 
@@ -975,7 +985,7 @@ async def test_load_mo_org_units(dataloader: DataLoader, gql_client: AsyncMock):
         }
     }
 
-    gql_client.execute.return_value = return_value
+    legacy_graphql_session.execute.return_value = return_value
 
     output = await dataloader.load_mo_org_units()
     assert output[uuid1]["name"] == "Magenta Aps"
@@ -984,27 +994,29 @@ async def test_load_mo_org_units(dataloader: DataLoader, gql_client: AsyncMock):
 
 
 async def test_load_mo_org_units_empty_response(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ):
     return_value: dict = {"org_units": {"objects": []}}
 
-    gql_client.execute.return_value = return_value
+    legacy_graphql_session.execute.return_value = return_value
 
     output = await dataloader.load_mo_org_units()
     assert output == {}
 
 
 async def test_load_mo_it_systems_not_found(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ):
     return_value: dict = {"itsystems": {"objects": []}}
-    gql_client.execute.return_value = return_value
+    legacy_graphql_session.execute.return_value = return_value
 
     output = await dataloader.load_mo_it_systems()
     assert output == {}
 
 
-async def test_load_mo_it_user(dataloader: DataLoader, gql_client: AsyncMock):
+async def test_load_mo_it_user(
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
+):
     uuid1 = uuid4()
     uuid2 = uuid4()
     return_value = {
@@ -1025,7 +1037,7 @@ async def test_load_mo_it_user(dataloader: DataLoader, gql_client: AsyncMock):
         }
     }
 
-    gql_client.execute.return_value = return_value
+    legacy_graphql_session.execute.return_value = return_value
 
     output = await asyncio.gather(
         dataloader.load_mo_it_user(uuid4()),
@@ -1038,7 +1050,9 @@ async def test_load_mo_it_user(dataloader: DataLoader, gql_client: AsyncMock):
     assert len(output) == 1
 
 
-async def test_load_mo_engagement(dataloader: DataLoader, gql_client: AsyncMock):
+async def test_load_mo_engagement(
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
+):
     return_value = {
         "engagements": {
             "objects": [
@@ -1070,7 +1084,7 @@ async def test_load_mo_engagement(dataloader: DataLoader, gql_client: AsyncMock)
         }
     }
 
-    gql_client.execute.return_value = return_value
+    legacy_graphql_session.execute.return_value = return_value
 
     output = await asyncio.gather(
         dataloader.load_mo_engagement(uuid4()),
@@ -1082,10 +1096,12 @@ async def test_load_mo_engagement(dataloader: DataLoader, gql_client: AsyncMock)
     assert len(output) == 1
 
 
-async def test_load_mo_it_user_not_found(dataloader: DataLoader, gql_client: AsyncMock):
+async def test_load_mo_it_user_not_found(
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
+):
     return_value: dict = {"itusers": {"objects": []}}
 
-    gql_client.execute.return_value = return_value
+    legacy_graphql_session.execute.return_value = return_value
 
     with pytest.raises(NoObjectsReturnedException):
         await asyncio.gather(
@@ -1093,7 +1109,9 @@ async def test_load_mo_it_user_not_found(dataloader: DataLoader, gql_client: Asy
         )
 
 
-async def test_load_mo_employee_it_users(dataloader: DataLoader, gql_client: AsyncMock):
+async def test_load_mo_employee_it_users(
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
+):
     uuid1 = uuid4()
     uuid2 = uuid4()
     employee_uuid = uuid4()
@@ -1122,7 +1140,7 @@ async def test_load_mo_employee_it_users(dataloader: DataLoader, gql_client: Asy
         }
     }
 
-    gql_client.execute.return_value = return_value
+    legacy_graphql_session.execute.return_value = return_value
 
     load_mo_it_user = AsyncMock()
     dataloader.load_mo_it_user = load_mo_it_user  # type: ignore
@@ -1135,7 +1153,7 @@ async def test_load_mo_employee_it_users(dataloader: DataLoader, gql_client: Asy
 
 
 async def test_load_mo_employees_in_org_unit(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ):
     employee_uuid1 = uuid4()
     employee_uuid2 = uuid4()
@@ -1160,7 +1178,7 @@ async def test_load_mo_employees_in_org_unit(
         }
     }
 
-    gql_client.execute.return_value = return_value
+    legacy_graphql_session.execute.return_value = return_value
 
     load_mo_employee = AsyncMock()
     dataloader.load_mo_employee = load_mo_employee  # type: ignore
@@ -1174,7 +1192,7 @@ async def test_load_mo_employees_in_org_unit(
 
 
 async def test_load_mo_org_unit_addresses(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ):
     address_uuid1 = uuid4()
     address_uuid2 = uuid4()
@@ -1199,7 +1217,7 @@ async def test_load_mo_org_unit_addresses(
         }
     }
 
-    gql_client.execute.return_value = return_value
+    legacy_graphql_session.execute.return_value = return_value
 
     load_mo_address = AsyncMock()
     dataloader.load_mo_address = load_mo_address  # type: ignore
@@ -1213,7 +1231,7 @@ async def test_load_mo_org_unit_addresses(
 
 
 async def test_load_mo_employee_engagements(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ):
     uuid1 = uuid4()
     employee_uuid = uuid4()
@@ -1228,7 +1246,7 @@ async def test_load_mo_employee_engagements(
         }
     }
 
-    gql_client.execute.return_value = return_value
+    legacy_graphql_session.execute.return_value = return_value
 
     load_mo_engagement = AsyncMock()
     dataloader.load_mo_engagement = load_mo_engagement  # type: ignore
@@ -1241,11 +1259,11 @@ async def test_load_mo_employee_engagements(
 
 
 async def test_load_mo_employee_it_users_not_found(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ):
     return_value: dict = {"employees": {"objects": []}}
 
-    gql_client.execute.return_value = return_value
+    legacy_graphql_session.execute.return_value = return_value
 
     with pytest.raises(NoObjectsReturnedException):
         await asyncio.gather(
@@ -1253,20 +1271,20 @@ async def test_load_mo_employee_it_users_not_found(
         )
 
 
-async def test_is_primary(dataloader: DataLoader, gql_client: AsyncMock):
+async def test_is_primary(dataloader: DataLoader, legacy_graphql_session: AsyncMock):
     return_value: dict = {
         "engagements": {"objects": [{"objects": [{"is_primary": True}]}]}
     }
 
-    gql_client.execute.return_value = return_value
+    legacy_graphql_session.execute.return_value = return_value
 
     primary = await asyncio.gather(dataloader.is_primary(uuid4()))
     assert primary == [True]
 
 
-async def test_query_mo(dataloader: DataLoader, gql_client: AsyncMock):
+async def test_query_mo(dataloader: DataLoader, legacy_graphql_session: AsyncMock):
     expected_output: dict = {"objects": {"objects": []}}
-    gql_client.execute.return_value = expected_output
+    legacy_graphql_session.execute.return_value = expected_output
 
     query = gql(
         """
@@ -1285,7 +1303,9 @@ async def test_query_mo(dataloader: DataLoader, gql_client: AsyncMock):
         await asyncio.gather(dataloader.query_mo(query, raise_if_empty=True))
 
 
-async def test_query_mo_all_objects(dataloader: DataLoader, gql_client: AsyncMock):
+async def test_query_mo_all_objects(
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
+):
     query = gql(
         """
         query TestQuery {
@@ -1300,15 +1320,15 @@ async def test_query_mo_all_objects(dataloader: DataLoader, gql_client: AsyncMoc
         {"objects": {"objects": []}},
         {"objects": {"objects": ["item1", "item2"]}},
     ]
-    gql_client.execute.side_effect = expected_output
+    legacy_graphql_session.execute.side_effect = expected_output
 
     output = await asyncio.gather(
         dataloader.query_past_future_mo(query, current_objects_only=False)
     )
     assert output == [expected_output[1]]
 
-    query1 = print_ast(gql_client.execute.call_args_list[0].args[0])
-    query2 = print_ast(gql_client.execute.call_args_list[1].args[0])
+    query1 = print_ast(legacy_graphql_session.execute.call_args_list[0].args[0])
+    query2 = print_ast(legacy_graphql_session.execute.call_args_list[1].args[0])
 
     # The first query attempts to request current objects only
     assert "from_date" not in query1
@@ -1319,7 +1339,9 @@ async def test_query_mo_all_objects(dataloader: DataLoader, gql_client: AsyncMoc
     assert "to_date" in query2
 
 
-async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock):
+async def test_load_all_mo_objects(
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
+):
     return_values: list = [
         {"employees": {"objects": [{"objects": [{"uuid": str(uuid4())}]}]}},
         {"org_units": {"objects": [{"objects": [{"uuid": str(uuid4())}]}]}},
@@ -1443,7 +1465,7 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
 
 
 async def test_load_all_mo_objects_add_validity(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ):
     query_mo = AsyncMock()
     query_mo.return_value = {}
@@ -1461,7 +1483,7 @@ async def test_load_all_mo_objects_add_validity(
 
 
 async def test_load_all_mo_objects_current_objects_only(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ):
     query_mo = AsyncMock()
     query_mo.return_value = {}
@@ -1481,7 +1503,7 @@ async def test_load_all_mo_objects_current_objects_only(
 
 
 async def test_load_all_mo_objects_specify_uuid(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ):
     employee_uuid = str(uuid4())
     return_values: list = [
@@ -1492,7 +1514,7 @@ async def test_load_all_mo_objects_specify_uuid(
         {"itusers": {"objects": []}},
     ]
 
-    gql_client.execute.side_effect = return_values
+    legacy_graphql_session.execute.side_effect = return_values
 
     output = await dataloader.load_all_mo_objects(uuid=employee_uuid)
     assert output[0]["uuid"] == employee_uuid
@@ -1500,7 +1522,7 @@ async def test_load_all_mo_objects_specify_uuid(
 
 
 async def test_load_all_mo_objects_specify_uuid_multiple_results(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ):
     uuid = str(uuid4())
     return_values: list = [
@@ -1519,7 +1541,7 @@ async def test_load_all_mo_objects_specify_uuid_multiple_results(
 
 
 async def test_load_all_mo_objects_invalid_query(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ):
     # Return a single it-user, which belongs neither to an employee nor org-unit
     return_value: dict = {
@@ -1542,7 +1564,7 @@ async def test_load_all_mo_objects_invalid_query(
 
 
 async def test_load_all_mo_objects_TransportQueryError(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ):
     employee_uuid = str(uuid4())
     org_unit_uuid = str(uuid4())
@@ -1568,7 +1590,7 @@ async def test_load_all_mo_objects_TransportQueryError(
 
 
 async def test_load_all_mo_objects_only_TransportQueryErrors(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ):
     return_values = [
         TransportQueryError("foo"),
@@ -1588,7 +1610,7 @@ async def test_load_all_mo_objects_only_TransportQueryErrors(
 
 
 async def test_load_all_mo_objects_invalid_object_type_to_try(
-    dataloader: DataLoader, gql_client: AsyncMock
+    dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ):
     with pytest.raises(KeyError):
         await asyncio.gather(
@@ -2516,7 +2538,7 @@ async def test_find_dn_by_engagement_uuid_uses_single_dn() -> None:
         {
             "user_context": {
                 "ldap_connection": MagicMock(),
-                "gql_client": AsyncMock(),
+                "legacy_graphql_session": AsyncMock(),
                 "converter": AsyncMock(),
             }
         }
@@ -2545,7 +2567,7 @@ async def test_find_dn_by_engagement_uuid_finds_single_dn() -> None:
         {
             "user_context": {
                 "ldap_connection": MagicMock(),
-                "gql_client": AsyncMock(),
+                "legacy_graphql_session": AsyncMock(),
                 "converter": AsyncMock(),
             }
         }
@@ -2589,7 +2611,7 @@ async def test_find_dn_by_engagement_uuid_raises_exception_on_multiple_hits() ->
         {
             "user_context": {
                 "ldap_connection": MagicMock(),
-                "gql_client": AsyncMock(),
+                "legacy_graphql_session": AsyncMock(),
                 "converter": AsyncMock(),
             }
         }
@@ -2632,7 +2654,7 @@ async def test_find_dn_by_engagement_uuid_raises_exception_if_no_hits() -> None:
         {
             "user_context": {
                 "ldap_connection": MagicMock(),
-                "gql_client": AsyncMock(),
+                "legacy_graphql_session": AsyncMock(),
                 "converter": AsyncMock(),
             }
         }
@@ -2687,8 +2709,8 @@ async def test_find_mo_engagement_uuid(dataloader: DataLoader) -> None:
 async def test_create_or_edit_mo_objects_empty(dataloader: DataLoader) -> None:
     # *Empty* list of object/verb pairs.
     await dataloader.create_or_edit_mo_objects([])
-    dataloader.user_context["model_client"].upload.assert_called_once_with([])
-    dataloader.user_context["model_client"].edit.assert_called_once_with([])
+    dataloader.context["legacy_model_client"].upload.assert_called_once_with([])
+    dataloader.context["legacy_model_client"].edit.assert_called_once_with([])
 
 
 async def test_create_or_edit_mo_objects(dataloader: DataLoader) -> None:
@@ -2697,5 +2719,5 @@ async def test_create_or_edit_mo_objects(dataloader: DataLoader) -> None:
     edit = MagicMock()
     objs = [(create, Verb.CREATE), (edit, Verb.EDIT)]
     await dataloader.create_or_edit_mo_objects(objs)  # type: ignore
-    dataloader.user_context["model_client"].upload.assert_called_once_with([create])
-    dataloader.user_context["model_client"].edit.assert_called_once_with([edit])
+    dataloader.context["legacy_model_client"].upload.assert_called_once_with([create])
+    dataloader.context["legacy_model_client"].edit.assert_called_once_with([edit])

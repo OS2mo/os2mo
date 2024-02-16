@@ -27,8 +27,6 @@ from fastramqpi.main import FastRAMQPI
 from gql.transport.exceptions import TransportQueryError
 from ldap3 import Connection
 from pydantic import ValidationError
-from raclients.graph.client import PersistentGraphQLClient
-from raclients.modelclient.mo import ModelClient
 from ramodels.mo._shared import validate_cpr
 from ramqp import AMQPSystem
 from ramqp.depends import Context
@@ -259,44 +257,6 @@ async def open_ldap_connection(ldap_connection: Connection) -> AsyncIterator[Non
         yield
 
 
-def construct_gql_client(settings: Settings, version: str = "v21"):
-    return PersistentGraphQLClient(
-        url=settings.fastramqpi.mo_url + "/graphql/" + version,
-        client_id=settings.fastramqpi.client_id,
-        client_secret=settings.fastramqpi.client_secret.get_secret_value(),
-        auth_server=settings.fastramqpi.auth_server,
-        auth_realm=settings.fastramqpi.auth_realm,
-        execute_timeout=settings.fastramqpi.graphql_timeout,
-        httpx_client_kwargs={"timeout": settings.fastramqpi.graphql_timeout},
-    )
-
-
-def construct_model_client(settings: Settings):
-    return ModelClient(
-        base_url=settings.fastramqpi.mo_url,
-        client_id=settings.fastramqpi.client_id,
-        client_secret=settings.fastramqpi.client_secret.get_secret_value(),
-        auth_server=settings.fastramqpi.auth_server,
-        auth_realm=settings.fastramqpi.auth_realm,
-    )
-
-
-def construct_clients(
-    settings: Settings,
-) -> tuple[PersistentGraphQLClient, ModelClient]:
-    """Construct clients froms settings.
-
-    Args:
-        settings: Integration settings module.
-
-    Returns:
-        Tuple with PersistentGraphQLClient and ModelClient.
-    """
-    gql_client = construct_gql_client(settings)
-    model_client = construct_model_client(settings)
-    return gql_client, model_client
-
-
 # https://fastapi.tiangolo.com/advanced/events/
 @asynccontextmanager
 async def initialize_sync_tool(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
@@ -367,12 +327,6 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     logger.info("AMQP router setup")
     amqpsystem = fastramqpi.get_amqpsystem()
     amqpsystem.router.registry.update(amqp_router.registry)
-
-    logger.info("Setting up clients")
-    gql_client, model_client = construct_clients(settings)
-    fastramqpi.add_context(model_client=model_client)
-    fastramqpi.add_context(gql_client=gql_client)
-    fastramqpi._context["graphql_client"] = gql_client
 
     logger.info("Configuring LDAP connection")
     ldap_connection = configure_ldap_connection(settings)
