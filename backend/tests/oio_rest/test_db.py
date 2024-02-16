@@ -1662,7 +1662,7 @@ Diagnostics = collections.namedtuple("Diagnostics", ["message_primary"])
 @patch("oio_rest.db.sql_convert_registration", new=AsyncMock())
 @patch("oio_rest.db.jinja_env.get_template", new=get_template_mock)
 class TestPGErrors:
-    class TestException(Exception):
+    class FakeException(Exception):
         def __init__(self, code="MO123", message="1 2 3 testing..."):
             self.pgcode = code
             self.diag = Diagnostics(message)
@@ -1671,7 +1671,7 @@ class TestPGErrors:
         def orig(self):
             return Orig(sqlstate=self.pgcode, diag=self.diag)
 
-    @patch("oio_rest.db.StatementError", new=TestException)
+    @patch("oio_rest.db.StatementError", new=FakeException)
     async def test_object_exists_raises_on_pgerror(
         self, monkeypatch: MonkeyPatch
     ) -> None:
@@ -1680,13 +1680,13 @@ class TestPGErrors:
         uuid = "1c3236a1-9384-4730-82ab-5443e95bcead"
 
         mock = mock_sql_session(monkeypatch)
-        mock.execute.side_effect = TestPGErrors.TestException
+        mock.execute.side_effect = TestPGErrors.FakeException
 
         # Act
         with pytest.raises(Exception):
             await db.object_exists(classname, uuid)
 
-    @patch("oio_rest.db.StatementError", new=TestException)
+    @patch("oio_rest.db.StatementError", new=FakeException)
     async def test_object_exists_raises_on_unknown_pgerror(
         self, monkeypatch: MonkeyPatch
     ) -> None:
@@ -1695,25 +1695,25 @@ class TestPGErrors:
         uuid = "1c3236a1-9384-4730-82ab-5443e95bcead"
 
         mock = mock_sql_session(monkeypatch)
-        mock.scalar.side_effect = TestPGErrors.TestException("123")
+        mock.scalar.side_effect = TestPGErrors.FakeException("123")
 
         # Act
-        with pytest.raises(TestPGErrors.TestException):
+        with pytest.raises(TestPGErrors.FakeException):
             await db.object_exists(classname, uuid)
 
-    @patch("oio_rest.db.StatementError", new=TestException)
+    @patch("oio_rest.db.StatementError", new=FakeException)
     async def test_create_or_import_object_raises_on_pgerror(
         self, monkeypatch: MonkeyPatch
     ) -> None:
         # Arrange
         mock = mock_sql_session(monkeypatch)
-        mock.scalar.side_effect = TestPGErrors.TestException
+        mock.scalar.side_effect = TestPGErrors.FakeException
 
         # Act
         with pytest.raises(DBException):
             await db.create_or_import_object("OrganisationEnhed", "", "", str(uuid4()))
 
-    @patch("oio_rest.db.StatementError", new=TestException)
+    @patch("oio_rest.db.StatementError", new=FakeException)
     @patch("oio_rest.db.object_exists", new=AsyncMock(side_effect=lambda *x: False))
     async def test_create_or_import_object_raises_on_noop_pgerror(
         self, monkeypatch: MonkeyPatch
@@ -1721,7 +1721,7 @@ class TestPGErrors:
         # Arrange
         class_name = "class"
         uuid = "61ae604b-e7fb-4892-a09a-55e5f6822435"
-        exception = TestPGErrors.TestException()
+        exception = TestPGErrors.FakeException()
         exception.message = (
             "Aborted updating {} with id [{}] as the given "
             "data, does not give raise to a new "
@@ -1733,39 +1733,39 @@ class TestPGErrors:
         mock.execute.side_effect = exception
 
         # Act
-        with pytest.raises(TestPGErrors.TestException):
+        with pytest.raises(TestPGErrors.FakeException):
             await db.create_or_import_object(class_name, "", "", uuid)
 
-    @patch("oio_rest.db.StatementError", new=TestException)
+    @patch("oio_rest.db.StatementError", new=FakeException)
     async def test_create_or_import_object_raises_on_unknown_pgerror(
         self, monkeypatch: MonkeyPatch
     ) -> None:
         # Arrange
         class_name = "class"
         uuid = "61ae604b-e7fb-4892-a09a-55e5f6822435"
-        exception = TestPGErrors.TestException()
+        exception = TestPGErrors.FakeException()
         exception.pgcode = "12345"
 
         mock = mock_sql_session(monkeypatch)
         mock.scalar.side_effect = exception
 
         # Act
-        with pytest.raises(TestPGErrors.TestException):
+        with pytest.raises(TestPGErrors.FakeException):
             await db.create_or_import_object(class_name, "", "", uuid)
 
-    @patch("oio_rest.db.StatementError", new=TestException)
+    @patch("oio_rest.db.StatementError", new=FakeException)
     async def test_delete_object_raises_on_pgerror(
         self, monkeypatch: MonkeyPatch
     ) -> None:
         # Arrange
         mock = mock_sql_session(monkeypatch)
-        mock.scalar.side_effect = TestPGErrors.TestException
+        mock.scalar.side_effect = TestPGErrors.FakeException
 
         # Act
         with pytest.raises(DBException):
             await db.delete_object("OrganisationEnhed", "", "", str(uuid4()))
 
-    @patch("oio_rest.db.StatementError", new=TestException)
+    @patch("oio_rest.db.StatementError", new=FakeException)
     @patch("oio_rest.db.object_exists", new=AsyncMock(side_effect=lambda *x: False))
     async def test_delete_object_raises_on_notfound_pgerror(
         self, monkeypatch: MonkeyPatch
@@ -1774,7 +1774,7 @@ class TestPGErrors:
         class_name = "classname"
         uuid = "40910e35-feeb-47ca-8020-a88fffe6d6f3"
 
-        exception = TestPGErrors.TestException(
+        exception = TestPGErrors.FakeException(
             "12345",
             (
                 "Unable to update {} with uuid [{}], "
@@ -1789,26 +1789,26 @@ class TestPGErrors:
         with pytest.raises(NotFoundException):
             await db.delete_object(class_name, "", "", uuid)
 
-    @patch("oio_rest.db.StatementError", new=TestException)
+    @patch("oio_rest.db.StatementError", new=FakeException)
     async def test_delete_object_raises_on_unknown_pgerror(
         self, monkeypatch: MonkeyPatch
     ) -> None:
         # Arrange
-        exception = TestPGErrors.TestException()
+        exception = TestPGErrors.FakeException()
         exception.pgcode = "12345"
         mock = mock_sql_session(monkeypatch)
         mock.scalar.side_effect = exception
 
         # Act
-        with pytest.raises(TestPGErrors.TestException):
+        with pytest.raises(TestPGErrors.FakeException):
             await db.delete_object("OrganisationEnhed", "", "", str(uuid4()))
 
-    @patch("oio_rest.db.StatementError", new=TestException)
+    @patch("oio_rest.db.StatementError", new=FakeException)
     async def test_passivate_object_raises_on_pgerror(
         self, monkeypatch: MonkeyPatch
     ) -> None:
         # Arrange
-        exception = TestPGErrors.TestException()
+        exception = TestPGErrors.FakeException()
         mock = mock_sql_session(monkeypatch)
         mock.execute.side_effect = exception
 
@@ -1816,26 +1816,26 @@ class TestPGErrors:
         with pytest.raises(DBException):
             await db.passivate_object("", "", "", "")
 
-    @patch("oio_rest.db.StatementError", new=TestException)
+    @patch("oio_rest.db.StatementError", new=FakeException)
     async def test_passivate_object_raises_on_unknown_pgerror(
         self, monkeypatch: MonkeyPatch
     ) -> None:
         # Arrange
-        exception = TestPGErrors.TestException()
+        exception = TestPGErrors.FakeException()
         exception.pgcode = "123456"
         mock = mock_sql_session(monkeypatch)
         mock.execute.side_effect = exception
 
         # Act
-        with pytest.raises(TestPGErrors.TestException):
+        with pytest.raises(TestPGErrors.FakeException):
             await db.passivate_object("", "", "", "")
 
-    @patch("oio_rest.db.StatementError", new=TestException)
+    @patch("oio_rest.db.StatementError", new=FakeException)
     async def test_update_object_raises_on_pgerror(
         self, monkeypatch: MonkeyPatch
     ) -> None:
         # Arrange
-        exception = TestPGErrors.TestException()
+        exception = TestPGErrors.FakeException()
         mock = mock_sql_session(monkeypatch)
         mock.execute.side_effect = exception
 
@@ -1843,7 +1843,7 @@ class TestPGErrors:
         with pytest.raises(DBException):
             await db.update_object("", "", "", "")
 
-    @patch("oio_rest.db.StatementError", new=TestException)
+    @patch("oio_rest.db.StatementError", new=FakeException)
     async def test_update_object_returns_uuid_on_noop_pgerror(
         self, monkeypatch: MonkeyPatch
     ) -> None:
@@ -1851,7 +1851,7 @@ class TestPGErrors:
         class_name = "classname"
         uuid = "8abdb359-ce8a-47d9-a5d0-c9a1c6d36c44"
 
-        exception = TestPGErrors.TestException(
+        exception = TestPGErrors.FakeException(
             message="Aborted updating {} with id [{}] as the given data, "
             "does not give raise to a new registration.".format(
                 class_name.lower(), uuid
@@ -1866,26 +1866,26 @@ class TestPGErrors:
         # Assert
         assert uuid == actual_result
 
-    @patch("oio_rest.db.StatementError", new=TestException)
+    @patch("oio_rest.db.StatementError", new=FakeException)
     async def test_update_object_raises_on_unknown_pgerror(
         self, monkeypatch: MonkeyPatch
     ) -> None:
         # Arrange
-        exception = TestPGErrors.TestException()
+        exception = TestPGErrors.FakeException()
         exception.pgcode = "123456"
         mock = mock_sql_session(monkeypatch)
         mock.execute.side_effect = exception
 
         # Act
-        with pytest.raises(TestPGErrors.TestException):
+        with pytest.raises(TestPGErrors.FakeException):
             await db.update_object("", "", "", "")
 
-    @patch("oio_rest.db.StatementError", new=TestException)
+    @patch("oio_rest.db.StatementError", new=FakeException)
     async def test_list_objects_raises_on_pgerror(
         self, monkeypatch: MonkeyPatch
     ) -> None:
         # Arrange
-        exception = TestPGErrors.TestException()
+        exception = TestPGErrors.FakeException()
         mock = mock_sql_session(monkeypatch)
         mock.execute.side_effect = exception
 
@@ -1893,26 +1893,26 @@ class TestPGErrors:
         with pytest.raises(DBException):
             await db.list_objects("", "", "", "", "", "")
 
-    @patch("oio_rest.db.StatementError", new=TestException)
+    @patch("oio_rest.db.StatementError", new=FakeException)
     async def test_list_objects_raises_on_unknown_pgerror(
         self, monkeypatch: MonkeyPatch
     ) -> None:
         # Arrange
-        exception = TestPGErrors.TestException()
+        exception = TestPGErrors.FakeException()
         exception.pgcode = "123456"
         mock = mock_sql_session(monkeypatch)
         mock.execute.side_effect = exception
 
         # Act
-        with pytest.raises(TestPGErrors.TestException):
+        with pytest.raises(TestPGErrors.FakeException):
             await db.list_objects("", "", "", "", "", "")
 
-    @patch("oio_rest.db.StatementError", new=TestException)
+    @patch("oio_rest.db.StatementError", new=FakeException)
     async def test_search_objects_raises_on_pgerror(
         self, monkeypatch: MonkeyPatch
     ) -> None:
         # Arrange
-        exception = TestPGErrors.TestException()
+        exception = TestPGErrors.FakeException()
         mock = mock_sql_session(monkeypatch)
         mock.execute.side_effect = exception
 
@@ -1920,16 +1920,16 @@ class TestPGErrors:
         with pytest.raises(DBException):
             await db.search_objects("", "", "")
 
-    @patch("oio_rest.db.StatementError", new=TestException)
+    @patch("oio_rest.db.StatementError", new=FakeException)
     async def test_search_objects_raises_on_unknown_pgerror(
         self, monkeypatch: MonkeyPatch
     ) -> None:
         # Arrange
-        exception = TestPGErrors.TestException()
+        exception = TestPGErrors.FakeException()
         exception.pgcode = "123456"
         mock = mock_sql_session(monkeypatch)
         mock.execute.side_effect = exception
 
         # Act
-        with pytest.raises(TestPGErrors.TestException):
+        with pytest.raises(TestPGErrors.FakeException):
             await db.search_objects("", "", "")
