@@ -6,17 +6,12 @@ repos:
         args: [ "--py310-plus" ]
         language: system
 
-  - repo: https://github.com/psf/black
-    rev: 22.8.0
-    hooks:
-      - id: black
-        language: system
-
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.2.1
     hooks:
       - id: ruff
         args: [ --fix ]
+      - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.7.0

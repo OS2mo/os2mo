@@ -217,7 +217,7 @@ def test_configure_ldap_connection(load_settings_overrides: dict[str, str]) -> N
 
 
 def test_configure_ldap_connection_timeout(
-    load_settings_overrides: dict[str, str]
+    load_settings_overrides: dict[str, str],
 ) -> None:
     ldap_controller = MagicMock()
     ldap_controller.timeout = 1
@@ -234,9 +234,7 @@ def test_configure_ldap_connection_timeout(
         "mo_ldap_import_export.ldap.get_client_strategy", return_value=MOCK_SYNC
     ), patch("mo_ldap_import_export.ldap.Connection", connection_mock), patch(
         "mo_ldap_import_export.ldap.construct_server", MagicMock()
-    ), patch(
-        "mo_ldap_import_export.ldap.ServerPool", MagicMock()
-    ):
+    ), patch("mo_ldap_import_export.ldap.ServerPool", MagicMock()):
         with pytest.raises(TimeOutException):
             configure_ldap_connection(settings)
 
@@ -265,7 +263,7 @@ def test_configure_ldap_connection_simple(
 
 
 def test_configure_ldap_connection_unknown(
-    load_settings_overrides: dict[str, str]
+    load_settings_overrides: dict[str, str],
 ) -> None:
     ldap_controller = ServerConfig(host="0.0.0.0")
 

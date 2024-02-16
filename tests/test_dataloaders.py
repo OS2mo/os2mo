@@ -139,7 +139,6 @@ def context(
     sync_tool: AsyncMock,
     username_generator: MagicMock,
 ) -> Context:
-
     return {
         "user_context": {
             "settings": settings,
@@ -157,7 +156,6 @@ def context(
 
 @pytest.fixture
 def get_attribute_types() -> dict:
-
     attr1_mock = MagicMock()
     attr2_mock = MagicMock()
     attr1_mock.single_value = False
@@ -190,7 +188,6 @@ def dataloader(context: Context, get_attribute_types: dict) -> DataLoader:
 
 
 def mock_ldap_response(ldap_attributes: dict, dn: str) -> dict[str, Collection[str]]:
-
     expected_attributes = ldap_attributes.keys()
     inner_dict = ldap_attributes
 
@@ -226,7 +223,6 @@ async def test_load_ldap_cpr_object(
 async def test_load_ldap_objects(
     ldap_connection: MagicMock, dataloader: DataLoader, ldap_attributes: dict
 ) -> None:
-
     dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
     expected_result = [LdapObject(dn=dn, **ldap_attributes)] * 2
     ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)] * 2
@@ -239,7 +235,6 @@ async def test_load_ldap_objects(
 
 
 async def test_load_ldap_OUs(ldap_connection: MagicMock, dataloader: DataLoader):
-
     group_dn1 = "OU=Users,OU=Magenta,DC=ad,DC=addev"
     group_dn2 = "OU=Groups,OU=Magenta,DC=ad,DC=addev"
     ou1 = extract_ou_from_dn(group_dn1)
@@ -280,7 +275,6 @@ async def test_modify_ldap_employee(
     dataloader: DataLoader,
     ldap_attributes: dict,
 ) -> None:
-
     employee = LdapObject(
         dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
         **ldap_attributes,
@@ -348,7 +342,6 @@ async def test_append_data_to_ldap_object(
     ldap_attributes: dict,
     cpr_field: str,
 ):
-
     address = LdapObject(
         dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
         postalAddress="foo",
@@ -372,7 +365,6 @@ async def test_delete_data_from_ldap_object(
     ldap_attributes: dict,
     cpr_field: str,
 ):
-
     address = LdapObject(
         dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
         postalAddress="foo",
@@ -428,7 +420,6 @@ async def test_upload_ldap_object_invalid_value(
 async def test_modify_ldap_object_but_export_equals_false(
     dataloader: DataLoader, converter: MagicMock
 ):
-
     converter._export_to_ldap_.return_value = False
     ldap_object = LdapObject(
         dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
@@ -448,7 +439,6 @@ async def test_modify_ldap_object_but_export_equals_false(
 
 
 async def test_load_mo_employee(dataloader: DataLoader, gql_client: AsyncMock) -> None:
-
     cpr_no = "1407711900"
     uuid = uuid4()
 
@@ -491,7 +481,6 @@ async def test_upload_mo_employee(
 
 
 async def test_make_overview_entry(dataloader: DataLoader):
-
     attributes = ["attr1", "attr2", "unknownattr"]
     superiors = ["sup1", "sup2"]
     entry = dataloader.make_overview_entry(attributes, superiors)
@@ -507,7 +496,6 @@ async def test_make_overview_entry(dataloader: DataLoader):
 
 
 async def test_get_overview(dataloader: DataLoader):
-
     schema_mock = MagicMock()
     schema_mock.object_classes = {"object1": "foo"}
 
@@ -533,7 +521,6 @@ async def test_get_overview(dataloader: DataLoader):
 
 
 async def test_get_populated_overview(dataloader: DataLoader):
-
     overview = {
         "user": {"attributes": ["attr1", "attr2"], "superiors": ["sup1", "sup2"]}
     }
@@ -574,7 +561,6 @@ async def test_get_populated_overview(dataloader: DataLoader):
 async def test_load_mo_address_types(
     dataloader: DataLoader, gql_client: AsyncMock
 ) -> None:
-
     uuid = uuid4()
     name = "Email"
 
@@ -593,7 +579,6 @@ async def test_load_mo_address_types(
 async def test_load_mo_primary_types(
     dataloader: DataLoader, gql_client: AsyncMock
 ) -> None:
-
     uuid = uuid4()
     value_key = "primary"
 
@@ -612,7 +597,6 @@ async def test_load_mo_primary_types(
 async def test_load_mo_job_functions(
     dataloader: DataLoader, gql_client: AsyncMock
 ) -> None:
-
     uuid = uuid4()
     name = "Manager"
 
@@ -631,7 +615,6 @@ async def test_load_mo_job_functions(
 async def test_load_mo_visibility(
     dataloader: DataLoader, gql_client: AsyncMock
 ) -> None:
-
     uuid = uuid4()
     name = "Hemmelig"
 
@@ -650,7 +633,6 @@ async def test_load_mo_visibility(
 async def test_load_mo_engagement_types(
     dataloader: DataLoader, gql_client: AsyncMock
 ) -> None:
-
     uuid = uuid4()
     name = "Ansat"
 
@@ -669,7 +651,6 @@ async def test_load_mo_engagement_types(
 async def test_load_mo_org_unit_types(
     dataloader: DataLoader, gql_client: AsyncMock
 ) -> None:
-
     uuid = uuid4()
     name = "Direktørområde"
 
@@ -688,7 +669,6 @@ async def test_load_mo_org_unit_types(
 async def test_load_mo_org_unit_levels(
     dataloader: DataLoader, gql_client: AsyncMock
 ) -> None:
-
     uuid = uuid4()
     name = "N1"
 
@@ -716,7 +696,6 @@ async def test_load_mo_address_no_valid_addresses(
 
 
 async def test_load_mo_address(dataloader: DataLoader, gql_client: AsyncMock) -> None:
-
     uuid = uuid4()
 
     address_dict: dict = {
@@ -758,7 +737,6 @@ async def test_load_mo_address(dataloader: DataLoader, gql_client: AsyncMock) ->
 
 
 def test_load_ldap_object(dataloader: DataLoader):
-
     make_ldap_object = MagicMock()
     with patch(
         "mo_ldap_import_export.dataloaders.single_object_search",
@@ -793,7 +771,6 @@ def test_cleanup_attributes_in_ldap(dataloader: DataLoader):
         assert dataloader.ldap_connection.modify.called_once_with("foo", changes)
 
     with capture_logs() as cap_logs:
-
         ldap_objects = [LdapObject(dn="foo")]
         dataloader.cleanup_attributes_in_ldap(ldap_objects)
 
@@ -807,7 +784,6 @@ def test_cleanup_attributes_in_ldap(dataloader: DataLoader):
 async def test_load_mo_employee_addresses(
     dataloader: DataLoader, gql_client: AsyncMock
 ):
-
     address1_uuid = uuid4()
     address2_uuid = uuid4()
 
@@ -845,7 +821,6 @@ async def test_load_mo_employee_addresses(
 async def test_load_mo_employee_addresses_not_found(
     dataloader: DataLoader, gql_client: AsyncMock
 ):
-
     gql_client.execute.return_value = {"employees": {"objects": []}}
 
     with pytest.raises(NoObjectsReturnedException):
@@ -903,7 +878,6 @@ async def test_find_mo_employee_uuid(dataloader: DataLoader, gql_client: AsyncMo
 async def test_find_mo_employee_uuid_not_found(
     dataloader: DataLoader, gql_client: AsyncMock
 ):
-
     with patch(
         "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_object",
         return_value=LdapObject(
@@ -923,7 +897,6 @@ async def test_find_mo_employee_uuid_not_found(
 async def test_find_mo_employee_uuid_multiple_matches(
     dataloader: DataLoader, gql_client: AsyncMock
 ):
-
     with patch(
         "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_object",
         return_value=LdapObject(
@@ -1013,7 +986,6 @@ async def test_load_mo_org_units(dataloader: DataLoader, gql_client: AsyncMock):
 async def test_load_mo_org_units_empty_response(
     dataloader: DataLoader, gql_client: AsyncMock
 ):
-
     return_value: dict = {"org_units": {"objects": []}}
 
     gql_client.execute.return_value = return_value
@@ -1025,7 +997,6 @@ async def test_load_mo_org_units_empty_response(
 async def test_load_mo_it_systems_not_found(
     dataloader: DataLoader, gql_client: AsyncMock
 ):
-
     return_value: dict = {"itsystems": {"objects": []}}
     gql_client.execute.return_value = return_value
 
@@ -1123,7 +1094,6 @@ async def test_load_mo_it_user_not_found(dataloader: DataLoader, gql_client: Asy
 
 
 async def test_load_mo_employee_it_users(dataloader: DataLoader, gql_client: AsyncMock):
-
     uuid1 = uuid4()
     uuid2 = uuid4()
     employee_uuid = uuid4()
@@ -1167,7 +1137,6 @@ async def test_load_mo_employee_it_users(dataloader: DataLoader, gql_client: Asy
 async def test_load_mo_employees_in_org_unit(
     dataloader: DataLoader, gql_client: AsyncMock
 ):
-
     employee_uuid1 = uuid4()
     employee_uuid2 = uuid4()
     return_value = {
@@ -1207,7 +1176,6 @@ async def test_load_mo_employees_in_org_unit(
 async def test_load_mo_org_unit_addresses(
     dataloader: DataLoader, gql_client: AsyncMock
 ):
-
     address_uuid1 = uuid4()
     address_uuid2 = uuid4()
     return_value = {
@@ -1247,7 +1215,6 @@ async def test_load_mo_org_unit_addresses(
 async def test_load_mo_employee_engagements(
     dataloader: DataLoader, gql_client: AsyncMock
 ):
-
     uuid1 = uuid4()
     employee_uuid = uuid4()
 
@@ -1276,7 +1243,6 @@ async def test_load_mo_employee_engagements(
 async def test_load_mo_employee_it_users_not_found(
     dataloader: DataLoader, gql_client: AsyncMock
 ):
-
     return_value: dict = {"employees": {"objects": []}}
 
     gql_client.execute.return_value = return_value
@@ -1288,7 +1254,6 @@ async def test_load_mo_employee_it_users_not_found(
 
 
 async def test_is_primary(dataloader: DataLoader, gql_client: AsyncMock):
-
     return_value: dict = {
         "engagements": {"objects": [{"objects": [{"is_primary": True}]}]}
     }
@@ -1321,7 +1286,6 @@ async def test_query_mo(dataloader: DataLoader, gql_client: AsyncMock):
 
 
 async def test_query_mo_all_objects(dataloader: DataLoader, gql_client: AsyncMock):
-
     query = gql(
         """
         query TestQuery {
@@ -1356,7 +1320,6 @@ async def test_query_mo_all_objects(dataloader: DataLoader, gql_client: AsyncMoc
 
 
 async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock):
-
     return_values: list = [
         {"employees": {"objects": [{"objects": [{"uuid": str(uuid4())}]}]}},
         {"org_units": {"objects": [{"objects": [{"uuid": str(uuid4())}]}]}},
@@ -1482,7 +1445,6 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
 async def test_load_all_mo_objects_add_validity(
     dataloader: DataLoader, gql_client: AsyncMock
 ):
-
     query_mo = AsyncMock()
     query_mo.return_value = {}
     dataloader.query_mo = query_mo  # type: ignore
@@ -1501,7 +1463,6 @@ async def test_load_all_mo_objects_add_validity(
 async def test_load_all_mo_objects_current_objects_only(
     dataloader: DataLoader, gql_client: AsyncMock
 ):
-
     query_mo = AsyncMock()
     query_mo.return_value = {}
     dataloader.query_mo = query_mo  # type: ignore
@@ -1522,7 +1483,6 @@ async def test_load_all_mo_objects_current_objects_only(
 async def test_load_all_mo_objects_specify_uuid(
     dataloader: DataLoader, gql_client: AsyncMock
 ):
-
     employee_uuid = str(uuid4())
     return_values: list = [
         {"employees": {"objects": [{"objects": [{"uuid": employee_uuid}]}]}},
@@ -1542,7 +1502,6 @@ async def test_load_all_mo_objects_specify_uuid(
 async def test_load_all_mo_objects_specify_uuid_multiple_results(
     dataloader: DataLoader, gql_client: AsyncMock
 ):
-
     uuid = str(uuid4())
     return_values: list = [
         {"employees": {"objects": [{"objects": [{"uuid": uuid}]}]}},
@@ -1562,7 +1521,6 @@ async def test_load_all_mo_objects_specify_uuid_multiple_results(
 async def test_load_all_mo_objects_invalid_query(
     dataloader: DataLoader, gql_client: AsyncMock
 ):
-
     # Return a single it-user, which belongs neither to an employee nor org-unit
     return_value: dict = {
         "itusers": {
@@ -1586,7 +1544,6 @@ async def test_load_all_mo_objects_invalid_query(
 async def test_load_all_mo_objects_TransportQueryError(
     dataloader: DataLoader, gql_client: AsyncMock
 ):
-
     employee_uuid = str(uuid4())
     org_unit_uuid = str(uuid4())
     return_values = [
@@ -1601,7 +1558,6 @@ async def test_load_all_mo_objects_TransportQueryError(
     dataloader.query_mo_paged.side_effect = return_values
 
     with capture_logs() as cap_logs:
-
         output = await dataloader.load_all_mo_objects()
         warnings = [w for w in cap_logs if w["log_level"] == "warning"]
         assert len(warnings) == 0
@@ -1643,7 +1599,6 @@ async def test_load_all_mo_objects_invalid_object_type_to_try(
 
 
 async def test_shared_attribute(dataloader: DataLoader):
-
     converter = MagicMock()
     converter.mapping = {
         "mo_to_ldap": {
@@ -1687,7 +1642,6 @@ async def test_modify_ldap(
     sync_tool: AsyncMock,
     ldap_connection: MagicMock,
 ):
-
     ldap_connection.result = {"description": "success"}
     dn = "CN=foo"
     changes: dict = {"parameter_to_modify": [("MODIFY_ADD", "value_to_modify")]}
@@ -1794,7 +1748,6 @@ async def test_get_ldap_it_system_uuid(dataloader: DataLoader, converter: MagicM
 async def test_find_or_make_mo_employee_dn(
     dataloader: DataLoader, username_generator: MagicMock
 ):
-
     uuid_1 = uuid4()
     uuid_2 = uuid4()
 
@@ -1864,7 +1817,6 @@ async def test_find_or_make_mo_employee_dn(
 
 
 def test_extract_unique_objectGUIDs(dataloader: DataLoader):
-
     ad_it_user_1 = ITUser.from_simplified_fields(
         str(uuid4()),
         uuid4(),
@@ -1894,7 +1846,6 @@ def test_extract_unique_objectGUIDs(dataloader: DataLoader):
 
 
 def test_extract_unique_dns(dataloader: DataLoader):
-
     dataloader.extract_unique_ldap_uuids = MagicMock()  # type: ignore
     dataloader.extract_unique_ldap_uuids.return_value = [uuid4(), uuid4()]
 
@@ -1944,7 +1895,6 @@ def test_load_ldap_attribute_values(dataloader: DataLoader):
 
 
 async def test_create_mo_class(dataloader: DataLoader):
-
     uuid = uuid4()
     existing_class_uuid = uuid4()
 
@@ -1993,7 +1943,6 @@ async def test_create_mo_class(dataloader: DataLoader):
 
 
 async def test_update_mo_class(dataloader: DataLoader):
-
     uuid = uuid4()
 
     dataloader.query_mo = AsyncMock()  # type: ignore
@@ -2003,7 +1952,6 @@ async def test_update_mo_class(dataloader: DataLoader):
 
 
 async def test_create_mo_job_function(dataloader: DataLoader):
-
     uuid1 = uuid4()
     uuid2 = uuid4()
 
@@ -2030,7 +1978,6 @@ async def test_create_mo_job_function(dataloader: DataLoader):
 
 
 async def test_load_mo_facet_uuid(dataloader: DataLoader):
-
     uuid = uuid4()
     dataloader.query_mo = AsyncMock()  # type: ignore
     dataloader.query_mo.return_value = {
@@ -2041,7 +1988,6 @@ async def test_load_mo_facet_uuid(dataloader: DataLoader):
 
 
 async def test_load_mo_facet_uuid_multiple_facets(dataloader: DataLoader):
-
     dataloader.query_mo = AsyncMock()  # type: ignore
     dataloader.query_mo.return_value = {
         "facets": {
@@ -2161,7 +2107,6 @@ def test_return_mo_employee_uuid_result(dataloader: DataLoader):
 
 
 def test_ou_in_ous_to_write_to(dataloader: DataLoader):
-
     settings_mock = MagicMock()
     settings_mock.ldap_ous_to_write_to = ["OU=foo", "OU=mucki,OU=bar"]
     dataloader.user_context["settings"] = settings_mock
@@ -2181,7 +2126,6 @@ def test_ou_in_ous_to_write_to(dataloader: DataLoader):
 
 
 async def test_load_all_current_it_users(dataloader: DataLoader):
-
     itsystem1_uuid = uuid4()
     itsystem2_uuid = uuid4()
 
@@ -2232,7 +2176,6 @@ async def test_load_all_current_it_users(dataloader: DataLoader):
 
 
 async def test_load_all_it_users(dataloader: DataLoader):
-
     itsystem1_uuid = uuid4()
     itsystem2_uuid = uuid4()
 
@@ -2285,7 +2228,6 @@ async def test_load_all_it_users(dataloader: DataLoader):
 
 
 async def test_query_mo_paged(dataloader: DataLoader):
-
     employee1 = {"uuid": uuid4()}
     employee2 = {"uuid": uuid4()}
     employee3 = {"uuid": uuid4()}
@@ -2328,7 +2270,6 @@ async def test_query_mo_paged(dataloader: DataLoader):
 
 
 def test_extract_latest_object(dataloader: DataLoader):
-
     uuid_obj1 = str(uuid4())
     uuid_obj2 = str(uuid4())
     uuid_obj3 = str(uuid4())
@@ -2339,7 +2280,6 @@ def test_extract_latest_object(dataloader: DataLoader):
         "mo_ldap_import_export.dataloaders.datetime",
         datetime_mock,
     ):
-
         # One of the objects is valid today - return it
         objects = [
             {
@@ -2448,7 +2388,6 @@ def test_extract_latest_object(dataloader: DataLoader):
 
 
 async def test_load_mo_root_org_uuid(dataloader: DataLoader):
-
     root_org_uuid = uuid4()
 
     dataloader.query_mo = AsyncMock()  # type: ignore
@@ -2501,7 +2440,6 @@ def test_create_ou(dataloader: DataLoader):
 
 
 def test_delete_ou(dataloader: DataLoader):
-
     dataloader.load_ldap_OUs = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to.return_value = True
@@ -2542,7 +2480,6 @@ def test_delete_ou(dataloader: DataLoader):
 
 
 def test_move_ldap_object(dataloader: DataLoader):
-
     dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to.return_value = True
     settings_mock = MagicMock()

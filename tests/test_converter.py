@@ -46,7 +46,6 @@ def address_type_uuid() -> str:
 
 @pytest.fixture
 def context(address_type_uuid: str) -> Context:
-
     mapping = {
         "ldap_to_mo": {
             "Employee": {
@@ -265,7 +264,6 @@ async def test_ldap_to_mo_uuid_not_found(converter: LdapConverter) -> None:
 
 
 async def test_ldap_to_mo_dict_error(converter: LdapConverter) -> None:
-
     converter.mapping = converter._populate_mapping_with_templates(
         {
             "ldap_to_mo": {
@@ -293,7 +291,6 @@ async def test_ldap_to_mo_dict_error(converter: LdapConverter) -> None:
 
 
 async def test_ldap_to_mo_dict_validation_error(converter: LdapConverter) -> None:
-
     converter.import_mo_object_class = MagicMock()  # type: ignore
     converter.import_mo_object_class.return_value = JobTitleFromADToMO
 
@@ -414,11 +411,9 @@ async def test_mapping_loader() -> None:
 
 
 async def test_mapping_loader_failure(context: Context) -> None:
-
     good_context = copy.deepcopy(context)
 
     for bad_mapping in ({}, {"ldap_to_mo": {}}, {"mo_to_ldap": {}}):
-
         bad_context = copy.deepcopy(context)
         bad_context["user_context"]["mapping"] = bad_mapping
 
@@ -451,7 +446,6 @@ async def test_mapping_loader_failure(context: Context) -> None:
 
 
 async def test_find_cpr_field(converter: LdapConverter) -> None:
-
     # This mapping is accepted
     good_mapping = {
         "mo_to_ldap": {
@@ -524,7 +518,6 @@ async def test_find_cpr_field_jinja_compile_fail(converter: LdapConverter) -> No
 
 
 async def test_template_lenience(context: Context, converter: LdapConverter) -> None:
-
     mapping = {
         "ldap_to_mo": {
             "Employee": {
@@ -561,7 +554,6 @@ async def test_template_lenience(context: Context, converter: LdapConverter) -> 
 
 
 def test_find_object_class(converter: LdapConverter):
-
     output = converter.find_object_class("Employee", "ldap_to_mo")
     assert output == "ramodels.mo.employee.Employee"
 
@@ -670,7 +662,6 @@ def test_str_to_dict(converter: LdapConverter):
 
 
 def test_get_number_of_entries(converter: LdapConverter):
-
     single_entry_object = LdapObject(dn="foo", value="bar")
     multi_entry_object = LdapObject(dn="foo", value=["bar", "bar2"])
 
@@ -739,7 +730,6 @@ async def test_check_key_validity(converter: LdapConverter):
 
 
 async def test_check_for_objectClass(converter: LdapConverter):
-
     with pytest.raises(ValidationError, match="objectClass\n  field required"):
         parse_obj_as(MO2LDAPMapping, {"foo": {}})
 
@@ -752,7 +742,6 @@ async def test_check_for_objectClass(converter: LdapConverter):
 
 
 async def test_check_for_primary_specialcase():
-
     with pytest.raises(
         ValidationError, match="Missing {'primary'} which are mandatory."
     ):
@@ -771,7 +760,6 @@ async def test_check_for_primary_specialcase():
 
 
 async def test_check_ldap_attributes_single_value_fields(converter: LdapConverter):
-
     dataloader = MagicMock()
     dataloader.load_ldap_overview.return_value = {
         "user": {"attributes": ["attr1", "attr2", "attr3", "attr4"]}
@@ -822,7 +810,6 @@ async def test_check_ldap_attributes_single_value_fields(converter: LdapConverte
         return_value="user",
     ):
         with capture_logs() as cap_logs:
-
             dataloader.single_value = {
                 "attr1": True,
                 "cpr_field": False,
@@ -854,7 +841,6 @@ async def test_check_ldap_attributes_single_value_fields(converter: LdapConverte
             converter.check_ldap_attributes()
 
         with pytest.raises(IncorrectMapping, match="Could not find all attributes"):
-
             mapping = {
                 "mo_to_ldap": {
                     "Engagement": {
@@ -946,7 +932,6 @@ async def test_check_ldap_attributes_engagement_requires_single_value_fields(
 
 
 async def test_check_ldap_attributes_fields_to_check(converter: LdapConverter):
-
     dataloader = MagicMock()
     dataloader.load_ldap_overview.return_value = {
         "user": {"attributes": ["attr1", "attr2", "attr3", "attr4"]}
@@ -962,7 +947,6 @@ async def test_check_ldap_attributes_fields_to_check(converter: LdapConverter):
         "mo_ldap_import_export.converters.LdapConverter.find_ldap_object_class",
         return_value="user",
     ):
-
         dataloader.single_value = {
             "attr1": True,
             "cpr_field": True,
@@ -1026,7 +1010,6 @@ async def test_check_ldap_attributes_fields_to_check(converter: LdapConverter):
 
 
 async def test_check_dar_scope(converter: LdapConverter):
-
     uuid1 = str(uuid4())
     uuid2 = str(uuid4())
     employee_address_type_info = {
@@ -1053,7 +1036,6 @@ async def test_check_dar_scope(converter: LdapConverter):
 
 
 async def test_get_address_type_uuid(converter: LdapConverter):
-
     uuid1 = str(uuid4())
     uuid2 = str(uuid4())
 
@@ -1273,7 +1255,6 @@ async def test_get_job_function_name(converter: LdapConverter):
 
 
 async def test_check_ldap_to_mo_references(converter: LdapConverter):
-
     converter.raw_mapping = {
         "ldap_to_mo": {
             "Employee": {"active": True, "name": "{{ ldap.nonExistingAttribute}}"}
@@ -1295,7 +1276,6 @@ async def test_check_ldap_to_mo_references(converter: LdapConverter):
 
 
 def test_get_object_uuid_from_user_key(converter: LdapConverter):
-
     uuid = str(uuid4())
     name = "Skt. Joseph Skole"
     info_dict = {uuid: {"uuid": uuid, "user_key": name}}
@@ -1359,7 +1339,6 @@ async def test_create_org_unit(converter: LdapConverter):
 
 
 async def test_get_or_create_org_unit_uuid(converter: LdapConverter):
-
     root_org_uuid = str(uuid4)
     converter.dataloader.load_mo_root_org_uuid.return_value = root_org_uuid  # type: ignore
 
@@ -1399,7 +1378,6 @@ def test_clean_org_unit_path_string(converter: LdapConverter):
 
 
 def test_check_info_dict_for_duplicates(converter: LdapConverter):
-
     info_dict_with_duplicates = {
         uuid4(): {"user_key": "foo"},
         uuid4(): {"user_key": "foo"},
@@ -1410,7 +1388,6 @@ def test_check_info_dict_for_duplicates(converter: LdapConverter):
 
 
 def test_check_org_unit_info_dict(converter: LdapConverter):
-
     # This name is invalid because it contains backslashes;
     # Because the org unit path separator is also a backslash.
     converter.org_unit_info = {uuid4(): {"name": "invalid\\name"}}
@@ -1534,7 +1511,6 @@ def test_check_get_uuid_functions(converter: LdapConverter):
 
 
 def test_import_to_mo_and_export_to_ldap_(converter: LdapConverter):
-
     converter.raw_mapping = {
         "mo_to_ldap": {
             "Employee": {"_export_to_ldap_": "True"},
@@ -1659,7 +1635,6 @@ async def test_find_ldap_it_system():
 
 
 async def test_check_cpr_field_or_it_system(converter: LdapConverter):
-
     with patch(
         "mo_ldap_import_export.converters.find_cpr_field",
         return_value=None,
@@ -1675,7 +1650,6 @@ async def test_check_cpr_field_or_it_system(converter: LdapConverter):
 
 
 def test_check_info_dicts(converter: LdapConverter):
-
     uuid = str(uuid4())
     converter.all_info_dicts = {
         "my_info_dict": {uuid: {"uuid": uuid, "user_key": "foo"}}
@@ -1700,7 +1674,6 @@ def test_check_info_dicts(converter: LdapConverter):
 
 
 async def test_get_current_engagement_attribute(converter: LdapConverter):
-
     engagement1 = {
         "uuid": str(uuid4()),
         "user_key": "foo",
@@ -1802,7 +1775,6 @@ async def test_get_current_primary_uuid(converter: LdapConverter):
 def test_clean_calls_to_get_current_method_from_template_string(
     converter: LdapConverter,
 ):
-
     template = "{{ ldap.foo or get_current_org_unit_uuid(ldap.bar) or None"
 
     cleaned_template = converter.clean_get_current_method_from_template_string(template)
@@ -1886,7 +1858,6 @@ def test_make_dn_from_org_unit_path(converter: LdapConverter):
 async def test_get_object_item_from_uuid(
     converter: LdapConverter, address_type_uuid: str
 ):
-
     # 'address_type_uuid' is loaded when converter.load_info_dicts() is called
     # Let's remove the employee_address_type_info dict to provoke a keyError
     converter.employee_address_type_info = {}
@@ -1942,7 +1913,6 @@ async def test_remove_first_org(converter: LdapConverter) -> None:
 
 
 async def test_get_primary_engagement_dict(converter: LdapConverter):
-
     engagement1 = {
         "uuid": str(uuid4()),
         "user_key": "foo",
@@ -2035,7 +2005,6 @@ async def test_get_primary_engagement_dict(converter: LdapConverter):
 
 
 async def test_get_employee_dict(converter: LdapConverter) -> None:
-
     cpr_no = "1407711900"
     uuid = uuid4()
     mo_employee = Employee(**{"cpr_no": cpr_no, "uuid": uuid})

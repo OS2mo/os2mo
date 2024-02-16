@@ -449,7 +449,6 @@ class LdapConverter:
                     )
 
     def check_ldap_to_mo_references(self):
-
         # https://ff1959.wordpress.com/2012/03/04/characters-that-are-permitted-in-
         # attribute-names-descriptors/
         # The only characters that are permitted in attribute names are ALPHA, DIGIT,
@@ -475,7 +474,6 @@ class LdapConverter:
                         self.check_attributes([ldap_attribute], accepted_attributes)
 
     def check_get_uuid_functions(self):
-
         # List of all 'get_uuid' functions. For example "get_it_system_uuid("
         get_uuid_function_strings = [
             f + "("
@@ -495,11 +493,9 @@ class LdapConverter:
             for mo_attribute, template in self.raw_mapping["ldap_to_mo"][
                 json_key
             ].items():
-
                 if not isinstance(template, str):
                     continue
                 for get_uuid_function_string in get_uuid_function_strings:
-
                     # If we are using a 'get_uuid' function in this template:
                     if get_uuid_function_string in template:
                         argument = template.split(get_uuid_function_string)[1].split(
@@ -1028,7 +1024,6 @@ class LdapConverter:
         return org_unit_path_string
 
     async def get_or_create_org_unit_uuid(self, org_unit_path_string: str):
-
         logger.info(
             "[Get-or-create-org-unit-uuid] Finding org-unit uuid.",
             org_unit_path_string=org_unit_path_string,
@@ -1191,7 +1186,6 @@ class LdapConverter:
 
         converted_objects = []
         for entry in range(number_of_entries):
-
             ldap_dict: CaseInsensitiveDict = CaseInsensitiveDict(
                 {
                     key: (

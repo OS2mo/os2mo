@@ -101,7 +101,6 @@ class IgnoreMe:
 
 class SyncTool:
     def __init__(self, context: Context):
-
         # UUIDs in this list will be ignored by listen_to_changes ONCE
         self.uuids_to_ignore = IgnoreMe()
         self.dns_to_ignore = IgnoreMe()
@@ -645,7 +644,6 @@ class SyncTool:
             )
 
             for affected_employee in affected_employees:
-
                 try:
                     await self.process_employee_address(
                         affected_employee,

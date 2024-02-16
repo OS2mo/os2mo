@@ -36,7 +36,6 @@ def dataloader() -> AsyncMock:
 
 @pytest.fixture()
 def context(mapping: dict, dataloader: AsyncMock) -> dict:
-
     user_context = {"mapping": mapping, "dataloader": dataloader}
     return {"user_context": user_context}
 

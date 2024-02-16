@@ -698,7 +698,6 @@ class DataLoader:
         return results
 
     def make_overview_entry(self, attributes, superiors, example_value_dict=None):
-
         attribute_dict = {}
         for attribute in attributes:
             # skip unmapped types

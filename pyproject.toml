@@ -28,7 +28,6 @@ httpx = "^0.26.0"
 pycryptodome = "^3.20.0"
 
 [tool.poetry.group.pre-commit.dependencies]
-black = "^24.1.1"
 mypy = "^1.8.0"
 types-tqdm = "^4.66.0.20240106"
 types-ldap3 = "^2.9.13.20240119"

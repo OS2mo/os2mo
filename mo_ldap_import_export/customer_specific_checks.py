@@ -56,7 +56,6 @@ class ExportChecks:
                 raise IgnoreChanges(error_message)
 
     async def check_it_user(self, employee_uuid: UUID, it_system_user_key: str):
-
         if not it_system_user_key:
             return
 

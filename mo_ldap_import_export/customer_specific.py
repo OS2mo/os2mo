@@ -46,7 +46,7 @@ class JobTitleFromADToMO(CustomerSpecific):
         user_uuid: UUID,
         job_function_uuid: UUID | None,
         job_function_fallback_uuid: UUID,
-        **kwargs
+        **kwargs,
     ) -> "JobTitleFromADToMO":
         """Create an jobtitlefromadtomo from simplified fields."""
         user = PersonRef(uuid=user_uuid)
@@ -56,7 +56,7 @@ class JobTitleFromADToMO(CustomerSpecific):
             user=user,
             job_function=job_function,
             job_function_fallback=job_function_fallback,
-            **kwargs
+            **kwargs,
         )
 
     async def sync_to_mo(self, context: Context):

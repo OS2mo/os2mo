@@ -124,7 +124,6 @@ def test_mo_objects() -> list:
 def dataloader(
     sync_dataloader: MagicMock, test_mo_address: Address, test_mo_objects: list
 ) -> AsyncMock:
-
     test_ldap_object = LdapObject(
         name="Tester", Department="QA", dn="someDN", EmployeeID="0101012002"
     )
@@ -168,7 +167,6 @@ def dataloader(
 
 @pytest.fixture
 def sync_dataloader() -> MagicMock:
-
     dataloader = MagicMock()
     return dataloader
 

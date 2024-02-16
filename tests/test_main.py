@@ -180,7 +180,6 @@ def test_mo_objects() -> list:
 def dataloader(
     sync_dataloader: MagicMock, test_mo_address: Address, test_mo_objects: list
 ) -> AsyncMock:
-
     test_ldap_object = LdapObject(
         name="Tester", Department="QA", dn="someDN", EmployeeID="0101012002"
     )
@@ -219,7 +218,6 @@ def dataloader(
 
 @pytest.fixture(scope="module")
 def sync_dataloader() -> MagicMock:
-
     dataloader = MagicMock()
     return dataloader
 
@@ -280,15 +278,11 @@ def patch_modules(
     ), patch(
         "mo_ldap_import_export.main.construct_gql_client",
         return_value=gql_client,
-    ), patch(
-        "mo_ldap_import_export.main.DataLoader", return_value=dataloader
-    ), patch(
+    ), patch("mo_ldap_import_export.main.DataLoader", return_value=dataloader), patch(
         "mo_ldap_import_export.main.get_attribute_types", return_value={"foo": {}}
     ), patch(
         "mo_ldap_import_export.main.AMQPSystem", return_value=internal_amqpsystem
-    ), patch(
-        "mo_ldap_import_export.main.asyncio.get_event_loop", return_value=None
-    ):
+    ), patch("mo_ldap_import_export.main.asyncio.get_event_loop", return_value=None):
         yield
 
 
@@ -363,7 +357,6 @@ async def test_initialize_checks(fastramqpi: FastRAMQPI) -> None:
 async def test_initialize_converter(
     fastramqpi: FastRAMQPI, converter: MagicMock
 ) -> None:
-
     user_context = fastramqpi.get_context()["user_context"]
     assert user_context.get("converter") is None
     assert user_context.get("ldap_it_system_user_key") is None
@@ -548,7 +541,6 @@ def test_ldap_get_objectGUID_endpoint(test_client: TestClient) -> None:
 
 
 async def test_listen_to_changes(dataloader: AsyncMock, sync_tool: AsyncMock):
-
     settings = MagicMock()
     settings.listen_to_changes_in_mo = True
 
@@ -706,7 +698,6 @@ async def test_import_all_objects_from_LDAP_invalid_cpr(
 
 
 async def test_incorrect_ous_to_search_in() -> None:
-
     mp = pytest.MonkeyPatch()
     overrides = {
         "LDAP_OUS_TO_SEARCH_IN": '["OU=bar"]',
@@ -727,7 +718,6 @@ async def test_incorrect_ous_to_search_in() -> None:
 
 
 async def test_load_faulty_username_generator() -> None:
-
     usernames_mock = MagicMock()
 
     with patch("mo_ldap_import_export.main.usernames", usernames_mock):
@@ -747,7 +737,6 @@ async def test_export_endpoint(
     internal_amqpsystem: MagicMock,
     test_mo_objects: list,
 ):
-
     params: dict = {
         "publish_amqp_messages": True,
         "uuid": str(uuid4()),
@@ -810,7 +799,6 @@ async def test_reject_on_failure():
 
 
 async def test_get_delete_flag(dataloader: AsyncMock):
-
     # When there are matching objects in MO, but the to-date is today, delete
     mo_object = {"validity": {"to": datetime.datetime.today().strftime("%Y-%m-%d")}}
 
@@ -876,7 +864,6 @@ def test_get_duplicate_cpr_numbers_from_LDAP_endpoint_no_cpr_field(
 def test_get_duplicate_cpr_numbers_from_LDAP_endpoint(
     test_client: TestClient,
 ):
-
     searchResponse = [
         {"dn": "foo", "attributes": {"EmployeeID": "12"}},
         {"dn": "mucki", "attributes": {"EmployeeID": "123"}},
@@ -884,7 +871,6 @@ def test_get_duplicate_cpr_numbers_from_LDAP_endpoint(
     ]
 
     with patch("mo_ldap_import_export.main.paged_search", return_value=searchResponse):
-
         response = test_client.get("/Inspect/duplicate_cpr_numbers")
         assert response.status_code == 202
         result = response.json()
@@ -894,7 +880,6 @@ def test_get_duplicate_cpr_numbers_from_LDAP_endpoint(
 
 
 def test_construct_gql_client():
-
     fastramqpi_settings = MagicMock(mo_url="mo-url")
     settings = MagicMock(fastramqpi=fastramqpi_settings)
 
