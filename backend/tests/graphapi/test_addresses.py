@@ -561,9 +561,7 @@ async def test_create_integration(data, graphapi_post: GraphAPIPost):
     """
 
     with util.darmock("dawa-addresses.json", real_http=True), dar_loader():
-        response = await execute_graphql(
-            query=mutate_query, variable_values={"input": payload}
-        )
+        response = graphapi_post(query=mutate_query, variables={"input": payload})
 
     assert response.errors is None
     test_data_uuid_new = UUID(response.data["address_create"]["uuid"])
