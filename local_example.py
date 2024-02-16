@@ -37,16 +37,16 @@ def clean_dict(d):
         if value is None:
             # Remove empty values
             continue
-        elif type(value) is dict:
+        elif isinstance(value, dict):
             # Cleanup nested entries
             if "cpr" in value.keys():
                 output_dict[key] = reduce_dict(value)
             else:
                 output_dict[key] = value
-        elif type(value) is list:
+        elif isinstance(value, list):
             cleaned_list = []
             for list_entry in value:
-                if type(list_entry) is dict:
+                if isinstance(list_entry, dict):
                     if "cpr" in list_entry.keys():
                         list_entry = reduce_dict(list_entry)
                 cleaned_list.append(list_entry)
@@ -58,7 +58,7 @@ def clean_dict(d):
 
 
 def pretty_print(list_or_dict):
-    if type(list_or_dict) is not list:
+    if not isinstance(list_or_dict, list):
         list_or_dict = [list_or_dict]
 
     for d in list_or_dict:

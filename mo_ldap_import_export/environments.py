@@ -39,7 +39,7 @@ def filter_mo_datestring(datetime_object):
 
 
 def filter_strip_non_digits(input_string):
-    if type(input_string) is not str:
+    if not isinstance(input_string, str):
         return None
     return "".join(c for c in input_string if c in string.digits)
 

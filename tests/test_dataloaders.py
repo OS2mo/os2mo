@@ -2110,7 +2110,7 @@ async def test_load_mo_employee_engagement_dicts(dataloader: DataLoader):
     dataloader.query_mo.side_effect = NoObjectsReturnedException("f")
     result = await dataloader.load_mo_employee_engagement_dicts(uuid4(), "foo")
 
-    assert type(result) is list
+    assert isinstance(result, list)
     assert len(result) == 0
 
 

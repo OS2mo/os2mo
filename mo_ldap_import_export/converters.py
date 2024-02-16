@@ -187,7 +187,7 @@ class LdapConverter:
         self.all_info_dicts = {
             f: getattr(self, f)
             for f in dir(self)
-            if f.endswith("_info") and type(getattr(self, f)) is dict
+            if f.endswith("_info") and isinstance(getattr(self, f), dict)
         }
 
         self.check_info_dicts()
@@ -465,7 +465,7 @@ class LdapConverter:
                 list(self.overview[object_class]["attributes"].keys()) + ["dn"]
             )
             for value in raw_mapping[json_key].values():
-                if type(value) is not str:
+                if not isinstance(value, str):
                     continue
                 if "ldap." in value:
                     ldap_refs = value.split("ldap.")[1:]
@@ -496,7 +496,7 @@ class LdapConverter:
                 json_key
             ].items():
 
-                if type(template) is not str:
+                if not isinstance(template, str):
                     continue
                 for get_uuid_function_string in get_uuid_function_strings:
 
@@ -1160,8 +1160,8 @@ class LdapConverter:
         if that is the case.
         """
         n = []
-        for key, value in ldap_object.dict().items():
-            if type(value) is list:
+        for value in ldap_object.dict().values():
+            if isinstance(value, list):
                 n.append(len(value))
             else:
                 n.append(1)

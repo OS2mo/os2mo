@@ -345,7 +345,7 @@ class DataLoader:
             raise InvalidChangeDict("Exactly one change can be submitted at a time")
 
         ldap_command, value_to_modify = list_of_changes[0]
-        if type(value_to_modify) is list:
+        if isinstance(value_to_modify, list):
             if len(value_to_modify) == 1:
                 value_to_modify = value_to_modify[0]
             elif len(value_to_modify) == 0:

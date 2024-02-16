@@ -47,7 +47,7 @@ class IgnoreMe:
         return len(self.ignore_dict)
 
     def format_entry(self, entry: str | UUID) -> str:
-        if type(entry) is not str:
+        if not isinstance(entry, str):
             entry = str(entry)
         return entry.lower()
 

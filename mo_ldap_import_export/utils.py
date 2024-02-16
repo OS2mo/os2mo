@@ -37,7 +37,7 @@ def _delete_keys_from_dict(dict_del, lst_keys):
     for field in list(dict_del.keys()):
         if field in lst_keys:
             del dict_del[field]
-        elif type(dict_del[field]) is dict:
+        elif isinstance(dict_del[field], dict):
             _delete_keys_from_dict(dict_del[field], lst_keys)
     return dict_del
 
