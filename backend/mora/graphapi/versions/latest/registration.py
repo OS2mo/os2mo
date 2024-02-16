@@ -251,7 +251,7 @@ async def registration_resolver(
         )
 
     # Query all requested registation tables using a big union query
-    union_query = union(*map(generate_query, tables))
+    union_query = union(*map(generate_query, tables)).subquery()
     # Select using a subquery so we can filter and order the unioned result
     # Note: I have no idea why mypy dislikes this.
     query = select("*").select_from(union_query).distinct()  # type: ignore
