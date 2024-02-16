@@ -818,6 +818,10 @@ class LdapConverter:
             return None
         return primary_dict
 
+    async def get_employee_dict(self, employee_uuid: UUID) -> dict:
+        mo_employee = await self.dataloader.load_mo_employee(employee_uuid)
+        return mo_employee.dict()
+
     async def get_primary_engagement_dict(self, employee_uuid: UUID) -> dict:
         engagements = await self.dataloader.load_mo_employee_engagement_dicts(
             employee_uuid
@@ -1096,6 +1100,7 @@ class LdapConverter:
             ),
             "get_current_primary_uuid_dict": self.get_current_primary_uuid_dict,
             "get_primary_engagement_dict": self.get_primary_engagement_dict,
+            "get_employee_dict": self.get_employee_dict,
         }
         for key, value in mapping.items():
             if isinstance(value, str):

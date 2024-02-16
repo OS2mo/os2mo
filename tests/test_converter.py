@@ -2032,3 +2032,31 @@ async def test_get_primary_engagement_dict(converter: LdapConverter):
         dataloader.is_primary.side_effect = []
         await converter.get_primary_engagement_dict(employee_uuid)
     assert "too few items in iterable (expected 1)" in str(exc_info.value)
+
+
+async def test_get_employee_dict(converter: LdapConverter) -> None:
+
+    cpr_no = "1407711900"
+    uuid = uuid4()
+    mo_employee = Employee(**{"cpr_no": cpr_no, "uuid": uuid})
+
+    dataloader = AsyncMock()
+    converter.dataloader = dataloader
+    dataloader.load_mo_employee.return_value = mo_employee
+
+    result = await converter.get_employee_dict(uuid)
+    assert result == {
+        "details": None,
+        "givenname": None,
+        "name": None,
+        "nickname": None,
+        "nickname_givenname": None,
+        "nickname_surname": None,
+        "org": None,
+        "seniority": None,
+        "surname": None,
+        "type_": "employee",
+        "user_key": str(uuid),
+        "uuid": uuid,
+        "cpr_no": cpr_no,
+    }
