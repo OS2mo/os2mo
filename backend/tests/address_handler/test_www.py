@@ -105,5 +105,5 @@ async def test_validation_succeeds_with_force():
     value = "GARBAGEGARBAGE"  # Not a valid URL
 
     # Act & Assert
-    with util.patch_query_args({"force": "1"}):
+    async with util.patch_query_args({"force": "1"}):
         await WWWAddressHandler.validate_value(value)

@@ -100,5 +100,5 @@ async def test_validation_succeeds_with_force():
     value = "GARBAGEGARBAGE"  # Not a valid email address
 
     # Act & Assert
-    with util.patch_query_args({"force": "1"}):
+    async with util.patch_query_args({"force": "1"}):
         await EmailAddressHandler.validate_value(value)

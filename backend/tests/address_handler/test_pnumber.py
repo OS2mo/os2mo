@@ -107,5 +107,5 @@ async def test_validation_succeeds_with_force():
     value = "GARBAGEGARBAGE"  # Not a valid P-number
 
     # Act & Assert
-    with util.patch_query_args({"force": "1"}):
+    async with util.patch_query_args({"force": "1"}):
         await PNumberAddressHandler.validate_value(value)
