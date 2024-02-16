@@ -170,11 +170,11 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             instrumentator.expose(app)
 
         await triggers.register(app)
-
         if settings.amqp_enable:
-            await app.state.amqp_system.start()
-
-        yield
+            async with app.state.amqp_system:
+                yield
+        else:
+            yield
 
     lora_settings = lora_get_settings()
     sessionmaker = create_sessionmaker(
