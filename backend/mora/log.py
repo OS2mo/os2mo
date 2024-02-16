@@ -110,7 +110,7 @@ def init(log_level: str, json: bool = True):
     # Use OUR `ProcessorFormatter` to format all `logging` entries.
     handler.setFormatter(formatter)
     root_logger = logging.getLogger()
-    root_logger.addHandler(handler)
+    root_logger.handlers = [handler]
     root_logger.setLevel(log_level.upper())
 
     for _log in ("uvicorn", "uvicorn.error"):
