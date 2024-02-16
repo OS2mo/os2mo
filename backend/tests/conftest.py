@@ -786,14 +786,9 @@ def get_keycloak_token() -> str:
     return r.json()["access_token"]
 
 
-@pytest.fixture(scope="session")
-def token():
-    return get_keycloak_token()
-
-
-@pytest.fixture(scope="session")
-def auth_headers(token: str):
-    return {"Authorization": f"Bearer {token}"}
+@pytest.fixture
+def auth_headers():
+    return {"Authorization": f"Bearer {get_keycloak_token()}"}
 
 
 @pytest.fixture
