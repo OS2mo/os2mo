@@ -108,7 +108,6 @@ lora_class_multiple_attrs_and_states = {
 }
 
 
-@pytest.mark.skip(reason="We need a LoRa dataset for these to make sense")  # TODO
 class TestDataloaders:
     """Class collecting dataloader tests."""
 

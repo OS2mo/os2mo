@@ -87,10 +87,6 @@ async def test_database_snapshot(
     assert read_employee_surname(graphapi_post, employee_uuid) == "foo"
 
 
-# NOTE: Read "backend/tests/graphapi/test_registration.py:11",
-# for reasoning behind "@pytest.mark.xfail"
-
-
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_amqp_emit(

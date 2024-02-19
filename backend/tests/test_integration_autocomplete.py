@@ -15,10 +15,6 @@ from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 
 
-# NOTE: Read "backend/tests/graphapi/test_registration.py:11",
-# for reasoning behind "@pytest.mark.xfail"
-
-
 @pytest.fixture
 def mock_get_settings(monkeypatch: MonkeyPatch):
     def mock():
@@ -57,7 +53,6 @@ def mock_get_settings_custom_attrs(monkeypatch: MonkeyPatch):
     monkeypatch.setattr("mora.service.orgunit.config.get_settings", mock)
 
 
-@pytest.mark.xfail
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
@@ -101,7 +96,6 @@ def test_v2_search_employee_by_uuid(mock_get_settings, service_client: TestClien
     }
 
 
-@pytest.mark.xfail
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
@@ -172,7 +166,6 @@ def test_v2_search_employee_by_name(mock_get_settings, service_client: TestClien
     }
 
 
-@pytest.mark.xfail
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
@@ -243,7 +236,6 @@ def test_v2_search_employee_by_email(mock_get_settings, service_client: TestClie
     }
 
 
-@pytest.mark.xfail
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
@@ -287,7 +279,6 @@ def test_v2_search_employee_by_itsystem(mock_get_settings, service_client: TestC
     }
 
 
-@pytest.mark.xfail
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
@@ -328,7 +319,6 @@ def test_v2_search_orgunit_by_uuid(mock_get_settings, service_client: TestClient
     }
 
 
-@pytest.mark.xfail
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
@@ -375,7 +365,6 @@ def test_v2_search_orgunit_by_name(mock_get_settings, service_client: TestClient
     }
 
 
-@pytest.mark.xfail
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
@@ -407,7 +396,6 @@ def test_v2_search_orgunit_by_name_with_custom_fields(
     }
 
 
-@pytest.mark.xfail
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
@@ -439,7 +427,6 @@ def test_v2_search_orgunit_by_addr_afdelingskode(
     }
 
 
-@pytest.mark.xfail
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
@@ -502,12 +489,7 @@ def test_v2_search_orgunit_by_addr_afdelingskode_addr_rename(
 def test_v2_only_gql_decorate_orgunits(
     mock_search_orgunits, mock_get_settings_custom_attrs, service_client: TestClient
 ):
-    """Verifies that GraphQL part of the autocomplete works as intended
-
-    This test exists due to the integration tests above, is marked with 'xfail',
-    which causes the tests to be skipped. They are skipped since the way we
-    run and reset our test-db, makes the new SQLAlchemy models fail when
-    performing database transactions"""
+    """Verifies that GraphQL part of the autocomplete works as intended."""
 
     mock_search_orgunits.return_value = [
         uuid.UUID("f494ad89-039d-478e-91f2-a63566554666")
@@ -546,13 +528,7 @@ def test_v2_only_gql_decorate_orgunits(
 def test_v2_only_gql_decorate_employees(
     mock_search_employees, mock_get_settings_custom_attrs, service_client: TestClient
 ):
-    """Verifies that GraphQL part of the autocomplete works as intended
-
-    This test exists due to the integration tests above, is marked with 'xfail',
-    which causes the tests to be skipped. They are skipped since the way we
-    run and reset our test-db, makes the new SQLAlchemy models fail when
-    performing database transactions"""
-
+    """Verifies that GraphQL part of the autocomplete works as intended."""
     mock_search_employees.return_value = [
         uuid.UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a")
     ]

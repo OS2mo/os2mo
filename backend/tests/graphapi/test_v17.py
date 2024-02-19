@@ -13,7 +13,6 @@ from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 
 
-@pytest.mark.xfail
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("testing_db")
 async def test_query_auditlog(
