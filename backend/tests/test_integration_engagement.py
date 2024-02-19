@@ -1173,13 +1173,13 @@ async def test_edit_extension_attr_58263(service_client: TestClient) -> None:
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_mutator_edit_extension_attr_58263(
-    service_client: TestClient, graphapi_post: GraphAPIPost
+    admin_client: TestClient, graphapi_post: GraphAPIPost
 ) -> None:
     person_uuid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
     new_ext2 = "Teknisk servicemedarbejder"
     from_date = "2024-01-01"
     # Edit extension 2
-    read_r = service_client.request(
+    read_r = admin_client.request(
         "GET",
         f"/service/e/{person_uuid}/details/engagement",
     ).json()
@@ -1194,7 +1194,7 @@ async def test_mutator_edit_extension_attr_58263(
         "type": "engagement",
         "uuid": engagement_uuid,
     }
-    r = service_client.request("POST", "/service/details/edit", json=edit_payload)
+    r = admin_client.request("POST", "/service/details/edit", json=edit_payload)
     assert r.status_code == 200
 
     # Edit extension_3 using the same mutator as job_function configurator. Then check that extension_2 is not changed
@@ -1226,7 +1226,7 @@ async def test_mutator_edit_extension_attr_58263(
     assert response.data["engagement_update"]["current"]["extension_2"] == new_ext2
     assert response.data["engagement_update"]["current"]["extension_3"] == "extension_3"
     assert (
-        service_client.request(
+        admin_client.request(
             "GET",
             f"/service/e/{person_uuid}/details/engagement",
         ).json()[0]["extension_2"]
@@ -1237,14 +1237,14 @@ async def test_mutator_edit_extension_attr_58263(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_mutator_edit_user_key_58263(
-    service_client: TestClient, graphapi_post: GraphAPIPost
+    admin_client: TestClient, graphapi_post: GraphAPIPost
 ) -> None:
     person_uuid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
     user_key = "Der er ugler i mosen"
     from_date = "2024-01-01"
 
     # Edit extension 2
-    read_r = service_client.request(
+    read_r = admin_client.request(
         "GET",
         f"/service/e/{person_uuid}/details/engagement",
     ).json()
@@ -1259,7 +1259,7 @@ async def test_mutator_edit_user_key_58263(
         "type": "engagement",
         "uuid": engagement_uuid,
     }
-    r = service_client.request("POST", "/service/details/edit", json=edit_payload)
+    r = admin_client.request("POST", "/service/details/edit", json=edit_payload)
     assert r.status_code == 200
 
     # Irrelevant edit. Need to test that this doesn't overwrite our new user_key.
@@ -1291,7 +1291,7 @@ async def test_mutator_edit_user_key_58263(
     assert response.data["engagement_update"]["current"]["user_key"] == user_key
     assert response.data["engagement_update"]["current"]["extension_3"] == "extension_3"
     assert (
-        service_client.request(
+        admin_client.request(
             "GET",
             f"/service/e/{person_uuid}/details/engagement",
         ).json()[0]["user_key"]
