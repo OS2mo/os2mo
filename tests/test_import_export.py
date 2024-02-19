@@ -143,7 +143,7 @@ async def test_listen_to_change_in_org_unit_address(
 
             # Validate that listen_to_changes_in_org_units had to wait for
             # employee_in_progress to finish
-            assert "being modified" in str(messages)
+            assert "[Wait-for-export-to-finish]" in str(messages)
 
     # Assert that an address was uploaded to two ldap objects
     # (even though load_mo_employees_in_org_unit returned three employee objects)
@@ -361,8 +361,8 @@ async def test_listen_to_changes_in_employees(
 
         assert re.match(f".*Ignoring .*{payload.object_uuid}", str(entries))
 
-        assert "Removing entry from ignore-dict" in entries[1]["event"]
-        assert entries[1]["str_to_ignore"] == str(old_uuid)
+        assert "Removing entry from ignore-dict" in entries[2]["event"]
+        assert entries[2]["str_to_ignore"] == str(old_uuid)
 
         assert len(uuids_to_ignore) == 2  # Note that the old_uuid is removed by clean()
         assert len(uuids_to_ignore[old_uuid]) == 0
@@ -1098,9 +1098,7 @@ async def test_remove_from_ignoreMe():
 
 
 async def test_wait_for_export_to_finish(sync_tool: SyncTool):
-    wait_for_export_to_finish = partial(
-        sync_tool.wait_for_export_to_finish, sleep_time=0.1
-    )
+    wait_for_export_to_finish = partial(sync_tool.wait_for_export_to_finish)
 
     @wait_for_export_to_finish
     async def decorated_func(self, payload):
@@ -1163,9 +1161,7 @@ def test_cleanup_needed(sync_tool: SyncTool):
 
 
 async def test_wait_for_import_to_finish(sync_tool: SyncTool):
-    wait_for_import_to_finish = partial(
-        sync_tool.wait_for_import_to_finish, sleep_time=0.1
-    )
+    wait_for_import_to_finish = partial(sync_tool.wait_for_import_to_finish)
 
     @wait_for_import_to_finish
     async def decorated_func(self, dn):
@@ -1356,16 +1352,27 @@ async def test_import_jobtitlefromadtomo_objects(
         assert eng_uuid in sync_tool.uuids_to_ignore.ignore_dict
 
 
-def test_extract_uuid(sync_tool: SyncTool):
+async def test_extract_uuid() -> None:
     uuid = uuid4()
     obj1 = uuid
     obj2 = Employee(uuid=uuid)
 
-    assert sync_tool.extract_uuid(obj1) == uuid
-    assert sync_tool.extract_uuid(obj2) == uuid
+    self = object()
+
+    @SyncTool.wait_for_export_to_finish
+    async def dummy(*args, **kwargs):
+        pass
+
+    with capture_logs() as cap_logs:
+        await dummy(self, obj1)
+        assert str(uuid) in str(cap_logs)
+
+    with capture_logs() as cap_logs:
+        await dummy(self, obj2)
+        assert str(uuid) in str(cap_logs)
 
     with pytest.raises(TypeError):
-        sync_tool.extract_uuid("foo")
+        await dummy(self, "foo")
 
 
 def test_move_ldap_object(sync_tool: SyncTool, dataloader: AsyncMock):
