@@ -60,11 +60,9 @@ class UserNameGeneratorBase:
         return output
 
     def _make_cn(self, username_string: str):
-
         return f"CN={username_string}"
 
     def _make_dn(self, username_string: str) -> str:
-
         cn = self._make_cn(username_string)
         dn = combine_dn_strings(
             [

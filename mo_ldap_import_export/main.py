@@ -379,7 +379,8 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     fastramqpi.add_context(ldap_connection=ldap_connection)
     fastramqpi.add_healthcheck(name="LDAPConnection", healthcheck=ldap_healthcheck)
     fastramqpi.add_lifespan_manager(
-        open_ldap_connection(ldap_connection), 1500  # type: ignore
+        open_ldap_connection(ldap_connection),  # type: ignore
+        1500,
     )
 
     logger.info("Loading mapping file")
@@ -409,7 +410,8 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
 
     logger.info("Initializing internal AMQP system")
     internal_amqpsystem = AMQPSystem(
-        settings=settings.internal_amqp, router=internal_amqp_router  # type: ignore
+        settings=settings.internal_amqp,
+        router=internal_amqp_router,  # type: ignore
     )
     fastramqpi.add_context(internal_amqpsystem=internal_amqpsystem)
     fastramqpi.add_lifespan_manager(internal_amqpsystem)

@@ -25,7 +25,6 @@ def dataloader() -> MagicMock:
 
 @pytest.fixture
 def context(dataloader: MagicMock, converter: MagicMock) -> Context:
-
     mapping = {
         "mo_to_ldap": {"Employee": {"objectClass": "user"}},
         "username_generator": {
@@ -71,7 +70,6 @@ def existing_user_principal_names() -> list:
 def existing_usernames_ldap(
     existing_usernames, existing_common_names, existing_user_principal_names
 ) -> list:
-
     existing_usernames_ldap = [
         {"attributes": {"cn": cn, "sAMAccountName": sam, "userPrincipalName": up}}
         for cn, sam, up in zip(
@@ -85,7 +83,6 @@ def existing_usernames_ldap(
 def username_generator(
     context: Context, existing_usernames_ldap: list
 ) -> Iterator[UserNameGenerator]:
-
     with patch(
         "mo_ldap_import_export.usernames.paged_search",
         return_value=existing_usernames_ldap,
@@ -97,7 +94,6 @@ def username_generator(
 def alleroed_username_generator(
     context: Context, existing_usernames_ldap: list
 ) -> Iterator[AlleroedUserNameGenerator]:
-
     context["user_context"]["mapping"] = {}
     context["user_context"]["mapping"]["username_generator"] = {
         "objectClass": "AlleroedUserNameGenerator",
@@ -251,7 +247,6 @@ def test_create_username(username_generator: UserNameGenerator):
 
 
 def test_create_common_name(username_generator: UserNameGenerator):
-
     # Regular case
     common_name = username_generator._create_common_name(["Nick", "Johnson"], [])
     assert common_name == "Nick Johnson"
@@ -312,7 +307,6 @@ async def test_generate_dn(username_generator: UserNameGenerator):
 
 
 def test_create_from_combi(username_generator: UserNameGenerator):
-
     # Test with a combi that starts with an 'X'
     name = ["Nick", "Janssen"]
     combi = "XFL"
@@ -341,7 +335,6 @@ def test_check_combinations_to_try():
 def test_alleroed_username_generator(
     alleroed_username_generator: AlleroedUserNameGenerator,
 ):
-
     alleroed_username_generator.forbidden_usernames = []
     existing_names: list[str] = []
     expected_usernames = iter(
@@ -409,7 +402,6 @@ def test_alleroed_username_generator(
 async def test_alleroed_dn_generator(
     alleroed_username_generator: AlleroedUserNameGenerator,
 ):
-
     employee = Employee(givenname="Patrick", surname="Bateman")
     dn = await alleroed_username_generator.generate_dn(employee)
     assert dn == "CN=Patrick Bateman,DC=bar"

@@ -24,6 +24,7 @@ from ramodels.mo.organisation_unit import OrganisationUnit
 from ramqp.utils import RequeueMessage
 
 from .config import Settings
+from .dataloaders import DataLoader
 from .environments import environment
 from .exceptions import IncorrectMapping
 from .exceptions import InvalidNameException
@@ -117,7 +118,7 @@ class LdapConverter:
         self.user_context = context["user_context"]
         self.settings = self.user_context["settings"]
         self.raw_mapping = self.user_context["mapping"]
-        self.dataloader = self.user_context["dataloader"]
+        self.dataloader: DataLoader = self.user_context["dataloader"]
         self.org_unit_path_string_separator: str = (
             self.settings.org_unit_path_string_separator
         )
@@ -186,7 +187,7 @@ class LdapConverter:
         self.all_info_dicts = {
             f: getattr(self, f)
             for f in dir(self)
-            if f.endswith("_info") and type(getattr(self, f)) is dict
+            if f.endswith("_info") and isinstance(getattr(self, f), dict)
         }
 
         self.check_info_dicts()
@@ -448,7 +449,6 @@ class LdapConverter:
                     )
 
     def check_ldap_to_mo_references(self):
-
         # https://ff1959.wordpress.com/2012/03/04/characters-that-are-permitted-in-
         # attribute-names-descriptors/
         # The only characters that are permitted in attribute names are ALPHA, DIGIT,
@@ -464,7 +464,7 @@ class LdapConverter:
                 list(self.overview[object_class]["attributes"].keys()) + ["dn"]
             )
             for value in raw_mapping[json_key].values():
-                if type(value) is not str:
+                if not isinstance(value, str):
                     continue
                 if "ldap." in value:
                     ldap_refs = value.split("ldap.")[1:]
@@ -474,7 +474,6 @@ class LdapConverter:
                         self.check_attributes([ldap_attribute], accepted_attributes)
 
     def check_get_uuid_functions(self):
-
         # List of all 'get_uuid' functions. For example "get_it_system_uuid("
         get_uuid_function_strings = [
             f + "("
@@ -494,11 +493,9 @@ class LdapConverter:
             for mo_attribute, template in self.raw_mapping["ldap_to_mo"][
                 json_key
             ].items():
-
-                if type(template) is not str:
+                if not isinstance(template, str):
                     continue
                 for get_uuid_function_string in get_uuid_function_strings:
-
                     # If we are using a 'get_uuid' function in this template:
                     if get_uuid_function_string in template:
                         argument = template.split(get_uuid_function_string)[1].split(
@@ -817,6 +814,10 @@ class LdapConverter:
             return None
         return primary_dict
 
+    async def get_employee_dict(self, employee_uuid: UUID) -> dict:
+        mo_employee = await self.dataloader.load_mo_employee(employee_uuid)
+        return mo_employee.dict()
+
     async def get_primary_engagement_dict(self, employee_uuid: UUID) -> dict:
         engagements = await self.dataloader.load_mo_employee_engagement_dicts(
             employee_uuid
@@ -826,8 +827,7 @@ class LdapConverter:
             await self.dataloader.is_primary(engagement["uuid"])
             for engagement in engagements
         ]
-        engagements = compress(engagements, is_primary_engagement)
-        primary_engagement: dict = one(engagements)
+        primary_engagement = one(compress(engagements, is_primary_engagement))
         return primary_engagement
 
     async def get_or_create_engagement_type_uuid(self, engagement_type: str) -> str:
@@ -917,7 +917,7 @@ class LdapConverter:
                     org_unit_type_uuid=UUID(self.default_org_unit_type_uuid),
                     org_unit_level_uuid=UUID(self.default_org_unit_level_uuid),
                     from_date=from_date,
-                    parent_uuid=parent_uuid,
+                    parent_uuid=UUID(parent_uuid) if parent_uuid else None,
                     uuid=uuid,
                 )
 
@@ -1024,7 +1024,6 @@ class LdapConverter:
         return org_unit_path_string
 
     async def get_or_create_org_unit_uuid(self, org_unit_path_string: str):
-
         logger.info(
             "[Get-or-create-org-unit-uuid] Finding org-unit uuid.",
             org_unit_path_string=org_unit_path_string,
@@ -1096,6 +1095,7 @@ class LdapConverter:
             ),
             "get_current_primary_uuid_dict": self.get_current_primary_uuid_dict,
             "get_primary_engagement_dict": self.get_primary_engagement_dict,
+            "get_employee_dict": self.get_employee_dict,
         }
         for key, value in mapping.items():
             if isinstance(value, str):
@@ -1155,8 +1155,8 @@ class LdapConverter:
         if that is the case.
         """
         n = []
-        for key, value in ldap_object.dict().items():
-            if type(value) is list:
+        for value in ldap_object.dict().values():
+            if isinstance(value, list):
                 n.append(len(value))
             else:
                 n.append(1)
@@ -1186,7 +1186,6 @@ class LdapConverter:
 
         converted_objects = []
         for entry in range(number_of_entries):
-
             ldap_dict: CaseInsensitiveDict = CaseInsensitiveDict(
                 {
                     key: (

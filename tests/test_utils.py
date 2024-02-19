@@ -59,7 +59,6 @@ async def test_delete_keys_from_dict():
 
 
 async def test_add_filter_to_query():
-
     query1 = gql(
         """
         query TestQuery {
@@ -91,7 +90,6 @@ async def test_add_filter_to_query():
 
 
 async def test_mo_datestring_to_utc():
-
     date = mo_datestring_to_utc("2023-02-27T00:00:00+01:00")
     assert date.strftime("%Y-%m-%d") == "2023-02-27"
 
@@ -106,7 +104,6 @@ async def test_mo_datestring_to_utc():
 
 
 async def test_mo_object_is_valid():
-
     mo_object = Address.from_simplified_fields("foo", uuid4(), "2021-01-01")
     assert mo_object_is_valid(mo_object) is True
 

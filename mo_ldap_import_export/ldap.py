@@ -264,7 +264,7 @@ def _paged_search(
         except KeyError:
             break
 
-        if cookie and type(cookie) is bytes:
+        if cookie and isinstance(cookie, bytes):
             searchParameters["paged_cookie"] = cookie
         else:
             break
@@ -328,7 +328,7 @@ def single_object_search(searchParameters, context: Context):
     searchFilter = "(objectclass=*)" and search_scope = BASE
     """
     ldap_connection = context["user_context"]["ldap_connection"]
-    if type(searchParameters["search_base"]) is list:
+    if isinstance(searchParameters["search_base"], list):
         search_bases = searchParameters["search_base"].copy()
         modified_searchParameters = searchParameters.copy()
         response = []
@@ -362,7 +362,7 @@ def is_dn(value):
     """
     Determine if a value is a dn (distinguished name) string
     """
-    if type(value) is not str:
+    if not isinstance(value, str):
         return False
 
     try:
@@ -425,7 +425,7 @@ def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
         value = response["attributes"][attribute]
         if is_other_dn(value) and nest:
             ldap_dict[attribute] = get_nested_ldap_object(value)
-        elif type(value) is list:
+        elif isinstance(value, list):
             ldap_dict[attribute] = [
                 get_nested_ldap_object(v) if is_other_dn(v) and nest else v
                 for v in value
@@ -507,7 +507,7 @@ async def cleanup(
             filter(None, [getattr(o, attribute, None) for o in converted_mo_objects])
         )
 
-        if type(values_in_ldap) is not list:
+        if not isinstance(values_in_ldap, list):
             values_in_ldap = [values_in_ldap] if values_in_ldap else []
 
         # If a value is in LDAP but NOT in MO, it needs to be cleaned

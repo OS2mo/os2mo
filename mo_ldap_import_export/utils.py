@@ -4,6 +4,7 @@ import asyncio
 import copy
 import datetime
 import re
+from functools import partial
 
 from gql import gql
 from graphql import DocumentNode
@@ -37,7 +38,7 @@ def _delete_keys_from_dict(dict_del, lst_keys):
     for field in list(dict_del.keys()):
         if field in lst_keys:
             del dict_del[field]
-        elif type(dict_del[field]) is dict:
+        elif isinstance(dict_del[field], dict):
             _delete_keys_from_dict(dict_del[field], lst_keys)
     return dict_del
 
@@ -82,7 +83,7 @@ def add_filter_to_query(query: DocumentNode, filter_to_add: str) -> DocumentNode
     return gql(new_query_str)
 
 
-def mo_datestring_to_utc(datestring: str | None):
+def mo_datestring_to_utc(datestring: str | None) -> datetime.datetime | None:
     """
     Returns datetime object at UTC+0
 
@@ -91,24 +92,22 @@ def mo_datestring_to_utc(datestring: str | None):
     Mo datestrings are formatted like this: "2023-02-27T00:00:00+01:00"
     This function essentially removes the "+01:00" part, which gives a UTC+0 timestamp.
     """
-    if datestring:
-        return datetime.datetime.fromisoformat(datestring).replace(tzinfo=None)
-    else:
+    if datestring is None:
         return None
+    return datetime.datetime.fromisoformat(datestring).replace(tzinfo=None)
 
 
-def mo_object_is_valid(mo_object):
+def mo_object_is_valid(mo_object) -> bool:
     now = datetime.datetime.utcnow()
 
     if mo_object.validity.to_date is None:
         return True
-    elif mo_object.validity.to_date.replace(tzinfo=None) > now:
+    if mo_object.validity.to_date.replace(tzinfo=None) > now:
         return True
-    else:
-        return False
+    return False
 
 
-def datetime_to_ldap_timestamp(dt: datetime.datetime):
+def datetime_to_ldap_timestamp(dt: datetime.datetime) -> str:
     return "".join(
         [
             dt.strftime("%Y%m%d%H%M%S"),
@@ -174,7 +173,7 @@ def combine_dn_strings(dn_strings: list[str]) -> str:
     return dn
 
 
-def remove_vowels(string):
+def remove_vowels(string: str) -> str:
     return re.sub("[aeiouAEIOU]", "", string)
 
 
@@ -194,14 +193,13 @@ def extract_part_from_dn(dn: str, index_string: str) -> str:
         if dn_decomposed[0].lower() == index_string.lower():
             parts.append(dn_part)
 
-    if parts:
-        partial_dn: str = safe_dn(",".join(parts))
-        return partial_dn
-    else:
+    if not parts:
         return ""
+    partial_dn: str = safe_dn(",".join(parts))
+    return partial_dn
 
 
-def remove_part_from_dn(dn, index_string) -> str:
+def remove_part_from_dn(dn: str, index_string: str) -> str:
     """
     Remove a part from an LDAP DN string
 
@@ -217,23 +215,15 @@ def remove_part_from_dn(dn, index_string) -> str:
         if dn_decomposed[0].lower() != index_string.lower():
             parts.append(dn_part)
 
-    if parts:
-        partial_dn: str = safe_dn(",".join(parts))
-        return partial_dn
-    else:
+    if not parts:
         return ""
+    partial_dn: str = safe_dn(",".join(parts))
+    return partial_dn
 
 
-def extract_ou_from_dn(dn: str) -> str:
-    return extract_part_from_dn(dn, "OU")
-
-
-def extract_cn_from_dn(dn: str) -> str:
-    return extract_part_from_dn(dn, "CN")
-
-
-def remove_cn_from_dn(dn: str) -> str:
-    return remove_part_from_dn(dn, "CN")
+extract_ou_from_dn = partial(extract_part_from_dn, index_string="OU")
+extract_cn_from_dn = partial(extract_part_from_dn, index_string="CN")
+remove_cn_from_dn = partial(remove_part_from_dn, index_string="CN")
 
 
 def get_object_type_from_routing_key(routing_key: MORoutingKey) -> str:
