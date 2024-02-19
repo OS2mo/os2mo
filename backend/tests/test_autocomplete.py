@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from mora.graphapi.versions.v14.version import GraphQLVersion as GraphQLVersionV14
+from mora.config import Settings
 from mora.service.autocomplete.employees import decorate_employee_search_result
 from mora.service.autocomplete.orgunits import decorate_orgunit_search_result
 from mora.service.autocomplete.orgunits import search_orgunits
@@ -95,7 +95,6 @@ async def test_v2_decorate_orgunits(mock_execute_graphql):
     # Asserts
     mock_execute_graphql.assert_called_with(
         ANY,
-        graphql_version=GraphQLVersionV14,
         variable_values={
             "uuids": [test_data["uuid"]],
             "from_date": now.date().isoformat(),
@@ -117,11 +116,11 @@ async def test_v2_decorate_orgunits_attrs(mock_execute_graphql):
             {"name": "Skole og Børn"},
             {"name": "Kolding Kommune"},
         ],
-        "addresses_validity": [
+        "addresses": [
             {
                 "uuid": "279a900a-a1a6-4c93-9c58-4f7d31108cdd",
                 "name": "Viuf_skole@kolding.dk",
-                "address_type_validity": {
+                "address_type": {
                     "uuid": "61c22b75-01b0-4e83-954c-9cf0c8dc79fe",
                     "name": "Email",
                 },
@@ -129,17 +128,17 @@ async def test_v2_decorate_orgunits_attrs(mock_execute_graphql):
             {
                 "uuid": "b756c0c9-75b7-4ed3-a731-b66946b09437",
                 "name": "Næsbyvej 26, 6000 Kolding",
-                "address_type_validity": {
+                "address_type": {
                     "uuid": "5260d4aa-e33b-48f7-ae3e-6074262cbdcf",
                     "name": "Postadresse",
                 },
             },
         ],
-        "itusers_validity": [
+        "itusers": [
             {
                 "uuid": "397c3967-fb29-425a-88a5-dac2c804cbab",
                 "user_key": "viuf-skole-test-ad",
-                "itsystem_validity": {
+                "itsystem": {
                     "uuid": "a1608e69-c422-404f-a6cc-b873c50af111",
                     "user_key": "Active Directory",
                     "name": "Active Directory",
@@ -150,21 +149,21 @@ async def test_v2_decorate_orgunits_attrs(mock_execute_graphql):
 
     # Configure expected result from test data
     expected_attrs = []
-    for addr in test_data["addresses_validity"]:
+    for addr in test_data["addresses"]:
         expected_attrs.append(
             {
                 "uuid": uuid.UUID(addr["uuid"]),
                 "value": addr["name"],
-                "title": addr["address_type_validity"]["name"],
+                "title": addr["address_type"]["name"],
             }
         )
 
-    for ituser in test_data["itusers_validity"]:
+    for ituser in test_data["itusers"]:
         expected_attrs.append(
             {
                 "uuid": uuid.UUID(ituser["uuid"]),
                 "value": ituser["user_key"],
-                "title": ituser["itsystem_validity"]["name"],
+                "title": ituser["itsystem"]["name"],
             }
         )
 
@@ -201,17 +200,11 @@ async def test_v2_decorate_orgunits_attrs(mock_execute_graphql):
 
     now = datetime.now()
     result = await decorate_orgunit_search_result(
-        settings=MagicMock(
+        settings=Settings(
             confdb_autocomplete_attrs_orgunit=[
-                uuid.UUID(
-                    test_data["addresses_validity"][0]["address_type_validity"]["uuid"]
-                ),
-                uuid.UUID(
-                    test_data["addresses_validity"][1]["address_type_validity"]["uuid"]
-                ),
-                uuid.UUID(
-                    test_data["itusers_validity"][0]["itsystem_validity"]["uuid"]
-                ),
+                uuid.UUID(test_data["addresses"][0]["address_type"]["uuid"]),
+                uuid.UUID(test_data["addresses"][1]["address_type"]["uuid"]),
+                uuid.UUID(test_data["itusers"][0]["itsystem"]["uuid"]),
             ]
         ),
         search_results=[uuid.UUID(test_data["uuid"])],
@@ -221,7 +214,6 @@ async def test_v2_decorate_orgunits_attrs(mock_execute_graphql):
     # Asserts
     mock_execute_graphql.assert_called_with(
         ANY,
-        graphql_version=GraphQLVersionV14,
         variable_values={
             "uuids": [test_data["uuid"]],
             "from_date": now.date().isoformat(),
@@ -297,23 +289,23 @@ async def test_v2_decorate_employees(mock_execute_graphql):
         "nickname_givenname": "",
         "nickname_surname": "",
         "validity": {"from": "1940-01-05T00:00:00+01:00", "to": None},
-        "engagements_validity": [
+        "engagements": [
             {
                 "uuid": "3fea2351-dad8-4f7f-8c2b-5d73d83f51b1",
                 "user_key": "-",
-                "engagement_type_validity": {
+                "engagement_type": {
                     "uuid": "8acc5743-044b-4c82-9bb9-4e572d82b524",
                     "name": "Ansat",
                     "published": "Publiceret",
                 },
             }
         ],
-        "addresses_validity": [
+        "addresses": [
             {
                 "uuid": "5d60f62e-f17e-4b85-990f-42136eb19cd0",
                 "user_key": "53103758",
                 "value": "53103758",
-                "address_type_validity": {
+                "address_type": {
                     "uuid": "05b69443-0c9f-4d57-bb4b-a8c719afff89",
                     "name": "Telefon",
                     "published": "Publiceret",
@@ -323,7 +315,7 @@ async def test_v2_decorate_employees(mock_execute_graphql):
                 "uuid": "9a4aeebc-8fff-49eb-9f9b-02f3c3a4f0ce",
                 "user_key": "allano@kolding.dk",
                 "value": "allano@kolding.dk",
-                "address_type_validity": {
+                "address_type": {
                     "uuid": "f376deb8-4743-4ca6-a047-3241de8fe9d2",
                     "name": "Email",
                     "published": "Publiceret",
@@ -333,29 +325,29 @@ async def test_v2_decorate_employees(mock_execute_graphql):
                 "uuid": "9f87c7f5-2e1c-45df-8a23-f6157a2ae2db",
                 "user_key": "0a3f50bc-35ff-32b8-e044-0003ba298018",
                 "value": "0a3f50bc-35ff-32b8-e044-0003ba298018",
-                "address_type_validity": {
+                "address_type": {
                     "uuid": "e75f74f5-cbc4-4661-b9f4-e6a9e05abb2d",
                     "name": "Postadresse",
                     "published": "Publiceret",
                 },
             },
         ],
-        "associations_validity": [
+        "associations": [
             {
                 "uuid": "3e45aeb0-29a6-41b9-8d04-1a50619b3076",
                 "user_key": "-",
-                "association_type_validity": {
+                "association_type": {
                     "uuid": "cc42af04-55f5-4483-87c3-3a22d8003d7e",
                     "name": "Leder",
                     "published": "Publiceret",
                 },
             }
         ],
-        "itusers_validity": [
+        "itusers": [
             {
                 "uuid": "e748df8f-dba4-494b-a3a1-9bccebc27538",
                 "user_key": "AllanO",
-                "itsystem_validity": {
+                "itsystem": {
                     "uuid": "5168dd45-4cb5-4932-b8a1-10dbe736fc5d",
                     "name": "Office365",
                 },
@@ -381,23 +373,19 @@ async def test_v2_decorate_employees(mock_execute_graphql):
 
     # invoke
     result = await decorate_employee_search_result(
-        settings=MagicMock(
+        settings=Settings(
             confdb_autocomplete_attrs_employee=[
                 uuid.UUID(
-                    test_data["engagements_validity"][0]["engagement_type_validity"][
-                        "uuid"
-                    ]
+                    test_data["engagements"][0]["engagement_type"]["uuid"]
                 ),  # engagement_type = Ansat
                 uuid.UUID(
-                    test_data["addresses_validity"][0]["address_type_validity"]["uuid"]
+                    test_data["addresses"][0]["address_type"]["uuid"]
                 ),  # address_type = Email
                 uuid.UUID(
-                    test_data["associations_validity"][0]["association_type_validity"][
-                        "uuid"
-                    ]
+                    test_data["associations"][0]["association_type"]["uuid"]
                 ),  # association_type = Medlem
                 uuid.UUID(
-                    test_data["itusers_validity"][0]["itsystem_validity"]["uuid"]
+                    test_data["itusers"][0]["itsystem"]["uuid"]
                 ),  # itsystem = Active Directory
                 uuid.UUID("14466fb0-f9de-439c-a6c2-b3262c367da7"),  # itsystem = SAP
             ],

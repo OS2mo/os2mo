@@ -56,7 +56,9 @@ def mock_get_settings_custom_attrs(monkeypatch: MonkeyPatch):
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-def test_v2_search_employee_by_uuid(mock_get_settings, service_client: TestClient):
+def test_v2_search_employee_by_uuid(
+    mock_get_settings_custom_attrs, service_client: TestClient
+):
     at = datetime.now().date()
     query = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
     response = service_client.request(
@@ -71,23 +73,33 @@ def test_v2_search_employee_by_uuid(mock_get_settings, service_client: TestClien
                 "name": "Anders And",
                 "attrs": [
                     {
-                        "uuid": "d000591f-8705-4324-897a-075e3623f37b",
                         "title": "Ansat",
+                        "uuid": "d000591f-8705-4324-897a-075e3623f37b",
                         "value": "bvn",
                     },
                     {
-                        "uuid": "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
                         "title": "Email",
+                        "uuid": "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
                         "value": "bruger@example.com",
                     },
                     {
-                        "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
                         "title": "Medlem",
+                        "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
                         "value": "bvn",
                     },
                     {
-                        "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
+                        "title": "Medlem",
+                        "uuid": "c89853b8-3da5-4b10-8d87-6ca5b4c9416b",
+                        "value": "bvn",
+                    },
+                    {
+                        "title": "SAP",
+                        "uuid": "4de484d9-f577-4fe0-965f-2d4be11b348c",
+                        "value": "donald",
+                    },
+                    {
                         "title": "Active Directory",
+                        "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
                         "value": "18d2271a-45c4-406c-a482-04ab12f80881",
                     },
                 ],
@@ -99,7 +111,9 @@ def test_v2_search_employee_by_uuid(mock_get_settings, service_client: TestClien
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-def test_v2_search_employee_by_name(mock_get_settings, service_client: TestClient):
+def test_v2_search_employee_by_name(
+    mock_get_settings_custom_attrs, service_client: TestClient
+):
     at = datetime.now().date()
     query = "Anders And"
     response = service_client.request(
@@ -114,23 +128,33 @@ def test_v2_search_employee_by_name(mock_get_settings, service_client: TestClien
                 "name": "Anders And",
                 "attrs": [
                     {
-                        "uuid": "d000591f-8705-4324-897a-075e3623f37b",
                         "title": "Ansat",
+                        "uuid": "d000591f-8705-4324-897a-075e3623f37b",
                         "value": "bvn",
                     },
                     {
-                        "uuid": "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
                         "title": "Email",
+                        "uuid": "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
                         "value": "bruger@example.com",
                     },
                     {
-                        "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
                         "title": "Medlem",
+                        "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
                         "value": "bvn",
                     },
                     {
-                        "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
+                        "title": "Medlem",
+                        "uuid": "c89853b8-3da5-4b10-8d87-6ca5b4c9416b",
+                        "value": "bvn",
+                    },
+                    {
+                        "title": "SAP",
+                        "uuid": "4de484d9-f577-4fe0-965f-2d4be11b348c",
+                        "value": "donald",
+                    },
+                    {
                         "title": "Active Directory",
+                        "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
                         "value": "18d2271a-45c4-406c-a482-04ab12f80881",
                     },
                 ],
@@ -169,7 +193,9 @@ def test_v2_search_employee_by_name(mock_get_settings, service_client: TestClien
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-def test_v2_search_employee_by_email(mock_get_settings, service_client: TestClient):
+def test_v2_search_employee_by_email(
+    mock_get_settings_custom_attrs, service_client: TestClient
+):
     at = datetime.now().date()
     query = "bruger@example.com"
     response = service_client.request(
@@ -184,23 +210,33 @@ def test_v2_search_employee_by_email(mock_get_settings, service_client: TestClie
                 "name": "Anders And",
                 "attrs": [
                     {
-                        "uuid": "d000591f-8705-4324-897a-075e3623f37b",
                         "title": "Ansat",
+                        "uuid": "d000591f-8705-4324-897a-075e3623f37b",
                         "value": "bvn",
                     },
                     {
-                        "uuid": "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
                         "title": "Email",
+                        "uuid": "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
                         "value": "bruger@example.com",
                     },
                     {
-                        "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
                         "title": "Medlem",
+                        "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
                         "value": "bvn",
                     },
                     {
-                        "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
+                        "title": "Medlem",
+                        "uuid": "c89853b8-3da5-4b10-8d87-6ca5b4c9416b",
+                        "value": "bvn",
+                    },
+                    {
+                        "title": "SAP",
+                        "uuid": "4de484d9-f577-4fe0-965f-2d4be11b348c",
+                        "value": "donald",
+                    },
+                    {
                         "title": "Active Directory",
+                        "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
                         "value": "18d2271a-45c4-406c-a482-04ab12f80881",
                     },
                 ],
@@ -239,7 +275,9 @@ def test_v2_search_employee_by_email(mock_get_settings, service_client: TestClie
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
-def test_v2_search_employee_by_itsystem(mock_get_settings, service_client: TestClient):
+def test_v2_search_employee_by_itsystem(
+    mock_get_settings_custom_attrs, service_client: TestClient
+):
     at = datetime.now().date()
     query = "donald"
     response = service_client.request(
@@ -254,23 +292,33 @@ def test_v2_search_employee_by_itsystem(mock_get_settings, service_client: TestC
                 "name": "Anders And",
                 "attrs": [
                     {
-                        "uuid": "d000591f-8705-4324-897a-075e3623f37b",
                         "title": "Ansat",
+                        "uuid": "d000591f-8705-4324-897a-075e3623f37b",
                         "value": "bvn",
                     },
                     {
-                        "uuid": "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
                         "title": "Email",
+                        "uuid": "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
                         "value": "bruger@example.com",
                     },
                     {
-                        "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
                         "title": "Medlem",
+                        "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
                         "value": "bvn",
                     },
                     {
-                        "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
+                        "title": "Medlem",
+                        "uuid": "c89853b8-3da5-4b10-8d87-6ca5b4c9416b",
+                        "value": "bvn",
+                    },
+                    {
+                        "title": "SAP",
+                        "uuid": "4de484d9-f577-4fe0-965f-2d4be11b348c",
+                        "value": "donald",
+                    },
+                    {
                         "title": "Active Directory",
+                        "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
                         "value": "18d2271a-45c4-406c-a482-04ab12f80881",
                     },
                 ],
@@ -297,6 +345,7 @@ def test_v2_search_orgunit_by_uuid(mock_get_settings, service_client: TestClient
                 "name": "Fake Corp With Addrs",
                 "path": [],
                 "attrs": [],
+                "validity": {"from": "2016-01-01T00:00:00+01:00", "to": None},
             }
         ]
     }
@@ -314,6 +363,7 @@ def test_v2_search_orgunit_by_uuid(mock_get_settings, service_client: TestClient
                 "name": "Samfundsvidenskabelige fakultet",
                 "path": ["Overordnet Enhed", "Samfundsvidenskabelige fakultet"],
                 "attrs": [],
+                "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
             }
         ]
     }
@@ -337,6 +387,7 @@ def test_v2_search_orgunit_by_name(mock_get_settings, service_client: TestClient
                 "name": "Fake Corp With Addrs",
                 "path": [],
                 "attrs": [],
+                "validity": {"from": "2016-01-01T00:00:00+01:00", "to": None},
             }
         ]
     }
@@ -354,12 +405,14 @@ def test_v2_search_orgunit_by_name(mock_get_settings, service_client: TestClient
                 "name": "Social og sundhed",
                 "path": ["Overordnet Enhed", "Social og sundhed"],
                 "attrs": [],
+                "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
             },
             {
                 "uuid": "5942ce50-2be8-476f-914b-6769a888a7c8",
                 "name": "Social og sundhed",
                 "path": ["Lønorganisation", "Social og sundhed"],
                 "attrs": [],
+                "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
             },
         ]
     }
@@ -391,6 +444,7 @@ def test_v2_search_orgunit_by_name_with_custom_fields(
                         "value": "Fake afdelingskode",
                     }
                 ],
+                "validity": {"from": "2016-01-01T00:00:00+01:00", "to": None},
             }
         ]
     }
@@ -422,18 +476,19 @@ def test_v2_search_orgunit_by_addr_afdelingskode(
                         "value": "Fake afdelingskode",
                     }
                 ],
+                "validity": {"from": "2016-01-01T00:00:00+01:00", "to": None},
             }
         ]
     }
 
 
 @pytest.mark.integration_test
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
+# @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("fixture_db")
 def test_v2_search_orgunit_by_addr_afdelingskode_addr_rename(
     graphapi_post: GraphAPIPost, admin_client, mock_get_settings_custom_attrs
 ):
-    newAddrName = "Fake afdelingskode changed"
+    new_address_name = "Fake afdelingskode changed"
     at = datetime.now().date()
 
     # Modify the addr
@@ -448,14 +503,13 @@ def test_v2_search_orgunit_by_addr_afdelingskode_addr_rename(
     payload = jsonable_encoder(
         {
             "uuid": "55848eca-4e9e-4f30-954b-78d55eec0441",
-            "value": newAddrName,
+            "value": new_address_name,
             "validity": {"from": at.isoformat()},
             "address_type": "e8ea1a09-d3d4-4203-bfe9-d9a213371337",
         }
     )
-    gqlResp: GQLResponse = graphapi_post(mutate_query, {"input": payload})
-    assert gqlResp.errors is None
-    assert gqlResp.status_code == 200
+    gql_response: GQLResponse = graphapi_post(mutate_query, {"input": payload})
+    assert gql_response.errors is None
 
     # Fetch & assert the orgunit have been renamed accordingly
     query = "Fake afdelingskode"
@@ -474,9 +528,10 @@ def test_v2_search_orgunit_by_addr_afdelingskode_addr_rename(
                     {
                         "title": "Afdelingskode",
                         "uuid": "55848eca-4e9e-4f30-954b-78d55eec0441",
-                        "value": newAddrName,
+                        "value": new_address_name,
                     }
                 ],
+                "validity": {"from": "2016-01-01T00:00:00+01:00", "to": None},
             }
         ]
     }

@@ -132,41 +132,41 @@ async def decorate_employee_search_result(
                     to
                 }
 
-                engagements_validity {
+                engagements(filter: {from_date: null, to_date: null}) {
                     uuid
                     user_key
-                    engagement_type_validity {
+                    engagement_type(filter: {from_date: null, to_date: null}) {
                         uuid
                         name
                         published
                     }
                 }
 
-                addresses_validity {
+                addresses(filter: {from_date: null, to_date: null}) {
                     uuid
                     user_key
                     value
-                    address_type_validity {
+                    address_type(filter: {from_date: null, to_date: null}) {
                         uuid
                         name
                         published
                     }
                 }
 
-                associations_validity {
+                associations(filter: {from_date: null, to_date: null}){
                     uuid
                     user_key
-                    association_type_validity {
+                    association_type(filter: {from_date: null, to_date: null}) {
                         uuid
                         name
                         published
                     }
                 }
 
-                itusers_validity {
+                itusers(filter: {from_date: null, to_date: null}) {
                     uuid
                     user_key
-                    itsystem_validity {
+                    itsystem(filter: {from_date: null, to_date: null}){
                         uuid
                         name
                     }
@@ -316,10 +316,10 @@ async def _get_cte_itsystem_hits(query: str):
 def _gql_get_employee_attrs(settings: config.Settings, gql_employee: dict):
     attrs = []
 
-    for engagement in gql_employee.get("engagements_validity", []):
+    for engagement in gql_employee.get("engagements", []):
         uuid = engagement["uuid"]
         value = engagement["user_key"]
-        engagement_type = engagement.get("engagement_type_validity")
+        engagement_type = engagement.get("engagement_type")
         if (
             not engagement_type
             or UUID(engagement_type["uuid"])
@@ -340,10 +340,10 @@ def _gql_get_employee_attrs(settings: config.Settings, gql_employee: dict):
             }
         )
 
-    for address in gql_employee.get("addresses_validity", []):
+    for address in gql_employee.get("addresses", []):
         uuid = address["uuid"]
         value = address["value"]
-        addr_type = address.get("address_type_validity")
+        addr_type = address.get("address_type")
         if (
             not addr_type
             or UUID(addr_type["uuid"])
@@ -364,10 +364,10 @@ def _gql_get_employee_attrs(settings: config.Settings, gql_employee: dict):
             }
         )
 
-    for assoc in gql_employee.get("associations_validity", []):
+    for assoc in gql_employee.get("associations", []):
         uuid = assoc["uuid"]
         value = assoc["user_key"]
-        assoc_type = assoc.get("association_type_validity")
+        assoc_type = assoc.get("association_type")
         if (
             not assoc_type
             or UUID(assoc_type["uuid"])
@@ -388,10 +388,10 @@ def _gql_get_employee_attrs(settings: config.Settings, gql_employee: dict):
             }
         )
 
-    for ituser in gql_employee.get("itusers_validity", []):
+    for ituser in gql_employee.get("itusers", []):
         uuid = ituser["uuid"]
         value = ituser["user_key"]
-        itsystem = ituser.get("itsystem_validity")
+        itsystem = ituser.get("itsystem")
         if (
             not itsystem
             or UUID(itsystem["uuid"]) not in settings.confdb_autocomplete_attrs_employee
