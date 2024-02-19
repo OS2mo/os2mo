@@ -4,7 +4,7 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from more_itertools import first
 from sqlalchemy import delete
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from mora.audit import audit_log
 from mora.db import AuditLogOperation
@@ -14,23 +14,21 @@ from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("testing_db")
 async def test_query_auditlog(
     set_settings: MonkeyPatch,
     graphapi_post: GraphAPIPost,
-    testing_db_session: AsyncSession,
+    fixture_db: async_sessionmaker,
 ) -> None:
     """Test querying audit log across v17 shim."""
 
-    session = testing_db_session
     # Remove all audit log entries present
-    async with session.begin():
+    async with fixture_db.begin() as session:
         await session.execute(delete(AuditLogRead))
         await session.execute(delete(AuditLogOperation))
 
     set_settings(AUDIT_READLOG_ENABLE="True")
 
-    async with session.begin():
+    async with fixture_db.begin() as session:
         audit_log(session, "test_auditlog", "OrganisationFunktion", {}, [])
 
     query = """
