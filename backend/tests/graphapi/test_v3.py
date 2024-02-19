@@ -8,6 +8,8 @@ from uuid import uuid4
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
+from hypothesis import HealthCheck
+from hypothesis import settings
 from hypothesis import strategies as st
 
 from mora import mapping
@@ -73,9 +75,15 @@ def prepare_query_data(test_data, query_response):
     return test_data, query
 
 
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay in this instance
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_data=write_strat())
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_integration_create_class(test_data, graphapi_post: GraphAPIPost):
     """Integrationtest for create class mutator."""
 
@@ -159,7 +167,6 @@ async def test_unit_create_class(
     create_class.return_value = created_uuid
 
     payload = jsonable_encoder(test_data)
-
     response = await execute_graphql(
         query=mutate_query,
         variable_values={"input": payload},

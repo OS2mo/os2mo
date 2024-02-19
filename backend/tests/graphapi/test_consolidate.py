@@ -8,7 +8,7 @@ from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_consolidate_feature_flag(
     graphapi_post: GraphAPIPost, set_settings: Callable[..., None]
 ) -> None:
@@ -83,7 +83,7 @@ async def test_consolidate_feature_flag(
     ]
 
     # Check that response is not consolidated if disabled
-    set_settings(CONSOLIDATE=False)
+    set_settings(CONSOLIDATE="false")
     response = graphapi_post(org_unit_read_query, dict(uuids=org_unit_uuid))
     assert response.data["org_units"]["objects"][0]["objects"] == [
         {

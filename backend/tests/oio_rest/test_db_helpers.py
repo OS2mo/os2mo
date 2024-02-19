@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from unittest import skip
-from unittest import TestCase
 from unittest.mock import call
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -15,9 +14,8 @@ from tests.oio_rest.util import ExtTestCase
 
 
 class TestDBHelpers(ExtTestCase):
-    maxDiff = None
-
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setup_db_helpers(self):
         db_helpers._attribute_fields = {}
         db_helpers._attribute_names = {}
         db_helpers._relation_names = {}
@@ -28,7 +26,7 @@ class TestDBHelpers(ExtTestCase):
             "testclass2": {"attributter": {"testattribut": ["value3", "value4"]}},
         }
     )
-    def test_get_attribute_reads_db_struct(self):
+    async def test_get_attribute_reads_db_struct(self):
         # Arrange
         expected_fields = {
             "testclass1testattribut": ["value1", "value2", "virkning"],
@@ -42,7 +40,7 @@ class TestDBHelpers(ExtTestCase):
         actual_fields = db_helpers._attribute_fields
 
         # Assert
-        self.assertDictEqual(expected_fields, actual_fields)
+        assert expected_fields == actual_fields
         assert expected_result == actual_result
 
     def test_get_attribute_fields_uses_cache(self):
@@ -75,7 +73,7 @@ class TestDBHelpers(ExtTestCase):
             }
         }
     )
-    def test_get_field_type_override(self):
+    async def test_get_field_type_override(self):
         # Arrange
         expected_result = "value_override"
 
@@ -94,7 +92,7 @@ class TestDBHelpers(ExtTestCase):
             }
         }
     )
-    def test_get_field_type_override_field_not_found(self):
+    async def test_get_field_type_override_field_not_found(self):
         # Arrange
         expected_result = "text"
 
@@ -107,7 +105,7 @@ class TestDBHelpers(ExtTestCase):
         assert expected_result == actual_result
 
     @ExtTestCase.patch_db_struct(MagicMock())
-    def test_get_relation_field_type_default(self):
+    async def test_get_relation_field_type_default(self):
         # Arrange
         expected_result = "text"
 
@@ -132,7 +130,7 @@ class TestDBHelpers(ExtTestCase):
             }
         }
     )
-    def test_get_relation_field_type_override(self):
+    async def test_get_relation_field_type_override(self):
         # Arrange
         expected_result1 = "value_override1"
         expected_result2 = "value_override2"
@@ -160,7 +158,7 @@ class TestDBHelpers(ExtTestCase):
             }
         }
     )
-    def test_get_relation_field_type_override_field_not_found(self):
+    async def test_get_relation_field_type_override_field_not_found(self):
         # Arrange
         expected_result = "text"
 
@@ -182,7 +180,7 @@ class TestDBHelpers(ExtTestCase):
             }
         }
     )
-    def test_get_attribute_names_reads_db_struct(self):
+    async def test_get_attribute_names_reads_db_struct(self):
         # Arrange
         expected_result = ["testclass1testattribut1", "testclass1testattribut2"]
 
@@ -234,8 +232,8 @@ class TestDBHelpers(ExtTestCase):
         # Assert
         assert expected_result == actual_result
 
-    def test_get_state_names(self):
-        with self.patch_db_struct(
+    async def test_get_state_names(self):
+        async with self.patch_db_struct(
             {
                 "testclass1": {
                     "tilstande": {
@@ -257,7 +255,7 @@ class TestDBHelpers(ExtTestCase):
             # Assert
             assert expected_result == sorted(actual_result)
 
-        with self.patch_db_struct(
+        async with self.patch_db_struct(
             {
                 "testclass1": {
                     "tilstande": [
@@ -287,7 +285,7 @@ class TestDBHelpers(ExtTestCase):
             }
         }
     )
-    def test_get_relation_names(self):
+    async def test_get_relation_names(self):
         # Arrange
         expected_result = ["value1", "value2", "value3", "value4"]
 
@@ -878,110 +876,33 @@ class TestDBHelpers(ExtTestCase):
         assert expected_result == actual_result
 
 
-class TestNamedTupleAdapter(TestCase):
-    from oio_rest.db.db_helpers import NamedTupleAdapter
-
-    class TestClass(NamedTupleAdapter):
-        pass
-
-    @patch("oio_rest.db.db_helpers.psyco_adapt")
-    def test_prepare_and_adapt(self, mock_psyco_adapt):
-        # type: (MagicMock) -> None
-        # Arrange
-        mock_psyco_adapt.return_value = adapted = MagicMock()
-        adapted.prepare = MagicMock()
-
-        nta = TestNamedTupleAdapter.TestClass(())
-        nta._conn = ""
-        x = ""
-
-        # Act
-        actual_result = nta.prepare_and_adapt(x)
-
-        # Assert
-        assert adapted == actual_result
-        mock_psyco_adapt.assert_called_with(x)
-        adapted.prepare.assert_called()
-
-    def test_get_quoted(self):
-        # Arrange
-        a = MagicMock()
-        a.getquoted.return_value = b"first value"
-        b = MagicMock()
-        b.getquoted.return_value = b"second value"
-
-        nta = TestNamedTupleAdapter.TestClass((a, b))
-        nta.prepare_and_adapt = MagicMock(side_effect=lambda x: x)
-
-        expected_result = b"ROW(first value,second value) :: tuple"
-
-        # Act
-        actual_result = nta.getquoted()
-
-        # Assert
-        assert expected_result == actual_result
-
-
-class TestAktoerAttrAdapter(TestCase):
-    from oio_rest.db.db_helpers import AktoerAttrAdapter
-
-    class TestClass(AktoerAttrAdapter):
-        pass
-
-    def test_get_quoted(self):
-        # Arrange
-        accepteret = MagicMock()
-        accepteret.getquoted.return_value = b"accepteret"
-        obligatorisk = MagicMock()
-        obligatorisk.getquoted.return_value = b"obligatorisk"
-        uuid = MagicMock()
-        uuid.getquoted.return_value = b"uuid"
-        urn = MagicMock()
-        urn.getquoted.return_value = b"urn"
-
-        aaa = TestAktoerAttrAdapter.TestClass((accepteret, obligatorisk, uuid, urn))
-        aaa.prepare_and_adapt = MagicMock(side_effect=lambda x: x)
-
-        expected_result = (
-            b"ROW(obligatorisk::AktivitetAktoerAttr"
-            b"ObligatoriskKode,accepteret::AktivitetAktoerAttr"
-            b"AccepteretKode,uuid::uuid,urn) :: tuple"
-        )
-
-        # Act
-        actual_result = aaa.getquoted()
-
-        # Assert
-        assert expected_result == actual_result
-
-
-class TestSearchable(TestCase):
-    from oio_rest.db.db_helpers import Searchable
-
-    class TestSearchableClass(Searchable):
-        _fields = ()
-
-    def setUp(self):
-        self.TestSearchableClass._fields = ()
-
+class TestSearchable:
     def test_searchable_get_fields(self):
         # Arrange
-        self.TestSearchableClass._fields = ("field1", "field2")
+        from oio_rest.db.db_helpers import Searchable
+
+        class TestSearchableClass(Searchable):
+            _fields = ("field1", "field2")
+
         expected_result = ("field1", "field2")
 
         # Act
-        actual_result = self.TestSearchableClass.get_fields()
+        actual_result = TestSearchableClass.get_fields()
 
         # Assert
         assert expected_result == actual_result
 
     def test_searchable_get_fields_with_virkning(self):
         # Arrange
-        self.TestSearchableClass._fields = ("field1", "field2", "virkning")
+        from oio_rest.db.db_helpers import Searchable
+
+        class TestSearchableClass(Searchable):
+            _fields = ("field1", "field2", "virkning")
+
         expected_result = ("field1", "field2")
 
         # Act
-        actual_result = self.TestSearchableClass.get_fields()
+        actual_result = TestSearchableClass.get_fields()
 
         # Assert - Cast to set for comparison,
         # as result is converted from set with no ordering

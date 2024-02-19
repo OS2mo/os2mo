@@ -1,11 +1,13 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import pytest
+
 from tests.oio_rest.util import DBTestCase
 
 
 class Tests(DBTestCase):
-    def setUp(self):
-        super().setUp()
+    @pytest.fixture(autouse=True)
+    def setup_classes(self, setup, empty_db):
         self.a = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
         self.b = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
         self.c = "cccccccc-cccc-cccc-cccc-cccccccccccc"
@@ -80,42 +82,39 @@ class Tests(DBTestCase):
             params=dict(uuid=[self.a_a, self.a_b, self.b_b]),
             method="GET",
         )
-        self.assertCountEqual(
-            [x["id"] for x in r.json()["results"][0]],
-            [self.a_a, self.a_b, self.b_b],
-        )
+        actual = {x["id"] for x in r.json()["results"][0]}
+        expected = {self.a_a, self.a_b, self.b_b}
+        assert actual == expected
 
     def test_multi_relation_search(self):
         """
         Test getting multiple objects (by their relations) in one call.
         """
-        self.assertCountEqual(
+        assert set(
             self.get(
                 "/klassifikation/klasse",
                 ansvarlig=self.a,
-            ),
-            [self.a_a, self.a_b, self.a_c],
-        )
-        self.assertCountEqual(
+            )
+        ) == {self.a_a, self.a_b, self.a_c}
+
+        assert set(
             self.get(
                 "/klassifikation/klasse",
                 ejer=self.b,
-            ),
-            [self.a_b, self.b_b, self.c_b],
-        )
-        self.assertCountEqual(
+            )
+        ) == {self.a_b, self.b_b, self.c_b}
+
+        assert set(
             self.get(
                 "/klassifikation/klasse",
                 ansvarlig=[self.a, self.b],
-            ),
-            [self.a_a, self.a_b, self.a_c, self.b_a, self.b_b, self.b_c],
-        )
+            )
+        ) == {self.a_a, self.a_b, self.a_c, self.b_a, self.b_b, self.b_c}
 
-        self.assertCountEqual(
+        assert set(
             self.get(
                 "/klassifikation/klasse",
                 ansvarlig=[self.a, self.c],
                 ejer=[self.b, self.c],
-            ),
-            [self.a_b, self.a_c, self.c_b, self.c_c],
-        )
+            )
+        ) == {self.a_b, self.a_c, self.c_b, self.c_c}

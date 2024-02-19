@@ -1,10 +1,16 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 # flake8: noqa
+from collections.abc import AsyncIterator
+
 from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.ext.asyncio import create_async_engine
+from starlette_context import context
+from starlette_context import request_cycle_context
 
 from . import files
+from .. import depends
 from ._amqp import AMQPSubsystem
 from ._audit import AuditLogOperation
 from ._audit import AuditLogRead
@@ -56,12 +62,29 @@ from ._organisationsfunktion import OrganisationFunktionTilsGyldighed
 from .files import FileToken
 
 
-def get_sessionmaker(user, password, host, name):
-    engine = create_async_engine(
+def create_engine(user, password, host, name) -> AsyncEngine:
+    return create_async_engine(
         f"postgresql+psycopg://{user}:{password}@{host}/{name}",
         # Transparently reconnect on connection errors so the calling application does
         # not need to be concerned with error handling. This is required for the
         # testing APIs to function correctly.
         pool_pre_ping=True,
     )
+
+
+def create_sessionmaker(user, password, host, name) -> async_sessionmaker:
+    engine = create_engine(user, password, host, name)
     return async_sessionmaker(engine)
+
+
+_DB_SESSION_CONTEXT_KEY = "db_session"
+
+
+async def set_sessionmaker_context(sessionmaker: depends.async_sessionmaker):
+    data = {**context, _DB_SESSION_CONTEXT_KEY: sessionmaker}
+    with request_cycle_context(data):
+        yield
+
+
+def get_sessionmaker() -> async_sessionmaker:
+    return context[_DB_SESSION_CONTEXT_KEY]

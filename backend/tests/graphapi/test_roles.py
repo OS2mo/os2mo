@@ -9,6 +9,8 @@ import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
+from hypothesis import HealthCheck
+from hypothesis import settings
 from hypothesis import strategies as st
 from more_itertools import one
 from pytest import MonkeyPatch
@@ -28,6 +30,13 @@ from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import RoleRead
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_data=graph_data_strat(RoleRead))
 def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all attributes of the role data model."""
@@ -59,6 +68,13 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     assert flatten_data(response.data["roles"]["objects"]) == test_data
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_input=graph_data_uuids_strat(RoleRead))
 def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query roles by UUID."""
@@ -113,9 +129,15 @@ async def test_create_role_mutation_unit_test(
     create_role.assert_called_with(test_data)
 
 
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay in this instance
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(data=st.data())
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_role_integration_test(
     data, graphapi_post: GraphAPIPost, employee_uuids, org_uuids
 ) -> None:
@@ -239,7 +261,7 @@ async def test_update_role_unit_test(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data",
     [
@@ -349,7 +371,7 @@ async def test_update_role_integration_test(
 
 @pytest.mark.integration_test
 @freezegun.freeze_time("2023-07-13", tz_offset=1)
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data",
     [

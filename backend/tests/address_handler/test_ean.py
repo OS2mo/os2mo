@@ -109,5 +109,5 @@ async def test_validation_succeeds_with_force():
     value = "GARBAGEGARBAGE"  # Not a valid EAN
 
     # Act & Assert
-    with util.patch_query_args({"force": "1"}):
+    async with util.patch_query_args({"force": "1"}):
         await EANAddressHandler.validate_value(value)

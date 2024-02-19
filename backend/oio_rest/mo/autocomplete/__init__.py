@@ -6,11 +6,12 @@
 # where the MO extensions have not been installed.
 from uuid import UUID
 
+from psycopg import AsyncConnection
 from sqlalchemy import cast
 from sqlalchemy import Table
 from sqlalchemy import Text
 from sqlalchemy.dialects import postgresql
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import func
 from sqlalchemy.sql import literal_column
 from sqlalchemy.sql import select
@@ -18,32 +19,32 @@ from sqlalchemy.sql import text
 from sqlalchemy.sql import union
 
 from mora.audit import audit_log
-from oio_rest.db.engine import get_engine
 from oio_rest.db.metadata import metadata
-
 
 # Only search on (partial) UUID if search phrase is longer than this.
 # This avoids searching on UUID for short phrases like '1', 'a2', etc.
 UUID_SEARCH_MIN_PHRASE_LENGTH = 7
 
 
-def get_table(name):
+async def get_table(name, connection: AsyncConnection):
     """Return SQLAlchemy `Table` instance of SQL table called `name`"""
-    engine = get_engine()
-    return Table(name, metadata, autoload_with=engine)
+    return await connection.run_sync(lambda c: Table(name, metadata, autoload_with=c))
 
 
-def find_users_matching(phrase: str, class_uuids: list[UUID] | None = None):
+async def find_users_matching(
+    session: AsyncSession, phrase: str, class_uuids: list[UUID] | None = None
+):
     """Search for users matching `phrase`, returning a list of database rows
     with `uuid` and `name` attributes."""
 
     # Tables
-    bruger_reg = get_table("bruger_registrering")
-    bruger_rel = get_table("bruger_relation")
-    bruger_udv = get_table("bruger_attr_udvidelser")
-    orgfunk_reg = get_table("organisationfunktion_registrering")
-    orgfunk_rel = get_table("organisationfunktion_relation")
-    orgfunk_att = get_table("organisationfunktion_attr_egenskaber")
+    connection = await session.connection()
+    bruger_reg = await get_table("bruger_registrering", connection)
+    bruger_rel = await get_table("bruger_relation", connection)
+    bruger_udv = await get_table("bruger_attr_udvidelser", connection)
+    orgfunk_reg = await get_table("organisationfunktion_registrering", connection)
+    orgfunk_rel = await get_table("organisationfunktion_relation", connection)
+    orgfunk_att = await get_table("organisationfunktion_attr_egenskaber", connection)
 
     # UUID of user
     bruger_uuid = bruger_reg.c.bruger_id.label("uuid")
@@ -174,36 +175,36 @@ def find_users_matching(phrase: str, class_uuids: list[UUID] | None = None):
         .group_by(bruger_uuid)
     )
 
-    engine = get_engine()
-    session = Session(bind=engine)
-    with session.begin():
-        query = decorated_hits
-        limit = 1000
-        result = session.execute(query.limit(limit))
-        rows = result.mappings().fetchall()
-        uuids = [x["uuid"] for x in rows]
-        # TODO: Log org-funk lookups
-        # TODO: Log class lookups
-        audit_log(
-            session,
-            "find_users_matching",
-            "Bruger",
-            {"phrase": phrase, "class_uuids": class_uuids},
-            uuids,
-        )
-        return rows
+    query = decorated_hits
+    limit = 1000
+    result = await session.execute(query.limit(limit))
+    rows = result.mappings().fetchall()
+    uuids = [x["uuid"] for x in rows]
+    # TODO: Log org-funk lookups
+    # TODO: Log class lookups
+    audit_log(
+        session,
+        "find_users_matching",
+        "Bruger",
+        {"phrase": phrase, "class_uuids": class_uuids},
+        uuids,
+    )
+    return rows
 
 
-def find_org_units_matching(phrase: str, class_uuids: list[UUID] | None = None):
+async def find_org_units_matching(
+    session: AsyncSession, phrase: str, class_uuids: list[UUID] | None = None
+):
     """Search for organisation units matching `phrase`, returning a list of
     database rows with `uuid` and `name` attributes."""
 
     # Tables
-    enhed_reg = get_table("organisationenhed_registrering")
-    enhed_att = get_table("organisationenhed_attr_egenskaber")
-    orgfunk_reg = get_table("organisationfunktion_registrering")
-    orgfunk_rel = get_table("organisationfunktion_relation")
-    orgfunk_att = get_table("organisationfunktion_attr_egenskaber")
+    connection = await session.connection()
+    enhed_reg = await get_table("organisationenhed_registrering", connection)
+    enhed_att = await get_table("organisationenhed_attr_egenskaber", connection)
+    orgfunk_reg = await get_table("organisationfunktion_registrering", connection)
+    orgfunk_rel = await get_table("organisationfunktion_relation", connection)
+    orgfunk_att = await get_table("organisationfunktion_attr_egenskaber", connection)
 
     # UUID of org unit
     enhed_uuid = enhed_reg.c.organisationenhed_id.label("uuid")
@@ -307,7 +308,7 @@ def find_org_units_matching(phrase: str, class_uuids: list[UUID] | None = None):
         select(
             enhed_uuid,
             current_org_unit_name.label("name"),
-            _org_unit_path(all_hits, enhed_uuid).label("path"),
+            (await _org_unit_path(session, all_hits, enhed_uuid)).label("path"),
             attrs.label("attrs"),
         )
         .join(
@@ -340,34 +341,31 @@ def find_org_units_matching(phrase: str, class_uuids: list[UUID] | None = None):
         .group_by(enhed_uuid)
     )
 
-    engine = get_engine()
-    session = Session(bind=engine)
-    with session.begin():
-        query = decorated_hits
-        limit = 1000
-        result = session.execute(query.limit(limit))
-        rows = result.mappings().fetchall()
-        uuids = [x["uuid"] for x in rows]
-        # TODO: Log org-funk lookups
-        # TODO: Log class lookups
-        audit_log(
-            session,
-            "find_org_units_matching",
-            "OrganisationEnhed",
-            {"phrase": phrase, "class_uuids": class_uuids},
-            uuids,
-        )
-        return rows
+    query = decorated_hits
+    limit = 1000
+    result = await session.execute(query.limit(limit))
+    rows = result.mappings().fetchall()
+    uuids = [x["uuid"] for x in rows]
+    # TODO: Log org-funk lookups
+    # TODO: Log class lookups
+    audit_log(
+        session,
+        "find_org_units_matching",
+        "OrganisationEnhed",
+        {"phrase": phrase, "class_uuids": class_uuids},
+        uuids,
+    )
+    return rows
 
 
-def _org_unit_path(all_hits, enhed_uuid):
+async def _org_unit_path(session, all_hits, enhed_uuid):
     # Construct a scalar subselect which will return the path for each found
     # org unit in `all_hits`.
-
-    org = get_table("organisation")
-    enhed_reg = get_table("organisationenhed_registrering")
-    enhed_rel = get_table("organisationenhed_relation")
-    enhed_att = get_table("organisationenhed_attr_egenskaber")
+    connection = await session.connection()
+    org = await get_table("organisation", connection)
+    enhed_reg = await get_table("organisationenhed_registrering", connection)
+    enhed_rel = await get_table("organisationenhed_relation", connection)
+    enhed_att = await get_table("organisationenhed_attr_egenskaber", connection)
 
     # Base CTE:
     # Initialize the recursion with the UUID of the found org unit, as well as

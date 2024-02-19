@@ -3,22 +3,20 @@
 from uuid import UUID
 
 import pytest
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from mora import mapping
-from mora.graphapi.versions.latest.graphql_utils import get_uuids
-from oio_rest.db import get_connection
+from mora.db import FacetRegistrering
 from tests.conftest import fake_auth
 from tests.conftest import GQLResponse
 
 
-@pytest.mark.xfail
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_create_facet(graphapi_post):
+async def test_create_facet(fixture_db: async_sessionmaker, graphapi_post):
     """Integrationtest for testing user references in LoRa."""
     payload = {
         "user_key": "TestFacet",
-        "org_uuid": str(await get_uuids(mapping.ORG, graphapi_post)),
+        "validity": {"from": "2012-03-04", "to": None},
     }
     mutate_query = """
         mutation CreateFacet($input: FacetCreateInput!) {
@@ -34,16 +32,12 @@ async def test_create_facet(graphapi_post):
     assert result.data
     facet_uuid = UUID(result.data["facet_create"]["uuid"])
 
-    with get_connection().cursor() as cursor:
-        cursor.execute(
-            """
-            SELECT (registrering).brugerref
-            FROM facet_registrering
-            WHERE facet_id = %(facet_uuid)s
-            """,
-            {"facet_uuid": str(facet_uuid)},
+    async with fixture_db.begin() as session:
+        brugerref = await session.scalar(
+            select(FacetRegistrering.actor).where(
+                FacetRegistrering.facet_id == str(facet_uuid)
+            )
         )
-        brugerref = cursor.fetchone()[0]
 
     user_ref = await fake_auth()
-    assert str(brugerref) == str(user_ref["uuid"])
+    assert str(brugerref) == str(user_ref.uuid)

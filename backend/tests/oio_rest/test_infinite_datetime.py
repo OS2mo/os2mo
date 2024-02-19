@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
 from datetime import timedelta
-from unittest import TestCase
 
 import pytest
 
@@ -13,7 +12,7 @@ INFINITY = "infinity"
 NINFINITY = "-infinity"
 
 
-class TestInfiniteDatetime(TestCase):
+class TestInfiniteDatetime:
     def test_parsing(self):
         base = datetime.now()
         base_str = base.isoformat()

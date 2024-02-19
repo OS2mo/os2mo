@@ -11,6 +11,8 @@ from zoneinfo import ZoneInfo
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
+from hypothesis import HealthCheck
+from hypothesis import settings
 from hypothesis import strategies as st
 from more_itertools import one
 from pytest import MonkeyPatch
@@ -200,6 +202,13 @@ def _create_address_create_hypothesis_test_data(
 # TESTS
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_data=graph_data_strat(AddressRead))
 def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all attributes of the address data model."""
@@ -241,6 +250,13 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     assert flatten_data(response.data["addresses"]["objects"]) == test_data
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_input=graph_data_uuids_strat(AddressRead))
 def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query addresses by UUID."""
@@ -406,9 +422,15 @@ async def test_create_mutator_fails(create_address: AsyncMock, given_mutator_arg
     create_address.assert_not_called()
 
 
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay in this instance
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(data=st.data())
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_integration(data, graphapi_post: GraphAPIPost):
     """Integration test for create address.
 
@@ -539,9 +561,7 @@ async def test_create_integration(data, graphapi_post: GraphAPIPost):
     """
 
     with util.darmock("dawa-addresses.json", real_http=True), dar_loader():
-        response = await execute_graphql(
-            query=mutate_query, variable_values={"input": payload}
-        )
+        response = graphapi_post(query=mutate_query, variables={"input": payload})
 
     assert response.errors is None
     test_data_uuid_new = UUID(response.data["address_create"]["uuid"])
@@ -591,7 +611,7 @@ async def test_create_integration(data, graphapi_post: GraphAPIPost):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "filter,expected",
     [
@@ -660,7 +680,7 @@ async def test_address_filters(graphapi_post: GraphAPIPost, filter, expected) ->
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data",
     [
@@ -814,7 +834,7 @@ async def test_update_address_unit_test(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_address_resolver(graphapi_post: GraphAPIPost) -> None:
     query = """
         query ResolveAddresses {

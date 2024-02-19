@@ -21,16 +21,6 @@ def register_health_endpoint(func: Callable) -> Callable:
 
 
 @register_health_endpoint
-async def oio_rest() -> bool:
-    """Check if the configured oio_rest can be reached.
-
-    Returns:
-        bool: True, since we're hosting LoRa internally 😎
-    """
-    return True
-
-
-@register_health_endpoint
 async def dataset() -> bool:
     """Check if LoRa contains data.
 
@@ -59,16 +49,3 @@ async def dar() -> bool:
     async with adarclient:
         return await adarclient.healthcheck()
     return False
-
-
-@register_health_endpoint
-async def keycloak() -> bool:
-    """Check nothing.
-
-    Keycloak healthchecking has been removed completely, as we only communicate
-    with Keycloak once on startup when we fetch the JWKS.
-
-    Returns:
-        bool: True always
-    """
-    return True

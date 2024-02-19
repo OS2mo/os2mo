@@ -9,6 +9,8 @@ from uuid import uuid4
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
+from hypothesis import HealthCheck
+from hypothesis import settings
 from hypothesis import strategies as st
 from hypothesis.strategies import DataObject
 from more_itertools import one
@@ -30,6 +32,13 @@ from ramodels.mo.details import ITUserRead
 from tests.conftest import GQLResponse
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_data=graph_data_strat(ITUserRead))
 def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all attributes of the ituser data model."""
@@ -63,6 +72,13 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     assert flatten_data(response.data["itusers"]["objects"]) == test_data
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_input=graph_data_uuids_strat(ITUserRead))
 def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query itusers by UUID."""
@@ -136,22 +152,26 @@ async def test_create_ituser(create_ituser: AsyncMock, data: DataObject) -> None
     assert response.data == {"ituser_create": {"uuid": str(test_data.uuid)}}
 
 
-@patch(
-    "mora.service.validation.models.GroupValidation.validate_unique_constraint",
-    new_callable=AsyncMock,
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay in this instance
+        HealthCheck.function_scoped_fixture,
+    ],
 )
 @given(data=st.data())
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_ituser_employee_integration_test(
-    validate_unique_constraint: AsyncMock,
     data: DataObject,
+    monkeypatch: MonkeyPatch,
     graphapi_post: GraphAPIPost,
     itsystem_uuids,
     employee_uuids,
 ) -> None:
-    validate_unique_constraint.return_value = None
-
+    monkeypatch.setattr(
+        "mora.service.validation.models.GroupValidation.validate_unique_constraint",
+        AsyncMock(return_value=None),
+    )
     employee_uuid = data.draw(st.sampled_from(employee_uuids))
     employee_from, employee_to = fetch_employee_validity(graphapi_post, employee_uuid)
 
@@ -251,21 +271,26 @@ async def test_create_ituser_employee_integration_test(
             )
 
 
-@patch(
-    "mora.service.validation.models.GroupValidation.validate_unique_constraint",
-    new_callable=AsyncMock,
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay in this instance
+        HealthCheck.function_scoped_fixture,
+    ],
 )
 @given(data=st.data())
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_ituser_org_unit_integration_test(
-    validate_unique_constraint: AsyncMock,
     data: DataObject,
+    monkeypatch: MonkeyPatch,
     graphapi_post: GraphAPIPost,
     itsystem_uuids,
     org_uuids,
 ) -> None:
-    validate_unique_constraint.return_value = None
+    monkeypatch.setattr(
+        "mora.service.validation.models.GroupValidation.validate_unique_constraint",
+        AsyncMock(return_value=None),
+    )
 
     org_unit_uuid = data.draw(st.sampled_from(org_uuids))
     org_unit_from, org_unit_to = fetch_org_unit_validity(graphapi_post, org_unit_uuid)
@@ -393,7 +418,7 @@ async def test_update_ituser(update_ituser: AsyncMock, test_data: ITUserUpdate) 
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data",
     [
@@ -509,7 +534,7 @@ async def test_update_ituser_integration_test(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_it_user_systems_uuid_filter(graphapi_post):
     ACTIVE_DIRECTORY = "59c135c9-2b15-41cc-97c8-b5dff7180beb"
 

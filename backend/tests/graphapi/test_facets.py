@@ -6,6 +6,8 @@ from uuid import UUID
 
 import pytest
 from hypothesis import given
+from hypothesis import HealthCheck
+from hypothesis import settings
 from more_itertools import first
 from pytest import MonkeyPatch
 
@@ -17,6 +19,13 @@ from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.models import FacetRead
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_data=graph_data_strat(FacetRead))
 async def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all attributes of the facets data model."""
@@ -51,6 +60,13 @@ async def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     assert flatten_data(response.data["facets"]["objects"]) == test_data
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_input=graph_data_uuids_strat(FacetRead))
 async def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query facets by UUID."""
@@ -134,7 +150,7 @@ read_history = partial(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_facet(graphapi_post):
     """Test that we can create new facets."""
     # Verify existing state
@@ -178,7 +194,7 @@ async def test_create_facet(graphapi_post):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_update_facet(graphapi_post) -> None:
     """Test that we can update facets."""
     # Verify existing state
@@ -235,7 +251,7 @@ async def test_update_facet(graphapi_post) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_delete_facet(graphapi_post) -> None:
     """Test that we can delete facets."""
     # Verify existing state
@@ -264,7 +280,7 @@ async def test_delete_facet(graphapi_post) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_terminate_facet(graphapi_post) -> None:
     """Test that we can terminate facets."""
     # Verify existing state

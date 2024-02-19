@@ -100,7 +100,7 @@ def _mo_return_it_user_doc():
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "mo_data, mo_expected, lora_expected",
     [
@@ -282,7 +282,7 @@ async def test_create_association(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_create_vacant_association(service_client: TestClient) -> None:
     # Check the POST request
@@ -483,7 +483,7 @@ async def test_create_vacant_association(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_create_association_with_dynamic_classes(
     service_client: TestClient,
@@ -650,7 +650,7 @@ async def test_create_association_with_dynamic_classes(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_edit_association_with_preexisting(service_client: TestClient) -> None:
     """More than one active association is allowed for each employee in each
@@ -720,7 +720,7 @@ async def test_edit_association_with_preexisting(service_client: TestClient) -> 
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_edit_association_move(service_client: TestClient) -> None:
     userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -879,7 +879,7 @@ async def test_edit_association_move(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_terminate_association_via_user(service_client: TestClient) -> None:
     # Check the POST request
@@ -997,7 +997,7 @@ async def test_terminate_association_via_user(service_client: TestClient) -> Non
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_create_association_from_missing_unit(service_client: TestClient) -> None:
     unitid = "00000000-0000-0000-0000-000000000000"
@@ -1037,7 +1037,7 @@ def test_create_association_from_missing_unit(service_client: TestClient) -> Non
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_create_association_succeeds_on_two_associations(
     service_client: TestClient,
@@ -1066,7 +1066,7 @@ def test_create_association_succeeds_on_two_associations(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_create_association_with_preexisting(service_client: TestClient) -> None:
     """An employee cannot have more than one active association per org
@@ -1121,7 +1121,7 @@ def test_create_association_with_preexisting(service_client: TestClient) -> None
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_create_association_no_unit(service_client: TestClient) -> None:
     # Check the POST request
@@ -1161,7 +1161,7 @@ def test_create_association_no_unit(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_create_association_fails_on_empty_payload(service_client: TestClient) -> None:
     payload = [
@@ -1182,7 +1182,7 @@ def test_create_association_fails_on_empty_payload(service_client: TestClient) -
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @set_settings_contextmanager(
     confdb_substitute_roles="bcd05828-cc10-48b1-bc48-2f0d204859b2"
@@ -1287,7 +1287,7 @@ def test_edit_association(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @set_settings_contextmanager(
     confdb_substitute_roles="bcd05828-cc10-48b1-bc48-2f0d204859b2"
@@ -1376,7 +1376,7 @@ def test_edit_association_substitute(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_terminate_association_directly(service_client: TestClient) -> None:
     userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -1429,7 +1429,7 @@ def test_terminate_association_directly(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2018-01-01", tz_offset=1)
 def test_terminate_association_in_the_past(service_client: TestClient) -> None:
     associationid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"

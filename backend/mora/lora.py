@@ -33,7 +33,7 @@ from fastapi import Request
 from fastapi import Response
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
-from psycopg2 import DataError
+from sqlalchemy.exc import DataError
 from starlette_context import context
 from starlette_context import request_cycle_context
 from strawberry.dataloader import DataLoader
@@ -42,6 +42,7 @@ from structlog import get_logger
 from . import config
 from . import exceptions
 from . import util
+from .db import get_sessionmaker
 from .graphapi.middleware import is_graphql
 from oio_rest import custom_exceptions as loraexc
 from oio_rest import klassifikation
@@ -144,8 +145,8 @@ def lora_to_mo_exception() -> Iterator[None]:
     except ValueError as e:
         exceptions.ErrorCodes.E_INVALID_INPUT(message=e.args[0], cause=None)
     except DataError as e:
-        message = e.diag.message_primary
-        cause = e.diag.context or e.pgerror.split("\n", 1)[-1]
+        message = e.orig.diag.message_primary
+        cause = e.orig.diag.context
         exceptions.ErrorCodes.E_INVALID_INPUT(message=message, cause=cause)
     except Exception as e:
         try:
@@ -798,4 +799,8 @@ class AutocompleteScope(BaseScope):
         self, phrase: str, class_uuids: list[UUID] | None = None
     ) -> dict[str, Any]:
         with lora_to_mo_exception():
-            return {"items": self.autocomplete(phrase, class_uuids=class_uuids)}
+            async with get_sessionmaker().begin() as session:
+                items = await self.autocomplete(
+                    session, phrase, class_uuids=class_uuids
+                )
+                return {"items": items}

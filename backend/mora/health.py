@@ -1,17 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import asyncio
-
 from fastapi import APIRouter
 from fastapi import HTTPException
-from fastapi import Response
 from more_itertools import one
 from starlette.status import HTTP_204_NO_CONTENT
-from starlette.status import HTTP_503_SERVICE_UNAVAILABLE
 
 from mora.graphapi.shim import execute_graphql
-from mora.graphapi.versions.latest.health import keycloak
-from mora.graphapi.versions.latest.health import oio_rest
 
 
 router = APIRouter()
@@ -24,25 +18,11 @@ async def liveness():
     """
 
 
-@router.get(
-    "/ready",
-    status_code=HTTP_204_NO_CONTENT,
-    responses={
-        "204": {"description": "Ready"},
-        "503": {"description": "Not ready"},
-    },
-)
-async def readiness(response: Response):
+@router.get("/ready", status_code=HTTP_204_NO_CONTENT)
+async def readiness():
     """
     Endpoint to be used as a readiness probe for Kubernetes.
-    If MO itself is ready (FastAPI is running), LoRa is running,
-    and Keycloak all are healthy then MO is considered to be ready.
     """
-
-    lora_ready, keycloak_ready = await asyncio.gather(oio_rest(), keycloak())
-
-    if not (lora_ready and keycloak_ready):
-        response.status_code = HTTP_503_SERVICE_UNAVAILABLE
 
 
 @router.get("/")

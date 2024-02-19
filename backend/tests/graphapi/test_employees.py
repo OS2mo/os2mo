@@ -11,6 +11,8 @@ from zoneinfo import ZoneInfo
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
+from hypothesis import HealthCheck
+from hypothesis import settings
 from hypothesis import strategies as st
 from more_itertools import one
 from pytest import MonkeyPatch
@@ -37,6 +39,13 @@ now_min_cph = datetime.combine(datetime.now().date(), datetime.min.time()).repla
 invalid_uuids = [UUID("7626ad64-327d-481f-8b32-36c78eb12f8c")]
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_data=graph_data_strat(EmployeeRead))
 def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all our employees."""
@@ -80,6 +89,13 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     assert flatten_data(response.data["employees"]["objects"]) == test_data
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_input=graph_data_uuids_strat(EmployeeRead))
 def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query employees by UUID."""
@@ -314,6 +330,12 @@ def valid_cprs(draw) -> str:
     return cpr_number
 
 
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay in this instance
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @patch(
     "mora.service.employee.does_employee_with_cpr_already_exist", new_callable=AsyncMock
 )
@@ -331,7 +353,7 @@ def valid_cprs(draw) -> str:
     )
 )
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_employee_integration_test(
     does_employee_with_cpr_already_exist: AsyncMock,
     test_data: EmployeeCreate,
@@ -376,7 +398,7 @@ async def test_create_employee_integration_test(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_employee_with_nickname(graphapi_post) -> None:
     """Test that employees can be created with nicknames via GraphQL."""
 
@@ -617,7 +639,7 @@ async def test_update_mutator_fails(
     ],
 )
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_update_integration(given_data, graphapi_post: GraphAPIPost):
     # Create test data
     test_data = EmployeeUpdate(

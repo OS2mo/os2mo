@@ -2,14 +2,16 @@
 # SPDX-License-Identifier: MPL-2.0
 import collections
 import datetime
-import unittest
-from unittest import TestCase
+from unittest.mock import AsyncMock
 from unittest.mock import call
 from unittest.mock import MagicMock
+from unittest.mock import Mock
 from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
+from psycopg.sql import Literal
+from pytest import MonkeyPatch
 
 from oio_rest import db
 from oio_rest.custom_exceptions import BadRequestException
@@ -17,14 +19,44 @@ from oio_rest.custom_exceptions import DBException
 from oio_rest.custom_exceptions import NotFoundException
 
 
-def get_mocked_cursor(mock):
-    """Replace the context manager for a cursor object with magic mock"""
-    _ = mock.return_value.cursor
-    cursor = _.return_value.__enter__.return_value = MagicMock()
-    return cursor
+def mock_sql_session(monkeypatch: MonkeyPatch) -> AsyncMock:
+    """Mock SQLAlchemy sessionmaker.
+
+    Supports mocking
+
+        async with get_sessionmaker().begin() as session:
+            resulting_sql = await mogrify(...)
+            result = await session.scalar(text(resulting_sql))
+
+    or
+
+        async with get_sessionmaker().begin() as session:
+            result = await session.execute(sql)
+            return result.fetchone()
+    """
+    # Mock mogrify calls
+    mogrify = AsyncMock()
+    monkeypatch.setattr("oio_rest.db.mogrify", mogrify)
+    mogrify.return_value = ""
+
+    # Mock sessionmaker
+    get_sessionmaker = Mock()
+    monkeypatch.setattr("oio_rest.db.get_sessionmaker", get_sessionmaker)
+    sessionmaker = get_sessionmaker.return_value = Mock()
+    context_manager = sessionmaker.begin.return_value = AsyncMock()
+    session = context_manager.__aenter__.return_value = AsyncMock()
+    # Mock calls of type 'session.scalar(...)'
+    session.scalar.return_value = Mock()
+    # Mock calls of type 'r = await session.execute(...); r.fetchone()'
+    session.execute.return_value = Mock()
+
+    # Caller should use either:
+    #  - mock_sql_session().scalar.return_value = ...
+    #  - mock_sql_session().execute.return_value.fetchone.return_value = ...
+    return session
 
 
-class TestDB(TestCase):
+class TestDB:
     @patch("oio_rest.db.get_relation_field_type")
     def test_convert_relation_value_default(self, mock_get_rel):
         mock_get_rel.return_value = "not a known field type"
@@ -251,8 +283,7 @@ class TestDB(TestCase):
         assert expected_result == actual_result
 
     @patch("oio_rest.db.convert_relation_value")
-    def test_convert_relations_no_value(self, mock_conv_rel):
-        # type: (MagicMock) -> None
+    def test_convert_relations_no_value(self, mock_conv_rel: MagicMock) -> None:
         # Arrange
 
         mock_conv_rel.return_value = "value"
@@ -266,8 +297,9 @@ class TestDB(TestCase):
         assert relations == actual_result
 
     @patch("oio_rest.db.convert_relation_value")
-    def test_convert_relations_calls_convert_relation_value(self, mock_conv_rel):
-        # type: (MagicMock) -> None
+    def test_convert_relations_calls_convert_relation_value(
+        self, mock_conv_rel: MagicMock
+    ) -> None:
         # Arrange
 
         mock_conv_rel.return_value = "value"
@@ -287,8 +319,7 @@ class TestDB(TestCase):
         assert call("classname", "field4", "value4") in mock_conv_rel.call_args_list
 
     @patch("oio_rest.db.convert_relation_value", new=lambda x, y, z: z)
-    def test_convert_relations_returns_as_expected(self):
-        # type: () -> None
+    def test_convert_relations_returns_as_expected(self) -> None:
         # Arrange
 
         relations = {
@@ -326,8 +357,9 @@ class TestDB(TestCase):
         assert actual_result is None
 
     @patch("oio_rest.db.DokumentVariantType.input")
-    def test_convert_variants_calls_constructor(self, mock_dvt_input):
-        # type: (MagicMock) -> None
+    def test_convert_variants_calls_constructor(
+        self, mock_dvt_input: MagicMock
+    ) -> None:
         # Arrange
         expected_result = ["value1", "value2"]
         mock_dvt_input.side_effect = expected_result
@@ -342,8 +374,7 @@ class TestDB(TestCase):
         assert expected_result == actual_result
 
     @patch("oio_rest.db.get_field_type")
-    def test_convert_attr_value_default(self, mock_get_field_type):
-        # type: (MagicMock) -> None
+    def test_convert_attr_value_default(self, mock_get_field_type: MagicMock) -> None:
         # Arrange
         value = "attribute_field_value"
         mock_get_field_type.return_value = "text"
@@ -356,8 +387,7 @@ class TestDB(TestCase):
         assert value == actual_result
 
     @patch("oio_rest.db.get_field_type")
-    def test_convert_attr_value_soegeord(self, mock_get_field_type):
-        # type: (MagicMock) -> None
+    def test_convert_attr_value_soegeord(self, mock_get_field_type: MagicMock) -> None:
         from oio_rest.db.db_helpers import Soegeord
 
         # Arrange
@@ -378,8 +408,9 @@ class TestDB(TestCase):
         assert expected_result == actual_result
 
     @patch("oio_rest.db.get_field_type")
-    def test_convert_attr_value_offentlighedundtagettype(self, mock_get_field_type):
-        # type: (MagicMock) -> None
+    def test_convert_attr_value_offentlighedundtagettype(
+        self, mock_get_field_type: MagicMock
+    ) -> None:
         from oio_rest.db.db_helpers import OffentlighedUndtaget
 
         # Arrange
@@ -401,10 +432,8 @@ class TestDB(TestCase):
 
     @patch("oio_rest.db.get_field_type")
     def test_convert_attr_value_offentlighedundtagettype_none(
-        self, mock_get_field_type
-    ):
-        # type: (MagicMock) -> None
-
+        self, mock_get_field_type: MagicMock
+    ) -> None:
         # Arrange
         mock_get_field_type.return_value = "offentlighedundtagettype"
 
@@ -420,9 +449,7 @@ class TestDB(TestCase):
         assert expected_result == actual_result
 
     @patch("oio_rest.db.get_field_type")
-    def test_convert_attr_value_date(self, mock_get_field_type):
-        # type: (MagicMock) -> None
-
+    def test_convert_attr_value_date(self, mock_get_field_type: MagicMock) -> None:
         # Arrange
         mock_get_field_type.return_value = "date"
 
@@ -438,9 +465,9 @@ class TestDB(TestCase):
         assert expected_result == actual_result
 
     @patch("oio_rest.db.get_field_type")
-    def test_convert_attr_value_timestamptz(self, mock_get_field_type):
-        # type: (MagicMock) -> None
-
+    def test_convert_attr_value_timestamptz(
+        self, mock_get_field_type: MagicMock
+    ) -> None:
         # Arrange
         mock_get_field_type.return_value = "timestamptz"
 
@@ -456,28 +483,30 @@ class TestDB(TestCase):
         assert expected_result == actual_result
 
     @patch("oio_rest.db.get_field_type")
-    def test_convert_attr_value_interval(self, mock_get_field_type):
-        # type: (MagicMock) -> None
-
+    def test_convert_attr_value_interval(self, mock_get_field_type: MagicMock) -> None:
         # Arrange
         mock_get_field_type.return_value = "interval(0)"
 
         value = "1 day"
 
-        expected_result = "'1 day' :: interval"
+        expected_result = Literal("'1 day' :: interval")
 
         # Act
         actual_result = db.convert_attr_value(
             "attribute_name", "attribute_field_name", value
         )
         # Assert
-        assert expected_result == str(actual_result)
+        assert expected_result == actual_result
 
     @patch("oio_rest.db.transform_virkning")
     @patch("oio_rest.db.filter_empty")
     @patch("oio_rest.db.simplify_cleared_wrappers")
-    def test_filter_json_output(self, mock_transform, mock_filter, mock_simplify):
-        # type: (MagicMock, MagicMock, MagicMock) -> None
+    def test_filter_json_output(
+        self,
+        mock_transform: MagicMock,
+        mock_filter: MagicMock,
+        mock_simplify: MagicMock,
+    ) -> None:
         # Arrange
         mock_transform.side_effect = lambda x: x
         mock_filter.side_effect = lambda x: x
@@ -824,9 +853,7 @@ class TestDB(TestCase):
         # Assert
         assert expected_result == actual_value
 
-    @patch("oio_rest.db.list_objects")
-    def test_get_life_cycle_code(self, mock_list_objs):
-        # type: (MagicMock) -> None
+    async def test_get_life_cycle_code(self, monkeypatch: MonkeyPatch) -> None:
         # Arrange
         class_name = ""
         uuid = "e9eea92f-d404-48c4-85e1-222b56013e3e"
@@ -846,16 +873,16 @@ class TestDB(TestCase):
             ]
         ]
 
-        mock_list_objs.return_value = results
+        monkeypatch.setattr("oio_rest.db.list_objects", AsyncMock(return_value=results))
 
         # Act
-        actual_result = db.get_life_cycle_code(class_name, uuid)
+        actual_result = await db.get_life_cycle_code(class_name, uuid)
 
         # Assert
         assert actual_result == "Importeret"
 
 
-class TestConsolidateVirkninger(unittest.TestCase):
+class TestConsolidateVirkninger:
     def test_consolidate_effects_works_correctly(self):
         # Arrange
         effects = [
@@ -1401,26 +1428,28 @@ class TestConsolidateVirkninger(unittest.TestCase):
         assert expected == actual
 
 
-@patch("oio_rest.db.sql_convert_registration", new=MagicMock())
-class TestDBObjectFunctions(unittest.TestCase):
-    @patch("oio_rest.db.get_connection")
-    @patch("oio_rest.db.jinja_env")
-    def test_update_object_returns_uuid(self, mock_jinja_env, mock_get_conn):
-        # type: (MagicMock, MagicMock) -> None
+get_template_mock = MagicMock()
+get_template_mock.return_value.render_async = AsyncMock(return_value="")
+
+
+@patch("oio_rest.db.sql_convert_registration", new=AsyncMock())
+class TestDBObjectFunctions:
+    @patch("oio_rest.db.jinja_env.get_template", new=get_template_mock)
+    async def test_update_object_returns_uuid(self, monkeypatch: MonkeyPatch) -> None:
         # Arrange
+        mock_sql_session(monkeypatch)
         uuid = "uuid"
 
         # Act
-        actual_result = db.update_object("classname", {}, "note", uuid)
+        actual_result = await db.update_object("classname", {}, "note", uuid)
 
         # Assert
         assert uuid == actual_result
 
-    @patch("oio_rest.db.get_connection")
-    def test_list_objects_repairs_relations(self, mock_get_conn):
+    async def test_list_objects_repairs_relations(self, monkeypatch: MonkeyPatch):
         # Arrange
-        cursor = get_mocked_cursor(mock_get_conn)
-        cursor.fetchone.return_value = (
+        mock = mock_sql_session(monkeypatch)
+        mock.execute.return_value.fetchone.return_value = (
             [
                 {
                     "id": "f06ee470-9f17-566f-acbe-e938112d46d9",
@@ -1441,7 +1470,7 @@ class TestDBObjectFunctions(unittest.TestCase):
         )
 
         # Act
-        actual_result = db.list_objects(
+        actual_result = await db.list_objects(
             "classname",
             ["uuid"],
             "virkning_fra",
@@ -1473,19 +1502,18 @@ class TestDBObjectFunctions(unittest.TestCase):
         )
 
 
-class TestDBGeneralSQL(unittest.TestCase):
+class TestDBGeneralSQL:
     @patch("oio_rest.db.sql_attribute_array")
     @patch("oio_rest.db.sql_relations_array")
     @patch("oio_rest.db.get_attribute_names")
     @patch("oio_rest.db.convert_attributes", new=lambda x: x)
     @patch("oio_rest.db.get_state_names", new=MagicMock())
-    def test_sql_convert_registration_attributes(
+    async def test_sql_convert_registration_attributes(
         self,
-        mock_get_attribute_names,
-        mock_sql_relations_array,
-        mock_sql_attribute_array,
-    ):
-        # type: (MagicMock, MagicMock, MagicMock) -> None
+        mock_get_attribute_names: MagicMock,
+        mock_sql_relations_array: MagicMock,
+        mock_sql_attribute_array: MagicMock,
+    ) -> None:
         mock_get_attribute_names.return_value = ["attribute1", "attribute2"]
         mock_sql_relations_array.return_value = []
         mock_sql_attribute_array.side_effect = lambda *x: x
@@ -1510,7 +1538,7 @@ class TestDBGeneralSQL(unittest.TestCase):
         }
 
         # Act
-        actual_result = db.sql_convert_registration(registration, class_name)
+        actual_result = await db.sql_convert_registration(registration, class_name)
 
         # Assert
         sql_state_array_args = mock_sql_attribute_array.call_args_list
@@ -1524,10 +1552,12 @@ class TestDBGeneralSQL(unittest.TestCase):
     @patch("oio_rest.db.sql_relations_array")
     @patch("oio_rest.db.get_attribute_names", new=MagicMock())
     @patch("oio_rest.db.get_state_names")
-    def test_sql_convert_registration_states(
-        self, mock_get_state_names, mock_sql_relations_array, mock_sql_state_array
-    ):
-        # type: (MagicMock, MagicMock, MagicMock) -> None
+    async def test_sql_convert_registration_states(
+        self,
+        mock_get_state_names: MagicMock,
+        mock_sql_relations_array: MagicMock,
+        mock_sql_state_array: MagicMock,
+    ) -> None:
         mock_get_state_names.return_value = ["state1", "state2"]
         mock_sql_relations_array.return_value = []
         mock_sql_state_array.side_effect = lambda *x: x
@@ -1552,7 +1582,7 @@ class TestDBGeneralSQL(unittest.TestCase):
         }
 
         # Act
-        actual_result = db.sql_convert_registration(registration, class_name)
+        actual_result = await db.sql_convert_registration(registration, class_name)
 
         # Assert
         sql_state_array_args = mock_sql_state_array.call_args_list
@@ -1566,8 +1596,9 @@ class TestDBGeneralSQL(unittest.TestCase):
     @patch("oio_rest.db.convert_relations", new=lambda x, y: x)
     @patch("oio_rest.db.get_attribute_names", new=MagicMock())
     @patch("oio_rest.db.get_state_names", new=MagicMock())
-    def test_sql_convert_registration_relations(self, mock_sql_relations_array):
-        # type: (MagicMock) -> None
+    async def test_sql_convert_registration_relations(
+        self, mock_sql_relations_array: MagicMock
+    ) -> None:
         mock_sql_relations_array.side_effect = lambda *x: x
 
         # Arrange
@@ -1580,7 +1611,7 @@ class TestDBGeneralSQL(unittest.TestCase):
         class_name = "classname"
 
         # Act
-        db.sql_convert_registration(registration, class_name)
+        await db.sql_convert_registration(registration, class_name)
 
         # Assert
         sql_state_array_args = mock_sql_relations_array.call_args_list
@@ -1589,13 +1620,18 @@ class TestDBGeneralSQL(unittest.TestCase):
             in sql_state_array_args
         )
 
-    @patch("oio_rest.db.convert_variants")
-    @patch("oio_rest.db.adapt")
     @patch("oio_rest.db.convert_relations", new=lambda x, y: x)
     @patch("oio_rest.db.get_attribute_names", new=MagicMock())
     @patch("oio_rest.db.get_state_names", new=MagicMock())
-    def test_sql_convert_registration_variants(self, mock_adapt, mock_convert_variants):
-        # type: (MagicMock, MagicMock) -> None
+    async def test_sql_convert_registration_variants(
+        self, monkeypatch: MonkeyPatch
+    ) -> None:
+        mock_convert_variants = Mock()
+        monkeypatch.setattr("oio_rest.db.convert_variants", mock_convert_variants)
+
+        mock_adapt = AsyncMock()
+        monkeypatch.setattr("oio_rest.db.adapt", mock_adapt)
+
         mock_adapt.side_effect = lambda x: x
         mock_convert_variants.side_effect = lambda x: x
 
@@ -1611,79 +1647,81 @@ class TestDBGeneralSQL(unittest.TestCase):
         class_name = "classname"
 
         # Act
-        db.sql_convert_registration(registration, class_name)
+        await db.sql_convert_registration(registration, class_name)
 
         # Assert
         mock_adapt.assert_called_with(variants)
         mock_convert_variants.assert_called_with(variants)
 
 
+Orig = collections.namedtuple("Orig", ["sqlstate", "diag"])
 Diagnostics = collections.namedtuple("Diagnostics", ["message_primary"])
 
 
-@patch("oio_rest.db.get_connection")
-@patch("oio_rest.db.sql_get_registration", new=MagicMock())
-@patch("oio_rest.db.sql_convert_registration", new=MagicMock())
-@patch("oio_rest.db.jinja_env.get_template", new=MagicMock())
-class TestPGErrors(unittest.TestCase):
-    class TestException(Exception):
+@patch("oio_rest.db.sql_get_registration", new=AsyncMock())
+@patch("oio_rest.db.sql_convert_registration", new=AsyncMock())
+@patch("oio_rest.db.jinja_env.get_template", new=get_template_mock)
+class TestPGErrors:
+    class FakeException(Exception):
         def __init__(self, code="MO123", message="1 2 3 testing..."):
             self.pgcode = code
-            self.pgerror = message
             self.diag = Diagnostics(message)
 
-    @patch("oio_rest.db.psycopg2.Error", new=TestException)
-    def test_object_exists_raises_on_pgerror(self, mock_get_conn):
-        # type: (MagicMock) -> None
+        @property
+        def orig(self):
+            return Orig(sqlstate=self.pgcode, diag=self.diag)
 
+    @patch("oio_rest.db.StatementError", new=FakeException)
+    async def test_object_exists_raises_on_pgerror(
+        self, monkeypatch: MonkeyPatch
+    ) -> None:
         # Arrange
         classname = "classname"
         uuid = "1c3236a1-9384-4730-82ab-5443e95bcead"
 
-        cursor = get_mocked_cursor(mock_get_conn)
-        cursor.execute.side_effect = TestPGErrors.TestException
+        mock = mock_sql_session(monkeypatch)
+        mock.execute.side_effect = TestPGErrors.FakeException
 
         # Act
         with pytest.raises(Exception):
-            db.object_exists(classname, uuid)
+            await db.object_exists(classname, uuid)
 
-    @patch("oio_rest.db.psycopg2.Error", new=TestException)
-    def test_object_exists_raises_on_unknown_pgerror(self, mock_get_conn):
-        # type: (MagicMock) -> None
-
+    @patch("oio_rest.db.StatementError", new=FakeException)
+    async def test_object_exists_raises_on_unknown_pgerror(
+        self, monkeypatch: MonkeyPatch
+    ) -> None:
         # Arrange
         classname = "classname"
         uuid = "1c3236a1-9384-4730-82ab-5443e95bcead"
 
-        cursor = get_mocked_cursor(mock_get_conn)
-        exception = TestPGErrors.TestException("123")
-        cursor.execute.side_effect = exception
+        mock = mock_sql_session(monkeypatch)
+        mock.scalar.side_effect = TestPGErrors.FakeException("123")
 
         # Act
-        with pytest.raises(TestPGErrors.TestException):
-            db.object_exists(classname, uuid)
+        with pytest.raises(TestPGErrors.FakeException):
+            await db.object_exists(classname, uuid)
 
-    @patch("oio_rest.db.psycopg2.Error", new=TestException)
-    def test_create_or_import_object_raises_on_pgerror(self, mock_get_conn):
-        # type: (MagicMock) -> None
-
+    @patch("oio_rest.db.StatementError", new=FakeException)
+    async def test_create_or_import_object_raises_on_pgerror(
+        self, monkeypatch: MonkeyPatch
+    ) -> None:
         # Arrange
-        cursor = get_mocked_cursor(mock_get_conn)
-        cursor.execute.side_effect = TestPGErrors.TestException
+        mock = mock_sql_session(monkeypatch)
+        mock.scalar.side_effect = TestPGErrors.FakeException
 
         # Act
         with pytest.raises(DBException):
-            db.create_or_import_object("OrganisationEnhed", "", "", str(uuid4()))
+            await db.create_or_import_object("OrganisationEnhed", "", "", str(uuid4()))
 
-    @patch("oio_rest.db.psycopg2.Error", new=TestException)
-    @patch("oio_rest.db.object_exists", new=lambda *x: False)
-    def test_create_or_import_object_raises_on_noop_pgerror(self, mock_get_conn):
-        # type: (MagicMock) -> None
-
+    @patch("oio_rest.db.StatementError", new=FakeException)
+    @patch("oio_rest.db.object_exists", new=AsyncMock(side_effect=lambda *x: False))
+    async def test_create_or_import_object_raises_on_noop_pgerror(
+        self, monkeypatch: MonkeyPatch
+    ) -> None:
         # Arrange
         class_name = "class"
         uuid = "61ae604b-e7fb-4892-a09a-55e5f6822435"
-        exception = TestPGErrors.TestException()
+        exception = TestPGErrors.FakeException()
         exception.message = (
             "Aborted updating {} with id [{}] as the given "
             "data, does not give raise to a new "
@@ -1691,52 +1729,52 @@ class TestPGErrors(unittest.TestCase):
         ).format(class_name, uuid)
         exception.pgcode = "12345"
 
-        cursor = get_mocked_cursor(mock_get_conn)
-        cursor.execute.side_effect = exception
+        mock = mock_sql_session(monkeypatch)
+        mock.execute.side_effect = exception
 
         # Act
-        with pytest.raises(TestPGErrors.TestException):
-            db.create_or_import_object(class_name, "", "", uuid)
+        with pytest.raises(TestPGErrors.FakeException):
+            await db.create_or_import_object(class_name, "", "", uuid)
 
-    @patch("oio_rest.db.psycopg2.Error", new=TestException)
-    def test_create_or_import_object_raises_on_unknown_pgerror(self, mock_get_conn):
-        # type: (MagicMock) -> None
-
+    @patch("oio_rest.db.StatementError", new=FakeException)
+    async def test_create_or_import_object_raises_on_unknown_pgerror(
+        self, monkeypatch: MonkeyPatch
+    ) -> None:
         # Arrange
         class_name = "class"
         uuid = "61ae604b-e7fb-4892-a09a-55e5f6822435"
-        exception = TestPGErrors.TestException()
+        exception = TestPGErrors.FakeException()
         exception.pgcode = "12345"
 
-        cursor = get_mocked_cursor(mock_get_conn)
-        cursor.execute.side_effect = exception
+        mock = mock_sql_session(monkeypatch)
+        mock.scalar.side_effect = exception
 
         # Act
-        with pytest.raises(TestPGErrors.TestException):
-            db.create_or_import_object(class_name, "", "", uuid)
+        with pytest.raises(TestPGErrors.FakeException):
+            await db.create_or_import_object(class_name, "", "", uuid)
 
-    @patch("oio_rest.db.psycopg2.Error", new=TestException)
-    def test_delete_object_raises_on_pgerror(self, mock_get_conn):
-        # type: (MagicMock) -> None
-
+    @patch("oio_rest.db.StatementError", new=FakeException)
+    async def test_delete_object_raises_on_pgerror(
+        self, monkeypatch: MonkeyPatch
+    ) -> None:
         # Arrange
-        cursor = get_mocked_cursor(mock_get_conn)
-        cursor.execute.side_effect = TestPGErrors.TestException
+        mock = mock_sql_session(monkeypatch)
+        mock.scalar.side_effect = TestPGErrors.FakeException
 
         # Act
         with pytest.raises(DBException):
-            db.delete_object("OrganisationEnhed", "", "", str(uuid4()))
+            await db.delete_object("OrganisationEnhed", "", "", str(uuid4()))
 
-    @patch("oio_rest.db.psycopg2.Error", new=TestException)
-    @patch("oio_rest.db.object_exists", new=lambda *x: False)
-    def test_delete_object_raises_on_notfound_pgerror(self, mock_get_conn):
-        # type: (MagicMock) -> None
-
+    @patch("oio_rest.db.StatementError", new=FakeException)
+    @patch("oio_rest.db.object_exists", new=AsyncMock(side_effect=lambda *x: False))
+    async def test_delete_object_raises_on_notfound_pgerror(
+        self, monkeypatch: MonkeyPatch
+    ) -> None:
         # Arrange
         class_name = "classname"
         uuid = "40910e35-feeb-47ca-8020-a88fffe6d6f3"
 
-        exception = TestPGErrors.TestException(
+        exception = TestPGErrors.FakeException(
             "12345",
             (
                 "Unable to update {} with uuid [{}], "
@@ -1744,154 +1782,154 @@ class TestPGErrors(unittest.TestCase):
             ).format(class_name.lower(), uuid),
         )
 
-        cursor = get_mocked_cursor(mock_get_conn)
-        cursor.execute.side_effect = exception
+        mock = mock_sql_session(monkeypatch)
+        mock.execute.side_effect = exception
 
         # Act
         with pytest.raises(NotFoundException):
-            db.delete_object(class_name, "", "", uuid)
+            await db.delete_object(class_name, "", "", uuid)
 
-    @patch("oio_rest.db.psycopg2.Error", new=TestException)
-    def test_delete_object_raises_on_unknown_pgerror(self, mock_get_conn):
-        # type: (MagicMock) -> None
-
+    @patch("oio_rest.db.StatementError", new=FakeException)
+    async def test_delete_object_raises_on_unknown_pgerror(
+        self, monkeypatch: MonkeyPatch
+    ) -> None:
         # Arrange
-        exception = TestPGErrors.TestException()
+        exception = TestPGErrors.FakeException()
         exception.pgcode = "12345"
-        cursor = get_mocked_cursor(mock_get_conn)
-        cursor.execute.side_effect = exception
+        mock = mock_sql_session(monkeypatch)
+        mock.scalar.side_effect = exception
 
         # Act
-        with pytest.raises(TestPGErrors.TestException):
-            db.delete_object("OrganisationEnhed", "", "", str(uuid4()))
+        with pytest.raises(TestPGErrors.FakeException):
+            await db.delete_object("OrganisationEnhed", "", "", str(uuid4()))
 
-    @patch("oio_rest.db.psycopg2.Error", new=TestException)
-    def test_passivate_object_raises_on_pgerror(self, mock_get_conn):
-        # type: (MagicMock) -> None
-
+    @patch("oio_rest.db.StatementError", new=FakeException)
+    async def test_passivate_object_raises_on_pgerror(
+        self, monkeypatch: MonkeyPatch
+    ) -> None:
         # Arrange
-        exception = TestPGErrors.TestException()
-        cursor = get_mocked_cursor(mock_get_conn)
-        cursor.execute.side_effect = exception
+        exception = TestPGErrors.FakeException()
+        mock = mock_sql_session(monkeypatch)
+        mock.execute.side_effect = exception
 
         # Act
         with pytest.raises(DBException):
-            db.passivate_object("", "", "", "")
+            await db.passivate_object("", "", "", "")
 
-    @patch("oio_rest.db.psycopg2.Error", new=TestException)
-    def test_passivate_object_raises_on_unknown_pgerror(self, mock_get_conn):
-        # type: (MagicMock) -> None
-
+    @patch("oio_rest.db.StatementError", new=FakeException)
+    async def test_passivate_object_raises_on_unknown_pgerror(
+        self, monkeypatch: MonkeyPatch
+    ) -> None:
         # Arrange
-        exception = TestPGErrors.TestException()
+        exception = TestPGErrors.FakeException()
         exception.pgcode = "123456"
-        cursor = get_mocked_cursor(mock_get_conn)
-        cursor.execute.side_effect = exception
+        mock = mock_sql_session(monkeypatch)
+        mock.execute.side_effect = exception
 
         # Act
-        with pytest.raises(TestPGErrors.TestException):
-            db.passivate_object("", "", "", "")
+        with pytest.raises(TestPGErrors.FakeException):
+            await db.passivate_object("", "", "", "")
 
-    @patch("oio_rest.db.psycopg2.Error", new=TestException)
-    def test_update_object_raises_on_pgerror(self, mock_get_conn):
-        # type: (MagicMock) -> None
-
+    @patch("oio_rest.db.StatementError", new=FakeException)
+    async def test_update_object_raises_on_pgerror(
+        self, monkeypatch: MonkeyPatch
+    ) -> None:
         # Arrange
-        exception = TestPGErrors.TestException()
-        cursor = get_mocked_cursor(mock_get_conn)
-        cursor.execute.side_effect = exception
+        exception = TestPGErrors.FakeException()
+        mock = mock_sql_session(monkeypatch)
+        mock.execute.side_effect = exception
 
         # Act
         with pytest.raises(DBException):
-            db.update_object("", "", "", "")
+            await db.update_object("", "", "", "")
 
-    @patch("oio_rest.db.psycopg2.Error", new=TestException)
-    def test_update_object_returns_uuid_on_noop_pgerror(self, mock_get_conn):
-        # type: (MagicMock) -> None
-
+    @patch("oio_rest.db.StatementError", new=FakeException)
+    async def test_update_object_returns_uuid_on_noop_pgerror(
+        self, monkeypatch: MonkeyPatch
+    ) -> None:
         # Arrange
         class_name = "classname"
         uuid = "8abdb359-ce8a-47d9-a5d0-c9a1c6d36c44"
 
-        exception = TestPGErrors.TestException(
+        exception = TestPGErrors.FakeException(
             message="Aborted updating {} with id [{}] as the given data, "
             "does not give raise to a new registration.".format(
                 class_name.lower(), uuid
             )
         )
-        cursor = get_mocked_cursor(mock_get_conn)
-        cursor.execute.side_effect = exception
+        mock = mock_sql_session(monkeypatch)
+        mock.execute.side_effect = exception
 
         # Act
-        actual_result = db.update_object(class_name, "", "", uuid)
+        actual_result = await db.update_object(class_name, "", "", uuid)
 
         # Assert
         assert uuid == actual_result
 
-    @patch("oio_rest.db.psycopg2.Error", new=TestException)
-    def test_update_object_raises_on_unknown_pgerror(self, mock_get_conn):
-        # type: (MagicMock) -> None
-
+    @patch("oio_rest.db.StatementError", new=FakeException)
+    async def test_update_object_raises_on_unknown_pgerror(
+        self, monkeypatch: MonkeyPatch
+    ) -> None:
         # Arrange
-        exception = TestPGErrors.TestException()
+        exception = TestPGErrors.FakeException()
         exception.pgcode = "123456"
-        cursor = get_mocked_cursor(mock_get_conn)
-        cursor.execute.side_effect = exception
+        mock = mock_sql_session(monkeypatch)
+        mock.execute.side_effect = exception
 
         # Act
-        with pytest.raises(TestPGErrors.TestException):
-            db.update_object("", "", "", "")
+        with pytest.raises(TestPGErrors.FakeException):
+            await db.update_object("", "", "", "")
 
-    @patch("oio_rest.db.psycopg2.Error", new=TestException)
-    def test_list_objects_raises_on_pgerror(self, mock_get_conn):
-        # type: (MagicMock) -> None
-
+    @patch("oio_rest.db.StatementError", new=FakeException)
+    async def test_list_objects_raises_on_pgerror(
+        self, monkeypatch: MonkeyPatch
+    ) -> None:
         # Arrange
-        exception = TestPGErrors.TestException()
-        cursor = get_mocked_cursor(mock_get_conn)
-        cursor.execute.side_effect = exception
+        exception = TestPGErrors.FakeException()
+        mock = mock_sql_session(monkeypatch)
+        mock.execute.side_effect = exception
 
         # Act
         with pytest.raises(DBException):
-            db.list_objects("", "", "", "", "", "")
+            await db.list_objects("", "", "", "", "", "")
 
-    @patch("oio_rest.db.psycopg2.Error", new=TestException)
-    def test_list_objects_raises_on_unknown_pgerror(self, mock_get_conn):
-        # type: (MagicMock) -> None
-
+    @patch("oio_rest.db.StatementError", new=FakeException)
+    async def test_list_objects_raises_on_unknown_pgerror(
+        self, monkeypatch: MonkeyPatch
+    ) -> None:
         # Arrange
-        exception = TestPGErrors.TestException()
+        exception = TestPGErrors.FakeException()
         exception.pgcode = "123456"
-        cursor = get_mocked_cursor(mock_get_conn)
-        cursor.execute.side_effect = exception
+        mock = mock_sql_session(monkeypatch)
+        mock.execute.side_effect = exception
 
         # Act
-        with pytest.raises(TestPGErrors.TestException):
-            db.list_objects("", "", "", "", "", "")
+        with pytest.raises(TestPGErrors.FakeException):
+            await db.list_objects("", "", "", "", "", "")
 
-    @patch("oio_rest.db.psycopg2.Error", new=TestException)
-    def test_search_objects_raises_on_pgerror(self, mock_get_conn):
-        # type: (MagicMock) -> None
-
+    @patch("oio_rest.db.StatementError", new=FakeException)
+    async def test_search_objects_raises_on_pgerror(
+        self, monkeypatch: MonkeyPatch
+    ) -> None:
         # Arrange
-        exception = TestPGErrors.TestException()
-        cursor = get_mocked_cursor(mock_get_conn)
-        cursor.execute.side_effect = exception
+        exception = TestPGErrors.FakeException()
+        mock = mock_sql_session(monkeypatch)
+        mock.execute.side_effect = exception
 
         # Act
         with pytest.raises(DBException):
-            db.search_objects("", "", "")
+            await db.search_objects("", "", "")
 
-    @patch("oio_rest.db.psycopg2.Error", new=TestException)
-    def test_search_objects_raises_on_unknown_pgerror(self, mock_get_conn):
-        # type: (MagicMock) -> None
-
+    @patch("oio_rest.db.StatementError", new=FakeException)
+    async def test_search_objects_raises_on_unknown_pgerror(
+        self, monkeypatch: MonkeyPatch
+    ) -> None:
         # Arrange
-        exception = TestPGErrors.TestException()
+        exception = TestPGErrors.FakeException()
         exception.pgcode = "123456"
-        cursor = get_mocked_cursor(mock_get_conn)
-        cursor.execute.side_effect = exception
+        mock = mock_sql_session(monkeypatch)
+        mock.execute.side_effect = exception
 
         # Act
-        with pytest.raises(TestPGErrors.TestException):
-            db.search_objects("", "", "")
+        with pytest.raises(TestPGErrors.FakeException):
+            await db.search_objects("", "", "")

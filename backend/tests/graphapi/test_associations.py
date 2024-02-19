@@ -10,6 +10,8 @@ import pytest
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
+from hypothesis import HealthCheck
+from hypothesis import settings
 from hypothesis import strategies as st
 from more_itertools import one
 from pydantic import parse_obj_as
@@ -31,6 +33,13 @@ from ramodels.mo.details import AssociationRead
 from tests.conftest import GQLResponse
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_data=graph_data_strat(AssociationRead))
 def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all our associations."""
@@ -71,6 +80,13 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     assert flatten_data(response.data["associations"]["objects"]) == test_data
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_input=graph_data_uuids_strat(AssociationRead))
 def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query associations by UUID."""
@@ -103,7 +119,7 @@ def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "filter,expected",
     [
@@ -228,9 +244,15 @@ async def test_create_association(
     create_association.assert_called_with(test_data)
 
 
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay in this instance
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(data=st.data())
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_association_integration_test(
     data, graphapi_post: GraphAPIPost, org_uuids, employee_uuids
 ) -> None:
@@ -327,7 +349,7 @@ async def test_create_association_integration_test(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data",
     [

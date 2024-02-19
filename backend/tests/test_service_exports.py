@@ -16,7 +16,6 @@ from starlette.status import HTTP_409_CONFLICT
 import mora
 from mora.service.shimmed.exports import check_auth_cookie
 from mora.service.shimmed.exports import purge_all_filetokens
-from tests.conftest import test_app
 from tests.conftest import YieldFixture
 
 
@@ -25,11 +24,10 @@ async def noop() -> None:
 
 
 @pytest.fixture
-def fastapi_test_app_weird_auth() -> FastAPI:
-    app = test_app()
-    app.dependency_overrides[purge_all_filetokens] = noop
-    app.dependency_overrides[check_auth_cookie] = noop
-    return app
+def fastapi_test_app_weird_auth(fastapi_test_app: FastAPI) -> FastAPI:
+    fastapi_test_app.dependency_overrides[purge_all_filetokens] = noop
+    fastapi_test_app.dependency_overrides[check_auth_cookie] = noop
+    return fastapi_test_app
 
 
 @pytest.fixture

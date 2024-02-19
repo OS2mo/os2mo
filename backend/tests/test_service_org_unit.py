@@ -29,7 +29,7 @@ from tests import util
 
 
 @freezegun.freeze_time("2018-03-15")
-def test_unit_past(monkeypatch, service_client: TestClient) -> None:
+async def test_unit_past(monkeypatch, service_client: TestClient) -> None:
     unitid = "ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc"
 
     reg = {
@@ -163,7 +163,7 @@ def test_unit_past(monkeypatch, service_client: TestClient) -> None:
     monkeypatch.setattr(OrganisationEnhed, "get_objects_direct", route)
 
     mo_url = f"/service/ou/{unitid}/details/org_unit?validity=past"
-    with util.patch_query_args({"validity": "past"}):
+    async with util.patch_query_args({"validity": "past"}):
         response = service_client.request("GET", mo_url)
         assert response.status_code == 200
         assert response.json() == []
@@ -340,7 +340,7 @@ def test_returns_404_on_unknown_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @util.patch_query_args()
 async def test_get_one_orgunit_with_association_count() -> None:
     _connector = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -354,7 +354,7 @@ async def test_get_one_orgunit_with_association_count() -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "details,expected_keys",
     [
@@ -395,7 +395,7 @@ def _assert_matching_ou_has(doc, user_key=None, **attrs):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "collection,attrs",
     [
@@ -409,6 +409,6 @@ async def test_counts(collection: str, attrs: dict[str, int]) -> None:
     # Below is the UUID of "Filosofisk Institut".
     _orgunit_uuid = [UUID("9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")]
 
-    with util.patch_query_args(ImmutableMultiDict({"count": collection})):
+    async with util.patch_query_args(ImmutableMultiDict({"count": collection})):
         result = await get_unit_ancestor_tree(_orgunit_uuid, only_primary_uuid=False)
         _assert_matching_ou_has(result, user_key="hum", **attrs)

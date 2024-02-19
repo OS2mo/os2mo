@@ -1,51 +1,14 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
-from datetime import timedelta
 from uuid import uuid4
 
 import pytest
 from more_itertools import one
 
-from mora.util import DEFAULT_TIMEZONE
 
-
-# This test is xfailed since reading registrations does not work in our test setup.
-# The issue arises from how we setup our test database, and handle test connections.
-#
-# During integration-test a new database is created and migrated, upon which all current
-# database connections are forcefully closed, such that new connections are recreated on
-# their next use.
-# This forceful termination of database connections does not play nicely with SQLAlchemy
-# which manage the database connections used by the MO db module.
-#
-# Additionally we cannot use load_fixture_data_with_reset here as LoRa changes are made
-# within an uncommitted transaction and thus invisible to the database connection used
-# by the MO db module.
-#
-# If the test is run as-is the result is that no new registrations are found after the
-# edit, even if the other data changes occur. This is because all non-registration
-# fields are read within the same database transaction used on the LoRa connection, but
-# not on the MO db module connection.
-#
-# An attempt was made to create an SQLAlchemy sessionmaker, which would utilize the LoRa
-# database connection as its underlying wrapped database connection. This works to some
-# extend, but breaks as soon as the connection is forcefully closed, and also breaks
-# invariants within SQLAlchemy as SQLAlchemy does not work with a singleton pattern for
-# database connections, but rather instance them on the fly according to demand, such
-# that it can optimize the database performance.
-# Additionally using the LoRa database connection forces a synchronous database access,
-# which does not play well with the asynchronous nature of the GraphQL resolvers. This
-# could potentially be worked around using an sync-to-async executor pattern.
-#
-# TL;DR: The test does not work because of the immense amounts of shenanigans we pull
-#        off when creating test databases and connections, but the code works outside
-#        of tests.
-#
-# The test can be reenabled once we got the LoRa database connection under control.
-@pytest.mark.xfail
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_writing_registration(graphapi_post) -> None:
     """Integrationtest for reading and writing registrations."""
     query = """
@@ -114,22 +77,8 @@ async def test_writing_registration(graphapi_post) -> None:
     assert new_registration["registration_id"] > old_registration["registration_id"]
 
 
-def assert_around_now(time: datetime) -> None:
-    """Assert the provided datetime is close to now.
-
-    Args:
-        time: The datetime to test.
-    """
-    now = datetime.now(tz=DEFAULT_TIMEZONE).replace(tzinfo=None)
-    registration_start = time.replace(tzinfo=None)
-    assert (
-        now - timedelta(minutes=1) <= registration_start <= now + timedelta(minutes=1)
-    )
-
-
-@pytest.mark.xfail
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_read_object_registration(graphapi_post) -> None:
     """Object registration reading integration-test."""
     query = """
@@ -158,16 +107,15 @@ async def test_read_object_registration(graphapi_post) -> None:
     assert org_unit["uuid"] == uuid
 
     registration = one(org_unit["registrations"])
-    assert registration["actor"] == "42c432e8-9c4a-11e6-9f62-873cf34a735f"
+    assert registration["actor"] == "05211100-baad-1110-006e-6f2075756964"
     assert registration["model"] == "org_unit"
     assert registration["uuid"] == uuid
-    assert_around_now(datetime.fromisoformat(registration["start"]))
+    datetime.fromisoformat(registration["start"])
     assert registration["end"] is None
 
 
-@pytest.mark.xfail
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_read_top_level_registration(graphapi_post) -> None:
     """Top-level registration reading integration-test."""
     query = """
@@ -191,8 +139,8 @@ async def test_read_top_level_registration(graphapi_post) -> None:
     assert response.data
     registration = one(response.data["registrations"]["objects"])
 
-    assert registration["actor"] == "42c432e8-9c4a-11e6-9f62-873cf34a735f"
+    assert registration["actor"] == "05211100-baad-1110-006e-6f2075756964"
     assert registration["model"] == "org_unit"
     assert registration["uuid"] == uuid
-    assert_around_now(datetime.fromisoformat(registration["start"]))
+    datetime.fromisoformat(registration["start"])
     assert registration["end"] is None

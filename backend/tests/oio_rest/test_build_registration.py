@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import unittest
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
@@ -9,7 +8,7 @@ import pytest
 from oio_rest import utils
 
 
-class TestBuildRegistration(unittest.TestCase):
+class TestBuildRegistration:
     def test_is_urn_returns_true_when_string_begins_with_urn(self):
         urn1 = "urn:thisisaurn"
         assert utils.is_urn(urn1)

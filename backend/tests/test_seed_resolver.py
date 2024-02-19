@@ -122,7 +122,7 @@ async def test_call_values(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_nested_filters(graphapi_post: GraphAPIPost) -> None:
     """Test that seed_resolver doesn't break nested filters."""
     query = """

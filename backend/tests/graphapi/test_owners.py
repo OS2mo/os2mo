@@ -4,6 +4,8 @@ import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
+from hypothesis import HealthCheck
+from hypothesis import settings
 from more_itertools import one
 from pytest import MonkeyPatch
 
@@ -14,6 +16,13 @@ from ramodels.mo.details.owner import OwnerRead
 from tests.conftest import GraphAPIPost
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_data=graph_data_strat(OwnerRead))
 def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all attributes of the owner data model."""
@@ -47,7 +56,7 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "filter,expected",
     [
@@ -144,7 +153,7 @@ async def test_owner_employees_filters(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data, expected_fail",
     [
@@ -258,7 +267,7 @@ async def test_create_owner_integration_test(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data, expected_fail",
     # person or org_unit has to be set, otherwise we get:
@@ -412,7 +421,7 @@ async def test_update_owner_integration_test(
 
 @pytest.mark.integration_test
 @freezegun.freeze_time("2023-07-13", tz_offset=1)
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data",
     [

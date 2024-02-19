@@ -21,7 +21,7 @@ engagement_uuid = "d000591f-8705-4324-897a-075e3623f37b"
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "operation,payload,expected",
     [
@@ -813,7 +813,7 @@ async def test_create_engagement(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_terminate_engagement_via_employee(service_client: TestClient) -> None:
     # Check the POST request
@@ -944,7 +944,7 @@ async def test_terminate_engagement_via_employee(service_client: TestClient) -> 
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "operation,payload,status_code,expected",
     [
@@ -1045,7 +1045,7 @@ def test_create_engagement_fails(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_terminate_engagement_with_both_from_and_to_date(
     service_client: TestClient,
 ) -> None:
@@ -1085,7 +1085,7 @@ def test_terminate_engagement_with_both_from_and_to_date(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_reading_engagement_only_primary_uuid(service_client: TestClient) -> None:
     response = service_client.request(
         "GET",
@@ -1109,7 +1109,7 @@ def test_reading_engagement_only_primary_uuid(service_client: TestClient) -> Non
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_reading_engagement_calculate_primary(service_client: TestClient) -> None:
     response = service_client.request(
         "GET",
@@ -1125,7 +1125,7 @@ def test_reading_engagement_calculate_primary(service_client: TestClient) -> Non
 
 # TODO 59713
 # @pytest.mark.integration_test
-# @pytest.mark.usefixtures("load_fixture_data_with_reset")
+# @pytest.mark.usefixtures("fixture_db")
 # async def test_edit_extension_attr_58263(service_client: TestClient) -> None:
 #     person_uuid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 #     new_ext2 = "Teknisk servicemedarbejder"
@@ -1169,7 +1169,7 @@ def test_reading_engagement_calculate_primary(service_client: TestClient) -> Non
 #
 #
 # @pytest.mark.integration_test
-# @pytest.mark.usefixtures("load_fixture_data_with_reset")
+# @pytest.mark.usefixtures("fixture_db")
 # async def test_mutator_edit_extension_attr_58263(
 #     service_client: TestClient, graphapi_post: GraphAPIPost
 # ) -> None:
@@ -1233,7 +1233,7 @@ def test_reading_engagement_calculate_primary(service_client: TestClient) -> Non
 #
 #
 # @pytest.mark.integration_test
-# @pytest.mark.usefixtures("load_fixture_data_with_reset")
+# @pytest.mark.usefixtures("fixture_db")
 # async def test_mutator_edit_user_key_58263(
 #     service_client: TestClient, graphapi_post: GraphAPIPost
 # ) -> None:
@@ -1298,7 +1298,7 @@ def test_reading_engagement_calculate_primary(service_client: TestClient) -> Non
 #
 #
 # @pytest.mark.integration_test
-# @pytest.mark.usefixtures("load_fixture_data_with_reset")
+# @pytest.mark.usefixtures("fixture_db")
 # async def test_edit_extension_attr_future_58263(service_client: TestClient) -> None:
 #     person_uuid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 #     new_ext2 = "Teknisk servicemedarbejder"

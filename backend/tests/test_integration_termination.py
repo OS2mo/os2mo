@@ -20,7 +20,7 @@ role_uuid = "1b20d0b9-96a0-42a6-b196-293bb86e62e8"
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "orgfunc_uuid,is_vacant",
     [
@@ -74,7 +74,7 @@ async def test_terminate_employee(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "orgfunc_uuid",
     [
@@ -129,7 +129,7 @@ async def test_terminate_employee_vacatables_full(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "orgfunc,orgfunc_uuid,expected",
     [
@@ -252,7 +252,7 @@ async def test_terminate_via_user(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "orgfunc_uuid",
     [
@@ -313,7 +313,7 @@ async def test_terminate_properly_via_user(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "orgfunc,orgfunc_uuid",
     [
@@ -402,7 +402,7 @@ async def test_terminate_directly(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "payload",
     [
@@ -440,7 +440,7 @@ def test_validation_missing_validity(service_client: TestClient, payload: dict) 
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_validation_missing_validity_invalid_type(service_client: TestClient) -> None:
     response = service_client.request(
         "POST",
@@ -457,7 +457,7 @@ def test_validation_missing_validity_invalid_type(service_client: TestClient) ->
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2018-01-01")
 def test_validation_allow_to_equal_none(service_client: TestClient) -> None:
     response = service_client.request(

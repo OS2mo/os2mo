@@ -22,7 +22,7 @@ query = """
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_multiple_errors(graphapi_post: GraphAPIPost) -> None:
     """Test how multiple errors are handled."""
 
@@ -41,7 +41,7 @@ async def test_multiple_errors(graphapi_post: GraphAPIPost) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_handle_gql_errors() -> None:
     """Test how handle_gql_errors handles multiple exceptions."""
 

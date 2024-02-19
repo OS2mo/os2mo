@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from unittest import TestCase
 from unittest.mock import patch
 
 import pytest
@@ -8,7 +7,7 @@ import pytest
 from oio_rest.db import db_structure
 
 
-class TestDBStructure(TestCase):
+class TestDBStructure:
     def test_merge_lists(self):
         a = [1, 2, 3, 4]
         b = [4, 5, 6, 7]

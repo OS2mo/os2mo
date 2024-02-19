@@ -96,7 +96,7 @@ async def test_validation_succeeds_with_force():
 
     # Act & Assert
     with util.darmock("dawa-addresses.json", real_http=True):
-        with util.patch_query_args({"force": "1"}):
+        async with util.patch_query_args({"force": "1"}):
             await DARAddressHandler.validate_value(value)
 
 
@@ -137,7 +137,7 @@ async def test_lookup_from_request_with_force_succeeds():
 
     # Act & Assert
     with util.darmock("dawa-addresses.json", real_http=True):
-        with util.patch_query_args({"force": "1"}):
+        async with util.patch_query_args({"force": "1"}):
             request = {"value": value}
             handler = await DARAddressHandler.from_request(request)
             actual = await handler.get_mo_address_and_properties()

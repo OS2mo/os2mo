@@ -319,8 +319,8 @@ def override_config(config_obj: Settings):
         config.get_settings = original
 
 
-@contextlib.contextmanager
-def patch_query_args(query_args=None):
+@contextlib.asynccontextmanager
+async def patch_query_args(query_args=None):
     if not query_args:
         query_args = {}
     with patch("mora.util.context", new={"query_args": query_args}):

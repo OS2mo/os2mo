@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
-from unittest import TestCase
 
 import pytest
 
@@ -12,7 +11,7 @@ from oio_rest.db.quick_query.registration_parsing import State
 from oio_rest.db.quick_query.registration_parsing import ValueType
 
 
-class TestParseAttribute(TestCase):
+class TestParseAttribute:
     def test_get_valid_attribute_format(self):
         for class_name in REAL_DB_STRUCTURE.keys():
             attr_cand = Attribute.get_valid_attr(class_name)
@@ -87,7 +86,7 @@ class TestParseAttribute(TestCase):
         actual = Attribute.from_attr_egenskaber(
             attr=attr_cand, valid_attr=valid_attr, class_name=class_name
         )
-        self.assertEqual(first=expected, second=actual)
+        assert expected == actual
 
     def test_parse_registration_attributes(self):
         class_name = "organisationfunktion"
@@ -120,10 +119,10 @@ class TestParseAttribute(TestCase):
         actual = Attribute.parse_registration_attributes(
             class_name=class_name, attributes=attrs
         )
-        self.assertEqual(first=expected, second=actual)
+        assert expected == actual
 
 
-class TestParseState(TestCase):
+class TestParseState:
     def test_get_valid_states_format(self):
         for class_name in REAL_DB_STRUCTURE.keys():
             state_cand = State.get_valid_states(class_name)
@@ -188,7 +187,7 @@ class TestParseState(TestCase):
         state_cand = {"gyldighed": "Aktiv", "virkning": None}
         expected = State(key="gyldighed", value="Aktiv")
         actual = State.from_state_dict(state=state_cand, valid_states=valid_states)
-        self.assertEqual(first=expected, second=actual)
+        assert expected == actual
 
     def test_parse_registration_state(self):
         # commonly used
@@ -196,7 +195,7 @@ class TestParseState(TestCase):
         states = {"gyldighed": [{"gyldighed": "Aktiv", "virkning": None}]}
         expected = [State(key="gyldighed", value="Aktiv")]
         actual = State.parse_registration_states(class_name=class_name, states=states)
-        self.assertEqual(first=expected, second=actual)
+        assert expected == actual
 
         # less common, but should be valid
         class_name = "tilstand"
@@ -209,10 +208,10 @@ class TestParseState(TestCase):
             State(key="publiceret", value="IkkePubliceret"),
         ]
         actual = State.parse_registration_states(class_name=class_name, states=states)
-        self.assertEqual(first=expected, second=actual)
+        assert expected == actual
 
 
-class TestParseRelation(TestCase):
+class TestParseRelation:
     def test_get_valid_relations_format(self):
         for class_name in REAL_DB_STRUCTURE.keys():
             relation_cand = Relation.get_valid_relations(class_name)
@@ -378,7 +377,7 @@ class TestParseRelation(TestCase):
             relation_values=relation_values,
             valid_relations=valid_relations,
         )
-        self.assertEqual(first=expected, second=actual)
+        assert expected == actual
 
         # uuid without objekttype ok
         relation_values = [
@@ -401,7 +400,7 @@ class TestParseRelation(TestCase):
             relation_values=relation_values,
             valid_relations=valid_relations,
         )
-        self.assertEqual(first=expected, second=actual)
+        assert expected == actual
 
         # multiple ok
         relation_values = [
@@ -431,7 +430,7 @@ class TestParseRelation(TestCase):
             relation_values=relation_values,
             valid_relations=valid_relations,
         )
-        self.assertEqual(first=expected, second=actual)
+        assert expected == actual
 
     def test_parse_registration_relation(self):
         class_name = "organisationfunktion"
@@ -476,4 +475,4 @@ class TestParseRelation(TestCase):
         actual = Relation.parse_registration_relations(
             class_name=class_name, relations=relations
         )
-        self.assertEqual(first=expected, second=actual)
+        assert expected == actual

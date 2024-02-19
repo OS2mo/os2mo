@@ -5,6 +5,8 @@ from uuid import UUID
 
 import pytest
 from hypothesis import given
+from hypothesis import HealthCheck
+from hypothesis import settings
 from more_itertools import first
 from more_itertools import one
 from pytest import MonkeyPatch
@@ -17,6 +19,13 @@ from mora.graphapi.versions.latest import dataloaders
 from ramodels.mo.details import ITSystemRead
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_data=graph_data_strat(ITSystemRead))
 def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all attributes of the ITSystem data model."""
@@ -50,6 +59,13 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     assert flatten_data(response.data["itsystems"]["objects"]) == test_data
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_input=graph_data_uuids_strat(ITSystemRead))
 def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query ITSystems by UUID."""
@@ -81,7 +97,7 @@ def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_itsystem_create(graphapi_post) -> None:
     """Test that we can create new itsystems."""
 
@@ -153,7 +169,7 @@ def test_itsystem_create(graphapi_post) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_itsystem_infinite_dates(graphapi_post) -> None:
     """Test that itsystems allow for infinite validity dates."""
 
@@ -200,7 +216,7 @@ def test_itsystem_infinite_dates(graphapi_post) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_itsystem_update(graphapi_post) -> None:
     """Test that we can update itsystems."""
     existing_itsystem_uuid = UUID("0872fb72-926d-4c5c-a063-ff800b8ee697")
@@ -259,7 +275,7 @@ def test_itsystem_update(graphapi_post) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_itsystem_delete(graphapi_post) -> None:
     """Test that we can delete an itsystem."""
 
@@ -314,6 +330,13 @@ def test_itsystem_delete(graphapi_post) -> None:
     assert itsystem_map.keys() == existing_itsystem_uuids - {deleted_uuid}
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(uuid=...)
 def test_itsystem_delete_mocked(uuid: UUID, graphapi_post: GraphAPIPost) -> None:
     """Test that delete_object is called as expected."""

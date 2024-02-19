@@ -38,7 +38,7 @@ address_type_facet = {
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_add_org_unit_address(service_client: TestClient) -> None:
     unitid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
 
@@ -146,7 +146,7 @@ async def test_add_org_unit_address(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_add_org_unit_address_contact_open_hours(
     service_client: TestClient,
 ) -> None:
@@ -263,7 +263,7 @@ async def test_add_org_unit_address_contact_open_hours(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_add_employee_address(service_client: TestClient) -> None:
     employee_id = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -400,7 +400,7 @@ async def test_add_employee_address(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_employee_with_address(service_client: TestClient) -> None:
     response = service_client.request(
         "POST",
@@ -510,7 +510,7 @@ async def test_create_employee_with_address(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_engagement_with_address(service_client: TestClient) -> None:
     userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
     payload = [
@@ -568,7 +568,7 @@ async def test_create_engagement_with_address(service_client: TestClient) -> Non
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_org_unit_with_address(service_client: TestClient) -> None:
     response = service_client.request(
         "POST",
@@ -682,7 +682,7 @@ async def test_create_org_unit_with_address(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_edit_address(service_client: TestClient) -> None:
     addr_id = "414044e0-fe5f-4f82-be20-1e107ad50e80"
@@ -816,7 +816,7 @@ async def test_edit_address(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_edit_address_user_key(service_client: TestClient) -> None:
     addr_id = "414044e0-fe5f-4f82-be20-1e107ad50e80"
 
@@ -883,7 +883,7 @@ async def test_edit_address_user_key(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_address_related_to_engagement(service_client: TestClient) -> None:
     employee_id = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
     engagement_uuid = "d000591f-8705-4324-897a-075e3623f37b"
@@ -931,7 +931,7 @@ nothingid = "00000000-0000-0000-0000-000000000000"
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "req,status_code,expected",
     [
@@ -1085,7 +1085,7 @@ def test_create_errors(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_create_dar_address_fails_correctly(service_client: TestClient) -> None:
     """Ensure that we fail when creating a DAR address when lookup fails."""
     expected_msg = {
@@ -1119,7 +1119,7 @@ def test_create_dar_address_fails_correctly(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_edit_errors(service_client: TestClient) -> None:
     userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
     unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
@@ -1152,7 +1152,7 @@ def test_edit_errors(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_missing_class(service_client: TestClient) -> None:
     with util.darmock("dawa-addresses.json", allow_mox=True, real_http=True):
@@ -1183,7 +1183,7 @@ async def test_missing_class(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_missing_address(service_client: TestClient) -> None:
     unitid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
@@ -1254,7 +1254,7 @@ async def test_missing_address(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1, tick=True)
 async def test_missing_error(service_client: TestClient) -> None:
     unitid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
@@ -1329,7 +1329,7 @@ async def test_missing_error(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_reading(service_client: TestClient) -> None:
     response = service_client.request(

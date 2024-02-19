@@ -8,7 +8,7 @@ from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_terminate_facet(graphapi_post: GraphAPIPost) -> None:
     """Test terminate_facet v18 shim."""
     mutation = """
@@ -60,7 +60,7 @@ async def test_terminate_facet(graphapi_post: GraphAPIPost) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_terminate_class(graphapi_post: GraphAPIPost) -> None:
     """Test terminate_class v18 shim."""
     mutation = """
@@ -112,7 +112,7 @@ async def test_terminate_class(graphapi_post: GraphAPIPost) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_terminate_itsystem(graphapi_post: GraphAPIPost) -> None:
     """Test terminate_itsystem v18 shim."""
     mutation = """

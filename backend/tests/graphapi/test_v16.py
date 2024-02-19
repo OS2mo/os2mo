@@ -8,7 +8,7 @@ from tests.conftest import GraphAPIPost
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_class(graphapi_post: GraphAPIPost) -> None:
     """Test create_class v16 shim."""
 
@@ -91,7 +91,7 @@ async def test_create_class(graphapi_post: GraphAPIPost) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_update_class(graphapi_post: GraphAPIPost) -> None:
     """Test update_class v15 shim."""
     # update under v16 schema

@@ -10,6 +10,8 @@ import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
+from hypothesis import HealthCheck
+from hypothesis import settings
 from hypothesis import strategies as st
 from more_itertools import one
 from pydantic import Field
@@ -39,6 +41,13 @@ class ITAssociationRead(AssociationRead):
     job_function_uuid: UUID = Field(description="UUID of the 'job_function'")
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_data=graph_data_strat(ITAssociationRead))
 def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query all our ITAssociations."""
@@ -80,6 +89,13 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     assert flatten_data(response.data["associations"]["objects"]) == test_data
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_data=graph_data_strat(ITAssociationRead))
 def test_query_none(test_data, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we don't get any ITAssociations, when setting the `it_association`
@@ -122,6 +138,13 @@ def test_query_none(test_data, graphapi_post: GraphAPIPost, patch_loader):
     assert flatten_data(response.data["associations"]["objects"]) == []
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_input=graph_data_uuids_strat(ITAssociationRead))
 def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
     """Test that we can query associations by UUID."""
@@ -183,9 +206,15 @@ async def test_create_itassociation_mutation_unit_test(
     create_itassociation.assert_called_with(test_data)
 
 
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay in this instance
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(data=st.data())
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_create_itassociation_integration_test(
     data, graphapi_post: GraphAPIPost, org_uuids, employee_uuids, ituser_uuids
 ) -> None:
@@ -318,7 +347,7 @@ async def test_update_itassociation_unit_test(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data",
     [
@@ -440,7 +469,7 @@ async def test_update_itassociation_integration_test(
 
 @pytest.mark.integration_test
 @freezegun.freeze_time("2023-07-13", tz_offset=1)
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data",
     [

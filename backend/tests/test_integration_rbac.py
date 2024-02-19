@@ -137,7 +137,7 @@ def create_org_unit_payload() -> dict[str, Any]:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "role, userid, status_code",
     [
@@ -173,7 +173,7 @@ def test_create_org_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_201_when_creating_unit_as_owner_of_parent_unit(
     fastapi_test_app: FastAPI,
@@ -190,7 +190,7 @@ def test_201_when_creating_unit_as_owner_of_parent_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "role, userid, status_code",
     [
@@ -228,7 +228,7 @@ def test_create_top_level_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "role, userid, status_code",
     [
@@ -294,7 +294,7 @@ def org_unit_no_details_uuid(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "role, userid, status_code",
     [
@@ -336,7 +336,7 @@ def test_terminate_org_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "role, userid, status_code",
     [
@@ -374,7 +374,7 @@ def test_create_detail(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_201_when_creating_multiple_details_as_owner_of_unit(
     fastapi_test_app: FastAPI,
@@ -390,7 +390,7 @@ def test_201_when_creating_multiple_details_as_owner_of_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_400_when_creating_multiple_details_with_different_types(
     fastapi_test_app: FastAPI,
@@ -445,7 +445,7 @@ def address_create_payload() -> dict[str, Any]:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "role, userid, status_code",
     [
@@ -525,7 +525,7 @@ def test_edit_detail(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "role, userid, status_code",
     [
@@ -630,7 +630,7 @@ def org_unit_uuid_2(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "owner,org_uuid,one_is_parent,status_code",
     [
@@ -677,7 +677,7 @@ def test_owner_of_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "payload",
     [
@@ -717,7 +717,7 @@ def test_terminate_x_as_owner_of_unit(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "token_uuid,expected",
     [
@@ -750,7 +750,7 @@ def test_ownership_through_it_system(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_it_user_to_employee_uuid():
     result = await _get_employee_uuid_via_it_system(
         ACTIVE_DIRECTORY, ANDERS_AND_AD_USER
@@ -759,7 +759,7 @@ async def test_it_user_to_employee_uuid():
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_it_user_to_employee_uuid_missing_it_user():
     with pytest.raises(AuthorizationError):
         await _get_employee_uuid_via_it_system(ACTIVE_DIRECTORY, uuid4())

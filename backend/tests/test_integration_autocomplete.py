@@ -2,15 +2,15 @@
 # SPDX-License-Identifier: MPL-2.0
 import uuid
 from datetime import datetime
-from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
+from pytest import MonkeyPatch
 
-from mora.service.orgunit import config as orgunit_config
+from mora.config import Settings
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 
@@ -20,21 +20,19 @@ from tests.conftest import GraphAPIPost
 
 
 @pytest.fixture
-def mock_get_settings():
-    with patch.object(
-        orgunit_config,
-        "get_settings",
-        return_value=MagicMock(confdb_autocomplete_v2_use_legacy=False),
-    ) as mock_get_settings:
-        yield mock_get_settings
+def mock_get_settings(monkeypatch: MonkeyPatch):
+    def mock():
+        return Settings(
+            confdb_autocomplete_v2_use_legacy=False,
+        )
+
+    monkeypatch.setattr("mora.service.orgunit.config.get_settings", mock)
 
 
 @pytest.fixture
-def mock_get_settings_custom_attrs():
-    with patch.object(
-        orgunit_config,
-        "get_settings",
-        return_value=MagicMock(
+def mock_get_settings_custom_attrs(monkeypatch: MonkeyPatch):
+    def mock():
+        return Settings(
             confdb_autocomplete_v2_use_legacy=False,
             confdb_autocomplete_attrs_orgunit=[
                 uuid.UUID("e8ea1a09-d3d4-4203-bfe9-d9a213371337"),
@@ -54,20 +52,16 @@ def mock_get_settings_custom_attrs():
                 ),  # itsystem = Active Directory
                 uuid.UUID("14466fb0-f9de-439c-a6c2-b3262c367da7"),  # itsystem = SAP
             ],
-        ),
-    ) as mock_get_settings:
-        yield mock_get_settings
+        )
+
+    monkeypatch.setattr("mora.service.orgunit.config.get_settings", mock)
 
 
 @pytest.mark.xfail
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_v2_search_employee_by_uuid(mock_get_settings, service_client: TestClient):
-    mock_get_settings.return_value = MagicMock(
-        confdb_autocomplete_v2_use_legacy=False,
-    )
-
     at = datetime.now().date()
     query = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
     response = service_client.request(
@@ -110,7 +104,7 @@ def test_v2_search_employee_by_uuid(mock_get_settings, service_client: TestClien
 @pytest.mark.xfail
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_v2_search_employee_by_name(mock_get_settings, service_client: TestClient):
     at = datetime.now().date()
     query = "Anders And"
@@ -181,7 +175,7 @@ def test_v2_search_employee_by_name(mock_get_settings, service_client: TestClien
 @pytest.mark.xfail
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_v2_search_employee_by_email(mock_get_settings, service_client: TestClient):
     at = datetime.now().date()
     query = "bruger@example.com"
@@ -252,7 +246,7 @@ def test_v2_search_employee_by_email(mock_get_settings, service_client: TestClie
 @pytest.mark.xfail
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_v2_search_employee_by_itsystem(mock_get_settings, service_client: TestClient):
     at = datetime.now().date()
     query = "donald"
@@ -296,12 +290,8 @@ def test_v2_search_employee_by_itsystem(mock_get_settings, service_client: TestC
 @pytest.mark.xfail
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_v2_search_orgunit_by_uuid(mock_get_settings, service_client: TestClient):
-    mock_get_settings.return_value = MagicMock(
-        confdb_autocomplete_v2_use_legacy=False,
-    )
-
     at = datetime.now().date()
     query = "f494ad89-039d-478e-91f2-a63566554666"
     response = service_client.request(
@@ -341,7 +331,7 @@ def test_v2_search_orgunit_by_uuid(mock_get_settings, service_client: TestClient
 @pytest.mark.xfail
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_v2_search_orgunit_by_name(mock_get_settings, service_client: TestClient):
     at = datetime.now().date()
     query = "Fake Corp"
@@ -388,7 +378,7 @@ def test_v2_search_orgunit_by_name(mock_get_settings, service_client: TestClient
 @pytest.mark.xfail
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_v2_search_orgunit_by_name_with_custom_fields(
     mock_get_settings_custom_attrs, service_client: TestClient
 ):
@@ -420,7 +410,7 @@ def test_v2_search_orgunit_by_name_with_custom_fields(
 @pytest.mark.xfail
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_v2_search_orgunit_by_addr_afdelingskode(
     mock_get_settings_custom_attrs, service_client: TestClient
 ):
@@ -452,7 +442,7 @@ def test_v2_search_orgunit_by_addr_afdelingskode(
 @pytest.mark.xfail
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_v2_search_orgunit_by_addr_afdelingskode_addr_rename(
     graphapi_post: GraphAPIPost, admin_client, mock_get_settings_custom_attrs
 ):
@@ -507,7 +497,7 @@ def test_v2_search_orgunit_by_addr_afdelingskode_addr_rename(
 
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @patch("mora.service.orgunit.autocomplete.search_orgunits")
 def test_v2_only_gql_decorate_orgunits(
     mock_search_orgunits, mock_get_settings_custom_attrs, service_client: TestClient
@@ -551,7 +541,7 @@ def test_v2_only_gql_decorate_orgunits(
 
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @patch("mora.service.employee.autocomplete.search_employees")
 def test_v2_only_gql_decorate_employees(
     mock_search_employees, mock_get_settings_custom_attrs, service_client: TestClient

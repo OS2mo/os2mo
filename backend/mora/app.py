@@ -15,9 +15,9 @@ from more_itertools import only
 from prometheus_client import Gauge
 from prometheus_client import Info
 from prometheus_fastapi_instrumentator import Instrumentator
-from psycopg2 import DataError
 from ramqp import AMQPSystem
 from sentry_sdk.integrations.strawberry import StrawberryIntegration
+from sqlalchemy.exc import DataError
 from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
@@ -29,7 +29,8 @@ from . import testing
 from . import triggers
 from .auth.exceptions import get_auth_exception_handler
 from .config import Environment
-from .db import get_sessionmaker
+from .db import create_sessionmaker
+from .db import set_sessionmaker_context
 from .exceptions import ErrorCodes
 from .exceptions import http_exception_to_json_response
 from .exceptions import HTTPException
@@ -53,7 +54,6 @@ from mora.service.address_handler.dar import dar_loader_context
 from mora.service.shimmed.meta import meta_router
 from oio_rest.config import get_settings as lora_get_settings
 from oio_rest.custom_exceptions import OIOException
-from oio_rest.db import _get_dbname
 from oio_rest.views import create_lora_router
 
 
@@ -170,11 +170,19 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             instrumentator.expose(app)
 
         await triggers.register(app)
-
         if settings.amqp_enable:
-            await app.state.amqp_system.start()
+            async with app.state.amqp_system:
+                yield
+        else:
+            yield
 
-        yield
+    lora_settings = lora_get_settings()
+    sessionmaker = create_sessionmaker(
+        user=lora_settings.db_user,
+        password=lora_settings.db_password,
+        host=lora_settings.db_host,
+        name=lora_settings.db_name,
+    )
 
     app = FastAPI(
         lifespan=lifespan,
@@ -230,6 +238,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             Depends(is_graphql_context),
             Depends(graphql_dates_context),
             Depends(set_graphql_context_dependencies),
+            Depends(set_sessionmaker_context),
         ],
         openapi_tags=list(tags_metadata),
     )
@@ -287,15 +296,8 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
     if settings.expose_lora:
         app.include_router(create_lora_router(), prefix="/lora")
 
-    lora_settings = lora_get_settings()
-
     # Set up lifecycle state for depends.py
-    app.state.sessionmaker = get_sessionmaker(
-        user=lora_settings.db_user,
-        password=lora_settings.db_password,
-        host=lora_settings.db_host,
-        name=_get_dbname(),
-    )
+    app.state.sessionmaker = sessionmaker
     amqp_system = AMQPSystem(settings.amqp)
     app.state.amqp_system = amqp_system
 
@@ -315,8 +317,8 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
 
     @app.exception_handler(DataError)
     def handle_db_error(request: Request, exc: DataError):
-        message = exc.diag.message_primary
-        context = exc.diag.context or exc.pgerror.split("\n", 1)[-1]
+        message = exc.orig.diag.message_primary
+        context = exc.orig.diag.context
         return JSONResponse(
             status_code=400, content={"message": message, "context": context}
         )

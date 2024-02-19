@@ -4,9 +4,6 @@ from tests.oio_rest.test_integration_helper import TestCreateObject
 
 
 class TestCreateBruger(TestCreateObject):
-    def setUp(self):
-        super().setUp()
-
     def test_bruger(self):
         # test create
         facet = {

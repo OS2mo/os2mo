@@ -12,7 +12,7 @@ from tests.cases import assert_registrations_equal
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_create_employee_itsystem(service_client: TestClient) -> None:
     # Check the POST request
@@ -85,7 +85,7 @@ async def test_create_employee_itsystem(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_create_unit_itsystem(service_client: TestClient) -> None:
     # Check the POST request
@@ -165,7 +165,7 @@ async def test_create_unit_itsystem(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-06-22", tz_offset=2)
 async def test_edit_itsystem(service_client: TestClient):
     it_func_id = "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276"
@@ -293,7 +293,7 @@ async def test_edit_itsystem(service_client: TestClient):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "operation,expected,payload,status_code",
     [
@@ -533,7 +533,7 @@ def test_errors(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_reading_organisation(service_client: TestClient) -> None:
     response = service_client.request(
         "GET",
@@ -563,7 +563,7 @@ def test_reading_organisation(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 def test_reading_employee(service_client: TestClient) -> None:
     response = service_client.request(
         "GET",
@@ -598,7 +598,7 @@ def test_reading_employee(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "unitid",
     [
@@ -671,7 +671,7 @@ reading_unit_result_now = [
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "params,expected",
     [

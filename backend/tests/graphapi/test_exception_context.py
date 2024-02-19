@@ -4,7 +4,7 @@ import pytest
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_mutator_extended_exception(graphapi_post) -> None:
     """Test that ServiceAPI exception context is exposed in GraphQL."""
 

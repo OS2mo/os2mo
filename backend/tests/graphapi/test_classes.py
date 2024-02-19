@@ -11,6 +11,8 @@ from uuid import uuid4
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
+from hypothesis import HealthCheck
+from hypothesis import settings
 from hypothesis import strategies as st
 from more_itertools import one
 from pydantic import parse_obj_as
@@ -126,8 +128,13 @@ read_history = partial(
 )
 
 
-# UNIT tests
-# -------------------
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(
     test_data=graph_data_momodel_validity_strat_list(
         ClassRead,
@@ -181,6 +188,13 @@ def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
     assert [x["current"] for x in response.data["classes"]["objects"]] == test_data
 
 
+@settings(
+    suppress_health_check=[
+        # Database access is mocked, so it's okay to run the test with the same
+        # graphapi_post fixture multiple times.
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(test_input=graph_data_uuids_strat(ClassRead))
 async def test_query_by_uuid(test_input, patch_loader):
     """Test that we can query classes by UUID."""
@@ -220,8 +234,12 @@ async def test_query_by_uuid(test_input, patch_loader):
     assert set(result_uuids) == test_uuids_set
 
 
-# INTEGRATION tests
-# -------------------
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay in this instance
+        HealthCheck.function_scoped_fixture,
+    ],
+)
 @given(
     test_data=graph_data_momodel_validity_strat(
         ClassCreate,
@@ -231,7 +249,7 @@ async def test_query_by_uuid(test_input, patch_loader):
     )
 )
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_integration_create_class(test_data, graphapi_post: GraphAPIPost) -> None:
     """Integrationtest for create class mutator."""
 
@@ -363,7 +381,7 @@ async def test_unit_create_class(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "filter,expected",
     [
@@ -421,7 +439,7 @@ async def test_class_filter(graphapi_post: GraphAPIPost, filter, expected) -> No
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_integration_delete_class() -> None:
     read_query = """
         query ($uuid: [UUID!]!) {
@@ -471,7 +489,7 @@ async def test_integration_delete_class() -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_update_class() -> None:
     """Unit test for create class mutator."""
     read_query = """
@@ -559,7 +577,7 @@ async def test_update_class() -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_terminate_class(graphapi_post) -> None:
     """Test that we can terminate class."""
 
@@ -607,7 +625,7 @@ async def test_terminate_class(graphapi_post) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_integration_it_system() -> None:
     role_type_facet_uuid = "68ba77bc-4d57-43e2-9c24-0c9eda5fddc7"
     sap_it_system_uuid = "14466fb0-f9de-439c-a6c2-b3262c367da7"
@@ -707,7 +725,7 @@ async def test_integration_it_system() -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.usefixtures("fixture_db")
 async def test_integration_it_system_filter() -> None:
     role_type_facet_uuid = "68ba77bc-4d57-43e2-9c24-0c9eda5fddc7"
     sap_it_system_uuid = "14466fb0-f9de-439c-a6c2-b3262c367da7"
