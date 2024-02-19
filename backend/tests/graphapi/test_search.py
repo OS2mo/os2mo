@@ -25,4 +25,4 @@ async def test_search(graphapi_post) -> None:
     assert response.errors is None
     assert response.data
     org_unit = one(response.data["org_units"]["objects"])
-    assert org_unit["name"] == "Humanistisk fakultet"
+    assert org_unit["current"]["name"] == "Humanistisk fakultet"
