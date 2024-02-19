@@ -123,9 +123,7 @@ async def test_listen_to_change_in_org_unit_address(
 
     # Simulate another employee which is being processed at the exact same time.
     async def employee_in_progress():
-        sync_tool.uuids_in_progress.append(employee1.uuid)
         await asyncio.sleep(1)
-        sync_tool.uuids_in_progress.remove(employee1.uuid)
 
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         with capture_logs() as cap_logs:
