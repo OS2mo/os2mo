@@ -5,10 +5,8 @@ Created on Fri Mar  3 09:46:15 2023
 
 @author: nick
 """
-import asyncio
 import datetime
 from collections.abc import Callable
-from functools import wraps
 from typing import Any
 from uuid import UUID
 from uuid import uuid4
@@ -17,6 +15,7 @@ from fastramqpi.context import Context
 from httpx import HTTPStatusError
 from ramodels.mo import MOBase
 from ramodels.mo.details import ITUser
+from ramqp.depends import handle_exclusively_decorator
 from ramqp.mo import MORoutingKey
 
 from .dataloaders import DNList
@@ -117,74 +116,40 @@ class SyncTool:
         self.internal_amqpsystem = self.user_context["internal_amqpsystem"]
 
     @staticmethod
-    def extract_uuid(obj) -> UUID:
-        """
-        Extract an uuid from an object and return it
+    def wait_for_export_to_finish(func: Callable):
+        """Runs the function while ensuring sequentiality w.r.t. the uuid parameter."""
 
-        Parameters
-        -------------
-        obj: Any
-            Object which is either an uuid or an object with an uuid attribute
-        """
-        uuid = getattr(obj, "uuid", obj)
-        if type(uuid) is not UUID:
-            raise TypeError(f"{uuid} is not an uuid")
-        else:
+        def extract_uuid(obj) -> UUID:
+            """
+            Extract an uuid from an object and return it
+
+            Parameters
+            -------------
+            obj: Any
+                Object which is either an uuid or an object with an uuid attribute
+            """
+            uuid = getattr(obj, "uuid", obj)
+            if not isinstance(uuid, UUID):
+                raise TypeError(f"{uuid} is not an uuid")
             return uuid
 
-    @staticmethod
-    def wait_for_export_to_finish(func: Callable, sleep_time: float = 2):
-        """
-        Runs the function normally but calls asyncio.sleep in case it is already
-        running with the same uuid as input parameter
-        """
+        def uuid_extractor(self, *args, **kwargs) -> UUID:
+            uuid = extract_uuid(args[0] if args else kwargs["uuid"])
+            logger.info("[Wait-for-export-to-finish] Generating UUID.", uuid=str(uuid))
+            return uuid
 
-        @wraps(func)
-        async def modified_func(self, *args, **kwargs):
-            uuid = self.extract_uuid(args[0] if args else kwargs["uuid"])
-
-            while uuid in self.uuids_in_progress:
-                logger.info(
-                    "[Wait-for-export-to-finish] Object is being modified.",
-                    uuid=str(uuid),
-                    sleep_time=sleep_time,
-                )
-                await asyncio.sleep(sleep_time)
-
-            self.uuids_in_progress.append(uuid)
-            try:
-                await func(self, *args, **kwargs)
-            finally:
-                self.uuids_in_progress.remove(uuid)
-
-        return modified_func
+        return handle_exclusively_decorator(uuid_extractor)(func)
 
     @staticmethod
-    def wait_for_import_to_finish(func: Callable, sleep_time: float = 2):
-        """
-        Runs the function normally but calls asyncio.sleep in case it is already
-        running with the same dn as input parameter
-        """
+    def wait_for_import_to_finish(func: Callable):
+        """Runs the function while ensuring sequentiality w.r.t. the dn parameter."""
 
-        @wraps(func)
-        async def modified_func(self, *args, **kwargs):
+        def dn_extractor(self, *args, **kwargs):
             dn = args[0] if args else kwargs["dn"]
+            logger.info("[Wait-for-import-to-finish] Generating DN.", dn=dn)
+            return dn
 
-            while dn in self.dns_in_progress:
-                logger.info(
-                    "[Wait-for-import-to-finish] Object is being modified.",
-                    dn=dn,
-                    sleep_time=sleep_time,
-                )
-                await asyncio.sleep(sleep_time)
-
-            self.dns_in_progress.append(dn)
-            try:
-                await func(self, *args, **kwargs)
-            finally:
-                self.dns_in_progress.remove(dn)
-
-        return modified_func
+        return handle_exclusively_decorator(dn_extractor)(func)
 
     async def perform_export_checks(self, employee_uuid: UUID, object_uuid: UUID):
         """
