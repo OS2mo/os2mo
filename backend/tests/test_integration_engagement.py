@@ -7,11 +7,14 @@ from uuid import UUID
 
 import freezegun
 import pytest
+from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
 from more_itertools import one
 
 from mora import lora
 from tests.cases import assert_registrations_equal
+from tests.conftest import GQLResponse
+from tests.conftest import GraphAPIPost
 
 userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
 userid2 = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -1123,225 +1126,224 @@ def test_reading_engagement_calculate_primary(service_client: TestClient) -> Non
     assert result[1]["is_primary"] is True
 
 
-# TODO 59713
-# @pytest.mark.integration_test
-# @pytest.mark.usefixtures("fixture_db")
-# async def test_edit_extension_attr_58263(service_client: TestClient) -> None:
-#     person_uuid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-#     new_ext2 = "Teknisk servicemedarbejder"
-#     from_date = "2024-01-01"
-#
-#     # Make sure that extension_2 != new_ext2
-#     read_r = service_client.request(
-#         "GET",
-#         f"/service/e/{person_uuid}/details/engagement",
-#     ).json()
-#     assert read_r[0]["extension_2"] != new_ext2
-#     engagement_uuid = read_r[0]["uuid"]
-#
-#     edit_payload = {
-#         "data": {
-#             "extension_1": "ext1",
-#             "extension_2": "somethings wrong",
-#             "extension_3": "ext3",
-#             "validity": {"from": from_date, "to": None},
-#         },
-#         "type": "engagement",
-#         "uuid": engagement_uuid,
-#     }
-#     r = service_client.request("POST", "/service/details/edit", json=edit_payload)
-#     assert r.status_code == 200
-#
-#     # Make sure that new extensions are saved when nothing else has changed.
-#     del edit_payload["data"]["extension_1"]
-#     del edit_payload["data"]["extension_3"]
-#     edit_payload["data"]["extension_2"] = new_ext2
-#     r = service_client.request("POST", "/service/details/edit", json=edit_payload)
-#     assert r.status_code == 200
-#     read_engagement = service_client.request(
-#         "GET",
-#         f"/service/e/{person_uuid}/details/engagement",
-#     ).json()[0]
-#
-#     assert read_engagement["extension_1"] == "ext1"
-#     assert read_engagement["extension_2"] == new_ext2
-#     assert read_engagement["extension_3"] == "ext3"
-#
-#
-# @pytest.mark.integration_test
-# @pytest.mark.usefixtures("fixture_db")
-# async def test_mutator_edit_extension_attr_58263(
-#     service_client: TestClient, graphapi_post: GraphAPIPost
-# ) -> None:
-#     person_uuid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-#     new_ext2 = "Teknisk servicemedarbejder"
-#     from_date = "2024-01-01"
-#     # Edit extension 2
-#     read_r = service_client.request(
-#         "GET",
-#         f"/service/e/{person_uuid}/details/engagement",
-#     ).json()
-#     assert read_r[0]["extension_2"] != new_ext2
-#     engagement_uuid = read_r[0]["uuid"]
-#
-#     edit_payload = {
-#         "data": {
-#             "extension_2": new_ext2,
-#             "validity": {"from": from_date, "to": None},
-#         },
-#         "type": "engagement",
-#         "uuid": engagement_uuid,
-#     }
-#     r = service_client.request("POST", "/service/details/edit", json=edit_payload)
-#     assert r.status_code == 200
-#
-#     # Edit extension_3 using the same mutator as job_function configurator. Then check that extension_2 is not changed
-#     query = """
-#             mutation UpdateExtensionField($uuid: UUID!, $from_date: DateTime!, $to_date: DateTime, $extension_3: String) {
-#               engagement_update(
-#                 input: {uuid: $uuid, validity: {from: $from_date, to: $to_date}, extension_3: $extension_3}
-#               ) {
-#                 uuid
-#                 current {
-#                    extension_2
-#                    extension_3
-#                 }
-#               }
-#             }
-#             """
-#     variables: dict[str, object] = jsonable_encoder(
-#         {
-#             "uuid": engagement_uuid,
-#             "from_date": from_date,
-#             "to_date": None,
-#             "extension_3": "extension_3",
-#         }
-#     )
-#     response: GQLResponse = graphapi_post(query, variables, url="/graphql/v19")
-#
-#     assert response.status_code == 200
-#     assert response.errors is None
-#     assert response.data["engagement_update"]["current"]["extension_2"] == new_ext2
-#     assert response.data["engagement_update"]["current"]["extension_3"] == "extension_3"
-#     assert (
-#         service_client.request(
-#             "GET",
-#             f"/service/e/{person_uuid}/details/engagement",
-#         ).json()[0]["extension_2"]
-#         == new_ext2
-#     )
-#
-#
-# @pytest.mark.integration_test
-# @pytest.mark.usefixtures("fixture_db")
-# async def test_mutator_edit_user_key_58263(
-#     service_client: TestClient, graphapi_post: GraphAPIPost
-# ) -> None:
-#     person_uuid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-#     user_key = "Der er ugler i mosen"
-#     from_date = "2024-01-01"
-#
-#     # Edit extension 2
-#     read_r = service_client.request(
-#         "GET",
-#         f"/service/e/{person_uuid}/details/engagement",
-#     ).json()
-#     assert read_r[0]["user_key"] != user_key
-#     engagement_uuid = read_r[0]["uuid"]
-#
-#     edit_payload = {
-#         "data": {
-#             "user_key": user_key,
-#             "validity": {"from": from_date, "to": None},
-#         },
-#         "type": "engagement",
-#         "uuid": engagement_uuid,
-#     }
-#     r = service_client.request("POST", "/service/details/edit", json=edit_payload)
-#     assert r.status_code == 200
-#
-#     # Irrelevant edit. Need to test that this doesn't overwrite our new user_key.
-#     query = """
-#             mutation UpdateExtensionField($uuid: UUID!, $from_date: DateTime!, $to_date: DateTime, $extension_3: String) {
-#               engagement_update(
-#                 input: {uuid: $uuid, validity: {from: $from_date, to: $to_date}, extension_3: $extension_3}
-#               ) {
-#                 uuid
-#                 current {
-#                    user_key
-#                    extension_3
-#                 }
-#               }
-#             }
-#             """
-#     variables: dict[str, object] = jsonable_encoder(
-#         {
-#             "uuid": engagement_uuid,
-#             "from_date": from_date,
-#             "to_date": None,
-#             "extension_3": "extension_3",
-#         }
-#     )
-#     response: GQLResponse = graphapi_post(query, variables, url="/graphql/v19")
-#
-#     assert response.status_code == 200
-#     assert response.errors is None
-#     assert response.data["engagement_update"]["current"]["user_key"] == user_key
-#     assert response.data["engagement_update"]["current"]["extension_3"] == "extension_3"
-#     assert (
-#         service_client.request(
-#             "GET",
-#             f"/service/e/{person_uuid}/details/engagement",
-#         ).json()[0]["user_key"]
-#         == user_key
-#     )
-#
-#
-# @pytest.mark.integration_test
-# @pytest.mark.usefixtures("fixture_db")
-# async def test_edit_extension_attr_future_58263(service_client: TestClient) -> None:
-#     person_uuid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-#     new_ext2 = "Teknisk servicemedarbejder"
-#     new_ext3 = "Future extension 3"
-#
-#     # Make sure that extension_2 != new_ext2
-#     read_r = service_client.request(
-#         "GET",
-#         f"/service/e/{person_uuid}/details/engagement",
-#     ).json()
-#     assert read_r[0]["extension_2"] != new_ext2
-#     engagement_uuid = read_r[0]["uuid"]
-#
-#     # Write extension_3 in the future
-#     edit_payload = {
-#         "data": {
-#             "extension_3": new_ext3,
-#             # surely noone has to run these tests in 2034 😉
-#             "validity": {"from": "2034-01-01", "to": None},
-#         },
-#         "type": "engagement",
-#         "uuid": engagement_uuid,
-#     }
-#     r = service_client.request("POST", "/service/details/edit", json=edit_payload)
-#     assert r.status_code == 200
-#
-#     # Write extension_2 so its valid/actual now
-#     edit_payload = {
-#         "data": {
-#             "extension_2": new_ext2,
-#             "validity": {"from": "2024-01-01", "to": None},
-#         },
-#         "type": "engagement",
-#         "uuid": engagement_uuid,
-#     }
-#     r = service_client.request("POST", "/service/details/edit", json=edit_payload)
-#     assert r.status_code == 200
-#
-#     # Check that current doesn't have extension_3, but has new extension_2
-#     read_engagement = service_client.request(
-#         "GET",
-#         f"/service/e/{person_uuid}/details/engagement",
-#     ).json()[0]
-#
-#     assert read_engagement["extension_2"] == new_ext2
-#     assert read_engagement["extension_3"] != new_ext3
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_edit_extension_attr_58263(service_client: TestClient) -> None:
+    person_uuid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+    new_ext2 = "Teknisk servicemedarbejder"
+    from_date = "2024-01-01"
+
+    # Make sure that extension_2 != new_ext2
+    read_r = service_client.request(
+        "GET",
+        f"/service/e/{person_uuid}/details/engagement",
+    ).json()
+    assert read_r[0]["extension_2"] != new_ext2
+    engagement_uuid = read_r[0]["uuid"]
+
+    edit_payload = {
+        "data": {
+            "extension_1": "ext1",
+            "extension_2": "somethings wrong",
+            "extension_3": "ext3",
+            "validity": {"from": from_date, "to": None},
+        },
+        "type": "engagement",
+        "uuid": engagement_uuid,
+    }
+    r = service_client.request("POST", "/service/details/edit", json=edit_payload)
+    assert r.status_code == 200
+
+    # Make sure that new extensions are saved when nothing else has changed.
+    del edit_payload["data"]["extension_1"]
+    del edit_payload["data"]["extension_3"]
+    edit_payload["data"]["extension_2"] = new_ext2
+    r = service_client.request("POST", "/service/details/edit", json=edit_payload)
+    assert r.status_code == 200
+    read_engagement = service_client.request(
+        "GET",
+        f"/service/e/{person_uuid}/details/engagement",
+    ).json()[0]
+
+    assert read_engagement["extension_1"] == "ext1"
+    assert read_engagement["extension_2"] == new_ext2
+    assert read_engagement["extension_3"] == "ext3"
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_mutator_edit_extension_attr_58263(
+    admin_client: TestClient, graphapi_post: GraphAPIPost
+) -> None:
+    person_uuid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+    new_ext2 = "Teknisk servicemedarbejder"
+    from_date = "2024-01-01"
+    # Edit extension 2
+    read_r = admin_client.request(
+        "GET",
+        f"/service/e/{person_uuid}/details/engagement",
+    ).json()
+    assert read_r[0]["extension_2"] != new_ext2
+    engagement_uuid = read_r[0]["uuid"]
+
+    edit_payload = {
+        "data": {
+            "extension_2": new_ext2,
+            "validity": {"from": from_date, "to": None},
+        },
+        "type": "engagement",
+        "uuid": engagement_uuid,
+    }
+    r = admin_client.request("POST", "/service/details/edit", json=edit_payload)
+    assert r.status_code == 200
+
+    # Edit extension_3 using the same mutator as job_function configurator. Then check that extension_2 is not changed
+    query = """
+            mutation UpdateExtensionField($uuid: UUID!, $from_date: DateTime!, $to_date: DateTime, $extension_3: String) {
+              engagement_update(
+                input: {uuid: $uuid, validity: {from: $from_date, to: $to_date}, extension_3: $extension_3}
+              ) {
+                uuid
+                current {
+                   extension_2
+                   extension_3
+                }
+              }
+            }
+            """
+    variables: dict[str, object] = jsonable_encoder(
+        {
+            "uuid": engagement_uuid,
+            "from_date": from_date,
+            "to_date": None,
+            "extension_3": "extension_3",
+        }
+    )
+    response: GQLResponse = graphapi_post(query, variables, url="/graphql/v19")
+
+    assert response.status_code == 200
+    assert response.errors is None
+    assert response.data["engagement_update"]["current"]["extension_2"] == new_ext2
+    assert response.data["engagement_update"]["current"]["extension_3"] == "extension_3"
+    assert (
+        admin_client.request(
+            "GET",
+            f"/service/e/{person_uuid}/details/engagement",
+        ).json()[0]["extension_2"]
+        == new_ext2
+    )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_mutator_edit_user_key_58263(
+    admin_client: TestClient, graphapi_post: GraphAPIPost
+) -> None:
+    person_uuid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+    user_key = "Der er ugler i mosen"
+    from_date = "2024-01-01"
+
+    # Edit extension 2
+    read_r = admin_client.request(
+        "GET",
+        f"/service/e/{person_uuid}/details/engagement",
+    ).json()
+    assert read_r[0]["user_key"] != user_key
+    engagement_uuid = read_r[0]["uuid"]
+
+    edit_payload = {
+        "data": {
+            "user_key": user_key,
+            "validity": {"from": from_date, "to": None},
+        },
+        "type": "engagement",
+        "uuid": engagement_uuid,
+    }
+    r = admin_client.request("POST", "/service/details/edit", json=edit_payload)
+    assert r.status_code == 200
+
+    # Irrelevant edit. Need to test that this doesn't overwrite our new user_key.
+    query = """
+            mutation UpdateExtensionField($uuid: UUID!, $from_date: DateTime!, $to_date: DateTime, $extension_3: String) {
+              engagement_update(
+                input: {uuid: $uuid, validity: {from: $from_date, to: $to_date}, extension_3: $extension_3}
+              ) {
+                uuid
+                current {
+                   user_key
+                   extension_3
+                }
+              }
+            }
+            """
+    variables: dict[str, object] = jsonable_encoder(
+        {
+            "uuid": engagement_uuid,
+            "from_date": from_date,
+            "to_date": None,
+            "extension_3": "extension_3",
+        }
+    )
+    response: GQLResponse = graphapi_post(query, variables, url="/graphql/v19")
+
+    assert response.status_code == 200
+    assert response.errors is None
+    assert response.data["engagement_update"]["current"]["user_key"] == user_key
+    assert response.data["engagement_update"]["current"]["extension_3"] == "extension_3"
+    assert (
+        admin_client.request(
+            "GET",
+            f"/service/e/{person_uuid}/details/engagement",
+        ).json()[0]["user_key"]
+        == user_key
+    )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_edit_extension_attr_future_58263(service_client: TestClient) -> None:
+    person_uuid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+    new_ext2 = "Teknisk servicemedarbejder"
+    new_ext3 = "Future extension 3"
+
+    # Make sure that extension_2 != new_ext2
+    read_r = service_client.request(
+        "GET",
+        f"/service/e/{person_uuid}/details/engagement",
+    ).json()
+    assert read_r[0]["extension_2"] != new_ext2
+    engagement_uuid = read_r[0]["uuid"]
+
+    # Write extension_3 in the future
+    edit_payload = {
+        "data": {
+            "extension_3": new_ext3,
+            # surely noone has to run these tests in 2034 😉
+            "validity": {"from": "2034-01-01", "to": None},
+        },
+        "type": "engagement",
+        "uuid": engagement_uuid,
+    }
+    r = service_client.request("POST", "/service/details/edit", json=edit_payload)
+    assert r.status_code == 200
+
+    # Write extension_2 so its valid/actual now
+    edit_payload = {
+        "data": {
+            "extension_2": new_ext2,
+            "validity": {"from": "2024-01-01", "to": None},
+        },
+        "type": "engagement",
+        "uuid": engagement_uuid,
+    }
+    r = service_client.request("POST", "/service/details/edit", json=edit_payload)
+    assert r.status_code == 200
+
+    # Check that current doesn't have extension_3, but has new extension_2
+    read_engagement = service_client.request(
+        "GET",
+        f"/service/e/{person_uuid}/details/engagement",
+    ).json()[0]
+
+    assert read_engagement["extension_2"] == new_ext2
+    assert read_engagement["extension_3"] != new_ext3
