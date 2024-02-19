@@ -171,7 +171,7 @@ class DataLoader:
     async def query_mo(
         self, query: DocumentNode, raise_if_empty: bool = True, variable_values={}
     ):
-        graphql_session: AsyncClientSession = self.user_context["gql_client"]
+        graphql_session: AsyncClientSession = self.context["legacy_graphql_session"]
         result = await graphql_session.execute(
             query, variable_values=jsonable_encoder(variable_values)
         )
@@ -2003,11 +2003,11 @@ class DataLoader:
             - If an Address object is supplied, the address is updated/created
             - And so on...
         """
-        model_client = self.user_context["model_client"]
+        model_client = self.context["legacy_model_client"]
         return cast(list[Any | None], await model_client.upload(objects))
 
     async def create_or_edit_mo_objects(self, objects: list[tuple[MOBase, Verb]]):
-        model_client = self.user_context["model_client"]
+        model_client = self.context["legacy_model_client"]
         creates, edits = partition(lambda tup: tup[1] == Verb.EDIT, objects)
         create_results = await model_client.upload([obj for obj, _ in creates])
         edit_results = await model_client.edit([obj for obj, _ in edits])

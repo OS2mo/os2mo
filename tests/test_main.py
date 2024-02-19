@@ -31,7 +31,6 @@ from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import NotSupportedException
 from mo_ldap_import_export.ldap_classes import LdapObject
-from mo_ldap_import_export.main import construct_gql_client
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
 from mo_ldap_import_export.main import get_delete_flag
@@ -275,9 +274,6 @@ def patch_modules(
     """
     with patch(
         "mo_ldap_import_export.main.configure_ldap_connection", new_callable=MagicMock()
-    ), patch(
-        "mo_ldap_import_export.main.construct_gql_client",
-        return_value=gql_client,
     ), patch("mo_ldap_import_export.main.DataLoader", return_value=dataloader), patch(
         "mo_ldap_import_export.main.get_attribute_types", return_value={"foo": {}}
     ), patch(
@@ -877,15 +873,6 @@ def test_get_duplicate_cpr_numbers_from_LDAP_endpoint(
         assert "123" in result
         assert "mucki" in result["123"]
         assert "bar" in result["123"]
-
-
-def test_construct_gql_client():
-    fastramqpi_settings = MagicMock(mo_url="mo-url")
-    settings = MagicMock(fastramqpi=fastramqpi_settings)
-
-    with patch("mo_ldap_import_export.main.PersistentGraphQLClient", MagicMock):
-        gql_client = construct_gql_client(settings)
-        assert gql_client.url == "mo-url/graphql/v21"
 
 
 async def test_get_non_existing_objectGUIDs_from_MO(
