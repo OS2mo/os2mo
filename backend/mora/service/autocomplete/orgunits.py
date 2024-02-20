@@ -60,11 +60,9 @@ async def decorate_orgunit_search_result(
     if at is not None:
         graphql_vars["from_date"] = at
 
-    from mora.graphapi.versions.v14.version import GraphQLVersion
-
     orgunit_decorate_query = """
-        query OrgUnitDecorate($uuids: [UUID!]) {
-            org_units(filter: { uuids: $uuids, from_date: null, to_date: null }) {
+        query OrgUnitDecorate($uuids: [UUID!], $from_date: DateTime) {
+            org_units(filter: { uuids: $uuids, from_date: $from_date, to_date: null }) {
                 objects {
                     uuid
 
@@ -93,8 +91,8 @@ async def decorate_orgunit_search_result(
 
     if settings.confdb_autocomplete_attrs_orgunit:
         orgunit_decorate_query = """
-            query OrgUnitDecorate($uuids: [UUID!]) {
-                org_units(filter: { uuids: $uuids, from_date: null, to_date: null }) {
+            query OrgUnitDecorate($uuids: [UUID!], $from_date: DateTime) {
+                org_units(filter: { uuids: $uuids, from_date: $from_date, to_date: null }) {
                     objects {
                         uuid
 
@@ -123,19 +121,19 @@ async def decorate_orgunit_search_result(
                     name
                 }
 
-                addresses_validity {
+                addresses(filter: {from_date: $from_date, to_date: null}) {
                     uuid
                     name
-                    address_type_validity {
+                    address_type(filter: {from_date: $from_date, to_date: null}) {
                         uuid
                         name
                     }
                 }
 
-                itusers_validity {
+                itusers(filter: {from_date: $from_date, to_date: null}) {
                     uuid
                     user_key
-                    itsystem_validity {
+                    itsystem(filter: {from_date: $from_date, to_date: null}) {
                         uuid
                         user_key
                         name
@@ -146,7 +144,6 @@ async def decorate_orgunit_search_result(
 
     response = await execute_graphql(
         orgunit_decorate_query,
-        graphql_version=GraphQLVersion,
         variable_values=jsonable_encoder(graphql_vars),
     )
     handle_gql_error(response)
@@ -197,9 +194,9 @@ def _sqlalchemy_generate_query(query: str, at_sql: str) -> Select[Tuple]:
 
 def _gql_get_orgunit_attrs(settings: config.Settings, org_unit_graphql: dict) -> [dict]:
     attrs: [dict] = []
-    if "addresses_validity" in org_unit_graphql:
-        for addr in org_unit_graphql["addresses_validity"]:
-            address_type = addr["address_type_validity"]
+    if "addresses" in org_unit_graphql:
+        for addr in org_unit_graphql["addresses"]:
+            address_type = addr["address_type"]
             if (
                 UUID(address_type["uuid"])
                 not in settings.confdb_autocomplete_attrs_orgunit
@@ -214,9 +211,9 @@ def _gql_get_orgunit_attrs(settings: config.Settings, org_unit_graphql: dict) ->
                 }
             )
 
-    if "itusers_validity" in org_unit_graphql:
-        for ituser in org_unit_graphql["itusers_validity"]:
-            itsystem = ituser["itsystem_validity"]
+    if "itusers" in org_unit_graphql:
+        for ituser in org_unit_graphql["itusers"]:
+            itsystem = ituser["itsystem"]
             if UUID(itsystem["uuid"]) not in settings.confdb_autocomplete_attrs_orgunit:
                 continue
 
