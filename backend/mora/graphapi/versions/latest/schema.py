@@ -4420,9 +4420,8 @@ class File:
         )
     )
     async def text_contents(self, info: Info) -> str:
-        session = info.context["sessionmaker"]()
-        async with session.begin():
-            content = await db.files.read(session, self.file_store, self.file_name)
+        session = info.context["session"]
+        content = await db.files.read(session, self.file_store, self.file_name)
         return content.decode("utf-8")
 
     @strawberry.field(
@@ -4448,10 +4447,8 @@ class File:
         )
     )
     async def base64_contents(self, info: Info) -> str:
-        session = info.context["sessionmaker"]()
-        async with session.begin():
-            content = await db.files.read(session, self.file_store, self.file_name)
-
+        session = info.context["session"]
+        content = await db.files.read(session, self.file_store, self.file_name)
         data = b64encode(content)
         return data.decode("ascii")
 

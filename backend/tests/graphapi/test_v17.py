@@ -15,6 +15,7 @@ from tests.conftest import GraphAPIPost
 
 @pytest.mark.integration_test
 async def test_query_auditlog(
+    another_transaction,
     set_settings: MonkeyPatch,
     graphapi_post: GraphAPIPost,
     fixture_db: async_sessionmaker,
@@ -22,13 +23,13 @@ async def test_query_auditlog(
     """Test querying audit log across v17 shim."""
 
     # Remove all audit log entries present
-    async with fixture_db.begin() as session:
+    async with another_transaction() as (_, session):
         await session.execute(delete(AuditLogRead))
         await session.execute(delete(AuditLogOperation))
 
     set_settings(AUDIT_READLOG_ENABLE="True")
 
-    async with fixture_db.begin() as session:
+    async with another_transaction() as (_, session):
         audit_log(session, "test_auditlog", "OrganisationFunktion", {}, [])
 
     query = """

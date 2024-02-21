@@ -372,9 +372,7 @@ async def employee_resolver(
     if filter.query:
         if filter.uuids:
             raise ValueError("Cannot supply both filter.uuids and filter.query")
-        filter.uuids = await search_employees(
-            info.context["sessionmaker"], filter.query
-        )
+        filter.uuids = await search_employees(info.context["session"], filter.query)
 
     kwargs = {}
     if filter.cpr_numbers is not None:
@@ -532,7 +530,7 @@ async def organisation_unit_resolver(
     if filter.query:
         if filter.uuids:
             raise ValueError("Cannot supply both filter.uuids and filter.query")
-        filter.uuids = await search_orgunits(info.context["sessionmaker"], filter.query)
+        filter.uuids = await search_orgunits(info.context["session"], filter.query)
 
     kwargs = {}
     # Parents
@@ -668,7 +666,7 @@ async def get_by_uuid(
     dataloader: DataLoader, uuids: list[UUID]
 ) -> dict[UUID, dict[str, Any]]:
     deduplicated_uuids = list(set(uuids))
-    responses = await dataloader.load_many(deduplicated_uuids)
+    responses = [await dataloader.load(uuid) for uuid in deduplicated_uuids]
     # Filter empty objects, see: https://redmine.magenta-aps.dk/issues/51523.
     return {
         uuid: objects

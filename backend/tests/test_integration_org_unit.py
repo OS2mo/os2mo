@@ -1178,22 +1178,25 @@ async def test_move_org_unit_to_root(service_client: TestClient):
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2016-01-01")
-async def test_move_org_unit_wrong_org(service_client: TestClient) -> None:
+async def test_move_org_unit_wrong_org(
+    another_transaction, service_client: TestClient
+) -> None:
     """Verify that we cannot move a unit into another organisation"""
 
-    org_unit_uuid = "b688513d-11f7-4efc-b679-ab082a2055d0"
-    other_org_uuid = await util.load_fixture(
-        "organisation/organisation",
-        "create_organisation_AU.json",
-    )
+    async with another_transaction():
+        org_unit_uuid = "b688513d-11f7-4efc-b679-ab082a2055d0"
+        other_org_uuid = await util.load_fixture(
+            "organisation/organisation",
+            "create_organisation_AU.json",
+        )
 
-    c = lora.Connector()
+        c = lora.Connector()
 
-    other_unit = util.get_fixture("create_organisationenhed_root.json")
-    other_unit["relationer"]["tilhoerer"][0]["uuid"] = other_org_uuid
-    other_unit["relationer"]["overordnet"][0]["uuid"] = other_org_uuid
+        other_unit = util.get_fixture("create_organisationenhed_root.json")
+        other_unit["relationer"]["tilhoerer"][0]["uuid"] = other_org_uuid
+        other_unit["relationer"]["overordnet"][0]["uuid"] = other_org_uuid
 
-    other_unit_uuid = await c.organisationenhed.create(other_unit)
+        other_unit_uuid = await c.organisationenhed.create(other_unit)
 
     response = service_client.request(
         "POST",

@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from asyncio import create_task
-
 from structlog import get_logger
 
 from .. import reading
@@ -37,21 +35,14 @@ class AddressReader(reading.OrgFunkReadingHandler):
         scope = mapping.ADDRESSES_FIELD(effect)[0].get("objekttype")
         handler = await base.get_handler_for_scope(scope).from_effect(effect)
 
-        base_obj_task = create_task(
-            super()._get_mo_object_from_effect(effect, start, end, funcid)
-        )
+        base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)
 
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
-        address_task = create_task(
-            handler.get_mo_address_and_properties(only_primary_uuid)
-        )
+        address_obj = await handler.get_mo_address_and_properties(only_primary_uuid)
 
         # Return early if flat model is desired
         if is_graphql():
-            base_obj = await base_obj_task
-            address_obj = await address_task
-
             return {
                 **base_obj,
                 "value": address_obj[mapping.VALUE],
@@ -63,44 +54,32 @@ class AddressReader(reading.OrgFunkReadingHandler):
                 "visibility_uuid": visibility_uuid,
             }
 
-        facet_task = create_task(
-            facet.request_bulked_get_one_class_full(
-                address_type_uuid, only_primary_uuid=only_primary_uuid
-            )
+        facet_obj = await facet.request_bulked_get_one_class_full(
+            address_type_uuid, only_primary_uuid=only_primary_uuid
         )
 
+        r = {
+            **base_obj,
+            mapping.ADDRESS_TYPE: facet_obj,
+            **address_obj,
+        }
+
         if person_uuid:
-            person_task = create_task(
-                employee.request_bulked_get_one_employee(
-                    person_uuid, only_primary_uuid=only_primary_uuid
-                )
+            r[mapping.PERSON] = await employee.request_bulked_get_one_employee(
+                person_uuid, only_primary_uuid=only_primary_uuid
             )
 
         if org_unit_uuid:
-            org_unit_task = create_task(
-                orgunit.request_bulked_get_one_orgunit(
-                    org_unit_uuid,
-                    details=orgunit.UnitDetails.MINIMAL,
-                    only_primary_uuid=only_primary_uuid,
-                )
+            r[mapping.ORG_UNIT] = await orgunit.request_bulked_get_one_orgunit(
+                org_unit_uuid,
+                details=orgunit.UnitDetails.MINIMAL,
+                only_primary_uuid=only_primary_uuid,
             )
 
         if engagement_uuid is not None:
             engagement = {mapping.UUID: engagement_uuid}
             if not only_primary_uuid:
                 engagement = await get_engagement(get_connector(), uuid=engagement_uuid)
-
-        r = {
-            **await base_obj_task,
-            mapping.ADDRESS_TYPE: await facet_task,
-            **await address_task,
-        }
-
-        if person_uuid:
-            r[mapping.PERSON] = await person_task
-        if org_unit_uuid:
-            r[mapping.ORG_UNIT] = await org_unit_task
-        if engagement_uuid is not None:
             r[mapping.ENGAGEMENT] = engagement
 
         return r

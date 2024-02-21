@@ -18,11 +18,11 @@ from more_itertools import flatten
 from more_itertools import one
 from sqlalchemy import delete
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from mora.audit import audit_log
 from mora.auth.middleware import LORA_USER_UUID
 from mora.auth.middleware import set_authenticated_user
+from mora.db import AsyncSession
 from mora.db import AuditLogOperation
 from mora.db import AuditLogRead
 from mora.graphapi.versions.latest.audit import AuditLogModel
@@ -33,20 +33,18 @@ from tests.conftest import admin_auth_uuid
 from tests.conftest import GraphAPIPost
 
 
-async def assert_empty_audit_tables(sessionmaker) -> None:
-    session = sessionmaker()
-    async with session.begin():
-        query = select(AuditLogOperation)
-        result = list(await session.scalars(query))
-        assert result == []
+async def assert_empty_audit_tables(session) -> None:
+    query = select(AuditLogOperation)
+    result = list(await session.scalars(query))
+    assert result == []
 
-        query = select(AuditLogRead)
-        result = list(await session.scalars(query))
-        assert result == []
+    query = select(AuditLogRead)
+    result = list(await session.scalars(query))
+    assert result == []
 
 
 async def assert_one_audit_entry(
-    sessionmaker,
+    session,
     model: str,
     operation: str,
     uuids: list[UUID] | None = None,
@@ -59,31 +57,29 @@ async def assert_one_audit_entry(
     now = now or (datetime.now(tz=DEFAULT_TIMEZONE) - timedelta(minutes=1))
     uuids = uuids or []
 
-    session = sessionmaker()
-    async with session.begin():
-        query = select(AuditLogOperation)
-        audit_operation = one(await session.scalars(query))
+    query = select(AuditLogOperation)
+    audit_operation = one(await session.scalars(query))
 
-        assert audit_operation.time > now
-        assert audit_operation.actor == actor
-        assert audit_operation.model == model
+    assert audit_operation.time > now
+    assert audit_operation.actor == actor
+    assert audit_operation.model == model
 
-        assert audit_operation.operation == operation
-        assert audit_operation.arguments == arguments
+    assert audit_operation.operation == operation
+    assert audit_operation.arguments == arguments
 
-        query = select(AuditLogRead)
-        reads = list(await session.scalars(query))
-        read_uuids = []
-        for read in reads:
-            assert read.operation_id == audit_operation.id
-            read_uuids.append(read.uuid)
+    query = select(AuditLogRead)
+    reads = list(await session.scalars(query))
+    read_uuids = []
+    for read in reads:
+        assert read.operation_id == audit_operation.id
+        read_uuids.append(read.uuid)
 
-        assert read_uuids == uuids
+    assert read_uuids == uuids
 
 
 @pytest.mark.integration_test
 async def test_auditlog_database(
-    empty_db: async_sessionmaker, set_settings: MonkeyPatch
+    empty_db: AsyncSession, set_settings: MonkeyPatch
 ) -> None:
     """Integrationtest for reading and writing the auditlog."""
 
@@ -92,8 +88,7 @@ async def test_auditlog_database(
     await assert_empty_audit_tables(empty_db)
 
     uuid = uuid4()
-    async with empty_db.begin() as session:
-        audit_log(session, "test_auditlog", "AuditLog", {}, [uuid])
+    audit_log(empty_db, "test_auditlog", "AuditLog", {}, [uuid])
 
     await assert_one_audit_entry(empty_db, "AuditLog", "test_auditlog", [uuid])
 
@@ -151,7 +146,7 @@ async def test_auditlog_graphql_self(
 
 @pytest.mark.integration_test
 async def test_search_employees(
-    empty_db: async_sessionmaker, set_settings: MonkeyPatch
+    empty_db: AsyncSession, set_settings: MonkeyPatch
 ) -> None:
     set_settings(AUDIT_READLOG_ENABLE="True")
 
@@ -167,7 +162,7 @@ async def test_search_employees(
 
 @pytest.mark.integration_test
 async def test_search_orgunits(
-    empty_db: async_sessionmaker, set_settings: MonkeyPatch
+    empty_db: AsyncSession, set_settings: MonkeyPatch
 ) -> None:
     set_settings(AUDIT_READLOG_ENABLE="True")
 
@@ -234,9 +229,10 @@ def audit_log_entries_and_filter(
 @given(audit_log_entries_and_filter=audit_log_entries_and_filter())
 # TODO: Add support for id filtering
 async def test_auditlog_filters(
+    another_transaction,
     graphapi_post: GraphAPIPost,
     set_session_settings: MonkeyPatch,
-    empty_db: async_sessionmaker,
+    empty_db: AsyncSession,
     audit_log_entries_and_filter: tuple[
         list[dict[str, Any]],
         list[UUID],
@@ -257,7 +253,7 @@ async def test_auditlog_filters(
 
     # Remove all audit log entries present since hypothesis doesn't work with
     # function-scoped fixtures.
-    async with empty_db.begin() as session:
+    async with another_transaction() as (_, session):
         await session.execute(delete(AuditLogRead))
         await session.execute(delete(AuditLogOperation))
 
@@ -283,7 +279,7 @@ async def test_auditlog_filters(
     # Add auditlog entries
     set_session_settings(AUDIT_READLOG_ENABLE="True")
 
-    async with empty_db.begin() as session:
+    async with another_transaction() as (_, session):
         for audit_event in audit_log_entries:
             async for _ in set_authenticated_user(audit_event["actor"]):
                 # TODO: Set time somehow
@@ -350,7 +346,7 @@ async def test_auditlog_filters(
 
 @pytest.mark.integration_test
 async def test_auditlog_disabled(
-    empty_db: async_sessionmaker, set_settings: MonkeyPatch
+    empty_db: AsyncSession, set_settings: MonkeyPatch
 ) -> None:
     """Integrationtest for enabling the auditlog."""
 
@@ -358,14 +354,12 @@ async def test_auditlog_disabled(
 
     set_settings(AUDIT_READLOG_ENABLE="False")
     uuid = uuid4()
-    async with empty_db.begin() as session:
-        audit_log(session, "test_auditlog", "AuditLog", {}, [uuid])
+    audit_log(empty_db, "test_auditlog", "AuditLog", {}, [uuid])
     await assert_empty_audit_tables(empty_db)
 
     set_settings(AUDIT_READLOG_ENABLE="True")
     uuid = uuid4()
-    async with session.begin():
-        audit_log(session, "test_auditlog", "AuditLog", {}, [uuid])
+    audit_log(empty_db, "test_auditlog", "AuditLog", {}, [uuid])
     await assert_one_audit_entry(empty_db, "AuditLog", "test_auditlog", [uuid])
 
 
@@ -419,7 +413,7 @@ async def test_auditlog_disabled_for_user_graphql(
 
 @pytest.mark.integration_test
 async def test_auditlog_disabled_for_user(
-    empty_db: async_sessionmaker, set_settings: MonkeyPatch
+    empty_db: AsyncSession, set_settings: MonkeyPatch
 ) -> None:
     """Integrationtest for selectively disabling the auditlog."""
 
@@ -429,14 +423,12 @@ async def test_auditlog_disabled_for_user(
 
     set_settings(AUDIT_READLOG_NO_LOG_UUIDS=f'["{LORA_USER_UUID}"]')
     uuid = uuid4()
-    async with empty_db.begin() as session:
-        audit_log(session, "test_auditlog", "AuditLog", {}, [uuid])
+    audit_log(empty_db, "test_auditlog", "AuditLog", {}, [uuid])
     await assert_empty_audit_tables(empty_db)
 
     set_settings(AUDIT_READLOG_NO_LOG_UUIDS="[]")
     uuid = uuid4()
-    async with empty_db.begin() as session:
-        audit_log(session, "test_auditlog", "AuditLog", {}, [uuid])
+    audit_log(empty_db, "test_auditlog", "AuditLog", {}, [uuid])
     await assert_one_audit_entry(empty_db, "AuditLog", "test_auditlog", [uuid])
 
 

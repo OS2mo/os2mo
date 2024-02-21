@@ -288,32 +288,31 @@ async def registration_resolver(
         query = query.limit(limit + 1)
     query = query.offset(cursor.offset if cursor else 0)
 
-    session = info.context["sessionmaker"]()
-    async with session.begin():
-        result = list(await session.execute(query))
-        audit_log(
-            session,
-            "resolve_registrations",
-            "Registration",
-            {
-                "limit": limit,
-                "cursor": cursor,
-                "uuids": filter.uuids,
-                "actors": filter.actors,
-                "models": filter.models,
-                "start": filter.start,
-                "end": filter.end,
-            },
-            [uuid for _, _, uuid, _, _, _, _ in result],
-        )
+    session = info.context["session"]
+    result = list(await session.execute(query))
+    audit_log(
+        session,
+        "resolve_registrations",
+        "Registration",
+        {
+            "limit": limit,
+            "cursor": cursor,
+            "uuids": filter.uuids,
+            "actors": filter.actors,
+            "models": filter.models,
+            "start": filter.start,
+            "end": filter.end,
+        },
+        [uuid for _, _, uuid, _, _, _, _ in result],
+    )
 
-        if limit is not None:
-            # Not enough results == no more pages
-            if len(result) <= limit:
-                context["lora_page_out_of_range"] = True
-            # Strip the extra element that was only used for page-checking
-            elif len(result) == limit + 1:
-                result = result[:-1]
+    if limit is not None:
+        # Not enough results == no more pages
+        if len(result) <= limit:
+            context["lora_page_out_of_range"] = True
+        # Strip the extra element that was only used for page-checking
+        elif len(result) == limit + 1:
+            result = result[:-1]
 
-        result = list(starmap(row2registration, result))
-        return result
+    result = list(starmap(row2registration, result))
+    return result

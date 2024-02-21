@@ -1,9 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from asyncio import create_task
-from asyncio import gather
-from collections.abc import Awaitable
-from collections.abc import Iterable
 from typing import Any
 
 from structlog import get_logger
@@ -65,9 +61,7 @@ class ManagerReader(reading.OrgFunkReadingHandler):
         responsibilities = list(mapping.RESPONSIBILITY_FIELD.get_uuids(effect))
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
 
-        base_obj = await create_task(
-            super()._get_mo_object_from_effect(effect, start, end, funcid)
-        )
+        base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)
 
         if is_graphql():
             return {
@@ -81,65 +75,41 @@ class ManagerReader(reading.OrgFunkReadingHandler):
 
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
-        if person:
-            person_task = create_task(
-                employee.request_bulked_get_one_employee(
-                    person, only_primary_uuid=only_primary_uuid
-                )
+        resps = [
+            await facet.request_bulked_get_one_class_full(
+                obj_uuid, only_primary_uuid=only_primary_uuid
             )
+            for obj_uuid in responsibilities
+        ]
 
-        if manager_type:
-            manager_type_task = create_task(
-                facet.request_bulked_get_one_class_full(
-                    manager_type, only_primary_uuid=only_primary_uuid
-                )
-            )
-
-        if manager_level:
-            manager_level_task = create_task(
-                facet.request_bulked_get_one_class_full(
-                    manager_level, only_primary_uuid=only_primary_uuid
-                )
-            )
-
-        resp_tasks: Iterable[Awaitable] = await gather(
-            *[
-                create_task(
-                    facet.request_bulked_get_one_class_full(
-                        obj_uuid, only_primary_uuid=only_primary_uuid
-                    )
-                )
-                for obj_uuid in responsibilities
-            ]
-        )
-
-        org_unit_task = create_task(
-            orgunit.request_bulked_get_one_orgunit(
-                org_unit,
-                details=orgunit.UnitDetails.MINIMAL,
-                only_primary_uuid=only_primary_uuid,
-            )
+        ou = await orgunit.request_bulked_get_one_orgunit(
+            org_unit,
+            details=orgunit.UnitDetails.MINIMAL,
+            only_primary_uuid=only_primary_uuid,
         )
 
         func: dict[Any, Any] = {
             **base_obj,
-            mapping.RESPONSIBILITY: gather(*resp_tasks),
-            mapping.ORG_UNIT: await org_unit_task,
+            mapping.RESPONSIBILITY: resps,
+            mapping.ORG_UNIT: ou,
+            mapping.PERSON: None,
+            mapping.MANAGER_TYPE: None,
+            mapping.MANAGER_LEVEL: None,
         }
 
         if person:
-            func[mapping.PERSON] = await person_task
-        else:
-            func[mapping.PERSON] = None
+            func[mapping.PERSON] = await employee.request_bulked_get_one_employee(
+                person, only_primary_uuid=only_primary_uuid
+            )
 
         if manager_type:
-            func[mapping.MANAGER_TYPE] = await manager_type_task
-        else:
-            func[mapping.MANAGER_TYPE] = None
+            func[mapping.MANAGER_TYPE] = await facet.request_bulked_get_one_class_full(
+                manager_type, only_primary_uuid=only_primary_uuid
+            )
 
         if manager_level:
-            func[mapping.MANAGER_LEVEL] = await manager_level_task
-        else:
-            func[mapping.MANAGER_LEVEL] = None
+            func[mapping.MANAGER_LEVEL] = await facet.request_bulked_get_one_class_full(
+                manager_level, only_primary_uuid=only_primary_uuid
+            )
 
         return func

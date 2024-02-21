@@ -14,9 +14,6 @@ import copy
 import enum
 import locale
 import logging
-from asyncio import create_task
-from asyncio import gather
-from collections.abc import Awaitable
 from datetime import date
 from datetime import datetime
 from typing import Any
@@ -365,19 +362,9 @@ async def request_bulked_get_one_orgunit(
     details: UnitDetails = UnitDetails.NCHILDREN,
     validity: Any | None = None,
     only_primary_uuid: bool = False,
-) -> Awaitable:
-    """
-    EAGERLY adds a uuid to a LAZILY-processed cache. Return an awaitable. Once the
-    result is awaited, the FULL cache is processed. Useful to 'under-the-hood' bulk.
-
-    :param unitid: uuid of orgunit
-    :param details: configure processing of the org_unit
-    :param validity:
-    :param only_primary_uuid:
-    :return: Awaitable returning the processed org_unit
-    """
+):
     connector = common.get_connector()
-    return get_one_orgunit(
+    return await get_one_orgunit(
         c=connector,
         unitid=unitid,
         unit=await get_lora_object(
@@ -444,44 +431,45 @@ async def get_one_orgunit(
         )
         r["child_count"] = len(children)
     elif details is UnitDetails.FULL or details is UnitDetails.PATH:
-        parent_task = create_task(
-            await request_bulked_get_one_orgunit(
-                unitid=parentid, details=details, only_primary_uuid=only_primary_uuid
-            )
+        parent = await request_bulked_get_one_orgunit(
+            unitid=parentid, details=details, only_primary_uuid=only_primary_uuid
         )
 
         if details is UnitDetails.FULL:
-            org_task = create_task(org.get_configured_organisation())
+            r[mapping.PARENT] = parent
+            r[mapping.ORG] = await org.get_configured_organisation()
 
-            if unittype:
-                org_unit_type_task = create_task(
-                    await facet.request_bulked_get_one_class_full(
-                        classid=unittype, only_primary_uuid=only_primary_uuid
-                    )
+            r[mapping.ORG_UNIT_TYPE] = (
+                await facet.request_bulked_get_one_class_full(
+                    classid=unittype, only_primary_uuid=only_primary_uuid
                 )
+                if unittype
+                else None
+            )
 
-            if timeplanning:
-                time_planning_task = create_task(
-                    await facet.request_bulked_get_one_class_full(
-                        classid=timeplanning, only_primary_uuid=only_primary_uuid
-                    )
+            r[mapping.TIME_PLANNING] = (
+                await facet.request_bulked_get_one_class_full(
+                    classid=timeplanning, only_primary_uuid=only_primary_uuid
                 )
+                if timeplanning
+                else None
+            )
 
-            if org_unit_level:
-                org_unit_level_task = create_task(
-                    await facet.request_bulked_get_one_class_full(
-                        classid=org_unit_level, only_primary_uuid=only_primary_uuid
-                    )
+            r[mapping.ORG_UNIT_LEVEL] = (
+                await facet.request_bulked_get_one_class_full(
+                    classid=org_unit_level, only_primary_uuid=only_primary_uuid
                 )
+                if org_unit_level
+                else None
+            )
 
-            if org_unit_hierarchy:
-                org_unit_hierarchy_task = create_task(
-                    await facet.request_bulked_get_one_class_full(
-                        classid=org_unit_hierarchy, only_primary_uuid=only_primary_uuid
-                    )
+            r[mapping.ORG_UNIT_HIERARCHY] = (
+                await facet.request_bulked_get_one_class_full(
+                    classid=org_unit_hierarchy, only_primary_uuid=only_primary_uuid
                 )
-
-        parent = await parent_task
+                if org_unit_hierarchy
+                else None
+            )
 
         if parentid is not None:
             if parent and parent[mapping.LOCATION]:
@@ -509,79 +497,47 @@ async def get_one_orgunit(
 
                 r[mapping.USER_SETTINGS] = {"orgunit": settings}
 
-        if details is UnitDetails.FULL:
-            r[mapping.PARENT] = parent
-
-            r[mapping.ORG] = await org_task
-
-            r[mapping.ORG_UNIT_TYPE] = await org_unit_type_task if unittype else None
-
-            r[mapping.TIME_PLANNING] = (
-                await time_planning_task if timeplanning else None
-            )
-
-            r[mapping.ORG_UNIT_LEVEL] = (
-                await org_unit_level_task if org_unit_level else None
-            )
-
-            r[mapping.ORG_UNIT_HIERARCHY] = (
-                await org_unit_hierarchy_task if org_unit_hierarchy else None
-            )
-
     elif details is UnitDetails.SELF:
         r[mapping.ORG] = await org.get_configured_organisation()
-        parent_task = create_task(
-            await request_bulked_get_one_orgunit(
-                unitid=parentid,
-                details=UnitDetails.MINIMAL,
-                only_primary_uuid=only_primary_uuid,
-            )
+
+        r[mapping.PARENT] = await request_bulked_get_one_orgunit(
+            unitid=parentid,
+            details=UnitDetails.MINIMAL,
+            only_primary_uuid=only_primary_uuid,
         )
 
-        org_task = create_task(org.get_configured_organisation())
+        r[mapping.ORG] = await org.get_configured_organisation()
 
-        if unittype:
-            org_unit_type_task = create_task(
-                await facet.request_bulked_get_one_class_full(
-                    classid=unittype, only_primary_uuid=only_primary_uuid
-                )
+        r[mapping.ORG_UNIT_TYPE] = (
+            await facet.request_bulked_get_one_class_full(
+                classid=unittype, only_primary_uuid=only_primary_uuid
             )
+            if unittype
+            else None
+        )
 
-        if timeplanning:
-            time_planning_task = create_task(
-                await facet.request_bulked_get_one_class_full(
-                    classid=timeplanning, only_primary_uuid=only_primary_uuid
-                )
+        r[mapping.TIME_PLANNING] = (
+            await facet.request_bulked_get_one_class_full(
+                classid=timeplanning, only_primary_uuid=only_primary_uuid
             )
-
-        if org_unit_level:
-            org_unit_level_task = create_task(
-                await facet.request_bulked_get_one_class_full(
-                    classid=org_unit_level, only_primary_uuid=only_primary_uuid
-                )
-            )
-
-        if org_unit_hierarchy:
-            org_unit_hierarchy_task = create_task(
-                await facet.request_bulked_get_one_class_full(
-                    classid=org_unit_hierarchy, only_primary_uuid=only_primary_uuid
-                )
-            )
-
-        r[mapping.PARENT] = await parent_task
-
-        r[mapping.ORG] = await org_task
-
-        r[mapping.ORG_UNIT_TYPE] = await org_unit_type_task if unittype else None
-
-        r[mapping.TIME_PLANNING] = await time_planning_task if timeplanning else None
+            if timeplanning
+            else None
+        )
 
         r[mapping.ORG_UNIT_LEVEL] = (
-            await org_unit_level_task if org_unit_level else None
+            await facet.request_bulked_get_one_class_full(
+                classid=org_unit_level, only_primary_uuid=only_primary_uuid
+            )
+            if org_unit_level
+            else None
         )
 
         r[mapping.ORG_UNIT_HIERARCHY] = (
-            await org_unit_hierarchy_task if org_unit_hierarchy else None
+            await facet.request_bulked_get_one_class_full(
+                classid=org_unit_hierarchy, only_primary_uuid=only_primary_uuid
+            )
+            if org_unit_hierarchy
+            else None
         )
 
     elif details is UnitDetails.MINIMAL:
@@ -600,7 +556,7 @@ async def get_one_orgunit(
 
 @router.get("/ou/autocomplete/")
 async def autocomplete_orgunits(
-    sessionmaker: depends.async_sessionmaker,
+    session: depends.Session,
     query: str,
     at: date
     | None = Query(
@@ -619,7 +575,7 @@ async def autocomplete_orgunits(
         )
 
     logger.debug("using autocomplete_orgunits_v2 new")
-    search_results = await autocomplete.search_orgunits(sessionmaker, query, at)
+    search_results = await autocomplete.search_orgunits(session, query, at)
 
     # Decorate search results with data through GraphQL
     return {
@@ -756,7 +712,7 @@ async def get_unit_tree(
         return r
 
     async def get_units(unitids):
-        units = await gather(*[create_task(get_unit(uid)) for uid in unitids])
+        units = [await get_unit(uid) for uid in unitids]
         return sorted(units, key=lambda u: locale.strxfrm(u[mapping.NAME]))
 
     def get_children_args(uuid, parent_uuid, cache):

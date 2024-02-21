@@ -12,9 +12,8 @@ from starlette.status import HTTP_204_NO_CONTENT
 from structlog import get_logger
 
 from mora import amqp
+from mora import db
 from mora import depends
-from mora.db import create_engine
-from mora.depends import async_sessionmaker
 from oio_rest.config import get_settings as lora_get_settings
 from oio_rest.config import Settings as LoraSettings
 
@@ -25,9 +24,7 @@ router = APIRouter()
 
 
 @router.post("/amqp/emit", status_code=HTTP_204_NO_CONTENT)
-async def emit(
-    sessionmaker: depends.async_sessionmaker, amqp_system: depends.AMQPSystem
-) -> None:
+async def emit(session: depends.Session, amqp_system: depends.AMQPSystem) -> None:
     """
     Emit queued AMQP events immediately.
 
@@ -37,7 +34,7 @@ async def emit(
     logger.warning("Emitting AMQP events")
     while True:
         try:
-            await amqp._emit_events(sessionmaker, amqp_system)
+            await amqp._emit_events(session, amqp_system)
             return
         except OperationalError as e:
             # The database is unavailable while being snapshot or restored. Retry until
@@ -51,7 +48,7 @@ async def superuser_connection(
     lora_settings: LoraSettings,
 ) -> AbstractAsyncContextManager[AsyncConnection]:
     """Managing databases requires a superuser connection."""
-    engine = create_engine(
+    engine = db.create_engine(
         user=lora_settings.db_user,
         password=lora_settings.db_password,
         host=lora_settings.db_host,
@@ -129,17 +126,17 @@ async def copy_database(
     await _set_database_connectable(superuser, destination, True)
 
 
-def _get_current_database(sessionmaker: async_sessionmaker) -> str:
-    return sessionmaker.kw["bind"].engine.url.database
+def _get_current_database(session: db.AsyncSession) -> str:
+    return session.get_bind().engine.url.database
 
 
-def _get_snapshot_database(sessionmaker: async_sessionmaker) -> str:
-    current_database = _get_current_database(sessionmaker)
+def _get_snapshot_database(session: db.AsyncSession) -> str:
+    current_database = _get_current_database(session)
     return f"{current_database}_snapshot"
 
 
 @router.post("/database/snapshot", status_code=HTTP_204_NO_CONTENT)
-async def snapshot(sessionmaker: async_sessionmaker) -> None:
+async def snapshot(session: depends.Session) -> None:
     """
     Snapshot the database.
     """
@@ -147,13 +144,13 @@ async def snapshot(sessionmaker: async_sessionmaker) -> None:
     async with (superuser_connection(lora_get_settings()) as superuser):
         await copy_database(
             superuser,
-            source=_get_current_database(sessionmaker),
-            destination=_get_snapshot_database(sessionmaker),
+            source=_get_current_database(session),
+            destination=_get_snapshot_database(session),
         )
 
 
 @router.post("/database/restore", status_code=HTTP_204_NO_CONTENT)
-async def restore(sessionmaker: async_sessionmaker) -> None:
+async def restore(session: depends.Session) -> None:
     """
     Restore database snapshot.
     """
@@ -161,6 +158,6 @@ async def restore(sessionmaker: async_sessionmaker) -> None:
     async with (superuser_connection(lora_get_settings()) as superuser):
         await copy_database(
             superuser,
-            source=_get_snapshot_database(sessionmaker),
-            destination=_get_current_database(sessionmaker),
+            source=_get_snapshot_database(session),
+            destination=_get_current_database(session),
         )

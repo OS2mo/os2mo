@@ -5,24 +5,23 @@ import pathlib
 import pytest
 from more_itertools import one
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import async_sessionmaker
 from tap.parser import Parser
 
+from mora.db import AsyncSession
 from tests.oio_rest import util
 
 
 @pytest.mark.integration_test
 @pytest.mark.parametrize("dbfile", pathlib.Path(util.TESTS_DIR).glob("sql/*.sql"))
-async def test_pgsql(subtests, empty_db: async_sessionmaker, dbfile):
-    async with empty_db.begin() as session:
-        await session.execute(text('CREATE EXTENSION IF NOT EXISTS "pgtap"'))
-        await session.execute(text("CREATE SCHEMA test"))
-        # Run the actual test
-        await session.execute(text(dbfile.read_text()))
-        # Fetch results in TAP format
-        r = await session.execute(text("SELECT * FROM runtests ('test'::name)"))
-        assert r.returns_rows
-        taptext = "\n".join(map(one, r.all()))
+async def test_pgsql(subtests, empty_db: AsyncSession, dbfile):
+    await empty_db.execute(text('CREATE EXTENSION IF NOT EXISTS "pgtap"'))
+    await empty_db.execute(text("CREATE SCHEMA test"))
+    # Run the actual test
+    await empty_db.execute(text(dbfile.read_text()))
+    # Fetch results in TAP format
+    r = await empty_db.execute(text("SELECT * FROM runtests ('test'::name)"))
+    assert r.returns_rows
+    taptext = "\n".join(map(one, r.all()))
 
     # Parse tap test-results and very if that all tests passed
     tests = Parser().parse_text(taptext)

@@ -17,9 +17,6 @@ objects.
 import enum
 import locale
 import logging
-from asyncio import create_task
-from asyncio import gather
-from collections.abc import Awaitable
 from functools import partial
 from typing import Any
 from uuid import UUID
@@ -136,7 +133,7 @@ async def get_class_ancestor_tree(
         return r
 
     async def get_classes(classids):
-        classes = await gather(*[create_task(get_class(cid)) for cid in classids])
+        classes = [await get_class(cid) for cid in classids]
         return sorted(
             classes,
             key=lambda u: locale.strxfrm(u[mapping.NAME]),
@@ -186,18 +183,9 @@ async def request_bulked_get_one_class(
     classid: str,
     details: set[ClassDetails] | None = None,
     only_primary_uuid: bool = False,
-) -> Awaitable[MO_OBJ_TYPE]:
-    """
-    EAGERLY adds a uuid to a LAZILY-processed cache. Return an awaitable. Once the
-    result is awaited, the FULL cache is processed. Useful to 'under-the-hood' bulk.
-
-    :param classid: uuid of class
-    :param details: configure processing of the class
-    :param only_primary_uuid:
-    :return: Awaitable returning the processed class
-    """
+) -> MO_OBJ_TYPE:
     connector = common.get_connector()
-    return get_one_class(
+    return await get_one_class(
         c=connector,
         classid=classid,
         clazz=await get_lora_object(
@@ -315,13 +303,6 @@ async def get_one_class(
         "published": last(clazz["tilstande"]["klassepubliceret"])["publiceret"],
     }
 
-    # create tasks
-    if ClassDetails.FACET in details:
-        facet_task = create_task(get_facet(clazz))
-
-    if ClassDetails.NCHILDREN in details:
-        nchildren_task = create_task(count_class_children(c, classid))
-
     if ClassDetails.FULL_NAME in details or ClassDetails.TOP_LEVEL_FACET in details:
         if not parents:
             parents = await get_parents(clazz)
@@ -333,10 +314,10 @@ async def get_one_class(
             response["top_level_facet"] = await get_top_level_facet(parents)
 
     if ClassDetails.FACET in details:
-        response["facet"] = await facet_task
+        response["facet"] = await get_facet(clazz)
 
     if ClassDetails.NCHILDREN in details:
-        response["child_count"] = await nchildren_task
+        response["child_count"] = await count_class_children(c, classid)
 
     if extended:
         response["facet_uuid"] = get_facet_uuid(clazz)
@@ -363,12 +344,10 @@ async def get_sorted_primary_class_list(c: lora.Connector) -> list[tuple[str, in
 
     facet_id = (await c.facet.load_uuids(bvn="primary_type"))[0]
 
-    classes = await gather(
-        *[
-            create_task(get_one_class_full(c, class_id, class_obj))
-            for class_id, class_obj in (await c.klasse.get_all(facet=facet_id))
-        ]
-    )
+    classes = [
+        await get_one_class_full(c, class_id, class_obj)
+        for class_id, class_obj in (await c.klasse.get_all(facet=facet_id))
+    ]
 
     # We always expect the scope value to be an int, for sorting
     try:

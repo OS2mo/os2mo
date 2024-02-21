@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import asyncio
 import functools
 import re
 from uuid import UUID
@@ -241,7 +240,7 @@ async def json_extract_strategy(request: Request) -> set[UUID]:
             return UUID(obj[PERSON][UUID_KEY])
         return None
 
-    uuids = set(await asyncio.gather(*(obj_to_uuid(obj) for obj in payload)))
+    uuids = {await obj_to_uuid(obj) for obj in payload}
     uuids.discard(None)
     if uuids:
         return uuids
@@ -282,7 +281,7 @@ async def get_entity_type(request: Request) -> EntityType:
 
         return EntityType.EMPLOYEE
 
-    types = await asyncio.gather(*(obj_to_type(obj) for obj in payload))
+    types = [await obj_to_type(obj) for obj in payload]
     if not all(_type == types[0] for _type in types):
         logger.debug("Types not identical")
         raise HTTPException(

@@ -30,7 +30,7 @@ from . import triggers
 from .auth.exceptions import get_auth_exception_handler
 from .config import Environment
 from .db import create_sessionmaker
-from .db import set_sessionmaker_context
+from .db import transaction_per_request
 from .exceptions import ErrorCodes
 from .exceptions import http_exception_to_json_response
 from .exceptions import HTTPException
@@ -231,6 +231,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             ),
         ],
         dependencies=[
+            Depends(transaction_per_request),
             Depends(set_authenticated_user),
             Depends(query_args_context),
             Depends(lora_connector_context),
@@ -238,7 +239,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             Depends(is_graphql_context),
             Depends(graphql_dates_context),
             Depends(set_graphql_context_dependencies),
-            Depends(set_sessionmaker_context),
         ],
         openapi_tags=list(tags_metadata),
     )

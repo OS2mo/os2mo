@@ -36,21 +36,15 @@ file_token_expiration_minutes = 10
 
 
 async def purge_all_filetokens(
-    sessionmaker: depends.async_sessionmaker,
+    session: depends.Session,
 ) -> None:
-    """Purge expired filetokens.
-
-    Args:
-        sessionmaker: Sessionmaker to run our query on.
-    """
-
-    async with sessionmaker() as session, session.begin():
-        await session.execute(
-            delete(FileToken).where(
-                FileToken.created_at + timedelta(minutes=file_token_expiration_minutes)
-                < func.now()
-            )
+    """Purge expired filetokens."""
+    await session.execute(
+        delete(FileToken).where(
+            FileToken.created_at + timedelta(minutes=file_token_expiration_minutes)
+            < func.now()
         )
+    )
 
 
 @exports_router.get(
@@ -62,7 +56,7 @@ async def purge_all_filetokens(
 )
 async def list_export_files(
     response: Response,
-    sessionmaker: depends.async_sessionmaker,
+    session: depends.Session,
 ) -> list[str]:
     """List the available exports.
 
@@ -81,13 +75,12 @@ async def list_export_files(
         samesite="strict",
         path="/service/exports/",
     )
-    async with sessionmaker() as session, session.begin():
-        await session.execute(
-            insert(FileToken),
-            [
-                {"secret": secret},
-            ],
-        )
+    await session.execute(
+        insert(FileToken),
+        [
+            {"secret": secret},
+        ],
+    )
 
     query = "query FilesQuery { files(filter: {file_store: EXPORTS}) { objects { file_name } } }"
     gql_response = await execute_graphql(query)
@@ -133,13 +126,13 @@ async def upload_export_file(
 
 
 async def check_auth_cookie(
-    sessionmaker: depends.async_sessionmaker,
+    session: depends.Session,
     auth_cookie: str | None = Cookie(None, alias=cookie_key),
 ) -> None:
     """Check the provided auth cookie in the file_token table.
 
     Args:
-        sessionmaker: Sessionmaker to run our query on.
+        session: DB session to run our query on.
         auth_cookie: The cookie value provided by the user.
 
     Raises:
@@ -148,17 +141,16 @@ async def check_auth_cookie(
     if auth_cookie is None:
         raise HTTPException(status_code=401, detail="Missing download cookie!")
 
-    async with sessionmaker() as session, session.begin():
-        result = await session.scalar(
-            select(FileToken).where(FileToken.secret == auth_cookie)
-        )
-        if result is None:
-            raise HTTPException(status_code=401, detail="Invalid download cookie!")
+    result = await session.scalar(
+        select(FileToken).where(FileToken.secret == auth_cookie)
+    )
+    if result is None:
+        raise HTTPException(status_code=401, detail="Invalid download cookie!")
 
-        # Use database time instead of datetime.now as database time might be different
-        now = await session.scalar(func.now())
-        if result.created_at + timedelta(minutes=file_token_expiration_minutes) < now:
-            raise HTTPException(status_code=401, detail="Expired download cookie!")
+    # Use database time instead of datetime.now as database time might be different
+    now = await session.scalar(func.now())
+    if result.created_at + timedelta(minutes=file_token_expiration_minutes) < now:
+        raise HTTPException(status_code=401, detail="Expired download cookie!")
 
 
 @exports_router.get(

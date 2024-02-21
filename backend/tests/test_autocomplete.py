@@ -238,10 +238,6 @@ async def test_v2_search_orgunits(mock_sqlalchemy_generate_query):
     mock_sqlalchemy_generate_query.return_value = "some-verification-return"
 
     session_mock = MagicMock()
-    session_mock.__aenter__.return_value = session_mock
-    session_mock.__aexit__.return_value = None
-    session_mock.begin.return_value.__aenter__.return_value = None
-    session_mock.begin.return_value.__aexit__.return_value = None
 
     # NOTE: 1000 is the default chunk size of read_sqlalchemy_result()
     sqlalchemy_result_chunck_size = 1000
@@ -263,7 +259,7 @@ async def test_v2_search_orgunits(mock_sqlalchemy_generate_query):
     )
 
     # Invoke search_orgunits with mocked sessionmaker
-    result = await search_orgunits(MagicMock(return_value=session_mock), search_query)
+    result = await search_orgunits(session_mock, search_query)
 
     # Asserts
     mock_sqlalchemy_generate_query.assert_called_with(search_query, ANY)

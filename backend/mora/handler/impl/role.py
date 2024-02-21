@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from asyncio import create_task
-
 from structlog import get_logger
 
 from .. import reading
@@ -29,9 +27,8 @@ class RoleReader(reading.OrgFunkReadingHandler):
         org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         role_type_uuid = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
 
-        base_obj = await create_task(
-            super()._get_mo_object_from_effect(effect, start, end, funcid)
-        )
+        base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)
+
         if is_graphql():
             return {
                 **base_obj,
@@ -42,30 +39,19 @@ class RoleReader(reading.OrgFunkReadingHandler):
 
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
-        person_task = create_task(
-            employee.request_bulked_get_one_employee(
+        r = {
+            **base_obj,
+            mapping.PERSON: await employee.request_bulked_get_one_employee(
                 person_uuid, only_primary_uuid=only_primary_uuid
-            )
-        )
-
-        org_unit_task = create_task(
-            orgunit.request_bulked_get_one_orgunit(
+            ),
+            mapping.ORG_UNIT: await orgunit.request_bulked_get_one_orgunit(
                 org_unit_uuid,
                 details=orgunit.UnitDetails.MINIMAL,
                 only_primary_uuid=only_primary_uuid,
-            )
-        )
-        role_type_task = create_task(
-            facet.request_bulked_get_one_class_full(
+            ),
+            mapping.ROLE_TYPE: await facet.request_bulked_get_one_class_full(
                 role_type_uuid, only_primary_uuid=only_primary_uuid
-            )
-        )
-
-        r = {
-            **base_obj,
-            mapping.PERSON: await person_task,
-            mapping.ORG_UNIT: await org_unit_task,
-            mapping.ROLE_TYPE: await role_type_task,
+            ),
         }
 
         return r

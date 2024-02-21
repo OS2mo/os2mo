@@ -198,7 +198,7 @@ class MOAddress(AddressRead):
 
 
 async def set_graphql_context_dependencies(
-    amqp_system: depends.AMQPSystem, sessionmaker: depends.async_sessionmaker
+    amqp_system: depends.AMQPSystem, session: depends.Session
 ):
     """Fetch FastAPI dependencies into starlette context.
 
@@ -212,7 +212,7 @@ async def set_graphql_context_dependencies(
     data = {
         **context,
         "amqp_system": amqp_system,
-        "sessionmaker": sessionmaker,
+        "session": session,
     }
     with request_cycle_context(data):
         yield
@@ -233,7 +233,7 @@ async def execute_graphql(
         kwargs["context_value"] = await graphql_version.get_context(
             get_token=noauth,
             amqp_system=context.get("amqp_system"),
-            sessionmaker=context.get("sessionmaker"),
+            session=context.get("session"),
         )
 
     schema = graphql_version.schema.get()

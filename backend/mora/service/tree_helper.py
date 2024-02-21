@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import collections
-from asyncio import create_task
 from queue import Empty
 from queue import Queue
 from uuid import UUID
@@ -105,7 +104,7 @@ async def prepare_ancestor_tree(
             return
 
         # We do have a parent, so we should process said parent at some point
-        task_queue.put(create_task(process_parent(parent_uuid)))
+        task_queue.put(process_parent(parent_uuid))
 
         # Build parent --> children map
         children[parent_uuid].add(uuid)
@@ -116,7 +115,7 @@ async def prepare_ancestor_tree(
 
     # create tasks in parallel
     for uuid in set(uuids):
-        task_queue.put(create_task(process_parent(uuid)))
+        task_queue.put(process_parent(uuid))
 
     # Loop until queue is exhausted
     for task in queue_iterator(task_queue):

@@ -8,7 +8,6 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy import cast
 from sqlalchemy import String
 from sqlalchemy import Text
-from sqlalchemy.ext.asyncio.session import async_sessionmaker
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import func
 from sqlalchemy.sql import select
@@ -17,6 +16,7 @@ from sqlalchemy.sql import union
 from mora import config
 from mora import util
 from mora.audit import audit_log
+from mora.db import AsyncSession
 from mora.db import BrugerAttrUdvidelser
 from mora.db import BrugerRegistrering
 from mora.db import BrugerRelation
@@ -33,7 +33,7 @@ from mora.service.util import handle_gql_error
 
 
 async def search_employees(
-    sessionmaker: async_sessionmaker, query: str, at: date | None = None
+    session: AsyncSession, query: str, at: date | None = None
 ) -> list[UUID]:
     at_sql, at_sql_bind_params = get_at_date_sql(at)
 
@@ -52,17 +52,13 @@ async def search_employees(
         select(employee_id).where(employee_id == all_hits.c.uuid).group_by(employee_id)
     )
 
-    async with sessionmaker() as session:
-        async with session.begin():
-            # Execute & parse results
-            result = read_sqlalchemy_result(
-                await session.execute(query_final, {**at_sql_bind_params})
-            )
-            uuids = [employee.uuid for employee in result]
-            audit_log(
-                session, "search_employees", "Bruger", {"query": query, "at": at}, uuids
-            )
-            return uuids
+    # Execute & parse results
+    result = read_sqlalchemy_result(
+        await session.execute(query_final, {**at_sql_bind_params})
+    )
+    uuids = [employee.uuid for employee in result]
+    audit_log(session, "search_employees", "Bruger", {"query": query, "at": at}, uuids)
+    return uuids
 
 
 async def decorate_employee_search_result(

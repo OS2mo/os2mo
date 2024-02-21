@@ -42,7 +42,7 @@ from .db_helpers import to_bool
 from .db_helpers import VaerdiRelationAttr
 from mora.audit import audit_log
 from mora.auth.middleware import get_authenticated_user
-from mora.db import get_sessionmaker
+from mora.db import get_session
 
 """
     Jinja2 Environment
@@ -57,19 +57,19 @@ jinja_env = Environment(
 
 
 async def adapt(value):
-    async with get_sessionmaker().begin() as session:
-        connection = await session.connection()
-        raw_connection = await connection.get_raw_connection()
-        driver_connection = raw_connection.driver_connection
-        transformer = Transformer(driver_connection)
-        literal = transformer.as_literal(value)
-        string = str(literal, transformer.encoding)
-        # The SQL templates return statements ready to be executed as-is but SQLAlchemy
-        # insists on binding parameters (':myparam') before execution. This won't work
-        # until we get rid of templating, and do everything properly in SQLAlchemy,
-        # so we have to escape colons before returning the templated statement.
-        escaped = string.replace(":", "\\:")
-        return escaped
+    session = get_session()
+    connection = await session.connection()
+    raw_connection = await connection.get_raw_connection()
+    driver_connection = raw_connection.driver_connection
+    transformer = Transformer(driver_connection)
+    literal = transformer.as_literal(value)
+    string = str(literal, transformer.encoding)
+    # The SQL templates return statements ready to be executed as-is but SQLAlchemy
+    # insists on binding parameters (':myparam') before execution. This won't work
+    # until we get rid of templating, and do everything properly in SQLAlchemy,
+    # so we have to escape colons before returning the templated statement.
+    escaped = string.replace(":", "\\:")
+    return escaped
 
 
 jinja_env.filters["adapt"] = adapt
@@ -320,17 +320,17 @@ async def object_exists(class_name: str, uuid: str) -> bool:
     )
     arguments = {"uuid": uuid}
 
-    async with get_sessionmaker().begin() as session:
-        try:
-            resulting_sql = await mogrify(sql, arguments, session)
-            audit_log(session, "object_exists", class_name, arguments, [UUID(uuid)])
-            result = await session.scalar(text(resulting_sql))
-        except StatementError as e:
-            if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
-                status_code = int(e.orig.sqlstate[2:])
-                raise DBException(status_code, e.orig.diag.message_primary)
-            else:
-                raise
+    session = get_session()
+    try:
+        resulting_sql = await mogrify(sql, arguments, session)
+        audit_log(session, "object_exists", class_name, arguments, [UUID(uuid)])
+        result = await session.scalar(text(resulting_sql))
+    except StatementError as e:
+        if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
+            status_code = int(e.orig.sqlstate[2:])
+            raise DBException(status_code, e.orig.diag.message_primary)
+        else:
+            raise
     assert isinstance(result, bool)
     return result
 
@@ -368,16 +368,16 @@ async def create_or_import_object(class_name, note, registration, uuid=None):
         )
     )
 
-    async with get_sessionmaker().begin() as session:
-        try:
-            result = await session.execute(sql)
-        except StatementError as e:
-            if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
-                status_code = int(e.orig.sqlstate[2:])
-                raise DBException(status_code, e.orig.diag.message_primary)
-            else:
-                raise
-        return result.fetchone()[0]
+    session = get_session()
+    try:
+        result = await session.execute(sql)
+    except StatementError as e:
+        if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
+            status_code = int(e.orig.sqlstate[2:])
+            raise DBException(status_code, e.orig.diag.message_primary)
+        else:
+            raise
+    return result.fetchone()[0]
 
 
 async def delete_object(class_name, registration, note, uuid):
@@ -412,16 +412,16 @@ async def delete_object(class_name, registration, note, uuid):
         )
     )
 
-    async with get_sessionmaker().begin() as session:
-        try:
-            result = await session.execute(sql)
-        except StatementError as e:
-            if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
-                status_code = int(e.orig.sqlstate[2:])
-                raise DBException(status_code, e.orig.diag.message_primary)
-            else:
-                raise
-        return result.fetchone()[0]
+    session = get_session()
+    try:
+        result = await session.execute(sql)
+    except StatementError as e:
+        if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
+            status_code = int(e.orig.sqlstate[2:])
+            raise DBException(status_code, e.orig.diag.message_primary)
+        else:
+            raise
+    return result.fetchone()[0]
 
 
 async def passivate_object(class_name, note, registration, uuid):
@@ -445,16 +445,16 @@ async def passivate_object(class_name, note, registration, uuid):
         )
     )
 
-    async with get_sessionmaker().begin() as session:
-        try:
-            result = await session.execute(sql)
-        except StatementError as e:
-            if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
-                status_code = int(e.orig.sqlstate[2:])
-                raise DBException(status_code, e.orig.diag.message_primary)
-            else:
-                raise
-        return result.fetchone()[0]
+    session = get_session()
+    try:
+        result = await session.execute(sql)
+    except StatementError as e:
+        if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
+            status_code = int(e.orig.sqlstate[2:])
+            raise DBException(status_code, e.orig.diag.message_primary)
+        else:
+            raise
+    return result.fetchone()[0]
 
 
 async def update_object(
@@ -480,23 +480,23 @@ async def update_object(
         )
     )
 
-    async with get_sessionmaker().begin() as session:
-        try:
-            await session.execute(sql)
-        except StatementError as e:
-            noop_msg = (
-                "Aborted updating {} with id [{}] as the given data, "
-                "does not give raise to a new registration.".format(
-                    class_name.lower(), uuid
-                )
+    session = get_session()
+    try:
+        await session.execute(sql)
+    except StatementError as e:
+        noop_msg = (
+            "Aborted updating {} with id [{}] as the given data, "
+            "does not give raise to a new registration.".format(
+                class_name.lower(), uuid
             )
-            if e.orig.diag.message_primary.startswith(noop_msg):
-                return uuid
-            elif e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
-                status_code = int(e.orig.sqlstate[2:])
-                raise DBException(status_code, e.orig.diag.message_primary)
-            else:
-                raise
+        )
+        if e.orig.diag.message_primary.startswith(noop_msg):
+            return uuid
+        elif e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
+            status_code = int(e.orig.sqlstate[2:])
+            raise DBException(status_code, e.orig.diag.message_primary)
+        else:
+            raise
 
     return uuid
 
@@ -545,23 +545,21 @@ async def list_objects(
         "virkning_tstzrange": TimestamptzRange(virkning_fra, virkning_til),
     }
 
-    async with get_sessionmaker().begin() as session:
-        try:
-            resulting_sql = await mogrify(sql, arguments, session)
-            result = await session.execute(text(resulting_sql))
-        except StatementError as e:
-            if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
-                status_code = int(e.orig.sqlstate[2:])
-                raise DBException(status_code, e.orig.diag.message_primary)
-            else:
-                raise
-        output = one(result.fetchone())
-        uuids = []
-        if output is not None:
-            uuids = [entry["id"] for entry in output]
-        audit_log(
-            session, "list_objects", class_name, arguments, list(map(UUID, uuids))
-        )
+    session = get_session()
+    try:
+        resulting_sql = await mogrify(sql, arguments, session)
+        result = await session.execute(text(resulting_sql))
+    except StatementError as e:
+        if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
+            status_code = int(e.orig.sqlstate[2:])
+            raise DBException(status_code, e.orig.diag.message_primary)
+        else:
+            raise
+    output = one(result.fetchone())
+    uuids = []
+    if output is not None:
+        uuids = [entry["id"] for entry in output]
+    audit_log(session, "list_objects", class_name, arguments, list(map(UUID, uuids)))
 
     ret = filter_json_output((output,))
     with suppress(IndexError):
@@ -922,19 +920,17 @@ async def search_objects(
         "max_results": max_results,
     }
 
-    async with get_sessionmaker().begin() as session:
-        try:
-            result = await session.execute(sql)
-        except StatementError as e:
-            if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
-                status_code = int(e.orig.sqlstate[2:])
-                raise DBException(status_code, e.orig.diag.message_primary)
-            else:
-                raise
-        uuids = one(result.fetchone())
-        audit_log(
-            session, "search_objects", class_name, arguments, list(map(UUID, uuids))
-        )
+    session = get_session()
+    try:
+        result = await session.execute(sql)
+    except StatementError as e:
+        if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
+            status_code = int(e.orig.sqlstate[2:])
+            raise DBException(status_code, e.orig.diag.message_primary)
+        else:
+            raise
+    uuids = one(result.fetchone())
+    audit_log(session, "search_objects", class_name, arguments, list(map(UUID, uuids)))
 
     return (uuids,)
 

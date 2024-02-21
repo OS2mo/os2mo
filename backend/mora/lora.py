@@ -3,7 +3,6 @@
 import asyncio
 import re
 import uuid
-from asyncio import gather
 from collections import defaultdict
 from collections.abc import Awaitable
 from collections.abc import Callable
@@ -42,7 +41,7 @@ from structlog import get_logger
 from . import config
 from . import exceptions
 from . import util
-from .db import get_sessionmaker
+from .db import get_session
 from .graphapi.middleware import is_graphql
 from oio_rest import custom_exceptions as loraexc
 from oio_rest import klassifikation
@@ -687,7 +686,7 @@ class Scope(BaseScope):
         # Lookup objects by uuid, and build objects using func
         obj_iter = await self.get_all_by_uuid(uuids)
         if asyncio.iscoroutinefunction(func):
-            obj_iter = await gather(*[func(self.connector, *tup) for tup in obj_iter])
+            obj_iter = [await func(self.connector, *tup) for tup in obj_iter]
         else:
             obj_iter = starmap(partial(func, self.connector), obj_iter)
 
@@ -799,8 +798,7 @@ class AutocompleteScope(BaseScope):
         self, phrase: str, class_uuids: list[UUID] | None = None
     ) -> dict[str, Any]:
         with lora_to_mo_exception():
-            async with get_sessionmaker().begin() as session:
-                items = await self.autocomplete(
-                    session, phrase, class_uuids=class_uuids
-                )
-                return {"items": items}
+            items = await self.autocomplete(
+                get_session(), phrase, class_uuids=class_uuids
+            )
+            return {"items": items}

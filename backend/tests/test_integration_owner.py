@@ -421,21 +421,23 @@ def test_create_person(
 )
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_create_person_extended(
+    another_transaction,
     service_client: TestClient,
     payload: dict[str, Any],
     status_code: int,
     verifying_response: dict[str, None] | None,
 ) -> None:
-    # Load a bunch of data so we have something to inherit.
-    # Particularly, we need both engagements and associations
-    await load_fixture(
-        "organisation/organisationfunktion",
-        "create_organisationfunktion_tilknytning_eriksmidthansen.json",
-    )
-    await load_fixture(
-        "organisation/organisationfunktion",
-        "create_organisationfunktion_tilknytning_eriksmidthansen_sekundaer.json",
-    )
+    async with another_transaction():
+        # Load a bunch of data so we have something to inherit.
+        # Particularly, we need both engagements and associations
+        await load_fixture(
+            "organisation/organisationfunktion",
+            "create_organisationfunktion_tilknytning_eriksmidthansen.json",
+        )
+        await load_fixture(
+            "organisation/organisationfunktion",
+            "create_organisationfunktion_tilknytning_eriksmidthansen_sekundaer.json",
+        )
 
     # Set some owners, so we have something to inherit
     # create owner in org_unit so we have something to inherit
