@@ -43,10 +43,10 @@ def get_citizen(cpr: str) -> dict[str, Any]:
         if "PNRNotFound" in e.response.text:
             raise KeyError("CPR not found")
         else:
-            logger.exception(exception=e)
+            logger.exception(event="HTTPError", exception=e)
             raise e
     except requests.exceptions.SSLError as e:
-        logger.exception(exception=e)
+        logger.exception(event="SSLError", exception=e)
         exceptions.ErrorCodes.E_SP_SSL_ERROR()
 
 
