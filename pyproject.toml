@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
 [tool.poetry]
 name = "mo_ldap_import_export"
 version = "0.0.0" # versioning handled by conventional commits
