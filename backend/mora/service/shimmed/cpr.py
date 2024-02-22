@@ -138,13 +138,13 @@ def search_cpr(
     try:
         sp_data = get_citizen(cpr)
     except KeyError as e:
-        logger.exception(exception=e)
+        logger.exception(event="no person found for cpr", exception=e)
         exceptions.ErrorCodes.V_NO_PERSON_FOR_CPR(cpr=cpr)
     except ValueError as e:
-        logger.exception(exception=e)
+        logger.exception(event="invalid CPR", exception=e)
         exceptions.ErrorCodes.V_CPR_NOT_VALID(cpr=cpr)
     except Exception as e:
-        logger.exception(exception=e)
+        logger.exception(event="unknown error in cpr lookup", exception=e)
         exceptions.ErrorCodes.E_UNKNOWN(cpr=cpr)
     return format_cpr_response(sp_data, cpr)
 
