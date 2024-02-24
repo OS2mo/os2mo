@@ -1244,21 +1244,20 @@ class LdapConverter:
                     mo_dict[mo_field_name] = value
 
             mo_class: Any = self.import_mo_object_class(json_key)
-            required_attributes = self.get_required_attributes(mo_class)
+            required_attributes = set(self.get_required_attributes(mo_class))
 
-            # If all required attributes are present:
-            if all(a in mo_dict for a in required_attributes):
-                try:
-                    converted_objects.append(mo_class(**mo_dict))
-                except pydantic.ValidationError as pve:
-                    logger.info(pve)
-            else:
-                missing_attributes = [
-                    r for r in required_attributes if r not in mo_dict
-                ]
+            # If any required attributes are missing
+            missing_attributes = required_attributes - set(mo_dict.keys())
+            if missing_attributes:
                 logger.info(
                     f"Could not convert {mo_dict} to {mo_class}. "
                     f"The following attributes are missing: {missing_attributes}"
                 )
+                continue
+
+            try:
+                converted_objects.append(mo_class(**mo_dict))
+            except pydantic.ValidationError as pve:
+                logger.info(pve)
 
         return converted_objects
