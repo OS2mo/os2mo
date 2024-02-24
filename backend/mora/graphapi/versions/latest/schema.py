@@ -1767,15 +1767,22 @@ class Employee:
 
     # TODO: Document this
     cpr_no: CPRType | None = strawberry.field(
-        deprecation_reason="Use 'cpr_number' instead. Will be removed in a future version of OS2mo."
+        deprecation_reason="Use 'cpr_number' instead. Will be removed in a future version of OS2mo.",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee_cpr_number")],
     )
 
-    @strawberry.field(description="CPR number of the employee.")
+    @strawberry.field(
+        description="CPR number of the employee.",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee_cpr_number")],
+    )
     async def cpr_number(self, root: EmployeeRead) -> CPRType | None:
         return cast(CPRType | None, root.cpr_no)
 
     # TODO: Document this
-    seniority: date | None = strawberry.auto
+    seniority: date | None = strawberry.field(
+        description="Seniority date of the employee.",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee_seniority")],
+    )
 
     # TODO: Deprecate this?
     @strawberry.field(description="Full name of the employee")
@@ -1784,13 +1791,20 @@ class Employee:
 
     givenname: str = strawberry.field(
         deprecation_reason="Use 'given_name' instead. Will be removed in a future version of OS2mo."
+        permission_classes = [IsAuthenticatedPermission, gen_read_permission("employee_given_name")],
     )
 
-    @strawberry.field(description="Given name of the employee.")
+    @strawberry.field(
+        description="Given name of the employee.",
+        permission_classes = [IsAuthenticatedPermission, gen_read_permission("employee_given_name")],
+    )
     async def given_name(self, root: EmployeeRead) -> str:
         return root.givenname
 
-    surname: str = strawberry.auto
+    surname: str = strawberry.field(
+        description="Surname of the employee.",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee_surname")],
+    )
 
     # TODO: Deprecate this?
     @strawberry.field(description="Full nickname of the employee")
@@ -1798,14 +1812,21 @@ class Employee:
         return f"{root.nickname_givenname} {root.nickname_surname}".strip()
 
     nickname_givenname: str | None = strawberry.field(
-        deprecation_reason="Use 'nickname_given_name' instead. Will be removed in a future version of OS2mo."
+        deprecation_reason="Use 'nickname_given_name' instead. Will be removed in a future version of OS2mo.",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee_nickname_given_name")],
     )
 
-    @strawberry.field(description="Given name part of nickname of the employee.")
+    @strawberry.field(
+        description="Given name part of nickname of the employee.",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee_nickname_given_name")],
+    )
     async def nickname_given_name(self, root: EmployeeRead) -> str | None:
         return root.nickname_givenname
 
-    nickname_surname: str | None = strawberry.auto
+    nickname_surname: str | None = strawberry.field(
+        description="Surname nickname of the employee.",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee_nickname_surname")],
+    )
 
     validity: OpenValidity = strawberry.auto
 
