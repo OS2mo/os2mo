@@ -1195,7 +1195,6 @@ class LdapConverter:
                     for key, value in ldap_object.dict().items()
                 }
             )
-            mo_dict = {}
             context = {
                 "ldap": ldap_dict,
                 "employee_uuid": str(employee_uuid),
@@ -1209,7 +1208,8 @@ class LdapConverter:
                 object_mapping = mapping[json_key]
             except KeyError:
                 raise IncorrectMapping(f"Missing '{json_key}' in mapping 'ldap_to_mo'")
-            for mo_field_name, template in object_mapping.items():
+
+            async def render_template(template):
                 try:
                     value = (await template.render_async(context)).strip()
 
@@ -1223,7 +1223,7 @@ class LdapConverter:
                         value = ""
                 except UUIDNotFoundException as e:
                     logger.warning(e)
-                    continue
+                    return None
                 # TODO: Is it possible to render a dictionary directly?
                 #       Instead of converting from a string
                 if "{" in value and ":" in value and "}" in value:
@@ -1235,7 +1235,11 @@ class LdapConverter:
                             f"{json_key}['{mo_field_name}'] to dict "
                             f"(context={context!r})"
                         )
+                return value
 
+            mo_dict = {}
+            for mo_field_name, template in object_mapping.items():
+                value = await render_template(template)
                 if value:
                     mo_dict[mo_field_name] = value
 
