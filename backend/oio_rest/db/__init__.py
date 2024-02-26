@@ -238,7 +238,9 @@ async def sql_convert_registration(registration, class_name):
     registration["attributes"] = convert_attributes(registration["attributes"])
     registration["relations"] = convert_relations(registration["relations"], class_name)
     if "variants" in registration:
-        registration["variants"] = adapt(convert_variants(registration["variants"]))
+        registration["variants"] = await adapt(
+            convert_variants(registration["variants"])
+        )
     states = registration["states"]
     sql_states = []
     for sn in get_state_names(class_name):
