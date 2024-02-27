@@ -37,10 +37,7 @@ class IgnoreMe:
 
     def __getitem__(self, key: str | UUID) -> list[datetime.datetime]:
         key = self.format_entry(key)
-        if key in self.ignore_dict:
-            return self.ignore_dict[key]
-        else:
-            return []
+        return self.ignore_dict.get(key, [])
 
     def __len__(self):
         return len(self.ignore_dict)
@@ -108,8 +105,6 @@ class SyncTool:
         self.user_context = self.context["user_context"]
         self.dataloader = self.user_context["dataloader"]
         self.converter = self.user_context["converter"]
-        self.uuids_in_progress: list[UUID] = []
-        self.dns_in_progress: list[str] = []
         self.export_checks = self.user_context["export_checks"]
         self.import_checks = self.user_context["import_checks"]
         self.settings = self.user_context["settings"]
