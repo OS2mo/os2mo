@@ -133,8 +133,19 @@ def listener(context, event):
     event_loop = user_context["event_loop"]
     sync_tool = user_context["sync_tool"]
 
+    def log_exception(future):
+        """Reraise exception so they are printed to the terminal."""
+        exception = future.exception()
+        if exception:
+            logger.exception("Exception during listener", exc_info=exception)
+            raise exception
+
     logger.info(f"Registered change for LDAP object with dn={dn}")
-    asyncio.run_coroutine_threadsafe(sync_tool.import_single_user(dn), event_loop)
+    future = asyncio.run_coroutine_threadsafe(
+        sync_tool.import_single_user(dn), event_loop
+    )
+    # Register callback to ensure exceptions are logged to the terminal
+    future.add_done_callback(log_exception)
 
 
 async def countdown(

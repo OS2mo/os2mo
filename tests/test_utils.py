@@ -1,9 +1,11 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 # -*- coding: utf-8 -*-
+import asyncio
 import datetime
 import re
 import time
+from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
 from uuid import uuid4
@@ -134,6 +136,37 @@ async def test_datetime_to_ldap_timestamp():
     date = datetime.datetime(2021, 1, 1, 10, 45, 20, 2100, pytz.timezone("Cuba"))
     result = datetime_to_ldap_timestamp(date)
     assert result == "20210101104520.2-0529"
+
+
+async def test_listener_callback():
+    event_loop = asyncio.get_running_loop()
+
+    async def import_single_user(dn: str):
+        event_loop.call_soon(import_single_user.event.set)  # type: ignore
+        assert dn == "CN=foo"
+        raise ValueError("BOOM")
+
+    import_single_user.event = asyncio.Event()
+
+    sync_tool = AsyncMock()
+    sync_tool.import_single_user = import_single_user
+
+    user_context = {
+        "event_loop": event_loop,
+        "sync_tool": sync_tool,
+    }
+    context = {"user_context": user_context}
+
+    event = {"attributes": {"distinguishedName": "CN=foo"}}
+
+    with capture_logs() as cap_logs:
+        listener(context, event)
+        await import_single_user.event.wait()
+
+    assert len(cap_logs) == 2
+    log = cap_logs[1]
+    assert log["event"] == "Exception during listener"
+    assert log["exc_info"] == "ValueError('BOOM')"
 
 
 @patch("asyncio.run_coroutine_threadsafe")
