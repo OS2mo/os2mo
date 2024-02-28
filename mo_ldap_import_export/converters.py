@@ -1255,6 +1255,17 @@ class LdapConverter:
                 )
                 continue
 
+            # If requested to terminate, we generate and return a termination subclass
+            # instead of the original class. This is to ensure we can forward the termination date,
+            # without having to modify the RAModel.
+            if "_terminate_" in mo_dict:
+
+                class Termination(mo_class):
+                    terminate_: str
+
+                mo_dict["terminate_"] = mo_dict.pop("_terminate_")
+                mo_class = Termination
+
             try:
                 converted_objects.append(mo_class(**mo_dict))
             except pydantic.ValidationError as pve:

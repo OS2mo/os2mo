@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from functools import partial
+from typing import cast
 
 import pytest
 from mergedeep import merge  # type: ignore
@@ -34,10 +35,51 @@ def minimal_mapping() -> dict:
     }
 
 
+@pytest.fixture
+def address_mapping(minimal_mapping: dict) -> dict:
+    new_mapping = overlay(
+        minimal_mapping,
+        {
+            "init": {
+                "facets": {
+                    "employee_address_type": {
+                        "EmailEmployee": {"title": "Mail (AD)", "scope": "EMAIL"}
+                    }
+                }
+            },
+            "ldap_to_mo": {
+                "EmailEmployee": {
+                    "objectClass": "ramodels.mo.details.address.Address",
+                    "_import_to_mo_": "true",
+                    "value": "{{ldap.mail or NONE}}",
+                    "validity": "{{ dict(from_date = now()|mo_datestring) }}",
+                    "address_type": "{{ dict(uuid=get_employee_address_type_uuid('EmailEmployee')) }}",
+                    "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+                }
+            },
+            "mo_to_ldap": {
+                "EmailEmployee": {
+                    "objectClass": "user",
+                    "_export_to_ldap_": "true",
+                    "mail": "{{mo_employee_address.value}}",
+                    "employeeID": "{{mo_employee.cpr_no}}",
+                }
+            },
+        },
+    )
+    return cast(dict, new_mapping)
+
+
 def test_minimal_config(minimal_mapping: dict) -> None:
     """Happy path test for the minimal acceptable mapping."""
     conversion_mapping = parse_obj_as(ConversionMapping, minimal_mapping)
     assert conversion_mapping.dict(exclude_unset=True, by_alias=True) == minimal_mapping
+
+
+def test_address_config(address_mapping: dict) -> None:
+    """Happy path test for the address  mapping."""
+    conversion_mapping = parse_obj_as(ConversionMapping, address_mapping)
+    assert conversion_mapping.dict(exclude_unset=True, by_alias=True) == address_mapping
 
 
 def test_unused_init_facets(minimal_mapping: dict) -> None:
@@ -69,43 +111,11 @@ def test_unused_init_itsystems(minimal_mapping: dict) -> None:
     assert "Unutilized elements in init configuration" in str(exc_info.value)
 
 
-def test_address_type_employee_validator(minimal_mapping: dict) -> None:
+def test_address_type_employee_validator(address_mapping: dict) -> None:
     """Test that address_type template usage is checked."""
     new_mapping = overlay(
-        minimal_mapping,
-        {
-            "init": {
-                "facets": {
-                    "employee_address_type": {
-                        "EmailEmployee": {"title": "Mail (AD)", "scope": "EMAIL"}
-                    }
-                }
-            },
-            "ldap_to_mo": {
-                "EmailEmployee": {
-                    "objectClass": "ramodels.mo.details.address.Address",
-                    "_import_to_mo_": "true",
-                    "value": "{{ldap.mail or NONE}}",
-                    "validity": "{{ dict(from_date = now()|mo_datestring) }}",
-                    "address_type": "{{ dict(uuid=get_employee_address_type_uuid('EmailEmployee')) }}",
-                    "person": "{{ dict(uuid=employee_uuid or NONE) }}",
-                }
-            },
-            "mo_to_ldap": {
-                "EmailEmployee": {
-                    "objectClass": "user",
-                    "_export_to_ldap_": "true",
-                    "mail": "{{mo_employee_address.value}}",
-                    "employeeID": "{{mo_employee.cpr_no}}",
-                }
-            },
-        },
-    )
-    parse_obj_as(ConversionMapping, new_mapping)
-
-    # Ruin address type reference
-    new_mapping = overlay(
-        new_mapping, {"ldap_to_mo": {"EmailEmployee": {"address_type": "fixed value"}}}
+        address_mapping,
+        {"ldap_to_mo": {"EmailEmployee": {"address_type": "fixed value"}}},
     )
     with pytest.raises(ValidationError) as exc_info:
         parse_obj_as(ConversionMapping, new_mapping)
@@ -198,3 +208,30 @@ def test_itsystem_validator(minimal_mapping: dict) -> None:
     with pytest.raises(ValidationError) as exc_info:
         parse_obj_as(ConversionMapping, new_mapping)
     assert "IT-System not templating it-system UUID" in str(exc_info.value)
+
+
+def test_cannot_terminate_employee(minimal_mapping: dict) -> None:
+    """Test that employees cannot be terminated."""
+    invalid_mapping = overlay(
+        minimal_mapping,
+        {
+            "ldap_to_mo": {"Employee": {"_terminate_": "whatever"}},
+        },
+    )
+    with pytest.raises(ValidationError) as exc_info:
+        parse_obj_as(ConversionMapping, invalid_mapping)
+    assert (
+        "Termination not supported for <class 'ramodels.mo.employee.Employee'>"
+        in str(exc_info.value)
+    )
+
+
+def test_can_terminate_address(address_mapping: dict) -> None:
+    """Test that addresses can be terminated."""
+    new_mapping = overlay(
+        address_mapping,
+        {
+            "ldap_to_mo": {"EmailEmployee": {"_terminate_": "whatever"}},
+        },
+    )
+    parse_obj_as(ConversionMapping, new_mapping)

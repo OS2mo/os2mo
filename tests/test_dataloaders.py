@@ -21,6 +21,7 @@ from gql import gql
 from gql.transport.exceptions import TransportQueryError
 from graphql import print_ast
 from ldap3.core.exceptions import LDAPInvalidValueError
+from more_itertools import one
 from pydantic import parse_obj_as
 from ramodels.mo._shared import EngagementRef
 from ramodels.mo.details.address import Address
@@ -2768,8 +2769,94 @@ async def test_create_or_edit_mo_objects_empty(dataloader: DataLoader) -> None:
 async def test_create_or_edit_mo_objects(dataloader: DataLoader) -> None:
     # One object is created and another is edited.
     create = MagicMock()
+    del create.terminate_
+
     edit = MagicMock()
-    objs = [(create, Verb.CREATE), (edit, Verb.EDIT)]
+    del edit.terminate_
+
+    terminate = MagicMock()
+
+    objs = [(create, Verb.CREATE), (edit, Verb.EDIT), (terminate, Verb.TERMINATE)]
+
+    dataloader.create = AsyncMock()  # type: ignore
+    dataloader.edit = AsyncMock()  # type: ignore
+    dataloader.terminate = AsyncMock()  # type: ignore
+
+    await dataloader.create_or_edit_mo_objects(objs)  # type: ignore
+    dataloader.create.assert_called_once_with([create])
+    dataloader.edit.assert_called_once_with([edit])
+    dataloader.terminate.assert_called_once_with([terminate])
+
+
+async def test_create_objects(dataloader: DataLoader) -> None:
+    # One object is created and another is edited.
+    create = MagicMock()
+    del create.terminate_
+
+    objs = [(create, Verb.CREATE)]
+
     await dataloader.create_or_edit_mo_objects(objs)  # type: ignore
     dataloader.context["legacy_model_client"].upload.assert_called_once_with([create])
+
+
+async def test_edit_objects(dataloader: DataLoader) -> None:
+    # One object is created and another is edited.
+    edit = MagicMock()
+    del edit.terminate_
+
+    objs = [(edit, Verb.EDIT)]
+
+    await dataloader.create_or_edit_mo_objects(objs)  # type: ignore
     dataloader.context["legacy_model_client"].edit.assert_called_once_with([edit])
+
+
+@pytest.mark.parametrize(
+    "motype,term_name",
+    [
+        ("address", "address_terminate"),
+        ("engagement", "engagement_terminate"),
+        ("it", "ituser_terminate"),
+    ],
+)
+async def test_terminate_objects(
+    dataloader: DataLoader, motype: str, term_name: str
+) -> None:
+    # One object is created and another is edited.
+    terminate = MagicMock()
+    terminate.type_ = motype
+    terminate.uuid = uuid4()
+
+    objs = [(terminate, Verb.TERMINATE)]
+
+    await dataloader.create_or_edit_mo_objects(objs)  # type: ignore
+    getattr(dataloader.graphql_client, term_name).assert_called_once()
+
+
+async def test_terminate_unknown_type(dataloader: DataLoader) -> None:
+    # One object is created and another is edited.
+    terminate = MagicMock()
+    terminate.type_ = "gaxi"
+    terminate.uuid = uuid4()
+
+    objs = [(terminate, Verb.TERMINATE)]
+
+    with pytest.raises(ExceptionGroup) as exc_info:
+        await dataloader.create_or_edit_mo_objects(objs)  # type: ignore
+    assert "Exceptions during termination" in str(exc_info.value)
+    assert "Unable to terminate type: gaxi" in str(one(exc_info.value.exceptions))
+
+
+async def test_terminate_fix_verb(dataloader: DataLoader) -> None:
+    """Test that our hacky code makes terminates Verb.TERMINATE."""
+    terminate = MagicMock()
+    terminate.terminate_ = datetime.datetime.now().isoformat()
+    terminate.type_ = "address"
+    terminate.uuid = uuid4()
+
+    # This Verb.EDIT becomes Verb.TERMINATE because of the terminate_ field
+    objs = [(terminate, Verb.EDIT)]
+
+    await dataloader.create_or_edit_mo_objects(objs)  # type: ignore
+    dataloader.context["legacy_model_client"].upload.assert_called_once_with([])
+    dataloader.context["legacy_model_client"].edit.assert_called_once_with([])
+    dataloader.graphql_client.address_terminate.assert_called_once()  # type: ignore

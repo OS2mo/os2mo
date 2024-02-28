@@ -17,6 +17,7 @@ import yaml
 from fastramqpi.context import Context
 from jinja2 import Environment
 from jinja2 import Undefined
+from more_itertools import one
 from pydantic import parse_obj_as
 from pydantic import ValidationError
 from ramodels.mo import Employee
@@ -2031,3 +2032,39 @@ async def test_get_employee_dict(converter: LdapConverter) -> None:
         "uuid": uuid,
         "cpr_no": cpr_no,
     }
+
+
+async def test_ldap_to_mo_termination(converter: LdapConverter) -> None:
+    employee_uuid = uuid4()
+    result = await converter.from_ldap(
+        LdapObject(
+            dn="",
+            mail="foo@bar.dk",
+            mail_validity_from=datetime.datetime(2019, 1, 1, 0, 10, 0),
+        ),
+        "Email",
+        employee_uuid=employee_uuid,
+    )
+    mail = one(result)
+    assert not hasattr(mail, "terminate_")
+    assert mail.value == "foo@bar.dk"
+    assert mail.person.uuid == employee_uuid
+
+    # Add _terminate_ key to Email mapping
+    converter.context["user_context"]["mapping"]["ldap_to_mo"]["Email"][
+        "_terminate_"
+    ] = "{{ now()|mo_datestring }}"
+    await converter._init()
+    result = await converter.from_ldap(
+        LdapObject(
+            dn="",
+            mail="foo@bar.dk",
+            mail_validity_from=datetime.datetime(2019, 1, 1, 0, 10, 0),
+        ),
+        "Email",
+        employee_uuid=employee_uuid,
+    )
+    mail = one(result)
+    assert hasattr(mail, "terminate_")
+    assert mail.value == "foo@bar.dk"
+    assert mail.person.uuid == employee_uuid

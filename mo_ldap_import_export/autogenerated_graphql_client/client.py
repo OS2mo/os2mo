@@ -1,11 +1,20 @@
+from .address_terminate import AddressTerminate
+from .address_terminate import AddressTerminateAddressTerminate
 from .async_base_client import AsyncBaseClient
 from .create_class import CreateClass
 from .create_class import CreateClassClassCreate
 from .create_it_system import CreateItSystem
 from .create_it_system import CreateItSystemItsystemCreate
+from .engagement_terminate import EngagementTerminate
+from .engagement_terminate import EngagementTerminateEngagementTerminate
+from .input_types import AddressTerminateInput
 from .input_types import ClassCreateInput
 from .input_types import ClassUpdateInput
+from .input_types import EngagementTerminateInput
 from .input_types import ITSystemCreateInput
+from .input_types import ITUserTerminateInput
+from .ituser_terminate import ItuserTerminate
+from .ituser_terminate import ItuserTerminateItuserTerminate
 from .read_class_uuid import ReadClassUuid
 from .read_class_uuid import ReadClassUuidClasses
 from .read_facet_uuid import ReadFacetUuid
@@ -116,3 +125,54 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadRootOrgUuid.parse_obj(data).org
+
+    async def address_terminate(
+        self, input: AddressTerminateInput
+    ) -> AddressTerminateAddressTerminate:
+        query = gql(
+            """
+            mutation address_terminate($input: AddressTerminateInput!) {
+              address_terminate(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return AddressTerminate.parse_obj(data).address_terminate
+
+    async def engagement_terminate(
+        self, input: EngagementTerminateInput
+    ) -> EngagementTerminateEngagementTerminate:
+        query = gql(
+            """
+            mutation engagement_terminate($input: EngagementTerminateInput!) {
+              engagement_terminate(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return EngagementTerminate.parse_obj(data).engagement_terminate
+
+    async def ituser_terminate(
+        self, input: ITUserTerminateInput
+    ) -> ItuserTerminateItuserTerminate:
+        query = gql(
+            """
+            mutation ituser_terminate($input: ITUserTerminateInput!) {
+              ituser_terminate(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ItuserTerminate.parse_obj(data).ituser_terminate
