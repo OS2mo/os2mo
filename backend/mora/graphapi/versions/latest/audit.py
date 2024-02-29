@@ -10,7 +10,6 @@ import strawberry
 from more_itertools import bucket
 from ra_utils.apply import apply
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import async_sessionmaker
 from starlette_context import context
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
@@ -21,33 +20,32 @@ from .paged import CursorType
 from .paged import LimitType
 from .resolvers import get_date_interval
 from mora.audit import audit_log
+from mora.db import AsyncSession
 from mora.db import AuditLogOperation as AuditLogOperation
 from mora.db import AuditLogRead as AuditLogRead
 
 
-def get_audit_loaders(sessionmaker: async_sessionmaker) -> dict[str, DataLoader]:
+def get_audit_loaders(session: AsyncSession) -> dict[str, DataLoader]:
     """Return dataloaders required for auditing functionality.
 
     Args:
-        sessionmaker: The sessionmaker to run queries on.
+        session: The DB session to run queries on.
 
     Returns:
         A dictionary of loaders required for auditing functionality.
     """
     return {
-        "audit_read_loader": DataLoader(
-            load_fn=partial(audit_read_loader, sessionmaker)
-        )
+        "audit_read_loader": DataLoader(load_fn=partial(audit_read_loader, session))
     }
 
 
 async def audit_read_loader(
-    sessionmaker: async_sessionmaker, keys: list[UUID]
+    session: AsyncSession, keys: list[UUID]
 ) -> list[list[UUID]]:
     """Load UUIDs registered as read for the given operation.
 
     Args:
-        sessionmaker: The sessionmaker to run queries on.
+        session: The database session to run queries on.
         keys: List of operation UUIDs to lookup read UUIDs for.
 
     Returns:
@@ -57,11 +55,9 @@ async def audit_read_loader(
     query = select(AuditLogRead.operation_id, AuditLogRead.uuid).where(
         AuditLogRead.operation_id.in_(keys)
     )
-    session = sessionmaker()
-    async with session.begin():
-        result = list(await session.execute(query))
-        buckets = bucket(result, apply(lambda operation_id, _: operation_id))
-        return [[uuid for _, uuid in buckets[key]] for key in keys]
+    result = list(await session.execute(query))
+    buckets = bucket(result, apply(lambda operation_id, _: operation_id))
+    return [[uuid for _, uuid in buckets[key]] for key in keys]
 
 
 @strawberry.enum
@@ -244,39 +240,38 @@ async def audit_log_resolver(
         query = query.limit(limit + 1)
     query = query.offset(cursor.offset if cursor else 0)
 
-    session = info.context["sessionmaker"]()
-    async with session.begin():
-        result = list(await session.scalars(query))
-        audit_log(
-            session,
-            "resolve_auditlog",
-            "AuditLog",
-            {
-                "limit": limit,
-                "cursor": cursor,
-                "uuids": filter.uuids,
-                "actors": filter.actors,
-                "models": filter.models,
-                "start": filter.start,
-                "end": filter.end,
-            },
-            [auditlog.id for auditlog in result],
+    session = info.context["session"]
+    result = list(await session.scalars(query))
+    audit_log(
+        session,
+        "resolve_auditlog",
+        "AuditLog",
+        {
+            "limit": limit,
+            "cursor": cursor,
+            "uuids": filter.uuids,
+            "actors": filter.actors,
+            "models": filter.models,
+            "start": filter.start,
+            "end": filter.end,
+        },
+        [auditlog.id for auditlog in result],
+    )
+
+    if limit is not None:
+        # Not enough results == no more pages
+        if len(result) <= limit:
+            context["lora_page_out_of_range"] = True
+        # Strip the extra element that was only used for page-checking
+        elif len(result) == limit + 1:
+            result = result[:-1]
+
+    return [
+        AuditLog(
+            id=auditlog.id,
+            time=auditlog.time,
+            actor=auditlog.actor,
+            model=auditlog.model,
         )
-
-        if limit is not None:
-            # Not enough results == no more pages
-            if len(result) <= limit:
-                context["lora_page_out_of_range"] = True
-            # Strip the extra element that was only used for page-checking
-            elif len(result) == limit + 1:
-                result = result[:-1]
-
-        return [
-            AuditLog(
-                id=auditlog.id,
-                time=auditlog.time,
-                actor=auditlog.actor,
-                model=auditlog.model,
-            )
-            for auditlog in result
-        ]
+        for auditlog in result
+    ]

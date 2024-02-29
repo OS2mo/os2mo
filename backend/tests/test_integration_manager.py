@@ -564,6 +564,7 @@ async def test_create_manager(
 @patch("uuid.uuid4", new=lambda: UUID(mock_uuid))
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_read_manager_multiple_responsibilities(
+    another_transaction,
     service_client: TestClient,
 ) -> None:
     """Test reading a manager with multiple responsibilities, all valid"""
@@ -606,22 +607,26 @@ async def test_read_manager_multiple_responsibilities(
         },
     ]
 
-    await c.organisationfunktion.update(
-        {
-            "relationer": {
-                "opgaver": overwritten_responsibilities,
-            }
-        },
-        manager_uuid,
-    )
-
-    assert (
-        sorted(
-            (await c.organisationfunktion.get(manager_uuid))["relationer"]["opgaver"],
-            key=mora_util.get_uuid,
+    async with another_transaction():
+        await c.organisationfunktion.update(
+            {
+                "relationer": {
+                    "opgaver": overwritten_responsibilities,
+                }
+            },
+            manager_uuid,
         )
-        == overwritten_responsibilities
-    )
+
+    async with another_transaction():
+        assert (
+            sorted(
+                (await c.organisationfunktion.get(manager_uuid))["relationer"][
+                    "opgaver"
+                ],
+                key=mora_util.get_uuid,
+            )
+            == overwritten_responsibilities
+        )
 
     response = service_client.request(
         "GET", f"/service/e/{userid}/details/manager", params={"only_primary_uuid": 1}

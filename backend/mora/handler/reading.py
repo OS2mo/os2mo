@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import abc
-from asyncio import create_task
-from asyncio import gather
 from collections.abc import Iterable
 from inspect import isawaitable
 from typing import Any
@@ -108,17 +106,11 @@ class ReadingHandler:
         :param function_id: object from object_tuple
         :return: List of whatever this returns get_mo_object_from_effect
         """
-        return await gather(
-            *[
-                create_task(
-                    cls._get_mo_object_from_effect(
-                        effect, start, end, function_id, flat
-                    )
-                )
-                for start, end, effect in (await cls._get_effects(c, function_obj))
-                if cls.is_reg_valid(effect)
-            ]
-        )
+        return [
+            await cls._get_mo_object_from_effect(effect, start, end, function_id, flat)
+            for start, end, effect in (await cls._get_effects(c, function_obj))
+            if cls.is_reg_valid(effect)
+        ]
 
     @classmethod
     async def _get_obj_effects(
@@ -136,16 +128,12 @@ class ReadingHandler:
         # flatten a bunch of nested tasks
         return [
             x
-            for sublist in await gather(
-                *[
-                    create_task(
-                        cls.__async_get_mo_object_from_effect(
-                            c, function_id, function_obj, flat
-                        )
-                    )
-                    for function_id, function_obj in object_tuples
-                ]
-            )
+            for sublist in [
+                await cls.__async_get_mo_object_from_effect(
+                    c, function_id, function_obj, flat
+                )
+                for function_id, function_obj in object_tuples
+            ]
             for x in sublist
         ]
 
@@ -154,18 +142,6 @@ class OrgFunkReadingHandler(ReadingHandler):
     function_key = None
 
     SEARCH_FIELDS = {"e": "tilknyttedebrugere", "ou": "tilknyttedeenheder"}
-
-    @staticmethod
-    async def assign_when_ready(mapping, key, awaitable_value):
-        """
-        convenient wrapper allowing easy creation of tasks
-
-        :param mapping:
-        :param key:
-        :param awaitable_value:
-        :return:
-        """
-        mapping[key] = await awaitable_value
 
     @classmethod
     async def get(
@@ -182,18 +158,10 @@ class OrgFunkReadingHandler(ReadingHandler):
             return mo_objects
 
         # Mutate objects by awaiting as needed. This delayed evaluation allows bulking.
-        tasks = []
         for mo_object in mo_objects:
             for key, val in mo_object.items():
                 if isawaitable(val):
-                    tasks.append(
-                        create_task(
-                            cls.assign_when_ready(
-                                mapping=mo_object, key=key, awaitable_value=val
-                            )
-                        )
-                    )
-        await gather(*tasks)  # ensure everything has completed
+                    mo_object[key] = await val
         return mo_objects
 
     @classmethod

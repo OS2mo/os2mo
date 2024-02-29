@@ -5,8 +5,6 @@ import collections
 import datetime
 import functools
 import typing
-from asyncio import create_task
-from asyncio import gather
 
 from more_itertools import pairwise
 
@@ -447,16 +445,12 @@ async def does_employee_have_active_engagement(employee_uuid, valid_from, valid_
         gyldighed="Aktiv",
         funktionsnavn=mapping.ENGAGEMENT_KEY,
     )
-    effect_tuples_list = await gather(
-        *[
-            create_task(
-                c.organisationfunktion.get_effects(
-                    funkid, {"tilstande": ("organisationfunktiongyldighed",)}, {}
-                )
-            )
-            for funkid in r
-        ]
-    )
+    effect_tuples_list = [
+        await c.organisationfunktion.get_effects(
+            funkid, {"tilstande": ("organisationfunktiongyldighed",)}, {}
+        )
+        for funkid in r
+    ]
 
     valid_effects = [
         (start, end, effect)

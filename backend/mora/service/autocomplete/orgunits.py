@@ -9,7 +9,6 @@ from sqlalchemy import Select
 from sqlalchemy import String
 from sqlalchemy import Text
 from sqlalchemy import Tuple
-from sqlalchemy.ext.asyncio.session import async_sessionmaker
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import func
 from sqlalchemy.sql import select
@@ -18,6 +17,7 @@ from sqlalchemy.sql import union
 from mora import config
 from mora import util
 from mora.audit import audit_log
+from mora.db import AsyncSession
 from mora.db import OrganisationEnhedAttrEgenskaber
 from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationFunktionAttrEgenskaber
@@ -32,25 +32,23 @@ from mora.service.util import handle_gql_error
 
 
 async def search_orgunits(
-    sessionmaker: async_sessionmaker, query: str, at: date | None = None
+    session: AsyncSession, query: str, at: date | None = None
 ) -> list[UUID]:
     at_sql, at_sql_bind_params = get_at_date_sql(at)
     query_final = _sqlalchemy_generate_query(query, at_sql)
-    async with sessionmaker() as session:
-        async with session.begin():
-            # Execute & parse results
-            result = read_sqlalchemy_result(
-                await session.execute(query_final, {**at_sql_bind_params})
-            )
-            uuids = [orgunit.uuid for orgunit in result]
-            audit_log(
-                session,
-                "search_orgunits",
-                "OrganisationEnhed",
-                {"query": query, "at": at},
-                uuids,
-            )
-            return uuids
+    # Execute & parse results
+    result = read_sqlalchemy_result(
+        await session.execute(query_final, {**at_sql_bind_params})
+    )
+    uuids = [orgunit.uuid for orgunit in result]
+    audit_log(
+        session,
+        "search_orgunits",
+        "OrganisationEnhed",
+        {"query": query, "at": at},
+        uuids,
+    )
+    return uuids
 
 
 async def decorate_orgunit_search_result(

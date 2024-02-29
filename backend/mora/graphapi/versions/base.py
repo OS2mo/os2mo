@@ -1,10 +1,13 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
 from collections.abc import AsyncIterator
+from collections.abc import Callable
 from collections.abc import Iterable
 from collections.abc import Sequence
 from contextlib import suppress
 from functools import cache
+from inspect import isawaitable
 from textwrap import dedent
 from typing import Any
 
@@ -12,6 +15,7 @@ from fastapi import APIRouter
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 from graphql import ExecutionResult
+from graphql import GraphQLResolveInfo
 from graphql.error import GraphQLError
 from starlette.responses import PlainTextResponse
 from strawberry import Schema
@@ -22,7 +26,9 @@ from strawberry.extensions import SchemaExtension
 from strawberry.printer import print_schema
 from strawberry.schema.config import StrawberryConfig
 from strawberry.utils.await_maybe import AsyncIteratorOrIterator
+from strawberry.utils.await_maybe import AwaitableOrValue
 
+from mora.db import get_session
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.router import CustomGraphQLRouter
 
@@ -49,6 +55,37 @@ class ExtendedErrorFormatExtension(SchemaExtension):
         result = self.execution_context.result
         if result and hasattr(result, "errors") and result.errors is not None:
             result.errors = list(map(add_exception_extension, result.errors))
+
+
+class RollbackOnError(SchemaExtension):
+    async def resolve(
+        self,
+        _next: Callable,
+        root: Any,
+        info: GraphQLResolveInfo,
+        *args: str,
+        **kwargs: Any,
+    ) -> AwaitableOrValue[object]:
+        # You might think that this is really slow and stupid, but that's
+        # exactly what it is. The GraphQL spec requires mutations to run
+        # sequentially, but not queries. This makes queries run sequentially as
+        # well. We need this, for now, because db sessions cannot be used
+        # concurrently. This is also why we cannot use asyncio.gather over
+        # functions that interact with the DB. If you want to fix this,
+        # make sure that a single query or mutation has a consistent view of
+        # the database during its operation.
+        async with self.lock:
+            result = _next(root, info, *args, **kwargs)
+            if isawaitable(result):
+                result = await result
+            return result
+
+    async def on_operation(self) -> AsyncIterator[None]:
+        self.lock = asyncio.Lock()
+        yield
+        result = self.execution_context.result
+        if result and hasattr(result, "errors") and result.errors is not None:
+            await get_session().rollback()
 
 
 class IntrospectionQueryCacheExtension(SchemaExtension):
@@ -87,6 +124,7 @@ class BaseGraphQLSchema:
 
     extensions: Sequence[type[SchemaExtension] | SchemaExtension] = [
         StarletteContextExtension,
+        RollbackOnError,
         ExtendedErrorFormatExtension,
         IntrospectionQueryCacheExtension,
     ]

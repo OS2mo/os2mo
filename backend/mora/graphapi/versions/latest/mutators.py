@@ -1342,13 +1342,11 @@ class Mutation:
         file_name = file.filename
         file_bytes = await file.read()
 
-        session = info.context["sessionmaker"]()
         actor = get_authenticated_user()
 
-        async with session.begin():
-            await db.files.write(
-                session, actor, file_store, file_name, file_bytes, force
-            )
+        await db.files.write(
+            info.context["session"], actor, file_store, file_name, file_bytes, force
+        )
 
         return "OK"
 

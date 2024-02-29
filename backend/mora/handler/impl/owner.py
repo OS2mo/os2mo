@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from asyncio import create_task
 from collections.abc import Awaitable
 from functools import partial
 from math import inf
@@ -166,9 +165,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
             inference_priority = parse_owner_inference_priority_str(
                 inference_priority_str
             )
-        base_obj = await create_task(
-            super()._get_mo_object_from_effect(effect, start, end, funcid)
-        )
+        base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
         if is_graphql():
@@ -180,54 +177,41 @@ class OwnerReader(reading.OrgFunkReadingHandler):
                 "owner_inference_priority": inference_priority_str,
             }
 
-        owner_task = None
-        if owner_uuid:
-            owner_task = create_task(
-                employee.request_bulked_get_one_employee(
-                    owner_uuid, only_primary_uuid=only_primary_uuid
-                )
-            )
-
-        if inference_priority:
-            if owned_person:
-                owner_task = create_task(
-                    cls.infer_owner(
-                        owned_person_uuid=owned_person,
-                        inference_priority=inference_priority,
-                    )
-                )
-            else:
-                raise ErrorCodes.E_INTERNAL_ERROR(
-                    f"ill-formatted object encountered: " f"{effect}"
-                )
-
-        if org_unit:
-            org_unit_task = create_task(
-                orgunit.request_bulked_get_one_orgunit(
-                    org_unit,
-                    details=orgunit.UnitDetails.MINIMAL,
-                    only_primary_uuid=only_primary_uuid,
-                )
-            )
-        if owned_person:
-            owned_person_task = create_task(
-                employee.request_bulked_get_one_employee(
-                    str(owned_person), only_primary_uuid=only_primary_uuid
-                )
-            )
         func: dict[Any, Any] = {
             **base_obj,
             mapping.OWNER_INFERENCE_PRIORITY: inference_priority.value
             if inference_priority is not None
             else None,
-            mapping.OWNER: await owner_task if owner_task is not None else None,
+            mapping.OWNER: None,
             mapping.ORG_UNIT: None,
             mapping.PERSON: None,
         }
+
+        if inference_priority:
+            if owned_person:
+                func[mapping.OWNER] = await cls.infer_owner(
+                    owned_person_uuid=owned_person,
+                    inference_priority=inference_priority,
+                )
+            else:
+                ErrorCodes.E_INTERNAL_ERROR(
+                    f"ill-formatted object encountered: " f"{effect}"
+                )
+        elif owner_uuid:
+            func[mapping.OWNER] = await employee.request_bulked_get_one_employee(
+                owner_uuid, only_primary_uuid=only_primary_uuid
+            )
+
         if org_unit:
-            func[mapping.ORG_UNIT] = await org_unit_task
+            func[mapping.ORG_UNIT] = await orgunit.request_bulked_get_one_orgunit(
+                org_unit,
+                details=orgunit.UnitDetails.MINIMAL,
+                only_primary_uuid=only_primary_uuid,
+            )
 
         if owned_person:
-            func[mapping.PERSON] = await owned_person_task
+            func[mapping.PERSON] = await employee.request_bulked_get_one_employee(
+                str(owned_person), only_primary_uuid=only_primary_uuid
+            )
 
         return func

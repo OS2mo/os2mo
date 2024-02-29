@@ -4,9 +4,7 @@ import contextlib
 import json
 import os
 import re
-from asyncio import gather
 from collections.abc import Iterator
-from itertools import starmap
 from json import dumps
 from typing import Any
 from unittest.mock import patch
@@ -306,7 +304,8 @@ async def load_sample_structures():
             )
         )
 
-    await gather(*starmap(load_fixture, fixtures))
+    for fixture in fixtures:
+        await load_fixture(*fixture)
 
 
 @contextlib.contextmanager

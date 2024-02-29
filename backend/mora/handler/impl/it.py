@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from asyncio import gather
-
 from structlog import get_logger
 
 from .. import reading
@@ -79,47 +77,39 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
                 "primary_uuid": primary_uuid,
             }
 
+        r = {
+            **base_obj,
+            mapping.PERSON: None,
+            mapping.ORG_UNIT: None,
+            mapping.PRIMARY: None,
+            mapping.ENGAGEMENT: None,
+        }
+
         if only_primary_uuid:
-            it_system_task = get_itsystem_only_primary(itsystem_uuid)
+            r[mapping.ITSYSTEM] = await get_itsystem_only_primary(itsystem_uuid)
         else:
-            it_system_task = get_itsystem(itsystem_uuid)
+            r[mapping.ITSYSTEM] = await get_itsystem(itsystem_uuid)
 
         if person_uuid:
-            person_task = employee.request_bulked_get_one_employee(
+            r[mapping.PERSON] = await employee.request_bulked_get_one_employee(
                 person_uuid, only_primary_uuid=only_primary_uuid
             )
-        else:
-            person_task = noop_task()
 
         if org_unit_uuid:
-            org_unit_task = orgunit.request_bulked_get_one_orgunit(
+            r[mapping.ORG_UNIT] = await orgunit.request_bulked_get_one_orgunit(
                 org_unit_uuid,
                 details=orgunit.UnitDetails.MINIMAL,
                 only_primary_uuid=only_primary_uuid,
             )
-        else:
-            org_unit_task = noop_task()
 
         if engagement_uuid:
-            engagement_task = get_engagement(get_connector(), uuid=engagement_uuid)
-        else:
-            engagement_task = noop_task()
+            r[mapping.ENGAGEMENT] = await get_engagement(
+                get_connector(), uuid=engagement_uuid
+            )
 
         if primary_uuid:
-            primary_task = facet.request_bulked_get_one_class_full(
+            r[mapping.PRIMARY] = await facet.request_bulked_get_one_class_full(
                 primary_uuid, only_primary_uuid=only_primary_uuid
             )
-        else:
-            primary_task = noop_task()
 
-        itsystem, person, org_unit, primary, engagement = await gather(
-            it_system_task, person_task, org_unit_task, primary_task, engagement_task
-        )
-        return {
-            **base_obj,
-            mapping.ITSYSTEM: itsystem,
-            mapping.PERSON: person,
-            mapping.ORG_UNIT: org_unit,
-            mapping.PRIMARY: primary,
-            mapping.ENGAGEMENT: engagement,
-        }
+        return r

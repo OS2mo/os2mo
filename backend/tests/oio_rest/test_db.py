@@ -20,31 +20,29 @@ from oio_rest.custom_exceptions import NotFoundException
 
 
 def mock_sql_session(monkeypatch: MonkeyPatch) -> AsyncMock:
-    """Mock SQLAlchemy sessionmaker.
+    """Mock DB modules get_session.
 
     Supports mocking
 
-        async with get_sessionmaker().begin() as session:
-            resulting_sql = await mogrify(...)
-            result = await session.scalar(text(resulting_sql))
+        session = get_session()
+        resulting_sql = await mogrify(...)
+        result = await session.scalar(text(resulting_sql))
 
     or
 
-        async with get_sessionmaker().begin() as session:
-            result = await session.execute(sql)
-            return result.fetchone()
+        session = get_session()
+        result = await session.execute(sql)
+        return result.fetchone()
     """
     # Mock mogrify calls
     mogrify = AsyncMock()
     monkeypatch.setattr("oio_rest.db.mogrify", mogrify)
     mogrify.return_value = ""
 
-    # Mock sessionmaker
-    get_sessionmaker = Mock()
-    monkeypatch.setattr("oio_rest.db.get_sessionmaker", get_sessionmaker)
-    sessionmaker = get_sessionmaker.return_value = Mock()
-    context_manager = sessionmaker.begin.return_value = AsyncMock()
-    session = context_manager.__aenter__.return_value = AsyncMock()
+    # Mock session
+    get_session = Mock()
+    monkeypatch.setattr("oio_rest.db.get_session", get_session)
+    session = get_session.return_value = AsyncMock()
     # Mock calls of type 'session.scalar(...)'
     session.scalar.return_value = Mock()
     # Mock calls of type 'r = await session.execute(...); r.fetchone()'

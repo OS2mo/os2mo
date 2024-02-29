@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from asyncio import create_task
-from asyncio import gather
 from collections.abc import Iterable
 from enum import Enum
 from typing import Any
@@ -140,25 +138,6 @@ class AssociationReader(reading.OrgFunkReadingHandler):
         ]
         return augmented_normal + augmented_substitutes
 
-    @staticmethod
-    async def __dynamic_classes_helper(
-        classes: Iterable[str], only_primary_uuid: bool = False
-    ) -> list[MO_OBJ_TYPE]:
-        """
-        helper, is an awaitable, that will gather a bunch of classes in a list
-        :param classes:
-        :return: list of classes (AT LEAST) bulked together
-        """
-
-        return await gather(
-            *[
-                await facet.request_bulked_get_one_class_full(
-                    cla, only_primary_uuid=only_primary_uuid
-                )
-                for cla in classes
-            ]
-        )
-
     @classmethod
     async def _get_mo_object_from_effect(
         cls, effect, start, end, funcid, flat: bool = False
@@ -208,46 +187,57 @@ class AssociationReader(reading.OrgFunkReadingHandler):
                 "it_user_uuid": it_system_binding_uuid,
             }
 
-        substitute = None
-        if extra == ResponseExtraField.SUBSTITUTE:
-            substitute = create_task(
-                employee.request_bulked_get_one_employee(
-                    associated_function_uuid, only_primary_uuid=only_primary_uuid
-                )
-            )
-
-        # Create awaitables for bulky objects
-        dynamic_classes_awaitable = cls.__dynamic_classes_helper(
-            classes, only_primary_uuid=only_primary_uuid
+        ou = await orgunit.request_bulked_get_one_orgunit(
+            org_unit,
+            details=orgunit.UnitDetails.MINIMAL,
+            only_primary_uuid=only_primary_uuid,
         )
+
+        class_list = [
+            await facet.request_bulked_get_one_class_full(
+                c, only_primary_uuid=only_primary_uuid
+            )
+            for c in classes
+        ]
+        r = {
+            **base_obj,
+            mapping.PERSON: None,
+            mapping.ORG_UNIT: ou,
+            mapping.ASSOCIATION_TYPE: None,
+            mapping.PRIMARY: None,
+            mapping.CLASSES: class_list,
+            mapping.SUBSTITUTE: None,
+            mapping.JOB_FUNCTION: None,
+            mapping.IT: None,
+        }
 
         if person:
-            person_task = create_task(
-                employee.request_bulked_get_one_employee(
-                    person, only_primary_uuid=only_primary_uuid
-                )
+            r[mapping.PERSON] = await employee.request_bulked_get_one_employee(
+                person, only_primary_uuid=only_primary_uuid
             )
-
-        org_unit_task = create_task(
-            orgunit.request_bulked_get_one_orgunit(
-                org_unit,
-                details=orgunit.UnitDetails.MINIMAL,
-                only_primary_uuid=only_primary_uuid,
-            )
-        )
 
         if association_type:
-            association_type_task = create_task(
-                facet.request_bulked_get_one_class_full(
-                    association_type, only_primary_uuid=only_primary_uuid
-                )
+            r[mapping.ASSOCIATION_TYPE] = await facet.request_bulked_get_one_class_full(
+                association_type, only_primary_uuid=only_primary_uuid
             )
 
         if primary:
-            primary_task = create_task(
-                facet.request_bulked_get_one_class_full(
-                    primary, only_primary_uuid=only_primary_uuid
-                )
+            r[mapping.PRIMARY] = await facet.request_bulked_get_one_class_full(
+                primary, only_primary_uuid=only_primary_uuid
+            )
+
+        if extra == ResponseExtraField.SUBSTITUTE:
+            r[mapping.SUBSTITUTE] = await employee.request_bulked_get_one_employee(
+                associated_function_uuid, only_primary_uuid=only_primary_uuid
+            )
+
+        if extra == ResponseExtraField.JOB_FUNCTION and associated_function_uuid:
+            c = get_connector()
+            r[mapping.JOB_FUNCTION] = await facet.get_one_class(
+                c,
+                classid=associated_function_uuid,
+                details=set(),
+                only_primary_uuid=only_primary_uuid,
             )
 
         if it_system_binding_uuid:
@@ -262,40 +252,9 @@ class AssociationReader(reading.OrgFunkReadingHandler):
                 validity="present",
             )
             reader = ItSystemBindingReader()
-            it_system_binding_task = reader.get(
+            r[mapping.IT] = await reader.get(
                 c,
                 {mapping.UUID: it_system_binding_uuid},
             )
-
-        if extra == ResponseExtraField.JOB_FUNCTION and associated_function_uuid:
-            c = get_connector()
-            job_function_task = facet.get_one_class(
-                c,
-                classid=associated_function_uuid,
-                details=set(),
-                only_primary_uuid=only_primary_uuid,
-            )
-        else:
-            job_function_task = None
-
-        r = {
-            **base_obj,
-            mapping.PERSON: (await person_task) if person else None,
-            mapping.ORG_UNIT: await org_unit_task,
-            mapping.ASSOCIATION_TYPE: (
-                (await association_type_task) if association_type else None
-            ),
-            mapping.PRIMARY: (await primary_task) if primary else None,
-            mapping.CLASSES: await dynamic_classes_awaitable,
-            mapping.SUBSTITUTE: (
-                (await substitute) if extra == ResponseExtraField.SUBSTITUTE else None
-            ),
-            mapping.JOB_FUNCTION: (
-                (await job_function_task) if job_function_task else None
-            ),
-            mapping.IT: (
-                (await it_system_binding_task) if it_system_binding_uuid else None
-            ),
-        }
 
         return r

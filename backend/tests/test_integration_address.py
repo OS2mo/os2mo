@@ -8,10 +8,11 @@ from fastapi.testclient import TestClient
 from more_itertools import one
 
 from mora import lora
-from mora.graphapi.shim import execute_graphql
 from mora.util import get_effect_from
 from tests import util
 from tests.cases import assert_registrations_equal
+from tests.conftest import GQLResponse
+from tests.conftest import GraphAPIPost
 
 
 ean_class = {
@@ -1154,7 +1155,10 @@ def test_edit_errors(service_client: TestClient) -> None:
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-async def test_missing_class(service_client: TestClient) -> None:
+async def test_missing_class(
+    graphapi_post: GraphAPIPost,
+    service_client: TestClient,
+) -> None:
     with util.darmock("dawa-addresses.json", allow_mox=True, real_http=True):
         await util.load_fixture(
             "organisation/organisationfunktion",
@@ -1169,10 +1173,7 @@ async def test_missing_class(service_client: TestClient) -> None:
             }
         """
         class_uuid = "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
-        response = await execute_graphql(
-            query=delete_query,
-            variable_values={"uuid": class_uuid},
-        )
+        response: GQLResponse = graphapi_post(delete_query, {"uuid": class_uuid})
         assert response.errors is None
         assert response.data == {"class_delete": {"uuid": class_uuid}}
 
@@ -1185,7 +1186,7 @@ async def test_missing_class(service_client: TestClient) -> None:
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-async def test_missing_address(service_client: TestClient) -> None:
+async def test_missing_address(another_transaction, service_client: TestClient) -> None:
     unitid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
     addrid = "bd7e5317-4a9e-437b-8923-11156406b117"
     functionid = "414044e0-fe5f-4f82-be20-1e107ad50e80"
@@ -1200,23 +1201,24 @@ async def test_missing_address(service_client: TestClient) -> None:
             pattern = re.compile(r"^https://api.dataforsyningen.dk/" + t + ".*$")
             mock.get(pattern, json=[])
 
-        await lora.Connector().organisationfunktion.update(
-            {
-                "relationer": {
-                    "adresser": [
-                        {
-                            "objekttype": "DAR",
-                            "urn": f"urn:dar:{addrid}",
-                            "virkning": {
-                                "from": "2016-01-01",
-                                "to": "2020-01-01",
+        async with another_transaction():
+            await lora.Connector().organisationfunktion.update(
+                {
+                    "relationer": {
+                        "adresser": [
+                            {
+                                "objekttype": "DAR",
+                                "urn": f"urn:dar:{addrid}",
+                                "virkning": {
+                                    "from": "2016-01-01",
+                                    "to": "2020-01-01",
+                                },
                             },
-                        },
-                    ],
+                        ],
+                    },
                 },
-            },
-            functionid,
-        )
+                functionid,
+            )
 
         response = service_client.request(
             "GET", f"/service/ou/{unitid}/details/address"
@@ -1256,7 +1258,7 @@ async def test_missing_address(service_client: TestClient) -> None:
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1, tick=True)
-async def test_missing_error(service_client: TestClient) -> None:
+async def test_missing_error(another_transaction, service_client: TestClient) -> None:
     unitid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
     addrid = "bd7e5317-4a9e-437b-8923-11156406b117"
     functionid = "414044e0-fe5f-4f82-be20-1e107ad50e80"
@@ -1275,23 +1277,24 @@ async def test_missing_error(service_client: TestClient) -> None:
             repeat=True,
         )
 
-        await lora.Connector().organisationfunktion.update(
-            {
-                "relationer": {
-                    "adresser": [
-                        {
-                            "objekttype": "DAR",
-                            "urn": f"urn:dar:{addrid}",
-                            "virkning": {
-                                "from": "2016-01-01",
-                                "to": "2020-01-01",
+        async with another_transaction():
+            await lora.Connector().organisationfunktion.update(
+                {
+                    "relationer": {
+                        "adresser": [
+                            {
+                                "objekttype": "DAR",
+                                "urn": f"urn:dar:{addrid}",
+                                "virkning": {
+                                    "from": "2016-01-01",
+                                    "to": "2020-01-01",
+                                },
                             },
-                        },
-                    ],
+                        ],
+                    },
                 },
-            },
-            functionid,
-        )
+                functionid,
+            )
 
         response = service_client.request(
             "GET", f"/service/ou/{unitid}/details/address"

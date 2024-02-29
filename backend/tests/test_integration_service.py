@@ -40,7 +40,7 @@ async def test_employee_empty_db(service_client: TestClient) -> None:
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-async def test_employee(service_client: TestClient) -> None:
+async def test_employee(another_transaction, service_client: TestClient) -> None:
     # invalid
     response = service_client.request(
         "GET",
@@ -212,11 +212,12 @@ async def test_employee(service_client: TestClient) -> None:
     assert response.status_code == 200
     assert response.json() == {"total": 0, "items": [], "offset": 0}
 
-    await util.load_fixture(
-        "organisation/bruger",
-        "create_bruger_andersine.json",
-        "df55a3ad-b996-4ae0-b6ea-a3241c4cbb24",
-    )
+    async with another_transaction():
+        await util.load_fixture(
+            "organisation/bruger",
+            "create_bruger_andersine.json",
+            "df55a3ad-b996-4ae0-b6ea-a3241c4cbb24",
+        )
 
     result_list = [
         {

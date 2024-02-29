@@ -10,11 +10,9 @@ For more information regarding reading relations involving employees, refer to
 http:get:`/service/(any:type)/(uuid:id)/details/`
 
 """
-import asyncio
 import copy
 import enum
 import logging
-from collections.abc import Awaitable
 from datetime import date
 from functools import partial
 from operator import contains
@@ -288,9 +286,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             self.result = await c.bruger.update(self.payload, self.uuid)
 
         # process subrequests, if any
-        await asyncio.gather(
-            *(r.submit() for r in getattr(self, "details_requests", []))
-        )
+        [await r.submit() for r in getattr(self, "details_requests", [])]
 
         return await super().submit()
 
@@ -299,18 +295,9 @@ async def request_bulked_get_one_employee(
     userid: str,
     details: EmployeeDetails = EmployeeDetails.MINIMAL,
     only_primary_uuid: bool = False,
-) -> Awaitable:
-    """
-    EAGERLY adds a uuid to a LAZILY-processed cache. Return an awaitable. Once the
-    result is awaited, the FULL cache is processed. Useful to 'under-the-hood' bulk.
-
-    :param userid: uuid of employee
-    :param details: configure processing of the employee
-    :param only_primary_uuid:
-    :return: Awaitable returning the processed employee
-    """
+):
     connector = common.get_connector()
-    return get_one_employee(
+    return await get_one_employee(
         c=connector,
         userid=userid,
         user=await get_lora_object(
@@ -392,7 +379,7 @@ async def get_one_employee(
 )
 # async def autocomplete_employees(query: str):
 async def autocomplete_employees(
-    sessionmaker: depends.async_sessionmaker,
+    session: depends.Session,
     query: str,
     at: date
     | None = Query(
@@ -409,7 +396,7 @@ async def autocomplete_employees(
         )
 
     logger.debug("using autocomplete_employee_v2 new")
-    search_results = await autocomplete.search_employees(sessionmaker, query, at)
+    search_results = await autocomplete.search_employees(session, query, at)
 
     # Decorate search results with data through GraphQL
     return {

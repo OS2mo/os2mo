@@ -19,7 +19,6 @@ from functools import partial
 from operator import itemgetter
 from pathlib import Path
 from typing import Any
-from typing import Never
 from typing import Protocol
 from typing import TypeVar
 from unittest.mock import AsyncMock
@@ -43,15 +42,13 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio import AsyncConnection
 from starlette_context import request_cycle_context
 
-from mora import depends
+from mora import db
 from mora.app import create_app
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import Token
 from mora.auth.keycloak.oidc import token_getter
 from mora.auth.middleware import fetch_authenticated_user
 from mora.config import get_settings
-from mora.db import _DB_SESSION_CONTEXT_KEY
-from mora.db import create_engine
 from mora.graphapi.main import graphql_versions
 from mora.graphapi.versions.latest.dataloaders import MOModel
 from mora.graphapi.versions.latest.permissions import ALL_PERMISSIONS
@@ -148,19 +145,6 @@ def set_session_settings(
     get_settings.cache_clear()
 
 
-@pytest.fixture(autouse=True, scope="session")
-async def mocked_context() -> YieldFixture[None]:
-    """
-    Testing code that relies on context vars without a full test client / app.
-    https://starlette-context.readthedocs.io/en/latest/testing.html
-    """
-    # NOTE: This fixture MUST be async to ensure the context is propagated correctly
-    # to the tests.
-    assert asyncio.get_running_loop()
-    with request_cycle_context({}):
-        yield
-
-
 async def fake_auth() -> Token:
     return Token(
         azp="vue",
@@ -198,75 +182,82 @@ def admin_token_getter() -> Callable[[], Awaitable[Token]]:
     return get_fake_admin_token
 
 
-class _SessionmakerDependency:
-    def __init__(self, sessionmaker: async_sessionmaker) -> None:
+class SessionmakerMaker:
+    def __init__(self, sessionmaker) -> None:
         self.sessionmaker = sessionmaker
+        self.database_name = None
 
-    def get_sessionmaker(self) -> async_sessionmaker:
+    def get_sessionmaker(self, _):
         return self.sessionmaker
 
+    def get_database_name(self):
+        if self.database_name is None:
+            pytest.fail(
+                "Improperly-configured test: you are probably trying to access the database without requesting a database fixture"
+            )
+        return self.database_name
 
-class _FakeSessionmaker(async_sessionmaker):
-    def begin(self) -> Never:
-        self._fail()
 
-    def __call__(self, *args, **kwargs) -> Never:
-        self._fail()
+class FakeDatabaseSession:
+    def __getattr__(self, attr):
+        if attr == "begin":
 
-    @staticmethod
-    def _fail() -> Never:
-        # Explicitly pytest-fail to avoid the code under test catching the exception
-        pytest.fail(
-            "Improperly-configured test: Attempting to access unconfigured database. "
-            "If this error originated from a test, you are probably trying to access "
-            "the database without requesting a database fixture. If it originated "
-            "from a fixture, you may need to explicitly request a TestClient or "
-            "database fixture to ensure they are run before your fixture."
-        )
+            @asynccontextmanager
+            async def session_begin():
+                yield
+
+            return session_begin
+        elif attr == "rollback":
+            # rollback allowed so we can test GraphQL fails, e.g. schema
+            # validation functions.
+            async def noop():
+                ...
+
+            return noop
+        else:
+            pytest.fail("This test is not connected to a database")
 
 
 @pytest.fixture
-def sessionmaker_dependency() -> _SessionmakerDependency:
-    """Binds FastAPI sessionmaker dependency to database fixture indirectly.
+def sessionmakermaker() -> SessionmakerMaker:
+    @asynccontextmanager
+    async def sessionmaker():
+        yield FakeDatabaseSession()
 
-    This allows each test to request a TestClient and database fixture individually,
-    without having to bind them together. This works by having each test-app and
-    database fixture request this fixture; the test apps will overwrite its
-    get_sessionmaker dependency, and the database fixture will set the class's
-    sessionmaker.
+    return SessionmakerMaker(sessionmaker=sessionmaker)
 
-    The SessionmakerDependency is initialised with a fake sessionmaker to allow using a
-    TestClient without a database fixture. This is required because of the global
-    set_sessionmaker_context dependency, which requests the sessionmaker dependency. By
-    providing a fake we satisfy the set_sessionmaker_context and defer failing until it
-    is attempted used. This can be removed in the future when we don't call
-    get_sessionmaker(), but pass it properly through the stack.
+
+@pytest.fixture(autouse=True)
+async def mocked_context() -> YieldFixture[None]:
     """
-    return _SessionmakerDependency(sessionmaker=_FakeSessionmaker())
+    Testing code that relies on context vars without a full test client / app.
+    https://starlette-context.readthedocs.io/en/latest/testing.html
+    """
+    # NOTE: This fixture MUST be async to ensure the context is propagated correctly
+    # to the tests.
+    assert asyncio.get_running_loop()
+    data = {db._DB_SESSION_CONTEXT_KEY: FakeDatabaseSession()}
+    with request_cycle_context(data):
+        yield
 
 
 @pytest.fixture
-def fastapi_raw_test_app(sessionmaker_dependency: _SessionmakerDependency) -> FastAPI:
+def fastapi_test_app(monkeypatch, sessionmakermaker) -> FastAPI:
     app = create_app()
-    app.dependency_overrides[
-        depends.get_sessionmaker
-    ] = sessionmaker_dependency.get_sessionmaker
+    monkeypatch.setattr(db, "_get_sessionmaker", sessionmakermaker.get_sessionmaker)
+    app.dependency_overrides[auth] = fake_auth
+    app.dependency_overrides[token_getter] = fake_token_getter
     return app
 
 
 @pytest.fixture
-def fastapi_test_app(fastapi_raw_test_app: FastAPI) -> FastAPI:
-    fastapi_raw_test_app.dependency_overrides[auth] = fake_auth
-    fastapi_raw_test_app.dependency_overrides[token_getter] = fake_token_getter
-    return fastapi_raw_test_app
-
-
-@pytest.fixture
-def fastapi_admin_test_app(fastapi_test_app: FastAPI) -> FastAPI:
-    fastapi_test_app.dependency_overrides[auth] = admin_auth
-    fastapi_test_app.dependency_overrides[token_getter] = admin_token_getter
-    fastapi_test_app.dependency_overrides[fetch_authenticated_user] = admin_auth_uuid
-    return fastapi_test_app
+def fastapi_admin_test_app(monkeypatch, sessionmakermaker) -> FastAPI:
+    app = create_app()
+    monkeypatch.setattr(db, "_get_sessionmaker", sessionmakermaker.get_sessionmaker)
+    app.dependency_overrides[auth] = admin_auth
+    app.dependency_overrides[token_getter] = admin_token_getter
+    app.dependency_overrides[fetch_authenticated_user] = admin_auth_uuid
+    return app
 
 
 @pytest.fixture(scope="session")
@@ -276,9 +267,11 @@ def latest_graphql_url() -> str:
 
 
 @pytest.fixture
-def raw_client(fastapi_raw_test_app: FastAPI) -> YieldFixture[TestClient]:
+def raw_client(monkeypatch, sessionmakermaker) -> YieldFixture[TestClient]:
     """Fixture yielding a FastAPI test client."""
-    with TestClient(fastapi_raw_test_app) as client:
+    app = create_app()
+    monkeypatch.setattr(db, "_get_sessionmaker", sessionmakermaker.get_sessionmaker)
+    with TestClient(app) as client:
         yield client
 
 
@@ -324,8 +317,8 @@ async def _database_copy(superuser: AsyncConnection, source: str) -> AsyncIterat
     await drop_database(superuser, destination)
 
 
-def _create_sesssionmaker(lora_settings: LoraSettings, database_name: str):
-    engine = create_engine(
+def _create_sessionmaker(lora_settings: LoraSettings, database_name: str):
+    engine = db.create_engine(
         user=lora_settings.db_user,
         password=lora_settings.db_password,
         host=lora_settings.db_host,
@@ -336,18 +329,35 @@ def _create_sesssionmaker(lora_settings: LoraSettings, database_name: str):
 
 
 @asynccontextmanager
-async def _use_sessionmaker(
+async def _use_session(
     lora_settings: LoraSettings, database_name: str
-) -> AsyncIterator[async_sessionmaker]:
-    """Patch mora.db.get_sessionmaker() to connect to the provided `database_name`.
+) -> AsyncIterator[tuple[async_sessionmaker, db.AsyncSession]]:
+    """Patch mora to connect to the provided `database_name`."""
+    sessionmaker = _create_sessionmaker(lora_settings, database_name)
+    async with sessionmaker() as session, session.begin():
+        data = {db._DB_SESSION_CONTEXT_KEY: session}
+        with request_cycle_context(data):
+            yield sessionmaker, session
 
-    TestApps need to use FastAPI's `dependency_overrides` to inject the sessionmaker.
-    This is done through the sessionmaker_dependency fixture.
+
+@pytest.fixture
+async def another_transaction(
+    lora_settings: LoraSettings, sessionmakermaker: SessionmakerMaker
+):
+    """This fixture can be used as an async context manager to create a
+    separate database transaction.
+
+    Remember that web requests - such as those made with the graphapi_post and
+    service_client fixtures - already run in their own transaction.
+
+    This fixture should be used when calls are made directly, e.g. with the
+    lora connector or when loading data.
     """
-    sessionmaker = _create_sesssionmaker(lora_settings, database_name)
-    data = {_DB_SESSION_CONTEXT_KEY: sessionmaker}
-    with request_cycle_context(data):
-        yield sessionmaker
+
+    def inner():
+        return _use_session(lora_settings, sessionmakermaker.get_database_name())
+
+    return inner
 
 
 @pytest.fixture(scope="session")
@@ -356,10 +366,7 @@ async def empty_database_template(
 ) -> AsyncYieldFixture[str]:
     async with _database_copy(superuser, "template1") as database_name:
         # Apply alembic migrations
-        async with (
-            _use_sessionmaker(lora_settings, database_name) as sessionmaker,
-            sessionmaker.begin() as session,
-        ):
+        async with _use_session(lora_settings, database_name) as (_, session):
             connection = await session.connection()
             await run_async_upgrade(connection.engine)
         yield database_name
@@ -373,7 +380,7 @@ async def fixture_database_template(
 ) -> AsyncYieldFixture[str]:
     async with _database_copy(superuser, empty_database_template) as database_name:
         # Load fixture data
-        async with _use_sessionmaker(lora_settings, database_name):
+        async with _use_session(lora_settings, database_name):
             await load_sample_structures()
         yield database_name
 
@@ -382,30 +389,32 @@ async def fixture_database_template(
 async def empty_db(
     superuser: AsyncConnection,
     lora_settings: LoraSettings,
-    sessionmaker_dependency: _SessionmakerDependency,
     empty_database_template: str,
+    sessionmakermaker: SessionmakerMaker,
 ) -> AsyncYieldFixture[async_sessionmaker]:
     async with (
         _database_copy(superuser, empty_database_template) as database_name,
-        _use_sessionmaker(lora_settings, database_name) as sessionmaker,
+        _use_session(lora_settings, database_name) as (sessionmaker, session),
     ):
-        sessionmaker_dependency.sessionmaker = sessionmaker
-        yield sessionmaker
+        sessionmakermaker.sessionmaker = sessionmaker
+        sessionmakermaker.database_name = database_name
+        yield session
 
 
 @pytest.fixture
 async def fixture_db(
     superuser: AsyncConnection,
     lora_settings: LoraSettings,
-    sessionmaker_dependency: _SessionmakerDependency,
     fixture_database_template: str,
+    sessionmakermaker: SessionmakerMaker,
 ) -> AsyncYieldFixture[async_sessionmaker]:
     async with (
         _database_copy(superuser, fixture_database_template) as database_name,
-        _use_sessionmaker(lora_settings, database_name) as sessionmaker,
+        _use_session(lora_settings, database_name) as (sessionmaker, session),
     ):
-        sessionmaker_dependency.sessionmaker = sessionmaker
-        yield sessionmaker
+        sessionmakermaker.sessionmaker = sessionmaker
+        sessionmakermaker.database_name = database_name
+        yield session
 
 
 @pytest.fixture(scope="session", autouse=True)

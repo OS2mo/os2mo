@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from asyncio import create_task
-from asyncio import gather
 from typing import Any
 from uuid import UUID
 
@@ -41,9 +39,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         extensions = extensions[0] if extensions else {}
         fraction = extensions.get("fraktion", None)
 
-        base_obj = await create_task(
-            super()._get_mo_object_from_effect(effect, start, end, funcid)
-        )
+        base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
         if is_graphql():
@@ -58,52 +54,40 @@ class EngagementReader(reading.OrgFunkReadingHandler):
                 **cls._get_extension_fields(extensions),
             }
 
-        is_primary = await create_task(
-            cls._is_primary(get_connector(), person, primary)
-        )
-        person_task = create_task(
-            employee.request_bulked_get_one_employee(
-                userid=person, only_primary_uuid=only_primary_uuid
-            )
+        is_primary = await cls._is_primary(get_connector(), person, primary)
+        person_obj = await employee.request_bulked_get_one_employee(
+            userid=person, only_primary_uuid=only_primary_uuid
         )
 
-        org_unit_task = create_task(
-            orgunit.request_bulked_get_one_orgunit(
-                unitid=org_unit,
-                details=orgunit.UnitDetails.MINIMAL,
-                only_primary_uuid=only_primary_uuid,
-            )
+        org_unit_obj = await orgunit.request_bulked_get_one_orgunit(
+            unitid=org_unit,
+            details=orgunit.UnitDetails.MINIMAL,
+            only_primary_uuid=only_primary_uuid,
         )
 
-        job_function_task = create_task(
-            facet.request_bulked_get_one_class_full(
-                job_function, only_primary_uuid=only_primary_uuid
-            )
+        job_function_obj = await facet.request_bulked_get_one_class_full(
+            job_function, only_primary_uuid=only_primary_uuid
         )
-        engagement_type_task = create_task(
-            facet.request_bulked_get_one_class_full(
-                engagement_type, only_primary_uuid=only_primary_uuid
-            )
+        engagement_type_obj = await facet.request_bulked_get_one_class_full(
+            engagement_type, only_primary_uuid=only_primary_uuid
         )
-
-        if primary:
-            primary_task = create_task(
-                facet.request_bulked_get_one_class_full(
-                    primary, only_primary_uuid=only_primary_uuid
-                )
-            )
 
         r = {
             **base_obj,
-            mapping.PERSON: await person_task,
-            mapping.ORG_UNIT: await org_unit_task,
-            mapping.JOB_FUNCTION: await job_function_task,
-            mapping.ENGAGEMENT_TYPE: await engagement_type_task,
-            mapping.PRIMARY: (await primary_task) if primary else None,
+            mapping.PERSON: person_obj,
+            mapping.ORG_UNIT: org_unit_obj,
+            mapping.JOB_FUNCTION: job_function_obj,
+            mapping.ENGAGEMENT_TYPE: engagement_type_obj,
+            mapping.PRIMARY: None,
             mapping.IS_PRIMARY: is_primary,
             mapping.FRACTION: fraction,
             **cls._get_extension_fields(extensions),
         }
+
+        if primary:
+            r[mapping.PRIMARY] = await facet.request_bulked_get_one_class_full(
+                primary, only_primary_uuid=only_primary_uuid
+            )
 
         return r
 
@@ -150,9 +134,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
             for _, obj in await cls._get_lora_object(c, {"tilknyttedebrugere": person})
         ]
 
-        effect_tuples_list = await gather(
-            *[create_task(cls._get_effects(c, obj)) for obj in objs]
-        )
+        effect_tuples_list = [await cls._get_effects(c, obj) for obj in objs]
 
         # flatten and filter
         engagements = [
@@ -184,8 +166,7 @@ async def get_engagement(c: lora.Connector, uuid: UUID) -> dict[str, Any] | None
     :param uuid: uuid of engagement
     :return: First, engagement found (or None)
     """
-    engagements_task = create_task(EngagementReader.get(c, {"uuid": [uuid]}))
-    engagements = await engagements_task
+    engagements = await EngagementReader.get(c, {"uuid": [uuid]})
     if len(engagements) == 0:
         logger.warning("Engagement returned no results", uuid=uuid)
         return None

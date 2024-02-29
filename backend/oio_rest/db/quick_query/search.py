@@ -8,7 +8,7 @@ from more_itertools import flatten
 from sqlalchemy import text
 
 from mora.audit import audit_log
-from mora.db import get_sessionmaker
+from mora.db import get_session
 from oio_rest.db import Livscyklus
 from oio_rest.db import to_bool
 from oio_rest.db.quick_query.registration_parsing import Attribute
@@ -542,16 +542,16 @@ async def quick_search(
         "max_results": max_results,
     }
 
-    async with get_sessionmaker().begin() as session:
-        result = await session.execute(sql)
-        output = result.fetchall()
-        uuids = list(flatten(output))
-        audit_log(
-            session,
-            "quick_search",
-            org_class_name,
-            audit_log_arguments,
-            list(map(ensure_uuid, uuids)),
-        )
+    session = get_session()
+    result = await session.execute(sql)
+    output = result.fetchall()
+    uuids = list(flatten(output))
+    audit_log(
+        session,
+        "quick_search",
+        org_class_name,
+        audit_log_arguments,
+        list(map(ensure_uuid, uuids)),
+    )
 
     return (uuids,)  # explicit tuple

@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import asyncio
 import copy
 from collections import Counter
 from collections.abc import Callable
@@ -62,7 +61,7 @@ class GroupValidation:
         # Each task returns a list of zero or more validation items
         tasks = map(cls.get_validation_items_from_mo_object, mo_objects)
         # Flatten the lists from each task into a single list of all validation items
-        return list(flatten(await asyncio.gather(*tasks)))
+        return list(flatten([await t for t in tasks]))
 
     def __init__(self, validation_items: list[dict]):
         self.validation_items = validation_items

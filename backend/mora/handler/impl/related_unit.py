@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from asyncio import gather
 from collections.abc import Awaitable
-from collections.abc import Iterable
 from typing import Any
 from typing import TypeVar
 
@@ -25,18 +23,6 @@ T = TypeVar("T")
 class RoleReader(reading.OrgFunkReadingHandler):
     function_key = mapping.RELATED_UNIT_KEY
 
-    @staticmethod
-    async def get_sorted_org_units(aws: Iterable[Awaitable[T]]) -> T:
-        """
-        wrapper to allow delayed sort after gather
-        :param aws:
-        :return:
-        """
-
-        parsed_org_units = await gather(*aws)
-        sorted_org_units = sorted(parsed_org_units, key=lambda x: x.get("name"))
-        return sorted_org_units
-
     @classmethod
     async def _get_mo_object_from_effect(
         cls, effect, start, end, funcid, flat: bool = False
@@ -52,7 +38,7 @@ class RoleReader(reading.OrgFunkReadingHandler):
 
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
-        org_unit_awaitables = [
+        org_units = [
             await orgunit.request_bulked_get_one_orgunit(
                 unitid=org_unit_uuid,
                 details=orgunit.UnitDetails.MINIMAL,
@@ -63,7 +49,7 @@ class RoleReader(reading.OrgFunkReadingHandler):
 
         r = {
             **base_obj,
-            mapping.ORG_UNIT: cls.get_sorted_org_units(org_unit_awaitables),
+            mapping.ORG_UNIT: sorted(org_units, key=lambda x: x.get("name")),
         }
 
         return r

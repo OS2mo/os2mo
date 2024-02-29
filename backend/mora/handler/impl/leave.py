@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from asyncio import create_task
-
 from structlog import get_logger
 
 from .. import reading
@@ -30,9 +28,7 @@ class LeaveReader(reading.OrgFunkReadingHandler):
         leave_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
         engagement_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
 
-        base_obj = await create_task(
-            super()._get_mo_object_from_effect(effect, start, end, funcid)
-        )
+        base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
         if is_graphql():
@@ -43,16 +39,12 @@ class LeaveReader(reading.OrgFunkReadingHandler):
                 "engagement_uuid": engagement_uuid,
             }
 
-        person_task = create_task(
-            employee.request_bulked_get_one_employee(
-                person, only_primary_uuid=only_primary_uuid
-            )
+        person_obj = await employee.request_bulked_get_one_employee(
+            person, only_primary_uuid=only_primary_uuid
         )
 
-        leave_type_task = create_task(
-            facet.request_bulked_get_one_class(
-                leave_type, only_primary_uuid=only_primary_uuid
-            )
+        leave_type_obj = await facet.request_bulked_get_one_class(
+            leave_type, only_primary_uuid=only_primary_uuid
         )
 
         if only_primary_uuid:
@@ -66,8 +58,8 @@ class LeaveReader(reading.OrgFunkReadingHandler):
 
         r = {
             **base_obj,
-            mapping.PERSON: await person_task,
-            mapping.LEAVE_TYPE: await leave_type_task,
+            mapping.PERSON: person_obj,
+            mapping.LEAVE_TYPE: leave_type_obj,
             mapping.ENGAGEMENT: engagement,
         }
 

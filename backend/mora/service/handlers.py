@@ -5,7 +5,6 @@ handlers for the various detail types.
 
 """
 import abc
-import asyncio
 import inspect
 import typing
 from itertools import groupby
@@ -382,4 +381,4 @@ async def generate_requests(
 
 
 async def submit_requests(requests: list[RequestHandler]) -> list[str]:
-    return await asyncio.gather(*(request.submit() for request in requests))
+    return [await request.submit() for request in requests]

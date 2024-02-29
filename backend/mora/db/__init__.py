@@ -1,16 +1,15 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 # flake8: noqa
-from collections.abc import AsyncIterator
-
+from fastapi import Request
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio import AsyncEngine
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio import create_async_engine
 from starlette_context import context
 from starlette_context import request_cycle_context
 
 from . import files
-from .. import depends
 from ._amqp import AMQPSubsystem
 from ._audit import AuditLogOperation
 from ._audit import AuditLogRead
@@ -77,14 +76,31 @@ def create_sessionmaker(user, password, host, name) -> async_sessionmaker:
     return async_sessionmaker(engine)
 
 
+def _get_sessionmaker(request: Request):
+    return request.app.state.sessionmaker
+
+
 _DB_SESSION_CONTEXT_KEY = "db_session"
 
 
-async def set_sessionmaker_context(sessionmaker: depends.async_sessionmaker):
-    data = {**context, _DB_SESSION_CONTEXT_KEY: sessionmaker}
-    with request_cycle_context(data):
-        yield
+async def transaction_per_request(request: Request):
+    """Start a new transaction per request.
+
+    This is a global dependency - called for each request.
+
+    The database session can be accessed through the FastAPI dependency (called
+    `Session`) or side-step the stack (discouraged) with `get_session` below.
+    """
+    async with _get_sessionmaker(request)() as session, session.begin():
+        data = {**context, _DB_SESSION_CONTEXT_KEY: session}
+        with request_cycle_context(data):
+            yield
+            # At this point, the transaction will be committed. However, the
+            # GraphQL extension `RollbackOnError` will call `.rollback` on the
+            # session if there are any errors. This is what allows us to call
+            # multiple mutators in a single GraphQL mutation and have them be
+            # atomic.
 
 
-def get_sessionmaker() -> async_sessionmaker:
+def get_session() -> AsyncSession:
     return context[_DB_SESSION_CONTEXT_KEY]

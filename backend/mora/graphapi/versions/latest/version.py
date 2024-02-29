@@ -8,7 +8,6 @@ import strawberry
 from fastapi import Depends
 from pydantic import PositiveInt
 from ramqp import AMQPSystem
-from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from ..base import BaseGraphQLSchema
 from ..base import BaseGraphQLVersion
@@ -17,6 +16,7 @@ from .dataloaders import get_loaders
 from .mutators import Mutation as LatestMutation
 from .query import Query as LatestQuery
 from .types import CPRType
+from mora import db
 from mora import depends
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import token_getter
@@ -67,13 +67,13 @@ class LatestGraphQLVersion(BaseGraphQLVersion):
         # execute_graphql ajour.
         get_token: Callable[[], Awaitable[Token]] = Depends(token_getter),
         amqp_system: AMQPSystem = Depends(depends.get_amqp_system),
-        sessionmaker: async_sessionmaker = Depends(depends.get_sessionmaker),
+        session: db.AsyncSession = Depends(db.get_session),
     ) -> dict[str, Any]:
         return {
             **await super().get_context(),
             **await get_loaders(),
             "get_token": get_token,
             "amqp_system": amqp_system,
-            "sessionmaker": sessionmaker,
-            **get_audit_loaders(sessionmaker),
+            "session": session,
+            **get_audit_loaders(session),
         }

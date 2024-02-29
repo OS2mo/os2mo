@@ -119,23 +119,22 @@ async def file_resolver(
     if filter is None:
         filter = FileFilter()
 
-    session = info.context["sessionmaker"]()
-    async with session.begin():
-        # We do not need the audit log elsewhere for files, because this is the
-        # only way to resolve a `File` (which is needed to read the content).
-        audit_log(
-            session,
-            "file_resolver",
-            "File",
-            {
-                "filter": filter,
-                "limit": limit,
-                "cursor": cursor,
-            },
-            [],
-        )
+    session = info.context["session"]
+    # We do not need the audit log elsewhere for files, because this is the
+    # only way to resolve a `File` (which is needed to read the content).
+    audit_log(
+        session,
+        "file_resolver",
+        "File",
+        {
+            "filter": filter,
+            "limit": limit,
+            "cursor": cursor,
+        },
+        [],
+    )
 
-        found_files = await db.files.ls(session, filter)
+    found_files = await db.files.ls(session, filter)
 
     files = paginate(list(found_files), cursor, limit)
     if not files:
