@@ -4,6 +4,7 @@ import collections
 import copy
 import datetime
 import enum
+import functools
 import pathlib
 from contextlib import suppress
 from typing import Any
@@ -746,6 +747,10 @@ def _consolidate_and_trim_object_virkninger(
 
     new_obj = copy.deepcopy(obj)
 
+    # Move functions to local scope. Feels silly, but they are called a lot.
+    consolidate_virkninger = _consolidate_virkninger
+    trim_virkninger = _trim_virkninger
+
     for result in new_obj[0]:
         registration = result["registreringer"][0]
         for category_key in ("attributter", "relationer", "tilstande"):
@@ -754,8 +759,8 @@ def _consolidate_and_trim_object_virkninger(
                 continue
 
             for key in list(category.keys()):
-                virkninger = _consolidate_virkninger(category[key])
-                category[key] = _trim_virkninger(virkninger, valid_from, valid_to)
+                virkninger = consolidate_virkninger(category[key])
+                category[key] = trim_virkninger(virkninger, valid_from, valid_to)
 
                 # If no virkninger are left after trimming, delete the key
                 if not category[key]:
@@ -781,13 +786,12 @@ def _consolidate_virkninger(virkninger_list):
         return virkninger_list
 
     # Collect virkninger with the same values
-    # use OrderedDict to have some kind of consistent ordering in output
-    virkning_map = collections.OrderedDict()
+    virkning_map = collections.defaultdict(list)
     for virkning in virkninger_list:
         virkning_copy = copy.copy(virkning)
         del virkning_copy["virkning"]
         virkning_key = tuple(virkning_copy.items())
-        virkning_map.setdefault(virkning_key, []).append(virkning)
+        virkning_map[virkning_key].append(virkning)
 
     new_virkninger = []
     for v in virkning_map.values():
@@ -808,6 +812,7 @@ def _consolidate_virkninger(virkninger_list):
     return new_virkninger
 
 
+@functools.lru_cache(maxsize=512)
 def _parse_timestamp(timestamp: datetime.datetime | str) -> datetime.datetime:
     if timestamp == "infinity":
         dt = datetime.datetime.max
@@ -815,8 +820,8 @@ def _parse_timestamp(timestamp: datetime.datetime | str) -> datetime.datetime:
         dt = datetime.datetime.min
     elif type(timestamp) == str:
         dt = dateutil.parser.isoparse(timestamp)
-    elif type(timestamp) == datetime:
-        dt = copy.copy(timestamp)
+    elif isinstance(timestamp, datetime.datetime):
+        dt = timestamp
     else:
         raise TypeError(f"Invalid parameter {timestamp}")
 
@@ -835,16 +840,15 @@ def _trim_virkninger(virkninger_list, valid_from, valid_to):
     valid_to = _parse_timestamp(valid_to)
 
     def filter_fn(virkning):
-        virkning_from = _parse_timestamp(virkning["virkning"]["from"])
-        from_included = virkning["virkning"]["from_included"]
         virkning_to = _parse_timestamp(virkning["virkning"]["to"])
         to_included = virkning["virkning"]["to_included"]
-
         if to_included and virkning_to < valid_from:
             return False
         elif not to_included and virkning_to <= valid_from:
             return False
 
+        virkning_from = _parse_timestamp(virkning["virkning"]["from"])
+        from_included = virkning["virkning"]["from_included"]
         if from_included and valid_to < virkning_from:
             return False
         elif not from_included and valid_to <= virkning_from:
