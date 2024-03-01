@@ -77,7 +77,7 @@ class Searcher(metaclass=ABCMeta):
     async def search_objects(
         self,
         class_name: str,
-        uuid: str | None,
+        uuid: str | UUID | None,
         registration: dict,
         virkning_fra: datetime.datetime | str,
         virkning_til: datetime.datetime | str,
@@ -98,7 +98,7 @@ class DefaultSearcher(Searcher):
     @staticmethod
     async def search_objects(
         class_name: str,
-        uuid: str | None,
+        uuid: str | UUID | None,
         registration: dict,
         virkning_fra: datetime.datetime | str,
         virkning_til: datetime.datetime | str,
@@ -134,7 +134,7 @@ class QuickSearcher(Searcher):
     @staticmethod
     async def search_objects(
         class_name: str,
-        uuid: str | None,
+        uuid: str | UUID | None,
         registration: dict,
         virkning_fra: datetime.datetime | str,
         virkning_til: datetime.datetime | str,

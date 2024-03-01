@@ -428,7 +428,7 @@ def ensure_uuid(uuid: UUID | str) -> UUID:
 
 async def quick_search(
     class_name: str,
-    uuid: str | None,
+    uuid: str | UUID | None,
     registration: dict,
     virkning_fra: datetime | str,
     virkning_til: datetime | str,
@@ -506,6 +506,9 @@ async def quick_search(
     relations = Relation.parse_registration_relations(
         class_name=class_name, relations=registration["relations"]
     )
+
+    if uuid is not None:
+        uuid = str(uuid)
 
     # build query
     qb = SearchQueryBuilder(
