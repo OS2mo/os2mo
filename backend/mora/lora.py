@@ -583,8 +583,8 @@ class Scope(BaseScope):
         # Yea, this is an ugly way to format the args. We do this as long as we
         # still need to expose the LoRa HTTP/json API.
         args = []
-        for k, v in jsonable_encoder(
-            param_exotics_to_strings({**self.connector.defaults, **params})
+        for k, v in param_exotics_to_strings(
+            {**self.connector.defaults, **params}
         ).items():
             if isinstance(v, Sequence) and not isinstance(v, str):
                 for v2 in v:
@@ -742,7 +742,6 @@ class Scope(BaseScope):
         return one(registrations)
 
     async def create(self, obj, uuid=None) -> str:
-        # TODO: Use jsonable_encoder
         obj = uuid_to_str(obj)
 
         with lora_to_mo_exception():

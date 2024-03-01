@@ -829,7 +829,7 @@ async def search_objects(
     if not any_rel_uuid_arr:
         any_rel_uuid_arr = []
     if uuid is not None:
-        assert isinstance(uuid, str)
+        uuid = str(uuid)
 
     time_period = None
     if registreret_fra is not None or registreret_til is not None:
