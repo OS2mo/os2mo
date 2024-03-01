@@ -797,7 +797,9 @@ def _consolidate_virkninger(virkninger_list):
     for v in virkning_map.values():
         sorted_virkninger = sorted(v, key=lambda x: x.get("virkning").get("from"))
 
-        current_virkning = copy.deepcopy(sorted_virkninger[0])
+        first = sorted_virkninger[0]
+        current_virkning = first.copy()
+        current_virkning["virkning"] = first["virkning"].copy()
 
         for next_virkning in sorted_virkninger[1:]:
             # Postgres always returns timestamps in the same format with the
