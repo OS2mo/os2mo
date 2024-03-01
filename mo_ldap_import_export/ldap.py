@@ -56,7 +56,8 @@ def construct_server(server_config: ServerConfig) -> Server:
         The constructed server instance used for LDAP connections.
     """
     tls_configuration = Tls(
-        validate=CERT_NONE if server_config.insecure else CERT_REQUIRED
+        validate=CERT_NONE if server_config.insecure else CERT_REQUIRED,
+        ca_certs_data=server_config.ca_certs_data,
     )
 
     host = server_config.host

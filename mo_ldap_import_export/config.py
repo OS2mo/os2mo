@@ -39,6 +39,9 @@ class ServerConfig(BaseModel):
         ),
     )
     use_ssl: bool = Field(False, description="Whether to establish a SSL connection")
+    ca_certs_data: str | None = Field(
+        None, description="The CA chain to verify SSL with"
+    )
     insecure: bool = Field(False, description="Whether to verify SSL certificates")
     timeout: int = Field(5, description="Number of seconds to wait for connection")
 
