@@ -229,7 +229,7 @@ class SearchQueryBuilder:
         :param value: The string to be escaped.
         :return: "Escaped" string.
         """
-        return value.replace("'", "''").replace("\0", "")
+        return value.replace("'", "''").replace("\0", "").replace(":", "\\:")
 
     @classmethod
     def __postgres_comparison_from_typed_value(
