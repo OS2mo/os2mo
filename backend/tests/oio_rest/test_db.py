@@ -1202,11 +1202,11 @@ class TestConsolidateVirkninger:
             ]
         ]
 
-        actual = db._consolidate_and_trim_object_virkninger(
+        db._consolidate_and_trim_object_virkninger(
             obj, "1999-01-01 00:00:00+00", "infinity"
         )
 
-        actual_attributes = actual[0][0]["registreringer"][0]["attributter"]
+        actual_attributes = obj[0][0]["registreringer"][0]["attributter"]
 
         # 'organisationfunktionudvidelser' should be gone at this point
         assert "organisationfunktionegenskaber" in actual_attributes
@@ -1246,11 +1246,11 @@ class TestConsolidateVirkninger:
             ]
         ]
 
-        actual = db._consolidate_and_trim_object_virkninger(
+        db._consolidate_and_trim_object_virkninger(
             obj, "1999-01-01 00:00:00+00", "infinity"
         )
 
-        actual_registration = actual[0][0]["registreringer"][0]
+        actual_registration = obj[0][0]["registreringer"][0]
 
         # 'attributter' should be gone at this point
         assert "attributter" not in actual_registration
