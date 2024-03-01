@@ -12,7 +12,6 @@ from textwrap import dedent
 from typing import Any
 
 from fastapi import APIRouter
-from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 from graphql import ExecutionResult
 from graphql import GraphQLResolveInfo
@@ -27,16 +26,29 @@ from strawberry.printer import print_schema
 from strawberry.schema.config import StrawberryConfig
 from strawberry.utils.await_maybe import AsyncIteratorOrIterator
 from strawberry.utils.await_maybe import AwaitableOrValue
+from structlog import get_logger
 
+from mora import config
 from mora.db import get_session
+from mora.exceptions import HTTPException
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.router import CustomGraphQLRouter
+
+logger = get_logger()
 
 
 def add_exception_extension(error: GraphQLError) -> StrawberryGraphQLError:
     extensions = {}
     if isinstance(error.original_error, HTTPException):
         extensions["error_context"] = jsonable_encoder(error.original_error.detail)
+        # Log errors like http_exception_handler in backend/mora/app.py
+        settings = config.get_settings()
+        if not settings.is_production():
+            logger.info(
+                "http_exception",
+                stack=error.original_error.stack,
+                traceback=error.original_error.traceback,
+            )
 
     return StrawberryGraphQLError(
         extensions=extensions,
