@@ -507,7 +507,7 @@ async def list_and_consolidate_objects(
 ):
     """List objects with the given uuids, consolidating the 'virkninger' and
     optionally filtering by the given virkning and registrering periods."""
-    output = await list_objects(
+    obj = await list_objects(
         class_name=class_name,
         uuid=uuid,
         virkning_fra="-infinity",
@@ -515,9 +515,10 @@ async def list_and_consolidate_objects(
         registreret_fra=registreret_fra,
         registreret_til=registreret_til,
     )
-    return _consolidate_and_trim_object_virkninger(
-        output, valid_from=virkning_fra, valid_to=virkning_til
+    _consolidate_and_trim_object_virkninger(
+        obj, valid_from=virkning_fra, valid_to=virkning_til
     )
+    return obj
 
 
 async def list_objects(
@@ -739,19 +740,16 @@ def _consolidate_and_trim_object_virkninger(
     given interval of valid_from/valid_to
 
     :param obj: An object from a list-operation on the database
-    :return: A result with consolidated virkninger (if applicable)
     """
 
     if not obj:
         return obj
 
-    new_obj = copy.deepcopy(obj)
-
     # Move functions to local scope. Feels silly, but they are called a lot.
     consolidate_virkninger = _consolidate_virkninger
     trim_virkninger = _trim_virkninger
 
-    for result in new_obj[0]:
+    for result in obj[0]:
         registration = result["registreringer"][0]
         for category_key in ("attributter", "relationer", "tilstande"):
             category = registration.get(category_key)
@@ -770,8 +768,6 @@ def _consolidate_and_trim_object_virkninger(
             # category key
             if not registration[category_key]:
                 del registration[category_key]
-
-    return new_obj
 
 
 def _consolidate_virkninger(virkninger_list):
