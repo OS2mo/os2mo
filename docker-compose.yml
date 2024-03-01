@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
 version: "3"
 services:
   ldap:
@@ -23,13 +25,16 @@ services:
     container_name: mo_ldap_ie
     build: .
     command: ["uvicorn", "--factory", "app.main:create_app", "--host", "0.0.0.0", "--reload"]
+    environment:
+      FASTRAMQPI__DAP: "true"
     volumes:
       - ./mo_ldap_import_export:/opt/app/
       - ./dev-environment/mo_ldap_import_export.env:/var/run/.env
     networks:
       - os2mo_default
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:5678:5678"
 
 networks:
   os2mo_default:
