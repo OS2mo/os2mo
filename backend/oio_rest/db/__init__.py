@@ -621,86 +621,37 @@ def repair_relation_nul_til_mange(objects: list[dict[str, Any]]) -> None:
 
 def filter_json_output(output):
     """Filter the JSON output returned from the DB-layer."""
-    return transform_relations(
-        transform_virkning(filter_empty(simplify_cleared_wrappers(output)))
-    )
-
-
-def simplify_cleared_wrappers(o):
-    """Recursively simplify any values wrapped in a cleared-wrapper.
-
-    {"blah": {"value": true, "cleared": false}} becomes simply {"blah": true}
-
-    The dicts could be contained in lists or tuples or other dicts.
-    """
-    if isinstance(o, dict):
-        if "cleared" in o:
+    if isinstance(output, dict):
+        if "cleared" in output:
             # Handle clearable wrapper db-types.
-            return o.get("value", None)
-        else:
-            return {k: simplify_cleared_wrappers(v) for k, v in o.items()}
-    elif isinstance(o, list):
-        return [simplify_cleared_wrappers(v) for v in o]
-    elif isinstance(o, tuple):
-        return tuple(simplify_cleared_wrappers(v) for v in o)
-    else:
-        return o
+            # {"blah": {"value": true, "cleared": false}} becomes simply {"blah": true}
+            return output.get("value", {})
 
-
-def transform_virkning(o):
-    """Recurse through output to transform Virkning time periods."""
-    if isinstance(o, dict):
-        if "timeperiod" in o:
-            # Handle clearable wrapper db-types.
-            f, t = o["timeperiod"][1:-1].split(",")
-            from_included = o["timeperiod"][0] == "["
-            to_included = o["timeperiod"][-1] == "]"
+        if "timeperiod" in output:
+            timeperiod = output.pop("timeperiod")
+            f, t = timeperiod[1:-1].split(",")
+            from_included = timeperiod[0] == "["
+            to_included = timeperiod[-1] == "]"
 
             # Get rid of quotes
             if f[0] == '"':
                 f = f[1:-1]
             if t[0] == '"':
                 t = t[1:-1]
-            items = list(o.items()) + [
-                ("from", f),
-                ("to", t),
-                ("from_included", from_included),
-                ("to_included", to_included),
-            ]
-            return {k: v for k, v in items if k != "timeperiod"}
-        else:
-            return {k: transform_virkning(v) for k, v in o.items()}
-    elif isinstance(o, list):
-        return [transform_virkning(v) for v in o]
-    elif isinstance(o, tuple):
-        return tuple(transform_virkning(v) for v in o)
-    else:
-        return o
 
+            r = {k: v for k, v in output.items() if v}
+            r["from"] = f
+            r["to"] = t
+            r["from_included"] = from_included
+            r["to_included"] = to_included
+            return r
 
-def filter_empty(structure):
-    """Recursively filter out empty dictionary keys."""
-    if isinstance(structure, dict):
-        out = {}
-        for k, v in structure.items():
-            if v:
-                filtered = filter_empty(v)
-                if filtered:
-                    out[k] = filtered
-        return out
-
-    if isinstance(structure, (list, tuple)):
-        out = []
-        for v in structure:
-            if v:
-                filtered = filter_empty(v)
-                if filtered:
-                    out.append(filtered)
-        if isinstance(structure, tuple):
-            return tuple(out)
-        return out
-
-    return structure
+        return {k: v2 for k, v in output.items() if (v2 := filter_json_output(v))}
+    elif isinstance(output, list):
+        return [v2 for v in output if (v2 := filter_json_output(v))]
+    elif isinstance(output, tuple):
+        return tuple(v2 for v in output if (v2 := filter_json_output(v)))
+    return output
 
 
 def transform_relations(o):

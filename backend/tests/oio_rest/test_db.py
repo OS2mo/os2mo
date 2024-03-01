@@ -496,29 +496,11 @@ class TestDB:
         # Assert
         assert expected_result == actual_result
 
-    @patch("oio_rest.db.transform_virkning")
-    @patch("oio_rest.db.filter_empty")
-    @patch("oio_rest.db.simplify_cleared_wrappers")
     def test_filter_json_output(
         self,
-        mock_transform: MagicMock,
-        mock_filter: MagicMock,
-        mock_simplify: MagicMock,
     ) -> None:
-        # Arrange
-        mock_transform.side_effect = lambda x: x
-        mock_filter.side_effect = lambda x: x
-        mock_simplify.side_effect = lambda x: x
-
         expected_output = {"key": "value"}
-
-        # Act
         actual_output = db.filter_json_output(expected_output)
-        # Assert
-
-        mock_transform.assert_called()
-        mock_filter.assert_called()
-        mock_simplify.assert_called()
         assert expected_output == actual_output
 
     def test_simplify_cleared_wrappers_dict_with_cleared(self):
@@ -526,7 +508,7 @@ class TestDB:
         value = {"cleared": "", "value": "testvalue", "bla": "whatever"}
 
         # Act
-        actual_result = db.simplify_cleared_wrappers(value)
+        actual_result = db.filter_json_output(value)
 
         # Assert
         assert actual_result == "testvalue"
@@ -536,7 +518,7 @@ class TestDB:
         value = {"key1": "val1", "key2": "val2"}
 
         # Act
-        actual_result = db.simplify_cleared_wrappers(value)
+        actual_result = db.filter_json_output(value)
 
         # Assert
         assert value == actual_result
@@ -546,7 +528,7 @@ class TestDB:
         value = ["cleared", "val1", "val2", "val3"]
 
         # Act
-        actual_result = db.simplify_cleared_wrappers(value)
+        actual_result = db.filter_json_output(value)
 
         # Assert
         assert value == actual_result
@@ -556,7 +538,7 @@ class TestDB:
         value = ("cleared", "val1", "val2", "val3")
 
         # Act
-        actual_result = db.simplify_cleared_wrappers(value)
+        actual_result = db.filter_json_output(value)
 
         # Assert
         assert value == actual_result
@@ -579,7 +561,7 @@ class TestDB:
         )
 
         # Act
-        actual_result = db.simplify_cleared_wrappers(value)
+        actual_result = db.filter_json_output(value)
 
         # Assert
         assert expected_result == actual_result
@@ -589,7 +571,7 @@ class TestDB:
         value = 1234
 
         # Act
-        actual_result = db.simplify_cleared_wrappers(value)
+        actual_result = db.filter_json_output(value)
 
         # Assert
         assert value == actual_result
@@ -601,7 +583,7 @@ class TestDB:
             {"timeperiod": "(12345678,12345678)"},
         )
         # Act
-        actual_result = db.transform_virkning(value)
+        actual_result = db.filter_json_output(value)
         # Assert
         assert actual_result[0]["from_included"]
         assert actual_result[0]["to_included"]
@@ -613,7 +595,7 @@ class TestDB:
         value = {"timeperiod": '("12345678","12345678")'}
 
         # Act
-        actual_result = db.transform_virkning(value)
+        actual_result = db.filter_json_output(value)
 
         # Assert
         assert actual_result["from"] == "12345678"
@@ -631,7 +613,7 @@ class TestDB:
         }
 
         # Act
-        actual_result = db.transform_virkning(value)
+        actual_result = db.filter_json_output(value)
 
         # Assert
         assert expected_result == actual_result
@@ -641,7 +623,7 @@ class TestDB:
         value = {"nottimeperiod": "asdasdasd test"}
 
         # Act
-        actual_result = db.transform_virkning(value)
+        actual_result = db.filter_json_output(value)
 
         # Assert
         assert value == actual_result
@@ -651,7 +633,7 @@ class TestDB:
         value = ["nottimeperiod", "asdasdasd test"]
 
         # Act
-        actual_result = db.transform_virkning(value)
+        actual_result = db.filter_json_output(value)
 
         # Assert
         assert value == actual_result
@@ -661,7 +643,7 @@ class TestDB:
         value = ("nottimeperiod", "asdasdasd test")
 
         # Act
-        actual_result = db.transform_virkning(value)
+        actual_result = db.filter_json_output(value)
 
         # Assert
         assert value == actual_result
@@ -707,7 +689,7 @@ class TestDB:
         )
 
         # Act
-        actual_result = db.transform_virkning(value)
+        actual_result = db.filter_json_output(value)
 
         # Assert
         assert expected_result == actual_result
@@ -717,7 +699,7 @@ class TestDB:
         value = 1234
 
         # Act
-        actual_result = db.transform_virkning(value)
+        actual_result = db.filter_json_output(value)
 
         # Assert
         assert value == actual_result
@@ -729,7 +711,7 @@ class TestDB:
         expected_result = {"nonempty": "12345"}
 
         # Act
-        actual_result = db.filter_empty(value)
+        actual_result = db.filter_json_output(value)
 
         # Assert
         assert expected_result == actual_result
@@ -752,7 +734,7 @@ class TestDB:
         )
 
         # Act
-        actual_result = db.filter_empty(value)
+        actual_result = db.filter_json_output(value)
 
         # Assert
         assert expected_result == actual_result
