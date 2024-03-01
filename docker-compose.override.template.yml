@@ -1,6 +1,0 @@
-version: "3.4"
-services:
-  mo_ldap_import_export:
-      environment:
-        LDAP_USER: "ini"
-        LDAP_PASSWORD: "..."

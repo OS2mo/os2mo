@@ -11,7 +11,7 @@ RUN pip install --no-cache-dir poetry==1.4.2
 
 WORKDIR /opt
 COPY poetry.lock pyproject.toml ./
-RUN poetry install --no-dev
+RUN poetry install
 
 WORKDIR /opt/app
 COPY mo_ldap_import_export .
