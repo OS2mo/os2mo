@@ -84,6 +84,7 @@ plugins = [
     # Return values directly when only a single top field is requested
     "ariadne_codegen.contrib.shorter_results.ShorterResultsPlugin",
 ]
+include_comments = false
 [tool.ariadne-codegen.scalars.DateTime]
 type = "datetime.datetime"
 [tool.ariadne-codegen.scalars.UUID]

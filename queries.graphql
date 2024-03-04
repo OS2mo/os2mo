@@ -1,9 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 
-query Version {
-  version {
-    mo_version
-    mo_hash
+mutation create_it_system($input: ITSystemCreateInput!) {
+  itsystem_create(input: $input) {
+    uuid
   }
 }
