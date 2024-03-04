@@ -3,6 +3,7 @@
 from collections.abc import Callable
 from datetime import date
 from operator import attrgetter
+from unittest.mock import AsyncMock
 from uuid import UUID
 from uuid import uuid4
 
@@ -41,10 +42,9 @@ async def load_org(keys: list[int]) -> list[OrganisationRead]:
     return [OrganisationRead.parse_obj({"name": "Test org"})] * len(keys)
 
 
-async def load_all_org_units(**kwargs) -> dict[UUID, list[OrganisationUnitRead]]:
-    uuid = uuid4()
-    return {
-        uuid: [
+async def load_org_units(keys: list[UUID]) -> list[list[OrganisationUnitRead]]:
+    return [
+        [
             OrganisationUnitRead.parse_obj(
                 {
                     "name": "Test org",
@@ -52,7 +52,7 @@ async def load_all_org_units(**kwargs) -> dict[UUID, list[OrganisationUnitRead]]
                 }
             )
         ]
-    }
+    ] * len(keys)
 
 
 async def load_all_addresses(**kwargs) -> dict[UUID, list[AddressRead]]:
@@ -126,10 +126,14 @@ async def test_graphql_rbac(
             realm_access=RealmAccess(roles=roles),
         )
 
+    session = AsyncMock()
+    session.execute.return_value = [[uuid4()]]
+
     context = {
+        "session": session,
         "org_loader": DataLoader(load_fn=load_org),
         "address_getter": load_all_addresses,
-        "org_unit_getter": load_all_org_units,
+        "org_unit_loader": DataLoader(load_fn=load_org_units),
         "org_unit_address_loader": DataLoader(load_fn=load_addresses),
         "get_token": get_token,
     }
@@ -139,7 +143,7 @@ async def test_graphql_rbac(
     # Assert our errors are as expected
     error_messages = set()
     if response.errors:
-        error_messages = set(map(attrgetter("message"), response.errors))
+        error_messages = {e.message for e in response.errors}
     assert errors == error_messages
 
 

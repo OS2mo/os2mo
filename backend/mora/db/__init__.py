@@ -21,6 +21,8 @@ from ._bruger import BrugerRelation
 from ._bruger import BrugerRelationKode
 from ._bruger import BrugerTilsGyldighed
 from ._common import Gyldighed
+from ._common import HasValidity
+from ._common import LivscyklusKode
 from ._common import PubliceretStatus
 from ._facet import Facet
 from ._facet import FacetAttrEgenskaber

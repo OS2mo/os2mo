@@ -564,7 +564,6 @@ async def test_employee(another_transaction, service_client: TestClient) -> None
     }
 
 
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 def test_children(service_client: TestClient) -> None:
@@ -588,7 +587,7 @@ def test_children(service_client: TestClient) -> None:
                 "from": "2016-12-31",
                 "to": None,
             },
-            "child_count": 2,
+            "child_count": 1,
         },
         {
             "name": "Samfundsvidenskabelige fakultet",

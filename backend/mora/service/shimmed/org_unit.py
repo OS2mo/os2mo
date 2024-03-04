@@ -227,7 +227,7 @@ async def get_org_unit_children(
         $associations: Boolean!,
         $hierarchies: [UUID!]
     ) {
-        org_units(filter: {uuids: [$uuid], from_date: $from_date, hierarchies: $hierarchies}) {
+        org_units(filter: {uuids: [$uuid], from_date: $from_date}) {
             objects {
                 objects {
                     children(filter: {hierarchies: $hierarchies}) {

@@ -523,6 +523,17 @@ class OrganisationUnitFilter(BaseFilter):
         deprecation_reason="Replaced by the 'hierarchy' filter",
     )
 
+    subtree: OrganisationUnitFilter | None = strawberry.field(
+        default=UNSET,
+        description=dedent(
+            """\
+            Filter organisation units, returning all matches along with their ancestors.
+
+            Can be used to find organisation units together with the context of their organisational placement.
+            """
+        ),
+    )
+
 
 @strawberry.input(description="Owner filter.")
 class OwnerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
