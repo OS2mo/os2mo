@@ -5,7 +5,7 @@
                 "brugervendtnoegle": "primær",
                 "titel": "Primær",
                 "beskrivelse": "Primær type",
-                "omfang": "1000",
+                "omfang": "3000",
                 "virkning": {
                     "from": "1900-01-01 00:00:00+01:00",
                     "to": "infinity"

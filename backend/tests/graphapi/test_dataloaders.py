@@ -1,11 +1,13 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Tests of dataloaders used in the GraphQL implementation."""
+import pytest
 from hypothesis import given
 from pytest import MonkeyPatch
 
 from .strategies import data_with_uuids_strat
 from mora.graphapi.versions.latest import dataloaders
+from mora.graphapi.versions.latest.dataloaders import MOModel
 from mora.graphapi.versions.latest.schema import AddressRead
 from mora.graphapi.versions.latest.schema import AssociationRead
 from mora.graphapi.versions.latest.schema import EmployeeRead
@@ -17,7 +19,6 @@ from mora.graphapi.versions.latest.schema import ManagerRead
 from mora.graphapi.versions.latest.schema import OrganisationUnitRead
 from mora.graphapi.versions.latest.schema import RelatedUnitRead
 from mora.graphapi.versions.latest.schema import RoleRead
-
 
 models = [
     AddressRead,
@@ -104,6 +105,27 @@ lora_class_multiple_attrs_and_states = {
         ],
     },
 }
+
+
+@pytest.fixture(scope="session")
+def patch_loader():
+    """Fixture to patch dataloaders for mocks.
+
+    It looks a little weird, being a function yielding a function which returns
+    a function. However, this is necessary in order to be able to use the fixture
+    with extra parameters.
+    """
+
+    def patcher(data: list[MOModel]):
+        # If our dataloader functions were sync, we could have used a lambda directly
+        # when monkeypatching. They are async, however, and as such we need to mock
+        # using an async function.
+        async def _patcher(*args, **kwargs):
+            return data
+
+        return _patcher
+
+    yield patcher
 
 
 @given(test_data=data_with_uuids_strat(models))

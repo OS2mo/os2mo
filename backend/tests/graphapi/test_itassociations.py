@@ -20,7 +20,6 @@ from ..conftest import GraphAPIPost
 from .utils import fetch_class_uuids
 from .utils import fetch_org_unit_validity
 from mora.graphapi.shim import execute_graphql
-from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest.models import ITAssociationCreate
 from mora.graphapi.versions.latest.models import ITAssociationUpdate
 from mora.graphapi.versions.latest.schema import AssociationRead
@@ -72,22 +71,26 @@ def test_query_all(graphapi_post: GraphAPIPost):
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_query_none(graphapi_post: GraphAPIPost):
-    """Test that we don't get any ITAssociations, when setting the `it_association`
-    parameter to "false"."""
+def test_query_flag(graphapi_post: GraphAPIPost):
+    """Test that the flag works."""
     query = """
-        query {
-            associations(filter: {it_association: false}) {
-                objects {
-                    uuid
-                }
+        query ITAssociation($it_association: Boolean) {
+          associations(filter: {it_association: $it_association}) {
+            objects {
+              uuid
             }
+          }
         }
     """
-    response = graphapi_post(query)
-    assert response.errors is None
-    assert response.data
-    assert flatten_data(response.data["associations"]["objects"]) == []
+    associations = {}
+    for is_it_association in (True, False, None):
+        response = graphapi_post(query, variables={"it_association": is_it_association})
+        assert response.errors is None
+        associations[is_it_association] = {
+            o["uuid"] for o in response.data["associations"]["objects"]
+        }
+    assert associations[None] == associations[True].union(associations[False])
+    assert associations[True].isdisjoint(associations[False])
 
 
 @given(test_data=...)

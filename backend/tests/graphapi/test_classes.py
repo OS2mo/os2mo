@@ -339,7 +339,7 @@ async def test_unit_create_class(
         ({"scope": "INTEGER"}, 0),
         # Engagement type scopes
         ({"scope": "10"}, 1),
-        ({"scope": "1000"}, 1),
+        ({"scope": "3000"}, 1),
     ],
 )
 async def test_class_filter(graphapi_post: GraphAPIPost, filter, expected) -> None:

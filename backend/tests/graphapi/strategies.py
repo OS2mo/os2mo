@@ -38,23 +38,6 @@ def data_with_uuids_strat(draw, models: list[MOModel]):
 
 
 @st.composite
-def graph_data_strat(draw, model: MOModel):
-    """Hypothesis strategy for drawing encoded test data based on a specific MOModel."""
-    data = draw(st.lists(st.builds(model)))
-    return jsonable_encoder(data)
-
-
-@st.composite
-def graph_data_uuids_strat(draw, model: MOModel):
-    """Hypothesis strategy for drawing data and uuids based on a specific MOModel."""
-    data = draw(graph_data_strat(model))
-    uuids = list(map(lambda model: model.get("uuid"), data))
-    test_uuids = draw(st.lists(st.sampled_from(uuids))) if uuids else []
-    test_data = list(filter(lambda obj: obj.get("uuid") in test_uuids, data))
-    return test_data, test_uuids
-
-
-@st.composite
 def graph_data_momodel_validity_strat(
     draw, model: MOModel, now: datetime.datetime = None
 ):

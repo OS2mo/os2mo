@@ -50,7 +50,6 @@ from mora.auth.keycloak.oidc import token_getter
 from mora.auth.middleware import fetch_authenticated_user
 from mora.config import get_settings
 from mora.graphapi.main import graphql_versions
-from mora.graphapi.versions.latest.dataloaders import MOModel
 from mora.graphapi.versions.latest.permissions import ALL_PERMISSIONS
 from mora.service.org import ConfiguredOrganisation
 from mora.testing import copy_database
@@ -726,27 +725,6 @@ def ituser_uuids(graphapi_post: GraphAPIPost) -> list[UUID]:
         map(UUID, map(itemgetter("uuid"), response.data["itusers"]["objects"]))
     )
     return uuids
-
-
-@pytest.fixture(scope="session")
-def patch_loader():
-    """Fixture to patch dataloaders for mocks.
-
-    It looks a little weird, being a function yielding a function which returns
-    a function. However, this is necessary in order to be able to use the fixture
-    with extra parameters.
-    """
-
-    def patcher(data: list[MOModel]):
-        # If our dataloader functions were sync, we could have used a lambda directly
-        # when monkeypatching. They are async, however, and as such we need to mock
-        # using an async function.
-        async def _patcher(*args, **kwargs):
-            return data
-
-        return _patcher
-
-    yield patcher
 
 
 @pytest.fixture(scope="session")
