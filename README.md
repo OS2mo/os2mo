@@ -724,3 +724,10 @@ will only be used if everything else fails.
 [get_import_single]:http://localhost:8000/docs#/Import/import_single_user_from_LDAP_Import__dn__get
 [jinja2_filters]:https://jinja.palletsprojects.com/en/3.1.x/templates/#builtin-filters
 [post_export_all]:http://localhost:8000/docs#/Export/export_mo_objects_Export_post
+
+
+### Auto-generating code
+
+You can update the auto-generated code using
+
+`poetry run ariadne-codegen`

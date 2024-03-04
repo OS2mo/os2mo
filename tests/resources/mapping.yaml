@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
 ldap_to_mo:
   Employee:
     objectClass: ramodels.mo.employee.Employee
