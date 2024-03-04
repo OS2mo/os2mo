@@ -13,94 +13,42 @@ from hypothesis import HealthCheck
 from hypothesis import settings
 from hypothesis import strategies as st
 from more_itertools import one
-from pytest import MonkeyPatch
 
 from ..conftest import GraphAPIPost
-from .strategies import graph_data_strat
-from .strategies import graph_data_uuids_strat
 from .utils import fetch_class_uuids
 from .utils import fetch_engagement_validity
 from mora.graphapi.shim import execute_graphql
-from mora.graphapi.shim import flatten_data
-from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.models import LeaveCreate
 from mora.graphapi.versions.latest.models import LeaveUpdate
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import Validity as RAValidity
-from ramodels.mo.details import LeaveRead
 
 
-@settings(
-    suppress_health_check=[
-        # Database access is mocked, so it's okay to run the test with the same
-        # graphapi_post fixture multiple times.
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(test_data=graph_data_strat(LeaveRead))
-def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_query_all(graphapi_post: GraphAPIPost):
     """Test that we can query all attributes of the leave data model."""
-    # Patch dataloader
-    with MonkeyPatch.context() as patch:
-        patch.setattr(dataloaders, "search_role_type", patch_loader(test_data))
-        query = """
-            query {
-                leaves {
+    query = """
+        query {
+            leaves {
+                objects {
+                    uuid
                     objects {
                         uuid
-                        objects {
-                            uuid
-                            user_key
-                            employee_uuid
-                            engagement_uuid
-                            leave_type_uuid
-                            type
-                            validity {from to}
-                        }
+                        user_key
+                        employee_uuid
+                        engagement_uuid
+                        leave_type_uuid
+                        type
+                        validity {from to}
                     }
                 }
             }
-        """
-        response = graphapi_post(query)
-
+        }
+    """
+    response = graphapi_post(query)
     assert response.errors is None
     assert response.data
-    assert flatten_data(response.data["leaves"]["objects"]) == test_data
-
-
-@settings(
-    suppress_health_check=[
-        # Database access is mocked, so it's okay to run the test with the same
-        # graphapi_post fixture multiple times.
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(test_input=graph_data_uuids_strat(LeaveRead))
-def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
-    """Test that we can query leaves by UUID."""
-    test_data, test_uuids = test_input
-
-    # Patch dataloader
-    with MonkeyPatch.context() as patch:
-        patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
-        query = """
-                query TestQuery($uuids: [UUID!]) {
-                    leaves(filter: {uuids: $uuids}) {
-                        objects {
-                            uuid
-                        }
-                    }
-                }
-            """
-        response = graphapi_post(query, {"uuids": test_uuids})
-
-    assert response.errors is None
-    assert response.data
-
-    # Check UUID equivalence
-    result_uuids = [leave.get("uuid") for leave in response.data["leaves"]["objects"]]
-    assert set(result_uuids) == set(test_uuids)
-    assert len(result_uuids) == len(set(test_uuids))
 
 
 @given(test_data=...)

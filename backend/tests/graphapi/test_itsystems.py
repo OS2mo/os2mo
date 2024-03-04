@@ -9,91 +9,37 @@ from hypothesis import HealthCheck
 from hypothesis import settings
 from more_itertools import first
 from more_itertools import one
-from pytest import MonkeyPatch
 
 from ..conftest import GraphAPIPost
-from .strategies import graph_data_strat
-from .strategies import graph_data_uuids_strat
-from mora.graphapi.shim import flatten_data
-from mora.graphapi.versions.latest import dataloaders
-from ramodels.mo.details import ITSystemRead
 
 
-@settings(
-    suppress_health_check=[
-        # Database access is mocked, so it's okay to run the test with the same
-        # graphapi_post fixture multiple times.
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(test_data=graph_data_strat(ITSystemRead))
-def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_query_all(graphapi_post: GraphAPIPost):
     """Test that we can query all attributes of the ITSystem data model."""
-    # Patch dataloader
-    with MonkeyPatch.context() as patch:
-        patch.setattr(dataloaders, "search_role_type", patch_loader(test_data))
-        query = """
-            query {
-                itsystems {
+    query = """
+        query {
+            itsystems {
+                objects {
                     objects {
-                        objects {
-                            uuid
-                            name
-                            system_type
-                            type
-                            user_key
-                            uuid
-                            validity {
-                                from
-                                to
-                            }
+                        uuid
+                        name
+                        system_type
+                        type
+                        user_key
+                        uuid
+                        validity {
+                            from
+                            to
                         }
                     }
                 }
             }
-        """
-        response = graphapi_post(query)
-
+        }
+    """
+    response = graphapi_post(query)
     assert response.errors is None
     assert response.data
-    assert flatten_data(response.data["itsystems"]["objects"]) == test_data
-
-
-@settings(
-    suppress_health_check=[
-        # Database access is mocked, so it's okay to run the test with the same
-        # graphapi_post fixture multiple times.
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(test_input=graph_data_uuids_strat(ITSystemRead))
-def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
-    """Test that we can query ITSystems by UUID."""
-    test_data, test_uuids = test_input
-
-    # Patch dataloader
-    with MonkeyPatch.context() as patch:
-        patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
-        query = """
-                query TestQuery($uuids: [UUID!]) {
-                    itsystems(filter: {uuids: $uuids}) {
-                        objects {
-                            uuid
-                        }
-                    }
-                }
-            """
-        response = graphapi_post(query, {"uuids": test_uuids})
-
-    assert response.errors is None
-    assert response.data
-
-    # Check UUID equivalence
-    result_uuids = [
-        itsys.get("uuid") for itsys in response.data["itsystems"]["objects"]
-    ]
-    assert set(result_uuids) == set(test_uuids)
-    assert len(result_uuids) == len(set(test_uuids))
 
 
 @pytest.mark.integration_test

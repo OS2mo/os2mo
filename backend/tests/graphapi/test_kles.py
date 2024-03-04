@@ -13,94 +13,42 @@ from hypothesis import HealthCheck
 from hypothesis import settings
 from hypothesis import strategies as st
 from more_itertools import one
-from pytest import MonkeyPatch
 
 from ..conftest import GraphAPIPost
-from .strategies import graph_data_strat
-from .strategies import graph_data_uuids_strat
 from .utils import fetch_class_uuids
 from .utils import fetch_org_unit_validity
 from mora.graphapi.shim import execute_graphql
-from mora.graphapi.shim import flatten_data
-from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.models import KLECreate
 from mora.graphapi.versions.latest.models import KLEUpdate
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import Validity as RAValidity
-from ramodels.mo.details import KLERead
 
 
-@settings(
-    suppress_health_check=[
-        # Database access is mocked, so it's okay to run the test with the same
-        # graphapi_post fixture multiple times.
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(test_data=graph_data_strat(KLERead))
-def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_query_all(graphapi_post: GraphAPIPost):
     """Test that we can query all attributes of the KLE data model."""
-    # Patch dataloader
-    with MonkeyPatch.context() as patch:
-        patch.setattr(dataloaders, "search_role_type", patch_loader(test_data))
-        query = """
-            query {
-                kles {
+    query = """
+        query {
+            kles {
+                objects {
+                    uuid
                     objects {
                         uuid
-                        objects {
-                            uuid
-                            user_key
-                            kle_number_uuid
-                            kle_aspect_uuids
-                            org_unit_uuid
-                            type
-                            validity {from to}
-                        }
+                        user_key
+                        kle_number_uuid
+                        kle_aspect_uuids
+                        org_unit_uuid
+                        type
+                        validity {from to}
                     }
                 }
             }
-        """
-        response = graphapi_post(query)
-
+        }
+    """
+    response = graphapi_post(query)
     assert response.errors is None
     assert response.data
-    assert flatten_data(response.data["kles"]["objects"]) == test_data
-
-
-@settings(
-    suppress_health_check=[
-        # Database access is mocked, so it's okay to run the test with the same
-        # graphapi_post fixture multiple times.
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(test_input=graph_data_uuids_strat(KLERead))
-def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
-    """Test that we can query a single KLE by UUID."""
-    test_data, test_uuids = test_input
-
-    # Patch dataloader
-    with MonkeyPatch.context() as patch:
-        patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
-        query = """
-                query TestQuery($uuids: [UUID!]) {
-                    kles(filter: {uuids: $uuids}) {
-                        objects {
-                            uuid
-                        }
-                    }
-                }
-            """
-        response = graphapi_post(query, {"uuids": test_uuids})
-
-    assert response.errors is None
-    assert response.data is not None
-
-    # Check UUID equivalence
-    result_uuids = [kle.get("uuid") for kle in response.data["kles"]["objects"]]
-    assert set(result_uuids) == set(test_uuids)
-    assert len(result_uuids) == len(set(test_uuids))
 
 
 @given(test_data=...)

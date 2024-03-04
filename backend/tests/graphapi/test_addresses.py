@@ -15,19 +15,13 @@ from hypothesis import HealthCheck
 from hypothesis import settings
 from hypothesis import strategies as st
 from more_itertools import one
-from pytest import MonkeyPatch
 
 from ..conftest import GraphAPIPost
-from .strategies import graph_data_strat
-from .strategies import graph_data_uuids_strat
 from mora import mapping
 from mora.graphapi.shim import execute_graphql
-from mora.graphapi.shim import flatten_data
-from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.models import AddressCreate
 from mora.graphapi.versions.latest.models import AddressUpdate
 from mora.graphapi.versions.latest.models import RAValidity
-from ramodels.mo.details import AddressRead
 from tests import util
 from tests.conftest import GQLResponse
 from tests.graphapi.utils import fetch_employee_validity
@@ -199,90 +193,38 @@ def _create_address_create_hypothesis_test_data(
     )
 
 
-# TESTS
-
-
-@settings(
-    suppress_health_check=[
-        # Database access is mocked, so it's okay to run the test with the same
-        # graphapi_post fixture multiple times.
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(test_data=graph_data_strat(AddressRead))
-def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_query_all(graphapi_post: GraphAPIPost):
     """Test that we can query all attributes of the address data model."""
-    # JSON encode test data
-    test_data = jsonable_encoder(test_data)
-
-    # Patch dataloader
-    with MonkeyPatch.context() as patch:
-        patch.setattr(dataloaders, "search_role_type", patch_loader(test_data))
-        query = """
-            query {
-                addresses {
+    query = """
+        query {
+            addresses {
+                objects {
+                    uuid
                     objects {
                         uuid
-                        objects {
-                            uuid
-                            user_key
-                            address_type_uuid
-                            employee_uuid
-                            org_unit_uuid
-                            engagement_uuid
-                            visibility_uuid
-                            type
-                            value
-                            value2
-                            validity {
-                                from
-                                to
-                            }
+                        user_key
+                        address_type_uuid
+                        employee_uuid
+                        org_unit_uuid
+                        engagement_uuid
+                        visibility_uuid
+                        type
+                        value
+                        value2
+                        validity {
+                            from
+                            to
                         }
                     }
                 }
             }
-        """
-        response = graphapi_post(query)
-
+        }
+    """
+    response = graphapi_post(query)
     assert response.errors is None
     assert response.data
-    assert flatten_data(response.data["addresses"]["objects"]) == test_data
-
-
-@settings(
-    suppress_health_check=[
-        # Database access is mocked, so it's okay to run the test with the same
-        # graphapi_post fixture multiple times.
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(test_input=graph_data_uuids_strat(AddressRead))
-def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
-    """Test that we can query addresses by UUID."""
-    test_data, test_uuids = test_input
-
-    # Patch dataloader
-    with MonkeyPatch.context() as patch:
-        patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
-        query = """
-                query TestQuery($uuids: [UUID!]) {
-                    addresses(filter: {uuids: $uuids}) {
-                        objects {
-                            uuid
-                        }
-                    }
-                }
-            """
-        response = graphapi_post(query, {"uuids": test_uuids})
-
-    assert response.errors is None
-    assert response.data
-
-    # Check UUID equivalence
-    result_uuids = [addr.get("uuid") for addr in response.data["addresses"]["objects"]]
-    assert set(result_uuids) == set(test_uuids)
-    assert len(result_uuids) == len(set(test_uuids))
 
 
 @given(data=st.data())

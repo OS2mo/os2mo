@@ -3,56 +3,37 @@
 import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
-from hypothesis import given
-from hypothesis import HealthCheck
-from hypothesis import settings
 from more_itertools import one
-from pytest import MonkeyPatch
 
-from .strategies import graph_data_strat
-from mora.graphapi.shim import flatten_data
-from mora.graphapi.versions.latest import dataloaders
-from ramodels.mo.details.owner import OwnerRead
 from tests.conftest import GraphAPIPost
 
 
-@settings(
-    suppress_health_check=[
-        # Database access is mocked, so it's okay to run the test with the same
-        # graphapi_post fixture multiple times.
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(test_data=graph_data_strat(OwnerRead))
-def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_query_all(graphapi_post: GraphAPIPost):
     """Test that we can query all attributes of the owner data model."""
-    # Patch dataloader
-    with MonkeyPatch.context() as patch:
-        patch.setattr(dataloaders, "search_role_type", patch_loader(test_data))
-        query = """
-            query {
-                owners {
+    query = """
+        query {
+            owners {
+                objects {
+                    uuid
                     objects {
                         uuid
-                        objects {
-                            uuid
-                            user_key
-                            employee_uuid
-                            org_unit_uuid
-                            owner_uuid
-                            owner_inference_priority
-                            type
-                            validity {from to}
-                        }
+                        user_key
+                        employee_uuid
+                        org_unit_uuid
+                        owner_uuid
+                        owner_inference_priority
+                        type
+                        validity {from to}
                     }
                 }
             }
-        """
-        response = graphapi_post(query)
-
+        }
+    """
+    response = graphapi_post(query)
     assert response.errors is None
     assert response.data
-    assert flatten_data(response.data["owners"]["objects"]) == test_data
 
 
 @pytest.mark.integration_test

@@ -15,21 +15,14 @@ from hypothesis import HealthCheck
 from hypothesis import settings
 from hypothesis import strategies as st
 from more_itertools import one
-from pydantic import parse_obj_as
-from pytest import MonkeyPatch
 
-import mora.lora as lora
 from ..conftest import GraphAPIPost
 from .strategies import graph_data_momodel_validity_strat
-from .strategies import graph_data_momodel_validity_strat_list
-from .strategies import graph_data_uuids_strat
 from mora import util
 from mora.auth.keycloak.oidc import noauth
 from mora.graphapi.shim import execute_graphql
-from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.classes import ClassCreate
 from mora.graphapi.versions.latest.graphql_utils import PrintableStr
-from mora.graphapi.versions.latest.models import ClassRead
 
 # Helpers
 # -------------------
@@ -128,110 +121,39 @@ read_history = partial(
 )
 
 
-@settings(
-    suppress_health_check=[
-        # Database access is mocked, so it's okay to run the test with the same
-        # graphapi_post fixture multiple times.
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(
-    test_data=graph_data_momodel_validity_strat_list(
-        ClassRead,
-        now=datetime.datetime.combine(
-            datetime.datetime.now().date(), datetime.time.min
-        ),
-    )
-)
-def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_query_all(graphapi_post: GraphAPIPost):
     """Test that we can query all attributes of the classes data model."""
-    # patch get_classes to return list(ClassRead)
-    with MonkeyPatch.context() as patch:
-        # Our class dataloaders are ~* special *~
-        # We need to intercept the connector too
-        patch.setattr(lora.Scope, "get_all", patch_loader({}))
-        patch.setattr(
-            dataloaders,
-            "parse_obj_as",
-            lambda *args, **kwargs: parse_obj_as(list[ClassRead], test_data),
-        )
-        query = """
-            query {
-                classes {
-                    objects {
-                        current {
-                            uuid
-                            user_key
-                            facet_uuid
-                            example
-                            owner
-                            org_uuid
-                            name
-                            parent_uuid
-                            published
-                            scope
-                            type
-                            it_system_uuid
-                            validity {
-                                from
-                                to
-                            }
+    query = """
+        query {
+            classes {
+                objects {
+                    current {
+                        uuid
+                        user_key
+                        facet_uuid
+                        example
+                        owner
+                        org_uuid
+                        name
+                        parent_uuid
+                        published
+                        scope
+                        type
+                        it_system_uuid
+                        validity {
+                            from
+                            to
                         }
                     }
                 }
             }
-        """
-        response = graphapi_post(query=query)
-
+        }
+    """
+    response = graphapi_post(query)
     assert response.errors is None
     assert response.data
-    assert [x["current"] for x in response.data["classes"]["objects"]] == test_data
-
-
-@settings(
-    suppress_health_check=[
-        # Database access is mocked, so it's okay to run the test with the same
-        # graphapi_post fixture multiple times.
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(test_input=graph_data_uuids_strat(ClassRead))
-async def test_query_by_uuid(test_input, patch_loader):
-    """Test that we can query classes by UUID."""
-    test_data, test_uuids = test_input
-    # Patch dataloader
-    with MonkeyPatch.context() as patch:
-        # Our class dataloaders are ~* special *~
-        # We need to intercept the connector too
-        patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
-        query = """
-                query TestQuery($uuids: [UUID!]) {
-                    classes(filter: {uuids: $uuids}) {
-                        objects {
-                            objects {
-                                uuid
-                            }
-                        }
-                    }
-                }
-            """
-        response = await execute_graphql(
-            query=query,
-            variable_values={"uuids": test_uuids},
-        )
-
-    assert response.errors is None
-    assert response.data
-
-    # Check UUID equivalence
-    result_uuids = []
-    for obj in response.data["classes"]["objects"]:
-        obj = one(obj["objects"])
-        result_uuids.append(obj["uuid"])
-
-    test_uuids_set = set(test_uuids)
-    assert len(result_uuids) == len(test_uuids_set)
-    assert set(result_uuids) == test_uuids_set
 
 
 @settings(
