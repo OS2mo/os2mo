@@ -1,6 +1,8 @@
 from .async_base_client import AsyncBaseClient
 from .base_model import BaseModel
 from .client import GraphQLClient
+from .create_it_system import CreateItSystem
+from .create_it_system import CreateItSystemItsystemCreate
 from .enums import AuditLogModel
 from .enums import FileStore
 from .enums import OwnerInferencePriority
@@ -121,8 +123,6 @@ from .input_types import UuidsBoundITUserFilter
 from .input_types import UuidsBoundLeaveFilter
 from .input_types import UuidsBoundOrganisationUnitFilter
 from .input_types import ValidityInput
-from .version import Version
-from .version import VersionVersion
 
 __all__ = [
     "AddressCreateInput",
@@ -145,6 +145,8 @@ __all__ = [
     "ClassTerminateInput",
     "ClassUpdateInput",
     "ConfigurationFilter",
+    "CreateItSystem",
+    "CreateItSystemItsystemCreate",
     "EmployeeCreateInput",
     "EmployeeFilter",
     "EmployeeRegistrationFilter",
@@ -248,6 +250,4 @@ __all__ = [
     "UuidsBoundLeaveFilter",
     "UuidsBoundOrganisationUnitFilter",
     "ValidityInput",
-    "Version",
-    "VersionVersion",
 ]
