@@ -20,6 +20,7 @@ from ldap3.core.exceptions import LDAPInvalidValueError
 from ldap3.protocol import oid
 from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
+from more_itertools import one
 from more_itertools import only
 from more_itertools import partition
 from ramodels.mo import MOBase
@@ -1276,26 +1277,33 @@ class DataLoader:
         return output
 
     async def load_mo_facet_uuid(self, user_key: str) -> UUID:
-        query = gql(
-            f"""
-            query FacetUUIDQuery {{
-              facets(filter: {{user_keys: "{user_key}"}}) {{
-                objects {{
-                  current {{
-                    uuid
-                  }}
-                }}
-              }}
-            }}
-            """
+        """Find the UUID of a facet by user-key.
+
+        Args:
+            user_key: The user-key to lookup.
+
+        Raises:
+            MultipleObjectsReturnedException:
+                If multiple facets share the same user-key.
+            NoObjectsReturnedException:
+                If no active facets were found with the user-key.
+
+        Returns:
+            The uuid of the corresponding facet.
+        """
+        result = await self.graphql_client.read_facet_uuid(user_key)
+        too_long = MultipleObjectsReturnedException(
+            f"Found multiple facets with user_key = '{user_key}': {result}"
         )
-        result = await self.query_mo(query)
-        facets = result["facets"]["objects"]
-        if len(facets) > 1:
-            raise MultipleObjectsReturnedException(
-                f"Found multiple facets with user_key = '{user_key}': {result}"
+        too_short = NoObjectsReturnedException(
+            f"Could not find facet with user_key = '{user_key}"
+        )
+        facet = one(result.objects, too_short=too_short, too_long=too_long)
+        if facet.current is None:
+            raise NoObjectsReturnedException(
+                f"Found facet with user_key = '{user_key}' is not currently active"
             )
-        return UUID(result["facets"]["objects"][0]["current"]["uuid"])
+        return facet.current.uuid
 
     async def load_mo_employee_address_types(self) -> dict:
         return await self.load_mo_facet("employee_address_type")
