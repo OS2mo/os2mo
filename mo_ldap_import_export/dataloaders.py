@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 """Dataloaders to bulk requests."""
 import asyncio
-import datetime
 from contextlib import suppress
+from datetime import datetime
 from enum import auto
 from enum import Enum
 from typing import Any
@@ -1067,7 +1067,7 @@ class DataLoader:
             it_user = ITUser.from_simplified_fields(
                 str(unique_uuid),
                 it_system_uuid,
-                datetime.datetime.today().strftime("%Y-%m-%d"),
+                datetime.today().strftime("%Y-%m-%d"),
                 person_uuid=uuid,
             )
             await self.upload_mo_objects([it_user])
@@ -1148,7 +1148,7 @@ class DataLoader:
             valid_to = mo_datestring_to_utc(obj["validity"]["to"])
             valid_from = mo_datestring_to_utc(obj["validity"]["from"])
 
-            now_utc = datetime.datetime.utcnow()
+            now_utc = datetime.utcnow()
 
             match (valid_from, valid_to):
                 case (None, None):
@@ -1174,7 +1174,7 @@ class DataLoader:
         latest_object = max(
             objects,
             key=lambda obj: (
-                mo_datestring_to_utc(obj["validity"]["to"]) or datetime.datetime.max
+                mo_datestring_to_utc(obj["validity"]["to"]) or datetime.max
             ),
         )
         return latest_object

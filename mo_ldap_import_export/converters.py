@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import copy
-import datetime
 import json
 import re
 import string
+from datetime import datetime
 from itertools import compress
 from json.decoder import JSONDecodeError
 from typing import Any
@@ -910,7 +910,7 @@ class LdapConverter:
                 # in 1960...
                 # We just want a very early date here, to avoid that imported employee
                 # engagements start before the org-unit existed.
-                from_date = datetime.datetime(1960, 1, 1).strftime("%Y-%m-%dT00:00:00")
+                from_date = datetime(1960, 1, 1).strftime("%Y-%m-%dT00:00:00")
                 org_unit = OrganisationUnit.from_simplified_fields(
                     user_key=str(uuid4()),
                     name=name,
@@ -1065,7 +1065,7 @@ class LdapConverter:
         self, mapping: dict[str, Any], environment: Environment
     ):
         globals_dict = {
-            "now": datetime.datetime.utcnow,
+            "now": datetime.utcnow,
             "min": self.min,
             "nonejoin": self.nonejoin,
             "nonejoin_orgs": self.nonejoin_orgs,

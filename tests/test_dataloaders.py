@@ -2323,9 +2323,9 @@ def test_extract_latest_object(dataloader: DataLoader):
     uuid_obj2 = str(uuid4())
     uuid_obj3 = str(uuid4())
 
-    datetime_mock = MagicMock(datetime)
-    datetime_mock.datetime.utcnow.return_value = datetime.datetime(2022, 8, 10)
-    datetime_mock.datetime.max = datetime.datetime.max
+    datetime_mock = MagicMock(datetime.datetime)
+    datetime_mock.utcnow.return_value = datetime.datetime(2022, 8, 10)
+    datetime_mock.max = datetime.datetime.max
     with patch(
         "mo_ldap_import_export.dataloaders.datetime",
         datetime_mock,

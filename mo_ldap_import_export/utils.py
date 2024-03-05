@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import copy
-import datetime
 import re
+from datetime import datetime
 from functools import partial
 
 from gql import gql
@@ -83,7 +83,7 @@ def add_filter_to_query(query: DocumentNode, filter_to_add: str) -> DocumentNode
     return gql(new_query_str)
 
 
-def mo_datestring_to_utc(datestring: str | None) -> datetime.datetime | None:
+def mo_datestring_to_utc(datestring: str | None) -> datetime | None:
     """
     Returns datetime object at UTC+0
 
@@ -94,11 +94,11 @@ def mo_datestring_to_utc(datestring: str | None) -> datetime.datetime | None:
     """
     if datestring is None:
         return None
-    return datetime.datetime.fromisoformat(datestring).replace(tzinfo=None)
+    return datetime.fromisoformat(datestring).replace(tzinfo=None)
 
 
 def mo_object_is_valid(mo_object) -> bool:
-    now = datetime.datetime.utcnow()
+    now = datetime.utcnow()
 
     if mo_object.validity.to_date is None:
         return True
@@ -107,7 +107,7 @@ def mo_object_is_valid(mo_object) -> bool:
     return False
 
 
-def datetime_to_ldap_timestamp(dt: datetime.datetime) -> str:
+def datetime_to_ldap_timestamp(dt: datetime) -> str:
     return "".join(
         [
             dt.strftime("%Y%m%d%H%M%S"),

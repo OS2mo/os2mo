@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 """LDAP Connection handling."""
-import datetime
 import signal
 import time
 from collections.abc import Callable
 from contextlib import suppress
+from datetime import datetime
 from functools import partial
 from ssl import CERT_NONE
 from ssl import CERT_REQUIRED
@@ -566,7 +566,7 @@ def setup_listener(context: Context, callback: Callable) -> list[Thread]:
                 context,
                 callback,
                 search_parameters,
-                datetime.datetime.utcnow(),
+                datetime.utcnow(),
                 user_context["poll_time"],
             )
         )
@@ -577,7 +577,7 @@ def setup_poller(
     context: Context,
     callback: Callable,
     search_parameters: dict,
-    init_search_time: datetime.datetime,
+    init_search_time: datetime,
     poll_time: float,
 ) -> Thread:
     # TODO: Eliminate this thread and use asyncio code instead
@@ -600,9 +600,9 @@ def _poll(
     context: Context,
     search_parameters: dict,
     callback: Callable,
-    last_search_time: datetime.datetime,
+    last_search_time: datetime,
     events_to_ignore: list[Any],
-) -> tuple[list[Any], datetime.datetime]:
+) -> tuple[list[Any], datetime]:
     """Pool the LDAP server for changes once.
 
     Args:
@@ -631,7 +631,7 @@ def _poll(
         search_parameters,
         last_search_time,
     )
-    last_search_time = datetime.datetime.utcnow()
+    last_search_time = datetime.utcnow()
     ldap_connection.search(**timed_search_parameters)
 
     if not ldap_connection.response:
@@ -667,7 +667,7 @@ def _poller(
     context: Context,
     search_parameters: dict,
     callback: Callable,
-    init_search_time: datetime.datetime,
+    init_search_time: datetime,
     poll_time: float,
 ) -> None:
     """Poll the LDAP server continuously every `poll_time` seconds.
@@ -700,9 +700,7 @@ def _poller(
         time.sleep(poll_time)
 
 
-def set_search_params_modify_timestamp(
-    search_parameters: dict, timestamp: datetime.datetime
-):
+def set_search_params_modify_timestamp(search_parameters: dict, timestamp: datetime):
     changed_str = f"(modifyTimestamp>={datetime_to_ldap_timestamp(timestamp)})"
     search_filter = search_parameters["search_filter"]
     if not search_filter.startswith("(") or not search_filter.endswith(")"):
