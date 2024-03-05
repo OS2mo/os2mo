@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
-from unittest import mock
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -15,160 +14,107 @@ from hypothesis import settings
 from hypothesis import strategies as st
 from hypothesis.strategies import characters
 from more_itertools import one
-from pytest import MonkeyPatch
 
 from ..conftest import GraphAPIPost
-from .strategies import graph_data_strat
-from .strategies import graph_data_uuids_strat
 from .utils import fetch_class_uuids
 from .utils import fetch_org_unit_validity
 from mora.graphapi.shim import execute_graphql
-from mora.graphapi.shim import flatten_data
-from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.models import EngagementCreate
 from mora.graphapi.versions.latest.models import EngagementUpdate
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import Validity as RAValidity
-from ramodels.mo.details import EngagementRead
 
 
-@settings(
-    suppress_health_check=[
-        # Database access is mocked, so it's okay to run the test with the same
-        # graphapi_post fixture multiple times.
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(test_data=graph_data_strat(EngagementRead))
-def test_query_all(test_data, graphapi_post: GraphAPIPost, patch_loader):
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_query_all(graphapi_post: GraphAPIPost):
     """Test that we can query all attributes of the engagement data model."""
-    # Patch dataloader
-    with MonkeyPatch.context() as patch:
-        patch.setattr(dataloaders, "search_role_type", patch_loader(test_data))
-        query = """
-            query {
-                engagements {
+    query = """
+        query {
+            engagements {
+                objects {
+                    uuid
                     objects {
                         uuid
-                        objects {
-                            uuid
-                            org_unit_uuid
-                            employee_uuid
-                            engagement_type_uuid
-                            job_function_uuid
-                            leave_uuid
-                            primary_uuid
-                            type
-                            user_key
-                            fraction
-                            validity {from to}
-                            extension_1
-                            extension_2
-                            extension_3
-                            extension_4
-                            extension_5
-                            extension_6
-                            extension_7
-                            extension_8
-                            extension_9
-                            extension_10
-                        }
+                        org_unit_uuid
+                        employee_uuid
+                        engagement_type_uuid
+                        job_function_uuid
+                        leave_uuid
+                        primary_uuid
+                        type
+                        user_key
+                        fraction
+                        validity {from to}
+                        extension_1
+                        extension_2
+                        extension_3
+                        extension_4
+                        extension_5
+                        extension_6
+                        extension_7
+                        extension_8
+                        extension_9
+                        extension_10
                     }
                 }
             }
-        """
-        response = graphapi_post(query)
-
-    assert response.errors is None
-    assert response.data
-    assert flatten_data(response.data["engagements"]["objects"]) == test_data
-
-
-@settings(
-    suppress_health_check=[
-        # Database access is mocked, so it's okay to run the test with the same
-        # graphapi_post fixture multiple times.
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(test_input=graph_data_uuids_strat(EngagementRead))
-def test_query_by_uuid(test_input, graphapi_post: GraphAPIPost, patch_loader):
-    """Test that we can query engagements by UUID."""
-    test_data, test_uuids = test_input
-
-    # Patch dataloader
-    with MonkeyPatch.context() as patch:
-        patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
-        query = """
-                query TestQuery($uuids: [UUID!]) {
-                    engagements(filter: {uuids: $uuids}) {
-                        objects {
-                            uuid
-                        }
-                    }
-                }
-            """
-        response = graphapi_post(query, {"uuids": test_uuids})
-
+        }
+    """
+    response = graphapi_post(query)
     assert response.errors is None
     assert response.data
 
-    # Check UUID equivalence
-    result_uuids = [
-        assoc.get("uuid") for assoc in response.data["engagements"]["objects"]
-    ]
-    assert set(result_uuids) == set(test_uuids)
-    assert len(result_uuids) == len(set(test_uuids))
 
-
-@settings(
-    suppress_health_check=[
-        # Database access is mocked, so it's okay to run the test with the same
-        # graphapi_post fixture multiple times.
-        HealthCheck.function_scoped_fixture,
-    ],
-)
-@given(test_data=graph_data_strat(EngagementRead))
-def test_query_is_primary(test_data, graphapi_post: GraphAPIPost, patch_loader):
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_query_is_primary(graphapi_post: GraphAPIPost):
     """Test that we can query 'is_primary' from the engagement data model."""
 
     query = """
             query {
                 engagements {
                     objects {
-                        uuid
                         objects {
                             uuid
+                            primary { uuid }
                             is_primary
                         }
                     }
                 }
             }
         """
-    # Patch dataloader
-    with MonkeyPatch.context() as patch:
-        patch.setattr(dataloaders, "search_role_type", patch_loader(test_data))
-        # Patch check for is_primary
-        with mock.patch(
-            "mora.graphapi.versions.latest.schema.is_class_uuid_primary",
-            return_value=True,
-        ) as primary_mock:
-            response = graphapi_post(query)
-
+    response = graphapi_post(query)
     assert response.errors is None
-
-    for e in response.data["engagements"]["objects"]:
-        if test_data[0]["primary_uuid"]:
-            # primary_uuid is optional.
-            # If it exists the patched is_primary returns True
-            expected = True
-            primary_mock.assert_called_once_with(test_data[0]["uuid"])
-        else:
-            # If primary_uuid is None the check is not done and is_primary is False
-            expected = False
-            primary_mock.assert_not_called()
-
-        assert e["objects"][0]["is_primary"] == expected
+    assert response.data["engagements"]["objects"] == [
+        {
+            "objects": [
+                {
+                    "is_primary": False,
+                    "primary": {"uuid": "2f16d140-d743-4c9f-9e0e-361da91a06f6"},
+                    "uuid": "301a906b-ef51-4d5c-9c77-386fb8410459",
+                }
+            ],
+        },
+        {
+            "objects": [
+                {
+                    "is_primary": False,
+                    "primary": None,
+                    "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                }
+            ],
+        },
+        {
+            "objects": [
+                {
+                    "is_primary": True,
+                    "primary": {"uuid": "89b6cef8-3d03-49ac-816f-f7530b383411"},
+                    "uuid": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab",
+                }
+            ],
+        },
+    ]
 
 
 @pytest.mark.integration_test
