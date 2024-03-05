@@ -1277,6 +1277,31 @@ class DataLoader:
 
         return output
 
+    async def load_mo_class_uuid(self, user_key: str) -> UUID:
+        """Find the UUID of a class by user-key.
+
+        Args:
+            user_key: The user-key to lookup.
+
+        Raises:
+            MultipleObjectsReturnedException:
+                If multiple classes share the same user-key.
+            NoObjectsReturnedException:
+                If no active classes were found with the user-key.
+
+        Returns:
+            The uuid of the corresponding class.
+        """
+        result = await self.graphql_client.read_class_uuid(user_key)
+        too_long = MultipleObjectsReturnedException(
+            f"Found multiple classes with user_key = '{user_key}': {result}"
+        )
+        too_short = NoObjectsReturnedException(
+            f"Could not find class with user_key = '{user_key}"
+        )
+        klass = one(result.objects, too_short=too_short, too_long=too_long)
+        return klass.uuid
+
     async def load_mo_facet_uuid(self, user_key: str) -> UUID:
         """Find the UUID of a facet by user-key.
 
@@ -2034,36 +2059,25 @@ class DataLoader:
         name: str,
         user_key: str,
         facet_uuid: UUID,
-        scope="",
+        scope: str | None = None,
     ) -> UUID:
-        """
-        Creates a class in MO
+        """Creates a class in MO.
 
-        Returns
-        ----------
-        uuid: UUID
-            The uuid of the created class
-        """
+        Args:
+            name: The name for the class.
+            user_key: The user-key for the class.
+            facet_uuid: The UUID of the facet to attach this class to.
+            scope: The optional scope to assign to the class.
 
-        query = gql(
-            """
-            query GetExistingClass($user_key: String!) {
-              classes(filter: {user_keys: [$user_key]}) {
-                objects {
-                  uuid
-                }
-              }
-            }
-            """
-        )
+        Returns:
+            The uuid of the existing or newly created class.
+        """
         async with self.create_mo_class_lock:
-            existing_classes = await self.query_mo(
-                query, raise_if_empty=False, variable_values={"user_key": user_key}
-            )
-            existing_class = only(existing_classes["classes"]["objects"])
-            if existing_class:
+            # If class already exists, noop
+            with suppress(NoObjectsReturnedException):
+                uuid = await self.load_mo_class_uuid(user_key)
                 logger.info("[Create-mo-class] MO class exists.", user_key=user_key)
-                return UUID(existing_class["uuid"])
+                return uuid
 
             logger.info("[Create-mo-class] Creating MO class.", user_key=user_key)
             input = ClassCreateInput(

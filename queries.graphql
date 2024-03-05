@@ -22,3 +22,11 @@ mutation create_class($input: ClassCreateInput!) {
     uuid
   }
 }
+
+query read_class_uuid($user_key: String!) {
+  classes(filter: {user_keys: [$user_key]}) {
+    objects {
+      uuid
+    }
+  }
+}

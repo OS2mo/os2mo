@@ -125,6 +125,9 @@ from .input_types import UuidsBoundITUserFilter
 from .input_types import UuidsBoundLeaveFilter
 from .input_types import UuidsBoundOrganisationUnitFilter
 from .input_types import ValidityInput
+from .read_class_uuid import ReadClassUuid
+from .read_class_uuid import ReadClassUuidClasses
+from .read_class_uuid import ReadClassUuidClassesObjects
 from .read_facet_uuid import ReadFacetUuid
 from .read_facet_uuid import ReadFacetUuidFacets
 from .read_facet_uuid import ReadFacetUuidFacetsObjects
@@ -241,6 +244,9 @@ __all__ = [
     "ParentsBoundOrganisationUnitFilter",
     "RAOpenValidityInput",
     "RAValidityInput",
+    "ReadClassUuid",
+    "ReadClassUuidClasses",
+    "ReadClassUuidClassesObjects",
     "ReadFacetUuid",
     "ReadFacetUuidFacets",
     "ReadFacetUuidFacetsObjects",
