@@ -2439,7 +2439,7 @@ async def test_load_mo_root_org_uuid(dataloader: DataLoader):
     dataloader.query_mo = AsyncMock()  # type: ignore
     dataloader.query_mo.return_value = {"org": {"uuid": str(root_org_uuid)}}
 
-    assert await dataloader.load_mo_root_org_uuid() == str(root_org_uuid)
+    assert await dataloader.load_mo_root_org_uuid() == root_org_uuid
 
 
 def test_decompose_ou_string(dataloader: DataLoader):

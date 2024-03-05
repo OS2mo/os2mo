@@ -1311,8 +1311,9 @@ async def test_create_org_unit(converter: LdapConverter):
         {"name": org_units[i], "uuid": uuids[i]} for i in range(len(uuids))
     ]
 
-    root_org_uuid = str(uuid4())
-    converter.dataloader.load_mo_root_org_uuid.return_value = root_org_uuid  # type: ignore
+    uuid_root_org_uuid = uuid4()
+    root_org_uuid = str(uuid_root_org_uuid)
+    converter.dataloader.load_mo_root_org_uuid.return_value = uuid_root_org_uuid  # type: ignore
 
     converter.org_unit_info = {
         uuids[0]: {**org_unit_infos[0], "parent_uuid": root_org_uuid},
@@ -1339,7 +1340,8 @@ async def test_create_org_unit(converter: LdapConverter):
 
 
 async def test_get_or_create_org_unit_uuid(converter: LdapConverter):
-    root_org_uuid = str(uuid4)
+    uuid_root_org_uuid = uuid4()
+    root_org_uuid = str(uuid_root_org_uuid)
     converter.dataloader.load_mo_root_org_uuid.return_value = root_org_uuid  # type: ignore
 
     uuid = str(uuid4())
@@ -1790,9 +1792,9 @@ async def test_get_org_unit_uuid_from_path(converter: LdapConverter):
     uuid_org2 = str(uuid4())
     uuid_org3 = str(uuid4())
 
-    root_org_uuid = str(uuid4())
-
-    converter.dataloader.load_mo_root_org_uuid.return_value = root_org_uuid  # type: ignore
+    uuid_root_org_uuid = uuid4()
+    root_org_uuid = str(uuid_root_org_uuid)
+    converter.dataloader.load_mo_root_org_uuid.return_value = uuid_root_org_uuid  # type: ignore
 
     converter.org_unit_info = {
         uuid_org1: {"name": "org1", "uuid": uuid_org1, "parent_uuid": root_org_uuid},

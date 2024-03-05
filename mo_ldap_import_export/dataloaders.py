@@ -1379,7 +1379,7 @@ class DataLoader:
 
         return output
 
-    async def load_mo_root_org_uuid(self) -> str:
+    async def load_mo_root_org_uuid(self) -> UUID:
         query = gql(
             """
             query RootOrgUnit {
@@ -1390,7 +1390,7 @@ class DataLoader:
             """
         )
         uuid: str = (await self.query_mo(query))["org"]["uuid"]
-        return uuid
+        return UUID(uuid)
 
     async def load_mo_org_units(self) -> dict:
         query = gql(
