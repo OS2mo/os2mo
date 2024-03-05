@@ -16,3 +16,9 @@ query read_facet_uuid($user_key: String!) {
     }
   }
 }
+
+mutation create_class($input: ClassCreateInput!) {
+  class_create(input: $input) {
+    uuid
+  }
+}

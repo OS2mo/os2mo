@@ -1,6 +1,8 @@
 from .async_base_client import AsyncBaseClient
 from .base_model import BaseModel
 from .client import GraphQLClient
+from .create_class import CreateClass
+from .create_class import CreateClassClassCreate
 from .create_it_system import CreateItSystem
 from .create_it_system import CreateItSystemItsystemCreate
 from .enums import AuditLogModel
@@ -149,6 +151,8 @@ __all__ = [
     "ClassTerminateInput",
     "ClassUpdateInput",
     "ConfigurationFilter",
+    "CreateClass",
+    "CreateClassClassCreate",
     "CreateItSystem",
     "CreateItSystemItsystemCreate",
     "EmployeeCreateInput",
