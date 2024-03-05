@@ -2325,6 +2325,7 @@ def test_extract_latest_object(dataloader: DataLoader):
 
     datetime_mock = MagicMock(datetime)
     datetime_mock.datetime.utcnow.return_value = datetime.datetime(2022, 8, 10)
+    datetime_mock.datetime.max = datetime.datetime.max
     with patch(
         "mo_ldap_import_export.dataloaders.datetime",
         datetime_mock,
@@ -2354,6 +2355,26 @@ def test_extract_latest_object(dataloader: DataLoader):
             },
         ]
         assert dataloader.extract_current_or_latest_object(objects)["uuid"] == uuid_obj2
+
+        # One of the objects is valid all the time - return it
+        objects = [
+            # NOTE: This combination should never exist, but we wanna test the codepath
+            {
+                "validity": {
+                    "from": "2022-08-01T00:00:00+02:00",
+                    "to": "2022-08-02T00:00:00+02:00",
+                },
+                "uuid": uuid_obj1,
+            },
+            {
+                "validity": {
+                    "from": None,
+                    "to": None,
+                },
+                "uuid": uuid_obj3,
+            },
+        ]
+        assert dataloader.extract_current_or_latest_object(objects)["uuid"] == uuid_obj3
 
         # No object is valid today - return the latest
         objects = [
