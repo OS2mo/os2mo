@@ -5,6 +5,8 @@ from .create_it_system import CreateItSystem
 from .create_it_system import CreateItSystemItsystemCreate
 from .input_types import ClassCreateInput
 from .input_types import ITSystemCreateInput
+from .read_class_uuid import ReadClassUuid
+from .read_class_uuid import ReadClassUuidClasses
 from .read_facet_uuid import ReadFacetUuid
 from .read_facet_uuid import ReadFacetUuidFacets
 
@@ -64,3 +66,20 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return CreateClass.parse_obj(data).class_create
+
+    async def read_class_uuid(self, user_key: str) -> ReadClassUuidClasses:
+        query = gql(
+            """
+            query read_class_uuid($user_key: String!) {
+              classes(filter: {user_keys: [$user_key]}) {
+                objects {
+                  uuid
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"user_key": user_key}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadClassUuid.parse_obj(data).classes
