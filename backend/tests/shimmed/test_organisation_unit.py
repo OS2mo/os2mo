@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import freezegun
 import pytest
 from fastapi.testclient import TestClient
 
@@ -303,7 +302,6 @@ def test_children_filtered(service_client: TestClient):
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_create_root_unit_without_org_id(service_client: TestClient) -> None:
     unitid = "00000000-0000-0000-0000-000000000000"
     orgid = "456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -320,7 +318,7 @@ def test_create_root_unit_without_org_id(service_client: TestClient) -> None:
             },
             "validity": {
                 "from": "2017-01-01",
-                "to": "2018-01-01",
+                "to": None,
             },
         },
     )
@@ -341,6 +339,6 @@ def test_create_root_unit_without_org_id(service_client: TestClient) -> None:
         "uuid": unitid,
         "validity": {
             "from": "2017-01-01",
-            "to": "2018-01-01",
+            "to": None,
         },
     } in org_children.json()

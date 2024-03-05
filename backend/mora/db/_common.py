@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
 from typing import Literal
+from typing import NewType
 from uuid import UUID
 
 from sqlalchemy import BigInteger
@@ -10,12 +11,12 @@ from sqlalchemy import Enum
 from sqlalchemy import select
 from sqlalchemy import Text
 from sqlalchemy import text
+from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.orm import column_property
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import declared_attr
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
-
 
 Base = declarative_base()
 metadata = Base.metadata
@@ -26,6 +27,17 @@ class _OIOEntityMixin:
 
     def __repr__(self):
         return f"{self.__class__.__name__}(id={self.id})"
+
+
+LivscyklusKode = ENUM(
+    "Opstaaet",
+    "Importeret",
+    "Passiveret",
+    "Slettet",
+    "Rettet",
+    name="livscykluskode",
+    metadata=metadata,
+)
 
 
 class _RegistreringMixin:
@@ -73,6 +85,13 @@ class _RegistreringMixin:
     def note(cls) -> Mapped[UUID]:
         return column_property(select(text("(registrering).note")).scalar_subquery())
 
+    # SQLAlchemy does not support composite types
+    @declared_attr
+    def lifecycle(cls) -> Mapped[LivscyklusKode]:
+        return column_property(
+            select(text("(registrering).livscykluskode")).scalar_subquery()
+        )
+
     def __repr__(self):
         return f"{self.__class__.__name__}(id={self.id}, registreringstid_start={self.registreringstid_start!r}, registreringstid_slut={self.registreringstid_slut!r})"
 
@@ -91,7 +110,7 @@ class _VirkningMixin:
         return column_property(
             select(
                 text(
-                    "greatest(lower((virkning).timeperiod), '1930-01-01'::timestamptz)"
+                    f"greatest(lower(({cls.__tablename__}.virkning).timeperiod), '1930-01-01'::timestamptz)"
                 )
             ).scalar_subquery()
         )
@@ -102,9 +121,14 @@ class _VirkningMixin:
         # We use `least` here as Python datetime don't support "infinity"
         return column_property(
             select(
-                text("least(upper((virkning).timeperiod), '9999-12-31'::timestamptz)")
+                text(
+                    f"least(upper(({cls.__tablename__}.virkning).timeperiod), '9999-12-31'::timestamptz)"
+                )
             ).scalar_subquery()
         )
+
+
+HasValidity = NewType("HasValidity", _VirkningMixin)
 
 
 class _AttrEgenskaberMixin(_VirkningMixin):

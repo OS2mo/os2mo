@@ -161,34 +161,35 @@ async def get_org_children(
         $from_date: DateTime,
         $engagements: Boolean!,
         $associations: Boolean!,
-        $hierarchies: [UUID!]) {
-            org_units(
-                filter: {
-                    parents: $parents,
-                    hierarchies: $hierarchies,
-                    from_date: $from_date,
-                },
-            ) {
+        $hierarchies: [UUID!]
+    ) {
+        org_units(
+            filter: {
+                parents: $parents,
+                hierarchies: $hierarchies,
+                from_date: $from_date,
+            },
+        ) {
+            objects {
                 objects {
-                    objects {
-                        name
-                        user_key
+                    name
+                    user_key
+                    uuid
+                    validity {
+                        from
+                        to
+                    }
+                    child_count(filter: {hierarchies: $hierarchies})
+                    associations @include(if: $associations) {
                         uuid
-                        validity {
-                            from
-                            to
-                        }
-                        child_count(filter: {hierarchies: $hierarchies})
-                        associations @include(if: $associations) {
-                            uuid
-                        }
-                        engagements @include(if: $engagements) {
-                            uuid
-                        }
+                    }
+                    engagements @include(if: $engagements) {
+                        uuid
                     }
                 }
             }
         }
+    }
     """
     variables = {
         "parents": parentid,

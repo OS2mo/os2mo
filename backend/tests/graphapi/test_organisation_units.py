@@ -289,6 +289,30 @@ async def test_org_unit_hierarchy_filter(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
+async def test_org_unit_subtree_filter(graphapi_post: GraphAPIPost) -> None:
+    """Test subtree filter on organisation units."""
+    subtree_query = """
+        query SubtreeQuery {
+          org_units(filter: {subtree: {user_keys: "it_sup"}}) {
+            objects {
+              current {
+                user_key
+              }
+            }
+          }
+        }
+    """
+    response = graphapi_post(subtree_query)
+    assert response.errors is None
+    assert response.data["org_units"]["objects"] == [
+        {"current": {"user_key": "root"}},
+        {"current": {"user_key": "it_sup"}},
+        {"current": {"user_key": "skole-børn"}},
+    ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data",
     [
