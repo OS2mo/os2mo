@@ -34,3 +34,9 @@ mutation update_class($input: ClassUpdateInput!) {
     uuid
   }
 }
+
+query read_root_org_uuid {
+  org {
+    uuid
+  }
+}

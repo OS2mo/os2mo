@@ -1380,17 +1380,13 @@ class DataLoader:
         return output
 
     async def load_mo_root_org_uuid(self) -> UUID:
-        query = gql(
-            """
-            query RootOrgUnit {
-              org {
-                uuid
-              }
-            }
-            """
-        )
-        uuid: str = (await self.query_mo(query))["org"]["uuid"]
-        return UUID(uuid)
+        """Get the UUID of the root organisational unit in MO.
+
+        Returns:
+            The UUID of the root organisational unit.
+        """
+        result = await self.graphql_client.read_root_org_uuid()
+        return result.uuid
 
     async def load_mo_org_units(self) -> dict:
         query = gql(
