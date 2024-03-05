@@ -1,5 +1,18 @@
 # On-prem VM
 
+Ved hosting af MO on-premises udrulles systemet ved hjælp af
+konfigurationsstyringssystemet [SALT](https://saltproject.io/). Via SALT
+konfigureres hele systemet således, at der ikke er behov for yderligere
+vedligeholdelse af de virtuelle maskiner efter adgang er opnået. Dette omfatter
+automatisk sikkerhedsopdatering, containerorkestrering, databaseadministration,
+køsystem, overvågning, hjælpeværktøjer, konfiguration og selve MO-platformen.
+
+![Overblik over en MO deployment. Der ses en VM på et kundenetværk med MO
+installeret på. VM'en forbinder til Magentas SaltStack. Der er også en
+reverse-proxy som kan forny certifikater vha. DNS
+opsætningen.](../graphics/drift-diagram.svg)
+
+
 ## Tilvejebringelse af servermiljø
 
 Der er behov for tre servere så leverandør og kunde har hver deres testmiljø (hhv. dev og test):
@@ -10,26 +23,32 @@ Der er behov for tre servere så leverandør og kunde har hver deres testmiljø 
 
 Bestykning og opsætning skal se sådan ud:
 
--   4 cores, 16GB Ram og 100 GB SSD harddisk
--   Ubuntu 22.04
--   Tillad indgående trafik på portene 22, 80, 443
--   Tillad udgående trafik på portene 4505 og 4506
--   Send den anvendte eksterne IP-adresse til Magenta, så der kan åbnes for adgang.
+- 8 cores, 16GB Ram og 250 GB SSD harddisk.
+- Ubuntu 20.04 eller 22.04.
+- Tillad indgående trafik på TCP portene 22, 80, 443.
+- Tillad udgående trafik på TCP portene 443, 4505 og 4506.
+- Send den anvendte eksterne IP-adresse til Magenta, så der kan åbnes for adgang.
+- DNS per miljø jf. [DNS / HTTPS](#dns-https).
 
 Vi vil kraftigt anbefale at Magenta hoster OS2mo.
 
+
 ## Adgange til servermiljø
 
-- VPN-forbindelse tilvejebringes
-- Én administratorkonto oprettes til den indledende opkobling til vores deploymentmiljø for distribueret management.
+- VPN-forbindelse tilvejebringes, helst ssh.
+- GUI-adgang tilvejebringes.
+- Adgang for IdM-brokeren Keycloak tilvejebringes.
+- ssh-adgang oprettes til den indledende SALT opkobling.
+
 
 ## Indgåelse af aftaler
 
 - Samarbejdsaftale om krav til fortrolighed og sikkerhed (tavsheds/fortrolighedserklæring)
 - Evt. databehandleraftale
-- Drifts- og SLA-aftale - Forudsætter opsætning af monitorering.
+- Drifts- og SLA-aftale - forudsætter [etablering af overvågning](#etablering-af-overvagning).
 
-## HTTPS
+
+## DNS / HTTPS
 
 Vi vil gerne udstille OS2mo brugergrænsefladen via HTTPS inden for kundens
 netværk. Da vi er på et lukket netværk, skal vi bruge DNS records for at
@@ -40,6 +59,9 @@ f.eks. have HTTPS på os2mo-udvikling.kunde.dk, kræver det følgende DNS record
 
 `_acme-challenge.os2mo-udvikling.kunde.dk CNAME _acme-challenge.os2mo-udvikling.kunde.dk.os2mo-on-prem.magentahosted.dk`
 
+
 ## Etablering af overvågning
 
-Overvågning er en forudsætning for sikring af oppetid og rettidig indgriben ved uhensigtsmæssigheder og fejl. Overvågning gør det ligeledes muligt at generere SLA-rapporter med beregnede oppe- og svartider.
+Overvågning er en forudsætning for sikring af oppetid og rettidig indgriben ved
+uhensigtsmæssigheder og fejl. Overvågning gør det ligeledes muligt at generere
+SLA-rapporter med beregnede oppe- og svartider.
