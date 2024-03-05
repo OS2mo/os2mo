@@ -28,3 +28,9 @@ query read_class_uuid($user_key: String!) {
     }
   }
 }
+
+mutation update_class($input: ClassUpdateInput!) {
+  class_update(input: $input) {
+    uuid
+  }
+}

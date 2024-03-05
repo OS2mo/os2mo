@@ -4,11 +4,14 @@ from .create_class import CreateClassClassCreate
 from .create_it_system import CreateItSystem
 from .create_it_system import CreateItSystemItsystemCreate
 from .input_types import ClassCreateInput
+from .input_types import ClassUpdateInput
 from .input_types import ITSystemCreateInput
 from .read_class_uuid import ReadClassUuid
 from .read_class_uuid import ReadClassUuidClasses
 from .read_facet_uuid import ReadFacetUuid
 from .read_facet_uuid import ReadFacetUuidFacets
+from .update_class import UpdateClass
+from .update_class import UpdateClassClassUpdate
 
 
 def gql(q: str) -> str:
@@ -81,3 +84,18 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadClassUuid.parse_obj(data).classes
+
+    async def update_class(self, input: ClassUpdateInput) -> UpdateClassClassUpdate:
+        query = gql(
+            """
+            mutation update_class($input: ClassUpdateInput!) {
+              class_update(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return UpdateClass.parse_obj(data).class_update
