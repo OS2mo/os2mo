@@ -10,6 +10,8 @@ from .read_class_uuid import ReadClassUuid
 from .read_class_uuid import ReadClassUuidClasses
 from .read_facet_uuid import ReadFacetUuid
 from .read_facet_uuid import ReadFacetUuidFacets
+from .read_root_org_uuid import ReadRootOrgUuid
+from .read_root_org_uuid import ReadRootOrgUuidOrg
 from .update_class import UpdateClass
 from .update_class import UpdateClassClassUpdate
 
@@ -99,3 +101,18 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return UpdateClass.parse_obj(data).class_update
+
+    async def read_root_org_uuid(self) -> ReadRootOrgUuidOrg:
+        query = gql(
+            """
+            query read_root_org_uuid {
+              org {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadRootOrgUuid.parse_obj(data).org

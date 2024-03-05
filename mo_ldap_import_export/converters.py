@@ -892,7 +892,7 @@ class LdapConverter:
                 logger.info(f"Importing {partial_path_string}")
 
                 if nesting_level == 0:
-                    parent_uuid = await self.dataloader.load_mo_root_org_uuid()
+                    parent_uuid = str(await self.dataloader.load_mo_root_org_uuid())
                 else:
                     parent_path = org_unit_path[:nesting_level]
                     parent_path_string = self.org_unit_path_string_separator.join(
@@ -941,7 +941,7 @@ class LdapConverter:
         )
 
     async def get_org_unit_path_string(self, uuid: str):
-        root_org_uuid: str = await self.dataloader.load_mo_root_org_uuid()
+        root_org_uuid: str = str(await self.dataloader.load_mo_root_org_uuid())
         org_unit_info = self.org_unit_info[str(uuid)]
         object_name = org_unit_info["name"].strip()
         parent_uuid: str = org_unit_info["parent_uuid"]
