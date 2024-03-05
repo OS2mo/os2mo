@@ -955,42 +955,41 @@ class SyncTool:
                 )
                 continue
 
-            if len(converted_objects) > 0:
-                logger.info(
-                    "[Import-single-user] Importing objects.",
-                    converted_objects=converted_objects,
-                    dn=dn,
-                )
+            # TODO: Conver this to an assert? - The above try-catch ensures it is always set, no?
+            if not converted_objects:  # pragma: no cover
+                continue
+            logger.info(
+                "[Import-single-user] Importing objects.",
+                converted_objects=converted_objects,
+                dn=dn,
+            )
 
-                if json_key == "Custom":
-                    for obj, verb in converted_objects:
-                        job_list = await obj.sync_to_mo(self.context)
-                        for job in job_list:
-                            self.uuids_to_ignore.add(job["uuid_to_ignore"])
-                            await self.context["legacy_graphql_session"].execute(
-                                document=job["document"],
-                                variable_values=job["variable_values"],
-                            )
-
-                else:
-                    for mo_object, verb in converted_objects:
-                        self.uuids_to_ignore.add(mo_object.uuid)
-                    try:
-                        await self.dataloader.create_or_edit_mo_objects(
-                            converted_objects
+            if json_key == "Custom":
+                for obj, _ in converted_objects:
+                    job_list = await obj.sync_to_mo(self.context)
+                    for job in job_list:
+                        self.uuids_to_ignore.add(job["uuid_to_ignore"])
+                        await self.context["legacy_graphql_session"].execute(
+                            document=job["document"],
+                            variable_values=job["variable_values"],
                         )
-                    except HTTPStatusError as e:
-                        # This can happen, for example if a phone number in LDAP is
-                        # invalid
-                        logger.warning(
-                            "[Import-single-user] Failed to upload objects",
-                            error=e,
-                            converted_objects=converted_objects,
-                            request=e.request,
-                            dn=dn,
-                        )
-                        for mo_object, verb in converted_objects:
-                            self.uuids_to_ignore.remove(mo_object.uuid)
+            else:
+                for mo_object, _ in converted_objects:
+                    self.uuids_to_ignore.add(mo_object.uuid)
+                try:
+                    await self.dataloader.create_or_edit_mo_objects(converted_objects)
+                except HTTPStatusError as e:
+                    # This can happen, for example if a phone number in LDAP is
+                    # invalid
+                    logger.warning(
+                        "[Import-single-user] Failed to upload objects",
+                        error=e,
+                        converted_objects=converted_objects,
+                        request=e.request,
+                        dn=dn,
+                    )
+                    for mo_object, _ in converted_objects:
+                        self.uuids_to_ignore.remove(mo_object.uuid)
 
     async def refresh_object(self, uuid: UUID, object_type: str):
         """

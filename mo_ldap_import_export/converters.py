@@ -1154,15 +1154,14 @@ class LdapConverter:
         single LDAP field to contain multiple values. This function determines
         if that is the case.
         """
-        n = []
-        for value in ldap_object.dict().values():
-            if isinstance(value, list):
-                n.append(len(value))
-            else:
-                n.append(1)
 
-        number_of_entries_in_this_ldap_object = max(n)
-        return number_of_entries_in_this_ldap_object
+        def is_list(x: Any) -> bool:
+            return isinstance(x, list)
+
+        values = ldap_object.dict().values()
+        list_values = filter(is_list, values)
+        list_lengths = map(len, list_values)
+        return max(list_lengths, default=1)
 
     async def from_ldap(
         self,
@@ -1196,7 +1195,6 @@ class LdapConverter:
                     for key, value in ldap_object.dict().items()
                 }
             )
-            mo_dict = {}
             context = {
                 "ldap": ldap_dict,
                 "employee_uuid": str(employee_uuid),
@@ -1210,7 +1208,8 @@ class LdapConverter:
                 object_mapping = mapping[json_key]
             except KeyError:
                 raise IncorrectMapping(f"Missing '{json_key}' in mapping 'ldap_to_mo'")
-            for mo_field_name, template in object_mapping.items():
+
+            async def render_template(template):
                 try:
                     value = (await template.render_async(context)).strip()
 
@@ -1224,7 +1223,7 @@ class LdapConverter:
                         value = ""
                 except UUIDNotFoundException as e:
                     logger.warning(e)
-                    continue
+                    return None
                 # TODO: Is it possible to render a dictionary directly?
                 #       Instead of converting from a string
                 if "{" in value and ":" in value and "}" in value:
@@ -1236,26 +1235,29 @@ class LdapConverter:
                             f"{json_key}['{mo_field_name}'] to dict "
                             f"(context={context!r})"
                         )
+                return value
 
+            mo_dict = {}
+            for mo_field_name, template in object_mapping.items():
+                value = await render_template(template)
                 if value:
                     mo_dict[mo_field_name] = value
 
             mo_class: Any = self.import_mo_object_class(json_key)
-            required_attributes = self.get_required_attributes(mo_class)
+            required_attributes = set(self.get_required_attributes(mo_class))
 
-            # If all required attributes are present:
-            if all(a in mo_dict for a in required_attributes):
-                try:
-                    converted_objects.append(mo_class(**mo_dict))
-                except pydantic.ValidationError as pve:
-                    logger.info(pve)
-            else:
-                missing_attributes = [
-                    r for r in required_attributes if r not in mo_dict
-                ]
+            # If any required attributes are missing
+            missing_attributes = required_attributes - set(mo_dict.keys())
+            if missing_attributes:
                 logger.info(
                     f"Could not convert {mo_dict} to {mo_class}. "
                     f"The following attributes are missing: {missing_attributes}"
                 )
+                continue
+
+            try:
+                converted_objects.append(mo_class(**mo_dict))
+            except pydantic.ValidationError as pve:
+                logger.info(pve)
 
         return converted_objects
