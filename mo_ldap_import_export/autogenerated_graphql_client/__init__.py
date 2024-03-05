@@ -131,7 +131,6 @@ from .read_class_uuid import ReadClassUuidClassesObjects
 from .read_facet_uuid import ReadFacetUuid
 from .read_facet_uuid import ReadFacetUuidFacets
 from .read_facet_uuid import ReadFacetUuidFacetsObjects
-from .read_facet_uuid import ReadFacetUuidFacetsObjectsCurrent
 
 __all__ = [
     "AddressCreateInput",
@@ -250,7 +249,6 @@ __all__ = [
     "ReadFacetUuid",
     "ReadFacetUuidFacets",
     "ReadFacetUuidFacetsObjects",
-    "ReadFacetUuidFacetsObjectsCurrent",
     "RegistrationFilter",
     "RelatedUnitFilter",
     "RelatedUnitsUpdateInput",

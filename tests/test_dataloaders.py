@@ -2016,7 +2016,7 @@ async def test_create_mo_job_function(dataloader: DataLoader):
 async def test_load_mo_facet_uuid(dataloader: DataLoader):
     uuid = uuid4()
     dataloader.graphql_client.read_facet_uuid.return_value = parse_obj_as(  # type: ignore
-        ReadFacetUuidFacets, {"objects": [{"current": {"uuid": str(uuid)}}]}
+        ReadFacetUuidFacets, {"objects": [{"uuid": str(uuid)}]}
     )
     assert await dataloader.load_mo_facet_uuid("") == uuid
 
@@ -2026,8 +2026,8 @@ async def test_load_mo_facet_uuid_multiple_facets(dataloader: DataLoader):
         ReadFacetUuidFacets,
         {
             "objects": [
-                {"current": {"uuid": str(uuid4())}},
-                {"current": {"uuid": str(uuid4())}},
+                {"uuid": str(uuid4())},
+                {"uuid": str(uuid4())},
             ]
         },
     )
@@ -2038,14 +2038,6 @@ async def test_load_mo_facet_uuid_multiple_facets(dataloader: DataLoader):
 async def test_load_mo_facet_uuid_no_result(dataloader: DataLoader):
     dataloader.graphql_client.read_facet_uuid.return_value = parse_obj_as(  # type: ignore
         ReadFacetUuidFacets, {"objects": []}
-    )
-    with pytest.raises(NoObjectsReturnedException):
-        await dataloader.load_mo_facet_uuid("")
-
-
-async def test_load_mo_facet_uuid_non_active_result(dataloader: DataLoader):
-    dataloader.graphql_client.read_facet_uuid.return_value = parse_obj_as(  # type: ignore
-        ReadFacetUuidFacets, {"objects": [{"current": None}]}
     )
     with pytest.raises(NoObjectsReturnedException):
         await dataloader.load_mo_facet_uuid("")

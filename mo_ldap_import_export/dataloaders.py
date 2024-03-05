@@ -1325,11 +1325,7 @@ class DataLoader:
             f"Could not find facet with user_key = '{user_key}"
         )
         facet = one(result.objects, too_short=too_short, too_long=too_long)
-        if facet.current is None:
-            raise NoObjectsReturnedException(
-                f"Found facet with user_key = '{user_key}' is not currently active"
-            )
-        return facet.current.uuid
+        return facet.uuid
 
     async def load_mo_employee_address_types(self) -> dict:
         return await self.load_mo_facet("employee_address_type")

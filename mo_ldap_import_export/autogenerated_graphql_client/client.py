@@ -39,9 +39,7 @@ class GraphQLClient(AsyncBaseClient):
             query read_facet_uuid($user_key: String!) {
               facets(filter: {user_keys: [$user_key]}) {
                 objects {
-                  current {
-                    uuid
-                  }
+                  uuid
                 }
               }
             }
