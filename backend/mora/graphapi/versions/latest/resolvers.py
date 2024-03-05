@@ -5,6 +5,7 @@ from collections.abc import Callable
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
+from functools import lru_cache
 from typing import Any
 from uuid import UUID
 
@@ -937,6 +938,18 @@ async def role_resolver(
     )
 
 
+@lru_cache(maxsize=128)
+def _get_open_validity(
+    from_date: datetime | None, to_date: datetime | None
+) -> OpenValidityModel:
+    try:
+        return OpenValidityModel(from_date=from_date, to_date=to_date)
+    except ValidationError as v_error:
+        # Pydantic errors are ugly in GraphQL, so we get the msg part only
+        message = ", ".join([err["msg"] for err in v_error.errors()])
+        raise ValueError(message)
+
+
 def get_date_interval(
     from_date: datetime | None = UNSET, to_date: datetime | None = UNSET
 ) -> OpenValidityModel:
@@ -958,10 +971,4 @@ def get_date_interval(
                 "Cannot infer UNSET to_date from interval starting at -infinity"
             )
         to_date = from_date + timedelta(milliseconds=1)
-    try:
-        interval = OpenValidityModel(from_date=from_date, to_date=to_date)
-    except ValidationError as v_error:
-        # Pydantic errors are ugly in GraphQL so we get the msg part only
-        message = ", ".join([err["msg"] for err in v_error.errors()])
-        raise ValueError(message)
-    return interval
+    return _get_open_validity(from_date, to_date)
