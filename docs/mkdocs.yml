@@ -21,6 +21,7 @@ nav:
       - features/med-organisation.md
       - features/org-chart.md
       - features/reports.md
+      - features/auditlog.md
   - Integrationer:
       - Active Directory:
         - integrations/ldap_ad_amqp_integration.md
