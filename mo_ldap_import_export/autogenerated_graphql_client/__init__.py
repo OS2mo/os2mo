@@ -131,6 +131,8 @@ from .read_class_uuid import ReadClassUuidClassesObjects
 from .read_facet_uuid import ReadFacetUuid
 from .read_facet_uuid import ReadFacetUuidFacets
 from .read_facet_uuid import ReadFacetUuidFacetsObjects
+from .update_class import UpdateClass
+from .update_class import UpdateClassClassUpdate
 
 __all__ = [
     "AddressCreateInput",
@@ -257,6 +259,8 @@ __all__ = [
     "RoleRegistrationFilter",
     "RoleTerminateInput",
     "RoleUpdateInput",
+    "UpdateClass",
+    "UpdateClassClassUpdate",
     "UuidsBoundClassFilter",
     "UuidsBoundEmployeeFilter",
     "UuidsBoundEngagementFilter",
