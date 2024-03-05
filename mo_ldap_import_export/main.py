@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 """Event handling."""
 import asyncio
-import datetime
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from datetime import datetime
 from functools import partial
 from functools import wraps
 from inspect import iscoroutinefunction
@@ -110,7 +110,7 @@ def get_delete_flag(mo_object) -> bool:
     """
     Determines if an object should be deleted based on the validity to-date
     """
-    now = datetime.datetime.utcnow()
+    now = datetime.utcnow()
     validity_to = mo_datestring_to_utc(mo_object["validity"]["to"])
     if validity_to and validity_to <= now:
         logger.info(

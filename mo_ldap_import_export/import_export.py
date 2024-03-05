@@ -5,8 +5,9 @@ Created on Fri Mar  3 09:46:15 2023
 
 @author: nick
 """
-import datetime
 from collections.abc import Callable
+from datetime import datetime
+from datetime import timedelta
 from typing import Any
 from uuid import UUID
 from uuid import uuid4
@@ -33,9 +34,9 @@ from .utils import get_object_type_from_routing_key
 
 class IgnoreMe:
     def __init__(self):
-        self.ignore_dict: dict[str, list[datetime.datetime]] = {}
+        self.ignore_dict: dict[str, list[datetime]] = {}
 
-    def __getitem__(self, key: str | UUID) -> list[datetime.datetime]:
+    def __getitem__(self, key: str | UUID) -> list[datetime]:
         key = self.format_entry(key)
         return self.ignore_dict.get(key, [])
 
@@ -49,9 +50,9 @@ class IgnoreMe:
 
     def clean(self):
         # Remove all timestamps which have been in the ignore dict for more than 60 sec.
-        now = datetime.datetime.now()
+        now = datetime.now()
         max_age = 60  # seconds
-        cutoff = now - datetime.timedelta(seconds=max_age)
+        cutoff = now - timedelta(seconds=max_age)
         for str_to_ignore, timestamps in self.ignore_dict.items():
             for timestamp in timestamps.copy():
                 if timestamp < cutoff:
@@ -71,9 +72,9 @@ class IgnoreMe:
         str_to_add = self.format_entry(str_to_add)
 
         if str_to_add in self.ignore_dict:
-            self.ignore_dict[str_to_add].append(datetime.datetime.now())
+            self.ignore_dict[str_to_add].append(datetime.now())
         else:
-            self.ignore_dict[str_to_add] = [datetime.datetime.now()]
+            self.ignore_dict[str_to_add] = [datetime.now()]
 
     def remove(self, str_to_remove: str | UUID):
         str_to_remove = self.format_entry(str_to_remove)
