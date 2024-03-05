@@ -15,22 +15,22 @@ Integrationen er synkron, udført med triggere, sådan at man får svar umiddelb
 
 De oplysninger, der potentielt kan sendes om organisationsenhederne til SD-Løn fra OS2mo, er:
 
--**Parent**. Ved organisationsændringer skal en enhed have en ny parent.
--**Navn**. Når organisationsenheder skal omdøbes
--**UUID**. Unik identifikator.
--**Startdato**. Når en enhed er oprettet / skal oprettes.
--**Slutdato**. Når en enhed skal nedlægges.
--**Organisationsenhedskode**. Metadata på enheden.
--**Organisationsenhedstype**. Metadata på enheden.
--**Organisationsenhedsniveau**. Metadata på enheden.
--**Tidsregistrering**. SD-specifikke data som man kan vælge at have i MO.
--**Afdelingsniveau / NY-niveau**. NY-Niveauer er reguleret sådan at man kan sætte en afdeling på Afdelings-niveau ind under en afdeling på NY1-niveau, men ikke omvendt.
--**DAR-adresse** (postadresse fra Danmarks AdresseRegister). Når adresser skal oprettes/ændres/nedlægges.
--**Telefon**. Når tlf skal ændres.
--**P-nummer**. Når P-nummer skal oprettes/ændres/nedlægges.
--**Formålskode**. Når Formålskode skal oprettes/ændres/nedlægges..
--**Skolekode**. Når Skolekode skal oprettes/ændres/nedlægges..
--**Funktionskode**. Når Funktionskode skal oprettes/ændres/nedlægges.
+- **Parent**. Ved organisationsændringer skal en enhed have en ny parent.
+- **Navn**. Når organisationsenheder skal omdøbes
+- **UUID**. Unik identifikator.
+- **Startdato**. Når en enhed er oprettet / skal oprettes.
+- **Slutdato**. Når en enhed skal nedlægges.
+- **Organisationsenhedskode**. Metadata på enheden.
+- **Organisationsenhedstype**. Metadata på enheden.
+- **Organisationsenhedsniveau**. Metadata på enheden.
+- **Tidsregistrering**. SD-specifikke data som man kan vælge at have i MO.
+- **Afdelingsniveau / NY-niveau**. NY-Niveauer er reguleret sådan at man kan sætte en afdeling på Afdelings-niveau ind under en afdeling på NY1-niveau, men ikke omvendt.
+- **DAR-adresse** (postadresse fra Danmarks AdresseRegister). Når adresser skal oprettes/ændres/nedlægges.
+- **Telefon**. Når tlf skal ændres.
+- **P-nummer**. Når P-nummer skal oprettes/ændres/nedlægges.
+- **Formålskode**. Når Formålskode skal oprettes/ændres/nedlægges..
+- **Skolekode**. Når Skolekode skal oprettes/ændres/nedlægges..
+- **Funktionskode**. Når Funktionskode skal oprettes/ændres/nedlægges.
 
 ## Konfiguration
 
