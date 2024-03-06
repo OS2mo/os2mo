@@ -761,7 +761,7 @@ def _consolidate_virkninger(virkninger_list):
     return new_virkninger
 
 
-@functools.lru_cache(maxsize=512)
+@functools.lru_cache(maxsize=128)
 def _parse_timestamp(timestamp: datetime.datetime | str) -> datetime.datetime:
     if timestamp == "infinity":
         dt = datetime.datetime.max
