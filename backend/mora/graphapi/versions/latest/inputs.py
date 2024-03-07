@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from datetime import datetime
 from uuid import UUID
 
 import strawberry
@@ -113,6 +114,13 @@ class AddressCreateInput:
 class AddressTerminateInput:
     """input model for terminating addresses."""
 
+    from_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'start' instead. Will be removed in a future version of OS2mo."
+    )
+    to_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'end' instead. Will be removed in a future version of OS2mo."
+    )
+
 
 @strawberry.experimental.pydantic.input(
     model=AddressUpdate,
@@ -159,6 +167,13 @@ class AssociationUpdateInput:
 class AssociationTerminateInput:
     """input model for terminating associations."""
 
+    from_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'start' instead. Will be removed in a future version of OS2mo."
+    )
+    to_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'end' instead. Will be removed in a future version of OS2mo."
+    )
+
 
 # Classes
 # ---------
@@ -185,6 +200,13 @@ class ClassUpdateInput:
 class ClassTerminateInput:
     """Input model for terminating a class."""
 
+    from_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'start' instead. Will be removed in a future version of OS2mo."
+    )
+    to_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'end' instead. Will be removed in a future version of OS2mo."
+    )
+
 
 # Employees
 # ---------
@@ -209,7 +231,12 @@ class EmployeeUpdateInput:
     all_fields=True,
 )
 class EmployeeTerminateInput:
-    pass
+    from_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'start' instead. Will be removed in a future version of OS2mo."
+    )
+    to_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'end' instead. Will be removed in a future version of OS2mo."
+    )
 
 
 # Engagements
@@ -220,6 +247,13 @@ class EmployeeTerminateInput:
 )
 class EngagementTerminateInput:
     """input model for terminating Engagements."""
+
+    from_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'start' instead. Will be removed in a future version of OS2mo."
+    )
+    to_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'end' instead. Will be removed in a future version of OS2mo."
+    )
 
 
 @strawberry.experimental.pydantic.input(
@@ -275,6 +309,13 @@ class ITAssociationUpdateInput:
 class ITAssociationTerminateInput:
     """input model for terminating IT-associations."""
 
+    from_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'start' instead. Will be removed in a future version of OS2mo."
+    )
+    to_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'end' instead. Will be removed in a future version of OS2mo."
+    )
+
 
 # Facets
 # ------
@@ -300,6 +341,13 @@ class FacetUpdateInput:
 )
 class FacetTerminateInput:
     """Input model for terminating a facet."""
+
+    from_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'start' instead. Will be removed in a future version of OS2mo."
+    )
+    to_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'end' instead. Will be removed in a future version of OS2mo."
+    )
 
 
 # ITSystems
@@ -327,6 +375,13 @@ class ITSystemUpdateInput:
 class ITSystemTerminateInput:
     """Input model for terminating an ITSystem."""
 
+    from_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'start' instead. Will be removed in a future version of OS2mo."
+    )
+    to_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'end' instead. Will be removed in a future version of OS2mo."
+    )
+
 
 # ITUsers
 # -------
@@ -352,6 +407,13 @@ class ITUserUpdateInput:
 )
 class ITUserTerminateInput:
     """input model for terminating IT-user."""
+
+    from_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'start' instead. Will be removed in a future version of OS2mo."
+    )
+    to_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'end' instead. Will be removed in a future version of OS2mo."
+    )
 
 
 # KLEs
@@ -381,6 +443,13 @@ class KLEUpdateInput:
 class KLETerminateInput:
     """Input model for terminating a KLE annotation."""
 
+    from_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'start' instead. Will be removed in a future version of OS2mo."
+    )
+    to_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'end' instead. Will be removed in a future version of OS2mo."
+    )
+
 
 # Leave
 # -----
@@ -406,6 +475,13 @@ class LeaveUpdateInput:
 )
 class LeaveTerminateInput:
     """Input model for terminating a leave."""
+
+    from_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'start' instead. Will be removed in a future version of OS2mo."
+    )
+    to_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'end' instead. Will be removed in a future version of OS2mo."
+    )
 
 
 # Managers
@@ -435,6 +511,13 @@ class ManagerUpdateInput:
 class ManagerTerminateInput:
     """Input model for terminating a manager."""
 
+    from_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'start' instead. Will be removed in a future version of OS2mo."
+    )
+    to_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'end' instead. Will be removed in a future version of OS2mo."
+    )
+
 
 # Organisational Units
 # --------------------
@@ -444,6 +527,13 @@ class ManagerTerminateInput:
 )
 class OrganisationUnitTerminateInput:
     """Input model for terminating organisation units."""
+
+    from_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'start' instead. Will be removed in a future version of OS2mo."
+    )
+    to_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'end' instead. Will be removed in a future version of OS2mo."
+    )
 
 
 @strawberry.experimental.pydantic.input(
@@ -487,6 +577,13 @@ class OwnerUpdateInput:
 class OwnerTerminateInput:
     """Input model for terminating owners."""
 
+    from_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'start' instead. Will be removed in a future version of OS2mo."
+    )
+    to_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'end' instead. Will be removed in a future version of OS2mo."
+    )
+
 
 # Related Units
 # -------------
@@ -524,6 +621,13 @@ class RoleUpdateInput:
 )
 class RoleTerminateInput:
     """Input model for terminating roles."""
+
+    from_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'start' instead. Will be removed in a future version of OS2mo."
+    )
+    to_date: datetime | None = strawberry.field(
+        deprecation_reason="Use 'end' instead. Will be removed in a future version of OS2mo."
+    )
 
 
 # Health

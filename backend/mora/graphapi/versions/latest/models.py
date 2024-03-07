@@ -107,10 +107,27 @@ class Validity(RAOpenValidity):
 
 
 class ValidityTerminate(Validity):
-    to_date: datetime.datetime = Field(
-        alias="to",
+    start: datetime.datetime | None = Field(
+        None, description="Start date of the validity."
+    )
+    end: datetime.datetime | None = Field(
+        ...,
         description="When the validity should end - required when terminating",
     )
+    to_date: datetime.datetime | None = Field(
+        ...,
+        description="When the validity should end - required when terminating",
+    )
+
+    @root_validator
+    def ensure_start_and_end(cls, values: dict[str, Any]) -> dict[str, Any]:
+        values["from_date"] = values["start"] or values["from_date"]
+        values["to_date"] = values["end"] or values["to_date"]
+        values.pop("start", None)
+        values.pop("end", None)
+        if values["to_date"] is None:
+            raise ValueError("Must set either 'end' or 'to'/'to_date'")
+        return values
 
     def to_handler_dict(self) -> dict:
         validity = {}
