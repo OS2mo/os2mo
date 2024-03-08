@@ -191,8 +191,6 @@ services:
       KEYCLOAK_SSL_REQUIRED_LORA: external
       KEYCLOAK_LORA_REALM_ENABLED: "true"
       KEYCLOAK_LORA_CLIENT_SECRET: 158a2075-aa8a-421c-94a4-2df35377014a
-      KEYCLOAK_DIPEX_CLIENT_ENABLED: "true"
-      KEYCLOAK_DIPEX_CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
       KEYCLOAK_MO_CLIENT_REDIRECT_URI: '["http://localhost:5050/*", "http://localhost:5000/*", "http://localhost:5001/*", "http://localhost:5173/*", "http://localhost:4173/*"]'
       KEYCLOAK_MO_CLIENT_WEB_ORIGIN: '["http://localhost:5050", "http://localhost:5000", "http://localhost:5001", "http://localhost:5173", "http://localhost:4173"]'
       KEYCLOAK_RBAC_ENABLED: "true"
@@ -241,6 +239,23 @@ services:
     restart: on-failure
     volumes:
       - keycloak-volume:/srv/
+
+  keycloak-dipex-builder:
+    image: magentaaps/os2mo-keycloak-integration-builder:4.5.0
+    environment:
+      POSTGRES_CONNECTION_STRING: postgres://keycloak:keycloak@keycloak-db/keycloak?sslmode=disable
+      POSTGRES_SCHEMA_NAME: terraform_remote_state_dipex_client
+
+      TF_VAR_url: "http://keycloak:8080"
+      TF_VAR_admin_password: admin
+
+      TF_VAR_client_name: dipex
+      TF_VAR_client_secret: "603f1c82-d012-4d04-9382-dbe659c533fb"
+      TF_VAR_client_uuid: "d1fec000-baad-c0de-0000-004449504558"
+      TF_VAR_client_roles: '["admin"]'
+    depends_on:
+      keycloak-realm-builder:
+        condition: service_completed_successfully
 
   keycloak-db:
     image: postgres:13
