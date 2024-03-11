@@ -639,14 +639,22 @@ def filter_json_output(output):
             if t[0] == '"':
                 t = t[1:-1]
 
-            r = {k: v for k, v in output.items() if v}
+            r = {
+                k: v
+                for k, v in output.items()
+                if v or (k == "brugervendtnoegle" and v == "")
+            }
             r["from"] = f
             r["to"] = t
             r["from_included"] = from_included
             r["to_included"] = to_included
             return r
 
-        return {k: v2 for k, v in output.items() if (v2 := filter_json_output(v))}
+        return {
+            k: v2
+            for k, v in output.items()
+            if (v2 := filter_json_output(v)) or (k == "brugervendtnoegle" and v == "")
+        }
     elif isinstance(output, list):
         return [v2 for v in output if (v2 := filter_json_output(v))]
     elif isinstance(output, tuple):

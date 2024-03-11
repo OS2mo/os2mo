@@ -58,7 +58,9 @@ class MOBase(UUIDBase):
 
     @validator("user_key", pre=True, always=True)
     def set_user_key(cls, user_key: Any | None, values: DictStrAny) -> str:
-        return user_key or str(values["uuid"])
+        if user_key or isinstance(user_key, str):
+            return user_key
+        return str(values["uuid"])
 
     @root_validator
     def validate_type(cls, values: DictStrAny) -> DictStrAny:

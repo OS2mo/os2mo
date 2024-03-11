@@ -573,3 +573,29 @@ async def test_get_org_unit_ancestors(graphapi_post: GraphAPIPost, expected):
     assert obj == expected
     assert len(obj) == len(expected)
     assert obj["ancestors"] == expected["ancestors"]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_empty_user_key(graphapi_post: GraphAPIPost):
+    """Test that org units with empty user keys can be created and read back out."""
+    graphql_mutation = """
+        mutation MyMutation {
+          org_unit_create(
+            input: {
+              name: "Foo",
+              user_key: "",
+              org_unit_type: "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+              validity: {from: "2012-03-04"}
+            }
+          ) {
+            uuid
+            current {
+              user_key
+            }
+          }
+        }
+    """
+    response = graphapi_post(query=graphql_mutation)
+    assert response.errors is None
+    assert response.data["org_unit_create"]["current"]["user_key"] == ""
