@@ -40,3 +40,21 @@ query read_root_org_uuid {
     uuid
   }
 }
+
+mutation address_terminate($input: AddressTerminateInput!) {
+  address_terminate(input: $input) {
+    uuid
+  }
+}
+
+mutation engagement_terminate($input: EngagementTerminateInput!) {
+  engagement_terminate(input: $input) {
+    uuid
+  }
+}
+
+mutation ituser_terminate($input: ITUserTerminateInput!) {
+  ituser_terminate(input: $input) {
+    uuid
+  }
+}

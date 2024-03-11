@@ -1,3 +1,5 @@
+from .address_terminate import AddressTerminate
+from .address_terminate import AddressTerminateAddressTerminate
 from .async_base_client import AsyncBaseClient
 from .base_model import BaseModel
 from .client import GraphQLClient
@@ -5,6 +7,8 @@ from .create_class import CreateClass
 from .create_class import CreateClassClassCreate
 from .create_it_system import CreateItSystem
 from .create_it_system import CreateItSystemItsystemCreate
+from .engagement_terminate import EngagementTerminate
+from .engagement_terminate import EngagementTerminateEngagementTerminate
 from .enums import AuditLogModel
 from .enums import FileStore
 from .enums import OwnerInferencePriority
@@ -125,6 +129,8 @@ from .input_types import UuidsBoundITUserFilter
 from .input_types import UuidsBoundLeaveFilter
 from .input_types import UuidsBoundOrganisationUnitFilter
 from .input_types import ValidityInput
+from .ituser_terminate import ItuserTerminate
+from .ituser_terminate import ItuserTerminateItuserTerminate
 from .read_class_uuid import ReadClassUuid
 from .read_class_uuid import ReadClassUuidClasses
 from .read_class_uuid import ReadClassUuidClassesObjects
@@ -140,6 +146,8 @@ __all__ = [
     "AddressCreateInput",
     "AddressFilter",
     "AddressRegistrationFilter",
+    "AddressTerminate",
+    "AddressTerminateAddressTerminate",
     "AddressTerminateInput",
     "AddressUpdateInput",
     "AssociationCreateInput",
@@ -176,6 +184,8 @@ __all__ = [
     "EngagementCreateInput",
     "EngagementFilter",
     "EngagementRegistrationFilter",
+    "EngagementTerminate",
+    "EngagementTerminateEngagementTerminate",
     "EngagementTerminateInput",
     "EngagementUpdateInput",
     "FacetCreateInput",
@@ -206,6 +216,8 @@ __all__ = [
     "ITUserRegistrationFilter",
     "ITUserTerminateInput",
     "ITUserUpdateInput",
+    "ItuserTerminate",
+    "ItuserTerminateItuserTerminate",
     "KLECreateInput",
     "KLEFilter",
     "KLERegistrationFilter",

@@ -15,7 +15,6 @@ from uuid import uuid4
 from fastramqpi.context import Context
 from httpx import HTTPStatusError
 from ramodels.mo import MOBase
-from ramodels.mo.details import ITUser
 from ramqp.depends import handle_exclusively_decorator
 from ramqp.mo import MORoutingKey
 
@@ -705,17 +704,7 @@ class SyncTool:
 
             def mark_edit(obj) -> tuple[MOBase, Verb]:
                 if obj.user_key in user_keys_in_mo:
-                    obj = ITUser(
-                        # Use the UUID of the existing IT user
-                        uuid=user_keys_in_mo[obj.user_key],
-                        # Copy all other values from the new IT user object
-                        user_key=obj.user_key,
-                        itsystem=obj.itsystem,
-                        person=obj.person,
-                        org_unit=obj.org_unit,
-                        engagement=obj.engagement,
-                        validity=obj.validity,
-                    )
+                    obj = obj.copy(update={"uuid": user_keys_in_mo[obj.user_key]})
                     return obj, Verb.EDIT
                 else:
                     return obj, Verb.CREATE

@@ -4,6 +4,7 @@
 """Settings handling."""
 from enum import Enum
 from typing import Any
+from typing import get_args
 from typing import Literal
 
 from fastramqpi.config import Settings as FastRAMQPISettings
@@ -17,6 +18,7 @@ from pydantic import parse_obj_as
 from pydantic import root_validator
 from pydantic import SecretStr
 from pydantic import validator
+from ramodels.mo.detail import Detail
 from ramqp.config import AMQPConnectionSettings
 
 from .utils import import_class
@@ -125,10 +127,35 @@ class LDAP2MOMapping(MappingBaseModel):
     import_to_mo: Literal["true", "false", "manual_import_only"] = Field(
         alias="_import_to_mo_"
     )
+    terminate: str | None = Field(
+        alias="_terminate_", description="The date at which to terminate the object"
+    )
 
     @validator("import_to_mo", pre=True)
     def lower_import_to_mo(cls, v: str) -> str:
         return v.lower()
+
+    @root_validator
+    def check_terminate_only_set_on_valid_type(
+        cls, values: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Ensure that terminate is only set on things we can terminate."""
+        if not values["terminate"]:
+            return values
+
+        # model_type is a name like 'address', 'engagement' or 'it'
+        mo_class = import_class(values["objectClass"])
+        model_type = mo_class.__fields__["type_"].default
+
+        # The detail type contains a literal with valid details that can be terminated
+        # To extract the strings given in the literal we use get_args
+        detail_type = Detail.__fields__["type"].type_
+        terminatable_model_types = get_args(detail_type)
+
+        if model_type not in terminatable_model_types:
+            raise ValueError(f"Termination not supported for {mo_class}")
+
+        return values
 
     @root_validator
     def check_uuid_refs_in_mo_objects(cls, values: dict[str, Any]) -> dict[str, Any]:
@@ -177,7 +204,11 @@ class LDAP2MOMapping(MappingBaseModel):
         mo_class = import_class(values["objectClass"])
 
         accepted_attributes = set(mo_class.schema()["properties"].keys())
-        detected_attributes = set(values.keys()) - {"objectClass", "import_to_mo"}
+        detected_attributes = set(values.keys()) - {
+            "objectClass",
+            "import_to_mo",
+            "terminate",
+        }
 
         check_attributes(detected_attributes, accepted_attributes)
 
