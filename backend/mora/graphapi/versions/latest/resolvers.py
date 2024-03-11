@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import re
 from collections.abc import Callable
+from collections.abc import Iterable
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
@@ -13,9 +14,9 @@ from pydantic import ValidationError
 from sqlalchemy import and_
 from sqlalchemy import between
 from sqlalchemy import cast
+from sqlalchemy import ColumnElement
 from sqlalchemy import distinct
 from sqlalchemy import func
-from sqlalchemy import Select
 from sqlalchemy import select
 from starlette_context import context
 from strawberry import UNSET
@@ -544,36 +545,27 @@ async def organisation_unit_resolver(
             organisation_unit_resolver, info, org_unit_filter
         )
 
-    def _where_virkning(query: Select, cls: type[HasValidity]) -> Select:
+    def _virkning(cls: type[HasValidity]) -> Iterable[ColumnElement]:
         if filter.from_date is not None:
-            query = query.where(
-                cls.virkning_slut
-                >= (func.now() if filter.from_date is UNSET else filter.from_date)
+            yield cls.virkning_slut >= (
+                func.now() if filter.from_date is UNSET else filter.from_date
             )
         if filter.to_date is not None:
-            query = query.where(
-                cls.virkning_start
-                <= (func.now() if filter.to_date is UNSET else filter.to_date)
+            yield cls.virkning_start <= (
+                func.now() if filter.to_date is UNSET else filter.to_date
             )
-        return query
 
     query = (
         select(
             distinct(OrganisationEnhedRegistrering.organisationenhed_id),
         )
-        .join(
-            OrganisationEnhedRelation,
-        )
         .where(
-            and_(
-                OrganisationEnhedRegistrering.lifecycle
-                != cast("Slettet", LivscyklusKode),
-                between(
-                    cursor.registration_time if cursor is not None else func.now(),
-                    OrganisationEnhedRegistrering.registreringstid_start,
-                    OrganisationEnhedRegistrering.registreringstid_slut,
-                ),
-            )
+            OrganisationEnhedRegistrering.lifecycle != cast("Slettet", LivscyklusKode),
+            between(
+                cursor.registration_time if cursor is not None else func.now(),
+                OrganisationEnhedRegistrering.registreringstid_start,
+                OrganisationEnhedRegistrering.registreringstid_slut,
+            ),
         )
         .order_by(OrganisationEnhedRegistrering.organisationenhed_id)
     )
@@ -586,36 +578,52 @@ async def organisation_unit_resolver(
 
     # User keys
     if filter.user_keys is not None:
-        query = query.join(OrganisationEnhedAttrEgenskaber).where(
-            OrganisationEnhedAttrEgenskaber.brugervendtnoegle.in_(filter.user_keys)
+        query = query.where(
+            OrganisationEnhedRegistrering.id.in_(
+                select(
+                    OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
+                ).where(
+                    OrganisationEnhedAttrEgenskaber.brugervendtnoegle.in_(
+                        filter.user_keys
+                    ),
+                    *_virkning(OrganisationEnhedAttrEgenskaber),
+                )
+            )
         )
-        query = _where_virkning(query, OrganisationEnhedAttrEgenskaber)
 
     # Parents
     if filter.parent is not UNSET or filter.parents is not UNSET:
         # TODO: _get_parent_uuids should not be an awaitable
         parent_uuids = await _get_parent_uuids()
         query = query.where(
-            and_(
-                OrganisationEnhedRelation.rel_type
-                == cast("overordnet", OrganisationEnhedRelationKode),
-                OrganisationEnhedRelation.rel_maal_uuid.in_(parent_uuids),
+            OrganisationEnhedRegistrering.id.in_(
+                select(
+                    OrganisationEnhedRelation.organisationenhed_registrering_id
+                ).where(
+                    OrganisationEnhedRelation.rel_type
+                    == cast("overordnet", OrganisationEnhedRelationKode),
+                    OrganisationEnhedRelation.rel_maal_uuid.in_(parent_uuids),
+                    *_virkning(OrganisationEnhedRelation),
+                )
             )
         )
-        query = _where_virkning(query, OrganisationEnhedRelation)
 
     # Hierarchies
     if filter.hierarchy is not None or filter.hierarchies is not None:
         # TODO: _get_hierarchy_uuids should not be an awaitable
         hierarchy_uuids = await _get_hierarchy_uuids()
         query = query.where(
-            and_(
-                OrganisationEnhedRelation.rel_type
-                == cast("opmærkning", OrganisationEnhedRelationKode),
-                OrganisationEnhedRelation.rel_maal_uuid.in_(hierarchy_uuids),
+            OrganisationEnhedRegistrering.id.in_(
+                select(
+                    OrganisationEnhedRelation.organisationenhed_registrering_id
+                ).where(
+                    OrganisationEnhedRelation.rel_type
+                    == cast("opmærkning", OrganisationEnhedRelationKode),
+                    OrganisationEnhedRelation.rel_maal_uuid.in_(hierarchy_uuids),
+                    *_virkning(OrganisationEnhedRelation),
+                )
             )
         )
-        query = _where_virkning(query, OrganisationEnhedRelation)
 
     # Subtree
     if filter.subtree is not UNSET:
