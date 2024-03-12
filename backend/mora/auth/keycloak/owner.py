@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
 from uuid import UUID
 
 from more_itertools import flatten
@@ -39,9 +40,9 @@ async def get_ancestor_owners(uuid: UUID) -> set[UUID]:
     ancestors_tree = await _get_ancestors(uuid)
     ancestor_uuids = uuid_extractor.get_ancestor_uuids(ancestors_tree)
 
-    ancestor_owner_sublists = [
-        await _get_entity_owners(uuid, EntityType.ORG_UNIT) for uuid in ancestor_uuids
-    ]
+    ancestor_owner_sublists = await asyncio.gather(
+        *(_get_entity_owners(uuid, EntityType.ORG_UNIT) for uuid in ancestor_uuids)
+    )
 
     ancestor_owners = set(flatten(ancestor_owner_sublists))
 

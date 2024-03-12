@@ -7,6 +7,8 @@ Related Units
 This section describes how to interact with related units.
 
 """
+from asyncio import create_task
+from asyncio import gather
 from uuid import UUID
 
 from fastapi import APIRouter
@@ -177,13 +179,17 @@ async def map_org_units(origin: UUID, req: dict = Body(...)):
 
     return {
         "deleted": sorted(
-            [
-                await c.organisationfunktion.update(req, funcid)
-                for funcid, req in edits.items()
-            ]
+            await gather(
+                *[
+                    create_task(c.organisationfunktion.update(req, funcid))
+                    for funcid, req in edits.items()
+                ]
+            )
         ),
         "added": sorted(
-            [await c.organisationfunktion.create(req) for req in creations]
+            await gather(
+                *[create_task(c.organisationfunktion.create(req)) for req in creations]
+            )
         ),
         "unchanged": sorted(destinations & preexisting.keys()),
     }

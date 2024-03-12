@@ -826,7 +826,7 @@ async def get_by_uuid(
     dataloader: DataLoader, uuids: list[UUID]
 ) -> dict[UUID, dict[str, Any]]:
     deduplicated_uuids = list(set(uuids))
-    responses = [await dataloader.load(uuid) for uuid in deduplicated_uuids]
+    responses = await dataloader.load_many(deduplicated_uuids)
     # Filter empty objects, see: https://redmine.magenta-aps.dk/issues/51523.
     return {
         uuid: objects
