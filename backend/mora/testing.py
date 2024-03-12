@@ -8,6 +8,7 @@ from fastapi import APIRouter
 from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.asyncio import AsyncConnection
+from starlette.requests import Request
 from starlette.status import HTTP_204_NO_CONTENT
 from structlog import get_logger
 
@@ -24,7 +25,7 @@ router = APIRouter()
 
 
 @router.post("/amqp/emit", status_code=HTTP_204_NO_CONTENT)
-async def emit(session: depends.Session, amqp_system: depends.AMQPSystem) -> None:
+async def emit(request: Request, amqp_system: depends.AMQPSystem) -> None:
     """
     Emit queued AMQP events immediately.
 
@@ -34,7 +35,11 @@ async def emit(session: depends.Session, amqp_system: depends.AMQPSystem) -> Non
     logger.warning("Emitting AMQP events")
     while True:
         try:
-            await amqp._emit_events(session, amqp_system)
+            # The request-wide database session, which is used in almost every other
+            # endpoint, cannot be used here, as the database snapshot/rollback
+            # forcefully closes all connections, irrevocably destroying the session.
+            async with db._get_sessionmaker(request)() as session, session.begin():
+                await amqp._emit_events(session, amqp_system)
             return
         except OperationalError as e:
             # The database is unavailable while being snapshot or restored. Retry until
