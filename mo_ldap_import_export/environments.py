@@ -77,7 +77,23 @@ def filter_remove_curly_brackets(text: str) -> str:
     return text.replace("{", "").replace("}", "")
 
 
+def bitwise_and(input: int, bitmask: int) -> int:
+    """Bitwise and jinja filter.
+
+    Mostly useful for accessing bits within userAccountControl.
+
+    Args:
+        input: The input integer.
+        bitmask: The bitmask to filter the input through.
+
+    Returns:
+        The bitwise and on input and bitmask.
+    """
+    return input & bitmask
+
+
 environment = Environment(undefined=Undefined, enable_async=True)
+environment.filters["bitwise_and"] = bitwise_and
 environment.filters["splitfirst"] = filter_splitfirst
 environment.filters["splitlast"] = filter_splitlast
 environment.filters["mo_datestring"] = filter_mo_datestring
