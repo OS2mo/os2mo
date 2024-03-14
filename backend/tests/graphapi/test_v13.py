@@ -41,7 +41,6 @@ from tests.conftest import GraphAPIPost
             "f2b92485-2564-41c4-8f0d-3e09190253aa",
         ),
         ("related_units", "5c68402c-2a8d-4776-9237-16349fc72648", "rod <-> hum"),
-        ("roles", "1b20d0b9-96a0-42a6-b196-293bb86e62e8", "bvn"),
     ],
 )
 async def test_top_level_resolver_uuid_filters(

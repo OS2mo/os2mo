@@ -77,7 +77,7 @@ async def get_organisation(
       leaves {
         objects { objects { uuid } }
       }
-      roles {
+      rolebindings {
         objects { objects { uuid } }
       }
       managers {
@@ -107,7 +107,7 @@ async def get_organisation(
         "engagement_count": len(response.data["engagements"]["objects"]),
         "association_count": len(response.data["associations"]["objects"]),
         "leave_count": len(response.data["leaves"]["objects"]),
-        "role_count": len(response.data["roles"]["objects"]),
+        "role_count": len(response.data["rolebindings"]["objects"]),
         "manager_count": len(response.data["managers"]["objects"]),
     }
 

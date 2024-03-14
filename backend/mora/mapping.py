@@ -99,8 +99,8 @@ CLASSES = "dynamic_classes"
 RELATED_UNIT_KEY = "Relateret Enhed"
 
 # Role type
-ROLE_KEY = "Rolle"
-ROLE_TYPE = "role_type"
+ROLEBINDING_KEY = "Rollebinding"
+ROLEBINDING_TYPE = "role"
 
 # Leave
 LEAVE_KEY = "Orlov"
@@ -144,7 +144,7 @@ ORG_UNIT_HIERARCHY_KEY = "opmærkning"
 
 IT = "it"
 KLE = "kle"
-ROLE = "role"
+ROLEBINDING = "rolebinding"
 LEAVE = "leave"
 RELATED_UNIT = "related_unit"
 
@@ -158,7 +158,7 @@ class MoOrgFunk(enum.Enum):
     ASSOCIATION = ASSOCIATION
     IT = IT
     KLE = KLE
-    ROLE = ROLE
+    ROLEBINDING = ROLEBINDING
     ADDRESS = ADDRESS
     MANAGER = MANAGER
     OWNER = OWNER
@@ -171,7 +171,7 @@ RELATION_TRANSLATIONS = {
     ASSOCIATION: ASSOCIATION_KEY.lower(),
     IT: ITSYSTEM_KEY.lower(),
     KLE: KLE_KEY.lower(),
-    ROLE: ROLE_KEY.lower(),
+    ROLEBINDING: ROLEBINDING_KEY.lower(),
     ADDRESS: ADDRESS_KEY.lower(),
     MANAGER: MANAGER_KEY.lower(),
     OWNER: OWNER.lower(),
@@ -471,7 +471,9 @@ ROLE_FIELDS = {
     ORG_FUNK_TYPE_FIELD,
     ASSOCIATED_ORG_UNIT_FIELD,
     ASSOCIATED_ORG_FIELD,
+    ORG_FUNK_CLASSES_FIELD,
     USER_FIELD,
+    ASSOCIATED_FUNCTION_FIELD,
 }
 
 LEAVE_FIELDS = {

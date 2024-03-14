@@ -29,7 +29,6 @@ from ..v13.resolvers import LeaveResolver
 from ..v13.resolvers import ManagerResolver
 from ..v13.resolvers import OrganisationUnitResolver
 from ..v13.resolvers import RelatedUnitResolver
-from ..v13.resolvers import RoleResolver
 from ..v13.schema import Address
 from ..v13.schema import Association
 from ..v13.schema import Class
@@ -48,7 +47,6 @@ from ..v13.schema import OrganisationUnit
 from ..v13.schema import Paged
 from ..v13.schema import RelatedUnit
 from ..v13.schema import Response
-from ..v13.schema import Role
 from ..v17.version import to_paged
 from ..v5.version import GraphQLVersion as NextGraphQLVersion
 from mora.util import now
@@ -227,14 +225,6 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
             IsAuthenticatedPermission,
             gen_read_permission("related_unit"),
         ],
-    )
-
-    # Roles
-    # -----
-    roles: list[Response[Role]] = strawberry.field(
-        resolver=offset2cursor(to_response(RoleResolver())),
-        description="Get a list of all roles, optionally by uuid(s)",
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("role")],
     )
 
     # Health

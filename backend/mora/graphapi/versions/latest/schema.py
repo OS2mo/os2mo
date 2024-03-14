@@ -30,12 +30,14 @@ from starlette_context import context
 from strawberry import UNSET
 from strawberry.types import Info
 
+from .filters import ITUserFilter
 from .filters import ManagerFilter
 from .health import health_map
 from .models import ClassRead
 from .models import FacetRead
 from .models import FileStore
 from .models import OwnerInferencePriority
+from .models import RoleBindingRead
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
 from .registration import Registration
@@ -56,7 +58,7 @@ from .resolvers import manager_resolver
 from .resolvers import organisation_unit_resolver
 from .resolvers import owner_resolver
 from .resolvers import related_unit_resolver
-from .resolvers import role_resolver
+from .resolvers import rolebinding_resolver
 from .seed_resolver import seed_resolver
 from .types import CPRType
 from .validity import OpenValidity
@@ -90,7 +92,6 @@ from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import ManagerRead
 from ramodels.mo.details import OwnerRead
 from ramodels.mo.details import RelatedUnitRead
-from ramodels.mo.details import RoleRead
 
 # TODO: Remove RAModels dependency, be purely Strawberry models
 # TODO: Deprecate all _uuid / _uuids relation fields in favor of relation objects
@@ -203,7 +204,7 @@ def model2name(model: Any) -> Any:
         ITUserRead: "ituser",
         KLERead: "kle",
         LeaveRead: "leave",
-        RoleRead: "role",
+        RoleBindingRead: "rolebinding",
         ManagerRead: "manager",
     }
     return mapping[model]
@@ -422,7 +423,7 @@ LazyManager = Annotated["Manager", LazySchema]
 LazyOwner = Annotated["Owner", LazySchema]
 LazyOrganisationUnit = Annotated["OrganisationUnit", LazySchema]
 LazyRelatedUnit = Annotated["RelatedUnit", LazySchema]
-LazyRole = Annotated["Role", LazySchema]
+LazyRoleBinding = Annotated["RoleBinding", LazySchema]
 
 
 def gen_uuid_field_deprecation(field: str) -> str:
@@ -1743,23 +1744,6 @@ class Employee:
         ],
     )
 
-    roles: list[LazyRole] = strawberry.field(
-        resolver=to_list(
-            seed_resolver(
-                role_resolver,
-                {"employees": lambda root: [root.uuid]},
-            )
-        ),
-        description=dedent(
-            """\
-            Roles the employee has within the organisation.
-
-            May be an empty list if the employee does not fulfill any roles in the organisation.
-            """
-        ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("role")],
-    )
-
     itusers: list[LazyITUser] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -2604,6 +2588,20 @@ class ITUser:
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
+    )
+
+    rolebindings: list[LazyRoleBinding] = strawberry.field(
+        resolver=to_list(
+            seed_resolver(
+                rolebinding_resolver,
+                {"ituser": lambda root: ITUserFilter(uuids=[root.uuid])},
+            )
+        ),
+        description="Rolebindings this IT User has in the connected IT system.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("rolebinding"),
+        ],
     )
 
     primary: LazyClass | None = strawberry.field(
@@ -3851,24 +3849,6 @@ class OrganisationUnit:
         ],
     )
 
-    roles: list[LazyRole] = strawberry.field(
-        resolver=to_list(
-            seed_resolver(
-                role_resolver,
-                {"org_units": lambda root: [root.uuid]},
-            )
-        ),
-        description=dedent(
-            """\
-            Roles being fulfilled within the organisational unit.
-
-            May be an empty list if the organistion unit is purely hierarchical.
-            This situation may occur especially in the middle or the organisation tree.
-            """
-        ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("role")],
-    )
-
     itusers: list[LazyITUser] = strawberry.field(
         resolver=to_list(
             seed_resolver(
@@ -4163,82 +4143,44 @@ class RelatedUnit:
 # Role
 # ----
 @strawberry.experimental.pydantic.type(
-    model=RoleRead,
+    model=RoleBindingRead,
     description="The role a person has within an organisation unit",
 )
-class Role:
+class RoleBinding:
     @strawberry.field(description="UUID of the entity")
-    async def uuid(self, root: RoleRead) -> UUID:
+    async def uuid(self, root: RoleBindingRead) -> UUID:
         return root.uuid
 
     # TODO: Document this
     user_key: str = strawberry.auto
 
-    @strawberry.field(
-        description=dedent(
-            """\
-            The object type.
-
-            Always contains the string `role`.
-            """
-        ),
-        deprecation_reason=dedent(
-            """\
-            Unintentionally exposed implementation detail.
-            Provides no value whatsoever.
-            """
-        ),
-    )
-    async def type(self, root: RoleRead) -> str:
-        """Implemented for backwards compatability."""
-        return root.type_
-
-    role_type: LazyClass = strawberry.field(
-        resolver=to_one(
-            seed_resolver(class_resolver, {"uuids": lambda root: [root.role_type_uuid]})
+    role: list[LazyClass] = strawberry.field(
+        resolver=to_list(
+            seed_resolver(class_resolver, {"uuids": lambda root: [root.role]})
         ),
         description=dedent(
             """\
             The role that is being fulfilled.
 
             Examples of user-keys:
-            * `"Staff representative"`
-            * `"Coordinator"`
-            * `"Security personnel"`
+            * `"AD Read"`
+            * `"AD Write"`
+            * `"SAP Admin"`
             """
-        ),
+        )
+        + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    employee: list[LazyEmployee] = strawberry.field(
+    ituser: list[LazyITUser] = strawberry.field(
         resolver=to_list(
             seed_resolver(
-                employee_resolver, {"uuids": lambda root: [root.employee_uuid]}
+                it_user_resolver, {"uuids": lambda root: uuid2list(root.it_user_uuid)}
             )
         ),
-        description=dedent(
-            """\
-            The person fulfilling the role.
-            """
-        )
+        description="The IT-user that should be granted this role\n"
         + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
-        deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo.",
-    )
-
-    person: list[LazyEmployee] = strawberry.field(
-        resolver=to_list(
-            seed_resolver(
-                employee_resolver, {"uuids": lambda root: [root.employee_uuid]}
-            )
-        ),
-        description=dedent(
-            """\
-            The person fulfilling the role.
-            """
-        )
-        + list_to_optional_field_warning,
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
@@ -4256,27 +4198,6 @@ class Role:
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-
-    @strawberry.field(
-        description="UUID of the role type class.",
-        deprecation_reason=gen_uuid_field_deprecation("role_type"),
-    )
-    async def role_type_uuid(self, root: RoleRead) -> UUID:
-        return root.role_type_uuid
-
-    @strawberry.field(
-        description="UUID of the employee related to the role.",
-        deprecation_reason=gen_uuid_field_deprecation("employee"),
-    )
-    async def employee_uuid(self, root: RoleRead) -> UUID:
-        return root.employee_uuid
-
-    @strawberry.field(
-        description="UUID of the organisation unit related to the association.",
-        deprecation_reason=gen_uuid_field_deprecation("org_unit"),
-    )
-    async def org_unit_uuid(self, root: RoleRead) -> UUID:
-        return root.org_unit_uuid
 
     validity: Validity = strawberry.auto
 

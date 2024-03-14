@@ -127,7 +127,7 @@ async def test_nested_filters(graphapi_post: GraphAPIPost) -> None:
     """Test that seed_resolver doesn't break nested filters."""
     query = """
         query NestedRolesQuery {
-          roles(filter: {employee: {cpr_numbers: "0906340000"}}) {
+          itusers(filter: {employee: {cpr_numbers: "0906340000"}, itsystem: {user_keys: "SAP"}}) {
             objects {
               current {
                 person(filter: {from_date: "2001-02-03", to_date: null}) {
@@ -143,7 +143,7 @@ async def test_nested_filters(graphapi_post: GraphAPIPost) -> None:
     result: GQLResponse = graphapi_post(query)
     assert result.errors is None
     assert result.data == {
-        "roles": {
+        "itusers": {
             "objects": [
                 {
                     "current": {

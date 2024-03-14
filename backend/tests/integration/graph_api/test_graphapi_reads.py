@@ -39,7 +39,7 @@ UUID_SEARCHABLE_FIELDS = [
     "managers",
     "org_units",
     "related_units",
-    "roles",
+    "rolebindings",
 ]
 FIELDS = UUID_SEARCHABLE_FIELDS + [
     "healths",

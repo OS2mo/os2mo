@@ -22,7 +22,7 @@ from mora.mapping import MANAGER
 from mora.mapping import ORG_UNIT
 from mora.mapping import PARENT
 from mora.mapping import PERSON
-from mora.mapping import ROLE
+from mora.mapping import ROLEBINDING
 from mora.mapping import TYPE
 from mora.mapping import USER_FIELD
 
@@ -226,7 +226,7 @@ async def json_extract_strategy(request: Request) -> set[UUID]:
     async def obj_to_uuid(obj: dict) -> UUID | None:
         # All role, association and manager manipulations should be
         # granted access via the org unit(s)
-        if _type in {ENGAGEMENT, ROLE, ASSOCIATION, MANAGER}:
+        if _type in {ENGAGEMENT, ROLEBINDING, ASSOCIATION, MANAGER}:
             if ORG_UNIT in obj:
                 return UUID(obj[ORG_UNIT][UUID_KEY])
             if obj[TYPE] == ENGAGEMENT:
@@ -275,7 +275,7 @@ async def get_entity_type(request: Request) -> EntityType:
                 org_function = await _get_org_function(obj)
                 org_unit_uuid = ASSOCIATED_ORG_UNITS_FIELD.get_uuid(org_function)
                 return EntityType.ORG_UNIT if org_unit_uuid else EntityType.EMPLOYEE
-        if obj.get(TYPE) in {ENGAGEMENT, ROLE, ASSOCIATION, MANAGER}:
+        if obj.get(TYPE) in {ENGAGEMENT, ROLEBINDING, ASSOCIATION, MANAGER}:
             return EntityType.ORG_UNIT
         if ORG_UNIT in obj or obj.get(TYPE) == ORG_UNIT:
             return EntityType.ORG_UNIT

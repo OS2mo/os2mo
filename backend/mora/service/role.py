@@ -19,22 +19,23 @@ from .. import util
 from .validation import validator
 
 
-class RoleRequestHandler(handlers.OrgFunkRequestHandler):
-    role_type = mapping.ROLE
-    function_key = mapping.ROLE_KEY
+class RoleBindingRequestHandler(handlers.OrgFunkRequestHandler):
+    role_type = mapping.ROLEBINDING
+    function_key = mapping.ROLEBINDING_KEY
 
     async def prepare_create(self, req):
-        org_unit = util.checked_get(req, mapping.ORG_UNIT, {}, required=True)
-        org_unit_uuid = util.get_uuid(org_unit, required=True)
+        tilknyttedeenheder = []
 
-        employee = util.checked_get(req, mapping.PERSON, {}, required=True)
-        employee_uuid = util.get_uuid(employee, required=True)
+        org_unit = util.checked_get(req, mapping.ORG_UNIT, {})
+        ituser = util.checked_get(req, mapping.IT, {}, required=True)
 
         valid_from, valid_to = util.get_validities(req)
 
-        # Validation
-        await validator.is_date_range_in_org_unit_range(org_unit, valid_from, valid_to)
-        await validator.is_date_range_in_employee_range(employee, valid_from, valid_to)
+        if org_unit:
+            tilknyttedeenheder.append(util.get_uuid(org_unit, required=True))
+            await validator.is_date_range_in_org_unit_range(
+                org_unit, valid_from, valid_to
+            )
 
         org_uuid = (
             await org.get_configured_organisation(
@@ -42,30 +43,28 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
             )
         )["uuid"]
 
-        role_type_uuid = util.get_mapping_uuid(req, mapping.ROLE_TYPE, required=True)
+        role_uuid = util.get_mapping_uuid(req, mapping.ROLEBINDING_TYPE, required=True)
 
         func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
         bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
         role = common.create_organisationsfunktion_payload(
-            funktionsnavn=mapping.ROLE_KEY,
+            funktionsnavn=mapping.ROLEBINDING_KEY,
             valid_from=valid_from,
             valid_to=valid_to,
             brugervendtnoegle=bvn,
-            tilknyttedebrugere=[employee_uuid],
             tilknyttedeorganisationer=[org_uuid],
-            tilknyttedeenheder=[org_unit_uuid],
-            funktionstype=role_type_uuid,
+            tilknyttedeenheder=tilknyttedeenheder,
+            tilknyttedefunktioner=[ituser],
+            funktionstype=role_uuid,
         )
 
         self.payload = role
         self.uuid = func_id
-        self.trigger_dict.update(
-            {"employee_uuid": employee_uuid, "org_unit_uuid": org_unit_uuid}
-        )
 
     async def prepare_edit(self, req: dict):
-        role_uuid = req.get("uuid")
+        role_uuid = req["uuid"]
+
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         original = await c.organisationfunktion.get(uuid=role_uuid)
@@ -73,13 +72,10 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
         if not original:
             exceptions.ErrorCodes.E_NOT_FOUND(uuid=role_uuid)
 
-        data = req.get("data")
+        data = req["data"]
         new_from, new_to = util.get_validities(data)
 
-        # Get org unit uuid for validation purposes
-        org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD(original)[0]
-
-        payload = {"note": "Rediger rolle"}
+        payload = {"note": "Rediger rollebinding"}
 
         original_data = req.get("original")
         if original_data:
@@ -118,11 +114,11 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        if mapping.ROLE_TYPE in data:
+        if mapping.ROLEBINDING_TYPE in data:
             update_fields.append(
                 (
                     mapping.ORG_FUNK_TYPE_FIELD,
-                    {"uuid": data.get(mapping.ROLE_TYPE).get("uuid")},
+                    {"uuid": data.get(mapping.ROLEBINDING_TYPE).get("uuid")},
                 )
             )
 
@@ -134,18 +130,13 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        if mapping.PERSON in data:
-            employee = data.get(mapping.PERSON)
-            employee_uuid = employee.get("uuid")
-
+        if mapping.IT in data:
             update_fields.append(
                 (
-                    mapping.USER_FIELD,
-                    {"uuid": employee_uuid},
+                    mapping.ASSOCIATED_FUNCTION_FIELD,
+                    {"uuid": util.get_mapping_uuid(data, mapping.IT)},
                 )
             )
-        else:
-            employee = util.get_obj_value(original, mapping.USER_FIELD.path)[-1]
 
         payload = common.update_payload(
             new_from, new_to, update_fields, original, payload
@@ -158,16 +149,5 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
             new_from, new_to, bounds_fields, original, payload
         )
 
-        await validator.is_date_range_in_employee_range(employee, new_from, new_to)
-
         self.payload = payload
         self.uuid = role_uuid
-        self.trigger_dict.update(
-            {
-                "org_unit_uuid": util.get_uuid(org_unit, required=False),
-                "employee_uuid": (
-                    util.get_mapping_uuid(data, mapping.PERSON)
-                    or mapping.USER_FIELD.get_uuid(original)
-                ),
-            }
-        )

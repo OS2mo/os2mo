@@ -111,7 +111,7 @@ async def load_sample_structures():
         "org_unit_type": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
         "primary_type": "1f6f34d8-d065-4bb7-9af0-738d25dc0fbf",
         "responsibility": "452e1dd0-658b-477a-8dd8-efba105c06d6",
-        "role_type": "68ba77bc-4d57-43e2-9c24-0c9eda5fddc7",
+        "role": "68ba77bc-4d57-43e2-9c24-0c9eda5fddc7",
         "time_planning": "c4ad4c87-28a8-4d5c-afeb-b59de9c9f549",
         "visibility": "c9f103c7-3d53-47c0-93bf-ccb34d044a3f",
     }
@@ -124,7 +124,7 @@ async def load_sample_structures():
         "engagement_eriksmidthansen_sekundaer": "301a906b-ef51-4d5c-9c77-386fb8410459",
         "tilknytning": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
         "tilknytning_2": "c89853b8-3da5-4b10-8d87-6ca5b4c9416b",
-        "rolle": "1b20d0b9-96a0-42a6-b196-293bb86e62e8",
+        "rollebinding": "1b20d0b9-96a0-42a6-b196-293bb86e62e8",
         "orlov_andersand": "b807628c-030c-4f5f-a438-de41c1f26ba5",
         "orlov_eriksmidthansen": "0895b7f5-86ac-45c5-8fb1-c3047d45b643",
         "leder": "05609702-977f-4869-9fb4-50ad74c6999a",
@@ -212,8 +212,8 @@ async def load_sample_structures():
             "primaer": "89b6cef8-3d03-49ac-816f-f7530b383411",
             "sekundaer": "2f16d140-d743-4c9f-9e0e-361da91a06f6",
             # role_type
-            "tillidsrepraesentant": "0fa6073f-32c0-4f82-865f-adb622ca0b04",
-            "ergonomiambasadoer": "8ca636d8-d70f-4ce4-992b-4bf4dcfc2559",
+            "adread": "0fa6073f-32c0-4f82-865f-adb622ca0b04",
+            "sapadmin": "8ca636d8-d70f-4ce4-992b-4bf4dcfc2559",
             # manager_type
             "direktoer": "0d72900a-22a4-4390-a01e-fd65d0e0999d",
             # manager_level

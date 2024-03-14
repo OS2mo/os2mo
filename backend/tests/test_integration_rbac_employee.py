@@ -353,35 +353,6 @@ def test_create_multiple_associations_owns_all_units(
 @pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
 @parametrize_roles_create
 @override_config(Settings(keycloak_rbac_enabled=True))
-def test_create_role(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
-    create_employee_payload: dict[str, Any],
-    role: str,
-    userid: str,
-    status_code: int,
-) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
-
-    payload = create_employee_payload
-    payload["type"] = "role"
-    payload["role_type"] = {
-        "uuid": "0fa6073f-32c0-4f82-865f-adb622ca0b04",
-        "name": "Tillidsrepræsentant",
-        "user_key": "Tillidsrepræsentant",
-        "example": None,
-        "scope": None,
-        "owner": None,
-    }
-
-    response = service_client.request("POST", "/service/details/create", json=payload)
-    assert response.status_code == status_code
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
-@parametrize_roles_create
-@override_config(Settings(keycloak_rbac_enabled=True))
 def test_create_association(
     fastapi_test_app: FastAPI,
     service_client: TestClient,
@@ -485,7 +456,6 @@ def test_object_types_in_list_must_be_identical(
         "edit_association",
         "edit_employment",
         "edit_manager",
-        "edit_role",
         "move_employment",
         "move_multiple_employments",
     ],

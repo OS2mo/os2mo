@@ -2,8 +2,8 @@
     "attributter": {
         "klasseegenskaber": [
             {
-                "brugervendtnoegle": "Tillidsrepræsentant",
-                "titel": "Tillidsrepræsentant",
+                "brugervendtnoegle": "SAP Admin",
+                "titel": "SAP Admin",
                 "virkning": {
                     "from": "1900-01-01 00:00:00+01:00",
                     "to": "infinity"

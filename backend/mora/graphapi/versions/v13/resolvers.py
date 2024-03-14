@@ -32,7 +32,6 @@ from ..latest.filters import ManagerFilter
 from ..latest.filters import OrganisationUnitFilter
 from ..latest.filters import OwnerFilter
 from ..latest.filters import RelatedUnitFilter
-from ..latest.filters import RoleFilter
 from ..latest.models import FileStore
 from ..latest.paged import CursorType
 from ..latest.paged import LimitType
@@ -54,7 +53,6 @@ from ..latest.resolvers import manager_resolver
 from ..latest.resolvers import organisation_unit_resolver
 from ..latest.resolvers import owner_resolver
 from ..latest.resolvers import related_unit_resolver
-from ..latest.resolvers import role_resolver
 from ..v17.version import PagedResolver
 from mora.util import CPR
 from ramodels.mo import ClassRead
@@ -71,7 +69,6 @@ from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import ManagerRead
 from ramodels.mo.details import OwnerRead
 from ramodels.mo.details import RelatedUnitRead
-from ramodels.mo.details import RoleRead
 
 UUIDsFilterType = Annotated[
     list[UUID] | None,
@@ -798,38 +795,6 @@ class RelatedUnitResolver(Resolver):
             org_units=org_units,
         )
         return await related_unit_resolver(
-            info=info,
-            filter=filter,
-            limit=limit,
-            cursor=cursor,
-        )
-
-
-class RoleResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(RoleRead)
-
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        uuids: UUIDsFilterType = None,
-        user_keys: UserKeysFilterType = None,
-        limit: LimitType = None,
-        cursor: CursorType = None,
-        from_date: FromDateFilterType = UNSET,
-        to_date: ToDateFilterType = UNSET,
-        employees: EmployeeUUIDsFilterType = None,
-        org_units: OrgUnitUUIDsFilterType = None,
-    ):
-        filter = RoleFilter(
-            uuids=uuids,
-            user_keys=user_keys,
-            from_date=from_date,
-            to_date=to_date,
-            employees=employees,
-            org_units=org_units,
-        )
-        return await role_resolver(
             info=info,
             filter=filter,
             limit=limit,

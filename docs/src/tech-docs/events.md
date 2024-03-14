@@ -27,7 +27,7 @@ object, e.g. `engagement`. The valid topics are:
 * `owner`
 * `person`
 * `related_unit`
-* `role`
+* `rolebinding`
 
 
 ## Body

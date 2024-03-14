@@ -52,9 +52,9 @@ from .models import OwnerCreate
 from .models import OwnerTerminate
 from .models import OwnerUpdate
 from .models import RelatedUnitsUpdate
-from .models import RoleCreate
-from .models import RoleTerminate
-from .models import RoleUpdate
+from .models import RoleBindingCreate
+from .models import RoleBindingTerminate
+from .models import RoleBindingUpdate
 from .models import Validity
 from ramodels.mo import OpenValidity as RAOpenValidity
 from ramodels.mo import Validity as RAValidity
@@ -655,26 +655,26 @@ class RelatedUnitsUpdateInput:
 # Roles
 # -----
 @strawberry.experimental.pydantic.input(
-    model=RoleCreate,
+    model=RoleBindingCreate,
     all_fields=True,
 )
-class RoleCreateInput:
+class RoleBindingCreateInput:
     """Input model for creating roles."""
 
 
 @strawberry.experimental.pydantic.input(
-    model=RoleUpdate,
+    model=RoleBindingUpdate,
     all_fields=True,
 )
-class RoleUpdateInput:
+class RoleBindingUpdateInput:
     """Input model for updating roles."""
 
 
 @strawberry.experimental.pydantic.input(
-    model=RoleTerminate,
+    model=RoleBindingTerminate,
     all_fields=True,
 )
-class RoleTerminateInput:
+class RoleBindingTerminateInput:
     """Input model for terminating roles."""
 
 

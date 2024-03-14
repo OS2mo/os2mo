@@ -5,6 +5,7 @@ from typing import Any
 
 from .models import ClassRead
 from .models import FacetRead
+from .models import RoleBindingRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead
@@ -17,7 +18,6 @@ from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import ManagerRead
 from ramodels.mo.details import OwnerRead
 from ramodels.mo.details import RelatedUnitRead
-from ramodels.mo.details import RoleRead
 
 
 # TODO: Encode this relation using Annotated types
@@ -38,7 +38,7 @@ _resolver_tuples = [
     (KLERead, "kle_getter", "kle_loader"),
     (LeaveRead, "leave_getter", "leave_loader"),
     (RelatedUnitRead, "rel_unit_getter", "rel_unit_loader"),
-    (RoleRead, "role_getter", "role_loader"),
+    (RoleBindingRead, "rolebinding_getter", "rolebinding_loader"),
 ]
 resolver_map: dict[Any, Any] = {
     model: {

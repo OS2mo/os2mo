@@ -5,6 +5,7 @@ import logging
 from enum import Enum
 from textwrap import dedent
 from typing import Any
+from typing import Literal
 from uuid import UUID
 
 import strawberry
@@ -24,8 +25,12 @@ from mora.util import to_lora_time
 from oio_rest import validate
 from ramodels.mo import ClassRead as RAClassRead
 from ramodels.mo import FacetRead as RAFacetRead
+from ramodels.mo import MOBase
+from ramodels.mo import MORef
 from ramodels.mo import OpenValidity as RAOpenValidity
 from ramodels.mo import Validity as RAValidity
+from ramodels.mo._shared import ITUserRef
+from ramodels.mo._shared import OrgUnitRef
 from ramodels.mo._shared import UUIDBase
 
 
@@ -1280,23 +1285,75 @@ class RelatedUnitsUpdate(UUIDBase):
         }
 
 
-# Roles
-# -----
-class RoleCreate(UUIDBase):
+# Rolebindings
+# ------------
+
+# These first few models are essentially "ramodels" rip-offs, but there is no
+# need for rolebindings in ramodels as they are not exposed in the service API.
+
+
+class RoleType(MORef):
+    """Role type reference."""
+
+
+class RoleBindingBase(MOBase):
+    """A MO role object."""
+
+    type_: str = Field("rolebinding", alias="type", description="The object type.")
+    validity: RAValidity = Field(description="Validity of the role object.")
+
+
+class RoleBindingRead(RoleBindingBase):
+    """A MO role read object."""
+
+    org_unit_uuid: UUID | None = Field(
+        description="UUID of the organisation unit related to the association."
+    )
+    role: UUID = Field(description="UUID of the role type klasse.")
+    it_user_uuid: UUID = Field(description="UUID of the IT user.")
+
+
+class RoleBindingWrite(RoleBindingBase):
+    """A MO role write object."""
+
+    org_unit: OrgUnitRef | None = Field(
+        description="Reference to the organisation unit for the role."
+    )
+    role: RoleType = Field(description="Reference to the role klasse.")
+    it_user_uuid: ITUserRef = Field(description="Reference to the IT user.")
+
+
+class RoleBinding(MOBase):
+    type_: Literal["rolebinding"] = Field(
+        "rolebinding", alias="type", description="The object type."
+    )
+    role: RoleType = Field(description="Reference to the role type facet")
+    org_unit: OrgUnitRef | None = Field(
+        description=(
+            "Reference to the organisation unit for which the role should be created."
+        )
+    )
+    it_user: ITUserRef = Field(description="Reference to the IT user.")
+    validity: RAValidity = Field(
+        description="Validity of the created rolebinding object."
+    )
+
+
+class RoleBindingCreate(UUIDBase):
     """Model for creating role."""
 
     user_key: str | None = Field(description="Extra info or uuid.")
-    org_unit: UUID = Field(description="UUID of the org_unit")
-    person: UUID = Field(description="UUID of the person")
-    role_type: UUID = Field(description="UUID of the role type")
+    org_unit: UUID | None = Field(description="UUID of the org_unit")
+    ituser: UUID = Field(description="UUID of the ituser")
+    role: UUID = Field(description="UUID of the role type")
     validity: RAValidity = Field(description="Validity range for the role.")
 
     def to_handler_dict(self) -> dict:
         return {
             "user_key": self.user_key,
             "org_unit": gen_uuid(self.org_unit),
-            "person": gen_uuid(self.person),
-            "role_type": gen_uuid(self.role_type),
+            "it": gen_uuid(self.ituser),
+            "role": gen_uuid(self.role),
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()
@@ -1306,7 +1363,7 @@ class RoleCreate(UUIDBase):
         }
 
 
-class RoleUpdate(UUIDBase):
+class RoleBindingUpdate(UUIDBase):
     """Model for updating a role annotation."""
 
     uuid: UUID = Field(description="UUID of the role to be updated.")
@@ -1314,7 +1371,8 @@ class RoleUpdate(UUIDBase):
     org_unit: UUID | None = Field(
         description="UUID of the role's organisation unit to be updated."
     )
-    role_type: UUID | None = Field(description="UUID of the role type")
+    ituser: UUID = Field(description="UUID of the ituser")
+    role: UUID | None = Field(description="UUID of the role type")
     validity: RAValidity = Field(
         description="Validity range for the role to be updated."
     )
@@ -1323,8 +1381,9 @@ class RoleUpdate(UUIDBase):
         data_dict: dict = {
             "uuid": self.uuid,
             "user_key": self.user_key,
-            "role_type": gen_uuid(self.role_type),
+            "role": gen_uuid(self.role),
             "org_unit": gen_uuid(self.org_unit),
+            "it": gen_uuid(self.ituser),
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()
@@ -1335,7 +1394,7 @@ class RoleUpdate(UUIDBase):
         return {k: v for k, v in data_dict.items() if v is not None}
 
 
-class RoleTerminate(ValidityTerminate):
+class RoleBindingTerminate(ValidityTerminate):
     """Model representing a role termination."""
 
     uuid: UUID = Field(description="UUID of the role we want to terminate.")
