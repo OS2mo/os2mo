@@ -18,8 +18,6 @@ from more_itertools import one
 from psycopg import ClientCursor
 from psycopg import sql
 from psycopg.adapt import Transformer
-from psycopg.sql import Identifier
-from psycopg.sql import SQL
 from psycopg.types.range import TimestamptzRange
 from sqlalchemy import text
 from sqlalchemy.exc import StatementError
@@ -300,32 +298,23 @@ async def sql_get_registration(
 """
 
 
-async def mogrify(sql, arguments, session: AsyncSession):
-    connection = await session.connection()
-    raw_connection = await connection.get_raw_connection()
-    driver_connection = raw_connection.driver_connection
-    client_cursor = ClientCursor(driver_connection)
-    resulting_sql = client_cursor.mogrify(sql, arguments)
-    return resulting_sql
-
-
 async def object_exists(class_name: str, uuid: str) -> bool:
     """Check if an object with this class name and UUID exists already."""
-    sql = SQL(
+    sql = text(
+        f"""
+        SELECT EXISTS(
+            SELECT 1
+            FROM {class_name.lower() + "_registrering"}
+            WHERE {class_name.lower() + "_id"} = :uuid
+        )
         """
-    SELECT EXISTS( SELECT 1 FROM {registration_table} WHERE {id_column} = %(uuid)s )
-    """
-    ).format(
-        registration_table=Identifier(class_name.lower() + "_registrering"),
-        id_column=Identifier(class_name.lower() + "_id"),
     )
     arguments = {"uuid": uuid}
 
     session = get_session()
     try:
-        resulting_sql = await mogrify(sql, arguments, session)
         audit_log(session, "object_exists", class_name, arguments, [UUID(uuid)])
-        result = await session.scalar(text(resulting_sql))
+        result = await session.scalar(sql, arguments)
     except StatementError as e:
         if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
             status_code = int(e.orig.sqlstate[2:])
@@ -533,10 +522,6 @@ async def list_objects(
     virkning and registering periods."""
     assert isinstance(uuid, list) or not uuid
 
-    sql_template = jinja_env.get_template("list_objects.sql")
-
-    sql = await sql_template.render_async(class_name=class_name)
-
     registration_period = None
     if registreret_fra is not None or registreret_til is not None:
         registration_period = TimestamptzRange(registreret_fra, registreret_til)
@@ -547,10 +532,12 @@ async def list_objects(
         "virkning_tstzrange": TimestamptzRange(virkning_fra, virkning_til),
     }
 
+    sql_template = jinja_env.get_template("list_objects.sql")
+    sql = await sql_template.render_async(class_name=class_name, **arguments)
+
     session = get_session()
     try:
-        resulting_sql = await mogrify(sql, arguments, session)
-        result = await session.execute(text(resulting_sql))
+        result = await session.execute(text(sql))
     except StatementError as e:
         if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
             status_code = int(e.orig.sqlstate[2:])

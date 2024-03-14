@@ -25,20 +25,9 @@ def mock_sql_session(monkeypatch: MonkeyPatch) -> AsyncMock:
     Supports mocking
 
         session = get_session()
-        resulting_sql = await mogrify(...)
-        result = await session.scalar(text(resulting_sql))
-
-    or
-
-        session = get_session()
         result = await session.execute(sql)
         return result.fetchone()
     """
-    # Mock mogrify calls
-    mogrify = AsyncMock()
-    monkeypatch.setattr("oio_rest.db.mogrify", mogrify)
-    mogrify.return_value = ""
-
     # Mock session
     get_session = Mock()
     monkeypatch.setattr("oio_rest.db.get_session", get_session)

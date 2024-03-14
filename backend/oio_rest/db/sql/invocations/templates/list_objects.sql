@@ -2,7 +2,7 @@
 -- SPDX-License-Identifier: MPL-2.0
 
 SELECT  as_list_{{ class_name | lower }}(
-    %(uuid)s::uuid[],
-    %(registrering_tstzrange)s,
-    %(virkning_tstzrange)s
+    {{ uuid|adapt }}::uuid[],
+    {{ registrering_tstzrange|adapt }},
+    {{ virkning_tstzrange|adapt }}
 ) :: json[];
