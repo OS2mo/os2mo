@@ -1,6 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 # flake8: noqa
+import asyncio
+from contextlib import asynccontextmanager
+from typing import Any
+
 from fastapi import Request
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio import AsyncEngine
@@ -73,12 +77,54 @@ def create_engine(user, password, host, name) -> AsyncEngine:
     )
 
 
+class AsyncSessionWithLock(AsyncSession):
+    """
+    Each HTTP request/GraphQL query operates on a single database session,
+    which cannot be used concurrently. To allow the usage of asyncio gather and
+    tasks -- which is required to enable the dataloader pattern -- we have to
+    add our own concurrency controls as close to the database as possible.
+    """
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.lock = asyncio.Lock()
+
+        @asynccontextmanager
+        async def with_lock():
+            async with self.lock:
+                yield
+
+        # WARNING: It is very easy to introduce a deadlock by wrapping a method which
+        # awaits another wrapped method. Check the superclass' implementation before
+        # guarding a new method!
+        methods = (
+            "close",
+            "commit",
+            "delete",
+            "execute",
+            "flush",
+            "get",
+            "get_one",
+            "invalidate",
+            "merge",
+            "refresh",
+            "reset",
+            "rollback",
+            "scalar",
+            "stream",
+        )
+        for method in methods:
+            original = getattr(self, method)
+            wrapped = with_lock()(original)
+            setattr(self, method, wrapped)
+
+
 def create_sessionmaker(user, password, host, name) -> async_sessionmaker:
     engine = create_engine(user, password, host, name)
-    return async_sessionmaker(engine)
+    return async_sessionmaker(engine, class_=AsyncSessionWithLock)
 
 
-def _get_sessionmaker(request: Request):
+def _get_sessionmaker(request: Request) -> async_sessionmaker:
     return request.app.state.sessionmaker
 
 
