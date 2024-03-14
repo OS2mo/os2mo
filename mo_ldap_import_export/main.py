@@ -142,12 +142,12 @@ async def unpack_payload(
         object_uuid=str(object_uuid),
     )
 
-    dataloader = context["user_context"]["dataloader"]
+    dataloader: DataLoader = context["user_context"]["dataloader"]
 
     object_type = get_object_type_from_routing_key(mo_routing_key)
 
     mo_object = await dataloader.load_mo_object(
-        object_uuid,
+        str(object_uuid),
         object_type,
         add_validity=True,
         current_objects_only=False,
@@ -414,7 +414,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     app.include_router(fastapi_router)
 
     user_context = fastramqpi._context["user_context"]
-    dataloader = user_context["dataloader"]
+    dataloader: DataLoader = user_context["dataloader"]
     ldap_connection = user_context["ldap_connection"]
     internal_amqpsystem = user_context["internal_amqpsystem"]
     mapping = user_context["mapping"]
@@ -652,7 +652,8 @@ def create_app(**kwargs: Any) -> FastAPI:
                 settings.ldap_unique_id_field
             )
         ]
-        all_it_users = await dataloader.load_all_current_it_users(it_system_uuid)
+        # TODO: Cast this to an UUID and remove the type ignore, good luck!
+        all_it_users = await dataloader.load_all_current_it_users(it_system_uuid)  # type: ignore
 
         # Find unique ldap UUIDs which are stored in MO but do not exist in LDAP
         non_existing_unique_ldap_uuids = []

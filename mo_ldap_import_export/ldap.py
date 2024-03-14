@@ -194,7 +194,17 @@ def get_ldap_attributes(ldap_connection: Connection, root_ldap_object: str):
     return all_attributes
 
 
-def apply_discriminator(search_result: list, context: Context) -> list:
+def apply_discriminator(search_result: list[dict[str, Any]], context: Context) -> list:
+    """Apply our discriminator to remove unwanted search result.
+
+    Args:
+        search_result: A list of LDAP search results.
+        context: The FastRAMQPI context.
+
+    Returns:
+        A filtered list of LDAP search results.
+    """
+    # TODO: Take settings instead of the entire context?
     settings = context["user_context"]["settings"]
 
     discriminator_field = settings.discriminator_field
@@ -202,20 +212,23 @@ def apply_discriminator(search_result: list, context: Context) -> list:
     match settings.discriminator_function:
         case None:
             return search_result
+
         case "include":
 
             def discriminator(res: Any) -> bool:
+                attributes = res["attributes"]
                 return (
-                    discriminator_field in res
-                    and str(res[discriminator_field]) in discriminator_values
+                    discriminator_field in attributes
+                    and str(attributes[discriminator_field]) in discriminator_values
                 )
 
         case "exclude":
 
             def discriminator(res: Any) -> bool:
+                attributes = res["attributes"]
                 return (
-                    discriminator_field not in res
-                    or str(res[discriminator_field]) not in discriminator_values
+                    discriminator_field not in attributes
+                    or str(attributes[discriminator_field]) not in discriminator_values
                 )
 
         case _:  # pragma: no cover

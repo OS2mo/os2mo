@@ -532,10 +532,23 @@ async def test_apply_discriminator(ldap_connection: MagicMock, context: Context)
     context["user_context"]["settings"].discriminator_field = "xField"
     context["user_context"]["settings"].discriminator_values = ["yes", "7"]
 
-    user1 = {"Name": "hej", "xField": 7}
-    user2 = {"Name": "hej2", "xField": "yes"}
-    user3 = {"Name": "hej3", "xField": "no"}
-    user4 = {"Name": "hej4"}
+    def gen_user(name: str, username: str, xField: Any) -> dict[str, Any]:
+        dn = f"CN={name} - {username},DC=example,DC=com"
+        return {
+            "raw_dn": dn.encode("ascii"),
+            "dn": dn,
+            "raw_attributes": {
+                "xField": [str(xField).encode("ascii")],
+                "Name": [name.encode("ascii")],
+            },
+            "attributes": {"xField": xField, "Name": name},
+            "type": "searchResEntry",
+        }
+
+    user1 = gen_user("Anders Andersen", "aa", 7)
+    user2 = gen_user("John Johnsen", "jj", "yes")
+    user3 = gen_user("Hans Hansen", "hh", "no")
+    user4 = gen_user("Peter Petersen", "pp", None)
 
     res_list = apply_discriminator([user1, user2, user3, user4], context)
 
