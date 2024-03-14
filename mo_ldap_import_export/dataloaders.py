@@ -374,7 +374,9 @@ class DataLoader:
 
         # Modify LDAP
         if not value_exists or "DELETE" in ldap_command:
-            logger.info(f"[Modify-ldap] Uploading the following changes: {changes}")
+            logger.info(
+                f"[Modify-ldap] Uploading the following changes: {changes}", dn=dn
+            )
             self.ldap_connection.modify(dn, changes)
             response = self.log_ldap_response("[Modify-ldap]", dn=dn)
 
