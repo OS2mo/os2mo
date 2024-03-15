@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from .address_terminate import AddressTerminate
 from .address_terminate import AddressTerminateAddressTerminate
 from .async_base_client import AsyncBaseClient
@@ -19,6 +21,12 @@ from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
 from .read_class_uuid import ReadClassUuid
 from .read_class_uuid import ReadClassUuidClasses
+from .read_employees_with_engagement_to_org_unit import (
+    ReadEmployeesWithEngagementToOrgUnit,
+)
+from .read_employees_with_engagement_to_org_unit import (
+    ReadEmployeesWithEngagementToOrgUnitEngagements,
+)
 from .read_facet_uuid import ReadFacetUuid
 from .read_facet_uuid import ReadFacetUuidFacets
 from .read_root_org_uuid import ReadRootOrgUuid
@@ -176,3 +184,24 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ItuserTerminate.parse_obj(data).ituser_terminate
+
+    async def read_employees_with_engagement_to_org_unit(
+        self, org_unit_uuid: UUID
+    ) -> ReadEmployeesWithEngagementToOrgUnitEngagements:
+        query = gql(
+            """
+            query read_employees_with_engagement_to_org_unit($org_unit_uuid: UUID!) {
+              engagements(filter: {org_unit: {uuids: [$org_unit_uuid]}}) {
+                objects {
+                  current {
+                    employee_uuid
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"org_unit_uuid": org_unit_uuid}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadEmployeesWithEngagementToOrgUnit.parse_obj(data).engagements
