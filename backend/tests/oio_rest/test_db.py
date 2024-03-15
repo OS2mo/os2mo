@@ -25,20 +25,9 @@ def mock_sql_session(monkeypatch: MonkeyPatch) -> AsyncMock:
     Supports mocking
 
         session = get_session()
-        resulting_sql = await mogrify(...)
-        result = await session.scalar(text(resulting_sql))
-
-    or
-
-        session = get_session()
         result = await session.execute(sql)
         return result.fetchone()
     """
-    # Mock mogrify calls
-    mogrify = AsyncMock()
-    monkeypatch.setattr("oio_rest.db.mogrify", mogrify)
-    mogrify.return_value = ""
-
     # Mock session
     get_session = Mock()
     monkeypatch.setattr("oio_rest.db.get_session", get_session)
@@ -1409,10 +1398,10 @@ class TestConsolidateVirkninger:
 
 
 get_template_mock = MagicMock()
-get_template_mock.return_value.render_async = AsyncMock(return_value="")
+get_template_mock.return_value.render = MagicMock(return_value="")
 
 
-@patch("oio_rest.db.sql_convert_registration", new=AsyncMock())
+@patch("oio_rest.db.sql_convert_registration", new=MagicMock())
 class TestDBObjectFunctions:
     @patch("oio_rest.db.jinja_env.get_template", new=get_template_mock)
     async def test_update_object_returns_uuid(self, monkeypatch: MonkeyPatch) -> None:
@@ -1488,7 +1477,7 @@ class TestDBGeneralSQL:
     @patch("oio_rest.db.get_attribute_names")
     @patch("oio_rest.db.convert_attributes", new=lambda x: x)
     @patch("oio_rest.db.get_state_names", new=MagicMock())
-    async def test_sql_convert_registration_attributes(
+    def test_sql_convert_registration_attributes(
         self,
         mock_get_attribute_names: MagicMock,
         mock_sql_relations_array: MagicMock,
@@ -1518,7 +1507,7 @@ class TestDBGeneralSQL:
         }
 
         # Act
-        actual_result = await db.sql_convert_registration(registration, class_name)
+        actual_result = db.sql_convert_registration(registration, class_name)
 
         # Assert
         sql_state_array_args = mock_sql_attribute_array.call_args_list
@@ -1532,7 +1521,7 @@ class TestDBGeneralSQL:
     @patch("oio_rest.db.sql_relations_array")
     @patch("oio_rest.db.get_attribute_names", new=MagicMock())
     @patch("oio_rest.db.get_state_names")
-    async def test_sql_convert_registration_states(
+    def test_sql_convert_registration_states(
         self,
         mock_get_state_names: MagicMock,
         mock_sql_relations_array: MagicMock,
@@ -1562,7 +1551,7 @@ class TestDBGeneralSQL:
         }
 
         # Act
-        actual_result = await db.sql_convert_registration(registration, class_name)
+        actual_result = db.sql_convert_registration(registration, class_name)
 
         # Assert
         sql_state_array_args = mock_sql_state_array.call_args_list
@@ -1576,7 +1565,7 @@ class TestDBGeneralSQL:
     @patch("oio_rest.db.convert_relations", new=lambda x, y: x)
     @patch("oio_rest.db.get_attribute_names", new=MagicMock())
     @patch("oio_rest.db.get_state_names", new=MagicMock())
-    async def test_sql_convert_registration_relations(
+    def test_sql_convert_registration_relations(
         self, mock_sql_relations_array: MagicMock
     ) -> None:
         mock_sql_relations_array.side_effect = lambda *x: x
@@ -1591,7 +1580,7 @@ class TestDBGeneralSQL:
         class_name = "classname"
 
         # Act
-        await db.sql_convert_registration(registration, class_name)
+        db.sql_convert_registration(registration, class_name)
 
         # Assert
         sql_state_array_args = mock_sql_relations_array.call_args_list
@@ -1603,13 +1592,11 @@ class TestDBGeneralSQL:
     @patch("oio_rest.db.convert_relations", new=lambda x, y: x)
     @patch("oio_rest.db.get_attribute_names", new=MagicMock())
     @patch("oio_rest.db.get_state_names", new=MagicMock())
-    async def test_sql_convert_registration_variants(
-        self, monkeypatch: MonkeyPatch
-    ) -> None:
+    def test_sql_convert_registration_variants(self, monkeypatch: MonkeyPatch) -> None:
         mock_convert_variants = Mock()
         monkeypatch.setattr("oio_rest.db.convert_variants", mock_convert_variants)
 
-        mock_adapt = AsyncMock()
+        mock_adapt = Mock()
         monkeypatch.setattr("oio_rest.db.adapt", mock_adapt)
 
         mock_adapt.side_effect = lambda x: x
@@ -1627,7 +1614,7 @@ class TestDBGeneralSQL:
         class_name = "classname"
 
         # Act
-        await db.sql_convert_registration(registration, class_name)
+        db.sql_convert_registration(registration, class_name)
 
         # Assert
         mock_adapt.assert_called_with(variants)
@@ -1638,8 +1625,8 @@ Orig = collections.namedtuple("Orig", ["sqlstate", "diag"])
 Diagnostics = collections.namedtuple("Diagnostics", ["message_primary"])
 
 
-@patch("oio_rest.db.sql_get_registration", new=AsyncMock())
-@patch("oio_rest.db.sql_convert_registration", new=AsyncMock())
+@patch("oio_rest.db.sql_get_registration", new=MagicMock())
+@patch("oio_rest.db.sql_convert_registration", new=MagicMock())
 @patch("oio_rest.db.jinja_env.get_template", new=get_template_mock)
 class TestPGErrors:
     class FakeException(Exception):

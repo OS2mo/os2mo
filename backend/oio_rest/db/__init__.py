@@ -15,15 +15,11 @@ from dateutil import parser as date_parser
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from more_itertools import one
-from psycopg import ClientCursor
 from psycopg import sql
 from psycopg.adapt import Transformer
-from psycopg.sql import Identifier
-from psycopg.sql import SQL
 from psycopg.types.range import TimestamptzRange
 from sqlalchemy import text
 from sqlalchemy.exc import StatementError
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..custom_exceptions import BadRequestException
 from ..custom_exceptions import DBException
@@ -52,19 +48,15 @@ from mora.db import get_session
 jinja_env = Environment(
     loader=FileSystemLoader(
         str(pathlib.Path(__file__).parent / "sql" / "invocations" / "templates"),
-    ),
-    enable_async=True,
+    )
 )
 
+transformer = Transformer(None)
 
-async def adapt(value):
-    session = get_session()
-    connection = await session.connection()
-    raw_connection = await connection.get_raw_connection()
-    driver_connection = raw_connection.driver_connection
-    transformer = Transformer(driver_connection)
+
+def adapt(value):
     literal = transformer.as_literal(value)
-    string = str(literal, transformer.encoding)
+    string = str(literal, encoding="utf-8")
     # The SQL templates return statements ready to be executed as-is but SQLAlchemy
     # insists on binding parameters (':myparam') before execution. This won't work
     # until we get rid of templating, and do everything properly in SQLAlchemy,
@@ -211,37 +203,33 @@ class Livscyklus(enum.Enum):
 """
 
 
-async def sql_state_array(state, periods, class_name):
+def sql_state_array(state, periods, class_name):
     """Return an SQL array of type <state>TilsType."""
     t = jinja_env.get_template("state_array.sql")
-    sql = await t.render_async(
-        class_name=class_name, state_name=state, state_periods=periods
-    )
+    sql = t.render(class_name=class_name, state_name=state, state_periods=periods)
     return sql
 
 
-async def sql_attribute_array(attribute, periods):
+def sql_attribute_array(attribute, periods):
     """Return an SQL array of type <attribute>AttrType[]."""
     t = jinja_env.get_template("attribute_array.sql")
-    sql = await t.render_async(attribute_name=attribute, attribute_periods=periods)
+    sql = t.render(attribute_name=attribute, attribute_periods=periods)
     return sql
 
 
-async def sql_relations_array(class_name, relations):
+def sql_relations_array(class_name, relations):
     """Return an SQL array of type <class_name>RelationType[]."""
     t = jinja_env.get_template("relations_array.sql")
-    sql = await t.render_async(class_name=class_name, relations=relations)
+    sql = t.render(class_name=class_name, relations=relations)
     return sql
 
 
-async def sql_convert_registration(registration, class_name):
+def sql_convert_registration(registration, class_name):
     """Convert input JSON to the SQL arrays we need."""
     registration["attributes"] = convert_attributes(registration["attributes"])
     registration["relations"] = convert_relations(registration["relations"], class_name)
     if "variants" in registration:
-        registration["variants"] = await adapt(
-            convert_variants(registration["variants"])
-        )
+        registration["variants"] = adapt(convert_variants(registration["variants"]))
     states = registration["states"]
     sql_states = []
     for sn in get_state_names(class_name):
@@ -253,18 +241,18 @@ async def sql_convert_registration(registration, class_name):
         else:
             periods = None
 
-        sql_states.append(await sql_state_array(sn, periods, class_name))
+        sql_states.append(sql_state_array(sn, periods, class_name))
     registration["states"] = sql_states
 
     attributes = registration["attributes"]
     sql_attributes = []
     for a in get_attribute_names(class_name):
         periods = attributes[a] if a in attributes else None
-        sql_attributes.append(await sql_attribute_array(a, periods))
+        sql_attributes.append(sql_attribute_array(a, periods))
     registration["attributes"] = sql_attributes
 
     relations = registration["relations"]
-    sql_relations = await sql_relations_array(class_name, relations)
+    sql_relations = sql_relations_array(class_name, relations)
     # print "CLASS", class_name
 
     registration["relations"] = sql_relations
@@ -272,7 +260,7 @@ async def sql_convert_registration(registration, class_name):
     return registration
 
 
-async def sql_get_registration(
+def sql_get_registration(
     class_name, time_period, life_cycle_code, user_ref, note, registration
 ):
     """
@@ -281,7 +269,7 @@ async def sql_get_registration(
     Expects a Registration object returned from sql_convert_registration.
     """
     sql_template = jinja_env.get_template("registration.sql")
-    sql = await sql_template.render_async(
+    sql = sql_template.render(
         class_name=class_name,
         time_period=time_period,
         life_cycle_code=life_cycle_code,
@@ -300,32 +288,23 @@ async def sql_get_registration(
 """
 
 
-async def mogrify(sql, arguments, session: AsyncSession):
-    connection = await session.connection()
-    raw_connection = await connection.get_raw_connection()
-    driver_connection = raw_connection.driver_connection
-    client_cursor = ClientCursor(driver_connection)
-    resulting_sql = client_cursor.mogrify(sql, arguments)
-    return resulting_sql
-
-
 async def object_exists(class_name: str, uuid: str) -> bool:
     """Check if an object with this class name and UUID exists already."""
-    sql = SQL(
+    sql = text(
+        f"""
+        SELECT EXISTS(
+            SELECT 1
+            FROM {class_name.lower() + "_registrering"}
+            WHERE {class_name.lower() + "_id"} = :uuid
+        )
         """
-    SELECT EXISTS( SELECT 1 FROM {registration_table} WHERE {id_column} = %(uuid)s )
-    """
-    ).format(
-        registration_table=Identifier(class_name.lower() + "_registrering"),
-        id_column=Identifier(class_name.lower() + "_id"),
     )
     arguments = {"uuid": uuid}
 
     session = get_session()
     try:
-        resulting_sql = await mogrify(sql, arguments, session)
         audit_log(session, "object_exists", class_name, arguments, [UUID(uuid)])
-        result = await session.scalar(text(resulting_sql))
+        result = await session.scalar(sql, arguments)
     except StatementError as e:
         if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
             status_code = int(e.orig.sqlstate[2:])
@@ -352,14 +331,14 @@ async def create_or_import_object(class_name, note, registration, uuid=None):
 
     user_ref = str(get_authenticated_user())
 
-    registration = await sql_convert_registration(registration, class_name)
-    sql_registration = await sql_get_registration(
+    registration = sql_convert_registration(registration, class_name)
+    sql_registration = sql_get_registration(
         class_name, None, life_cycle_code, user_ref, note, registration
     )
 
     sql_template = jinja_env.get_template("create_object.sql")
     sql = text(
-        await sql_template.render_async(
+        sql_template.render(
             class_name=class_name,
             uuid=uuid,
             life_cycle_code=life_cycle_code,
@@ -398,9 +377,9 @@ async def delete_object(class_name, registration, note, uuid):
 
     user_ref = str(get_authenticated_user())
     sql_template = jinja_env.get_template("update_object.sql")
-    registration = await sql_convert_registration(registration, class_name)
+    registration = sql_convert_registration(registration, class_name)
     sql = text(
-        await sql_template.render_async(
+        sql_template.render(
             class_name=class_name,
             uuid=uuid,
             life_cycle_code=life_cycle_code,
@@ -431,9 +410,9 @@ async def passivate_object(class_name, note, registration, uuid):
     user_ref = str(get_authenticated_user())
     life_cycle_code = Livscyklus.PASSIVERET.value
     sql_template = jinja_env.get_template("update_object.sql")
-    registration = await sql_convert_registration(registration, class_name)
+    registration = sql_convert_registration(registration, class_name)
     sql = text(
-        await sql_template.render_async(
+        sql_template.render(
             class_name=class_name,
             uuid=uuid,
             life_cycle_code=life_cycle_code,
@@ -464,11 +443,11 @@ async def update_object(
     """Update object with the partial data supplied."""
     user_ref = str(get_authenticated_user())
 
-    registration = await sql_convert_registration(registration, class_name)
+    registration = sql_convert_registration(registration, class_name)
 
     sql_template = jinja_env.get_template("update_object.sql")
     sql = text(
-        await sql_template.render_async(
+        sql_template.render(
             class_name=class_name,
             uuid=uuid,
             life_cycle_code=life_cycle_code,
@@ -533,10 +512,6 @@ async def list_objects(
     virkning and registering periods."""
     assert isinstance(uuid, list) or not uuid
 
-    sql_template = jinja_env.get_template("list_objects.sql")
-
-    sql = await sql_template.render_async(class_name=class_name)
-
     registration_period = None
     if registreret_fra is not None or registreret_til is not None:
         registration_period = TimestamptzRange(registreret_fra, registreret_til)
@@ -547,10 +522,12 @@ async def list_objects(
         "virkning_tstzrange": TimestamptzRange(virkning_fra, virkning_til),
     }
 
+    sql_template = jinja_env.get_template("list_objects.sql")
+    sql = sql_template.render(class_name=class_name, **arguments)
+
     session = get_session()
     try:
-        resulting_sql = await mogrify(sql, arguments, session)
-        result = await session.execute(text(resulting_sql))
+        result = await session.execute(text(sql))
     except StatementError as e:
         if e.orig.sqlstate is not None and e.orig.sqlstate[:2] == "MO":
             status_code = int(e.orig.sqlstate[2:])
@@ -843,8 +820,8 @@ async def search_objects(
     if registreret_fra is not None or registreret_til is not None:
         time_period = TimestamptzRange(registreret_fra, registreret_til)
 
-    registration = await sql_convert_registration(registration, class_name)
-    sql_registration = await sql_get_registration(
+    registration = sql_convert_registration(registration, class_name)
+    sql_registration = sql_get_registration(
         class_name, time_period, life_cycle_code, user_ref, note, registration
     )
 
@@ -855,7 +832,7 @@ async def search_objects(
         virkning_soeg = TimestamptzRange(virkning_fra, virkning_til)
 
     sql = text(
-        await sql_template.render_async(
+        sql_template.render(
             first_result=first_result,
             uuid=uuid,
             class_name=class_name,

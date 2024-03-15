@@ -317,14 +317,12 @@ async def _database_copy(superuser: AsyncConnection, source: str) -> AsyncIterat
 
 
 def _create_sessionmaker(lora_settings: LoraSettings, database_name: str):
-    engine = db.create_engine(
+    return db.create_sessionmaker(
         user=lora_settings.db_user,
         password=lora_settings.db_password,
         host=lora_settings.db_host,
         name=database_name,
     )
-    sessionmaker = async_sessionmaker(engine)
-    return sessionmaker
 
 
 @asynccontextmanager
