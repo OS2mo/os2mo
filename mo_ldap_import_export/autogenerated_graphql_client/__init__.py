@@ -148,11 +148,24 @@ from .read_employees_with_engagement_to_org_unit import (
 from .read_employees_with_engagement_to_org_unit import (
     ReadEmployeesWithEngagementToOrgUnitEngagementsObjectsCurrent,
 )
+from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuid
+from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuidEngagements
+from .read_engagements_by_employee_uuid import (
+    ReadEngagementsByEmployeeUuidEngagementsObjects,
+)
+from .read_engagements_by_employee_uuid import (
+    ReadEngagementsByEmployeeUuidEngagementsObjectsCurrent,
+)
+from .read_engagements_by_employee_uuid import (
+    ReadEngagementsByEmployeeUuidEngagementsObjectsCurrentValidity,
+)
 from .read_facet_uuid import ReadFacetUuid
 from .read_facet_uuid import ReadFacetUuidFacets
 from .read_facet_uuid import ReadFacetUuidFacetsObjects
 from .read_root_org_uuid import ReadRootOrgUuid
 from .read_root_org_uuid import ReadRootOrgUuidOrg
+from .set_job_title import SetJobTitle
+from .set_job_title import SetJobTitleEngagementUpdate
 
 __all__ = [
     "AddressCreateInput",
@@ -280,6 +293,11 @@ __all__ = [
     "ReadEmployeesWithEngagementToOrgUnitEngagements",
     "ReadEmployeesWithEngagementToOrgUnitEngagementsObjects",
     "ReadEmployeesWithEngagementToOrgUnitEngagementsObjectsCurrent",
+    "ReadEngagementsByEmployeeUuid",
+    "ReadEngagementsByEmployeeUuidEngagements",
+    "ReadEngagementsByEmployeeUuidEngagementsObjects",
+    "ReadEngagementsByEmployeeUuidEngagementsObjectsCurrent",
+    "ReadEngagementsByEmployeeUuidEngagementsObjectsCurrentValidity",
     "ReadFacetUuid",
     "ReadFacetUuidFacets",
     "ReadFacetUuidFacetsObjects",
@@ -293,6 +311,8 @@ __all__ = [
     "RoleRegistrationFilter",
     "RoleTerminateInput",
     "RoleUpdateInput",
+    "SetJobTitle",
+    "SetJobTitleEngagementUpdate",
     "UuidsBoundClassFilter",
     "UuidsBoundEmployeeFilter",
     "UuidsBoundEngagementFilter",

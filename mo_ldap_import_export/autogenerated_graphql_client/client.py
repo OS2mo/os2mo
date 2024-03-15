@@ -1,8 +1,13 @@
+from datetime import datetime
+from typing import Optional
+from typing import Union
 from uuid import UUID
 
 from .address_terminate import AddressTerminate
 from .address_terminate import AddressTerminateAddressTerminate
 from .async_base_client import AsyncBaseClient
+from .base_model import UNSET
+from .base_model import UnsetType
 from .class_create import ClassCreate
 from .class_create import ClassCreateClassCreate
 from .class_update import ClassUpdate
@@ -27,10 +32,14 @@ from .read_employees_with_engagement_to_org_unit import (
 from .read_employees_with_engagement_to_org_unit import (
     ReadEmployeesWithEngagementToOrgUnitEngagements,
 )
+from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuid
+from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuidEngagements
 from .read_facet_uuid import ReadFacetUuid
 from .read_facet_uuid import ReadFacetUuidFacets
 from .read_root_org_uuid import ReadRootOrgUuid
 from .read_root_org_uuid import ReadRootOrgUuidOrg
+from .set_job_title import SetJobTitle
+from .set_job_title import SetJobTitleEngagementUpdate
 
 
 def gql(q: str) -> str:
@@ -205,3 +214,56 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEmployeesWithEngagementToOrgUnit.parse_obj(data).engagements
+
+    async def read_engagements_by_employee_uuid(
+        self, employee_uuid: UUID
+    ) -> ReadEngagementsByEmployeeUuidEngagements:
+        query = gql(
+            """
+            query read_engagements_by_employee_uuid($employee_uuid: UUID!) {
+              engagements(filter: {employee: {uuids: [$employee_uuid]}}) {
+                objects {
+                  current {
+                    uuid
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"employee_uuid": employee_uuid}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadEngagementsByEmployeeUuid.parse_obj(data).engagements
+
+    async def set_job_title(
+        self,
+        uuid: UUID,
+        from_: datetime,
+        to: Union[Optional[datetime], UnsetType] = UNSET,
+        job_function: Union[Optional[UUID], UnsetType] = UNSET,
+    ) -> SetJobTitleEngagementUpdate:
+        query = gql(
+            """
+            mutation set_job_title($uuid: UUID!, $from: DateTime!, $to: DateTime, $job_function: UUID) {
+              engagement_update(
+                input: {uuid: $uuid, validity: {from: $from, to: $to}, job_function: $job_function}
+              ) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "uuid": uuid,
+            "from": from_,
+            "to": to,
+            "job_function": job_function,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return SetJobTitle.parse_obj(data).engagement_update

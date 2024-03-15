@@ -68,3 +68,30 @@ query read_employees_with_engagement_to_org_unit($org_unit_uuid: UUID!) {
     }
   }
 }
+
+query read_engagements_by_employee_uuid($employee_uuid: UUID!) {
+  engagements(filter: {employee: {uuids: [$employee_uuid]}}) {
+    objects {
+      current {
+        uuid
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}
+
+mutation set_job_title($uuid: UUID!,
+                     $from: DateTime!,
+                     $to: DateTime,
+                     $job_function: UUID) {
+  engagement_update(
+    input: {uuid: $uuid,
+            validity: {from: $from, to: $to},
+            job_function: $job_function}
+  ) {
+    uuid
+  }
+}
