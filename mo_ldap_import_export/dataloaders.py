@@ -1226,31 +1226,18 @@ class DataLoader:
         """
         Load all current employees engaged to an org unit
         """
-        query = gql(
-            f"""
-            query EmployeeOrgUnitUUIDs {{
-              org_units(filter: {{uuids: "{org_unit_uuid}"}}) {{
-                objects {{
-                  objects {{
-                    engagements {{
-                      employee_uuid
-                    }}
-                  }}
-                }}
-              }}
-            }}
-            """
+        result = await self.graphql_client.read_employees_with_engagement_to_org_unit(
+            org_unit_uuid
         )
 
-        result = await self.query_mo(query)
-        output = []
-        engagement_entries = result["org_units"]["objects"][0]["objects"][0][
-            "engagements"
-        ]
-        for engagement_entry in engagement_entries:
-            employee = await self.load_mo_employee(engagement_entry["employee_uuid"])
-            output.append(employee)
-        return output
+        employee_uuids = {
+            x.current.employee_uuid for x in result.objects if x.current is not None
+        }
+        # TODO: dataloader?
+        employees = await asyncio.gather(
+            *[self.load_mo_employee(employee_uuid) for employee_uuid in employee_uuids]
+        )
+        return employees
 
     async def load_mo_facet(self, user_key) -> dict:
         query = gql(
