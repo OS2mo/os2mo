@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
 from uuid import UUID
 
 from fastapi import Request
@@ -125,7 +126,9 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
         # }
         # when moving an org unit.
 
-        owners = [await get_owners(uuid, entity_type) for uuid in uuids]
+        owners = await asyncio.gather(
+            *(get_owners(uuid, entity_type) for uuid in uuids)
+        )
 
         current_user_ownership_verified = [(user_uuid in owner) for owner in owners]
         if current_user_ownership_verified and all(current_user_ownership_verified):

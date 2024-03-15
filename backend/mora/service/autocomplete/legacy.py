@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from asyncio import gather
 from contextlib import suppress
 from itertools import starmap
 from uuid import UUID
@@ -32,7 +33,7 @@ async def get_results(
     connector = common.get_connector()
     # Build map of {uuid: class data} so that we can look up each class title later.
     class_uuids = class_uuids or []
-    loaded_classes = [await t for t in map(connector.klasse.get, class_uuids)]
+    loaded_classes = await gather(*map(connector.klasse.get, class_uuids))
     class_map = dict(zip(class_uuids, loaded_classes))
 
     # Fetch autocomplete results from LoRa
