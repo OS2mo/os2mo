@@ -1,10 +1,10 @@
 from .address_terminate import AddressTerminate
 from .address_terminate import AddressTerminateAddressTerminate
 from .async_base_client import AsyncBaseClient
-from .create_class import CreateClass
-from .create_class import CreateClassClassCreate
-from .create_it_system import CreateItSystem
-from .create_it_system import CreateItSystemItsystemCreate
+from .class_create import ClassCreate
+from .class_create import ClassCreateClassCreate
+from .class_update import ClassUpdate
+from .class_update import ClassUpdateClassUpdate
 from .engagement_terminate import EngagementTerminate
 from .engagement_terminate import EngagementTerminateEngagementTerminate
 from .input_types import AddressTerminateInput
@@ -13,6 +13,8 @@ from .input_types import ClassUpdateInput
 from .input_types import EngagementTerminateInput
 from .input_types import ITSystemCreateInput
 from .input_types import ITUserTerminateInput
+from .itsystem_create import ItsystemCreate
+from .itsystem_create import ItsystemCreateItsystemCreate
 from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
 from .read_class_uuid import ReadClassUuid
@@ -21,8 +23,6 @@ from .read_facet_uuid import ReadFacetUuid
 from .read_facet_uuid import ReadFacetUuidFacets
 from .read_root_org_uuid import ReadRootOrgUuid
 from .read_root_org_uuid import ReadRootOrgUuidOrg
-from .update_class import UpdateClass
-from .update_class import UpdateClassClassUpdate
 
 
 def gql(q: str) -> str:
@@ -30,12 +30,12 @@ def gql(q: str) -> str:
 
 
 class GraphQLClient(AsyncBaseClient):
-    async def create_it_system(
+    async def itsystem_create(
         self, input: ITSystemCreateInput
-    ) -> CreateItSystemItsystemCreate:
+    ) -> ItsystemCreateItsystemCreate:
         query = gql(
             """
-            mutation create_it_system($input: ITSystemCreateInput!) {
+            mutation itsystem_create($input: ITSystemCreateInput!) {
               itsystem_create(input: $input) {
                 uuid
               }
@@ -45,7 +45,7 @@ class GraphQLClient(AsyncBaseClient):
         variables: dict[str, object] = {"input": input}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
-        return CreateItSystem.parse_obj(data).itsystem_create
+        return ItsystemCreate.parse_obj(data).itsystem_create
 
     async def read_facet_uuid(self, user_key: str) -> ReadFacetUuidFacets:
         query = gql(
@@ -64,10 +64,10 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return ReadFacetUuid.parse_obj(data).facets
 
-    async def create_class(self, input: ClassCreateInput) -> CreateClassClassCreate:
+    async def class_create(self, input: ClassCreateInput) -> ClassCreateClassCreate:
         query = gql(
             """
-            mutation create_class($input: ClassCreateInput!) {
+            mutation class_create($input: ClassCreateInput!) {
               class_create(input: $input) {
                 uuid
               }
@@ -77,7 +77,7 @@ class GraphQLClient(AsyncBaseClient):
         variables: dict[str, object] = {"input": input}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
-        return CreateClass.parse_obj(data).class_create
+        return ClassCreate.parse_obj(data).class_create
 
     async def read_class_uuid(self, user_key: str) -> ReadClassUuidClasses:
         query = gql(
@@ -96,10 +96,10 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return ReadClassUuid.parse_obj(data).classes
 
-    async def update_class(self, input: ClassUpdateInput) -> UpdateClassClassUpdate:
+    async def class_update(self, input: ClassUpdateInput) -> ClassUpdateClassUpdate:
         query = gql(
             """
-            mutation update_class($input: ClassUpdateInput!) {
+            mutation class_update($input: ClassUpdateInput!) {
               class_update(input: $input) {
                 uuid
               }
@@ -109,7 +109,7 @@ class GraphQLClient(AsyncBaseClient):
         variables: dict[str, object] = {"input": input}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
-        return UpdateClass.parse_obj(data).class_update
+        return ClassUpdate.parse_obj(data).class_update
 
     async def read_root_org_uuid(self) -> ReadRootOrgUuidOrg:
         query = gql(

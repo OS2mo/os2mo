@@ -871,7 +871,7 @@ class DataLoader:
 
     async def find_mo_engagement_uuid(self, dn: str) -> None | UUID:
         # Get Unique LDAP UUID from DN, then get engagement by looking for IT user with that
-        # Unique LADP UUID in MO.
+        # Unique LDAP UUID in MO.
 
         settings = self.user_context["settings"]
         ldap_object = self.load_ldap_object(dn, [settings.ldap_unique_id_field])
@@ -2187,7 +2187,7 @@ class DataLoader:
                 scope=scope,
                 validity=RAOpenValidityInput(from_=None),
             )
-            result = await self.graphql_client.create_class(input)
+            result = await self.graphql_client.class_create(input)
             return result.uuid
 
     async def update_mo_class(
@@ -2219,7 +2219,7 @@ class DataLoader:
             scope=scope,
             validity=RAOpenValidityInput(from_=None),
         )
-        result = await self.graphql_client.update_class(input)
+        result = await self.graphql_client.class_update(input)
         return result.uuid
 
     async def create_mo_job_function(self, name) -> UUID:
@@ -2266,5 +2266,5 @@ class DataLoader:
         input = ITSystemCreateInput(
             name=name, user_key=user_key, validity=RAOpenValidityInput(from_=None)
         )
-        result = await self.graphql_client.create_it_system(input)
+        result = await self.graphql_client.itsystem_create(input)
         return result.uuid

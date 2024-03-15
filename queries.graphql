@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 
-mutation create_it_system($input: ITSystemCreateInput!) {
+mutation itsystem_create($input: ITSystemCreateInput!) {
   itsystem_create(input: $input) {
     uuid
   }
@@ -15,7 +15,7 @@ query read_facet_uuid($user_key: String!) {
   }
 }
 
-mutation create_class($input: ClassCreateInput!) {
+mutation class_create($input: ClassCreateInput!) {
   class_create(input: $input) {
     uuid
   }
@@ -29,7 +29,7 @@ query read_class_uuid($user_key: String!) {
   }
 }
 
-mutation update_class($input: ClassUpdateInput!) {
+mutation class_update($input: ClassUpdateInput!) {
   class_update(input: $input) {
     uuid
   }

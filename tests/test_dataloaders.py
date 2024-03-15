@@ -1957,7 +1957,7 @@ async def test_create_mo_class(dataloader: DataLoader):
         await asyncio.sleep(0.1)
         return CreateClassClassCreate(uuid=uuid)
 
-    dataloader.graphql_client.create_class.side_effect = create_class  # type: ignore
+    dataloader.graphql_client.class_create.side_effect = create_class  # type: ignore
 
     class_not_found_response = ReadClassUuidClasses(objects=[])
     class_exists_response = ReadClassUuidClasses(
@@ -1988,7 +1988,7 @@ async def test_create_mo_class(dataloader: DataLoader):
 async def test_update_mo_class(dataloader: DataLoader):
     uuid = uuid4()
 
-    dataloader.graphql_client.update_class.return_value = (  # type: ignore
+    dataloader.graphql_client.class_update.return_value = (  # type: ignore
         UpdateClassClassUpdate(uuid=uuid)
     )
 
@@ -2052,7 +2052,7 @@ async def test_load_mo_facet_uuid_no_result(dataloader: DataLoader):
 
 
 async def test_create_mo_it_system(dataloader: DataLoader):
-    dataloader.graphql_client.create_it_system.return_value = (  # type: ignore
+    dataloader.graphql_client.itsystem_create.return_value = (  # type: ignore
         CreateItSystemItsystemCreate(uuid=uuid4())
     )
 

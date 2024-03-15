@@ -2,11 +2,11 @@ from .address_terminate import AddressTerminate
 from .address_terminate import AddressTerminateAddressTerminate
 from .async_base_client import AsyncBaseClient
 from .base_model import BaseModel
+from .class_create import ClassCreate
+from .class_create import ClassCreateClassCreate
+from .class_update import ClassUpdate
+from .class_update import ClassUpdateClassUpdate
 from .client import GraphQLClient
-from .create_class import CreateClass
-from .create_class import CreateClassClassCreate
-from .create_it_system import CreateItSystem
-from .create_it_system import CreateItSystemItsystemCreate
 from .engagement_terminate import EngagementTerminate
 from .engagement_terminate import EngagementTerminateEngagementTerminate
 from .enums import AuditLogModel
@@ -129,6 +129,8 @@ from .input_types import UuidsBoundITUserFilter
 from .input_types import UuidsBoundLeaveFilter
 from .input_types import UuidsBoundOrganisationUnitFilter
 from .input_types import ValidityInput
+from .itsystem_create import ItsystemCreate
+from .itsystem_create import ItsystemCreateItsystemCreate
 from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
 from .read_class_uuid import ReadClassUuid
@@ -139,8 +141,6 @@ from .read_facet_uuid import ReadFacetUuidFacets
 from .read_facet_uuid import ReadFacetUuidFacetsObjects
 from .read_root_org_uuid import ReadRootOrgUuid
 from .read_root_org_uuid import ReadRootOrgUuidOrg
-from .update_class import UpdateClass
-from .update_class import UpdateClassClassUpdate
 
 __all__ = [
     "AddressCreateInput",
@@ -159,16 +159,16 @@ __all__ = [
     "AuditLogFilter",
     "AuditLogModel",
     "BaseModel",
+    "ClassCreate",
+    "ClassCreateClassCreate",
     "ClassCreateInput",
     "ClassFilter",
     "ClassRegistrationFilter",
     "ClassTerminateInput",
+    "ClassUpdate",
+    "ClassUpdateClassUpdate",
     "ClassUpdateInput",
     "ConfigurationFilter",
-    "CreateClass",
-    "CreateClassClassCreate",
-    "CreateItSystem",
-    "CreateItSystemItsystemCreate",
     "EmployeeCreateInput",
     "EmployeeFilter",
     "EmployeeRegistrationFilter",
@@ -216,6 +216,8 @@ __all__ = [
     "ITUserRegistrationFilter",
     "ITUserTerminateInput",
     "ITUserUpdateInput",
+    "ItsystemCreate",
+    "ItsystemCreateItsystemCreate",
     "ItuserTerminate",
     "ItuserTerminateItuserTerminate",
     "KLECreateInput",
@@ -275,8 +277,6 @@ __all__ = [
     "RoleRegistrationFilter",
     "RoleTerminateInput",
     "RoleUpdateInput",
-    "UpdateClass",
-    "UpdateClassClassUpdate",
     "UuidsBoundClassFilter",
     "UuidsBoundEmployeeFilter",
     "UuidsBoundEngagementFilter",
