@@ -74,6 +74,11 @@ def create_engine(user, password, host, name) -> AsyncEngine:
         # not need to be concerned with error handling. This is required for the
         # testing APIs to function correctly.
         pool_pre_ping=True,
+        # The size of the pool to be maintained, defaults to 5. This is the
+        # largest number of connections that will be kept persistently in the
+        # pool. Note that the pool begins with no connections; once this number
+        # of connections is requested, that number of connections will remain.
+        pool_size=20,
     )
 
 
