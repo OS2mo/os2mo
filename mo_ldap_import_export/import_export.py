@@ -957,12 +957,10 @@ class SyncTool:
             if json_key == "Custom":
                 for obj, _ in converted_objects:
                     job_list = await obj.sync_to_mo(self.context)
+                    # TODO: Asyncio.gather?
                     for job in job_list:
                         self.uuids_to_ignore.add(job["uuid_to_ignore"])
-                        await self.context["legacy_graphql_session"].execute(
-                            document=job["document"],
-                            variable_values=job["variable_values"],
-                        )
+                        await job["task"]
             else:
                 for mo_object, _ in converted_objects:
                     self.uuids_to_ignore.add(mo_object.uuid)

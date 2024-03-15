@@ -14,7 +14,6 @@ from uuid import uuid4
 
 import pytest
 from fastramqpi.context import Context
-from gql import gql
 from httpx import HTTPStatusError
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
@@ -1310,31 +1309,7 @@ async def test_import_jobtitlefromadtomo_objects(
 
     converter.from_ldap.return_value = converted_objects
 
-    query = gql(
-        """
-    mutation SetJobtitle($uuid: UUID!, $from: DateTime!, $job_function: UUID!) {
-      engagement_update(
-        input: {uuid: $uuid,
-                validity: {from: $from},
-                job_function: $job_function}
-      ) {
-        uuid
-      }
-    }
-    """
-    )
-
-    job = [
-        {
-            "uuid_to_ignore": eng_uuid,
-            "document": query,
-            "variable_values": {
-                "uuid": eng_uuid,
-                "from": str(datetime.datetime.now().date()),
-                "job_function": str(job_function_uuid),
-            },
-        }
-    ]
+    job = [{"uuid_to_ignore": eng_uuid, "task": AsyncMock()()}]
 
     context["legacy_graphql_session"] = AsyncMock()
 
