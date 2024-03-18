@@ -34,6 +34,7 @@ from ramodels.mo.employee import Employee
 from .config import AuthBackendEnum
 from .config import ServerConfig
 from .config import Settings
+from .dataloaders import DataLoader
 from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
 from .exceptions import TimeOutException
@@ -484,7 +485,7 @@ async def cleanup(
     user_context : dict
         user context dictionary with the configured dataloader and converter
     """
-    dataloader = user_context["dataloader"]
+    dataloader: DataLoader = user_context["dataloader"]
     converter = user_context["converter"]
     sync_tool = user_context["sync_tool"]
     uuids_to_publish = []

@@ -16,6 +16,7 @@ from ldap3.utils.dn import to_dn
 
 from .customer_specific import JobTitleFromADToMO
 from .exceptions import InvalidQuery
+from .import_export import SyncTool
 from .logging import logger
 
 
@@ -131,7 +132,7 @@ def listener(context, event):
 
     user_context = context["user_context"]
     event_loop = user_context["event_loop"]
-    sync_tool = user_context["sync_tool"]
+    sync_tool: SyncTool = user_context["sync_tool"]
 
     def log_exception(future):
         """Reraise exception so they are printed to the terminal."""

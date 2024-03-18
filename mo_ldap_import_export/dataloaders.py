@@ -1094,7 +1094,7 @@ class DataLoader:
     async def find_dn_by_engagement_uuid(
         self,
         employee_uuid: UUID,
-        engagement: EngagementRef,
+        engagement: EngagementRef | Engagement | None,
         dns: DNList,
     ) -> str:
         if len(dns) == 1:
