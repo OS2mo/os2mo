@@ -8,6 +8,7 @@ import os
 import re
 from collections.abc import Iterator
 from contextlib import contextmanager
+from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -26,6 +27,7 @@ from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 from structlog.testing import capture_logs
 
+from mo_ldap_import_export import depends
 from mo_ldap_import_export.config import ConversionMapping
 from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
@@ -45,6 +47,7 @@ from mo_ldap_import_export.main import process_ituser
 from mo_ldap_import_export.main import process_org_unit
 from mo_ldap_import_export.main import process_person
 from mo_ldap_import_export.main import reject_on_failure
+from tests.utils import extract_annotated_dependency
 
 
 @pytest.fixture(scope="module")
@@ -245,11 +248,6 @@ def converter() -> MagicMock:
 
 
 @pytest.fixture(scope="module")
-def gql_client() -> Iterator[AsyncMock]:
-    yield AsyncMock()
-
-
-@pytest.fixture(scope="module")
 def internal_amqpsystem() -> MagicMock:
     mock = MagicMock()
     mock.publish_message = AsyncMock()
@@ -261,13 +259,28 @@ def sync_tool() -> AsyncMock:
     return AsyncMock()
 
 
+@pytest.fixture
+def sync_tool_dependency_injection(
+    app: FastAPI, sync_tool: AsyncMock
+) -> Iterator[AsyncMock]:
+    """Override the FastAPI SyncTool dependency injection with our mock."""
+
+    def context_extractor() -> Any:
+        return sync_tool
+
+    sync_tool_depends = extract_annotated_dependency(depends.SyncTool)
+    app.dependency_overrides[sync_tool_depends] = context_extractor
+
+    yield sync_tool
+
+    del app.dependency_overrides[sync_tool_depends]
+
+
 @pytest.fixture(scope="module")
 def patch_modules(
     load_settings_overrides: dict[str, str],
-    gql_client: AsyncMock,
     dataloader: AsyncMock,
     internal_amqpsystem: MagicMock,
-    sync_tool: AsyncMock,
 ) -> Iterator[None]:
     """
     Fixture to patch modules needed in main.py
@@ -555,7 +568,7 @@ async def test_listen_to_changes(dataloader: AsyncMock, sync_tool: AsyncMock):
         "parent_uuid": uuid4(),
     }
 
-    await process_address(context, payload, "address", _=None)
+    await process_address(context, payload, "address", sync_tool, _=None)
     sync_tool.listen_to_changes_in_employees.assert_awaited_once()
 
     dataloader.load_mo_object.return_value = {
@@ -565,24 +578,24 @@ async def test_listen_to_changes(dataloader: AsyncMock, sync_tool: AsyncMock):
     }
 
     sync_tool.reset_mock()
-    await process_address(context, payload, "address", _=None)
+    await process_address(context, payload, "address", sync_tool, _=None)
     sync_tool.listen_to_changes_in_org_units.assert_awaited_once()
 
     sync_tool.reset_mock()
-    await process_engagement(context, payload, "engagement", _=None)
+    await process_engagement(context, payload, "engagement", sync_tool, _=None)
     sync_tool.listen_to_changes_in_employees.assert_awaited_once()
     sync_tool.export_org_unit_addresses_on_engagement_change.assert_awaited_once()
 
     sync_tool.reset_mock()
-    await process_ituser(context, payload, "ituser", _=None)
+    await process_ituser(context, payload, "ituser", sync_tool, _=None)
     sync_tool.listen_to_changes_in_employees.assert_awaited_once()
 
     sync_tool.reset_mock()
-    await process_person(context, payload, "person", _=None)
+    await process_person(context, payload, "person", sync_tool, _=None)
     sync_tool.listen_to_changes_in_employees.assert_awaited_once()
 
     sync_tool.reset_mock()
-    await process_org_unit(context, payload, "org_unit", _=None)
+    await process_org_unit(context, payload, "org_unit", sync_tool, _=None)
     sync_tool.listen_to_changes_in_org_units.assert_awaited_once()
 
 
@@ -596,7 +609,7 @@ async def test_listen_to_changes_not_listening() -> None:
     mo_routing_key = "person"
 
     with pytest.raises(RejectMessage):
-        await process_person(context, payload, mo_routing_key, _=None)
+        await process_person(context, payload, mo_routing_key, AsyncMock(), _=None)
 
 
 def test_ldap_get_all_converted_endpoint_failure(
@@ -621,10 +634,14 @@ def test_load_address_from_MO_endpoint(test_client: TestClient):
     assert response.status_code == 202
 
 
-def test_export_single_user_endpoint(test_client: TestClient):
+async def test_export_single_user_endpoint(
+    test_client: TestClient, sync_tool_dependency_injection: AsyncMock
+):
     uuid = uuid4()
     response = test_client.post(f"/Export/{uuid}")
     assert response.status_code == 202
+
+    sync_tool_dependency_injection.refresh_employee.assert_called_once_with(uuid)
 
 
 def test_load_address_types_from_MO_endpoint(test_client: TestClient):
@@ -644,6 +661,7 @@ def test_load_primary_types_from_MO_endpoint(test_client: TestClient):
     assert response.status_code == 202
 
 
+@pytest.mark.usefixtures("sync_tool_dependency_injection")
 async def test_import_all_objects_from_LDAP_first_20(test_client: TestClient) -> None:
     params = {
         "test_on_first_20_entries": True,
@@ -655,17 +673,20 @@ async def test_import_all_objects_from_LDAP_first_20(test_client: TestClient) ->
     assert response.status_code == 202
 
 
+@pytest.mark.usefixtures("sync_tool_dependency_injection")
 async def test_import_all_objects_from_LDAP(test_client: TestClient) -> None:
     response = test_client.get("/Import")
     assert response.status_code == 202
 
 
+@pytest.mark.usefixtures("sync_tool_dependency_injection")
 async def test_import_one_object_from_LDAP(test_client: TestClient) -> None:
     uuid = uuid4()
     response = test_client.get(f"/Import/{uuid}")
     assert response.status_code == 202
 
 
+@pytest.mark.usefixtures("sync_tool_dependency_injection")
 async def test_import_all_objects_from_LDAP_no_cpr_field(
     test_client: TestClient, converter: MagicMock
 ) -> None:
@@ -675,6 +696,7 @@ async def test_import_all_objects_from_LDAP_no_cpr_field(
     converter.cpr_field = "EmployeeID"
 
 
+@pytest.mark.usefixtures("sync_tool_dependency_injection")
 async def test_import_all_objects_from_LDAP_invalid_cpr(
     test_client: TestClient, dataloader: AsyncMock
 ) -> None:
@@ -814,6 +836,7 @@ async def test_get_delete_flag(dataloader: AsyncMock):
     assert flag is False
 
 
+@pytest.mark.usefixtures("sync_tool_dependency_injection")
 def test_get_invalid_cpr_numbers_from_LDAP_endpoint(
     test_client: TestClient,
     dataloader: AsyncMock,
