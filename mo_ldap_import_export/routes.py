@@ -414,12 +414,10 @@ def construct_router(user_context: UserContext) -> APIRouter:
     # Get LDAP attribute details
     @router.get("/Inspect/attribute/{attribute}", status_code=202, tags=["LDAP"])
     async def load_attribute_details_from_LDAP(
-        user_context: UserContext,
+        ldap_connection: depends.Connection,
         attribute: Literal[accepted_attributes],  # type: ignore
     ) -> Any:
-        ldap_connection = user_context["ldap_connection"]
         attribute_types = get_attribute_types(ldap_connection)
-
         return attribute_types[attribute]
 
     # Get LDAP attribute values

@@ -12,9 +12,11 @@ from .config import Settings as _Settings
 from .converters import LdapConverter as _LdapConverter
 from .dataloaders import DataLoader as _DataLoader
 from .import_export import SyncTool as _SyncTool
+from .ldap import Connection as _Connection
 
 GraphQLClient = Annotated[_GraphQLClient, Depends(from_context("graphql_client"))]
 SyncTool = Annotated[_SyncTool, Depends(from_user_context("sync_tool"))]
 DataLoader = Annotated[_DataLoader, Depends(from_user_context("dataloader"))]
 Settings = Annotated[_Settings, Depends(from_user_context("settings"))]
 LdapConverter = Annotated[_LdapConverter, Depends(from_user_context("converter"))]
+Connection = Annotated[_Connection, Depends(from_user_context("ldap_connection"))]
