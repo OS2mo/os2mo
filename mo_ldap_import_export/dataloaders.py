@@ -60,7 +60,6 @@ from .ldap import paged_search
 from .ldap import single_object_search
 from .ldap_classes import LdapObject
 from .logging import logger
-from .processors import _hide_cpr as hide_cpr
 from .utils import add_filter_to_query
 from .utils import combine_dn_strings
 from .utils import extract_cn_from_dn
@@ -798,75 +797,58 @@ class DataLoader:
 
         return output
 
-    def _return_mo_employee_uuid_result(self, result: dict) -> None | UUID:
-        number_of_employees = len(result.get("employees", {}).get("objects", []))
-        number_of_itusers = len(result["itusers"]["objects"])
-        error_message = hide_cpr(f"Multiple matching employees in {result}")
-        exception = MultipleObjectsReturnedException(error_message)
+    async def find_mo_employee_uuid_via_cpr_number(self, dn: str) -> set[UUID]:
+        cpr_field = self.user_context["cpr_field"]
+        if cpr_field is None:
+            return set()
 
-        if number_of_employees == 1:
-            logger.info("[Return-mo-employee-uuid] Attempting cpr_no lookup.")
-            uuid: UUID = result["employees"]["objects"][0]["uuid"]
+        ldap_object = self.load_ldap_object(dn, [cpr_field])
+        # Try to get the cpr number from LDAP and use that.
+        try:
+            cpr_no = validate_cpr(str(getattr(ldap_object, cpr_field)))
+            assert cpr_no is not None
+        except ValueError:
+            return set()
+
+        result = await self.graphql_client.read_employee_uuid_by_cpr_number(cpr_no)
+        return {employee.uuid for employee in result.objects}
+
+    async def find_mo_employee_uuid_via_ituser(self, dn: str) -> set[UUID]:
+        unique_uuid = self.get_ldap_unique_ldap_uuid(dn)
+        result = await self.graphql_client.read_employee_uuid_by_ituser_user_key(
+            str(unique_uuid)
+        )
+        return {
+            ituser.current.employee_uuid
+            for ituser in result.objects
+            if ituser.current is not None and ituser.current.employee_uuid is not None
+        }
+
+    async def find_mo_employee_uuid(self, dn: str) -> UUID | None:
+        cpr_results = await self.find_mo_employee_uuid_via_cpr_number(dn)
+        if len(cpr_results) == 1:
+            uuid = one(cpr_results)
+            logger.info(f"Found employee via CPR matching for dn={dn}: {uuid}")
             return uuid
 
-        elif number_of_itusers >= 1:
-            logger.info("[Return-mo-employee-uuid] Attempting it-system lookup.")
-            uuids = [
-                result["itusers"]["objects"][i]["objects"][0]["employee_uuid"]
-                for i in range(number_of_itusers)
-            ]
+        ituser_results = await self.find_mo_employee_uuid_via_ituser(dn)
+        if len(ituser_results) == 1:
+            uuid = one(ituser_results)
+            logger.info(f"Found employee via ITUser matching for dn={dn}: {uuid}")
+            return uuid
 
-            return only(set(uuids), too_long=exception)
+        # TODO: Return an ExceptionGroup with both
+        # NOTE: This may break a lot of things, because we explicitly match against MultipleObjectsReturnedException
+        if len(cpr_results) > 1:
+            raise MultipleObjectsReturnedException(f"Multiple CPR matches for dn={dn}")
 
-        elif number_of_itusers == 0 and number_of_employees == 0:
-            logger.info(f"[Return-mo-employee-uuid] No matching employee in {result}")
-            return None
-        else:
-            raise exception
+        if len(ituser_results) > 1:
+            raise MultipleObjectsReturnedException(
+                f"Multiple ITUser matches for dn={dn}"
+            )
 
-    async def find_mo_employee_uuid(self, dn: str) -> None | UUID:
-        cpr_field = self.user_context["cpr_field"]
-        cpr_no = None
-        if cpr_field:
-            ldap_object = self.load_ldap_object(dn, [cpr_field])
-
-            # Try to get the cpr number from LDAP and use that.
-            with suppress(ValueError):
-                cpr_no = validate_cpr(str(getattr(ldap_object, cpr_field)))
-
-        if cpr_field and cpr_no:
-            cpr_query = f"""
-            employees(filter: {{cpr_numbers: "{cpr_no}"}}) {{
-              objects {{
-                 uuid
-              }}
-            }}
-            """
-        else:
-            cpr_query = ""
-
-        unique_uuid = self.get_ldap_unique_ldap_uuid(dn)
-        ituser_query = f"""
-        itusers(filter: {{user_keys: "{unique_uuid}"}}) {{
-          objects {{
-            objects {{
-               employee_uuid
-            }}
-          }}
-        }}
-        """
-
-        query = gql(
-            f"""
-            query FindEmployeeUUID {{
-              {cpr_query}
-              {ituser_query}
-            }}
-            """
-        )
-
-        result = await self.query_mo(query, raise_if_empty=False)
-        return self._return_mo_employee_uuid_result(result)
+        logger.info(f"No matching employee for dn={dn}")
+        return None
 
     async def find_mo_engagement_uuid(self, dn: str) -> None | UUID:
         # Get Unique LDAP UUID from DN, then get engagement by looking for IT user with that

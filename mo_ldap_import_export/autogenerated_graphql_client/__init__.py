@@ -136,6 +136,21 @@ from .ituser_terminate import ItuserTerminateItuserTerminate
 from .read_class_uuid import ReadClassUuid
 from .read_class_uuid import ReadClassUuidClasses
 from .read_class_uuid import ReadClassUuidClassesObjects
+from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumber
+from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumberEmployees
+from .read_employee_uuid_by_cpr_number import (
+    ReadEmployeeUuidByCprNumberEmployeesObjects,
+)
+from .read_employee_uuid_by_ituser_user_key import ReadEmployeeUuidByItuserUserKey
+from .read_employee_uuid_by_ituser_user_key import (
+    ReadEmployeeUuidByItuserUserKeyItusers,
+)
+from .read_employee_uuid_by_ituser_user_key import (
+    ReadEmployeeUuidByItuserUserKeyItusersObjects,
+)
+from .read_employee_uuid_by_ituser_user_key import (
+    ReadEmployeeUuidByItuserUserKeyItusersObjectsCurrent,
+)
 from .read_employees_with_engagement_to_org_unit import (
     ReadEmployeesWithEngagementToOrgUnit,
 )
@@ -289,6 +304,13 @@ __all__ = [
     "ReadClassUuid",
     "ReadClassUuidClasses",
     "ReadClassUuidClassesObjects",
+    "ReadEmployeeUuidByCprNumber",
+    "ReadEmployeeUuidByCprNumberEmployees",
+    "ReadEmployeeUuidByCprNumberEmployeesObjects",
+    "ReadEmployeeUuidByItuserUserKey",
+    "ReadEmployeeUuidByItuserUserKeyItusers",
+    "ReadEmployeeUuidByItuserUserKeyItusersObjects",
+    "ReadEmployeeUuidByItuserUserKeyItusersObjectsCurrent",
     "ReadEmployeesWithEngagementToOrgUnit",
     "ReadEmployeesWithEngagementToOrgUnitEngagements",
     "ReadEmployeesWithEngagementToOrgUnitEngagementsObjects",
