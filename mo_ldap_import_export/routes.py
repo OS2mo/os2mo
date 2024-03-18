@@ -165,12 +165,10 @@ def construct_router(user_context: UserContext) -> APIRouter:
     # Export object(s) from MO to LDAP
     @router.post("/Export", status_code=202, tags=["Export"])
     async def export_mo_objects(
-        user_context: UserContext,
+        internal_amqpsystem: depends.InternalAMQPSystem,
         dataloader: depends.DataLoader,
         params: ExportQueryParams = Depends(),
     ) -> Any:
-        internal_amqpsystem = user_context["internal_amqpsystem"]
-
         delay = (
             params.delay_in_hours * 60 * 60
             + params.delay_in_minutes * 60
