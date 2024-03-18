@@ -60,7 +60,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
     async def import_all_objects_from_LDAP(
         sync_tool: depends.SyncTool,
         dataloader: depends.DataLoader,
-        user_context: UserContext,
+        converter: depends.LdapConverter,
         test_on_first_20_entries: bool = False,
         delay_in_hours: int = 0,
         delay_in_minutes: int = 0,
@@ -68,8 +68,6 @@ def construct_router(user_context: UserContext) -> APIRouter:
         cpr_indexed_entries_only: bool = True,
         search_base: str | None = None,
     ) -> Any:
-        converter = user_context["converter"]
-
         cpr_field = converter.cpr_field
 
         if cpr_indexed_entries_only and not cpr_field:
@@ -201,12 +199,10 @@ def construct_router(user_context: UserContext) -> APIRouter:
     # Get all objects from LDAP - Converted to MO
     @router.get("/LDAP/{json_key}/converted", status_code=202, tags=["LDAP"])
     async def convert_all_objects_from_ldap(
-        user_context: UserContext,
         dataloader: depends.DataLoader,
+        converter: depends.LdapConverter,
         json_key: Literal[accepted_json_keys],  # type: ignore
     ) -> Any:
-        converter = user_context["converter"]
-
         result = await dataloader.load_ldap_objects(json_key)
         converted_results = []
         for r in result:
@@ -234,14 +230,12 @@ def construct_router(user_context: UserContext) -> APIRouter:
     # Get a specific cpr-indexed object from LDAP - Converted to MO
     @router.get("/LDAP/{json_key}/{cpr}/converted", status_code=202, tags=["LDAP"])
     async def convert_object_from_LDAP(
-        user_context: UserContext,
         dataloader: depends.DataLoader,
+        converter: depends.LdapConverter,
         json_key: Literal[accepted_json_keys],  # type: ignore
         response: Response,
         cpr: str = Depends(valid_cpr),
     ) -> Any:
-        converter = user_context["converter"]
-
         result = dataloader.load_ldap_cpr_object(cpr, json_key)
         try:
             return await converter.from_ldap(result, json_key, employee_uuid=uuid4())
@@ -309,10 +303,8 @@ def construct_router(user_context: UserContext) -> APIRouter:
     @router.get("/Inspect/duplicate_cpr_numbers", status_code=202, tags=["LDAP"])
     async def get_duplicate_cpr_numbers_from_LDAP(
         context: Context,
-        user_context: UserContext,
+        converter: depends.LdapConverter,
     ) -> Any:
-        # TODO: Raw FastRAMQPI context as context
-        converter = user_context["converter"]
         cpr_field = converter.cpr_field
         if not cpr_field:
             raise CPRFieldNotFound("cpr_field is not configured")
@@ -342,11 +334,9 @@ def construct_router(user_context: UserContext) -> APIRouter:
     # Get all objects from LDAP with invalid cpr numbers
     @router.get("/Inspect/invalid_cpr_numbers", status_code=202, tags=["LDAP"])
     async def get_invalid_cpr_numbers_from_LDAP(
-        user_context: UserContext,
+        converter: depends.LdapConverter,
         dataloader: depends.DataLoader,
     ) -> Any:
-        converter = user_context["converter"]
-
         cpr_field = converter.cpr_field
         if not cpr_field:
             raise CPRFieldNotFound("cpr_field is not configured")
@@ -375,13 +365,11 @@ def construct_router(user_context: UserContext) -> APIRouter:
     # Post an object to MO
     @router.post("/MO/{json_key}", tags=["MO"])
     async def post_object_to_MO(
-        user_context: UserContext,
         dataloader: depends.DataLoader,
+        converter: depends.LdapConverter,
         json_key: Literal[accepted_json_keys],  # type: ignore
         mo_object_json: dict,
     ) -> None:
-        converter = user_context["converter"]
-
         mo_object = converter.import_mo_object_class(json_key)
         logger.info(f"Posting {mo_object} = {mo_object_json} to MO")
         await dataloader.upload_mo_objects([mo_object(**mo_object_json)])
