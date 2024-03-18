@@ -286,7 +286,7 @@ def patch_modules(
     with patch(
         "mo_ldap_import_export.main.configure_ldap_connection", new_callable=MagicMock()
     ), patch("mo_ldap_import_export.main.DataLoader", return_value=dataloader), patch(
-        "mo_ldap_import_export.main.get_attribute_types", return_value={"foo": {}}
+        "mo_ldap_import_export.routes.get_attribute_types", return_value={"foo": {}}
     ), patch(
         "mo_ldap_import_export.main.AMQPSystem", return_value=internal_amqpsystem
     ), patch("mo_ldap_import_export.main.asyncio.get_event_loop", return_value=None):
@@ -887,7 +887,9 @@ def test_get_duplicate_cpr_numbers_from_LDAP_endpoint(
         {"dn": "bar", "attributes": {"EmployeeID": "123"}},
     ]
 
-    with patch("mo_ldap_import_export.main.paged_search", return_value=searchResponse):
+    with patch(
+        "mo_ldap_import_export.routes.paged_search", return_value=searchResponse
+    ):
         response = test_client.get("/Inspect/duplicate_cpr_numbers")
         assert response.status_code == 202
         result = response.json()
