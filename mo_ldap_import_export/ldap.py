@@ -12,7 +12,6 @@ from ssl import CERT_REQUIRED
 from threading import Thread
 from typing import Any
 from typing import cast
-from typing import ContextManager
 from uuid import UUID
 
 import ldap3.core.exceptions
@@ -75,7 +74,14 @@ def get_client_strategy():
     return RESTARTABLE
 
 
-def configure_ldap_connection(settings: Settings) -> ContextManager:
+def construct_server_pool(settings: Settings) -> ServerPool:
+    servers = list(map(construct_server, settings.ldap_controllers))
+    # Pick the next server to use at random, discard non-active servers
+    server_pool = ServerPool(servers, RANDOM, active=True, exhaust=True)
+    return server_pool
+
+
+def configure_ldap_connection(settings: Settings) -> Connection:
     """Configure an LDAP connection.
 
     Args:
@@ -94,10 +100,7 @@ def configure_ldap_connection(settings: Settings) -> ContextManager:
     signal.signal(signal.SIGALRM, alarm_handler)
     signal.alarm(max([c.timeout for c in settings.ldap_controllers]))
 
-    servers = list(map(construct_server, settings.ldap_controllers))
-
-    # Pick the next server to use at random, discard non-active servers
-    server_pool = ServerPool(servers, RANDOM, active=True, exhaust=True)
+    server_pool = construct_server_pool(settings)
     client_strategy = get_client_strategy()
 
     logger.info(f"Connecting to {server_pool}")
@@ -139,7 +142,7 @@ def configure_ldap_connection(settings: Settings) -> ContextManager:
         # Turn off the alarm
         signal.alarm(0)
 
-    return cast(ContextManager, connection)
+    return connection
 
 
 async def ldap_healthcheck(context: dict | Context) -> bool:
