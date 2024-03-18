@@ -221,13 +221,11 @@ def construct_router(user_context: UserContext) -> APIRouter:
     # Get a specific cpr-indexed object from LDAP
     @router.get("/LDAP/{json_key}/{cpr}", status_code=202, tags=["LDAP"])
     async def load_object_from_LDAP(
-        user_context: UserContext,
         dataloader: depends.DataLoader,
+        settings: depends.Settings,
         json_key: Literal[accepted_json_keys],  # type: ignore
         cpr: str = Depends(valid_cpr),
     ) -> Any:
-        settings = user_context["settings"]
-
         result = dataloader.load_ldap_cpr_object(
             cpr, json_key, [settings.ldap_unique_id_field]
         )
@@ -257,13 +255,11 @@ def construct_router(user_context: UserContext) -> APIRouter:
     # Get all objects from LDAP
     @router.get("/LDAP/{json_key}", status_code=202, tags=["LDAP"])
     async def load_all_objects_from_LDAP(
-        user_context: UserContext,
         dataloader: depends.DataLoader,
+        settings: depends.Settings,
         json_key: Literal[accepted_json_keys],  # type: ignore
         entries_to_return: int = Query(ge=1),
     ) -> Any:
-        settings = user_context["settings"]
-
         result = await dataloader.load_ldap_objects(
             json_key, [settings.ldap_unique_id_field]
         )
@@ -273,11 +269,9 @@ def construct_router(user_context: UserContext) -> APIRouter:
         "/Inspect/non_existing_unique_ldap_uuids", status_code=202, tags=["LDAP"]
     )
     async def get_non_existing_unique_ldap_uuids_from_MO(
-        user_context: UserContext,
+        settings: depends.Settings,
         dataloader: depends.DataLoader,
     ) -> Any:
-        settings = user_context["settings"]
-
         it_system_uuid = dataloader.get_ldap_it_system_uuid()
         if not it_system_uuid:
             raise ObjectGUIDITSystemNotFound("Could not find it_system_uuid")
