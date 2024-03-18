@@ -59,6 +59,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
     @router.get("/Import", status_code=202, tags=["Import"])
     async def import_all_objects_from_LDAP(
         sync_tool: depends.SyncTool,
+        dataloader: depends.DataLoader,
         user_context: UserContext,
         test_on_first_20_entries: bool = False,
         delay_in_hours: int = 0,
@@ -68,7 +69,6 @@ def construct_router(user_context: UserContext) -> APIRouter:
         search_base: str | None = None,
     ) -> Any:
         converter = user_context["converter"]
-        dataloader: DataLoader = user_context["dataloader"]
 
         cpr_field = converter.cpr_field
 
@@ -119,10 +119,8 @@ def construct_router(user_context: UserContext) -> APIRouter:
     async def import_single_user_from_LDAP(
         unique_ldap_uuid: UUID,
         sync_tool: depends.SyncTool,
-        user_context: UserContext,
+        dataloader: depends.DataLoader,
     ) -> Any:
-        dataloader: DataLoader = user_context["dataloader"]
-
         dn = dataloader.get_ldap_dn(unique_ldap_uuid)
         await sync_tool.import_single_user(dn, manual_import=True)
 
@@ -170,10 +168,10 @@ def construct_router(user_context: UserContext) -> APIRouter:
     @router.post("/Export", status_code=202, tags=["Export"])
     async def export_mo_objects(
         user_context: UserContext,
+        dataloader: depends.DataLoader,
         params: ExportQueryParams = Depends(),
     ) -> Any:
         internal_amqpsystem = user_context["internal_amqpsystem"]
-        dataloader: DataLoader = user_context["dataloader"]
 
         delay = (
             params.delay_in_hours * 60 * 60
@@ -204,10 +202,10 @@ def construct_router(user_context: UserContext) -> APIRouter:
     @router.get("/LDAP/{json_key}/converted", status_code=202, tags=["LDAP"])
     async def convert_all_objects_from_ldap(
         user_context: UserContext,
+        dataloader: depends.DataLoader,
         json_key: Literal[accepted_json_keys],  # type: ignore
     ) -> Any:
         converter = user_context["converter"]
-        dataloader: DataLoader = user_context["dataloader"]
 
         result = await dataloader.load_ldap_objects(json_key)
         converted_results = []
@@ -224,11 +222,11 @@ def construct_router(user_context: UserContext) -> APIRouter:
     @router.get("/LDAP/{json_key}/{cpr}", status_code=202, tags=["LDAP"])
     async def load_object_from_LDAP(
         user_context: UserContext,
+        dataloader: depends.DataLoader,
         json_key: Literal[accepted_json_keys],  # type: ignore
         cpr: str = Depends(valid_cpr),
     ) -> Any:
         settings = user_context["settings"]
-        dataloader: DataLoader = user_context["dataloader"]
 
         result = dataloader.load_ldap_cpr_object(
             cpr, json_key, [settings.ldap_unique_id_field]
@@ -239,12 +237,12 @@ def construct_router(user_context: UserContext) -> APIRouter:
     @router.get("/LDAP/{json_key}/{cpr}/converted", status_code=202, tags=["LDAP"])
     async def convert_object_from_LDAP(
         user_context: UserContext,
+        dataloader: depends.DataLoader,
         json_key: Literal[accepted_json_keys],  # type: ignore
         response: Response,
         cpr: str = Depends(valid_cpr),
     ) -> Any:
         converter = user_context["converter"]
-        dataloader: DataLoader = user_context["dataloader"]
 
         result = dataloader.load_ldap_cpr_object(cpr, json_key)
         try:
@@ -260,11 +258,11 @@ def construct_router(user_context: UserContext) -> APIRouter:
     @router.get("/LDAP/{json_key}", status_code=202, tags=["LDAP"])
     async def load_all_objects_from_LDAP(
         user_context: UserContext,
+        dataloader: depends.DataLoader,
         json_key: Literal[accepted_json_keys],  # type: ignore
         entries_to_return: int = Query(ge=1),
     ) -> Any:
         settings = user_context["settings"]
-        dataloader: DataLoader = user_context["dataloader"]
 
         result = await dataloader.load_ldap_objects(
             json_key, [settings.ldap_unique_id_field]
@@ -276,9 +274,9 @@ def construct_router(user_context: UserContext) -> APIRouter:
     )
     async def get_non_existing_unique_ldap_uuids_from_MO(
         user_context: UserContext,
+        dataloader: depends.DataLoader,
     ) -> Any:
         settings = user_context["settings"]
-        dataloader: DataLoader = user_context["dataloader"]
 
         it_system_uuid = dataloader.get_ldap_it_system_uuid()
         if not it_system_uuid:
@@ -351,9 +349,9 @@ def construct_router(user_context: UserContext) -> APIRouter:
     @router.get("/Inspect/invalid_cpr_numbers", status_code=202, tags=["LDAP"])
     async def get_invalid_cpr_numbers_from_LDAP(
         user_context: UserContext,
+        dataloader: depends.DataLoader,
     ) -> Any:
         converter = user_context["converter"]
-        dataloader: DataLoader = user_context["dataloader"]
 
         cpr_field = converter.cpr_field
         if not cpr_field:
@@ -374,23 +372,21 @@ def construct_router(user_context: UserContext) -> APIRouter:
     # Modify a person in LDAP
     @router.post("/LDAP/{json_key}", tags=["LDAP"])
     async def post_object_to_LDAP(
-        user_context: UserContext,
+        dataloader: depends.DataLoader,
         json_key: Literal[accepted_json_keys],  # type: ignore
         ldap_object: LdapObject,
     ) -> Any:
-        dataloader: DataLoader = user_context["dataloader"]
-
         await dataloader.modify_ldap_object(ldap_object, json_key)
 
     # Post an object to MO
     @router.post("/MO/{json_key}", tags=["MO"])
     async def post_object_to_MO(
         user_context: UserContext,
+        dataloader: depends.DataLoader,
         json_key: Literal[accepted_json_keys],  # type: ignore
         mo_object_json: dict,
     ) -> None:
         converter = user_context["converter"]
-        dataloader: DataLoader = user_context["dataloader"]
 
         mo_object = converter.import_mo_object_class(json_key)
         logger.info(f"Posting {mo_object} = {mo_object_json} to MO")
@@ -398,48 +394,36 @@ def construct_router(user_context: UserContext) -> APIRouter:
 
     # Get a speficic address from MO
     @router.get("/MO/Address/{uuid}", status_code=202, tags=["MO"])
-    async def load_address_from_MO(user_context: UserContext, uuid: UUID) -> Any:
-        dataloader: DataLoader = user_context["dataloader"]
-
-        result = await dataloader.load_mo_address(uuid)
-        return result
+    async def load_address_from_MO(dataloader: depends.DataLoader, uuid: UUID) -> Any:
+        return await dataloader.load_mo_address(uuid)
 
     # Get a speficic person from MO
     @router.get("/MO/Employee/{uuid}", status_code=202, tags=["MO"])
-    async def load_employee_from_MO(user_context: UserContext, uuid: UUID) -> Any:
-        dataloader: DataLoader = user_context["dataloader"]
-
-        result = await dataloader.load_mo_employee(uuid)
-        return result
+    async def load_employee_from_MO(dataloader: depends.DataLoader, uuid: UUID) -> Any:
+        return await dataloader.load_mo_employee(uuid)
 
     # Get LDAP overview
     @router.get("/Inspect/overview", status_code=202, tags=["LDAP"])
     async def load_overview_from_LDAP(
-        user_context: UserContext,
+        dataloader: depends.DataLoader,
         ldap_class: Literal[ldap_classes] = default_ldap_class,  # type: ignore
     ) -> Any:
-        dataloader: DataLoader = user_context["dataloader"]
-
         ldap_overview = dataloader.load_ldap_overview()
         return ldap_overview[ldap_class]
 
     # Get LDAP overview
     @router.get("/Inspect/structure", status_code=202, tags=["LDAP"])
     async def load_structure_from_LDAP(
-        user_context: UserContext, search_base: str | None = None
+        dataloader: depends.DataLoader, search_base: str | None = None
     ) -> Any:
-        dataloader: DataLoader = user_context["dataloader"]
-
         return dataloader.load_ldap_OUs(search_base=search_base)
 
     # Get populated LDAP overview
     @router.get("/Inspect/overview/populated", status_code=202, tags=["LDAP"])
     async def load_populated_overview_from_LDAP(
-        user_context: UserContext,
+        dataloader: depends.DataLoader,
         ldap_class: Literal[ldap_classes] = default_ldap_class,  # type: ignore
     ) -> Any:
-        dataloader: DataLoader = user_context["dataloader"]
-
         ldap_overview = dataloader.load_ldap_populated_overview(
             ldap_classes=[ldap_class]
         )
@@ -459,77 +443,56 @@ def construct_router(user_context: UserContext) -> APIRouter:
     # Get LDAP attribute values
     @router.get("/Inspect/attribute/values/{attribute}", status_code=202, tags=["LDAP"])
     async def load_unique_attribute_values_from_LDAP(
-        user_context: UserContext,
+        dataloader: depends.DataLoader,
         attribute: Literal[accepted_attributes],  # type: ignore
         search_base: str | None = None,
     ) -> Any:
-        dataloader: DataLoader = user_context["dataloader"]
-
         return dataloader.load_ldap_attribute_values(attribute, search_base=search_base)
 
     # Get LDAP object by unique_ldap_uuid
     @router.get("/Inspect/object/unique_ldap_uuid", status_code=202, tags=["LDAP"])
     async def load_object_from_ldap_by_unique_ldap_uuid(
-        user_context: UserContext, unique_ldap_uuid: UUID, nest: bool = False
+        dataloader: depends.DataLoader, unique_ldap_uuid: UUID, nest: bool = False
     ) -> Any:
-        dataloader: DataLoader = user_context["dataloader"]
-
         dn = dataloader.get_ldap_dn(unique_ldap_uuid)
         return encode_result(dataloader.load_ldap_object(dn, ["*"], nest=nest))
 
     # Get LDAP object by DN
     @router.get("/Inspect/object/dn", status_code=202, tags=["LDAP"])
     async def load_object_from_ldap_by_dn(
-        user_context: UserContext, dn: str, nest: bool = False
+        dataloader: depends.DataLoader, dn: str, nest: bool = False
     ) -> Any:
-        dataloader: DataLoader = user_context["dataloader"]
-
         return encode_result(dataloader.load_ldap_object(dn, ["*"], nest=nest))
 
     # Get LDAP unique_ldap_uuid
     @router.get("/unique_ldap_uuid/{dn}", status_code=202, tags=["LDAP"])
-    async def load_unique_uuid_from_ldap(user_context: UserContext, dn: str) -> Any:
-        dataloader: DataLoader = user_context["dataloader"]
-
+    async def load_unique_uuid_from_ldap(
+        dataloader: depends.DataLoader, dn: str
+    ) -> Any:
         return dataloader.get_ldap_unique_ldap_uuid(dn)
 
     # Get MO address types
     @router.get("/MO/Address_types_org_unit", status_code=202, tags=["MO"])
     async def load_org_unit_address_types_from_MO(
-        user_context: UserContext,
+        dataloader: depends.DataLoader,
     ) -> Any:
-        dataloader: DataLoader = user_context["dataloader"]
-
-        result = await dataloader.load_mo_org_unit_address_types()
-        return result
+        return await dataloader.load_mo_org_unit_address_types()
 
     # Get MO address types
     @router.get("/MO/Address_types_employee", status_code=202, tags=["MO"])
     async def load_employee_address_types_from_MO(
-        user_context: UserContext,
+        dataloader: depends.DataLoader,
     ) -> Any:
-        dataloader: DataLoader = user_context["dataloader"]
-
-        result = await dataloader.load_mo_employee_address_types()
-        return result
+        return await dataloader.load_mo_employee_address_types()
 
     # Get MO IT system types
     @router.get("/MO/IT_systems", status_code=202, tags=["MO"])
-    async def load_it_systems_from_MO(
-        user_context: UserContext,
-    ) -> Any:
-        dataloader: DataLoader = user_context["dataloader"]
-
-        result = await dataloader.load_mo_it_systems()
-        return result
+    async def load_it_systems_from_MO(dataloader: depends.DataLoader) -> Any:
+        return await dataloader.load_mo_it_systems()
 
     # Get MO primary types
     @router.get("/MO/Primary_types", status_code=202, tags=["MO"])
-    async def load_primary_types_from_MO(
-        user_context: UserContext,
-    ) -> Any:
-        dataloader: DataLoader = user_context["dataloader"]
-
+    async def load_primary_types_from_MO(dataloader: depends.DataLoader) -> Any:
         return await dataloader.load_mo_primary_types()
 
     return router
