@@ -9,11 +9,11 @@ from uuid import uuid4
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import Query
-from fastapi import Request
 from fastapi import Response
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
-from fastramqpi.main import FastRAMQPI
+from fastramqpi.depends import UserContext
+from fastramqpi.ramqp.depends import Context
 from pydantic import ValidationError
 from ramodels.mo._shared import validate_cpr
 from tqdm import tqdm
@@ -39,16 +39,12 @@ def encode_result(result):
     return json_compatible_result
 
 
-def construct_router(fastramqpi: FastRAMQPI) -> APIRouter:
+def construct_router(user_context: UserContext) -> APIRouter:
     router = APIRouter()
-
-    user_context = fastramqpi._context["user_context"]
 
     dataloader: DataLoader = user_context["dataloader"]
     ldap_connection = user_context["ldap_connection"]
-    internal_amqpsystem = user_context["internal_amqpsystem"]
     mapping = user_context["mapping"]
-    settings = user_context["settings"]
 
     attribute_types = get_attribute_types(ldap_connection)
     accepted_attributes = tuple(sorted(attribute_types.keys()))
@@ -63,6 +59,7 @@ def construct_router(fastramqpi: FastRAMQPI) -> APIRouter:
     @router.get("/Import", status_code=202, tags=["Import"])
     async def import_all_objects_from_LDAP(
         sync_tool: depends.SyncTool,
+        user_context: UserContext,
         test_on_first_20_entries: bool = False,
         delay_in_hours: int = 0,
         delay_in_minutes: int = 0,
@@ -71,6 +68,8 @@ def construct_router(fastramqpi: FastRAMQPI) -> APIRouter:
         search_base: str | None = None,
     ) -> Any:
         converter = user_context["converter"]
+        dataloader: DataLoader = user_context["dataloader"]
+
         cpr_field = converter.cpr_field
 
         if cpr_indexed_entries_only and not cpr_field:
@@ -120,7 +119,10 @@ def construct_router(fastramqpi: FastRAMQPI) -> APIRouter:
     async def import_single_user_from_LDAP(
         unique_ldap_uuid: UUID,
         sync_tool: depends.SyncTool,
+        user_context: UserContext,
     ) -> Any:
+        dataloader: DataLoader = user_context["dataloader"]
+
         dn = dataloader.get_ldap_dn(unique_ldap_uuid)
         await sync_tool.import_single_user(dn, manual_import=True)
 
@@ -167,8 +169,12 @@ def construct_router(fastramqpi: FastRAMQPI) -> APIRouter:
     # Export object(s) from MO to LDAP
     @router.post("/Export", status_code=202, tags=["Export"])
     async def export_mo_objects(
+        user_context: UserContext,
         params: ExportQueryParams = Depends(),
     ) -> Any:
+        internal_amqpsystem = user_context["internal_amqpsystem"]
+        dataloader: DataLoader = user_context["dataloader"]
+
         delay = (
             params.delay_in_hours * 60 * 60
             + params.delay_in_minutes * 60
@@ -197,9 +203,12 @@ def construct_router(fastramqpi: FastRAMQPI) -> APIRouter:
     # Get all objects from LDAP - Converted to MO
     @router.get("/LDAP/{json_key}/converted", status_code=202, tags=["LDAP"])
     async def convert_all_objects_from_ldap(
+        user_context: UserContext,
         json_key: Literal[accepted_json_keys],  # type: ignore
     ) -> Any:
         converter = user_context["converter"]
+        dataloader: DataLoader = user_context["dataloader"]
+
         result = await dataloader.load_ldap_objects(json_key)
         converted_results = []
         for r in result:
@@ -214,9 +223,13 @@ def construct_router(fastramqpi: FastRAMQPI) -> APIRouter:
     # Get a specific cpr-indexed object from LDAP
     @router.get("/LDAP/{json_key}/{cpr}", status_code=202, tags=["LDAP"])
     async def load_object_from_LDAP(
+        user_context: UserContext,
         json_key: Literal[accepted_json_keys],  # type: ignore
         cpr: str = Depends(valid_cpr),
     ) -> Any:
+        settings = user_context["settings"]
+        dataloader: DataLoader = user_context["dataloader"]
+
         result = dataloader.load_ldap_cpr_object(
             cpr, json_key, [settings.ldap_unique_id_field]
         )
@@ -225,11 +238,14 @@ def construct_router(fastramqpi: FastRAMQPI) -> APIRouter:
     # Get a specific cpr-indexed object from LDAP - Converted to MO
     @router.get("/LDAP/{json_key}/{cpr}/converted", status_code=202, tags=["LDAP"])
     async def convert_object_from_LDAP(
+        user_context: UserContext,
         json_key: Literal[accepted_json_keys],  # type: ignore
         response: Response,
         cpr: str = Depends(valid_cpr),
     ) -> Any:
         converter = user_context["converter"]
+        dataloader: DataLoader = user_context["dataloader"]
+
         result = dataloader.load_ldap_cpr_object(cpr, json_key)
         try:
             return await converter.from_ldap(result, json_key, employee_uuid=uuid4())
@@ -243,9 +259,13 @@ def construct_router(fastramqpi: FastRAMQPI) -> APIRouter:
     # Get all objects from LDAP
     @router.get("/LDAP/{json_key}", status_code=202, tags=["LDAP"])
     async def load_all_objects_from_LDAP(
+        user_context: UserContext,
         json_key: Literal[accepted_json_keys],  # type: ignore
         entries_to_return: int = Query(ge=1),
     ) -> Any:
+        settings = user_context["settings"]
+        dataloader: DataLoader = user_context["dataloader"]
+
         result = await dataloader.load_ldap_objects(
             json_key, [settings.ldap_unique_id_field]
         )
@@ -254,7 +274,12 @@ def construct_router(fastramqpi: FastRAMQPI) -> APIRouter:
     @router.get(
         "/Inspect/non_existing_unique_ldap_uuids", status_code=202, tags=["LDAP"]
     )
-    async def get_non_existing_unique_ldap_uuids_from_MO() -> Any:
+    async def get_non_existing_unique_ldap_uuids_from_MO(
+        user_context: UserContext,
+    ) -> Any:
+        settings = user_context["settings"]
+        dataloader: DataLoader = user_context["dataloader"]
+
         it_system_uuid = dataloader.get_ldap_it_system_uuid()
         if not it_system_uuid:
             raise ObjectGUIDITSystemNotFound("Could not find it_system_uuid")
@@ -290,7 +315,11 @@ def construct_router(fastramqpi: FastRAMQPI) -> APIRouter:
         return non_existing_unique_ldap_uuids
 
     @router.get("/Inspect/duplicate_cpr_numbers", status_code=202, tags=["LDAP"])
-    async def get_duplicate_cpr_numbers_from_LDAP() -> Any:
+    async def get_duplicate_cpr_numbers_from_LDAP(
+        context: Context,
+        user_context: UserContext,
+    ) -> Any:
+        # TODO: Raw FastRAMQPI context as context
         converter = user_context["converter"]
         cpr_field = converter.cpr_field
         if not cpr_field:
@@ -303,7 +332,7 @@ def construct_router(fastramqpi: FastRAMQPI) -> APIRouter:
 
         responses = [
             r
-            for r in paged_search(fastramqpi._context, searchParameters)
+            for r in paged_search(context, searchParameters)
             if r["attributes"][cpr_field]
         ]
 
@@ -320,8 +349,12 @@ def construct_router(fastramqpi: FastRAMQPI) -> APIRouter:
 
     # Get all objects from LDAP with invalid cpr numbers
     @router.get("/Inspect/invalid_cpr_numbers", status_code=202, tags=["LDAP"])
-    async def get_invalid_cpr_numbers_from_LDAP() -> Any:
+    async def get_invalid_cpr_numbers_from_LDAP(
+        user_context: UserContext,
+    ) -> Any:
         converter = user_context["converter"]
+        dataloader: DataLoader = user_context["dataloader"]
+
         cpr_field = converter.cpr_field
         if not cpr_field:
             raise CPRFieldNotFound("cpr_field is not configured")
@@ -341,58 +374,72 @@ def construct_router(fastramqpi: FastRAMQPI) -> APIRouter:
     # Modify a person in LDAP
     @router.post("/LDAP/{json_key}", tags=["LDAP"])
     async def post_object_to_LDAP(
+        user_context: UserContext,
         json_key: Literal[accepted_json_keys],  # type: ignore
         ldap_object: LdapObject,
     ) -> Any:
+        dataloader: DataLoader = user_context["dataloader"]
+
         await dataloader.modify_ldap_object(ldap_object, json_key)
 
     # Post an object to MO
     @router.post("/MO/{json_key}", tags=["MO"])
     async def post_object_to_MO(
+        user_context: UserContext,
         json_key: Literal[accepted_json_keys],  # type: ignore
         mo_object_json: dict,
     ) -> None:
         converter = user_context["converter"]
+        dataloader: DataLoader = user_context["dataloader"]
+
         mo_object = converter.import_mo_object_class(json_key)
         logger.info(f"Posting {mo_object} = {mo_object_json} to MO")
         await dataloader.upload_mo_objects([mo_object(**mo_object_json)])
 
     # Get a speficic address from MO
     @router.get("/MO/Address/{uuid}", status_code=202, tags=["MO"])
-    async def load_address_from_MO(
-        uuid: UUID,
-        request: Request,
-    ) -> Any:
+    async def load_address_from_MO(user_context: UserContext, uuid: UUID) -> Any:
+        dataloader: DataLoader = user_context["dataloader"]
+
         result = await dataloader.load_mo_address(uuid)
         return result
 
     # Get a speficic person from MO
     @router.get("/MO/Employee/{uuid}", status_code=202, tags=["MO"])
-    async def load_employee_from_MO(
-        uuid: UUID,
-        request: Request,
-    ) -> Any:
+    async def load_employee_from_MO(user_context: UserContext, uuid: UUID) -> Any:
+        dataloader: DataLoader = user_context["dataloader"]
+
         result = await dataloader.load_mo_employee(uuid)
         return result
 
     # Get LDAP overview
     @router.get("/Inspect/overview", status_code=202, tags=["LDAP"])
     async def load_overview_from_LDAP(
+        user_context: UserContext,
         ldap_class: Literal[ldap_classes] = default_ldap_class,  # type: ignore
     ) -> Any:
+        dataloader: DataLoader = user_context["dataloader"]
+
         ldap_overview = dataloader.load_ldap_overview()
         return ldap_overview[ldap_class]
 
     # Get LDAP overview
     @router.get("/Inspect/structure", status_code=202, tags=["LDAP"])
-    async def load_structure_from_LDAP(search_base: str | None = None) -> Any:
+    async def load_structure_from_LDAP(
+        user_context: UserContext, search_base: str | None = None
+    ) -> Any:
+        dataloader: DataLoader = user_context["dataloader"]
+
         return dataloader.load_ldap_OUs(search_base=search_base)
 
     # Get populated LDAP overview
     @router.get("/Inspect/overview/populated", status_code=202, tags=["LDAP"])
     async def load_populated_overview_from_LDAP(
+        user_context: UserContext,
         ldap_class: Literal[ldap_classes] = default_ldap_class,  # type: ignore
     ) -> Any:
+        dataloader: DataLoader = user_context["dataloader"]
+
         ldap_overview = dataloader.load_ldap_populated_overview(
             ldap_classes=[ldap_class]
         )
@@ -401,57 +448,88 @@ def construct_router(fastramqpi: FastRAMQPI) -> APIRouter:
     # Get LDAP attribute details
     @router.get("/Inspect/attribute/{attribute}", status_code=202, tags=["LDAP"])
     async def load_attribute_details_from_LDAP(
+        user_context: UserContext,
         attribute: Literal[accepted_attributes],  # type: ignore
     ) -> Any:
+        ldap_connection = user_context["ldap_connection"]
+        attribute_types = get_attribute_types(ldap_connection)
+
         return attribute_types[attribute]
 
     # Get LDAP attribute values
     @router.get("/Inspect/attribute/values/{attribute}", status_code=202, tags=["LDAP"])
     async def load_unique_attribute_values_from_LDAP(
+        user_context: UserContext,
         attribute: Literal[accepted_attributes],  # type: ignore
         search_base: str | None = None,
     ) -> Any:
+        dataloader: DataLoader = user_context["dataloader"]
+
         return dataloader.load_ldap_attribute_values(attribute, search_base=search_base)
 
     # Get LDAP object by unique_ldap_uuid
     @router.get("/Inspect/object/unique_ldap_uuid", status_code=202, tags=["LDAP"])
     async def load_object_from_ldap_by_unique_ldap_uuid(
-        unique_ldap_uuid: UUID, nest: bool = False
+        user_context: UserContext, unique_ldap_uuid: UUID, nest: bool = False
     ) -> Any:
+        dataloader: DataLoader = user_context["dataloader"]
+
         dn = dataloader.get_ldap_dn(unique_ldap_uuid)
         return encode_result(dataloader.load_ldap_object(dn, ["*"], nest=nest))
 
     # Get LDAP object by DN
     @router.get("/Inspect/object/dn", status_code=202, tags=["LDAP"])
-    async def load_object_from_ldap_by_dn(dn: str, nest: bool = False) -> Any:
+    async def load_object_from_ldap_by_dn(
+        user_context: UserContext, dn: str, nest: bool = False
+    ) -> Any:
+        dataloader: DataLoader = user_context["dataloader"]
+
         return encode_result(dataloader.load_ldap_object(dn, ["*"], nest=nest))
 
     # Get LDAP unique_ldap_uuid
     @router.get("/unique_ldap_uuid/{dn}", status_code=202, tags=["LDAP"])
-    async def load_unique_uuid_from_ldap(dn: str) -> Any:
+    async def load_unique_uuid_from_ldap(user_context: UserContext, dn: str) -> Any:
+        dataloader: DataLoader = user_context["dataloader"]
+
         return dataloader.get_ldap_unique_ldap_uuid(dn)
 
     # Get MO address types
     @router.get("/MO/Address_types_org_unit", status_code=202, tags=["MO"])
-    async def load_org_unit_address_types_from_MO() -> Any:
+    async def load_org_unit_address_types_from_MO(
+        user_context: UserContext,
+    ) -> Any:
+        dataloader: DataLoader = user_context["dataloader"]
+
         result = await dataloader.load_mo_org_unit_address_types()
         return result
 
     # Get MO address types
     @router.get("/MO/Address_types_employee", status_code=202, tags=["MO"])
-    async def load_employee_address_types_from_MO() -> Any:
+    async def load_employee_address_types_from_MO(
+        user_context: UserContext,
+    ) -> Any:
+        dataloader: DataLoader = user_context["dataloader"]
+
         result = await dataloader.load_mo_employee_address_types()
         return result
 
     # Get MO IT system types
     @router.get("/MO/IT_systems", status_code=202, tags=["MO"])
-    async def load_it_systems_from_MO() -> Any:
+    async def load_it_systems_from_MO(
+        user_context: UserContext,
+    ) -> Any:
+        dataloader: DataLoader = user_context["dataloader"]
+
         result = await dataloader.load_mo_it_systems()
         return result
 
     # Get MO primary types
     @router.get("/MO/Primary_types", status_code=202, tags=["MO"])
-    async def load_primary_types_from_MO() -> Any:
+    async def load_primary_types_from_MO(
+        user_context: UserContext,
+    ) -> Any:
+        dataloader: DataLoader = user_context["dataloader"]
+
         return await dataloader.load_mo_primary_types()
 
     return router

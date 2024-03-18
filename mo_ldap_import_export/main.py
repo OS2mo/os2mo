@@ -48,10 +48,10 @@ from .ldap import poller_healthcheck
 from .ldap import setup_listener
 from .logging import logger
 from .os2mo_init import InitEngine
+from .routes import construct_router
 from .utils import get_object_type_from_routing_key
 from .utils import listener
 from .utils import mo_datestring_to_utc
-from mo_ldap_import_export.routes import construct_router
 
 fastapi_router = APIRouter()
 amqp_router = MORouter()
@@ -107,7 +107,7 @@ def get_delete_flag(mo_object) -> bool:
 
 async def unpack_payload(
     context: Context, object_uuid: PayloadUUID, mo_routing_key: MORoutingKey
-):
+) -> tuple[dict[Any, Any], Any]:
     """
     Takes the payload of an AMQP message, and returns a set of parameters to be used
     by export functions in `import_export.py`. Also return the mo object as a dict
@@ -402,6 +402,6 @@ def create_app(**kwargs: Any) -> FastAPI:
         converter = user_context["converter"]
         await converter.load_info_dicts()
 
-    app.include_router(construct_router(fastramqpi))
+    app.include_router(construct_router(user_context))
 
     return app

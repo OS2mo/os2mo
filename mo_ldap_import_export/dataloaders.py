@@ -2016,7 +2016,7 @@ class DataLoader:
         )
         if mo_objects:
             # Note: load_all_mo_objects checks if len==1
-            return mo_objects[0]
+            return one(mo_objects)
         else:
             raise NoObjectsReturnedException(
                 f"{object_type} object with uuid = {uuid} not found"

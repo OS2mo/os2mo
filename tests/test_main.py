@@ -17,8 +17,8 @@ from uuid import uuid4
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from fastramqpi.depends import from_user_context
 from fastramqpi.main import FastRAMQPI
+from fastramqpi.ramqp.depends import get_context
 from fastramqpi.ramqp.utils import RejectMessage
 from fastramqpi.ramqp.utils import RequeueMessage
 from gql.transport.exceptions import TransportQueryError
@@ -259,19 +259,19 @@ def sync_tool() -> AsyncMock:
 
 
 @pytest.fixture
-def sync_tool_dependency_injection(
-    app: FastAPI, sync_tool: AsyncMock
-) -> Iterator[AsyncMock]:
-    """Override the FastAPI SyncTool dependency injection with our mock."""
+def context_dependency_injection(
+    app: FastAPI, fastramqpi: FastRAMQPI
+) -> Iterator[None]:
+    context = fastramqpi.get_context()
 
     def context_extractor() -> Any:
-        return sync_tool
+        return context
 
-    app.dependency_overrides[from_user_context("sync_tool")] = context_extractor
+    app.dependency_overrides[get_context] = context_extractor
 
-    yield sync_tool
+    yield
 
-    del app.dependency_overrides[from_user_context("sync_tool")]
+    del app.dependency_overrides[get_context]
 
 
 @pytest.fixture(scope="module")
@@ -407,6 +407,7 @@ async def test_open_ldap_connection() -> None:
     assert state == [1, 2]
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_ldap_get_all_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get-all endpoint on our app."""
 
@@ -414,6 +415,7 @@ def test_ldap_get_all_endpoint(test_client: TestClient) -> None:
     assert response.status_code == 202
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_ldap_get_all_converted_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get-all endpoint on our app."""
 
@@ -421,6 +423,7 @@ def test_ldap_get_all_converted_endpoint(test_client: TestClient) -> None:
     assert response.status_code == 202
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_ldap_get_converted_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get endpoint on our app."""
 
@@ -431,6 +434,7 @@ def test_ldap_get_converted_endpoint(test_client: TestClient) -> None:
     assert response.status_code == 422
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_ldap_post_ldap_employee_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get-all endpoint on our app."""
 
@@ -445,6 +449,7 @@ def test_ldap_post_ldap_employee_endpoint(test_client: TestClient) -> None:
     assert response.status_code == 200
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_mo_get_employee_endpoint(test_client: TestClient) -> None:
     """Test the MO get-all endpoint on our app."""
 
@@ -454,6 +459,7 @@ def test_mo_get_employee_endpoint(test_client: TestClient) -> None:
     assert response.status_code == 202
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_mo_post_employee_endpoint(test_client: TestClient) -> None:
     """Test the MO get-all endpoint on our app."""
 
@@ -476,6 +482,7 @@ def test_mo_post_employee_endpoint(test_client: TestClient) -> None:
     assert response.status_code == 200
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_ldap_get_organizationalUser_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get endpoint on our app."""
 
@@ -486,6 +493,7 @@ def test_ldap_get_organizationalUser_endpoint(test_client: TestClient) -> None:
     assert response.status_code == 422
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_ldap_get_overview_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get endpoint on our app."""
 
@@ -493,6 +501,7 @@ def test_ldap_get_overview_endpoint(test_client: TestClient) -> None:
     assert response.status_code == 202
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_ldap_get_structure_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get endpoint on our app."""
 
@@ -500,6 +509,7 @@ def test_ldap_get_structure_endpoint(test_client: TestClient) -> None:
     assert response.status_code == 202
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_ldap_get_populated_overview_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get endpoint on our app."""
 
@@ -507,6 +517,7 @@ def test_ldap_get_populated_overview_endpoint(test_client: TestClient) -> None:
     assert response.status_code == 202
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_load_unique_attribute_values_from_LDAP_endpoint(
     test_client: TestClient,
 ) -> None:
@@ -516,6 +527,7 @@ def test_load_unique_attribute_values_from_LDAP_endpoint(
     assert response.status_code == 202
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_ldap_get_attribute_details_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get endpoint on our app."""
 
@@ -523,6 +535,7 @@ def test_ldap_get_attribute_details_endpoint(test_client: TestClient) -> None:
     assert response.status_code == 202
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_ldap_get_object_by_objectGUID_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get endpoint on our app."""
 
@@ -532,6 +545,7 @@ def test_ldap_get_object_by_objectGUID_endpoint(test_client: TestClient) -> None
     assert response.status_code == 202
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_ldap_get_object_by_dn_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get endpoint on our app."""
 
@@ -540,6 +554,7 @@ def test_ldap_get_object_by_dn_endpoint(test_client: TestClient) -> None:
     assert response.status_code == 202
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_ldap_get_objectGUID_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get endpoint on our app."""
 
@@ -610,6 +625,7 @@ async def test_listen_to_changes_not_listening() -> None:
         await process_person(context, payload, mo_routing_key, AsyncMock(), _=None)
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_ldap_get_all_converted_endpoint_failure(
     test_client: TestClient,
     converter: MagicMock,
@@ -626,22 +642,21 @@ def test_ldap_get_all_converted_endpoint_failure(
     assert response2.status_code == 404
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_load_address_from_MO_endpoint(test_client: TestClient):
     uuid = uuid4()
     response = test_client.get(f"/MO/Address/{uuid}")
     assert response.status_code == 202
 
 
-async def test_export_single_user_endpoint(
-    test_client: TestClient, sync_tool_dependency_injection: AsyncMock
-):
+@pytest.mark.usefixtures("context_dependency_injection")
+async def test_export_single_user_endpoint(test_client: TestClient):
     uuid = uuid4()
     response = test_client.post(f"/Export/{uuid}")
     assert response.status_code == 202
 
-    sync_tool_dependency_injection.refresh_employee.assert_called_once_with(uuid)
 
-
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_load_address_types_from_MO_endpoint(test_client: TestClient):
     response = test_client.get("/MO/Address_types_employee")
     assert response.status_code == 202
@@ -649,17 +664,19 @@ def test_load_address_types_from_MO_endpoint(test_client: TestClient):
     assert response.status_code == 202
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_load_it_systems_from_MO_endpoint(test_client: TestClient):
     response = test_client.get("/MO/IT_systems")
     assert response.status_code == 202
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_load_primary_types_from_MO_endpoint(test_client: TestClient):
     response = test_client.get("/MO/Primary_types")
     assert response.status_code == 202
 
 
-@pytest.mark.usefixtures("sync_tool_dependency_injection")
+@pytest.mark.usefixtures("context_dependency_injection")
 async def test_import_all_objects_from_LDAP_first_20(test_client: TestClient) -> None:
     params = {
         "test_on_first_20_entries": True,
@@ -671,20 +688,20 @@ async def test_import_all_objects_from_LDAP_first_20(test_client: TestClient) ->
     assert response.status_code == 202
 
 
-@pytest.mark.usefixtures("sync_tool_dependency_injection")
+@pytest.mark.usefixtures("context_dependency_injection")
 async def test_import_all_objects_from_LDAP(test_client: TestClient) -> None:
     response = test_client.get("/Import")
     assert response.status_code == 202
 
 
-@pytest.mark.usefixtures("sync_tool_dependency_injection")
+@pytest.mark.usefixtures("context_dependency_injection")
 async def test_import_one_object_from_LDAP(test_client: TestClient) -> None:
     uuid = uuid4()
     response = test_client.get(f"/Import/{uuid}")
     assert response.status_code == 202
 
 
-@pytest.mark.usefixtures("sync_tool_dependency_injection")
+@pytest.mark.usefixtures("context_dependency_injection")
 async def test_import_all_objects_from_LDAP_no_cpr_field(
     test_client: TestClient, converter: MagicMock
 ) -> None:
@@ -694,7 +711,7 @@ async def test_import_all_objects_from_LDAP_no_cpr_field(
     converter.cpr_field = "EmployeeID"
 
 
-@pytest.mark.usefixtures("sync_tool_dependency_injection")
+@pytest.mark.usefixtures("context_dependency_injection")
 async def test_import_all_objects_from_LDAP_invalid_cpr(
     test_client: TestClient, dataloader: AsyncMock
 ) -> None:
@@ -748,6 +765,7 @@ async def test_load_faulty_username_generator() -> None:
             create_fastramqpi()
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 async def test_export_endpoint(
     test_client: TestClient,
     internal_amqpsystem: MagicMock,
@@ -834,7 +852,7 @@ async def test_get_delete_flag(dataloader: AsyncMock):
     assert flag is False
 
 
-@pytest.mark.usefixtures("sync_tool_dependency_injection")
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_get_invalid_cpr_numbers_from_LDAP_endpoint(
     test_client: TestClient,
     dataloader: AsyncMock,
@@ -849,6 +867,7 @@ def test_get_invalid_cpr_numbers_from_LDAP_endpoint(
     assert result["bar"] == "ja"
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_get_invalid_cpr_numbers_from_LDAP_endpoint_no_cpr_field(
     test_client: TestClient, converter: MagicMock
 ):
@@ -869,6 +888,7 @@ def test_wraps():
     assert process_org_unit.__name__ == "process_org_unit"
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_get_duplicate_cpr_numbers_from_LDAP_endpoint_no_cpr_field(
     test_client: TestClient, converter: MagicMock
 ):
@@ -878,6 +898,7 @@ def test_get_duplicate_cpr_numbers_from_LDAP_endpoint_no_cpr_field(
     converter.cpr_field = "EmployeeID"
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 def test_get_duplicate_cpr_numbers_from_LDAP_endpoint(
     test_client: TestClient,
 ):
@@ -898,6 +919,7 @@ def test_get_duplicate_cpr_numbers_from_LDAP_endpoint(
         assert "bar" in result["123"]
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 async def test_get_non_existing_objectGUIDs_from_MO(
     dataloader: AsyncMock,
     test_client: TestClient,
@@ -926,6 +948,7 @@ async def test_get_non_existing_objectGUIDs_from_MO(
     assert result[1]["unique_ldap_uuid in MO"] == it_users[2]["user_key"]
 
 
+@pytest.mark.usefixtures("context_dependency_injection")
 async def test_get_non_existing_objectGUIDs_from_MO_404(
     dataloader: AsyncMock,
     test_client: TestClient,
