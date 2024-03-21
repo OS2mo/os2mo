@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
+import collections
+import itertools
 import re
 import uuid
 from collections import defaultdict
@@ -27,7 +29,6 @@ from typing import overload
 from typing import TypeVar
 from uuid import UUID
 
-import lora_utils
 from fastapi import Request
 from fastapi import Response
 from fastapi.encoders import jsonable_encoder
@@ -46,9 +47,9 @@ from .graphapi.middleware import is_graphql
 from oio_rest import custom_exceptions as loraexc
 from oio_rest import klassifikation
 from oio_rest import organisation
+from oio_rest.db import _parse_timestamp
 from oio_rest.mo.autocomplete import find_org_units_matching
 from oio_rest.mo.autocomplete import find_users_matching
-
 
 T = TypeVar("T")
 V = TypeVar("V")
@@ -775,7 +776,7 @@ class Scope(BaseScope):
         if not reg:
             return
 
-        effects = list(lora_utils.get_effects(reg, relevant, also))
+        effects = list(get_effects(reg, relevant, also))
 
         return filter(
             lambda a: self.connector.is_range_relevant(*a),  # noqa: FURB111
@@ -801,3 +802,94 @@ class AutocompleteScope(BaseScope):
                 get_session(), phrase, class_uuids=class_uuids
             )
             return {"items": items}
+
+
+def get_effects(obj: dict, relevant: dict, additional: dict = None):
+    """
+    Splits a LoRa object up into several objects, based on changes in
+    specified attributes
+
+    The parameters 'relevant' and 'additional' detail which attributes to split
+    on and which additional attributes to include in the objects, respectively.
+    Both follow the same structure.
+
+    A dict with the three 'groups' found in LoRa objects as keys, with the
+    values being a tuple of the keys of the individual fields. E.g.:
+
+    {
+        "relationer": ('enhedstype', 'opgaver')
+    }
+
+    :param obj: A LoRa object
+    :param relevant: The attributes to split on
+    :param additional: Additional attributes to include in the result
+    :return:
+    """
+    chunks = set()
+
+    everything = collections.defaultdict(tuple)
+
+    for group in relevant:
+        everything[group] += relevant[group]
+    for group in additional or {}:
+        everything[group] += additional[group]
+
+    # extract all beginning and end timestamps for all effects
+    for group, keys in relevant.items():
+        if group not in obj:
+            continue
+
+        entries = obj[group]
+
+        for key in keys:
+            if key not in entries:
+                continue
+
+            for entry in entries[key]:
+                chunks.update(
+                    (
+                        _parse_timestamp(entry["virkning"]["from"]),
+                        _parse_timestamp(entry["virkning"]["to"]),
+                    )
+                )
+
+    # sort them, and apply the filter, if given
+    chunks = get_date_chunks(chunks)
+
+    def filter_list(entries, start, end):
+        for entry in entries:
+            entry_start = _parse_timestamp(entry["virkning"]["from"])
+            entry_end = _parse_timestamp(entry["virkning"]["to"])
+
+            if entry_start < end and entry_end > start:
+                yield entry
+
+    # finally, extract chunks corresponding to each cut-off
+    for start, end in chunks:
+        effect = {
+            group: {
+                key: list(filter_list(obj[group][key], start, end))
+                for key in everything[group]
+                if key in everything[group] and key in obj[group]
+            }
+            for group in everything
+            if group in obj
+        }
+
+        if any(k for g in effect.values() for k in g.values()):
+            yield start, end, effect
+
+
+def get_date_chunks(dates):
+    """
+    Given a list of dates
+    :param dates:
+    :return:
+    """
+    a, b = itertools.tee(sorted(dates))
+
+    # drop the first item -- doing a raw next() fails in Python 3.7
+    for __ in itertools.islice(b, 1):
+        pass
+
+    yield from zip(a, b)
