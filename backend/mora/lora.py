@@ -854,7 +854,7 @@ def get_effects(obj: dict, relevant: dict, additional: dict = None):
                 )
 
     # sort them, and apply the filter, if given
-    chunks = get_date_chunks(chunks)
+    chunks = itertools.pairwise(sorted(chunks))
 
     def filter_list(entries, start, end):
         for entry in entries:
@@ -878,18 +878,3 @@ def get_effects(obj: dict, relevant: dict, additional: dict = None):
 
         if any(k for g in effect.values() for k in g.values()):
             yield start, end, effect
-
-
-def get_date_chunks(dates):
-    """
-    Given a list of dates
-    :param dates:
-    :return:
-    """
-    a, b = itertools.tee(sorted(dates))
-
-    # drop the first item -- doing a raw next() fails in Python 3.7
-    for __ in itertools.islice(b, 1):
-        pass
-
-    yield from zip(a, b)
