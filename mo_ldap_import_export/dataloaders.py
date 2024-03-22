@@ -85,7 +85,6 @@ class DataLoader:
         self.attribute_types = get_attribute_types(self.ldap_connection)
         self.single_value = {k: v.single_value for k, v in self.attribute_types.items()}
         self._mo_to_ldap_attributes = []
-        self._sync_tool = None
         self.create_mo_class_lock = asyncio.Lock()
 
         # Relate graphQL object types (left) to AMQP routing key object types (right)
@@ -118,9 +117,9 @@ class DataLoader:
 
     @property
     def sync_tool(self):
-        if not self._sync_tool:
-            self._sync_tool = self.user_context["sync_tool"]
-        return self._sync_tool
+        from .import_export import SyncTool
+
+        return cast(SyncTool, self.user_context["sync_tool"])
 
     @property
     def mo_to_ldap_attributes(self):
