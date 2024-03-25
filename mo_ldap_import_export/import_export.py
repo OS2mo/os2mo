@@ -18,6 +18,7 @@ from fastramqpi.ramqp.mo import MORoutingKey
 from httpx import HTTPStatusError
 from ramodels.mo import MOBase
 
+from .dataloaders import DataLoader
 from .dataloaders import DNList
 from .dataloaders import Verb
 from .exceptions import DNNotFound
@@ -103,7 +104,7 @@ class SyncTool:
 
         self.context = context
         self.user_context = self.context["user_context"]
-        self.dataloader = self.user_context["dataloader"]
+        self.dataloader: DataLoader = self.user_context["dataloader"]
         self.converter = self.user_context["converter"]
         self.export_checks = self.user_context["export_checks"]
         self.import_checks = self.user_context["import_checks"]
@@ -637,6 +638,7 @@ class SyncTool:
         """
 
         mo_object_class = self.converter.find_mo_object_class(json_key).split(".")[-1]
+        objects_in_mo: list[Any] = []
 
         # Load addresses already in MO
         if mo_object_class == "Address":

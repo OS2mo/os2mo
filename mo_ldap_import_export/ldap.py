@@ -484,7 +484,9 @@ async def cleanup(
     user_context : dict
         user context dictionary with the configured dataloader and converter
     """
-    dataloader = user_context["dataloader"]
+    from .dataloaders import DataLoader
+
+    dataloader: DataLoader = user_context["dataloader"]
     converter = user_context["converter"]
     sync_tool = user_context["sync_tool"]
     uuids_to_publish = []

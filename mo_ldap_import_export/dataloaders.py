@@ -1094,7 +1094,7 @@ class DataLoader:
     async def find_dn_by_engagement_uuid(
         self,
         employee_uuid: UUID,
-        engagement: EngagementRef,
+        engagement: EngagementRef | Engagement | None,
         dns: DNList,
     ) -> str:
         if len(dns) == 1:
@@ -2016,7 +2016,7 @@ class DataLoader:
         )
         if mo_objects:
             # Note: load_all_mo_objects checks if len==1
-            return mo_objects[0]
+            return one(mo_objects)
         else:
             raise NoObjectsReturnedException(
                 f"{object_type} object with uuid = {uuid} not found"

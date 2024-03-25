@@ -122,6 +122,8 @@ def listener(context, event):
     """
     Calls import_single_user if changes are registered
     """
+    from .import_export import SyncTool
+
     dn = event.get("attributes", {}).get("distinguishedName", None)
     dn = dn or event.get("dn", None)
 
@@ -131,7 +133,7 @@ def listener(context, event):
 
     user_context = context["user_context"]
     event_loop = user_context["event_loop"]
-    sync_tool = user_context["sync_tool"]
+    sync_tool: SyncTool = user_context["sync_tool"]
 
     def log_exception(future):
         """Reraise exception so they are printed to the terminal."""
