@@ -15,6 +15,7 @@ from uuid import uuid4
 from fastramqpi.context import Context
 from fastramqpi.ramqp.depends import handle_exclusively_decorator
 from fastramqpi.ramqp.mo import MORoutingKey
+from fastramqpi.ramqp.utils import RequeueMessage
 from httpx import HTTPStatusError
 from more_itertools import all_equal
 from more_itertools import first
@@ -687,14 +688,18 @@ class SyncTool:
             # If we have duplicate user_keys, remove those which are the same as the
             # primary engagement's user_key
             if len(set(user_keys)) < len(user_keys):
-                primary = [
-                    await self.dataloader.is_primary(o.uuid) for o in objects_in_mo
-                ]
+                primaries = await self.dataloader.is_primaries(
+                    [o.uuid for o in objects_in_mo]
+                )
+                num_primaries = sum(primaries)
+                if num_primaries > 1:
+                    raise RequeueMessage(
+                        "Waiting for multiple primary engagements to be resolved"
+                    )
+                # TODO: if num_primaries == 0, we cannot remove duplicates, is this a problem?
 
-                # There can be only one primary unit. Not sure what to do if there are
-                # multiple, so better just do nothing.
-                if sum(primary) == 1:
-                    primary_engagement = objects_in_mo[primary.index(True)]
+                if num_primaries == 1:
+                    primary_engagement = objects_in_mo[primaries.index(True)]
                     logger.info(
                         "[Format-converted-objects] Found primary engagement.",
                         uuid=str(primary_engagement.uuid),
@@ -707,7 +712,9 @@ class SyncTool:
                     objects_in_mo = [
                         o
                         for o in objects_in_mo
+                        # Keep the primary engagement itself
                         if o == primary_engagement
+                        # But remove duplicate user-key engagements
                         or o.user_key != primary_engagement.user_key
                     ]
 

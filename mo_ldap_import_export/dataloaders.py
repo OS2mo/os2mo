@@ -1495,30 +1495,25 @@ class DataLoader:
 
         return address
 
+    # TODO: Offer this via a dataloader, and change calls to use that
+    async def is_primaries(self, engagements: list[UUID]) -> list[bool]:
+        engagements_set = set(engagements)
+        result = await self.graphql_client.read_is_primary_engagements(
+            list(engagements_set)
+        )
+        result_map = {
+            obj.current.uuid: obj.current.is_primary
+            for obj in result.objects
+            if obj.current is not None
+        }
+        return [result_map[uuid] for uuid in engagements]
+
+    # TODO: Offer this via a dataloader, and change calls to use that
     async def is_primary(self, engagement_uuid: UUID) -> bool:
         """
         Determine if an engagement is the primary engagement or not.
         """
-        query = gql(
-            f"""
-            query IsPrimary {{
-              engagements(filter: {{uuids: "{engagement_uuid}"}}) {{
-                objects {{
-                  objects {{
-                    is_primary
-                  }}
-                }}
-              }}
-            }}
-            """
-        )
-
-        result = await self.query_mo(query)
-        return (
-            True
-            if result["engagements"]["objects"][0]["objects"][0]["is_primary"]
-            else False
-        )
+        return one(await self.is_primaries([engagement_uuid]))
 
     async def load_mo_engagement(
         self,

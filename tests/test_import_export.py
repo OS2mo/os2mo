@@ -15,6 +15,7 @@ from uuid import uuid4
 import pytest
 from fastramqpi.context import Context
 from fastramqpi.ramqp.mo import MORoutingKey
+from fastramqpi.ramqp.utils import RequeueMessage
 from httpx import HTTPStatusError
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
@@ -483,6 +484,47 @@ async def test_format_converted_engagement_objects(
     # assert formatted_objects[1][0] == engagement2
 
 
+async def test_format_converted_multiple_primary_engagements(
+    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
+):
+    converter.find_mo_object_class.return_value = "Engagement"
+
+    employee_uuid = uuid4()
+
+    engagement1 = Engagement.from_simplified_fields(
+        org_unit_uuid=uuid4(),
+        person_uuid=employee_uuid,
+        job_function_uuid=uuid4(),
+        engagement_type_uuid=uuid4(),
+        user_key="123",
+        from_date="2020-01-01",
+    )
+
+    engagement2 = Engagement.from_simplified_fields(
+        org_unit_uuid=uuid4(),
+        person_uuid=employee_uuid,
+        job_function_uuid=uuid4(),
+        engagement_type_uuid=uuid4(),
+        user_key="123",
+        from_date="2021-01-01",
+    )
+
+    dataloader.load_mo_employee_engagements.return_value = [engagement1, engagement2]
+
+    dataloader.is_primaries.return_value = [True, True]
+
+    converted_objects = [engagement1, engagement2]
+
+    with pytest.raises(RequeueMessage) as exc_info:
+        await sync_tool.format_converted_objects(
+            converted_objects,
+            json_key="Engagement",
+        )
+    assert "Waiting for multiple primary engagements to be resolved" in str(
+        exc_info.value
+    )
+
+
 async def test_format_converted_employee_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
@@ -694,13 +736,10 @@ async def test_format_converted_primary_engagement_objects(
     converter.find_mo_object_class.return_value = "Engagement"
     converter.import_mo_object_class.return_value = Engagement
 
-    def is_primary(uuid):
-        if uuid == engagement1_in_mo_uuid:
-            return True
-        else:
-            return False
+    async def is_primaries(uuids):
+        return [uuid == engagement1_in_mo_uuid for uuid in uuids]
 
-    dataloader.is_primary.side_effect = is_primary
+    dataloader.is_primaries = is_primaries
 
     engagement1 = Engagement.from_simplified_fields(
         org_unit_uuid=uuid4(),

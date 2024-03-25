@@ -113,3 +113,14 @@ query read_employee_uuid_by_ituser_user_key($user_key: String!) {
     }
   }
 }
+
+query read_is_primary_engagements($uuids: [UUID!]!) {
+  engagements(filter: {uuids: $uuids}) {
+    objects {
+      current {
+        is_primary
+        uuid
+      }
+    }
+  }
+}
