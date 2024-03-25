@@ -8,6 +8,7 @@ from typing import get_args
 from typing import Literal
 
 from fastramqpi.config import Settings as FastRAMQPISettings
+from fastramqpi.ramqp.config import AMQPConnectionSettings
 from pydantic import AnyHttpUrl
 from pydantic import BaseModel
 from pydantic import BaseSettings
@@ -19,7 +20,6 @@ from pydantic import root_validator
 from pydantic import SecretStr
 from pydantic import validator
 from ramodels.mo.detail import Detail
-from ramqp.config import AMQPConnectionSettings
 
 from .utils import import_class
 

@@ -6,13 +6,13 @@ import re
 from datetime import datetime
 from functools import partial
 
+from fastramqpi.ramqp.mo import MORoutingKey
 from gql import gql
 from graphql import DocumentNode
 from graphql import print_ast
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
-from ramqp.mo import MORoutingKey
 
 from .customer_specific import JobTitleFromADToMO
 from .exceptions import InvalidQuery

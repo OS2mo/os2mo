@@ -15,13 +15,13 @@ from uuid import uuid4
 
 import pydantic
 from fastramqpi.context import Context
+from fastramqpi.ramqp.utils import RequeueMessage
 from jinja2 import Environment
 from jinja2 import exceptions as jinja_exceptions
 from ldap3.utils.ciDict import CaseInsensitiveDict
 from ldap3.utils.dn import parse_dn
 from more_itertools import one
 from ramodels.mo.organisation_unit import OrganisationUnit
-from ramqp.utils import RequeueMessage
 
 from .config import Settings
 from .dataloaders import DataLoader

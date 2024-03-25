@@ -14,12 +14,12 @@ from uuid import uuid4
 
 import pytest
 from fastramqpi.context import Context
+from fastramqpi.ramqp.mo import MORoutingKey
 from httpx import HTTPStatusError
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
-from ramqp.mo import MORoutingKey
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.customer_specific import JobTitleFromADToMO

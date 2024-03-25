@@ -15,13 +15,13 @@ from uuid import uuid4
 import pytest
 import yaml
 from fastramqpi.context import Context
+from fastramqpi.ramqp.utils import RequeueMessage
 from jinja2 import Environment
 from jinja2 import Undefined
 from more_itertools import one
 from pydantic import parse_obj_as
 from pydantic import ValidationError
 from ramodels.mo import Employee
-from ramqp.utils import RequeueMessage
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.config import check_attributes

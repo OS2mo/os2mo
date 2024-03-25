@@ -24,18 +24,18 @@ from fastapi import status
 from fastapi.encoders import jsonable_encoder
 from fastapi_utils.tasks import repeat_every
 from fastramqpi.main import FastRAMQPI
+from fastramqpi.ramqp import AMQPSystem
+from fastramqpi.ramqp.depends import Context
+from fastramqpi.ramqp.depends import rate_limit
+from fastramqpi.ramqp.mo import MORouter
+from fastramqpi.ramqp.mo import MORoutingKey
+from fastramqpi.ramqp.mo import PayloadUUID
+from fastramqpi.ramqp.utils import RejectMessage
+from fastramqpi.ramqp.utils import RequeueMessage
 from gql.transport.exceptions import TransportQueryError
 from ldap3 import Connection
 from pydantic import ValidationError
 from ramodels.mo._shared import validate_cpr
-from ramqp import AMQPSystem
-from ramqp.depends import Context
-from ramqp.depends import rate_limit
-from ramqp.mo import MORouter
-from ramqp.mo import MORoutingKey
-from ramqp.mo import PayloadUUID
-from ramqp.utils import RejectMessage
-from ramqp.utils import RequeueMessage
 from tqdm import tqdm
 
 from . import usernames
