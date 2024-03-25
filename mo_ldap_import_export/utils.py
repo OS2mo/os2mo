@@ -150,29 +150,6 @@ def listener(context, event):
     future.add_done_callback(log_exception)
 
 
-async def countdown(
-    seconds_to_sleep: float,
-    task_description: str,
-    update_interval: float = 60,
-):
-    """
-    Sleep for 'seconds_to_sleep' seconds.
-    Print an update every 'update_interval' seconds
-
-    Note: We use asyncio.sleep because it is non-blocking
-    """
-    seconds_remaining = seconds_to_sleep
-    while seconds_remaining > 0:
-        minutes, seconds = divmod(seconds_remaining, 60)
-        hours, minutes = divmod(minutes, 60)
-        logger.info(
-            f"Starting {task_description} in "
-            f"{hours} hours, {minutes} min, {seconds} sec"
-        )
-        await asyncio.sleep(min(update_interval, seconds_remaining))
-        seconds_remaining -= update_interval
-
-
 def combine_dn_strings(dn_strings: list[str]) -> str:
     """
     Combine LDAP DN strings, skipping if a string is empty

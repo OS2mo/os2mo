@@ -28,7 +28,6 @@ from .ldap import paged_search
 from .ldap_classes import LdapObject
 from .logging import logger
 from .processors import _hide_cpr as hide_cpr
-from .utils import countdown
 
 
 def encode_result(result):
@@ -62,9 +61,6 @@ def construct_router(user_context: UserContext) -> APIRouter:
         dataloader: depends.DataLoader,
         converter: depends.LdapConverter,
         test_on_first_20_entries: bool = False,
-        delay_in_hours: int = 0,
-        delay_in_minutes: int = 0,
-        delay_in_seconds: float = 0,
         cpr_indexed_entries_only: bool = True,
         search_base: str | None = None,
     ) -> Any:
@@ -72,10 +68,6 @@ def construct_router(user_context: UserContext) -> APIRouter:
 
         if cpr_indexed_entries_only and not cpr_field:
             raise CPRFieldNotFound("cpr_field is not configured")
-
-        delay = delay_in_hours * 60 * 60 + delay_in_minutes * 60 + delay_in_seconds
-        if delay > 0:
-            await countdown(delay, "/Import")
 
         all_ldap_objects = await dataloader.load_ldap_objects(
             "Employee",
@@ -135,24 +127,9 @@ def construct_router(user_context: UserContext) -> APIRouter:
             object_uuid: str = Query(
                 "", description="If specified, export only the object with this uuid"
             ),
-            delay_in_hours: int = Query(
-                0,
-                description="Number of hours to wait before starting this job",
-            ),
-            delay_in_minutes: int = Query(
-                0,
-                description="Number of minutes to wait before starting this job",
-            ),
-            delay_in_seconds: float = Query(
-                0,
-                description="Number of seconds to wait before starting this job",
-            ),
         ):
             self.publish_amqp_messages = publish_amqp_messages
             self.object_uuid = object_uuid
-            self.delay_in_hours = delay_in_hours
-            self.delay_in_minutes = delay_in_minutes
-            self.delay_in_seconds = delay_in_seconds
 
     # Export all objects related to a single employee from MO to LDAP
     @router.post("/Export/{employee_uuid}", status_code=202, tags=["Export"])
@@ -169,14 +146,6 @@ def construct_router(user_context: UserContext) -> APIRouter:
         dataloader: depends.DataLoader,
         params: ExportQueryParams = Depends(),
     ) -> Any:
-        delay = (
-            params.delay_in_hours * 60 * 60
-            + params.delay_in_minutes * 60
-            + params.delay_in_seconds
-        )
-        if delay > 0:
-            await countdown(delay, "/Export")
-
         # Load mo objects
         mo_objects = await dataloader.load_all_mo_objects(uuid=params.object_uuid)
         logger.info(f"Found {len(mo_objects)} objects")
