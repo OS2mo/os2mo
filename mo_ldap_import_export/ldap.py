@@ -76,8 +76,14 @@ def get_client_strategy():
 
 def construct_server_pool(settings: Settings) -> ServerPool:
     servers = list(map(construct_server, settings.ldap_controllers))
-    # Pick the next server to use at random, discard non-active servers
-    server_pool = ServerPool(servers, RANDOM, active=True, exhaust=True)
+    # Pick the next server to use at random, retry connections 10 times,
+    # discard non-active servers.
+    server_pool = ServerPool(
+        servers,
+        RANDOM,
+        active=10,  # type: ignore[arg-type]
+        exhaust=True,
+    )
     return server_pool
 
 
