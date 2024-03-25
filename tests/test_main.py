@@ -17,6 +17,7 @@ from uuid import uuid4
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from fastramqpi.depends import from_user_context
 from fastramqpi.main import FastRAMQPI
 from fastramqpi.ramqp.utils import RejectMessage
 from fastramqpi.ramqp.utils import RequeueMessage
@@ -27,7 +28,6 @@ from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 from structlog.testing import capture_logs
 
-from mo_ldap_import_export import depends
 from mo_ldap_import_export.config import ConversionMapping
 from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
@@ -47,7 +47,6 @@ from mo_ldap_import_export.main import process_ituser
 from mo_ldap_import_export.main import process_org_unit
 from mo_ldap_import_export.main import process_person
 from mo_ldap_import_export.main import reject_on_failure
-from tests.utils import extract_annotated_dependency
 
 
 @pytest.fixture(scope="module")
@@ -268,12 +267,11 @@ def sync_tool_dependency_injection(
     def context_extractor() -> Any:
         return sync_tool
 
-    sync_tool_depends = extract_annotated_dependency(depends.SyncTool)
-    app.dependency_overrides[sync_tool_depends] = context_extractor
+    app.dependency_overrides[from_user_context("sync_tool")] = context_extractor
 
     yield sync_tool
 
-    del app.dependency_overrides[sync_tool_depends]
+    del app.dependency_overrides[from_user_context("sync_tool")]
 
 
 @pytest.fixture(scope="module")
