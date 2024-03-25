@@ -509,15 +509,16 @@ async def test_format_converted_employee_address_objects(
     converter.import_mo_object_class.return_value = Address
 
     person_uuid = uuid4()
+    address_type_uuid = uuid4()
     address1 = Address.from_simplified_fields(
-        "foo", uuid4(), "2021-01-01", person_uuid=person_uuid
+        "foo", address_type_uuid, "2021-01-01", person_uuid=person_uuid
     )
     address2 = Address.from_simplified_fields(
-        "bar", uuid4(), "2021-01-01", person_uuid=person_uuid
+        "bar", address_type_uuid, "2021-01-01", person_uuid=person_uuid
     )
 
     address1_in_mo = Address.from_simplified_fields(
-        "foo", uuid4(), "2021-01-01", person_uuid=person_uuid
+        "foo", address_type_uuid, "2021-01-01", person_uuid=person_uuid
     )
 
     converted_objects = [address1, address2]
@@ -548,15 +549,16 @@ async def test_format_converted_org_unit_address_objects(
     converter.import_mo_object_class.return_value = Address
 
     org_unit_uuid = uuid4()
+    address_type_uuid = uuid4()
     address1 = Address.from_simplified_fields(
-        "foo", uuid4(), "2021-01-01", org_unit_uuid=org_unit_uuid
+        "foo", address_type_uuid, "2021-01-01", org_unit_uuid=org_unit_uuid
     )
     address2 = Address.from_simplified_fields(
-        "bar", uuid4(), "2021-01-01", org_unit_uuid=org_unit_uuid
+        "bar", address_type_uuid, "2021-01-01", org_unit_uuid=org_unit_uuid
     )
 
     address1_in_mo = Address.from_simplified_fields(
-        "foo", uuid4(), "2021-01-01", org_unit_uuid=org_unit_uuid
+        "foo", address_type_uuid, "2021-01-01", org_unit_uuid=org_unit_uuid
     )
 
     converted_objects = [address1, address2]
@@ -652,12 +654,14 @@ async def test_format_converted_it_user_objects(
 
     dataloader.load_mo_employee_it_users.return_value = [it_user_in_mo]
 
+    person_uuid = uuid4()
+    it_system_uuid = uuid4()
     converted_objects = [
         ITUser.from_simplified_fields(
-            "Username1", uuid4(), "2021-01-01", person_uuid=uuid4()
+            "Username1", it_system_uuid, "2021-01-01", person_uuid=person_uuid
         ),
         ITUser.from_simplified_fields(
-            "Username2", uuid4(), "2021-01-01", person_uuid=uuid4()
+            "Username2", it_system_uuid, "2021-01-01", person_uuid=person_uuid
         ),
     ]
 
@@ -979,7 +983,6 @@ async def test_import_it_user_objects(
     converter.get_mo_attributes.return_value = ["user_key", "validity"]
 
     it_system_type1_uuid = uuid4()
-    it_system_type2_uuid = uuid4()
     person_uuid = uuid4()
 
     converted_objects = [
@@ -987,10 +990,10 @@ async def test_import_it_user_objects(
             "Username1", it_system_type1_uuid, "2021-01-01", person_uuid=person_uuid
         ),
         ITUser.from_simplified_fields(
-            "Username2", it_system_type2_uuid, "2021-01-01", person_uuid=person_uuid
+            "Username2", it_system_type1_uuid, "2021-01-01", person_uuid=person_uuid
         ),
         ITUser.from_simplified_fields(
-            "Username3", it_system_type2_uuid, "2021-01-01", person_uuid=person_uuid
+            "Username3", it_system_type1_uuid, "2021-01-01", person_uuid=person_uuid
         ),
     ]
 
