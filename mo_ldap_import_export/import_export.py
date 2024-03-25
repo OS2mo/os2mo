@@ -16,6 +16,8 @@ from fastramqpi.context import Context
 from fastramqpi.ramqp.depends import handle_exclusively_decorator
 from fastramqpi.ramqp.mo import MORoutingKey
 from httpx import HTTPStatusError
+from more_itertools import all_equal
+from more_itertools import first
 from ramodels.mo import MOBase
 
 from .dataloaders import DataLoader
@@ -642,15 +644,24 @@ class SyncTool:
 
         # Load addresses already in MO
         if mo_object_class == "Address":
-            if converted_objects[0].person:
+            assert all_equal([obj.person for obj in converted_objects])
+            person = first(converted_objects).person
+
+            assert all_equal([obj.org_unit for obj in converted_objects])
+            org_unit = first(converted_objects).org_unit
+
+            assert all_equal([obj.address_type for obj in converted_objects])
+            address_type = first(converted_objects).address_type
+
+            if person:
                 objects_in_mo = await self.dataloader.load_mo_employee_addresses(
-                    converted_objects[0].person.uuid,
-                    converted_objects[0].address_type.uuid,
+                    person.uuid,
+                    address_type.uuid,
                 )
-            elif converted_objects[0].org_unit:
+            elif org_unit:
                 objects_in_mo = await self.dataloader.load_mo_org_unit_addresses(
-                    converted_objects[0].org_unit.uuid,
-                    converted_objects[0].address_type.uuid,
+                    org_unit.uuid,
+                    address_type.uuid,
                 )
             else:
                 logger.info(
@@ -659,12 +670,16 @@ class SyncTool:
                     "OR an org unit uuid"
                 )
                 return []
+
             value_key = "value"
 
         # Load engagements already in MO
         elif mo_object_class == "Engagement":
+            assert all_equal([obj.person for obj in converted_objects])
+            person = first(converted_objects).person
+
             objects_in_mo = await self.dataloader.load_mo_employee_engagements(
-                converted_objects[0].person.uuid
+                person.uuid
             )
             value_key = "user_key"
             user_keys = [o.user_key for o in objects_in_mo]
@@ -697,10 +712,16 @@ class SyncTool:
                     ]
 
         elif mo_object_class == "ITUser":
+            assert all_equal([obj.person for obj in converted_objects])
+            person = first(converted_objects).person
+
+            assert all_equal([obj.itsystem for obj in converted_objects])
+            itsystem = first(converted_objects).itsystem
+
             # If an ITUser already exists, MO throws an error - it cannot be updated if
             # the key is identical to an existing key.
             it_users_in_mo = await self.dataloader.load_mo_employee_it_users(
-                converted_objects[0].person.uuid, converted_objects[0].itsystem.uuid
+                person.uuid, itsystem.uuid
             )
             user_keys_in_mo = {a.user_key: a.uuid for a in it_users_in_mo}
 
