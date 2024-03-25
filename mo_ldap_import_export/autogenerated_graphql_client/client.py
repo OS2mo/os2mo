@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List
 from typing import Optional
 from typing import Union
 from uuid import UUID
@@ -42,6 +43,8 @@ from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuid
 from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuidEngagements
 from .read_facet_uuid import ReadFacetUuid
 from .read_facet_uuid import ReadFacetUuidFacets
+from .read_is_primary_engagements import ReadIsPrimaryEngagements
+from .read_is_primary_engagements import ReadIsPrimaryEngagementsEngagements
 from .read_root_org_uuid import ReadRootOrgUuid
 from .read_root_org_uuid import ReadRootOrgUuidOrg
 from .set_job_title import SetJobTitle
@@ -313,3 +316,25 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEmployeeUuidByItuserUserKey.parse_obj(data).itusers
+
+    async def read_is_primary_engagements(
+        self, uuids: List[UUID]
+    ) -> ReadIsPrimaryEngagementsEngagements:
+        query = gql(
+            """
+            query read_is_primary_engagements($uuids: [UUID!]!) {
+              engagements(filter: {uuids: $uuids}) {
+                objects {
+                  current {
+                    is_primary
+                    uuid
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"uuids": uuids}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadIsPrimaryEngagements.parse_obj(data).engagements

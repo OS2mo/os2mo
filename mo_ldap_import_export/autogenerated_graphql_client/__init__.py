@@ -177,6 +177,12 @@ from .read_engagements_by_employee_uuid import (
 from .read_facet_uuid import ReadFacetUuid
 from .read_facet_uuid import ReadFacetUuidFacets
 from .read_facet_uuid import ReadFacetUuidFacetsObjects
+from .read_is_primary_engagements import ReadIsPrimaryEngagements
+from .read_is_primary_engagements import ReadIsPrimaryEngagementsEngagements
+from .read_is_primary_engagements import ReadIsPrimaryEngagementsEngagementsObjects
+from .read_is_primary_engagements import (
+    ReadIsPrimaryEngagementsEngagementsObjectsCurrent,
+)
 from .read_root_org_uuid import ReadRootOrgUuid
 from .read_root_org_uuid import ReadRootOrgUuidOrg
 from .set_job_title import SetJobTitle
@@ -323,6 +329,10 @@ __all__ = [
     "ReadFacetUuid",
     "ReadFacetUuidFacets",
     "ReadFacetUuidFacetsObjects",
+    "ReadIsPrimaryEngagements",
+    "ReadIsPrimaryEngagementsEngagements",
+    "ReadIsPrimaryEngagementsEngagementsObjects",
+    "ReadIsPrimaryEngagementsEngagementsObjectsCurrent",
     "ReadRootOrgUuid",
     "ReadRootOrgUuidOrg",
     "RegistrationFilter",
