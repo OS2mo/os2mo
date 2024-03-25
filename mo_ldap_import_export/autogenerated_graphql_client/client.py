@@ -26,6 +26,12 @@ from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
 from .read_class_uuid import ReadClassUuid
 from .read_class_uuid import ReadClassUuidClasses
+from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumber
+from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumberEmployees
+from .read_employee_uuid_by_ituser_user_key import ReadEmployeeUuidByItuserUserKey
+from .read_employee_uuid_by_ituser_user_key import (
+    ReadEmployeeUuidByItuserUserKeyItusers,
+)
 from .read_employees_with_engagement_to_org_unit import (
     ReadEmployeesWithEngagementToOrgUnit,
 )
@@ -267,3 +273,43 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return SetJobTitle.parse_obj(data).engagement_update
+
+    async def read_employee_uuid_by_cpr_number(
+        self, cpr_number: str
+    ) -> ReadEmployeeUuidByCprNumberEmployees:
+        query = gql(
+            """
+            query read_employee_uuid_by_cpr_number($cpr_number: String!) {
+              employees(filter: {cpr_numbers: [$cpr_number]}) {
+                objects {
+                  uuid
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"cpr_number": cpr_number}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadEmployeeUuidByCprNumber.parse_obj(data).employees
+
+    async def read_employee_uuid_by_ituser_user_key(
+        self, user_key: str
+    ) -> ReadEmployeeUuidByItuserUserKeyItusers:
+        query = gql(
+            """
+            query read_employee_uuid_by_ituser_user_key($user_key: String!) {
+              itusers(filter: {user_keys: [$user_key]}) {
+                objects {
+                  current {
+                    employee_uuid
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"user_key": user_key}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadEmployeeUuidByItuserUserKey.parse_obj(data).itusers
