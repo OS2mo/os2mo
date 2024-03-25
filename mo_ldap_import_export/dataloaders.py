@@ -1594,7 +1594,6 @@ class DataLoader:
             employee_uuid, address_type_uuid
         )
         # TODO: Bulk this
-        # TODO: asyncio.gather this
         output = await asyncio.gather(
             *[self.load_mo_address(address.uuid) for address in result.objects]
         )
