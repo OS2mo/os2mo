@@ -12,11 +12,11 @@ from uuid import uuid4
 
 import pytest
 import pytz  # type: ignore
+from fastramqpi.ramqp.mo import MORoutingKey
 from gql import gql
 from graphql import print_ast
 from ldap3.core.exceptions import LDAPInvalidDnError
 from ramodels.mo.details.address import Address
-from ramqp.mo import MORoutingKey
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.exceptions import InvalidQuery

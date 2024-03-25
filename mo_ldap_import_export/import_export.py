@@ -13,10 +13,10 @@ from uuid import UUID
 from uuid import uuid4
 
 from fastramqpi.context import Context
+from fastramqpi.ramqp.depends import handle_exclusively_decorator
+from fastramqpi.ramqp.mo import MORoutingKey
 from httpx import HTTPStatusError
 from ramodels.mo import MOBase
-from ramqp.depends import handle_exclusively_decorator
-from ramqp.mo import MORoutingKey
 
 from .dataloaders import DNList
 from .dataloaders import Verb
