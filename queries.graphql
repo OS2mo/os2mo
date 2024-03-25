@@ -124,3 +124,16 @@ query read_is_primary_engagements($uuids: [UUID!]!) {
     }
   }
 }
+
+query read_employee_addresses($employee_uuid: UUID!, $address_type_uuid: UUID!) {
+  addresses(
+    filter: {
+      address_type: {uuids: [$address_type_uuid]},
+      employee: {uuids: [$employee_uuid]}
+    }
+  ) {
+    objects {
+      uuid
+    }
+  }
+}

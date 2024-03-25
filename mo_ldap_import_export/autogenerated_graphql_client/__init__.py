@@ -136,6 +136,9 @@ from .ituser_terminate import ItuserTerminateItuserTerminate
 from .read_class_uuid import ReadClassUuid
 from .read_class_uuid import ReadClassUuidClasses
 from .read_class_uuid import ReadClassUuidClassesObjects
+from .read_employee_addresses import ReadEmployeeAddresses
+from .read_employee_addresses import ReadEmployeeAddressesAddresses
+from .read_employee_addresses import ReadEmployeeAddressesAddressesObjects
 from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumber
 from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumberEmployees
 from .read_employee_uuid_by_cpr_number import (
@@ -310,6 +313,9 @@ __all__ = [
     "ReadClassUuid",
     "ReadClassUuidClasses",
     "ReadClassUuidClassesObjects",
+    "ReadEmployeeAddresses",
+    "ReadEmployeeAddressesAddresses",
+    "ReadEmployeeAddressesAddressesObjects",
     "ReadEmployeeUuidByCprNumber",
     "ReadEmployeeUuidByCprNumberEmployees",
     "ReadEmployeeUuidByCprNumberEmployeesObjects",

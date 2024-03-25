@@ -393,8 +393,7 @@ def is_dn(value):
         parse_dn(value)
     except LDAPInvalidDnError:
         return False
-    else:
-        return True
+    return True
 
 
 def get_ldap_object(dn, context, nest=True):
@@ -432,8 +431,7 @@ def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
         if nest:
             logger.info(f"[make_ldap_object] Loading nested ldap object with dn={dn}")
             return get_ldap_object(dn, context, nest=False)
-        else:  # pragma: no cover
-            raise Exception("Already running in nested loop")
+        raise Exception("Already running in nested loop")  # pragma: no cover
 
     def is_other_dn(value):
         """

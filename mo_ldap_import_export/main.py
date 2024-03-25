@@ -99,8 +99,7 @@ def get_delete_flag(mo_object) -> bool:
             f"to-date ({validity_to}) <= current date ({now})"
         )
         return True
-    else:
-        return False
+    return False
 
 
 async def unpack_payload(

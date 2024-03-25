@@ -27,6 +27,8 @@ from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
 from .read_class_uuid import ReadClassUuid
 from .read_class_uuid import ReadClassUuidClasses
+from .read_employee_addresses import ReadEmployeeAddresses
+from .read_employee_addresses import ReadEmployeeAddressesAddresses
 from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumber
 from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumberEmployees
 from .read_employee_uuid_by_ituser_user_key import ReadEmployeeUuidByItuserUserKey
@@ -338,3 +340,27 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadIsPrimaryEngagements.parse_obj(data).engagements
+
+    async def read_employee_addresses(
+        self, employee_uuid: UUID, address_type_uuid: UUID
+    ) -> ReadEmployeeAddressesAddresses:
+        query = gql(
+            """
+            query read_employee_addresses($employee_uuid: UUID!, $address_type_uuid: UUID!) {
+              addresses(
+                filter: {address_type: {uuids: [$address_type_uuid]}, employee: {uuids: [$employee_uuid]}}
+              ) {
+                objects {
+                  uuid
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "employee_uuid": employee_uuid,
+            "address_type_uuid": address_type_uuid,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadEmployeeAddresses.parse_obj(data).addresses
