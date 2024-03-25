@@ -5,7 +5,6 @@ import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import datetime
-from functools import partial
 from functools import wraps
 from inspect import iscoroutinefunction
 from typing import Annotated
@@ -50,7 +49,6 @@ from .logging import logger
 from .os2mo_init import InitEngine
 from .routes import construct_router
 from .utils import get_object_type_from_routing_key
-from .utils import listener
 from .utils import mo_datestring_to_utc
 
 fastapi_router = APIRouter()
@@ -367,10 +365,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     fastramqpi.add_context(poll_time=settings.poll_time)
 
     if settings.listen_to_changes_in_ldap:
-        pollers = setup_listener(
-            fastramqpi.get_context(),
-            partial(listener, fastramqpi.get_context()),
-        )
+        pollers = setup_listener(fastramqpi.get_context())
         fastramqpi.add_context(pollers=pollers)
         fastramqpi.add_healthcheck(name="LDAPPoller", healthcheck=poller_healthcheck)
 

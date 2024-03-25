@@ -769,16 +769,16 @@ async def test_set_search_params_modify_timestamp():
 
 
 async def test_setup_poller(context: Context):
+    def callback():
+        return
+
     with patch("mo_ldap_import_export.ldap._poller", MagicMock()):
+        with patch("mo_ldap_import_export.ldap.listener", callback):
+            search_parameters: dict = {}
+            init_search_time = datetime.datetime.utcnow()
 
-        def callback():
-            return
-
-        search_parameters: dict = {}
-        init_search_time = datetime.datetime.utcnow()
-
-        poll = setup_poller(context, callback, search_parameters, init_search_time, 5)
-        assert poll._initialized is True  # type: ignore
+            poll = setup_poller(context, search_parameters, init_search_time, 5)
+            assert poll._initialized is True  # type: ignore
 
 
 def test_poller(
@@ -798,24 +798,27 @@ def test_poller(
 
     hits: list[str] = []
 
-    def listener(event):
+    def listener(context, event):
         cpr_no = event.get("attributes", {}).get("cpr_no", None)
         hits.append(cpr_no)
 
     last_search_time = datetime.datetime.utcnow()
-    events_to_ignore, search_time = _poll(
-        context={
-            "user_context": {"ldap_connection": ldap_connection, "settings": settings}
-        },
-        search_parameters={
-            "search_base": "dc=ad",
-            "search_filter": "cn=*",
-            "attributes": ["cpr_no"],
-        },
-        callback=listener,
-        last_search_time=last_search_time,
-        events_to_ignore=[],
-    )
+    with patch("mo_ldap_import_export.ldap.listener", listener):
+        events_to_ignore, search_time = _poll(
+            context={
+                "user_context": {
+                    "ldap_connection": ldap_connection,
+                    "settings": settings,
+                }
+            },
+            search_parameters={
+                "search_base": "dc=ad",
+                "search_filter": "cn=*",
+                "attributes": ["cpr_no"],
+            },
+            last_search_time=last_search_time,
+            events_to_ignore=[],
+        )
     assert events_to_ignore == [event]
     assert search_time > last_search_time
 
@@ -840,19 +843,22 @@ def test_poller_bad_result(
     listener = MagicMock()
 
     last_search_time = datetime.datetime.utcnow()
-    events_to_ignore, search_time = _poll(
-        context={
-            "user_context": {"ldap_connection": ldap_connection, "settings": settings}
-        },
-        search_parameters={
-            "search_base": "dc=ad",
-            "search_filter": "cn=*",
-            "attributes": ["cpr_no"],
-        },
-        callback=listener,
-        last_search_time=last_search_time,
-        events_to_ignore=[],
-    )
+    with patch("mo_ldap_import_export.ldap.listener", listener):
+        events_to_ignore, search_time = _poll(
+            context={
+                "user_context": {
+                    "ldap_connection": ldap_connection,
+                    "settings": settings,
+                }
+            },
+            search_parameters={
+                "search_base": "dc=ad",
+                "search_filter": "cn=*",
+                "attributes": ["cpr_no"],
+            },
+            last_search_time=last_search_time,
+            events_to_ignore=[],
+        )
     assert events_to_ignore == []
     assert search_time > last_search_time
     assert listener.call_count == 0
@@ -878,22 +884,22 @@ def test_poller_invalidQuery(
 
     with capture_logs() as cap_logs:
         last_search_time = datetime.datetime.utcnow()
-        events_to_ignore, search_time = _poll(
-            context={
-                "user_context": {
-                    "ldap_connection": ldap_connection,
-                    "settings": settings,
-                }
-            },
-            search_parameters={
-                "search_base": "dc=ad",
-                "search_filter": "cn=*",
-                "attributes": ["cpr_no"],
-            },
-            callback=listener,
-            last_search_time=last_search_time,
-            events_to_ignore=[],
-        )
+        with patch("mo_ldap_import_export.ldap.listener", listener):
+            events_to_ignore, search_time = _poll(
+                context={
+                    "user_context": {
+                        "ldap_connection": ldap_connection,
+                        "settings": settings,
+                    }
+                },
+                search_parameters={
+                    "search_base": "dc=ad",
+                    "search_filter": "cn=*",
+                    "attributes": ["cpr_no"],
+                },
+                last_search_time=last_search_time,
+                events_to_ignore=[],
+            )
         assert events_to_ignore == []
         assert search_time > last_search_time
         assert listener.call_count == 0
@@ -923,22 +929,22 @@ def test_poller_duplicate_event(
 
     with capture_logs() as cap_logs:
         last_search_time = datetime.datetime.utcnow()
-        events_to_ignore, search_time = _poll(
-            context={
-                "user_context": {
-                    "ldap_connection": ldap_connection,
-                    "settings": settings,
-                }
-            },
-            search_parameters={
-                "search_base": "dc=ad",
-                "search_filter": "cn=*",
-                "attributes": ["cpr_no"],
-            },
-            callback=listener,
-            last_search_time=last_search_time,
-            events_to_ignore=[event],
-        )
+        with patch("mo_ldap_import_export.ldap.listener", listener):
+            events_to_ignore, search_time = _poll(
+                context={
+                    "user_context": {
+                        "ldap_connection": ldap_connection,
+                        "settings": settings,
+                    }
+                },
+                search_parameters={
+                    "search_base": "dc=ad",
+                    "search_filter": "cn=*",
+                    "attributes": ["cpr_no"],
+                },
+                last_search_time=last_search_time,
+                events_to_ignore=[event],
+            )
         assert events_to_ignore == []
         assert search_time > last_search_time
         assert listener.call_count == 0
