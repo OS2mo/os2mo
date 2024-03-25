@@ -16,7 +16,6 @@ from ldap3.utils.dn import to_dn
 
 from .customer_specific import JobTitleFromADToMO
 from .exceptions import InvalidQuery
-from .import_export import SyncTool
 from .logging import logger
 
 
@@ -123,6 +122,8 @@ def listener(context, event):
     """
     Calls import_single_user if changes are registered
     """
+    from .import_export import SyncTool
+
     dn = event.get("attributes", {}).get("distinguishedName", None)
     dn = dn or event.get("dn", None)
 
