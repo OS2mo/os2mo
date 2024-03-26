@@ -284,7 +284,7 @@ class GraphQLClient(AsyncBaseClient):
     ) -> ReadEmployeeUuidByCprNumberEmployees:
         query = gql(
             """
-            query read_employee_uuid_by_cpr_number($cpr_number: String!) {
+            query read_employee_uuid_by_cpr_number($cpr_number: CPR!) {
               employees(filter: {cpr_numbers: [$cpr_number]}) {
                 objects {
                   uuid

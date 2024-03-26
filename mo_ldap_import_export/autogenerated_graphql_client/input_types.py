@@ -192,7 +192,7 @@ class EmployeeCreateInput(BaseModel):
     nickname_given_name: Optional[str] = None
     nickname_surname: Optional[str] = None
     seniority: Optional[Any] = None
-    cpr_number: Optional[Any] = None
+    cpr_number: Optional[str] = None
     given_name: str
     surname: str
 
@@ -204,7 +204,7 @@ class EmployeeFilter(BaseModel):
     to_date: Optional[datetime]
     registration: Optional["EmployeeRegistrationFilter"] = None
     query: Optional[str]
-    cpr_numbers: Optional[List[Any]] = None
+    cpr_numbers: Optional[List[str]] = None
 
 
 class EmployeeRegistrationFilter(BaseModel):
@@ -226,7 +226,7 @@ class EmployeeUpdateInput(BaseModel):
     nickname_given_name: Optional[str] = None
     nickname_surname: Optional[str] = None
     seniority: Optional[Any] = None
-    cpr_number: Optional[Any] = None
+    cpr_number: Optional[str] = None
     given_name: Optional[str] = None
     surname: Optional[str] = None
     validity: "RAValidityInput"
@@ -1027,7 +1027,7 @@ class UuidsBoundEmployeeFilter(BaseModel):
     to_date: Optional[datetime]
     registration: Optional["EmployeeRegistrationFilter"] = None
     query: Optional[str]
-    cpr_numbers: Optional[List[Any]] = None
+    cpr_numbers: Optional[List[str]] = None
 
 
 class UuidsBoundEngagementFilter(BaseModel):
