@@ -763,22 +763,22 @@ class SyncTool:
 
         # Set uuid if a matching one is found. so an object gets updated
         # instead of duplicated
-        # TODO: Consider collection operations instead of objects
         # TODO: Consider partitioning converted_objects before-hand
-        converted_objects_uuid_checked = []
+        operations = []
         for converted_object in converted_objects:
             converted_object_value = getattr(converted_object, value_key)
 
             values = values_in_mo.get(converted_object_value)
             # Either None or empty list means no match
-            if not values:
-                converted_objects_uuid_checked.append(
-                    converted_object
-                )  # pragma: no cover
+            if not values:  # pragma: no cover
+                # No match means we are creating a new object
+                operations.append((converted_object, Verb.CREATE))
                 continue
             # Multiple values means that it is ambiguous
-            if len(values) > 1:
-                logger.warning(  # pragma: no cover
+            if len(values) > 1:  # pragma: no cover
+                # Ambigious match means we do nothing
+                # TODO: Should this really throw a RequeueMessage?
+                logger.warning(
                     f"Could not determine which '{json_key}' MO object "
                     f"{value_key}='{converted_object_value}' belongs to. Skipping"
                 )
@@ -821,12 +821,10 @@ class SyncTool:
             #         "to existing object. Skipping."
             #     )
             #     continue
-            converted_objects_uuid_checked.append(converted_object_uuid_checked)
+            # We found a match, so we are editing the object we matched
+            operations.append((converted_object_uuid_checked, Verb.EDIT))
 
-        return [
-            (converted_object, Verb.CREATE)
-            for converted_object in converted_objects_uuid_checked
-        ]
+        return operations
 
     @wait_for_import_to_finish
     async def import_single_user(self, dn: str, force=False, manual_import=False):
