@@ -17,6 +17,8 @@ from fastramqpi.context import Context
 from fastramqpi.ramqp.mo import MORoutingKey
 from fastramqpi.ramqp.utils import RequeueMessage
 from httpx import HTTPStatusError
+from more_itertools import first
+from more_itertools import last
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
@@ -472,16 +474,16 @@ async def test_format_converted_engagement_objects(
 
     converted_objects = [engagement1, engagement2, engagement3]
 
-    formatted_objects = await sync_tool.format_converted_objects(
+    operations = await sync_tool.format_converted_objects(
         converted_objects,
         json_key,
     )
-
-    assert len(formatted_objects) == 1  # 2
+    assert len(operations) == 2
+    formatted_objects = [obj for obj, _ in operations]
     assert engagement3 not in formatted_objects
-    assert formatted_objects[0][0].uuid == engagement1_in_mo.uuid
-    assert formatted_objects[0][0].user_key == engagement1.user_key
-    # assert formatted_objects[1][0] == engagement2
+    assert first(formatted_objects).uuid == engagement1_in_mo.uuid
+    assert first(formatted_objects).user_key == engagement1.user_key
+    assert last(formatted_objects) == engagement2
 
 
 async def test_format_converted_multiple_primary_engagements(
@@ -648,16 +650,15 @@ async def test_format_converted_org_unit_address_objects_identical_to_mo(
 
     dataloader.load_mo_org_unit_addresses.return_value = [address1_in_mo]
 
-    formatted_objects = await sync_tool.format_converted_objects(
+    operations = await sync_tool.format_converted_objects(
         converted_objects,
         "Address",
     )
+    assert len(operations) == 2
+    formatted_objects = [obj for obj, _ in operations]
 
-    # assert formatted_objects[0][0].value == "bar"
-    # assert len(formatted_objects) == 1
-    # "foo" below should be "bar"!
-    assert formatted_objects[0][0].value == "foo"  # type: ignore
-    assert len(formatted_objects) == 1
+    assert first(formatted_objects).value == "foo"  # type: ignore
+    assert last(formatted_objects).value == "bar"  # type: ignore
 
 
 async def test_format_converted_address_objects_without_person_or_org_unit(
