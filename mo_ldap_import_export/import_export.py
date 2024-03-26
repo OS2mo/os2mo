@@ -13,14 +13,17 @@ from uuid import UUID
 from uuid import uuid4
 
 from fastramqpi.context import Context
+from fastramqpi.ra_utils.transpose_dict import transpose_dict
 from fastramqpi.ramqp.depends import handle_exclusively_decorator
 from fastramqpi.ramqp.mo import MORoutingKey
 from fastramqpi.ramqp.utils import RequeueMessage
 from httpx import HTTPStatusError
 from more_itertools import all_equal
 from more_itertools import first
+from more_itertools import one
 from ramodels.mo import MOBase
 
+from .converters import LdapConverter
 from .dataloaders import DataLoader
 from .dataloaders import DNList
 from .dataloaders import Verb
@@ -108,7 +111,7 @@ class SyncTool:
         self.context = context
         self.user_context = self.context["user_context"]
         self.dataloader: DataLoader = self.user_context["dataloader"]
-        self.converter = self.user_context["converter"]
+        self.converter: LdapConverter = self.user_context["converter"]
         self.export_checks = self.user_context["export_checks"]
         self.import_checks = self.user_context["import_checks"]
         self.settings = self.user_context["settings"]
@@ -372,7 +375,9 @@ class SyncTool:
                 current_objects_only=current_objects_only,
             )
             it_system_type_uuid = changed_it_user.itsystem.uuid
-            json_key = await self.converter.get_it_system_user_key(it_system_type_uuid)
+            json_key = await self.converter.get_it_system_user_key(
+                str(it_system_type_uuid)
+            )
 
             logger.info(
                 "[Listen-to-changes-in-employees] Obtained IT system.",
@@ -672,6 +677,9 @@ class SyncTool:
                 )
                 return []
 
+            # TODO: It seems weird to match addresses by value, as value is likely to
+            #       change quite often. Omada simply deletes and recreates addresses.
+            #       Maybe we should consider doing the same here?
             value_key = "value"
 
         # Load engagements already in MO
@@ -749,67 +757,71 @@ class SyncTool:
                 for converted_object in converted_objects
             ]
 
-        objects_in_mo_dict = {a.uuid: a for a in objects_in_mo}
-        mo_attributes = self.converter.get_mo_attributes(json_key)
+        # Construct a map from value-key to list of matching objects
+        values_in_mo = transpose_dict({a: getattr(a, value_key) for a in objects_in_mo})
+        mo_attributes = set(self.converter.get_mo_attributes(json_key))
 
         # Set uuid if a matching one is found. so an object gets updated
         # instead of duplicated
+        # TODO: Consider collection operations instead of objects
+        # TODO: Consider partitioning converted_objects before-hand
         converted_objects_uuid_checked = []
         for converted_object in converted_objects:
-            values_in_mo = [getattr(a, value_key) for a in objects_in_mo_dict.values()]
             converted_object_value = getattr(converted_object, value_key)
 
-            if values_in_mo.count(converted_object_value) == 1:
-                logger.info(
-                    "[Format-converted-objects] Found matching key.",
-                    json_key=json_key,
-                    value=getattr(converted_object, value_key),
-                )
-
-                for uuid, mo_object in objects_in_mo_dict.items():
-                    value = getattr(mo_object, value_key)
-                    if value == converted_object_value:
-                        matching_object_uuid = uuid
-                        break
-
-                matching_object = objects_in_mo_dict[matching_object_uuid]
-                converted_mo_object_dict = converted_object.dict()
-
-                mo_object_dict_to_upload = matching_object.dict()
-                for key in mo_attributes:
-                    if (
-                        key not in ["validity", "uuid", "objectClass"]
-                        and key in converted_mo_object_dict.keys()
-                    ):
-                        logger.info(
-                            "[Format-converted-objects] Setting "
-                            f"{key} = {converted_mo_object_dict[key]}"
-                        )
-                        mo_object_dict_to_upload[key] = converted_mo_object_dict[key]
-
-                mo_class = self.converter.import_mo_object_class(json_key)
-                converted_object_uuid_checked = mo_class(**mo_object_dict_to_upload)
-
-                # # If an object is identical to the one already there, it does not need
-                # # to be uploaded.
-                # if converted_object_uuid_checked == matching_object:
-                #     logger.info(
-                #         "[Format-converted-objects] Converted object is identical "
-                #         "to existing object. Skipping."
-                #     )
-                # else:
-                #     converted_objects_uuid_checked.append(converted_object_uuid_checked)
-                converted_objects_uuid_checked.append(converted_object_uuid_checked)
-
-            elif values_in_mo.count(converted_object_value) == 0:  # pragma: no cover
+            values = values_in_mo.get(converted_object_value)
+            # Either None or empty list means no match
+            if not values:
                 converted_objects_uuid_checked.append(
                     converted_object
                 )  # pragma: no cover
-            else:  # pragma: no cover
+                continue
+            # Multiple values means that it is ambiguous
+            if len(values) > 1:
                 logger.warning(  # pragma: no cover
                     f"Could not determine which '{json_key}' MO object "
                     f"{value_key}='{converted_object_value}' belongs to. Skipping"
                 )
+                continue
+            # Exactly 1 match found
+            logger.info(
+                "[Format-converted-objects] Found matching key.",
+                json_key=json_key,
+                value=getattr(converted_object, value_key),
+            )
+
+            matching_object = one(values)
+            mo_object_dict_to_upload = matching_object.dict()
+
+            converted_mo_object_dict = converted_object.dict()
+
+            # TODO: We always used the matched UUID, even if we have one templated out?
+            #       Is this the desired behavior, if I template an UUID I would have
+            #       imagined that I would only ever touch the object with that UUID?
+            mo_attributes = mo_attributes - {"validity", "uuid", "objectClass"}
+            # Only copy over keys that exist in both sets
+            mo_attributes = mo_attributes & converted_mo_object_dict.keys()
+
+            for key in mo_attributes:
+                logger.info(
+                    "[Format-converted-objects] Setting "
+                    f"{key} = {converted_mo_object_dict[key]}"
+                )
+                mo_object_dict_to_upload[key] = converted_mo_object_dict[key]
+
+            mo_class = self.converter.import_mo_object_class(json_key)
+            converted_object_uuid_checked = mo_class(**mo_object_dict_to_upload)
+
+            # TODO: Try to get this reactivated, see: 87683a2b
+            # # If an object is identical to the one already there, it does not need
+            # # to be uploaded.
+            # if converted_object_uuid_checked == matching_object:
+            #     logger.info(
+            #         "[Format-converted-objects] Converted object is identical "
+            #         "to existing object. Skipping."
+            #     )
+            #     continue
+            converted_objects_uuid_checked.append(converted_object_uuid_checked)
 
         return [
             (converted_object, Verb.CREATE)
