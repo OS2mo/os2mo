@@ -929,11 +929,11 @@ class SyncTool:
 
             # In case the engagement does not exist yet:
             if json_key == "Engagement" and len(converted_objects):
-                engagement_uuid = converted_objects[0].uuid
+                engagement_uuid = first(converted_objects).uuid
                 logger.info(
                     "[Import-single-user] Saving engagement UUID for DN",
                     engagement_uuid=engagement_uuid,
-                    source_object=converted_objects[0],
+                    source_object=first(converted_objects),
                     dn=dn,
                 )
 
@@ -954,11 +954,13 @@ class SyncTool:
                 # In case the engagement exists, but is outdated. If it exists,
                 # but is identical, the list will be empty.
                 if json_key == "Engagement" and len(converted_objects):
-                    engagement_uuid = converted_objects[0][0].uuid
+                    operation = first(converted_objects)
+                    engagement, _ = operation
+                    engagement_uuid = engagement.uuid
                     logger.info(
                         "[Import-single-user] Updating engagement UUID",
                         engagement_uuid=engagement_uuid,
-                        source_object=converted_objects[0][0],
+                        source_object=engagement,
                         dn=dn,
                     )
             except NoObjectsReturnedException:
