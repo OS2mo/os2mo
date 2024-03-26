@@ -1590,30 +1590,17 @@ class DataLoader:
         """
         Loads all current addresses of a specific type for an employee
         """
-        query = gql(
-            f"""
-            query GetEmployeeAddresses {{
-              employees(filter: {{uuids: "{employee_uuid}"}}) {{
-                objects {{
-                  objects {{
-                    addresses(filter: {{address_types: "{address_type_uuid}"}}) {{
-                      uuid
-                    }}
-                  }}
-                }}
-              }}
-            }}
-            """
+        result = await self.graphql_client.read_employee_addresses(
+            employee_uuid, address_type_uuid
         )
-
-        result = await self.query_mo(query)
-
-        output = []
-        for address_entry in result["employees"]["objects"][0]["objects"][0][
-            "addresses"
-        ]:
-            address = await self.load_mo_address(address_entry["uuid"])
-            output.append(address)
+        # TODO: Bulk this
+        output = await asyncio.gather(
+            *[self.load_mo_address(address.uuid) for address in result.objects]
+        )
+        if not output:
+            raise NoObjectsReturnedException(
+                "load_mo_employee_addresses returned empty"
+            )
         return output
 
     async def load_mo_org_unit_addresses(
