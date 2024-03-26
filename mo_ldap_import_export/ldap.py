@@ -3,7 +3,6 @@
 """LDAP Connection handling."""
 import signal
 import time
-from collections.abc import Callable
 from contextlib import suppress
 from datetime import datetime
 from functools import partial
@@ -42,6 +41,7 @@ from .logging import logger
 from .processors import _hide_cpr as hide_cpr
 from .utils import combine_dn_strings
 from .utils import datetime_to_ldap_timestamp
+from .utils import listener
 from .utils import mo_object_is_valid
 
 
@@ -565,7 +565,7 @@ async def cleanup(
         await sync_tool.refresh_object(uuid, object_type)
 
 
-def setup_listener(context: Context, callback: Callable) -> list[Thread]:
+def setup_listener(context: Context) -> list[Thread]:
     user_context = context["user_context"]
 
     # Note:
@@ -588,7 +588,6 @@ def setup_listener(context: Context, callback: Callable) -> list[Thread]:
         pollers.append(
             setup_poller(
                 context,
-                callback,
                 search_parameters,
                 datetime.utcnow(),
                 user_context["poll_time"],
@@ -599,7 +598,6 @@ def setup_listener(context: Context, callback: Callable) -> list[Thread]:
 
 def setup_poller(
     context: Context,
-    callback: Callable,
     search_parameters: dict,
     init_search_time: datetime,
     poll_time: float,
@@ -610,7 +608,6 @@ def setup_poller(
         args=(
             context,
             search_parameters,
-            callback,
             init_search_time,
             poll_time,
         ),
@@ -623,7 +620,6 @@ def setup_poller(
 def _poll(
     context: Context,
     search_parameters: dict,
-    callback: Callable,
     last_search_time: datetime,
     events_to_ignore: list[Any],
 ) -> tuple[list[Any], datetime]:
@@ -682,7 +678,7 @@ def _poll(
             # Even though you would expect the second one not to match
             logger.info(f"Ignored duplicate event: {event}")
             continue
-        callback(event)
+        listener(context, event)
         last_events.append(event)
     return last_events, last_search_time
 
@@ -690,7 +686,6 @@ def _poll(
 def _poller(
     context: Context,
     search_parameters: dict,
-    callback: Callable,
     init_search_time: datetime,
     poll_time: float,
 ) -> None:
@@ -712,7 +707,6 @@ def _poller(
         _poll,
         context=context,
         search_parameters=search_parameters,
-        callback=callback,
     )
 
     last_search_time = init_search_time
