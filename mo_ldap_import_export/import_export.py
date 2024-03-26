@@ -811,12 +811,10 @@ class SyncTool:
                     f"{value_key}='{converted_object_value}' belongs to. Skipping"
                 )
 
-            return [
-                (converted_object, Verb.CREATE)
-                for converted_object in converted_objects_uuid_checked
-            ]
-
-        return []  # pragma: no cover
+        return [
+            (converted_object, Verb.CREATE)
+            for converted_object in converted_objects_uuid_checked
+        ]
 
     @wait_for_import_to_finish
     async def import_single_user(self, dn: str, force=False, manual_import=False):
