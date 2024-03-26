@@ -680,9 +680,6 @@ def test_load_primary_types_from_MO_endpoint(test_client: TestClient):
 async def test_import_all_objects_from_LDAP_first_20(test_client: TestClient) -> None:
     params = {
         "test_on_first_20_entries": True,
-        "delay_in_hours": 0,
-        "delay_in_minutes": 0,
-        "delay_in_seconds": 0.1,
     }
     response = test_client.get("/Import", params=params)
     assert response.status_code == 202
@@ -774,9 +771,6 @@ async def test_export_endpoint(
     params: dict = {
         "publish_amqp_messages": True,
         "uuid": str(uuid4()),
-        "delay_in_hours": 0,
-        "delay_in_minutes": 0,
-        "delay_in_seconds": 0.1,
     }
 
     current_awaits = internal_amqpsystem.publish_message.await_count

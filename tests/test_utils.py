@@ -4,7 +4,6 @@
 import asyncio
 import datetime
 import re
-import time
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -22,7 +21,6 @@ from structlog.testing import capture_logs
 from mo_ldap_import_export.exceptions import InvalidQuery
 from mo_ldap_import_export.utils import add_filter_to_query
 from mo_ldap_import_export.utils import combine_dn_strings
-from mo_ldap_import_export.utils import countdown
 from mo_ldap_import_export.utils import datetime_to_ldap_timestamp
 from mo_ldap_import_export.utils import delete_keys_from_dict
 from mo_ldap_import_export.utils import exchange_ou_in_dn
@@ -200,23 +198,6 @@ async def test_listener(run_coroutine_threadsafe):
             "Got event without dn",
             str(messages[1]["event"]),
         )
-
-
-async def test_countdown():
-    t1 = time.time()
-    await countdown(0.1, "foo")
-    t2 = time.time()
-    assert (t2 - t1) >= 0.1
-    assert (t2 - t1) < 0.11
-
-    t1 = time.time()
-    t2 = time.time()
-    assert (t2 - t1) < 0.1
-
-    t1 = time.time()
-    await countdown(0, "foo")
-    t2 = time.time()
-    assert (t2 - t1) < 0.1
 
 
 def test_combine_dn_strings():
