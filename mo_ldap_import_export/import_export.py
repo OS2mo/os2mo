@@ -733,23 +733,11 @@ class SyncTool:
             assert all_equal([obj.itsystem for obj in converted_objects])
             itsystem = first(converted_objects).itsystem
 
-            # If an ITUser already exists, MO throws an error - it cannot be updated if
-            # the key is identical to an existing key.
-            it_users_in_mo = await self.dataloader.load_mo_employee_it_users(
+            objects_in_mo = await self.dataloader.load_mo_employee_it_users(
                 person.uuid, itsystem.uuid
             )
-            user_keys_in_mo = {a.user_key: a.uuid for a in it_users_in_mo}
 
-            def mark_edit(obj) -> tuple[MOBase, Verb]:
-                if obj.user_key in user_keys_in_mo:
-                    obj = obj.copy(update={"uuid": user_keys_in_mo[obj.user_key]})
-                    return obj, Verb.EDIT
-                else:
-                    return obj, Verb.CREATE
-
-            return [
-                mark_edit(converted_object) for converted_object in converted_objects
-            ]
+            value_key = "user_key"
 
         else:
             return [
