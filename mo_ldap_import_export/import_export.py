@@ -23,6 +23,7 @@ from httpx import HTTPStatusError
 from more_itertools import all_equal
 from more_itertools import first
 from more_itertools import one
+from more_itertools import quantify
 from ramodels.mo import MOBase
 
 from .converters import LdapConverter
@@ -706,7 +707,7 @@ class SyncTool:
                 primaries = await self.dataloader.is_primaries(
                     [o.uuid for o in objects_in_mo]
                 )
-                num_primaries = sum(primaries)
+                num_primaries = quantify(primaries)
                 if num_primaries > 1:
                     raise RequeueMessage(
                         "Waiting for multiple primary engagements to be resolved"
