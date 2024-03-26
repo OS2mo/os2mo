@@ -45,6 +45,7 @@ from .ldap import configure_ldap_connection
 from .ldap import ldap_healthcheck
 from .ldap import poller_healthcheck
 from .ldap import setup_listener
+from .ldap_amqp import configure_ldap_amqpsystem
 from .logging import logger
 from .os2mo_init import InitEngine
 from .routes import construct_router
@@ -355,6 +356,8 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     fastramqpi.add_lifespan_manager(internal_amqpsystem)
     internal_amqpsystem.router.registry.update(internal_amqp_router.registry)
     internal_amqpsystem.context = fastramqpi._context
+
+    configure_ldap_amqpsystem(fastramqpi, settings.ldap_amqp)
 
     fastramqpi.add_lifespan_manager(initialize_checks(fastramqpi), 2900)
     fastramqpi.add_lifespan_manager(initialize_sync_tool(fastramqpi), 3000)

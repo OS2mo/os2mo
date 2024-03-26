@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 # pylint: disable=too-few-public-methods
 """Settings handling."""
+from contextlib import suppress
 from enum import Enum
 from typing import Any
 from typing import get_args
@@ -61,6 +62,12 @@ class ServerList(ConstrainedList):
 class InternalAMQPConnectionSettings(AMQPConnectionSettings):
     exchange = "ldap_ie_internal"
     queue_prefix = "ldap_ie_internal"
+    prefetch_count = 1  # MO cannot handle too many requests
+
+
+class LDAPAMQPConnectionSettings(AMQPConnectionSettings):
+    exchange = "ldap_ie_ldap"
+    queue_prefix = "ldap_ie_ldap"
     prefetch_count = 1  # MO cannot handle too many requests
 
 
@@ -348,7 +355,30 @@ class Settings(BaseSettings):
         description="Internal amqp settings",
     )
 
+    ldap_amqp: LDAPAMQPConnectionSettings = Field(
+        default_factory=LDAPAMQPConnectionSettings,  # type: ignore
+        description="LDAP amqp settings",
+    )
+
     fastramqpi: FastFAMQPIApplicationSettings
+
+    @root_validator(pre=True)
+    def share_amqp_url(cls, values: dict[str, Any]) -> dict[str, Any]:
+        """Use FastRAMQPI__AMQP__URL as a default for AMQP URLs"""
+        # If a key-error occurs, do nothing and let the validation explain it
+        with suppress(KeyError):
+            fastramqpi_amqp_url = values["fastramqpi"]["amqp"]["url"]
+
+            values["internal_amqp"] = values.get("internal_amqp", {})
+            values["internal_amqp"]["url"] = values["internal_amqp"].get(
+                "url", fastramqpi_amqp_url
+            )
+
+            values["ldap_amqp"] = values.get("ldap_amqp", {})
+            values["ldap_amqp"]["url"] = values["ldap_amqp"].get(
+                "url", fastramqpi_amqp_url
+            )
+        return values
 
     listen_to_changes_in_mo: bool = Field(
         True, description="Whether to write to AD, when changes in MO are registered"

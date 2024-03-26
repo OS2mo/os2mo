@@ -6,6 +6,7 @@ import re
 from datetime import datetime
 from functools import partial
 
+from fastramqpi.ramqp import AMQPSystem
 from fastramqpi.ramqp.mo import MORoutingKey
 from gql import gql
 from graphql import DocumentNode
@@ -122,8 +123,6 @@ def listener(context, event):
     """
     Calls import_single_user if changes are registered
     """
-    from .import_export import SyncTool
-
     dn = event.get("attributes", {}).get("distinguishedName", None)
     dn = dn or event.get("dn", None)
 
@@ -133,7 +132,7 @@ def listener(context, event):
 
     user_context = context["user_context"]
     event_loop = user_context["event_loop"]
-    sync_tool: SyncTool = user_context["sync_tool"]
+    ldap_amqpsystem: AMQPSystem = user_context["ldap_amqpsystem"]
 
     def log_exception(future):
         """Reraise exception so they are printed to the terminal."""
@@ -144,7 +143,7 @@ def listener(context, event):
 
     logger.info(f"Registered change for LDAP object with dn={dn}")
     future = asyncio.run_coroutine_threadsafe(
-        sync_tool.import_single_user(dn), event_loop
+        ldap_amqpsystem.publish_message("dn", dn), event_loop
     )
     # Register callback to ensure exceptions are logged to the terminal
     future.add_done_callback(log_exception)
