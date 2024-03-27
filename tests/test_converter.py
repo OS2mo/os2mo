@@ -1957,29 +1957,29 @@ async def test_get_primary_engagement_dict(converter: LdapConverter):
     ]
     # One primary
     # -----------
-    dataloader.is_primary.side_effect = [True, False, False]
+    dataloader.is_primaries.return_value = [True, False, False]
     result = await converter.get_primary_engagement_dict(employee_uuid)
     assert result["user_key"] == "foo"
 
-    dataloader.is_primary.side_effect = [False, True, False]
+    dataloader.is_primaries.return_value = [False, True, False]
     result = await converter.get_primary_engagement_dict(employee_uuid)
     assert result["user_key"] == "bar"
 
-    dataloader.is_primary.side_effect = [False, False, True]
+    dataloader.is_primaries.return_value = [False, False, True]
     result = await converter.get_primary_engagement_dict(employee_uuid)
     assert result["user_key"] == "baz"
 
     # Two primaries
     # -------------
     with pytest.raises(ValueError) as exc_info:
-        dataloader.is_primary.side_effect = [False, True, True]
+        dataloader.is_primaries.return_value = [False, True, True]
         await converter.get_primary_engagement_dict(employee_uuid)
     assert "Expected exactly one item in iterable" in str(exc_info.value)
 
     # No primary
     # ----------
     with pytest.raises(ValueError) as exc_info:
-        dataloader.is_primary.side_effect = [False, False, False]
+        dataloader.is_primaries.return_value = [False, False, False]
         await converter.get_primary_engagement_dict(employee_uuid)
     assert "too few items in iterable (expected 1)" in str(exc_info.value)
 
@@ -1988,13 +1988,13 @@ async def test_get_primary_engagement_dict(converter: LdapConverter):
     dataloader.load_mo_employee_engagement_dicts.return_value = [engagement3]
     # One primary
     # -----------
-    dataloader.is_primary.side_effect = [True]
+    dataloader.is_primaries.return_value = [True]
     result = await converter.get_primary_engagement_dict(employee_uuid)
     assert result["user_key"] == "baz"
 
     # No primary
     with pytest.raises(ValueError) as exc_info:
-        dataloader.is_primary.side_effect = [False]
+        dataloader.is_primaries.return_value = [False]
         await converter.get_primary_engagement_dict(employee_uuid)
     assert "too few items in iterable (expected 1)" in str(exc_info.value)
 
@@ -2002,7 +2002,7 @@ async def test_get_primary_engagement_dict(converter: LdapConverter):
     # -------------
     with pytest.raises(ValueError) as exc_info:
         dataloader.load_mo_employee_engagement_dicts.return_value = []
-        dataloader.is_primary.side_effect = []
+        dataloader.is_primaries.return_value = []
         await converter.get_primary_engagement_dict(employee_uuid)
     assert "too few items in iterable (expected 1)" in str(exc_info.value)
 

@@ -1506,7 +1506,7 @@ class DataLoader:
             for obj in result.objects
             if obj.current is not None
         }
-        return [result_map[uuid] for uuid in engagements]
+        return [result_map.get(uuid, False) for uuid in engagements]
 
     # TODO: Offer this via a dataloader, and change calls to use that
     async def is_primary(self, engagement_uuid: UUID) -> bool:

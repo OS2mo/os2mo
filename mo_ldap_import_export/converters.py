@@ -823,10 +823,9 @@ class LdapConverter:
             employee_uuid
         )
         # TODO: Make is_primary a GraphQL filter in MO and clean this up
-        is_primary_engagement = [
-            await self.dataloader.is_primary(engagement["uuid"])
-            for engagement in engagements
-        ]
+        is_primary_engagement = await self.dataloader.is_primaries(
+            [engagement["uuid"] for engagement in engagements]
+        )
         primary_engagement = one(compress(engagements, is_primary_engagement))
         return primary_engagement
 
