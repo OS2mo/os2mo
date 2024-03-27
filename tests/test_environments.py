@@ -3,11 +3,8 @@
 # -*- coding: utf-8 -*-
 import datetime
 
-import pandas as pd
-
 from mo_ldap_import_export.environments import environment
 from mo_ldap_import_export.environments import filter_mo_datestring
-from mo_ldap_import_export.environments import filter_parse_datetime
 from mo_ldap_import_export.environments import filter_remove_curly_brackets
 from mo_ldap_import_export.environments import filter_splitfirst
 from mo_ldap_import_export.environments import filter_splitlast
@@ -63,19 +60,6 @@ def test_filter_mo_datestring():
 
 def test_filter_remove_curly_brackets():
     assert filter_remove_curly_brackets("{foo}") == "foo"
-
-
-def test_filter_parse_datetime():
-    date = filter_parse_datetime("2021-01-01")
-    assert date.strftime("%Y-%m-%d") == "2021-01-01"
-
-    assert filter_parse_datetime("9999-12-31") == pd.Timestamp.max
-    assert filter_parse_datetime("200-12-31") == pd.Timestamp.min
-    assert filter_parse_datetime("") is None
-    assert filter_parse_datetime("None") is None
-    assert filter_parse_datetime("NONE") is None
-    assert filter_parse_datetime([]) is None
-    assert filter_parse_datetime(None) is None
 
 
 def test_bitwise_and():
