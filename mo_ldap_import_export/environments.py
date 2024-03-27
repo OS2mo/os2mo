@@ -1,28 +1,9 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import string
-import warnings
 
-# Pandas emits a warning to request input on a pdep
-# https://pandas.pydata.org/pdeps/0010-required-pyarrow-dependency.html
-# This line silences that warning, since its irrelevant to us
-warnings.filterwarnings("ignore", "\nPyarrow", DeprecationWarning)
-import pandas as pd  # noqa: E402
 from jinja2 import Environment  # noqa: E402
 from jinja2 import Undefined  # noqa: E402
-
-
-def filter_parse_datetime(datestring):
-    if not datestring or datestring.lower() == "none":
-        return None
-    try:
-        return pd.to_datetime(datestring, dayfirst=False)
-    except pd.errors.OutOfBoundsDatetime:
-        year = int(datestring.split("-")[0])
-        if year > 2000:
-            return pd.Timestamp.max
-        else:
-            return pd.Timestamp.min
 
 
 def filter_mo_datestring(datetime_object):
@@ -97,6 +78,5 @@ environment.filters["bitwise_and"] = bitwise_and
 environment.filters["splitfirst"] = filter_splitfirst
 environment.filters["splitlast"] = filter_splitlast
 environment.filters["mo_datestring"] = filter_mo_datestring
-environment.filters["parse_datetime"] = filter_parse_datetime
 environment.filters["strip_non_digits"] = filter_strip_non_digits
 environment.filters["remove_curly_brackets"] = filter_remove_curly_brackets
