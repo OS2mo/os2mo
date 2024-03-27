@@ -87,6 +87,8 @@ include_comments = false
 type = "datetime.datetime"
 [tool.ariadne-codegen.scalars.UUID]
 type = "uuid.UUID"
+[tool.ariadne-codegen.scalars.CPR]
+type = "str"
 
 
 [tool.coverage.report]
