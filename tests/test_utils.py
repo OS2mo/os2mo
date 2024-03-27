@@ -139,27 +139,25 @@ async def test_datetime_to_ldap_timestamp():
 async def test_listener_callback():
     event_loop = asyncio.get_running_loop()
 
-    async def import_single_user(dn: str):
-        event_loop.call_soon(import_single_user.event.set)  # type: ignore
+    async def publish_message(routing_key: str, dn: str):
+        event_loop.call_soon(publish_message.event.set)  # type: ignore
+        assert routing_key == "dn"
         assert dn == "CN=foo"
         raise ValueError("BOOM")
 
-    import_single_user.event = asyncio.Event()
+    publish_message.event = asyncio.Event()
 
-    sync_tool = AsyncMock()
-    sync_tool.import_single_user = import_single_user
+    ldap_amqpsystem = AsyncMock()
+    ldap_amqpsystem.publish_message = publish_message
 
-    user_context = {
-        "event_loop": event_loop,
-        "sync_tool": sync_tool,
-    }
+    user_context = {"event_loop": event_loop, "ldap_amqpsystem": ldap_amqpsystem}
     context = {"user_context": user_context}
 
     event = {"attributes": {"distinguishedName": "CN=foo"}}
 
     with capture_logs() as cap_logs:
         listener(context, event)
-        await import_single_user.event.wait()
+        await publish_message.event.wait()
 
     assert len(cap_logs) == 2
     log = cap_logs[1]
@@ -171,13 +169,10 @@ async def test_listener_callback():
 async def test_listener(run_coroutine_threadsafe):
     callback = MagicMock()
     event_loop = MagicMock()
-    sync_tool = MagicMock()
-    sync_tool.import_single_user.return_value = callback
+    ldap_amqpsystem = MagicMock()
+    ldap_amqpsystem.publish_message.return_value = callback
 
-    user_context = {
-        "event_loop": event_loop,
-        "sync_tool": sync_tool,
-    }
+    user_context = {"event_loop": event_loop, "ldap_amqpsystem": ldap_amqpsystem}
 
     context = {"user_context": user_context}
 
@@ -191,7 +186,7 @@ async def test_listener(run_coroutine_threadsafe):
             "Registered change for LDAP object",
             str(messages[0]["event"]),
         )
-        sync_tool.import_single_user.assert_called_with("CN=foo")
+        ldap_amqpsystem.publish_message.assert_called_with("dn", "CN=foo")
         run_coroutine_threadsafe.assert_called_with(callback, event_loop)
 
         assert re.match(
