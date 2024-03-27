@@ -8,6 +8,7 @@ stages:
   - build
   - release
   - deploy
+  - docs
 
 variables:
   RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo-ldap-import-export
@@ -40,6 +41,7 @@ include:
   - project: labs/salt-automation
     file:
       - gitlab-ci-templates/common/conventional-commits.v1.yml
+      - gitlab-ci-templates/common/conventional-commits-changelog.v1.yml
       - gitlab-ci-templates/python/pytest.v1.yml
       - gitlab-ci-templates/common/docker-build.v1.yml
       - gitlab-ci-templates/common/docker-release.v1.yml
