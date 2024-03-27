@@ -2,10 +2,11 @@
 # SPDX-License-Identifier: MPL-2.0
 
 stages:
+  - sync
   - lint
+  - build
   - test
   - coverage
-  - build
   - release
   - deploy
   - docs
@@ -40,14 +41,16 @@ variables:
 include:
   - project: labs/salt-automation
     file:
+      - gitlab-ci-templates/common/no-interrupt-meta.v1.yml
       - gitlab-ci-templates/common/conventional-commits.v1.yml
       - gitlab-ci-templates/common/conventional-commits-changelog.v1.yml
-      - gitlab-ci-templates/python/pytest.v1.yml
       - gitlab-ci-templates/common/docker-build.v1.yml
       - gitlab-ci-templates/common/docker-release.v1.yml
       - gitlab-ci-templates/common/config-updater-salt.v1.yml
   - project: labs/salt-automation
-    file: gitlab-ci-templates/common/pre-commit.v1.yml
+    file:
+      - gitlab-ci-templates/common/pre-commit.v1.yml
+      - gitlab-ci-templates/python/pytest.v1.yml
     rules:
       - <<: *if-merge-request
 
