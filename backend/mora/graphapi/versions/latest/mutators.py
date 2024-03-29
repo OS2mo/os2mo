@@ -1,6 +1,12 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import logging
+from collections.abc import Callable
+from datetime import datetime
+from datetime import timedelta
+from functools import wraps
+from inspect import Parameter
+from inspect import signature
 from textwrap import dedent
 from typing import Annotated
 from typing import Any
@@ -8,6 +14,10 @@ from uuid import UUID
 
 import strawberry
 from ra_utils.asyncio_utils import gather_with_concurrency
+from sqlalchemy import delete
+from sqlalchemy import insert
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
@@ -172,6 +182,8 @@ from .schema import Role
 from mora import db
 from mora.auth.middleware import get_authenticated_user
 from mora.common import get_connector
+from mora.db import get_session
+from mora.db import Idempotency
 from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead
@@ -186,6 +198,7 @@ from ramodels.mo.details import OwnerRead
 from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -195,8 +208,113 @@ def ensure_uuid(uuid: UUID | str) -> UUID:
     return UUID(uuid)
 
 
+# TODO: Internalize this to uuid2response_decor by decorating everything
 def uuid2response(uuid: UUID | str, model: Any) -> Response:
     return Response[model](uuid=ensure_uuid(uuid))
+
+
+# TODO: Move this into its own commit
+def uuid2response_decor(model: Any, pydantic_model: Any) -> Callable:
+    def decorator(func: Callable) -> Callable:
+        # Generate a new signature that takes our idempotency_token as well.
+        sig = signature(func)
+        new_sig = sig.replace(return_annotation=Response[model])
+
+        assert sig.return_annotation is UUID
+
+        @wraps(func)
+        async def inner(*args: Any, **kwargs: Any) -> Response[model]:
+            uuid = await func(*args, **kwargs)
+            return uuid2response(uuid, pydantic_model)
+
+        inner.__signature__ = new_sig  # type: ignore[attr-defined]
+        return inner
+
+    return decorator
+
+
+# TODO: Do we want to run this on a schedule?
+async def purge_old_idempotency_tokens() -> None:
+    session = get_session()
+
+    await session.execute(
+        delete(Idempotency).where(
+            Idempotency.time <= datetime.now() - timedelta(hours=48)
+        )
+    )
+
+
+async def insert_idempotency_token(token: UUID, result: UUID) -> UUID:
+    # TODO: Do we want to check for idempotency at the start of the request?
+    #       Inserting a row and locking it immediately, to update it later?
+    #       If we did this, we could use a middleware hook for get_results maybe?
+
+    # TODO: Do we actually want to implement idempotency, or just return 409 Conflict
+    #       so the client can retry? - How will clients handle it in this case?
+
+    # TODO: Do we wanna expose this in GraphQL or in the Idempotency-Key HTTP Header Field?
+    #       Pros for exposing it in GraphQL is that it is very visible and enforced
+    #       Pros for exposing it in the header is that it is standardized
+    # https://datatracker.ietf.org/doc/html/draft-ietf-httpapi-idempotency-key-header-00
+
+    await purge_old_idempotency_tokens()
+
+    session = get_session()
+
+    # TODO: What if idempotency_token is the same, but inputs are different?
+    #       We probably do not care, if clients are silly it is their own problem?
+    #       It may be sane though? - Retrying a payment for a shopping card with a different card?
+    idempotency_result = await session.scalar(
+        select(Idempotency.result).where(Idempotency.token == token)
+    )
+
+    # If token already exists, this will cause a conflict aborting the transaction
+    try:
+        # TODO: Should we update the timestamp on conflict?
+        await session.execute(
+            insert(Idempotency).values(
+                token=token,
+                actor=get_authenticated_user(),
+                result=result,
+            )
+        )
+    except IntegrityError:
+        await session.rollback()
+    # TODO: This may fail if a token was inserted between the read and execute above
+    #       We may need to read it here, but doing so requires another session that
+    #       Alternatively we may need to lock the idempotency table?
+    return idempotency_result or result
+
+
+def idempotency_token(func: Callable) -> Callable:
+    # Generate a new signature that takes our idempotency_token as well.
+    sig = signature(func)
+    parameters = sig.parameters.copy()
+    parameter_list = list(parameters.values())
+    parameter_list = parameter_list + [
+        Parameter(
+            "idempotency_token",
+            Parameter.POSITIONAL_OR_KEYWORD,
+            annotation=UUID | None,
+            default=None,
+        ),
+    ]
+    new_sig = sig.replace(parameters=parameter_list)
+
+    assert sig.return_annotation is UUID
+
+    @wraps(func)
+    async def inner(
+        *args: Any, idempotency_token: UUID | None = None, **kwargs: Any
+    ) -> UUID:
+        # Run operation normally and save idempotency_token result
+        uuid = await func(*args, **kwargs)
+        if idempotency_token is None:
+            return uuid
+        return await insert_idempotency_token(idempotency_token, uuid)
+
+    inner.__signature__ = new_sig  # type: ignore[attr-defined]
+    return inner
 
 
 delete_warning = dedent(
@@ -595,12 +713,12 @@ class Mutation:
             gen_create_permission("facet"),
         ],
     )
-    async def facet_create(
-        self, info: Info, input: FacetCreateInput
-    ) -> Response[Facet]:
+    @uuid2response_decor(Facet, FacetRead)
+    @idempotency_token
+    async def facet_create(self, info: Info, input: FacetCreateInput) -> UUID:
         org = await info.context["org_loader"].load(0)
         uuid = await create_facet(input.to_pydantic(), org.uuid)
-        return uuid2response(uuid, FacetRead)
+        return uuid
 
     @strawberry.mutation(
         description="Updates a facet.",
