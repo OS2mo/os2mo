@@ -33,7 +33,9 @@ from fastapi import Request
 from fastapi import Response
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
+from psycopg.errors import SerializationFailure
 from sqlalchemy.exc import DataError
+from sqlalchemy.exc import DBAPIError
 from starlette_context import context
 from starlette_context import request_cycle_context
 from strawberry.dataloader import DataLoader
@@ -148,6 +150,13 @@ def lora_to_mo_exception() -> Iterator[None]:
         message = e.orig.diag.message_primary
         cause = e.orig.diag.context
         exceptions.ErrorCodes.E_INVALID_INPUT(message=message, cause=cause)
+    except DBAPIError as e:
+        if isinstance(e.orig, SerializationFailure):
+            exceptions.ErrorCodes.E_SERIALIZATION_FAILURE()
+        try:
+            exceptions.ErrorCodes.E_UNKNOWN(message=e.args[0], cause=None)
+        except IndexError:
+            exceptions.ErrorCodes.E_UNKNOWN()
     except Exception as e:
         try:
             exceptions.ErrorCodes.E_UNKNOWN(message=e.args[0], cause=None)

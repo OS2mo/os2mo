@@ -165,6 +165,7 @@ async def test_graphql_rbac(
                 lambda f: VariableNode(name=NameNode(value="upload_type_used"))
             ),
             "DateTime": st.datetimes().map(lambda dt: dt.isoformat()).map(nodes.String),
+            "Etag": st.just([]),
         },
     )
 )

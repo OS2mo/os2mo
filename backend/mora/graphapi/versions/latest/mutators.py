@@ -44,6 +44,7 @@ from .filters import LeaveFilter
 from .filters import ManagerFilter
 from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
+from .filters import RegistrationFilter
 from .filters import RelatedUnitFilter
 from .filters import RoleFilter
 from .inputs import AddressCreateInput
@@ -133,6 +134,7 @@ from .permissions import gen_terminate_permission
 from .permissions import gen_update_permission
 from .permissions import IsAuthenticatedPermission
 from .query import to_paged_uuids
+from .registration import registration_resolver
 from .related_units import update_related_units
 from .resolvers import address_resolver
 from .resolvers import association_resolver
@@ -169,9 +171,11 @@ from .schema import Owner
 from .schema import RelatedUnit
 from .schema import Response
 from .schema import Role
+from .types import ETag
 from mora import db
 from mora.auth.middleware import get_authenticated_user
 from mora.common import get_connector
+from mora.db import get_session
 from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead
@@ -197,6 +201,36 @@ def ensure_uuid(uuid: UUID | str) -> UUID:
 
 def uuid2response(uuid: UUID | str, model: Any) -> Response:
     return Response[model](uuid=ensure_uuid(uuid))
+
+
+async def check_etag(info: Info, etag: ETag) -> None:
+    # TODO: Ensure all queries return consitent results by a query-level registration time
+    filter = RegistrationFilter(
+        uuids=[etag.uuid],
+        models=[etag.model],
+    )
+    objects = await registration_resolver(info, filter=filter)
+    # TODO: Do this with the registration filter, allowing querying on registration_id, this would allow proper bulking, by checking if end is None?
+    from more_itertools import last
+
+    # Taking last works because registrations are ordered by start-time
+    active_registration = last(objects)
+
+    if active_registration.registration_id != etag.registration_id:
+        raise ValueError("ETag mismatch, please try again")
+
+
+async def check_etags(info: Info, etags: list[ETag]) -> None:
+    # In SERIALIZABLE mode concurrent writes are detected and rejected
+    # This protects against concurrent writes to the same data
+    # TODO: Is `REPEATABLE READ` good enough here?
+    session = get_session()
+    await session.connection(execution_options={"isolation_level": "SERIALIZABLE"})
+
+    # Check ETags protects against out of date writes to data
+    # TODO: Check in parallel, bulk it?
+    for etag in etags:
+        await check_etag(info, etag)
 
 
 delete_warning = dedent(
@@ -393,8 +427,10 @@ class Mutation:
         ],
     )
     async def class_update(
-        self, info: Info, input: ClassUpdateInput
+        self, info: Info, input: ClassUpdateInput, etags: list[ETag]
     ) -> Response[Class]:
+        await check_etags(info, etags)
+
         org = await info.context["org_loader"].load(0)
         uuid = await update_class(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, ClassRead)
@@ -610,8 +646,10 @@ class Mutation:
         ],
     )
     async def facet_update(
-        self, info: Info, input: FacetUpdateInput
+        self, info: Info, input: FacetUpdateInput, etags: list[ETag]
     ) -> Response[Facet]:
+        await check_etags(info, etags)
+
         org = await info.context["org_loader"].load(0)
         uuid = await update_facet(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, FacetRead)

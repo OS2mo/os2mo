@@ -140,6 +140,7 @@ class ErrorCodes(Enum):
     E_ORG_TOO_MANY = 400, "Too many organisations in lora, max one allowed"
     E_ORG_NOT_ALLOWED = 400, "Organisation is not allowed"
     E_INTEGRATION_ERROR = 400, "Integration Error"
+    E_SERIALIZATION_FAILURE = 409, "Concurrent writes failed."
 
 
 class HTTPException(fastapiHTTPException):

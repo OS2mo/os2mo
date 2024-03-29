@@ -30,6 +30,7 @@ from strawberry import UNSET
 from strawberry.types import Info
 
 from .filters import ManagerFilter
+from .filters import RegistrationFilter
 from .health import health_map
 from .models import ClassRead
 from .models import FacetRead
@@ -57,6 +58,7 @@ from .resolvers import related_unit_resolver
 from .resolvers import role_resolver
 from .seed_resolver import seed_resolver
 from .types import CPRType
+from .types import ETag
 from .validity import OpenValidity
 from .validity import Validity
 from mora import common
@@ -368,6 +370,27 @@ class Response(Generic[MOObject]):
             },
         ),
     )
+
+    @strawberry.field
+    async def etag(self, root: "Response", info: Info) -> ETag:
+        model = model2name(response2model(root))
+        # TODO: Ensure all queries return consitent results by a query-level registration time
+        filter = RegistrationFilter(
+            uuids=[root.uuid],
+            models=[model],
+        )
+        objects = await registration_resolver(info, filter=filter)
+        # TODO: Do this with the registration filter
+        from more_itertools import last
+
+        # Taking last works because registrations are ordered by start-time
+        active_registration = last(objects)
+
+        return ETag(
+            model=active_registration.model,
+            uuid=active_registration.uuid,
+            registration_id=active_registration.registration_id,
+        )
 
 
 def response2model(response: Response[MOObject]) -> MOObject:

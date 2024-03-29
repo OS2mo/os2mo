@@ -1,13 +1,14 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import datetime
-import json
 from base64 import b64decode
 from base64 import b64encode
 from textwrap import dedent
+from uuid import UUID
 
 import strawberry
 from pydantic import BaseModel
+from pydantic import parse_raw_as
 
 from mora.util import CPR
 
@@ -50,7 +51,7 @@ class _Cursor(BaseModel):
 Cursor = strawberry.scalar(
     _Cursor,
     serialize=lambda v: b64encode(v.json().encode("ascii")).decode("ascii"),
-    parse_value=lambda v: _Cursor(**json.loads(b64decode(v))),
+    parse_value=lambda v: parse_raw_as(_Cursor, b64decode(v)),
     description=dedent(
         """\
         Scalar implementing the cursor of cursor-based pagination.
@@ -68,6 +69,37 @@ Cursor = strawberry.scalar(
         I.e. in the future it may be implemented as a simple integer or a complex object.
 
         The caller should not concern themselves with the actual value contained within, but rather simply pass whatever is returned in the `cursor` argument to continue iteration.
+        """
+    ),
+)
+
+
+class _ETag(BaseModel):
+    model: str
+    uuid: UUID
+    registration_id: int
+
+
+ETag = strawberry.scalar(
+    _ETag,
+    serialize=lambda v: b64encode(v.json().encode("ascii")).decode("ascii"),
+    parse_value=lambda v: parse_raw_as(_ETag, b64decode(v)),
+    description=dedent(
+        """\
+        Scalar implementing optimistic concurrency control.
+
+        The ETag is opaque by design abstracting away the underlying implementation details.
+
+        Examples:
+        * `"eyJtb2RlbCI6ICJmYWNldCIsICJ1dWlkIjogIjE4MmRmMmE4LTI1OTQtNGEzZi05MTAzLWE5ODk0ZDVlMGMzNiIsICJyZWdpc3RyYXRpb25faWQiOiAxNDF9"`
+        * ...
+
+        Note:
+
+        As the Etag is to be considered opaque its implementation may change in the future.
+        I.e. in the future it may be implemented as a simple integer or a complex object.
+
+        The caller should not concern themselves with the actual value contained within, but rather simply pass whatever is returned in the `etags` argument.
         """
     ),
 )
