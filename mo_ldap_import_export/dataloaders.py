@@ -1959,7 +1959,7 @@ class DataLoader:
         object_type: str,
         add_validity: bool = False,
         current_objects_only: bool = True,
-    ):
+    ) -> dict[str, Any] | None:
         """
         Returns a mo object as dictionary
 
@@ -1978,7 +1978,7 @@ class DataLoader:
             current_objects_only=current_objects_only,
         )
         if mo_objects:
-            # Note: load_all_mo_objects checks if len==1
+            # Note: load_all_mo_objects also checks if len==1
             return one(mo_objects)
         else:
             raise NoObjectsReturnedException(

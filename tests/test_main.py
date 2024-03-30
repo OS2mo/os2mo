@@ -562,6 +562,26 @@ def test_ldap_get_objectGUID_endpoint(test_client: TestClient) -> None:
     assert response.status_code == 202
 
 
+async def test_listen_to_missing_uuid(dataloader: AsyncMock):
+    settings = MagicMock()
+    settings.listen_to_changes_in_mo = True
+
+    context = {
+        "user_context": {
+            "dataloader": dataloader,
+            "sync_tool": sync_tool,
+            "settings": settings,
+        }
+    }
+    payload = uuid4()
+
+    dataloader.load_mo_object.return_value = None
+
+    with pytest.raises(RejectMessage):  # as exc_info:
+        await process_address(context, payload, "address", sync_tool, _=None)
+    # assert "Unable to load mo object" in str(exc_info.value)
+
+
 async def test_listen_to_changes(dataloader: AsyncMock, sync_tool: AsyncMock):
     settings = MagicMock()
     settings.listen_to_changes_in_mo = True
@@ -765,7 +785,7 @@ async def test_load_faulty_username_generator() -> None:
 @pytest.mark.usefixtures("context_dependency_injection")
 async def test_export_endpoint(
     test_client: TestClient,
-    internal_amqpsystem: MagicMock,
+    sync_tool: AsyncMock,
     test_mo_objects: list,
 ):
     params: dict = {
@@ -773,18 +793,16 @@ async def test_export_endpoint(
         "uuid": str(uuid4()),
     }
 
-    current_awaits = internal_amqpsystem.publish_message.await_count
+    current_awaits = sync_tool.refresh_mo_object.await_count
 
     response = test_client.post("/Export", params=params)
     assert response.status_code == 202
 
     for mo_object in test_mo_objects:
-        payload = mo_object["payload"]
-        internal_amqpsystem.publish_message.assert_any_await("person", payload)
+        sync_tool.refresh_mo_object.assert_any_await(mo_object)
 
     assert (
-        internal_amqpsystem.publish_message.await_count
-        == len(test_mo_objects) + current_awaits
+        sync_tool.refresh_mo_object.await_count == len(test_mo_objects) + current_awaits
     )
 
 

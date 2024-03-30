@@ -88,7 +88,7 @@ def reject_on_failure(func):
     return modified_func
 
 
-def get_delete_flag(mo_object) -> bool:
+def get_delete_flag(mo_object: dict[str, Any]) -> bool:
     """
     Determines if an object should be deleted based on the validity to-date
     """
@@ -133,6 +133,8 @@ async def unpack_payload(
         add_validity=True,
         current_objects_only=False,
     )
+    if mo_object is None:
+        raise RejectMessage("Unable to load mo object")
 
     delete = get_delete_flag(mo_object)
     current_objects_only = False if delete else True
