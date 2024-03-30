@@ -7,7 +7,6 @@ Created on Fri Oct 28 11:03:16 2022
 
 @author: nick
 """
-import asyncio
 import datetime
 import os
 import re
@@ -289,9 +288,9 @@ async def test_ldap_healthcheck(ldap_connection: MagicMock) -> None:
         ldap_connection.bound = bound
         context = {"user_context": {"ldap_connection": ldap_connection}}
 
-        check = await asyncio.gather(ldap_healthcheck(context))
+        check = await ldap_healthcheck(context)
 
-        assert check[0] == bound
+        assert check == bound
 
 
 async def test_is_dn():
@@ -627,7 +626,7 @@ async def test_cleanup(
         dn="CN=foo",
     )
 
-    await asyncio.gather(cleanup(**args))  # type:ignore
+    await cleanup(**args)  # type:ignore
     ldap_objects_to_clean = dataloader.cleanup_attributes_in_ldap.call_args_list
     assert len(ldap_objects_to_clean) == 1
 
@@ -661,7 +660,7 @@ async def test_cleanup_no_sync_required(
     )
 
     with capture_logs() as cap_logs:
-        await asyncio.gather(cleanup(**args))  # type:ignore
+        await cleanup(**args)  # type:ignore
         log_messages = [log for log in cap_logs if log["log_level"] == "info"]
         assert re.match(
             "No cleanup required",
@@ -713,7 +712,7 @@ async def test_cleanup_refresh_mo_object(
         )
 
         # We would expect that an AMQP message is sent over the internal AMQP system
-        await asyncio.gather(cleanup(**args))  # type:ignore
+        await cleanup(**args)  # type:ignore
 
         sync_tool.refresh_object.assert_called_once()
         sync_tool.refresh_object.reset_mock()
@@ -737,7 +736,7 @@ async def test_cleanup_no_export_False(
     )
 
     with capture_logs() as cap_logs:
-        await asyncio.gather(cleanup(**args))  # type:ignore
+        await cleanup(**args)  # type:ignore
         log_messages = [log for log in cap_logs if log["log_level"] == "info"]
         assert re.match(
             "_export_to_ldap_ == False",

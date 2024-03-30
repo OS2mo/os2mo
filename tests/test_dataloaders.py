@@ -272,11 +272,9 @@ async def test_load_ldap_objects(
     expected_result = [LdapObject(dn=dn, **ldap_attributes)] * 2
     ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)] * 2
 
-    output = await asyncio.gather(
-        dataloader.load_ldap_objects("Employee"),
-    )
+    output = await dataloader.load_ldap_objects("Employee")
 
-    assert output[0] == expected_result
+    assert output == expected_result
 
 
 async def test_load_ldap_OUs(ldap_connection: MagicMock, dataloader: DataLoader):
@@ -371,14 +369,12 @@ async def test_modify_ldap_employee(
         "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_cpr_object",
         return_value=employee,
     ):
-        output = await asyncio.gather(
-            dataloader.modify_ldap_object(employee, "user"),
-        )
+        output = await dataloader.modify_ldap_object(employee, "user")
 
-    assert output == [
+    assert output == (
         [good_response] * len(allowed_parameters_to_upload)
         + [bad_response] * len(disallowed_parameters_to_upload)
-    ]
+    )
 
 
 async def test_append_data_to_ldap_object(
@@ -395,9 +391,7 @@ async def test_append_data_to_ldap_object(
 
     dataloader.single_value = {"postalAddress": False, cpr_field: True}
 
-    await asyncio.gather(
-        dataloader.modify_ldap_object(address, "user"),
-    )
+    await dataloader.modify_ldap_object(address, "user")
 
     changes = {"postalAddress": [("MODIFY_ADD", "foo")]}
     dn = address.dn
@@ -428,9 +422,7 @@ async def test_delete_data_from_ldap_object(
         "sharedValue",
     ]
 
-    await asyncio.gather(
-        dataloader.modify_ldap_object(address, "user", delete=True),
-    )
+    await dataloader.modify_ldap_object(address, "user", delete=True)
 
     changes = {"postalAddress": [("MODIFY_DELETE", "foo")]}
     dn = address.dn
@@ -451,9 +443,7 @@ async def test_upload_ldap_object_invalid_value(
     ldap_connection.modify.side_effect = LDAPInvalidValueError("Invalid value")
 
     with capture_logs() as cap_logs:
-        await asyncio.gather(
-            dataloader.modify_ldap_object(ldap_object, "user"),
-        )
+        await dataloader.modify_ldap_object(ldap_object, "user")
 
         warnings = [w for w in cap_logs if w["log_level"] == "warning"]
         assert re.match(
@@ -472,9 +462,7 @@ async def test_modify_ldap_object_but_export_equals_false(
     )
 
     with capture_logs() as cap_logs:
-        await asyncio.gather(
-            dataloader.modify_ldap_object(ldap_object, ""),
-        )
+        await dataloader.modify_ldap_object(ldap_object, "")
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
         assert re.match(
@@ -501,12 +489,8 @@ async def test_load_mo_employee(
         }
     }
 
-    expected_result = [Employee(**{"cpr_no": cpr_no, "uuid": uuid})]
-
-    output = await asyncio.gather(
-        dataloader.load_mo_employee(uuid),
-    )
-
+    expected_result = Employee(**{"cpr_no": cpr_no, "uuid": uuid})
+    output = await dataloader.load_mo_employee(uuid)
     assert output == expected_result
 
 
@@ -520,10 +504,8 @@ async def test_upload_mo_employee(
     for input_value, return_value in zip(input_values, return_values):
         legacy_model_client.upload.return_value = return_value
 
-        result = await asyncio.gather(
-            dataloader.upload_mo_objects([input_value]),
-        )
-        assert result[0] == return_value
+        result = await dataloader.upload_mo_objects([input_value])
+        assert result == return_value
         legacy_model_client.upload.assert_called_with([input_value])
 
 
@@ -739,7 +721,7 @@ async def test_load_mo_address_no_valid_addresses(
     legacy_graphql_session.execute.return_value = {"addresses": {"objects": []}}
 
     with pytest.raises(NoObjectsReturnedException):
-        await asyncio.gather(dataloader.load_mo_address(uuid))
+        await dataloader.load_mo_address(uuid)
 
 
 async def test_load_mo_address(
@@ -778,11 +760,8 @@ async def test_load_mo_address(
         }
     }
 
-    output = await asyncio.gather(
-        dataloader.load_mo_address(uuid),
-    )
-
-    assert output[0] == expected_result
+    output = await dataloader.load_mo_address(uuid)
+    assert output == expected_result
 
 
 def test_load_ldap_object(dataloader: DataLoader):
@@ -1001,9 +980,7 @@ async def test_load_mo_employee_not_found(
     uuid = uuid4()
 
     with pytest.raises(NoObjectsReturnedException):
-        await asyncio.gather(
-            dataloader.load_mo_employee(uuid),
-        )
+        await dataloader.load_mo_employee(uuid)
 
 
 async def test_load_mo_address_types_not_found(
@@ -1114,15 +1091,12 @@ async def test_load_mo_it_user(
 
     legacy_graphql_session.execute.return_value = return_value
 
-    output = await asyncio.gather(
-        dataloader.load_mo_it_user(uuid4()),
-    )
-    assert output[0].user_key == "foo"
-    assert output[0].itsystem.uuid == uuid2
-    assert output[0].person.uuid == uuid1  # type: ignore
-    assert output[0].engagement.uuid == uuid1  # type: ignore
-    assert output[0].validity.from_date.strftime("%Y-%m-%d") == "2021-01-01"
-    assert len(output) == 1
+    output = await dataloader.load_mo_it_user(uuid4())
+    assert output.user_key == "foo"
+    assert output.itsystem.uuid == uuid2
+    assert output.person.uuid == uuid1  # type: ignore
+    assert output.engagement.uuid == uuid1  # type: ignore
+    assert output.validity.from_date.strftime("%Y-%m-%d") == "2021-01-01"
 
 
 async def test_load_mo_engagement(
@@ -1161,14 +1135,11 @@ async def test_load_mo_engagement(
 
     legacy_graphql_session.execute.return_value = return_value
 
-    output = await asyncio.gather(
-        dataloader.load_mo_engagement(uuid4()),
-    )
-    assert output[0].user_key == "foo"
-    assert output[0].validity.from_date.strftime("%Y-%m-%d") == "2021-01-01"
-    assert output[0].extension_1 == "extra info"
-    assert output[0].extension_2 == "more extra info"
-    assert len(output) == 1
+    output = await dataloader.load_mo_engagement(uuid4())
+    assert output.user_key == "foo"
+    assert output.validity.from_date.strftime("%Y-%m-%d") == "2021-01-01"
+    assert output.extension_1 == "extra info"
+    assert output.extension_2 == "more extra info"
 
 
 async def test_load_mo_it_user_not_found(
@@ -1179,9 +1150,7 @@ async def test_load_mo_it_user_not_found(
     legacy_graphql_session.execute.return_value = return_value
 
     with pytest.raises(NoObjectsReturnedException):
-        await asyncio.gather(
-            dataloader.load_mo_it_user(uuid4()),
-        )
+        await dataloader.load_mo_it_user(uuid4())
 
 
 async def test_load_mo_employee_it_users(
@@ -1220,9 +1189,7 @@ async def test_load_mo_employee_it_users(
     load_mo_it_user = AsyncMock()
     dataloader.load_mo_it_user = load_mo_it_user  # type: ignore
 
-    await asyncio.gather(
-        dataloader.load_mo_employee_it_users(employee_uuid, it_system_uuid),
-    )
+    await dataloader.load_mo_employee_it_users(employee_uuid, it_system_uuid)
 
     load_mo_it_user.assert_called_once_with(uuid1)
 
@@ -1253,9 +1220,7 @@ async def test_load_mo_employees_in_org_unit(
     load_mo_employee = AsyncMock()
     dataloader.load_mo_employee = load_mo_employee  # type: ignore
 
-    await asyncio.gather(
-        dataloader.load_mo_employees_in_org_unit(uuid4()),
-    )
+    await dataloader.load_mo_employees_in_org_unit(uuid4())
 
     load_mo_employee.assert_any_call(employee_uuid1)
     load_mo_employee.assert_any_call(employee_uuid2)
@@ -1292,9 +1257,7 @@ async def test_load_mo_org_unit_addresses(
     load_mo_address = AsyncMock()
     dataloader.load_mo_address = load_mo_address  # type: ignore
 
-    await asyncio.gather(
-        dataloader.load_mo_org_unit_addresses(uuid4(), uuid4()),
-    )
+    await dataloader.load_mo_org_unit_addresses(uuid4(), uuid4())
 
     load_mo_address.assert_any_call(address_uuid1)
     load_mo_address.assert_any_call(address_uuid2)
@@ -1321,9 +1284,7 @@ async def test_load_mo_employee_engagements(
     load_mo_engagement = AsyncMock()
     dataloader.load_mo_engagement = load_mo_engagement  # type: ignore
 
-    await asyncio.gather(
-        dataloader.load_mo_employee_engagements(employee_uuid),
-    )
+    await dataloader.load_mo_employee_engagements(employee_uuid)
 
     load_mo_engagement.assert_called_once_with(uuid1)
 
@@ -1336,9 +1297,7 @@ async def test_load_mo_employee_it_users_not_found(
     legacy_graphql_session.execute.return_value = return_value
 
     with pytest.raises(NoObjectsReturnedException):
-        await asyncio.gather(
-            dataloader.load_mo_employee_it_users(uuid4(), uuid4()),
-        )
+        await dataloader.load_mo_employee_it_users(uuid4(), uuid4())
 
 
 async def test_is_primary(dataloader: DataLoader) -> None:
@@ -1367,11 +1326,11 @@ async def test_query_mo(dataloader: DataLoader, legacy_graphql_session: AsyncMoc
         """
     )
 
-    output = await asyncio.gather(dataloader.query_mo(query, raise_if_empty=False))
-    assert output == [expected_output]
+    output = await dataloader.query_mo(query, raise_if_empty=False)
+    assert output == expected_output
 
     with pytest.raises(NoObjectsReturnedException):
-        await asyncio.gather(dataloader.query_mo(query, raise_if_empty=True))
+        await dataloader.query_mo(query, raise_if_empty=True)
 
 
 async def test_query_mo_all_objects(
@@ -1393,10 +1352,8 @@ async def test_query_mo_all_objects(
     ]
     legacy_graphql_session.execute.side_effect = expected_output
 
-    output = await asyncio.gather(
-        dataloader.query_past_future_mo(query, current_objects_only=False)
-    )
-    assert output == [expected_output[1]]
+    output = await dataloader.query_past_future_mo(query, current_objects_only=False)
+    assert output == expected_output[1]
 
     query1 = print_ast(legacy_graphql_session.execute.call_args_list[0].args[0])
     query2 = print_ast(legacy_graphql_session.execute.call_args_list[1].args[0])
@@ -1684,10 +1641,8 @@ async def test_load_all_mo_objects_invalid_object_type_to_try(
     dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ):
     with pytest.raises(KeyError):
-        await asyncio.gather(
-            dataloader.load_all_mo_objects(
-                object_types_to_try=("non_existing_object_type",)
-            )
+        await dataloader.load_all_mo_objects(
+            object_types_to_try=("non_existing_object_type",)
         )
 
 
@@ -1714,8 +1669,8 @@ async def test_load_mo_object(dataloader: DataLoader):
         "mo_ldap_import_export.dataloaders.DataLoader.load_all_mo_objects",
         return_value=["obj1"],
     ):
-        result = await asyncio.gather(dataloader.load_mo_object("uuid", "person"))
-        assert result[0] == "obj1"
+        result = await dataloader.load_mo_object("uuid", "person")
+        assert result == "obj1"
 
     with patch(
         "mo_ldap_import_export.dataloaders.DataLoader.load_all_mo_objects",
