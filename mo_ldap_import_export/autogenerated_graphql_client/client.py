@@ -41,6 +41,8 @@ from .read_employees_with_engagement_to_org_unit import (
 from .read_employees_with_engagement_to_org_unit import (
     ReadEmployeesWithEngagementToOrgUnitEngagements,
 )
+from .read_engagement_org_unit_uuid import ReadEngagementOrgUnitUuid
+from .read_engagement_org_unit_uuid import ReadEngagementOrgUnitUuidEngagements
 from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuid
 from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuidEngagements
 from .read_facet_uuid import ReadFacetUuid
@@ -364,3 +366,24 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEmployeeAddresses.parse_obj(data).addresses
+
+    async def read_engagement_org_unit_uuid(
+        self, engagement_uuid: UUID
+    ) -> ReadEngagementOrgUnitUuidEngagements:
+        query = gql(
+            """
+            query read_engagement_org_unit_uuid($engagement_uuid: UUID!) {
+              engagements(filter: {uuids: [$engagement_uuid]}) {
+                objects {
+                  current {
+                    org_unit_uuid
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"engagement_uuid": engagement_uuid}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadEngagementOrgUnitUuid.parse_obj(data).engagements

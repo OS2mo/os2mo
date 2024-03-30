@@ -182,7 +182,9 @@ async def process_engagement(
     args, _ = await unpack_payload(context, object_uuid, mo_routing_key)
 
     await sync_tool.listen_to_changes_in_employees(**args)
-    await sync_tool.export_org_unit_addresses_on_engagement_change(**args)
+    await sync_tool.export_org_unit_addresses_on_engagement_change(
+        mo_routing_key, object_uuid
+    )
 
 
 @internal_amqp_router.register("ituser")
