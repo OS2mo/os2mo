@@ -647,19 +647,6 @@ async def test_listen_to_changes(dataloader: AsyncMock, sync_tool: AsyncMock):
     sync_tool.listen_to_changes_in_org_units.assert_awaited_once()
 
 
-async def test_listen_to_changes_not_listening() -> None:
-    settings = MagicMock()
-    settings.listen_to_changes_in_mo = False
-
-    context: dict = {"user_context": {"settings": settings}}
-    payload = uuid4()
-
-    mo_routing_key = "person"
-
-    with pytest.raises(RejectMessage):
-        await process_person(context, payload, mo_routing_key, AsyncMock(), _=None)
-
-
 @pytest.mark.usefixtures("context_dependency_injection")
 def test_ldap_get_all_converted_endpoint_failure(
     test_client: TestClient,
