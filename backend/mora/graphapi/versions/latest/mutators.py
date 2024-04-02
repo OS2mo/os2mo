@@ -10,6 +10,7 @@ import strawberry
 from ra_utils.asyncio_utils import gather_with_concurrency
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
+from more_itertools import one
 
 from .address import create_address
 from .address import terminate_address
@@ -205,16 +206,14 @@ def uuid2response(uuid: UUID | str, model: Any) -> Response:
 
 async def check_etag(info: Info, etag: ETag) -> None:
     # TODO: Ensure all queries return consitent results by a query-level registration time
+    # TODO: Do this with the registration filter, allowing querying on registration_id, this would allow proper bulking, by checking if end is None?
     filter = RegistrationFilter(
         uuids=[etag.uuid],
         models=[etag.model],
     )
-    objects = await registration_resolver(info, filter=filter)
-    # TODO: Do this with the registration filter, allowing querying on registration_id, this would allow proper bulking, by checking if end is None?
-    from more_itertools import last
-
-    # Taking last works because registrations are ordered by start-time
-    active_registration = last(objects)
+    # NOTE: Using limit 1 is okay, as results are sorted by start-time
+    objects = await registration_resolver(info, filter=filter, limit=1)
+    active_registration = one(objects)
 
     if active_registration.registration_id != etag.registration_id:
         raise ValueError("ETag mismatch, please try again")
@@ -413,8 +412,9 @@ class Mutation:
         ],
     )
     async def class_create(
-        self, info: Info, input: ClassCreateInput
+        self, info: Info, input: ClassCreateInput, etags: list[ETag]
     ) -> Response[Class]:
+        # TODO: Allow at most one create etags here, and check its type
         org = await info.context["org_loader"].load(0)
         uuid = await create_class(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, ClassRead)
@@ -429,6 +429,7 @@ class Mutation:
     async def class_update(
         self, info: Info, input: ClassUpdateInput, etags: list[ETag]
     ) -> Response[Class]:
+        # TODO: Do not allow create etags here
         await check_etags(info, etags)
 
         org = await info.context["org_loader"].load(0)

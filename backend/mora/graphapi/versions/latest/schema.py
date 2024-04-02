@@ -58,7 +58,7 @@ from .resolvers import related_unit_resolver
 from .resolvers import role_resolver
 from .seed_resolver import seed_resolver
 from .types import CPRType
-from .types import ETag
+from .types import ETag, _ETag
 from .validity import OpenValidity
 from .validity import Validity
 from mora import common
@@ -379,17 +379,15 @@ class Response(Generic[MOObject]):
             uuids=[root.uuid],
             models=[model],
         )
-        objects = await registration_resolver(info, filter=filter)
-        # TODO: Do this with the registration filter
-        from more_itertools import last
-
-        # Taking last works because registrations are ordered by start-time
-        active_registration = last(objects)
-
+        # NOTE: Using limit 1 is okay, as results are sorted by start-time
+        objects = await registration_resolver(info, filter=filter, limit=1)
+        active_registration = one(objects)
         return ETag(
-            model=active_registration.model,
-            uuid=active_registration.uuid,
-            registration_id=active_registration.registration_id,
+            tag=_ETag(
+                model=active_registration.model,
+                uuid=active_registration.uuid,
+                registration_id=active_registration.registration_id,
+            )
         )
 
 

@@ -15,6 +15,8 @@ from sqlalchemy import literal
 from sqlalchemy import select
 from sqlalchemy import Text
 from sqlalchemy import union
+from sqlalchemy import func
+from sqlalchemy import distinct
 from sqlalchemy.sql.expression import Select
 from starlette_context import context
 from strawberry.types import Info
@@ -165,6 +167,46 @@ def row2registration(
     )
 
 
+async def count_entries(info: Info, model: str) -> int:
+    session = info.context["session"]
+
+    from mora.db import Bruger
+    from mora.db import Facet
+    from mora.db import ITSystem
+    from mora.db import Klasse
+    from mora.db import OrganisationEnhed
+    from mora.db import OrganisationFunktion
+
+    model2table = {
+        "address": OrganisationFunktion,
+        "association": OrganisationFunktion,
+        "class": Klasse,
+        "employee": Bruger,
+        "engagement": OrganisationFunktion,
+        "facet": Facet,
+        "itsystem": ITSystem,
+        "ituser": OrganisationFunktion,
+        "kle": Klasse,
+        "leave": OrganisationFunktion,
+        "manager": OrganisationFunktion,
+        "org_unit": OrganisationEnhed,
+        "role": OrganisationFunktion,
+        # TODO: Owner
+        # TODO: RelatedUnit
+    }
+    table = model2table[model]
+
+    # NOTE: This is very crude locking - it locks all OrgFunks at once.
+    #       If this turns out to be an issue, we can optimize this query later.
+    # NOTE: We could also find the start-time of the newest insert registration instead.
+    #       It might be faster, if we can do a max(start) on an indexed column after
+    #       filtering on other indexed columns.
+    query = select(func.count()).select_from(table)
+
+    start = await session.scalar(query)
+    return start
+ 
+
 async def registration_resolver(
     info: Info,
     filter: RegistrationFilter | None = None,
@@ -249,7 +291,6 @@ async def registration_resolver(
             ).label("model"),
             *common_fields
         )
-
     # Query all requested registation tables using a big union query
     union_query = union(*map(generate_query, tables)).subquery()
     # Select using a subquery so we can filter and order the unioned result

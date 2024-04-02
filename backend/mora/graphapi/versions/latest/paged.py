@@ -9,10 +9,13 @@ from typing import Any
 from typing import Generic
 from typing import TypeVar
 
+from typing import get_args
 import strawberry
 from pydantic import PositiveInt
 from starlette_context import context
+from strawberry.types import Info
 
+from .types import ETag, _CreateETag
 from .types import Cursor
 from mora.util import now
 
@@ -112,6 +115,22 @@ class Paged(Generic[T]):
             """
         )
     )
+    @strawberry.field
+    async def etag(self, root: "Paged", info: Info) -> ETag:
+        from .schema import model2name
+        from .registration import count_entries
+        model = model2name(paged2model(root))
+        count = await count_entries(info, model)
+        return ETag(tag=_CreateETag(model=model, count=count))
+
+
+def paged2model(paged: Paged[T]) -> T:
+    if not hasattr(paged, "__orig_class__"):
+        raise ValueError(
+            "Please ensure that `Paged` is always instantiated with a type parameter, such as Paged[Health](...) instead of Paged(...)"
+        )
+    model = get_args(paged.__orig_class__)[0]
+    return model
 
 
 def to_paged(resolver_func: Callable, model: Any, result_transformer: Any | None = None):  # type: ignore
@@ -137,7 +156,7 @@ def to_paged(resolver_func: Callable, model: Any, result_transformer: Any | None
             end_cursor = None
 
         assert result_transformer is not None
-        return Paged(  # type: ignore[call-arg]
+        return Paged[model](  # type: ignore[call-arg]
             objects=result_transformer(model, result),
             page_info=PageInfo(next_cursor=end_cursor),  # type: ignore[call-arg]
         )

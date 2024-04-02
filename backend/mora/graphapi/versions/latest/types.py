@@ -80,10 +80,21 @@ class _ETag(BaseModel):
     registration_id: int
 
 
+class _CreateETag(BaseModel):
+    model: str
+    count: int
+
+
+# NOTE: Have to do this if we wanna send combined etags to creates
+#       We cannot have union type scalars according to the GraphQL standard
+class _ETagCombined(BaseModel):
+    tag: _ETag | _CreateETag
+
+
 ETag = strawberry.scalar(
-    _ETag,
+    _ETagCombined,
     serialize=lambda v: b64encode(v.json().encode("ascii")).decode("ascii"),
-    parse_value=lambda v: parse_raw_as(_ETag, b64decode(v)),
+    parse_value=lambda v: parse_raw_as(_ETagCombined, b64decode(v)),
     description=dedent(
         """\
         Scalar implementing optimistic concurrency control.
