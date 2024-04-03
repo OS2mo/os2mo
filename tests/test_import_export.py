@@ -260,14 +260,12 @@ async def test_listen_to_changes_in_employees(
     # Simulate a created employee
     mo_routing_key: MORoutingKey = "person"
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
-        await asyncio.gather(
-            sync_tool.listen_to_changes_in_employees(
-                payload.uuid,
-                payload.object_uuid,
-                routing_key=mo_routing_key,
-                delete=False,
-                current_objects_only=True,
-            ),
+        await sync_tool.listen_to_changes_in_employees(
+            payload.uuid,
+            payload.object_uuid,
+            routing_key=mo_routing_key,
+            delete=False,
+            current_objects_only=True,
         )
     assert dataloader.load_mo_employee.called
     assert converter.to_ldap.called
@@ -280,14 +278,12 @@ async def test_listen_to_changes_in_employees(
     # Simulate a created address
     mo_routing_key = "address"
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
-        await asyncio.gather(
-            sync_tool.listen_to_changes_in_employees(
-                payload.uuid,
-                payload.object_uuid,
-                routing_key=mo_routing_key,
-                delete=False,
-                current_objects_only=True,
-            ),
+        await sync_tool.listen_to_changes_in_employees(
+            payload.uuid,
+            payload.object_uuid,
+            routing_key=mo_routing_key,
+            delete=False,
+            current_objects_only=True,
         )
     assert dataloader.load_mo_address.called
     dataloader.modify_ldap_object.assert_called_with(
@@ -297,14 +293,12 @@ async def test_listen_to_changes_in_employees(
     # Simulate a created IT user
     mo_routing_key = "ituser"
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
-        await asyncio.gather(
-            sync_tool.listen_to_changes_in_employees(
-                payload.uuid,
-                payload.object_uuid,
-                routing_key=mo_routing_key,
-                delete=False,
-                current_objects_only=True,
-            ),
+        await sync_tool.listen_to_changes_in_employees(
+            payload.uuid,
+            payload.object_uuid,
+            routing_key=mo_routing_key,
+            delete=False,
+            current_objects_only=True,
         )
     assert dataloader.load_mo_it_user.called
     dataloader.modify_ldap_object.assert_called_with(
@@ -314,14 +308,12 @@ async def test_listen_to_changes_in_employees(
     # Simulate a created engagement
     mo_routing_key = "engagement"
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
-        await asyncio.gather(
-            sync_tool.listen_to_changes_in_employees(
-                payload.uuid,
-                payload.object_uuid,
-                routing_key=mo_routing_key,
-                delete=False,
-                current_objects_only=True,
-            ),
+        await sync_tool.listen_to_changes_in_employees(
+            payload.uuid,
+            payload.object_uuid,
+            routing_key=mo_routing_key,
+            delete=False,
+            current_objects_only=True,
         )
     assert dataloader.load_mo_engagement.called
     dataloader.modify_ldap_object.assert_called_with(
@@ -347,14 +339,12 @@ async def test_listen_to_changes_in_employees(
     sync_tool.uuids_to_ignore = uuids_to_ignore
 
     with capture_logs() as cap_logs:
-        await asyncio.gather(
-            sync_tool.listen_to_changes_in_employees(
-                payload.uuid,
-                payload.object_uuid,
-                routing_key=mo_routing_key,
-                delete=False,
-                current_objects_only=True,
-            ),
+        await sync_tool.listen_to_changes_in_employees(
+            payload.uuid,
+            payload.object_uuid,
+            routing_key=mo_routing_key,
+            delete=False,
+            current_objects_only=True,
         )
 
         entries = [w for w in cap_logs if w["log_level"] == "info"]
@@ -383,14 +373,12 @@ async def test_listen_to_changes_in_employees_no_dn(
     dataloader.find_or_make_mo_employee_dn.side_effect = DNNotFound("Not found")
 
     with capture_logs() as cap_logs:
-        await asyncio.gather(
-            sync_tool.listen_to_changes_in_employees(
-                payload.uuid,
-                payload.object_uuid,
-                routing_key=mo_routing_key,
-                delete=False,
-                current_objects_only=True,
-            ),
+        await sync_tool.listen_to_changes_in_employees(
+            payload.uuid,
+            payload.object_uuid,
+            routing_key=mo_routing_key,
+            delete=False,
+            current_objects_only=True,
         )
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
@@ -819,7 +807,7 @@ async def test_import_single_object_from_LDAP_ignore_twice(
     sync_tool.uuids_to_ignore = uuids_to_ignore
 
     assert len(sync_tool.uuids_to_ignore[uuid]) == 1
-    await asyncio.gather(sync_tool.import_single_user("CN=foo"))
+    await sync_tool.import_single_user("CN=foo")
     assert len(sync_tool.uuids_to_ignore[uuid]) == 2
 
 
@@ -832,7 +820,7 @@ async def test_import_single_object_from_LDAP_ignore_dn(
     sync_tool.dns_to_ignore.add(dn_to_ignore)
 
     with capture_logs() as cap_logs:
-        await asyncio.gather(sync_tool.import_single_user("CN=foo"))
+        await sync_tool.import_single_user("CN=foo")
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
         assert "Ignoring cn=foo" in messages[-1]["event"]
@@ -853,9 +841,9 @@ async def test_import_single_object_from_LDAP_force(
     converter.from_ldap.return_value = [mo_object_mock]
 
     assert len(sync_tool.uuids_to_ignore[uuid]) == 0
-    await asyncio.gather(sync_tool.import_single_user("CN=foo", force=False))
+    await sync_tool.import_single_user("CN=foo", force=False)
     assert len(sync_tool.uuids_to_ignore[uuid]) == 0
-    await asyncio.gather(sync_tool.import_single_user("CN=foo", force=True))
+    await sync_tool.import_single_user("CN=foo", force=True)
     assert len(sync_tool.uuids_to_ignore[uuid]) == 1
 
 
@@ -865,7 +853,7 @@ async def test_import_single_object_from_LDAP_but_import_equals_false(
     converter._import_to_mo_.return_value = False
 
     with capture_logs() as cap_logs:
-        await asyncio.gather(sync_tool.import_single_user("CN=foo"))
+        await sync_tool.import_single_user("CN=foo")
         messages = [w["event"] for w in cap_logs if w["log_level"] == "info"]
         assert "[Import-single-user] _import_to_mo_ == False." in messages
 
@@ -887,7 +875,7 @@ async def test_import_single_object_forces_json_key_ordering(
     converter.from_ldap.return_value = [MagicMock()]  # list of (at least) one item
     # Act: run the method and collect logs
     with capture_logs() as cap_logs:
-        await asyncio.gather(sync_tool.import_single_user("CN=foo"))
+        await sync_tool.import_single_user("CN=foo")
         # Assert: verify that we process JSON keys in the expected order, regardless of
         # the original ordering.
         logged_json_keys: list[str] = [
@@ -923,7 +911,7 @@ async def test_import_single_object_collects_engagement_uuid(
         ),
     ]
     # Act
-    await asyncio.gather(sync_tool.import_single_user("CN=foo"))
+    await sync_tool.import_single_user("CN=foo")
     # Assert
     from_ldap_args: list[tuple[str, UUID | None]] = [
         (call.args[1], call.kwargs["engagement_uuid"])
@@ -947,7 +935,7 @@ async def test_import_single_user_logs_empty_engagement_uuid(
     dataloader.find_mo_engagement_uuid.return_value = None
     with capture_logs() as cap_logs:
         # Act
-        await asyncio.gather(sync_tool.import_single_user("CN=foo"))
+        await sync_tool.import_single_user("CN=foo")
         # Assert
         logged_events: list[str] = [log["event"] for log in cap_logs]
         assert "[Import-single-user] Engagement UUID not found in MO." in logged_events
@@ -985,7 +973,7 @@ async def test_import_address_objects(
         "mo_ldap_import_export.import_export.SyncTool.format_converted_objects",
         return_value=formatted_objects,
     ):
-        await asyncio.gather(sync_tool.import_single_user("CN=foo"))
+        await sync_tool.import_single_user("CN=foo")
         dataloader.create_or_edit_mo_objects.assert_called_with(formatted_objects)
 
     with patch(
@@ -993,7 +981,7 @@ async def test_import_address_objects(
         side_effect=NoObjectsReturnedException("foo"),
     ):
         with capture_logs() as cap_logs:
-            await asyncio.gather(sync_tool.import_single_user("CN=foo"))
+            await sync_tool.import_single_user("CN=foo")
 
             messages = [w for w in cap_logs if w["log_level"] == "info"]
             assert "Could not format converted objects." in str(messages)
@@ -1004,7 +992,7 @@ async def test_import_address_objects(
     )
     with capture_logs() as cap_logs:
         ignore_dict = copy.deepcopy(sync_tool.uuids_to_ignore.ignore_dict)
-        await asyncio.gather(sync_tool.import_single_user("CN=foo"))
+        await sync_tool.import_single_user("CN=foo")
 
         messages = [w for w in cap_logs if w["log_level"] == "warning"]
         assert "invalid phone number" in str(messages)
@@ -1047,7 +1035,7 @@ async def test_import_it_user_objects(
 
     dataloader.load_mo_employee_it_users.return_value = it_users_in_mo
 
-    await asyncio.gather(sync_tool.import_single_user("CN=foo"))
+    await sync_tool.import_single_user("CN=foo")
 
     expected = [
         (converted_objects[0].user_key, it_user_in_mo.uuid, Verb.EDIT),
@@ -1067,7 +1055,7 @@ async def test_import_single_object_from_LDAP_non_existing_employee(
     context: Context, converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
     dataloader.find_mo_employee_uuid.return_value = None
-    await asyncio.gather(sync_tool.import_single_user("CN=foo"))
+    await sync_tool.import_single_user("CN=foo")
 
     # Even though find_mo_employee_uuid does not return an uuid; it is generated
     assert type(converter.from_ldap.call_args_list[0].kwargs["employee_uuid"]) is UUID
@@ -1363,7 +1351,7 @@ async def test_import_jobtitlefromadtomo_objects(
         "mo_ldap_import_export.customer_specific.JobTitleFromADToMO.sync_to_mo",
         return_value=job,
     ):
-        await asyncio.gather(sync_tool.import_single_user("CN=foo"))
+        await sync_tool.import_single_user("CN=foo")
         dataloader.create_or_edit_mo_objects.assert_called_once()
         assert eng_uuid in sync_tool.uuids_to_ignore.ignore_dict
 
