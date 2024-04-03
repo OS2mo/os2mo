@@ -361,7 +361,6 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
 
     logger.info("Starting LDAP listener")
     fastramqpi.add_context(event_loop=asyncio.get_event_loop())
-    fastramqpi.add_context(poll_time=settings.poll_time)
 
     if settings.listen_to_changes_in_ldap:
         pollers = setup_listener(fastramqpi.get_context())

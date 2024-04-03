@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 """LDAP Connection handling."""
+import asyncio
 import signal
 import time
 from contextlib import suppress
@@ -15,6 +16,7 @@ from uuid import UUID
 
 import ldap3.core.exceptions
 from fastramqpi.context import Context
+from fastramqpi.ramqp import AMQPSystem
 from ldap3 import BASE
 from ldap3 import Connection
 from ldap3 import NTLM
@@ -41,7 +43,6 @@ from .logging import logger
 from .processors import _hide_cpr as hide_cpr
 from .utils import combine_dn_strings
 from .utils import datetime_to_ldap_timestamp
-from .utils import listener
 from .utils import mo_object_is_valid
 
 
@@ -588,7 +589,7 @@ def setup_listener(context: Context) -> list[Thread]:
                 context,
                 search_parameters,
                 datetime.utcnow(),
-                user_context["poll_time"],
+                settings.poll_time,
             )
         )
     return pollers
@@ -679,6 +680,36 @@ def _poll(
         listener(context, event)
         last_events.append(event)
     return last_events, last_search_time
+
+
+def listener(context, event):
+    """
+    Calls import_single_user if changes are registered
+    """
+    dn = event.get("attributes", {}).get("distinguishedName", None)
+    dn = dn or event.get("dn", None)
+
+    if not dn:
+        logger.info(f"Got event without dn: {event}")
+        return
+
+    user_context = context["user_context"]
+    event_loop = user_context["event_loop"]
+    ldap_amqpsystem: AMQPSystem = user_context["ldap_amqpsystem"]
+
+    def log_exception(future):
+        """Reraise exception so they are printed to the terminal."""
+        exception = future.exception()
+        if exception:
+            logger.exception("Exception during listener", exc_info=exception)
+            raise exception
+
+    logger.info(f"Registered change for LDAP object with dn={dn}")
+    future = asyncio.run_coroutine_threadsafe(
+        ldap_amqpsystem.publish_message("dn", dn), event_loop
+    )
+    # Register callback to ensure exceptions are logged to the terminal
+    future.add_done_callback(log_exception)
 
 
 def _poller(

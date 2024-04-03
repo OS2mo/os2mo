@@ -7,6 +7,7 @@ Created on Fri Oct 28 11:03:16 2022
 
 @author: nick
 """
+import asyncio
 import datetime
 import os
 import re
@@ -52,6 +53,7 @@ from mo_ldap_import_export.ldap import get_ldap_attributes
 from mo_ldap_import_export.ldap import is_dn
 from mo_ldap_import_export.ldap import is_uuid
 from mo_ldap_import_export.ldap import ldap_healthcheck
+from mo_ldap_import_export.ldap import listener
 from mo_ldap_import_export.ldap import make_ldap_object
 from mo_ldap_import_export.ldap import paged_search
 from mo_ldap_import_export.ldap import poller_healthcheck
@@ -990,3 +992,62 @@ def test_get_attribute_types():
     ldap_connection = MagicMock()
     ldap_connection.server.schema.attribute_types = ["a1", "a2"]
     assert get_attribute_types(ldap_connection) == ["a1", "a2"]
+
+
+async def test_listener_callback():
+    event_loop = asyncio.get_running_loop()
+
+    async def publish_message(routing_key: str, dn: str):
+        event_loop.call_soon(publish_message.event.set)  # type: ignore
+        assert routing_key == "dn"
+        assert dn == "CN=foo"
+        raise ValueError("BOOM")
+
+    publish_message.event = asyncio.Event()
+
+    ldap_amqpsystem = AsyncMock()
+    ldap_amqpsystem.publish_message = publish_message
+
+    user_context = {"event_loop": event_loop, "ldap_amqpsystem": ldap_amqpsystem}
+    context = {"user_context": user_context}
+
+    event = {"attributes": {"distinguishedName": "CN=foo"}}
+
+    with capture_logs() as cap_logs:
+        listener(context, event)
+        await publish_message.event.wait()
+
+    assert len(cap_logs) == 2
+    log = cap_logs[1]
+    assert log["event"] == "Exception during listener"
+    assert log["exc_info"] == "ValueError('BOOM')"
+
+
+@patch("asyncio.run_coroutine_threadsafe")
+async def test_listener(run_coroutine_threadsafe):
+    callback = MagicMock()
+    event_loop = MagicMock()
+    ldap_amqpsystem = MagicMock()
+    ldap_amqpsystem.publish_message.return_value = callback
+
+    user_context = {"event_loop": event_loop, "ldap_amqpsystem": ldap_amqpsystem}
+
+    context = {"user_context": user_context}
+
+    event = {"attributes": {"distinguishedName": "CN=foo"}}
+    with capture_logs() as cap_logs:
+        listener(context, event)
+        listener(context, {})
+
+        messages = [w for w in cap_logs if w["log_level"] == "info"]
+        assert re.match(
+            "Registered change for LDAP object",
+            str(messages[0]["event"]),
+        )
+        ldap_amqpsystem.publish_message.assert_called_with("dn", "CN=foo")
+        run_coroutine_threadsafe.assert_called_with(callback, event_loop)
+
+        assert re.match(
+            "Got event without dn",
+            str(messages[1]["event"]),
+        )
