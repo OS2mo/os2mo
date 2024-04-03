@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import re
+from abc import ABC
+from abc import abstractmethod
 from collections.abc import Iterator
 
 from fastramqpi.context import Context
@@ -15,7 +17,7 @@ from .utils import combine_dn_strings
 from .utils import remove_vowels
 
 
-class UserNameGeneratorBase:
+class UserNameGeneratorBase(ABC):
     """
     Class with functions to generate valid LDAP usernames.
 
@@ -301,6 +303,10 @@ class UserNameGeneratorBase:
 
         return existing_usernames, existing_common_names
 
+    @abstractmethod
+    async def generate_dn(self, employee: Employee) -> str:  # pragma: no cover
+        ...
+
 
 class UserNameGenerator(UserNameGeneratorBase):
     async def generate_dn(self, employee: Employee) -> str:
@@ -386,3 +392,15 @@ class AlleroedUserNameGenerator(UserNameGeneratorBase):
         )
 
         return dn
+
+
+def get_username_generator_class(
+    username_generator: str,
+) -> type[UserNameGeneratorBase]:
+    match username_generator:
+        case "UserNameGenerator":
+            return UserNameGenerator
+        case "AlleroedUserNameGenerator":
+            return AlleroedUserNameGenerator
+        case _:
+            raise ValueError("No such username_generator")

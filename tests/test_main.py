@@ -47,6 +47,8 @@ from mo_ldap_import_export.main import process_ituser
 from mo_ldap_import_export.main import process_org_unit
 from mo_ldap_import_export.main import process_person
 from mo_ldap_import_export.main import reject_on_failure
+from mo_ldap_import_export.usernames import get_username_generator_class
+from mo_ldap_import_export.usernames import UserNameGeneratorBase
 
 
 @pytest.fixture(scope="module")
@@ -768,18 +770,14 @@ async def test_incorrect_ous_to_search_in() -> None:
 
 
 async def test_load_faulty_username_generator() -> None:
-    usernames_mock = MagicMock()
+    username_generators = ["UserNameGenerator", "AlleroedUserNameGenerator"]
+    for username_generator in username_generators:
+        clazz = get_username_generator_class(username_generator)
+        assert issubclass(clazz, UserNameGeneratorBase)
 
-    with patch("mo_ldap_import_export.main.usernames", usernames_mock):
-        with pytest.raises(AttributeError):
-            usernames_mock.UserNameGenerator.return_value = "foo"
-            create_fastramqpi()
-
-        with pytest.raises(TypeError):
-            mock = MagicMock()
-            mock.generate_dn = lambda a: a
-            usernames_mock.UserNameGenerator.return_value = mock
-            create_fastramqpi()
+    with pytest.raises(ValueError) as exc_info:
+        get_username_generator_class("__unknown_username_generator")
+    assert "No such username_generator" in str(exc_info.value)
 
 
 @pytest.mark.usefixtures("context_dependency_injection")
