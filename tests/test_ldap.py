@@ -1,12 +1,5 @@
-#!/usr/bin/env python3
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Oct 28 11:03:16 2022
-
-@author: nick
-"""
 import asyncio
 import datetime
 import os
@@ -27,7 +20,6 @@ from ldap3 import Connection
 from ldap3 import MOCK_SYNC
 from ldap3 import Server
 from more_itertools import collapse
-from more_itertools import one
 from pydantic import parse_obj_as
 from ramodels.mo.details.address import Address
 from ramodels.mo.employee import Employee
@@ -53,7 +45,6 @@ from mo_ldap_import_export.ldap import get_ldap_attributes
 from mo_ldap_import_export.ldap import is_dn
 from mo_ldap_import_export.ldap import is_uuid
 from mo_ldap_import_export.ldap import ldap_healthcheck
-from mo_ldap_import_export.ldap import listener
 from mo_ldap_import_export.ldap import make_ldap_object
 from mo_ldap_import_export.ldap import paged_search
 from mo_ldap_import_export.ldap import poller_healthcheck
@@ -769,47 +760,78 @@ async def test_set_search_params_modify_timestamp():
         assert modified_search_params["attributes"] == search_params["attributes"]
 
 
-async def test_setup_poller(context: Context):
-    def callback():
-        return
+async def test_setup_poller():
+    async def _poller(*args: Any) -> None:
+        raise ValueError("BOOM")
 
-    with patch("mo_ldap_import_export.ldap._poller", MagicMock()):
-        with patch("mo_ldap_import_export.ldap.listener", callback):
-            search_parameters: dict = {}
-            init_search_time = datetime.datetime.utcnow()
+    with patch("mo_ldap_import_export.ldap._poller", _poller):
+        context = {}
+        search_parameters: dict = {}
+        init_search_time = datetime.datetime.utcnow()
 
-            poll = setup_poller(context, search_parameters, init_search_time, 5)
-            assert poll._initialized is True  # type: ignore
+        handle = setup_poller(context, search_parameters, init_search_time, 5)
+
+        assert handle.done() is False
+
+        # Give it a chance to run and explode
+        await asyncio.sleep(0)
+        assert handle.done() is True
+
+        # Check that it exploded
+        with pytest.raises(ValueError) as exc_info:
+            handle.result()
+        assert "BOOM" in str(exc_info.value)
 
 
-def test_poller(
+async def test_poller(
+    load_settings_overrides: dict[str, str], ldap_connection: MagicMock
+) -> None:
+    dn = "CN=Valeera Singuinar,OU=Bodyguards,DC=Stormwind"
+    event = {
+        "type": "searchResEntry",
+        "attributes": {"distinguishedName": dn},
+    }
+    ldap_connection.response = [event]
+
+    ldap_amqpsystem = AsyncMock()
+
+    last_search_time = datetime.datetime.utcnow()
+    search_time = await _poll(
+        user_context={
+            "ldap_amqpsystem": ldap_amqpsystem,
+            "ldap_connection": ldap_connection,
+            "settings": settings,
+        },
+        search_parameters={
+            "search_base": "dc=ad",
+            "search_filter": "cn=*",
+            "attributes": ["cpr_no"],
+        },
+        last_search_time=last_search_time,
+    )
+    assert search_time > last_search_time
+
+    ldap_amqpsystem.publish_message.assert_called_once_with("dn", dn)
+
+
+async def test_poller_no_dn(
     load_settings_overrides: dict[str, str], ldap_connection: MagicMock
 ) -> None:
     event = {
         "type": "searchResEntry",
-        "attributes": {
-            "cpr_no": "010101-1234",
-        },
+        "attributes": {},
     }
     ldap_connection.response = [event]
 
-    settings = MagicMock()
-    settings.discriminator_function = None
-
-    hits: list[str] = []
-
-    def listener(context, event):
-        cpr_no = event.get("attributes", {}).get("cpr_no", None)
-        hits.append(cpr_no)
+    ldap_amqpsystem = AsyncMock()
 
     last_search_time = datetime.datetime.utcnow()
-    with patch("mo_ldap_import_export.ldap.listener", listener):
-        search_time = _poll(
-            context={
-                "user_context": {
-                    "ldap_connection": ldap_connection,
-                    "settings": settings,
-                }
+    with capture_logs() as cap_logs:
+        search_time = await _poll(
+            user_context={
+                "ldap_amqpsystem": ldap_amqpsystem,
+                "ldap_connection": ldap_connection,
+                "settings": settings,
             },
             search_parameters={
                 "search_base": "dc=ad",
@@ -818,9 +840,13 @@ def test_poller(
             },
             last_search_time=last_search_time,
         )
-    assert search_time > last_search_time
+        assert search_time > last_search_time
 
-    assert one(hits) == "010101-1234"
+        ldap_amqpsystem.publish_message.assert_not_called()
+    assert {
+        "event": "Got event without dn",
+        "log_level": "warning",
+    } in cap_logs
 
 
 @pytest.mark.parametrize(
@@ -830,34 +856,29 @@ def test_poller(
         [{"type": "NOT_searchResEntry"}],
     ],
 )
-def test_poller_bad_result(
+async def test_poller_bad_result(
     load_settings_overrides: dict[str, str], ldap_connection: MagicMock, response: Any
 ) -> None:
     ldap_connection.response = response
 
-    settings = MagicMock()
-    settings.discriminator_function = None
-
-    listener = MagicMock()
+    ldap_amqpsystem = AsyncMock()
 
     last_search_time = datetime.datetime.utcnow()
-    with patch("mo_ldap_import_export.ldap.listener", listener):
-        search_time = _poll(
-            context={
-                "user_context": {
-                    "ldap_connection": ldap_connection,
-                    "settings": settings,
-                }
-            },
-            search_parameters={
-                "search_base": "dc=ad",
-                "search_filter": "cn=*",
-                "attributes": ["cpr_no"],
-            },
-            last_search_time=last_search_time,
-        )
+    search_time = await _poll(
+        user_context={
+            "ldap_amqpsystem": ldap_amqpsystem,
+            "ldap_connection": ldap_connection,
+            "settings": settings,
+        },
+        search_parameters={
+            "search_base": "dc=ad",
+            "search_filter": "cn=*",
+            "attributes": ["cpr_no"],
+        },
+        last_search_time=last_search_time,
+    )
     assert search_time > last_search_time
-    assert listener.call_count == 0
+    assert ldap_amqpsystem.call_count == 0
 
 
 def test_is_uuid():
@@ -869,14 +890,14 @@ def test_is_uuid():
 
 async def test_poller_healthcheck():
     poller = MagicMock()
-    poller.is_alive.return_value = False
+    poller.done.return_value = True
     assert (await poller_healthcheck({"user_context": {"pollers": [poller]}})) is False
 
-    poller.is_alive.return_value = True
+    poller.done.return_value = False
     assert (await poller_healthcheck({"user_context": {"pollers": [poller]}})) is True
 
     second_poller = MagicMock()
-    second_poller.is_alive.return_value = False
+    second_poller.done.return_value = True
     pollers = [poller, second_poller]
 
     assert (await poller_healthcheck({"user_context": {"pollers": pollers}})) is False
@@ -898,62 +919,3 @@ def test_get_attribute_types():
     ldap_connection = MagicMock()
     ldap_connection.server.schema.attribute_types = ["a1", "a2"]
     assert get_attribute_types(ldap_connection) == ["a1", "a2"]
-
-
-async def test_listener_callback():
-    event_loop = asyncio.get_running_loop()
-
-    async def publish_message(routing_key: str, dn: str):
-        event_loop.call_soon(publish_message.event.set)  # type: ignore
-        assert routing_key == "dn"
-        assert dn == "CN=foo"
-        raise ValueError("BOOM")
-
-    publish_message.event = asyncio.Event()
-
-    ldap_amqpsystem = AsyncMock()
-    ldap_amqpsystem.publish_message = publish_message
-
-    user_context = {"event_loop": event_loop, "ldap_amqpsystem": ldap_amqpsystem}
-    context = {"user_context": user_context}
-
-    event = {"attributes": {"distinguishedName": "CN=foo"}}
-
-    with capture_logs() as cap_logs:
-        listener(context, event)
-        await publish_message.event.wait()
-
-    assert len(cap_logs) == 2
-    log = cap_logs[1]
-    assert log["event"] == "Exception during listener"
-    assert log["exc_info"] == "ValueError('BOOM')"
-
-
-@patch("asyncio.run_coroutine_threadsafe")
-async def test_listener(run_coroutine_threadsafe):
-    callback = MagicMock()
-    event_loop = MagicMock()
-    ldap_amqpsystem = MagicMock()
-    ldap_amqpsystem.publish_message.return_value = callback
-
-    user_context = {"event_loop": event_loop, "ldap_amqpsystem": ldap_amqpsystem}
-
-    context = {"user_context": user_context}
-
-    event = {"attributes": {"distinguishedName": "CN=foo"}}
-    with capture_logs() as cap_logs:
-        listener(context, event)
-        listener(context, {})
-
-        messages = [w for w in cap_logs if w["log_level"] == "info"]
-        assert re.match(
-            "Registered change for LDAP object",
-            str(messages[0]["event"]),
-        )
-        ldap_amqpsystem.publish_message.assert_called_with("dn", "CN=foo")
-        run_coroutine_threadsafe.assert_called_with(callback, event_loop)
-
-        assert re.match(
-            "Got event without dn",
-            str(messages[1]["event"]),
-        )

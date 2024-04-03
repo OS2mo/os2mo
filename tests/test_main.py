@@ -3,6 +3,7 @@
 # pylint: disable=redefined-outer-name
 # pylint: disable=unused-argument
 # pylint: disable=protected-access
+import asyncio
 import datetime
 import os
 import re
@@ -39,6 +40,7 @@ from mo_ldap_import_export.main import get_delete_flag
 from mo_ldap_import_export.main import initialize_checks
 from mo_ldap_import_export.main import initialize_converters
 from mo_ldap_import_export.main import initialize_init_engine
+from mo_ldap_import_export.main import initialize_ldap_listener
 from mo_ldap_import_export.main import initialize_sync_tool
 from mo_ldap_import_export.main import open_ldap_connection
 from mo_ldap_import_export.main import process_address
@@ -347,6 +349,17 @@ async def test_initialize_sync_tool(
     with patch("mo_ldap_import_export.main.SyncTool", return_value=sync_tool):
         async with initialize_sync_tool(fastramqpi):
             assert user_context.get("sync_tool") is not None
+
+
+# Note: The module which is initialized by this test is also used by all other tests
+async def test_initialize_ldap_listener(fastramqpi: FastRAMQPI) -> None:
+    user_context = fastramqpi.get_context()["user_context"]
+    assert user_context.get("pollers") is None
+
+    async with initialize_ldap_listener(fastramqpi):
+        await asyncio.sleep(0)
+        await asyncio.sleep(0)
+        assert user_context.get("pollers") is not None
 
 
 # Note: The module which is initialized by this test is also used by all other tests
