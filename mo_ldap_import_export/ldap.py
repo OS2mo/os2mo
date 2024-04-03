@@ -588,7 +588,7 @@ def setup_listener(context: Context) -> list[Thread]:
                 context,
                 search_parameters,
                 datetime.utcnow(),
-                user_context["poll_time"],
+                settings.poll_time,
             )
         )
     return pollers
