@@ -751,7 +751,7 @@ async def test_set_search_params_modify_timestamp():
         search_params = {
             "search_base": "foo",
             "search_filter": search_filter,
-            "attributes": ["employeeID", "modifyTimestamp"],
+            "attributes": ["employeeID"],
         }
         timestamp = datetime.datetime(2021, 1, 1)
 
@@ -788,7 +788,6 @@ def test_poller(
     event = {
         "type": "searchResEntry",
         "attributes": {
-            "modifyTimeStamp": datetime.datetime.utcnow(),
             "cpr_no": "010101-1234",
         },
     }
@@ -805,7 +804,7 @@ def test_poller(
 
     last_search_time = datetime.datetime.utcnow()
     with patch("mo_ldap_import_export.ldap.listener", listener):
-        events_to_ignore, search_time = _poll(
+        search_time = _poll(
             context={
                 "user_context": {
                     "ldap_connection": ldap_connection,
@@ -818,9 +817,7 @@ def test_poller(
                 "attributes": ["cpr_no"],
             },
             last_search_time=last_search_time,
-            events_to_ignore=[],
         )
-    assert events_to_ignore == [event]
     assert search_time > last_search_time
 
     assert one(hits) == "010101-1234"
@@ -845,7 +842,7 @@ def test_poller_bad_result(
 
     last_search_time = datetime.datetime.utcnow()
     with patch("mo_ldap_import_export.ldap.listener", listener):
-        events_to_ignore, search_time = _poll(
+        search_time = _poll(
             context={
                 "user_context": {
                     "ldap_connection": ldap_connection,
@@ -858,100 +855,9 @@ def test_poller_bad_result(
                 "attributes": ["cpr_no"],
             },
             last_search_time=last_search_time,
-            events_to_ignore=[],
         )
-    assert events_to_ignore == []
     assert search_time > last_search_time
     assert listener.call_count == 0
-
-
-def test_poller_invalidQuery(
-    load_settings_overrides: dict[str, str], ldap_connection: MagicMock
-) -> None:
-    # Event without modifyTimeStamp makes it impossible to determine if it
-    # is duplicate - so we expect a warning
-    event = {
-        "type": "searchResEntry",
-        "attributes": {
-            "cpr_no": "010101-1234",
-        },
-    }
-    ldap_connection.response = [event]
-
-    settings = MagicMock()
-    settings.discriminator_function = None
-
-    listener = MagicMock()
-
-    with capture_logs() as cap_logs:
-        last_search_time = datetime.datetime.utcnow()
-        with patch("mo_ldap_import_export.ldap.listener", listener):
-            events_to_ignore, search_time = _poll(
-                context={
-                    "user_context": {
-                        "ldap_connection": ldap_connection,
-                        "settings": settings,
-                    }
-                },
-                search_parameters={
-                    "search_base": "dc=ad",
-                    "search_filter": "cn=*",
-                    "attributes": ["cpr_no"],
-                },
-                last_search_time=last_search_time,
-                events_to_ignore=[],
-            )
-        assert events_to_ignore == []
-        assert search_time > last_search_time
-        assert listener.call_count == 0
-
-        last_log_message = cap_logs[-1]["event"]
-        assert "'modifyTimeStamp' not found in event['attributes']" in last_log_message
-
-
-def test_poller_duplicate_event(
-    load_settings_overrides: dict[str, str], ldap_connection: MagicMock
-) -> None:
-    # Event without modifyTimeStamp makes it impossible to determine if it
-    # is duplicate - so we expect a warning
-    event = {
-        "type": "searchResEntry",
-        "attributes": {
-            "modifyTimeStamp": datetime.datetime.utcnow(),
-            "cpr_no": "010101-1234",
-        },
-    }
-    ldap_connection.response = [event]
-
-    settings = MagicMock()
-    settings.discriminator_function = None
-
-    listener = MagicMock()
-
-    with capture_logs() as cap_logs:
-        last_search_time = datetime.datetime.utcnow()
-        with patch("mo_ldap_import_export.ldap.listener", listener):
-            events_to_ignore, search_time = _poll(
-                context={
-                    "user_context": {
-                        "ldap_connection": ldap_connection,
-                        "settings": settings,
-                    }
-                },
-                search_parameters={
-                    "search_base": "dc=ad",
-                    "search_filter": "cn=*",
-                    "attributes": ["cpr_no"],
-                },
-                last_search_time=last_search_time,
-                events_to_ignore=[event],
-            )
-        assert events_to_ignore == []
-        assert search_time > last_search_time
-        assert listener.call_count == 0
-
-        last_log_message = cap_logs[-1]["event"]
-        assert "Ignored duplicate event" in last_log_message
 
 
 def test_is_uuid():
