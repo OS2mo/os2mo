@@ -109,13 +109,6 @@ async def unpack_payload(
     Takes the payload of an AMQP message, and returns a set of parameters to be used
     by export functions in `import_export.py`. Also return the mo object as a dict
     """
-
-    # If we are not supposed to listen: reject and turn the message into a dead letter.
-    settings = context["user_context"]["settings"]
-    if not settings.listen_to_changes_in_mo:
-        logger.info("[Unpack-payload] listen_to_changes_in_mo = False. Aborting.")
-        raise RejectMessage()
-
     logger.info(
         "[Unpack-payload] Unpacking payload.",
         mo_routing_key=mo_routing_key,
@@ -323,7 +316,8 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
 
     logger.info("AMQP router setup")
     amqpsystem = fastramqpi.get_amqpsystem()
-    amqpsystem.router.registry.update(amqp_router.registry)
+    if settings.listen_to_changes_in_mo:
+        amqpsystem.router.registry.update(amqp_router.registry)
 
     logger.info("Configuring LDAP connection")
     ldap_connection = configure_ldap_connection(settings)
@@ -360,7 +354,8 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     )
     fastramqpi.add_context(internal_amqpsystem=internal_amqpsystem)
     fastramqpi.add_lifespan_manager(internal_amqpsystem)
-    internal_amqpsystem.router.registry.update(internal_amqp_router.registry)
+    if settings.listen_to_changes_in_mo:
+        internal_amqpsystem.router.registry.update(internal_amqp_router.registry)
     internal_amqpsystem.context = fastramqpi._context
 
     fastramqpi.add_lifespan_manager(initialize_checks(fastramqpi), 2900)
