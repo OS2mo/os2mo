@@ -3,7 +3,6 @@
 """LDAP Connection handling."""
 import asyncio
 import signal
-import time
 from contextlib import suppress
 from datetime import datetime
 from functools import partial
@@ -16,6 +15,7 @@ from uuid import UUID
 
 import ldap3.core.exceptions
 from fastramqpi.context import Context
+from fastramqpi.depends import UserContext
 from fastramqpi.ramqp import AMQPSystem
 from ldap3 import BASE
 from ldap3 import Connection
@@ -167,7 +167,7 @@ async def ldap_healthcheck(context: dict | Context) -> bool:
 
 async def poller_healthcheck(context: dict | Context) -> bool:
     pollers = context["user_context"]["pollers"]
-    return all(poller.is_alive() for poller in pollers)
+    return all(not poller.done() for poller in pollers)
 
 
 def get_ldap_schema(ldap_connection: Connection):
@@ -588,7 +588,7 @@ def setup_listener(context: Context) -> list[Thread]:
         # Polling search
         pollers.append(
             setup_poller(
-                context,
+                user_context,
                 search_parameters,
                 datetime.utcnow(),
                 settings.poll_time,
@@ -598,28 +598,24 @@ def setup_listener(context: Context) -> list[Thread]:
 
 
 def setup_poller(
-    context: Context,
+    user_context: UserContext,
     search_parameters: dict,
     init_search_time: datetime,
     poll_time: float,
-) -> Thread:
-    # TODO: Eliminate this thread and use asyncio code instead
-    poll = Thread(
-        target=_poller,
-        args=(
-            context,
-            search_parameters,
-            init_search_time,
-            poll_time,
-        ),
-        daemon=True,
+) -> Any:
+    def done_callback(future):
+        # This ensures exceptions go to the terminal
+        future.result()
+
+    handle = asyncio.create_task(
+        _poller(user_context, search_parameters, init_search_time, poll_time)
     )
-    poll.start()
-    return poll
+    handle.add_done_callback(done_callback)
+    return handle
 
 
-def _poll(
-    context: Context,
+async def _poll(
+    user_context: UserContext,
     search_parameters: dict,
     last_search_time: datetime,
 ) -> datetime:
@@ -641,15 +637,21 @@ def _poll(
 
         Should be provided as `last_search_time` in the next iteration.
     """
-    ldap_connection = context["user_context"]["ldap_connection"]
+    ldap_amqpsystem: AMQPSystem = user_context["ldap_amqpsystem"]
+    ldap_connection = user_context["ldap_connection"]
 
     logger.debug(f"Searching for changes since {last_search_time}")
     timed_search_parameters = set_search_params_modify_timestamp(
-        search_parameters,
-        last_search_time,
+        search_parameters, last_search_time
     )
     last_search_time = datetime.utcnow()
-    ldap_connection.search(**timed_search_parameters)
+
+    # TODO: Eliminate this thread and use asyncio code instead
+    loop = asyncio.get_running_loop()
+    await loop.run_in_executor(
+        None, partial(ldap_connection.search, **timed_search_parameters)
+    )
+
     # Filter to only keep search results
     # TODO: What other types can we get here?
     responses = [
@@ -662,44 +664,24 @@ def _poll(
     #       For now we do not care about duplicates, we prefer simplicity
     #       See: !499 for details
 
-    for event in responses:
-        listener(context, event)
+    def event2dn(event: dict[str, Any]) -> str | None:
+        dn = event.get("attributes", {}).get("distinguishedName", None)
+        dn = dn or event.get("dn", None)
+        if dn is None:
+            logger.warning("Got event without dn")
+        return cast(str | None, dn)
+
+    dns = [event2dn(event) for event in responses]
+    dns = [dn for dn in dns if dn is not None]
+    if dns:
+        logger.info("Registered change for LDAP object(s)", dns=dns)
+        await asyncio.gather(*[ldap_amqpsystem.publish_message("dn", dn) for dn in dns])
 
     return last_search_time
 
 
-def listener(context: Context, event: dict[str, Any]) -> None:
-    """
-    Calls import_single_user if changes are registered
-    """
-    dn = event.get("attributes", {}).get("distinguishedName", None)
-    dn = dn or event.get("dn", None)
-
-    if not dn:
-        logger.info(f"Got event without dn: {event}")
-        return
-
-    user_context = context["user_context"]
-    event_loop = user_context["event_loop"]
-    ldap_amqpsystem: AMQPSystem = user_context["ldap_amqpsystem"]
-
-    def log_exception(future):
-        """Reraise exception so they are printed to the terminal."""
-        exception = future.exception()
-        if exception:
-            logger.exception("Exception during listener", exc_info=exception)
-            raise exception
-
-    logger.info(f"Registered change for LDAP object with dn={dn}")
-    future = asyncio.run_coroutine_threadsafe(
-        ldap_amqpsystem.publish_message("dn", dn), event_loop
-    )
-    # Register callback to ensure exceptions are logged to the terminal
-    future.add_done_callback(log_exception)
-
-
-def _poller(
-    context: Context,
+async def _poller(
+    user_context: UserContext,
     search_parameters: dict,
     init_search_time: datetime,
     poll_time: float,
@@ -718,19 +700,23 @@ def _poller(
         pool_time:
             The interval with which to poll.
     """
+    logger.info("Poller started", search_base=search_parameters["search_base"])
+
     seeded_poller = partial(
         _poll,
-        context=context,
+        user_context=user_context,
         search_parameters=search_parameters,
     )
 
     last_search_time = init_search_time
     while True:
-        last_search_time = seeded_poller(last_search_time=last_search_time)
-        time.sleep(poll_time)
+        last_search_time = await seeded_poller(last_search_time=last_search_time)
+        await asyncio.sleep(poll_time)
 
 
-def set_search_params_modify_timestamp(search_parameters: dict, timestamp: datetime):
+def set_search_params_modify_timestamp(
+    search_parameters: dict[str, str], timestamp: datetime
+) -> dict[str, str]:
     changed_str = f"(modifyTimestamp>={datetime_to_ldap_timestamp(timestamp)})"
     search_filter = search_parameters["search_filter"]
     if not search_filter.startswith("(") or not search_filter.endswith(")"):

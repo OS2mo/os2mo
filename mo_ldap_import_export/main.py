@@ -281,6 +281,15 @@ async def initialize_init_engine(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
     yield
 
 
+@asynccontextmanager
+async def initialize_ldap_listener(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
+    logger.info("Initializing LDAP listener")
+    pollers = setup_listener(fastramqpi.get_context())
+    fastramqpi.add_context(pollers=pollers)
+    fastramqpi.add_healthcheck(name="LDAPPoller", healthcheck=poller_healthcheck)
+    yield
+
+
 def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     """FastRAMQPI factory.
 
@@ -354,18 +363,12 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     internal_amqpsystem.router.registry.update(internal_amqp_router.registry)
     internal_amqpsystem.context = fastramqpi._context
 
-    configure_ldap_amqpsystem(fastramqpi, settings.ldap_amqp)
-
     fastramqpi.add_lifespan_manager(initialize_checks(fastramqpi), 2900)
     fastramqpi.add_lifespan_manager(initialize_sync_tool(fastramqpi), 3000)
 
-    logger.info("Starting LDAP listener")
-    fastramqpi.add_context(event_loop=asyncio.get_event_loop())
-
     if settings.listen_to_changes_in_ldap:
-        pollers = setup_listener(fastramqpi.get_context())
-        fastramqpi.add_context(pollers=pollers)
-        fastramqpi.add_healthcheck(name="LDAPPoller", healthcheck=poller_healthcheck)
+        configure_ldap_amqpsystem(fastramqpi, settings.ldap_amqp)
+        fastramqpi.add_lifespan_manager(initialize_ldap_listener(fastramqpi), 3200)
 
     return fastramqpi
 
