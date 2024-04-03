@@ -57,8 +57,9 @@ from .resolvers import owner_resolver
 from .resolvers import related_unit_resolver
 from .resolvers import role_resolver
 from .seed_resolver import seed_resolver
+from .types import _ETag
 from .types import CPRType
-from .types import ETag, _ETag
+from .types import ETag
 from .validity import OpenValidity
 from .validity import Validity
 from mora import common

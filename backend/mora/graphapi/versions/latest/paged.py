@@ -7,16 +7,17 @@ from textwrap import dedent
 from typing import Annotated
 from typing import Any
 from typing import Generic
+from typing import get_args
 from typing import TypeVar
 
-from typing import get_args
 import strawberry
 from pydantic import PositiveInt
 from starlette_context import context
 from strawberry.types import Info
 
-from .types import ETag, _CreateETag
+from .types import _CreateETag
 from .types import Cursor
+from .types import ETag
 from mora.util import now
 
 
@@ -115,10 +116,12 @@ class Paged(Generic[T]):
             """
         )
     )
+
     @strawberry.field
     async def etag(self, root: "Paged", info: Info) -> ETag:
         from .schema import model2name
         from .registration import count_entries
+
         model = model2name(paged2model(root))
         count = await count_entries(info, model)
         return ETag(tag=_CreateETag(model=model, count=count))

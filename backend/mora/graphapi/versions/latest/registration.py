@@ -11,12 +11,12 @@ from uuid import UUID
 import strawberry
 from sqlalchemy import case
 from sqlalchemy import column
+from sqlalchemy import distinct
+from sqlalchemy import func
 from sqlalchemy import literal
 from sqlalchemy import select
 from sqlalchemy import Text
 from sqlalchemy import union
-from sqlalchemy import func
-from sqlalchemy import distinct
 from sqlalchemy.sql.expression import Select
 from starlette_context import context
 from strawberry.types import Info
@@ -205,7 +205,7 @@ async def count_entries(info: Info, model: str) -> int:
 
     start = await session.scalar(query)
     return start
- 
+
 
 async def registration_resolver(
     info: Info,
@@ -291,6 +291,7 @@ async def registration_resolver(
             ).label("model"),
             *common_fields
         )
+
     # Query all requested registation tables using a big union query
     union_query = union(*map(generate_query, tables)).subquery()
     # Select using a subquery so we can filter and order the unioned result

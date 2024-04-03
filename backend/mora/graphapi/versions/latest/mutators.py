@@ -1,16 +1,20 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import logging
+from collections.abc import Callable
+from functools import wraps
+from inspect import Parameter
+from inspect import signature
 from textwrap import dedent
 from typing import Annotated
 from typing import Any
 from uuid import UUID
 
 import strawberry
+from more_itertools import one
 from ra_utils.asyncio_utils import gather_with_concurrency
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
-from more_itertools import one
 
 from .address import create_address
 from .address import terminate_address
@@ -172,6 +176,7 @@ from .schema import Owner
 from .schema import RelatedUnit
 from .schema import Response
 from .schema import Role
+from .types import _ETag
 from .types import ETag
 from mora import db
 from mora.auth.middleware import get_authenticated_user
@@ -204,7 +209,7 @@ def uuid2response(uuid: UUID | str, model: Any) -> Response:
     return Response[model](uuid=ensure_uuid(uuid))
 
 
-async def check_etag(info: Info, etag: ETag) -> None:
+async def check_update_etag(info: Info, etag: ETag) -> None:
     # TODO: Ensure all queries return consitent results by a query-level registration time
     # TODO: Do this with the registration filter, allowing querying on registration_id, this would allow proper bulking, by checking if end is None?
     filter = RegistrationFilter(
@@ -219,17 +224,60 @@ async def check_etag(info: Info, etag: ETag) -> None:
         raise ValueError("ETag mismatch, please try again")
 
 
-async def check_etags(info: Info, etags: list[ETag]) -> None:
-    # In SERIALIZABLE mode concurrent writes are detected and rejected
-    # This protects against concurrent writes to the same data
-    # TODO: Is `REPEATABLE READ` good enough here?
-    session = get_session()
-    await session.connection(execution_options={"isolation_level": "SERIALIZABLE"})
+def check_etags(func: Callable) -> Callable:
+    sig = signature(func)
+    parameters = sig.parameters.copy()
+    parameter_list = list(parameters.values())
+    # Add the info parameter, if the decorated function does not take it already
+    func_has_info = "info" in parameters.keys()
+    if not func_has_info:
+        parameter_list = parameter_list + [
+            Parameter(
+                "info",
+                Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=Info,
+            )
+        ]
+    # Add our etag parameter to the function
+    parameter_list = parameter_list + [
+        Parameter(
+            "etags",
+            Parameter.POSITIONAL_OR_KEYWORD,
+            annotation=list[ETag] | None,
+            default=None,
+        ),
+    ]
+    new_sig = sig.replace(parameters=parameter_list)
 
-    # Check ETags protects against out of date writes to data
-    # TODO: Check in parallel, bulk it?
-    for etag in etags:
-        await check_etag(info, etag)
+    @wraps(func)
+    async def inner(
+        *args: Any, info: Info, etags: list[ETag] | None = None, **kwargs: Any
+    ) -> Any:
+        if etags:
+            # In SERIALIZABLE mode concurrent writes are detected and rejected
+            # This protects against concurrent writes to the same data
+            # TODO: Is `REPEATABLE READ` good enough here?
+            session = get_session()
+            await session.connection(
+                execution_options={"isolation_level": "SERIALIZABLE"}
+            )
+
+            update_etags = [etag.tag for etag in etags if isinstance(etag.tag, _ETag)]
+
+            # Check ETags protects against out of date writes to data
+            # TODO: Check in parallel, bulk it?
+            for etag in update_etags:
+                await check_update_etag(info, etag)
+
+            # TODO: Extract and check create etags
+
+        # If the original function took info we need to call it with info now too
+        if func_has_info:
+            return await func(*args, info=info, **kwargs)
+        return await func(*args, **kwargs)
+
+    inner.__signature__ = new_sig  # type: ignore[attr-defined]
+    return inner
 
 
 delete_warning = dedent(
@@ -273,6 +321,7 @@ class Mutation:
             gen_create_permission("address"),
         ],
     )
+    @check_etags
     async def address_create(self, input: AddressCreateInput) -> Response[Address]:
         return uuid2response(await create_address(input.to_pydantic()), AddressRead)  # type: ignore
 
@@ -283,6 +332,7 @@ class Mutation:
             gen_update_permission("address"),
         ],
     )
+    @check_etags
     async def address_update(self, input: AddressUpdateInput) -> Response[Address]:
         return uuid2response(await update_address(input.to_pydantic()), AddressRead)  # type: ignore
 
@@ -293,6 +343,7 @@ class Mutation:
             gen_terminate_permission("address"),
         ],
     )
+    @check_etags
     async def address_terminate(
         self, input: AddressTerminateInput
     ) -> Response[Address]:
@@ -305,6 +356,7 @@ class Mutation:
             gen_delete_permission("address"),
         ],
     )
+    @check_etags
     async def address_delete(self, uuid: UUID) -> Response[Address]:
         return uuid2response(await delete_organisationfunktion(uuid), AddressRead)
 
@@ -341,6 +393,7 @@ class Mutation:
             gen_create_permission("association"),
         ],
     )
+    @check_etags
     async def association_create(
         self, input: AssociationCreateInput
     ) -> Response[Association]:
@@ -355,6 +408,7 @@ class Mutation:
             gen_update_permission("association"),
         ],
     )
+    @check_etags
     async def association_update(
         self, input: AssociationUpdateInput
     ) -> Response[Association]:
@@ -369,6 +423,7 @@ class Mutation:
             gen_terminate_permission("association"),
         ],
     )
+    @check_etags
     async def association_terminate(
         self, input: AssociationTerminateInput
     ) -> Response[Association]:
@@ -411,10 +466,10 @@ class Mutation:
             gen_create_permission("class"),
         ],
     )
+    @check_etags
     async def class_create(
-        self, info: Info, input: ClassCreateInput, etags: list[ETag]
+        self, info: Info, input: ClassCreateInput
     ) -> Response[Class]:
-        # TODO: Allow at most one create etags here, and check its type
         org = await info.context["org_loader"].load(0)
         uuid = await create_class(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, ClassRead)
@@ -426,12 +481,10 @@ class Mutation:
             gen_update_permission("class"),
         ],
     )
+    @check_etags
     async def class_update(
-        self, info: Info, input: ClassUpdateInput, etags: list[ETag]
+        self, info: Info, input: ClassUpdateInput
     ) -> Response[Class]:
-        # TODO: Do not allow create etags here
-        await check_etags(info, etags)
-
         org = await info.context["org_loader"].load(0)
         uuid = await update_class(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, ClassRead)
@@ -443,6 +496,7 @@ class Mutation:
             gen_terminate_permission("class"),
         ],
     )
+    @check_etags
     async def class_terminate(self, input: ClassTerminateInput) -> Response[Class]:
         return uuid2response(await terminate_class(input.to_pydantic()), ClassRead)
 
@@ -453,6 +507,7 @@ class Mutation:
             gen_delete_permission("class"),
         ],
     )
+    @check_etags
     async def class_delete(self, uuid: UUID) -> Response[Class]:
         uuid = await delete_class(uuid)
         return uuid2response(uuid, ClassRead)
@@ -491,6 +546,7 @@ class Mutation:
             gen_create_permission("employee"),
         ],
     )
+    @check_etags
     async def employee_create(self, input: EmployeeCreateInput) -> Response[Employee]:
         return uuid2response(await create_employee(input.to_pydantic()), EmployeeRead)  # type: ignore
 
@@ -501,6 +557,7 @@ class Mutation:
             gen_update_permission("employee"),
         ],
     )
+    @check_etags
     async def employee_update(self, input: EmployeeUpdateInput) -> Response[Employee]:
         return uuid2response(await update_employee(input.to_pydantic()), EmployeeRead)  # type: ignore
 
@@ -511,6 +568,7 @@ class Mutation:
             gen_terminate_permission("employee"),
         ],
     )
+    @check_etags
     async def employee_terminate(
         self, input: EmployeeTerminateInput
     ) -> Response[Employee]:
@@ -554,6 +612,7 @@ class Mutation:
             gen_create_permission("engagement"),
         ],
     )
+    @check_etags
     async def engagement_create(
         self, input: EngagementCreateInput
     ) -> Response[Engagement]:
@@ -568,6 +627,7 @@ class Mutation:
             gen_update_permission("engagement"),
         ],
     )
+    @check_etags
     async def engagement_update(
         self, input: EngagementUpdateInput
     ) -> Response[Engagement]:
@@ -582,6 +642,7 @@ class Mutation:
             gen_terminate_permission("engagement"),
         ],
     )
+    @check_etags
     async def engagement_terminate(
         self, input: EngagementTerminateInput
     ) -> Response[Engagement]:
@@ -596,6 +657,7 @@ class Mutation:
             gen_delete_permission("engagement"),
         ],
     )
+    @check_etags
     async def engagement_delete(self, uuid: UUID) -> Response[Engagement]:
         return uuid2response(await delete_organisationfunktion(uuid), EngagementRead)
 
@@ -632,6 +694,7 @@ class Mutation:
             gen_create_permission("facet"),
         ],
     )
+    @check_etags
     async def facet_create(
         self, info: Info, input: FacetCreateInput
     ) -> Response[Facet]:
@@ -646,11 +709,10 @@ class Mutation:
             gen_update_permission("facet"),
         ],
     )
+    @check_etags
     async def facet_update(
-        self, info: Info, input: FacetUpdateInput, etags: list[ETag]
+        self, info: Info, input: FacetUpdateInput
     ) -> Response[Facet]:
-        await check_etags(info, etags)
-
         org = await info.context["org_loader"].load(0)
         uuid = await update_facet(input.to_pydantic(), org.uuid)
         return uuid2response(uuid, FacetRead)
@@ -662,6 +724,7 @@ class Mutation:
             gen_terminate_permission("facet"),
         ],
     )
+    @check_etags
     async def facet_terminate(self, input: FacetTerminateInput) -> Response[Facet]:
         return uuid2response(await terminate_facet(input.to_pydantic()), FacetRead)
 
@@ -672,6 +735,7 @@ class Mutation:
             gen_delete_permission("facet"),
         ],
     )
+    @check_etags
     async def facet_delete(self, uuid: UUID) -> Response[Facet]:
         uuid = await delete_facet(uuid)
         return uuid2response(uuid, FacetRead)
@@ -709,6 +773,7 @@ class Mutation:
             gen_create_permission("association"),
         ],
     )
+    @check_etags
     async def itassociation_create(
         self, input: ITAssociationCreateInput
     ) -> Response[Association]:
@@ -723,6 +788,7 @@ class Mutation:
             gen_create_permission("association"),
         ],
     )
+    @check_etags
     async def itassociation_update(
         self, input: ITAssociationUpdateInput
     ) -> Response[Association]:
@@ -737,6 +803,7 @@ class Mutation:
             gen_terminate_permission("association"),
         ],
     )
+    @check_etags
     async def itassociation_terminate(
         self, input: ITAssociationTerminateInput
     ) -> Response[Association]:
@@ -753,6 +820,7 @@ class Mutation:
             gen_create_permission("itsystem"),
         ],
     )
+    @check_etags
     async def itsystem_create(
         self, info: Info, input: ITSystemCreateInput
     ) -> Response[ITSystem]:
@@ -767,6 +835,7 @@ class Mutation:
             gen_update_permission("itsystem"),
         ],
     )
+    @check_etags
     async def itsystem_update(
         self, info: Info, input: ITSystemUpdateInput
     ) -> Response[ITSystem]:
@@ -781,6 +850,7 @@ class Mutation:
             gen_terminate_permission("itsystem"),
         ],
     )
+    @check_etags
     async def itsystem_terminate(
         self, input: ITSystemTerminateInput
     ) -> Response[ITSystem]:
@@ -793,6 +863,7 @@ class Mutation:
             gen_delete_permission("itsystem"),
         ],
     )
+    @check_etags
     async def itsystem_delete(self, info: Info, uuid: UUID) -> Response[ITSystem]:
         note = ""
         uuid = await delete_itsystem(uuid, note)
@@ -831,6 +902,7 @@ class Mutation:
             gen_create_permission("ituser"),
         ],
     )
+    @check_etags
     async def ituser_create(self, input: ITUserCreateInput) -> Response[ITUser]:
         return uuid2response(await create_ituser(input.to_pydantic()), ITUserRead)
 
@@ -841,6 +913,7 @@ class Mutation:
             gen_update_permission("ituser"),
         ],
     )
+    @check_etags
     async def ituser_update(self, input: ITUserUpdateInput) -> Response[ITUser]:
         return uuid2response(await update_ituser(input.to_pydantic()), ITUserRead)
 
@@ -851,6 +924,7 @@ class Mutation:
             gen_terminate_permission("ituser"),
         ],
     )
+    @check_etags
     async def ituser_terminate(self, input: ITUserTerminateInput) -> Response[ITUser]:
         return uuid2response(await terminate_ituser(input.to_pydantic()), ITUserRead)
 
@@ -861,6 +935,7 @@ class Mutation:
             gen_delete_permission("ituser"),
         ],
     )
+    @check_etags
     async def ituser_delete(self, uuid: UUID) -> Response[ITUser]:
         return uuid2response(await delete_organisationfunktion(uuid), ITUserRead)
 
@@ -897,6 +972,7 @@ class Mutation:
             gen_create_permission("kle"),
         ],
     )
+    @check_etags
     async def kle_create(self, input: KLECreateInput) -> Response[KLE]:
         return uuid2response(await create_kle(input.to_pydantic()), KLERead)
 
@@ -907,6 +983,7 @@ class Mutation:
             gen_create_permission("kle"),
         ],
     )
+    @check_etags
     async def kle_update(self, input: KLEUpdateInput) -> Response[KLE]:
         return uuid2response(await update_kle(input.to_pydantic()), KLERead)
 
@@ -917,6 +994,7 @@ class Mutation:
             gen_terminate_permission("kle"),
         ],
     )
+    @check_etags
     async def kle_terminate(self, input: KLETerminateInput) -> Response[KLE]:
         return uuid2response(await terminate_kle(input.to_pydantic()), KLERead)
 
@@ -955,6 +1033,7 @@ class Mutation:
             gen_create_permission("leave"),
         ],
     )
+    @check_etags
     async def leave_create(self, input: LeaveCreateInput) -> Response[Leave]:
         return uuid2response(await create_leave(input.to_pydantic()), LeaveRead)
 
@@ -965,6 +1044,7 @@ class Mutation:
             gen_create_permission("leave"),
         ],
     )
+    @check_etags
     async def leave_update(self, input: LeaveUpdateInput) -> Response[Leave]:
         return uuid2response(await update_leave(input.to_pydantic()), LeaveRead)
 
@@ -975,6 +1055,7 @@ class Mutation:
             gen_terminate_permission("leave"),
         ],
     )
+    @check_etags
     async def leave_terminate(self, input: LeaveTerminateInput) -> Response[Leave]:
         return uuid2response(await terminate_leave(input.to_pydantic()), LeaveRead)
 
@@ -1013,6 +1094,7 @@ class Mutation:
             gen_create_permission("manager"),
         ],
     )
+    @check_etags
     async def manager_create(self, input: ManagerCreateInput) -> Response[Manager]:
         return uuid2response(await create_manager(input.to_pydantic()), ManagerRead)
 
@@ -1023,6 +1105,7 @@ class Mutation:
             gen_update_permission("manager"),
         ],
     )
+    @check_etags
     async def manager_update(self, input: ManagerUpdateInput) -> Response[Manager]:
         return uuid2response(await update_manager(input.to_pydantic()), ManagerRead)
 
@@ -1033,6 +1116,7 @@ class Mutation:
             gen_terminate_permission("manager"),
         ],
     )
+    @check_etags
     async def manager_terminate(
         self, input: ManagerTerminateInput
     ) -> Response[Manager]:
@@ -1074,6 +1158,7 @@ class Mutation:
         ],
         deprecation_reason="The root organisation concept will be removed in a future version of OS2mo.",
     )
+    @check_etags
     async def org_create(self, info: Info, input: OrganisationCreate) -> Organisation:
         # Called for side-effect
         await create_org(input)
@@ -1092,6 +1177,7 @@ class Mutation:
             gen_create_permission("org_unit"),
         ],
     )
+    @check_etags
     async def org_unit_create(
         self, input: OrganisationUnitCreateInput
     ) -> Response[OrganisationUnit]:
@@ -1106,6 +1192,7 @@ class Mutation:
             gen_update_permission("org_unit"),
         ],
     )
+    @check_etags
     async def org_unit_update(
         self, input: OrganisationUnitUpdateInput
     ) -> Response[OrganisationUnit]:
@@ -1120,6 +1207,7 @@ class Mutation:
             gen_terminate_permission("org_unit"),
         ],
     )
+    @check_etags
     async def org_unit_terminate(
         self, input: OrganisationUnitTerminateInput
     ) -> Response[OrganisationUnit]:
@@ -1162,6 +1250,7 @@ class Mutation:
             gen_create_permission("owner"),
         ],
     )
+    @check_etags
     async def owner_create(self, input: OwnerCreateInput) -> Response[Owner]:
         return uuid2response(await create_owner(input.to_pydantic()), OwnerRead)
 
@@ -1172,6 +1261,7 @@ class Mutation:
             gen_create_permission("owner"),
         ],
     )
+    @check_etags
     async def owner_update(self, input: OwnerUpdateInput) -> Response[Owner]:
         return uuid2response(await update_owner(input.to_pydantic()), OwnerRead)
 
@@ -1182,6 +1272,7 @@ class Mutation:
             gen_create_permission("owner"),
         ],
     )
+    @check_etags
     async def owner_terminate(self, input: OwnerTerminateInput) -> Response[Owner]:
         return uuid2response(await terminate_owner(input.to_pydantic()), OwnerRead)
 
@@ -1221,6 +1312,7 @@ class Mutation:
             gen_create_permission("related_unit"),
         ],
     )
+    @check_etags
     async def related_units_update(
         self, input: RelatedUnitsUpdateInput
     ) -> Response[RelatedUnit]:
@@ -1262,6 +1354,7 @@ class Mutation:
             gen_create_permission("role"),
         ],
     )
+    @check_etags
     async def role_create(self, input: RoleCreateInput) -> Response[Role]:
         return uuid2response(await create_role(input.to_pydantic()), RoleRead)
 
@@ -1272,6 +1365,7 @@ class Mutation:
             gen_create_permission("role"),
         ],
     )
+    @check_etags
     async def role_update(self, input: RoleUpdateInput) -> Response[Role]:
         return uuid2response(await update_role(input.to_pydantic()), RoleRead)
 
@@ -1282,6 +1376,7 @@ class Mutation:
             gen_create_permission("role"),
         ],
     )
+    @check_etags
     async def role_terminate(self, input: RoleTerminateInput) -> Response[Role]:
         return uuid2response(await terminate_role(input.to_pydantic()), RoleRead)
 
