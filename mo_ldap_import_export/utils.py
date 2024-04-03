@@ -1,12 +1,10 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import asyncio
 import copy
 import re
 from datetime import datetime
 from functools import partial
 
-from fastramqpi.ramqp import AMQPSystem
 from fastramqpi.ramqp.mo import MORoutingKey
 from gql import gql
 from graphql import DocumentNode
@@ -117,36 +115,6 @@ def datetime_to_ldap_timestamp(dt: datetime) -> str:
             (dt.strftime("%z") or "-0000"),
         ]
     )
-
-
-def listener(context, event):
-    """
-    Calls import_single_user if changes are registered
-    """
-    dn = event.get("attributes", {}).get("distinguishedName", None)
-    dn = dn or event.get("dn", None)
-
-    if not dn:
-        logger.info(f"Got event without dn: {event}")
-        return
-
-    user_context = context["user_context"]
-    event_loop = user_context["event_loop"]
-    ldap_amqpsystem: AMQPSystem = user_context["ldap_amqpsystem"]
-
-    def log_exception(future):
-        """Reraise exception so they are printed to the terminal."""
-        exception = future.exception()
-        if exception:
-            logger.exception("Exception during listener", exc_info=exception)
-            raise exception
-
-    logger.info(f"Registered change for LDAP object with dn={dn}")
-    future = asyncio.run_coroutine_threadsafe(
-        ldap_amqpsystem.publish_message("dn", dn), event_loop
-    )
-    # Register callback to ensure exceptions are logged to the terminal
-    future.add_done_callback(log_exception)
 
 
 def combine_dn_strings(dn_strings: list[str]) -> str:

@@ -1,12 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 # -*- coding: utf-8 -*-
-import asyncio
 import datetime
-import re
-from unittest.mock import AsyncMock
-from unittest.mock import MagicMock
-from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
@@ -16,7 +11,6 @@ from gql import gql
 from graphql import print_ast
 from ldap3.core.exceptions import LDAPInvalidDnError
 from ramodels.mo.details.address import Address
-from structlog.testing import capture_logs
 
 from mo_ldap_import_export.exceptions import InvalidQuery
 from mo_ldap_import_export.utils import add_filter_to_query
@@ -28,7 +22,6 @@ from mo_ldap_import_export.utils import extract_cn_from_dn
 from mo_ldap_import_export.utils import extract_ou_from_dn
 from mo_ldap_import_export.utils import get_object_type_from_routing_key
 from mo_ldap_import_export.utils import import_class
-from mo_ldap_import_export.utils import listener
 from mo_ldap_import_export.utils import mo_datestring_to_utc
 from mo_ldap_import_export.utils import mo_object_is_valid
 from mo_ldap_import_export.utils import remove_cn_from_dn
@@ -134,65 +127,6 @@ async def test_datetime_to_ldap_timestamp():
     date = datetime.datetime(2021, 1, 1, 10, 45, 20, 2100, pytz.timezone("Cuba"))
     result = datetime_to_ldap_timestamp(date)
     assert result == "20210101104520.2-0529"
-
-
-async def test_listener_callback():
-    event_loop = asyncio.get_running_loop()
-
-    async def publish_message(routing_key: str, dn: str):
-        event_loop.call_soon(publish_message.event.set)  # type: ignore
-        assert routing_key == "dn"
-        assert dn == "CN=foo"
-        raise ValueError("BOOM")
-
-    publish_message.event = asyncio.Event()
-
-    ldap_amqpsystem = AsyncMock()
-    ldap_amqpsystem.publish_message = publish_message
-
-    user_context = {"event_loop": event_loop, "ldap_amqpsystem": ldap_amqpsystem}
-    context = {"user_context": user_context}
-
-    event = {"attributes": {"distinguishedName": "CN=foo"}}
-
-    with capture_logs() as cap_logs:
-        listener(context, event)
-        await publish_message.event.wait()
-
-    assert len(cap_logs) == 2
-    log = cap_logs[1]
-    assert log["event"] == "Exception during listener"
-    assert log["exc_info"] == "ValueError('BOOM')"
-
-
-@patch("asyncio.run_coroutine_threadsafe")
-async def test_listener(run_coroutine_threadsafe):
-    callback = MagicMock()
-    event_loop = MagicMock()
-    ldap_amqpsystem = MagicMock()
-    ldap_amqpsystem.publish_message.return_value = callback
-
-    user_context = {"event_loop": event_loop, "ldap_amqpsystem": ldap_amqpsystem}
-
-    context = {"user_context": user_context}
-
-    event = {"attributes": {"distinguishedName": "CN=foo"}}
-    with capture_logs() as cap_logs:
-        listener(context, event)
-        listener(context, {})
-
-        messages = [w for w in cap_logs if w["log_level"] == "info"]
-        assert re.match(
-            "Registered change for LDAP object",
-            str(messages[0]["event"]),
-        )
-        ldap_amqpsystem.publish_message.assert_called_with("dn", "CN=foo")
-        run_coroutine_threadsafe.assert_called_with(callback, event_loop)
-
-        assert re.match(
-            "Got event without dn",
-            str(messages[1]["event"]),
-        )
 
 
 def test_combine_dn_strings():
