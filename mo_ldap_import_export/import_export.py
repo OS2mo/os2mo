@@ -1042,30 +1042,44 @@ class SyncTool:
         await self.refresh_object(uuid, "ituser")
 
     async def export_org_unit_addresses_on_engagement_change(
-        self, routing_key: MORoutingKey, object_uuid: UUID, **kwargs
-    ):
+        self, routing_key: MORoutingKey, object_uuid: UUID
+    ) -> None:
+        # NOTE: This entire function could just be a single call to `address_refresh`
+        #       with address_types uuids and org_unit uuids as a filter.
         object_type = get_object_type_from_routing_key(routing_key)
-        if object_type == "engagement":
-            changed_engagement = await self.dataloader.load_mo_engagement(object_uuid)
-            org_unit_uuid = changed_engagement.org_unit.uuid
+        assert object_type == "engagement"
 
-            # Load UUIDs for all addresses in this org-unit
-            org_unit_address_uuids = []
-            for address_type_uuid in self.converter.org_unit_address_type_info.keys():
-                org_unit_addresses = await self.dataloader.load_mo_org_unit_addresses(
-                    org_unit_uuid,
-                    address_type_uuid,
-                )
-                for address in org_unit_addresses:
-                    org_unit_address_uuids.append(address.uuid)
+        response = await self.dataloader.graphql_client.read_engagement_org_unit_uuid(
+            object_uuid
+        )
+        org_unit_uuids = [
+            result.current.org_unit_uuid
+            for result in response.objects
+            if result.current
+        ]
+        org_unit_uuid = one(org_unit_uuids)
 
-            # Export this org-unit's addresses to LDAP by publishing to internal AMQP
-            await asyncio.gather(
-                *[
-                    self.refresh_object(org_unit_address_uuid, "address")
-                    for org_unit_address_uuid in org_unit_address_uuids
-                ]
+        # Load UUIDs for all addresses in this org-unit
+        org_unit_address_uuids = []
+        for address_type_uuid in self.converter.org_unit_address_type_info.keys():
+            # TODO: We should be able to bulk this as one query
+            # NOTE: This function actually loads the address UUIDs, then the objects
+            #       just so we can extract the UUIDs from the objects.
+            org_unit_addresses = await self.dataloader.load_mo_org_unit_addresses(
+                org_unit_uuid,
+                address_type_uuid,
             )
+            org_unit_address_uuids.extend(
+                [address.uuid for address in org_unit_addresses]
+            )
+
+        # Export this org-unit's addresses to LDAP by publishing to internal AMQP
+        await asyncio.gather(
+            *[
+                self.refresh_address(org_unit_address_uuid)
+                for org_unit_address_uuid in org_unit_address_uuids
+            ]
+        )
 
     async def refresh_employee(self, employee_uuid: UUID):
         """
