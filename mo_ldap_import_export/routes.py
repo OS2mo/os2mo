@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 """HTTP Endpoints."""
+import asyncio
 from typing import Any
 from typing import Literal
 from uuid import UUID
@@ -137,31 +138,26 @@ def construct_router(user_context: UserContext) -> APIRouter:
         employee_uuid: UUID,
         sync_tool: depends.SyncTool,
     ) -> Any:
+        # TODO: This endpoint can be replaced with employee_refresh, right?
         await sync_tool.refresh_employee(employee_uuid)
 
     # Export object(s) from MO to LDAP
     @router.post("/Export", status_code=202, tags=["Export"])
     async def export_mo_objects(
-        internal_amqpsystem: depends.InternalAMQPSystem,
         dataloader: depends.DataLoader,
+        sync_tool: depends.SyncTool,
         params: ExportQueryParams = Depends(),
     ) -> Any:
+        # TODO: This endpoint can be replaced with *_refresh, right?
+
         # Load mo objects
         mo_objects = await dataloader.load_all_mo_objects(uuid=params.object_uuid)
         logger.info(f"Found {len(mo_objects)} objects")
 
-        for mo_object in mo_objects:
-            routing_key = mo_object["object_type"]
-            payload = mo_object["payload"]
-
-            logger.info(
-                "[Export-mo-objects] Publishing.",
-                routing_key=routing_key,
-                payload=payload,
+        if params.publish_amqp_messages:
+            await asyncio.gather(
+                *[sync_tool.refresh_mo_object(mo_object) for mo_object in mo_objects]
             )
-
-            if params.publish_amqp_messages:
-                await internal_amqpsystem.publish_message(routing_key, payload)
 
     # Get all objects from LDAP - Converted to MO
     @router.get("/LDAP/{json_key}/converted", status_code=202, tags=["LDAP"])

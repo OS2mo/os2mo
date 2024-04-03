@@ -26,6 +26,7 @@ from ramodels.mo.employee import Employee
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
+from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.dataloaders import Verb
 from mo_ldap_import_export.exceptions import DNNotFound
 from mo_ldap_import_export.exceptions import IgnoreChanges
@@ -1243,9 +1244,20 @@ async def test_wait_for_import_to_finish(sync_tool: SyncTool):
     assert elapsed_time < 0.3
 
 
-async def test_refresh_object(sync_tool: SyncTool):
+async def test_refresh_object(sync_tool: SyncTool) -> None:
     await sync_tool.refresh_object(uuid4(), "address")
     sync_tool.internal_amqpsystem.publish_message.assert_awaited_once()
+
+
+async def test_refresh_object_missing(
+    sync_tool: SyncTool, dataloader: DataLoader
+) -> None:
+    dataloader.load_mo_object.return_value = None  # type: ignore
+
+    uuid = uuid4()
+    with pytest.raises(ValueError) as exc_info:
+        await sync_tool.refresh_object(uuid, "address")
+    assert f"Unable to look up address with UUID: {uuid}" in str(exc_info.value)
 
 
 async def test_export_org_unit_addresses_on_engagement_change(

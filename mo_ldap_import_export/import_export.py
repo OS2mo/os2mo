@@ -5,9 +5,11 @@ Created on Fri Mar  3 09:46:15 2023
 
 @author: nick
 """
+import asyncio
 from collections.abc import Callable
 from datetime import datetime
 from datetime import timedelta
+from itertools import chain
 from typing import Any
 from uuid import UUID
 from uuid import uuid4
@@ -512,18 +514,23 @@ class SyncTool:
 
         Parameters
         -------------
-        org_unit_uuid : UUId
+        org_unit_uuid : UUID
             UUID of the org-unit for which to publish messages
         """
+        # NOTE: This entire function could probably just be a single call to
+        #       `engagement_refresh` with an org_unit uuids filter.
         employees = await self.dataloader.load_mo_employees_in_org_unit(org_unit_uuid)
         for employee in employees:
             engagements = await self.dataloader.load_mo_employee_engagements(
                 employee.uuid
             )
-
-            for engagement in engagements:
-                if engagement.org_unit.uuid == org_unit_uuid:
-                    await self.refresh_object(engagement.uuid, "engagement")
+            await asyncio.gather(
+                *[
+                    self.refresh_engagement(engagement.uuid)
+                    for engagement in engagements
+                    if engagement.org_unit.uuid == org_unit_uuid
+                ]
+            )
 
     @wait_for_export_to_finish
     async def listen_to_changes_in_org_units(
@@ -1005,11 +1012,7 @@ class SyncTool:
                     for mo_object, _ in converted_objects:
                         self.uuids_to_ignore.remove(mo_object.uuid)
 
-    async def refresh_object(self, uuid: UUID, object_type: str):
-        """
-        Sends out an AMQP message on the internal AMQP system to refresh an object
-        """
-        mo_object_dict = await self.dataloader.load_mo_object(str(uuid), object_type)
+    async def refresh_mo_object(self, mo_object_dict: dict[str, Any]) -> None:
         routing_key = mo_object_dict["object_type"]
         payload = mo_object_dict["payload"]
 
@@ -1019,6 +1022,24 @@ class SyncTool:
             payload=payload,
         )
         await self.internal_amqpsystem.publish_message(routing_key, payload)
+
+    async def refresh_object(self, uuid: UUID, object_type: str) -> None:
+        """
+        Sends out an AMQP message on the internal AMQP system to refresh an object
+        """
+        mo_object_dict = await self.dataloader.load_mo_object(str(uuid), object_type)
+        if mo_object_dict is None:
+            raise ValueError(f"Unable to look up {object_type} with UUID: {uuid}")
+        await self.refresh_mo_object(mo_object_dict)
+
+    async def refresh_engagement(self, uuid: UUID) -> None:
+        await self.refresh_object(uuid, "engagement")
+
+    async def refresh_address(self, uuid: UUID) -> None:
+        await self.refresh_object(uuid, "address")
+
+    async def refresh_ituser(self, uuid: UUID) -> None:
+        await self.refresh_object(uuid, "ituser")
 
     async def export_org_unit_addresses_on_engagement_change(
         self, routing_key: MORoutingKey, object_uuid: UUID, **kwargs
@@ -1039,47 +1060,62 @@ class SyncTool:
                     org_unit_address_uuids.append(address.uuid)
 
             # Export this org-unit's addresses to LDAP by publishing to internal AMQP
-            for org_unit_address_uuid in org_unit_address_uuids:
-                await self.refresh_object(org_unit_address_uuid, "address")
+            await asyncio.gather(
+                *[
+                    self.refresh_object(org_unit_address_uuid, "address")
+                    for org_unit_address_uuid in org_unit_address_uuids
+                ]
+            )
 
     async def refresh_employee(self, employee_uuid: UUID):
         """
         Sends out AMQP-messages for all objects related to an employee
         """
+        # NOTE: This entire function could probably just be 3 GraphQL calls:
+        #       `address_refresh`, `engagement_refresh` and `ituser_refresh`
+        #       All with employee uuids as a filter.
         logger.info("[Refresh-employee] Refreshing employee.", uuid=str(employee_uuid))
 
         # Load address types and it-user types
         address_type_uuids = self.converter.employee_address_type_info.keys()
         it_system_uuids = self.converter.it_system_info.keys()
 
-        # Load addresses
-        addresses = []
-        for address_type_uuid in address_type_uuids:
-            addresses.extend(
-                await self.dataloader.load_mo_employee_addresses(
-                    employee_uuid, address_type_uuid
+        async def load_addresses():
+            addresses = []
+            for address_type_uuid in address_type_uuids:
+                addresses.extend(
+                    await self.dataloader.load_mo_employee_addresses(
+                        employee_uuid, address_type_uuid
+                    )
                 )
-            )
+            return addresses
 
-        # Load engagements
-        # Note: engagement addresses are automatically picked up on engagement change
-        engagements = await self.dataloader.load_mo_employee_engagements(employee_uuid)
+        async def load_engagements():
+            # Note: engagement addresses are automatically picked up on engagement change
+            return await self.dataloader.load_mo_employee_engagements(employee_uuid)
 
-        # Load IT-users
-        it_users = []
-        for it_system_uuid in it_system_uuids:
-            it_users.extend(
-                await self.dataloader.load_mo_employee_it_users(
-                    employee_uuid, it_system_uuid
+        async def load_itusers():
+            it_users = []
+            for it_system_uuid in it_system_uuids:
+                it_users.extend(
+                    await self.dataloader.load_mo_employee_it_users(
+                        employee_uuid, it_system_uuid
+                    )
                 )
-            )
+            return it_users
+
+        addresses, engagements, it_users = await asyncio.gather(
+            *[load_addresses(), load_engagements(), load_itusers()]
+        )
 
         # Publish messages
-        for address in addresses:
-            await self.refresh_object(address.uuid, "address")
-
-        for it_user in it_users:
-            await self.refresh_object(it_user.uuid, "ituser")
-
-        for engagement in engagements:
-            await self.refresh_object(engagement.uuid, "engagement")
+        await asyncio.gather(
+            *chain(
+                [self.refresh_address(address.uuid) for address in addresses],
+                [self.refresh_ituser(it_user.uuid) for it_user in it_users],
+                [
+                    self.refresh_engagement(engagement.uuid)
+                    for engagement in engagements
+                ],
+            )
+        )
