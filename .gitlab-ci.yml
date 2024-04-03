@@ -1,31 +1,29 @@
-# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# ---------------------------------------------------------------------------
-# Global
-# ---------------------------------------------------------------------------
+
+stages:
+  - sync
+  - lint
+  - build
+  - test
+  - coverage
+  - release
+  - deploy
+  - docs
+
 variables:
   RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo-ldap-import-export
-  RELEASE_REGISTRY: docker.io
 
   IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
+
+  PRODUCT: os2mo
+  COMPONENT: ldapimportexport
 
   PYTEST_COV_MODULE: mo_ldap_import_export
   PYTEST_COV_FAIL_UNDER: 100
 
   POETRY_VERSION: "1.4.2"
   PRECOMMIT_USE_POETRY: "true"
-
-  PRODUCT: os2mo
-  COMPONENT: ldapimportexport
-
-
-stages:
-  - lint
-  - test
-  - coverage
-  - build
-  - release
-  - deploy
 
 # Conditions
 #############
@@ -39,6 +37,23 @@ stages:
 .if-merge-request: &if-merge-request
   if: '$CI_MERGE_REQUEST_IID'
 
+
+include:
+  - project: labs/salt-automation
+    file:
+      - gitlab-ci-templates/common/no-interrupt-meta.v1.yml
+      - gitlab-ci-templates/common/conventional-commits.v1.yml
+      - gitlab-ci-templates/common/conventional-commits-changelog.v1.yml
+      - gitlab-ci-templates/common/docker-build.v1.yml
+      - gitlab-ci-templates/common/docker-release.v1.yml
+      - gitlab-ci-templates/common/config-updater-salt.v1.yml
+  - project: labs/salt-automation
+    file:
+      - gitlab-ci-templates/common/pre-commit.v1.yml
+      - gitlab-ci-templates/python/pytest.v1.yml
+    rules:
+      - <<: *if-merge-request
+
 # Workflow
 ###########
 workflow:
@@ -51,32 +66,3 @@ workflow:
         IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
     - <<: *if-default-branch-refs
     - <<: *if-merge-request
-
-include:
-  # See https://git.magenta.dk/labs/salt-automation/-/tree/master/gitlab-ci-templates/common
-
-    # Runs linting
-  - project: labs/salt-automation
-    ref: master
-    file: /gitlab-ci-templates/common/pre-commit.v1.yml
-
-    # Runs testing
-  - project: labs/salt-automation
-    ref: master
-    file: /gitlab-ci-templates/python/pytest.v1.yml
-
-  # Kører build
-  - project: labs/salt-automation
-    file: /gitlab-ci-templates/common/docker-build.v1.yml
-
-  # Kører automatisk release
-  - project: labs/salt-automation
-    file: /gitlab-ci-templates/common/docker-release.v1.yml
-
-  # Conventional commits
-  - project: labs/salt-automation
-    file: /gitlab-ci-templates/common/conventional-commits.v1.yml
-
-  # Runs config-updater
-  - project: labs/salt-automation
-    file: /gitlab-ci-templates/common/config-updater-salt.v1.yml
