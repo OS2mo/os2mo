@@ -204,7 +204,9 @@ def get_ldap_attributes(ldap_connection: Connection, root_ldap_object: str):
     return all_attributes
 
 
-def apply_discriminator(search_result: list[dict[str, Any]], context: Context) -> list:
+def apply_discriminator(
+    search_result: list[dict[str, Any]], context: Context
+) -> list[dict[str, Any]]:
     """Apply our discriminator to remove unwanted search result.
 
     Args:
@@ -580,7 +582,7 @@ def setup_listener(context: Context) -> list[Thread]:
         search_parameters = {
             "search_base": search_base,
             "search_filter": "(cn=*)",
-            "attributes": ["distinguishedName", "modifyTimestamp"],
+            "attributes": ["distinguishedName"],
         }
 
         # Polling search
@@ -620,8 +622,7 @@ def _poll(
     context: Context,
     search_parameters: dict,
     last_search_time: datetime,
-    events_to_ignore: list[Any],
-) -> tuple[list[Any], datetime]:
+) -> datetime:
     """Pool the LDAP server for changes once.
 
     Args:
@@ -633,15 +634,12 @@ def _poll(
             Function to call with all changes since `last_search_time`.
         last_search_time:
             Find events that occured since this time.
-        events_to_ignore:
-            Ignore events in this list. Used to remove duplicate events.
 
     Returns:
         A two-tuple containing a list of events to ignore and the time at
         which the last search was done.
 
-        Should be provided as `last_search_time` and `events_to_ignore` in the
-        next iteration.
+        Should be provided as `last_search_time` in the next iteration.
     """
     ldap_connection = context["user_context"]["ldap_connection"]
 
@@ -652,37 +650,25 @@ def _poll(
     )
     last_search_time = datetime.utcnow()
     ldap_connection.search(**timed_search_parameters)
+    # Filter to only keep search results
+    # TODO: What other types can we get here?
+    responses = [
+        event
+        for event in ldap_connection.response
+        if event.get("type") == "searchResEntry"
+    ]
 
-    if not ldap_connection.response:
-        return [], last_search_time
+    # NOTE: We can add message deduplication here if needed for performance later
+    #       For now we do not care about duplicates, we prefer simplicity
+    #       See: !499 for details
 
-    last_events = []
-    responses = apply_discriminator(ldap_connection.response, context)
     for event in responses:
-        if event.get("type") != "searchResEntry":
-            continue
-        # We require modifyTimeStamp to determine if the event is duplicate
-        if "modifyTimeStamp" not in event.get("attributes", {}):
-            logger.warning("'modifyTimeStamp' not found in event['attributes']")
-            continue
-        if event in events_to_ignore:
-            # Some events get detected twice, because LDAP's >= filter
-            # does not quite work with millisecond precision.
-            #
-            # For example: When modifyTimeStamp == 20230307120826.0Z:
-            # We get a hit for the following search filters:
-            # - (modifyTimestamp>=20230307120825.256-0000)
-            # - (modifyTimestamp>=20230307120826.341-0000)
-            #
-            # Even though you would expect the second one not to match
-            logger.info(f"Ignored duplicate event: {event}")
-            continue
         listener(context, event)
-        last_events.append(event)
-    return last_events, last_search_time
+
+    return last_search_time
 
 
-def listener(context, event):
+def listener(context: Context, event: dict[str, Any]) -> None:
     """
     Calls import_single_user if changes are registered
     """
@@ -739,11 +725,8 @@ def _poller(
     )
 
     last_search_time = init_search_time
-    events_to_ignore: list[Any] = []
     while True:
-        events_to_ignore, last_search_time = seeded_poller(
-            events_to_ignore=events_to_ignore, last_search_time=last_search_time
-        )
+        last_search_time = seeded_poller(last_search_time=last_search_time)
         time.sleep(poll_time)
 
 
