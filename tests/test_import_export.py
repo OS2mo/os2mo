@@ -1053,7 +1053,7 @@ async def test_import_it_user_objects(
         for obj, verb in dataloader.create_or_edit_mo_objects.call_args.args[0]
     ]
 
-    assert expected == actual
+    assert actual == expected
 
 
 async def test_import_single_object_from_LDAP_non_existing_employee(
