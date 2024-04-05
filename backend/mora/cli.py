@@ -21,6 +21,7 @@ from structlog import get_logger
 from . import amqp as amqp_subsystem
 from . import config
 from . import log
+from mora.amqp import _emit_events
 from mora.amqp import start_amqp_subsystem
 from mora.db import AMQPSubsystem
 from mora.db import create_sessionmaker
@@ -153,6 +154,24 @@ def last_run() -> None:
                 click.echo(last_run)
 
     asyncio.run(print_last_run())
+
+
+@amqp.command()
+def emit_outstanding() -> None:
+    """Send all AMQP events currently outstanding."""
+
+    async def emit_events():
+        amqp_system = AMQPSystem(settings.amqp)
+
+        async with sessionmaker() as session:
+            async with session.begin():
+                try:
+                    await amqp_system.start()
+                    await _emit_events(session, amqp_system)
+                finally:
+                    await amqp_system.stop()
+
+    asyncio.run(emit_events())
 
 
 @amqp.command()
