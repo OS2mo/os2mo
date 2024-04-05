@@ -43,6 +43,7 @@ from mora.auth.exceptions import AuthenticationError
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import authorization_exception_handler
+from mora.auth.keycloak.oidc import lora_api_auth
 from mora.auth.keycloak.oidc import service_api_auth
 from mora.auth.keycloak.router import keycloak_router
 from mora.auth.middleware import set_authenticated_user
@@ -295,7 +296,9 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         )
 
     if settings.expose_lora:
-        app.include_router(create_lora_router(), prefix="/lora")
+        app.include_router(
+            create_lora_router(), prefix="/lora", dependencies=[Depends(lora_api_auth)]
+        )
 
     # Set up lifecycle state for depends.py
     app.state.sessionmaker = sessionmaker

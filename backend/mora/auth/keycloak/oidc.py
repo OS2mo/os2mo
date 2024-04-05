@@ -283,3 +283,17 @@ def service_api_auth(token: Token = Depends(auth)) -> None:
         return
 
     raise AuthorizationError("Not authorized to perform this operation")
+
+
+def lora_api_auth(token: Token = Depends(auth)) -> None:
+    """Check if the LoRa API role is set."""
+    if not config.get_settings().keycloak_rbac_enabled:
+        return
+
+    roles = token.realm_access.roles
+
+    if "lora_api" in roles:
+        logger.debug("User has lora_api role - LoRa API access granted")
+        return
+
+    raise AuthorizationError("Not authorized to perform this operation")
