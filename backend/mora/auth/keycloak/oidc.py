@@ -269,3 +269,17 @@ def token_getter(request: Request) -> Callable[[], Awaitable[Token]]:
         return result
 
     return get_token
+
+
+def service_api_auth(token: Token = Depends(auth)) -> None:
+    """Check if the Service API role is set."""
+    if not config.get_settings().keycloak_rbac_enabled:
+        return
+
+    roles = token.realm_access.roles
+
+    if "service_api" in roles:
+        logger.debug("User has service_api role - Service API access granted")
+        return
+
+    raise AuthorizationError("Not authorized to perform this operation")
