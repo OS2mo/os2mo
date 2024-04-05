@@ -269,3 +269,13 @@ def token_getter(request: Request) -> Callable[[], Awaitable[Token]]:
         return result
 
     return get_token
+
+
+def service_api_auth(token: Token = Depends(auth)) -> None:
+    """Check if the Service API role is set."""
+    roles = token.realm_access.roles
+
+    if "service_api" not in roles:
+        raise AuthorizationError("The Service API is gone")
+
+    logger.debug("Service API access granted", actor=token.uuid)

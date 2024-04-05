@@ -178,7 +178,7 @@ services:
       - keycloak-volume:/srv/:ro
 
   keycloak-realm-builder:
-    image: magentaaps/os2mo-keycloak-realm-builder:4
+    image: magentaaps/os2mo-keycloak-realm-builder:5
     environment:
       KEYCLOAK_VERSION: 14.0.0
 
@@ -202,7 +202,7 @@ services:
             "lastname": "Lee",
             "email": "bruce@kung.fu",
             "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a",
-            "roles": ["admin"],
+            "roles": ["admin", "service_api"],
             "enabled": true
           },
           {
@@ -212,7 +212,7 @@ services:
             "lastname": "Wedsgaard Christensen",
             "email": "elinec@kolding.dk",
             "uuid": "1c571f8f-0e3e-4ffa-9ff0-d35505781924",
-            "roles": ["reader", "owner"],
+            "roles": ["reader", "owner", "service_api"],
             "enabled": true
           },
           {
@@ -222,7 +222,7 @@ services:
             "lastname": "Nibe",
             "email": "alvidan@kolding.dk",
             "uuid": "0fb62199-cb9e-4083-ba45-2a63bfd142d7",
-            "roles": ["reader", "admin"],
+            "roles": ["reader", "admin", "service_api"],
             "enabled": true
           },
           {

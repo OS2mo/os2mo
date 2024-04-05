@@ -68,7 +68,7 @@ def mock_auth(
     }
 
     if role is not None:
-        token["realm_access"] = {"roles": [role]}
+        token["realm_access"] = {"roles": [role, "service_api"]}
 
     def fake_auth():
         return Token.parse_obj(token)

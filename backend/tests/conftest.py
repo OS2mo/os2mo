@@ -148,14 +148,20 @@ async def fake_auth() -> Token:
         azp="vue",
         email="bruce@kung.fu",
         preferred_username="bruce",
-        realm_access={"roles": set()},
+        realm_access={"roles": {"service_api"}},
         uuid="99e7b256-7dfa-4ee8-95c6-e3abe82e236a",
     )
 
 
+async def serviceapiless_auth() -> Token:
+    auth = await fake_auth()
+    auth.realm_access.roles = set()
+    return auth
+
+
 async def admin_auth() -> Token:
     auth = await fake_auth()
-    auth.realm_access.roles = {"admin", "owner"}.union(ALL_PERMISSIONS)
+    auth.realm_access.roles = {"admin", "owner", "service_api"}.union(ALL_PERMISSIONS)
     return auth
 
 

@@ -43,6 +43,7 @@ from mora.auth.exceptions import AuthenticationError
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import authorization_exception_handler
+from mora.auth.keycloak.oidc import service_api_auth
 from mora.auth.keycloak.router import keycloak_router
 from mora.auth.middleware import set_authenticated_user
 from mora.common import lora_connector_context
@@ -264,7 +265,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             router,
             prefix="/service",
             tags=["Service." + name],
-            dependencies=[Depends(auth)],
+            dependencies=[Depends(auth), Depends(service_api_auth)],
         )
     for name, router in service.no_auth_routers.items():
         app.include_router(
