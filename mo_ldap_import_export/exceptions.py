@@ -5,7 +5,7 @@ from fastapi import HTTPException
 
 class MultipleObjectsReturnedException(HTTPException):
     def __init__(self, message):
-        super().__init__(status_code=404, detail=message)
+        super().__init__(status_code=409, detail=message)
 
 
 class NoObjectsReturnedException(HTTPException):
@@ -30,22 +30,22 @@ class AttributeNotFound(HTTPException):
 
 class IncorrectMapping(HTTPException):
     def __init__(self, message):
-        super().__init__(status_code=400, detail=message)
+        super().__init__(status_code=500, detail=message)
 
 
 class NotSupportedException(HTTPException):
     def __init__(self, message):
-        super().__init__(status_code=404, detail=message)
+        super().__init__(status_code=501, detail=message)
 
 
 class NotEnabledException(HTTPException):
     def __init__(self, message):
-        super().__init__(status_code=404, detail=message)
+        super().__init__(status_code=501, detail=message)
 
 
 class InvalidNameException(HTTPException):
     def __init__(self, message):
-        super().__init__(status_code=404, detail=message)
+        super().__init__(status_code=422, detail=message)
 
 
 class UUIDNotFoundException(HTTPException):
@@ -55,27 +55,27 @@ class UUIDNotFoundException(HTTPException):
 
 class InvalidQueryResponse(HTTPException):
     def __init__(self, message):
-        super().__init__(status_code=404, detail=message)
+        super().__init__(status_code=500, detail=message)
 
 
 class InvalidQuery(HTTPException):
     def __init__(self, message):
-        super().__init__(status_code=404, detail=message)
+        super().__init__(status_code=422, detail=message)
 
 
 class TimeOutException(HTTPException):
     def __init__(self, message):
-        super().__init__(status_code=404, detail=message)
+        super().__init__(status_code=408, detail=message)
 
 
 class IgnoreChanges(HTTPException):
     def __init__(self, message):
-        super().__init__(status_code=404, detail=message)
+        super().__init__(status_code=400, detail=message)
 
 
 class InvalidChangeDict(HTTPException):
     def __init__(self, message):
-        super().__init__(status_code=404, detail=message)
+        super().__init__(status_code=422, detail=message)
 
 
 class InvalidCPR(HTTPException):
