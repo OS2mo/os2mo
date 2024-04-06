@@ -273,16 +273,6 @@ query read_org_unit_addresses($org_unit_uuid: UUID!, $address_type_uuid: UUID!) 
   }
 }
 
-query read_engagement_org_unit_uuid($engagement_uuid: UUID!) {
-  engagements(filter: {uuids: [$engagement_uuid]}) {
-    objects {
-      current {
-        org_unit_uuid
-      }
-    }
-  }
-}
-
 query read_class_uuid_by_facet_and_class_user_key(
   $facet_user_key: String!,
   $class_user_key: String!
@@ -567,5 +557,23 @@ query read_all_engagement_uuids($filter: EngagementFilter!, $cursor: Cursor = nu
     page_info {
       next_cursor
     }
+  }
+}
+
+mutation engagement_org_unit_address_refresh(
+  $exchange: String!, $engagement_uuid: UUID!, $address_type_uuids: [UUID!]!
+) {
+  address_refresh(
+    exchange: $exchange,
+    filter: {
+      address_type: {uuids: $address_type_uuids},
+      org_unit: {
+        engagement: {
+          uuids: [$engagement_uuid]
+        }
+      }
+    }
+  ) {
+    objects
   }
 }

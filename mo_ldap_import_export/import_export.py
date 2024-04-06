@@ -1067,48 +1067,15 @@ class SyncTool:
         )
 
     async def export_org_unit_addresses_on_engagement_change(
-        self, routing_key: MORoutingKey, object_uuid: UUID
+        self, engagement_uuid: UUID
     ) -> None:
-        # NOTE: This entire function could just be a single call to `address_refresh`
-        #       with address_types uuids and org_unit uuids as a filter.
-        # TODO: This will need MO to be able to filter org-units by engagement UUIDs
-        object_type = get_object_type_from_routing_key(routing_key)
-        assert object_type == "engagement"
-
-        response = await self.dataloader.graphql_client.read_engagement_org_unit_uuid(
-            object_uuid
+        address_type_uuids = parse_obj_as(
+            list[UUID], list(self.converter.org_unit_address_type_info.keys())
         )
-        org_unit_uuids = [
-            result.current.org_unit_uuid
-            for result in response.objects
-            if result.current
-        ]
-        # NOTE: Remove this, ugly hack until the real solution can be merged
-        if not org_unit_uuids:  # pragma: no cover
-            return
-
-        org_unit_uuid = one(org_unit_uuids)
-
-        # Load UUIDs for all addresses in this org-unit
-        org_unit_address_uuids = []
-        for address_type_uuid in self.converter.org_unit_address_type_info.keys():
-            # TODO: We should be able to bulk this as one query
-            # NOTE: This function actually loads the address UUIDs, then the objects
-            #       just so we can extract the UUIDs from the objects.
-            org_unit_addresses = await self.dataloader.load_mo_org_unit_addresses(
-                org_unit_uuid,
-                address_type_uuid,
-            )
-            org_unit_address_uuids.extend(
-                [address.uuid for address in org_unit_addresses]
-            )
-
-        # Export this org-unit's addresses to LDAP by publishing to internal AMQP
-        await asyncio.gather(
-            *[
-                self.refresh_address(org_unit_address_uuid)
-                for org_unit_address_uuid in org_unit_address_uuids
-            ]
+        await self.dataloader.graphql_client.engagement_org_unit_address_refresh(
+            self.amqpsystem.exchange_name,
+            engagement_uuid,
+            address_type_uuids,
         )
 
     async def refresh_employee(self, employee_uuid: UUID):
