@@ -534,6 +534,17 @@ class OrganisationUnitFilter(BaseFilter):
         ),
     )
 
+    engagement: EngagementFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Filter organisation units to only include matches pointed to by engagements.
+
+            Can be used to find organisation units for certain engagements.
+            """
+        ),
+    )
+
 
 @strawberry.input(description="Owner filter.")
 class OwnerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):

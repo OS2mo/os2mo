@@ -305,6 +305,68 @@ async def test_org_unit_hierarchy_filter(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
+@pytest.mark.parametrize(
+    "filter,expected",
+    [
+        ({}, 10),
+        ({"engagement": {"uuids": []}}, 0),
+        # Random engagements by UUIDs only attached to one org-unit
+        ({"engagement": {"uuids": ["301a906b-ef51-4d5c-9c77-386fb8410459"]}}, 1),
+        ({"engagement": {"uuids": ["d000591f-8705-4324-897a-075e3623f37b"]}}, 1),
+        # Random engagement by user-key only attached to one org-unit
+        ({"engagement": {"user_keys": ["bvn"]}}, 1),
+        # Random engagement by person uuid only attached to one org-unit
+        (
+            {
+                "engagement": {
+                    "employee": {"uuids": ["53181ed2-f1de-4c4a-a8fd-ab358c2c454a"]}
+                }
+            },
+            1,
+        ),
+        ({"engagement": {"employees": ["53181ed2-f1de-4c4a-a8fd-ab358c2c454a"]}}, 1),
+        (
+            {
+                "engagement": {
+                    "employee": {"uuids": ["236e0a78-11a0-4ed9-8545-6286bb8611c7"]}
+                }
+            },
+            1,
+        ),
+        ({"engagement": {"employees": ["236e0a78-11a0-4ed9-8545-6286bb8611c7"]}}, 1),
+        # Random engagement by org uuid only attached to one org-unit
+        (
+            {
+                "engagement": {
+                    "org_unit": {"uuids": ["9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"]}
+                }
+            },
+            1,
+        ),
+        ({"engagement": {"org_units": ["9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"]}}, 1),
+    ],
+)
+async def test_org_unit_engagement_filter(
+    graphapi_post: GraphAPIPost, filter, expected
+) -> None:
+    """Test engagement filter on organisation units."""
+    org_unit_query = """
+        query OrgUnit($filter: OrganisationUnitFilter!) {
+            org_units(filter: $filter) {
+                objects {
+                    uuid
+                }
+            }
+        }
+    """
+    response = graphapi_post(org_unit_query, variables=dict(filter=filter))
+    assert response.errors is None
+    assert response.data is not None
+    assert len(response.data["org_units"]["objects"]) == expected
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
 async def test_org_unit_subtree_filter(graphapi_post: GraphAPIPost) -> None:
     """Test subtree filter on organisation units."""
     # Ensure that the subtree filter respects the date filtering by changing the tree
