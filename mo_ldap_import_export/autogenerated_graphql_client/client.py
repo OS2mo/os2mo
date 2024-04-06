@@ -31,6 +31,8 @@ from .ituser_refresh import ItuserRefresh
 from .ituser_refresh import ItuserRefreshItuserRefresh
 from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
+from .org_unit_engagements_refresh import OrgUnitEngagementsRefresh
+from .org_unit_engagements_refresh import OrgUnitEngagementsRefreshEngagementRefresh
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuid
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuidClasses
 from .read_class_uuid import ReadClassUuid
@@ -521,3 +523,26 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ItuserRefresh.parse_obj(data).ituser_refresh
+
+    async def org_unit_engagements_refresh(
+        self, exchange: str, org_unit_uuid: UUID
+    ) -> OrgUnitEngagementsRefreshEngagementRefresh:
+        query = gql(
+            """
+            mutation org_unit_engagements_refresh($exchange: String!, $org_unit_uuid: UUID!) {
+              engagement_refresh(
+                exchange: $exchange
+                filter: {org_unit: {uuids: [$org_unit_uuid]}}
+              ) {
+                objects
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "exchange": exchange,
+            "org_unit_uuid": org_unit_uuid,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return OrgUnitEngagementsRefresh.parse_obj(data).engagement_refresh

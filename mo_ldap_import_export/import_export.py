@@ -509,29 +509,14 @@ class SyncTool:
                 )
 
     async def publish_engagements_for_org_unit(self, org_unit_uuid: UUID) -> None:
-        """
-        Loops through all employees who are connected to an org-unit and publishes
-        'engagement' AMQP messages for all of them.
+        """Publish events for all engagements attached to an org unit.
 
-        Parameters
-        -------------
-        org_unit_uuid : UUID
-            UUID of the org-unit for which to publish messages
+        Args:
+            org_unit_uuid: UUID of the org-unit for which to publish messages.
         """
-        # NOTE: This entire function could probably just be a single call to
-        #       `engagement_refresh` with an org_unit uuids filter.
-        employees = await self.dataloader.load_mo_employees_in_org_unit(org_unit_uuid)
-        for employee in employees:
-            engagements = await self.dataloader.load_mo_employee_engagements(
-                employee.uuid
-            )
-            await asyncio.gather(
-                *[
-                    self.refresh_engagement(engagement.uuid)
-                    for engagement in engagements
-                    if engagement.org_unit.uuid == org_unit_uuid
-                ]
-            )
+        await self.dataloader.graphql_client.org_unit_engagements_refresh(
+            self.amqpsystem.exchange_name, org_unit_uuid
+        )
 
     async def refresh_org_unit_info_cache(self) -> None:
         # When an org-unit is changed we need to update the org unit info. So we

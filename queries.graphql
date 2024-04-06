@@ -204,3 +204,9 @@ mutation ituser_refresh($exchange: String!, $uuid: UUID!) {
     objects
   }
 }
+
+mutation org_unit_engagements_refresh($exchange: String!, $org_unit_uuid: UUID!) {
+  engagement_refresh(exchange: $exchange, filter: {org_unit: {uuids: [$org_unit_uuid]}}) {
+    objects
+  }
+}
