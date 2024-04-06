@@ -7,6 +7,7 @@ import re
 import time
 from functools import partial
 from unittest.mock import AsyncMock
+from unittest.mock import call
 from unittest.mock import MagicMock
 from unittest.mock import patch
 from uuid import UUID
@@ -48,18 +49,18 @@ def context(
     export_checks: AsyncMock,
     import_checks: AsyncMock,
     settings: MagicMock,
-    internal_amqpsystem: MagicMock,
+    amqpsystem: AsyncMock,
 ) -> Context:
     context = Context(
         {
+            "amqpsystem": amqpsystem,
             "user_context": {
                 "dataloader": dataloader,
                 "converter": converter,
                 "export_checks": export_checks,
                 "import_checks": import_checks,
-                "internal_amqpsystem": internal_amqpsystem,
                 "settings": settings,
-            }
+            },
         }
     )
     return context
@@ -1237,9 +1238,30 @@ async def test_wait_for_import_to_finish(sync_tool: SyncTool):
     assert elapsed_time < 0.3
 
 
-async def test_refresh_object(sync_tool: SyncTool) -> None:
-    await sync_tool.refresh_object(uuid4(), "address")
-    sync_tool.internal_amqpsystem.publish_message.assert_awaited_once()
+@pytest.mark.parametrize(
+    "object_type,function_name",
+    [
+        ("address", "address_refresh"),
+        ("ituser", "ituser_refresh"),
+        ("engagement", "engagement_refresh"),
+    ],
+)
+async def test_refresh_object(
+    sync_tool: SyncTool, dataloader: AsyncMock, object_type: str, function_name: str
+) -> None:
+    uuid = uuid4()
+
+    dataloader.load_mo_object.return_value = {
+        "payload": uuid,
+        "parent_uuid": uuid,
+        "object_type": object_type,
+        "service_type": "employee",
+    }
+    await sync_tool.refresh_object(uuid, object_type)
+    dataloader.load_mo_object.assert_awaited_once_with(str(uuid), object_type)
+
+    refresh_function = getattr(dataloader.graphql_client, function_name)
+    refresh_function.assert_awaited_once_with("os2mo_ldap_ie", uuid)
 
 
 async def test_refresh_object_missing(
@@ -1267,13 +1289,13 @@ async def test_export_org_unit_addresses_on_engagement_change(
     address = Address.from_simplified_fields("foo", uuid4(), "2021-01-01")
 
     dataloader.load_mo_org_unit_addresses.return_value = [address]
-    sync_tool.refresh_object = AsyncMock()  # type: ignore
+    sync_tool.refresh_address = AsyncMock()  # type: ignore
 
     routing_key: MORoutingKey = "engagement"
     payload = MagicMock()
     await sync_tool.export_org_unit_addresses_on_engagement_change(routing_key, payload)
 
-    sync_tool.refresh_object.assert_awaited_once()
+    sync_tool.refresh_address.assert_awaited_once()
 
 
 async def test_refresh_employee(
@@ -1304,19 +1326,20 @@ async def test_refresh_employee(
     dataloader.load_mo_employee_it_users.return_value = [it_user]
     dataloader.load_mo_employee_engagements.return_value = [engagement]
 
-    sync_tool.refresh_object = AsyncMock()  # type: ignore
+    sync_tool.refresh_address = AsyncMock()  # type: ignore
+    sync_tool.refresh_engagement = AsyncMock()  # type: ignore
+    sync_tool.refresh_ituser = AsyncMock()  # type: ignore
 
     await sync_tool.refresh_employee(uuid4())
 
-    sync_tool.refresh_object.assert_any_await(address.uuid, "address")
-    sync_tool.refresh_object.assert_any_await(it_user.uuid, "ituser")
-    sync_tool.refresh_object.assert_any_await(engagement.uuid, "engagement")
+    sync_tool.refresh_address.assert_any_await(address.uuid)
+    assert sync_tool.refresh_address.await_count == 2
 
-    # We expect 5 calls:
-    # Two for the addresses
-    # Two for the IT-users
-    # One for the engagement
-    assert sync_tool.refresh_object.await_count == 5
+    sync_tool.refresh_engagement.assert_any_await(engagement.uuid)
+    assert sync_tool.refresh_engagement.await_count == 1
+
+    sync_tool.refresh_ituser.assert_any_await(it_user.uuid)
+    assert sync_tool.refresh_ituser.await_count == 2
 
 
 async def test_import_jobtitlefromadtomo_objects(
@@ -1442,7 +1465,7 @@ def test_move_ldap_object_nothing_to_move(sync_tool: SyncTool, dataloader: Async
 async def test_publish_engagements_for_org_unit(
     sync_tool: SyncTool, dataloader: AsyncMock
 ):
-    sync_tool.refresh_object = AsyncMock()  # type: ignore
+    sync_tool.refresh_engagement = AsyncMock()  # type: ignore
 
     # We simulate a change to this org-unit
     org_unit_uuid = uuid4()
@@ -1496,10 +1519,13 @@ async def test_publish_engagements_for_org_unit(
 
     # Validate that the proper calls to refresh_object are being made.
     await sync_tool.publish_engagements_for_org_unit(org_unit_uuid)
-    assert sync_tool.refresh_object.await_count == 3
-    assert sync_tool.refresh_object.awaited_once_with(engagements_employee1[0].uuid)
-    assert sync_tool.refresh_object.awaited_once_with(engagements_employee2[0].uuid)
-    assert sync_tool.refresh_object.awaited_once_with(engagements_employee2[1].uuid)
+    sync_tool.refresh_engagement.assert_has_awaits(
+        [
+            call(engagements_employee1[0].uuid),
+            call(engagements_employee2[0].uuid),
+            call(engagements_employee2[1].uuid),
+        ]
+    )
 
 
 async def test_holstebro_import_checks(sync_tool: SyncTool):

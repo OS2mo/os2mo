@@ -830,6 +830,7 @@ class OrganisationUnitFilter(BaseModel):
     parents: Optional[List[UUID]]
     hierarchy: Optional["ClassFilter"] = None
     hierarchies: Optional[List[UUID]] = None
+    subtree: Optional["OrganisationUnitFilter"]
 
 
 class OrganisationUnitRegistrationFilter(BaseModel):
@@ -929,6 +930,7 @@ class ParentsBoundOrganisationUnitFilter(BaseModel):
     parent: Optional["OrganisationUnitFilter"]
     hierarchy: Optional["ClassFilter"] = None
     hierarchies: Optional[List[UUID]] = None
+    subtree: Optional["OrganisationUnitFilter"]
 
 
 class RAOpenValidityInput(BaseModel):
@@ -1093,6 +1095,7 @@ class UuidsBoundOrganisationUnitFilter(BaseModel):
     parents: Optional[List[UUID]]
     hierarchy: Optional["ClassFilter"] = None
     hierarchies: Optional[List[UUID]] = None
+    subtree: Optional["OrganisationUnitFilter"]
 
 
 class ValidityInput(BaseModel):

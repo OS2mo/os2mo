@@ -3013,7 +3013,8 @@ type Mutation {
 
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
-    queue: String = null
+    queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
+    exchange: String = null
   ): UUIDPaged!
 
   """Creates an association."""
@@ -3034,7 +3035,8 @@ type Mutation {
 
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
-    queue: String = null
+    queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
+    exchange: String = null
   ): UUIDPaged!
 
   """Creates a class."""
@@ -3058,7 +3060,8 @@ type Mutation {
 
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
-    queue: String = null
+    queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
+    exchange: String = null
   ): UUIDPaged!
 
   """Creates an employee."""
@@ -3079,7 +3082,8 @@ type Mutation {
 
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
-    queue: String = null
+    queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
+    exchange: String = null
   ): UUIDPaged!
 
   """Creates an engagement."""
@@ -3103,7 +3107,8 @@ type Mutation {
 
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
-    queue: String = null
+    queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
+    exchange: String = null
   ): UUIDPaged!
 
   """Creates a facet."""
@@ -3127,7 +3132,8 @@ type Mutation {
 
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
-    queue: String = null
+    queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
+    exchange: String = null
   ): UUIDPaged!
 
   """Creates an IT-Association."""
@@ -3160,7 +3166,8 @@ type Mutation {
 
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
-    queue: String = null
+    queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
+    exchange: String = null
   ): UUIDPaged!
 
   """Creates an IT-User."""
@@ -3184,7 +3191,8 @@ type Mutation {
 
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
-    queue: String = null
+    queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
+    exchange: String = null
   ): UUIDPaged!
 
   """Creates a KLE annotation."""
@@ -3205,7 +3213,8 @@ type Mutation {
 
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
-    queue: String = null
+    queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
+    exchange: String = null
   ): UUIDPaged!
 
   """Creates a leave."""
@@ -3226,7 +3235,8 @@ type Mutation {
 
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
-    queue: String = null
+    queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
+    exchange: String = null
   ): UUIDPaged!
 
   """Creates a manager relation."""
@@ -3247,7 +3257,8 @@ type Mutation {
 
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
-    queue: String = null
+    queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
+    exchange: String = null
   ): UUIDPaged!
 
   """Creates the root-organisation."""
@@ -3271,7 +3282,8 @@ type Mutation {
 
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
-    queue: String = null
+    queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
+    exchange: String = null
   ): UUIDPaged!
 
   """Creates an owner."""
@@ -3292,7 +3304,8 @@ type Mutation {
 
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
-    queue: String = null
+    queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
+    exchange: String = null
   ): UUIDPaged!
 
   """Updates relations for an org_unit."""
@@ -3307,7 +3320,8 @@ type Mutation {
 
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
-    queue: String = null
+    queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
+    exchange: String = null
   ): UUIDPaged!
 
   """Creates a role."""
@@ -3328,7 +3342,8 @@ type Mutation {
 
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
-    queue: String = null
+    queue: String = null @deprecated(reason: "Never worked properly. Use `exchange` to target a specific integration instead.")
+    exchange: String = null
   ): UUIDPaged!
 
   "Upload a file.\n\nFile upload must be done via multipart form-data.\n\nHow to do this is client-specific, but below is an example using [curl](https://curl.se/):\n```console\ncurl https://{{MO_URL}}/graphql/v7 \\\n  -H \"Authorization: Bearer {{TOKEN}}\" \\\n  -F operations=\"{\\\"query\\\": \\\"{{QUERY}}\\\", \\\n      \\\"variables\\\": {\\\"file\\\": null}}\" \\\n  -F map='{\"file\": [\"variables.file\"]}' \\\n  -F file=@myfile.txt\n```\nWhere:\n* `myfile.txt` is the file to upload.\n* `{{MO_URL}}` is the base-url for the OS2mo instance to upload the file to.\n* `{{TOKEN}}` is a valid JWT-token acquired from Keycloak.\n* `{{QUERY}}` is the upload query:\n```gql\nmutation($file: Upload!) {\n  upload_file(\n    file_store: EXPORTS,\n    file: $file\n  )\n}\n```\n\nNote:\nAs GraphiQL does not support sending multipart form-data payloads, it is unfortunately not possible to upload files from GraphiQL.\n"
@@ -3774,6 +3789,9 @@ input OrganisationUnitFilter {
 
   "Filter organisation units by their organisational hierarchy labels.\n\nCan be used to extract a subset of the organisational structure.\n\nExamples of user-keys:\n* `\"Line-management\"`\n* `\"Self-owned institution\"`\n* `\"Outside organisation\"`\n* `\"Hidden\"`\n\nNote:\nThe organisation-gatekeeper integration is one option to keep hierarchy labels up-to-date.\n\n| `hierarchies`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
   hierarchies: [UUID!] = null @deprecated(reason: "Replaced by the 'hierarchy' filter")
+
+  "Filter organisation units, returning all matches along with their ancestors.\n\nCan be used to find organisation units together with the context of their organisational placement.\n"
+  subtree: OrganisationUnitFilter
 }
 
 """OrganisationUnit registration filter."""
@@ -4101,6 +4119,7 @@ input ParentsBoundOrganisationUnitFilter {
   parent: OrganisationUnitFilter
   hierarchy: ClassFilter = null
   hierarchies: [UUID!] = null
+  subtree: OrganisationUnitFilter
 }
 
 """Entrypoint for all read-operations"""
@@ -4795,6 +4814,7 @@ input UuidsBoundOrganisationUnitFilter {
   parents: [UUID!]
   hierarchy: ClassFilter = null
   hierarchies: [UUID!] = null
+  subtree: OrganisationUnitFilter
 }
 
 """Validity of objects with required from date"""

@@ -14,7 +14,6 @@ from fastapi import Depends
 from fastapi import FastAPI
 from fastapi_utils.tasks import repeat_every
 from fastramqpi.main import FastRAMQPI
-from fastramqpi.ramqp import AMQPSystem
 from fastramqpi.ramqp.depends import Context
 from fastramqpi.ramqp.depends import rate_limit
 from fastramqpi.ramqp.mo import MORouter
@@ -53,7 +52,6 @@ from .utils import mo_datestring_to_utc
 
 fastapi_router = APIRouter()
 amqp_router = MORouter()
-internal_amqp_router = MORouter()
 delay_on_error = 10  # Try errors again after a short period of time
 delay_on_requeue = 60 * 60 * 24  # Requeue messages for tomorrow (or after a reboot)
 RateLimit = Annotated[None, Depends(rate_limit(delay_on_error))]
@@ -142,7 +140,6 @@ async def unpack_payload(
     return args, mo_object
 
 
-@internal_amqp_router.register("address")
 @amqp_router.register("address")
 @reject_on_failure
 async def process_address(
@@ -161,7 +158,6 @@ async def process_address(
         await sync_tool.listen_to_changes_in_org_units(**args)
 
 
-@internal_amqp_router.register("engagement")
 @amqp_router.register("engagement")
 @reject_on_failure
 async def process_engagement(
@@ -179,7 +175,6 @@ async def process_engagement(
     )
 
 
-@internal_amqp_router.register("ituser")
 @amqp_router.register("ituser")
 @reject_on_failure
 async def process_ituser(
@@ -194,7 +189,6 @@ async def process_ituser(
     await sync_tool.listen_to_changes_in_employees(**args)
 
 
-@internal_amqp_router.register("person")
 @amqp_router.register("person")
 @reject_on_failure
 async def process_person(
@@ -209,7 +203,6 @@ async def process_person(
     await sync_tool.listen_to_changes_in_employees(**args)
 
 
-@internal_amqp_router.register("org_unit")
 @amqp_router.register("org_unit")
 @reject_on_failure
 async def process_org_unit(
@@ -350,17 +343,6 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
 
     fastramqpi.add_lifespan_manager(initialize_init_engine(fastramqpi), 2700)
     fastramqpi.add_lifespan_manager(initialize_converters(fastramqpi), 2800)
-
-    logger.info("Initializing internal AMQP system")
-    internal_amqpsystem = AMQPSystem(
-        settings=settings.internal_amqp,
-        router=internal_amqp_router,  # type: ignore
-    )
-    fastramqpi.add_context(internal_amqpsystem=internal_amqpsystem)
-    fastramqpi.add_lifespan_manager(internal_amqpsystem)
-    if settings.listen_to_changes_in_mo:
-        internal_amqpsystem.router.registry.update(internal_amqp_router.registry)
-    internal_amqpsystem.context = fastramqpi._context
 
     fastramqpi.add_lifespan_manager(initialize_checks(fastramqpi), 2900)
     fastramqpi.add_lifespan_manager(initialize_sync_tool(fastramqpi), 3000)

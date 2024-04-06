@@ -59,12 +59,6 @@ class ServerList(ConstrainedList):
     __args__ = (ServerConfig,)
 
 
-class InternalAMQPConnectionSettings(AMQPConnectionSettings):
-    exchange = "ldap_ie_internal"
-    queue_prefix = "ldap_ie_internal"
-    prefetch_count = 1  # MO cannot handle too many requests
-
-
 class LDAPAMQPConnectionSettings(AMQPConnectionSettings):
     exchange = "ldap_ie_ldap"
     queue_prefix = "ldap_ie_ldap"
@@ -73,7 +67,14 @@ class LDAPAMQPConnectionSettings(AMQPConnectionSettings):
 
 class ExternalAMQPConnectionSettings(AMQPConnectionSettings):
     queue_prefix = "ldap_ie"
+    upstream_exchange = "os2mo"
     prefetch_count: int = 1  # MO cannot handle too many requests
+
+    @root_validator
+    def set_exchange_by_queue_prefix(cls, values: dict[str, Any]) -> dict[str, Any]:
+        """Ensure that exchange is set based on queue_prefix."""
+        values["exchange"] = "os2mo_" + values["queue_prefix"]
+        return values
 
 
 class FastFAMQPIApplicationSettings(FastRAMQPISettings):
@@ -350,11 +351,6 @@ class Settings(BaseSettings):
         description="Conversion mapping between LDAP and OS2mo",
     )
 
-    internal_amqp: InternalAMQPConnectionSettings = Field(
-        default_factory=InternalAMQPConnectionSettings,  # type: ignore
-        description="Internal amqp settings",
-    )
-
     ldap_amqp: LDAPAMQPConnectionSettings = Field(
         default_factory=LDAPAMQPConnectionSettings,  # type: ignore
         description="LDAP amqp settings",
@@ -368,11 +364,6 @@ class Settings(BaseSettings):
         # If a key-error occurs, do nothing and let the validation explain it
         with suppress(KeyError):
             fastramqpi_amqp_url = values["fastramqpi"]["amqp"]["url"]
-
-            values["internal_amqp"] = values.get("internal_amqp", {})
-            values["internal_amqp"]["url"] = values["internal_amqp"].get(
-                "url", fastramqpi_amqp_url
-            )
 
             values["ldap_amqp"] = values.get("ldap_amqp", {})
             values["ldap_amqp"]["url"] = values["ldap_amqp"].get(

@@ -94,7 +94,6 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "LDAP_OUS_TO_SEARCH_IN": '["OU=bar"]',
         "LDAP_OU_FOR_NEW_USERS": "OU=foo,OU=bar",
         "FASTRAMQPI__AMQP__URL": "amqp://guest:guest@msg_broker:5672/",
-        "INTERNAL_AMQP__URL": "amqp://guest:guest@msg_broker:5672/",
     }
     yield overrides
 
@@ -251,13 +250,6 @@ def converter() -> MagicMock:
 
 
 @pytest.fixture(scope="module")
-def internal_amqpsystem() -> MagicMock:
-    mock = MagicMock()
-    mock.publish_message = AsyncMock()
-    return mock
-
-
-@pytest.fixture(scope="module")
 def sync_tool() -> AsyncMock:
     return AsyncMock()
 
@@ -282,7 +274,6 @@ def context_dependency_injection(
 def patch_modules(
     load_settings_overrides: dict[str, str],
     dataloader: AsyncMock,
-    internal_amqpsystem: MagicMock,
 ) -> Iterator[None]:
     """
     Fixture to patch modules needed in main.py
@@ -291,8 +282,6 @@ def patch_modules(
         "mo_ldap_import_export.main.configure_ldap_connection", new_callable=MagicMock()
     ), patch("mo_ldap_import_export.main.DataLoader", return_value=dataloader), patch(
         "mo_ldap_import_export.routes.get_attribute_types", return_value={"foo": {}}
-    ), patch(
-        "mo_ldap_import_export.main.AMQPSystem", return_value=internal_amqpsystem
     ), patch("mo_ldap_import_export.main.asyncio.get_event_loop", return_value=None):
         yield
 

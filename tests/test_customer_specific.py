@@ -26,17 +26,17 @@ def context(
     converter: MagicMock,
     export_checks: AsyncMock,
     settings: MagicMock,
-    internal_amqpsystem: MagicMock,
+    amqpsystem: MagicMock,
 ) -> Context:
     context = Context(
         {
+            "amqpsystem": amqpsystem,
             "user_context": {
                 "dataloader": dataloader,
                 "converter": converter,
                 "export_checks": export_checks,
-                "internal_amqpsystem": internal_amqpsystem,
                 "settings": settings,
-            }
+            },
         }
     )
     return context
