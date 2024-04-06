@@ -1312,33 +1312,22 @@ async def test_refresh_employee(
         uuid4(): "it_system 2",
     }
 
+    # TODO: I believe these actually return string keys not uuids?
     converter.employee_address_type_info = address_types
     converter.it_system_info = it_systems
 
-    address = Address.from_simplified_fields("foo", uuid4(), "2021-01-01")
-    it_user = ITUser.from_simplified_fields("mucki", uuid4(), "2020-01-01")
-    engagement = Engagement.from_simplified_fields(
-        uuid4(), uuid4(), uuid4(), uuid4(), "bar", "2019-01-01"
+    employee_uuid = uuid4()
+    await sync_tool.refresh_employee(employee_uuid)
+
+    dataloader.graphql_client.person_address_refresh.assert_awaited_once_with(
+        "os2mo_ldap_ie", employee_uuid, list(address_types.keys())
     )
-
-    dataloader.load_mo_employee_addresses.return_value = [address]
-    dataloader.load_mo_employee_it_users.return_value = [it_user]
-    dataloader.load_mo_employee_engagements.return_value = [engagement]
-
-    sync_tool.refresh_address = AsyncMock()  # type: ignore
-    sync_tool.refresh_engagement = AsyncMock()  # type: ignore
-    sync_tool.refresh_ituser = AsyncMock()  # type: ignore
-
-    await sync_tool.refresh_employee(uuid4())
-
-    sync_tool.refresh_address.assert_any_await(address.uuid)
-    assert sync_tool.refresh_address.await_count == 2
-
-    sync_tool.refresh_engagement.assert_any_await(engagement.uuid)
-    assert sync_tool.refresh_engagement.await_count == 1
-
-    sync_tool.refresh_ituser.assert_any_await(it_user.uuid)
-    assert sync_tool.refresh_ituser.await_count == 2
+    dataloader.graphql_client.person_engagement_refresh.assert_awaited_once_with(
+        "os2mo_ldap_ie", employee_uuid
+    )
+    dataloader.graphql_client.person_ituser_refresh.assert_awaited_once_with(
+        "os2mo_ldap_ie", employee_uuid, list(it_systems.keys())
+    )
 
 
 async def test_import_jobtitlefromadtomo_objects(

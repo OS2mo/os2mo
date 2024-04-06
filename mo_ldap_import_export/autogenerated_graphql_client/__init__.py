@@ -141,6 +141,12 @@ from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefresh
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefreshEngagementRefresh
+from .person_address_refresh import PersonAddressRefresh
+from .person_address_refresh import PersonAddressRefreshAddressRefresh
+from .person_engagement_refresh import PersonEngagementRefresh
+from .person_engagement_refresh import PersonEngagementRefreshEngagementRefresh
+from .person_ituser_refresh import PersonItuserRefresh
+from .person_ituser_refresh import PersonItuserRefreshItuserRefresh
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuid
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuidClasses
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuidClassesObjects
@@ -347,6 +353,12 @@ __all__ = [
     "ParentsBoundClassFilter",
     "ParentsBoundFacetFilter",
     "ParentsBoundOrganisationUnitFilter",
+    "PersonAddressRefresh",
+    "PersonAddressRefreshAddressRefresh",
+    "PersonEngagementRefresh",
+    "PersonEngagementRefreshEngagementRefresh",
+    "PersonItuserRefresh",
+    "PersonItuserRefreshItuserRefresh",
     "RAOpenValidityInput",
     "RAValidityInput",
     "ReadClassNameByClassUuid",
