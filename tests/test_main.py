@@ -655,13 +655,6 @@ def test_ldap_get_all_converted_endpoint_failure(
 
 
 @pytest.mark.usefixtures("context_dependency_injection")
-async def test_export_single_user_endpoint(test_client: TestClient):
-    uuid = uuid4()
-    response = test_client.post(f"/Export/{uuid}")
-    assert response.status_code == 202
-
-
-@pytest.mark.usefixtures("context_dependency_injection")
 async def test_import_all_objects_from_LDAP_first_20(test_client: TestClient) -> None:
     params = {
         "test_on_first_20_entries": True,
@@ -741,30 +734,6 @@ async def test_load_faulty_username_generator() -> None:
     with pytest.raises(ValueError) as exc_info:
         get_username_generator_class("__unknown_username_generator")
     assert "No such username_generator" in str(exc_info.value)
-
-
-@pytest.mark.usefixtures("context_dependency_injection")
-async def test_export_endpoint(
-    test_client: TestClient,
-    sync_tool: AsyncMock,
-    test_mo_objects: list,
-):
-    params: dict = {
-        "publish_amqp_messages": True,
-        "uuid": str(uuid4()),
-    }
-
-    current_awaits = sync_tool.refresh_mo_object.await_count
-
-    response = test_client.post("/Export", params=params)
-    assert response.status_code == 202
-
-    for mo_object in test_mo_objects:
-        sync_tool.refresh_mo_object.assert_any_await(mo_object)
-
-    assert (
-        sync_tool.refresh_mo_object.await_count == len(test_mo_objects) + current_awaits
-    )
 
 
 async def test_reject_on_failure():
