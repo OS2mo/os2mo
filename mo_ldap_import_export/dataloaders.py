@@ -1315,9 +1315,6 @@ class DataLoader:
     async def load_mo_job_functions(self) -> dict:
         return await self.load_mo_facet("engagement_job_function")
 
-    async def load_mo_engagement_types(self) -> dict:
-        return await self.load_mo_facet("engagement_type")
-
     async def load_mo_org_unit_types(self) -> dict:
         return await self.load_mo_facet("org_unit_type")
 

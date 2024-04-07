@@ -133,6 +133,10 @@ from .itsystem_create import ItsystemCreate
 from .itsystem_create import ItsystemCreateItsystemCreate
 from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
+from .read_class_name_by_class_uuid import ReadClassNameByClassUuid
+from .read_class_name_by_class_uuid import ReadClassNameByClassUuidClasses
+from .read_class_name_by_class_uuid import ReadClassNameByClassUuidClassesObjects
+from .read_class_name_by_class_uuid import ReadClassNameByClassUuidClassesObjectsCurrent
 from .read_class_uuid import ReadClassUuid
 from .read_class_uuid import ReadClassUuidClasses
 from .read_class_uuid import ReadClassUuidClassesObjects
@@ -325,6 +329,10 @@ __all__ = [
     "ParentsBoundOrganisationUnitFilter",
     "RAOpenValidityInput",
     "RAValidityInput",
+    "ReadClassNameByClassUuid",
+    "ReadClassNameByClassUuidClasses",
+    "ReadClassNameByClassUuidClassesObjects",
+    "ReadClassNameByClassUuidClassesObjectsCurrent",
     "ReadClassUuid",
     "ReadClassUuidByFacetAndClassUserKey",
     "ReadClassUuidByFacetAndClassUserKeyClasses",

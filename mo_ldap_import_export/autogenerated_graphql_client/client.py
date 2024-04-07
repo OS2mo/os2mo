@@ -25,6 +25,8 @@ from .itsystem_create import ItsystemCreate
 from .itsystem_create import ItsystemCreateItsystemCreate
 from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
+from .read_class_name_by_class_uuid import ReadClassNameByClassUuid
+from .read_class_name_by_class_uuid import ReadClassNameByClassUuidClasses
 from .read_class_uuid import ReadClassUuid
 from .read_class_uuid import ReadClassUuidClasses
 from .read_class_uuid_by_facet_and_class_user_key import (
@@ -417,3 +419,24 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadClassUuidByFacetAndClassUserKey.parse_obj(data).classes
+
+    async def read_class_name_by_class_uuid(
+        self, class_uuid: UUID
+    ) -> ReadClassNameByClassUuidClasses:
+        query = gql(
+            """
+            query read_class_name_by_class_uuid($class_uuid: UUID!) {
+              classes(filter: {uuids: [$uuids]}) {
+                objects {
+                  current {
+                    name
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"class_uuid": class_uuid}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadClassNameByClassUuid.parse_obj(data).classes
