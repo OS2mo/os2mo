@@ -337,16 +337,6 @@ def construct_router(user_context: UserContext) -> APIRouter:
         logger.info(f"Posting {mo_object} = {mo_object_json} to MO")
         await dataloader.upload_mo_objects([mo_object(**mo_object_json)])
 
-    # Get a speficic address from MO
-    @router.get("/MO/Address/{uuid}", status_code=202, tags=["MO"])
-    async def load_address_from_MO(dataloader: depends.DataLoader, uuid: UUID) -> Any:
-        return await dataloader.load_mo_address(uuid)
-
-    # Get a speficic person from MO
-    @router.get("/MO/Employee/{uuid}", status_code=202, tags=["MO"])
-    async def load_employee_from_MO(dataloader: depends.DataLoader, uuid: UUID) -> Any:
-        return await dataloader.load_mo_employee(uuid)
-
     # Get LDAP overview
     @router.get("/Inspect/overview", status_code=202, tags=["LDAP"])
     async def load_overview_from_LDAP(
@@ -413,29 +403,5 @@ def construct_router(user_context: UserContext) -> APIRouter:
         dataloader: depends.DataLoader, dn: str
     ) -> Any:
         return dataloader.get_ldap_unique_ldap_uuid(dn)
-
-    # Get MO address types
-    @router.get("/MO/Address_types_org_unit", status_code=202, tags=["MO"])
-    async def load_org_unit_address_types_from_MO(
-        dataloader: depends.DataLoader,
-    ) -> Any:
-        return await dataloader.load_mo_org_unit_address_types()
-
-    # Get MO address types
-    @router.get("/MO/Address_types_employee", status_code=202, tags=["MO"])
-    async def load_employee_address_types_from_MO(
-        dataloader: depends.DataLoader,
-    ) -> Any:
-        return await dataloader.load_mo_employee_address_types()
-
-    # Get MO IT system types
-    @router.get("/MO/IT_systems", status_code=202, tags=["MO"])
-    async def load_it_systems_from_MO(dataloader: depends.DataLoader) -> Any:
-        return await dataloader.load_mo_it_systems()
-
-    # Get MO primary types
-    @router.get("/MO/Primary_types", status_code=202, tags=["MO"])
-    async def load_primary_types_from_MO(dataloader: depends.DataLoader) -> Any:
-        return await dataloader.load_mo_primary_types()
 
     return router

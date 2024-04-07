@@ -465,16 +465,6 @@ def test_ldap_post_ldap_employee_endpoint(test_client: TestClient) -> None:
 
 
 @pytest.mark.usefixtures("context_dependency_injection")
-def test_mo_get_employee_endpoint(test_client: TestClient) -> None:
-    """Test the MO get-all endpoint on our app."""
-
-    uuid = uuid4()
-
-    response = test_client.get(f"/MO/Employee/{uuid}")
-    assert response.status_code == 202
-
-
-@pytest.mark.usefixtures("context_dependency_injection")
 def test_mo_post_employee_endpoint(test_client: TestClient) -> None:
     """Test the MO get-all endpoint on our app."""
 
@@ -665,36 +655,9 @@ def test_ldap_get_all_converted_endpoint_failure(
 
 
 @pytest.mark.usefixtures("context_dependency_injection")
-def test_load_address_from_MO_endpoint(test_client: TestClient):
-    uuid = uuid4()
-    response = test_client.get(f"/MO/Address/{uuid}")
-    assert response.status_code == 202
-
-
-@pytest.mark.usefixtures("context_dependency_injection")
 async def test_export_single_user_endpoint(test_client: TestClient):
     uuid = uuid4()
     response = test_client.post(f"/Export/{uuid}")
-    assert response.status_code == 202
-
-
-@pytest.mark.usefixtures("context_dependency_injection")
-def test_load_address_types_from_MO_endpoint(test_client: TestClient):
-    response = test_client.get("/MO/Address_types_employee")
-    assert response.status_code == 202
-    response = test_client.get("/MO/Address_types_org_unit")
-    assert response.status_code == 202
-
-
-@pytest.mark.usefixtures("context_dependency_injection")
-def test_load_it_systems_from_MO_endpoint(test_client: TestClient):
-    response = test_client.get("/MO/IT_systems")
-    assert response.status_code == 202
-
-
-@pytest.mark.usefixtures("context_dependency_injection")
-def test_load_primary_types_from_MO_endpoint(test_client: TestClient):
-    response = test_client.get("/MO/Primary_types")
     assert response.status_code == 202
 
 
