@@ -74,6 +74,7 @@ def create_engine(user, password, host, name) -> AsyncEngine:
         # not need to be concerned with error handling. This is required for the
         # testing APIs to function correctly.
         pool_pre_ping=True,
+        isolation_level="SERIALIZABLE",
     )
 
 

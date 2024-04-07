@@ -162,7 +162,18 @@ async def test_edit_remove_seniority(service_client: TestClient) -> None:
     # A generic example of editing an employee
 
     userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
-
+#   # NOTE: Commenting this in, makes the check on line 203 fail
+#   #       I think it is related to some kind of database transaction control?
+#    c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+#    actual = await c.bruger.get(userid)
+#    assert actual is not None
+#
+#    actual_seniorities = [
+#        x.get("seniority", None)
+#        for x in actual["attributter"]["brugerudvidelser"]
+#    ]
+#    assert actual_seniorities == [None]
+#
     req = [
         {
             "type": "employee",
@@ -182,18 +193,15 @@ async def test_edit_remove_seniority(service_client: TestClient) -> None:
     assert response.status_code == 200
     assert response.json() == [userid]
 
-    expected_seniorities = ["2017-01-01", None]
-
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
     actual = await c.bruger.get(userid)
     assert actual is not None
 
-    assert expected_seniorities == list(
-        map(
-            (lambda x: x.get("seniority", None)),
-            actual["attributter"]["brugerudvidelser"],
-        )
-    )
+    actual_seniorities = [
+        x.get("seniority", None)
+        for x in actual["attributter"]["brugerudvidelser"]
+    ]
+    assert actual_seniorities == ["2017-01-01", None]
 
     req = [
         {
@@ -213,19 +221,16 @@ async def test_edit_remove_seniority(service_client: TestClient) -> None:
     assert response.status_code == 200
     assert response.json() == [userid]
 
-    expected_seniorities = [None, None, "2017-01-01"]
-
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
     actual = await c.bruger.get(userid)
     assert actual is not None
 
-    assert expected_seniorities == sorted(
-        map(
-            (lambda x: x.get("seniority", None)),
-            actual["attributter"]["brugerudvidelser"],
-        ),
-        key=(lambda x: ("" if (x is None) else x)),
+    actual_seniorities = sorted([
+        x.get("seniority", None)
+        for x in actual["attributter"]["brugerudvidelser"]
+    ], key=(lambda x: ("" if (x is None) else x))
     )
+    assert actual_seniorities == [None, None, "2017-01-01"]
 
 
 @pytest.mark.integration_test
