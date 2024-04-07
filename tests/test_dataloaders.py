@@ -605,24 +605,6 @@ async def test_load_mo_address_types(
     assert (await dataloader.load_mo_org_unit_address_types())[uuid]["name"] == name
 
 
-async def test_load_mo_primary_types(
-    dataloader: DataLoader, legacy_graphql_session: AsyncMock
-) -> None:
-    uuid = uuid4()
-    value_key = "primary"
-
-    legacy_graphql_session.execute.return_value = {
-        "facets": {
-            "objects": [
-                {"current": {"classes": [{"uuid": uuid, "value_key": value_key}]}},
-            ]
-        }
-    }
-
-    output = await dataloader.load_mo_primary_types()
-    assert output[uuid]["value_key"] == value_key
-
-
 async def test_load_mo_job_functions(
     dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ) -> None:

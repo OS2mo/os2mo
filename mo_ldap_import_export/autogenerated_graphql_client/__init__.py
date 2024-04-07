@@ -136,6 +136,15 @@ from .ituser_terminate import ItuserTerminateItuserTerminate
 from .read_class_uuid import ReadClassUuid
 from .read_class_uuid import ReadClassUuidClasses
 from .read_class_uuid import ReadClassUuidClassesObjects
+from .read_class_uuid_by_facet_and_class_user_key import (
+    ReadClassUuidByFacetAndClassUserKey,
+)
+from .read_class_uuid_by_facet_and_class_user_key import (
+    ReadClassUuidByFacetAndClassUserKeyClasses,
+)
+from .read_class_uuid_by_facet_and_class_user_key import (
+    ReadClassUuidByFacetAndClassUserKeyClassesObjects,
+)
 from .read_employee_addresses import ReadEmployeeAddresses
 from .read_employee_addresses import ReadEmployeeAddressesAddresses
 from .read_employee_addresses import ReadEmployeeAddressesAddressesObjects
@@ -317,6 +326,9 @@ __all__ = [
     "RAOpenValidityInput",
     "RAValidityInput",
     "ReadClassUuid",
+    "ReadClassUuidByFacetAndClassUserKey",
+    "ReadClassUuidByFacetAndClassUserKeyClasses",
+    "ReadClassUuidByFacetAndClassUserKeyClassesObjects",
     "ReadClassUuidClasses",
     "ReadClassUuidClassesObjects",
     "ReadEmployeeAddresses",
