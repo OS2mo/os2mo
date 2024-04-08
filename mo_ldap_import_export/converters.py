@@ -133,7 +133,7 @@ class LdapConverter:
         self.default_org_unit_type_uuid = await self.get_org_unit_type_uuid(
             self.settings.default_org_unit_type
         )
-        self.default_org_unit_level_uuid = self.get_org_unit_level_uuid(
+        self.default_org_unit_level_uuid = await self.get_org_unit_level_uuid(
             self.settings.default_org_unit_level
         )
 
@@ -167,7 +167,6 @@ class LdapConverter:
         self.visibility_info = await self.dataloader.load_mo_visibility()
 
         self.org_unit_info = await self.dataloader.load_mo_org_units()
-        self.org_unit_level_info = await self.dataloader.load_mo_org_unit_levels()
 
         self.job_function_info = await self.dataloader.load_mo_job_functions()
 
@@ -867,9 +866,17 @@ class LdapConverter:
             ).uuid
         )
 
-    def get_org_unit_level_uuid(self, org_unit_level: str) -> str:
-        return self.get_object_uuid_from_user_key(
-            self.org_unit_level_info, org_unit_level
+    async def get_org_unit_level_uuid(self, org_unit_level: str) -> str:
+        result = await self.dataloader.graphql_client.read_class_uuid_by_facet_and_class_user_key(
+            "org_unit_level", org_unit_level
+        )
+        return str(
+            one(
+                result.objects,
+                too_short=UUIDNotFoundException(
+                    f"org_unit_level not found, user_key: {org_unit_level}"
+                ),
+            ).uuid
         )
 
     async def get_employee_address_type_user_key(self, uuid: str) -> str:
