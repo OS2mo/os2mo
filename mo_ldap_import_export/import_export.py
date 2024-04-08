@@ -533,6 +533,13 @@ class SyncTool:
                 ]
             )
 
+    async def refresh_org_unit_info_cache(self) -> None:
+        # When an org-unit is changed we need to update the org unit info. So we
+        # know the new name of the org unit in case it was changed
+        logger.info("[Listen-to-changes-in-orgs] Updating org unit info.")
+        self.converter.org_unit_info = await self.dataloader.load_mo_org_units()
+        self.converter.check_org_unit_info_dict()
+
     @wait_for_export_to_finish
     async def listen_to_changes_in_org_units(
         self,
@@ -570,16 +577,8 @@ class SyncTool:
             **logger_args,
         )
 
-        # When an org-unit is changed we need to update the org unit info. So we
-        # know the new name of the org unit in case it was changed
         object_type = get_object_type_from_routing_key(routing_key)
-        if object_type == "org_unit":
-            logger.info(
-                "[Listen-to-changes-in-orgs] Updating org unit info.", **logger_args
-            )
-            self.converter.org_unit_info = await self.dataloader.load_mo_org_units()
-            self.converter.check_org_unit_info_dict()
-
+        if object_type == "org_unit":  # pragma: no cover
             # In case the name of the org-unit changed, we need to publish an
             # "engagement" message for each of its employees. Because org-unit
             # LDAP mapping is primarily done through the "Engagment" json-key.

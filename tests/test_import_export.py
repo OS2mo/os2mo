@@ -78,18 +78,7 @@ async def test_listen_to_changes_in_org_units(
 
     dataloader.load_mo_org_units.return_value = org_unit_info
 
-    payload = MagicMock()
-    payload.uuid = uuid4()
-
-    mo_routing_key: MORoutingKey = "org_unit"
-
-    await sync_tool.listen_to_changes_in_org_units(
-        payload.uuid,
-        payload.object_uuid,
-        routing_key=mo_routing_key,
-        delete=False,
-        current_objects_only=True,
-    )
+    await sync_tool.refresh_org_unit_info_cache()
     assert converter.org_unit_info == org_unit_info
 
 
