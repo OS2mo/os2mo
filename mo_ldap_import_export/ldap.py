@@ -357,25 +357,31 @@ def paged_search(
     return results
 
 
-def single_object_search(searchParameters, context: Context):
-    """
-    Performs an LDAP search and throws an exception if there are multiple or no search
-    results.
+def single_object_search(
+    searchParameters: dict[str, Any], context: Context
+) -> dict[str, Any]:
+    """Performs an LDAP search and return the result.
 
-    Parameters
-    -------------
-    searchParameters : dict
-        Dict with the following keys:
-            * search_base
-            * search_filter
-            * attributes
-            * see https://ldap3.readthedocs.io/en/latest/searches.html for more keys
+    Notes:
+        If you want to be 100% sure that the search only returns one result;
+        Supply an object's dn (distinguished name) as the search base and set
+        searchFilter = "(objectclass=*)" and search_scope = BASE
 
-    Notes
-    ------
-    If you want to be 100% sure that the search only returns one result; Supply an
-    object's dn (distinguished name) as the search base and set
-    searchFilter = "(objectclass=*)" and search_scope = BASE
+    Args:
+        searchParameters:
+            Dictionary with the following keys:
+                * search_base
+                * search_filter
+                * attributes
+                * see https://ldap3.readthedocs.io/en/latest/searches.html for more keys
+        context: The FastRAMQPI context.
+
+    Raises:
+        MultipleObjectsReturnedException: If multiple objects were found.
+        NoObjectsReturnedException: If no objects were found.
+
+    Returns:
+        The found object.
     """
     ldap_connection = context["user_context"]["ldap_connection"]
     settings = context["user_context"]["settings"]
