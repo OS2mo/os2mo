@@ -162,9 +162,28 @@ def context(address_type_uuid: str) -> Context:
     dataloader.load_ldap_overview.return_value = overview
     org_unit_type_uuid = str(uuid4())
     org_unit_level_uuid = str(uuid4())
-    dataloader.load_mo_org_unit_types.return_value = {
-        org_unit_type_uuid: {"uuid": org_unit_type_uuid, "user_key": "Afdeling"}
+
+    async def read_class_uuid_by(
+        facet_user_key: str, class_user_key: str
+    ) -> ReadClassUuidByFacetAndClassUserKeyClasses:
+        mapping = read_class_uuid_by.map  # type: ignore
+        uuid = mapping.get((facet_user_key, class_user_key))
+        objects = []
+        if uuid:
+            objects = [{"uuid": uuid}]
+        return parse_obj_as(
+            ReadClassUuidByFacetAndClassUserKeyClasses, {"objects": objects}
+        )
+
+    fake_read_class_uuid_map = {
+        ("org_unit_type", "Afdeling"): org_unit_type_uuid,
+        ("org_unit_level", "N1"): org_unit_level_uuid,
     }
+    read_class_uuid_by.map = fake_read_class_uuid_map  # type: ignore
+
+    graphql_client: AsyncMock = cast(AsyncMock, dataloader.graphql_client)
+    graphql_client.read_class_uuid_by_facet_and_class_user_key = read_class_uuid_by
+
     dataloader.load_mo_org_unit_levels.return_value = {
         org_unit_level_uuid: {"uuid": org_unit_level_uuid, "user_key": "N1"}
     }
@@ -1168,25 +1187,15 @@ async def test_get_engagement_type_uuid(
     converter: LdapConverter, class_name: str
 ) -> None:
     class_uuid = str(uuid4())
+
     graphql_client: AsyncMock = cast(AsyncMock, converter.dataloader.graphql_client)
-    graphql_client.read_class_uuid_by_facet_and_class_user_key.return_value = (
-        parse_obj_as(
-            ReadClassUuidByFacetAndClassUserKeyClasses,
-            {"objects": [{"uuid": class_uuid}]},
-        )
-    )
+    graphql_client.read_class_uuid_by_facet_and_class_user_key.map[
+        ("engagement_type", class_name)
+    ] = class_uuid
     assert await converter.get_or_create_engagement_type_uuid(class_name) == class_uuid
-    graphql_client.read_class_uuid_by_facet_and_class_user_key.assert_awaited_once_with(
-        "engagement_type", class_name
-    )
 
 
 async def test_get_engagement_type_non_existing_uuid(converter: LdapConverter):
-    graphql_client: AsyncMock = cast(AsyncMock, converter.dataloader.graphql_client)
-    graphql_client.read_class_uuid_by_facet_and_class_user_key.return_value = (
-        parse_obj_as(ReadClassUuidByFacetAndClassUserKeyClasses, {"objects": []})
-    )
-
     uuid = uuid4()
     dataloader: AsyncMock = cast(AsyncMock, converter.dataloader)
     dataloader.create_mo_engagement_type.return_value = uuid
@@ -1205,17 +1214,12 @@ async def test_get_engagement_type_non_existing_uuid(converter: LdapConverter):
 @pytest.mark.parametrize("class_name", ["primary", "non-primary"])
 async def test_get_primary_type_uuid(converter: LdapConverter, class_name: str) -> None:
     class_uuid = str(uuid4())
+
     graphql_client: AsyncMock = cast(AsyncMock, converter.dataloader.graphql_client)
-    graphql_client.read_class_uuid_by_facet_and_class_user_key.return_value = (
-        parse_obj_as(
-            ReadClassUuidByFacetAndClassUserKeyClasses,
-            {"objects": [{"uuid": class_uuid}]},
-        )
-    )
+    graphql_client.read_class_uuid_by_facet_and_class_user_key.map[
+        ("primary_type", class_name)
+    ] = class_uuid
     assert await converter.get_primary_type_uuid(class_name) == class_uuid
-    graphql_client.read_class_uuid_by_facet_and_class_user_key.assert_awaited_once_with(
-        "primary_type", class_name
-    )
 
 
 async def test_get_it_system_user_key(converter: LdapConverter):
