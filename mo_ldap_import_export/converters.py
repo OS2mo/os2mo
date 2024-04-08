@@ -37,6 +37,7 @@ from .utils import delete_keys_from_dict
 from .utils import exchange_ou_in_dn
 from .utils import extract_ou_from_dn
 from .utils import import_class
+from .utils import is_list
 
 
 async def find_cpr_field(mapping):
@@ -1161,10 +1162,6 @@ class LdapConverter:
         single LDAP field to contain multiple values. This function determines
         if that is the case.
         """
-
-        def is_list(x: Any) -> bool:
-            return isinstance(x, list)
-
         values = ldap_object.dict().values()
         list_values = filter(is_list, values)
         list_lengths = map(len, list_values)
@@ -1196,7 +1193,7 @@ class LdapConverter:
                 {
                     key: (
                         value[min(entry, len(value) - 1)]
-                        if isinstance(value, list) and len(value) > 0
+                        if is_list(value) and len(value) > 0
                         else value
                     )
                     for key, value in ldap_object.dict().items()

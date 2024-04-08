@@ -43,6 +43,8 @@ from .logging import logger
 from .processors import _hide_cpr as hide_cpr
 from .utils import combine_dn_strings
 from .utils import datetime_to_ldap_timestamp
+from .utils import ensure_list
+from .utils import is_list
 from .utils import mo_object_is_valid
 
 
@@ -377,17 +379,15 @@ def single_object_search(searchParameters, context: Context):
     """
     ldap_connection = context["user_context"]["ldap_connection"]
     settings = context["user_context"]["settings"]
-    if isinstance(searchParameters["search_base"], list):
-        search_bases = searchParameters["search_base"].copy()
-        modified_searchParameters = searchParameters.copy()
-        response = []
-        for search_base in search_bases:
-            modified_searchParameters["search_base"] = search_base
-            ldap_connection.search(**modified_searchParameters)
-            response.extend(ldap_connection.response)
-    else:
-        ldap_connection.search(**searchParameters)
-        response = ldap_connection.response
+
+    search_bases = ensure_list(searchParameters["search_base"])
+
+    modified_searchParameters = searchParameters.copy()
+    response = []
+    for search_base in search_bases:
+        modified_searchParameters["search_base"] = search_base
+        ldap_connection.search(**modified_searchParameters)
+        response.extend(ldap_connection.response)
 
     search_entries = [r for r in response if r["type"] == "searchResEntry"]
     search_entries = apply_discriminator(search_entries, settings)
@@ -471,7 +471,7 @@ def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
         value = response["attributes"][attribute]
         if is_other_dn(value) and nest:
             ldap_dict[attribute] = get_nested_ldap_object(value)
-        elif isinstance(value, list):
+        elif is_list(value):
             ldap_dict[attribute] = [
                 get_nested_ldap_object(v) if is_other_dn(v) and nest else v
                 for v in value
@@ -555,7 +555,7 @@ async def cleanup(
             filter(None, [getattr(o, attribute, None) for o in converted_mo_objects])
         )
 
-        if not isinstance(values_in_ldap, list):
+        if not is_list(values_in_ldap):
             values_in_ldap = [values_in_ldap] if values_in_ldap else []
 
         # If a value is in LDAP but NOT in MO, it needs to be cleaned
