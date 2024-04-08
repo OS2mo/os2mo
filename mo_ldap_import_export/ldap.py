@@ -30,6 +30,7 @@ from ldap3.core.exceptions import LDAPInvalidDnError
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from more_itertools import always_iterable
+from more_itertools import one
 from ramodels.mo.employee import Employee
 
 from .config import AuthBackendEnum
@@ -396,20 +397,18 @@ def single_object_search(
         response.extend(ldap_connection.response)
 
     search_entries = [r for r in response if r["type"] == "searchResEntry"]
+    # TODO: Do we actually wanna apply discriminator here?
     search_entries = apply_discriminator(search_entries, settings)
 
-    if len(search_entries) > 1:
-        logger.info(response)
-        raise MultipleObjectsReturnedException(
-            hide_cpr(f"Found multiple entries for {searchParameters}: {search_entries}")
-        )
-    elif len(search_entries) == 0:
-        logger.info(response)
-        raise NoObjectsReturnedException(
-            hide_cpr(f"Found no entries for {searchParameters}")
-        )
-    else:
-        return search_entries[0]
+    too_long_exception = MultipleObjectsReturnedException(
+        hide_cpr(f"Found multiple entries for {searchParameters}: {search_entries}")
+    )
+    too_short_exception = NoObjectsReturnedException(
+        hide_cpr(f"Found no entries for {searchParameters}")
+    )
+    return one(
+        search_entries, too_short=too_short_exception, too_long=too_long_exception
+    )
 
 
 def is_dn(value):
@@ -682,6 +681,7 @@ async def _poll(
 
     # Filter to only keep search results
     # TODO: What other types can we get here?
+    # See: https://ldap3.readthedocs.io/en/latest/searches.html#response
     responses = [
         event
         for event in ldap_connection.response
