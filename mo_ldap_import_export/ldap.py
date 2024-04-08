@@ -249,6 +249,12 @@ def apply_discriminator(
     return list(filter(discriminator, search_result))
 
 
+def ldapresponse2entries(ldap_response: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    # TODO: Handle other response types
+    # See: https://ldap3.readthedocs.io/en/latest/searches.html#response
+    return [entry for entry in ldap_response if entry["type"] == "searchResEntry"]
+
+
 def _paged_search(
     settings: Settings,
     ldap_connection: Connection,
@@ -283,8 +289,7 @@ def _paged_search(
 
         # TODO: Handle this error more gracefully
         assert ldap_connection.response is not None
-        entries = [r for r in ldap_connection.response if r["type"] == "searchResEntry"]
-        # TODO: Do we actually wanna apply discriminator here?
+        entries = ldapresponse2entries(ldap_connection.response)
         entries = apply_discriminator(entries, settings)
         responses.extend(entries)
 
@@ -396,7 +401,7 @@ def single_object_search(
         ldap_connection.search(**modified_searchParameters)
         response.extend(ldap_connection.response)
 
-    search_entries = [r for r in response if r["type"] == "searchResEntry"]
+    search_entries = ldapresponse2entries(response)
     # TODO: Do we actually wanna apply discriminator here?
     search_entries = apply_discriminator(search_entries, settings)
 
@@ -680,13 +685,7 @@ async def _poll(
     )
 
     # Filter to only keep search results
-    # TODO: What other types can we get here?
-    # See: https://ldap3.readthedocs.io/en/latest/searches.html#response
-    responses = [
-        event
-        for event in ldap_connection.response
-        if event.get("type") == "searchResEntry"
-    ]
+    responses = ldapresponse2entries(ldap_connection.response)
 
     # NOTE: We can add message deduplication here if needed for performance later
     #       For now we do not care about duplicates, we prefer simplicity
