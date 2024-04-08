@@ -5,9 +5,12 @@ import json
 from base64 import b64decode
 from base64 import b64encode
 from textwrap import dedent
+from uuid import UUID
+from uuid import uuid4
 
 import strawberry
 from pydantic import BaseModel
+from pydantic import Field
 
 from mora.util import CPR
 
@@ -45,6 +48,10 @@ CPRType = strawberry.scalar(
 class _Cursor(BaseModel):
     offset: int
     registration_time: datetime.datetime
+
+    # The purpose of this field is solely to make cursors look different
+    # Prior to adding this field cursors would look similar, even if they were different
+    randomization_uuid: UUID = Field(default_factory=uuid4)
 
 
 Cursor = strawberry.scalar(
