@@ -213,15 +213,18 @@ async def process_person(
 @amqp_router.register("org_unit")
 @reject_on_failure
 async def process_org_unit(
-    context: Context,
     object_uuid: PayloadUUID,
-    mo_routing_key: MORoutingKey,
     sync_tool: depends.SyncTool,
     _: RateLimit,
 ) -> None:
-    args, _ = await unpack_payload(context, object_uuid, mo_routing_key)
-
-    await sync_tool.listen_to_changes_in_org_units(**args)
+    logger.info(
+        "[Listen-to-changes-in-orgs] Registered change in an org_unit.",
+        object_uuid=object_uuid,
+    )
+    # In case the name of the org-unit changed, we need to publish an
+    # "engagement" message for each of its employees. Because org-unit
+    # LDAP mapping is primarily done through the "Engagment" json-key.
+    await sync_tool.publish_engagements_for_org_unit(object_uuid)
     await sync_tool.refresh_org_unit_info_cache()
 
 
