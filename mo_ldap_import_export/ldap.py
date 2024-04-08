@@ -247,16 +247,13 @@ def apply_discriminator(
 
 
 def _paged_search(
-    context: Context,
+    settings: Settings,
+    ldap_connection: Connection,
     searchParameters: dict,
     search_base: str,
-    mute: bool = False,
+    mute: bool,
 ) -> list:
-    responses = []
-    user_context = context["user_context"]
-    ldap_connection = user_context["ldap_connection"]
-    settings = user_context["settings"]
-
+    # TODO: Eliminate mute argument? - Should be logger configuration?
     # TODO: Find max. paged_size number from LDAP rather than hard-code it?
     searchParameters["paged_size"] = 500
     searchParameters["search_base"] = search_base
@@ -267,17 +264,24 @@ def _paged_search(
         logger.info(f"searching for {search_filter} on {search_base}")
 
     # Max 10_000 pages to avoid eternal loops
+    # TODO: Why would we get eternal loops?
+    responses = []
     for page in range(0, 10_000):
         if not mute:
             logger.info(f"searching page {page}")
         ldap_connection.search(**searchParameters)
 
         if ldap_connection.result["description"] == "operationsError":
+            # TODO: Should this be an exception?
+            #       Currently we just return half the result?
             logger.warn(f"{search_filter} Search failed")
             logger.warn(ldap_connection.result)
             break
 
+        # TODO: Handle this error more gracefully
+        assert ldap_connection.response is not None
         entries = [r for r in ldap_connection.response if r["type"] == "searchResEntry"]
+        # TODO: Do we actually wanna apply discriminator here?
         entries = apply_discriminator(entries, settings)
         responses.extend(entries)
 
@@ -300,33 +304,53 @@ def paged_search(
     context: Context,
     searchParameters: dict,
     search_base: str | None = None,
-    **kwargs,
+    mute: bool = False,
 ) -> list:
     """
-    Parameters
-    -----------------
-    searchParameters : dict
-        Dict with the following keys:
-            * search_filter
-            * attributes
-    search_base : str
-        Search base to search in. If empty, uses settings.search_base combined with
-        settings.ous_to_search_in
+    Execute a search on the LDAP server.
+
+    Args:
+        context: The FastRAMQPI context.
+        searchParameters:
+            Dict with the following keys:
+                * search_filter
+                * attributes
+        search_base:
+            Search base to search in.
+            If empty, uses settings.search_base combined with settings.ous_to_search_in.
+        mute: Whether to log process information
+
+    Returns:
+        A list of search results.
     """
+    # NOTE: It seems like this function is purely used for manual endpoints
+    #       Except from a single call from usernames.py
+    # TODO: Consider moving this to its own module separate from business logic
+    # TODO: Make a class for the searchParameters if it has a fixed format?
+
+    user_context = context["user_context"]
+    ldap_connection = user_context["ldap_connection"]
+    settings = user_context["settings"]
 
     if search_base:
         # If the search base is explicitly defined: Don't try anything fancy.
-        results = _paged_search(context, searchParameters, search_base, **kwargs)
-    else:
-        # Otherwise, loop over all OUs to search in
-        settings = context["user_context"]["settings"]
+        results = _paged_search(
+            settings, ldap_connection, searchParameters, search_base, mute
+        )
+        return results
 
-        results = []
-        for ou in settings.ldap_ous_to_search_in:
-            search_base = combine_dn_strings([ou, settings.ldap_search_base])
-            results.extend(
-                _paged_search(context, searchParameters.copy(), search_base, **kwargs)
+    # Otherwise, loop over all OUs to search in
+    search_bases = [
+        combine_dn_strings([ou, settings.ldap_search_base])
+        for ou in settings.ldap_ous_to_search_in
+    ]
+    results = []
+    for search_base in search_bases:
+        results.extend(
+            _paged_search(
+                settings, ldap_connection, searchParameters.copy(), search_base, mute
             )
+        )
 
     return results
 

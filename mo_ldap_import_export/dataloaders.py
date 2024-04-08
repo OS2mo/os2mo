@@ -575,6 +575,7 @@ class DataLoader:
         if not self.ou_in_ous_to_write_to(ou, "[Create-OU]"):
             return
 
+        # TODO: Search for specific OUs as needed instead of reading all of LDAP?
         ou_dict = self.load_ldap_OUs()
 
         # Create OUs top-down (unless they already exist)
@@ -599,6 +600,7 @@ class DataLoader:
             return
 
         for ou_to_delete in self.decompose_ou_string(ou):
+            # TODO: Search for specific OUs as needed instead of reading all of LDAP?
             ou_dict = self.load_ldap_OUs()
             if (
                 ou_dict.get(ou_to_delete, {}).get("empty", False)
