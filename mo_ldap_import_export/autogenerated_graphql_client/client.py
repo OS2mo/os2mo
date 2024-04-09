@@ -33,6 +33,12 @@ from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefresh
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefreshEngagementRefresh
+from .person_address_refresh import PersonAddressRefresh
+from .person_address_refresh import PersonAddressRefreshAddressRefresh
+from .person_engagement_refresh import PersonEngagementRefresh
+from .person_engagement_refresh import PersonEngagementRefreshEngagementRefresh
+from .person_ituser_refresh import PersonItuserRefresh
+from .person_ituser_refresh import PersonItuserRefreshItuserRefresh
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuid
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuidClasses
 from .read_class_uuid import ReadClassUuid
@@ -546,3 +552,74 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return OrgUnitEngagementsRefresh.parse_obj(data).engagement_refresh
+
+    async def person_address_refresh(
+        self, exchange: str, person_uuid: UUID, address_type_uuids: List[UUID]
+    ) -> PersonAddressRefreshAddressRefresh:
+        query = gql(
+            """
+            mutation person_address_refresh($exchange: String!, $person_uuid: UUID!, $address_type_uuids: [UUID!]!) {
+              address_refresh(
+                exchange: $exchange
+                filter: {address_type: {uuids: $address_type_uuids}, employee: {uuids: [$person_uuid]}}
+              ) {
+                objects
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "exchange": exchange,
+            "person_uuid": person_uuid,
+            "address_type_uuids": address_type_uuids,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return PersonAddressRefresh.parse_obj(data).address_refresh
+
+    async def person_engagement_refresh(
+        self, exchange: str, person_uuid: UUID
+    ) -> PersonEngagementRefreshEngagementRefresh:
+        query = gql(
+            """
+            mutation person_engagement_refresh($exchange: String!, $person_uuid: UUID!) {
+              engagement_refresh(
+                exchange: $exchange
+                filter: {employee: {uuids: [$person_uuid]}}
+              ) {
+                objects
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "exchange": exchange,
+            "person_uuid": person_uuid,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return PersonEngagementRefresh.parse_obj(data).engagement_refresh
+
+    async def person_ituser_refresh(
+        self, exchange: str, person_uuid: UUID, it_system_uuids: List[UUID]
+    ) -> PersonItuserRefreshItuserRefresh:
+        query = gql(
+            """
+            mutation person_ituser_refresh($exchange: String!, $person_uuid: UUID!, $it_system_uuids: [UUID!]!) {
+              ituser_refresh(
+                exchange: $exchange
+                filter: {itsystem: {uuids: $it_system_uuids}, employee: {uuids: [$person_uuid]}}
+              ) {
+                objects
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "exchange": exchange,
+            "person_uuid": person_uuid,
+            "it_system_uuids": it_system_uuids,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return PersonItuserRefresh.parse_obj(data).ituser_refresh

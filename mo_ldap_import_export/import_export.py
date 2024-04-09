@@ -9,7 +9,6 @@ import asyncio
 from collections.abc import Callable
 from datetime import datetime
 from datetime import timedelta
-from itertools import chain
 from typing import Any
 from uuid import UUID
 from uuid import uuid4
@@ -24,6 +23,7 @@ from more_itertools import all_equal
 from more_itertools import first
 from more_itertools import one
 from more_itertools import quantify
+from pydantic import parse_obj_as
 from ramodels.mo import MOBase
 
 from .converters import LdapConverter
@@ -1083,52 +1083,25 @@ class SyncTool:
         """
         Sends out AMQP-messages for all objects related to an employee
         """
-        # NOTE: This entire function could probably just be 3 GraphQL calls:
-        #       `address_refresh`, `engagement_refresh` and `ituser_refresh`
-        #       All with employee uuids as a filter.
         # NOTE: Should this not refresh the employee itself as well?
         logger.info("[Refresh-employee] Refreshing employee.", uuid=str(employee_uuid))
 
         # Load address types and it-user types
-        address_type_uuids = self.converter.employee_address_type_info.keys()
-        it_system_uuids = self.converter.it_system_info.keys()
-
-        async def load_addresses():
-            addresses = []
-            for address_type_uuid in address_type_uuids:
-                addresses.extend(
-                    await self.dataloader.load_mo_employee_addresses(
-                        employee_uuid, address_type_uuid
-                    )
-                )
-            return addresses
-
-        async def load_engagements():
-            # Note: engagement addresses are automatically picked up on engagement change
-            return await self.dataloader.load_mo_employee_engagements(employee_uuid)
-
-        async def load_itusers():
-            it_users = []
-            for it_system_uuid in it_system_uuids:
-                it_users.extend(
-                    await self.dataloader.load_mo_employee_it_users(
-                        employee_uuid, it_system_uuid
-                    )
-                )
-            return it_users
-
-        addresses, engagements, it_users = await asyncio.gather(
-            *[load_addresses(), load_engagements(), load_itusers()]
+        address_type_uuids = parse_obj_as(
+            list[UUID], list(self.converter.employee_address_type_info.keys())
+        )
+        it_system_uuids = parse_obj_as(
+            list[UUID], list(self.converter.it_system_info.keys())
         )
 
-        # Publish messages
-        await asyncio.gather(
-            *chain(
-                [self.refresh_address(address.uuid) for address in addresses],
-                [self.refresh_ituser(it_user.uuid) for it_user in it_users],
-                [
-                    self.refresh_engagement(engagement.uuid)
-                    for engagement in engagements
-                ],
-            )
+        refresh_addresses = self.dataloader.graphql_client.person_address_refresh(
+            self.amqpsystem.exchange_name, employee_uuid, address_type_uuids
         )
+        refresh_engagements = self.dataloader.graphql_client.person_engagement_refresh(
+            self.amqpsystem.exchange_name, employee_uuid
+        )
+        refresh_itusers = self.dataloader.graphql_client.person_ituser_refresh(
+            self.amqpsystem.exchange_name, employee_uuid, it_system_uuids
+        )
+
+        await asyncio.gather(*[refresh_addresses, refresh_engagements, refresh_itusers])

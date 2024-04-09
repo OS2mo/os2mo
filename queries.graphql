@@ -210,3 +210,44 @@ mutation org_unit_engagements_refresh($exchange: String!, $org_unit_uuid: UUID!)
     objects
   }
 }
+
+mutation person_address_refresh(
+  $exchange: String!, $person_uuid: UUID!, $address_type_uuids: [UUID!]!
+) {
+  address_refresh(
+    exchange: $exchange,
+    filter: {
+      address_type: {uuids: $address_type_uuids},
+      employee: {uuids: [$person_uuid]}
+    }
+  ) {
+    objects
+  }
+}
+
+mutation person_engagement_refresh(
+  $exchange: String!, $person_uuid: UUID!
+) {
+  engagement_refresh(
+    exchange: $exchange,
+    filter: {
+      employee: {uuids: [$person_uuid]}
+    }
+  ) {
+    objects
+  }
+}
+
+mutation person_ituser_refresh(
+  $exchange: String!, $person_uuid: UUID!, $it_system_uuids: [UUID!]!
+) {
+  ituser_refresh(
+    exchange: $exchange,
+    filter: {
+      itsystem: {uuids: $it_system_uuids},
+      employee: {uuids: [$person_uuid]}
+    }
+  ) {
+    objects
+  }
+}
