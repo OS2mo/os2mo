@@ -27,6 +27,12 @@ from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
 from .read_class_uuid import ReadClassUuid
 from .read_class_uuid import ReadClassUuidClasses
+from .read_class_uuid_by_facet_and_class_user_key import (
+    ReadClassUuidByFacetAndClassUserKey,
+)
+from .read_class_uuid_by_facet_and_class_user_key import (
+    ReadClassUuidByFacetAndClassUserKeyClasses,
+)
 from .read_employee_addresses import ReadEmployeeAddresses
 from .read_employee_addresses import ReadEmployeeAddressesAddresses
 from .read_employee_uuid_by_cpr_number import ReadEmployeeUuidByCprNumber
@@ -387,3 +393,27 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEngagementOrgUnitUuid.parse_obj(data).engagements
+
+    async def read_class_uuid_by_facet_and_class_user_key(
+        self, facet_user_key: str, class_user_key: str
+    ) -> ReadClassUuidByFacetAndClassUserKeyClasses:
+        query = gql(
+            """
+            query read_class_uuid_by_facet_and_class_user_key($facet_user_key: String!, $class_user_key: String!) {
+              classes(
+                filter: {facet: {user_keys: [$facet_user_key]}, user_keys: [$class_user_key]}
+              ) {
+                objects {
+                  uuid
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "facet_user_key": facet_user_key,
+            "class_user_key": class_user_key,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadClassUuidByFacetAndClassUserKey.parse_obj(data).classes

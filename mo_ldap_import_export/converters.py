@@ -171,8 +171,6 @@ class LdapConverter:
         self.engagement_type_info = await self.dataloader.load_mo_engagement_types()
         self.job_function_info = await self.dataloader.load_mo_job_functions()
 
-        self.primary_type_info = await self.dataloader.load_mo_primary_types()
-
         mo_employee_address_types = [
             a["user_key"] for a in self.employee_address_type_info.values()
         ]
@@ -714,8 +712,18 @@ class LdapConverter:
             self.check_info_dicts()
             return str(uuid)
 
-    def get_primary_type_uuid(self, primary: str) -> str:
-        return self.get_object_uuid_from_user_key(self.primary_type_info, primary)
+    async def get_primary_type_uuid(self, primary: str) -> str:
+        result = await self.dataloader.graphql_client.read_class_uuid_by_facet_and_class_user_key(
+            "primary_type", primary
+        )
+        return str(
+            one(
+                result.objects,
+                too_short=UUIDNotFoundException(
+                    f"primary_type not found, user_key: {primary}"
+                ),
+            ).uuid
+        )
 
     def get_engagement_type_uuid(self, engagement_type: str) -> str:
         return self.get_object_uuid_from_name(

@@ -147,3 +147,19 @@ query read_engagement_org_unit_uuid($engagement_uuid: UUID!) {
     }
   }
 }
+
+query read_class_uuid_by_facet_and_class_user_key(
+  $facet_user_key: String!,
+  $class_user_key: String!
+) {
+  classes(
+    filter: {
+      facet: {user_keys: [$facet_user_key]},
+      user_keys: [$class_user_key]
+    }
+  ) {
+    objects {
+      uuid
+    }
+  }
+}
