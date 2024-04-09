@@ -53,6 +53,8 @@ from .read_engagement_org_unit_uuid import ReadEngagementOrgUnitUuid
 from .read_engagement_org_unit_uuid import ReadEngagementOrgUnitUuidEngagements
 from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuid
 from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuidEngagements
+from .read_facet_classes import ReadFacetClasses
+from .read_facet_classes import ReadFacetClassesClasses
 from .read_facet_uuid import ReadFacetUuid
 from .read_facet_uuid import ReadFacetUuidFacets
 from .read_is_primary_engagements import ReadIsPrimaryEngagements
@@ -84,6 +86,28 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ItsystemCreate.parse_obj(data).itsystem_create
+
+    async def read_facet_classes(self, facet_user_key: str) -> ReadFacetClassesClasses:
+        query = gql(
+            """
+            query read_facet_classes($facet_user_key: String!) {
+              classes(filter: {facet: {user_keys: [$facet_user_key]}}) {
+                objects {
+                  current {
+                    user_key
+                    uuid
+                    scope
+                    name
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"facet_user_key": facet_user_key}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadFacetClasses.parse_obj(data).classes
 
     async def read_facet_uuid(self, user_key: str) -> ReadFacetUuidFacets:
         query = gql(

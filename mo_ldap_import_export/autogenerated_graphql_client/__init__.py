@@ -196,6 +196,10 @@ from .read_engagements_by_employee_uuid import (
 from .read_engagements_by_employee_uuid import (
     ReadEngagementsByEmployeeUuidEngagementsObjectsCurrentValidity,
 )
+from .read_facet_classes import ReadFacetClasses
+from .read_facet_classes import ReadFacetClassesClasses
+from .read_facet_classes import ReadFacetClassesClassesObjects
+from .read_facet_classes import ReadFacetClassesClassesObjectsCurrent
 from .read_facet_uuid import ReadFacetUuid
 from .read_facet_uuid import ReadFacetUuidFacets
 from .read_facet_uuid import ReadFacetUuidFacetsObjects
@@ -362,6 +366,10 @@ __all__ = [
     "ReadEngagementsByEmployeeUuidEngagementsObjects",
     "ReadEngagementsByEmployeeUuidEngagementsObjectsCurrent",
     "ReadEngagementsByEmployeeUuidEngagementsObjectsCurrentValidity",
+    "ReadFacetClasses",
+    "ReadFacetClassesClasses",
+    "ReadFacetClassesClassesObjects",
+    "ReadFacetClassesClassesObjectsCurrent",
     "ReadFacetUuid",
     "ReadFacetUuidFacets",
     "ReadFacetUuidFacetsObjects",

@@ -7,6 +7,19 @@ mutation itsystem_create($input: ITSystemCreateInput!) {
   }
 }
 
+query read_facet_classes($facet_user_key: String!) {
+  classes(filter: {facet: {user_keys: [$facet_user_key]}}) {
+    objects {
+      current {
+        user_key
+        uuid
+        scope
+        name
+      }
+    }
+  }
+}
+
 query read_facet_uuid($user_key: String!) {
   facets(filter: {user_keys: [$user_key]}) {
     objects {
