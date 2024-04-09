@@ -4,6 +4,7 @@ import copy
 import re
 from datetime import datetime
 from functools import partial
+from typing import Any
 
 from fastramqpi.ramqp.mo import MORoutingKey
 from gql import gql
@@ -214,3 +215,30 @@ def exchange_ou_in_dn(dn: str, new_ou: str) -> str:
             new_dn_parts.append(dn_part)
 
     return combine_dn_strings(new_dn_parts)
+
+
+def is_list(x: Any | list[Any]) -> bool:
+    """Decide whether the provided arugment is a list.
+
+    Args:
+        x: A potential list.
+
+    Returns:
+        Whether the provided argument is a list or not.
+    """
+    return isinstance(x, list)
+
+
+def ensure_list(x: Any | list[Any]) -> list[Any]:
+    """Wrap the argument in a list if not a list.
+
+    Args:
+        x: A potential list.
+
+    Returns:
+        The provided argument unmodified, if a list.
+        The provided argument wrapped in a list, if not a list.
+    """
+    if is_list(x):
+        return x
+    return [x]

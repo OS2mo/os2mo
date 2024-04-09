@@ -30,6 +30,7 @@ from ldap3.core.exceptions import LDAPInvalidDnError
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from more_itertools import always_iterable
+from more_itertools import one
 from ramodels.mo.employee import Employee
 
 from .config import AuthBackendEnum
@@ -43,6 +44,8 @@ from .logging import logger
 from .processors import _hide_cpr as hide_cpr
 from .utils import combine_dn_strings
 from .utils import datetime_to_ldap_timestamp
+from .utils import ensure_list
+from .utils import is_list
 from .utils import mo_object_is_valid
 
 
@@ -246,6 +249,12 @@ def apply_discriminator(
     return list(filter(discriminator, search_result))
 
 
+def ldapresponse2entries(ldap_response: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    # TODO: Handle other response types
+    # See: https://ldap3.readthedocs.io/en/latest/searches.html#response
+    return [entry for entry in ldap_response if entry["type"] == "searchResEntry"]
+
+
 def _paged_search(
     settings: Settings,
     ldap_connection: Connection,
@@ -280,8 +289,7 @@ def _paged_search(
 
         # TODO: Handle this error more gracefully
         assert ldap_connection.response is not None
-        entries = [r for r in ldap_connection.response if r["type"] == "searchResEntry"]
-        # TODO: Do we actually wanna apply discriminator here?
+        entries = ldapresponse2entries(ldap_connection.response)
         entries = apply_discriminator(entries, settings)
         responses.extend(entries)
 
@@ -355,55 +363,57 @@ def paged_search(
     return results
 
 
-def single_object_search(searchParameters, context: Context):
-    """
-    Performs an LDAP search and throws an exception if there are multiple or no search
-    results.
+def single_object_search(
+    searchParameters: dict[str, Any], context: Context
+) -> dict[str, Any]:
+    """Performs an LDAP search and return the result.
 
-    Parameters
-    -------------
-    searchParameters : dict
-        Dict with the following keys:
-            * search_base
-            * search_filter
-            * attributes
-            * see https://ldap3.readthedocs.io/en/latest/searches.html for more keys
+    Notes:
+        If you want to be 100% sure that the search only returns one result;
+        Supply an object's dn (distinguished name) as the search base and set
+        searchFilter = "(objectclass=*)" and search_scope = BASE
 
-    Notes
-    ------
-    If you want to be 100% sure that the search only returns one result; Supply an
-    object's dn (distinguished name) as the search base and set
-    searchFilter = "(objectclass=*)" and search_scope = BASE
+    Args:
+        searchParameters:
+            Dictionary with the following keys:
+                * search_base
+                * search_filter
+                * attributes
+                * see https://ldap3.readthedocs.io/en/latest/searches.html for more keys
+        context: The FastRAMQPI context.
+
+    Raises:
+        MultipleObjectsReturnedException: If multiple objects were found.
+        NoObjectsReturnedException: If no objects were found.
+
+    Returns:
+        The found object.
     """
     ldap_connection = context["user_context"]["ldap_connection"]
     settings = context["user_context"]["settings"]
-    if isinstance(searchParameters["search_base"], list):
-        search_bases = searchParameters["search_base"].copy()
-        modified_searchParameters = searchParameters.copy()
-        response = []
-        for search_base in search_bases:
-            modified_searchParameters["search_base"] = search_base
-            ldap_connection.search(**modified_searchParameters)
-            response.extend(ldap_connection.response)
-    else:
-        ldap_connection.search(**searchParameters)
-        response = ldap_connection.response
 
-    search_entries = [r for r in response if r["type"] == "searchResEntry"]
+    search_bases = ensure_list(searchParameters["search_base"])
+
+    modified_searchParameters = searchParameters.copy()
+    response = []
+    for search_base in search_bases:
+        modified_searchParameters["search_base"] = search_base
+        ldap_connection.search(**modified_searchParameters)
+        response.extend(ldap_connection.response)
+
+    search_entries = ldapresponse2entries(response)
+    # TODO: Do we actually wanna apply discriminator here?
     search_entries = apply_discriminator(search_entries, settings)
 
-    if len(search_entries) > 1:
-        logger.info(response)
-        raise MultipleObjectsReturnedException(
-            hide_cpr(f"Found multiple entries for {searchParameters}: {search_entries}")
-        )
-    elif len(search_entries) == 0:
-        logger.info(response)
-        raise NoObjectsReturnedException(
-            hide_cpr(f"Found no entries for {searchParameters}")
-        )
-    else:
-        return search_entries[0]
+    too_long_exception = MultipleObjectsReturnedException(
+        hide_cpr(f"Found multiple entries for {searchParameters}: {search_entries}")
+    )
+    too_short_exception = NoObjectsReturnedException(
+        hide_cpr(f"Found no entries for {searchParameters}")
+    )
+    return one(
+        search_entries, too_short=too_short_exception, too_long=too_long_exception
+    )
 
 
 def is_dn(value):
@@ -471,7 +481,7 @@ def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
         value = response["attributes"][attribute]
         if is_other_dn(value) and nest:
             ldap_dict[attribute] = get_nested_ldap_object(value)
-        elif isinstance(value, list):
+        elif is_list(value):
             ldap_dict[attribute] = [
                 get_nested_ldap_object(v) if is_other_dn(v) and nest else v
                 for v in value
@@ -555,7 +565,7 @@ async def cleanup(
             filter(None, [getattr(o, attribute, None) for o in converted_mo_objects])
         )
 
-        if not isinstance(values_in_ldap, list):
+        if not is_list(values_in_ldap):
             values_in_ldap = [values_in_ldap] if values_in_ldap else []
 
         # If a value is in LDAP but NOT in MO, it needs to be cleaned
@@ -675,12 +685,7 @@ async def _poll(
     )
 
     # Filter to only keep search results
-    # TODO: What other types can we get here?
-    responses = [
-        event
-        for event in ldap_connection.response
-        if event.get("type") == "searchResEntry"
-    ]
+    responses = ldapresponse2entries(ldap_connection.response)
 
     # NOTE: We can add message deduplication here if needed for performance later
     #       For now we do not care about duplicates, we prefer simplicity
