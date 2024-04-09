@@ -1049,6 +1049,7 @@ class SyncTool:
     ) -> None:
         # NOTE: This entire function could just be a single call to `address_refresh`
         #       with address_types uuids and org_unit uuids as a filter.
+        # TODO: This will need MO to be able to filter org-units by engagement UUIDs
         object_type = get_object_type_from_routing_key(routing_key)
         assert object_type == "engagement"
 

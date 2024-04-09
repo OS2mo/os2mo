@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 """HTTP Endpoints."""
-import asyncio
 from typing import Any
 from typing import Literal
 from uuid import UUID
@@ -114,50 +113,6 @@ def construct_router(user_context: UserContext) -> APIRouter:
     ) -> Any:
         dn = dataloader.get_ldap_dn(unique_ldap_uuid)
         await sync_tool.import_single_user(dn, manual_import=True)
-
-    class ExportQueryParams:
-        def __init__(
-            self,
-            publish_amqp_messages: bool = Query(
-                True,
-                description=(
-                    "If False, do not publish anything, "
-                    "just inspect what would be published"
-                ),
-            ),
-            object_uuid: str = Query(
-                "", description="If specified, export only the object with this uuid"
-            ),
-        ):
-            self.publish_amqp_messages = publish_amqp_messages
-            self.object_uuid = object_uuid
-
-    # Export all objects related to a single employee from MO to LDAP
-    @router.post("/Export/{employee_uuid}", status_code=202, tags=["Export"])
-    async def export_mo_employee(
-        employee_uuid: UUID,
-        sync_tool: depends.SyncTool,
-    ) -> Any:
-        # TODO: This endpoint can be replaced with employee_refresh, right?
-        await sync_tool.refresh_employee(employee_uuid)
-
-    # Export object(s) from MO to LDAP
-    @router.post("/Export", status_code=202, tags=["Export"])
-    async def export_mo_objects(
-        dataloader: depends.DataLoader,
-        sync_tool: depends.SyncTool,
-        params: ExportQueryParams = Depends(),
-    ) -> Any:
-        # TODO: This endpoint can be replaced with *_refresh, right?
-
-        # Load mo objects
-        mo_objects = await dataloader.load_all_mo_objects(uuid=params.object_uuid)
-        logger.info(f"Found {len(mo_objects)} objects")
-
-        if params.publish_amqp_messages:
-            await asyncio.gather(
-                *[sync_tool.refresh_mo_object(mo_object) for mo_object in mo_objects]
-            )
 
     # Get all objects from LDAP - Converted to MO
     @router.get("/LDAP/{json_key}/converted", status_code=202, tags=["LDAP"])
