@@ -222,6 +222,7 @@ async def process_org_unit(
     args, _ = await unpack_payload(context, object_uuid, mo_routing_key)
 
     await sync_tool.listen_to_changes_in_org_units(**args)
+    await sync_tool.refresh_org_unit_info_cache()
 
 
 @asynccontextmanager
