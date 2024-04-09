@@ -219,6 +219,13 @@ delete_warning = dedent(
     """
 )
 
+QueueType = Annotated[
+    str | None,
+    strawberry.argument(
+        deprecation_reason="Never worked properly. Use `exchange` to target a specific integration instead."
+    ),
+]
+
 
 @strawberry.type(
     description=dedent(
@@ -288,7 +295,7 @@ class Mutation:
         filter: AddressFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        queue: str | None = None,
+        queue: QueueType = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(address_resolver, Address)
         page = await resolve(
@@ -297,7 +304,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="address", queue=queue)
+        return await refresh(info=info, page=page, model="address")
 
     # Associations
     # ------------
@@ -358,7 +365,7 @@ class Mutation:
         filter: AssociationFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        queue: str | None = None,
+        queue: QueueType = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(association_resolver, Association)
         page = await resolve(
@@ -367,7 +374,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="association", queue=queue)
+        return await refresh(info=info, page=page, model="association")
 
     # Classes
     # -------
@@ -433,7 +440,7 @@ class Mutation:
         filter: ClassFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        queue: str | None = None,
+        queue: QueueType = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(class_resolver, Class)
         page = await resolve(
@@ -442,7 +449,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="class", queue=queue)
+        return await refresh(info=info, page=page, model="class")
 
     # Employees
     # ---------
@@ -496,7 +503,7 @@ class Mutation:
         filter: EmployeeFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        queue: str | None = None,
+        queue: QueueType = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(employee_resolver, Employee)
         page = await resolve(
@@ -506,7 +513,7 @@ class Mutation:
             cursor=cursor,
         )
         # NOTE: "employee" is called "person" in the new AMQP system
-        return await refresh(info=info, page=page, model="person", queue=queue)
+        return await refresh(info=info, page=page, model="person")
 
     # Engagements
     # -----------
@@ -575,7 +582,7 @@ class Mutation:
         filter: EngagementFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        queue: str | None = None,
+        queue: QueueType = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(engagement_resolver, Engagement)
         page = await resolve(
@@ -584,7 +591,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="engagement", queue=queue)
+        return await refresh(info=info, page=page, model="engagement")
 
     # Facets
     # ------
@@ -650,7 +657,7 @@ class Mutation:
         filter: FacetFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        queue: str | None = None,
+        queue: QueueType = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(facet_resolver, Facet)
         page = await resolve(
@@ -659,7 +666,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="facet", queue=queue)
+        return await refresh(info=info, page=page, model="facet")
 
     # ITAssociations
     # ---------
@@ -772,7 +779,7 @@ class Mutation:
         filter: ITSystemFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        queue: str | None = None,
+        queue: QueueType = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(it_system_resolver, ITSystem)
         page = await resolve(
@@ -781,7 +788,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="itsystem", queue=queue)
+        return await refresh(info=info, page=page, model="itsystem")
 
     # ITUsers
     # -------
@@ -838,7 +845,7 @@ class Mutation:
         filter: ITUserFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        queue: str | None = None,
+        queue: QueueType = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(it_user_resolver, ITUser)
         page = await resolve(
@@ -847,7 +854,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="ituser", queue=queue)
+        return await refresh(info=info, page=page, model="ituser")
 
     # KLEs
     # ----
@@ -896,7 +903,7 @@ class Mutation:
         filter: KLEFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        queue: str | None = None,
+        queue: QueueType = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(kle_resolver, KLE)
         page = await resolve(
@@ -905,7 +912,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="kle", queue=queue)
+        return await refresh(info=info, page=page, model="kle")
 
     # Leave
     # -----
@@ -954,7 +961,7 @@ class Mutation:
         filter: LeaveFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        queue: str | None = None,
+        queue: QueueType = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(leave_resolver, Leave)
         page = await resolve(
@@ -963,7 +970,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="leave", queue=queue)
+        return await refresh(info=info, page=page, model="leave")
 
     # Managers
     # --------
@@ -1014,7 +1021,7 @@ class Mutation:
         filter: ManagerFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        queue: str | None = None,
+        queue: QueueType = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(manager_resolver, Manager)
         page = await resolve(
@@ -1023,7 +1030,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="manager", queue=queue)
+        return await refresh(info=info, page=page, model="manager")
 
     # Root Organisation
     # -----------------
@@ -1103,7 +1110,7 @@ class Mutation:
         filter: OrganisationUnitFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        queue: str | None = None,
+        queue: QueueType = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(organisation_unit_resolver, OrganisationUnit)
         page = await resolve(
@@ -1112,7 +1119,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="org_unit", queue=queue)
+        return await refresh(info=info, page=page, model="org_unit")
 
     # Owner
     # -------------
@@ -1161,7 +1168,7 @@ class Mutation:
         filter: OwnerFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        queue: str | None = None,
+        queue: QueueType = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(owner_resolver, Owner)
         page = await resolve(
@@ -1170,7 +1177,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="owner", queue=queue)
+        return await refresh(info=info, page=page, model="owner")
 
     # Related Units
     # -------------
@@ -1202,7 +1209,7 @@ class Mutation:
         filter: RelatedUnitFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        queue: str | None = None,
+        queue: QueueType = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(related_unit_resolver, RelatedUnit)
         page = await resolve(
@@ -1211,7 +1218,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="related_unit", queue=queue)
+        return await refresh(info=info, page=page, model="related_unit")
 
     # Roles
     # -----
@@ -1261,7 +1268,7 @@ class Mutation:
         filter: RoleFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
-        queue: str | None = None,
+        queue: QueueType = None,
     ) -> Paged[UUID]:
         resolve = to_paged_uuids(role_resolver, RoleRead)
         page = await resolve(
@@ -1270,7 +1277,7 @@ class Mutation:
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="role", queue=queue)
+        return await refresh(info=info, page=page, model="role")
 
     # Files
     # -----
@@ -1358,29 +1365,16 @@ async def delete_organisationfunktion(uuid: UUID) -> UUID:
     return uuid
 
 
-async def refresh(
-    info: Info, page: Paged[UUID], model: str, queue: str | None
-) -> Paged[UUID]:
-    """Publish AMQP messages for UUIDs in the page, optionally to a specific queue."""
-    if queue is None:
-        # Broadcast on OS2mo's default exchange if no queue is specified
-        routing_key = model
-        exchange = None
-    else:
-        # Otherwise, publish directly to the specified queue by using RabbitMQ's
-        # default/nameless exchange (""), which is implicitly bound to every queue with
-        # a routing key equal to the queue name. The model's name isn't needed as a
-        # routing key in this case since the messages are inserted directly into the
-        # queue. The caller could choose to make sure that the UUIDs and queue match.
-        routing_key = queue
-        exchange = ""
-
-    # Publish UUIDs to AMQP
+async def refresh(info: Info, page: Paged[UUID], model: str) -> Paged[UUID]:
+    """Publish AMQP messages for UUIDs in the page."""
     uuids = page.objects
     amqp_system = info.context["amqp_system"]
     tasks = (
         amqp_system.publish_message(
-            routing_key=routing_key, payload=str(uuid), exchange=exchange
+            routing_key=model,
+            payload=str(uuid),
+            # Broadcasts on OS2mo's default exchange (usually 'os2mo') if None
+            exchange=None,
         )
         for uuid in uuids
     )
