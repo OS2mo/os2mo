@@ -164,7 +164,6 @@ class LdapConverter:
             await self.dataloader.load_mo_org_unit_address_types()
         )
         self.it_system_info = await self.dataloader.load_mo_it_systems()
-        self.visibility_info = await self.dataloader.load_mo_visibility()
 
         self.org_unit_info = await self.dataloader.load_mo_org_units()
 
@@ -683,8 +682,18 @@ class LdapConverter:
     def get_it_system_uuid(self, it_system: str) -> str:
         return self.get_object_uuid_from_user_key(self.it_system_info, it_system)
 
-    def get_visibility_uuid(self, visibility: str) -> str:
-        return self.get_object_uuid_from_user_key(self.visibility_info, visibility)
+    async def get_visibility_uuid(self, visibility: str) -> str:
+        result = await self.dataloader.graphql_client.read_class_uuid_by_facet_and_class_user_key(
+            "visibility", visibility
+        )
+        return str(
+            one(
+                result.objects,
+                too_short=UUIDNotFoundException(
+                    f"visibility not found, user_key: {visibility}"
+                ),
+            ).uuid
+        )
 
     def get_job_function_uuid(self, job_function: str) -> str:
         return self.get_object_uuid_from_name(self.job_function_info, job_function)
