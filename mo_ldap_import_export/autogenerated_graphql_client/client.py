@@ -39,6 +39,8 @@ from .person_engagement_refresh import PersonEngagementRefresh
 from .person_engagement_refresh import PersonEngagementRefreshEngagementRefresh
 from .person_ituser_refresh import PersonItuserRefresh
 from .person_ituser_refresh import PersonItuserRefreshItuserRefresh
+from .read_addresses import ReadAddresses
+from .read_addresses import ReadAddressesAddresses
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuid
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuidClasses
 from .read_class_uuid import ReadClassUuid
@@ -623,3 +625,48 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return PersonItuserRefresh.parse_obj(data).ituser_refresh
+
+    async def read_addresses(
+        self,
+        uuids: List[UUID],
+        from_date: Union[Optional[datetime], UnsetType] = UNSET,
+        to_date: Union[Optional[datetime], UnsetType] = UNSET,
+    ) -> ReadAddressesAddresses:
+        query = gql(
+            """
+            query read_addresses($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
+              addresses(filter: {uuids: $uuids, from_date: $from_date, to_date: $to_date}) {
+                objects {
+                  validities {
+                    value: name
+                    value2
+                    uuid
+                    visibility_uuid
+                    employee_uuid
+                    org_unit_uuid
+                    engagement_uuid
+                    person: employee {
+                      cpr_no
+                    }
+                    validity {
+                      from
+                      to
+                    }
+                    address_type {
+                      user_key
+                      uuid
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "uuids": uuids,
+            "from_date": from_date,
+            "to_date": to_date,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadAddresses.parse_obj(data).addresses
