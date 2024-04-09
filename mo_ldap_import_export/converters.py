@@ -130,7 +130,7 @@ class LdapConverter:
         self.overview = self.dataloader.load_ldap_overview()
         self.username_generator = self.user_context["username_generator"]
 
-        self.default_org_unit_type_uuid = self.get_org_unit_type_uuid(
+        self.default_org_unit_type_uuid = await self.get_org_unit_type_uuid(
             self.settings.default_org_unit_type
         )
         self.default_org_unit_level_uuid = self.get_org_unit_level_uuid(
@@ -167,7 +167,6 @@ class LdapConverter:
         self.visibility_info = await self.dataloader.load_mo_visibility()
 
         self.org_unit_info = await self.dataloader.load_mo_org_units()
-        self.org_unit_type_info = await self.dataloader.load_mo_org_unit_types()
         self.org_unit_level_info = await self.dataloader.load_mo_org_unit_levels()
 
         self.job_function_info = await self.dataloader.load_mo_job_functions()
@@ -855,9 +854,17 @@ class LdapConverter:
             uuid = await self.dataloader.create_mo_engagement_type(engagement_type)
             return str(uuid)
 
-    def get_org_unit_type_uuid(self, org_unit_type: str) -> str:
-        return self.get_object_uuid_from_user_key(
-            self.org_unit_type_info, org_unit_type
+    async def get_org_unit_type_uuid(self, org_unit_type: str) -> str:
+        result = await self.dataloader.graphql_client.read_class_uuid_by_facet_and_class_user_key(
+            "org_unit_type", org_unit_type
+        )
+        return str(
+            one(
+                result.objects,
+                too_short=UUIDNotFoundException(
+                    f"org_unit_type not found, user_key: {org_unit_type}"
+                ),
+            ).uuid
         )
 
     def get_org_unit_level_uuid(self, org_unit_level: str) -> str:
