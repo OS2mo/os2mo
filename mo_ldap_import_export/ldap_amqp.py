@@ -8,10 +8,12 @@ from fastramqpi.ramqp import AMQPSystem
 from fastramqpi.ramqp.amqp import Router
 from fastramqpi.ramqp.depends import get_payload_as_type
 from fastramqpi.ramqp.depends import rate_limit
+from fastramqpi.ramqp.utils import RejectMessage
 
 from .config import LDAPAMQPConnectionSettings
 from .depends import SyncTool
 from .logging import logger
+from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 
 
 ldap_amqp_router = Router()
@@ -30,7 +32,12 @@ async def process_dn(
     _: RateLimit,
 ) -> None:
     logger.info("Received LDAP AMQP event", dn=dn)
-    await sync_tool.import_single_user(dn)
+    try:
+        await sync_tool.import_single_user(dn)
+    except NoObjectsReturnedException as exc:
+        # TODO: Stop rejecting these and actually handle it within the code
+        logger.exception("Throwing away message due to bad code")
+        raise RejectMessage(f"DN could not be found: {dn}") from exc
 
 
 def configure_ldap_amqpsystem(
