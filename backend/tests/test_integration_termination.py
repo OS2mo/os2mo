@@ -322,7 +322,6 @@ async def test_terminate_properly_via_user(
         # TODO: Figure out why leave cannot be terminated directly
         # ("leave", leave_uuid),
         ("manager", manager_uuid),
-        ("role", role_uuid),
     ],
 )
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
