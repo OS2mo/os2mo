@@ -4,16 +4,22 @@
 import datetime
 import os
 from collections.abc import Iterator
+from typing import Any
 from unittest.mock import AsyncMock
+from unittest.mock import create_autospec
 from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
 import yaml
+from fastramqpi.ramqp import AMQPSystem
+from pydantic import AmqpDsn
+from pydantic import parse_obj_as
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 
+from mo_ldap_import_export.config import ExternalAMQPConnectionSettings
 from mo_ldap_import_export.ldap_classes import LdapObject
 
 
@@ -35,7 +41,6 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "DEFAULT_ORG_UNIT_LEVEL": "foo",
         "DEFAULT_ORG_UNIT_TYPE": "foo",
         "FASTRAMQPI__AMQP__URL": "amqp://guest:guest@msg_broker:5672/",
-        "INTERNAL_AMQP__URL": "amqp://guest:guest@msg_broker:5672/",
     }
     yield overrides
 
@@ -60,6 +65,18 @@ def load_settings_overrides(
         if os.environ.get(key) is None:
             monkeypatch.setenv(key, value)
     yield settings_overrides
+
+
+@pytest.fixture
+def amqpsystem() -> Any:
+    url_raw = "amqp://guest:guest@example.com:5672"
+    url = parse_obj_as(AmqpDsn, url_raw)
+
+    amqpsystem = AMQPSystem(settings=ExternalAMQPConnectionSettings(url=url))
+    amqpsystem.start = create_autospec(AMQPSystem.start)  # type: ignore
+    amqpsystem.stop = create_autospec(AMQPSystem.stop)  # type: ignore
+    amqpsystem.publish_message = create_autospec(AMQPSystem.publish_message)  # type: ignore
+    return amqpsystem
 
 
 @pytest.fixture
@@ -209,11 +226,6 @@ def username_generator() -> MagicMock:
 
 @pytest.fixture
 def sync_tool() -> AsyncMock:
-    return AsyncMock()
-
-
-@pytest.fixture
-def internal_amqpsystem() -> AsyncMock:
     return AsyncMock()
 
 

@@ -186,3 +186,21 @@ query read_class_name_by_class_uuid($class_uuid: UUID!) {
     }
   }
 }
+
+mutation engagement_refresh($exchange: String!, $uuid: UUID!) {
+  engagement_refresh(exchange: $exchange, filter: {uuids: [$uuid]}) {
+    objects
+  }
+}
+
+mutation address_refresh($exchange: String!, $uuid: UUID!) {
+  address_refresh(exchange: $exchange, filter: {uuids: [$uuid]}) {
+    objects
+  }
+}
+
+mutation ituser_refresh($exchange: String!, $uuid: UUID!) {
+  ituser_refresh(exchange: $exchange, filter: {uuids: [$uuid]}) {
+    objects
+  }
+}

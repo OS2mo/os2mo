@@ -118,7 +118,7 @@ class SyncTool:
         self.export_checks = self.user_context["export_checks"]
         self.import_checks = self.user_context["import_checks"]
         self.settings = self.user_context["settings"]
-        self.internal_amqpsystem = self.user_context["internal_amqpsystem"]
+        self.amqpsystem = self.context["amqpsystem"]
 
     @staticmethod
     def wait_for_export_to_finish(func: Callable):
@@ -1017,7 +1017,17 @@ class SyncTool:
             routing_key=routing_key,
             payload=payload,
         )
-        await self.internal_amqpsystem.publish_message(routing_key, payload)
+        match routing_key:
+            case "engagement":
+                await self.refresh_engagement(payload)
+            case "address":
+                await self.refresh_address(payload)
+            case "ituser":
+                await self.refresh_ituser(payload)
+            case _:  # pragma: no cover
+                raise NotImplementedError(
+                    f"Refreshing {routing_key} is not implemented!"
+                )
 
     async def refresh_object(self, uuid: UUID, object_type: str) -> None:
         """
@@ -1029,13 +1039,19 @@ class SyncTool:
         await self.refresh_mo_object(mo_object_dict)
 
     async def refresh_engagement(self, uuid: UUID) -> None:
-        await self.refresh_object(uuid, "engagement")
+        await self.dataloader.graphql_client.engagement_refresh(
+            self.amqpsystem.exchange_name, uuid
+        )
 
     async def refresh_address(self, uuid: UUID) -> None:
-        await self.refresh_object(uuid, "address")
+        await self.dataloader.graphql_client.address_refresh(
+            self.amqpsystem.exchange_name, uuid
+        )
 
     async def refresh_ituser(self, uuid: UUID) -> None:
-        await self.refresh_object(uuid, "ituser")
+        await self.dataloader.graphql_client.ituser_refresh(
+            self.amqpsystem.exchange_name, uuid
+        )
 
     async def export_org_unit_addresses_on_engagement_change(
         self, routing_key: MORoutingKey, object_uuid: UUID
@@ -1085,6 +1101,7 @@ class SyncTool:
         # NOTE: This entire function could probably just be 3 GraphQL calls:
         #       `address_refresh`, `engagement_refresh` and `ituser_refresh`
         #       All with employee uuids as a filter.
+        # NOTE: Should this not refresh the employee itself as well?
         logger.info("[Refresh-employee] Refreshing employee.", uuid=str(employee_uuid))
 
         # Load address types and it-user types

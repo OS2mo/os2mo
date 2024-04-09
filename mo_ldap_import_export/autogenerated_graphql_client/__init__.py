@@ -1,3 +1,5 @@
+from .address_refresh import AddressRefresh
+from .address_refresh import AddressRefreshAddressRefresh
 from .address_terminate import AddressTerminate
 from .address_terminate import AddressTerminateAddressTerminate
 from .async_base_client import AsyncBaseClient
@@ -7,6 +9,8 @@ from .class_create import ClassCreateClassCreate
 from .class_update import ClassUpdate
 from .class_update import ClassUpdateClassUpdate
 from .client import GraphQLClient
+from .engagement_refresh import EngagementRefresh
+from .engagement_refresh import EngagementRefreshEngagementRefresh
 from .engagement_terminate import EngagementTerminate
 from .engagement_terminate import EngagementTerminateEngagementTerminate
 from .enums import AuditLogModel
@@ -131,6 +135,8 @@ from .input_types import UuidsBoundOrganisationUnitFilter
 from .input_types import ValidityInput
 from .itsystem_create import ItsystemCreate
 from .itsystem_create import ItsystemCreateItsystemCreate
+from .ituser_refresh import ItuserRefresh
+from .ituser_refresh import ItuserRefreshItuserRefresh
 from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuid
@@ -217,6 +223,8 @@ from .set_job_title import SetJobTitleEngagementUpdate
 __all__ = [
     "AddressCreateInput",
     "AddressFilter",
+    "AddressRefresh",
+    "AddressRefreshAddressRefresh",
     "AddressRegistrationFilter",
     "AddressTerminate",
     "AddressTerminateAddressTerminate",
@@ -255,6 +263,8 @@ __all__ = [
     "EmployeesBoundRoleFilter",
     "EngagementCreateInput",
     "EngagementFilter",
+    "EngagementRefresh",
+    "EngagementRefreshEngagementRefresh",
     "EngagementRegistrationFilter",
     "EngagementTerminate",
     "EngagementTerminateEngagementTerminate",
@@ -290,6 +300,8 @@ __all__ = [
     "ITUserUpdateInput",
     "ItsystemCreate",
     "ItsystemCreateItsystemCreate",
+    "ItuserRefresh",
+    "ItuserRefreshItuserRefresh",
     "ItuserTerminate",
     "ItuserTerminateItuserTerminate",
     "KLECreateInput",
