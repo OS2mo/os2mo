@@ -517,12 +517,12 @@ async def test_single_object_search(ldap_connection: MagicMock, context: Context
     assert output == search_entry
 
 
-async def test_apply_discriminator(ldap_connection: MagicMock, context: Context):
-    context["user_context"]["settings"] = MagicMock()
+async def test_apply_discriminator() -> None:
+    settings = MagicMock()
 
-    context["user_context"]["settings"].discriminator_function = "include"
-    context["user_context"]["settings"].discriminator_field = "xField"
-    context["user_context"]["settings"].discriminator_values = ["yes", "7"]
+    settings.discriminator_function = "include"
+    settings.discriminator_field = "xField"
+    settings.discriminator_values = ["yes", "7"]
 
     def gen_user(name: str, username: str, xField: Any) -> dict[str, Any]:
         dn = f"CN={name} - {username},DC=example,DC=com"
@@ -542,13 +542,13 @@ async def test_apply_discriminator(ldap_connection: MagicMock, context: Context)
     user3 = gen_user("Hans Hansen", "hh", "no")
     user4 = gen_user("Peter Petersen", "pp", None)
 
-    res_list = apply_discriminator([user1, user2, user3, user4], context)
+    res_list = apply_discriminator([user1, user2, user3, user4], settings)
 
     assert res_list == [user1, user2]
 
-    context["user_context"]["settings"].discriminator_function = "exclude"
+    settings.discriminator_function = "exclude"
 
-    res_list = apply_discriminator([user1, user2, user3, user4], context)
+    res_list = apply_discriminator([user1, user2, user3, user4], settings)
 
     assert res_list == [user3, user4]
 

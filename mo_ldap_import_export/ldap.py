@@ -205,20 +205,17 @@ def get_ldap_attributes(ldap_connection: Connection, root_ldap_object: str):
 
 
 def apply_discriminator(
-    search_result: list[dict[str, Any]], context: Context
+    search_result: list[dict[str, Any]], settings: Settings
 ) -> list[dict[str, Any]]:
     """Apply our discriminator to remove unwanted search result.
 
     Args:
         search_result: A list of LDAP search results.
-        context: The FastRAMQPI context.
+        settings: The application settings.
 
     Returns:
         A filtered list of LDAP search results.
     """
-    # TODO: Take settings instead of the entire context?
-    settings = context["user_context"]["settings"]
-
     discriminator_field = settings.discriminator_field
     discriminator_values = settings.discriminator_values
     match settings.discriminator_function:
@@ -258,6 +255,7 @@ def _paged_search(
     responses = []
     user_context = context["user_context"]
     ldap_connection = user_context["ldap_connection"]
+    settings = user_context["settings"]
 
     # TODO: Find max. paged_size number from LDAP rather than hard-code it?
     searchParameters["paged_size"] = 500
@@ -280,7 +278,7 @@ def _paged_search(
             break
 
         entries = [r for r in ldap_connection.response if r["type"] == "searchResEntry"]
-        entries = apply_discriminator(entries, context)
+        entries = apply_discriminator(entries, settings)
         responses.extend(entries)
 
         try:
@@ -354,6 +352,7 @@ def single_object_search(searchParameters, context: Context):
     searchFilter = "(objectclass=*)" and search_scope = BASE
     """
     ldap_connection = context["user_context"]["ldap_connection"]
+    settings = context["user_context"]["settings"]
     if isinstance(searchParameters["search_base"], list):
         search_bases = searchParameters["search_base"].copy()
         modified_searchParameters = searchParameters.copy()
@@ -367,8 +366,7 @@ def single_object_search(searchParameters, context: Context):
         response = ldap_connection.response
 
     search_entries = [r for r in response if r["type"] == "searchResEntry"]
-
-    search_entries = apply_discriminator(search_entries, context)
+    search_entries = apply_discriminator(search_entries, settings)
 
     if len(search_entries) > 1:
         logger.info(response)
