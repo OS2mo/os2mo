@@ -633,8 +633,8 @@ async def test_listen_to_changes(dataloader: AsyncMock, sync_tool: AsyncMock):
     sync_tool.listen_to_changes_in_employees.assert_awaited_once()
 
     sync_tool.reset_mock()
-    await process_org_unit(context, payload, "org_unit", sync_tool, _=None)
-    sync_tool.listen_to_changes_in_org_units.assert_awaited_once()
+    await process_org_unit(payload, sync_tool, _=None)
+    sync_tool.publish_engagements_for_org_unit.assert_awaited_once_with(payload)
 
 
 @pytest.mark.usefixtures("context_dependency_injection")

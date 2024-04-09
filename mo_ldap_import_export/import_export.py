@@ -578,63 +578,57 @@ class SyncTool:
         )
 
         object_type = get_object_type_from_routing_key(routing_key)
-        if object_type == "org_unit":  # pragma: no cover
-            # In case the name of the org-unit changed, we need to publish an
-            # "engagement" message for each of its employees. Because org-unit
-            # LDAP mapping is primarily done through the "Engagment" json-key.
-            await self.publish_engagements_for_org_unit(object_uuid)
+        assert object_type == "address"
+        # Get MO address
+        changed_address = await self.dataloader.load_mo_address(
+            object_uuid,
+            current_objects_only=current_objects_only,
+        )
+        address_type_uuid = str(changed_address.address_type.uuid)
+        json_key = await self.converter.get_org_unit_address_type_user_key(
+            address_type_uuid
+        )
 
-        if object_type == "address":
-            # Get MO address
-            changed_address = await self.dataloader.load_mo_address(
-                object_uuid,
-                current_objects_only=current_objects_only,
+        logger.info(
+            "[Listen-to-changes-in-orgs] Obtained address.",
+            user_key=json_key,
+            **logger_args,
+        )
+
+        ldap_object_class = self.converter.find_ldap_object_class(json_key)
+        employee_object_class = self.converter.find_ldap_object_class("Employee")
+
+        if ldap_object_class != employee_object_class:
+            raise NotSupportedException(
+                "Mapping organization unit addresses "
+                "to non-employee objects is not supported"
             )
-            address_type_uuid = str(changed_address.address_type.uuid)
-            json_key = await self.converter.get_org_unit_address_type_user_key(
-                address_type_uuid
-            )
 
-            logger.info(
-                "[Listen-to-changes-in-orgs] Obtained address.",
-                user_key=json_key,
-                **logger_args,
-            )
+        affected_employees = set(
+            await self.dataloader.load_mo_employees_in_org_unit(uuid)
+        )
+        logger.info(
+            "[Listen-to-changes-in-orgs] Looping over 'n' employees.",
+            n=len(affected_employees),
+            **logger_args,
+        )
 
-            ldap_object_class = self.converter.find_ldap_object_class(json_key)
-            employee_object_class = self.converter.find_ldap_object_class("Employee")
-
-            if ldap_object_class != employee_object_class:
-                raise NotSupportedException(
-                    "Mapping organization unit addresses "
-                    "to non-employee objects is not supported"
+        for affected_employee in affected_employees:
+            try:
+                await self.process_employee_address(
+                    affected_employee,
+                    uuid,
+                    changed_address,
+                    json_key,
+                    delete,
+                    object_type,
                 )
-
-            affected_employees = set(
-                await self.dataloader.load_mo_employees_in_org_unit(uuid)
-            )
-            logger.info(
-                "[Listen-to-changes-in-orgs] Looping over 'n' employees.",
-                n=len(affected_employees),
-                **logger_args,
-            )
-
-            for affected_employee in affected_employees:
-                try:
-                    await self.process_employee_address(
-                        affected_employee,
-                        uuid,
-                        changed_address,
-                        json_key,
-                        delete,
-                        object_type,
-                    )
-                except DNNotFound as e:
-                    logger.info("[Listen-to-changes-in-orgs] " + str(e), **logger_args)
-                    continue
-                except IgnoreChanges as e:
-                    logger.info("[Listen-to-changes-in-orgs] " + str(e), **logger_args)
-                    continue
+            except DNNotFound as e:
+                logger.info("[Listen-to-changes-in-orgs] " + str(e), **logger_args)
+                continue
+            except IgnoreChanges as e:
+                logger.info("[Listen-to-changes-in-orgs] " + str(e), **logger_args)
+                continue
 
     async def format_converted_objects(
         self,
