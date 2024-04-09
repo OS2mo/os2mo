@@ -1315,9 +1315,6 @@ class DataLoader:
     async def load_mo_job_functions(self) -> dict:
         return await self.load_mo_facet("engagement_job_function")
 
-    async def load_mo_org_unit_levels(self) -> dict:
-        return await self.load_mo_facet("org_unit_level")
-
     async def load_mo_it_systems(self) -> dict:
         query = gql(
             """

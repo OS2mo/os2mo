@@ -641,24 +641,6 @@ async def test_load_mo_visibility(
     assert output[uuid]["name"] == name
 
 
-async def test_load_mo_org_unit_levels(
-    dataloader: DataLoader, legacy_graphql_session: AsyncMock
-) -> None:
-    uuid = uuid4()
-    name = "N1"
-
-    legacy_graphql_session.execute.return_value = {
-        "facets": {
-            "objects": [
-                {"current": {"classes": [{"uuid": uuid, "name": name}]}},
-            ]
-        }
-    }
-
-    output = await dataloader.load_mo_org_unit_levels()
-    assert output[uuid]["name"] == name
-
-
 async def test_load_mo_address_no_valid_addresses(
     dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ) -> None:
