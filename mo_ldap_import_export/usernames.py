@@ -290,6 +290,7 @@ class UserNameGeneratorBase(ABC):
         return attributes
 
     def _get_existing_names(self):
+        # TODO: Consider if it is better to fetch all names or candidate names
         existing_values = self.get_existing_values(
             ["cn", "sAMAccountName", "userPrincipalName"]
         )
