@@ -7,7 +7,6 @@ import re
 import time
 from functools import partial
 from unittest.mock import AsyncMock
-from unittest.mock import call
 from unittest.mock import MagicMock
 from unittest.mock import patch
 from uuid import UUID
@@ -1464,67 +1463,11 @@ def test_move_ldap_object_nothing_to_move(sync_tool: SyncTool, dataloader: Async
 
 async def test_publish_engagements_for_org_unit(
     sync_tool: SyncTool, dataloader: AsyncMock
-):
-    sync_tool.refresh_engagement = AsyncMock()  # type: ignore
-
-    # We simulate a change to this org-unit
+) -> None:
     org_unit_uuid = uuid4()
-
-    # The changed org-unit has two employees working in it
-    employees = [Employee(), Employee()]
-    dataloader.load_mo_employees_in_org_unit.return_value = employees
-
-    # Employee 1 has another job as well
-    engagements_employee1 = [
-        Engagement(
-            user_key="1",
-            org_unit={"uuid": org_unit_uuid},
-            person={"uuid": uuid4()},
-            job_function={"uuid": uuid4()},
-            engagement_type={"uuid": uuid4()},
-            validity={"from": "2021-01-01"},
-        ),
-        Engagement(
-            user_key="1",
-            org_unit={"uuid": uuid4()},
-            person={"uuid": uuid4()},
-            job_function={"uuid": uuid4()},
-            engagement_type={"uuid": uuid4()},
-            validity={"from": "2021-01-01"},
-        ),
-    ]
-
-    # Employee 2 has two jobs in this org-unit
-    engagements_employee2 = [
-        Engagement(
-            user_key="1",
-            org_unit={"uuid": org_unit_uuid},
-            person={"uuid": uuid4()},
-            job_function={"uuid": uuid4()},
-            engagement_type={"uuid": uuid4()},
-            validity={"from": "2021-01-01"},
-        ),
-        Engagement(
-            user_key="1",
-            org_unit={"uuid": org_unit_uuid},
-            person={"uuid": uuid4()},
-            job_function={"uuid": uuid4()},
-            engagement_type={"uuid": uuid4()},
-            validity={"from": "2021-01-01"},
-        ),
-    ]
-
-    engagements = [engagements_employee1, engagements_employee2]
-    dataloader.load_mo_employee_engagements.side_effect = engagements
-
-    # Validate that the proper calls to refresh_object are being made.
     await sync_tool.publish_engagements_for_org_unit(org_unit_uuid)
-    sync_tool.refresh_engagement.assert_has_awaits(
-        [
-            call(engagements_employee1[0].uuid),
-            call(engagements_employee2[0].uuid),
-            call(engagements_employee2[1].uuid),
-        ]
+    dataloader.graphql_client.org_unit_engagements_refresh.assert_called_with(
+        "os2mo_ldap_ie", org_unit_uuid
     )
 
 
