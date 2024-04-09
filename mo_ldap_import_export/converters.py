@@ -28,6 +28,7 @@ from .dataloaders import DataLoader
 from .environments import environment
 from .exceptions import IncorrectMapping
 from .exceptions import InvalidNameException
+from .exceptions import NoObjectsReturnedException
 from .exceptions import NotSupportedException
 from .exceptions import UUIDNotFoundException
 from .ldap import is_uuid
@@ -169,7 +170,6 @@ class LdapConverter:
         self.org_unit_type_info = await self.dataloader.load_mo_org_unit_types()
         self.org_unit_level_info = await self.dataloader.load_mo_org_unit_levels()
 
-        self.engagement_type_info = await self.dataloader.load_mo_engagement_types()
         self.job_function_info = await self.dataloader.load_mo_job_functions()
 
         mo_employee_address_types = [
@@ -726,9 +726,17 @@ class LdapConverter:
             ).uuid
         )
 
-    def get_engagement_type_uuid(self, engagement_type: str) -> str:
-        return self.get_object_uuid_from_name(
-            self.engagement_type_info, engagement_type
+    async def get_engagement_type_uuid(self, engagement_type: str) -> str:
+        result = await self.dataloader.graphql_client.read_class_uuid_by_facet_and_class_user_key(
+            "engagement_type", engagement_type
+        )
+        return str(
+            one(
+                result.objects,
+                too_short=UUIDNotFoundException(
+                    f"engagement_type not found, user_key: {engagement_type}"
+                ),
+            ).uuid
         )
 
     async def get_current_engagement_attribute_uuid_dict(
@@ -842,11 +850,9 @@ class LdapConverter:
         if not engagement_type:
             raise UUIDNotFoundException("engagement_type is empty")
         try:
-            return self.get_engagement_type_uuid(engagement_type)
+            return await self.get_engagement_type_uuid(engagement_type)
         except UUIDNotFoundException:
             uuid = await self.dataloader.create_mo_engagement_type(engagement_type)
-            self.engagement_type_info = await self.dataloader.load_mo_engagement_types()
-            self.check_info_dicts()
             return str(uuid)
 
     def get_org_unit_type_uuid(self, org_unit_type: str) -> str:
@@ -873,7 +879,15 @@ class LdapConverter:
         return await self.get_object_user_key_from_uuid("it_system_info", uuid)
 
     async def get_engagement_type_name(self, uuid: str) -> str:
-        return await self.get_object_name_from_uuid("engagement_type_info", uuid)
+        result = await self.dataloader.graphql_client.read_class_name_by_class_uuid(
+            UUID(uuid)
+        )
+        engagement_type = one(result.objects)
+        if engagement_type.current is None:
+            raise NoObjectsReturnedException(
+                f"engagement_type not active, uuid: {uuid}"
+            )
+        return engagement_type.current.name
 
     async def get_job_function_name(self, uuid: str) -> str:
         return await self.get_object_name_from_uuid("job_function_info", uuid)
@@ -1087,10 +1101,10 @@ class LdapConverter:
             "get_visibility_uuid": self.get_visibility_uuid,
             "get_primary_type_uuid": self.get_primary_type_uuid,
             "get_engagement_type_uuid": self.get_engagement_type_uuid,
+            "get_engagement_type_name": self.get_engagement_type_name,
             "uuid4": uuid4,
             "get_org_unit_path_string": self.get_org_unit_path_string,
             "make_dn_from_org_unit_path": self.make_dn_from_org_unit_path,
-            "get_engagement_type_name": self.get_engagement_type_name,
             "get_job_function_name": self.get_job_function_name,
             "get_org_unit_name": self.get_org_unit_name,
             "get_or_create_job_function_uuid": self.get_or_create_job_function_uuid,
