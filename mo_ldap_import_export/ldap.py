@@ -518,7 +518,6 @@ async def cleanup(
     dataloader: DataLoader = user_context["dataloader"]
     converter = user_context["converter"]
     sync_tool = user_context["sync_tool"]
-    uuids_to_publish = []
 
     if not converter._export_to_ldap_(json_key):
         logger.info(f"_export_to_ldap_ == False for json_key = '{json_key}'")
@@ -548,6 +547,7 @@ async def cleanup(
     logger.info(f"Found the following data in MO: {converted_mo_objects}")
 
     # Loop over each attribute and determine if it needs to be cleaned
+    uuids_to_publish: set[UUID] = set()
     ldap_objects_to_clean = []
     for attribute in attributes:
         values_in_ldap = getattr(ldap_object, attribute)
@@ -575,7 +575,7 @@ async def cleanup(
         # after the first one is deleted from LDAP
         if not values_in_ldap and values_in_mo:
             logger.info(f"attribute = '{attribute}' needs to be written to LDAP")
-            uuids_to_publish = [o.uuid for o in mo_objects]
+            uuids_to_publish.update(o.uuid for o in mo_objects)
 
     # Clean from LDAP
     if len(ldap_objects_to_clean) == 0:
