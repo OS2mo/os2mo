@@ -75,6 +75,12 @@ from .read_facet_uuid import ReadFacetUuid
 from .read_facet_uuid import ReadFacetUuidFacets
 from .read_is_primary_engagements import ReadIsPrimaryEngagements
 from .read_is_primary_engagements import ReadIsPrimaryEngagementsEngagements
+from .read_ituser_by_employee_and_itsystem_uuid import (
+    ReadItuserByEmployeeAndItsystemUuid,
+)
+from .read_ituser_by_employee_and_itsystem_uuid import (
+    ReadItuserByEmployeeAndItsystemUuidItusers,
+)
 from .read_org_unit_addresses import ReadOrgUnitAddresses
 from .read_org_unit_addresses import ReadOrgUnitAddressesAddresses
 from .read_root_org_uuid import ReadRootOrgUuid
@@ -370,6 +376,30 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEmployeeUuidByItuserUserKey.parse_obj(data).itusers
+
+    async def read_ituser_by_employee_and_itsystem_uuid(
+        self, employee_uuid: UUID, itsystem_uuid: UUID
+    ) -> ReadItuserByEmployeeAndItsystemUuidItusers:
+        query = gql(
+            """
+            query read_ituser_by_employee_and_itsystem_uuid($employee_uuid: UUID!, $itsystem_uuid: UUID!) {
+              itusers(
+                filter: {employee: {uuids: [$employee_uuid]}, itsystem: {uuids: [$itsystem_uuid]}}
+              ) {
+                objects {
+                  uuid
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "employee_uuid": employee_uuid,
+            "itsystem_uuid": itsystem_uuid,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadItuserByEmployeeAndItsystemUuid.parse_obj(data).itusers
 
     async def read_is_primary_engagements(
         self, uuids: List[UUID]

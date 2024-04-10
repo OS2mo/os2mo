@@ -1082,44 +1082,36 @@ async def test_load_mo_it_user_not_found(
 
 
 async def test_load_mo_employee_it_users(
-    dataloader: DataLoader, legacy_graphql_session: AsyncMock
-):
-    uuid1 = uuid4()
-    uuid2 = uuid4()
-    employee_uuid = uuid4()
-    it_system_uuid = uuid4()
+    dataloader: DataLoader, graphql_mock: GraphQLMocker
+) -> None:
+    ituser_uuid = uuid4()
 
-    return_value = {
-        "employees": {
-            "objects": [
-                {
-                    "objects": [
-                        {
-                            "itusers": [
-                                {
-                                    "uuid": uuid1,
-                                    "itsystem_uuid": str(it_system_uuid),
-                                },
-                                {
-                                    "uuid": uuid2,
-                                    "itsystem_uuid": str(uuid4()),
-                                },
-                            ]
-                        }
-                    ]
-                }
-            ]
-        }
-    }
-
-    legacy_graphql_session.execute.return_value = return_value
+    route = graphql_mock.query("read_ituser_by_employee_and_itsystem_uuid")
+    route.result = {"itusers": {"objects": [{"uuid": ituser_uuid}]}}
 
     load_mo_it_user = AsyncMock()
     dataloader.load_mo_it_user = load_mo_it_user  # type: ignore
 
+    employee_uuid = uuid4()
+    it_system_uuid = uuid4()
     await dataloader.load_mo_employee_it_users(employee_uuid, it_system_uuid)
 
-    load_mo_it_user.assert_called_once_with(uuid1)
+    assert route.called
+    load_mo_it_user.assert_called_once_with(ituser_uuid)
+
+
+async def test_load_mo_employee_it_users_not_found(
+    dataloader: DataLoader, graphql_mock: GraphQLMocker
+) -> None:
+    route = graphql_mock.query("read_ituser_by_employee_and_itsystem_uuid")
+    route.result = {"itusers": {"objects": []}}
+
+    employee_uuid = uuid4()
+    it_system_uuid = uuid4()
+    with pytest.raises(NoObjectsReturnedException):
+        await dataloader.load_mo_employee_it_users(employee_uuid, it_system_uuid)
+
+    assert route.called
 
 
 async def test_load_mo_employees_in_org_unit(
@@ -1215,17 +1207,6 @@ async def test_load_mo_employee_engagements(
     await dataloader.load_mo_employee_engagements(employee_uuid)
 
     load_mo_engagement.assert_called_once_with(uuid1)
-
-
-async def test_load_mo_employee_it_users_not_found(
-    dataloader: DataLoader, legacy_graphql_session: AsyncMock
-):
-    return_value: dict = {"employees": {"objects": []}}
-
-    legacy_graphql_session.execute.return_value = return_value
-
-    with pytest.raises(NoObjectsReturnedException):
-        await dataloader.load_mo_employee_it_users(uuid4(), uuid4())
 
 
 async def test_is_primary(dataloader: DataLoader) -> None:

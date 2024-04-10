@@ -230,6 +230,15 @@ from .read_is_primary_engagements import ReadIsPrimaryEngagementsEngagementsObje
 from .read_is_primary_engagements import (
     ReadIsPrimaryEngagementsEngagementsObjectsCurrent,
 )
+from .read_ituser_by_employee_and_itsystem_uuid import (
+    ReadItuserByEmployeeAndItsystemUuid,
+)
+from .read_ituser_by_employee_and_itsystem_uuid import (
+    ReadItuserByEmployeeAndItsystemUuidItusers,
+)
+from .read_ituser_by_employee_and_itsystem_uuid import (
+    ReadItuserByEmployeeAndItsystemUuidItusersObjects,
+)
 from .read_org_unit_addresses import ReadOrgUnitAddresses
 from .read_org_unit_addresses import ReadOrgUnitAddressesAddresses
 from .read_org_unit_addresses import ReadOrgUnitAddressesAddressesObjects
@@ -422,6 +431,9 @@ __all__ = [
     "ReadIsPrimaryEngagementsEngagements",
     "ReadIsPrimaryEngagementsEngagementsObjects",
     "ReadIsPrimaryEngagementsEngagementsObjectsCurrent",
+    "ReadItuserByEmployeeAndItsystemUuid",
+    "ReadItuserByEmployeeAndItsystemUuidItusers",
+    "ReadItuserByEmployeeAndItsystemUuidItusersObjects",
     "ReadOrgUnitAddresses",
     "ReadOrgUnitAddressesAddresses",
     "ReadOrgUnitAddressesAddressesObjects",
