@@ -493,7 +493,15 @@ class Mutation:
             await terminate_employee(input.to_pydantic()), EmployeeRead
         )
 
-    # TODO: employee_delete
+    @strawberry.mutation(
+        description="Deletes an employee." + delete_warning,
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_delete_permission("employee"),
+        ],
+    )
+    async def employee_delete(self, uuid: UUID) -> Response[Employee]:
+        return uuid2response(await delete_bruger(uuid), EmployeeRead)
 
     @strawberry.mutation(
         description="Refresh employees.",
@@ -1377,6 +1385,13 @@ class Mutation:
         )
 
         return "OK"
+
+
+async def delete_bruger(uuid: UUID) -> UUID:
+    """Delete a user by creating a "Slettet" (deleted) registration."""
+    c = get_connector()
+    uuid = await c.bruger.delete(uuid)
+    return uuid
 
 
 async def delete_organisationfunktion(uuid: UUID) -> UUID:
