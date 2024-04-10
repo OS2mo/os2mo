@@ -1,63 +1,29 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from unittest.mock import AsyncMock
-from unittest.mock import patch
-from uuid import uuid4
-
 import pytest
-from fastapi.encoders import jsonable_encoder
 from more_itertools import first
 
 from tests.conftest import GraphAPIPost
 
 
-@patch("mora.lora.Scope.delete", new_callable=AsyncMock)
-@pytest.mark.parametrize(
-    "method",
-    [
-        "address_delete",
-        "engagement_delete",
-        "ituser_delete",
-    ],
-)
-async def test_delete_organisationfunktion(
-    delete_mock: AsyncMock, graphapi_post: GraphAPIPost, method
-) -> None:
-    uuid = uuid4()
-    delete_mock.return_value = uuid
-    mutate_query = f"""
-        mutation DeleteOrganisationfunktion($uuid: UUID!) {{
-          {method}(uuid: $uuid) {{
-            uuid
-          }}
-        }}
-    """
-    response = graphapi_post(
-        mutate_query,
-        variables=jsonable_encoder({"uuid": uuid}),
-    )
-    assert response.errors is None
-    assert response.data[method]["uuid"] == str(uuid)
-    delete_mock.assert_awaited_once_with(uuid)
-
-
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
-    "organisationfunktion,method",
+    "collection,mutator",
     [
         ("addresses", "address_delete"),
+        ("employees", "employee_delete"),
         ("engagements", "engagement_delete"),
         ("itusers", "ituser_delete"),
     ],
 )
-async def test_delete_organisationfunktion_integration_test(
-    graphapi_post: GraphAPIPost, organisationfunktion, method
+async def test_delete_integration_test(
+    graphapi_post: GraphAPIPost, collection, mutator
 ) -> None:
-    # Read current organisationfunktion
+    # Read existing objects
     read_query = f"""
-        query MyQuery {{
-          {organisationfunktion} {{
+        query ReadQuery {{
+          {collection} {{
             objects {{
               uuid
             }}
@@ -65,24 +31,27 @@ async def test_delete_organisationfunktion_integration_test(
         }}
     """
     response = graphapi_post(read_query)
-    first_organisationfunktion = first(response.data[organisationfunktion]["objects"])
-    assert first_organisationfunktion in response.data[organisationfunktion]["objects"]
 
-    # Delete the first one
+    # Select an arbitrary object for deletion
+    some_object = first(response.data[collection]["objects"])
+    object_uuid = some_object["uuid"]
+
+    # Delete the object
     mutate_query = f"""
-        mutation DeleteOrganisationfunktion($uuid: UUID!) {{
-          {method}(uuid: $uuid) {{
+        mutation DeleteMutation($uuid: UUID!) {{
+          {mutator}(uuid: $uuid) {{
             uuid
           }}
         }}
     """
     response = graphapi_post(
         mutate_query,
-        variables={"uuid": first_organisationfunktion["uuid"]},
+        variables={"uuid": object_uuid},
     )
     assert response.errors is None
-    assert response.data[method]["uuid"] == first_organisationfunktion["uuid"]
+    assert response.data[mutator]["uuid"] == object_uuid
 
-    # Check that it got deleted
+    # Read objects again; check that it was deleted
     response = graphapi_post(read_query)
-    assert organisationfunktion not in response.data[organisationfunktion]
+    uuids = {o["uuid"] for o in response.data[collection]["objects"]}
+    assert object_uuid not in uuids
