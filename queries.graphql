@@ -304,3 +304,14 @@ query read_addresses($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime)
     }
   }
 }
+
+query read_itsystems {
+  itsystems {
+    objects {
+      current {
+        uuid
+        user_key
+      }
+    }
+  }
+}
