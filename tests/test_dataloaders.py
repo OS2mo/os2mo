@@ -942,34 +942,48 @@ async def test_load_mo_it_systems(
 
 
 async def test_load_mo_org_units(
-    dataloader: DataLoader, legacy_graphql_session: AsyncMock
-):
+    dataloader: DataLoader, graphql_mock: GraphQLMocker
+) -> None:
     uuid1 = str(uuid4())
     uuid2 = str(uuid4())
 
-    return_value = {
+    route = graphql_mock.query("read_org_units")
+    route.result = {
         "org_units": {
             "objects": [
-                {"objects": [{"name": "Magenta Aps", "uuid": uuid1}]},
                 {
-                    "objects": [
+                    "uuid": uuid1,
+                    "validities": [
                         {
-                            "name": "Magenta Aarhus",
-                            "uuid": uuid2,
-                            "parent_uuid": uuid1,
+                            "uuid": uuid1,
+                            "name": "Magenta ApS",
+                            "user_key": "Magenta ApS",
+                            "validity": {"from": "1970-01-01T00:00:00"},
                         }
-                    ]
+                    ],
+                },
+                {
+                    "uuid": uuid2,
+                    "validities": [
+                        {
+                            "uuid": uuid2,
+                            "name": "Magenta Aarhus",
+                            "user_key": "Magenta Aarhus",
+                            "parent_uuid": uuid1,
+                            "validity": {"from": "1970-01-01T00:00:00"},
+                        }
+                    ],
                 },
             ]
         }
     }
 
-    legacy_graphql_session.execute.return_value = return_value
-
     output = await dataloader.load_mo_org_units()
-    assert output[uuid1]["name"] == "Magenta Aps"
+    assert output[uuid1]["name"] == "Magenta ApS"
     assert output[uuid2]["name"] == "Magenta Aarhus"
     assert output[uuid2]["parent_uuid"] == uuid1
+
+    assert route.called
 
 
 async def test_load_mo_org_units_empty_response(
