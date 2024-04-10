@@ -1354,7 +1354,7 @@ class RelatedUnitsUpdate(UUIDBase):
     destination: list[UUID] | None = Field(
         description="UUID of the units to create relations to."
     )
-    validity: RAValidity = Field(description="From date.")
+    validity: RAValidity = Field(description="Validity range for the relation.")
 
     def to_handler_dict(self) -> dict:
         return {
@@ -1362,6 +1362,9 @@ class RelatedUnitsUpdate(UUIDBase):
             "destination": self.destination or [],
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
             },
         }
 
