@@ -22,6 +22,7 @@ from .engagement_terminate import EngagementTerminateEngagementTerminate
 from .input_types import AddressTerminateInput
 from .input_types import ClassCreateInput
 from .input_types import ClassUpdateInput
+from .input_types import EngagementFilter
 from .input_types import EngagementTerminateInput
 from .input_types import ITSystemCreateInput
 from .input_types import ITUserTerminateInput
@@ -73,6 +74,10 @@ from .read_engagement_uuid_by_ituser_user_key import (
 )
 from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuid
 from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuidEngagements
+from .read_engagements_by_engagements_filter import ReadEngagementsByEngagementsFilter
+from .read_engagements_by_engagements_filter import (
+    ReadEngagementsByEngagementsFilterEngagements,
+)
 from .read_facet_classes import ReadFacetClasses
 from .read_facet_classes import ReadFacetClassesClasses
 from .read_facet_uuid import ReadFacetUuid
@@ -316,6 +321,32 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEngagementsByEmployeeUuid.parse_obj(data).engagements
+
+    async def read_engagements_by_engagements_filter(
+        self, engagements_filter: EngagementFilter
+    ) -> ReadEngagementsByEngagementsFilterEngagements:
+        query = gql(
+            """
+            query read_engagements_by_engagements_filter($engagements_filter: EngagementFilter!) {
+              engagements(filter: $engagements_filter) {
+                objects {
+                  current {
+                    uuid
+                    user_key
+                    org_unit_uuid
+                    job_function_uuid
+                    engagement_type_uuid
+                    primary_uuid
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"engagements_filter": engagements_filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadEngagementsByEngagementsFilter.parse_obj(data).engagements
 
     async def set_job_title(
         self,
