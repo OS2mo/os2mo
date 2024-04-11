@@ -12,8 +12,8 @@ from fastramqpi.ramqp.utils import RejectMessage
 
 from .config import LDAPAMQPConnectionSettings
 from .depends import SyncTool
+from .exceptions import NoObjectsReturnedException
 from .logging import logger
-from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 
 
 ldap_amqp_router = Router()
