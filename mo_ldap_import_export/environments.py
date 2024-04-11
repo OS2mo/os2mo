@@ -55,6 +55,7 @@ def filter_splitlast(text, separator=" "):
 
 
 def filter_remove_curly_brackets(text: str) -> str:
+    # TODO: Should this remove everything or just a single set?
     return text.replace("{", "").replace("}", "")
 
 
