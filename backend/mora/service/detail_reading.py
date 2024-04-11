@@ -1551,25 +1551,3 @@ async def list_related_units_ou(
 ):
     """Fetch a list of related_units for the organisation unit."""
     return await get_detail(type="ou", id=id, function="related_unit")
-
-
-@router.get("/e/{id}/details/role")
-async def list_roles_employee(
-    id: UUID,
-    at: Any | None = None,
-    validity: Any | None = None,
-    only_primary_uuid: Any | None = None,
-):
-    """Fetch a list of roles for the employee."""
-    return await get_detail(type="e", id=id, function="role")
-
-
-@router.get("/ou/{id}/details/role")
-async def list_roles_ou(
-    id: UUID,
-    at: Any | None = None,
-    validity: Any | None = None,
-    only_primary_uuid: Any | None = None,
-):
-    """Fetch a list of roles for the organisation unit."""
-    return await get_detail(type="ou", id=id, function="role")

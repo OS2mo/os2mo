@@ -81,7 +81,6 @@ service_api = {
     "/service/e/{id}/details/org_unit",
     "/service/e/{id}/details/owner",
     "/service/e/{id}/details/related_unit",
-    "/service/e/{id}/details/role",
     "/service/ou/{id}/details/association",
     "/service/ou/{id}/details/employee",
     "/service/ou/{id}/details/engagement",
@@ -92,7 +91,6 @@ service_api = {
     "/service/ou/{id}/details/org_unit",
     "/service/ou/{id}/details/owner",
     "/service/ou/{id}/details/related_unit",
-    "/service/ou/{id}/details/role",
     "/service/e/{id}/details/",
     "/service/ou/{id}/details/",
 }

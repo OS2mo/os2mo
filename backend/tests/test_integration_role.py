@@ -7,9 +7,12 @@ from uuid import UUID
 import freezegun
 import pytest
 from fastapi.testclient import TestClient
+from more_itertools import one
 
 from mora import lora
 from tests.cases import assert_registrations_equal
+from tests.conftest import GraphAPIPost
+
 
 userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
 unitid = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
@@ -957,27 +960,58 @@ async def test_terminate_role(service_client: TestClient) -> None:
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-def test_reading(service_client: TestClient) -> None:
-    response = service_client.request(
-        "GET",
-        "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/role",
-        params={"only_primary_uuid": 1},
+def test_reading(graphapi_post: GraphAPIPost, service_client: TestClient) -> None:
+    response = graphapi_post(
+        """
+        query GetRole($uuid: UUID!) {
+          employees(filter: {uuids: [$uuid]}) {
+            objects {
+              current {
+                roles {
+                  user_key
+                  uuid
+                  role_type {
+                    uuid
+                  }
+                  person {
+                    uuid
+                  }
+                  org_unit {
+                    uuid
+                  }
+                  validity {
+                    from
+                    to
+                  }
+                }
+              }
+            }
+          }
+        }
+        """,
+        variables={
+            "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+        },
     )
-    assert response.status_code == 200
-    assert response.json() == [
+    assert response.errors is None
+    assert one(response.data["employees"]["objects"])["current"]["roles"] == [
         {
-            "org_unit": {
-                "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-            },
-            "person": {
-                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-            },
+            "org_unit": [
+                {
+                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                }
+            ],
+            "person": [
+                {
+                    "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                }
+            ],
             "role_type": {
                 "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
             },
             "uuid": role_uuid,
             "user_key": "bvn",
-            "validity": {"from": "2017-01-01", "to": None},
+            "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
         }
     ]
 
