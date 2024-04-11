@@ -58,11 +58,6 @@ class InvalidQueryResponse(HTTPException):
         super().__init__(status_code=500, detail=message)
 
 
-class InvalidQuery(HTTPException):
-    def __init__(self, message):
-        super().__init__(status_code=422, detail=message)
-
-
 class TimeOutException(HTTPException):
     def __init__(self, message):
         super().__init__(status_code=408, detail=message)

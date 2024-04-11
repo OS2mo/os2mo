@@ -7,13 +7,9 @@ from uuid import uuid4
 import pytest
 import pytz  # type: ignore
 from fastramqpi.ramqp.mo import MORoutingKey
-from gql import gql
-from graphql import print_ast
 from ldap3.core.exceptions import LDAPInvalidDnError
 from ramodels.mo.details.address import Address
 
-from mo_ldap_import_export.exceptions import InvalidQuery
-from mo_ldap_import_export.utils import add_filter_to_query
 from mo_ldap_import_export.utils import combine_dn_strings
 from mo_ldap_import_export.utils import datetime_to_ldap_timestamp
 from mo_ldap_import_export.utils import delete_keys_from_dict
@@ -53,37 +49,6 @@ async def test_delete_keys_from_dict():
     assert "foo" in dict_to_delete_from["nest"]  # type:ignore
     assert "foo" not in modified_dict
     assert "foo" not in modified_dict["nest"]
-
-
-async def test_add_filter_to_query():
-    query1 = gql(
-        """
-        query TestQuery {
-          employees {
-            uuid
-          }
-        }
-        """
-    )
-
-    query2 = gql(
-        """
-        query TestQuery {
-          employees (uuid:"uuid") {
-            uuid
-          }
-        }
-        """
-    )
-
-    # A query without filters cannot be modified
-    with pytest.raises(InvalidQuery):
-        modified_query = add_filter_to_query(query1, "to_date: null, from_date: null")
-
-    modified_query = add_filter_to_query(query2, "to_date: null, from_date: null")
-    modified_query_str = print_ast(modified_query)
-    assert "from_date" in modified_query_str
-    assert "to_date" in modified_query_str
 
 
 async def test_mo_datestring_to_utc():
