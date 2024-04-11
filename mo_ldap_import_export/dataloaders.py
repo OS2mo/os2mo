@@ -1167,36 +1167,15 @@ class DataLoader:
         return latest_object
 
     async def load_mo_employee(self, uuid: UUID, current_objects_only=True) -> Employee:
-        query = gql(
-            f"""
-            query SingleEmployee {{
-              employees(filter: {{uuids: "{uuid}"}}) {{
-                objects {{
-                  objects {{
-                    uuid
-                    cpr_no
-                    givenname
-                    surname
-                    nickname_givenname
-                    nickname_surname
-                    validity {{
-                      to
-                      from
-                    }}
-                  }}
-                }}
-              }}
-            }}
-            """
-        )
+        start = end = UNSET if current_objects_only else None
+        results = await self.graphql_client.read_employees([uuid], start, end)
+        result = only(results.objects)
+        if result is None:
+            raise NoObjectsReturnedException("Could not fetch employee")
 
-        result = await self.query_past_future_mo(query, current_objects_only)
-        entry = self.extract_current_or_latest_object(
-            result["employees"]["objects"][0]["objects"]
-        )
-
+        validities = jsonable_encoder(result.validities)
+        entry = self.extract_current_or_latest_object(validities)
         entry.pop("validity")
-
         return Employee(**entry)
 
     async def load_mo_employees_in_org_unit(
