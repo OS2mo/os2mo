@@ -230,7 +230,7 @@ class DataLoader:
         try:
             return await self.query_mo(query)
         except NoObjectsReturnedException as e:
-            if current_objects_only:
+            if current_objects_only:  # pragma: no cover
                 raise e
             else:
                 query = add_filter_to_query(query, "to_date: null, from_date: null")
@@ -1293,31 +1293,14 @@ class DataLoader:
         }
 
     async def load_mo_it_user(self, uuid: UUID, current_objects_only=True) -> ITUser:
-        query = gql(
-            f"""
-            query MyQuery {{
-              itusers(filter: {{uuids: "{uuid}"}}) {{
-                objects {{
-                  objects {{
-                    user_key
-                    validity {{
-                      from
-                      to
-                    }}
-                    employee_uuid
-                    itsystem_uuid
-                    engagement_uuid
-                  }}
-                }}
-              }}
-            }}
-            """
-        )
+        start = end = UNSET if current_objects_only else None
+        results = await self.graphql_client.read_itusers([uuid], start, end)
+        result = only(results.objects)
+        if result is None:
+            raise NoObjectsReturnedException("Could not fetch ituser")
 
-        result = await self.query_past_future_mo(query, current_objects_only)
-        entry = self.extract_current_or_latest_object(
-            result["itusers"]["objects"][0]["objects"]
-        )
+        validities = jsonable_encoder(result.validities)
+        entry = self.extract_current_or_latest_object(validities)
         return ITUser.from_simplified_fields(
             user_key=entry["user_key"],
             itsystem_uuid=entry["itsystem_uuid"],

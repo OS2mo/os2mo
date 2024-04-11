@@ -151,6 +151,23 @@ query read_employees($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime)
   }
 }
 
+query read_itusers($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
+  itusers(filter: {from_date: $from_date, to_date: $to_date, uuids: $uuids}) {
+    objects {
+      validities {
+        user_key
+        validity {
+          from
+          to
+        }
+        employee_uuid
+        itsystem_uuid
+        engagement_uuid
+      }
+    }
+  }
+}
+
 query read_employee_uuid_by_ituser_user_key($user_key: String!) {
   itusers(filter: {user_keys: [$user_key]}) {
     objects {
