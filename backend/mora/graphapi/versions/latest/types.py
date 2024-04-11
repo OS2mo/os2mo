@@ -4,6 +4,7 @@ import datetime
 import json
 from base64 import b64decode
 from base64 import b64encode
+from hashlib import shake_128
 from textwrap import dedent
 
 import strawberry
@@ -42,15 +43,35 @@ CPRType = strawberry.scalar(
 )
 
 
+_CURSOR_DELIMITER = ":"
+
+
 class _Cursor(BaseModel):
     offset: int
     registration_time: datetime.datetime
 
 
+def _serialize(value: _Cursor) -> str:
+    json_bytes = value.json().encode("ascii")
+    # This is a hash of the content, rendered as a 6-long hex string. Seems
+    # odd, but people like to inspect the cursor while developing to see that
+    # pagination actually works. This should make sure that the cursor always
+    # looks different, but also that it is actually the same if pagination (or
+    # client-side code...) is broken.
+    h = shake_128(json_bytes).hexdigest(3)
+    cursor = b64encode(json_bytes).decode("ascii")
+    return f"{h}{_CURSOR_DELIMITER}{cursor}"
+
+
+def _deserialize(opaque_cursor: str) -> _Cursor:
+    without_hash = opaque_cursor.split(_CURSOR_DELIMITER)[1]
+    return _Cursor(**json.loads(b64decode(without_hash)))
+
+
 Cursor = strawberry.scalar(
     _Cursor,
-    serialize=lambda v: b64encode(v.json().encode("ascii")).decode("ascii"),
-    parse_value=lambda v: _Cursor(**json.loads(b64decode(v))),
+    serialize=_serialize,
+    parse_value=_deserialize,
     description=dedent(
         """\
         Scalar implementing the cursor of cursor-based pagination.
