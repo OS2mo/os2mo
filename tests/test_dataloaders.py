@@ -1048,16 +1048,17 @@ async def test_load_mo_it_user(
 
 
 async def test_load_mo_engagement(
-    dataloader: DataLoader, legacy_graphql_session: AsyncMock
-):
-    return_value = {
+    dataloader: DataLoader, graphql_mock: GraphQLMocker
+) -> None:
+    route = graphql_mock.query("read_engagements")
+    route.result = {
         "engagements": {
             "objects": [
                 {
-                    "objects": [
+                    "validities": [
                         {
                             "user_key": "foo",
-                            "validity": {"from": "2021-01-01", "to": None},
+                            "validity": {"from": "2021-01-01T00:00:00", "to": None},
                             "extension_1": "extra info",
                             "extension_2": "more extra info",
                             "extension_3": None,
@@ -1081,13 +1082,25 @@ async def test_load_mo_engagement(
         }
     }
 
-    legacy_graphql_session.execute.return_value = return_value
-
     output = await dataloader.load_mo_engagement(uuid4())
     assert output.user_key == "foo"
     assert output.validity.from_date.strftime("%Y-%m-%d") == "2021-01-01"
     assert output.extension_1 == "extra info"
     assert output.extension_2 == "more extra info"
+
+    assert route.called
+
+
+async def test_load_mo_engagement_missing(
+    dataloader: DataLoader, graphql_mock: GraphQLMocker
+) -> None:
+    route = graphql_mock.query("read_engagements")
+    route.result = {"engagements": {"objects": []}}
+
+    with pytest.raises(NoObjectsReturnedException):
+        await dataloader.load_mo_engagement(uuid4())
+
+    assert route.called
 
 
 async def test_load_mo_it_user_not_found(
