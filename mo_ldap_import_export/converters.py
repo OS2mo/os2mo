@@ -7,6 +7,7 @@ import json
 import re
 import string
 from datetime import datetime
+from functools import partial
 from itertools import compress
 from json.decoder import JSONDecodeError
 from typing import Any
@@ -55,6 +56,16 @@ def nonejoin(*args) -> str:
     """
     items_to_join = [a for a in args if a]
     return ", ".join(items_to_join)
+
+
+def nonejoin_orgs(settings: Settings, *args) -> str:
+    """
+    Joins orgs together if they are not empty strings
+    """
+    sep = settings.org_unit_path_string_separator
+
+    items_to_join = [a.strip() for a in args if a]
+    return sep.join(items_to_join)
 
 
 async def find_cpr_field(mapping):
@@ -611,20 +622,12 @@ class LdapConverter:
 
         self.check_org_unit_info_dict()
 
-    def nonejoin_orgs(self, *args) -> str:
-        """
-        Joins orgs together if they are not empty strings
-        """
-        items_to_join = [a.strip() for a in args if a]
-        sep = self.org_unit_path_string_separator
-        return sep.join(items_to_join)
-
     def remove_first_org(self, orgstr):
         """
         Remove first org from orgstr
         """
         _, *rest = orgstr.split(self.org_unit_path_string_separator)
-        return self.nonejoin_orgs(*rest)
+        return nonejoin_orgs(self.settings, *rest)
 
     async def get_object_item_from_uuid(
         self, info_dict: str, uuid: str, key: str
@@ -1111,7 +1114,7 @@ class LdapConverter:
             "now": datetime.utcnow,
             "min": minimum,
             "nonejoin": nonejoin,
-            "nonejoin_orgs": self.nonejoin_orgs,
+            "nonejoin_orgs": partial(nonejoin_orgs, self.settings),
             "remove_first_org": self.remove_first_org,
             "get_employee_address_type_uuid": self.get_employee_address_type_uuid,
             "get_org_unit_address_type_uuid": self.get_org_unit_address_type_uuid,

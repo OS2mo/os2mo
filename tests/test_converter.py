@@ -40,6 +40,7 @@ from mo_ldap_import_export.converters import find_ldap_it_system
 from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.converters import minimum
 from mo_ldap_import_export.converters import nonejoin
+from mo_ldap_import_export.converters import nonejoin_orgs
 from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.environments import environment
@@ -673,9 +674,11 @@ def test_nonejoin() -> None:
     assert output == "foo, bar"
 
 
-def test_nonejoin_orgs(converter: LdapConverter):
-    converter.org_unit_path_string_separator = "|"
-    output = converter.nonejoin_orgs("", "org1 ", " org2", None, "")
+def test_nonejoin_orgs() -> None:
+    settings = MagicMock()
+    settings.org_unit_path_string_separator = "|"
+
+    output = nonejoin_orgs(settings, "", "org1 ", " org2", None, "")
     assert output == "org1|org2"
 
 
