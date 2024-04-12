@@ -1466,4 +1466,4 @@ async def test_holstebro_import_checks(sync_tool: SyncTool):
     ):
         with capture_logs() as cap_logs:
             await sync_tool.import_single_user("CN=foo", force=True)
-            assert "Loading object" in str(cap_logs)
+            assert "Import checks executed" in str(cap_logs)

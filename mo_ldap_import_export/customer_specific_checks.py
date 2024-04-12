@@ -96,9 +96,13 @@ class ImportChecks:
         current_ou = extract_ou_from_dn(current_dn)
         try:
             check_ou_in_list_of_ous(current_ou, ou_includes)
-        except ValueError as e:
+        except ValueError:
             logger.info(
-                f"{current_ou} not in {ou_includes} for json_key={json_key} with exception={e}"
+                "Check Holstebro OU is externals failed",
+                current_ou=current_ou,
+                ou_includes=ou_includes,
+                json_key=json_key,
+                exc_info=True,
             )
             return False
         return True

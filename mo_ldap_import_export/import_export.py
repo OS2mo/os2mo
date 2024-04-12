@@ -878,6 +878,7 @@ class SyncTool:
             for json_key in json_keys
             if await self.perform_import_checks(dn, json_key)
         ]
+        logger.info("Import checks executed", json_keys=json_keys)
 
         for json_key in json_keys:
             if not self.converter._import_to_mo_(json_key, manual_import):
