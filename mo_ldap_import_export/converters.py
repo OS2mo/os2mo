@@ -68,6 +68,16 @@ def nonejoin_orgs(settings: Settings, *args) -> str:
     return sep.join(items_to_join)
 
 
+def remove_first_org(settings: Settings, orgstr: str) -> str:
+    """
+    Remove first org from orgstr
+    """
+    sep = settings.org_unit_path_string_separator
+
+    _, *rest = orgstr.split(sep)
+    return nonejoin_orgs(settings, *rest)
+
+
 async def find_cpr_field(mapping):
     """
     Get the field which contains the CPR number in LDAP
@@ -622,13 +632,6 @@ class LdapConverter:
 
         self.check_org_unit_info_dict()
 
-    def remove_first_org(self, orgstr):
-        """
-        Remove first org from orgstr
-        """
-        _, *rest = orgstr.split(self.org_unit_path_string_separator)
-        return nonejoin_orgs(self.settings, *rest)
-
     async def get_object_item_from_uuid(
         self, info_dict: str, uuid: str, key: str
     ) -> Any:
@@ -1115,7 +1118,7 @@ class LdapConverter:
             "min": minimum,
             "nonejoin": nonejoin,
             "nonejoin_orgs": partial(nonejoin_orgs, self.settings),
-            "remove_first_org": self.remove_first_org,
+            "remove_first_org": partial(remove_first_org, self.settings),
             "get_employee_address_type_uuid": self.get_employee_address_type_uuid,
             "get_org_unit_address_type_uuid": self.get_org_unit_address_type_uuid,
             "get_it_system_uuid": self.get_it_system_uuid,

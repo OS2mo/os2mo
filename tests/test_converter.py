@@ -41,6 +41,7 @@ from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.converters import minimum
 from mo_ldap_import_export.converters import nonejoin
 from mo_ldap_import_export.converters import nonejoin_orgs
+from mo_ldap_import_export.converters import remove_first_org
 from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.environments import environment
@@ -1941,15 +1942,19 @@ def test_unutilized_init_elements(converter: LdapConverter) -> None:
         parse_obj_as(ConversionMapping, converter.raw_mapping)
 
 
-async def test_remove_first_org(converter: LdapConverter) -> None:
-    result = converter.remove_first_org("")
-    assert result == ""
+@pytest.mark.parametrize(
+    "orgstr,result",
+    [
+        ("", ""),
+        ("a\\b", "b"),
+        ("a\\b\\c", "b\\c"),
+    ],
+)
+async def test_remove_first_org(orgstr: str, result: str) -> None:
+    settings = MagicMock()
+    settings.org_unit_path_string_separator = "\\"
 
-    result = converter.remove_first_org("a\\b")
-    assert result == "b"
-
-    result = converter.remove_first_org("a\\b\\c")
-    assert result == "b\\c"
+    assert remove_first_org(settings, orgstr) == result
 
 
 async def test_get_primary_engagement_dict(converter: LdapConverter):
