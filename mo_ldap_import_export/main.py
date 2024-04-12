@@ -12,7 +12,6 @@ from typing import Any
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import FastAPI
-from fastapi_utils.tasks import repeat_every
 from fastramqpi.main import FastRAMQPI
 from fastramqpi.ramqp.depends import Context
 from fastramqpi.ramqp.depends import rate_limit
@@ -280,6 +279,27 @@ async def initialize_ldap_listener(fastramqpi: FastRAMQPI) -> AsyncIterator[None
     yield
 
 
+# TODO: Eliminate this function and make reloading dicts eventdriven
+@asynccontextmanager
+async def initialize_info_dict_refresher(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
+    async def refresher() -> None:
+        user_context = fastramqpi._context["user_context"]
+        converter = user_context["converter"]
+        while True:
+            await converter.load_info_dicts()
+            await asyncio.sleep(24 * 60 * 60)
+
+    task = asyncio.create_task(refresher())
+
+    yield
+
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+
+
 def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     """FastRAMQPI factory.
 
@@ -333,6 +353,8 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     dataloader = DataLoader(fastramqpi.get_context())
     fastramqpi.add_context(dataloader=dataloader)
 
+    fastramqpi.add_lifespan_manager(initialize_info_dict_refresher(fastramqpi), 2000)
+
     userNameGeneratorClass_string = mapping["username_generator"]["objectClass"]
     logger.info("Initializing username generator")
     username_generator_class = get_username_generator_class(
@@ -366,19 +388,6 @@ def create_app(**kwargs: Any) -> FastAPI:
     app.include_router(fastapi_router)
 
     user_context = fastramqpi._context["user_context"]
-
-    # TODO: Eliminate this function and make reloading dicts eventdriven
-    #       When this method is eliminated the fastapi_utils package can be removed
-    @app.on_event("startup")
-    @repeat_every(seconds=60 * 60 * 24)
-    async def reload_info_dicts() -> None:  # pragma: no cover
-        """
-        Endpoint to reload info dicts on the converter. To make sure that they are
-        up-to-date and represent the information in OS2mo.
-        """
-        converter = user_context["converter"]
-        await converter.load_info_dicts()
-
     app.include_router(construct_router(user_context))
 
     return app
