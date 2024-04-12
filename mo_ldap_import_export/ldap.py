@@ -122,6 +122,9 @@ def configure_ldap_connection(settings: Settings) -> Connection:
         "client_strategy": get_client_strategy(),
         "password": settings.ldap_password.get_secret_value(),
         "auto_bind": True,
+        # NOTE: It appears that this flag does not in fact work
+        # See: https://github.com/cannatag/ldap3/issues/1008
+        "read_only": settings.ldap_read_only,
     }
     match settings.ldap_auth_method:
         case AuthBackendEnum.NTLM:
