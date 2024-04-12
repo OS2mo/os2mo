@@ -152,6 +152,60 @@ def make_dn_from_org_unit_path(
     return exchange_ou_in_dn(dn, new_ou)
 
 
+async def get_current_engagement_attribute_uuid_dict(
+    dataloader: DataLoader,
+    attribute: str,
+    employee_uuid: UUID,
+    engagement_user_key: str,
+) -> dict[str, str]:
+    """
+    Returns an uuid-dictionary with the uuid matching the desired attribute
+
+    Args:
+        attribute: Attribute to look up.
+            For example:
+                - org_unit_uuid
+                - engagement_type_uuid
+                - primary_uuid
+        employee_uuid: UUID of the employee
+        engagement_user_key: user_key of the engagement
+
+    Note:
+        This method requests all engagements for employee with uuid = employee_uuid
+        and then filters out all engagements which do not match engagement_user_key.
+        If there is exactly one engagement left after this, the uuid of the requested
+        attribute is returned.
+    """
+
+    if "uuid" not in attribute:
+        raise ValueError(
+            "attribute must be an uuid-string. For example 'job_function_uuid'"
+        )
+
+    logger.info(
+        f"Looking for '{attribute}' in existing engagement with "
+        f"user_key = '{engagement_user_key}' "
+        f"and employee_uuid = '{employee_uuid}'"
+    )
+    engagement_dicts = await dataloader.load_mo_employee_engagement_dicts(
+        employee_uuid, engagement_user_key
+    )
+
+    too_short_exception = UUIDNotFoundException(
+        f"Employee with uuid = {employee_uuid} has no engagements "
+        f"with user_key = '{engagement_user_key}'"
+    )
+    too_long_exception = UUIDNotFoundException(
+        f"Employee with uuid = {employee_uuid} has multiple engagements "
+        f"with user_key = '{engagement_user_key}'"
+    )
+    engagement = one(
+        engagement_dicts, too_short=too_short_exception, too_long=too_long_exception
+    )
+    logger.info(f"Match found in engagement with uuid = {engagement['uuid']}")
+    return {"uuid": engagement[attribute]}
+
+
 async def get_or_create_engagement_type_uuid(
     dataloader: DataLoader, engagement_type: str
 ) -> str:
@@ -809,72 +863,14 @@ class LdapConverter:
             self.check_info_dicts()
             return str(uuid)
 
-    async def get_current_engagement_attribute_uuid_dict(
-        self,
-        attribute: str,
-        employee_uuid: UUID,
-        engagement_user_key: str,
-    ) -> dict[str, str]:
-        """
-        Returns an uuid-dictionary with the uuid matching the desired attribute
-
-        Parameters
-        --------------
-        attribute: str
-            attribute to look up. For example:
-                - org_unit_uuid
-                - engagement_type_uuid
-                - primary_uuid
-        employee_uuid: UUID
-            uuid of the employee
-        engagement_user_key: str
-            user_key of the engagement
-
-        Notes
-        --------
-        This method requests all engagements for employee with uuid = employee_uuid
-        and then filters out all engagements which do not match engagement_user_key.
-        If there is exactly one engagement left after this, the uuid of the requested
-        attribute is returned.
-        """
-
-        if "uuid" not in attribute:
-            raise ValueError(
-                "attribute must be an uuid-string. For example 'job_function_uuid'"
-            )
-
-        logger.info(
-            f"Looking for '{attribute}' in existing engagement with "
-            f"user_key = '{engagement_user_key}' "
-            f"and employee_uuid = '{employee_uuid}'"
-        )
-        engagement_dicts = await self.dataloader.load_mo_employee_engagement_dicts(
-            employee_uuid, engagement_user_key
-        )
-
-        if not engagement_dicts:
-            raise UUIDNotFoundException(
-                f"Employee with uuid = {employee_uuid} has no engagements "
-                f"with user_key = '{engagement_user_key}'"
-            )
-        elif len(engagement_dicts) > 1:
-            raise UUIDNotFoundException(
-                f"Employee with uuid = {employee_uuid} has multiple engagements "
-                f"with user_key = '{engagement_user_key}'"
-            )
-        else:
-            engagement = engagement_dicts[0]
-            logger.info(f"Match found in engagement with uuid = {engagement['uuid']}")
-            return {"uuid": engagement[attribute]}
-
     async def get_current_org_unit_uuid_dict(
         self, employee_uuid: UUID, engagement_user_key: str
     ) -> dict:
         """
         Returns an existing 'org-unit' object formatted as a dict
         """
-        return await self.get_current_engagement_attribute_uuid_dict(
-            "org_unit_uuid", employee_uuid, engagement_user_key
+        return await get_current_engagement_attribute_uuid_dict(
+            self.dataloader, "org_unit_uuid", employee_uuid, engagement_user_key
         )
 
     async def get_current_engagement_type_uuid_dict(
@@ -883,8 +879,8 @@ class LdapConverter:
         """
         Returns an existing 'engagement type' object formatted as a dict
         """
-        return await self.get_current_engagement_attribute_uuid_dict(
-            "engagement_type_uuid", employee_uuid, engagement_user_key
+        return await get_current_engagement_attribute_uuid_dict(
+            self.dataloader, "engagement_type_uuid", employee_uuid, engagement_user_key
         )
 
     async def get_current_primary_uuid_dict(
@@ -893,8 +889,8 @@ class LdapConverter:
         """
         Returns an existing 'primary' object formatted as a dict
         """
-        primary_dict = await self.get_current_engagement_attribute_uuid_dict(
-            "primary_uuid", employee_uuid, engagement_user_key
+        primary_dict = await get_current_engagement_attribute_uuid_dict(
+            self.dataloader, "primary_uuid", employee_uuid, engagement_user_key
         )
 
         if not primary_dict["uuid"]:

@@ -37,6 +37,7 @@ from mo_ldap_import_export.config import LDAP2MOMapping
 from mo_ldap_import_export.config import MO2LDAPMapping
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
+from mo_ldap_import_export.converters import get_current_engagement_attribute_uuid_dict
 from mo_ldap_import_export.converters import get_engagement_type_name
 from mo_ldap_import_export.converters import get_or_create_engagement_type_uuid
 from mo_ldap_import_export.converters import get_primary_type_uuid
@@ -1762,16 +1763,16 @@ async def test_get_current_engagement_attribute(converter: LdapConverter):
 
     for attribute in test_attributes:
         assert (
-            await converter.get_current_engagement_attribute_uuid_dict(
-                attribute, uuid4(), "foo"
+            await get_current_engagement_attribute_uuid_dict(
+                dataloader, attribute, uuid4(), "foo"
             )
         )["uuid"] == engagement1[attribute]
 
     # Try for an employee without matching engagements
     with pytest.raises(UUIDNotFoundException):
         dataloader.load_mo_employee_engagement_dicts.return_value = []
-        await converter.get_current_engagement_attribute_uuid_dict(
-            attribute, uuid4(), "mucki"
+        await get_current_engagement_attribute_uuid_dict(
+            dataloader, attribute, uuid4(), "mucki"
         )
 
     # Try to find a duplicate engagement
@@ -1780,21 +1781,23 @@ async def test_get_current_engagement_attribute(converter: LdapConverter):
             engagement2,
             engagement3,
         ]
-        await converter.get_current_engagement_attribute_uuid_dict(
-            attribute, uuid4(), "duplicate_user_key"
+        await get_current_engagement_attribute_uuid_dict(
+            dataloader, attribute, uuid4(), "duplicate_user_key"
         )
 
     # Try with faulty input
     with pytest.raises(ValueError, match="attribute must be an uuid-string"):
-        await converter.get_current_engagement_attribute_uuid_dict(
-            "user_key", uuid4(), "mucki"
+        await get_current_engagement_attribute_uuid_dict(
+            dataloader, "user_key", uuid4(), "mucki"
         )
 
 
 async def test_get_current_org_unit_uuid(converter: LdapConverter):
     uuid = str(uuid4())
-    converter.get_current_engagement_attribute_uuid_dict = AsyncMock()  # type: ignore
-    converter.get_current_engagement_attribute_uuid_dict.return_value = {"uuid": uuid}
+
+    converter.dataloader.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
+        {"uuid": uuid4(), "org_unit_uuid": uuid}
+    ]
 
     assert (await converter.get_current_org_unit_uuid_dict(uuid4(), "foo"))[
         "uuid"
@@ -1803,8 +1806,10 @@ async def test_get_current_org_unit_uuid(converter: LdapConverter):
 
 async def test_get_current_engagement_type_uuid(converter: LdapConverter):
     uuid = str(uuid4())
-    converter.get_current_engagement_attribute_uuid_dict = AsyncMock()  # type: ignore
-    converter.get_current_engagement_attribute_uuid_dict.return_value = {"uuid": uuid}
+
+    converter.dataloader.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
+        {"uuid": uuid4(), "engagement_type_uuid": uuid}
+    ]
 
     assert (await converter.get_current_engagement_type_uuid_dict(uuid4(), "foo"))[
         "uuid"
@@ -1813,14 +1818,18 @@ async def test_get_current_engagement_type_uuid(converter: LdapConverter):
 
 async def test_get_current_primary_uuid(converter: LdapConverter):
     uuid = str(uuid4())
-    converter.get_current_engagement_attribute_uuid_dict = AsyncMock()  # type: ignore
-    converter.get_current_engagement_attribute_uuid_dict.return_value = {"uuid": uuid}
+
+    converter.dataloader.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
+        {"uuid": uuid4(), "primary_uuid": uuid}
+    ]
 
     assert (await converter.get_current_primary_uuid_dict(uuid4(), "foo"))[
         "uuid"
     ] == uuid  # type: ignore
 
-    converter.get_current_engagement_attribute_uuid_dict.return_value = {"uuid": None}
+    converter.dataloader.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
+        {"uuid": uuid4(), "primary_uuid": None}
+    ]
 
     assert await converter.get_current_primary_uuid_dict(uuid4(), "foo") is None
 
