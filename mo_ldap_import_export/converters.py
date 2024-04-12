@@ -131,6 +131,27 @@ async def get_engagement_type_name(graphql_client: GraphQLClient, uuid: str) -> 
     return engagement_type.current.name
 
 
+def make_dn_from_org_unit_path(
+    settings: Settings, dn: str, org_unit_path_string: str
+) -> str:
+    """
+    Makes a new DN based on an org-unit path string and a DN, where the org unit
+    structure is parsed as an OU structure in the DN.
+
+    Example
+    --------
+    >>> dn = "CN=Earthworm Jim,OU=OS2MO,DC=ad,DC=addev"
+    >>> new_dn = make_dn_from_org_unit_path(dn,"foo/bar")
+    >>> new_dn
+    >>> "CN=Earthworm Jim,OU=bar,OU=foo,DC=ad,DC=addev"
+    """
+    sep = settings.org_unit_path_string_separator
+
+    org_units = org_unit_path_string.split(sep)[::-1]
+    new_ou = ",".join([f"OU={org_unit.strip()}" for org_unit in org_units])
+    return exchange_ou_in_dn(dn, new_ou)
+
+
 async def find_cpr_field(mapping):
     """
     Get the field which contains the CPR number in LDAP
@@ -1020,23 +1041,6 @@ class LdapConverter:
 
         return path_string
 
-    def make_dn_from_org_unit_path(self, dn: str, org_unit_path_string: str) -> str:
-        """
-        Makes a new DN based on an org-unit path string and a DN, where the org unit
-        structure is parsed as an OU structure in the DN.
-
-        Example
-        --------
-        >>> dn = "CN=Earthworm Jim,OU=OS2MO,DC=ad,DC=addev"
-        >>> new_dn = make_dn_from_org_unit_path(dn,"foo/bar")
-        >>> new_dn
-        >>> "CN=Earthworm Jim,OU=bar,OU=foo,DC=ad,DC=addev"
-        """
-        sep = self.org_unit_path_string_separator
-        org_units = org_unit_path_string.split(sep)[::-1]
-        new_ou = ",".join([f"OU={org_unit.strip()}" for org_unit in org_units])
-        return exchange_ou_in_dn(dn, new_ou)
-
     def clean_org_unit_path_string(self, org_unit_path_string: str) -> str:
         """
         Cleans leading and trailing whitespace from org units in an org unit path string
@@ -1144,7 +1148,9 @@ class LdapConverter:
             ),
             "uuid4": uuid4,
             "get_org_unit_path_string": self.get_org_unit_path_string,
-            "make_dn_from_org_unit_path": self.make_dn_from_org_unit_path,
+            "make_dn_from_org_unit_path": partial(
+                make_dn_from_org_unit_path, self.settings
+            ),
             "get_job_function_name": self.get_job_function_name,
             "get_org_unit_name": self.get_org_unit_name,
             "get_or_create_job_function_uuid": self.get_or_create_job_function_uuid,

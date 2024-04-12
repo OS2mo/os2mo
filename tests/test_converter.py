@@ -41,6 +41,7 @@ from mo_ldap_import_export.converters import get_engagement_type_name
 from mo_ldap_import_export.converters import get_primary_type_uuid
 from mo_ldap_import_export.converters import get_visibility_uuid
 from mo_ldap_import_export.converters import LdapConverter
+from mo_ldap_import_export.converters import make_dn_from_org_unit_path
 from mo_ldap_import_export.converters import minimum
 from mo_ldap_import_export.converters import nonejoin
 from mo_ldap_import_export.converters import nonejoin_orgs
@@ -1894,11 +1895,13 @@ def test_org_unit_path_string_from_dn(converter: LdapConverter):
     assert org_unit_path == ""
 
 
-def test_make_dn_from_org_unit_path(converter: LdapConverter):
+def test_make_dn_from_org_unit_path() -> None:
+    settings = MagicMock()
+    settings.org_unit_path_string_separator = "|"
+
     org_unit_path = " foo|mucki |bar"
-    converter.org_unit_path_string_separator = "|"
     dn = "CN=Angus,OU=replace_me,DC=GHU"
-    new_dn = converter.make_dn_from_org_unit_path(dn, org_unit_path)
+    new_dn = make_dn_from_org_unit_path(settings, dn, org_unit_path)
     assert new_dn == "CN=Angus,OU=bar,OU=mucki,OU=foo,DC=GHU"
 
 
