@@ -1,9 +1,11 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import structlog
 from pydantic import parse_obj_as
 
 from .config import Init
-from .logging import logger
+
+logger = structlog.stdlib.get_logger()
 
 
 class InitEngine:

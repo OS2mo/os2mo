@@ -358,6 +358,10 @@ class Settings(BaseSettings):
 
     fastramqpi: FastFAMQPIApplicationSettings
 
+    development_mode: bool = Field(
+        False, description="Whether to configure logging, et al for development"
+    )
+
     @root_validator(pre=True)
     def share_amqp_url(cls, values: dict[str, Any]) -> dict[str, Any]:
         """Use FastRAMQPI__AMQP__URL as a default for AMQP URLs"""

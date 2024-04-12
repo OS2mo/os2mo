@@ -5,6 +5,7 @@ from abc import ABC
 from abc import abstractmethod
 from collections.abc import Iterator
 
+import structlog
 from fastramqpi.context import Context
 from more_itertools import split_when
 from pydantic import parse_obj_as
@@ -12,9 +13,10 @@ from ramodels.mo.employee import Employee
 
 from .config import UsernameGeneratorConfig
 from .ldap import paged_search
-from .logging import logger
 from .utils import combine_dn_strings
 from .utils import remove_vowels
+
+logger = structlog.stdlib.get_logger()
 
 
 class UserNameGeneratorBase(ABC):

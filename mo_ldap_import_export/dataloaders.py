@@ -11,6 +11,7 @@ from typing import Any
 from typing import cast
 from uuid import UUID
 
+import structlog
 from fastapi.encoders import jsonable_encoder
 from gql import gql
 from gql.client import AsyncClientSession
@@ -62,12 +63,13 @@ from .ldap import make_ldap_object
 from .ldap import paged_search
 from .ldap import single_object_search
 from .ldap_classes import LdapObject
-from .logging import logger
 from .utils import combine_dn_strings
 from .utils import extract_cn_from_dn
 from .utils import extract_ou_from_dn
 from .utils import mo_datestring_to_utc
 from .utils import remove_cn_from_dn
+
+logger = structlog.stdlib.get_logger()
 
 DNList = list[str]
 

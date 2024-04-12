@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from typing import Annotated
 
+import structlog
 from fastapi import Depends
 from fastramqpi.main import FastRAMQPI
 from fastramqpi.ramqp import AMQPSystem
@@ -13,7 +14,8 @@ from fastramqpi.ramqp.utils import RejectMessage
 from .config import LDAPAMQPConnectionSettings
 from .depends import SyncTool
 from .exceptions import NoObjectsReturnedException
-from .logging import logger
+
+logger = structlog.stdlib.get_logger()
 
 
 ldap_amqp_router = Router()

@@ -6,6 +6,7 @@ from typing import Literal
 from uuid import UUID
 from uuid import uuid4
 
+import structlog
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import Query
@@ -26,8 +27,9 @@ from .exceptions import ObjectGUIDITSystemNotFound
 from .ldap import get_attribute_types
 from .ldap import paged_search
 from .ldap_classes import LdapObject
-from .logging import logger
 from .processors import _hide_cpr as hide_cpr
+
+logger = structlog.stdlib.get_logger()
 
 
 def encode_result(result):

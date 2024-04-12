@@ -37,6 +37,9 @@ def mask_cpr(
     Looks for cpr numbers and masks them
     """
     for key, value in event_dict.items():
+        # Avoid treating UNIX timestamps as CPR numbers
+        if key == "timestamp":
+            continue
         if isinstance(value, str):
             event_dict[key] = _hide_cpr(value)
         else:

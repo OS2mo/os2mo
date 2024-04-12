@@ -9,6 +9,7 @@ from functools import wraps
 from typing import Annotated
 from typing import Any
 
+import structlog
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import FastAPI
@@ -42,12 +43,14 @@ from .ldap import ldap_healthcheck
 from .ldap import poller_healthcheck
 from .ldap import setup_listener
 from .ldap_amqp import configure_ldap_amqpsystem
-from .logging import logger
+from .logging import init as initialize_logging
 from .os2mo_init import InitEngine
 from .routes import construct_router
 from .usernames import get_username_generator_class
 from .utils import get_object_type_from_routing_key
 from .utils import mo_datestring_to_utc
+
+logger = structlog.stdlib.get_logger()
 
 fastapi_router = APIRouter()
 amqp_router = MORouter()
@@ -308,6 +311,8 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     """
     logger.info("Retrieving settings")
     settings = Settings(**kwargs)
+
+    initialize_logging(settings.fastramqpi.log_level, not settings.development_mode)
 
     # ldap_ou_for_new_users needs to be in the search base. Otherwise we cannot
     # find newly created users...
