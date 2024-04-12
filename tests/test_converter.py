@@ -40,6 +40,7 @@ from mo_ldap_import_export.converters import find_ldap_it_system
 from mo_ldap_import_export.converters import get_current_engagement_attribute_uuid_dict
 from mo_ldap_import_export.converters import get_current_engagement_type_uuid_dict
 from mo_ldap_import_export.converters import get_current_org_unit_uuid_dict
+from mo_ldap_import_export.converters import get_current_primary_uuid_dict
 from mo_ldap_import_export.converters import get_engagement_type_name
 from mo_ldap_import_export.converters import get_or_create_engagement_type_uuid
 from mo_ldap_import_export.converters import get_primary_type_uuid
@@ -1818,22 +1819,22 @@ async def test_get_current_engagement_type_uuid(dataloader: AsyncMock) -> None:
     ] == uuid
 
 
-async def test_get_current_primary_uuid(converter: LdapConverter):
+async def test_get_current_primary_uuid(dataloader: AsyncMock) -> None:
     uuid = str(uuid4())
 
-    converter.dataloader.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
+    dataloader.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
         {"uuid": uuid4(), "primary_uuid": uuid}
     ]
 
-    assert (await converter.get_current_primary_uuid_dict(uuid4(), "foo"))[
+    assert (await get_current_primary_uuid_dict(dataloader, uuid4(), "foo"))[
         "uuid"
     ] == uuid  # type: ignore
 
-    converter.dataloader.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
+    dataloader.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
         {"uuid": uuid4(), "primary_uuid": None}
     ]
 
-    assert await converter.get_current_primary_uuid_dict(uuid4(), "foo") is None
+    assert await get_current_primary_uuid_dict(dataloader, uuid4(), "foo") is None
 
 
 def test_clean_calls_to_get_current_method_from_template_string(
