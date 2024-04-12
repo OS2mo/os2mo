@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from __future__ import annotations
 
-import copy
 import json
 import re
 import string
@@ -361,10 +360,7 @@ class LdapConverter:
             ["objectClass", "_import_to_mo_", "_export_to_ldap_"],
         )
 
-        self.mapping = self._populate_mapping_with_templates(
-            copy.deepcopy(mapping),
-            environment,
-        )
+        self.mapping = self._populate_mapping_with_templates(mapping, environment)
 
         await self.check_mapping()
         self.cpr_field = await find_cpr_field(self.mapping)
@@ -1111,7 +1107,7 @@ class LdapConverter:
 
     def _populate_mapping_with_templates(
         self, mapping: dict[str, Any], environment: Environment
-    ):
+    ) -> dict[str, Any]:
         globals_dict = {
             "now": datetime.utcnow,
             "min": minimum,
@@ -1161,13 +1157,17 @@ class LdapConverter:
             ),
             "get_employee_dict": partial(get_employee_dict, self.dataloader),
         }
-        for key, value in mapping.items():
+
+        def populate_value(value: str | dict[str, Any]) -> Any:
             if isinstance(value, str):
-                mapping[key] = environment.from_string(value)
-                mapping[key].globals.update(globals_dict)
-            elif isinstance(value, dict):
-                mapping[key] = self._populate_mapping_with_templates(value, environment)
-        return mapping
+                template = environment.from_string(value)
+                template.globals.update(globals_dict)
+                return template
+            if isinstance(value, dict):
+                return self._populate_mapping_with_templates(value, environment)
+            raise NotImplementedError("Unknown value type")
+
+        return {key: populate_value(value) for key, value in mapping.items()}
 
     async def to_ldap(self, mo_object_dict: dict, json_key: str, dn: str) -> LdapObject:
         """
