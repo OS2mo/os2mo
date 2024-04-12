@@ -37,6 +37,7 @@ from mo_ldap_import_export.config import LDAP2MOMapping
 from mo_ldap_import_export.config import MO2LDAPMapping
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
+from mo_ldap_import_export.converters import get_visibility_uuid
 from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.converters import minimum
 from mo_ldap_import_export.converters import nonejoin
@@ -206,6 +207,11 @@ async def converter(context: Context) -> LdapConverter:
     converter = LdapConverter(context)
     await converter._init()
     return converter
+
+
+@pytest.fixture
+async def graphql_client(converter: LdapConverter) -> AsyncMock:
+    return cast(AsyncMock, converter.dataloader.graphql_client)
 
 
 async def test_ldap_to_mo(converter: LdapConverter) -> None:
@@ -1101,14 +1107,13 @@ async def test_get_it_system_uuid(converter: LdapConverter):
 
 
 @pytest.mark.parametrize("class_name", ["Hemmelig", "Offentlig"])
-async def test_get_visibility_uuid(converter: LdapConverter, class_name: str) -> None:
+async def test_get_visibility_uuid(graphql_client: AsyncMock, class_name: str) -> None:
     class_uuid = str(uuid4())
 
-    graphql_client: AsyncMock = cast(AsyncMock, converter.dataloader.graphql_client)
     graphql_client.read_class_uuid_by_facet_and_class_user_key.map[
         ("visibility", class_name)
     ] = class_uuid
-    assert await converter.get_visibility_uuid(class_name) == class_uuid
+    assert await get_visibility_uuid(graphql_client, class_name) == class_uuid
 
 
 async def test_get_job_function_uuid(converter: LdapConverter):
