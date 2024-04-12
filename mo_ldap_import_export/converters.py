@@ -41,6 +41,14 @@ from .utils import import_class
 from .utils import is_list
 
 
+def minimum(a, b):
+    if a is None:
+        return b
+    if b is None:
+        return a
+    return min(a, b)
+
+
 async def find_cpr_field(mapping):
     """
     Get the field which contains the CPR number in LDAP
@@ -1096,22 +1104,12 @@ class LdapConverter:
         """
         return json.loads(text.replace("'", '"').replace("Undefined", "null"))
 
-    @staticmethod
-    def min(a, b):
-        if a is None:
-            return b
-        if b is None:
-            return a
-        if a < b:
-            return a
-        return b
-
     def _populate_mapping_with_templates(
         self, mapping: dict[str, Any], environment: Environment
     ):
         globals_dict = {
             "now": datetime.utcnow,
-            "min": self.min,
+            "min": minimum,
             "nonejoin": self.nonejoin,
             "nonejoin_orgs": self.nonejoin_orgs,
             "remove_first_org": self.remove_first_org,

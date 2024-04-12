@@ -38,6 +38,7 @@ from mo_ldap_import_export.config import MO2LDAPMapping
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
 from mo_ldap_import_export.converters import LdapConverter
+from mo_ldap_import_export.converters import minimum
 from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.environments import environment
@@ -659,11 +660,11 @@ def test_get_accepted_json_keys(converter: LdapConverter):
     assert "Active Directory" in output
 
 
-def test_min(converter: LdapConverter):
-    assert converter.min(1, None) == 1
-    assert converter.min(None, 1) == 1
-    assert converter.min(9, 10) == 9
-    assert converter.min(10, 9) == 9
+def test_minimum() -> None:
+    assert minimum(1, None) == 1
+    assert minimum(None, 1) == 1
+    assert minimum(9, 10) == 9
+    assert minimum(10, 9) == 9
 
 
 def test_nonejoin(converter: LdapConverter):
