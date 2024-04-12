@@ -93,8 +93,9 @@ def get_delete_flag(mo_object: dict[str, Any]) -> bool:
     validity_to = mo_datestring_to_utc(mo_object["validity"]["to"])
     if validity_to and validity_to <= now:
         logger.info(
-            "[Get-delete-flag] Returning delete=True because "
-            f"to-date ({validity_to}) <= current date ({now})"
+            "Returning delete=True because to_date <= current_date",
+            to_date=validity_to,
+            current_date=now,
         )
         return True
     return False
@@ -108,7 +109,7 @@ async def unpack_payload(
     by export functions in `import_export.py`. Also return the mo object as a dict
     """
     logger.info(
-        "[Unpack-payload] Unpacking payload.",
+        "Unpacking payload",
         mo_routing_key=mo_routing_key,
         object_uuid=str(object_uuid),
     )
@@ -206,7 +207,7 @@ async def process_org_unit(
     sync_tool: depends.SyncTool,
 ) -> None:
     logger.info(
-        "[Listen-to-changes-in-orgs] Registered change in an org_unit.",
+        "Registered change in an org_unit",
         object_uuid=object_uuid,
     )
     # In case the name of the org-unit changed, we need to publish an

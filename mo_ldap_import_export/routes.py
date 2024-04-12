@@ -82,7 +82,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
             all_ldap_objects = all_ldap_objects[:20]
 
         number_of_entries = len(all_ldap_objects)
-        logger.info(f"Found {number_of_entries} entries in AD")
+        logger.info("Found entries in AD", count=number_of_entries)
 
         with tqdm(total=number_of_entries, unit="ldap object") as progress_bar:
             progress_bar.set_description("LDAP import progress")
@@ -92,13 +92,13 @@ def construct_router(user_context: UserContext) -> APIRouter:
             # - MO was observed to not handle that well either.
             # - We don't need the additional speed. This is meant as a one-time import
             for ldap_object in all_ldap_objects:
-                logger.info(f"Importing {ldap_object.dn}")
+                logger.info("Importing LDAP object", dn=ldap_object.dn)
                 if cpr_indexed_entries_only:
                     cpr_no = getattr(ldap_object, cpr_field)
                     try:
                         validate_cpr(cpr_no)
                     except (ValueError, TypeError):
-                        logger.info(f"{cpr_no} is not a valid cpr number")
+                        logger.info("Invalid CPR Number found", dn=ldap_object.dn)
                         progress_bar.update()
                         continue
 
@@ -130,8 +130,10 @@ def construct_router(user_context: UserContext) -> APIRouter:
                 converted_results.extend(
                     await converter.from_ldap(r, json_key, employee_uuid=uuid4())
                 )
-            except ValidationError as e:
-                logger.error(f"Cannot convert {r} to MO {json_key}: {e}")
+            except ValidationError:
+                logger.exception(
+                    "Cannot convert LDAP object to MO", ldap_object=r, json_key=json_key
+                )
         return converted_results
 
     # Get a specific cpr-indexed object from LDAP
@@ -159,8 +161,12 @@ def construct_router(user_context: UserContext) -> APIRouter:
         result = dataloader.load_ldap_cpr_object(cpr, json_key)
         try:
             return await converter.from_ldap(result, json_key, employee_uuid=uuid4())
-        except ValidationError as e:
-            logger.error(f"Cannot convert {result} to MO {json_key}: {e}")
+        except ValidationError:
+            logger.exception(
+                "Cannot convert LDAP object to to MO",
+                ldap_object=result,
+                json_key=json_key,
+            )
             response.status_code = (
                 status.HTTP_404_NOT_FOUND
             )  # TODO: return other status?
