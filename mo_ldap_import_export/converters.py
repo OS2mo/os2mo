@@ -107,6 +107,22 @@ async def get_primary_type_uuid(graphql_client: GraphQLClient, primary: str) -> 
     )
 
 
+async def get_engagement_type_uuid(
+    graphql_client: GraphQLClient, engagement_type: str
+) -> str:
+    result = await graphql_client.read_class_uuid_by_facet_and_class_user_key(
+        "engagement_type", engagement_type
+    )
+    return str(
+        one(
+            result.objects,
+            too_short=UUIDNotFoundException(
+                f"engagement_type not found, user_key: {engagement_type}"
+            ),
+        ).uuid
+    )
+
+
 async def find_cpr_field(mapping):
     """
     Get the field which contains the CPR number in LDAP
@@ -750,19 +766,6 @@ class LdapConverter:
             self.check_info_dicts()
             return str(uuid)
 
-    async def get_engagement_type_uuid(self, engagement_type: str) -> str:
-        result = await self.dataloader.graphql_client.read_class_uuid_by_facet_and_class_user_key(
-            "engagement_type", engagement_type
-        )
-        return str(
-            one(
-                result.objects,
-                too_short=UUIDNotFoundException(
-                    f"engagement_type not found, user_key: {engagement_type}"
-                ),
-            ).uuid
-        )
-
     async def get_current_engagement_attribute_uuid_dict(
         self,
         attribute: str,
@@ -874,7 +877,9 @@ class LdapConverter:
         if not engagement_type:
             raise UUIDNotFoundException("engagement_type is empty")
         try:
-            return await self.get_engagement_type_uuid(engagement_type)
+            return await get_engagement_type_uuid(
+                self.dataloader.graphql_client, engagement_type
+            )
         except UUIDNotFoundException:
             uuid = await self.dataloader.create_mo_engagement_type(engagement_type)
             return str(uuid)
@@ -1134,7 +1139,9 @@ class LdapConverter:
             "get_primary_type_uuid": partial(
                 get_primary_type_uuid, self.dataloader.graphql_client
             ),
-            "get_engagement_type_uuid": self.get_engagement_type_uuid,
+            "get_engagement_type_uuid": partial(
+                get_engagement_type_uuid, self.dataloader.graphql_client
+            ),
             "get_engagement_type_name": self.get_engagement_type_name,
             "uuid4": uuid4,
             "get_org_unit_path_string": self.get_org_unit_path_string,
