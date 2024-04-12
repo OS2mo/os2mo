@@ -38,6 +38,7 @@ from mo_ldap_import_export.config import MO2LDAPMapping
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
 from mo_ldap_import_export.converters import get_engagement_type_name
+from mo_ldap_import_export.converters import get_or_create_engagement_type_uuid
 from mo_ldap_import_export.converters import get_primary_type_uuid
 from mo_ldap_import_export.converters import get_visibility_uuid
 from mo_ldap_import_export.converters import LdapConverter
@@ -213,8 +214,13 @@ async def converter(context: Context) -> LdapConverter:
 
 
 @pytest.fixture
-async def graphql_client(converter: LdapConverter) -> AsyncMock:
-    return cast(AsyncMock, converter.dataloader.graphql_client)
+async def dataloader(converter: LdapConverter) -> AsyncMock:
+    return cast(AsyncMock, converter.dataloader)
+
+
+@pytest.fixture
+async def graphql_client(dataloader: AsyncMock) -> AsyncMock:
+    return cast(AsyncMock, dataloader.graphql_client)
 
 
 async def test_ldap_to_mo(converter: LdapConverter) -> None:
@@ -1191,32 +1197,31 @@ async def test_get_org_unit_name(converter: LdapConverter) -> None:
 
 
 @pytest.mark.parametrize("class_name", ["Ansat", "Vikar"])
-async def test_get_engagement_type_uuid(
-    converter: LdapConverter, class_name: str
-) -> None:
+async def test_get_engagement_type_uuid(dataloader: AsyncMock, class_name: str) -> None:
     class_uuid = str(uuid4())
 
-    graphql_client: AsyncMock = cast(AsyncMock, converter.dataloader.graphql_client)
-    graphql_client.read_class_uuid_by_facet_and_class_user_key.map[
+    dataloader.graphql_client.read_class_uuid_by_facet_and_class_user_key.map[
         ("engagement_type", class_name)
     ] = class_uuid
-    assert await converter.get_or_create_engagement_type_uuid(class_name) == class_uuid
+    assert (
+        await get_or_create_engagement_type_uuid(dataloader, class_name) == class_uuid
+    )
 
 
-async def test_get_engagement_type_non_existing_uuid(converter: LdapConverter):
+async def test_get_engagement_type_non_existing_uuid(dataloader: AsyncMock) -> None:
     uuid = uuid4()
-    dataloader: AsyncMock = cast(AsyncMock, converter.dataloader)
+
     dataloader.create_mo_engagement_type.return_value = uuid
 
-    assert await converter.get_or_create_engagement_type_uuid(
-        "non-existing_engagement_type"
+    assert await get_or_create_engagement_type_uuid(
+        dataloader, "non-existing_engagement_type"
     ) == str(uuid)
 
     with pytest.raises(UUIDNotFoundException):
-        await converter.get_or_create_engagement_type_uuid("")
+        await get_or_create_engagement_type_uuid(dataloader, "")
 
     with pytest.raises(UUIDNotFoundException):
-        await converter.get_or_create_engagement_type_uuid([])  # type: ignore
+        await get_or_create_engagement_type_uuid(dataloader, [])  # type: ignore
 
 
 @pytest.mark.parametrize("class_name", ["primary", "non-primary"])

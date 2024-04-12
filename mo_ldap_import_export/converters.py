@@ -152,6 +152,20 @@ def make_dn_from_org_unit_path(
     return exchange_ou_in_dn(dn, new_ou)
 
 
+async def get_or_create_engagement_type_uuid(
+    dataloader: DataLoader, engagement_type: str
+) -> str:
+    if not engagement_type:
+        raise UUIDNotFoundException("engagement_type is empty")
+    try:
+        return await get_engagement_type_uuid(
+            dataloader.graphql_client, engagement_type
+        )
+    except UUIDNotFoundException:
+        uuid = await dataloader.create_mo_engagement_type(engagement_type)
+        return str(uuid)
+
+
 async def find_cpr_field(mapping):
     """
     Get the field which contains the CPR number in LDAP
@@ -902,17 +916,6 @@ class LdapConverter:
         primary_engagement = one(compress(engagements, is_primary_engagement))
         return primary_engagement
 
-    async def get_or_create_engagement_type_uuid(self, engagement_type: str) -> str:
-        if not engagement_type:
-            raise UUIDNotFoundException("engagement_type is empty")
-        try:
-            return await get_engagement_type_uuid(
-                self.dataloader.graphql_client, engagement_type
-            )
-        except UUIDNotFoundException:
-            uuid = await self.dataloader.create_mo_engagement_type(engagement_type)
-            return str(uuid)
-
     async def get_org_unit_type_uuid(self, org_unit_type: str) -> str:
         result = await self.dataloader.graphql_client.read_class_uuid_by_facet_and_class_user_key(
             "org_unit_type", org_unit_type
@@ -1154,8 +1157,8 @@ class LdapConverter:
             "get_job_function_name": self.get_job_function_name,
             "get_org_unit_name": self.get_org_unit_name,
             "get_or_create_job_function_uuid": self.get_or_create_job_function_uuid,
-            "get_or_create_engagement_type_uuid": (
-                self.get_or_create_engagement_type_uuid
+            "get_or_create_engagement_type_uuid": partial(
+                get_or_create_engagement_type_uuid, self.dataloader
             ),
             "get_current_org_unit_uuid_dict": self.get_current_org_unit_uuid_dict,
             "get_current_engagement_type_uuid_dict": (
