@@ -1468,3 +1468,19 @@ async def test_holstebro_import_checks(sync_tool: SyncTool):
         with capture_logs() as cap_logs:
             await sync_tool.import_single_user("CN=foo", force=True)
             assert "Import checks executed" in str(cap_logs)
+
+
+async def test_import_single_user_entity(sync_tool: SyncTool) -> None:
+    sync_tool.converter.from_ldap.return_value = []  # type: ignore
+
+    json_key = "Engagement"
+    dn = "CN=foo"
+    employee_uuid = uuid4()
+    engagement_uuid = uuid4()
+    with capture_logs() as cap_logs:
+        result = await sync_tool.import_single_user_entity(
+            json_key, dn, employee_uuid, engagement_uuid
+        )
+        assert result == engagement_uuid
+
+        assert "No converted objects" in str(cap_logs)

@@ -912,24 +912,24 @@ class SyncTool:
             employee_uuid=employee_uuid,
             engagement_uuid=engagement_uuid,
         )
+        if not converted_objects:
+            logger.info("No converted objects", dn=dn)
+            return engagement_uuid
 
-        # In case the engagement does not exist yet:
-        if json_key == "Engagement" and len(converted_objects):
+        logger.info(
+            "Converted 'n' objects ",
+            n=len(converted_objects),
+            dn=dn,
+        )
+
+        # In case the engagement does not exist yet
+        if json_key == "Engagement":
+            # TODO: Why are we extracting the first object as opposed to the last?
             engagement_uuid = first(converted_objects).uuid
             logger.info(
                 "Saving engagement UUID for DN",
                 engagement_uuid=engagement_uuid,
                 source_object=first(converted_objects),
-                dn=dn,
-            )
-
-        if len(converted_objects) == 0:
-            logger.info("No converted objects", dn=dn)
-            return engagement_uuid
-        else:
-            logger.info(
-                "Converted 'n' objects",
-                n=len(converted_objects),
                 dn=dn,
             )
 
@@ -967,9 +967,25 @@ class SyncTool:
             )
             return engagement_uuid
 
-        # TODO: Conver this to an assert? - The above try-catch ensures it is always set, no?
+        # TODO: Convert this to an assert? - The above try-catch ensures it is always set, no?
         if not converted_objects:  # pragma: no cover
+            logger.info("No converted objects after formatting", dn=dn)
             return engagement_uuid
+
+        # In case the engagement exists, but is outdated.
+        # If it exists, but is identical, the list will be empty.
+        if json_key == "Engagement":
+            # TODO: Why are we extracting the first object as opposed to the last?
+            operation = first(converted_objects)
+            engagement, _ = operation
+            engagement_uuid = engagement.uuid
+            logger.info(
+                "Updating engagement UUID",
+                engagement_uuid=engagement_uuid,
+                source_object=engagement,
+                dn=dn,
+            )
+
         logger.info(
             "Importing objects",
             converted_objects=converted_objects,
@@ -989,6 +1005,9 @@ class SyncTool:
             try:
                 await self.dataloader.create_or_edit_mo_objects(converted_objects)
             except HTTPStatusError as e:
+                # TODO: This could also happen if MO is just busy, right?
+                #       In which case we would probably like to retry I imagine?
+
                 # This can happen, for example if a phone number in LDAP is
                 # invalid
                 logger.warning(
