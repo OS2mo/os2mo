@@ -1452,11 +1452,18 @@ async def test_publish_engagements_for_org_unit(
     )
 
 
+async def test_perform_import_checks_noop(sync_tool: SyncTool) -> None:
+    """Test that perform_import_checks returns True when nothing is checked."""
+    sync_tool.settings.check_holstebro_ou_issue_57426 = False
+    result = await sync_tool.perform_import_checks("CN=foo", "Employee")
+    assert result is True
+
+
 async def test_holstebro_import_checks(sync_tool: SyncTool):
     with patch(
         "mo_ldap_import_export.import_export.SyncTool.perform_import_checks",
-        side_effect=IgnoreChanges("unique!error_msg"),
+        return_value=False,
     ):
         with capture_logs() as cap_logs:
             await sync_tool.import_single_user("CN=foo", force=True)
-            assert "IgnoreChanges Exception" in str(cap_logs)
+            assert "Loading object" in str(cap_logs)

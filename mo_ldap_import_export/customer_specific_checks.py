@@ -2,11 +2,15 @@
 # SPDX-License-Identifier: MPL-2.0
 from uuid import UUID
 
+import structlog
 from fastramqpi.context import Context
 
 from .exceptions import IgnoreChanges
 from .ldap import check_ou_in_list_of_ous
 from .utils import extract_ou_from_dn
+
+
+logger = structlog.stdlib.get_logger()
 
 
 class ExportChecks:
@@ -77,7 +81,7 @@ class ImportChecks:
 
     async def check_holstebro_ou_is_externals_issue_57426(
         self, ou_includes: list[str], current_dn: str, json_key: str
-    ):
+    ) -> bool:
         """
         Raise IgnoreChanges if current_dn's OU is not in any of ou_includes.
 
@@ -86,13 +90,15 @@ class ImportChecks:
         """
         # Holstebro needs stillingsbetegnelser regardless of OU
         if json_key == "Custom":
-            return
+            return True
 
         # Check that current_dn's OU is in one of the accepted OU's
         current_ou = extract_ou_from_dn(current_dn)
         try:
             check_ou_in_list_of_ous(current_ou, ou_includes)
         except ValueError as e:
-            raise IgnoreChanges(
-                f"{current_ou} not in {ou_includes} for json_key={json_key}"
-            ) from e
+            logger.info(
+                f"{current_ou} not in {ou_includes} for json_key={json_key} with exception={e}"
+            )
+            return False
+        return True
