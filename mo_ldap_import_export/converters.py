@@ -49,6 +49,14 @@ def minimum(a, b):
     return min(a, b)
 
 
+def nonejoin(*args) -> str:
+    """
+    Joins items together if they are not None or empty lists
+    """
+    items_to_join = [a for a in args if a]
+    return ", ".join(items_to_join)
+
+
 async def find_cpr_field(mapping):
     """
     Get the field which contains the CPR number in LDAP
@@ -603,14 +611,6 @@ class LdapConverter:
 
         self.check_org_unit_info_dict()
 
-    @staticmethod
-    def nonejoin(*args) -> str:
-        """
-        Joins items together if they are not None or emtpy lists
-        """
-        items_to_join = [a for a in args if a]
-        return ", ".join(items_to_join)
-
     def nonejoin_orgs(self, *args) -> str:
         """
         Joins orgs together if they are not empty strings
@@ -1110,7 +1110,7 @@ class LdapConverter:
         globals_dict = {
             "now": datetime.utcnow,
             "min": minimum,
-            "nonejoin": self.nonejoin,
+            "nonejoin": nonejoin,
             "nonejoin_orgs": self.nonejoin_orgs,
             "remove_first_org": self.remove_first_org,
             "get_employee_address_type_uuid": self.get_employee_address_type_uuid,

@@ -39,6 +39,7 @@ from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
 from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.converters import minimum
+from mo_ldap_import_export.converters import nonejoin
 from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.environments import environment
@@ -667,8 +668,8 @@ def test_minimum() -> None:
     assert minimum(10, 9) == 9
 
 
-def test_nonejoin(converter: LdapConverter):
-    output = converter.nonejoin("foo", "bar", None)
+def test_nonejoin() -> None:
+    output = nonejoin("foo", "bar", None)
     assert output == "foo, bar"
 
 
