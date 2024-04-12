@@ -550,7 +550,7 @@ async def test_listen_to_missing_uuid(dataloader: AsyncMock):
     dataloader.load_mo_object.return_value = None
 
     with pytest.raises(RejectMessage):  # as exc_info:
-        await process_address(context, payload, "address", sync_tool, _=None)
+        await process_address(context, payload, "address", sync_tool)
     # assert "Unable to load mo object" in str(exc_info.value)
 
 
@@ -573,7 +573,7 @@ async def test_listen_to_changes(dataloader: AsyncMock, sync_tool: AsyncMock):
         "parent_uuid": uuid4(),
     }
 
-    await process_address(context, payload, "address", sync_tool, _=None)
+    await process_address(context, payload, "address", sync_tool)
     sync_tool.listen_to_changes_in_employees.assert_awaited_once()
 
     dataloader.load_mo_object.return_value = {
@@ -583,24 +583,24 @@ async def test_listen_to_changes(dataloader: AsyncMock, sync_tool: AsyncMock):
     }
 
     sync_tool.reset_mock()
-    await process_address(context, payload, "address", sync_tool, _=None)
+    await process_address(context, payload, "address", sync_tool)
     sync_tool.listen_to_changes_in_org_units.assert_awaited_once()
 
     sync_tool.reset_mock()
-    await process_engagement(context, payload, "engagement", sync_tool, _=None)
+    await process_engagement(context, payload, "engagement", sync_tool)
     sync_tool.listen_to_changes_in_employees.assert_awaited_once()
     sync_tool.export_org_unit_addresses_on_engagement_change.assert_awaited_once()
 
     sync_tool.reset_mock()
-    await process_ituser(context, payload, "ituser", sync_tool, _=None)
+    await process_ituser(context, payload, "ituser", sync_tool)
     sync_tool.listen_to_changes_in_employees.assert_awaited_once()
 
     sync_tool.reset_mock()
-    await process_person(context, payload, "person", sync_tool, _=None)
+    await process_person(context, payload, "person", sync_tool)
     sync_tool.listen_to_changes_in_employees.assert_awaited_once()
 
     sync_tool.reset_mock()
-    await process_org_unit(payload, sync_tool, _=None)
+    await process_org_unit(payload, sync_tool)
     sync_tool.publish_engagements_for_org_unit.assert_awaited_once_with(payload)
 
 

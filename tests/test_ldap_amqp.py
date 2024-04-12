@@ -15,7 +15,7 @@ async def test_process_dn() -> None:
     sync_tool = AsyncMock()
     dn = str(uuid4())
 
-    await process_dn(sync_tool, dn, _=None)
+    await process_dn(sync_tool, dn)
     sync_tool.import_single_user.assert_called_once_with(dn)
 
 
@@ -27,7 +27,7 @@ async def test_process_missing_dn() -> None:
     dn = str(uuid4())
 
     with pytest.raises(RejectMessage) as exc_info:
-        await process_dn(sync_tool, dn, _=None)
+        await process_dn(sync_tool, dn)
     assert f"DN could not be found: {dn}" in str(exc_info.value)
 
     sync_tool.import_single_user.assert_called_once_with(dn)
