@@ -93,6 +93,20 @@ async def get_visibility_uuid(graphql_client: GraphQLClient, visibility: str) ->
     )
 
 
+async def get_primary_type_uuid(graphql_client: GraphQLClient, primary: str) -> str:
+    result = await graphql_client.read_class_uuid_by_facet_and_class_user_key(
+        "primary_type", primary
+    )
+    return str(
+        one(
+            result.objects,
+            too_short=UUIDNotFoundException(
+                f"primary_type not found, user_key: {primary}"
+            ),
+        ).uuid
+    )
+
+
 async def find_cpr_field(mapping):
     """
     Get the field which contains the CPR number in LDAP
@@ -736,19 +750,6 @@ class LdapConverter:
             self.check_info_dicts()
             return str(uuid)
 
-    async def get_primary_type_uuid(self, primary: str) -> str:
-        result = await self.dataloader.graphql_client.read_class_uuid_by_facet_and_class_user_key(
-            "primary_type", primary
-        )
-        return str(
-            one(
-                result.objects,
-                too_short=UUIDNotFoundException(
-                    f"primary_type not found, user_key: {primary}"
-                ),
-            ).uuid
-        )
-
     async def get_engagement_type_uuid(self, engagement_type: str) -> str:
         result = await self.dataloader.graphql_client.read_class_uuid_by_facet_and_class_user_key(
             "engagement_type", engagement_type
@@ -1130,7 +1131,9 @@ class LdapConverter:
             "get_visibility_uuid": partial(
                 get_visibility_uuid, self.dataloader.graphql_client
             ),
-            "get_primary_type_uuid": self.get_primary_type_uuid,
+            "get_primary_type_uuid": partial(
+                get_primary_type_uuid, self.dataloader.graphql_client
+            ),
             "get_engagement_type_uuid": self.get_engagement_type_uuid,
             "get_engagement_type_name": self.get_engagement_type_name,
             "uuid4": uuid4,

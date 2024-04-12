@@ -37,6 +37,7 @@ from mo_ldap_import_export.config import LDAP2MOMapping
 from mo_ldap_import_export.config import MO2LDAPMapping
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
+from mo_ldap_import_export.converters import get_primary_type_uuid
 from mo_ldap_import_export.converters import get_visibility_uuid
 from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.converters import minimum
@@ -1217,14 +1218,15 @@ async def test_get_engagement_type_non_existing_uuid(converter: LdapConverter):
 
 
 @pytest.mark.parametrize("class_name", ["primary", "non-primary"])
-async def test_get_primary_type_uuid(converter: LdapConverter, class_name: str) -> None:
+async def test_get_primary_type_uuid(
+    graphql_client: AsyncMock, class_name: str
+) -> None:
     class_uuid = str(uuid4())
 
-    graphql_client: AsyncMock = cast(AsyncMock, converter.dataloader.graphql_client)
     graphql_client.read_class_uuid_by_facet_and_class_user_key.map[
         ("primary_type", class_name)
     ] = class_uuid
-    assert await converter.get_primary_type_uuid(class_name) == class_uuid
+    assert await get_primary_type_uuid(graphql_client, class_name) == class_uuid
 
 
 async def test_get_it_system_user_key(converter: LdapConverter):
