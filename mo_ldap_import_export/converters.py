@@ -154,9 +154,9 @@ def make_dn_from_org_unit_path(
 
 async def get_current_engagement_attribute_uuid_dict(
     dataloader: DataLoader,
-    attribute: str,
     employee_uuid: UUID,
     engagement_user_key: str,
+    attribute: str,
 ) -> dict[str, str]:
     """
     Returns an uuid-dictionary with the uuid matching the desired attribute
@@ -204,6 +204,11 @@ async def get_current_engagement_attribute_uuid_dict(
     )
     logger.info(f"Match found in engagement with uuid = {engagement['uuid']}")
     return {"uuid": engagement[attribute]}
+
+
+get_current_org_unit_uuid_dict = partial(
+    get_current_engagement_attribute_uuid_dict, attribute="org_unit_uuid"
+)
 
 
 async def get_or_create_engagement_type_uuid(
@@ -863,16 +868,6 @@ class LdapConverter:
             self.check_info_dicts()
             return str(uuid)
 
-    async def get_current_org_unit_uuid_dict(
-        self, employee_uuid: UUID, engagement_user_key: str
-    ) -> dict:
-        """
-        Returns an existing 'org-unit' object formatted as a dict
-        """
-        return await get_current_engagement_attribute_uuid_dict(
-            self.dataloader, "org_unit_uuid", employee_uuid, engagement_user_key
-        )
-
     async def get_current_engagement_type_uuid_dict(
         self, employee_uuid: UUID, engagement_user_key: str
     ) -> dict:
@@ -880,7 +875,7 @@ class LdapConverter:
         Returns an existing 'engagement type' object formatted as a dict
         """
         return await get_current_engagement_attribute_uuid_dict(
-            self.dataloader, "engagement_type_uuid", employee_uuid, engagement_user_key
+            self.dataloader, employee_uuid, engagement_user_key, "engagement_type_uuid"
         )
 
     async def get_current_primary_uuid_dict(
@@ -890,7 +885,7 @@ class LdapConverter:
         Returns an existing 'primary' object formatted as a dict
         """
         primary_dict = await get_current_engagement_attribute_uuid_dict(
-            self.dataloader, "primary_uuid", employee_uuid, engagement_user_key
+            self.dataloader, employee_uuid, engagement_user_key, "primary_uuid"
         )
 
         if not primary_dict["uuid"]:
@@ -1156,7 +1151,9 @@ class LdapConverter:
             "get_or_create_engagement_type_uuid": partial(
                 get_or_create_engagement_type_uuid, self.dataloader
             ),
-            "get_current_org_unit_uuid_dict": self.get_current_org_unit_uuid_dict,
+            "get_current_org_unit_uuid_dict": partial(
+                get_current_org_unit_uuid_dict, self.dataloader
+            ),
             "get_current_engagement_type_uuid_dict": (
                 self.get_current_engagement_type_uuid_dict
             ),

@@ -38,6 +38,7 @@ from mo_ldap_import_export.config import MO2LDAPMapping
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
 from mo_ldap_import_export.converters import get_current_engagement_attribute_uuid_dict
+from mo_ldap_import_export.converters import get_current_org_unit_uuid_dict
 from mo_ldap_import_export.converters import get_engagement_type_name
 from mo_ldap_import_export.converters import get_or_create_engagement_type_uuid
 from mo_ldap_import_export.converters import get_primary_type_uuid
@@ -1764,7 +1765,7 @@ async def test_get_current_engagement_attribute(converter: LdapConverter):
     for attribute in test_attributes:
         assert (
             await get_current_engagement_attribute_uuid_dict(
-                dataloader, attribute, uuid4(), "foo"
+                dataloader, uuid4(), "foo", attribute
             )
         )["uuid"] == engagement1[attribute]
 
@@ -1772,7 +1773,7 @@ async def test_get_current_engagement_attribute(converter: LdapConverter):
     with pytest.raises(UUIDNotFoundException):
         dataloader.load_mo_employee_engagement_dicts.return_value = []
         await get_current_engagement_attribute_uuid_dict(
-            dataloader, attribute, uuid4(), "mucki"
+            dataloader, uuid4(), "mucki", attribute
         )
 
     # Try to find a duplicate engagement
@@ -1782,24 +1783,24 @@ async def test_get_current_engagement_attribute(converter: LdapConverter):
             engagement3,
         ]
         await get_current_engagement_attribute_uuid_dict(
-            dataloader, attribute, uuid4(), "duplicate_user_key"
+            dataloader, uuid4(), "duplicate_user_key", attribute
         )
 
     # Try with faulty input
     with pytest.raises(ValueError, match="attribute must be an uuid-string"):
         await get_current_engagement_attribute_uuid_dict(
-            dataloader, "user_key", uuid4(), "mucki"
+            dataloader, uuid4(), "mucki", "user_key"
         )
 
 
-async def test_get_current_org_unit_uuid(converter: LdapConverter):
+async def test_get_current_org_unit_uuid(dataloader: AsyncMock) -> None:
     uuid = str(uuid4())
 
-    converter.dataloader.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
+    dataloader.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
         {"uuid": uuid4(), "org_unit_uuid": uuid}
     ]
 
-    assert (await converter.get_current_org_unit_uuid_dict(uuid4(), "foo"))[
+    assert (await get_current_org_unit_uuid_dict(dataloader, uuid4(), "foo"))[
         "uuid"
     ] == uuid
 
