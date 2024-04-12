@@ -38,6 +38,7 @@ from mo_ldap_import_export.config import MO2LDAPMapping
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
 from mo_ldap_import_export.converters import get_current_engagement_attribute_uuid_dict
+from mo_ldap_import_export.converters import get_current_engagement_type_uuid_dict
 from mo_ldap_import_export.converters import get_current_org_unit_uuid_dict
 from mo_ldap_import_export.converters import get_engagement_type_name
 from mo_ldap_import_export.converters import get_or_create_engagement_type_uuid
@@ -1805,14 +1806,14 @@ async def test_get_current_org_unit_uuid(dataloader: AsyncMock) -> None:
     ] == uuid
 
 
-async def test_get_current_engagement_type_uuid(converter: LdapConverter):
+async def test_get_current_engagement_type_uuid(dataloader: AsyncMock) -> None:
     uuid = str(uuid4())
 
-    converter.dataloader.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
+    dataloader.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
         {"uuid": uuid4(), "engagement_type_uuid": uuid}
     ]
 
-    assert (await converter.get_current_engagement_type_uuid_dict(uuid4(), "foo"))[
+    assert (await get_current_engagement_type_uuid_dict(dataloader, uuid4(), "foo"))[
         "uuid"
     ] == uuid
 

@@ -209,6 +209,9 @@ async def get_current_engagement_attribute_uuid_dict(
 get_current_org_unit_uuid_dict = partial(
     get_current_engagement_attribute_uuid_dict, attribute="org_unit_uuid"
 )
+get_current_engagement_type_uuid_dict = partial(
+    get_current_engagement_attribute_uuid_dict, attribute="engagement_type_uuid"
+)
 
 
 async def get_or_create_engagement_type_uuid(
@@ -868,16 +871,6 @@ class LdapConverter:
             self.check_info_dicts()
             return str(uuid)
 
-    async def get_current_engagement_type_uuid_dict(
-        self, employee_uuid: UUID, engagement_user_key: str
-    ) -> dict:
-        """
-        Returns an existing 'engagement type' object formatted as a dict
-        """
-        return await get_current_engagement_attribute_uuid_dict(
-            self.dataloader, employee_uuid, engagement_user_key, "engagement_type_uuid"
-        )
-
     async def get_current_primary_uuid_dict(
         self, employee_uuid: UUID, engagement_user_key: str
     ) -> dict | None:
@@ -1154,8 +1147,8 @@ class LdapConverter:
             "get_current_org_unit_uuid_dict": partial(
                 get_current_org_unit_uuid_dict, self.dataloader
             ),
-            "get_current_engagement_type_uuid_dict": (
-                self.get_current_engagement_type_uuid_dict
+            "get_current_engagement_type_uuid_dict": partial(
+                get_current_engagement_type_uuid_dict, self.dataloader
             ),
             "get_current_primary_uuid_dict": self.get_current_primary_uuid_dict,
             "get_primary_engagement_dict": self.get_primary_engagement_dict,
