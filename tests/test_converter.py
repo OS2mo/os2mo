@@ -37,6 +37,7 @@ from mo_ldap_import_export.config import LDAP2MOMapping
 from mo_ldap_import_export.config import MO2LDAPMapping
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
+from mo_ldap_import_export.converters import get_engagement_type_name
 from mo_ldap_import_export.converters import get_primary_type_uuid
 from mo_ldap_import_export.converters import get_visibility_uuid
 from mo_ldap_import_export.converters import LdapConverter
@@ -1263,27 +1264,25 @@ async def test_get_address_type_user_key(converter: LdapConverter):
 
 @pytest.mark.parametrize("class_name", ["Ansat", "Vikar"])
 async def test_get_engagement_type_name(
-    converter: LdapConverter, class_name: str
+    graphql_client: AsyncMock, class_name: str
 ) -> None:
     class_uuid = uuid4()
-    graphql_client: AsyncMock = cast(AsyncMock, converter.dataloader.graphql_client)
     graphql_client.read_class_name_by_class_uuid.return_value = parse_obj_as(
         ReadClassNameByClassUuidClasses,
         {"objects": [{"current": {"name": class_name}}]},
     )
-    assert await converter.get_engagement_type_name(str(class_uuid)) == class_name
+    assert await get_engagement_type_name(graphql_client, str(class_uuid)) == class_name
     graphql_client.read_class_name_by_class_uuid.assert_awaited_once_with(class_uuid)
 
 
-async def test_get_engagement_type_not_active(converter: LdapConverter) -> None:
+async def test_get_engagement_type_not_active(graphql_client: AsyncMock) -> None:
     class_uuid = uuid4()
-    graphql_client: AsyncMock = cast(AsyncMock, converter.dataloader.graphql_client)
     graphql_client.read_class_name_by_class_uuid.return_value = parse_obj_as(
         ReadClassNameByClassUuidClasses,
         {"objects": [{"current": None}]},
     )
     with pytest.raises(NoObjectsReturnedException) as exc_info:
-        assert await converter.get_engagement_type_name(str(class_uuid))
+        assert await get_engagement_type_name(graphql_client, str(class_uuid))
     assert "engagement_type not active, uuid:" in str(exc_info.value)
 
 

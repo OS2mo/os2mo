@@ -123,6 +123,14 @@ async def get_engagement_type_uuid(
     )
 
 
+async def get_engagement_type_name(graphql_client: GraphQLClient, uuid: str) -> str:
+    result = await graphql_client.read_class_name_by_class_uuid(UUID(uuid))
+    engagement_type = one(result.objects)
+    if engagement_type.current is None:
+        raise NoObjectsReturnedException(f"engagement_type not active, uuid: {uuid}")
+    return engagement_type.current.name
+
+
 async def find_cpr_field(mapping):
     """
     Get the field which contains the CPR number in LDAP
@@ -923,17 +931,6 @@ class LdapConverter:
     async def get_it_system_user_key(self, uuid: str) -> str:
         return await self.get_object_user_key_from_uuid("it_system_info", uuid)
 
-    async def get_engagement_type_name(self, uuid: str) -> str:
-        result = await self.dataloader.graphql_client.read_class_name_by_class_uuid(
-            UUID(uuid)
-        )
-        engagement_type = one(result.objects)
-        if engagement_type.current is None:
-            raise NoObjectsReturnedException(
-                f"engagement_type not active, uuid: {uuid}"
-            )
-        return engagement_type.current.name
-
     async def get_job_function_name(self, uuid: str) -> str:
         return await self.get_object_name_from_uuid("job_function_info", uuid)
 
@@ -1142,7 +1139,9 @@ class LdapConverter:
             "get_engagement_type_uuid": partial(
                 get_engagement_type_uuid, self.dataloader.graphql_client
             ),
-            "get_engagement_type_name": self.get_engagement_type_name,
+            "get_engagement_type_name": partial(
+                get_engagement_type_name, self.dataloader.graphql_client
+            ),
             "uuid4": uuid4,
             "get_org_unit_path_string": self.get_org_unit_path_string,
             "make_dn_from_org_unit_path": self.make_dn_from_org_unit_path,
