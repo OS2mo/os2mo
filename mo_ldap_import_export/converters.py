@@ -241,6 +241,11 @@ async def get_primary_engagement_dict(
     return primary_engagement
 
 
+async def get_employee_dict(dataloader: DataLoader, employee_uuid: UUID) -> dict:
+    mo_employee = await dataloader.load_mo_employee(employee_uuid)
+    return mo_employee.dict()
+
+
 async def get_or_create_engagement_type_uuid(
     dataloader: DataLoader, engagement_type: str
 ) -> str:
@@ -898,10 +903,6 @@ class LdapConverter:
             self.check_info_dicts()
             return str(uuid)
 
-    async def get_employee_dict(self, employee_uuid: UUID) -> dict:
-        mo_employee = await self.dataloader.load_mo_employee(employee_uuid)
-        return mo_employee.dict()
-
     async def get_org_unit_type_uuid(self, org_unit_type: str) -> str:
         result = await self.dataloader.graphql_client.read_class_uuid_by_facet_and_class_user_key(
             "org_unit_type", org_unit_type
@@ -1158,7 +1159,7 @@ class LdapConverter:
             "get_primary_engagement_dict": partial(
                 get_primary_engagement_dict, self.dataloader
             ),
-            "get_employee_dict": self.get_employee_dict,
+            "get_employee_dict": partial(get_employee_dict, self.dataloader),
         }
         for key, value in mapping.items():
             if isinstance(value, str):

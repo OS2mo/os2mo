@@ -41,6 +41,7 @@ from mo_ldap_import_export.converters import get_current_engagement_attribute_uu
 from mo_ldap_import_export.converters import get_current_engagement_type_uuid_dict
 from mo_ldap_import_export.converters import get_current_org_unit_uuid_dict
 from mo_ldap_import_export.converters import get_current_primary_uuid_dict
+from mo_ldap_import_export.converters import get_employee_dict
 from mo_ldap_import_export.converters import get_engagement_type_name
 from mo_ldap_import_export.converters import get_or_create_engagement_type_uuid
 from mo_ldap_import_export.converters import get_primary_engagement_dict
@@ -2073,16 +2074,14 @@ async def test_get_primary_engagement_dict(dataloader: AsyncMock) -> None:
     assert "too few items in iterable (expected 1)" in str(exc_info.value)
 
 
-async def test_get_employee_dict(converter: LdapConverter) -> None:
+async def test_get_employee_dict(dataloader: AsyncMock) -> None:
     cpr_no = "1407711900"
     uuid = uuid4()
     mo_employee = Employee(**{"cpr_no": cpr_no, "uuid": uuid})
 
-    dataloader = AsyncMock()
-    converter.dataloader = dataloader
     dataloader.load_mo_employee.return_value = mo_employee
 
-    result = await converter.get_employee_dict(uuid)
+    result = await get_employee_dict(dataloader, uuid)
     assert result == {
         "details": None,
         "givenname": None,
