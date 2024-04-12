@@ -229,6 +229,18 @@ async def get_current_primary_uuid_dict(
     return primary_dict
 
 
+async def get_primary_engagement_dict(
+    dataloader: DataLoader, employee_uuid: UUID
+) -> dict:
+    engagements = await dataloader.load_mo_employee_engagement_dicts(employee_uuid)
+    # TODO: Make is_primary a GraphQL filter in MO and clean this up
+    is_primary_engagement = await dataloader.is_primaries(
+        [engagement["uuid"] for engagement in engagements]
+    )
+    primary_engagement = one(compress(engagements, is_primary_engagement))
+    return primary_engagement
+
+
 async def get_or_create_engagement_type_uuid(
     dataloader: DataLoader, engagement_type: str
 ) -> str:
@@ -890,17 +902,6 @@ class LdapConverter:
         mo_employee = await self.dataloader.load_mo_employee(employee_uuid)
         return mo_employee.dict()
 
-    async def get_primary_engagement_dict(self, employee_uuid: UUID) -> dict:
-        engagements = await self.dataloader.load_mo_employee_engagement_dicts(
-            employee_uuid
-        )
-        # TODO: Make is_primary a GraphQL filter in MO and clean this up
-        is_primary_engagement = await self.dataloader.is_primaries(
-            [engagement["uuid"] for engagement in engagements]
-        )
-        primary_engagement = one(compress(engagements, is_primary_engagement))
-        return primary_engagement
-
     async def get_org_unit_type_uuid(self, org_unit_type: str) -> str:
         result = await self.dataloader.graphql_client.read_class_uuid_by_facet_and_class_user_key(
             "org_unit_type", org_unit_type
@@ -1154,7 +1155,9 @@ class LdapConverter:
             "get_current_primary_uuid_dict": partial(
                 get_current_primary_uuid_dict, self.dataloader
             ),
-            "get_primary_engagement_dict": self.get_primary_engagement_dict,
+            "get_primary_engagement_dict": partial(
+                get_primary_engagement_dict, self.dataloader
+            ),
             "get_employee_dict": self.get_employee_dict,
         }
         for key, value in mapping.items():

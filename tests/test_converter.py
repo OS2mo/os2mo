@@ -43,6 +43,7 @@ from mo_ldap_import_export.converters import get_current_org_unit_uuid_dict
 from mo_ldap_import_export.converters import get_current_primary_uuid_dict
 from mo_ldap_import_export.converters import get_engagement_type_name
 from mo_ldap_import_export.converters import get_or_create_engagement_type_uuid
+from mo_ldap_import_export.converters import get_primary_engagement_dict
 from mo_ldap_import_export.converters import get_primary_type_uuid
 from mo_ldap_import_export.converters import get_visibility_uuid
 from mo_ldap_import_export.converters import LdapConverter
@@ -1983,7 +1984,7 @@ async def test_remove_first_org(orgstr: str, result: str) -> None:
     assert remove_first_org(settings, orgstr) == result
 
 
-async def test_get_primary_engagement_dict(converter: LdapConverter):
+async def test_get_primary_engagement_dict(dataloader: AsyncMock) -> None:
     engagement1 = {
         "uuid": str(uuid4()),
         "user_key": "foo",
@@ -2013,9 +2014,6 @@ async def test_get_primary_engagement_dict(converter: LdapConverter):
 
     employee_uuid = uuid4()
 
-    dataloader = AsyncMock()
-    converter.dataloader = dataloader
-
     # 3 engagements
     # -------------
     dataloader.load_mo_employee_engagement_dicts.return_value = [
@@ -2026,29 +2024,29 @@ async def test_get_primary_engagement_dict(converter: LdapConverter):
     # One primary
     # -----------
     dataloader.is_primaries.return_value = [True, False, False]
-    result = await converter.get_primary_engagement_dict(employee_uuid)
+    result = await get_primary_engagement_dict(dataloader, employee_uuid)
     assert result["user_key"] == "foo"
 
     dataloader.is_primaries.return_value = [False, True, False]
-    result = await converter.get_primary_engagement_dict(employee_uuid)
+    result = await get_primary_engagement_dict(dataloader, employee_uuid)
     assert result["user_key"] == "bar"
 
     dataloader.is_primaries.return_value = [False, False, True]
-    result = await converter.get_primary_engagement_dict(employee_uuid)
+    result = await get_primary_engagement_dict(dataloader, employee_uuid)
     assert result["user_key"] == "baz"
 
     # Two primaries
     # -------------
     with pytest.raises(ValueError) as exc_info:
         dataloader.is_primaries.return_value = [False, True, True]
-        await converter.get_primary_engagement_dict(employee_uuid)
+        await get_primary_engagement_dict(dataloader, employee_uuid)
     assert "Expected exactly one item in iterable" in str(exc_info.value)
 
     # No primary
     # ----------
     with pytest.raises(ValueError) as exc_info:
         dataloader.is_primaries.return_value = [False, False, False]
-        await converter.get_primary_engagement_dict(employee_uuid)
+        await get_primary_engagement_dict(dataloader, employee_uuid)
     assert "too few items in iterable (expected 1)" in str(exc_info.value)
 
     # 1 engagement
@@ -2057,13 +2055,13 @@ async def test_get_primary_engagement_dict(converter: LdapConverter):
     # One primary
     # -----------
     dataloader.is_primaries.return_value = [True]
-    result = await converter.get_primary_engagement_dict(employee_uuid)
+    result = await get_primary_engagement_dict(dataloader, employee_uuid)
     assert result["user_key"] == "baz"
 
     # No primary
     with pytest.raises(ValueError) as exc_info:
         dataloader.is_primaries.return_value = [False]
-        await converter.get_primary_engagement_dict(employee_uuid)
+        await get_primary_engagement_dict(dataloader, employee_uuid)
     assert "too few items in iterable (expected 1)" in str(exc_info.value)
 
     # 0 engagements
@@ -2071,7 +2069,7 @@ async def test_get_primary_engagement_dict(converter: LdapConverter):
     with pytest.raises(ValueError) as exc_info:
         dataloader.load_mo_employee_engagement_dicts.return_value = []
         dataloader.is_primaries.return_value = []
-        await converter.get_primary_engagement_dict(employee_uuid)
+        await get_primary_engagement_dict(dataloader, employee_uuid)
     assert "too few items in iterable (expected 1)" in str(exc_info.value)
 
 
