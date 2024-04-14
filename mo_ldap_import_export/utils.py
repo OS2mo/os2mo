@@ -13,24 +13,29 @@ from graphql import print_ast
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
+from ramodels.mo._shared import MOBase
+from ramodels.mo.details.address import Address
+from ramodels.mo.details.engagement import Engagement
+from ramodels.mo.details.it_system import ITUser
+from ramodels.mo.employee import Employee
 
 from .customer_specific import JobTitleFromADToMO
 from .exceptions import InvalidQuery
 from .logging import logger
 
 
-# https://stackoverflow.com/questions/547829/how-to-dynamically-load-a-python-class
-def import_class(name):
-    components = name.split(".")
-    if components[0] == "Custom":
-        match components[1]:
-            case "JobTitleFromADToMO":
-                return JobTitleFromADToMO
-    else:
-        mod = __import__(components[0])
-    for comp in components[1:]:
-        mod = getattr(mod, comp)
-    return mod
+def import_class(name: str) -> type[MOBase]:
+    import_map: dict[str, type[MOBase]] = {
+        "Custom.JobTitleFromADToMO": JobTitleFromADToMO,
+        "ramodels.mo.details.address.Address": Address,
+        "ramodels.mo.details.engagement.Engagement": Engagement,
+        "ramodels.mo.details.it_system.ITUser": ITUser,
+        "ramodels.mo.employee.Employee": Employee,
+    }
+    clazz = import_map.get(name)
+    if clazz is None:
+        raise NotImplementedError("Unknown argument to import_class")
+    return clazz
 
 
 # https://stackoverflow.com/questions/3405715/elegant-way-to-remove-fields-from-nested-dictionaries
