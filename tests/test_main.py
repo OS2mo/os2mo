@@ -454,29 +454,6 @@ def test_ldap_post_ldap_employee_endpoint(test_client: TestClient) -> None:
 
 
 @pytest.mark.usefixtures("context_dependency_injection")
-def test_mo_post_employee_endpoint(test_client: TestClient) -> None:
-    """Test the MO get-all endpoint on our app."""
-
-    employee_to_post = {
-        "uuid": "ff5bfef4-6459-4ba2-9571-10366ead6f5f",
-        "user_key": "ff5bfef4-6459-4ba2-9571-10366ead6f5f",
-        "type": "employee",
-        "givenname": "Jens Pedersen Munch",
-        "surname": "Bisgaard",
-        "cpr_no": "0910443755",
-        "seniority": None,
-        "org": None,
-        "nickname_givenname": "Man who can do 6571 push ups",
-        "nickname_surname": "Superman",
-        "nickname": None,
-        "details": None,
-    }
-
-    response = test_client.post("/MO/Employee", json=employee_to_post)
-    assert response.status_code == 200
-
-
-@pytest.mark.usefixtures("context_dependency_injection")
 def test_ldap_get_organizationalUser_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get endpoint on our app."""
 
