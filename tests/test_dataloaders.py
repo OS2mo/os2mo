@@ -503,14 +503,14 @@ async def test_load_mo_employee(
 async def test_upload_mo_employee(
     legacy_model_client: AsyncMock, dataloader: DataLoader
 ) -> None:
-    """Test that test_upload_mo_employee works as expected."""
+    """Test that upload_mo_employee works as expected."""
 
     return_values = ["1", None, "3"]
     input_values = [1, 2, 3]
     for input_value, return_value in zip(input_values, return_values):
         legacy_model_client.upload.return_value = return_value
 
-        result = await dataloader.upload_mo_objects([input_value])
+        result = await dataloader.create([input_value])  # type: ignore
         assert result == return_value
         legacy_model_client.upload.assert_called_with([input_value])
 
@@ -1578,7 +1578,7 @@ async def test_shared_attribute(dataloader: DataLoader):
         dataloader.shared_attribute("non_existing_attribute")
 
 
-async def test_load_mo_object(dataloader: DataLoader):
+async def test_load_mo_object(dataloader: DataLoader) -> None:
     with patch(
         "mo_ldap_import_export.dataloaders.DataLoader.load_all_mo_objects",
         return_value=["obj1"],
