@@ -12,6 +12,7 @@ from fastapi import APIRouter
 from fastapi.encoders import jsonable_encoder
 from graphql import ExecutionResult
 from graphql.error import GraphQLError
+from starlette.responses import HTMLResponse
 from starlette.responses import PlainTextResponse
 from strawberry import Schema
 from strawberry.custom_scalar import ScalarDefinition
@@ -28,6 +29,7 @@ from mora.db import get_session
 from mora.exceptions import HTTPException
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.router import CustomGraphQLRouter
+from mora.graphapi.router import render_graphiql_ide
 
 logger = get_logger()
 
@@ -142,6 +144,29 @@ class BaseGraphQLSchema:
         )
 
 
+def generate_javascript_graphql_url(suffix: str) -> str:
+    """Generates Javascript that returns a href with a stripped path suffix.
+
+    Examples:
+        An input URL may look alike this:
+
+        * http://localhost:5000/graphql/v21/graphiql?arg=1#fragment=2
+
+        Running the below code on this URL would produce:
+
+        * http://localhost:5000/graphql/v21?arg=1#fragment=2
+
+        If this function was called with `suffix=/graphiql`.
+
+    Args:
+        suffix: The pathname suffix to strip.
+
+    Returns:
+        Javascript which returns the stripped href.
+    """
+    return f"window.location.href.replace(window.location.pathname, window.location.pathname.slice(0, -{len(suffix)}))"
+
+
 class BaseGraphQLVersion:
     """Base container for a versioned GraphQL API."""
 
@@ -179,5 +204,11 @@ class BaseGraphQLVersion:
                 """
             )
             return header + print_schema(cls.schema.get())
+
+        @router.get("/graphiql", response_class=HTMLResponse)
+        async def graphiql() -> HTMLResponse:
+            return await render_graphiql_ide(
+                is_latest, generate_javascript_graphql_url("/graphiql")
+            )
 
         return router

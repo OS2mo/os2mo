@@ -5,6 +5,7 @@ from typing import Any
 from fastapi import Request
 from starlette.responses import HTMLResponse
 from strawberry.fastapi import GraphQLRouter
+from strawberry.http.ides import get_graphql_ide_html
 
 from mora.config import get_settings
 
@@ -68,6 +69,30 @@ DEPRECATION_NOTICE = """
 """
 
 
+async def render_graphiql_ide(
+    is_latest: bool, endpoint_override: str | None = None
+) -> HTMLResponse:
+    html = get_graphql_ide_html(graphql_ide="graphiql")
+
+    # Show deprecation notice at the top of the page if accessing an old version
+    # of GraphQL.
+    if not is_latest:
+        html = html.replace("<body>", f"<body>{DEPRECATION_NOTICE}")
+
+    if endpoint_override:
+        html = html.replace(
+            "fetchURL = window.location.href;", f"fetchURL = {endpoint_override};"
+        )
+
+    # Inject script for authentication if auth is enabled. The script is added just
+    # before closing the <body> so it is executed after the normal GraphiQL
+    # JavaScript, which is required to access the `headers` constant.
+    if get_settings().os2mo_auth:
+        html = html.replace("</body>", f"{AUTH_SCRIPT}</body>")
+
+    return HTMLResponse(html)
+
+
 class CustomGraphQLRouter(GraphQLRouter):
     """Custom GraphQL router to inject HTML into the GraphiQL interface."""
 
@@ -76,18 +101,4 @@ class CustomGraphQLRouter(GraphQLRouter):
         self.is_latest = is_latest
 
     async def render_graphql_ide(self, request: Request) -> HTMLResponse:
-        assert self.graphql_ide == "graphiql"  # type: ignore[attr-defined]
-        html = self.graphql_ide_html  # type: ignore[attr-defined]
-
-        # Show deprecation notice at the top of the page if accessing an old version
-        # of GraphQL.
-        if not self.is_latest:
-            html = html.replace("<body>", f"<body>{DEPRECATION_NOTICE}")
-
-        # Inject script for authentication if auth is enabled. The script is added just
-        # before closing the <body> so it is executed after the normal GraphiQL
-        # JavaScript, which is required to access the `headers` constant.
-        if get_settings().os2mo_auth:
-            html = html.replace("</body>", f"{AUTH_SCRIPT}</body>")
-
-        return HTMLResponse(html)
+        return await render_graphiql_ide(self.is_latest)
