@@ -1062,7 +1062,7 @@ class DataLoader:
                 datetime.today().strftime("%Y-%m-%d"),
                 person_uuid=uuid,
             )
-            await self.upload_mo_objects([it_user])
+            await self.create([it_user])
             await self.sync_tool.import_single_user(dn, force=True, manual_import=True)
             await self.sync_tool.refresh_employee(employee.uuid)
             return [dn]
