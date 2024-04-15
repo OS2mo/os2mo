@@ -16,6 +16,7 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
+from fastapi.encoders import jsonable_encoder
 from fastramqpi.context import Context
 from gql import gql
 from gql.transport.exceptions import TransportQueryError
@@ -2000,23 +2001,32 @@ def test_add_ldap_object(dataloader: DataLoader):
     dataloader.ldap_connection.add.assert_not_called()
 
 
-async def test_load_mo_employee_engagement_dicts(dataloader: DataLoader):
-    dataloader.query_mo = AsyncMock()  # type: ignore
-    engagement1 = {
-        "uuid": uuid4(),
-        "user_key": "foo",
-        "org_unit_uuid": uuid4(),
-        "job_function_uuid": uuid4(),
-        "engagement_type_uuid": uuid4(),
-    }
-    engagement2 = {
-        "uuid": uuid4(),
-        "user_key": "foo",
-        "org_unit_uuid": uuid4(),
-        "job_function_uuid": uuid4(),
-        "engagement_type_uuid": uuid4(),
-    }
-    dataloader.query_mo.return_value = {
+async def test_load_mo_employee_engagement_dicts(
+    dataloader: DataLoader, graphql_mock: GraphQLMocker
+) -> None:
+    engagement1 = jsonable_encoder(
+        {
+            "uuid": uuid4(),
+            "user_key": "foo",
+            "org_unit_uuid": uuid4(),
+            "job_function_uuid": uuid4(),
+            "engagement_type_uuid": uuid4(),
+            "primary_uuid": None,
+        }
+    )
+    engagement2 = jsonable_encoder(
+        {
+            "uuid": uuid4(),
+            "user_key": "foo",
+            "org_unit_uuid": uuid4(),
+            "job_function_uuid": uuid4(),
+            "engagement_type_uuid": uuid4(),
+            "primary_uuid": None,
+        }
+    )
+
+    route = graphql_mock.query("read_engagements_by_engagements_filter")
+    route.result = {
         "engagements": {"objects": [{"current": engagement1}, {"current": engagement2}]}
     }
 
@@ -2024,12 +2034,15 @@ async def test_load_mo_employee_engagement_dicts(dataloader: DataLoader):
 
     assert engagement1 in result
     assert engagement2 in result
+    assert route.called
 
-    dataloader.query_mo.side_effect = NoObjectsReturnedException("f")
+    route.reset()
+    route.result = {"engagements": {"objects": []}}
     result = await dataloader.load_mo_employee_engagement_dicts(uuid4(), "foo")
 
     assert isinstance(result, list)
     assert len(result) == 0
+    assert route.called
 
 
 def test_ou_in_ous_to_write_to(dataloader: DataLoader):
