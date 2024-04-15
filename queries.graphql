@@ -127,6 +127,19 @@ query read_employee_uuid_by_ituser_user_key($user_key: String!) {
   }
 }
 
+query read_ituser_by_employee_and_itsystem_uuid($employee_uuid: UUID!, $itsystem_uuid: UUID!) {
+  itusers(
+    filter: {
+      employee: {uuids: [$employee_uuid]},
+      itsystem: {uuids: [$itsystem_uuid]}
+    }
+  ) {
+    objects {
+      uuid
+    }
+  }
+}
+
 query read_is_primary_engagements($uuids: [UUID!]!) {
   engagements(filter: {uuids: $uuids}) {
     objects {

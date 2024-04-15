@@ -1634,30 +1634,14 @@ class DataLoader:
         """
         Load all current it users of a specific type linked to an employee
         """
-        query = gql(
-            f"""
-            query ItUserQuery {{
-              employees(filter: {{uuids: "{employee_uuid}"}}) {{
-                objects {{
-                  objects {{
-                    itusers {{
-                      uuid
-                      itsystem_uuid
-                    }}
-                  }}
-                }}
-              }}
-            }}
-            """
+        result = await self.graphql_client.read_ituser_by_employee_and_itsystem_uuid(
+            employee_uuid, it_system_uuid
         )
-
-        result = await self.query_mo(query)
-
-        output = []
-        for it_user_dict in result["employees"]["objects"][0]["objects"][0]["itusers"]:
-            if it_user_dict["itsystem_uuid"] == str(it_system_uuid):
-                it_user = await self.load_mo_it_user(it_user_dict["uuid"])
-                output.append(it_user)
+        output = await asyncio.gather(
+            *[self.load_mo_it_user(ituser.uuid) for ituser in result.objects]
+        )
+        if not output:
+            raise NoObjectsReturnedException("load_mo_employee_it_users returned empty")
         return output
 
     async def load_mo_employee_engagement_dicts(
