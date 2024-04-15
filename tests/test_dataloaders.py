@@ -29,7 +29,9 @@ from more_itertools import one
 from pydantic import BaseModel
 from pydantic import Field
 from pydantic import parse_obj_as
+from ramodels.mo._shared import MOBase
 from ramodels.mo.details.address import Address
+from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 from structlog.testing import capture_logs
@@ -93,6 +95,32 @@ from tests.graphql_mocker import GraphQLMocker
 def gen_ituser(user_key: str) -> ITUser:
     return ITUser(
         user_key=user_key, itsystem={"uuid": uuid4()}, validity={"from": "2020-01-01"}
+    )
+
+
+def gen_address(user_key: str) -> Address:
+    return Address(
+        user_key=user_key,
+        validity={"from": "2020-01-01"},
+        value=str(uuid4()),
+        address_type={"uuid": uuid4()},
+    )
+
+
+def gen_engagement(user_key: str) -> Engagement:
+    return Engagement(
+        user_key=user_key,
+        validity={"from": "2020-01-01"},
+        org_unit={"uuid": uuid4()},
+        person={"uuid": uuid4()},
+        job_function={"uuid": uuid4()},
+        engagement_type={"uuid": uuid4()},
+    )
+
+
+def gen_employee(user_key: str) -> Employee:
+    return Employee(
+        user_key=user_key,
     )
 
 
@@ -2548,8 +2576,7 @@ async def test_create_objects(
     legacy_model_client: AsyncMock,
 ) -> None:
     # One object is created and another is edited.
-    create = MagicMock()
-    del create.terminate_
+    create = gen_address("test")
 
     objs = [(create, Verb.CREATE)]
 
@@ -2750,3 +2777,34 @@ async def test_create_exceptions(
     with pytest.raises(ExceptionGroup) as exc_info:
         await dataloader.create([obj])
     assert "Exceptions during creation" in str(exc_info.value)
+
+
+async def test_create_unknown_type(dataloader: DataLoader) -> None:
+    """Test that trying to create an unknown type throws an exception."""
+    unknown_type = MagicMock()
+    unknown_type.type_ = "faceless"
+
+    with pytest.raises(NotImplementedError) as exc_info:
+        await dataloader.create_object(unknown_type)
+    assert "Unable to create type: faceless" in str(exc_info.value)
+
+
+@pytest.mark.parametrize(
+    "obj",
+    [
+        gen_ituser("1"),
+        gen_address("2"),
+        gen_engagement("3"),
+        gen_employee("4"),
+    ],
+)
+async def test_create_each_type(
+    legacy_model_client: AsyncMock, dataloader: DataLoader, obj: MOBase
+) -> None:
+    create_uuid = uuid4()
+
+    legacy_model_client.upload.return_value = [create_uuid]
+
+    result = await dataloader.create_object(obj)
+    assert result == create_uuid
+    legacy_model_client.upload.assert_called_once()

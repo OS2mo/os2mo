@@ -1489,10 +1489,42 @@ class DataLoader:
         )
         return cast(list[Any | None], create_results + edit_results + terminate_results)
 
-    async def create_object(self, obj: MOBase) -> Any:
+    async def create_employee(self, obj: Employee) -> Any:
         model_client = self.context["legacy_model_client"]
         result = cast(list[Any], await model_client.upload([obj]))
         return one(result)
+
+    async def create_address(self, obj: Address) -> Any:
+        model_client = self.context["legacy_model_client"]
+        result = cast(list[Any], await model_client.upload([obj]))
+        return one(result)
+
+    async def create_engagement(self, obj: Engagement) -> Any:
+        model_client = self.context["legacy_model_client"]
+        result = cast(list[Any], await model_client.upload([obj]))
+        return one(result)
+
+    async def create_ituser(self, obj: ITUser) -> Any:
+        model_client = self.context["legacy_model_client"]
+        result = cast(list[Any], await model_client.upload([obj]))
+        return one(result)
+
+    async def create_object(self, obj: MOBase) -> Any:
+        match obj.type_:  # type: ignore
+            case "address":
+                assert isinstance(obj, Address)
+                return await self.create_address(obj)
+            case "employee":
+                assert isinstance(obj, Employee)
+                return await self.create_employee(obj)
+            case "engagement":
+                assert isinstance(obj, Engagement)
+                return await self.create_engagement(obj)
+            case "it":
+                assert isinstance(obj, ITUser)
+                return await self.create_ituser(obj)
+            case other:
+                raise NotImplementedError(f"Unable to create type: {other}")
 
     async def create(self, creates: list[MOBase]) -> list[Any]:
         tasks = [self.create_object(obj) for obj in creates]
@@ -1544,7 +1576,7 @@ class DataLoader:
             case "it":
                 return await self.terminate_ituser(uuid, at)
             case _:
-                raise ValueError(f"Unable to terminate type: {motype}")
+                raise NotImplementedError(f"Unable to terminate type: {motype}")
 
     async def terminate(self, terminatees: list[Any]) -> list[UUID]:
         """Terminate a list of details.
