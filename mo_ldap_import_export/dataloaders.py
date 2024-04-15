@@ -1310,39 +1310,13 @@ class DataLoader:
         return result.uuid
 
     async def load_mo_org_units(self) -> dict:
-        query = gql(
-            """
-            query OrgUnit {
-              org_units(filter: {from_date: null, to_date: null}) {
-                objects {
-                  objects {
-                    uuid
-                    name
-                    user_key
-                    parent_uuid
-                    validity {
-                      to
-                      from
-                    }
-                  }
-                }
-              }
-            }
-            """
-        )
-        result = await self.query_mo(query, raise_if_empty=False)
-
-        if len(result["org_units"]["objects"]) == 0:
-            output = {}
-        else:
-            output = {
-                d["objects"][0]["uuid"]: self.extract_current_or_latest_object(
-                    d["objects"]
-                )
-                for d in result["org_units"]["objects"]
-            }
-
-        return output
+        result = await self.graphql_client.read_org_units()
+        return {
+            str(org_unit.uuid): self.extract_current_or_latest_object(
+                jsonable_encoder(org_unit.validities)
+            )
+            for org_unit in result.objects
+        }
 
     async def load_mo_it_user(self, uuid: UUID, current_objects_only=True) -> ITUser:
         query = gql(

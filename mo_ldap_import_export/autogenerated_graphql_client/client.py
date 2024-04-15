@@ -85,6 +85,8 @@ from .read_ituser_by_employee_and_itsystem_uuid import (
 )
 from .read_org_unit_addresses import ReadOrgUnitAddresses
 from .read_org_unit_addresses import ReadOrgUnitAddressesAddresses
+from .read_org_units import ReadOrgUnits
+from .read_org_units import ReadOrgUnitsOrgUnits
 from .read_root_org_uuid import ReadRootOrgUuid
 from .read_root_org_uuid import ReadRootOrgUuidOrg
 from .set_job_title import SetJobTitle
@@ -748,3 +750,30 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadItsystems.parse_obj(data).itsystems
+
+    async def read_org_units(self) -> ReadOrgUnitsOrgUnits:
+        query = gql(
+            """
+            query read_org_units {
+              org_units(filter: {from_date: null, to_date: null}) {
+                objects {
+                  uuid
+                  validities {
+                    uuid
+                    name
+                    user_key
+                    parent_uuid
+                    validity {
+                      to
+                      from
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadOrgUnits.parse_obj(data).org_units
