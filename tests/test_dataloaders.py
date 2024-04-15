@@ -1198,29 +1198,32 @@ async def test_load_mo_org_unit_addresses_not_found(
 
 
 async def test_load_mo_employee_engagements(
-    dataloader: DataLoader, legacy_graphql_session: AsyncMock
-):
+    dataloader: DataLoader, graphql_mock: GraphQLMocker
+) -> None:
     uuid1 = uuid4()
-    employee_uuid = uuid4()
 
-    return_value = {
+    route = graphql_mock.query("read_engagements_by_employee_uuid")
+    route.result = {
         "engagements": {
             "objects": [
                 {
-                    "uuid": uuid1,
-                },
+                    "current": {
+                        "uuid": uuid1,
+                        "validity": {"from": "2020-01-01T00:00:00"},
+                    }
+                }
             ]
         }
     }
 
-    legacy_graphql_session.execute.return_value = return_value
-
     load_mo_engagement = AsyncMock()
     dataloader.load_mo_engagement = load_mo_engagement  # type: ignore
 
+    employee_uuid = uuid4()
     await dataloader.load_mo_employee_engagements(employee_uuid)
 
     load_mo_engagement.assert_called_once_with(uuid1)
+    assert route.called
 
 
 async def test_is_primary(dataloader: DataLoader) -> None:

@@ -1620,23 +1620,17 @@ class DataLoader:
         """
         Load all current engagements linked to an employee
         """
-        query = gql(
-            """
-            query EngagementQuery($employee_uuid: UUID!) {
-              engagements(filter: {employee: {uuids: [$employee_uuid]}}) {
-                objects {
-                  uuid
-                }
-              }
-            }
-            """
+        result = await self.graphql_client.read_engagements_by_employee_uuid(
+            employee_uuid
         )
-        result = await self.query_mo(
-            query, variable_values={"employee_uuid": employee_uuid}
+        engagement_uuids = [
+            engagement.current.uuid
+            for engagement in result.objects
+            if engagement.current is not None
+        ]
+        return await asyncio.gather(
+            *[self.load_mo_engagement(uuid) for uuid in engagement_uuids]
         )
-        engagements = result["engagements"]["objects"]
-        engagement_uuids = [x["uuid"] for x in engagements]
-        return [await self.load_mo_engagement(uuid) for uuid in engagement_uuids]
 
     async def load_all_mo_objects(
         self,
