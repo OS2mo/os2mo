@@ -75,6 +75,8 @@ from .read_facet_uuid import ReadFacetUuid
 from .read_facet_uuid import ReadFacetUuidFacets
 from .read_is_primary_engagements import ReadIsPrimaryEngagements
 from .read_is_primary_engagements import ReadIsPrimaryEngagementsEngagements
+from .read_org_unit_addresses import ReadOrgUnitAddresses
+from .read_org_unit_addresses import ReadOrgUnitAddressesAddresses
 from .read_root_org_uuid import ReadRootOrgUuid
 from .read_root_org_uuid import ReadRootOrgUuidOrg
 from .set_job_title import SetJobTitle
@@ -414,6 +416,30 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEmployeeAddresses.parse_obj(data).addresses
+
+    async def read_org_unit_addresses(
+        self, org_unit_uuid: UUID, address_type_uuid: UUID
+    ) -> ReadOrgUnitAddressesAddresses:
+        query = gql(
+            """
+            query read_org_unit_addresses($org_unit_uuid: UUID!, $address_type_uuid: UUID!) {
+              addresses(
+                filter: {address_type: {uuids: [$address_type_uuid]}, org_unit: {uuids: [$org_unit_uuid]}}
+              ) {
+                objects {
+                  uuid
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "org_unit_uuid": org_unit_uuid,
+            "address_type_uuid": address_type_uuid,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadOrgUnitAddresses.parse_obj(data).addresses
 
     async def read_engagement_org_unit_uuid(
         self, engagement_uuid: UUID
