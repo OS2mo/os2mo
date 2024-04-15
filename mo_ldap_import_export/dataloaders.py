@@ -79,6 +79,7 @@ from .usernames import UserNameGenerator
 from .utils import combine_dn_strings
 from .utils import extract_cn_from_dn
 from .utils import extract_ou_from_dn
+from .utils import is_exception
 from .utils import remove_cn_from_dn
 
 logger = structlog.stdlib.get_logger()
@@ -1547,10 +1548,6 @@ class DataLoader:
         Returns:
             UUIDs of the terminated entries
         """
-
-        def is_exception(x: Any) -> bool:
-            return isinstance(x, Exception)
-
         detail_terminations: list[dict[str, Any]] = [
             {
                 "motype": terminate.type_,

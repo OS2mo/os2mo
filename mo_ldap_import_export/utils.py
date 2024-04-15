@@ -184,7 +184,7 @@ def exchange_ou_in_dn(dn: str, new_ou: str) -> str:
 
 
 def is_list(x: Any | list[Any]) -> bool:
-    """Decide whether the provided arugment is a list.
+    """Decide whether the provided argument is a list.
 
     Args:
         x: A potential list.
@@ -193,6 +193,18 @@ def is_list(x: Any | list[Any]) -> bool:
         Whether the provided argument is a list or not.
     """
     return isinstance(x, list)
+
+
+def is_exception(x: Any) -> bool:
+    """Decide whether the provided argument is an exception.
+
+    Args:
+        x: A potential exception.
+
+    Returns:
+        Whether the provided argument is an exception or not.
+    """
+    return isinstance(x, Exception)
 
 
 def ensure_list(x: Any | list[Any]) -> list[Any]:
