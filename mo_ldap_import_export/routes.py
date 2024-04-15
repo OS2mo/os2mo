@@ -280,18 +280,6 @@ def construct_router(user_context: UserContext) -> APIRouter:
     ) -> Any:
         await dataloader.modify_ldap_object(ldap_object, json_key)
 
-    # Post an object to MO
-    @router.post("/MO/{json_key}", tags=["MO"])
-    async def post_object_to_MO(
-        dataloader: depends.DataLoader,
-        converter: depends.LdapConverter,
-        json_key: Literal[accepted_json_keys],  # type: ignore
-        mo_object_json: dict,
-    ) -> None:
-        mo_object = converter.import_mo_object_class(json_key)
-        logger.info(f"Posting {mo_object} = {mo_object_json} to MO")
-        await dataloader.upload_mo_objects([mo_object(**mo_object_json)])
-
     # Get LDAP overview
     @router.get("/Inspect/overview", status_code=202, tags=["LDAP"])
     async def load_overview_from_LDAP(

@@ -966,7 +966,7 @@ class LdapConverter:
                     uuid=uuid,
                 )
 
-                await self.dataloader.upload_mo_objects([org_unit])
+                await self.dataloader.create([org_unit])
                 self.org_unit_info[str(uuid)] = {
                     "uuid": str(uuid),
                     "name": name,

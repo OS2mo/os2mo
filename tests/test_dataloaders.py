@@ -503,14 +503,14 @@ async def test_load_mo_employee(
 async def test_upload_mo_employee(
     legacy_model_client: AsyncMock, dataloader: DataLoader
 ) -> None:
-    """Test that test_upload_mo_employee works as expected."""
+    """Test that upload_mo_employee works as expected."""
 
     return_values = ["1", None, "3"]
     input_values = [1, 2, 3]
     for input_value, return_value in zip(input_values, return_values):
         legacy_model_client.upload.return_value = return_value
 
-        result = await dataloader.upload_mo_objects([input_value])
+        result = await dataloader.create([input_value])  # type: ignore
         assert result == return_value
         legacy_model_client.upload.assert_called_with([input_value])
 
@@ -1578,7 +1578,7 @@ async def test_shared_attribute(dataloader: DataLoader):
         dataloader.shared_attribute("non_existing_attribute")
 
 
-async def test_load_mo_object(dataloader: DataLoader):
+async def test_load_mo_object(dataloader: DataLoader) -> None:
     with patch(
         "mo_ldap_import_export.dataloaders.DataLoader.load_all_mo_objects",
         return_value=["obj1"],
@@ -1718,7 +1718,7 @@ async def test_find_or_make_mo_employee_dn(
     dataloader.load_mo_employee_it_users = AsyncMock()  # type: ignore
     dataloader.load_mo_employee = AsyncMock()  # type: ignore
     dataloader.load_ldap_cpr_object = MagicMock()  # type: ignore
-    dataloader.upload_mo_objects = AsyncMock()  # type: ignore
+    dataloader.create = AsyncMock()  # type: ignore
     dataloader.extract_unique_dns = MagicMock()  # type: ignore
     dataloader.get_ldap_unique_ldap_uuid = MagicMock()  # type: ignore
 
@@ -1735,10 +1735,10 @@ async def test_find_or_make_mo_employee_dn(
     username_generator.generate_dn.return_value = "CN=generated_dn_1,DC=DN"
     dataloader.get_ldap_unique_ldap_uuid.return_value = uuid_1
     dns = await dataloader.find_or_make_mo_employee_dn(uuid4())
-    uploaded_uuid = dataloader.upload_mo_objects.await_args_list[0].args[0][0].user_key
+    uploaded_uuid = dataloader.create.await_args_list[0].args[0][0].user_key
     assert dns == ["CN=generated_dn_1,DC=DN"]
     assert uploaded_uuid == str(uuid_1)
-    dataloader.upload_mo_objects.reset_mock()
+    dataloader.create.reset_mock()
 
     # Same as above, but there are multiple IT-users
     dataloader.extract_unique_dns.return_value = ["CN=foo,DC=bar", "CN=foo2,DC=bar"]
@@ -1759,18 +1759,18 @@ async def test_find_or_make_mo_employee_dn(
     username_generator.generate_dn.return_value = "CN=generated_dn_2,DC=DN"
     dataloader.get_ldap_unique_ldap_uuid.return_value = uuid_2
     dns = await dataloader.find_or_make_mo_employee_dn(uuid4())
-    uploaded_uuid = dataloader.upload_mo_objects.await_args_list[0].args[0][0].user_key
+    uploaded_uuid = dataloader.create.await_args_list[0].args[0][0].user_key
     assert dns == ["CN=generated_dn_2,DC=DN"]
     assert uploaded_uuid == str(uuid_2)
-    dataloader.upload_mo_objects.reset_mock()
+    dataloader.create.reset_mock()
 
     # Same as above, but an it-system does not exist
     dataloader.get_ldap_it_system_uuid.return_value = None
     username_generator.generate_dn.return_value = "CN=generated_dn_3,DC=DN"
     dns = await dataloader.find_or_make_mo_employee_dn(uuid4())
     assert dns == ["CN=generated_dn_3,DC=DN"]
-    dataloader.upload_mo_objects.assert_not_awaited()
-    dataloader.upload_mo_objects.reset_mock()
+    dataloader.create.assert_not_awaited()
+    dataloader.create.reset_mock()
 
     # Same as above, but the user also has no cpr number
     dataloader.load_mo_employee.return_value = Employee(cpr_no=None)

@@ -1062,7 +1062,7 @@ class DataLoader:
                 datetime.today().strftime("%Y-%m-%d"),
                 person_uuid=uuid,
             )
-            await self.upload_mo_objects([it_user])
+            await self.create([it_user])
             await self.sync_tool.import_single_user(dn, force=True, manual_import=True)
             await self.sync_tool.refresh_employee(employee.uuid)
             return [dn]
@@ -1922,16 +1922,6 @@ class DataLoader:
             raise NoObjectsReturnedException(
                 f"{object_type} object with uuid = {uuid} not found"
             )
-
-    async def upload_mo_objects(self, objects: list[Any]):
-        """
-        Uploads a mo object.
-            - If an Employee object is supplied, the employee is updated/created
-            - If an Address object is supplied, the address is updated/created
-            - And so on...
-        """
-        model_client = self.context["legacy_model_client"]
-        return cast(list[Any | None], await model_client.upload(objects))
 
     async def create_or_edit_mo_objects(self, objects: list[tuple[MOBase, Verb]]):
         def star(func):
