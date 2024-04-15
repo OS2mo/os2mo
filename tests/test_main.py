@@ -39,6 +39,7 @@ from mo_ldap_import_export.main import create_fastramqpi
 from mo_ldap_import_export.main import get_delete_flag
 from mo_ldap_import_export.main import initialize_checks
 from mo_ldap_import_export.main import initialize_converters
+from mo_ldap_import_export.main import initialize_info_dict_refresher
 from mo_ldap_import_export.main import initialize_init_engine
 from mo_ldap_import_export.main import initialize_ldap_listener
 from mo_ldap_import_export.main import initialize_sync_tool
@@ -864,3 +865,40 @@ async def test_get_non_existing_objectGUIDs_from_MO_404(
     dataloader.get_ldap_it_system_uuid.return_value = None
     response = test_client.get("/Inspect/non_existing_unique_ldap_uuids")
     assert response.status_code == 404
+
+
+async def test_initialize_info_dict_refresher_once() -> None:
+    converter = AsyncMock()
+
+    fastramqpi = MagicMock()
+    fastramqpi._context = {"user_context": {"converter": converter}}
+
+    async with initialize_info_dict_refresher(fastramqpi):
+        await asyncio.sleep(0)
+
+    converter.load_info_dicts.assert_awaited_once()
+
+
+async def test_initialize_info_dict_refresher_multiple_loops() -> None:
+    converter = AsyncMock()
+
+    fastramqpi = MagicMock()
+    fastramqpi._context = {"user_context": {"converter": converter}}
+
+    # Save original sleep to avoid infinite recursion in zero_sleeper
+    original_sleep = asyncio.sleep
+
+    async def zero_sleeper(_) -> None:
+        await original_sleep(0)
+
+    # Mock asyncio, so we can override sleep inside the context manager
+    my_asyncio = asyncio
+    my_asyncio.sleep = zero_sleeper  # type: ignore
+
+    with patch("mo_ldap_import_export.main.asyncio", new=my_asyncio):
+        async with initialize_info_dict_refresher(fastramqpi):
+            await asyncio.sleep(0)
+            await asyncio.sleep(0)
+            await asyncio.sleep(0)
+
+    assert converter.load_info_dicts.await_count == 3
