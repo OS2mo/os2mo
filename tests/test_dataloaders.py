@@ -555,7 +555,7 @@ async def test_load_mo_employee(
     "input_value,return_value",
     [
         (gen_ituser("1"), "1"),
-        (gen_ituser("2"), None),
+        (gen_ituser("2"), "2"),
         (gen_ituser("3"), "3"),
     ],
 )
@@ -566,11 +566,10 @@ async def test_upload_mo_employee(
     return_value: str | None,
 ) -> None:
     """Test that upload_mo_employee works as expected."""
-
     legacy_model_client.upload.return_value = return_value
 
     result = await dataloader.create([input_value])  # type: ignore
-    assert result == return_value
+    assert result == [return_value]
     legacy_model_client.upload.assert_called_with([input_value])
 
 
@@ -2513,11 +2512,13 @@ async def test_find_mo_engagement_uuid(
     assert route.called
 
 
-async def test_create_or_edit_mo_objects_empty(dataloader: DataLoader) -> None:
+async def test_create_or_edit_mo_objects_empty(
+    dataloader: DataLoader,
+    legacy_model_client: AsyncMock,
+) -> None:
     # *Empty* list of object/verb pairs.
     await dataloader.create_or_edit_mo_objects([])
-    dataloader.context["legacy_model_client"].upload.assert_called_once_with([])
-    dataloader.context["legacy_model_client"].edit.assert_called_once_with([])
+    legacy_model_client.edit.assert_called_once_with([])
 
 
 async def test_create_or_edit_mo_objects(dataloader: DataLoader) -> None:
@@ -2542,15 +2543,20 @@ async def test_create_or_edit_mo_objects(dataloader: DataLoader) -> None:
     dataloader.terminate.assert_called_once_with([terminate])
 
 
-async def test_create_objects(dataloader: DataLoader) -> None:
+async def test_create_objects(
+    dataloader: DataLoader,
+    legacy_model_client: AsyncMock,
+) -> None:
     # One object is created and another is edited.
     create = MagicMock()
     del create.terminate_
 
     objs = [(create, Verb.CREATE)]
 
+    legacy_model_client.upload.return_value = [uuid4()]
+
     await dataloader.create_or_edit_mo_objects(objs)  # type: ignore
-    dataloader.context["legacy_model_client"].upload.assert_called_once_with([create])
+    legacy_model_client.upload.assert_called_once_with([create])
 
 
 async def test_edit_objects(dataloader: DataLoader) -> None:
@@ -2611,7 +2617,6 @@ async def test_terminate_fix_verb(dataloader: DataLoader) -> None:
     objs = [(terminate, Verb.EDIT)]
 
     await dataloader.create_or_edit_mo_objects(objs)  # type: ignore
-    dataloader.context["legacy_model_client"].upload.assert_called_once_with([])
     dataloader.context["legacy_model_client"].edit.assert_called_once_with([])
     dataloader.graphql_client.address_terminate.assert_called_once()  # type: ignore
 
@@ -2731,3 +2736,17 @@ async def test_find_mo_employee_dn_by_itsystem(
     assert result == {dn}
 
     dataloader.get_ldap_dn.assert_called_once_with(ituser_uuid)
+
+
+async def test_create_exceptions(
+    dataloader: DataLoader,
+    legacy_model_client: AsyncMock,
+) -> None:
+    """Test that trying to create with exceptions reraise exceptions."""
+    legacy_model_client.upload.side_effect = ValueError("BOOM")
+
+    obj = gen_ituser("1")
+
+    with pytest.raises(ExceptionGroup) as exc_info:
+        await dataloader.create([obj])
+    assert "Exceptions during creation" in str(exc_info.value)

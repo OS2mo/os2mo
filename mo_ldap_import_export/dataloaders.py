@@ -1489,9 +1489,18 @@ class DataLoader:
         )
         return cast(list[Any | None], create_results + edit_results + terminate_results)
 
-    async def create(self, creates: list[MOBase]) -> list[Any]:
+    async def create_object(self, obj: MOBase) -> Any:
         model_client = self.context["legacy_model_client"]
-        return cast(list[Any], await model_client.upload(creates))
+        result = cast(list[Any], await model_client.upload([obj]))
+        return one(result)
+
+    async def create(self, creates: list[MOBase]) -> list[Any]:
+        tasks = [self.create_object(obj) for obj in creates]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        exceptions = cast(list[Exception], list(filter(is_exception, results)))
+        if exceptions:
+            raise ExceptionGroup("Exceptions during creation", exceptions)
+        return results
 
     async def edit(self, edits: list[MOBase]) -> list[Any]:
         model_client = self.context["legacy_model_client"]
