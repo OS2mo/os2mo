@@ -863,49 +863,42 @@ class DataLoader:
             getattr(ldap_object, settings.ldap_unique_id_field)
         )
 
-        query = gql(
-            """
-            query FindEngagementUUID($user_key: String!) {
-              itusers(filter: {user_keys: [$user_key]}) {
-                objects {
-                  current {
-                    engagement { uuid }
-                    itsystem { uuid }
-                  }
-                }
-              }
-            }
-            """
-        )
+        itsystem_uuid = self.get_ldap_it_system_uuid()
+        if itsystem_uuid is None:
+            logger.info(
+                "[Find-mo-engagement-uuid] Could not find engagement UUID for DN",
+                dn=dn,
+                unique_ldap_uuid=unique_uuid,
+                itsystem_uuid=itsystem_uuid,
+            )
+            return None
 
-        result = await self.query_mo(
-            query,
-            variable_values={  # type: ignore
-                "user_key": unique_uuid,
-            },
-            raise_if_empty=False,
+        result = await self.graphql_client.read_engagement_uuid_by_ituser_user_key(
+            unique_uuid, UUID(itsystem_uuid)
         )
-
-        for it_user in result["itusers"]["objects"]:
-            obj = it_user["current"]
-            if obj["itsystem"]["uuid"] == self.get_ldap_it_system_uuid():
-                if obj["engagement"] is not None and len(obj["engagement"]) > 0:
-                    engagement_uuid = UUID(obj["engagement"][0]["uuid"])
-                    logger.info(
-                        "[Find-mo-engagement-uuid] Found engagement UUID for DN",
-                        dn=dn,
-                        unique_ldap_uuid=unique_uuid,
-                        engagement_uuid=engagement_uuid,
-                    )
-                    return engagement_uuid
+        engagement_uuids = {
+            ituser.current.engagement_uuid
+            for ituser in result.objects
+            if ituser.current is not None
+        }
+        engagement_uuid = only(engagement_uuids)
+        if engagement_uuid is None:
+            logger.info(
+                "[Find-mo-engagement-uuid] Could not find engagement UUID for DN",
+                dn=dn,
+                unique_ldap_uuid=unique_uuid,
+                itsystem_uuid=itsystem_uuid,
+            )
+            return None
 
         logger.info(
-            "[Find-mo-engagement-uuid] Could not find engagement UUID for DN",
+            "[Find-mo-engagement-uuid] Found engagement UUID for DN",
             dn=dn,
             unique_ldap_uuid=unique_uuid,
-            objects=result["itusers"]["objects"],
+            itsystem_uuid=itsystem_uuid,
+            engagement_uuid=engagement_uuid,
         )
-        return None
+        return engagement_uuid
 
     def get_ldap_it_system_uuid(self) -> str | None:
         """
