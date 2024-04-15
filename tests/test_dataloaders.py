@@ -921,12 +921,13 @@ async def test_load_mo_address_types_not_found(
 
 
 async def test_load_mo_it_systems(
-    dataloader: DataLoader, legacy_graphql_session: AsyncMock
-):
+    dataloader: DataLoader, graphql_mock: GraphQLMocker
+) -> None:
     uuid1 = uuid4()
     uuid2 = uuid4()
 
-    return_value = {
+    route = graphql_mock.query("read_itsystems")
+    route.result = {
         "itsystems": {
             "objects": [
                 {"current": {"user_key": "AD", "uuid": uuid1}},
@@ -935,11 +936,9 @@ async def test_load_mo_it_systems(
         }
     }
 
-    legacy_graphql_session.execute.return_value = return_value
-
     output = await dataloader.load_mo_it_systems()
-    assert output[uuid1]["user_key"] == "AD"
-    assert output[uuid2]["user_key"] == "Office365"
+    assert output[str(uuid1)]["user_key"] == "AD"
+    assert output[str(uuid2)]["user_key"] == "Office365"
 
 
 async def test_load_mo_org_units(

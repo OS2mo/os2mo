@@ -1291,32 +1291,14 @@ class DataLoader:
     async def load_mo_job_functions(self) -> dict:
         return await self.load_mo_facet("engagement_job_function")
 
-    async def load_mo_it_systems(self) -> dict:
-        query = gql(
-            """
-            query ItSystems {
-              itsystems {
-                objects {
-                  current{
-                    uuid
-                    user_key
-                  }
-                }
-              }
-            }
-            """
-        )
-        result = await self.query_mo(query, raise_if_empty=False)
-
-        if len(result["itsystems"]["objects"]) == 0:
-            output = {}
-        else:
-            output = {
-                d["current"]["uuid"]: d["current"]
-                for d in result["itsystems"]["objects"]
-            }
-
-        return output
+    async def load_mo_it_systems(self) -> dict[str, Any]:
+        result = await self.graphql_client.read_itsystems()
+        # TODO: Actually return UUID types here
+        return {
+            str(itsystem.current.uuid): jsonable_encoder(itsystem.current)
+            for itsystem in result.objects
+            if itsystem.current is not None
+        }
 
     async def load_mo_root_org_uuid(self) -> UUID:
         """Get the UUID of the root organisational unit in MO.
