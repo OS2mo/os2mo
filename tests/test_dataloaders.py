@@ -1013,18 +1013,20 @@ async def test_load_mo_it_systems_not_found(
 
 
 async def test_load_mo_it_user(
-    dataloader: DataLoader, legacy_graphql_session: AsyncMock
-):
+    dataloader: DataLoader, graphql_mock: GraphQLMocker
+) -> None:
     uuid1 = uuid4()
     uuid2 = uuid4()
-    return_value = {
+
+    route = graphql_mock.query("read_itusers")
+    route.result = {
         "itusers": {
             "objects": [
                 {
-                    "objects": [
+                    "validities": [
                         {
                             "user_key": "foo",
-                            "validity": {"from": "2021-01-01", "to": None},
+                            "validity": {"from": "2021-01-01T00:00:00", "to": None},
                             "employee_uuid": uuid1,
                             "itsystem_uuid": uuid2,
                             "engagement_uuid": uuid1,
@@ -1035,14 +1037,14 @@ async def test_load_mo_it_user(
         }
     }
 
-    legacy_graphql_session.execute.return_value = return_value
-
     output = await dataloader.load_mo_it_user(uuid4())
     assert output.user_key == "foo"
     assert output.itsystem.uuid == uuid2
     assert output.person.uuid == uuid1  # type: ignore
     assert output.engagement.uuid == uuid1  # type: ignore
     assert output.validity.from_date.strftime("%Y-%m-%d") == "2021-01-01"
+
+    assert route.called
 
 
 async def test_load_mo_engagement(

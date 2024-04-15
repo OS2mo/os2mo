@@ -94,6 +94,8 @@ from .read_ituser_by_employee_and_itsystem_uuid import (
 from .read_ituser_by_employee_and_itsystem_uuid import (
     ReadItuserByEmployeeAndItsystemUuidItusers,
 )
+from .read_itusers import ReadItusers
+from .read_itusers import ReadItusersItusers
 from .read_org_unit_addresses import ReadOrgUnitAddresses
 from .read_org_unit_addresses import ReadOrgUnitAddressesAddresses
 from .read_org_units import ReadOrgUnits
@@ -433,6 +435,41 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEmployees.parse_obj(data).employees
+
+    async def read_itusers(
+        self,
+        uuids: List[UUID],
+        from_date: Union[Optional[datetime], UnsetType] = UNSET,
+        to_date: Union[Optional[datetime], UnsetType] = UNSET,
+    ) -> ReadItusersItusers:
+        query = gql(
+            """
+            query read_itusers($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
+              itusers(filter: {from_date: $from_date, to_date: $to_date, uuids: $uuids}) {
+                objects {
+                  validities {
+                    user_key
+                    validity {
+                      from
+                      to
+                    }
+                    employee_uuid
+                    itsystem_uuid
+                    engagement_uuid
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "uuids": uuids,
+            "from_date": from_date,
+            "to_date": to_date,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadItusers.parse_obj(data).itusers
 
     async def read_employee_uuid_by_ituser_user_key(
         self, user_key: str
