@@ -1278,40 +1278,6 @@ async def test_query_mo(dataloader: DataLoader, legacy_graphql_session: AsyncMoc
         await dataloader.query_mo(query, raise_if_empty=True)
 
 
-async def test_query_mo_all_objects(
-    dataloader: DataLoader, legacy_graphql_session: AsyncMock
-):
-    query = gql(
-        """
-        query TestQuery {
-          employees (uuid:"uuid") {
-            uuid
-          }
-        }
-        """
-    )
-
-    expected_output: list = [
-        {"objects": {"objects": []}},
-        {"objects": {"objects": ["item1", "item2"]}},
-    ]
-    legacy_graphql_session.execute.side_effect = expected_output
-
-    output = await dataloader.query_past_future_mo(query, current_objects_only=False)
-    assert output == expected_output[1]
-
-    query1 = print_ast(legacy_graphql_session.execute.call_args_list[0].args[0])
-    query2 = print_ast(legacy_graphql_session.execute.call_args_list[1].args[0])
-
-    # The first query attempts to request current objects only
-    assert "from_date" not in query1
-    assert "to_date" not in query1
-
-    # If that fails, all objects are requested
-    assert "from_date" in query2
-    assert "to_date" in query2
-
-
 async def test_load_all_mo_objects(
     dataloader: DataLoader, legacy_graphql_session: AsyncMock
 ):

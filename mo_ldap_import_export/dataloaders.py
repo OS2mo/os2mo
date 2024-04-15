@@ -63,7 +63,6 @@ from .ldap import paged_search
 from .ldap import single_object_search
 from .ldap_classes import LdapObject
 from .logging import logger
-from .utils import add_filter_to_query
 from .utils import combine_dn_strings
 from .utils import extract_cn_from_dn
 from .utils import extract_ou_from_dn
@@ -219,22 +218,6 @@ class DataLoader:
                 cursor = next_result[key]["page_info"]["next_cursor"]
 
         return result
-
-    async def query_past_future_mo(
-        self, query: DocumentNode, current_objects_only: bool
-    ):
-        """
-        First queries MO. If no objects are returned, attempts to query past/future
-        objects as well
-        """
-        try:
-            return await self.query_mo(query)
-        except NoObjectsReturnedException as e:
-            if current_objects_only:  # pragma: no cover
-                raise e
-            else:
-                query = add_filter_to_query(query, "to_date: null, from_date: null")
-                return await self.query_mo(query)
 
     def load_ldap_object(self, dn, attributes, nest=True):
         searchParameters = {

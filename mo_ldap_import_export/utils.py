@@ -7,9 +7,6 @@ from functools import partial
 from typing import Any
 
 from fastramqpi.ramqp.mo import MORoutingKey
-from gql import gql
-from graphql import DocumentNode
-from graphql import print_ast
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
@@ -20,8 +17,6 @@ from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 
 from .customer_specific import JobTitleFromADToMO
-from .exceptions import InvalidQuery
-from .logging import logger
 
 
 def import_class(name: str) -> type[MOBase]:
@@ -54,38 +49,6 @@ def delete_keys_from_dict(dict_del, lst_keys):
     Loops recursively over nested dictionaries.
     """
     return _delete_keys_from_dict(copy.deepcopy(dict_del), lst_keys)
-
-
-def add_filter_to_query(query: DocumentNode, filter_to_add: str) -> DocumentNode:
-    """
-    Attempts to modify a query with an additional filter.
-
-    Parameters
-    -------------
-    query : gql document node
-        The query to modify
-    filter_to_add : str
-        The filter(s) to add to the query. For example "to_date: null, from_date: null"
-
-    Notes
-    ------
-    When from_date and to_date equal "null", all objects are returned, rather than just
-    objects which are valid now. That means that future and past object are returned
-    as well as current ones.
-    """
-    query_str = print_ast(query)
-
-    try:
-        index = query_str.index(")")  # Raises ValueError if substring is not found
-        new_query_str = query_str[0:index] + ", " + filter_to_add + query_str[index:]
-    except ValueError:
-        raise InvalidQuery(
-            f"Could not modify query filters for '{query_str}'. "
-            "Looks like the query has no filters"
-        )
-
-    logger.info(f"Modified '{query_str}' to '{new_query_str}'")
-    return gql(new_query_str)
 
 
 def mo_datestring_to_utc(datestring: str | None) -> datetime | None:
