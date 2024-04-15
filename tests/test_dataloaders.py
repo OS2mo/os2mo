@@ -90,6 +90,12 @@ from mo_ldap_import_export.utils import extract_ou_from_dn
 from tests.graphql_mocker import GraphQLMocker
 
 
+def gen_ituser(user_key: str) -> ITUser:
+    return ITUser(
+        user_key=user_key, itsystem={"uuid": uuid4()}, validity={"from": "2020-01-01"}
+    )
+
+
 @pytest.fixture()
 def ldap_attributes() -> dict:
     return {
@@ -545,19 +551,27 @@ async def test_load_mo_employee(
     assert route.called
 
 
+@pytest.mark.parametrize(
+    "input_value,return_value",
+    [
+        (gen_ituser("1"), "1"),
+        (gen_ituser("2"), None),
+        (gen_ituser("3"), "3"),
+    ],
+)
 async def test_upload_mo_employee(
-    legacy_model_client: AsyncMock, dataloader: DataLoader
+    legacy_model_client: AsyncMock,
+    dataloader: DataLoader,
+    input_value: ITUser,
+    return_value: str | None,
 ) -> None:
     """Test that upload_mo_employee works as expected."""
 
-    return_values = ["1", None, "3"]
-    input_values = [1, 2, 3]
-    for input_value, return_value in zip(input_values, return_values):
-        legacy_model_client.upload.return_value = return_value
+    legacy_model_client.upload.return_value = return_value
 
-        result = await dataloader.create([input_value])  # type: ignore
-        assert result == return_value
-        legacy_model_client.upload.assert_called_with([input_value])
+    result = await dataloader.create([input_value])  # type: ignore
+    assert result == return_value
+    legacy_model_client.upload.assert_called_with([input_value])
 
 
 async def test_make_overview_entry(dataloader: DataLoader):
