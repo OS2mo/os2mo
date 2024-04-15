@@ -60,6 +60,8 @@ from .read_employee_uuid_by_ituser_user_key import ReadEmployeeUuidByItuserUserK
 from .read_employee_uuid_by_ituser_user_key import (
     ReadEmployeeUuidByItuserUserKeyItusers,
 )
+from .read_employees import ReadEmployees
+from .read_employees import ReadEmployeesEmployees
 from .read_employees_with_engagement_to_org_unit import (
     ReadEmployeesWithEngagementToOrgUnit,
 )
@@ -394,6 +396,43 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEmployeeUuidByCprNumber.parse_obj(data).employees
+
+    async def read_employees(
+        self,
+        uuids: List[UUID],
+        from_date: Union[Optional[datetime], UnsetType] = UNSET,
+        to_date: Union[Optional[datetime], UnsetType] = UNSET,
+    ) -> ReadEmployeesEmployees:
+        query = gql(
+            """
+            query read_employees($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
+              employees(filter: {from_date: $from_date, to_date: $to_date, uuids: $uuids}) {
+                objects {
+                  validities {
+                    uuid
+                    cpr_no
+                    givenname
+                    surname
+                    nickname_givenname
+                    nickname_surname
+                    validity {
+                      to
+                      from
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "uuids": uuids,
+            "from_date": from_date,
+            "to_date": to_date,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadEmployees.parse_obj(data).employees
 
     async def read_employee_uuid_by_ituser_user_key(
         self, user_key: str

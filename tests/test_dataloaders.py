@@ -485,26 +485,30 @@ async def test_modify_ldap_object_but_export_equals_false(
 
 
 async def test_load_mo_employee(
-    dataloader: DataLoader, legacy_graphql_session: AsyncMock
+    dataloader: DataLoader, graphql_mock: GraphQLMocker
 ) -> None:
     cpr_no = "1407711900"
     uuid = uuid4()
 
-    legacy_graphql_session.execute.return_value = {
-        "employees": {
-            "objects": [
-                {
-                    "objects": [
-                        {"cpr_no": cpr_no, "uuid": uuid, "validity": {"to": None}}
-                    ]
-                },
-            ]
-        }
+    employee = {
+        "uuid": uuid,
+        "cpr_no": cpr_no,
+        "givenname": "first_name",
+        "surname": "last_name",
+        "nickname_givenname": None,
+        "nickname_surname": None,
+        "validity": {"to": None},
     }
 
-    expected_result = Employee(**{"cpr_no": cpr_no, "uuid": uuid})
+    route = graphql_mock.query("read_employees")
+    route.result = {"employees": {"objects": [{"validities": [employee]}]}}
+
+    employee.pop("validity")
+    expected_result = Employee(**employee)
+
     output = await dataloader.load_mo_employee(uuid)
     assert output == expected_result
+    assert route.called
 
 
 async def test_upload_mo_employee(
