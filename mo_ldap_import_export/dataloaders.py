@@ -1371,47 +1371,14 @@ class DataLoader:
         uuid: UUID,
         current_objects_only: bool = True,
     ) -> Engagement:
-        query = gql(
-            f"""
-            query SingleEngagement {{
-              engagements(filter: {{uuids: "{uuid}"}}) {{
-                objects {{
-                  objects {{
-                    user_key
-                    extension_1
-                    extension_2
-                    extension_3
-                    extension_4
-                    extension_5
-                    extension_6
-                    extension_7
-                    extension_8
-                    extension_9
-                    extension_10
-                    leave_uuid
-                    primary_uuid
-                    job_function_uuid
-                    org_unit_uuid
-                    engagement_type_uuid
-                    employee_uuid
-                    validity {{
-                      from
-                      to
-                    }}
-                  }}
-                }}
-              }}
-            }}
-            """
-        )
+        start = end = UNSET if current_objects_only else None
+        results = await self.graphql_client.read_engagements([uuid], start, end)
+        result = only(results.objects)
+        if result is None:
+            raise NoObjectsReturnedException("Could not fetch engagement")
 
-        logger.info("[Load-mo-engagement] Loading engagement.", uuid=uuid)
-        result = await self.query_past_future_mo(query, current_objects_only)
-
-        entry = self.extract_current_or_latest_object(
-            result["engagements"]["objects"][0]["objects"]
-        )
-
+        validities = jsonable_encoder(result.validities)
+        entry = self.extract_current_or_latest_object(validities)
         engagement = Engagement.from_simplified_fields(
             org_unit_uuid=entry["org_unit_uuid"],
             person_uuid=entry["employee_uuid"],

@@ -74,6 +74,8 @@ from .read_engagement_uuid_by_ituser_user_key import ReadEngagementUuidByItuserU
 from .read_engagement_uuid_by_ituser_user_key import (
     ReadEngagementUuidByItuserUserKeyItusers,
 )
+from .read_engagements import ReadEngagements
+from .read_engagements import ReadEngagementsEngagements
 from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuid
 from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuidEngagements
 from .read_engagements_by_engagements_filter import ReadEngagementsByEngagementsFilter
@@ -300,6 +302,54 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEmployeesWithEngagementToOrgUnit.parse_obj(data).engagements
+
+    async def read_engagements(
+        self,
+        uuids: List[UUID],
+        from_date: Union[Optional[datetime], UnsetType] = UNSET,
+        to_date: Union[Optional[datetime], UnsetType] = UNSET,
+    ) -> ReadEngagementsEngagements:
+        query = gql(
+            """
+            query read_engagements($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
+              engagements(filter: {uuids: $uuids, from_date: $from_date, to_date: $to_date}) {
+                objects {
+                  validities {
+                    user_key
+                    extension_1
+                    extension_2
+                    extension_3
+                    extension_4
+                    extension_5
+                    extension_6
+                    extension_7
+                    extension_8
+                    extension_9
+                    extension_10
+                    leave_uuid
+                    primary_uuid
+                    job_function_uuid
+                    org_unit_uuid
+                    engagement_type_uuid
+                    employee_uuid
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "uuids": uuids,
+            "from_date": from_date,
+            "to_date": to_date,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadEngagements.parse_obj(data).engagements
 
     async def read_engagements_by_employee_uuid(
         self, employee_uuid: UUID

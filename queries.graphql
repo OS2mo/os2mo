@@ -82,6 +82,36 @@ query read_employees_with_engagement_to_org_unit($org_unit_uuid: UUID!) {
   }
 }
 
+query read_engagements($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
+  engagements(filter: {uuids: $uuids, from_date: $from_date, to_date: $to_date}) {
+    objects {
+      validities {
+        user_key
+        extension_1
+        extension_2
+        extension_3
+        extension_4
+        extension_5
+        extension_6
+        extension_7
+        extension_8
+        extension_9
+        extension_10
+        leave_uuid
+        primary_uuid
+        job_function_uuid
+        org_unit_uuid
+        engagement_type_uuid
+        employee_uuid
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}
+
 query read_engagements_by_employee_uuid($employee_uuid: UUID!) {
   engagements(filter: {employee: {uuids: [$employee_uuid]}}) {
     objects {
