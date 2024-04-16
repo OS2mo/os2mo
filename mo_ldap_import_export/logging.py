@@ -49,18 +49,6 @@ def init(log_level: str, production_mode: bool = True):
         mask_cpr,
     ]
 
-    if production_mode:
-        shared_processors.append(
-            # Add callsite parameters.
-            structlog.processors.CallsiteParameterAdder(
-                {
-                    structlog.processors.CallsiteParameter.FILENAME,
-                    structlog.processors.CallsiteParameter.FUNC_NAME,
-                    structlog.processors.CallsiteParameter.LINENO,
-                }
-            )
-        )
-
     structlog.configure(
         processors=[
             *shared_processors,
