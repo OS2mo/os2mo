@@ -14,6 +14,7 @@ from typing import cast
 from uuid import UUID
 
 import ldap3.core.exceptions
+import structlog
 from fastramqpi.context import Context
 from fastramqpi.depends import UserContext
 from fastramqpi.ramqp import AMQPSystem
@@ -40,13 +41,14 @@ from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
 from .exceptions import TimeOutException
 from .ldap_classes import LdapObject
-from .logging import logger
 from .processors import _hide_cpr as hide_cpr
 from .utils import combine_dn_strings
 from .utils import datetime_to_ldap_timestamp
 from .utils import ensure_list
 from .utils import is_list
 from .utils import mo_object_is_valid
+
+logger = structlog.stdlib.get_logger()
 
 
 def construct_server(server_config: ServerConfig) -> Server:

@@ -372,7 +372,7 @@ async def test_ldap_to_mo_dict_validation_error(converter: LdapConverter) -> Non
         )
 
         info_messages = [w for w in cap_logs if w["log_level"] == "info"]
-        assert "not a valid uuid" in str(info_messages)
+        assert "Exception during object parsing" in str(info_messages)
 
 
 async def test_ldap_to_mo_uses_engagement_uuid(converter: LdapConverter) -> None:

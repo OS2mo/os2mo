@@ -6,9 +6,9 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import datetime
 from functools import wraps
-from typing import Annotated
 from typing import Any
 
+import structlog
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import FastAPI
@@ -42,18 +42,19 @@ from .ldap import ldap_healthcheck
 from .ldap import poller_healthcheck
 from .ldap import setup_listener
 from .ldap_amqp import configure_ldap_amqpsystem
-from .logging import logger
+from .logging import init as initialize_logging
 from .os2mo_init import InitEngine
 from .routes import construct_router
 from .usernames import get_username_generator_class
 from .utils import get_object_type_from_routing_key
 from .utils import mo_datestring_to_utc
 
+logger = structlog.stdlib.get_logger()
+
 fastapi_router = APIRouter()
 amqp_router = MORouter()
 delay_on_error = 10  # Try errors again after a short period of time
 delay_on_requeue = 60 * 60 * 24  # Requeue messages for tomorrow (or after a reboot)
-RateLimit = Annotated[None, Depends(rate_limit(delay_on_error))]
 
 
 def reject_on_failure(func):
@@ -146,7 +147,6 @@ async def process_address(
     object_uuid: PayloadUUID,
     mo_routing_key: MORoutingKey,
     sync_tool: depends.SyncTool,
-    _: RateLimit,
 ) -> None:
     args, mo_object = await unpack_payload(context, object_uuid, mo_routing_key)
     service_type = mo_object["service_type"]
@@ -164,7 +164,6 @@ async def process_engagement(
     object_uuid: PayloadUUID,
     mo_routing_key: MORoutingKey,
     sync_tool: depends.SyncTool,
-    _: RateLimit,
 ) -> None:
     args, _ = await unpack_payload(context, object_uuid, mo_routing_key)
 
@@ -181,7 +180,6 @@ async def process_ituser(
     object_uuid: PayloadUUID,
     mo_routing_key: MORoutingKey,
     sync_tool: depends.SyncTool,
-    _: RateLimit,
 ) -> None:
     args, _ = await unpack_payload(context, object_uuid, mo_routing_key)
 
@@ -195,7 +193,6 @@ async def process_person(
     object_uuid: PayloadUUID,
     mo_routing_key: MORoutingKey,
     sync_tool: depends.SyncTool,
-    _: RateLimit,
 ) -> None:
     args, _ = await unpack_payload(context, object_uuid, mo_routing_key)
 
@@ -207,7 +204,6 @@ async def process_person(
 async def process_org_unit(
     object_uuid: PayloadUUID,
     sync_tool: depends.SyncTool,
-    _: RateLimit,
 ) -> None:
     logger.info(
         "[Listen-to-changes-in-orgs] Registered change in an org_unit.",
@@ -309,6 +305,8 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     logger.info("Retrieving settings")
     settings = Settings(**kwargs)
 
+    initialize_logging(settings.fastramqpi.log_level, settings.production)
+
     # ldap_ou_for_new_users needs to be in the search base. Otherwise we cannot
     # find newly created users...
     check_ou_in_list_of_ous(
@@ -333,6 +331,10 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
 
     logger.info("AMQP router setup")
     amqpsystem = fastramqpi.get_amqpsystem()
+    amqpsystem.dependencies = [
+        Depends(rate_limit(delay_on_error)),
+        Depends(depends.logger_bound_message_id),
+    ]
     if settings.listen_to_changes_in_mo:
         amqpsystem.router.registry.update(amqp_router.registry)
 

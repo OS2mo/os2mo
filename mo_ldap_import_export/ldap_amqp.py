@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from typing import Annotated
 
+import structlog
 from fastapi import Depends
 from fastramqpi.main import FastRAMQPI
 from fastramqpi.ramqp import AMQPSystem
@@ -11,16 +12,17 @@ from fastramqpi.ramqp.depends import rate_limit
 from fastramqpi.ramqp.utils import RejectMessage
 
 from .config import LDAPAMQPConnectionSettings
+from .depends import logger_bound_message_id
 from .depends import SyncTool
 from .exceptions import NoObjectsReturnedException
-from .logging import logger
+
+logger = structlog.stdlib.get_logger()
 
 
 ldap_amqp_router = Router()
 
 # Try errors again after a short period of time
 delay_on_error = 10
-RateLimit = Annotated[None, Depends(rate_limit(delay_on_error))]
 
 PayloadDN = Annotated[str, Depends(get_payload_as_type(str))]
 
@@ -29,7 +31,6 @@ PayloadDN = Annotated[str, Depends(get_payload_as_type(str))]
 async def process_dn(
     sync_tool: SyncTool,
     dn: PayloadDN,
-    _: RateLimit,
 ) -> None:
     logger.info("Received LDAP AMQP event", dn=dn)
     try:
@@ -44,7 +45,14 @@ def configure_ldap_amqpsystem(
     fastramqpi: FastRAMQPI, settings: LDAPAMQPConnectionSettings
 ) -> None:
     logger.info("Initializing LDAP AMQP system")
-    ldap_amqpsystem = AMQPSystem(settings=settings, router=ldap_amqp_router)
+    ldap_amqpsystem = AMQPSystem(
+        settings=settings,
+        router=ldap_amqp_router,
+        dependencies=[
+            Depends(rate_limit(delay_on_error)),
+            Depends(logger_bound_message_id),
+        ],
+    )
     fastramqpi.add_context(ldap_amqpsystem=ldap_amqpsystem)
     # 3100 because SyncTool, which is used by the above handler, is 3000
     fastramqpi.add_lifespan_manager(ldap_amqpsystem, 3100)

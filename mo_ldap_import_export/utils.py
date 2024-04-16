@@ -6,6 +6,7 @@ from datetime import datetime
 from functools import partial
 from typing import Any
 
+import structlog
 from fastramqpi.ramqp.mo import MORoutingKey
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
@@ -17,6 +18,8 @@ from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 
 from .customer_specific import JobTitleFromADToMO
+
+logger = structlog.stdlib.get_logger()
 
 
 def import_class(name: str) -> type[MOBase]:

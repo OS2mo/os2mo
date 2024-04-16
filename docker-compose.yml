@@ -27,6 +27,7 @@ services:
     command: ["uvicorn", "--factory", "app.main:create_app", "--host", "0.0.0.0", "--reload"]
     environment:
       FASTRAMQPI__DAP: "true"
+      TZ: "Europe/Copenhagen"
     volumes:
       - ./mo_ldap_import_export:/opt/app/
       - ./dev-environment/mo_ldap_import_export.env:/var/run/.env

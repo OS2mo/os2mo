@@ -14,6 +14,7 @@ from uuid import UUID
 from uuid import uuid4
 
 import pydantic
+import structlog
 from fastramqpi.context import Context
 from fastramqpi.ramqp.utils import RequeueMessage
 from jinja2 import Environment
@@ -34,12 +35,13 @@ from .exceptions import NotSupportedException
 from .exceptions import UUIDNotFoundException
 from .ldap import is_uuid
 from .ldap_classes import LdapObject
-from .logging import logger
 from .utils import delete_keys_from_dict
 from .utils import exchange_ou_in_dn
 from .utils import extract_ou_from_dn
 from .utils import import_class
 from .utils import is_list
+
+logger = structlog.stdlib.get_logger()
 
 
 def minimum(a, b):
@@ -1328,7 +1330,7 @@ class LdapConverter:
 
             try:
                 converted_objects.append(mo_class(**mo_dict))
-            except pydantic.ValidationError as pve:
-                logger.info(pve)
+            except pydantic.ValidationError:
+                logger.info("Exception during object parsing", exc_info=True)
 
         return converted_objects

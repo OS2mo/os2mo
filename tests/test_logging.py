@@ -1,9 +1,11 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from structlog.testing import capture_logs
+import structlog
 
-from mo_ldap_import_export.logging import logger
 from mo_ldap_import_export.processors import _hide_cpr
+from mo_ldap_import_export.processors import mask_cpr
+
+logger = structlog.get_logger()
 
 
 def test_hide_cpr():
@@ -21,13 +23,22 @@ def test_hide_cpr():
 
 
 def test_mask_cpr():
-    with capture_logs() as cap_logs:
-        logger.info("My cpr no is 010101-1234")
-        logger.info("My telephone no is 6001011234")
-        messages = [w for w in cap_logs if w["log_level"] == "info"]
+    cf = structlog.testing.CapturingLoggerFactory()
+    structlog.configure(logger_factory=cf, processors=[mask_cpr])
+    logger = structlog.stdlib.get_logger()
 
-        assert messages[0]["event"] == "My cpr no is 010101-xxxx"
-        assert messages[1]["event"] == "My telephone no is 6001011234"
+    logger.info("My cpr no is 010101-1234")
+    logger.info("My telephone no is 6001011234")
+    messages = [w.kwargs for w in cf.logger.calls]
+
+    assert messages[0]["event"] == "My cpr no is 010101-xxxx"
+    assert messages[1]["event"] == "My telephone no is 6001011234"
+
+
+def test_mask_cpr2():
+    cf = structlog.testing.CapturingLoggerFactory()
+    structlog.configure(logger_factory=cf, processors=[mask_cpr])
+    logger = structlog.stdlib.get_logger()
 
     cpr_no = "010101-1234"
 
@@ -43,13 +54,15 @@ def test_mask_cpr():
 
     cpr_obj = CprClass(cpr_no)
 
-    with capture_logs() as cap_logs:
-        logger.info(f"My cpr no is {cpr_no}")
-        logger.info("The cpr attribute is", cpr=cpr_no)
-        logger.info("The cpr-no is hidden in this object", obj=cpr_obj)
+    logger.info(f"My cpr no is {cpr_no}")
+    logger.info("The cpr attribute is", cpr=cpr_no)
+    logger.info("The cpr-no is hidden in this object", obj=cpr_obj)
 
-        messages = [w for w in cap_logs if w["log_level"] == "info"]
-
-        for message in messages:
-            assert cpr_no not in str(message)
-            assert "010101-xxxx" in str(message)
+    messages = [w.kwargs for w in cf.logger.calls]
+    print(messages)
+    for message in messages:
+        for entry in message.values():
+            assert cpr_no not in entry
+    assert "010101-xxxx" in str(messages[0]["event"])
+    assert "010101-xxxx" in str(messages[1]["cpr"])
+    assert "010101-xxxx" in str(messages[2]["obj"])
