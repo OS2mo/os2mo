@@ -80,48 +80,23 @@ def remove_first_org(settings: Settings, orgstr: str) -> str:
     return nonejoin_orgs(settings, *rest)
 
 
-async def get_visibility_uuid(graphql_client: GraphQLClient, visibility: str) -> str:
-    result = await graphql_client.read_class_uuid_by_facet_and_class_user_key(
-        "visibility", visibility
-    )
-    return str(
-        one(
-            result.objects,
-            too_short=UUIDNotFoundException(
-                f"visibility not found, user_key: {visibility}"
-            ),
-        ).uuid
-    )
-
-
-async def get_primary_type_uuid(graphql_client: GraphQLClient, primary: str) -> str:
-    result = await graphql_client.read_class_uuid_by_facet_and_class_user_key(
-        "primary_type", primary
-    )
-    return str(
-        one(
-            result.objects,
-            too_short=UUIDNotFoundException(
-                f"primary_type not found, user_key: {primary}"
-            ),
-        ).uuid
-    )
-
-
-async def get_engagement_type_uuid(
-    graphql_client: GraphQLClient, engagement_type: str
+async def _get_facet_class_uuid(
+    graphql_client: GraphQLClient, class_user_key: str, facet_user_key: str
 ) -> str:
     result = await graphql_client.read_class_uuid_by_facet_and_class_user_key(
-        "engagement_type", engagement_type
+        facet_user_key, class_user_key
     )
-    return str(
-        one(
-            result.objects,
-            too_short=UUIDNotFoundException(
-                f"engagement_type not found, user_key: {engagement_type}"
-            ),
-        ).uuid
+    exception = UUIDNotFoundException(
+        f"class not found, facet_user_key: {facet_user_key} class_user_key: {class_user_key}"
     )
+    return str(one(result.objects, too_short=exception).uuid)
+
+
+get_visibility_uuid = partial(_get_facet_class_uuid, facet_user_key="visibility")
+get_primary_type_uuid = partial(_get_facet_class_uuid, facet_user_key="primary_type")
+get_engagement_type_uuid = partial(
+    _get_facet_class_uuid, facet_user_key="engagement_type"
+)
 
 
 async def get_engagement_type_name(graphql_client: GraphQLClient, uuid: str) -> str:
