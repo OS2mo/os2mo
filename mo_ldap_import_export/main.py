@@ -345,7 +345,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     fastramqpi.add_healthcheck(name="LDAPConnection", healthcheck=ldap_healthcheck)
     fastramqpi.add_lifespan_manager(
         open_ldap_connection(ldap_connection),  # type: ignore
-        1500,
+        100,
     )
 
     logger.info("Loading mapping file")
@@ -356,7 +356,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     dataloader = DataLoader(fastramqpi.get_context())
     fastramqpi.add_context(dataloader=dataloader)
 
-    fastramqpi.add_lifespan_manager(initialize_info_dict_refresher(fastramqpi), 2000)
+    fastramqpi.add_lifespan_manager(initialize_info_dict_refresher(fastramqpi), 150)
 
     userNameGeneratorClass_string = mapping["username_generator"]["objectClass"]
     logger.info("Initializing username generator")
@@ -366,15 +366,15 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     username_generator = username_generator_class(fastramqpi.get_context())
     fastramqpi.add_context(username_generator=username_generator)
 
-    fastramqpi.add_lifespan_manager(initialize_init_engine(fastramqpi), 2700)
-    fastramqpi.add_lifespan_manager(initialize_converters(fastramqpi), 2800)
+    fastramqpi.add_lifespan_manager(initialize_init_engine(fastramqpi), 200)
+    fastramqpi.add_lifespan_manager(initialize_converters(fastramqpi), 250)
 
-    fastramqpi.add_lifespan_manager(initialize_checks(fastramqpi), 2900)
-    fastramqpi.add_lifespan_manager(initialize_sync_tool(fastramqpi), 3000)
+    fastramqpi.add_lifespan_manager(initialize_checks(fastramqpi), 300)
+    fastramqpi.add_lifespan_manager(initialize_sync_tool(fastramqpi), 350)
 
     if settings.listen_to_changes_in_ldap:
-        configure_ldap_amqpsystem(fastramqpi, settings.ldap_amqp)
-        fastramqpi.add_lifespan_manager(initialize_ldap_listener(fastramqpi), 3200)
+        configure_ldap_amqpsystem(fastramqpi, settings.ldap_amqp, 1000)
+        fastramqpi.add_lifespan_manager(initialize_ldap_listener(fastramqpi), 1000)
 
     return fastramqpi
 

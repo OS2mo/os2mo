@@ -42,7 +42,7 @@ async def process_dn(
 
 
 def configure_ldap_amqpsystem(
-    fastramqpi: FastRAMQPI, settings: LDAPAMQPConnectionSettings
+    fastramqpi: FastRAMQPI, settings: LDAPAMQPConnectionSettings, priority: int
 ) -> None:
     logger.info("Initializing LDAP AMQP system")
     ldap_amqpsystem = AMQPSystem(
@@ -54,7 +54,8 @@ def configure_ldap_amqpsystem(
         ],
     )
     fastramqpi.add_context(ldap_amqpsystem=ldap_amqpsystem)
-    # 3100 because SyncTool, which is used by the above handler, is 3000
-    fastramqpi.add_lifespan_manager(ldap_amqpsystem, 3100)
+    # Needs to run after SyncTool
+    # TODO: Implement a dependency graph?
+    fastramqpi.add_lifespan_manager(ldap_amqpsystem, priority)
     ldap_amqpsystem.router.registry.update(ldap_amqp_router.registry)
     ldap_amqpsystem.context = fastramqpi._context
