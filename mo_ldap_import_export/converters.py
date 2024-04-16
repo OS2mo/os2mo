@@ -242,8 +242,16 @@ async def get_or_create_engagement_type_uuid(
 
 
 async def find_cpr_field(mapping: dict[str, Any]) -> str | None:
-    """
-    Get the field which contains the CPR number in LDAP
+    """Get the field which contains the CPR number in LDAP.
+
+    Args:
+        mapping: The pre-populated mapping configuration.
+
+    Raises:
+        IncorrectMapping: Raised if 'Employee' is missing in the mapping.
+
+    Returns:
+        The CPR field if found, otherwise None
     """
 
     mo_to_ldap = mapping["mo_to_ldap"]
@@ -261,6 +269,7 @@ async def find_cpr_field(mapping: dict[str, Any]) -> str | None:
         try:
             value = (await template.render_async({"mo_employee": mo_dict})).strip()
         except jinja_exceptions.UndefinedError:
+            # TODO: Can we just silently ignore bad rendering? It could be our field?
             continue
 
         if value == search_result:
