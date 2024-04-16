@@ -548,9 +548,8 @@ async def test_find_cpr_field(converter: LdapConverter) -> None:
     with pytest.raises(IncorrectMapping):
         await find_cpr_field(populated_incorrect_mapping)
 
-    with pytest.raises(NotImplementedError) as exc_info:
-        converter._populate_mapping_with_templates({"mo_to_ldap": 1}, environment)
-    assert "Unknown value type" in str(exc_info.value)
+    # TODO: This configuration should probably be illegal, but it is allowed for now
+    converter._populate_mapping_with_templates({"mo_to_ldap": 1}, environment)
 
 
 async def test_find_cpr_field_jinja_compile_fail(converter: LdapConverter) -> None:

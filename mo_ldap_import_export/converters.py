@@ -1173,7 +1173,8 @@ class LdapConverter:
                 return template
             if isinstance(value, dict):
                 return self._populate_mapping_with_templates(value, environment)
-            raise NotImplementedError("Unknown value type")
+            # TODO: Validate all types here in the future, for now accept whatever
+            return value
 
         return {key: populate_value(value) for key, value in mapping.items()}
 
