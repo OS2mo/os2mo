@@ -252,7 +252,7 @@ async def find_cpr_field(mapping):
         raise IncorrectMapping("Missing 'Employee' in mapping 'mo_to_ldap'")
 
     # See if we can find a match for this search field/result
-    search_result = "123"
+    search_result = str(uuid4())
     search_field = "cpr_no"
 
     mo_dict = {search_field: search_result}
