@@ -106,7 +106,7 @@ class IgnoreMe:
             # Remove timestamp so it does not get ignored twice.
             oldest_timestamp = min(self.ignore_dict[str_to_check])
             self.ignore_dict[str_to_check].remove(oldest_timestamp)
-            raise IgnoreChanges(f"[Check-ignore-dict] Ignoring {str_to_check}")
+            raise IgnoreChanges(f"Ignoring {str_to_check}")
 
 
 class SyncTool:
@@ -796,8 +796,8 @@ class SyncTool:
             # # to be uploaded.
             # if converted_object_uuid_checked == matching_object:
             #     logger.info(
-            #         "[Format-converted-objects] Converted object is identical "
-            #         "to existing object. Skipping."
+            #         "Converted object is identical "
+            #         "to existing object, skipping"
             #     )
             #     continue
             # We found a match, so we are editing the object we matched
