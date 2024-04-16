@@ -460,9 +460,15 @@ class LdapConverter:
         return self.get_json_keys("mo_to_ldap")
 
     async def get_accepted_json_keys(self) -> set[str]:
+        results = await self.dataloader.graphql_client.read_class_user_keys(
+            ["employee_address_type", "org_unit_address_type"]
+        )
+        mo_address_type_user_keys = {
+            result.current.user_key for result in results.objects if result.current
+        }
         return (
             {"Employee", "Engagement", "Custom"}
-            | set(self.mo_address_types)
+            | mo_address_type_user_keys
             | set(self.mo_it_systems)
         )
 
