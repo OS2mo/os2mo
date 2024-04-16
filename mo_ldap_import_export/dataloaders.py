@@ -1229,9 +1229,6 @@ class DataLoader:
     async def load_mo_org_unit_address_types(self) -> dict:
         return await self.load_mo_facet("org_unit_address_type")
 
-    async def load_mo_job_functions(self) -> dict:
-        return await self.load_mo_facet("engagement_job_function")
-
     async def load_mo_it_systems(self) -> dict[str, Any]:
         result = await self.graphql_client.read_itsystems()
         # TODO: Actually return UUID types here
