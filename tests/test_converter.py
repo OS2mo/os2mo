@@ -793,6 +793,7 @@ async def test_check_ldap_attributes_single_value_fields(converter: LdapConverte
     dataloader.load_ldap_overview.return_value = {
         "user": {"attributes": ["attr1", "attr2", "attr3", "attr4"]}
     }
+    overview = converter.dataloader.load_ldap_overview()
 
     mapping = {
         "mo_to_ldap": {
@@ -848,7 +849,7 @@ async def test_check_ldap_attributes_single_value_fields(converter: LdapConverte
             }
             converter.dataloader = dataloader
 
-            converter.check_ldap_attributes()
+            converter.check_ldap_attributes(overview)
 
             warnings = [w for w in cap_logs if w["log_level"] == "warning"]
             assert len(warnings) == 6
@@ -867,7 +868,7 @@ async def test_check_ldap_attributes_single_value_fields(converter: LdapConverte
             }
             converter.dataloader = dataloader
 
-            converter.check_ldap_attributes()
+            converter.check_ldap_attributes(overview)
 
         with pytest.raises(IncorrectMapping, match="Could not find all attributes"):
             mapping = {
@@ -890,7 +891,7 @@ async def test_check_ldap_attributes_single_value_fields(converter: LdapConverte
             }
             converter.raw_mapping = mapping.copy()
             converter.mapping = mapping.copy()
-            converter.check_ldap_attributes()
+            converter.check_ldap_attributes(overview)
 
 
 async def test_check_ldap_attributes_engagement_requires_single_value_fields(
@@ -908,6 +909,7 @@ async def test_check_ldap_attributes_engagement_requires_single_value_fields(
     dataloader.load_ldap_overview.return_value = {
         "user": {"attributes": ["attr1", "attr2", "attr3", "attr4"]}
     }
+    overview = converter.dataloader.load_ldap_overview()
     mapping = {
         "mo_to_ldap": {
             "Engagement": {
@@ -957,7 +959,7 @@ async def test_check_ldap_attributes_engagement_requires_single_value_fields(
             }
             converter.dataloader = dataloader
             # Act
-            converter.check_ldap_attributes()
+            converter.check_ldap_attributes(overview)
 
 
 async def test_check_ldap_attributes_fields_to_check(converter: LdapConverter):
@@ -965,6 +967,7 @@ async def test_check_ldap_attributes_fields_to_check(converter: LdapConverter):
     dataloader.load_ldap_overview.return_value = {
         "user": {"attributes": ["attr1", "attr2", "attr3", "attr4"]}
     }
+    overview = converter.dataloader.load_ldap_overview()
 
     with patch(
         "mo_ldap_import_export.converters.find_cpr_field",
@@ -1009,7 +1012,7 @@ async def test_check_ldap_attributes_fields_to_check(converter: LdapConverter):
             }
             converter.raw_mapping = mapping.copy()
             converter.mapping = mapping.copy()
-            converter.check_ldap_attributes()
+            converter.check_ldap_attributes(overview)
 
         # This mapping is OK. mo_employee_engagement.org_unit.uuid no longer needs to be
         # in the mo_to_ldap templates. Because the value does not come from LDAP in the
@@ -1035,7 +1038,7 @@ async def test_check_ldap_attributes_fields_to_check(converter: LdapConverter):
         }
         converter.raw_mapping = mapping.copy()
         converter.mapping = mapping.copy()
-        converter.check_ldap_attributes()
+        converter.check_ldap_attributes(overview)
 
 
 async def test_check_dar_scope(converter: LdapConverter):
@@ -1307,7 +1310,8 @@ async def test_check_ldap_to_mo_references(converter: LdapConverter):
             IncorrectMapping,
             match="Attribute 'nonExistingAttribute' not allowed",
         ):
-            converter.check_ldap_to_mo_references()
+            overview = converter.dataloader.load_ldap_overview()
+            converter.check_ldap_to_mo_references(overview)
 
 
 def test_get_object_uuid_from_user_key(converter: LdapConverter):
