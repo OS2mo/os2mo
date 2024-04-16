@@ -97,6 +97,10 @@ get_primary_type_uuid = partial(_get_facet_class_uuid, facet_user_key="primary_t
 get_engagement_type_uuid = partial(
     _get_facet_class_uuid, facet_user_key="engagement_type"
 )
+get_org_unit_type_uuid = partial(_get_facet_class_uuid, facet_user_key="org_unit_type")
+get_org_unit_level_uuid = partial(
+    _get_facet_class_uuid, facet_user_key="org_unit_level"
+)
 
 
 async def get_engagement_type_name(graphql_client: GraphQLClient, uuid: str) -> str:
@@ -325,11 +329,11 @@ class LdapConverter:
         self.overview = self.dataloader.load_ldap_overview()
         self.username_generator = self.user_context["username_generator"]
 
-        self.default_org_unit_type_uuid = await self.get_org_unit_type_uuid(
-            self.settings.default_org_unit_type
+        self.default_org_unit_type_uuid = await get_org_unit_type_uuid(
+            self.dataloader.graphql_client, self.settings.default_org_unit_type
         )
-        self.default_org_unit_level_uuid = await self.get_org_unit_level_uuid(
-            self.settings.default_org_unit_level
+        self.default_org_unit_level_uuid = await get_org_unit_level_uuid(
+            self.dataloader.graphql_client, self.settings.default_org_unit_level
         )
 
         mapping = delete_keys_from_dict(
@@ -880,32 +884,6 @@ class LdapConverter:
             self.job_function_info = await self.dataloader.load_mo_job_functions()
             self.check_info_dicts()
             return str(uuid)
-
-    async def get_org_unit_type_uuid(self, org_unit_type: str) -> str:
-        result = await self.dataloader.graphql_client.read_class_uuid_by_facet_and_class_user_key(
-            "org_unit_type", org_unit_type
-        )
-        return str(
-            one(
-                result.objects,
-                too_short=UUIDNotFoundException(
-                    f"org_unit_type not found, user_key: {org_unit_type}"
-                ),
-            ).uuid
-        )
-
-    async def get_org_unit_level_uuid(self, org_unit_level: str) -> str:
-        result = await self.dataloader.graphql_client.read_class_uuid_by_facet_and_class_user_key(
-            "org_unit_level", org_unit_level
-        )
-        return str(
-            one(
-                result.objects,
-                too_short=UUIDNotFoundException(
-                    f"org_unit_level not found, user_key: {org_unit_level}"
-                ),
-            ).uuid
-        )
 
     async def get_employee_address_type_user_key(self, uuid: str) -> str:
         return await self.get_object_user_key_from_uuid(
