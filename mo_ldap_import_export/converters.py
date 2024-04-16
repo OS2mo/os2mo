@@ -315,6 +315,26 @@ async def find_ldap_it_system(
     return found_itsystem
 
 
+async def get_accepted_json_keys(graphql_client: GraphQLClient) -> set[str]:
+    address_results = await graphql_client.read_class_user_keys(
+        ["employee_address_type", "org_unit_address_type"]
+    )
+    mo_address_type_user_keys = {
+        result.current.user_key for result in address_results.objects if result.current
+    }
+
+    itsystem_results = await graphql_client.read_itsystems()
+    mo_it_system_user_keys = {
+        result.current.user_key for result in itsystem_results.objects if result.current
+    }
+
+    return (
+        {"Employee", "Engagement", "Custom"}
+        | mo_address_type_user_keys
+        | mo_it_system_user_keys
+    )
+
+
 class LdapConverter:
     def __init__(self, context: Context):
         self.context = context
@@ -459,29 +479,6 @@ class LdapConverter:
     def get_mo_to_ldap_json_keys(self):
         return self.get_json_keys("mo_to_ldap")
 
-    async def get_accepted_json_keys(self) -> set[str]:
-        address_results = await self.dataloader.graphql_client.read_class_user_keys(
-            ["employee_address_type", "org_unit_address_type"]
-        )
-        mo_address_type_user_keys = {
-            result.current.user_key
-            for result in address_results.objects
-            if result.current
-        }
-
-        itsystem_results = await self.dataloader.graphql_client.read_itsystems()
-        mo_it_system_user_keys = {
-            result.current.user_key
-            for result in itsystem_results.objects
-            if result.current
-        }
-
-        return (
-            {"Employee", "Engagement", "Custom"}
-            | mo_address_type_user_keys
-            | mo_it_system_user_keys
-        )
-
     async def check_key_validity(self, mapping: dict[str, Any]) -> None:
         """Check if the configured keys are valid.
 
@@ -495,7 +492,9 @@ class LdapConverter:
         ldap_to_mo_json_keys = set(mapping["ldap_to_mo"].keys())
 
         json_keys = mo_to_ldap_json_keys & ldap_to_mo_json_keys
-        accepted_json_keys = await self.get_accepted_json_keys()
+        accepted_json_keys = await get_accepted_json_keys(
+            self.dataloader.graphql_client
+        )
 
         logger.info(
             "Checking key validity",

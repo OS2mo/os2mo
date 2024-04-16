@@ -43,6 +43,7 @@ from mo_ldap_import_export.config import LDAP2MOMapping
 from mo_ldap_import_export.config import MO2LDAPMapping
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
+from mo_ldap_import_export.converters import get_accepted_json_keys
 from mo_ldap_import_export.converters import get_current_engagement_attribute_uuid_dict
 from mo_ldap_import_export.converters import get_current_engagement_type_uuid_dict
 from mo_ldap_import_export.converters import get_current_org_unit_uuid_dict
@@ -676,7 +677,7 @@ def test_check_attributes():
 
 
 async def test_get_accepted_json_keys(converter: LdapConverter) -> None:
-    output = await converter.get_accepted_json_keys()
+    output = await get_accepted_json_keys(converter.dataloader.graphql_client)
     assert len(output) == 6
     assert "Employee" in output
     assert "Engagement" in output
@@ -771,7 +772,7 @@ async def test_check_key_validity(converter: LdapConverter) -> None:
     }
 
     with patch(
-        "mo_ldap_import_export.converters.LdapConverter.get_accepted_json_keys",
+        "mo_ldap_import_export.converters.get_accepted_json_keys",
         return_value={
             "foo",
         },
