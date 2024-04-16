@@ -69,7 +69,7 @@ def init(log_level: str, production_mode: bool = True):
     )
 
     log_renderer: structlog.types.Processor = structlog.processors.JSONRenderer()
-    if not production_mode:
+    if not production_mode:  # pragma: no cover
         log_renderer = structlog.dev.ConsoleRenderer()
 
     formatter = structlog.stdlib.ProcessorFormatter(
