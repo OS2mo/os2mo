@@ -44,10 +44,8 @@ def context(
 
 async def test_template(sync_tool: SyncTool):
     temp = CustomerSpecific()
-    await asyncio.gather(temp.sync_to_ldap())
-    list_to_ignore = (await asyncio.gather(temp.sync_to_mo(context=sync_tool.context)))[
-        0
-    ]
+    await temp.sync_to_ldap()
+    list_to_ignore = await temp.sync_to_mo(context=sync_tool.context)
     assert list_to_ignore == []
 
 

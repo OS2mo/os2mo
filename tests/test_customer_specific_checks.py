@@ -37,7 +37,7 @@ async def test_check_holstebro_ou_is_externals_custom_succeeds(
     result = await import_checks.check_holstebro_ou_is_externals_issue_57426(
         ["doesn't matter"], "neither does this", "Custom"
     )
-    assert result is None
+    assert result is True
 
 
 async def test_check_holstebro_ou_is_externals_no_error(import_checks: ImportChecks):
@@ -46,23 +46,23 @@ async def test_check_holstebro_ou_is_externals_no_error(import_checks: ImportChe
         "OU=Magenta,OU=External consultants,OU=HK,DC=test",
         "Test",
     )
-    assert result is None
+    assert result is True
 
 
 async def test_check_holstebro_ou_is_externals_error(import_checks: ImportChecks):
-    with pytest.raises(IgnoreChanges):
-        await import_checks.check_holstebro_ou_is_externals_issue_57426(
-            ["OU=Nothing Here", "OU=Also,OU=Nothing Here"], "OU=HK,DC=test", "Test"
-        )
+    result = await import_checks.check_holstebro_ou_is_externals_issue_57426(
+        ["OU=Nothing Here", "OU=Also,OU=Nothing Here"], "OU=HK,DC=test", "Test"
+    )
+    assert result is False
 
 
 async def test_check_holstebro_ou_is_externals_error2(import_checks: ImportChecks):
-    with pytest.raises(IgnoreChanges):
-        await import_checks.check_holstebro_ou_is_externals_issue_57426(
-            ["OU=Nothing Here", "OU=hierarchy,OU=HK Eksterne,OU=HK"],
-            "OU=HK,DC=test",
-            "Test",
-        )
+    result = await import_checks.check_holstebro_ou_is_externals_issue_57426(
+        ["OU=Nothing Here", "OU=hierarchy,OU=HK Eksterne,OU=HK"],
+        "OU=HK,DC=test",
+        "Test",
+    )
+    assert result is False
 
 
 async def test_check_alleroed_sd_number(
