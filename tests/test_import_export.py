@@ -841,7 +841,8 @@ async def test_import_single_object_from_LDAP_but_import_equals_false(
     with capture_logs() as cap_logs:
         await sync_tool.import_single_user("CN=foo")
         messages = [w["event"] for w in cap_logs if w["log_level"] == "info"]
-        assert "_import_to_mo_ == False" in messages
+        assert "Import to MO filtered" in messages
+        assert "Loading object" not in messages
 
 
 async def test_import_single_object_forces_json_key_ordering(

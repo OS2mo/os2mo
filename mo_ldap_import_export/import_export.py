@@ -878,15 +878,16 @@ class SyncTool:
         ]
         logger.info("Import checks executed", json_keys=json_keys)
 
-        for json_key in json_keys:
-            if not self.converter._import_to_mo_(json_key, manual_import):
-                logger.info(
-                    "_import_to_mo_ == False",
-                    json_key=json_key,
-                    dn=dn,
-                )
-                continue
+        json_keys = [
+            json_key
+            for json_key in json_keys
+            if self.converter._import_to_mo_(json_key, manual_import)
+        ]
+        logger.info("Import to MO filtered", json_keys=json_keys)
 
+        # XXX: Loop iterations have side-effects on other iterations of the loop
+        #      engagement_uuid is changed throughout and modifys later iterations.
+        for json_key in json_keys:
             logger.info("Loading object", dn=dn, json_key=json_key)
             loaded_object = self.dataloader.load_ldap_object(
                 dn,
