@@ -885,115 +885,122 @@ class SyncTool:
         ]
         logger.info("Import to MO filtered", json_keys=json_keys)
 
-        # XXX: Loop iterations have side-effects on other iterations of the loop
-        #      engagement_uuid is changed throughout and modifys later iterations.
         for json_key in json_keys:
-            logger.info("Loading object", dn=dn, json_key=json_key)
-            loaded_object = self.dataloader.load_ldap_object(
-                dn,
-                self.converter.get_ldap_attributes(json_key),
+            updated_engagement_uuid = await self.import_single_user_entity(
+                json_key, dn, employee_uuid, engagement_uuid
             )
-            logger.info(
-                "Loaded object",
-                dn=dn,
-                json_key=json_key,
-                loaded_object=loaded_object,
-            )
+            engagement_uuid = updated_engagement_uuid or engagement_uuid
 
-            converted_objects = await self.converter.from_ldap(
-                loaded_object,
-                json_key,
-                employee_uuid=employee_uuid,
+    async def import_single_user_entity(
+        self, json_key: str, dn: str, employee_uuid: UUID, engagement_uuid: UUID | None
+    ) -> UUID | None:
+        logger.info("Loading object", dn=dn, json_key=json_key)
+        loaded_object = self.dataloader.load_ldap_object(
+            dn,
+            self.converter.get_ldap_attributes(json_key),
+        )
+        logger.info(
+            "Loaded object",
+            dn=dn,
+            json_key=json_key,
+            loaded_object=loaded_object,
+        )
+
+        converted_objects = await self.converter.from_ldap(
+            loaded_object,
+            json_key,
+            employee_uuid=employee_uuid,
+            engagement_uuid=engagement_uuid,
+        )
+
+        # In case the engagement does not exist yet:
+        if json_key == "Engagement" and len(converted_objects):
+            engagement_uuid = first(converted_objects).uuid
+            logger.info(
+                "Saving engagement UUID for DN",
                 engagement_uuid=engagement_uuid,
-            )
-
-            # In case the engagement does not exist yet:
-            if json_key == "Engagement" and len(converted_objects):
-                engagement_uuid = first(converted_objects).uuid
-                logger.info(
-                    "Saving engagement UUID for DN",
-                    engagement_uuid=engagement_uuid,
-                    source_object=first(converted_objects),
-                    dn=dn,
-                )
-
-            if len(converted_objects) == 0:
-                logger.info("No converted objects", dn=dn)
-                continue
-            else:
-                logger.info(
-                    "Converted 'n' objects",
-                    n=len(converted_objects),
-                    dn=dn,
-                )
-
-            try:
-                converted_objects = await self.format_converted_objects(
-                    converted_objects, json_key
-                )
-                # In case the engagement exists, but is outdated. If it exists,
-                # but is identical, the list will be empty.
-                if json_key == "Engagement" and len(converted_objects):
-                    operation = first(converted_objects)
-                    engagement, _ = operation
-                    engagement_uuid = engagement.uuid
-                    logger.info(
-                        "Updating engagement UUID",
-                        engagement_uuid=engagement_uuid,
-                        source_object=engagement,
-                        dn=dn,
-                    )
-            except NoObjectsReturnedException:
-                # If any of the objects which this object links to does not exist
-                # The dataloader will raise NoObjectsReturnedException
-                #
-                # This can happen, for example:
-                # If converter._import_to_mo_('Address') = True
-                # And converter._import_to_mo_('Employee') = False
-                #
-                # Because an address cannot be imported for an employee that does not
-                # exist. The non-existing employee is also not created because
-                # converter._import_to_mo_('Employee') = False
-                logger.info(
-                    "Could not format converted objects",
-                    task="Moving on",
-                    dn=dn,
-                )
-                continue
-
-            # TODO: Conver this to an assert? - The above try-catch ensures it is always set, no?
-            if not converted_objects:  # pragma: no cover
-                continue
-            logger.info(
-                "Importing objects",
-                converted_objects=converted_objects,
+                source_object=first(converted_objects),
                 dn=dn,
             )
 
-            if json_key == "Custom":
-                for obj, _ in converted_objects:
-                    job_list = await obj.sync_to_mo(self.context)
-                    # TODO: Asyncio.gather?
-                    for job in job_list:
-                        self.uuids_to_ignore.add(job["uuid_to_ignore"])
-                        await job["task"]
-            else:
+        if len(converted_objects) == 0:
+            logger.info("No converted objects", dn=dn)
+            return engagement_uuid
+        else:
+            logger.info(
+                "Converted 'n' objects",
+                n=len(converted_objects),
+                dn=dn,
+            )
+
+        try:
+            converted_objects = await self.format_converted_objects(
+                converted_objects, json_key
+            )
+            # In case the engagement exists, but is outdated. If it exists,
+            # but is identical, the list will be empty.
+            if json_key == "Engagement" and len(converted_objects):
+                operation = first(converted_objects)
+                engagement, _ = operation
+                engagement_uuid = engagement.uuid
+                logger.info(
+                    "Updating engagement UUID",
+                    engagement_uuid=engagement_uuid,
+                    source_object=engagement,
+                    dn=dn,
+                )
+        except NoObjectsReturnedException:
+            # If any of the objects which this object links to does not exist
+            # The dataloader will raise NoObjectsReturnedException
+            #
+            # This can happen, for example:
+            # If converter._import_to_mo_('Address') = True
+            # And converter._import_to_mo_('Employee') = False
+            #
+            # Because an address cannot be imported for an employee that does not
+            # exist. The non-existing employee is also not created because
+            # converter._import_to_mo_('Employee') = False
+            logger.info(
+                "Could not format converted objects",
+                task="Moving on",
+                dn=dn,
+            )
+            return engagement_uuid
+
+        # TODO: Conver this to an assert? - The above try-catch ensures it is always set, no?
+        if not converted_objects:  # pragma: no cover
+            return engagement_uuid
+        logger.info(
+            "Importing objects",
+            converted_objects=converted_objects,
+            dn=dn,
+        )
+
+        if json_key == "Custom":
+            for obj, _ in converted_objects:
+                job_list = await obj.sync_to_mo(self.context)
+                # TODO: Asyncio.gather?
+                for job in job_list:
+                    self.uuids_to_ignore.add(job["uuid_to_ignore"])
+                    await job["task"]
+        else:
+            for mo_object, _ in converted_objects:
+                self.uuids_to_ignore.add(mo_object.uuid)
+            try:
+                await self.dataloader.create_or_edit_mo_objects(converted_objects)
+            except HTTPStatusError as e:
+                # This can happen, for example if a phone number in LDAP is
+                # invalid
+                logger.warning(
+                    "Failed to upload objects",
+                    error=e,
+                    converted_objects=converted_objects,
+                    request=e.request,
+                    dn=dn,
+                )
                 for mo_object, _ in converted_objects:
-                    self.uuids_to_ignore.add(mo_object.uuid)
-                try:
-                    await self.dataloader.create_or_edit_mo_objects(converted_objects)
-                except HTTPStatusError as e:
-                    # This can happen, for example if a phone number in LDAP is
-                    # invalid
-                    logger.warning(
-                        "Failed to upload objects",
-                        error=e,
-                        converted_objects=converted_objects,
-                        request=e.request,
-                        dn=dn,
-                    )
-                    for mo_object, _ in converted_objects:
-                        self.uuids_to_ignore.remove(mo_object.uuid)
+                    self.uuids_to_ignore.remove(mo_object.uuid)
+        return engagement_uuid
 
     async def refresh_mo_object(self, mo_object_dict: dict[str, Any]) -> None:
         routing_key = mo_object_dict["object_type"]
