@@ -337,7 +337,7 @@ class LdapConverter:
         self.mapping = self._populate_mapping_with_templates(mapping, environment)
 
         self.cpr_field = await find_cpr_field(mapping)
-        await self.check_mapping()
+        await self.check_mapping(mapping)
         self.ldap_it_system = await find_ldap_it_system(
             self.settings, self.mapping, self.mo_it_systems
         )
@@ -468,11 +468,19 @@ class LdapConverter:
 
         return accepted_json_keys
 
-    def check_key_validity(self):
-        mo_to_ldap_json_keys = self.get_mo_to_ldap_json_keys()
-        ldap_to_mo_json_keys = self.get_ldap_to_mo_json_keys()
+    def check_key_validity(self, mapping: dict[str, Any]) -> None:
+        """Check if the configured keys are valid.
 
-        json_keys = set(mo_to_ldap_json_keys + ldap_to_mo_json_keys)
+        Args:
+            mapping: The raw mapping configuration.
+
+        Raises:
+            IncorrectMapping: Raised if any used key is invalid.
+        """
+        mo_to_ldap_json_keys = set(mapping["mo_to_ldap"].keys())
+        ldap_to_mo_json_keys = set(mapping["ldap_to_mo"].keys())
+
+        json_keys = mo_to_ldap_json_keys & ldap_to_mo_json_keys
         accepted_json_keys = set(self.get_accepted_json_keys())
 
         logger.info(
@@ -719,13 +727,22 @@ class LdapConverter:
                 "Neither a cpr-field or an ldap it-system could be found"
             )
 
-    async def check_mapping(self):
+    async def check_mapping(self, mapping: dict[str, Any]) -> None:
+        """Check if the configured mapping is valid.
+
+        Args:
+            mapping: The raw mapping configuration.
+
+        Raises:
+            IncorrectMapping: Raised if the mapping is invalid.
+        """
+
         logger.info("Checking json file")
 
         overview = self.dataloader.load_ldap_overview()
 
         # Check to make sure that all keys are valid
-        self.check_key_validity()
+        self.check_key_validity(mapping)
 
         # check that the LDAP attributes match what is available in LDAP
         self.check_ldap_attributes(overview)

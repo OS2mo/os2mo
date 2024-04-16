@@ -740,14 +740,13 @@ async def test_cross_check_keys(
         parse_obj_as(ConversionMapping, converter.raw_mapping)
 
 
-async def test_check_key_validity(converter: LdapConverter):
+async def test_check_key_validity(converter: LdapConverter) -> None:
+    mapping: dict[str, Any] = {
+        "mo_to_ldap": {"foo": {}, "bar": {}},
+        "ldap_to_mo": {"foo": {}, "bar": {}},
+    }
+
     with patch(
-        "mo_ldap_import_export.converters.LdapConverter.get_mo_to_ldap_json_keys",
-        return_value=["foo", "bar"],
-    ), patch(
-        "mo_ldap_import_export.converters.LdapConverter.get_ldap_to_mo_json_keys",
-        return_value=["foo", "bar"],
-    ), patch(
         "mo_ldap_import_export.converters.LdapConverter.get_accepted_json_keys",
         return_value=["foo"],
     ):
@@ -755,7 +754,7 @@ async def test_check_key_validity(converter: LdapConverter):
             IncorrectMapping,
             match="{'bar'} are not valid keys. Accepted keys are {'foo'}",
         ):
-            converter.check_key_validity()
+            converter.check_key_validity(mapping)
 
 
 async def test_check_for_objectClass(converter: LdapConverter):
