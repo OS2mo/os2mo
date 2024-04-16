@@ -1068,32 +1068,6 @@ async def test_check_ldap_attributes_fields_to_check(converter: LdapConverter):
         converter.check_ldap_attributes(overview)
 
 
-async def test_check_dar_scope(converter: LdapConverter):
-    uuid1 = str(uuid4())
-    uuid2 = str(uuid4())
-    employee_address_type_info = {
-        uuid1: {"scope": "TEXT", "user_key": "foo", "uuid": uuid1},
-    }
-    org_unit_address_type_info = {
-        uuid2: {"scope": "DAR", "user_key": "bar", "uuid": uuid2},
-    }
-    converter.employee_address_type_info = employee_address_type_info
-    converter.org_unit_address_type_info = org_unit_address_type_info
-
-    with patch(
-        "mo_ldap_import_export.converters.LdapConverter.get_ldap_to_mo_json_keys",
-        return_value=["foo", "bar"],
-    ), patch(
-        "mo_ldap_import_export.converters.LdapConverter.find_mo_object_class",
-        return_value="ramodels.mo.details.address.Address",
-    ):
-        with pytest.raises(
-            IncorrectMapping,
-            match="maps to an address with scope = 'DAR'",
-        ):
-            converter.check_dar_scope()
-
-
 async def test_get_address_type_uuid(converter: LdapConverter):
     uuid1 = str(uuid4())
     uuid2 = str(uuid4())

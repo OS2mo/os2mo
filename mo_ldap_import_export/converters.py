@@ -643,25 +643,6 @@ class LdapConverter:
                             f"{matching_multi_value_attributes}, which is not allowed"
                         )
 
-    def check_dar_scope(self):
-        logger.info("Checking DAR scope")
-        ldap_to_mo_json_keys = self.get_ldap_to_mo_json_keys()
-
-        for json_key in ldap_to_mo_json_keys:
-            mo_class = self.find_mo_object_class(json_key)
-            if ".Address" in mo_class:
-                try:
-                    info_dict = self.employee_address_type_info
-                    uuid = self.get_object_uuid_from_user_key(info_dict, json_key)
-                except UUIDNotFoundException:
-                    info_dict = self.org_unit_address_type_info
-                    uuid = self.get_object_uuid_from_user_key(info_dict, json_key)
-
-                if info_dict[uuid]["scope"] == "DAR":
-                    raise IncorrectMapping(
-                        f"'{json_key}' maps to an address with scope = 'DAR'"
-                    )
-
     def check_ldap_to_mo_references(self, overview):
         # https://ff1959.wordpress.com/2012/03/04/characters-that-are-permitted-in-
         # attribute-names-descriptors/
@@ -758,19 +739,6 @@ class LdapConverter:
 
         # check that the LDAP attributes match what is available in LDAP
         self.check_ldap_attributes(overview)
-
-        # Check that keys which map to ramodels.mo.details.address.Address have scope
-        # Which is NOT equal to 'DAR'. DAR fields can still be present in MO. They can
-        # just not be synchronized by this app.
-
-        # DAR adresses are not accepted for two reasons:
-        #   - DAR does not exist in greenland
-        #   - The DAR UUID is not present in LDAP. And LDAP cannot guarantee that an
-        #     address is in the same format as DAR expects it to be.
-
-        # TODO: Consider removing this check entirely, if we do not want to sync DAR
-        #       addresses, we can simply not map them in the configuration?
-        self.check_dar_scope()
 
         # Check that fields referred to in ldap_to_mo actually exist in LDAP
         self.check_ldap_to_mo_references(overview)
