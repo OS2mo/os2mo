@@ -843,7 +843,7 @@ class DataLoader:
         itsystem_uuid = self.get_ldap_it_system_uuid()
         if itsystem_uuid is None:
             logger.info(
-                "[Find-mo-engagement-uuid] Could not find engagement UUID for DN",
+                "Could not find engagement UUID for DN",
                 dn=dn,
                 unique_ldap_uuid=unique_uuid,
                 itsystem_uuid=itsystem_uuid,

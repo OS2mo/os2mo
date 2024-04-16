@@ -37,8 +37,7 @@ class ExportChecks:
         """
 
         error_message = (
-            "[check_sd_number] SD-number for employee with "
-            f"uuid = '{employee_uuid}' starts with '9'."
+            f"SD-number for employee with uuid = '{employee_uuid}' starts with '9'."
         )
 
         engagements = await self.dataloader.load_mo_employee_engagements(employee_uuid)
