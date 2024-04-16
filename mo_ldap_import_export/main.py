@@ -362,8 +362,6 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     dataloader = DataLoader(fastramqpi.get_context())
     fastramqpi.add_context(dataloader=dataloader)
 
-    fastramqpi.add_lifespan_manager(initialize_info_dict_refresher(fastramqpi), 1150)
-
     userNameGeneratorClass_string = mapping["username_generator"]["objectClass"]
     logger.info("Initializing username generator")
     username_generator_class = get_username_generator_class(
@@ -374,6 +372,9 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
 
     fastramqpi.add_lifespan_manager(initialize_init_engine(fastramqpi), 1200)
     fastramqpi.add_lifespan_manager(initialize_converters(fastramqpi), 1250)
+
+    # NOTE: info_dict_refresher depends on converters
+    fastramqpi.add_lifespan_manager(initialize_info_dict_refresher(fastramqpi), 1275)
 
     fastramqpi.add_lifespan_manager(initialize_checks(fastramqpi), 1300)
     fastramqpi.add_lifespan_manager(initialize_sync_tool(fastramqpi), 1350)
