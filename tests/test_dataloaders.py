@@ -446,7 +446,7 @@ async def test_upload_ldap_object_invalid_value(
     ldap_connection: MagicMock,
     dataloader: DataLoader,
     cpr_field: str,
-):
+) -> None:
     ldap_object = LdapObject(
         dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
         postalAddress="foo",
@@ -459,10 +459,8 @@ async def test_upload_ldap_object_invalid_value(
         await dataloader.modify_ldap_object(ldap_object, "user")
 
         warnings = [w for w in cap_logs if w["log_level"] == "warning"]
-        assert re.match(
-            ".*Invalid value",
-            str(warnings[-1]["event"]),
-        )
+        last_warning_message = str(warnings[-1]["event"])
+        assert last_warning_message == "LDAPInvalidValueError exception"
 
 
 async def test_modify_ldap_object_but_export_equals_false(

@@ -286,7 +286,7 @@ async def find_cpr_field(mapping):
 
         if value == search_result:
             cpr_field = ldap_field_name
-            logger.info(f"Found CPR field in LDAP: '{cpr_field}'")
+            logger.info("Found CPR field in LDAP", cpr_field=cpr_field)
             break
 
     if cpr_field is None:
@@ -330,7 +330,7 @@ async def find_ldap_it_system(
         logger.error("Multiple LDAP IT-system found!")
         return None
     found_itsystem = one(found_itsystems)
-    logger.info(f"Found LDAP IT-system: '{found_itsystem}'")
+    logger.info("Found LDAP IT-system", itsystem=found_itsystem)
     return found_itsystem
 
 
@@ -373,7 +373,7 @@ class LdapConverter:
     async def load_info_dicts(self):
         # Note: If new address types or IT systems are added to MO, these dicts need
         # to be re-initialized
-        logger.info("[info dict loader] Loading info dicts")
+        logger.info("Loading info dicts")
         self.employee_address_type_info = (
             await self.dataloader.load_mo_employee_address_types()
         )
@@ -404,7 +404,7 @@ class LdapConverter:
         }
 
         self.check_info_dicts()
-        logger.info("[info dict loader] Info dicts loaded successfully")
+        logger.info("Info dicts loaded successfully")
 
     def _import_to_mo_(self, json_key: str, manual_import: bool):
         """
@@ -502,8 +502,11 @@ class LdapConverter:
         json_keys = set(mo_to_ldap_json_keys + ldap_to_mo_json_keys)
         accepted_json_keys = set(self.get_accepted_json_keys())
 
-        logger.info(f"[json check] Accepted keys: {accepted_json_keys}")
-        logger.info(f"[json check] Detected keys: {json_keys}")
+        logger.info(
+            "Checking key validity",
+            accepted_keys=accepted_json_keys,
+            detected_keys=json_keys,
+        )
 
         unaccepted_keys = json_keys - accepted_json_keys
         if unaccepted_keys:
@@ -511,7 +514,7 @@ class LdapConverter:
                 f"{unaccepted_keys} are not valid keys. "
                 f"Accepted keys are {accepted_json_keys}"
             )
-        logger.info("[json check] Keys OK")
+        logger.info("Keys OK")
 
     def get_required_attributes(self, mo_class):
         if "required" in mo_class.schema().keys():
@@ -529,7 +532,7 @@ class LdapConverter:
         mo_to_ldap_json_keys = self.get_mo_to_ldap_json_keys()
 
         for json_key in mo_to_ldap_json_keys:
-            logger.info(f"[json check] checking mo_to_ldap['{json_key}']")
+            logger.info("Checking mo_to_ldap JSON key", key=json_key)
 
             object_class = self.find_ldap_object_class(json_key)
 
@@ -587,11 +590,13 @@ class LdapConverter:
                 for field_to_check in fields_to_check:
                     if field_to_check in template:
                         logger.warning(
-                            f"[json check] {object_class}['{attribute}'] LDAP "
-                            "attribute cannot contain multiple values. "
-                            "Values in LDAP will be overwritten if "
-                            f"multiple objects of the '{json_key}' type are "
-                            "added in MO."
+                            (
+                                "LDAP attribute cannot contain multiple values. "
+                                "Values in LDAP will be overwritten if multiple objects of the same type are added in MO."
+                            ),
+                            object_class=object_class,
+                            attribute=attribute,
+                            json_key=json_key,
                         )
 
             # Make sure that all attributes are single-value or multi-value. Not a mix.
@@ -643,7 +648,7 @@ class LdapConverter:
                         )
 
     def check_dar_scope(self):
-        logger.info("[json check] checking DAR scope")
+        logger.info("Checking DAR scope")
         ldap_to_mo_json_keys = self.get_ldap_to_mo_json_keys()
 
         for json_key in ldap_to_mo_json_keys:
@@ -717,7 +722,7 @@ class LdapConverter:
 
                         # And if the argument is a hard-coded string:
                         if argument.startswith("'") and argument.endswith("'"):
-                            logger.info(f"[json check] Checking {template}")
+                            logger.info("Checking template", template=template)
 
                             # Check if the argument is a valid user_key
                             user_key = argument.replace("'", "")
@@ -744,7 +749,7 @@ class LdapConverter:
             )
 
     async def check_mapping(self):
-        logger.info("[json check] Checking json file")
+        logger.info("Checking json file")
 
         # Check to make sure that all keys are valid
         self.check_key_validity()
@@ -771,7 +776,7 @@ class LdapConverter:
         # Check to see if there is an existing link between LDAP and MO
         await self.check_cpr_field_or_it_system()
 
-        logger.info("[json check] Attributes OK")
+        logger.info("Attributes OK")
 
     def check_info_dict_for_duplicates(self, info_dict, name_key="user_key"):
         """
@@ -796,7 +801,7 @@ class LdapConverter:
                 )
 
     def check_info_dicts(self):
-        logger.info("[info dict check] Checking info dicts")
+        logger.info("Checking info dicts")
         for info_dict_name, info_dict in self.all_info_dicts.items():
             if info_dict_name != "org_unit_info":
                 self.check_info_dict_for_duplicates(info_dict)
@@ -962,7 +967,7 @@ class LdapConverter:
             try:
                 await self.get_org_unit_uuid_from_path(partial_path_string)
             except UUIDNotFoundException:
-                logger.info(f"Importing {partial_path_string}")
+                logger.info("Importing", path=partial_path_string)
 
                 if nesting_level == 0:
                     parent_uuid = str(await self.dataloader.load_mo_root_org_uuid())
@@ -1063,7 +1068,7 @@ class LdapConverter:
 
         if number_of_ous_to_ignore >= len(org_unit_list):
             logger.info(
-                "[Org-unit-path-string-from-dn] DN cannot be mapped to org-unit-path.",
+                "DN cannot be mapped to org-unit-path",
                 dn=dn,
                 org_unit_list=org_unit_list,
                 number_of_ous_to_ignore=number_of_ous_to_ignore,
@@ -1072,7 +1077,7 @@ class LdapConverter:
         org_unit_path_string = sep.join(org_unit_list[number_of_ous_to_ignore:])
 
         logger.info(
-            "[Org-unit-path-string-from-dn] Constructed org unit path string from dn.",
+            "Constructed org unit path string from dn",
             dn=dn,
             org_unit_path_string=org_unit_path_string,
             number_of_ous_to_ignore=number_of_ous_to_ignore,
@@ -1081,7 +1086,7 @@ class LdapConverter:
 
     async def get_or_create_org_unit_uuid(self, org_unit_path_string: str):
         logger.info(
-            "[Get-or-create-org-unit-uuid] Finding org-unit uuid.",
+            "Finding org-unit uuid",
             org_unit_path_string=org_unit_path_string,
         )
 
@@ -1095,7 +1100,8 @@ class LdapConverter:
             return await self.get_org_unit_uuid_from_path(org_unit_path_string)
         except UUIDNotFoundException:
             logger.info(
-                f"Could not find '{org_unit_path_string}'. " "Creating organisation."
+                "Creating org-unit at path, as it could not be found",
+                path=org_unit_path_string,
             )
             await self.create_org_unit(org_unit_path_string)
             return await self.get_org_unit_uuid_from_path(org_unit_path_string)
@@ -1312,8 +1318,10 @@ class LdapConverter:
             missing_attributes = required_attributes - set(mo_dict.keys())
             if missing_attributes:
                 logger.info(
-                    f"Could not convert {mo_dict} to {mo_class}. "
-                    f"The following attributes are missing: {missing_attributes}"
+                    "Missing attributes in dict to model conversion",
+                    mo_dict=mo_dict,
+                    mo_class=mo_class,
+                    missing_attributes=missing_attributes,
                 )
                 continue
 

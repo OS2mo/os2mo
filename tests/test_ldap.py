@@ -248,10 +248,9 @@ def test_configure_ldap_connection_simple(
         ), patch("mo_ldap_import_export.ldap.Connection", connection_mock):
             with pytest.raises(ldap3.core.exceptions.LDAPBindError):
                 configure_ldap_connection(settings)
-    assert {
-        "event": "Auth strategy: simple",
-        "log_level": "info",
-    } in cap_logs
+
+    assert "Connecting to server" in str(cap_logs)
+    assert "'auth_strategy': 'simple'" in str(cap_logs)
 
 
 def test_configure_ldap_connection_unknown(

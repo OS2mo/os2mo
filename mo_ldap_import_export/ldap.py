@@ -66,7 +66,7 @@ def construct_server(server_config: ServerConfig) -> Server:
     )
 
     host = server_config.host
-    logger.info(f"Setting up server to {host}")
+    logger.info("Setting up server", host=host)
     return Server(
         host=server_config.host,
         port=server_config.port,
@@ -115,9 +115,12 @@ def configure_ldap_connection(settings: Settings) -> Connection:
     server_pool = construct_server_pool(settings)
     client_strategy = get_client_strategy()
 
-    logger.info(f"Connecting to {server_pool}")
-    logger.info(f"Client strategy: {client_strategy}")
-    logger.info(f"Auth strategy: {settings.ldap_auth_method.value}")
+    logger.info(
+        "Connecting to server",
+        server_pool=server_pool,
+        client_strategy=client_strategy,
+        auth_strategy=settings.ldap_auth_method.value,
+    )
 
     connection_kwargs = {
         "server": server_pool,
@@ -151,7 +154,7 @@ def configure_ldap_connection(settings: Settings) -> Connection:
     try:
         connection = Connection(**connection_kwargs)
     except ldap3.core.exceptions.LDAPBindError as exc:
-        logger.error("Exception during LDAP auth", exc_info=exc)
+        logger.exception("Exception during LDAP auth")
         raise exc
     finally:
         # Turn off the alarm
@@ -275,21 +278,28 @@ def _paged_search(
     search_filter = searchParameters["search_filter"]
 
     if not mute:
-        logger.info(f"searching for {search_filter} on {search_base}")
+        logger.info(
+            "Executing paged_search",
+            search_filter=search_filter,
+            search_base=search_base,
+        )
 
     # Max 10_000 pages to avoid eternal loops
     # TODO: Why would we get eternal loops?
     responses = []
     for page in range(0, 10_000):
         if not mute:
-            logger.info(f"searching page {page}")
+            logger.info("Searching page", page=page)
         ldap_connection.search(**searchParameters)
 
         if ldap_connection.result["description"] == "operationsError":
             # TODO: Should this be an exception?
             #       Currently we just return half the result?
-            logger.warn(f"{search_filter} Search failed")
-            logger.warn(ldap_connection.result)
+            logger.warn(
+                "Search failed",
+                search_filter=search_filter,
+                result=ldap_connection.result,
+            )
             break
 
         # TODO: Handle this error more gracefully
@@ -450,7 +460,7 @@ def get_ldap_object(dn, context, nest=True):
     }
     search_result = single_object_search(searchParameters, context)
     dn = search_result["dn"]
-    logger.info(f"[get_ldap_object] Found {dn}")
+    logger.info("Found DN", dn=dn)
     return make_ldap_object(search_result, context, nest=nest)
 
 
@@ -469,7 +479,7 @@ def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
         """
 
         if nest:
-            logger.info(f"[make_ldap_object] Loading nested ldap object with dn={dn}")
+            logger.info("Loading nested ldap object", dn=dn)
             return get_ldap_object(dn, context, nest=False)
         raise Exception("Already running in nested loop")  # pragma: no cover
 
@@ -535,7 +545,7 @@ async def cleanup(
     sync_tool = user_context["sync_tool"]
 
     if not converter._export_to_ldap_(json_key):
-        logger.info(f"_export_to_ldap_ == False for json_key = '{json_key}'")
+        logger.info("_export_to_ldap_ == False", json_key=json_key)
         return
 
     # Get matching LDAP object for this user (note that LDAP can contain
@@ -543,7 +553,7 @@ async def cleanup(
     attributes = converter.get_ldap_attributes(json_key)
     ldap_object = dataloader.load_ldap_object(dn, attributes)
 
-    logger.info(f"Found the following data in LDAP: {ldap_object}")
+    logger.info("Found data in LDAP", ldap_object=ldap_object)
 
     mo_objects = list(filter(mo_object_is_valid, mo_objects))
 
@@ -559,7 +569,7 @@ async def cleanup(
         )
         for mo_object in mo_objects
     ]
-    logger.info(f"Found the following data in MO: {converted_mo_objects}")
+    logger.info("Found data in MO", mo_object=converted_mo_objects)
 
     # Loop over each attribute and determine if it needs to be cleaned
     uuids_to_publish: set[UUID] = set()
@@ -579,7 +589,11 @@ async def cleanup(
                 value_in_ldap not in values_in_mo
                 and str(value_in_ldap) not in values_in_mo
             ):
-                logger.info(f"{attribute} = '{value_in_ldap}' needs cleaning")
+                logger.info(
+                    "Attribute value needs cleaning",
+                    attribute=attribute,
+                    value=value_in_ldap,
+                )
                 ldap_objects_to_clean.append(
                     LdapObject(**{"dn": dn, attribute: value_in_ldap})
                 )
@@ -589,7 +603,7 @@ async def cleanup(
         # exists in MO. In that case the other address should be written to LDAP,
         # after the first one is deleted from LDAP
         if not values_in_ldap and values_in_mo:
-            logger.info(f"attribute = '{attribute}' needs to be written to LDAP")
+            logger.info("Attribute needs to be written to LDAP", attribute=attribute)
             uuids_to_publish.update(o.uuid for o in mo_objects)
 
     # Clean from LDAP
@@ -677,7 +691,9 @@ async def _poll(
     ldap_amqpsystem: AMQPSystem = user_context["ldap_amqpsystem"]
     ldap_connection = user_context["ldap_connection"]
 
-    logger.debug(f"Searching for changes since {last_search_time}")
+    logger.debug(
+        "Searching for changes since last search", last_search_time=last_search_time
+    )
     timed_search_parameters = set_search_params_modify_timestamp(
         search_parameters, last_search_time
     )

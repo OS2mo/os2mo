@@ -45,7 +45,7 @@ class UserNameGeneratorBase(ABC):
 
         self.dataloader = self.user_context["dataloader"]
 
-        logger.info(f"Found {len(self.forbidden_usernames)} forbidden usernames")
+        logger.info("Found forbidden usernames", count=len(self.forbidden_usernames))
 
     def get_existing_values(self, attributes: list[str]):
         searchParameters = {
@@ -326,10 +326,20 @@ class UserNameGenerator(UserNameGeneratorBase):
         name = givenname.split(" ")[:4] + [surname]
 
         username = self._create_username(name, existing_usernames)
-        logger.info(f"Generated username for {givenname} {surname}: '{username}'")
+        logger.info(
+            "Generated username based on name",
+            givenname=givenname,
+            surname=surname,
+            username=username,
+        )
 
         common_name = self._create_common_name(name, existing_common_names)
-        logger.info(f"Generated CommonName for {givenname} {surname}: '{common_name}'")
+        logger.info(
+            "Generated CommonName based on name",
+            givenname=givenname,
+            surname=surname,
+            common_name=common_name,
+        )
 
         dn = self._make_dn(common_name)
         employee_attributes = await self._get_employee_ldap_attributes(employee, dn)
@@ -375,12 +385,17 @@ class AlleroedUserNameGenerator(UserNameGeneratorBase):
         name = givenname.split(" ")[:4] + [surname]
 
         common_name = self._create_common_name(name, existing_common_names)
-        logger.info(f"Generated CommonName for {givenname} {surname}: '{common_name}'")
+        logger.info("Generated CommonName for {givenname} {surname}: '{common_name}'")
 
         username = self.generate_username(
             name, existing_usernames + existing_usernames_in_mo
         )
-        logger.info(f"Generated username for {givenname} {surname}: '{username}'")
+        logger.info(
+            "Generated username based on name",
+            givenname=givenname,
+            surname=surname,
+            username=username,
+        )
 
         dn = self._make_dn(common_name)
         employee_attributes = await self._get_employee_ldap_attributes(employee, dn)

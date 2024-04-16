@@ -3,7 +3,6 @@
 import asyncio
 import copy
 import datetime
-import re
 import time
 from functools import partial
 from unittest.mock import AsyncMock
@@ -137,7 +136,7 @@ async def test_listen_to_change_in_org_unit_address(
 
             # Validate that listen_to_changes_in_org_units had to wait for
             # employee_in_progress to finish
-            assert "[Wait-for-export-to-finish]" in str(messages)
+            assert "Generating UUID" in str(messages)
 
     # Assert that an address was uploaded to two ldap objects
     # (even though load_mo_employees_in_org_unit returned three employee objects)
@@ -155,11 +154,9 @@ async def test_listen_to_change_in_org_unit_address(
         )
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
+        last_log_message = messages[-1]["event"]
 
-        assert re.match(
-            ".*DN not found",
-            messages[-1]["event"],
-        )
+        assert last_log_message == "DNNotFound Exception"
 
     dataloader.find_or_make_mo_employee_dn.side_effect = IgnoreChanges("Ignore this")
 
@@ -173,11 +170,8 @@ async def test_listen_to_change_in_org_unit_address(
         )
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
-
-        assert re.match(
-            ".*Ignore this",
-            messages[-1]["event"],
-        )
+        last_log_message = messages[-1]["event"]
+        assert last_log_message == "IgnoreChanges Exception"
 
 
 async def test_listen_to_change_in_org_unit_address_not_supported(
@@ -343,8 +337,6 @@ async def test_listen_to_changes_in_employees(
 
         entries = [w for w in cap_logs if w["log_level"] == "info"]
 
-        assert re.match(f".*Ignoring .*{payload.object_uuid}", str(entries))
-
         assert "Removing entry from ignore-dict" in entries[2]["event"]
         assert entries[2]["str_to_ignore"] == str(old_uuid)
 
@@ -376,10 +368,9 @@ async def test_listen_to_changes_in_employees_no_dn(
         )
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
-        assert re.match(
-            ".*DN not found.",
-            messages[-1]["event"],
-        )
+        last_log_message = messages[-1]["event"]
+
+        assert last_log_message == "DN not found"
 
 
 async def test_format_converted_engagement_objects(
@@ -817,7 +808,8 @@ async def test_import_single_object_from_LDAP_ignore_dn(
         await sync_tool.import_single_user("CN=foo")
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
-        assert "Ignoring cn=foo" in messages[-1]["event"]
+        last_log_message = messages[-1]["event"]
+        assert last_log_message == "IgnoreChanges Exception"
 
 
 async def test_import_single_object_from_LDAP_force(
@@ -849,7 +841,7 @@ async def test_import_single_object_from_LDAP_but_import_equals_false(
     with capture_logs() as cap_logs:
         await sync_tool.import_single_user("CN=foo")
         messages = [w["event"] for w in cap_logs if w["log_level"] == "info"]
-        assert "[Import-single-user] _import_to_mo_ == False." in messages
+        assert "_import_to_mo_ == False" in messages
 
 
 async def test_import_single_object_forces_json_key_ordering(
@@ -932,7 +924,7 @@ async def test_import_single_user_logs_empty_engagement_uuid(
         await sync_tool.import_single_user("CN=foo")
         # Assert
         logged_events: list[str] = [log["event"] for log in cap_logs]
-        assert "[Import-single-user] Engagement UUID not found in MO." in logged_events
+        assert "Engagement UUID not found in MO" in logged_events
 
 
 async def test_import_address_objects(
@@ -978,7 +970,7 @@ async def test_import_address_objects(
             await sync_tool.import_single_user("CN=foo")
 
             messages = [w for w in cap_logs if w["log_level"] == "info"]
-            assert "Could not format converted objects." in str(messages)
+            assert "Could not format converted objects" in str(messages)
 
     # Simulate invalid phone number
     dataloader.create_or_edit_mo_objects.side_effect = HTTPStatusError(
@@ -1467,4 +1459,4 @@ async def test_holstebro_import_checks(sync_tool: SyncTool):
     ):
         with capture_logs() as cap_logs:
             await sync_tool.import_single_user("CN=foo", force=True)
-            assert "[Import-single-user] 400: unique!error_msg" in str(cap_logs)
+            assert "IgnoreChanges Exception" in str(cap_logs)
