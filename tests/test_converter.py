@@ -651,8 +651,8 @@ def test_check_attributes():
     check_attributes(detected_attributes, accepted_attributes)
 
 
-def test_get_accepted_json_keys(converter: LdapConverter) -> None:
-    output = converter.get_accepted_json_keys()
+async def test_get_accepted_json_keys(converter: LdapConverter) -> None:
+    output = await converter.get_accepted_json_keys()
     assert len(output) == 6
     assert "Employee" in output
     assert "Engagement" in output
@@ -756,7 +756,7 @@ async def test_check_key_validity(converter: LdapConverter) -> None:
             IncorrectMapping,
             match="{'bar'} are not valid keys. Accepted keys are {'foo'}",
         ):
-            converter.check_key_validity(mapping)
+            await converter.check_key_validity(mapping)
 
 
 async def test_check_for_objectClass(converter: LdapConverter):
