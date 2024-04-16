@@ -41,6 +41,7 @@ from mo_ldap_import_export.config import check_attributes
 from mo_ldap_import_export.config import ConversionMapping
 from mo_ldap_import_export.config import LDAP2MOMapping
 from mo_ldap_import_export.config import MO2LDAPMapping
+from mo_ldap_import_export.converters import check_key_validity
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
 from mo_ldap_import_export.converters import get_accepted_json_keys
@@ -781,7 +782,7 @@ async def test_check_key_validity(converter: LdapConverter) -> None:
             IncorrectMapping,
             match="{'bar'} are not valid keys. Accepted keys are {'foo'}",
         ):
-            await converter.check_key_validity(mapping)
+            await check_key_validity(converter.dataloader.graphql_client, mapping)
 
 
 async def test_check_for_objectClass(converter: LdapConverter):
