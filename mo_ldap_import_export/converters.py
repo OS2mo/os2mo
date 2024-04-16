@@ -80,48 +80,27 @@ def remove_first_org(settings: Settings, orgstr: str) -> str:
     return nonejoin_orgs(settings, *rest)
 
 
-async def get_visibility_uuid(graphql_client: GraphQLClient, visibility: str) -> str:
-    result = await graphql_client.read_class_uuid_by_facet_and_class_user_key(
-        "visibility", visibility
-    )
-    return str(
-        one(
-            result.objects,
-            too_short=UUIDNotFoundException(
-                f"visibility not found, user_key: {visibility}"
-            ),
-        ).uuid
-    )
-
-
-async def get_primary_type_uuid(graphql_client: GraphQLClient, primary: str) -> str:
-    result = await graphql_client.read_class_uuid_by_facet_and_class_user_key(
-        "primary_type", primary
-    )
-    return str(
-        one(
-            result.objects,
-            too_short=UUIDNotFoundException(
-                f"primary_type not found, user_key: {primary}"
-            ),
-        ).uuid
-    )
-
-
-async def get_engagement_type_uuid(
-    graphql_client: GraphQLClient, engagement_type: str
+async def _get_facet_class_uuid(
+    graphql_client: GraphQLClient, class_user_key: str, facet_user_key: str
 ) -> str:
     result = await graphql_client.read_class_uuid_by_facet_and_class_user_key(
-        "engagement_type", engagement_type
+        facet_user_key, class_user_key
     )
-    return str(
-        one(
-            result.objects,
-            too_short=UUIDNotFoundException(
-                f"engagement_type not found, user_key: {engagement_type}"
-            ),
-        ).uuid
+    exception = UUIDNotFoundException(
+        f"class not found, facet_user_key: {facet_user_key} class_user_key: {class_user_key}"
     )
+    return str(one(result.objects, too_short=exception).uuid)
+
+
+get_visibility_uuid = partial(_get_facet_class_uuid, facet_user_key="visibility")
+get_primary_type_uuid = partial(_get_facet_class_uuid, facet_user_key="primary_type")
+get_engagement_type_uuid = partial(
+    _get_facet_class_uuid, facet_user_key="engagement_type"
+)
+get_org_unit_type_uuid = partial(_get_facet_class_uuid, facet_user_key="org_unit_type")
+get_org_unit_level_uuid = partial(
+    _get_facet_class_uuid, facet_user_key="org_unit_level"
+)
 
 
 async def get_engagement_type_name(graphql_client: GraphQLClient, uuid: str) -> str:
@@ -348,14 +327,6 @@ class LdapConverter:
     async def _init(self):
         await self.load_info_dicts()
         self.overview = self.dataloader.load_ldap_overview()
-        self.username_generator = self.user_context["username_generator"]
-
-        self.default_org_unit_type_uuid = await self.get_org_unit_type_uuid(
-            self.settings.default_org_unit_type
-        )
-        self.default_org_unit_level_uuid = await self.get_org_unit_level_uuid(
-            self.settings.default_org_unit_level
-        )
 
         mapping = delete_keys_from_dict(
             self.raw_mapping,
@@ -906,32 +877,6 @@ class LdapConverter:
             self.check_info_dicts()
             return str(uuid)
 
-    async def get_org_unit_type_uuid(self, org_unit_type: str) -> str:
-        result = await self.dataloader.graphql_client.read_class_uuid_by_facet_and_class_user_key(
-            "org_unit_type", org_unit_type
-        )
-        return str(
-            one(
-                result.objects,
-                too_short=UUIDNotFoundException(
-                    f"org_unit_type not found, user_key: {org_unit_type}"
-                ),
-            ).uuid
-        )
-
-    async def get_org_unit_level_uuid(self, org_unit_level: str) -> str:
-        result = await self.dataloader.graphql_client.read_class_uuid_by_facet_and_class_user_key(
-            "org_unit_level", org_unit_level
-        )
-        return str(
-            one(
-                result.objects,
-                too_short=UUIDNotFoundException(
-                    f"org_unit_level not found, user_key: {org_unit_level}"
-                ),
-            ).uuid
-        )
-
     async def get_employee_address_type_user_key(self, uuid: str) -> str:
         return await self.get_object_user_key_from_uuid(
             "employee_address_type_info", uuid
@@ -983,6 +928,13 @@ class LdapConverter:
                 uuid = uuid4()
                 name = partial_path[-1]
 
+                default_org_unit_type_uuid = await get_org_unit_type_uuid(
+                    self.dataloader.graphql_client, self.settings.default_org_unit_type
+                )
+                default_org_unit_level_uuid = await get_org_unit_level_uuid(
+                    self.dataloader.graphql_client, self.settings.default_org_unit_level
+                )
+
                 # Note: 1902 seems to be the earliest accepted year by OS2mo
                 # We pick 1960 because MO's dummy data also starts all organizations
                 # in 1960...
@@ -992,8 +944,8 @@ class LdapConverter:
                 org_unit = OrganisationUnit.from_simplified_fields(
                     user_key=str(uuid4()),
                     name=name,
-                    org_unit_type_uuid=UUID(self.default_org_unit_type_uuid),
-                    org_unit_level_uuid=UUID(self.default_org_unit_level_uuid),
+                    org_unit_type_uuid=UUID(default_org_unit_type_uuid),
+                    org_unit_level_uuid=UUID(default_org_unit_level_uuid),
                     from_date=from_date,
                     parent_uuid=UUID(parent_uuid) if parent_uuid else None,
                     uuid=uuid,
