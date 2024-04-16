@@ -532,41 +532,16 @@ async def test_find_cpr_field(converter: LdapConverter) -> None:
     }
 
     # Test both cases
-    populated_good_mapping = converter._populate_mapping_with_templates(
-        good_mapping, environment
-    )
-    populated_bad_mapping = converter._populate_mapping_with_templates(
-        bad_mapping, environment
-    )
-    populated_incorrect_mapping = converter._populate_mapping_with_templates(
-        {"mo_to_ldap": {}}, environment
-    )
+    incorrect_mapping: dict[str, Any] = {"mo_to_ldap": {}}
 
-    assert await find_cpr_field(populated_good_mapping) == "employeeID"
-    assert await find_cpr_field(populated_bad_mapping) is None
+    assert await find_cpr_field(good_mapping) == "employeeID"
+    assert await find_cpr_field(bad_mapping) is None
 
     with pytest.raises(IncorrectMapping):
-        await find_cpr_field(populated_incorrect_mapping)
+        await find_cpr_field(incorrect_mapping)
 
     # TODO: This configuration should probably be illegal, but it is allowed for now
     converter._populate_mapping_with_templates({"mo_to_ldap": 1}, environment)
-
-
-async def test_find_cpr_field_jinja_compile_fail(converter: LdapConverter) -> None:
-    mapping = {
-        "mo_to_ldap": {
-            "Employee": {
-                "objectClass": "user",
-                "_export_to_ldap_": "True",
-                # Some internal jinja thing going on here. It does not crash
-                # if it is not an expression like `+ " "` 🤷
-                "shouldFail": '{{ mo_employee.crash + " " }}',
-                "employeeID": "{{mo_employee.cpr_no or None}}",
-            }
-        },
-    }
-    mapping = converter._populate_mapping_with_templates(mapping, environment)
-    assert await find_cpr_field(mapping) == "employeeID"
 
 
 async def test_template_lenience(context: Context, converter: LdapConverter) -> None:
@@ -1697,10 +1672,9 @@ async def test_find_ldap_it_system():
 
 
 async def test_check_cpr_field_or_it_system(converter: LdapConverter):
+    converter.cpr_field = None
+
     with patch(
-        "mo_ldap_import_export.converters.find_cpr_field",
-        return_value=None,
-    ), patch(
         "mo_ldap_import_export.converters.find_ldap_it_system",
         return_value=None,
     ):
