@@ -829,7 +829,6 @@ class SyncTool:
             force=force,
             manual_import=manual_import,
         )
-        detected_json_keys = self.converter.get_ldap_to_mo_json_keys()
 
         # Get the employee's uuid (if he exists)
         # Note: We could optimize this by loading all relevant employees once. But:
@@ -863,16 +862,15 @@ class SyncTool:
                 dn=dn,
             )
 
-        # First import the Employee.
-        # Then import the Engagement, if present in `detected_json_keys`.
-        # Then finally import any other objects (Address, ITUser, etc.) which link to
-        # the employee.
-        priority_keys: list[str] = ["Employee"]
-        if "Engagement" in detected_json_keys:
-            priority_keys.append("Engagement")
-        json_keys = priority_keys + [
-            k for k in detected_json_keys if k not in priority_keys
-        ]
+        # First import the Employee, then Engagement if present, then the rest.
+        # We want this order so dependencies exist before their dependent objects
+        # TODO: Maybe there should be a dependency graph in the future
+        detected_json_keys = set(self.converter.get_ldap_to_mo_json_keys())
+        # We always want Employee in our json_keys
+        detected_json_keys.add("Employee")
+        priority_map = {"Employee": 1, "Engagement": 2}
+        json_keys = sorted(detected_json_keys, key=lambda x: priority_map.get(x, 3))
+
         json_keys = [
             json_key
             for json_key in json_keys
