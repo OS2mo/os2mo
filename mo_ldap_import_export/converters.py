@@ -10,6 +10,7 @@ from functools import partial
 from itertools import compress
 from json.decoder import JSONDecodeError
 from typing import Any
+from typing import cast
 from uuid import UUID
 from uuid import uuid4
 
@@ -240,7 +241,7 @@ async def get_or_create_engagement_type_uuid(
         return str(uuid)
 
 
-async def find_cpr_field(mapping):
+async def find_cpr_field(mapping: dict[str, Any]) -> str | None:
     """
     Get the field which contains the CPR number in LDAP
     """
@@ -256,7 +257,6 @@ async def find_cpr_field(mapping):
     search_field = "cpr_no"
 
     mo_dict = {search_field: search_result}
-    cpr_field = None
     for ldap_field_name, template in employee_mapping.items():
         try:
             value = (await template.render_async({"mo_employee": mo_dict})).strip()
@@ -264,14 +264,11 @@ async def find_cpr_field(mapping):
             continue
 
         if value == search_result:
-            cpr_field = ldap_field_name
-            logger.info("Found CPR field in LDAP", cpr_field=cpr_field)
-            break
+            logger.info("Found CPR field in LDAP", cpr_field=ldap_field_name)
+            return cast(str, ldap_field_name)
 
-    if cpr_field is None:
-        logger.warning("CPR field not found")
-
-    return cpr_field
+    logger.warning("CPR field not found")
+    return None
 
 
 async def find_ldap_it_system(
