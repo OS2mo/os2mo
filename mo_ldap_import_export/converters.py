@@ -770,6 +770,9 @@ class LdapConverter:
         #   - DAR does not exist in greenland
         #   - The DAR UUID is not present in LDAP. And LDAP cannot guarantee that an
         #     address is in the same format as DAR expects it to be.
+
+        # TODO: Consider removing this check entirely, if we do not want to sync DAR
+        #       addresses, we can simply not map them in the configuration?
         self.check_dar_scope()
 
         # Check that fields referred to in ldap_to_mo actually exist in LDAP
