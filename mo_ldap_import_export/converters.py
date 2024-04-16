@@ -390,10 +390,10 @@ class LdapConverter:
         self.mapping = self._populate_mapping_with_templates(mapping, environment)
 
         self.cpr_field = await find_cpr_field(mapping)
-        await self.check_mapping(mapping)
         self.ldap_it_system = await find_ldap_it_system(
             self.settings, self.mapping, self.mo_it_systems
         )
+        await self.check_mapping(mapping)
 
     async def load_info_dicts(self):
         # Note: If new address types or IT systems are added to MO, these dicts need
@@ -730,14 +730,11 @@ class LdapConverter:
                                     f"={template}"
                                 )
 
-    async def check_cpr_field_or_it_system(self):
+    def check_cpr_field_or_it_system(self):
         """
         Check that we have either a cpr-field OR an it-system which maps to an LDAP DN
         """
-        ldap_it_system = await find_ldap_it_system(
-            self.settings, self.mapping, self.mo_it_systems
-        )
-        if not self.cpr_field and not ldap_it_system:
+        if not self.cpr_field and not self.ldap_it_system:
             raise IncorrectMapping(
                 "Neither a cpr-field or an ldap it-system could be found"
             )
@@ -782,7 +779,7 @@ class LdapConverter:
         self.check_get_uuid_functions()
 
         # Check to see if there is an existing link between LDAP and MO
-        await self.check_cpr_field_or_it_system()
+        self.check_cpr_field_or_it_system()
 
         logger.info("Attributes OK")
 
