@@ -460,16 +460,26 @@ class LdapConverter:
         return self.get_json_keys("mo_to_ldap")
 
     async def get_accepted_json_keys(self) -> set[str]:
-        results = await self.dataloader.graphql_client.read_class_user_keys(
+        address_results = await self.dataloader.graphql_client.read_class_user_keys(
             ["employee_address_type", "org_unit_address_type"]
         )
         mo_address_type_user_keys = {
-            result.current.user_key for result in results.objects if result.current
+            result.current.user_key
+            for result in address_results.objects
+            if result.current
         }
+
+        itsystem_results = await self.dataloader.graphql_client.read_itsystems()
+        mo_it_system_user_keys = {
+            result.current.user_key
+            for result in itsystem_results.objects
+            if result.current
+        }
+
         return (
             {"Employee", "Engagement", "Custom"}
             | mo_address_type_user_keys
-            | set(self.mo_it_systems)
+            | mo_it_system_user_keys
         )
 
     async def check_key_validity(self, mapping: dict[str, Any]) -> None:
