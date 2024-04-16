@@ -459,14 +459,12 @@ class LdapConverter:
     def get_mo_to_ldap_json_keys(self):
         return self.get_json_keys("mo_to_ldap")
 
-    def get_accepted_json_keys(self) -> list[str]:
-        accepted_json_keys: list[str] = (
-            ["Employee", "Engagement", "Custom"]
-            + self.mo_address_types
-            + self.mo_it_systems
+    def get_accepted_json_keys(self) -> set[str]:
+        return (
+            {"Employee", "Engagement", "Custom"}
+            | set(self.mo_address_types)
+            | set(self.mo_it_systems)
         )
-
-        return accepted_json_keys
 
     def check_key_validity(self, mapping: dict[str, Any]) -> None:
         """Check if the configured keys are valid.
@@ -481,7 +479,7 @@ class LdapConverter:
         ldap_to_mo_json_keys = set(mapping["ldap_to_mo"].keys())
 
         json_keys = mo_to_ldap_json_keys & ldap_to_mo_json_keys
-        accepted_json_keys = set(self.get_accepted_json_keys())
+        accepted_json_keys = self.get_accepted_json_keys()
 
         logger.info(
             "Checking key validity",

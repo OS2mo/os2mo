@@ -651,7 +651,7 @@ def test_check_attributes():
     check_attributes(detected_attributes, accepted_attributes)
 
 
-def test_get_accepted_json_keys(converter: LdapConverter):
+def test_get_accepted_json_keys(converter: LdapConverter) -> None:
     output = converter.get_accepted_json_keys()
     assert len(output) == 6
     assert "Employee" in output
@@ -748,7 +748,9 @@ async def test_check_key_validity(converter: LdapConverter) -> None:
 
     with patch(
         "mo_ldap_import_export.converters.LdapConverter.get_accepted_json_keys",
-        return_value=["foo"],
+        return_value={
+            "foo",
+        },
     ):
         with pytest.raises(
             IncorrectMapping,
