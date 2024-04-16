@@ -329,13 +329,6 @@ class LdapConverter:
         self.overview = self.dataloader.load_ldap_overview()
         self.username_generator = self.user_context["username_generator"]
 
-        self.default_org_unit_type_uuid = await get_org_unit_type_uuid(
-            self.dataloader.graphql_client, self.settings.default_org_unit_type
-        )
-        self.default_org_unit_level_uuid = await get_org_unit_level_uuid(
-            self.dataloader.graphql_client, self.settings.default_org_unit_level
-        )
-
         mapping = delete_keys_from_dict(
             self.raw_mapping,
             ["objectClass", "_import_to_mo_", "_export_to_ldap_"],
@@ -936,6 +929,13 @@ class LdapConverter:
                 uuid = uuid4()
                 name = partial_path[-1]
 
+                default_org_unit_type_uuid = await get_org_unit_type_uuid(
+                    self.dataloader.graphql_client, self.settings.default_org_unit_type
+                )
+                default_org_unit_level_uuid = await get_org_unit_level_uuid(
+                    self.dataloader.graphql_client, self.settings.default_org_unit_level
+                )
+
                 # Note: 1902 seems to be the earliest accepted year by OS2mo
                 # We pick 1960 because MO's dummy data also starts all organizations
                 # in 1960...
@@ -945,8 +945,8 @@ class LdapConverter:
                 org_unit = OrganisationUnit.from_simplified_fields(
                     user_key=str(uuid4()),
                     name=name,
-                    org_unit_type_uuid=UUID(self.default_org_unit_type_uuid),
-                    org_unit_level_uuid=UUID(self.default_org_unit_level_uuid),
+                    org_unit_type_uuid=UUID(default_org_unit_type_uuid),
+                    org_unit_level_uuid=UUID(default_org_unit_level_uuid),
                     from_date=from_date,
                     parent_uuid=UUID(parent_uuid) if parent_uuid else None,
                     uuid=uuid,
