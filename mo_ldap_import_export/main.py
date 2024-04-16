@@ -305,7 +305,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     logger.info("Retrieving settings")
     settings = Settings(**kwargs)
 
-    initialize_logging(settings.fastramqpi.log_level, not settings.development_mode)
+    initialize_logging(settings.fastramqpi.log_level, settings.production)
 
     # ldap_ou_for_new_users needs to be in the search base. Otherwise we cannot
     # find newly created users...

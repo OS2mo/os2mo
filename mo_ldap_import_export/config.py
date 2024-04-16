@@ -358,8 +358,8 @@ class Settings(BaseSettings):
 
     fastramqpi: FastFAMQPIApplicationSettings
 
-    development_mode: bool = Field(
-        False, description="Whether to configure logging, et al for development"
+    production: bool = Field(
+        True, description="Whether to configure logging, et al for production"
     )
 
     @root_validator(pre=True)
