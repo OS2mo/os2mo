@@ -37,7 +37,22 @@ from mo_ldap_import_export.config import LDAP2MOMapping
 from mo_ldap_import_export.config import MO2LDAPMapping
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
+from mo_ldap_import_export.converters import get_current_engagement_attribute_uuid_dict
+from mo_ldap_import_export.converters import get_current_engagement_type_uuid_dict
+from mo_ldap_import_export.converters import get_current_org_unit_uuid_dict
+from mo_ldap_import_export.converters import get_current_primary_uuid_dict
+from mo_ldap_import_export.converters import get_employee_dict
+from mo_ldap_import_export.converters import get_engagement_type_name
+from mo_ldap_import_export.converters import get_or_create_engagement_type_uuid
+from mo_ldap_import_export.converters import get_primary_engagement_dict
+from mo_ldap_import_export.converters import get_primary_type_uuid
+from mo_ldap_import_export.converters import get_visibility_uuid
 from mo_ldap_import_export.converters import LdapConverter
+from mo_ldap_import_export.converters import make_dn_from_org_unit_path
+from mo_ldap_import_export.converters import minimum
+from mo_ldap_import_export.converters import nonejoin
+from mo_ldap_import_export.converters import nonejoin_orgs
+from mo_ldap_import_export.converters import remove_first_org
 from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.environments import environment
@@ -202,6 +217,16 @@ async def converter(context: Context) -> LdapConverter:
     converter = LdapConverter(context)
     await converter._init()
     return converter
+
+
+@pytest.fixture
+async def dataloader(converter: LdapConverter) -> AsyncMock:
+    return cast(AsyncMock, converter.dataloader)
+
+
+@pytest.fixture
+async def graphql_client(dataloader: AsyncMock) -> AsyncMock:
+    return cast(AsyncMock, dataloader.graphql_client)
 
 
 async def test_ldap_to_mo(converter: LdapConverter) -> None:
@@ -523,6 +548,10 @@ async def test_find_cpr_field(converter: LdapConverter) -> None:
     with pytest.raises(IncorrectMapping):
         await find_cpr_field(populated_incorrect_mapping)
 
+    with pytest.raises(NotImplementedError) as exc_info:
+        converter._populate_mapping_with_templates({"mo_to_ldap": 1}, environment)
+    assert "Unknown value type" in str(exc_info.value)
+
 
 async def test_find_cpr_field_jinja_compile_fail(converter: LdapConverter) -> None:
     mapping = {
@@ -659,21 +688,23 @@ def test_get_accepted_json_keys(converter: LdapConverter):
     assert "Active Directory" in output
 
 
-def test_min(converter: LdapConverter):
-    assert converter.min(1, None) == 1
-    assert converter.min(None, 1) == 1
-    assert converter.min(9, 10) == 9
-    assert converter.min(10, 9) == 9
+def test_minimum() -> None:
+    assert minimum(1, None) == 1
+    assert minimum(None, 1) == 1
+    assert minimum(9, 10) == 9
+    assert minimum(10, 9) == 9
 
 
-def test_nonejoin(converter: LdapConverter):
-    output = converter.nonejoin("foo", "bar", None)
+def test_nonejoin() -> None:
+    output = nonejoin("foo", "bar", None)
     assert output == "foo, bar"
 
 
-def test_nonejoin_orgs(converter: LdapConverter):
-    converter.org_unit_path_string_separator = "|"
-    output = converter.nonejoin_orgs("", "org1 ", " org2", None, "")
+def test_nonejoin_orgs() -> None:
+    settings = MagicMock()
+    settings.org_unit_path_string_separator = "|"
+
+    output = nonejoin_orgs(settings, "", "org1 ", " org2", None, "")
     assert output == "org1|org2"
 
 
@@ -1095,14 +1126,13 @@ async def test_get_it_system_uuid(converter: LdapConverter):
 
 
 @pytest.mark.parametrize("class_name", ["Hemmelig", "Offentlig"])
-async def test_get_visibility_uuid(converter: LdapConverter, class_name: str) -> None:
+async def test_get_visibility_uuid(graphql_client: AsyncMock, class_name: str) -> None:
     class_uuid = str(uuid4())
 
-    graphql_client: AsyncMock = cast(AsyncMock, converter.dataloader.graphql_client)
     graphql_client.read_class_uuid_by_facet_and_class_user_key.map[
         ("visibility", class_name)
     ] = class_uuid
-    assert await converter.get_visibility_uuid(class_name) == class_uuid
+    assert await get_visibility_uuid(graphql_client, class_name) == class_uuid
 
 
 async def test_get_job_function_uuid(converter: LdapConverter):
@@ -1177,43 +1207,43 @@ async def test_get_org_unit_name(converter: LdapConverter) -> None:
 
 
 @pytest.mark.parametrize("class_name", ["Ansat", "Vikar"])
-async def test_get_engagement_type_uuid(
-    converter: LdapConverter, class_name: str
-) -> None:
+async def test_get_engagement_type_uuid(dataloader: AsyncMock, class_name: str) -> None:
     class_uuid = str(uuid4())
 
-    graphql_client: AsyncMock = cast(AsyncMock, converter.dataloader.graphql_client)
-    graphql_client.read_class_uuid_by_facet_and_class_user_key.map[
+    dataloader.graphql_client.read_class_uuid_by_facet_and_class_user_key.map[
         ("engagement_type", class_name)
     ] = class_uuid
-    assert await converter.get_or_create_engagement_type_uuid(class_name) == class_uuid
+    assert (
+        await get_or_create_engagement_type_uuid(dataloader, class_name) == class_uuid
+    )
 
 
-async def test_get_engagement_type_non_existing_uuid(converter: LdapConverter):
+async def test_get_engagement_type_non_existing_uuid(dataloader: AsyncMock) -> None:
     uuid = uuid4()
-    dataloader: AsyncMock = cast(AsyncMock, converter.dataloader)
+
     dataloader.create_mo_engagement_type.return_value = uuid
 
-    assert await converter.get_or_create_engagement_type_uuid(
-        "non-existing_engagement_type"
+    assert await get_or_create_engagement_type_uuid(
+        dataloader, "non-existing_engagement_type"
     ) == str(uuid)
 
     with pytest.raises(UUIDNotFoundException):
-        await converter.get_or_create_engagement_type_uuid("")
+        await get_or_create_engagement_type_uuid(dataloader, "")
 
     with pytest.raises(UUIDNotFoundException):
-        await converter.get_or_create_engagement_type_uuid([])  # type: ignore
+        await get_or_create_engagement_type_uuid(dataloader, [])  # type: ignore
 
 
 @pytest.mark.parametrize("class_name", ["primary", "non-primary"])
-async def test_get_primary_type_uuid(converter: LdapConverter, class_name: str) -> None:
+async def test_get_primary_type_uuid(
+    graphql_client: AsyncMock, class_name: str
+) -> None:
     class_uuid = str(uuid4())
 
-    graphql_client: AsyncMock = cast(AsyncMock, converter.dataloader.graphql_client)
     graphql_client.read_class_uuid_by_facet_and_class_user_key.map[
         ("primary_type", class_name)
     ] = class_uuid
-    assert await converter.get_primary_type_uuid(class_name) == class_uuid
+    assert await get_primary_type_uuid(graphql_client, class_name) == class_uuid
 
 
 async def test_get_it_system_user_key(converter: LdapConverter):
@@ -1250,27 +1280,25 @@ async def test_get_address_type_user_key(converter: LdapConverter):
 
 @pytest.mark.parametrize("class_name", ["Ansat", "Vikar"])
 async def test_get_engagement_type_name(
-    converter: LdapConverter, class_name: str
+    graphql_client: AsyncMock, class_name: str
 ) -> None:
     class_uuid = uuid4()
-    graphql_client: AsyncMock = cast(AsyncMock, converter.dataloader.graphql_client)
     graphql_client.read_class_name_by_class_uuid.return_value = parse_obj_as(
         ReadClassNameByClassUuidClasses,
         {"objects": [{"current": {"name": class_name}}]},
     )
-    assert await converter.get_engagement_type_name(str(class_uuid)) == class_name
+    assert await get_engagement_type_name(graphql_client, str(class_uuid)) == class_name
     graphql_client.read_class_name_by_class_uuid.assert_awaited_once_with(class_uuid)
 
 
-async def test_get_engagement_type_not_active(converter: LdapConverter) -> None:
+async def test_get_engagement_type_not_active(graphql_client: AsyncMock) -> None:
     class_uuid = uuid4()
-    graphql_client: AsyncMock = cast(AsyncMock, converter.dataloader.graphql_client)
     graphql_client.read_class_name_by_class_uuid.return_value = parse_obj_as(
         ReadClassNameByClassUuidClasses,
         {"objects": [{"current": None}]},
     )
     with pytest.raises(NoObjectsReturnedException) as exc_info:
-        assert await converter.get_engagement_type_name(str(class_uuid))
+        assert await get_engagement_type_name(graphql_client, str(class_uuid))
     assert "engagement_type not active, uuid:" in str(exc_info.value)
 
 
@@ -1744,16 +1772,16 @@ async def test_get_current_engagement_attribute(converter: LdapConverter):
 
     for attribute in test_attributes:
         assert (
-            await converter.get_current_engagement_attribute_uuid_dict(
-                attribute, uuid4(), "foo"
+            await get_current_engagement_attribute_uuid_dict(
+                dataloader, uuid4(), "foo", attribute
             )
         )["uuid"] == engagement1[attribute]
 
     # Try for an employee without matching engagements
     with pytest.raises(UUIDNotFoundException):
         dataloader.load_mo_employee_engagement_dicts.return_value = []
-        await converter.get_current_engagement_attribute_uuid_dict(
-            attribute, uuid4(), "mucki"
+        await get_current_engagement_attribute_uuid_dict(
+            dataloader, uuid4(), "mucki", attribute
         )
 
     # Try to find a duplicate engagement
@@ -1762,49 +1790,57 @@ async def test_get_current_engagement_attribute(converter: LdapConverter):
             engagement2,
             engagement3,
         ]
-        await converter.get_current_engagement_attribute_uuid_dict(
-            attribute, uuid4(), "duplicate_user_key"
+        await get_current_engagement_attribute_uuid_dict(
+            dataloader, uuid4(), "duplicate_user_key", attribute
         )
 
     # Try with faulty input
     with pytest.raises(ValueError, match="attribute must be an uuid-string"):
-        await converter.get_current_engagement_attribute_uuid_dict(
-            "user_key", uuid4(), "mucki"
+        await get_current_engagement_attribute_uuid_dict(
+            dataloader, uuid4(), "mucki", "user_key"
         )
 
 
-async def test_get_current_org_unit_uuid(converter: LdapConverter):
+async def test_get_current_org_unit_uuid(dataloader: AsyncMock) -> None:
     uuid = str(uuid4())
-    converter.get_current_engagement_attribute_uuid_dict = AsyncMock()  # type: ignore
-    converter.get_current_engagement_attribute_uuid_dict.return_value = {"uuid": uuid}
 
-    assert (await converter.get_current_org_unit_uuid_dict(uuid4(), "foo"))[
+    dataloader.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
+        {"uuid": uuid4(), "org_unit_uuid": uuid}
+    ]
+
+    assert (await get_current_org_unit_uuid_dict(dataloader, uuid4(), "foo"))[
         "uuid"
     ] == uuid
 
 
-async def test_get_current_engagement_type_uuid(converter: LdapConverter):
+async def test_get_current_engagement_type_uuid(dataloader: AsyncMock) -> None:
     uuid = str(uuid4())
-    converter.get_current_engagement_attribute_uuid_dict = AsyncMock()  # type: ignore
-    converter.get_current_engagement_attribute_uuid_dict.return_value = {"uuid": uuid}
 
-    assert (await converter.get_current_engagement_type_uuid_dict(uuid4(), "foo"))[
+    dataloader.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
+        {"uuid": uuid4(), "engagement_type_uuid": uuid}
+    ]
+
+    assert (await get_current_engagement_type_uuid_dict(dataloader, uuid4(), "foo"))[
         "uuid"
     ] == uuid
 
 
-async def test_get_current_primary_uuid(converter: LdapConverter):
+async def test_get_current_primary_uuid(dataloader: AsyncMock) -> None:
     uuid = str(uuid4())
-    converter.get_current_engagement_attribute_uuid_dict = AsyncMock()  # type: ignore
-    converter.get_current_engagement_attribute_uuid_dict.return_value = {"uuid": uuid}
 
-    assert (await converter.get_current_primary_uuid_dict(uuid4(), "foo"))[
+    dataloader.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
+        {"uuid": uuid4(), "primary_uuid": uuid}
+    ]
+
+    assert (await get_current_primary_uuid_dict(dataloader, uuid4(), "foo"))[
         "uuid"
     ] == uuid  # type: ignore
 
-    converter.get_current_engagement_attribute_uuid_dict.return_value = {"uuid": None}
+    dataloader.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
+        {"uuid": uuid4(), "primary_uuid": None}
+    ]
 
-    assert await converter.get_current_primary_uuid_dict(uuid4(), "foo") is None
+    assert await get_current_primary_uuid_dict(dataloader, uuid4(), "foo") is None
 
 
 def test_clean_calls_to_get_current_method_from_template_string(
@@ -1882,11 +1918,13 @@ def test_org_unit_path_string_from_dn(converter: LdapConverter):
     assert org_unit_path == ""
 
 
-def test_make_dn_from_org_unit_path(converter: LdapConverter):
+def test_make_dn_from_org_unit_path() -> None:
+    settings = MagicMock()
+    settings.org_unit_path_string_separator = "|"
+
     org_unit_path = " foo|mucki |bar"
-    converter.org_unit_path_string_separator = "|"
     dn = "CN=Angus,OU=replace_me,DC=GHU"
-    new_dn = converter.make_dn_from_org_unit_path(dn, org_unit_path)
+    new_dn = make_dn_from_org_unit_path(settings, dn, org_unit_path)
     assert new_dn == "CN=Angus,OU=bar,OU=mucki,OU=foo,DC=GHU"
 
 
@@ -1936,18 +1974,22 @@ def test_unutilized_init_elements(converter: LdapConverter) -> None:
         parse_obj_as(ConversionMapping, converter.raw_mapping)
 
 
-async def test_remove_first_org(converter: LdapConverter) -> None:
-    result = converter.remove_first_org("")
-    assert result == ""
+@pytest.mark.parametrize(
+    "orgstr,result",
+    [
+        ("", ""),
+        ("a\\b", "b"),
+        ("a\\b\\c", "b\\c"),
+    ],
+)
+async def test_remove_first_org(orgstr: str, result: str) -> None:
+    settings = MagicMock()
+    settings.org_unit_path_string_separator = "\\"
 
-    result = converter.remove_first_org("a\\b")
-    assert result == "b"
-
-    result = converter.remove_first_org("a\\b\\c")
-    assert result == "b\\c"
+    assert remove_first_org(settings, orgstr) == result
 
 
-async def test_get_primary_engagement_dict(converter: LdapConverter):
+async def test_get_primary_engagement_dict(dataloader: AsyncMock) -> None:
     engagement1 = {
         "uuid": str(uuid4()),
         "user_key": "foo",
@@ -1977,9 +2019,6 @@ async def test_get_primary_engagement_dict(converter: LdapConverter):
 
     employee_uuid = uuid4()
 
-    dataloader = AsyncMock()
-    converter.dataloader = dataloader
-
     # 3 engagements
     # -------------
     dataloader.load_mo_employee_engagement_dicts.return_value = [
@@ -1990,29 +2029,29 @@ async def test_get_primary_engagement_dict(converter: LdapConverter):
     # One primary
     # -----------
     dataloader.is_primaries.return_value = [True, False, False]
-    result = await converter.get_primary_engagement_dict(employee_uuid)
+    result = await get_primary_engagement_dict(dataloader, employee_uuid)
     assert result["user_key"] == "foo"
 
     dataloader.is_primaries.return_value = [False, True, False]
-    result = await converter.get_primary_engagement_dict(employee_uuid)
+    result = await get_primary_engagement_dict(dataloader, employee_uuid)
     assert result["user_key"] == "bar"
 
     dataloader.is_primaries.return_value = [False, False, True]
-    result = await converter.get_primary_engagement_dict(employee_uuid)
+    result = await get_primary_engagement_dict(dataloader, employee_uuid)
     assert result["user_key"] == "baz"
 
     # Two primaries
     # -------------
     with pytest.raises(ValueError) as exc_info:
         dataloader.is_primaries.return_value = [False, True, True]
-        await converter.get_primary_engagement_dict(employee_uuid)
+        await get_primary_engagement_dict(dataloader, employee_uuid)
     assert "Expected exactly one item in iterable" in str(exc_info.value)
 
     # No primary
     # ----------
     with pytest.raises(ValueError) as exc_info:
         dataloader.is_primaries.return_value = [False, False, False]
-        await converter.get_primary_engagement_dict(employee_uuid)
+        await get_primary_engagement_dict(dataloader, employee_uuid)
     assert "too few items in iterable (expected 1)" in str(exc_info.value)
 
     # 1 engagement
@@ -2021,13 +2060,13 @@ async def test_get_primary_engagement_dict(converter: LdapConverter):
     # One primary
     # -----------
     dataloader.is_primaries.return_value = [True]
-    result = await converter.get_primary_engagement_dict(employee_uuid)
+    result = await get_primary_engagement_dict(dataloader, employee_uuid)
     assert result["user_key"] == "baz"
 
     # No primary
     with pytest.raises(ValueError) as exc_info:
         dataloader.is_primaries.return_value = [False]
-        await converter.get_primary_engagement_dict(employee_uuid)
+        await get_primary_engagement_dict(dataloader, employee_uuid)
     assert "too few items in iterable (expected 1)" in str(exc_info.value)
 
     # 0 engagements
@@ -2035,20 +2074,18 @@ async def test_get_primary_engagement_dict(converter: LdapConverter):
     with pytest.raises(ValueError) as exc_info:
         dataloader.load_mo_employee_engagement_dicts.return_value = []
         dataloader.is_primaries.return_value = []
-        await converter.get_primary_engagement_dict(employee_uuid)
+        await get_primary_engagement_dict(dataloader, employee_uuid)
     assert "too few items in iterable (expected 1)" in str(exc_info.value)
 
 
-async def test_get_employee_dict(converter: LdapConverter) -> None:
+async def test_get_employee_dict(dataloader: AsyncMock) -> None:
     cpr_no = "1407711900"
     uuid = uuid4()
     mo_employee = Employee(**{"cpr_no": cpr_no, "uuid": uuid})
 
-    dataloader = AsyncMock()
-    converter.dataloader = dataloader
     dataloader.load_mo_employee.return_value = mo_employee
 
-    result = await converter.get_employee_dict(uuid)
+    result = await get_employee_dict(dataloader, uuid)
     assert result == {
         "details": None,
         "givenname": None,
