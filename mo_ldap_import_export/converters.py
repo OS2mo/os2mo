@@ -327,7 +327,6 @@ class LdapConverter:
     async def _init(self):
         await self.load_info_dicts()
         self.overview = self.dataloader.load_ldap_overview()
-        self.username_generator = self.user_context["username_generator"]
 
         mapping = delete_keys_from_dict(
             self.raw_mapping,
