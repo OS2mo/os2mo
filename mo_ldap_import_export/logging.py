@@ -23,11 +23,8 @@ def _drop_color_message_key(_, __, event_dict: EventDict) -> EventDict:
 def init(log_level: str, production_mode: bool = True):
     # Heavily inspired by OS2mo
 
-    # Unix timestamps in production
-    if production_mode:
-        timestamper = structlog.processors.TimeStamper()
-    else:
-        timestamper = structlog.processors.TimeStamper(fmt="%H:%M:%S", utc=False)
+    # NOTE: We intentionally do not log timestamps, as we rely on the container runtime
+    #       to add timestamps to our logs. With docker simply add `-t` to logs.
 
     shared_processors: list[Processor] = [
         # Merge asyncio bound logging variables
@@ -39,8 +36,6 @@ def init(log_level: str, production_mode: bool = True):
         # Add extra attributes to the event dictionary
         structlog.stdlib.ExtraAdder(),
         _drop_color_message_key,
-        # Add a timestamp in our desired format
-        timestamper,
         # If the "stack_info" key in the event dict is true, remove it and
         # render the current stack trace in the "stack" key.
         structlog.processors.StackInfoRenderer(),
