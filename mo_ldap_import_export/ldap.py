@@ -3,6 +3,7 @@
 """LDAP Connection handling."""
 import asyncio
 import signal
+from collections import ChainMap
 from contextlib import suppress
 from datetime import datetime
 from functools import partial
@@ -378,10 +379,46 @@ def paged_search(
     return results
 
 
+def object_search(
+    searchParameters: dict[str, Any], ldap_connection: Connection
+) -> list[dict[str, Any]]:
+    """Performs an LDAP search and return the result.
+
+    Notes:
+        If you want to be 100% sure that the search only returns one result;
+        Supply an object's dn (distinguished name) as the search base and set
+        searchFilter = "(objectclass=*)" and search_scope = BASE
+
+    Args:
+        searchParameters:
+            Dictionary with the following keys:
+                * search_base
+                * search_filter
+                * attributes
+                * see https://ldap3.readthedocs.io/en/latest/searches.html for more keys
+        ldap_connection: The LDAP Connection to run our search on.
+
+    Returns:
+        A list of found objects.
+    """
+    search_bases = ensure_list(searchParameters["search_base"])
+
+    responses = []
+    for search_base in search_bases:
+        ldap_connection.search(
+            **ChainMap(searchParameters, {"search_base": search_base})
+        )
+        response = ldap_connection.response
+        if response:
+            responses.extend(response)
+    search_entries = ldapresponse2entries(responses)
+    return search_entries
+
+
 def single_object_search(
     searchParameters: dict[str, Any], context: Context
 ) -> dict[str, Any]:
-    """Performs an LDAP search and return the result.
+    """Performs an LDAP search and ensure that it returns one result.
 
     Notes:
         If you want to be 100% sure that the search only returns one result;
@@ -405,18 +442,9 @@ def single_object_search(
         The found object.
     """
     ldap_connection = context["user_context"]["ldap_connection"]
+    search_entries = object_search(searchParameters, ldap_connection)
+
     settings = context["user_context"]["settings"]
-
-    search_bases = ensure_list(searchParameters["search_base"])
-
-    modified_searchParameters = searchParameters.copy()
-    response = []
-    for search_base in search_bases:
-        modified_searchParameters["search_base"] = search_base
-        ldap_connection.search(**modified_searchParameters)
-        response.extend(ldap_connection.response)
-
-    search_entries = ldapresponse2entries(response)
     # TODO: Do we actually wanna apply discriminator here?
     search_entries = apply_discriminator(search_entries, settings)
 
@@ -446,7 +474,7 @@ def is_dn(value):
     return True
 
 
-def get_ldap_object(dn, context, nest=True):
+def get_ldap_object(dn: str, context: Context, nest: bool = True) -> Any:
     """
     Gets a ldap object based on its DN
 
@@ -464,7 +492,7 @@ def get_ldap_object(dn, context, nest=True):
     return make_ldap_object(search_result, context, nest=nest)
 
 
-def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
+def make_ldap_object(response: dict, context: Context, nest: bool = True) -> Any:
     """
     Takes an ldap response and formats it as a class
 
