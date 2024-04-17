@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import datetime
+from uuid import UUID
 
 import pytest
 from fastapi.testclient import TestClient
@@ -275,15 +276,15 @@ def test_is_distinct_responsibility_no_duplicate() -> None:
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @set_settings_contextmanager(
-    confdb_substitute_roles="bcd05828-cc10-48b1-bc48-2f0d204859b2"
+    confdb_substitute_roles='["bcd05828-cc10-48b1-bc48-2f0d204859b2"]'
 )
 def test_is_substitute_allowed() -> None:
     # This should pass
-    validator.is_substitute_allowed("bcd05828-cc10-48b1-bc48-2f0d204859b2")
+    validator.is_substitute_allowed(UUID("bcd05828-cc10-48b1-bc48-2f0d204859b2"))
 
     # This shouldn't
     with pytest.raises(exceptions.HTTPException):
-        validator.is_substitute_allowed("8b073375-4196-4d90-9af9-0eb6ef8b6d0d")
+        validator.is_substitute_allowed(UUID("8b073375-4196-4d90-9af9-0eb6ef8b6d0d"))
 
 
 @pytest.mark.integration_test

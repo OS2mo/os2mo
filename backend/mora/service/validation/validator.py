@@ -7,6 +7,7 @@ import functools
 import typing
 from asyncio import create_task
 from asyncio import gather
+from uuid import UUID
 
 from more_itertools import pairwise
 
@@ -413,7 +414,7 @@ async def does_uuid_have_existing_association(
 
 
 @forceable
-def is_substitute_allowed(association_type_uuid: str):
+def is_substitute_allowed(association_type_uuid: UUID):
     """
     checks whether the chosen association needs a substitute
     """

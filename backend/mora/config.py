@@ -243,7 +243,7 @@ class Settings(BaseSettings):
     confdb_show_org_unit_button: bool = False
     confdb_inherit_manager: bool = True
     confdb_association_dynamic_facets: str = ""
-    confdb_substitute_roles: str = ""
+    confdb_substitute_roles: list[UUID] = Field(default_factory=list)
     confdb_show_cpr_no: bool = Field(
         True, description="Make CPR number visible under the Employee tab"
     )

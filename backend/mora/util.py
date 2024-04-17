@@ -19,6 +19,7 @@ import urllib.parse
 import uuid
 from contextlib import suppress
 from functools import reduce
+from uuid import UUID
 from zoneinfo import ZoneInfo
 
 import dateutil.parser
@@ -610,13 +611,13 @@ def is_reg_valid(reg):
     return any(state.get("gyldighed") == "Aktiv" for state in get_states(reg))
 
 
-def is_substitute_allowed(association_type_uuid: str) -> bool:
+def is_substitute_allowed(association_type_uuid: UUID) -> bool:
     """
     checks whether the chosen association needs a substitute
     """
     settings = config.get_settings()
-    substitute_roles: str = settings.confdb_substitute_roles
-    if association_type_uuid in substitute_roles.split(","):
+    substitute_roles = settings.confdb_substitute_roles
+    if association_type_uuid in substitute_roles:
         # chosen role does need substitute
         return True
     return False
