@@ -668,49 +668,6 @@ class LdapConverter:
                         ldap_attribute = re.split(invalid_chars_regex, ldap_ref)[0]
                         self.check_attributes([ldap_attribute], accepted_attributes)
 
-    def check_get_uuid_functions(self):
-        # List of all 'get_uuid' functions. For example "get_it_system_uuid("
-        get_uuid_function_strings = [
-            f + "("
-            for f in dir(self)
-            if f.startswith("get_") and f.endswith("_uuid") and "create" not in f
-        ]
-
-        # List all user keys from the different info-dicts
-        all_user_keys = []
-        for info_dict in self.all_info_dicts.values():
-            user_keys = [v["user_key"] for v in info_dict.values()]
-            all_user_keys.extend(user_keys)
-
-        # Check ldap_to_mo mapping only. in mo_to_ldap mapping we do not need 'get_uuid'
-        # functions because we can just extract the uuid from a mo object directly.
-        for json_key in self.get_json_keys("ldap_to_mo"):
-            for mo_attribute, template in self.raw_mapping["ldap_to_mo"][
-                json_key
-            ].items():
-                if not isinstance(template, str):
-                    continue
-                for get_uuid_function_string in get_uuid_function_strings:
-                    # If we are using a 'get_uuid' function in this template:
-                    if get_uuid_function_string in template:
-                        argument = template.split(get_uuid_function_string)[1].split(
-                            ")"
-                        )[0]
-
-                        # And if the argument is a hard-coded string:
-                        if argument.startswith("'") and argument.endswith("'"):
-                            logger.info("Checking template", template=template)
-
-                            # Check if the argument is a valid user_key
-                            user_key = argument.replace("'", "")
-                            if user_key not in all_user_keys:
-                                raise IncorrectMapping(
-                                    f"'{user_key}' not found in any info dict. "
-                                    "Please check "
-                                    f"ldap_to_mo['{json_key}']['{mo_attribute}']"
-                                    f"={template}"
-                                )
-
     def check_cpr_field_or_it_system(self):
         """
         Check that we have either a cpr-field OR an it-system which maps to an LDAP DN
@@ -742,9 +699,6 @@ class LdapConverter:
 
         # Check that fields referred to in ldap_to_mo actually exist in LDAP
         self.check_ldap_to_mo_references(overview)
-
-        # Check that get_..._uuid functions have valid input strings
-        self.check_get_uuid_functions()
 
         # Check to see if there is an existing link between LDAP and MO
         self.check_cpr_field_or_it_system()
