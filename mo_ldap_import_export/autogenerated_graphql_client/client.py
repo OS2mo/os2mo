@@ -44,6 +44,8 @@ from .read_addresses import ReadAddresses
 from .read_addresses import ReadAddressesAddresses
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuid
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuidClasses
+from .read_class_user_keys import ReadClassUserKeys
+from .read_class_user_keys import ReadClassUserKeysClasses
 from .read_class_uuid import ReadClassUuid
 from .read_class_uuid import ReadClassUuidClasses
 from .read_class_uuid_by_facet_and_class_user_key import (
@@ -962,3 +964,24 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadOrgUnits.parse_obj(data).org_units
+
+    async def read_class_user_keys(
+        self, facet_user_keys: List[str]
+    ) -> ReadClassUserKeysClasses:
+        query = gql(
+            """
+            query read_class_user_keys($facet_user_keys: [String!]!) {
+              classes(filter: {facet: {user_keys: $facet_user_keys}}) {
+                objects {
+                  current {
+                    user_key
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"facet_user_keys": facet_user_keys}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadClassUserKeys.parse_obj(data).classes

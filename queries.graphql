@@ -429,3 +429,13 @@ query read_org_units {
     }
   }
 }
+
+query read_class_user_keys($facet_user_keys: [String!]!) {
+  classes(filter: {facet: {user_keys: $facet_user_keys}}) {
+    objects {
+      current {
+        user_key
+      }
+    }
+  }
+}

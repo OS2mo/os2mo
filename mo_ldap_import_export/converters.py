@@ -315,6 +315,59 @@ async def find_ldap_it_system(
     return found_itsystem
 
 
+async def get_accepted_json_keys(graphql_client: GraphQLClient) -> set[str]:
+    address_results = await graphql_client.read_class_user_keys(
+        ["employee_address_type", "org_unit_address_type"]
+    )
+    mo_address_type_user_keys = {
+        result.current.user_key for result in address_results.objects if result.current
+    }
+
+    itsystem_results = await graphql_client.read_itsystems()
+    mo_it_system_user_keys = {
+        result.current.user_key for result in itsystem_results.objects if result.current
+    }
+
+    return (
+        {"Employee", "Engagement", "Custom"}
+        | mo_address_type_user_keys
+        | mo_it_system_user_keys
+    )
+
+
+async def check_key_validity(
+    graphql_client: GraphQLClient, mapping: dict[str, Any]
+) -> None:
+    """Check if the configured keys are valid.
+
+    Args:
+        graphql_client: GraphQLClient to fetch classes and itsystems.
+        mapping: The raw mapping configuration.
+
+    Raises:
+        IncorrectMapping: Raised if any used key is invalid.
+    """
+    mo_to_ldap_json_keys = set(mapping["mo_to_ldap"].keys())
+    ldap_to_mo_json_keys = set(mapping["ldap_to_mo"].keys())
+
+    json_keys = mo_to_ldap_json_keys | ldap_to_mo_json_keys
+    accepted_json_keys = await get_accepted_json_keys(graphql_client)
+
+    logger.info(
+        "Checking key validity",
+        accepted_keys=accepted_json_keys,
+        detected_keys=json_keys,
+    )
+
+    unaccepted_keys = json_keys - accepted_json_keys
+    if unaccepted_keys:
+        raise IncorrectMapping(
+            f"{unaccepted_keys} are not valid keys. "
+            f"Accepted keys are {accepted_json_keys}"
+        )
+    logger.info("Keys OK")
+
+
 class LdapConverter:
     def __init__(self, context: Context):
         self.context = context
@@ -337,10 +390,10 @@ class LdapConverter:
         self.mapping = self._populate_mapping_with_templates(mapping, environment)
 
         self.cpr_field = await find_cpr_field(mapping)
-        await self.check_mapping()
         self.ldap_it_system = await find_ldap_it_system(
             self.settings, self.mapping, self.mo_it_systems
         )
+        await self.check_mapping(mapping)
 
     async def load_info_dicts(self):
         # Note: If new address types or IT systems are added to MO, these dicts need
@@ -458,36 +511,6 @@ class LdapConverter:
 
     def get_mo_to_ldap_json_keys(self):
         return self.get_json_keys("mo_to_ldap")
-
-    def get_accepted_json_keys(self) -> list[str]:
-        accepted_json_keys: list[str] = (
-            ["Employee", "Engagement", "Custom"]
-            + self.mo_address_types
-            + self.mo_it_systems
-        )
-
-        return accepted_json_keys
-
-    def check_key_validity(self):
-        mo_to_ldap_json_keys = self.get_mo_to_ldap_json_keys()
-        ldap_to_mo_json_keys = self.get_ldap_to_mo_json_keys()
-
-        json_keys = set(mo_to_ldap_json_keys + ldap_to_mo_json_keys)
-        accepted_json_keys = set(self.get_accepted_json_keys())
-
-        logger.info(
-            "Checking key validity",
-            accepted_keys=accepted_json_keys,
-            detected_keys=json_keys,
-        )
-
-        unaccepted_keys = json_keys - accepted_json_keys
-        if unaccepted_keys:
-            raise IncorrectMapping(
-                f"{unaccepted_keys} are not valid keys. "
-                f"Accepted keys are {accepted_json_keys}"
-            )
-        logger.info("Keys OK")
 
     def get_required_attributes(self, mo_class):
         if "required" in mo_class.schema().keys():
@@ -707,25 +730,31 @@ class LdapConverter:
                                     f"={template}"
                                 )
 
-    async def check_cpr_field_or_it_system(self):
+    def check_cpr_field_or_it_system(self):
         """
         Check that we have either a cpr-field OR an it-system which maps to an LDAP DN
         """
-        ldap_it_system = await find_ldap_it_system(
-            self.settings, self.mapping, self.mo_it_systems
-        )
-        if not self.cpr_field and not ldap_it_system:
+        if not self.cpr_field and not self.ldap_it_system:
             raise IncorrectMapping(
                 "Neither a cpr-field or an ldap it-system could be found"
             )
 
-    async def check_mapping(self):
+    async def check_mapping(self, mapping: dict[str, Any]) -> None:
+        """Check if the configured mapping is valid.
+
+        Args:
+            mapping: The raw mapping configuration.
+
+        Raises:
+            IncorrectMapping: Raised if the mapping is invalid.
+        """
+
         logger.info("Checking json file")
 
         overview = self.dataloader.load_ldap_overview()
 
         # Check to make sure that all keys are valid
-        self.check_key_validity()
+        await check_key_validity(self.dataloader.graphql_client, mapping)
 
         # check that the LDAP attributes match what is available in LDAP
         self.check_ldap_attributes(overview)
@@ -738,6 +767,9 @@ class LdapConverter:
         #   - DAR does not exist in greenland
         #   - The DAR UUID is not present in LDAP. And LDAP cannot guarantee that an
         #     address is in the same format as DAR expects it to be.
+
+        # TODO: Consider removing this check entirely, if we do not want to sync DAR
+        #       addresses, we can simply not map them in the configuration?
         self.check_dar_scope()
 
         # Check that fields referred to in ldap_to_mo actually exist in LDAP
@@ -747,7 +779,7 @@ class LdapConverter:
         self.check_get_uuid_functions()
 
         # Check to see if there is an existing link between LDAP and MO
-        await self.check_cpr_field_or_it_system()
+        self.check_cpr_field_or_it_system()
 
         logger.info("Attributes OK")
 
