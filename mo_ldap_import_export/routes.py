@@ -144,10 +144,10 @@ def construct_router(user_context: UserContext) -> APIRouter:
         json_key: Literal[accepted_json_keys],  # type: ignore
         cpr: str = Depends(valid_cpr),
     ) -> Any:
-        result = dataloader.load_ldap_cpr_object(
+        results = dataloader.load_ldap_cpr_object(
             cpr, json_key, [settings.ldap_unique_id_field]
         )
-        return encode_result(result)
+        return [encode_result(result) for result in results]
 
     # Get a specific cpr-indexed object from LDAP - Converted to MO
     @router.get("/LDAP/{json_key}/{cpr}/converted", status_code=202, tags=["LDAP"])
@@ -158,13 +158,16 @@ def construct_router(user_context: UserContext) -> APIRouter:
         response: Response,
         cpr: str = Depends(valid_cpr),
     ) -> Any:
-        result = dataloader.load_ldap_cpr_object(cpr, json_key)
+        results = dataloader.load_ldap_cpr_object(cpr, json_key)
         try:
-            return await converter.from_ldap(result, json_key, employee_uuid=uuid4())
+            return [
+                await converter.from_ldap(result, json_key, employee_uuid=uuid4())
+                for result in results
+            ]
         except ValidationError:
             logger.exception(
                 "Cannot convert LDAP object to to MO",
-                ldap_object=result,
+                ldap_objects=results,
                 json_key=json_key,
             )
             response.status_code = (
