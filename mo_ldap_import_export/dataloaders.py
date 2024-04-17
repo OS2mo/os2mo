@@ -70,6 +70,7 @@ from .ldap import make_ldap_object
 from .ldap import paged_search
 from .ldap import single_object_search
 from .ldap_classes import LdapObject
+from .usernames import UserNameGenerator
 from .utils import combine_dn_strings
 from .utils import extract_cn_from_dn
 from .utils import extract_ou_from_dn
@@ -310,6 +311,7 @@ class DataLoader:
             "search_filter": f"(&({object_class_filter})({cpr_filter}))",
             "attributes": list(set(attributes)),
         }
+        # TODO: This seems faulty, there can be more than one object per CPR number
         search_result = single_object_search(searchParameters, self.context)
 
         ldap_object: LdapObject = make_ldap_object(search_result, self.context)
@@ -944,119 +946,211 @@ class DataLoader:
                 "IT-user is not a UUID",
                 user_key=user_key,
             )
-        return {UUID(user_key) for user_key in uuids}
+        return set(map(UUID, uuids))
 
     def extract_unique_dns(self, it_users: list[ITUser]) -> list[str]:
         unique_uuids = self.extract_unique_ldap_uuids(it_users)
         return list(map(self.get_ldap_dn, unique_uuids))
 
-    async def find_or_make_mo_employee_dn(self, uuid: UUID) -> DNList:
+    async def find_mo_employee_dn_by_itsystem(self, uuid: UUID) -> DNList:
+        """Tries to find the LDAP DNs belonging to a MO employee via ITUsers.
+
+        Args:
+            uuid: UUID of the employee to try to find DNs for.
+
+        Returns:
+            A potentially empty list of DNs.
         """
-        Tries to find the LDAP DN belonging to a MO employee UUID. If such a DN does not
-        exist, generates a new one and returns that.
+        # TODO: How do we know if the ITUser is up-to-date with the newest DNs in AD?
 
-        Parameters
-        -------------
-        uuid: UUID
-            UUID of the employee to generate a DN for
+        # The ITSystem only exists if configured to do so
+        raw_it_system_uuid = self.get_ldap_it_system_uuid()
+        # If it does not exist, we cannot fetch users for it
+        if raw_it_system_uuid is None:
+            return []
 
-        Notes
-        --------
-        If a DN could not be found or generated, raises a DNNotFound exception
+        it_system_uuid = UUID(raw_it_system_uuid)
+        it_users = await self.load_mo_employee_it_users(uuid, it_system_uuid)
+        dns = self.extract_unique_dns(it_users)
+        # No DNs, no problem
+        if not dns:
+            return []
+
+        # If we have one or more ITUsers (with valid dns), return those
+        logger.info(
+            "Found DN(s) using ITUser lookup",
+            dns=dns,
+            employee_uuid=uuid,
+        )
+        return dns
+
+    async def find_mo_employee_dn_by_cpr_number(self, uuid: UUID) -> DNList:
+        """Tries to find the LDAP DNs belonging to a MO employee via CPR numbers.
+
+        Args:
+            uuid: UUID of the employee to try to find DNs for.
+
+        Returns:
+            A potentially empty list of DNs.
+        """
+        # If the employee has a cpr-no, try using that to find matchind DNs
+        employee = await self.load_mo_employee(uuid)
+        cpr_no = employee.cpr_no
+        # No CPR, no problem
+        if not cpr_no:
+            return []
+
+        logger.info(
+            "Attempting CPR number lookup",
+            employee_uuid=uuid,
+        )
+        try:
+            # TODO: This should return a list from the search
+            dns = [self.load_ldap_cpr_object(cpr_no, "Employee").dn]
+        except NoObjectsReturnedException:
+            return []
+        logger.info(
+            "Found DN(s) using CPR number lookup",
+            dns=dns,
+            employee_uuid=uuid,
+        )
+        return dns
+
+    async def find_mo_employee_dn(self, uuid: UUID) -> DNList:
+        """Tries to find the LDAP DNs belonging to a MO employee.
+
+        Args:
+            uuid: UUID of the employee to try to find DNs for.
+
+        Returns:
+            A potentially empty list of DNs.
+        """
+        # TODO: This should probably return a list of EntityUUIDs rather than DNs
+        #       However this should probably be a change away from DNs in general
+        logger.info(
+            "Attempting to find DNs",
+            employee_uuid=uuid,
+        )
+        # TODO: We should be able to trust just the ITUsers, however we do not.
+        #       Maybe once the code becomes easier to reason about, we can get to that.
+        #       But for now, we fetch all accounts, and use the discriminator.
+        #
+        # TODO: We may want to expand this in the future to also check for half-created
+        #       objects, to support scenarios where the application may crash after
+        #       creating an LDAP account, but before making a MO ITUser.
+        ituser_dns, cpr_number_dns = await asyncio.gather(
+            self.find_mo_employee_dn_by_itsystem(uuid),
+            self.find_mo_employee_dn_by_cpr_number(uuid),
+        )
+        dns = ituser_dns + cpr_number_dns
+        if dns:
+            return dns
+        logger.warning(
+            "Unable to find DNs for MO employee",
+            employee_uuid=uuid,
+        )
+        return []
+
+    async def find_or_make_mo_employee_dn(self, uuid: UUID) -> DNList:
+        """Finds or creates an LDAP DNs beloning to a MO employee.
+
+        Note:
+            If a DN(s) is found, one will not be created.
+            If a DN(s) is not found, one will be created.
+
+        Args:
+            uuid: UUID of the employee to try to find DNs for.
+
+        Raises:
+            DNNotFound: If no DN(s) was found, and we cannot create one.
+
+        Returns:
+            A potentially empty list of DNs.
         """
         logger.info(
             "Attempting to find DN",
             employee_uuid=uuid,
         )
-        username_generator = self.user_context["username_generator"]
-        raw_it_system_uuid: str | None = self.get_ldap_it_system_uuid()
-        if raw_it_system_uuid is not None:
-            it_system_uuid: UUID = UUID(raw_it_system_uuid)
+        dns = await self.find_mo_employee_dn(uuid)
+        if dns:
+            return dns
 
-        # The LDAP-it-system only exists, if it was configured as such in OS2mo-init.
-        # It is not strictly needed; If we purely rely on cpr-lookup we can live
-        # without it
-        ldap_it_system_exists = True if raw_it_system_uuid else False
-
-        if ldap_it_system_exists:
-            it_users = await self.load_mo_employee_it_users(uuid, it_system_uuid)
-            dns = self.extract_unique_dns(it_users)
-            if dns:
-                # If we have an it-user (with a valid dn), use that dn
-                logger.info(
-                    "Found DN(s) using it-user lookup",
-                    dns=dns,
-                    employee_uuid=uuid,
-                )
-                return dns
-
-        # If the employee has a cpr-no, try using that to find a matching dn
+        raw_it_system_uuid = self.get_ldap_it_system_uuid()
         employee = await self.load_mo_employee(uuid)
         cpr_no = employee.cpr_no
-        if cpr_no:
-            logger.info(
-                "Attempting cpr-lookup",
-                cpr_no=cpr_no,
+
+        # Check if we even dare create a DN
+        if raw_it_system_uuid is None and cpr_no is None:
+            logger.warning(
+                "Could not or generate a DN for employee (cannot correlate)",
                 employee_uuid=uuid,
             )
-            try:
-                dn = self.load_ldap_cpr_object(cpr_no, "Employee").dn
-                logger.info(
-                    "Found DN using cpr-lookup",
-                    dn=dn,
-                    employee_uuid=uuid,
-                    cpr_no=cpr_no,
-                )
-                return [dn]
-            except NoObjectsReturnedException:
-                if not ldap_it_system_exists:
-                    # If the LDAP-it-system is not configured, we can just generate the
-                    # DN and return it. If there is one, we pretty much do the same,
-                    # but also need to store the DN in an it-user object.
-                    # This is done below.
-                    logger.info(
-                        "LDAP it-system not found",
-                        task="Generating DN",
-                        employee_uuid=uuid,
-                    )
-                    dn = await username_generator.generate_dn(employee)
-                    await self.sync_tool.import_single_user(
-                        dn, force=True, manual_import=True
-                    )
-                    await self.sync_tool.refresh_employee(employee.uuid)
-                    return [dn]
+            raise DNNotFound("Unable to generate DN, no correlation key available")
 
-        # If there are no LDAP-it-users with valid dns, we generate a dn and create one.
-        if ldap_it_system_exists and len(dns) == 0:
+        # If we did not find a DN neither via ITUser nor via CPR-number, then we want
+        # to create one, by generating a DN, importing the user and potentially creating
+        # a binding between the two.
+        username_generator: UserNameGenerator = self.user_context["username_generator"]
+
+        logger.info(
+            "Generating DN for user",
+            employee_uuid=uuid,
+        )
+        # NOTE: This not only generates the DN as the name suggests,
+        #       rather it also *creates it in LDAP*, be warned!
+        #
+        #       Additionally it turns out that it does not only create the DN in LDAP
+        #       rather it uploads the entire employee object to LDAP.
+        #
+        # TODO: Does this upload actively require a cpr_no on the employee?
+        #       If we do not have the CPR number nor the ITSystem, we would be leaking
+        #       the DN we generate, so maybe we should guard for this, the old code seemed
+        #       to do so, maybe we should simply not upload anything in that case.
+        dn = await username_generator.generate_dn(employee)
+
+        # If the LDAP ITSystem exists, we want to create a binding to our newly
+        # generated (and created) DN, such that it can be correlated in the future.
+        #
+        # NOTE: This may not be executed if the program crashes after the above line,
+        #       thus the current code is not robust and may fail at any time.
+        #       The appropriate solution here is to ensure that generate_dn atomically
+        #       creates a link between the MO entity and the newly created LDAP entity,
+        #       such as by adding the MO UUID to the newly created LDAP entity.
+        if raw_it_system_uuid is not None:
             logger.info(
-                "No it-user found",
-                task="Generating DN and creating it-user",
+                "No ITUser found, creating one to correlate with DN",
                 employee_uuid=uuid,
+                dn=dn,
             )
-            dn = await username_generator.generate_dn(employee)
-
             # Get its unique ldap uuid
+            # TODO: Get rid of this code and operate on EntityUUIDs thoughout
             unique_uuid = self.get_ldap_unique_ldap_uuid(dn)
-
+            logger.info(
+                "LDAP UUID found for DN",
+                employee_uuid=uuid,
+                dn=dn,
+                ldap_uuid=unique_uuid,
+            )
             # Make a new it-user
             it_user = ITUser.from_simplified_fields(
                 str(unique_uuid),
-                it_system_uuid,
+                UUID(raw_it_system_uuid),
                 datetime.today().strftime("%Y-%m-%d"),
                 person_uuid=uuid,
             )
+            # TODO: Convert this to creating the ITUser directly when the modelclient
+            #       has been replaced with a GraphQL mutator.
             await self.create([it_user])
-            await self.sync_tool.import_single_user(dn, force=True, manual_import=True)
-            await self.sync_tool.refresh_employee(employee.uuid)
-            return [dn]
-        # If the LDAP-it-system is not configured and the user also does not have a cpr-
-        # Number we can end up here.
-        else:
-            raise DNNotFound(
-                f"Could not find or generate DN for empoyee with uuid = '{uuid}' "
-                "The LDAP it-system does not exist and a cpr-match could "
-                "also not be obtained"
-            )
+
+        # TODO: What is this purpose of this import, if we just created the DN,
+        #       the data should already be up-to-date, no?
+        #       It seems weird to synchronize back and forth immediately, but maybe it
+        #       is just because the create by generate_dn does not in fact create it
+        #       correctly?
+        # TODO: Publish this message on the LDAP AMQP exchange
+        await self.sync_tool.import_single_user(dn, force=True, manual_import=True)
+        await self.sync_tool.refresh_employee(employee.uuid)
+        return [dn]
 
     async def find_dn_by_engagement_uuid(
         self,
