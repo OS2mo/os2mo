@@ -239,13 +239,21 @@ class AssociationUpsert(UUIDBase):
     person: UUID | None = Field(description="Employee uuid.")
     # TODO: Remove employee in a future version of GraphQL
     employee: UUID | None = Field(description="Employee uuid.")
+    substitute: UUID | None = Field(description="Substitute uuid.")
+    dynamic_class: list[UUID] | None = Field(description="Dynamic class uuid.")
 
     def to_handler_dict(self) -> dict:
+        if self.dynamic_class is not None:
+            dynamic_classes = list(map(gen_uuid, self.dynamic_class))
+        else:
+            dynamic_classes = None
         return {
             "uuid": self.uuid,
             "user_key": self.user_key,
             "primary": gen_uuid(self.primary),
             "person": gen_uuid(self.person) or gen_uuid(self.employee),
+            "substitute": gen_uuid(self.substitute),
+            "dynamic_classes": dynamic_classes,
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()

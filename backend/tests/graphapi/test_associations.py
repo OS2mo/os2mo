@@ -22,6 +22,7 @@ from .utils import fetch_org_unit_validity
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.models import AssociationCreate
 from mora.graphapi.versions.latest.models import AssociationUpdate
+from mora.util import is_substitute_allowed
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import Validity as RAValidity
 from tests.conftest import GQLResponse
@@ -196,7 +197,7 @@ async def test_create_association(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_create_association_integration_test(
-    data, graphapi_post: GraphAPIPost, org_uuids, employee_uuids
+    data, graphapi_post: GraphAPIPost, org_uuids, employee_uuids, dynamic_class_uuids
 ) -> None:
     """Test that associations can be created in LoRa via GraphQL."""
 
@@ -218,14 +219,23 @@ async def test_create_association_integration_test(
     association_type_uuids = fetch_class_uuids(graphapi_post, "association_type")
     primary_type_uuids = fetch_class_uuids(graphapi_post, "primary_type")
 
+    # Sample 1 uuid, to check if we need a substitute
+    association_type_uuid = data.draw(st.sampled_from(association_type_uuids))
+
     test_data = data.draw(
         st.builds(
             AssociationCreate,
             org_unit=st.just(org_uuid),
             person=st.none(),
             employee=st.sampled_from(employee_uuids),
-            association_type=st.sampled_from(association_type_uuids),
+            association_type=st.just(association_type_uuid),
             primary=st.sampled_from(primary_type_uuids),
+            substitute=(
+                st.sampled_from(employee_uuids)
+                if is_substitute_allowed(association_type_uuid)
+                else st.none()
+            ),
+            dynamic_class=st.just(dynamic_class_uuids),
             validity=st.builds(
                 RAValidity,
                 from_date=st.just(test_data_validity_start),
@@ -255,6 +265,8 @@ async def test_create_association_integration_test(
                         employee: employee_uuid
                         association_type: association_type_uuid
                         primary: primary_uuid
+                        substitute: substitute_uuid
+                        dynamic_class: dynamic_class_uuid
                         validity {
                             from
                             to
@@ -267,11 +279,17 @@ async def test_create_association_integration_test(
     response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
     obj = one(one(response.data["associations"]["objects"])["objects"])
+
     assert obj["user_key"] == test_data.user_key or str(uuid)
     assert UUID(obj["org_unit"]) == test_data.org_unit
     assert UUID(obj["employee"]) == test_data.employee
     assert UUID(obj["association_type"]) == test_data.association_type
     assert UUID(obj["primary"]) == test_data.primary
+    if obj["substitute"]:
+        assert UUID(obj["substitute"]) == test_data.substitute
+    else:
+        assert obj["substitute"] == test_data.substitute
+    assert [UUID(obj["dynamic_class"])] == test_data.dynamic_class
     assert (
         datetime.fromisoformat(obj["validity"]["from"]).date()
         == test_data.validity.from_date.date()
@@ -302,6 +320,8 @@ async def test_create_association_integration_test(
             "employee": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
             "association_type": "62ec821f-4179-4758-bfdf-134529d186e9",
             "primary": None,
+            "substitute": None,
+            # "dynamic_class": Added from fixture in the test,
             "validity": {"to": None, "from": "2017-01-01T00:00:00+01:00"},
         },
         {
@@ -311,6 +331,8 @@ async def test_create_association_integration_test(
             "employee": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
             "association_type": "ef71fe9c-7901-48e2-86d8-84116e210202",
             "primary": "89b6cef8-3d03-49ac-816f-f7530b383411",
+            "substitute": None,
+            # "dynamic_class": Added from fixture in the test,
             "validity": {"to": None, "from": "2017-01-01T00:00:00+01:00"},
         },
         {
@@ -320,6 +342,8 @@ async def test_create_association_integration_test(
             "employee": None,
             "association_type": "d9387db2-4271-4497-a2ef-50edd6b068b1",
             "primary": "89b6cef8-3d03-49ac-816f-f7530b383411",
+            "substitute": None,
+            # "dynamic_class": Added from fixture in the test,
             "validity": {"to": None, "from": "2017-01-12T00:00:00+01:00"},
         },
         {
@@ -329,6 +353,8 @@ async def test_create_association_integration_test(
             "employee": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
             "association_type": "8eea787c-c2c7-46ca-bd84-2dd50f47801e",
             "primary": "2f16d140-d743-4c9f-9e0e-361da91a06f6",
+            "substitute": None,
+            # "dynamic_class": Added from fixture in the test,
             "validity": {
                 "to": "2025-10-02T00:00:00+02:00",
                 "from": "2017-01-01T00:00:00+01:00",
@@ -337,7 +363,7 @@ async def test_create_association_integration_test(
     ],
 )
 async def test_update_association_integration_test(
-    graphapi_post: GraphAPIPost, test_data
+    graphapi_post: GraphAPIPost, test_data, dynamic_class_uuids
 ) -> None:
     async def query_data(uuid: str) -> GQLResponse:
         query = """
@@ -352,6 +378,8 @@ async def test_update_association_integration_test(
                             employee: employee_uuid
                             association_type: association_type_uuid
                             primary: primary_uuid
+                            substitute: substitute_uuid
+                            dynamic_class: dynamic_class_uuid
                             validity {
                                 to
                                 from
@@ -365,6 +393,9 @@ async def test_update_association_integration_test(
         response = graphapi_post(query=query, variables={"uuid": uuid})
 
         return response
+
+    # Add dynamic_class UUID from fixture `dynamic_class_uuids`
+    test_data["dynamic_class"] = str(dynamic_class_uuids[0])
 
     prior_data = await query_data(test_data["uuid"])
 
@@ -394,6 +425,8 @@ async def test_update_association_integration_test(
                         employee: employee_uuid
                         association_type: association_type_uuid
                         primary: primary_uuid
+                        substitute: substitute_uuid
+                        dynamic_class: dynamic_class_uuid
                         validity {
                             to
                             from
