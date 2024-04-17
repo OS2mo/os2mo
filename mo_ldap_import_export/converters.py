@@ -350,7 +350,7 @@ async def check_key_validity(
     mo_to_ldap_json_keys = set(mapping["mo_to_ldap"].keys())
     ldap_to_mo_json_keys = set(mapping["ldap_to_mo"].keys())
 
-    json_keys = mo_to_ldap_json_keys & ldap_to_mo_json_keys
+    json_keys = mo_to_ldap_json_keys | ldap_to_mo_json_keys
     accepted_json_keys = await get_accepted_json_keys(graphql_client)
 
     logger.info(
