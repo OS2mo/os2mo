@@ -328,7 +328,6 @@ class LdapConverter:
 
     async def _init(self):
         await self.load_info_dicts()
-        self.overview = self.dataloader.load_ldap_overview()
 
         mapping = delete_keys_from_dict(
             self.raw_mapping,
@@ -502,7 +501,7 @@ class LdapConverter:
         """
         return re.sub(r"get_current[^)]*\)", "", template_string)
 
-    def check_ldap_attributes(self):
+    def check_ldap_attributes(self, overview):
         mo_to_ldap_json_keys = self.get_mo_to_ldap_json_keys()
 
         for json_key in mo_to_ldap_json_keys:
@@ -510,7 +509,7 @@ class LdapConverter:
 
             object_class = self.find_ldap_object_class(json_key)
 
-            accepted_attributes = list(self.overview[object_class]["attributes"].keys())
+            accepted_attributes = list(overview[object_class]["attributes"].keys())
             detected_attributes = self.get_ldap_attributes(json_key, remove_dn=False)
 
             self.check_attributes(detected_attributes, accepted_attributes + ["dn"])
@@ -640,7 +639,7 @@ class LdapConverter:
                         f"'{json_key}' maps to an address with scope = 'DAR'"
                     )
 
-    def check_ldap_to_mo_references(self):
+    def check_ldap_to_mo_references(self, overview):
         # https://ff1959.wordpress.com/2012/03/04/characters-that-are-permitted-in-
         # attribute-names-descriptors/
         # The only characters that are permitted in attribute names are ALPHA, DIGIT,
@@ -653,7 +652,7 @@ class LdapConverter:
         for json_key in self.get_ldap_to_mo_json_keys():
             object_class = self.find_ldap_object_class(json_key)
             accepted_attributes = sorted(
-                list(self.overview[object_class]["attributes"].keys()) + ["dn"]
+                list(overview[object_class]["attributes"].keys()) + ["dn"]
             )
             for value in raw_mapping[json_key].values():
                 if not isinstance(value, str):
@@ -723,11 +722,13 @@ class LdapConverter:
     async def check_mapping(self):
         logger.info("Checking json file")
 
+        overview = self.dataloader.load_ldap_overview()
+
         # Check to make sure that all keys are valid
         self.check_key_validity()
 
         # check that the LDAP attributes match what is available in LDAP
-        self.check_ldap_attributes()
+        self.check_ldap_attributes(overview)
 
         # Check that keys which map to ramodels.mo.details.address.Address have scope
         # Which is NOT equal to 'DAR'. DAR fields can still be present in MO. They can
@@ -740,7 +741,7 @@ class LdapConverter:
         self.check_dar_scope()
 
         # Check that fields referred to in ldap_to_mo actually exist in LDAP
-        self.check_ldap_to_mo_references()
+        self.check_ldap_to_mo_references(overview)
 
         # Check that get_..._uuid functions have valid input strings
         self.check_get_uuid_functions()
