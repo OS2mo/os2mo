@@ -643,25 +643,6 @@ class LdapConverter:
                             f"{matching_multi_value_attributes}, which is not allowed"
                         )
 
-    def check_dar_scope(self):
-        logger.info("Checking DAR scope")
-        ldap_to_mo_json_keys = self.get_ldap_to_mo_json_keys()
-
-        for json_key in ldap_to_mo_json_keys:
-            mo_class = self.find_mo_object_class(json_key)
-            if ".Address" in mo_class:
-                try:
-                    info_dict = self.employee_address_type_info
-                    uuid = self.get_object_uuid_from_user_key(info_dict, json_key)
-                except UUIDNotFoundException:
-                    info_dict = self.org_unit_address_type_info
-                    uuid = self.get_object_uuid_from_user_key(info_dict, json_key)
-
-                if info_dict[uuid]["scope"] == "DAR":
-                    raise IncorrectMapping(
-                        f"'{json_key}' maps to an address with scope = 'DAR'"
-                    )
-
     def check_ldap_to_mo_references(self, overview):
         # https://ff1959.wordpress.com/2012/03/04/characters-that-are-permitted-in-
         # attribute-names-descriptors/
@@ -686,49 +667,6 @@ class LdapConverter:
                     for ldap_ref in ldap_refs:
                         ldap_attribute = re.split(invalid_chars_regex, ldap_ref)[0]
                         self.check_attributes([ldap_attribute], accepted_attributes)
-
-    def check_get_uuid_functions(self):
-        # List of all 'get_uuid' functions. For example "get_it_system_uuid("
-        get_uuid_function_strings = [
-            f + "("
-            for f in dir(self)
-            if f.startswith("get_") and f.endswith("_uuid") and "create" not in f
-        ]
-
-        # List all user keys from the different info-dicts
-        all_user_keys = []
-        for info_dict in self.all_info_dicts.values():
-            user_keys = [v["user_key"] for v in info_dict.values()]
-            all_user_keys.extend(user_keys)
-
-        # Check ldap_to_mo mapping only. in mo_to_ldap mapping we do not need 'get_uuid'
-        # functions because we can just extract the uuid from a mo object directly.
-        for json_key in self.get_json_keys("ldap_to_mo"):
-            for mo_attribute, template in self.raw_mapping["ldap_to_mo"][
-                json_key
-            ].items():
-                if not isinstance(template, str):
-                    continue
-                for get_uuid_function_string in get_uuid_function_strings:
-                    # If we are using a 'get_uuid' function in this template:
-                    if get_uuid_function_string in template:
-                        argument = template.split(get_uuid_function_string)[1].split(
-                            ")"
-                        )[0]
-
-                        # And if the argument is a hard-coded string:
-                        if argument.startswith("'") and argument.endswith("'"):
-                            logger.info("Checking template", template=template)
-
-                            # Check if the argument is a valid user_key
-                            user_key = argument.replace("'", "")
-                            if user_key not in all_user_keys:
-                                raise IncorrectMapping(
-                                    f"'{user_key}' not found in any info dict. "
-                                    "Please check "
-                                    f"ldap_to_mo['{json_key}']['{mo_attribute}']"
-                                    f"={template}"
-                                )
 
     def check_cpr_field_or_it_system(self):
         """
@@ -759,24 +697,8 @@ class LdapConverter:
         # check that the LDAP attributes match what is available in LDAP
         self.check_ldap_attributes(overview)
 
-        # Check that keys which map to ramodels.mo.details.address.Address have scope
-        # Which is NOT equal to 'DAR'. DAR fields can still be present in MO. They can
-        # just not be synchronized by this app.
-
-        # DAR adresses are not accepted for two reasons:
-        #   - DAR does not exist in greenland
-        #   - The DAR UUID is not present in LDAP. And LDAP cannot guarantee that an
-        #     address is in the same format as DAR expects it to be.
-
-        # TODO: Consider removing this check entirely, if we do not want to sync DAR
-        #       addresses, we can simply not map them in the configuration?
-        self.check_dar_scope()
-
         # Check that fields referred to in ldap_to_mo actually exist in LDAP
         self.check_ldap_to_mo_references(overview)
-
-        # Check that get_..._uuid functions have valid input strings
-        self.check_get_uuid_functions()
 
         # Check to see if there is an existing link between LDAP and MO
         self.check_cpr_field_or_it_system()
