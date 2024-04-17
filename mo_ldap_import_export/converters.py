@@ -437,15 +437,6 @@ class LdapConverter:
 
         self.org_unit_info = await self.dataloader.load_mo_org_units()
 
-        mo_employee_address_types = [
-            a["user_key"] for a in self.employee_address_type_info.values()
-        ]
-        mo_org_unit_address_types = [
-            a["user_key"] for a in self.org_unit_address_type_info.values()
-        ]
-        self.mo_address_types = list(
-            set(mo_employee_address_types + mo_org_unit_address_types)
-        )
         self.mo_it_systems = [a["user_key"] for a in self.it_system_info.values()]
 
         self.all_info_dicts = {
@@ -550,8 +541,19 @@ class LdapConverter:
         """
         return re.sub(r"get_current[^)]*\)", "", template_string)
 
-    def check_ldap_attributes(self, overview):
+    async def check_ldap_attributes(
+        self, overview, graphql_client: GraphQLClient
+    ) -> None:
         mo_to_ldap_json_keys = self.get_mo_to_ldap_json_keys()
+
+        address_results = await graphql_client.read_class_user_keys(
+            ["employee_address_type", "org_unit_address_type"]
+        )
+        mo_address_type_user_keys = {
+            result.current.user_key
+            for result in address_results.objects
+            if result.current
+        }
 
         for json_key in mo_to_ldap_json_keys:
             logger.info("Checking mo_to_ldap JSON key", key=json_key)
@@ -591,7 +593,7 @@ class LdapConverter:
                 return fields_with_ldap_reference
 
             fields_to_check = []
-            if json_key in self.mo_address_types:
+            if json_key in mo_address_type_user_keys:
                 fields_to_check = filter_fields_to_check(["mo_employee_address.value"])
             elif json_key in self.mo_it_systems:
                 fields_to_check = filter_fields_to_check(
@@ -721,7 +723,7 @@ class LdapConverter:
         await check_key_validity(self.dataloader.graphql_client, mapping)
 
         # check that the LDAP attributes match what is available in LDAP
-        self.check_ldap_attributes(overview)
+        await self.check_ldap_attributes(overview, self.dataloader.graphql_client)
 
         # Check that fields referred to in ldap_to_mo actually exist in LDAP
         self.check_ldap_to_mo_references(overview)

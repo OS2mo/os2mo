@@ -820,7 +820,7 @@ async def test_check_for_primary_specialcase():
 
 
 async def test_check_ldap_attributes_single_value_fields(converter: LdapConverter):
-    dataloader = MagicMock()
+    dataloader = AsyncMock()
     dataloader.load_ldap_overview.return_value = {
         "user": {"attributes": ["attr1", "attr2", "attr3", "attr4"]}
     }
@@ -857,7 +857,6 @@ async def test_check_ldap_attributes_single_value_fields(converter: LdapConverte
     }
     converter.raw_mapping = mapping.copy()
     converter.mapping = mapping.copy()
-    converter.mo_address_types = ["Address"]
     converter.mo_it_systems = ["AD"]
 
     with patch(
@@ -880,10 +879,11 @@ async def test_check_ldap_attributes_single_value_fields(converter: LdapConverte
             }
             converter.dataloader = dataloader
 
-            converter.check_ldap_attributes(overview)
+            graphql_client = converter.dataloader.graphql_client
+            await converter.check_ldap_attributes(overview, graphql_client)
 
             warnings = [w for w in cap_logs if w["log_level"] == "warning"]
-            assert len(warnings) == 6
+            assert len(warnings) == 5
             for warning in warnings:
                 assert re.match(
                     ".*LDAP attribute cannot contain multiple values.*",
@@ -899,7 +899,8 @@ async def test_check_ldap_attributes_single_value_fields(converter: LdapConverte
             }
             converter.dataloader = dataloader
 
-            converter.check_ldap_attributes(overview)
+            graphql_client = converter.dataloader.graphql_client
+            await converter.check_ldap_attributes(overview, graphql_client)
 
         with pytest.raises(IncorrectMapping, match="Could not find all attributes"):
             mapping = {
@@ -922,7 +923,8 @@ async def test_check_ldap_attributes_single_value_fields(converter: LdapConverte
             }
             converter.raw_mapping = mapping.copy()
             converter.mapping = mapping.copy()
-            converter.check_ldap_attributes(overview)
+            graphql_client = converter.dataloader.graphql_client
+            await converter.check_ldap_attributes(overview, graphql_client)
 
 
 async def test_check_ldap_attributes_engagement_requires_single_value_fields(
@@ -936,7 +938,7 @@ async def test_check_ldap_attributes_engagement_requires_single_value_fields(
     # Much of this is copied from `test_check_ldap_attributes_single_value_fields`.
 
     # Arrange
-    dataloader = MagicMock()
+    dataloader = AsyncMock()
     dataloader.load_ldap_overview.return_value = {
         "user": {"attributes": ["attr1", "attr2", "attr3", "attr4"]}
     }
@@ -990,11 +992,12 @@ async def test_check_ldap_attributes_engagement_requires_single_value_fields(
             }
             converter.dataloader = dataloader
             # Act
-            converter.check_ldap_attributes(overview)
+            graphql_client = converter.dataloader.graphql_client
+            await converter.check_ldap_attributes(overview, graphql_client)
 
 
 async def test_check_ldap_attributes_fields_to_check(converter: LdapConverter):
-    dataloader = MagicMock()
+    dataloader = AsyncMock()
     dataloader.load_ldap_overview.return_value = {
         "user": {"attributes": ["attr1", "attr2", "attr3", "attr4"]}
     }
@@ -1043,7 +1046,8 @@ async def test_check_ldap_attributes_fields_to_check(converter: LdapConverter):
             }
             converter.raw_mapping = mapping.copy()
             converter.mapping = mapping.copy()
-            converter.check_ldap_attributes(overview)
+            graphql_client = converter.dataloader.graphql_client
+            await converter.check_ldap_attributes(overview, graphql_client)
 
         # This mapping is OK. mo_employee_engagement.org_unit.uuid no longer needs to be
         # in the mo_to_ldap templates. Because the value does not come from LDAP in the
@@ -1069,7 +1073,8 @@ async def test_check_ldap_attributes_fields_to_check(converter: LdapConverter):
         }
         converter.raw_mapping = mapping.copy()
         converter.mapping = mapping.copy()
-        converter.check_ldap_attributes(overview)
+        graphql_client = converter.dataloader.graphql_client
+        await converter.check_ldap_attributes(overview, graphql_client)
 
 
 async def test_get_address_type_uuid(converter: LdapConverter):
