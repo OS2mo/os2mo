@@ -102,6 +102,9 @@ get_org_unit_type_uuid = partial(_get_facet_class_uuid, facet_user_key="org_unit
 get_org_unit_level_uuid = partial(
     _get_facet_class_uuid, facet_user_key="org_unit_level"
 )
+get_job_function_uuid = partial(
+    _get_facet_class_uuid, facet_user_key="engagement_job_function"
+)
 
 
 async def get_engagement_type_name(graphql_client: GraphQLClient, uuid: str) -> str:
@@ -110,6 +113,14 @@ async def get_engagement_type_name(graphql_client: GraphQLClient, uuid: str) -> 
     if engagement_type.current is None:
         raise NoObjectsReturnedException(f"engagement_type not active, uuid: {uuid}")
     return engagement_type.current.name
+
+
+async def get_job_function_name(graphql_client: GraphQLClient, uuid: str) -> str:
+    result = await graphql_client.read_class_name_by_class_uuid(UUID(uuid))
+    job_function = one(result.objects)
+    if job_function.current is None:
+        raise NoObjectsReturnedException(f"job_function not active, uuid: {uuid}")
+    return job_function.current.name
 
 
 def make_dn_from_org_unit_path(
@@ -238,6 +249,23 @@ async def get_or_create_engagement_type_uuid(
         )
     except UUIDNotFoundException:
         uuid = await dataloader.create_mo_engagement_type(engagement_type)
+        return str(uuid)
+
+
+async def get_or_create_job_function_uuid(
+    dataloader: DataLoader, job_function: str, default: str | None = None
+) -> str:
+    if not job_function:
+        if default is None:
+            raise UUIDNotFoundException("job_function is empty")
+
+        logger.info("job_function is empty, using provided default", default=default)
+        job_function = default
+
+    try:
+        return await get_job_function_uuid(dataloader.graphql_client, job_function)
+    except UUIDNotFoundException:
+        uuid = await dataloader.create_mo_job_function(job_function)
         return str(uuid)
 
 
@@ -408,8 +436,6 @@ class LdapConverter:
         self.it_system_info = await self.dataloader.load_mo_it_systems()
 
         self.org_unit_info = await self.dataloader.load_mo_org_units()
-
-        self.job_function_info = await self.dataloader.load_mo_job_functions()
 
         mo_employee_address_types = [
             a["user_key"] for a in self.employee_address_type_info.values()
@@ -792,9 +818,6 @@ class LdapConverter:
     def get_object_uuid_from_user_key(self, info_dict: dict, user_key: str) -> str:
         return self.get_object_uuid_from_info_dict(info_dict, "user_key", user_key)
 
-    def get_object_uuid_from_name(self, info_dict: dict, name: str) -> str:
-        return self.get_object_uuid_from_info_dict(info_dict, "name", name)
-
     def get_employee_address_type_uuid(self, address_type: str) -> str:
         return self.get_object_uuid_from_user_key(
             self.employee_address_type_info, address_type
@@ -808,31 +831,6 @@ class LdapConverter:
     def get_it_system_uuid(self, it_system: str) -> str:
         return self.get_object_uuid_from_user_key(self.it_system_info, it_system)
 
-    def get_job_function_uuid(self, job_function: str) -> str:
-        return self.get_object_uuid_from_name(self.job_function_info, job_function)
-
-    async def get_or_create_job_function_uuid(
-        self,
-        job_function: str,
-        default: str | None = None,
-    ) -> str:
-        if not job_function:
-            if default is None:
-                raise UUIDNotFoundException("job_function is empty")
-            else:
-                logger.info(
-                    "job_function is empty, using provided default",
-                    default=default,
-                )
-                job_function = default
-        try:
-            return self.get_job_function_uuid(job_function)
-        except UUIDNotFoundException:
-            uuid = await self.dataloader.create_mo_job_function(job_function)
-            self.job_function_info = await self.dataloader.load_mo_job_functions()
-            self.check_info_dicts()
-            return str(uuid)
-
     async def get_employee_address_type_user_key(self, uuid: str) -> str:
         return await self.get_object_user_key_from_uuid(
             "employee_address_type_info", uuid
@@ -845,9 +843,6 @@ class LdapConverter:
 
     async def get_it_system_user_key(self, uuid: str) -> str:
         return await self.get_object_user_key_from_uuid("it_system_info", uuid)
-
-    async def get_job_function_name(self, uuid: str) -> str:
-        return await self.get_object_name_from_uuid("job_function_info", uuid)
 
     async def get_org_unit_name(self, uuid: str) -> str:
         return await self.get_object_name_from_uuid("org_unit_info", uuid)
@@ -1035,7 +1030,9 @@ class LdapConverter:
             "get_it_system_uuid": self.get_it_system_uuid,
             "get_or_create_org_unit_uuid": self.get_or_create_org_unit_uuid,
             "org_unit_path_string_from_dn": self.org_unit_path_string_from_dn,
-            "get_job_function_uuid": self.get_job_function_uuid,
+            "get_job_function_uuid": partial(
+                get_job_function_uuid, self.dataloader.graphql_client
+            ),
             "get_visibility_uuid": partial(
                 get_visibility_uuid, self.dataloader.graphql_client
             ),
@@ -1053,9 +1050,13 @@ class LdapConverter:
             "make_dn_from_org_unit_path": partial(
                 make_dn_from_org_unit_path, self.settings
             ),
-            "get_job_function_name": self.get_job_function_name,
+            "get_job_function_name": partial(
+                get_job_function_name, self.dataloader.graphql_client
+            ),
             "get_org_unit_name": self.get_org_unit_name,
-            "get_or_create_job_function_uuid": self.get_or_create_job_function_uuid,
+            "get_or_create_job_function_uuid": partial(
+                get_or_create_job_function_uuid, self.dataloader
+            ),
             "get_or_create_engagement_type_uuid": partial(
                 get_or_create_engagement_type_uuid, self.dataloader
             ),

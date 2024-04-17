@@ -607,7 +607,6 @@ async def test_get_populated_overview(dataloader: DataLoader):
     [
         ["load_mo_employee_address_types", "employee_address_type"],
         ["load_mo_org_unit_address_types", "org_unit_address_type"],
-        ["load_mo_job_functions", "engagement_job_function"],
     ],
 )
 async def test_load_mo_address_types(
