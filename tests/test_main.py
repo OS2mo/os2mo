@@ -53,6 +53,15 @@ from mo_ldap_import_export.usernames import get_username_generator_class
 from mo_ldap_import_export.usernames import UserNameGeneratorBase
 
 
+@pytest.fixture(scope="session")
+def event_loop():
+    """Overrides pytest default function scoped event loop"""
+    policy = asyncio.get_event_loop_policy()
+    loop = policy.new_event_loop()
+    yield loop
+    loop.close()
+
+
 @pytest.fixture(scope="module")
 def settings_overrides() -> Iterator[dict[str, str]]:
     """Fixture to construct dictionary of minimal overrides for valid settings.
@@ -316,8 +325,8 @@ def test_client(app: FastAPI) -> Iterator[TestClient]:
     yield TestClient(app)
 
 
-# Note: The modules patched by this test are used by all other tests
-def test_create_fastramqpi(patch_modules: None) -> None:
+@pytest.fixture(autouse=True, scope="module")
+def always_create_fastramqpi(patch_modules: None) -> None:
     """Test that we can construct our FastRAMQPI system."""
     fastramqpi = create_fastramqpi()
     assert isinstance(fastramqpi, FastRAMQPI)
@@ -329,8 +338,8 @@ def test_create_app() -> None:
     assert isinstance(app, FastAPI)
 
 
-# Note: The module which is initialized by this test is also used by all other tests
-async def test_initialize_sync_tool(
+@pytest.fixture(autouse=True, scope="module")
+async def always_initialize_sync_tool(
     fastramqpi: FastRAMQPI, sync_tool: AsyncMock
 ) -> None:
     user_context = fastramqpi.get_context()["user_context"]
@@ -341,8 +350,8 @@ async def test_initialize_sync_tool(
             assert user_context.get("sync_tool") is not None
 
 
-# Note: The module which is initialized by this test is also used by all other tests
-async def test_initialize_ldap_listener(fastramqpi: FastRAMQPI) -> None:
+@pytest.fixture(autouse=True, scope="module")
+async def always_initialize_ldap_listener(fastramqpi: FastRAMQPI) -> None:
     user_context = fastramqpi.get_context()["user_context"]
     assert user_context.get("pollers") is None
 
@@ -352,8 +361,8 @@ async def test_initialize_ldap_listener(fastramqpi: FastRAMQPI) -> None:
         assert user_context.get("pollers") is not None
 
 
-# Note: The module which is initialized by this test is also used by all other tests
-async def test_initialize_checks(fastramqpi: FastRAMQPI) -> None:
+@pytest.fixture(autouse=True, scope="module")
+async def always_initialize_checks(fastramqpi: FastRAMQPI) -> None:
     user_context = fastramqpi.get_context()["user_context"]
     assert user_context.get("export_checks") is None
     assert user_context.get("import_checks") is None
@@ -365,8 +374,8 @@ async def test_initialize_checks(fastramqpi: FastRAMQPI) -> None:
                 assert user_context.get("import_checks") is not None
 
 
-# Note: The module which is initialized by this test is also used by all other tests
-async def test_initialize_converter(
+@pytest.fixture(autouse=True, scope="module")
+async def always_initialize_converter(
     fastramqpi: FastRAMQPI, converter: MagicMock
 ) -> None:
     user_context = fastramqpi.get_context()["user_context"]
@@ -381,7 +390,8 @@ async def test_initialize_converter(
             assert user_context.get("cpr_field") == "EmployeeID"
 
 
-async def test_initialize_init_engine(fastramqpi: FastRAMQPI) -> None:
+@pytest.fixture(autouse=True, scope="module")
+async def always_initialize_init_engine(fastramqpi: FastRAMQPI) -> None:
     user_context = fastramqpi.get_context()["user_context"]
     assert user_context.get("init_engine") is None
 
