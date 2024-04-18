@@ -195,6 +195,7 @@ def dataloader(
     load_ldap_cpr_object.return_value = test_ldap_object
 
     dataloader = AsyncMock()
+    dataloader.get_ldap_dn = MagicMock()
     dataloader.load_ldap_object = sync_dataloader
     dataloader.load_ldap_populated_overview = sync_dataloader
     dataloader.load_ldap_OUs = sync_dataloader
