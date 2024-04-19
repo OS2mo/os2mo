@@ -980,3 +980,14 @@ def get_date_interval(
             )
         to_date = from_date + timedelta(milliseconds=1)
     return _get_open_validity(from_date, to_date)
+
+
+def get_sqlalchemy_date_interval(
+    from_date: datetime | None = UNSET, to_date: datetime | None = UNSET
+) -> tuple[datetime, datetime]:
+    """Get the date interval for SQLAlchemy where-clauses to support bitemporal lookups."""
+    dates = get_date_interval(from_date, to_date)
+    return (
+        dates.from_date or datetime.min,
+        dates.to_date or datetime.max,
+    )
