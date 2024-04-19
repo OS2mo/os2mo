@@ -47,7 +47,11 @@ nav:
       - moaas/implementeringsguide.md
   - Teknisk dokumentation:
       # - Understanding bitemporality: TODO
+      - tech-docs/architecture.md
+      - tech-docs/audit-log.md
       - tech-docs/development.md
+      - tech-docs/events.md
+      - tech-docs/facets.md
       - GraphQL / API:
           - tech-docs/graphql/intro.md
           - tech-docs/graphql/reads.md
@@ -58,9 +62,6 @@ nav:
           - tech-docs/iam/rbac.md
           - tech-docs/iam/adfs-setup.md
           - tech-docs/iam/adfs-rbac-setup.md
-      - tech-docs/events.md
-      - tech-docs/facets.md
-      - tech-docs/audit-log.md
       # - tech-docs/integration-best-practice.md: TODO
       - Legacy:
         - tech-docs/legacy/lora-objects.md
