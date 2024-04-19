@@ -77,7 +77,7 @@ def setup_graphql(
         # TODO: Add deprecation header as per the decision log (link/successor)
         router.include_router(
             prefix=f"/v{version.version}",
-            router=version.get_router(is_latest=version is newest),
+            router=version.get_router(newest_version=newest.version),
         )
 
     # Deprecated routers. This works as a fallback for all inactive version numbers,

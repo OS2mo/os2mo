@@ -1,12 +1,21 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
 from typing import Any
 
 from fastapi import Request
 from starlette.responses import HTMLResponse
 from strawberry.fastapi import GraphQLRouter
+from strawberry.http import GraphQLHTTPResponse
+from strawberry.types import ExecutionResult
+from structlog import get_logger
 
+from mora.auth.middleware import get_authenticated_user
 from mora.config import get_settings
+
+
+logger = get_logger()
+
 
 AUTH_SCRIPT = """
 <script src="https://unpkg.com/keycloak-js@20.0.2/dist/keycloak.min.js"></script>
@@ -71,9 +80,19 @@ DEPRECATION_NOTICE = """
 class CustomGraphQLRouter(GraphQLRouter):
     """Custom GraphQL router to inject HTML into the GraphiQL interface."""
 
-    def __init__(self, is_latest: bool, *args: Any, **kwargs: Any):
+    def __init__(self, version_difference: int, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
-        self.is_latest = is_latest
+        self.version_difference = version_difference
+
+    async def process_result(
+        self, request: Request, result: ExecutionResult
+    ) -> GraphQLHTTPResponse:
+        if self.version_difference != 0:
+            actor = get_authenticated_user()
+            sleep_time = 0.1 * self.version_difference
+            logger.info("Deprecation sleep", amount=sleep_time, actor=actor)
+            await asyncio.sleep(sleep_time)
+        return await super().process_result(request, result)
 
     async def render_graphql_ide(self, request: Request) -> HTMLResponse:
         assert self.graphql_ide == "graphiql"  # type: ignore[attr-defined]
@@ -81,7 +100,7 @@ class CustomGraphQLRouter(GraphQLRouter):
 
         # Show deprecation notice at the top of the page if accessing an old version
         # of GraphQL.
-        if not self.is_latest:
+        if self.version_difference != 0:
             html = html.replace("<body>", f"<body>{DEPRECATION_NOTICE}")
 
         # Inject script for authentication if auth is enabled. The script is added just
