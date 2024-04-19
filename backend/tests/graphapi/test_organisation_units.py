@@ -13,6 +13,7 @@ from hypothesis import HealthCheck
 from hypothesis import settings
 from hypothesis import strategies as st
 from more_itertools import one
+from strawberry import UNSET
 
 from ..conftest import GraphAPIPost
 from .utils import fetch_class_uuids
@@ -599,3 +600,87 @@ async def test_empty_user_key(graphapi_post: GraphAPIPost):
     response = graphapi_post(query=graphql_mutation)
     assert response.errors is None
     assert response.data["org_unit_create"]["current"]["user_key"] == ""
+
+
+@pytest.mark.xfail  # TODO: Xfailed until the feature is implemented
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_parent_changes(graphapi_post: GraphAPIPost) -> None:
+    """Test that we can change, noop and clear parent."""
+
+    def read_parent(uuid: UUID) -> UUID | None:
+        read_query = """
+        query ReadOrgUnitParent($uuid: UUID!) {
+          org_units(filter: {uuids: [$uuid]}) {
+            objects {
+              current {
+                parent_uuid
+              }
+            }
+          }
+        }
+        """
+        response = graphapi_post(query=read_query, variables={"uuid": str(uuid)})
+        assert response.errors is None
+        assert response.data is not None
+        parent_uuid = one(response.data["org_units"]["objects"])["current"][
+            "parent_uuid"
+        ]
+        if parent_uuid is None:
+            return None
+        return UUID(parent_uuid)
+
+    def set_parent(uuid: UUID, parent_uuid: UUID | None) -> None:
+        write_query = """
+        mutation MyMutation($input: OrganisationUnitUpdateInput!) {
+          org_unit_update(input: $input) {
+            uuid
+          }
+        }
+        """
+        payload = {"uuid": str(uuid), "validity": {"from": "2020-01-01"}}
+        if parent_uuid is not UNSET:
+            payload["parent"] = str(parent_uuid) if parent_uuid else None
+        response = graphapi_post(query=write_query, variables={"input": payload})
+        assert response.errors is None
+        assert response.data is not None
+        assert UUID(response.data["org_unit_update"]["uuid"]) == uuid
+
+    uuid = UUID("dad7d0ad-c7a9-4a94-969d-464337e31fec")
+    fixture_parent_uuid = UUID("2874e1dc-85e6-4269-823a-e1125484dfd3")
+
+    # Assert fixture state
+    parent_uuid = read_parent(uuid)
+    assert parent_uuid == fixture_parent_uuid
+
+    # If parent is set, setting to UUID should set it
+    set_parent(uuid, fixture_parent_uuid)
+    parent_uuid = read_parent(uuid)
+    assert parent_uuid == fixture_parent_uuid
+
+    # If parent is set, setting to UNSET should do nothing
+    set_parent(uuid, UNSET)
+    parent_uuid = read_parent(uuid)
+    assert parent_uuid == fixture_parent_uuid
+
+    # If parent is set, setting to NONE should clear it
+    set_parent(uuid, None)
+    parent_uuid = read_parent(uuid)
+    assert parent_uuid is None
+
+    # At this point parent is cleared
+
+    # If parent is clear, setting to NONE should clear it
+    set_parent(uuid, None)
+    parent_uuid = read_parent(uuid)
+    assert parent_uuid is None
+
+    # If parent is clear, setting to UNSET should do nothing
+    set_parent(uuid, UNSET)
+    parent_uuid = read_parent(uuid)
+    assert parent_uuid is None
+
+    # If parent is clear, setting to UUID should set it
+    set_parent(uuid, fixture_parent_uuid)
+    parent_uuid = read_parent(uuid)
+    assert parent_uuid == fixture_parent_uuid
