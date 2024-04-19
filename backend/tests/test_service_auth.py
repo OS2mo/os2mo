@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from uuid import UUID
 
-import more_itertools
 import pytest
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
@@ -18,7 +17,6 @@ from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import auth
 from mora.config import Settings
-from mora.graphapi.main import graphql_versions
 from tests import util
 
 
@@ -94,7 +92,7 @@ def no_auth_endpoints():
         "/metrics",
         "/saml/sso/",
         "/graphql",
-        "/graphql/v{version_number}",
+        "/graphql/",
         # Testing endpoints are not available in deployments
         "/testing/amqp/emit",
         "/testing/database/snapshot",
@@ -137,17 +135,7 @@ def no_auth_endpoints():
         "/lora/organisation/organisationfunktion/{uuid}",
         "/lora/site-map",
     }
-    graphql_endpoints = set(
-        more_itertools.flatten(
-            (
-                f"/graphql/v{version.version}",
-                f"/graphql/v{version.version}/schema.graphql",
-            )
-            for version in graphql_versions
-        )
-    )
-
-    yield no_auth_endpoints | graphql_endpoints
+    yield no_auth_endpoints
 
 
 @pytest.fixture

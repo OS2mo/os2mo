@@ -35,7 +35,6 @@ from hypothesis import settings as h_settings
 from hypothesis import strategies as st
 from hypothesis import Verbosity
 from hypothesis.database import InMemoryExampleDatabase
-from more_itertools import last
 from more_itertools import one
 from pytest_asyncio import is_async_test
 from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -49,7 +48,7 @@ from mora.auth.keycloak.oidc import Token
 from mora.auth.keycloak.oidc import token_getter
 from mora.auth.middleware import fetch_authenticated_user
 from mora.config import get_settings
-from mora.graphapi.main import graphql_versions
+from mora.graphapi.main import newest as newest_graphql_version
 from mora.graphapi.versions.latest.permissions import ALL_PERMISSIONS
 from mora.service.org import ConfiguredOrganisation
 from mora.testing import copy_database
@@ -261,8 +260,7 @@ def fastapi_admin_test_app(monkeypatch, sessionmakermaker) -> FastAPI:
 
 @pytest.fixture(scope="session")
 def latest_graphql_url() -> str:
-    latest = last(graphql_versions)
-    return f"/graphql/v{latest.version}"
+    return f"/graphql/v{newest_graphql_version}"
 
 
 @pytest.fixture

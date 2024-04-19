@@ -2,10 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
 
-import more_itertools
-
 from mora.app import create_app
-from mora.graphapi.main import graphql_versions
 
 doc_endpoints = {
     "/docs",
@@ -95,17 +92,6 @@ service_api = {
     "/service/ou/{id}/details/",
 }
 
-graphql_endpoints = set(
-    more_itertools.flatten(
-        (
-            f"/graphql/v{version.version}",
-            f"/graphql/v{version.version}/schema.graphql",
-        )
-        for version in graphql_versions
-    )
-)
-
-
 lora_endpoints = {
     "/lora/",
     "/lora/klassifikation/classes",
@@ -155,7 +141,7 @@ all_endpoints = (
     {
         "",
         "/graphql",
-        "/graphql/v{version_number}",
+        "/graphql/",
         "/version/",
         "/saml/sso/",
     }
@@ -163,7 +149,6 @@ all_endpoints = (
     | doc_endpoints
     | health_endpoints
     | service_api
-    | graphql_endpoints
 )
 
 
