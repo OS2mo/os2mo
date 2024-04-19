@@ -16,6 +16,7 @@ from structlog.stdlib import get_logger
 
 logger = get_logger()
 
+# NOTE: When changing this, consider also changing min_graphql_version in config.py
 graphql_versions = list(range(2, 22))
 newest = last(graphql_versions)
 
@@ -32,6 +33,8 @@ def load_graphql_version(version_number: int) -> APIRouter:
     Returns:
         A FastAPI APIRouter for the given GraphQL version.
     """
+    assert version_number in graphql_versions
+
     version = importlib.import_module(
         f"mora.graphapi.versions.v{version_number}.version"
     ).GraphQLVersion
@@ -40,7 +43,7 @@ def load_graphql_version(version_number: int) -> APIRouter:
     return router
 
 
-def setup_graphql(app: FastAPI) -> None:
+def setup_graphql(app: FastAPI, min_version: int | None = None) -> None:
     """Setup our GraphQL endpoints on FastAPI.
 
     Note:
@@ -57,7 +60,11 @@ def setup_graphql(app: FastAPI) -> None:
         """Redirect unversioned GraphiQL so developers can pin to the newest version."""
         return RedirectResponse(f"/graphql/v{newest}")
 
-    oldest = first(graphql_versions)
+    versions = graphql_versions
+    if min_version is not None:
+        versions = [x for x in versions if x >= min_version]
+
+    oldest = first(versions)
     imported: set[int] = set()
     version_regex = re.compile(r"/graphql/v(\d+)")
 
