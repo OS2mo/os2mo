@@ -3,47 +3,77 @@
 import importlib
 import re
 import time
+from typing import Any
 
+import structlog
 from fastapi import APIRouter
 from fastapi import FastAPI
+from fastapi import HTTPException
 from more_itertools import first
 from more_itertools import last
-from starlette import status
-from starlette.responses import RedirectResponse
-from starlette.responses import Response
 from starlette.requests import Request
-import structlog
-from fastapi import HTTPException
+from starlette.responses import RedirectResponse
 
 
 logger = structlog.get_logger()
 
 graphql_versions = list(range(2, 22))
+newest = last(graphql_versions)
 
 
-def setup_graphql(
-    app: FastAPI, min_version: int | None = None
-) -> None:
-    versions = graphql_versions
+def load_graphql_version(version_number: int) -> APIRouter:
+    """Dynamically import and load the specified GraphQL version.
 
-    if min_version is not None:
-        versions = [x for x in versions if x >= min_version]
+    Note:
+        This function should only ever be called once for each version_number.
 
-    oldest = first(versions)
-    newest = last(versions)
+    Args:
+        version_number: The version number of the GraphQL version to load.
 
-    # GraphiQL interface redirect
+    Returns:
+        A FastAPI APIRouter for the given GraphQL version.
+    """
+    start_time = time.monotonic()
+    version = importlib.import_module(
+        f"mora.graphapi.versions.v{version_number}.version"
+    ).GraphQLVersion
+    duration = time.monotonic() - start_time
+    logger.info("Imported GraphQL router", version=version_number, duration=duration)
+
+    # TODO: Add deprecation header as per the decision log (link/successor)
+    start_time = time.monotonic()
+    router = version.get_router(is_latest=version_number is newest)
+    duration = time.monotonic() - start_time
+    logger.info(
+        "Generated GraphQL APIRouter", version=version_number, duration=duration
+    )
+    return router
+
+
+def setup_graphql(app: FastAPI) -> None:
+    """Setup our GraphQL endpoints on FastAPI.
+
+    Note:
+        GraphQL version endpoints are dynamically loaded.
+
+    Args:
+        app: The FastAPI to load GraphQL endpoints on.
+        min_version: The minimum version of GraphQL to support.
+    """
+
     @app.get("/graphql")
+    @app.get("/graphql/")
     async def redirect_to_latest_graphiql() -> RedirectResponse:
         """Redirect unversioned GraphiQL so developers can pin to the newest version."""
         return RedirectResponse(f"/graphql/v{newest}")
 
-
-    imported = set()
+    oldest = first(graphql_versions)
+    imported: set[int] = set()
+    version_regex = re.compile(r"/graphql/v(\d+)")
 
     @app.middleware("http")
-    async def graphql_loader(request: Request, call_next):
-        graphql_match = re.match(r"/graphql/v(\d+)", request.url.path)
+    async def graphql_loader(request: Request, call_next: Any) -> Any:
+        graphql_match = version_regex.match(request.url.path)
         if graphql_match is None:
             return await call_next(request)
 
@@ -54,31 +84,20 @@ def setup_graphql(
         # Removed GraphQL versions send 410
         if 0 < version_number <= oldest:
             raise HTTPException(
-                    status_code=400, detail={"message": "Removed GraphQL version"}
+                status_code=400, detail={"message": "Removed GraphQL version"}
             )
 
-        logger.info("Importing GraphQL version", version=version_number, imported=imported)
+        # Non-existent GraphQL versions send 404
+        if version_number <= 0 or version_number > newest:
+            raise HTTPException(
+                status_code=404, detail={"message": "No such GraphQL version"}
+            )
 
-        start_time = time.monotonic()
-        version = importlib.import_module(f"mora.graphapi.versions.v{version_number}.version").GraphQLVersion
-        duration = time.monotonic() - start_time
-        logger.info("Imported GraphQL router", version=version_number, duration=duration)
-
-        # TODO: Add deprecation header as per the decision log (link/successor)
-        start_time = time.monotonic()
-        app.include_router(
-            prefix=f"/graphql/v{version_number}",
-            router=version.get_router(is_latest=version_number is newest),
+        logger.info(
+            "Importing GraphQL version", version=version_number, imported=imported
         )
-        duration = time.monotonic() - start_time
-        logger.info("Mounted GraphQL router", version=version_number, duration=duration)
-
+        router = load_graphql_version(version_number)
+        app.include_router(prefix=f"/graphql/v{version_number}", router=router)
         imported.add(version_number)
 
         return await call_next(request)
-
-    # Subscriptions could be implemented using our trigger system.
-    # They could expose an eventsource to the WebUI, enabling the UI to be dynamically
-    # updated with changes from other users.
-    # For now however; it is left uncommented and unimplemented.
-    # app.add_websocket_route("/subscriptions", graphql_app)
