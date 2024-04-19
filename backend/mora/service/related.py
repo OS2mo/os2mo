@@ -104,8 +104,8 @@ async def map_org_units(origin: UUID, req: dict = Body(...)):
     """
     origin = str(origin)
 
-    date = util.get_valid_from(req)
-    c = lora.Connector(effective_date=date)
+    valid_from, valid_to = util.get_validities(req)
+    c = lora.Connector(effective_date=valid_from)
     destinations = set(util.checked_get(req, "destination", [], required=True))
     if origin in destinations:
         exceptions.ErrorCodes.E_RELATED_TO_SELF(
@@ -149,7 +149,7 @@ async def map_org_units(origin: UUID, req: dict = Body(...)):
 
     edits = {
         funcid: common.inactivate_org_funktion_payload(
-            date,
+            valid_to,
             "Fjern relateret organisation",
         )
         for unitid, funcid in preexisting.items()
@@ -158,10 +158,10 @@ async def map_org_units(origin: UUID, req: dict = Body(...)):
 
     creations = [
         common.create_organisationsfunktion_payload(
-            mapping.RELATED_UNIT_KEY,
-            date,
-            util.POSITIVE_INFINITY,
-            "{} <-> {}".format(
+            funktionsnavn=mapping.RELATED_UNIT_KEY,
+            valid_from=valid_from,
+            valid_to=valid_to,
+            brugervendtnoegle="{} <-> {}".format(
                 mapping.ORG_UNIT_EGENSKABER_FIELD(units[origin])[0][
                     "brugervendtnoegle"
                 ],

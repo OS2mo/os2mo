@@ -1362,6 +1362,9 @@ class RelatedUnitsUpdate(UUIDBase):
             "destination": self.destination or [],
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
             },
         }
 
