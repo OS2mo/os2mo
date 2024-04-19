@@ -83,6 +83,9 @@ class Settings(BaseSettings):
     log_level: LogLevel = LogLevel.INFO
     navlinks: list[NavLink] = []
 
+    # Minimum GraphQL version to enable
+    min_graphql_version: int = 20
+
     # Testing
     insecure_enable_testing_api: bool = False
 
