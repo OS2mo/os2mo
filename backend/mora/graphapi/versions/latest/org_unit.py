@@ -6,9 +6,9 @@ from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 
+from .inputs import OrganisationUnitUpdateInput
 from .models import OrganisationUnitCreate
 from .models import OrganisationUnitTerminate
-from .models import OrganisationUnitUpdate
 from mora import exceptions
 from mora import lora
 from mora import mapping
@@ -30,7 +30,7 @@ async def create_org_unit(input: OrganisationUnitCreate) -> UUID:
     return UUID(uuid)
 
 
-async def update_org_unit(input: OrganisationUnitUpdate) -> UUID:
+async def update_org_unit(input: OrganisationUnitUpdateInput) -> UUID:
     """Updating an organisation unit."""
     input_dict = jsonable_encoder(input.to_handler_dict())
 
