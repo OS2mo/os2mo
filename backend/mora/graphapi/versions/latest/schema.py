@@ -3,6 +3,7 @@
 """Strawberry types describing the MO graph."""
 import json
 import re
+from asyncio import gather
 from base64 import b64encode
 from collections.abc import Callable
 from datetime import date
@@ -23,6 +24,7 @@ from uuid import UUID
 
 import strawberry
 from fastapi.encoders import jsonable_encoder
+from more_itertools import flatten
 from more_itertools import one
 from more_itertools import only
 from pydantic import parse_obj_as
@@ -30,6 +32,7 @@ from starlette_context import context
 from strawberry import UNSET
 from strawberry.types import Info
 
+from .filters import EngagementFilter
 from .filters import ITUserFilter
 from .filters import ManagerFilter
 from .health import health_map
@@ -74,7 +77,7 @@ from mora.handler.reading import get_handler_for_type
 from mora.handler.reading import ReadingHandler
 from mora.service.address_handler import dar
 from mora.service.address_handler import multifield_text
-from mora.service.facet import is_class_uuid_primary
+from mora.service.facet import get_primary_class_scope
 from mora.util import NEGATIVE_INFINITY
 from mora.util import now
 from mora.util import POSITIVE_INFINITY
@@ -2058,16 +2061,49 @@ class Engagement:
             """\
         Whether this engagement is the primary engagement.
 
-        Checks if the `primary` field contains either a class with user-key: `"primary"` or `"explicitly-primary"`.
+        Checks this engagements against the users other engagements. The engagement with the highest scope in the associated primary class
+        is marked as primary. Only one engagement can be primary.
         """
         )
     )
-    async def is_primary(self, root: EngagementRead, info: Info) -> bool:
-        if not root.primary_uuid:
+    async def is_primary(
+        self,
+        root: EngagementRead,
+        info: Info,
+    ) -> bool:
+        # Engagements with no primary class associated or associated with a class having scope=0 can not be primary engagements.
+        if (
+            not root.primary_uuid
+            or await get_primary_class_scope(root.primary_uuid) == 0
+        ):
             return False
-        # TODO: Eliminate is_class_uuid_primary lookup by using the above resolver
-        #       Then utilize is_class_primary as result_translation
-        return await is_class_uuid_primary(str(root.primary_uuid))
+
+        # Find all the users engagements
+        engagements = await seed_resolver(
+            engagement_resolver,
+            {"employees": lambda root: uuid2list(root.employee_uuid)},
+        )(
+            root=root,
+            info=info,
+            filter=EngagementFilter(
+                from_date=root.validity.from_date, to_date=root.validity.to_date
+            ),
+        )
+
+        all_concurrent_engagements = list(flatten(engagements.values()))
+        # Look up the scope of associated primary classes
+        scopes = await gather(
+            *[
+                get_primary_class_scope(e.primary_uuid)
+                for e in all_concurrent_engagements
+            ]
+        )
+        scope_map = zip(scopes, [e.uuid for e in all_concurrent_engagements])
+        # Find the engagements with the highest scope
+        primary = max(scope_map)
+        # Check whether the current (root) engagement is the primary engagement for this user.
+        _, primary_engagement_uuid = primary
+        return root.uuid == primary_engagement_uuid
 
     leave: LazyLeave | None = strawberry.field(
         resolver=to_only(

@@ -21,8 +21,17 @@ from .utils import fetch_org_unit_validity
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.models import EngagementCreate
 from mora.graphapi.versions.latest.models import EngagementUpdate
+from mora.service.facet import get_primary_class_scope
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import Validity as RAValidity
+
+CREATE_ENGAGEMENT_QUERY = """
+    mutation CreateEngagement($input: EngagementCreateInput!) {
+        engagement_create(input: $input) {
+            uuid
+        }
+    }
+"""
 
 
 @pytest.mark.integration_test
@@ -220,18 +229,11 @@ async def test_create_engagement(
 ) -> None:
     """Test that pydantic jsons are passed through to engagement_create."""
 
-    mutate_query = """
-        mutation CreateEngagement($input: EngagementCreateInput!) {
-            engagement_create(input: $input) {
-                uuid
-            }
-        }
-    """
     create_engagement.return_value = test_data.uuid
 
     payload = jsonable_encoder(test_data)
     response = await execute_graphql(
-        query=mutate_query, variable_values={"input": payload}
+        query=CREATE_ENGAGEMENT_QUERY, variable_values={"input": payload}
     )
     assert response.errors is None
     assert response.data == {"engagement_create": {"uuid": str(test_data.uuid)}}
@@ -288,14 +290,9 @@ async def test_create_engagement_integration_test(
         )
     )
 
-    mutate_query = """
-        mutation CreateEngagement($input: EngagementCreateInput!) {
-            engagement_create(input: $input) {
-                uuid
-            }
-        }
-    """
-    response = graphapi_post(mutate_query, {"input": jsonable_encoder(test_data)})
+    response = graphapi_post(
+        CREATE_ENGAGEMENT_QUERY, {"input": jsonable_encoder(test_data)}
+    )
     assert response.errors is None
     uuid = UUID(response.data["engagement_create"]["uuid"])
 
@@ -676,15 +673,8 @@ async def test_create_engagement_with_extensions_fields_integrations_test(
         )
     )
 
-    mutate_query = """
-        mutation CreateEngagement($input: EngagementCreateInput!) {
-            engagement_create(input: $input) {
-                uuid
-            }
-        }
-    """
     mutation_response = graphapi_post(
-        query=mutate_query, variables={"input": jsonable_encoder(test_data)}
+        query=CREATE_ENGAGEMENT_QUERY, variables={"input": jsonable_encoder(test_data)}
     )
 
     assert mutation_response.errors is None
@@ -797,3 +787,20 @@ async def test_clear_extension_field(graphapi_post: GraphAPIPost) -> None:
     set_extension_field3(uuid, "")
     extension_3 = read_extension_field3(uuid)
     assert extension_3 is None
+
+
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay in this instance
+        HealthCheck.function_scoped_fixture,
+    ],
+)
+@given(data=st.data())
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_get_class_scope(
+    data, graphapi_post: GraphAPIPost, org_uuids, employee_uuids
+) -> None:
+    primary_uuids = fetch_class_uuids(graphapi_post, "primary_type")
+    scopes = [await get_primary_class_scope(u) for u in primary_uuids]
+    assert scopes == [10, 3000]

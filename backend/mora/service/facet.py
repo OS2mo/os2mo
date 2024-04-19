@@ -447,6 +447,13 @@ def is_class_primary(mo_class: dict) -> bool:
         return False
 
 
+async def get_primary_class_scope(class_uuid: UUID) -> int:
+    # Determine the scope of a class.
+    connector = lora.Connector()
+    mo_class = await get_one_class(connector, str(class_uuid))
+    return int(mo_class["scope"])
+
+
 async def is_class_uuid_primary(primary_class_uuid: str) -> bool:
     # Determine whether the given `primary_class_uuid` does indeed refer to a
     # primary class (as opposed to a non-primary class.)
