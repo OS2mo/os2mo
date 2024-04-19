@@ -84,7 +84,7 @@ class Settings(BaseSettings):
     navlinks: list[NavLink] = []
 
     # Minimum GraphQL version to enable
-    min_graphql_version: int = 20
+    min_graphql_version: int = 15
 
     # Testing
     insecure_enable_testing_api: bool = False
