@@ -614,19 +614,65 @@ async def test_empty_user_key(graphapi_post: GraphAPIPost):
     assert response.data["org_unit_create"]["current"]["user_key"] == ""
 
 
-@pytest.mark.xfail  # TODO: Xfailed until the feature is implemented
+fixture_parent_uuid = UUID("2874e1dc-85e6-4269-823a-e1125484dfd3")
+
+
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-async def test_parent_changes(graphapi_post: GraphAPIPost) -> None:
+@pytest.mark.parametrize(
+    "initial,new,expected",
+    [
+        # Starting with UUID set
+        # Using same UUID does nothing
+        (fixture_parent_uuid, fixture_parent_uuid, fixture_parent_uuid),
+        # Using unset does nothing
+        (fixture_parent_uuid, UNSET, fixture_parent_uuid),
+        # Using None clears the field
+        pytest.param(
+            fixture_parent_uuid,
+            None,
+            None,
+            marks=pytest.mark.xfail(reason="Cannot clear parent"),
+        ),
+        # Starting with None
+        # Using UUID sets UUID
+        pytest.param(
+            None,
+            fixture_parent_uuid,
+            fixture_parent_uuid,
+            marks=pytest.mark.xfail(reason="Cannot set initial state"),
+        ),
+        # Using unset does nothing
+        pytest.param(
+            None,
+            UNSET,
+            None,
+            marks=pytest.mark.xfail(reason="Cannot set initial state"),
+        ),
+        # Using None does nothing
+        pytest.param(
+            None, None, None, marks=pytest.mark.xfail(reason="Cannot set initial state")
+        ),
+    ],
+)
+async def test_parent_changes(
+    graphapi_post: GraphAPIPost,
+    initial: UUID | None,
+    new: UUID | UnsetType | None,
+    expected: UUID | None,
+) -> None:
     """Test that we can change, noop and clear parent."""
+    uuid = UUID("dad7d0ad-c7a9-4a94-969d-464337e31fec")
 
-    def read_parent(uuid: UUID) -> UUID | None:
+    def read_parent() -> UUID | None:
         read_query = """
         query ReadOrgUnitParent($uuid: UUID!) {
           org_units(filter: {uuids: [$uuid]}) {
             objects {
               current {
-                parent_uuid
+                parent {
+                    uuid
+                }
               }
             }
           }
@@ -635,14 +681,13 @@ async def test_parent_changes(graphapi_post: GraphAPIPost) -> None:
         response = graphapi_post(query=read_query, variables={"uuid": str(uuid)})
         assert response.errors is None
         assert response.data is not None
-        parent_uuid = one(response.data["org_units"]["objects"])["current"][
-            "parent_uuid"
-        ]
-        if parent_uuid is None:
+        parent = one(response.data["org_units"]["objects"])["current"]["parent"]
+        if parent is None:
+            # NOTE: parent_uuid will be set to the root org when this happens
             return None
-        return UUID(parent_uuid)
+        return UUID(parent["uuid"])
 
-    def set_parent(uuid: UUID, parent_uuid: UUID | None) -> None:
+    def set_parent(parent_uuid: UUID | UnsetType | None) -> None:
         write_query = """
         mutation MyMutation($input: OrganisationUnitUpdateInput!) {
           org_unit_update(input: $input) {
@@ -658,41 +703,12 @@ async def test_parent_changes(graphapi_post: GraphAPIPost) -> None:
         assert response.data is not None
         assert UUID(response.data["org_unit_update"]["uuid"]) == uuid
 
-    uuid = UUID("dad7d0ad-c7a9-4a94-969d-464337e31fec")
-    fixture_parent_uuid = UUID("2874e1dc-85e6-4269-823a-e1125484dfd3")
+    # Setup and assert initial state
+    set_parent(initial)
+    parent_uuid = read_parent()
+    assert parent_uuid == initial
 
-    # Assert fixture state
-    parent_uuid = read_parent(uuid)
-    assert parent_uuid == fixture_parent_uuid
-
-    # If parent is set, setting to UUID should set it
-    set_parent(uuid, fixture_parent_uuid)
-    parent_uuid = read_parent(uuid)
-    assert parent_uuid == fixture_parent_uuid
-
-    # If parent is set, setting to UNSET should do nothing
-    set_parent(uuid, UNSET)
-    parent_uuid = read_parent(uuid)
-    assert parent_uuid == fixture_parent_uuid
-
-    # If parent is set, setting to NONE should clear it
-    set_parent(uuid, None)
-    parent_uuid = read_parent(uuid)
-    assert parent_uuid is None
-
-    # At this point parent is cleared
-
-    # If parent is clear, setting to NONE should clear it
-    set_parent(uuid, None)
-    parent_uuid = read_parent(uuid)
-    assert parent_uuid is None
-
-    # If parent is clear, setting to UNSET should do nothing
-    set_parent(uuid, UNSET)
-    parent_uuid = read_parent(uuid)
-    assert parent_uuid is None
-
-    # If parent is clear, setting to UUID should set it
-    set_parent(uuid, fixture_parent_uuid)
-    parent_uuid = read_parent(uuid)
-    assert parent_uuid == fixture_parent_uuid
+    # Fire our change and assert result
+    set_parent(new)
+    parent_uuid = read_parent()
+    assert parent_uuid == expected
