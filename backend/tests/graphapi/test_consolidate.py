@@ -27,6 +27,8 @@ async def test_consolidate_feature_flag(
         }
     """
     org_unit_create = graphapi_post(org_unit_create_mutation)
+    assert org_unit_create.errors is None
+    assert org_unit_create.data is not None
     org_unit_uuid = org_unit_create.data["org_unit_create"]["uuid"]
 
     # Update it with the same name twice

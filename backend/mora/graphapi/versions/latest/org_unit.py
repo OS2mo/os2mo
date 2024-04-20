@@ -6,8 +6,8 @@ from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 
+from .inputs import OrganisationUnitCreateInput
 from .inputs import OrganisationUnitUpdateInput
-from .models import OrganisationUnitCreate
 from .models import OrganisationUnitTerminate
 from mora import exceptions
 from mora import lora
@@ -19,7 +19,7 @@ from mora.service.validation import validator
 logger = logging.getLogger(__name__)
 
 
-async def create_org_unit(input: OrganisationUnitCreate) -> UUID:
+async def create_org_unit(input: OrganisationUnitCreateInput) -> UUID:
     input_dict = jsonable_encoder(input.to_handler_dict())
 
     request = await OrgUnitRequestHandler.construct(

@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
+from functools import partial
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -20,10 +21,22 @@ from ..conftest import GraphAPIPost
 from .utils import fetch_class_uuids
 from .utils import fetch_org_unit_validity
 from mora.graphapi.shim import execute_graphql
+from mora.graphapi.versions.latest.inputs import OrganisationUnitCreateInput
 from mora.graphapi.versions.latest.inputs import OrganisationUnitUpdateInput
-from mora.graphapi.versions.latest.models import OrganisationUnitCreate
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import Validity as RAValidity
+
+
+validity_builder = st.builds(
+    RAValidity,
+    from_date=st.datetimes(
+        min_value=datetime(1970, 1, 1), max_value=datetime(2000, 1, 1)
+    ),
+    to_date=st.none(),
+)
+sjsonable_encoder = partial(
+    jsonable_encoder, custom_encoder={UnsetType: lambda _: None}
+)
 
 
 @pytest.mark.integration_test
@@ -56,10 +69,10 @@ def test_query_all(graphapi_post: GraphAPIPost):
     assert response.data
 
 
-@given(test_data=...)
+@given(test_data=st.builds(OrganisationUnitCreateInput, validity=validity_builder))
 @patch("mora.graphapi.versions.latest.mutators.create_org_unit", new_callable=AsyncMock)
 async def test_create_org_unit(
-    create_org_unit: AsyncMock, test_data: OrganisationUnitCreate
+    create_org_unit: AsyncMock, test_data: OrganisationUnitCreateInput
 ) -> None:
     """Test that pydantic jsons are passed through to create_org_unit."""
 
@@ -73,14 +86,14 @@ async def test_create_org_unit(
     created_uuid = uuid4()
     create_org_unit.return_value = created_uuid
 
-    payload = jsonable_encoder(test_data)
+    payload = sjsonable_encoder(test_data)
     response = await execute_graphql(
         query=mutate_query, variable_values={"input": payload}
     )
     assert response.errors is None
     assert response.data == {"org_unit_create": {"uuid": str(created_uuid)}}
 
-    create_org_unit.assert_called_with(test_data)
+    create_org_unit.assert_called_once()
 
 
 @settings(
@@ -119,7 +132,7 @@ def test_create_org_unit_integration_test(
 
     test_data = data.draw(
         st.builds(
-            OrganisationUnitCreate,
+            OrganisationUnitCreateInput,
             uuid=st.uuids(),
             # TODO: Allow all text
             name=st.text(
@@ -139,7 +152,7 @@ def test_create_org_unit_integration_test(
             ),
         )
     )
-    payload = jsonable_encoder(test_data)
+    payload = sjsonable_encoder(test_data)
 
     mutate_query = """
         mutation CreateOrgUnit($input: OrganisationUnitCreateInput!) {
@@ -150,6 +163,7 @@ def test_create_org_unit_integration_test(
     """
     response = graphapi_post(mutate_query, {"input": payload})
     assert response.errors is None
+    assert response.data is not None
     uuid = UUID(response.data["org_unit_create"]["uuid"])
 
     verify_query = """
@@ -176,6 +190,7 @@ def test_create_org_unit_integration_test(
     """
     response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
+    assert response.data is not None
     obj = one(one(response.data["org_units"]["objects"])["objects"])
     assert obj["name"] == test_data.name
     assert obj["user_key"] == test_data.user_key or str(uuid)
@@ -447,18 +462,7 @@ async def test_update_org_unit_mutation_integration_test(
     assert post_update_org_unit == expected_updated_org_unit
 
 
-@given(
-    test_data=st.builds(
-        OrganisationUnitUpdateInput,
-        validity=st.builds(
-            RAValidity,
-            from_date=st.datetimes(
-                min_value=datetime(1970, 1, 1), max_value=datetime(2000, 1, 1)
-            ),
-            to_date=st.none(),
-        ),
-    )
-)
+@given(test_data=st.builds(OrganisationUnitUpdateInput, validity=validity_builder))
 @patch("mora.graphapi.versions.latest.mutators.update_org_unit", new_callable=AsyncMock)
 async def test_update_org_unit_mutation_unit_test(
     update_org_unit: AsyncMock, test_data: OrganisationUnitUpdateInput
@@ -475,7 +479,7 @@ async def test_update_org_unit_mutation_unit_test(
 
     update_org_unit.return_value = test_data.uuid
 
-    payload = jsonable_encoder(test_data, custom_encoder={UnsetType: lambda _: None})
+    payload = sjsonable_encoder(test_data)
 
     response = await execute_graphql(query=mutation, variable_values={"input": payload})
     assert response.errors is None
