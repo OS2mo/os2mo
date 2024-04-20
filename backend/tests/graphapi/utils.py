@@ -2,12 +2,23 @@
 # SPDX-License-Identifier: MPL-2.0
 """Pytest helper functions for GraphAPI tests."""
 from datetime import datetime
+from functools import partial
 from operator import itemgetter
 from uuid import UUID
 
+from fastapi.encoders import jsonable_encoder
 from more_itertools import one
+from strawberry import UNSET
+from strawberry.unset import UnsetType
 
 from tests.conftest import GraphAPIPost
+
+
+# jsonable encoder that coerces UNSET to None.
+# Useful in the transition period while introducing PATCH writes to GraphQL
+sjsonable_encoder = partial(
+    jsonable_encoder, custom_encoder={UnsetType: lambda _: None}
+)
 
 
 def fetch_org_unit_validity(
@@ -119,3 +130,49 @@ def fetch_class_uuids(graphapi_post: GraphAPIPost, facet_name: str) -> list[UUID
     facet = one(response.data["facets"]["objects"])["current"]
     class_uuids = list(map(UUID, map(itemgetter("uuid"), facet["classes"])))
     return class_uuids
+
+
+def gen_read_parent(graphapi_post: GraphAPIPost, url: str, uuid: UUID) -> UUID | None:
+    read_query = """
+    query ReadOrgUnitParent($uuid: UUID!) {
+      org_units(filter: {uuids: [$uuid]}) {
+        objects {
+          current {
+            parent {
+                uuid
+            }
+          }
+        }
+      }
+    }
+    """
+    response = graphapi_post(query=read_query, variables={"uuid": str(uuid)}, url=url)
+    assert response.errors is None
+    assert response.data is not None
+    parent = one(response.data["org_units"]["objects"])["current"]["parent"]
+    if parent is None:
+        # NOTE: parent_uuid will be set to the root org when this happens
+        return None
+    return UUID(parent["uuid"])
+
+
+def gen_set_parent(
+    graphapi_post: GraphAPIPost,
+    url: str,
+    uuid: UUID,
+    parent_uuid: UUID | UnsetType | None,
+) -> None:
+    write_query = """
+    mutation MyMutation($input: OrganisationUnitUpdateInput!) {
+      org_unit_update(input: $input) {
+        uuid
+      }
+    }
+    """
+    payload = {"uuid": str(uuid), "validity": {"from": "2020-01-01"}}
+    if parent_uuid is not UNSET:
+        payload["parent"] = str(parent_uuid) if parent_uuid else None
+    response = graphapi_post(query=write_query, variables={"input": payload}, url=url)
+    assert response.errors is None
+    assert response.data is not None
+    assert UUID(response.data["org_unit_update"]["uuid"]) == uuid

@@ -9,7 +9,56 @@ code is up-to-date with the latest version.
 
 Below follows the migration guide for each version.
 
+## Version 22
+
+GraphQL version 22 introduces breaking changes to the `org_unit_update`
+mutator, specifically with regards to the way `UNSET` (arguments not send)
+and `null` / `None` (arguments explicitly to clear the value) are handled.
+
+Prior to the change most fields on the mutator were required, with some
+fields allowing `null`s, however sending `null`s did not clear the fields,
+rather `null`s where simply ignored similar to unset fields.
+
+In the new version most fields are optional, with unset fields retaining
+the prior behavior of not clearing the fields, but rather doing nothing,
+while sending `null`s now specifically request clearing the value of the
+field (if possible).
+
+Thus this commit enables HTTP PATCH semantics, where a single field can
+be updated and cleared without affecting the remaining fields on the
+object. This is the first mutator to undergo this treatment, but the
+plan is for all update mutators to exhibit this behavior.
+
+As such to migrate from GraphQL v21, simply send the query as normal:
+```graphql
+mutation OrgUnitUpdate($input: OrganisationUnitUpdateInput!) {
+    org_unit_update(input: $input) {
+        uuid
+    }
+}
+```
+But ensure that the provided `input` payload has undergone a
+transformation, where all `null` values are stripped from the payload:
+```json
+{
+  "uuid": "08eaf849-e9f9-53e0-b6b9-3cd45763ecbb",
+  "validity": {"from": "2020-01-01"},
+  "name": "new_org_name",
+  "parent": null
+}
+```
+to:
+```
+```json
+{
+  "uuid": "08eaf849-e9f9-53e0-b6b9-3cd45763ecbb",
+  "validity": {"from": "2020-01-01"},
+  "name": "new_org_name"
+}
+```
+
 ## Version 21
+
 Prior to this version, the first `from_date` or `to_date` filter parameters were
 automatically, implicitly, and forcefully inherited in all the following levels of the
 query. For example, a query such as:
