@@ -1441,34 +1441,21 @@ class DataLoader:
         """
         Loads all it-users in the database. Past, current and future.
         """
-        query = gql(
-            """
-            query AllEmployees($cursor: Cursor) {
-                itusers (limit: 100, cursor: $cursor, filter: {to_date: null, from_date: null}) {
-                objects {
-                  objects {
-                    itsystem_uuid
-                    user_key
-                  }
-                }
-                page_info {
-                  next_cursor
-                }
-              }
-            }
-            """
+        filter = parse_obj_as(
+            ITUserFilter,
+            {
+                "itsystem": {"uuids": [it_system_uuid]},
+                "from_date": None,
+                "to_date": None,
+            },
         )
-
-        result = await self.query_mo_paged(query)
-
-        # Format output
-        output = []
-        for entries in [r["objects"] for r in result["itusers"]["objects"]]:
-            for entry in entries:
-                if entry["itsystem_uuid"] == str(it_system_uuid):
-                    output.append(entry)
-
-        return output
+        read_all_itusers = partial(self.graphql_client.read_all_itusers, filter)
+        return [
+            jsonable_encoder(validity)
+            async for entry in paged_query(read_all_itusers)
+            for validity in entry.validities
+            if entry.validities
+        ]
 
     async def load_mo_employee_it_users(
         self,
