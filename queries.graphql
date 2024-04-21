@@ -439,3 +439,22 @@ query read_class_user_keys($facet_user_keys: [String!]!) {
     }
   }
 }
+
+query read_all_itusers($itsystem_uuid: UUID!, $cursor: Cursor) {
+  itusers(
+    limit: 100,
+    cursor: $cursor,
+    filter: {itsystem: {uuids: $itsystem_uuid}}
+  ) {
+    objects {
+      current {
+        itsystem_uuid
+        employee_uuid
+        user_key
+      }
+    }
+    page_info {
+      next_cursor
+    }
+  }
+}
