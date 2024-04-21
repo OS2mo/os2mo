@@ -1603,7 +1603,7 @@ class DataLoader:
             if engagement.current is not None
         ]
         return await asyncio.gather(
-            *[self.load_mo_engagement(uuid) for uuid in engagement_uuids]
+            *map(self.load_mo_engagement, engagement_uuids)
         )
 
     async def load_all_mo_objects(
@@ -1629,16 +1629,6 @@ class DataLoader:
         to these object types. "object_types_to_try" needs to be a tuple with strings
         matching self.object_type_dict.keys()
         """
-
-        if add_validity or current_objects_only is False:
-            validity_query = """
-                             validity {
-                                 from
-                                 to
-                             }
-                             """
-        else:
-            validity_query = ""
 
         result: dict = {}
         warnings: list[str] = []
@@ -1674,7 +1664,10 @@ class DataLoader:
                             objects {{
                                 uuid
                                 {additional_uuids}
-                                {validity_query}
+                                validity {{
+                                    from
+                                    to
+                                }}
                                 }}
                             }}
                             page_info {{
@@ -1693,7 +1686,10 @@ class DataLoader:
                             objects {{
                                 uuid
                                 {additional_uuids}
-                                {validity_query}
+                                validity {{
+                                    from
+                                    to
+                                }}
                                 }}
                             }}
                         }}
@@ -1725,6 +1721,9 @@ class DataLoader:
                 mo_object = self.extract_current_or_latest_object(
                     mo_object_dict["objects"]
                 )
+
+                if not add_validity or current_objects_only:
+                    mo_object.pop("validity", None)
 
                 # Note that engagements have both employee_uuid and org_unit uuid. But
                 # belong to an employee. We handle that by checking for employee_uuid

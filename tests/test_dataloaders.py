@@ -1417,7 +1417,7 @@ async def test_load_all_mo_objects_add_validity(
 
     await dataloader.load_all_mo_objects(add_validity=False, uuid=str(uuid4()))
     query = print_ast(query_mo.call_args[0][0])
-    assert "validity" not in str(query)
+    assert "validity" in str(query)
 
 
 async def test_load_all_mo_objects_current_objects_only(
