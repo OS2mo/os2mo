@@ -20,13 +20,16 @@ from .engagement_refresh import EngagementRefresh
 from .engagement_refresh import EngagementRefreshEngagementRefresh
 from .engagement_terminate import EngagementTerminate
 from .engagement_terminate import EngagementTerminateEngagementTerminate
+from .input_types import AddressFilter
 from .input_types import AddressTerminateInput
 from .input_types import ClassCreateInput
 from .input_types import ClassUpdateInput
+from .input_types import EmployeeFilter
 from .input_types import EngagementFilter
 from .input_types import EngagementTerminateInput
 from .input_types import ITSystemCreateInput
 from .input_types import ITUserTerminateInput
+from .input_types import OrganisationUnitFilter
 from .itsystem_create import ItsystemCreate
 from .itsystem_create import ItsystemCreateItsystemCreate
 from .ituser_refresh import ItuserRefresh
@@ -43,8 +46,18 @@ from .person_ituser_refresh import PersonItuserRefresh
 from .person_ituser_refresh import PersonItuserRefreshItuserRefresh
 from .read_addresses import ReadAddresses
 from .read_addresses import ReadAddressesAddresses
+from .read_all_address_uuids import ReadAllAddressUuids
+from .read_all_address_uuids import ReadAllAddressUuidsAddresses
+from .read_all_employee_uuids import ReadAllEmployeeUuids
+from .read_all_employee_uuids import ReadAllEmployeeUuidsEmployees
+from .read_all_engagement_uuids import ReadAllEngagementUuids
+from .read_all_engagement_uuids import ReadAllEngagementUuidsEngagements
+from .read_all_ituser_uuids import ReadAllItuserUuids
+from .read_all_ituser_uuids import ReadAllItuserUuidsItusers
 from .read_all_itusers import ReadAllItusers
 from .read_all_itusers import ReadAllItusersItusers
+from .read_all_org_unit_uuids import ReadAllOrgUnitUuids
+from .read_all_org_unit_uuids import ReadAllOrgUnitUuidsOrgUnits
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuid
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuidClasses
 from .read_class_user_keys import ReadClassUserKeys
@@ -1017,3 +1030,151 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadAllItusers.parse_obj(data).itusers
+
+    async def read_all_employee_uuids(
+        self, filter: EmployeeFilter, cursor: Union[Optional[Any], UnsetType] = UNSET
+    ) -> ReadAllEmployeeUuidsEmployees:
+        query = gql(
+            """
+            query read_all_employee_uuids($filter: EmployeeFilter!, $cursor: Cursor = null) {
+              employees(limit: 100, cursor: $cursor, filter: $filter) {
+                objects {
+                  validities {
+                    uuid
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+                page_info {
+                  next_cursor
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter, "cursor": cursor}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadAllEmployeeUuids.parse_obj(data).employees
+
+    async def read_all_org_unit_uuids(
+        self,
+        filter: OrganisationUnitFilter,
+        cursor: Union[Optional[Any], UnsetType] = UNSET,
+    ) -> ReadAllOrgUnitUuidsOrgUnits:
+        query = gql(
+            """
+            query read_all_org_unit_uuids($filter: OrganisationUnitFilter!, $cursor: Cursor = null) {
+              org_units(limit: 100, cursor: $cursor, filter: $filter) {
+                objects {
+                  validities {
+                    uuid
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+                page_info {
+                  next_cursor
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter, "cursor": cursor}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadAllOrgUnitUuids.parse_obj(data).org_units
+
+    async def read_all_address_uuids(
+        self, filter: AddressFilter, cursor: Union[Optional[Any], UnsetType] = UNSET
+    ) -> ReadAllAddressUuidsAddresses:
+        query = gql(
+            """
+            query read_all_address_uuids($filter: AddressFilter!, $cursor: Cursor = null) {
+              addresses(limit: 100, cursor: $cursor, filter: $filter) {
+                objects {
+                  validities {
+                    uuid
+                    org_unit_uuid
+                    employee_uuid
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+                page_info {
+                  next_cursor
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter, "cursor": cursor}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadAllAddressUuids.parse_obj(data).addresses
+
+    async def read_all_ituser_uuids(
+        self, filter: ITUserFilter, cursor: Union[Optional[Any], UnsetType] = UNSET
+    ) -> ReadAllItuserUuidsItusers:
+        query = gql(
+            """
+            query read_all_ituser_uuids($filter: ITUserFilter!, $cursor: Cursor = null) {
+              itusers(limit: 100, cursor: $cursor, filter: $filter) {
+                objects {
+                  validities {
+                    uuid
+                    org_unit_uuid
+                    employee_uuid
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+                page_info {
+                  next_cursor
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter, "cursor": cursor}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadAllItuserUuids.parse_obj(data).itusers
+
+    async def read_all_engagement_uuids(
+        self, filter: EngagementFilter, cursor: Union[Optional[Any], UnsetType] = UNSET
+    ) -> ReadAllEngagementUuidsEngagements:
+        query = gql(
+            """
+            query read_all_engagement_uuids($filter: EngagementFilter!, $cursor: Cursor = null) {
+              engagements(limit: 100, cursor: $cursor, filter: $filter) {
+                objects {
+                  validities {
+                    uuid
+                    org_unit_uuid
+                    employee_uuid
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+                page_info {
+                  next_cursor
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter, "cursor": cursor}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadAllEngagementUuids.parse_obj(data).engagements

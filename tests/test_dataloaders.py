@@ -9,6 +9,7 @@ import re
 import time
 from collections.abc import Collection
 from collections.abc import Iterator
+from functools import partial
 from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
@@ -20,8 +21,6 @@ import pytest
 from fastapi.encoders import jsonable_encoder
 from fastramqpi.context import Context
 from gql import gql
-from gql.transport.exceptions import TransportQueryError
-from graphql import print_ast
 from httpx import Response
 from ldap3.core.exceptions import LDAPInvalidValueError
 from more_itertools import one
@@ -79,7 +78,6 @@ from mo_ldap_import_export.dataloaders import Verb
 from mo_ldap_import_export.exceptions import AttributeNotFound
 from mo_ldap_import_export.exceptions import DNNotFound
 from mo_ldap_import_export.exceptions import InvalidChangeDict
-from mo_ldap_import_export.exceptions import InvalidQueryResponse
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import NotEnabledException
@@ -1278,278 +1276,258 @@ async def test_query_mo(dataloader: DataLoader, legacy_graphql_session: AsyncMoc
 
 
 async def test_load_all_mo_objects(
-    dataloader: DataLoader, legacy_graphql_session: AsyncMock
-):
-    return_values: list = [
-        {"employees": {"objects": [{"objects": [{"uuid": str(uuid4())}]}]}},
-        {"org_units": {"objects": [{"objects": [{"uuid": str(uuid4())}]}]}},
-        {
-            "addresses": {
-                "objects": [
-                    {
-                        "objects": [
-                            {
-                                "uuid": str(uuid4()),
-                                "employee_uuid": str(uuid4()),
-                                "org_unit_uuid": None,
-                            },
-                        ]
-                    },
-                    {
-                        "objects": [
-                            {
-                                "uuid": str(uuid4()),
-                                "employee_uuid": None,
-                                "org_unit_uuid": str(uuid4()),
-                            },
-                        ]
-                    },
-                ]
-            }
-        },
-        {
-            "itusers": {
-                "objects": [
-                    {
-                        "objects": [
-                            {
-                                "uuid": str(uuid4()),
-                                "employee_uuid": str(uuid4()),
-                                "org_unit_uuid": None,
-                            }
-                        ]
-                    }
-                ]
-            }
-        },
-        {
-            "engagements": {
-                "objects": [
-                    {
-                        "objects": [
-                            {
-                                "uuid": str(uuid4()),
-                                "employee_uuid": str(uuid4()),
-                                "org_unit_uuid": str(uuid4()),
-                            }
-                        ]
-                    }
-                ]
-            },
-        },
-    ]
+    dataloader: DataLoader, graphql_mock: GraphQLMocker
+) -> None:
+    validity = {"from": "1970-01-01T00:00:00", "to": None}
+    page_info = {"next_cursor": None}
 
-    dataloader.query_mo_paged = AsyncMock()  # type: ignore
-    dataloader.query_mo_paged.side_effect = return_values
-    all_objects = await dataloader.load_all_mo_objects()
-
-    uuid = return_values[0]["employees"]["objects"][0]["objects"][0]["uuid"]
-    parent_uuid = uuid
-    assert all_objects[0]["uuid"] == uuid
-    assert all_objects[0]["object_type"] == "person"
-    assert all_objects[0]["service_type"] == "employee"
-    assert all_objects[0]["parent_uuid"] == UUID(parent_uuid)
-    assert all_objects[0]["payload"] == UUID(uuid)
-
-    uuid = return_values[1]["org_units"]["objects"][0]["objects"][0]["uuid"]
-    parent_uuid = uuid
-    assert all_objects[1]["uuid"] == uuid
-    assert all_objects[1]["object_type"] == "org_unit"
-    assert all_objects[1]["service_type"] == "org_unit"
-    assert all_objects[1]["parent_uuid"] == UUID(parent_uuid)
-    assert all_objects[1]["payload"] == UUID(uuid)
-
-    uuid = return_values[2]["addresses"]["objects"][0]["objects"][0]["uuid"]
-    parent_uuid = return_values[2]["addresses"]["objects"][0]["objects"][0][
-        "employee_uuid"
-    ]
-    assert all_objects[2]["uuid"] == uuid
-    assert all_objects[2]["object_type"] == "address"
-    assert all_objects[2]["service_type"] == "employee"
-    assert all_objects[2]["parent_uuid"] == UUID(parent_uuid)
-    assert all_objects[2]["payload"] == UUID(uuid)
-
-    uuid = return_values[2]["addresses"]["objects"][1]["objects"][0]["uuid"]
-    parent_uuid = return_values[2]["addresses"]["objects"][1]["objects"][0][
-        "org_unit_uuid"
-    ]
-    assert all_objects[3]["uuid"] == uuid
-    assert all_objects[3]["object_type"] == "address"
-    assert all_objects[3]["service_type"] == "org_unit"
-    assert all_objects[3]["parent_uuid"] == UUID(parent_uuid)
-    assert all_objects[3]["payload"] == UUID(uuid)
-
-    uuid = return_values[3]["itusers"]["objects"][0]["objects"][0]["uuid"]
-    parent_uuid = return_values[3]["itusers"]["objects"][0]["objects"][0][
-        "employee_uuid"
-    ]
-    assert all_objects[4]["uuid"] == uuid
-    assert all_objects[4]["object_type"] == "ituser"
-    assert all_objects[4]["service_type"] == "employee"
-    assert all_objects[4]["parent_uuid"] == UUID(parent_uuid)
-    assert all_objects[4]["payload"] == UUID(uuid)
-
-    uuid = return_values[4]["engagements"]["objects"][0]["objects"][0]["uuid"]
-    parent_uuid = return_values[4]["engagements"]["objects"][0]["objects"][0][
-        "employee_uuid"
-    ]
-    assert all_objects[5]["uuid"] == uuid
-    assert all_objects[5]["object_type"] == "engagement"
-    assert all_objects[5]["service_type"] == "employee"
-    assert all_objects[5]["parent_uuid"] == UUID(parent_uuid)
-    assert all_objects[5]["payload"] == UUID(uuid)
-
-    assert len(all_objects) == 6
-
-
-async def test_load_all_mo_objects_add_validity(
-    dataloader: DataLoader, legacy_graphql_session: AsyncMock
-):
-    query_mo = AsyncMock()
-    query_mo.return_value = {}
-    dataloader.query_mo = query_mo  # type: ignore
-
-    await dataloader.load_all_mo_objects(add_validity=True, uuid=str(uuid4()))
-    query = print_ast(query_mo.call_args[0][0])
-    assert "validity" in str(query)
-
-    query_mo.reset_mock()
-
-    await dataloader.load_all_mo_objects(add_validity=False, uuid=str(uuid4()))
-    query = print_ast(query_mo.call_args[0][0])
-    assert "validity" in str(query)
-
-
-async def test_load_all_mo_objects_current_objects_only(
-    dataloader: DataLoader, legacy_graphql_session: AsyncMock
-):
-    query_mo = AsyncMock()
-    query_mo.return_value = {}
-    dataloader.query_mo = query_mo  # type: ignore
-
-    await dataloader.load_all_mo_objects(current_objects_only=True, uuid=str(uuid4()))
-    query = print_ast(query_mo.call_args[0][0])
-    assert "to_date: null" not in str(query)
-    assert "from_date: null" not in str(query)
-
-    query_mo.reset_mock()
-
-    await dataloader.load_all_mo_objects(current_objects_only=False, uuid=str(uuid4()))
-    query = print_ast(query_mo.call_args[0][0])
-    assert "to_date: null" in str(query)
-    assert "from_date: null" in str(query)
-
-
-async def test_load_all_mo_objects_specify_uuid(
-    dataloader: DataLoader, legacy_graphql_session: AsyncMock
-):
     employee_uuid = str(uuid4())
-    return_values: list = [
-        {"employees": {"objects": [{"objects": [{"uuid": employee_uuid}]}]}},
-        {"org_units": {"objects": []}},
-        {"addresses": {"objects": []}},
-        {"engagements": {"objects": []}},
-        {"itusers": {"objects": []}},
-    ]
+    employee_route = graphql_mock.query("read_all_employee_uuids")
+    employee_route.result = {
+        "employees": {
+            "objects": [
+                {"validities": [{"uuid": employee_uuid, "validity": validity}]}
+            ],
+            "page_info": page_info,
+        }
+    }
 
-    legacy_graphql_session.execute.side_effect = return_values
+    org_unit_uuid = str(uuid4())
+    org_unit_route = graphql_mock.query("read_all_org_unit_uuids")
+    org_unit_route.result = {
+        "org_units": {
+            "objects": [
+                {"validities": [{"uuid": org_unit_uuid, "validity": validity}]}
+            ],
+            "page_info": page_info,
+        }
+    }
 
-    output = await dataloader.load_all_mo_objects(uuid=employee_uuid)
-    assert output[0]["uuid"] == employee_uuid
-    assert len(output) == 1
+    employee_address_uuid = str(uuid4())
+    org_unit_address_uuid = str(uuid4())
+    address_route = graphql_mock.query("read_all_address_uuids")
+    address_route.result = {
+        "addresses": {
+            "objects": [
+                {
+                    "validities": [
+                        {
+                            "uuid": employee_address_uuid,
+                            "employee_uuid": employee_uuid,
+                            "org_unit_uuid": None,
+                            "validity": validity,
+                        }
+                    ]
+                },
+                {
+                    "validities": [
+                        {
+                            "uuid": org_unit_address_uuid,
+                            "employee_uuid": None,
+                            "org_unit_uuid": org_unit_uuid,
+                            "validity": validity,
+                        }
+                    ]
+                },
+            ],
+            "page_info": page_info,
+        }
+    }
 
-
-async def test_load_all_mo_objects_specify_uuid_multiple_results(
-    dataloader: DataLoader, legacy_graphql_session: AsyncMock
-):
-    uuid = str(uuid4())
-    return_values: list = [
-        {"employees": {"objects": [{"objects": [{"uuid": uuid}]}]}},
-        {"org_units": {"objects": [{"objects": [{"uuid": uuid}]}]}},
-        {"addresses": {"objects": []}},
-        {"engagements": {"objects": []}},
-        {"itusers": {"objects": []}},
-    ]
-
-    dataloader.query_mo = AsyncMock()  # type: ignore
-    dataloader.query_mo.side_effect = return_values
-
-    with pytest.raises(MultipleObjectsReturnedException):
-        await dataloader.load_all_mo_objects(uuid=uuid)
-
-
-async def test_load_all_mo_objects_invalid_query(
-    dataloader: DataLoader, legacy_graphql_session: AsyncMock
-):
-    # Return a single it-user, which belongs neither to an employee nor org-unit
-    return_value: dict = {
+    ituser_uuid = str(uuid4())
+    ituser_route = graphql_mock.query("read_all_ituser_uuids")
+    ituser_route.result = {
         "itusers": {
             "objects": [
                 {
-                    "objects": [
-                        {"uuid": uuid4(), "employee_uuid": None, "org_unit_uuid": None}
+                    "validities": [
+                        {
+                            "uuid": ituser_uuid,
+                            "employee_uuid": employee_uuid,
+                            "org_unit_uuid": None,
+                            "validity": validity,
+                        }
                     ]
                 }
-            ]
-        },
+            ],
+            "page_info": page_info,
+        }
     }
 
-    dataloader.query_mo_paged = AsyncMock()  # type: ignore
-    dataloader.query_mo_paged.return_value = return_value
+    engagement_uuid = str(uuid4())
+    engagement_route = graphql_mock.query("read_all_engagement_uuids")
+    engagement_route.result = {
+        "engagements": {
+            "objects": [
+                {
+                    "validities": [
+                        {
+                            "uuid": engagement_uuid,
+                            "employee_uuid": employee_uuid,
+                            "org_unit_uuid": org_unit_uuid,
+                            "validity": validity,
+                        }
+                    ]
+                }
+            ],
+            "page_info": page_info,
+        }
+    }
 
-    with pytest.raises(InvalidQueryResponse):
-        await dataloader.load_all_mo_objects()
+    all_objects = await dataloader.load_all_mo_objects()
+    assert len(all_objects) == 6
+
+    (
+        employee,
+        org_unit,
+        employee_address,
+        org_unit_address,
+        ituser,
+        engagement,
+    ) = all_objects
+
+    uuid = employee_uuid
+    parent_uuid = uuid
+    assert employee["uuid"] == uuid
+    assert employee["object_type"] == "person"
+    assert employee["service_type"] == "employee"
+    assert employee["parent_uuid"] == UUID(parent_uuid)
+    assert employee["payload"] == UUID(uuid)
+
+    uuid = org_unit_uuid
+    parent_uuid = uuid
+    assert org_unit["uuid"] == uuid
+    assert org_unit["object_type"] == "org_unit"
+    assert org_unit["service_type"] == "org_unit"
+    assert org_unit["parent_uuid"] == UUID(parent_uuid)
+    assert org_unit["payload"] == UUID(uuid)
+
+    uuid = employee_address_uuid
+    parent_uuid = employee_uuid
+    assert employee_address["uuid"] == uuid
+    assert employee_address["object_type"] == "address"
+    assert employee_address["service_type"] == "employee"
+    assert employee_address["parent_uuid"] == UUID(parent_uuid)
+    assert employee_address["payload"] == UUID(uuid)
+
+    uuid = org_unit_address_uuid
+    parent_uuid = org_unit_uuid
+    assert org_unit_address["uuid"] == uuid
+    assert org_unit_address["object_type"] == "address"
+    assert org_unit_address["service_type"] == "org_unit"
+    assert org_unit_address["parent_uuid"] == UUID(parent_uuid)
+    assert org_unit_address["payload"] == UUID(uuid)
+
+    uuid = ituser_uuid
+    parent_uuid = employee_uuid
+    assert ituser["uuid"] == uuid
+    assert ituser["object_type"] == "ituser"
+    assert ituser["service_type"] == "employee"
+    assert ituser["parent_uuid"] == UUID(parent_uuid)
+    assert ituser["payload"] == UUID(uuid)
+
+    uuid = engagement_uuid
+    parent_uuid = employee_uuid
+    assert engagement["uuid"] == uuid
+    assert engagement["object_type"] == "engagement"
+    assert engagement["service_type"] == "employee"
+    assert engagement["parent_uuid"] == UUID(parent_uuid)
+    assert engagement["payload"] == UUID(uuid)
 
 
-async def test_load_all_mo_objects_TransportQueryError(
-    dataloader: DataLoader, legacy_graphql_session: AsyncMock
-):
+async def test_load_all_mo_objects_add_validity(
+    dataloader: DataLoader, graphql_mock: GraphQLMocker
+) -> None:
+    validity = {"from": "1970-01-01T00:00:00", "to": None}
+    page_info = {"next_cursor": None}
+
     employee_uuid = str(uuid4())
-    org_unit_uuid = str(uuid4())
-    return_values = [
-        {"employees": {"objects": [{"objects": [{"uuid": employee_uuid}]}]}},
-        {"org_units": {"objects": [{"objects": [{"uuid": org_unit_uuid}]}]}},
-        TransportQueryError("foo"),
-        TransportQueryError("foo"),
-        TransportQueryError("foo"),
-    ]
+    employee_route = graphql_mock.query("read_all_employee_uuids")
+    employee_route.result = {
+        "employees": {
+            "objects": [
+                {"validities": [{"uuid": employee_uuid, "validity": validity}]}
+            ],
+            "page_info": page_info,
+        }
+    }
+    load_all_mo_employees = partial(
+        dataloader.load_all_mo_objects, object_types_to_try=("employees",)
+    )
 
-    dataloader.query_mo_paged = AsyncMock()  # type: ignore
-    dataloader.query_mo_paged.side_effect = return_values
+    results = await load_all_mo_employees(add_validity=True, current_objects_only=True)
+    result = one(results)
+    assert "validity" not in result
 
-    with capture_logs() as cap_logs:
-        output = await dataloader.load_all_mo_objects()
-        warnings = [w for w in cap_logs if w["log_level"] == "warning"]
-        assert len(warnings) == 0
+    results = await load_all_mo_employees(add_validity=True, current_objects_only=False)
+    result = one(results)
+    assert "validity" in result
 
-        assert output[0]["uuid"] == employee_uuid
-        assert output[1]["uuid"] == org_unit_uuid
-        assert len(output) == 2
+    results = await load_all_mo_employees(add_validity=False, current_objects_only=True)
+    result = one(results)
+    assert "validity" not in result
+
+    results = await load_all_mo_employees(
+        add_validity=False, current_objects_only=False
+    )
+    result = one(results)
+    assert "validity" not in result
 
 
-async def test_load_all_mo_objects_only_TransportQueryErrors(
-    dataloader: DataLoader, legacy_graphql_session: AsyncMock
-):
-    return_values = [
-        TransportQueryError("foo"),
-        TransportQueryError("foo"),
-        TransportQueryError("foo"),
-        TransportQueryError("foo"),
-        TransportQueryError("foo"),
-    ]
+async def test_load_all_mo_objects_specify_uuid(
+    dataloader: DataLoader, graphql_mock: GraphQLMocker
+) -> None:
+    validity = {"from": "1970-01-01T00:00:00", "to": None}
+    page_info = {"next_cursor": None}
 
-    dataloader.query_mo_paged = AsyncMock()  # type: ignore
-    dataloader.query_mo_paged.side_effect = return_values
+    employee_uuid = str(uuid4())
+    employee_route = graphql_mock.query("read_all_employee_uuids")
+    employee_route.result = {
+        "employees": {
+            "objects": [
+                {"validities": [{"uuid": employee_uuid, "validity": validity}]}
+            ],
+            "page_info": page_info,
+        }
+    }
+    load_all_mo_employees = partial(
+        dataloader.load_all_mo_objects, object_types_to_try=("employees",)
+    )
 
-    with capture_logs() as cap_logs:
-        await dataloader.load_all_mo_objects()
-        warnings = [w for w in cap_logs if w["log_level"] == "warning"]
-        assert len(warnings) == 5
+    results = await load_all_mo_employees(uuid=employee_uuid)
+    result = one(results)
+    assert result["uuid"] == employee_uuid
+
+
+async def test_load_all_mo_objects_specify_uuid_multiple_results(
+    dataloader: DataLoader, graphql_mock: GraphQLMocker
+) -> None:
+    # NOTE: I do not know when this would actually happen?
+    validity = {"from": "1970-01-01T00:00:00", "to": None}
+    page_info = {"next_cursor": None}
+
+    employee_uuid = str(uuid4())
+    employee_route = graphql_mock.query("read_all_employee_uuids")
+    employee_route.result = {
+        "employees": {
+            "objects": [
+                {"validities": [{"uuid": employee_uuid, "validity": validity}]},
+                {"validities": [{"uuid": employee_uuid, "validity": validity}]},
+            ],
+            "page_info": page_info,
+        }
+    }
+    load_all_mo_employees = partial(
+        dataloader.load_all_mo_objects, object_types_to_try=("employees",)
+    )
+
+    with pytest.raises(MultipleObjectsReturnedException):
+        await load_all_mo_employees(uuid=employee_uuid)
 
 
 async def test_load_all_mo_objects_invalid_object_type_to_try(
-    dataloader: DataLoader, legacy_graphql_session: AsyncMock
-):
+    dataloader: DataLoader,
+) -> None:
     with pytest.raises(KeyError):
         await dataloader.load_all_mo_objects(
             object_types_to_try=("non_existing_object_type",)
