@@ -2062,11 +2062,13 @@ async def test_load_all_current_it_users_no_paged(
         "itusers": {
             "objects": [
                 {
-                    "current": {
-                        "itsystem_uuid": str(itsystem1_uuid),
-                        "employee_uuid": str(uuid4()),
-                        "user_key": "foo",
-                    }
+                    "validities": [
+                        {
+                            "itsystem_uuid": str(itsystem1_uuid),
+                            "employee_uuid": str(uuid4()),
+                            "user_key": "foo",
+                        }
+                    ]
                 }
             ],
             "page_info": {"next_cursor": None},
@@ -2089,11 +2091,13 @@ async def test_load_all_current_it_users_paged(
             "itusers": {
                 "objects": [
                     {
-                        "current": {
-                            "itsystem_uuid": str(itsystem1_uuid),
-                            "employee_uuid": str(uuid4()),
-                            "user_key": "foo",
-                        }
+                        "validities": [
+                            {
+                                "itsystem_uuid": str(itsystem1_uuid),
+                                "employee_uuid": str(uuid4()),
+                                "user_key": "foo",
+                            }
+                        ]
                     }
                 ],
                 "page_info": {
@@ -2105,11 +2109,13 @@ async def test_load_all_current_it_users_paged(
             "itusers": {
                 "objects": [
                     {
-                        "current": {
-                            "itsystem_uuid": str(itsystem1_uuid),
-                            "employee_uuid": str(uuid4()),
-                            "user_key": "bar",
-                        }
+                        "validities": [
+                            {
+                                "itsystem_uuid": str(itsystem1_uuid),
+                                "employee_uuid": str(uuid4()),
+                                "user_key": "bar",
+                            }
+                        ]
                     }
                 ],
                 "page_info": {"next_cursor": None},

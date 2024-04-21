@@ -157,7 +157,7 @@ from .read_addresses import ReadAddressesAddressesObjectsValiditiesValidity
 from .read_all_itusers import ReadAllItusers
 from .read_all_itusers import ReadAllItusersItusers
 from .read_all_itusers import ReadAllItusersItusersObjects
-from .read_all_itusers import ReadAllItusersItusersObjectsCurrent
+from .read_all_itusers import ReadAllItusersItusersObjectsValidities
 from .read_all_itusers import ReadAllItusersItusersPageInfo
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuid
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuidClasses
@@ -443,7 +443,7 @@ __all__ = [
     "ReadAllItusers",
     "ReadAllItusersItusers",
     "ReadAllItusersItusersObjects",
-    "ReadAllItusersItusersObjectsCurrent",
+    "ReadAllItusersItusersObjectsValidities",
     "ReadAllItusersItusersPageInfo",
     "ReadClassNameByClassUuid",
     "ReadClassNameByClassUuidClasses",

@@ -995,13 +995,9 @@ class GraphQLClient(AsyncBaseClient):
         query = gql(
             """
             query read_all_itusers($itsystem_uuid: UUID!, $cursor: Cursor) {
-              itusers(
-                limit: 100
-                cursor: $cursor
-                filter: {itsystem: {uuids: $itsystem_uuid}}
-              ) {
+              itusers(limit: 100, cursor: $cursor, filter: $filter) {
                 objects {
-                  current {
+                  validities {
                     itsystem_uuid
                     employee_uuid
                     user_key
