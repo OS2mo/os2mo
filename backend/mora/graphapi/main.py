@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import importlib
 import re
+from functools import cache
 from typing import Any
 
 from fastapi import APIRouter
@@ -18,6 +19,7 @@ logger = get_logger()
 newest = 21
 
 
+@cache
 def load_graphql_version(version_number: int) -> APIRouter:
     """Dynamically import and load the specified GraphQL version.
 
