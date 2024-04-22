@@ -1,8 +1,13 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from datetime import datetime
+from typing import Annotated
+from typing import Any
 from uuid import UUID
 
 import strawberry
+from strawberry import UNSET
+from strawberry.unset import UnsetType
 
 from .models import AddressCreate
 from .models import AddressTerminate
@@ -43,7 +48,6 @@ from .models import ManagerUpdate
 from .models import Organisation
 from .models import OrganisationUnitCreate
 from .models import OrganisationUnitTerminate
-from .models import OrganisationUnitUpdate
 from .models import OwnerCreate
 from .models import OwnerTerminate
 from .models import OwnerUpdate
@@ -54,6 +58,14 @@ from .models import RoleUpdate
 from .models import Validity
 from ramodels.mo import OpenValidity as RAOpenValidity
 from ramodels.mo import Validity as RAValidity
+
+
+def gen_uuid_unset(uuid: UUID | UnsetType | None) -> dict[str, str] | UnsetType | None:
+    if uuid is UNSET:
+        return UNSET
+    if uuid is None:
+        return None
+    return {"uuid": str(uuid)}
 
 
 # Various
@@ -80,6 +92,18 @@ class RAValidityInput:
 )
 class RAOpenValidityInput:
     pass
+
+
+def validity2dict(validity: Any) -> dict:
+    def dt2diso_or_none(dt: datetime | None) -> str | None:
+        if dt is None:
+            return None
+        return dt.date().isoformat()
+
+    return {
+        "from": dt2diso_or_none(validity.from_date),
+        "to": dt2diso_or_none(validity.to_date),
+    }
 
 
 # Root Organisation
@@ -454,12 +478,79 @@ class OrganisationUnitCreateInput:
     """Input model for creating organisation units."""
 
 
-@strawberry.experimental.pydantic.input(
-    model=OrganisationUnitUpdate,
-    all_fields=True,
-)
+@strawberry.input
 class OrganisationUnitUpdateInput:
     """Input model for updating organisation units."""
+
+    uuid: Annotated[
+        UUID,
+        strawberry.argument(description="UUID of the organisation unit to be updated."),
+    ]
+
+    validity: Annotated[
+        RAValidityInput,
+        strawberry.argument(
+            description="Validity range for the organisation unit to be updated."
+        ),
+    ]
+
+    name: Annotated[
+        str | None,
+        strawberry.argument(description="Name of the organisation unit to be updated."),
+    ] = UNSET
+
+    user_key: Annotated[
+        str | None, strawberry.argument(description="Extra info or uuid.")
+    ] = UNSET
+
+    parent: Annotated[
+        UUID | None,
+        strawberry.argument(
+            description="UUID of the organisation units related parent to be updated."
+        ),
+    ] = UNSET
+
+    org_unit_type: Annotated[
+        UUID | None,
+        strawberry.argument(
+            description="UUID of the organisation units type to be updated."
+        ),
+    ] = UNSET
+
+    org_unit_level: Annotated[
+        UUID | None,
+        strawberry.argument(
+            description="UUID of the organisation units level to be updated."
+        ),
+    ] = UNSET
+
+    org_unit_hierarchy: Annotated[
+        UUID | None,
+        strawberry.argument(
+            description="UUID of organisation units hierarchy to be updated."
+        ),
+    ] = UNSET
+
+    time_planning: Annotated[
+        UUID | None,
+        strawberry.argument(
+            description="UUID of organisation units time planning to be updated."
+        ),
+    ] = UNSET
+
+    def to_handler_dict(self) -> dict:
+        data_dict: dict = {
+            "uuid": self.uuid,
+            "name": self.name,
+            "user_key": self.user_key,
+            "parent": gen_uuid_unset(self.parent),
+            "org_unit_type": gen_uuid_unset(self.org_unit_type),
+            "org_unit_level": gen_uuid_unset(self.org_unit_level),
+            "org_unit_hierarchy": gen_uuid_unset(self.org_unit_hierarchy),
+            "time_planning": gen_uuid_unset(self.time_planning),
+            "validity": validity2dict(self.validity),
+        }
+        return {k: v for k, v in data_dict.items() if v is not None and v is not UNSET}
 
 
 # Owners

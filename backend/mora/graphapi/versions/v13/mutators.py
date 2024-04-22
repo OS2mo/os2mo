@@ -732,9 +732,7 @@ class Mutation:
     async def org_unit_update(
         self, input: OrganisationUnitUpdateInput
     ) -> Response[OrganisationUnit]:
-        return uuid2response(
-            await update_org_unit(input.to_pydantic()), OrganisationUnitRead
-        )
+        return uuid2response(await update_org_unit(input), OrganisationUnitRead)
 
     @strawberry.mutation(
         description="Terminates an organization unit.",

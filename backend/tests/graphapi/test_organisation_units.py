@@ -14,13 +14,14 @@ from hypothesis import settings
 from hypothesis import strategies as st
 from more_itertools import one
 from strawberry import UNSET
+from strawberry.unset import UnsetType
 
 from ..conftest import GraphAPIPost
 from .utils import fetch_class_uuids
 from .utils import fetch_org_unit_validity
 from mora.graphapi.shim import execute_graphql
+from mora.graphapi.versions.latest.inputs import OrganisationUnitUpdateInput
 from mora.graphapi.versions.latest.models import OrganisationUnitCreate
-from mora.graphapi.versions.latest.models import OrganisationUnitUpdate
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import Validity as RAValidity
 
@@ -446,13 +447,23 @@ async def test_update_org_unit_mutation_integration_test(
     assert post_update_org_unit == expected_updated_org_unit
 
 
-@given(test_data=...)
+@given(
+    test_data=st.builds(
+        OrganisationUnitUpdateInput,
+        validity=st.builds(
+            RAValidity,
+            from_date=st.datetimes(
+                min_value=datetime(1970, 1, 1), max_value=datetime(2000, 1, 1)
+            ),
+            to_date=st.none(),
+        ),
+    )
+)
 @patch("mora.graphapi.versions.latest.mutators.update_org_unit", new_callable=AsyncMock)
 async def test_update_org_unit_mutation_unit_test(
-    update_org_unit: AsyncMock, test_data: OrganisationUnitUpdate
+    update_org_unit: AsyncMock, test_data: OrganisationUnitUpdateInput
 ) -> None:
-    """Tests that the mutator function for updating an organisation unit passes through,
-    with the defined pydantic model."""
+    """Tests that the mutator function for takes our input type."""
 
     mutation = """
         mutation UpdateOrganisationUnit($input: OrganisationUnitUpdateInput!) {
@@ -464,12 +475,13 @@ async def test_update_org_unit_mutation_unit_test(
 
     update_org_unit.return_value = test_data.uuid
 
-    payload = jsonable_encoder(test_data)
+    payload = jsonable_encoder(test_data, custom_encoder={UnsetType: lambda _: None})
+
     response = await execute_graphql(query=mutation, variable_values={"input": payload})
     assert response.errors is None
     assert response.data == {"org_unit_update": {"uuid": str(test_data.uuid)}}
 
-    update_org_unit.assert_called_with(test_data)
+    update_org_unit.assert_called_once()
 
 
 @pytest.mark.integration_test
