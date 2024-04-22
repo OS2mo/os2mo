@@ -459,7 +459,7 @@ query read_all_itusers($itsystem_uuid: UUID!, $cursor: Cursor) {
   }
 }
 
-query read_all_employee_uuids($filter: EmployeeFilter!, $cursor: Cursor = null) {
+query read_all_employee_uuids($filter: EmployeeFilter!, $cursor: Cursor = null, $limit: Int = 100) {
   employees(
     limit: 100,
     cursor: $cursor,
@@ -480,7 +480,7 @@ query read_all_employee_uuids($filter: EmployeeFilter!, $cursor: Cursor = null) 
   }
 }
 
-query read_all_org_unit_uuids($filter: OrganisationUnitFilter!, $cursor: Cursor = null) {
+query read_all_org_unit_uuids($filter: OrganisationUnitFilter!, $cursor: Cursor = null, $limit: Int = 100) {
   org_units(
     limit: 100,
     cursor: $cursor,
@@ -501,7 +501,7 @@ query read_all_org_unit_uuids($filter: OrganisationUnitFilter!, $cursor: Cursor 
   }
 }
 
-query read_all_address_uuids($filter: AddressFilter!, $cursor: Cursor = null) {
+query read_all_address_uuids($filter: AddressFilter!, $cursor: Cursor = null, $limit: Int = 100) {
   addresses(
     limit: 100,
     cursor: $cursor,
@@ -524,7 +524,7 @@ query read_all_address_uuids($filter: AddressFilter!, $cursor: Cursor = null) {
   }
 }
 
-query read_all_ituser_uuids($filter: ITUserFilter!, $cursor: Cursor = null) {
+query read_all_ituser_uuids($filter: ITUserFilter!, $cursor: Cursor = null, $limit: Int = 100) {
   itusers(
     limit: 100,
     cursor: $cursor,
@@ -547,7 +547,7 @@ query read_all_ituser_uuids($filter: ITUserFilter!, $cursor: Cursor = null) {
   }
 }
 
-query read_all_engagement_uuids($filter: EngagementFilter!, $cursor: Cursor = null) {
+query read_all_engagement_uuids($filter: EngagementFilter!, $cursor: Cursor = null, $limit: Int = 100) {
   engagements(
     limit: 100,
     cursor: $cursor,

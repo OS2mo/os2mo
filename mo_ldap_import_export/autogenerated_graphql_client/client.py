@@ -28,6 +28,7 @@ from .input_types import EmployeeFilter
 from .input_types import EngagementFilter
 from .input_types import EngagementTerminateInput
 from .input_types import ITSystemCreateInput
+from .input_types import ITUserFilter
 from .input_types import ITUserTerminateInput
 from .input_types import OrganisationUnitFilter
 from .itsystem_create import ItsystemCreate
@@ -1032,11 +1033,14 @@ class GraphQLClient(AsyncBaseClient):
         return ReadAllItusers.parse_obj(data).itusers
 
     async def read_all_employee_uuids(
-        self, filter: EmployeeFilter, cursor: Union[Optional[Any], UnsetType] = UNSET
+        self,
+        filter: EmployeeFilter,
+        cursor: Union[Optional[Any], UnsetType] = UNSET,
+        limit: Union[Optional[int], UnsetType] = UNSET,
     ) -> ReadAllEmployeeUuidsEmployees:
         query = gql(
             """
-            query read_all_employee_uuids($filter: EmployeeFilter!, $cursor: Cursor = null) {
+            query read_all_employee_uuids($filter: EmployeeFilter!, $cursor: Cursor = null, $limit: Int = 100) {
               employees(limit: 100, cursor: $cursor, filter: $filter) {
                 objects {
                   validities {
@@ -1054,7 +1058,11 @@ class GraphQLClient(AsyncBaseClient):
             }
             """
         )
-        variables: dict[str, object] = {"filter": filter, "cursor": cursor}
+        variables: dict[str, object] = {
+            "filter": filter,
+            "cursor": cursor,
+            "limit": limit,
+        }
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadAllEmployeeUuids.parse_obj(data).employees
@@ -1063,10 +1071,11 @@ class GraphQLClient(AsyncBaseClient):
         self,
         filter: OrganisationUnitFilter,
         cursor: Union[Optional[Any], UnsetType] = UNSET,
+        limit: Union[Optional[int], UnsetType] = UNSET,
     ) -> ReadAllOrgUnitUuidsOrgUnits:
         query = gql(
             """
-            query read_all_org_unit_uuids($filter: OrganisationUnitFilter!, $cursor: Cursor = null) {
+            query read_all_org_unit_uuids($filter: OrganisationUnitFilter!, $cursor: Cursor = null, $limit: Int = 100) {
               org_units(limit: 100, cursor: $cursor, filter: $filter) {
                 objects {
                   validities {
@@ -1084,17 +1093,24 @@ class GraphQLClient(AsyncBaseClient):
             }
             """
         )
-        variables: dict[str, object] = {"filter": filter, "cursor": cursor}
+        variables: dict[str, object] = {
+            "filter": filter,
+            "cursor": cursor,
+            "limit": limit,
+        }
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadAllOrgUnitUuids.parse_obj(data).org_units
 
     async def read_all_address_uuids(
-        self, filter: AddressFilter, cursor: Union[Optional[Any], UnsetType] = UNSET
+        self,
+        filter: AddressFilter,
+        cursor: Union[Optional[Any], UnsetType] = UNSET,
+        limit: Union[Optional[int], UnsetType] = UNSET,
     ) -> ReadAllAddressUuidsAddresses:
         query = gql(
             """
-            query read_all_address_uuids($filter: AddressFilter!, $cursor: Cursor = null) {
+            query read_all_address_uuids($filter: AddressFilter!, $cursor: Cursor = null, $limit: Int = 100) {
               addresses(limit: 100, cursor: $cursor, filter: $filter) {
                 objects {
                   validities {
@@ -1114,17 +1130,24 @@ class GraphQLClient(AsyncBaseClient):
             }
             """
         )
-        variables: dict[str, object] = {"filter": filter, "cursor": cursor}
+        variables: dict[str, object] = {
+            "filter": filter,
+            "cursor": cursor,
+            "limit": limit,
+        }
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadAllAddressUuids.parse_obj(data).addresses
 
     async def read_all_ituser_uuids(
-        self, filter: ITUserFilter, cursor: Union[Optional[Any], UnsetType] = UNSET
+        self,
+        filter: ITUserFilter,
+        cursor: Union[Optional[Any], UnsetType] = UNSET,
+        limit: Union[Optional[int], UnsetType] = UNSET,
     ) -> ReadAllItuserUuidsItusers:
         query = gql(
             """
-            query read_all_ituser_uuids($filter: ITUserFilter!, $cursor: Cursor = null) {
+            query read_all_ituser_uuids($filter: ITUserFilter!, $cursor: Cursor = null, $limit: Int = 100) {
               itusers(limit: 100, cursor: $cursor, filter: $filter) {
                 objects {
                   validities {
@@ -1144,17 +1167,24 @@ class GraphQLClient(AsyncBaseClient):
             }
             """
         )
-        variables: dict[str, object] = {"filter": filter, "cursor": cursor}
+        variables: dict[str, object] = {
+            "filter": filter,
+            "cursor": cursor,
+            "limit": limit,
+        }
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadAllItuserUuids.parse_obj(data).itusers
 
     async def read_all_engagement_uuids(
-        self, filter: EngagementFilter, cursor: Union[Optional[Any], UnsetType] = UNSET
+        self,
+        filter: EngagementFilter,
+        cursor: Union[Optional[Any], UnsetType] = UNSET,
+        limit: Union[Optional[int], UnsetType] = UNSET,
     ) -> ReadAllEngagementUuidsEngagements:
         query = gql(
             """
-            query read_all_engagement_uuids($filter: EngagementFilter!, $cursor: Cursor = null) {
+            query read_all_engagement_uuids($filter: EngagementFilter!, $cursor: Cursor = null, $limit: Int = 100) {
               engagements(limit: 100, cursor: $cursor, filter: $filter) {
                 objects {
                   validities {
@@ -1174,7 +1204,11 @@ class GraphQLClient(AsyncBaseClient):
             }
             """
         )
-        variables: dict[str, object] = {"filter": filter, "cursor": cursor}
+        variables: dict[str, object] = {
+            "filter": filter,
+            "cursor": cursor,
+            "limit": limit,
+        }
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadAllEngagementUuids.parse_obj(data).engagements

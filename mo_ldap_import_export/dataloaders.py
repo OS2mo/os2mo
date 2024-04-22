@@ -56,7 +56,6 @@ from .environments import filter_remove_curly_brackets
 from .exceptions import AttributeNotFound
 from .exceptions import DNNotFound
 from .exceptions import InvalidChangeDict
-from .exceptions import InvalidQueryResponse
 from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
 from .exceptions import NotEnabledException
@@ -1667,6 +1666,10 @@ class DataLoader:
             filter = parse_obj_as(filter_class, filter_dict)
 
             reader = partial(readers[object_type], filter)
+            # TODO: Remove this when UUID filters work as expected in OS2mo
+            if uuid:
+                reader = partial(reader, limit=None)
+
             async for entry in paged_query(reader):
                 result[object_type].append(jsonable_encoder(entry))
 
@@ -1684,23 +1687,21 @@ class DataLoader:
                 # Note that engagements have both employee_uuid and org_unit uuid. But
                 # belong to an employee. We handle that by checking for employee_uuid
                 # first
-                if "employee_uuid" in mo_object and mo_object["employee_uuid"]:
+                parent_uuid = mo_object["uuid"]
+                service_type = None
+                if object_type == "employees":
+                    service_type = "employee"
+                elif object_type == "org_units":
+                    service_type = "org_unit"
+                elif mo_object.get("employee_uuid"):
                     parent_uuid = mo_object["employee_uuid"]
                     service_type = "employee"
-                elif "org_unit_uuid" in mo_object and mo_object["org_unit_uuid"]:
+                elif mo_object.get("org_unit_uuid"):
                     parent_uuid = mo_object["org_unit_uuid"]
                     service_type = "org_unit"
-                else:
-                    parent_uuid = mo_object["uuid"]
-                    if object_type == "employees":
-                        service_type = "employee"
-                    elif object_type == "org_units":
-                        service_type = "org_unit"
-                    else:
-                        raise InvalidQueryResponse(
-                            f"{mo_object} object type '{object_type}' is "
-                            "neither 'employees' nor 'org_units'"
-                        )
+                else:  # pragma: no cover
+                    # This should never happen
+                    assert False
 
                 mo_object["payload"] = UUID(mo_object["uuid"])
                 mo_object["parent_uuid"] = UUID(parent_uuid)
