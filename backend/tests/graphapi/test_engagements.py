@@ -90,7 +90,7 @@ def test_query_is_primary(graphapi_post: GraphAPIPost):
         {
             "objects": [
                 {
-                    "is_primary": True,
+                    "is_primary": False,
                     "primary": {"uuid": "2f16d140-d743-4c9f-9e0e-361da91a06f6"},
                     "uuid": "301a906b-ef51-4d5c-9c77-386fb8410459",
                 }

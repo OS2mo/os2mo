@@ -47,7 +47,7 @@ INFINITY = "infinity"
 SCOPE = "scope"
 NOTE = "note"
 
-MINIMUM_PRIMARY_SCOPE_VALUE = 1
+MINIMUM_PRIMARY_SCOPE_VALUE = 3000
 
 # Address
 ADDRESS_KEY = "Adresse"
