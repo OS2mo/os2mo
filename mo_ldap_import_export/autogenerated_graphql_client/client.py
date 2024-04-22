@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 from typing import List
 from typing import Optional
 from typing import Union
@@ -42,6 +43,8 @@ from .person_ituser_refresh import PersonItuserRefresh
 from .person_ituser_refresh import PersonItuserRefreshItuserRefresh
 from .read_addresses import ReadAddresses
 from .read_addresses import ReadAddressesAddresses
+from .read_all_itusers import ReadAllItusers
+from .read_all_itusers import ReadAllItusersItusers
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuid
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuidClasses
 from .read_class_user_keys import ReadClassUserKeys
@@ -985,3 +988,36 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadClassUserKeys.parse_obj(data).classes
+
+    async def read_all_itusers(
+        self, itsystem_uuid: UUID, cursor: Union[Optional[Any], UnsetType] = UNSET
+    ) -> ReadAllItusersItusers:
+        query = gql(
+            """
+            query read_all_itusers($itsystem_uuid: UUID!, $cursor: Cursor) {
+              itusers(
+                limit: 100
+                cursor: $cursor
+                filter: {itsystem: {uuids: $itsystem_uuid}}
+              ) {
+                objects {
+                  current {
+                    itsystem_uuid
+                    employee_uuid
+                    user_key
+                  }
+                }
+                page_info {
+                  next_cursor
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "itsystem_uuid": itsystem_uuid,
+            "cursor": cursor,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadAllItusers.parse_obj(data).itusers

@@ -6,8 +6,13 @@ from contextlib import suppress
 from datetime import datetime
 from enum import auto
 from enum import Enum
+from functools import partial
 from functools import wraps
+from itertools import count
 from typing import Any
+from typing import AsyncIterator
+from typing import Awaitable
+from typing import Callable
 from typing import cast
 from uuid import UUID
 
@@ -78,6 +83,20 @@ class Verb(Enum):
     CREATE = auto()
     EDIT = auto()
     TERMINATE = auto()
+
+
+async def paged_query(
+    query_func: Callable[[Any], Awaitable[Any]],
+) -> AsyncIterator[Any]:
+    cursor = None
+    for page_counter in count():
+        logger.info("Loading next page", page=page_counter)
+        result = await query_func(cursor)
+        for i in result.objects:
+            yield i
+        cursor = result.page_info.next_cursor
+        if cursor is None:
+            return
 
 
 class DataLoader:
@@ -1408,34 +1427,12 @@ class DataLoader:
         """
         Loads all current it-users
         """
-        query = gql(
-            """
-            query AllEmployees($cursor: Cursor) {
-              itusers (limit: 100, cursor: $cursor) {
-                objects {
-                  current {
-                    itsystem_uuid
-                    employee_uuid
-                    user_key
-                  }
-                }
-                page_info {
-                  next_cursor
-                }
-              }
-            }
-            """
-        )
-
-        result = await self.query_mo_paged(query)
-
-        # Format output
-        output = []
-        for entry in [r["current"] for r in result["itusers"]["objects"]]:
-            if entry["itsystem_uuid"] == str(it_system_uuid):
-                output.append(entry)
-
-        return output
+        read_all_itusers = partial(self.graphql_client.read_all_itusers, it_system_uuid)
+        return [
+            jsonable_encoder(entry.current)
+            async for entry in paged_query(read_all_itusers)
+            if entry.current is not None
+        ]
 
     async def load_all_it_users(self, it_system_uuid: UUID) -> list[dict]:
         """

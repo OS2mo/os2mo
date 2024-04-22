@@ -9,6 +9,7 @@ import re
 import time
 from collections.abc import Collection
 from collections.abc import Iterator
+from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -21,6 +22,7 @@ from fastramqpi.context import Context
 from gql import gql
 from gql.transport.exceptions import TransportQueryError
 from graphql import print_ast
+from httpx import Response
 from ldap3.core.exceptions import LDAPInvalidValueError
 from more_itertools import one
 from pydantic import parse_obj_as
@@ -2049,11 +2051,14 @@ def test_ou_in_ous_to_write_to(dataloader: DataLoader):
     assert dataloader.ou_in_ous_to_write_to("CN=Tobias,DC=k") is True
 
 
-async def test_load_all_current_it_users(dataloader: DataLoader):
+async def test_load_all_current_it_users_no_paged(
+    dataloader: DataLoader,
+    graphql_mock: GraphQLMocker,
+) -> None:
     itsystem1_uuid = uuid4()
-    itsystem2_uuid = uuid4()
 
-    obj1 = {
+    route = graphql_mock.query("read_all_itusers")
+    route.result = {
         "itusers": {
             "objects": [
                 {
@@ -2063,40 +2068,72 @@ async def test_load_all_current_it_users(dataloader: DataLoader):
                         "user_key": "foo",
                     }
                 }
-            ]
+            ],
+            "page_info": {"next_cursor": None},
         }
     }
+    results = await dataloader.load_all_current_it_users(itsystem1_uuid)
+    result = one(results)
+    assert result["itsystem_uuid"] == str(itsystem1_uuid)
+    assert result["user_key"] == "foo"
 
-    obj2 = {
-        "itusers": {
-            "objects": [
-                {
-                    "current": {
-                        "itsystem_uuid": str(itsystem2_uuid),
-                        "employee_uuid": str(uuid4()),
-                        "user_key": "bar",
+
+async def test_load_all_current_it_users_paged(
+    dataloader: DataLoader,
+    graphql_mock: GraphQLMocker,
+) -> None:
+    itsystem1_uuid = uuid4()
+
+    query_results = [
+        {
+            "itusers": {
+                "objects": [
+                    {
+                        "current": {
+                            "itsystem_uuid": str(itsystem1_uuid),
+                            "employee_uuid": str(uuid4()),
+                            "user_key": "foo",
+                        }
                     }
-                }
-            ]
-        }
-    }
+                ],
+                "page_info": {
+                    "next_cursor": "VGhlIGNha2UgaXMgYSBsaWUK"  # Fake cursor
+                },
+            }
+        },
+        {
+            "itusers": {
+                "objects": [
+                    {
+                        "current": {
+                            "itsystem_uuid": str(itsystem1_uuid),
+                            "employee_uuid": str(uuid4()),
+                            "user_key": "bar",
+                        }
+                    }
+                ],
+                "page_info": {"next_cursor": None},
+            }
+        },
+    ]
 
-    object_dicts = [obj1, obj2]
+    def pager(_: Any, route: Any) -> Response:
+        # Gets called once per GraphQL httpx request
+        # Each call increments route.call_count by one
+        result = query_results[route.call_count]
+        return Response(200, json={"data": jsonable_encoder(result)})
 
-    dataloader.query_mo_paged = AsyncMock()  # type: ignore
-    dataloader.query_mo_paged.side_effect = object_dicts
+    route = graphql_mock.query("read_all_itusers")
+    route.mock(side_effect=pager)
+    results = await dataloader.load_all_current_it_users(itsystem1_uuid)
+    assert len(results) == 2
 
-    output = await dataloader.load_all_current_it_users(itsystem1_uuid)
+    first, second = results
+    assert first["itsystem_uuid"] == str(itsystem1_uuid)
+    assert first["user_key"] == "foo"
 
-    assert len(output) == 1
-    assert output[0]["itsystem_uuid"] == str(itsystem1_uuid)
-    assert output[0]["user_key"] == "foo"
-
-    output = await dataloader.load_all_current_it_users(itsystem2_uuid)
-
-    assert len(output) == 1
-    assert output[0]["itsystem_uuid"] == str(itsystem2_uuid)
-    assert output[0]["user_key"] == "bar"
+    assert second["itsystem_uuid"] == str(itsystem1_uuid)
+    assert second["user_key"] == "bar"
 
 
 async def test_load_all_it_users(dataloader: DataLoader):
