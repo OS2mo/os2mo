@@ -28,7 +28,7 @@ Examples of existing integrations are;
 
 **The Event Generator** is a small program that triggers events in RabbitMQ as a response to activities that occur in the system. It is implemented in Python using the bitemporality of GIR/MO.
 
-**The PostgreSQL database**[^9] stores data in a standardized format (OIO10).
+**The PostgreSQL database**[^9] stores data in a standardized format (OIO[^10]).
 
 [^1]: https://svelte.dev/
 [^2]: https://vuejs.org/
@@ -39,3 +39,4 @@ Examples of existing integrations are;
 [^7]: https://fastapi.tiangolo.com/
 [^8]: https://rabbitmq.com/
 [^9]: https://www.postgresql.org/
+[^10]: https://arkitektur.digst.dk/specifikationer/organisation/oio-specifikation-af-model-organisation
