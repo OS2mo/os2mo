@@ -11,13 +11,11 @@ from fastapi import status
 from fastapi.responses import JSONResponse
 from fastapi.responses import RedirectResponse
 from more_itertools import first
-from more_itertools import last
 from structlog.stdlib import get_logger
 
 logger = get_logger()
 
-graphql_versions = list(range(2, 22))
-newest = last(graphql_versions)
+newest = 21
 
 
 def load_graphql_version(version_number: int) -> APIRouter:
@@ -32,6 +30,9 @@ def load_graphql_version(version_number: int) -> APIRouter:
     Returns:
         A FastAPI APIRouter for the given GraphQL version.
     """
+    assert version_number >= 1
+    assert version_number <= newest
+
     version = importlib.import_module(
         f"mora.graphapi.versions.v{version_number}.version"
     ).GraphQLVersion
@@ -40,7 +41,7 @@ def load_graphql_version(version_number: int) -> APIRouter:
     return router
 
 
-def setup_graphql(app: FastAPI) -> None:
+def setup_graphql(app: FastAPI, min_version: int) -> None:
     """Setup our GraphQL endpoints on FastAPI.
 
     Note:
@@ -57,7 +58,9 @@ def setup_graphql(app: FastAPI) -> None:
         """Redirect unversioned GraphiQL so developers can pin to the newest version."""
         return RedirectResponse(f"/graphql/v{newest}")
 
-    oldest = first(graphql_versions)
+    versions = range(min_version, newest)
+    oldest = first(versions)
+
     imported: set[int] = set()
     version_regex = re.compile(r"/graphql/v(\d+)")
 
