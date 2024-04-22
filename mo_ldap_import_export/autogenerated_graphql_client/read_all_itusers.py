@@ -16,10 +16,10 @@ class ReadAllItusersItusers(BaseModel):
 
 
 class ReadAllItusersItusersObjects(BaseModel):
-    current: Optional["ReadAllItusersItusersObjectsCurrent"]
+    validities: List["ReadAllItusersItusersObjectsValidities"]
 
 
-class ReadAllItusersItusersObjectsCurrent(BaseModel):
+class ReadAllItusersItusersObjectsValidities(BaseModel):
     itsystem_uuid: UUID
     employee_uuid: Optional[UUID]
     user_key: str
@@ -32,5 +32,5 @@ class ReadAllItusersItusersPageInfo(BaseModel):
 ReadAllItusers.update_forward_refs()
 ReadAllItusersItusers.update_forward_refs()
 ReadAllItusersItusersObjects.update_forward_refs()
-ReadAllItusersItusersObjectsCurrent.update_forward_refs()
+ReadAllItusersItusersObjectsValidities.update_forward_refs()
 ReadAllItusersItusersPageInfo.update_forward_refs()

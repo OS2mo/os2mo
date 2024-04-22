@@ -2062,11 +2062,13 @@ async def test_load_all_current_it_users_no_paged(
         "itusers": {
             "objects": [
                 {
-                    "current": {
-                        "itsystem_uuid": str(itsystem1_uuid),
-                        "employee_uuid": str(uuid4()),
-                        "user_key": "foo",
-                    }
+                    "validities": [
+                        {
+                            "itsystem_uuid": str(itsystem1_uuid),
+                            "employee_uuid": str(uuid4()),
+                            "user_key": "foo",
+                        }
+                    ]
                 }
             ],
             "page_info": {"next_cursor": None},
@@ -2089,11 +2091,13 @@ async def test_load_all_current_it_users_paged(
             "itusers": {
                 "objects": [
                     {
-                        "current": {
-                            "itsystem_uuid": str(itsystem1_uuid),
-                            "employee_uuid": str(uuid4()),
-                            "user_key": "foo",
-                        }
+                        "validities": [
+                            {
+                                "itsystem_uuid": str(itsystem1_uuid),
+                                "employee_uuid": str(uuid4()),
+                                "user_key": "foo",
+                            }
+                        ]
                     }
                 ],
                 "page_info": {
@@ -2105,11 +2109,13 @@ async def test_load_all_current_it_users_paged(
             "itusers": {
                 "objects": [
                     {
-                        "current": {
-                            "itsystem_uuid": str(itsystem1_uuid),
-                            "employee_uuid": str(uuid4()),
-                            "user_key": "bar",
-                        }
+                        "validities": [
+                            {
+                                "itsystem_uuid": str(itsystem1_uuid),
+                                "employee_uuid": str(uuid4()),
+                                "user_key": "bar",
+                            }
+                        ]
                     }
                 ],
                 "page_info": {"next_cursor": None},
@@ -2136,56 +2142,75 @@ async def test_load_all_current_it_users_paged(
     assert second["user_key"] == "bar"
 
 
-async def test_load_all_it_users(dataloader: DataLoader):
+async def test_load_all_it_users(
+    dataloader: DataLoader,
+    graphql_mock: GraphQLMocker,
+) -> None:
     itsystem1_uuid = uuid4()
-    itsystem2_uuid = uuid4()
 
-    result = {
-        "itusers": {
-            "objects": [
-                {
-                    "objects": [
-                        {
-                            "itsystem_uuid": str(itsystem1_uuid),
-                            "employee_uuid": str(uuid4()),
-                            "user_key": "mucki",
-                        },
-                        {
-                            "itsystem_uuid": str(itsystem1_uuid),
-                            "employee_uuid": str(uuid4()),
-                            "user_key": "bar",
-                        },
-                    ]
+    query_results = [
+        {
+            "itusers": {
+                "objects": [
+                    {
+                        "validities": [
+                            {
+                                "itsystem_uuid": str(itsystem1_uuid),
+                                "employee_uuid": str(uuid4()),
+                                "user_key": "mucki",
+                            },
+                            {
+                                "itsystem_uuid": str(itsystem1_uuid),
+                                "employee_uuid": str(uuid4()),
+                                "user_key": "bar",
+                            },
+                        ]
+                    }
+                ],
+                "page_info": {
+                    "next_cursor": "V2FyLi4uIHdhciBuZXZlciBjaGFuZ2VzCg=="  # Fake cursor
                 },
-                {
-                    "objects": [
-                        {
-                            "itsystem_uuid": str(itsystem2_uuid),
-                            "employee_uuid": str(uuid4()),
-                            "user_key": "foo",
-                        }
-                    ]
-                },
-            ]
-        }
-    }
+            }
+        },
+        {
+            "itusers": {
+                "objects": [
+                    {
+                        "validities": [
+                            {
+                                "itsystem_uuid": str(itsystem1_uuid),
+                                "employee_uuid": str(uuid4()),
+                                "user_key": "foo",
+                            }
+                        ]
+                    },
+                ],
+                "page_info": {"next_cursor": None},
+            }
+        },
+    ]
 
-    dataloader.query_mo_paged = AsyncMock()  # type: ignore
-    dataloader.query_mo_paged.return_value = result
+    def pager(_: Any, route: Any) -> Response:
+        # Gets called once per GraphQL httpx request
+        # Each call increments route.call_count by one
+        result = query_results[route.call_count]
+        return Response(200, json={"data": jsonable_encoder(result)})
 
-    output = await dataloader.load_all_it_users(itsystem1_uuid)
+    route = graphql_mock.query("read_all_itusers")
+    route.mock(side_effect=pager)
+    results = await dataloader.load_all_it_users(itsystem1_uuid)
 
-    assert len(output) == 2
-    assert output[0]["itsystem_uuid"] == str(itsystem1_uuid)
-    assert output[1]["itsystem_uuid"] == str(itsystem1_uuid)
-    assert output[0]["user_key"] == "mucki"
-    assert output[1]["user_key"] == "bar"
+    assert len(results) == 3
+    first, second, third = results
 
-    output = await dataloader.load_all_it_users(itsystem2_uuid)
+    assert first["itsystem_uuid"] == str(itsystem1_uuid)
+    assert first["user_key"] == "mucki"
 
-    assert len(output) == 1
-    assert output[0]["itsystem_uuid"] == str(itsystem2_uuid)
-    assert output[0]["user_key"] == "foo"
+    assert second["itsystem_uuid"] == str(itsystem1_uuid)
+    assert second["user_key"] == "bar"
+
+    assert third["itsystem_uuid"] == str(itsystem1_uuid)
+    assert third["user_key"] == "foo"
 
 
 async def test_query_mo_paged(dataloader: DataLoader):
