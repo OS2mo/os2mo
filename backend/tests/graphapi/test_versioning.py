@@ -1,10 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from more_itertools import first
 from starlette.testclient import TestClient
 
 from mora.app import create_app
-from mora.graphapi.main import graphql_versions
+from mora.config import Settings
 from mora.graphapi.main import newest
 
 
@@ -24,7 +23,9 @@ def test_non_existent(raw_client: TestClient) -> None:
 
 
 def test_min_graphql_version() -> None:
-    oldest = first(graphql_versions)
+    settings = Settings()
+    oldest = settings.min_graphql_version
+
     minimum = 4  # chosen by fair dice roll, guaranteed to be random
 
     app = create_app(settings_overrides={"min_graphql_version": minimum})
