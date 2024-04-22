@@ -68,8 +68,16 @@ def gen_uuid_unset(uuid: UUID | UnsetType | None) -> dict[str, str] | UnsetType 
     return {"uuid": str(uuid)}
 
 
+def strip_unset(d: dict[str, Any]) -> dict[str, Any]:
+    return {k: v for k, v in d.items() if v is not UNSET}
+
+
+def strip_none(d: dict[str, Any]) -> dict[str, Any]:
+    return {k: v for k, v in d.items() if v is not None}
+
+
 def strip_none_and_unset(d: dict[str, Any]) -> dict[str, Any]:
-    return {k: v for k, v in d.items() if v is not None and v is not UNSET}
+    return strip_none(strip_unset(d))
 
 
 # Various
