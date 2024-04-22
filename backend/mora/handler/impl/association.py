@@ -3,6 +3,7 @@
 from collections.abc import Iterable
 from enum import Enum
 from typing import Any
+from uuid import UUID
 
 from more_itertools import only
 from more_itertools import partition
@@ -158,7 +159,9 @@ class AssociationReader(reading.OrgFunkReadingHandler):
         # Otherwise, it identifies a substitute, and must be validated as such.
         if it_system_binding_uuid:
             extra = ResponseExtraField.JOB_FUNCTION
-        elif associated_function_uuid and util.is_substitute_allowed(association_type):
+        elif associated_function_uuid and util.is_substitute_allowed(
+            UUID(association_type)
+        ):
             extra = ResponseExtraField.SUBSTITUTE
         else:
             extra = ResponseExtraField.NONE

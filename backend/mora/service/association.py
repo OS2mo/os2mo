@@ -11,6 +11,7 @@ import uuid
 from operator import itemgetter
 from typing import Any
 from typing import TYPE_CHECKING
+from uuid import UUID
 
 from structlog import get_logger
 
@@ -26,7 +27,6 @@ from ..service.facet import get_mo_object_primary_value
 from ..service.facet import is_class_uuid_primary
 from .validation import validator
 from .validation.models import GroupValidation
-from mora.config import get_settings
 
 if TYPE_CHECKING:  # pragma: no cover
     from ..handler.reading import ReadingHandler
@@ -86,22 +86,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         ITAssociationPrimaryGroupValidation,
     ]
 
-    @staticmethod
-    def substitute_is_needed(association_type_uuid: str) -> bool:
-        """
-        checks whether the chosen association needs a substitute
-        """
-        settings = get_settings()
-        substitute_roles: str = settings.confdb_substitute_roles
-        if substitute_roles == "":
-            # no role need substitute
-            return False
-
-        if association_type_uuid in substitute_roles.split(","):
-            # chosen role does need substitute
-            return True
-        return False
-
     async def prepare_create(self, req: dict[Any, Any]):
         """
         To create a vacant association, set employee_uuid to None and set a
@@ -140,7 +124,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         # remove substitute if not needed
         await validator.is_mutually_exclusive(substitute_uuid, job_function_uuid)
         if substitute_uuid and association_type_uuid:  # substitute is specified
-            validator.is_substitute_allowed(association_type_uuid)
+            validator.is_substitute_allowed(UUID(association_type_uuid))
         await validator.is_date_range_in_org_unit_range(org_unit, valid_from, valid_to)
         if employee:
             await validator.is_date_range_in_employee_range(
@@ -275,7 +259,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                     {"uuid": association_type_uuid},
                 )
             )
-            if not util.is_substitute_allowed(association_type_uuid):
+            if not util.is_substitute_allowed(UUID(association_type_uuid)):
                 # Updates "tilknyttedefunktioner"
                 update_fields.append(
                     (mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": "", "urn": ""})
@@ -326,7 +310,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 association_type_uuid = util.get_mapping_uuid(
                     data, mapping.ASSOCIATION_TYPE, required=True
                 )
-                validator.is_substitute_allowed(association_type_uuid)
+                validator.is_substitute_allowed(UUID(association_type_uuid))
                 update_fields.append(
                     (mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": substitute_uuid})
                 )
