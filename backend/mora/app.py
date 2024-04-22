@@ -189,7 +189,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         middleware=[
             Middleware(RawContextMiddleware),
             Middleware(BaseHTTPMiddleware, dispatch=lora_noop_change_context),
-            Middleware(BaseHTTPMiddleware, dispatch=log.gen_accesslog_middleware()),
             Middleware(
                 # CORS headers describe which origins are permitted to contact the server, and
                 # specify which authentication credentials (e.g. cookies or headers) should be
@@ -233,6 +232,8 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         dependencies=[
             Depends(transaction_per_request),
             Depends(set_authenticated_user),
+            Depends(log.request_id_dependency),
+            Depends(log.gen_request_logging_dependency()),
             Depends(query_args_context),
             Depends(lora_connector_context),
             Depends(dar_loader_context),

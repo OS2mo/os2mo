@@ -2,18 +2,18 @@
 # SPDX-License-Identifier: MPL-2.0
 import logging
 import time
-from collections.abc import Awaitable
+from collections.abc import AsyncIterator
 from collections.abc import Callable
-from typing import Any
 from uuid import uuid4
 
 import structlog
 from fastapi import Request
-from fastapi import Response
 from structlog.contextvars import bound_contextvars
 from structlog.types import EventDict
 from structlog.types import Processor
 from uvicorn.protocols.utils import get_path_with_query_string
+
+from mora.auth.middleware import get_authenticated_user
 
 
 def _drop_color_message_key(_, __, event_dict: EventDict) -> EventDict:
@@ -27,18 +27,19 @@ def _drop_color_message_key(_, __, event_dict: EventDict) -> EventDict:
     return event_dict
 
 
-def gen_accesslog_middleware() -> Callable[[Request, Any], Awaitable[Response]]:
+async def request_id_dependency() -> AsyncIterator[None]:
+    with bound_contextvars(request_id=str(uuid4())):
+        yield
+
+
+def gen_request_logging_dependency() -> Callable[[Request], AsyncIterator[None]]:
     access_logger = structlog.stdlib.get_logger("api.access")
 
-    async def accesslog_middleware(request: Request, call_next) -> Response:
+    async def request_logging_dependency(request: Request) -> AsyncIterator[None]:
         start_time = time.perf_counter_ns()
-
-        with bound_contextvars(request_id=str(uuid4())):
-            response = await call_next(request)
-
+        yield
         process_time = round((time.perf_counter_ns() - start_time) / 10**9, 3)
 
-        status_code = response.status_code
         path = get_path_with_query_string(request.scope)
         client_host = request.client.host
         client_port = request.client.port
@@ -47,15 +48,13 @@ def gen_accesslog_middleware() -> Callable[[Request, Any], Awaitable[Response]]:
         access_logger.info(
             "Request",
             path=path,
-            status_code=status_code,
             method=http_method,
             network={"client": {"ip": client_host, "port": client_port}},
             duration=process_time,
+            actor=str(get_authenticated_user()),
         )
 
-        return response
-
-    return accesslog_middleware
+    return request_logging_dependency
 
 
 def init(log_level: str, json: bool = True):
