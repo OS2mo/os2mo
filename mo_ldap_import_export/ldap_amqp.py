@@ -32,6 +32,8 @@ async def process_dn(
     sync_tool: SyncTool,
     dn: PayloadDN,
 ) -> None:
+    # TODO: Convert payload to entityUUID / ADGUID?
+
     logger.info("Received LDAP AMQP event", dn=dn)
     try:
         await sync_tool.import_single_user(dn)
