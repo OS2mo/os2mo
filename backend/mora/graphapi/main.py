@@ -1,100 +1,95 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import importlib
+import re
+from typing import Any
+
 from fastapi import APIRouter
 from fastapi import FastAPI
+from fastapi import Request
+from fastapi import status
+from fastapi.responses import JSONResponse
+from fastapi.responses import RedirectResponse
 from more_itertools import first
 from more_itertools import last
-from starlette import status
-from starlette.responses import RedirectResponse
-from starlette.responses import Response
+from structlog.stdlib import get_logger
 
-from .versions.v10.version import GraphQLVersion as Version10
-from .versions.v11.version import GraphQLVersion as Version11
-from .versions.v12.version import GraphQLVersion as Version12  # type: ignore
-from .versions.v13.version import GraphQLVersion as Version13
-from .versions.v14.version import GraphQLVersion as Version14
-from .versions.v15.version import GraphQLVersion as Version15
-from .versions.v16.version import GraphQLVersion as Version16
-from .versions.v17.version import GraphQLVersion as Version17
-from .versions.v18.version import GraphQLVersion as Version18
-from .versions.v19.version import GraphQLVersion as Version19
-from .versions.v2.version import GraphQLVersion as Version2
-from .versions.v20.version import GraphQLVersion as Version20
-from .versions.v21.version import GraphQLVersion as Version21
-from .versions.v3.version import GraphQLVersion as Version3
-from .versions.v4.version import GraphQLVersion as Version4
-from .versions.v5.version import GraphQLVersion as Version5
-from .versions.v6.version import GraphQLVersion as Version6
-from .versions.v7.version import GraphQLVersion as Version7
-from .versions.v8.version import GraphQLVersion as Version8
-from .versions.v9.version import GraphQLVersion as Version9
-from mora.graphapi.versions.base import BaseGraphQLVersion
+logger = get_logger()
 
-graphql_versions: list[type[BaseGraphQLVersion]] = [
-    # Latest is never exposed directly, forcing clients to pin to a specific version
-    Version2,
-    Version3,
-    Version4,
-    Version5,
-    Version6,
-    Version7,
-    Version8,
-    Version9,
-    Version10,
-    Version11,
-    Version12,
-    Version13,
-    Version14,
-    Version15,
-    Version16,
-    Version17,
-    Version18,
-    Version19,
-    Version20,
-    Version21,
-]
+graphql_versions = list(range(2, 22))
+newest = last(graphql_versions)
 
 
-def setup_graphql(
-    app: FastAPI, versions: list[type[BaseGraphQLVersion]] | None = None
-) -> None:
-    if versions is None:
-        versions = graphql_versions
+def load_graphql_version(version_number: int) -> APIRouter:
+    """Dynamically import and load the specified GraphQL version.
 
-    router = APIRouter()
+    Note:
+        This function should only ever be called once for each version_number.
 
-    oldest = first(versions)
-    newest = last(versions)
+    Args:
+        version_number: The version number of the GraphQL version to load.
 
-    # GraphiQL interface redirect
-    @router.get("")
+    Returns:
+        A FastAPI APIRouter for the given GraphQL version.
+    """
+    version = importlib.import_module(
+        f"mora.graphapi.versions.v{version_number}.version"
+    ).GraphQLVersion
+    # TODO: Add deprecation header as per the decision log (link/successor)
+    router = version.get_router(is_latest=version_number is newest)
+    return router
+
+
+def setup_graphql(app: FastAPI) -> None:
+    """Setup our GraphQL endpoints on FastAPI.
+
+    Note:
+        GraphQL version endpoints are dynamically loaded.
+
+    Args:
+        app: The FastAPI to load GraphQL endpoints on.
+        min_version: The minimum version of GraphQL to support.
+    """
+
+    @app.get("/graphql")
+    @app.get("/graphql/")
     async def redirect_to_latest_graphiql() -> RedirectResponse:
         """Redirect unversioned GraphiQL so developers can pin to the newest version."""
-        return RedirectResponse(f"/graphql/v{newest.version}")
+        return RedirectResponse(f"/graphql/v{newest}")
 
-    # Active routers
-    for version in versions:
-        # TODO: Add deprecation header as per the decision log (link/successor)
-        router.include_router(
-            prefix=f"/v{version.version}",
-            router=version.get_router(is_latest=version is newest),
+    oldest = first(graphql_versions)
+    imported: set[int] = set()
+    version_regex = re.compile(r"/graphql/v(\d+)")
+
+    @app.middleware("http")
+    async def graphql_loader(request: Request, call_next: Any) -> Any:
+        graphql_match = version_regex.match(request.url.path)
+        if graphql_match is None:
+            return await call_next(request)
+
+        version_number = int(graphql_match.group(1))
+        if version_number in imported:
+            return await call_next(request)
+
+        # Removed GraphQL versions send 410
+        if 0 < version_number < oldest:
+            return JSONResponse(
+                status_code=status.HTTP_410_GONE,
+                content={"message": "Removed GraphQL version"},
+            )
+
+        # Non-existent GraphQL versions send 404
+        if version_number <= 0 or version_number > newest:
+            return JSONResponse(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content={"message": "No such GraphQL version"},
+            )
+
+        logger.info(
+            "Importing GraphQL version", version=version_number, imported=imported
         )
+        router = load_graphql_version(version_number)
+        app.include_router(prefix=f"/graphql/v{version_number}", router=router)
+        imported.add(version_number)
 
-    # Deprecated routers. This works as a fallback for all inactive version numbers,
-    # since has lower routing priority by being defined later.
-    @router.get("/v{version_number}", status_code=status.HTTP_404_NOT_FOUND)
-    @router.post("/v{version_number}", status_code=status.HTTP_404_NOT_FOUND)
-    async def non_existent(response: Response, version_number: int) -> None:
-        """Return 404/410 properly depending on the requested version."""
-        if 0 < version_number <= oldest.version:
-            response.status_code = status.HTTP_410_GONE
-
-    # Subscriptions could be implemented using our trigger system.
-    # They could expose an eventsource to the WebUI, enabling the UI to be dynamically
-    # updated with changes from other users.
-    # For now however; it is left uncommented and unimplemented.
-    # app.add_websocket_route("/subscriptions", graphql_app)
-
-    # Bind main router to the FastAPI app. Ideally, we'd let the caller define the
-    # prefix, but this causes issues when routing the "empty" `/graphql` path.
-    app.include_router(router, prefix="/graphql")
+        return await call_next(request)
