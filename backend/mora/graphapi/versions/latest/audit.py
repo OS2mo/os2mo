@@ -18,7 +18,7 @@ from ..latest.filters import gen_filter_string
 from ..latest.filters import gen_filter_table
 from .paged import CursorType
 from .paged import LimitType
-from .resolvers import get_date_interval
+from .resolvers import get_sqlalchemy_date_interval
 from mora.audit import audit_log
 from mora.db import AsyncSession
 from mora.db import AuditLogOperation as AuditLogOperation
@@ -221,13 +221,8 @@ async def audit_log_resolver(
         query = query.where(AuditLogOperation.model.in_(models))
 
     if filter.start is not None or filter.end is not None:
-        dates = get_date_interval(filter.start, filter.end)
-        query = query.where(
-            AuditLogOperation.time.between(
-                dates.from_date or datetime(1, 1, 1),
-                dates.to_date or datetime(9999, 12, 31),
-            )
-        )
+        start, end = get_sqlalchemy_date_interval(filter.start, filter.end)
+        query = query.where(AuditLogOperation.time.between(start, end))
 
     # Pagination
     if cursor:

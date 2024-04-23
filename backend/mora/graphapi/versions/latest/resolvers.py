@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import re
 from collections.abc import Callable
-from collections.abc import Iterable
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
@@ -545,21 +544,8 @@ async def organisation_unit_resolver(
             organisation_unit_resolver, info, org_unit_filter
         )
 
-    def _virkning(cls: type[HasValidity]) -> Iterable[ColumnElement]:
-        if filter.from_date is not None:
-            yield cls.virkning_slut >= (
-                func.now() if filter.from_date is UNSET else filter.from_date
-            )
-        if filter.to_date is not None:
-            yield cls.virkning_start <= (
-                func.now() if filter.to_date is UNSET else filter.to_date
-            )
-
-    query = (
-        select(
-            distinct(OrganisationEnhedRegistrering.organisationenhed_id),
-        )
-        .where(
+    def _registrering() -> ColumnElement:
+        return and_(
             OrganisationEnhedRegistrering.lifecycle != cast("Slettet", LivscyklusKode),
             between(
                 cursor.registration_time if cursor is not None else func.now(),
@@ -567,7 +553,21 @@ async def organisation_unit_resolver(
                 OrganisationEnhedRegistrering.registreringstid_slut,
             ),
         )
-        .order_by(OrganisationEnhedRegistrering.organisationenhed_id)
+
+    def _virkning(cls: type[HasValidity]) -> ColumnElement:
+        start, end = get_sqlalchemy_date_interval(filter.from_date, filter.to_date)
+        return and_(cls.virkning_start <= end, cls.virkning_slut > start)
+
+    query = (
+        select(
+            distinct(OrganisationEnhedRegistrering.organisationenhed_id),
+        )
+        .where(
+            _registrering(),
+        )
+        .order_by(
+            OrganisationEnhedRegistrering.organisationenhed_id,
+        )
     )
 
     # UUIDs
@@ -586,7 +586,7 @@ async def organisation_unit_resolver(
                     OrganisationEnhedAttrEgenskaber.brugervendtnoegle.in_(
                         filter.user_keys
                     ),
-                    *_virkning(OrganisationEnhedAttrEgenskaber),
+                    _virkning(OrganisationEnhedAttrEgenskaber),
                 )
             )
         )
@@ -603,7 +603,7 @@ async def organisation_unit_resolver(
                     OrganisationEnhedRelation.rel_type
                     == cast("overordnet", OrganisationEnhedRelationKode),
                     OrganisationEnhedRelation.rel_maal_uuid.in_(parent_uuids),
-                    *_virkning(OrganisationEnhedRelation),
+                    _virkning(OrganisationEnhedRelation),
                 )
             )
         )
@@ -620,7 +620,7 @@ async def organisation_unit_resolver(
                     OrganisationEnhedRelation.rel_type
                     == cast("opmærkning", OrganisationEnhedRelationKode),
                     OrganisationEnhedRelation.rel_maal_uuid.in_(hierarchy_uuids),
-                    *_virkning(OrganisationEnhedRelation),
+                    _virkning(OrganisationEnhedRelation),
                 )
             )
         )
@@ -643,7 +643,12 @@ async def organisation_unit_resolver(
             select(
                 OrganisationEnhedRelation.rel_maal_uuid,
             )
-            .join(OrganisationEnhedRegistrering)
+            .join(
+                OrganisationEnhedRegistrering,
+            )
+            .where(
+                _registrering(),
+            )
             .join(
                 leafs,
                 and_(
@@ -651,6 +656,7 @@ async def organisation_unit_resolver(
                     == cast("overordnet", OrganisationEnhedRelationKode),
                     OrganisationEnhedRegistrering.organisationenhed_id
                     == leafs.c.organisationenhed_id,
+                    _virkning(OrganisationEnhedRelation),
                 ),
             )
         )
@@ -980,3 +986,14 @@ def get_date_interval(
             )
         to_date = from_date + timedelta(milliseconds=1)
     return _get_open_validity(from_date, to_date)
+
+
+def get_sqlalchemy_date_interval(
+    from_date: datetime | None = UNSET, to_date: datetime | None = UNSET
+) -> tuple[datetime, datetime]:
+    """Get the date interval for SQLAlchemy where-clauses to support bitemporal lookups."""
+    dates = get_date_interval(from_date, to_date)
+    return (
+        dates.from_date or datetime.min,
+        dates.to_date or datetime.max,
+    )

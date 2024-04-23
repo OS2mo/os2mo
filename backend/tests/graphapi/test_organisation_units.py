@@ -308,23 +308,122 @@ async def test_org_unit_hierarchy_filter(
 @pytest.mark.usefixtures("fixture_db")
 async def test_org_unit_subtree_filter(graphapi_post: GraphAPIPost) -> None:
     """Test subtree filter on organisation units."""
+    # Ensure that the subtree filter respects the date filtering by changing the tree
+    # from 'root > skole-børn > it_sup' to 'root > skole-børn | it_sup'.
+    root = "2874e1dc-85e6-4269-823a-e1125484dfd3"
+    skole_born = "dad7d0ad-c7a9-4a94-969d-464337e31fec"
+    it_sup = "fa2e23c9-860a-4c90-bcc6-2c0721869a25"
+    response = graphapi_post(
+        """
+        mutation MoveOrgUnit($uuid: UUID!, $parent: UUID!) {
+          org_unit_update(
+            input: {
+                uuid: $uuid,
+                parent: $parent,
+                validity: {from: "2024-04-04"},
+            }
+          ) {
+            uuid
+          }
+        }
+        """,
+        {
+            "uuid": it_sup,
+            "parent": root,
+        },
+    )
+    assert response.errors is None
+
     subtree_query = """
-        query SubtreeQuery {
-          org_units(filter: {subtree: {user_keys: "it_sup"}}) {
+        query SubtreeQuery($from_date: DateTime, $to_date: DateTime) {
+          org_units(
+            filter: {
+              from_date: $from_date,
+              to_date: $to_date,
+              subtree: {
+                user_keys: "it_sup",
+                from_date: $from_date,
+                to_date: $to_date,
+              }
+            }
+          ) {
             objects {
-              current {
+              validities {
                 user_key
+                uuid
+                parent { uuid }
               }
             }
           }
         }
     """
-    response = graphapi_post(subtree_query)
+    # Querying before the change should give us the original tree
+    response = graphapi_post(
+        subtree_query,
+        {
+            "from_date": "2023-03-03",
+            "to_date": "2023-03-04",
+        },
+    )
     assert response.errors is None
     assert response.data["org_units"]["objects"] == [
-        {"current": {"user_key": "root"}},
-        {"current": {"user_key": "it_sup"}},
-        {"current": {"user_key": "skole-børn"}},
+        {
+            "validities": [
+                {
+                    "user_key": "root",
+                    "uuid": root,
+                    "parent": None,
+                }
+            ]
+        },
+        {
+            "validities": [
+                {
+                    "user_key": "it_sup",
+                    "uuid": it_sup,
+                    "parent": {"uuid": skole_born},
+                }
+            ]
+        },
+        {
+            "validities": [
+                {
+                    "user_key": "skole-børn",
+                    "uuid": skole_born,
+                    "parent": {"uuid": root},
+                }
+            ]
+        },
+    ]
+
+    # Querying after the change should give us the new tree
+    response = graphapi_post(
+        subtree_query,
+        {
+            "from_date": "2025-05-05",
+            "to_date": "2025-05-06",
+        },
+    )
+    assert response.errors is None
+    assert response.data["org_units"]["objects"] == [
+        {
+            "validities": [
+                {
+                    "user_key": "root",
+                    "uuid": root,
+                    "parent": None,
+                }
+            ]
+        },
+        {
+            "validities": [
+                {
+                    "user_key": "it_sup",
+                    "uuid": it_sup,
+                    "parent": {"uuid": root},
+                }
+            ]
+        },
     ]
 
 
