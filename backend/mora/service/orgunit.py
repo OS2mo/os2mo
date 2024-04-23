@@ -291,6 +291,10 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
             # Default to root org unit if this unit has no parent
             if parent_uuid is None:
                 parent_uuid = (await org.get_configured_organisation())["uuid"]
+            else:
+                await validator.is_date_range_in_org_unit_range(
+                    {"uuid": parent_uuid}, new_from, new_to
+                )
             # Validate consequences of changing the parent
             await validator.is_candidate_parent_valid(unitid, parent_uuid, new_from)
 
