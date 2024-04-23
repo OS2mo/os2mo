@@ -16,7 +16,7 @@ from structlog.stdlib import get_logger
 
 logger = get_logger()
 
-newest = 21
+newest = 22
 
 
 @cache

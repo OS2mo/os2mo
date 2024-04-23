@@ -8,7 +8,6 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
-from fastapi.encoders import jsonable_encoder
 from hypothesis import given
 from hypothesis import HealthCheck
 from hypothesis import settings
@@ -20,6 +19,9 @@ from strawberry.unset import UnsetType
 from ..conftest import GraphAPIPost
 from .utils import fetch_class_uuids
 from .utils import fetch_org_unit_validity
+from .utils import gen_read_parent
+from .utils import gen_set_parent
+from .utils import sjsonable_encoder
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.inputs import OrganisationUnitCreateInput
 from mora.graphapi.versions.latest.inputs import OrganisationUnitUpdateInput
@@ -33,9 +35,6 @@ validity_builder = st.builds(
         min_value=datetime(1970, 1, 1), max_value=datetime(2000, 1, 1)
     ),
     to_date=st.none(),
-)
-sjsonable_encoder = partial(
-    jsonable_encoder, custom_encoder={UnsetType: lambda _: None}
 )
 
 
@@ -434,24 +433,11 @@ async def test_org_unit_subtree_filter(graphapi_post: GraphAPIPost) -> None:
     [
         {
             "uuid": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
-            "user_key": None,
-            "name": None,
-            "parent": None,
-            "org_unit_type": None,
-            "time_planning": None,
-            "org_unit_level": None,
-            "org_unit_hierarchy": None,
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
         },
         {
             "uuid": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
             "user_key": "-",
-            "name": None,
-            "parent": None,
-            "org_unit_type": None,
-            "time_planning": None,
-            "org_unit_level": None,
-            "org_unit_hierarchy": None,
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
         },
         {
@@ -471,9 +457,6 @@ async def test_org_unit_subtree_filter(graphapi_post: GraphAPIPost) -> None:
             "name": "Skole og Børn",
             "parent": "2874e1dc-85e6-4269-823a-e1125484dfd3",
             "org_unit_type": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-            "time_planning": None,
-            "org_unit_level": None,
-            "org_unit_hierarchy": None,
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
         },
     ],
@@ -482,14 +465,17 @@ async def test_update_org_unit_mutation_integration_test(
     graphapi_post: GraphAPIPost, test_data
 ) -> None:
     """Test that organisation units can be updated in LoRa via GraphQL."""
+    # NOTE: A similar tests exists in test_v21.py
+    #       However that test will eventually be deleted, while this should remain
 
     uuid = test_data["uuid"]
 
     query = """
-        query MyQuery($uuid: UUID!) {
+        query OrgUnitQuery($uuid: UUID!) {
             org_units(filter: {uuids: [$uuid]}) {
                 objects {
-                    objects {
+                    current {
+                        uuid
                         user_key
                         name
                         parent: parent_uuid
@@ -509,8 +495,10 @@ async def test_update_org_unit_mutation_integration_test(
 
     response = graphapi_post(query, {"uuid": str(uuid)})
     assert response.errors is None
-
-    pre_update_org_unit = one(one(response.data["org_units"]["objects"])["objects"])
+    assert response.data is not None
+    obj = one(response.data["org_units"]["objects"])
+    assert obj["current"] is not None
+    pre_update_org_unit = obj["current"]
 
     mutate_query = """
         mutation UpdateOrgUnit($input: OrganisationUnitUpdateInput!) {
@@ -520,42 +508,19 @@ async def test_update_org_unit_mutation_integration_test(
         }
     """
     mutation_response = graphapi_post(
-        mutate_query, {"input": jsonable_encoder(test_data)}
+        mutate_query, {"input": sjsonable_encoder(test_data)}
     )
     assert mutation_response.errors is None
 
-    verify_query = """
-        query VerifyQuery($uuid: [UUID!]!) {
-            org_units(filter: {uuids: $uuid}){
-                objects {
-                    objects {
-                        uuid
-                        user_key
-                        name
-                        parent: parent_uuid
-                        org_unit_type: unit_type_uuid
-                        time_planning: time_planning_uuid
-                        org_unit_level: org_unit_level_uuid
-                        org_unit_hierarchy: org_unit_hierarchy
-                        validity {
-                            from
-                            to
-                        }
-                    }
-                }
-            }
-        }
-    """
-
-    verify_response = graphapi_post(verify_query, {"uuid": str(uuid)})
-    assert verify_response.errors is None
-
-    post_update_org_unit = one(
-        one(verify_response.data["org_units"]["objects"])["objects"]
-    )
+    response = graphapi_post(query, {"uuid": str(uuid)})
+    assert response.errors is None
+    assert response.data is not None
+    obj = one(response.data["org_units"]["objects"])
+    assert obj["current"] is not None
+    post_update_org_unit = obj["current"]
 
     expected_updated_org_unit = {
-        k: v or pre_update_org_unit[k] for k, v in test_data.items()
+        k: test_data.get(k) or v for k, v in pre_update_org_unit.items()
     }
 
     assert post_update_org_unit == expected_updated_org_unit
@@ -732,80 +697,32 @@ fixture_parent_uuid = UUID("2874e1dc-85e6-4269-823a-e1125484dfd3")
         # Using unset does nothing
         (fixture_parent_uuid, UNSET, fixture_parent_uuid),
         # Using None clears the field
-        pytest.param(
-            fixture_parent_uuid,
-            None,
-            None,
-            marks=pytest.mark.xfail(reason="Cannot clear parent"),
-        ),
+        (fixture_parent_uuid, None, None),
         # Starting with None
         # Using UUID sets UUID
-        pytest.param(
-            None,
-            fixture_parent_uuid,
-            fixture_parent_uuid,
-            marks=pytest.mark.xfail(reason="Cannot set initial state"),
-        ),
+        (None, fixture_parent_uuid, fixture_parent_uuid),
         # Using unset does nothing
-        pytest.param(
-            None,
-            UNSET,
-            None,
-            marks=pytest.mark.xfail(reason="Cannot set initial state"),
-        ),
+        (None, UNSET, None),
         # Using None does nothing
-        pytest.param(
-            None, None, None, marks=pytest.mark.xfail(reason="Cannot set initial state")
-        ),
+        (None, None, None),
     ],
 )
 async def test_parent_changes(
     graphapi_post: GraphAPIPost,
+    latest_graphql_url: str,
     initial: UUID | None,
     new: UUID | UnsetType | None,
     expected: UUID | None,
 ) -> None:
     """Test that we can change, noop and clear parent."""
+    # NOTE: A similar tests exists in test_v21.py
+    #       However that test will eventually be deleted, while this should remain
+    url = latest_graphql_url
+
     uuid = UUID("dad7d0ad-c7a9-4a94-969d-464337e31fec")
 
-    def read_parent() -> UUID | None:
-        read_query = """
-        query ReadOrgUnitParent($uuid: UUID!) {
-          org_units(filter: {uuids: [$uuid]}) {
-            objects {
-              current {
-                parent {
-                    uuid
-                }
-              }
-            }
-          }
-        }
-        """
-        response = graphapi_post(query=read_query, variables={"uuid": str(uuid)})
-        assert response.errors is None
-        assert response.data is not None
-        parent = one(response.data["org_units"]["objects"])["current"]["parent"]
-        if parent is None:
-            # NOTE: parent_uuid will be set to the root org when this happens
-            return None
-        return UUID(parent["uuid"])
-
-    def set_parent(parent_uuid: UUID | UnsetType | None) -> None:
-        write_query = """
-        mutation MyMutation($input: OrganisationUnitUpdateInput!) {
-          org_unit_update(input: $input) {
-            uuid
-          }
-        }
-        """
-        payload = {"uuid": str(uuid), "validity": {"from": "2020-01-01"}}
-        if parent_uuid is not UNSET:
-            payload["parent"] = str(parent_uuid) if parent_uuid else None
-        response = graphapi_post(query=write_query, variables={"input": payload})
-        assert response.errors is None
-        assert response.data is not None
-        assert UUID(response.data["org_unit_update"]["uuid"]) == uuid
+    read_parent = partial(gen_read_parent, graphapi_post, url, uuid)
+    set_parent = partial(gen_set_parent, graphapi_post, url, uuid)
 
     # Setup and assert initial state
     set_parent(initial)

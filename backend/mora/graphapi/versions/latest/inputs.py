@@ -611,7 +611,7 @@ class OrganisationUnitUpdateInput:
             "time_planning": gen_uuid_unset(self.time_planning),
             "validity": validity2dict(self.validity),
         }
-        return strip_none_and_unset(data_dict)
+        return strip_unset(data_dict)
 
 
 # Owners
