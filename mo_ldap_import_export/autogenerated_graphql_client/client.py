@@ -730,7 +730,7 @@ class GraphQLClient(AsyncBaseClient):
         query = gql(
             """
             query read_class_name_by_class_uuid($class_uuid: UUID!) {
-              classes(filter: {uuids: [$uuids]}) {
+              classes(filter: {uuids: [$class_uuid]}) {
                 objects {
                   current {
                     name

@@ -300,7 +300,7 @@ query read_class_uuid_by_facet_and_class_user_key(
 }
 
 query read_class_name_by_class_uuid($class_uuid: UUID!) {
-  classes(filter: {uuids: [$uuids]}) {
+  classes(filter: {uuids: [$class_uuid]}) {
     objects {
       current {
         name

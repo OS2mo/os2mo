@@ -1277,7 +1277,7 @@ async def test_get_engagement_type_name(
         ReadClassNameByClassUuidClasses,
         {"objects": [{"current": {"name": class_name}}]},
     )
-    assert await get_engagement_type_name(graphql_client, str(class_uuid)) == class_name
+    assert await get_engagement_type_name(graphql_client, class_uuid) == class_name
     graphql_client.read_class_name_by_class_uuid.assert_awaited_once_with(class_uuid)
 
 
@@ -1288,7 +1288,7 @@ async def test_get_engagement_type_not_active(graphql_client: AsyncMock) -> None
         {"objects": [{"current": None}]},
     )
     with pytest.raises(NoObjectsReturnedException) as exc_info:
-        assert await get_engagement_type_name(graphql_client, str(class_uuid))
+        assert await get_engagement_type_name(graphql_client, class_uuid)
     assert "engagement_type not active, uuid:" in str(exc_info.value)
 
 
@@ -1301,7 +1301,7 @@ async def test_get_job_function_name(
     route = graphql_mock.query("read_class_name_by_class_uuid")
     route.result = {"classes": {"objects": [{"current": {"name": class_name}}]}}
 
-    class_uuid = str(uuid4())
+    class_uuid = uuid4()
     assert await get_job_function_name(graphql_client, class_uuid) == class_name
     assert route.called
 
