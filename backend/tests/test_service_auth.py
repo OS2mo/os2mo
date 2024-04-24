@@ -12,6 +12,8 @@ from pydantic import ValidationError
 from pydantic.error_wrappers import ErrorWrapper
 
 import mora.auth.keycloak.oidc
+from .conftest import fake_auth
+from .conftest import serviceapiless_auth
 from mora.auth.exceptions import AuthenticationError
 from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
@@ -311,3 +313,33 @@ def test_401_when_uuid_missing_in_token(
     response = raw_client.get("/service/o/", headers=auth_headers)
     assert response.status_code == 401
     assert response.json() == {"status": "Unauthorized", "msg": str(validation_err)}
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_missing_service_api_access(
+    raw_client: TestClient,
+) -> None:
+    app = raw_client.app
+
+    # Switch to a user without ServiceAPI permission
+    app.dependency_overrides[auth] = serviceapiless_auth
+
+    # Make call to random endpoint
+    response = raw_client.get("/service/o/")
+    assert response.status_code == 403
+    assert response.json() == {"status": "Forbidden", "msg": "The Service API is gone"}
+
+    # Switch to a user with ServiceAPI permission
+    app.dependency_overrides[auth] = fake_auth
+
+    # Make call to random endpoint
+    response = raw_client.get("/service/o/")
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "name": "Aarhus Universitet",
+            "user_key": "AU",
+            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+        }
+    ]
