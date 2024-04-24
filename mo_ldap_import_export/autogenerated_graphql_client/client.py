@@ -1009,7 +1009,7 @@ class GraphQLClient(AsyncBaseClient):
         query = gql(
             """
             query read_all_itusers($itsystem_uuid: UUID!, $cursor: Cursor) {
-              itusers(limit: 100, cursor: $cursor, filter: $filter) {
+              itusers(limit: $limit, cursor: $cursor, filter: $filter) {
                 objects {
                   validities {
                     itsystem_uuid
@@ -1036,12 +1036,12 @@ class GraphQLClient(AsyncBaseClient):
         self,
         filter: EmployeeFilter,
         cursor: Union[Optional[Any], UnsetType] = UNSET,
-        limit: Union[Optional[int], UnsetType] = UNSET,
+        limit: Union[Optional[Any], UnsetType] = UNSET,
     ) -> ReadAllEmployeeUuidsEmployees:
         query = gql(
             """
-            query read_all_employee_uuids($filter: EmployeeFilter!, $cursor: Cursor = null, $limit: Int = 100) {
-              employees(limit: 100, cursor: $cursor, filter: $filter) {
+            query read_all_employee_uuids($filter: EmployeeFilter!, $cursor: Cursor = null, $limit: int = 100) {
+              employees(limit: $limit, cursor: $cursor, filter: $filter) {
                 objects {
                   validities {
                     uuid
@@ -1071,12 +1071,12 @@ class GraphQLClient(AsyncBaseClient):
         self,
         filter: OrganisationUnitFilter,
         cursor: Union[Optional[Any], UnsetType] = UNSET,
-        limit: Union[Optional[int], UnsetType] = UNSET,
+        limit: Union[Optional[Any], UnsetType] = UNSET,
     ) -> ReadAllOrgUnitUuidsOrgUnits:
         query = gql(
             """
-            query read_all_org_unit_uuids($filter: OrganisationUnitFilter!, $cursor: Cursor = null, $limit: Int = 100) {
-              org_units(limit: 100, cursor: $cursor, filter: $filter) {
+            query read_all_org_unit_uuids($filter: OrganisationUnitFilter!, $cursor: Cursor = null, $limit: int = 100) {
+              org_units(limit: $limit, cursor: $cursor, filter: $filter) {
                 objects {
                   validities {
                     uuid
@@ -1106,12 +1106,12 @@ class GraphQLClient(AsyncBaseClient):
         self,
         filter: AddressFilter,
         cursor: Union[Optional[Any], UnsetType] = UNSET,
-        limit: Union[Optional[int], UnsetType] = UNSET,
+        limit: Union[Optional[Any], UnsetType] = UNSET,
     ) -> ReadAllAddressUuidsAddresses:
         query = gql(
             """
-            query read_all_address_uuids($filter: AddressFilter!, $cursor: Cursor = null, $limit: Int = 100) {
-              addresses(limit: 100, cursor: $cursor, filter: $filter) {
+            query read_all_address_uuids($filter: AddressFilter!, $cursor: Cursor = null, $limit: int = 100) {
+              addresses(limit: $limit, cursor: $cursor, filter: $filter) {
                 objects {
                   validities {
                     uuid
@@ -1143,12 +1143,12 @@ class GraphQLClient(AsyncBaseClient):
         self,
         filter: ITUserFilter,
         cursor: Union[Optional[Any], UnsetType] = UNSET,
-        limit: Union[Optional[int], UnsetType] = UNSET,
+        limit: Union[Optional[Any], UnsetType] = UNSET,
     ) -> ReadAllItuserUuidsItusers:
         query = gql(
             """
-            query read_all_ituser_uuids($filter: ITUserFilter!, $cursor: Cursor = null, $limit: Int = 100) {
-              itusers(limit: 100, cursor: $cursor, filter: $filter) {
+            query read_all_ituser_uuids($filter: ITUserFilter!, $cursor: Cursor = null, $limit: int = 100) {
+              itusers(limit: $limit, cursor: $cursor, filter: $filter) {
                 objects {
                   validities {
                     uuid
@@ -1180,12 +1180,12 @@ class GraphQLClient(AsyncBaseClient):
         self,
         filter: EngagementFilter,
         cursor: Union[Optional[Any], UnsetType] = UNSET,
-        limit: Union[Optional[int], UnsetType] = UNSET,
+        limit: Union[Optional[Any], UnsetType] = UNSET,
     ) -> ReadAllEngagementUuidsEngagements:
         query = gql(
             """
-            query read_all_engagement_uuids($filter: EngagementFilter!, $cursor: Cursor = null, $limit: Int = 100) {
-              engagements(limit: 100, cursor: $cursor, filter: $filter) {
+            query read_all_engagement_uuids($filter: EngagementFilter!, $cursor: Cursor = null, $limit: int = 100) {
+              engagements(limit: $limit, cursor: $cursor, filter: $filter) {
                 objects {
                   validities {
                     uuid
