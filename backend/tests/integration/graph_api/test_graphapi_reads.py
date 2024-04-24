@@ -80,6 +80,7 @@ def test_queries(data, field, graphapi_post: GraphAPIPost):
                 and "registrations" not in query
                 and "query" not in query
                 and "registration" not in query
+                and "start: null" not in query
             )
         )
     )

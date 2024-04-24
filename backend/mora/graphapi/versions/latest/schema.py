@@ -46,6 +46,7 @@ from .resolvers import class_resolver
 from .resolvers import employee_resolver
 from .resolvers import engagement_resolver
 from .resolvers import facet_resolver
+from .resolvers import get_date_interval
 from .resolvers import it_system_resolver
 from .resolvers import it_user_resolver
 from .resolvers import kle_resolver
@@ -64,6 +65,7 @@ from mora import config
 from mora import db
 from mora.common import _create_graphql_connector
 from mora.graphapi.middleware import set_graphql_dates
+from mora.graphapi.middleware import with_graphql_dates
 from mora.graphapi.versions.latest.readers import _extract_search_params
 from mora.handler.reading import get_handler_for_type
 from mora.handler.reading import ReadingHandler
@@ -249,7 +251,9 @@ class Response(Generic[MOObject]):
         ),
         permission_classes=[IsAuthenticatedPermission],
     )
-    async def current(self, root: "Response", info: Info) -> MOObject | None:
+    async def current(
+        self, root: "Response", info: Info, at: datetime | None = UNSET
+    ) -> MOObject | None:
         def active_now(obj: Any) -> bool:
             """Predicate on whether the object is active right now.
 
@@ -276,6 +280,10 @@ class Response(Generic[MOObject]):
             if obj.validity.to_date is None:
                 return datetime.max
             return obj.validity.to_date
+
+        if at:
+            objects = await Response.validities(self, root, info, at, UNSET)
+            return only(objects)
 
         # TODO: This should really do its own instantaneous query to find whatever is
         #       active right now, regardless of the values in objects.
@@ -311,8 +319,14 @@ class Response(Generic[MOObject]):
             """
         ),
     )
-    async def objects(self, root: "Response", info: Info) -> list[MOObject]:
-        objects = await Response.validities(self, root, info)
+    async def objects(
+        self,
+        root: "Response",
+        info: Info,
+        start: datetime | None = UNSET,
+        end: datetime | None = UNSET,
+    ) -> list[MOObject]:
+        objects = await Response.validities(self, root, info, start, end)
         return objects
 
     @strawberry.field(
@@ -331,13 +345,30 @@ class Response(Generic[MOObject]):
         ),
         permission_classes=[IsAuthenticatedPermission],
     )
-    async def validities(self, root: "Response", info: Info) -> list[MOObject]:
-        # If the object_cache is filled our request has already been resolved elsewhere
-        if root.object_cache != UNSET:
-            return root.object_cache
-        # If the object cache has not been filled we must resolve objects using the uuid
+    async def validities(
+        self,
+        root: "Response",
+        info: Info,
+        start: datetime | None = UNSET,
+        end: datetime | None = UNSET,
+    ) -> list[MOObject]:
         resolver = resolver_map[response2model(root)]["loader"]
-        return await info.context[resolver].load(root.uuid)
+        dataloader = info.context[resolver]
+
+        if start is UNSET and end is UNSET:
+            if root.object_cache != UNSET:
+                return root.object_cache
+            # If the object cache has not been filled we must resolve objects using the uuid
+            return await dataloader.load(root.uuid)
+
+        dates = get_date_interval(start, end)
+        with with_graphql_dates(dates):
+            # We have to clear the dataloader cache, as it is caching entirely on UUID
+            # and thus it may have cached results that does not correlate to our new dates.
+            # In the future the arguments should be passed down the stack, rather than around
+            # the stack as they are now, but for now this is our workaround.
+            dataloader.clear_all()
+            return await dataloader.load(root.uuid)
 
     # TODO: Implement using a dataloader
     registrations: list[Registration] = strawberry.field(

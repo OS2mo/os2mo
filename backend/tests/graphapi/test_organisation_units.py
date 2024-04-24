@@ -365,6 +365,7 @@ async def test_org_unit_subtree_filter(graphapi_post: GraphAPIPost) -> None:
         },
     )
     assert response.errors is None
+    assert response.data is not None
     assert response.data["org_units"]["objects"] == [
         {
             "validities": [
@@ -404,6 +405,7 @@ async def test_org_unit_subtree_filter(graphapi_post: GraphAPIPost) -> None:
         },
     )
     assert response.errors is None
+    assert response.data is not None
     assert response.data["org_units"]["objects"] == [
         {
             "validities": [
@@ -647,10 +649,10 @@ async def test_get_org_unit_ancestors(graphapi_post: GraphAPIPost, expected):
 
     response = graphapi_post(query=graphql_query, variables={"uuid": str(uuid)})
 
-    obj = one(one(response.data["org_units"]["objects"])["objects"])
-
     assert response.errors is None
     assert response.status_code == 200
+    assert response.data is not None
+    obj = one(one(response.data["org_units"]["objects"])["objects"])
     assert obj == expected
     assert len(obj) == len(expected)
     assert obj["ancestors"] == expected["ancestors"]
