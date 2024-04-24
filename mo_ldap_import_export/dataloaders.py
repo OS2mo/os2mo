@@ -1660,7 +1660,7 @@ class DataLoader:
                 filter_dict["from_date"] = None
                 filter_dict["to_date"] = None
             if uuid:
-                filter_dict["uuid"] = uuid
+                filter_dict["uuids"] = [uuid]
 
             filter_class = filter_types[object_type]
             filter = parse_obj_as(filter_class, filter_dict)
