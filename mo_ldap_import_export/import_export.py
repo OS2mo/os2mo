@@ -1083,6 +1083,10 @@ class SyncTool:
             for result in response.objects
             if result.current
         ]
+        # NOTE: Remove this, ugly hack until the real solution can be merged
+        if not org_unit_uuids:  # pragma: no cover
+            return
+
         org_unit_uuid = one(org_unit_uuids)
 
         # Load UUIDs for all addresses in this org-unit
