@@ -442,7 +442,7 @@ query read_class_user_keys($facet_user_keys: [String!]!) {
 
 query read_all_itusers($itsystem_uuid: UUID!, $cursor: Cursor) {
   itusers(
-    limit: 100,
+    limit: $limit,
     cursor: $cursor,
     filter: $filter
   ) {
@@ -459,9 +459,9 @@ query read_all_itusers($itsystem_uuid: UUID!, $cursor: Cursor) {
   }
 }
 
-query read_all_employee_uuids($filter: EmployeeFilter!, $cursor: Cursor = null, $limit: Int = 100) {
+query read_all_employee_uuids($filter: EmployeeFilter!, $cursor: Cursor = null, $limit: int = 100) {
   employees(
-    limit: 100,
+    limit: $limit,
     cursor: $cursor,
     filter: $filter,
   ) {
@@ -480,9 +480,9 @@ query read_all_employee_uuids($filter: EmployeeFilter!, $cursor: Cursor = null, 
   }
 }
 
-query read_all_org_unit_uuids($filter: OrganisationUnitFilter!, $cursor: Cursor = null, $limit: Int = 100) {
+query read_all_org_unit_uuids($filter: OrganisationUnitFilter!, $cursor: Cursor = null, $limit: int = 100) {
   org_units(
-    limit: 100,
+    limit: $limit,
     cursor: $cursor,
     filter: $filter,
   ) {
@@ -501,9 +501,9 @@ query read_all_org_unit_uuids($filter: OrganisationUnitFilter!, $cursor: Cursor 
   }
 }
 
-query read_all_address_uuids($filter: AddressFilter!, $cursor: Cursor = null, $limit: Int = 100) {
+query read_all_address_uuids($filter: AddressFilter!, $cursor: Cursor = null, $limit: int = 100) {
   addresses(
-    limit: 100,
+    limit: $limit,
     cursor: $cursor,
     filter: $filter,
   ) {
@@ -524,9 +524,9 @@ query read_all_address_uuids($filter: AddressFilter!, $cursor: Cursor = null, $l
   }
 }
 
-query read_all_ituser_uuids($filter: ITUserFilter!, $cursor: Cursor = null, $limit: Int = 100) {
+query read_all_ituser_uuids($filter: ITUserFilter!, $cursor: Cursor = null, $limit: int = 100) {
   itusers(
-    limit: 100,
+    limit: $limit,
     cursor: $cursor,
     filter: $filter,
   ) {
@@ -547,9 +547,9 @@ query read_all_ituser_uuids($filter: ITUserFilter!, $cursor: Cursor = null, $lim
   }
 }
 
-query read_all_engagement_uuids($filter: EngagementFilter!, $cursor: Cursor = null, $limit: Int = 100) {
+query read_all_engagement_uuids($filter: EngagementFilter!, $cursor: Cursor = null, $limit: int = 100) {
   engagements(
-    limit: 100,
+    limit: $limit,
     cursor: $cursor,
     filter: $filter,
   ) {
