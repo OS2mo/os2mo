@@ -84,7 +84,50 @@ variables:
         KEYCLOAK_SSL_REQUIRED_MO: "external"
         KEYCLOAK_MO_CLIENT_REDIRECT_URI: '["*"]'
         KEYCLOAK_MO_CLIENT_WEB_ORIGIN: '["*"]'
-        KEYCLOAK_REALM_USERS: '[{"username": "bruce", "password": "bruce", "firstname": "Bruce", "lastname": "Lee", "email": "bruce@kung.fu", "enabled": true, "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a", "roles": ["service_api"]}]'
+        # NOTE: the list of keycloak realm users is identical to the one is
+        # docker-compose.yml.
+        KEYCLOAK_REALM_USERS: '[
+          {
+            "enabled": true,
+            "uuid": "0fb62199-cb9e-4083-ba45-2a63bfd142d7",
+            "email": "alvidan@kolding.dk",
+            "username": "alvida",
+            "password": "alvida",
+            "firstname": "Alvida",
+            "lastname": "Nibe",
+            "roles": ["admin", "service_api"]
+          },
+          {
+            "enabled": true,
+            "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a",
+            "email": "bruce@kung.fu",
+            "username": "bruce",
+            "password": "bruce",
+            "firstname": "Bruce",
+            "lastname": "Lee",
+            "roles": ["reader", "service_api"]
+          },
+          {
+            "enabled": true,
+            "uuid": "1c571f8f-0e3e-4ffa-9ff0-d35505781924",
+            "email": "elinec@kolding.dk",
+            "username": "eline",
+            "password": "eline",
+            "firstname": "Eline",
+            "lastname": "Wedsgaard Christensen",
+            "roles": ["owner", "reader", "service_api"]
+          },
+          {
+            "enabled": true,
+            "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            "email": "anders@andeby.dk",
+            "username": "anders",
+            "password": "anders",
+            "firstname": "Anders",
+            "lastname": "And",
+            "roles": ["owner", "reader", "service_api"]
+          }
+        ]'
         KEYCLOAK_DIPEX_CLIENT_ENABLED: "true"
         KEYCLOAK_DIPEX_CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
     # AMQP
