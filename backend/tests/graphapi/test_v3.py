@@ -20,6 +20,7 @@ from mora.graphapi.versions.latest.graphql_utils import get_uuids
 from mora.graphapi.versions.latest.graphql_utils import PrintableStr
 from mora.graphapi.versions.v3.version import ClassCreate
 from mora.graphapi.versions.v3.version import GraphQLVersion
+from tests.conftest import AnotherTransaction
 from tests.conftest import GraphAPIPost
 
 OPTIONAL = {
@@ -87,6 +88,7 @@ def prepare_query_data(test_data, query_response: ExecutionResult):
 async def test_integration_create_class(
     test_data,
     graphapi_post: GraphAPIPost,
+    another_transaction: AnotherTransaction,
 ) -> None:
     """Integrationtest for create class mutator."""
 
@@ -126,11 +128,12 @@ async def test_integration_create_class(
           }
         }
     """
-    query_response = await execute_graphql(
-        query=query_query,
-        variable_values={"uuid": response_uuid},
-        graphql_version=GraphQLVersion,
-    )
+    async with another_transaction():
+        query_response = await execute_graphql(
+            query=query_query,
+            variable_values={"uuid": response_uuid},
+            graphql_version=GraphQLVersion,
+        )
 
     test_data, query = prepare_query_data(test_data, query_response)
 
