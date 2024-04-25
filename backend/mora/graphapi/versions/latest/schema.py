@@ -363,11 +363,6 @@ class Response(Generic[MOObject]):
 
         dates = get_date_interval(start, end)
         with with_graphql_dates(dates):
-            # We have to clear the dataloader cache, as it is caching entirely on UUID
-            # and thus it may have cached results that does not correlate to our new dates.
-            # In the future the arguments should be passed down the stack, rather than around
-            # the stack as they are now, but for now this is our workaround.
-            dataloader.clear_all()
             return await dataloader.load(root.uuid)
 
     # TODO: Implement using a dataloader
