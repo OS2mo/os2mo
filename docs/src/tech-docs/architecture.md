@@ -6,11 +6,11 @@ title: Architecture
 
 GIR/MO consists of the technology stack depicted above. Each element is briefly described below.
 
-## Frontends
+**Frontends**
 * UI. The main UI, which is intended for administrators, is implemented in the Web App framework, Svelte.[^1]
 * The organizational diagram is implemented in Vue-js.[^2]
 
-## Integrations
+**Integrations**
 There are a plethora of existing integrations that import and/or export data. They are all written in Python,[^3] but can be written in any language that the integrator decides.
 Examples of existing integrations are;
 * an event-driven LDAP-integration to Active Directory
