@@ -969,7 +969,10 @@ class DataLoader:
             return []
 
         it_system_uuid = UUID(raw_it_system_uuid)
-        it_users = await self.load_mo_employee_it_users(uuid, it_system_uuid)
+        try:
+            it_users = await self.load_mo_employee_it_users(uuid, it_system_uuid)
+        except NoObjectsReturnedException:  # pragma: no cover
+            return []
         dns = self.extract_unique_dns(it_users)
         # No DNs, no problem
         if not dns:
