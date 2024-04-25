@@ -4,6 +4,7 @@
 from collections.abc import AsyncIterator
 from collections.abc import Awaitable
 from collections.abc import Iterator
+from contextlib import contextmanager
 from inspect import isasyncgen
 from time import monotonic
 from typing import Any
@@ -106,9 +107,17 @@ async def graphql_dates_context() -> AsyncIterator[None]:
         yield
 
 
-def set_graphql_dates(dates: OpenValidity) -> None:
+def set_graphql_dates(dates: OpenValidity | None) -> None:
     """Set GraphQL args directly in the Starlette context."""
     context[_GRAPHQL_DATES_MIDDLEWARE_KEY] = dates
+
+
+@contextmanager
+def with_graphql_dates(dates: OpenValidity) -> Iterator[None]:
+    old = get_graphql_dates()
+    set_graphql_dates(dates)
+    yield
+    set_graphql_dates(old)
 
 
 def get_graphql_dates() -> OpenValidity | None:
