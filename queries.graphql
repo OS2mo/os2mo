@@ -440,7 +440,7 @@ query read_class_user_keys($facet_user_keys: [String!]!) {
   }
 }
 
-query read_all_itusers($itsystem_uuid: UUID!, $cursor: Cursor) {
+query read_all_itusers($filter: ITUserFilter!, $cursor: Cursor = null, $limit: int = 100) {
   itusers(
     limit: $limit,
     cursor: $cursor,

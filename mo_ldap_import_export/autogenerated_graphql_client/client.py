@@ -1004,11 +1004,14 @@ class GraphQLClient(AsyncBaseClient):
         return ReadClassUserKeys.parse_obj(data).classes
 
     async def read_all_itusers(
-        self, itsystem_uuid: UUID, cursor: Union[Optional[Any], UnsetType] = UNSET
+        self,
+        filter: ITUserFilter,
+        cursor: Union[Optional[Any], UnsetType] = UNSET,
+        limit: Union[Optional[Any], UnsetType] = UNSET,
     ) -> ReadAllItusersItusers:
         query = gql(
             """
-            query read_all_itusers($itsystem_uuid: UUID!, $cursor: Cursor) {
+            query read_all_itusers($filter: ITUserFilter!, $cursor: Cursor = null, $limit: int = 100) {
               itusers(limit: $limit, cursor: $cursor, filter: $filter) {
                 objects {
                   validities {
@@ -1025,8 +1028,9 @@ class GraphQLClient(AsyncBaseClient):
             """
         )
         variables: dict[str, object] = {
-            "itsystem_uuid": itsystem_uuid,
+            "filter": filter,
             "cursor": cursor,
+            "limit": limit,
         }
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
