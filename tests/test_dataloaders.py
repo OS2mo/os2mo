@@ -1813,6 +1813,14 @@ def test_get_ldap_unique_ldap_uuid(dataloader: DataLoader):
     assert dataloader.get_ldap_unique_ldap_uuid("") == uuid
 
 
+def test_get_ldap_unique_ldap_uuid_no_objectguid(dataloader: DataLoader):
+    dataloader.load_ldap_object = MagicMock()  # type: ignore
+    dataloader.load_ldap_object.return_value = LdapObject(dn="foo", objectGUID=[])
+
+    with pytest.raises(NoObjectsReturnedException):
+        dataloader.get_ldap_unique_ldap_uuid("")
+
+
 def test_load_ldap_attribute_values(dataloader: DataLoader):
     responses = [
         {"attributes": {"foo": 1}},
