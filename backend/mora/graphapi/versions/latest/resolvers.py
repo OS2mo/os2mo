@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
 import re
 from collections.abc import Callable
 from datetime import datetime
@@ -7,8 +8,10 @@ from datetime import timedelta
 from datetime import timezone
 from functools import lru_cache
 from typing import Any
+from typing import cast as tcast
 from uuid import UUID
 
+from more_itertools import flatten
 from pydantic import ValidationError
 from sqlalchemy import and_
 from sqlalchemy import between
@@ -21,6 +24,7 @@ from starlette_context import context
 from strawberry import UNSET
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
+from strawberry.unset import UnsetType
 
 from ...middleware import set_graphql_dates
 from .filters import AddressFilter
@@ -570,6 +574,32 @@ async def organisation_unit_resolver(
         )
     )
 
+    if filter.engagement is not None:
+        # TODO: This should be reimplemented in SQL; #60285
+        # NOTE: Local import to avoid cyclic references
+        from .schema import Response
+
+        engagement_uuids = await engagement_resolver(info, filter.engagement)
+        engagement_responses = [
+            Response[EngagementRead](uuid=uuid) for uuid in engagement_uuids
+        ]
+        # NOTE: We have to set start != UNSET to invoke the new temporality behavior
+        # TODO: Remove this code when the new temporality behavior is the default
+        start = unset2date(filter.engagement.from_date)
+        end = filter.engagement.to_date
+
+        engagement_validities = await asyncio.gather(
+            *[
+                response.validities(root=response, info=info, start=start, end=end)
+                for response in engagement_responses
+            ]
+        )
+        org_unit_uuids = {
+            engagement_validity.org_unit_uuid
+            for engagement_validity in flatten(engagement_validities)
+        }
+        extend_uuids(filter, list(org_unit_uuids))
+
     # UUIDs
     if filter.uuids is not None:
         query = query.where(
@@ -964,8 +994,25 @@ def _get_open_validity(
         raise ValueError(message)
 
 
+def unset2date(dt: datetime | UnsetType | None) -> datetime | None:
+    """Convert a potentially unset datetime to a non-unset datetime.
+
+    If the input has UNSET as a value, the current time in utc will be returned.
+
+    Args:
+        dt: A potentially unset or null datetime.
+
+    Returns:
+        A potentially null datetime.
+    """
+    if dt is UNSET:
+        return datetime.now(tz=timezone.utc)
+    return tcast(datetime | None, dt)
+
+
 def get_date_interval(
-    from_date: datetime | None = UNSET, to_date: datetime | None = UNSET
+    from_date: datetime | UnsetType | None = UNSET,
+    to_date: datetime | UnsetType | None = UNSET,
 ) -> OpenValidityModel:
     """Get the date interval for GraphQL queries to support bitemporal lookups.
 
@@ -977,8 +1024,7 @@ def get_date_interval(
         ValueError: If lower bound is none and upper bound is unset
         ValueError: If the interval is invalid, e.g. lower > upper
     """
-    if from_date is UNSET:
-        from_date = datetime.now(tz=timezone.utc)
+    from_date = unset2date(from_date)
     if to_date is UNSET:
         if from_date is None:
             raise ValueError(
