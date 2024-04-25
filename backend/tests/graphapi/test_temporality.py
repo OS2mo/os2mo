@@ -36,22 +36,22 @@ def validity_employee_uuid(graphapi_post: GraphAPIPost) -> UUID:
     assert response.data is not None
     uuid = response.data["employee_create"]["uuid"]
 
-    # This will be active from 2020-01-01 to infinity
+    # This will be active from -infinity to 2020-01-01
     payload = {
         "uuid": uuid,
-        "validity": {"from": "2020-01-01"},
-        "given_name": "Lastarza",
+        "validity": {"from": "2000-01-01", "to": "2020-01-01"},
+        "given_name": "Middleton",
     }
     response = graphapi_post(update_mutation, {"input": payload})
     assert response.errors is None
     assert response.data is not None
     assert response.data["employee_update"]["uuid"] == uuid
 
-    # This will be active from -infinity to 2020-01-01
+    # This will be active from 2020-01-01 to infinity
     payload = {
         "uuid": uuid,
-        "validity": {"from": "2000-01-01", "to": "2020-01-01"},
-        "given_name": "Middleton",
+        "validity": {"from": "2020-01-01"},
+        "given_name": "Lastarza",
     }
     response = graphapi_post(update_mutation, {"input": payload})
     assert response.errors is None
@@ -73,7 +73,7 @@ def validity_employee_uuid(graphapi_post: GraphAPIPost) -> UUID:
             [
                 {
                     "given_name": "Lastarza",
-                    "validity": {"from": "2020-01-02T00:00:00+01:00", "to": None},
+                    "validity": {"from": "2020-01-01T00:00:00+01:00", "to": None},
                 }
             ],
         ),
@@ -84,7 +84,7 @@ def validity_employee_uuid(graphapi_post: GraphAPIPost) -> UUID:
             [
                 {
                     "given_name": "Lastarza",
-                    "validity": {"from": "2020-01-02T00:00:00+01:00", "to": None},
+                    "validity": {"from": "2020-01-01T00:00:00+01:00", "to": None},
                 },
             ],
         ),
@@ -100,12 +100,12 @@ def validity_employee_uuid(graphapi_post: GraphAPIPost) -> UUID:
                     "given_name": "Middleton",
                     "validity": {
                         "from": "2000-01-01T00:00:00+01:00",
-                        "to": "2020-01-01T00:00:00+01:00",
+                        "to": "2019-12-31T00:00:00+01:00",
                     },
                 },
                 {
                     "given_name": "Lastarza",
-                    "validity": {"from": "2020-01-02T00:00:00+01:00", "to": None},
+                    "validity": {"from": "2020-01-01T00:00:00+01:00", "to": None},
                 },
             ],
         ),
@@ -127,7 +127,7 @@ def validity_employee_uuid(graphapi_post: GraphAPIPost) -> UUID:
                     "given_name": "Middleton",
                     "validity": {
                         "from": "2000-01-01T00:00:00+01:00",
-                        "to": "2020-01-01T00:00:00+01:00",
+                        "to": "2019-12-31T00:00:00+01:00",
                     },
                 },
             ],
@@ -140,7 +140,7 @@ def validity_employee_uuid(graphapi_post: GraphAPIPost) -> UUID:
                     "given_name": "Middleton",
                     "validity": {
                         "from": "2000-01-01T00:00:00+01:00",
-                        "to": "2020-01-01T00:00:00+01:00",
+                        "to": "2019-12-31T00:00:00+01:00",
                     },
                 },
             ],
@@ -153,13 +153,13 @@ def validity_employee_uuid(graphapi_post: GraphAPIPost) -> UUID:
                     "given_name": "Middleton",
                     "validity": {
                         "from": "2000-01-01T00:00:00+01:00",
-                        "to": "2020-01-01T00:00:00+01:00",
+                        "to": "2019-12-31T00:00:00+01:00",
                     },
                 },
                 {
                     "given_name": "Lastarza",
                     "validity": {
-                        "from": "2020-01-02T00:00:00+01:00",
+                        "from": "2020-01-01T00:00:00+01:00",
                         "to": None,
                     },
                 },
@@ -183,7 +183,7 @@ def validity_employee_uuid(graphapi_post: GraphAPIPost) -> UUID:
                 {
                     "given_name": "Lastarza",
                     "validity": {
-                        "from": "2020-01-02T00:00:00+01:00",
+                        "from": "2020-01-01T00:00:00+01:00",
                         "to": None,
                     },
                 }
@@ -197,7 +197,7 @@ def validity_employee_uuid(graphapi_post: GraphAPIPost) -> UUID:
                     "given_name": "Middleton",
                     "validity": {
                         "from": "2000-01-01T00:00:00+01:00",
-                        "to": "2020-01-01T00:00:00+01:00",
+                        "to": "2019-12-31T00:00:00+01:00",
                     },
                 }
             ],
@@ -214,12 +214,12 @@ def validity_employee_uuid(graphapi_post: GraphAPIPost) -> UUID:
                     "given_name": "Middleton",
                     "validity": {
                         "from": "2000-01-01T00:00:00+01:00",
-                        "to": "2020-01-01T00:00:00+01:00",
+                        "to": "2019-12-31T00:00:00+01:00",
                     },
                 },
                 {
                     "given_name": "Lastarza",
-                    "validity": {"from": "2020-01-02T00:00:00+01:00", "to": None},
+                    "validity": {"from": "2020-01-01T00:00:00+01:00", "to": None},
                 },
             ],
         ),
@@ -277,14 +277,14 @@ async def test_validity_queries(
             UNSET,
             {
                 "given_name": "Lastarza",
-                "validity": {"from": "2020-01-02T00:00:00+01:00", "to": None},
+                "validity": {"from": "2020-01-01T00:00:00+01:00", "to": None},
             },
         ),
         (
             None,
             {
                 "given_name": "Lastarza",
-                "validity": {"from": "2020-01-02T00:00:00+01:00", "to": None},
+                "validity": {"from": "2020-01-01T00:00:00+01:00", "to": None},
             },
         ),
         (
@@ -307,7 +307,7 @@ async def test_validity_queries(
                 "given_name": "Middleton",
                 "validity": {
                     "from": "2000-01-01T00:00:00+01:00",
-                    "to": "2020-01-01T00:00:00+01:00",
+                    "to": "2019-12-31T00:00:00+01:00",
                 },
             },
         ),
@@ -315,14 +315,14 @@ async def test_validity_queries(
             "2025-01-01",
             {
                 "given_name": "Lastarza",
-                "validity": {"from": "2020-01-02T00:00:00+01:00", "to": None},
+                "validity": {"from": "2020-01-01T00:00:00+01:00", "to": None},
             },
         ),
         (
             "3921-01-01",
             {
                 "given_name": "Lastarza",
-                "validity": {"from": "2020-01-02T00:00:00+01:00", "to": None},
+                "validity": {"from": "2020-01-01T00:00:00+01:00", "to": None},
             },
         ),
     ],
