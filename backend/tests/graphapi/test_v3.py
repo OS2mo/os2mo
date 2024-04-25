@@ -11,6 +11,8 @@ from hypothesis import given
 from hypothesis import HealthCheck
 from hypothesis import settings
 from hypothesis import strategies as st
+from more_itertools import one
+from strawberry.types import ExecutionResult
 
 from mora import mapping
 from mora.graphapi.shim import execute_graphql
@@ -55,18 +57,16 @@ def prepare_mutator_data(test_data):
     return test_data
 
 
-def prepare_query_data(test_data, query_response):
+def prepare_query_data(test_data, query_response: ExecutionResult):
     entries_to_remove = OPTIONAL.keys()
     for k in entries_to_remove:
         test_data.pop(k, None)
 
     td = {k: v for k, v in test_data.items() if v is not None}
 
-    query_dict = (
-        query_response.data.get("classes")[0]
-        if isinstance(query_response.data, dict)
-        else {}
-    )
+    assert query_response.errors is None
+    assert query_response.data is not None
+    query_dict = one(query_response.data["classes"])
     query = {k: v for k, v in query_dict.items() if k in td.keys()}
 
     if not test_data["user_key"]:
@@ -84,7 +84,10 @@ def prepare_query_data(test_data, query_response):
 @given(test_data=write_strat())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-async def test_integration_create_class(test_data, graphapi_post: GraphAPIPost):
+async def test_integration_create_class(
+    test_data,
+    graphapi_post: GraphAPIPost,
+) -> None:
     """Integrationtest for create class mutator."""
 
     test_data["org_uuid"] = await get_uuids(mapping.ORG, graphapi_post)
@@ -104,17 +107,16 @@ async def test_integration_create_class(test_data, graphapi_post: GraphAPIPost):
         query=mutate_query, variables={"input": test_data}, url="/graphql/v3"
     )
 
-    assert mut_response.data
-    response_uuid = (
-        mut_response.data.get("class_create", {}).get("uuid", {})
-        if isinstance(mut_response.data, dict)
-        else {}
-    )
+    assert mut_response.errors is None
+    assert mut_response.data is not None
+    response_uuid = mut_response.data["class_create"]["uuid"]
+    if "uuid" in test_data:
+        assert response_uuid == test_data["uuid"]
 
-    """Query data to check that it actually gets written to database"""
+    # Query data to check that it actually gets written to database
     query_query = """
-        query ($uuid: [UUID!]!) {
-          classes(uuids: $uuid) {
+        query ReadClassByUUID($uuid: UUID!) {
+          classes(uuids: [$uuid]) {
             uuid
             type
             org_uuid
@@ -126,24 +128,19 @@ async def test_integration_create_class(test_data, graphapi_post: GraphAPIPost):
     """
     query_response = await execute_graphql(
         query=query_query,
-        variable_values={"uuid": str(response_uuid)},
+        variable_values={"uuid": response_uuid},
         graphql_version=GraphQLVersion,
     )
 
     test_data, query = prepare_query_data(test_data, query_response)
 
-    """Assert response returned by mutation."""
-    assert mut_response.errors is None
-    assert mut_response.data
-    if test_data.get("uuid"):
-        assert response_uuid == test_data["uuid"]
-
-    """Assert response returned by quering data written."""
+    # Assert response returned by quering data written
     assert query_response.errors is None
+    assert query_response.data is not None
     assert query == test_data
 
 
-"""Test exception gets raised if illegal values are entered"""
+# Test exception gets raised if illegal values are entered
 
 
 @given(test_data=write_strat())
