@@ -252,7 +252,7 @@ services:
       TF_VAR_client_name: dipex
       TF_VAR_client_secret: "603f1c82-d012-4d04-9382-dbe659c533fb"
       TF_VAR_client_uuid: "d1fec000-baad-c0de-0000-004449504558"
-      TF_VAR_client_roles: '["admin"]'
+      TF_VAR_client_roles: '["admin", "service_api"]'
     depends_on:
       keycloak-realm-builder:
         condition: service_completed_successfully
