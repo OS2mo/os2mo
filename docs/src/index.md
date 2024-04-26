@@ -1,13 +1,17 @@
 ---
-title: 'OS2mo | MedarbejderOrganisation'
+title: 'MO | Menneske & Organisation'
 ---
 
-OS2mo er en webapplikation til organisations- og brugerstyring. Systemet sætter brugerne i stand til at vedligeholde information om organisatin og brugere fra én brugergrænseflade.
+MO er et it-system til organisations- og identitetsstyring.
 
-Visionen for OS2mo er, at det skal være det system som indeholder høj datakvalitet og et kontinuerligt opdaterede oplysninger om en organisation (en kommunes, en NGO's, et privat firmas, mv.) og de mennesker, der er tilknyttet organisationen, herunder deres organisatoriske indplacering, deres it-konti, stillingsbetegnelser, mv.
+Systemet sætter din organisation i stand til at vedligeholde information om organisationen og dens ansatte, frivillige, eksterne konsulenter, robotbrugere, m.fl., fra én brugergrænseflade.
 
-Det er i OS2mo medarbejdere opstår og afsluttes; det er her organisatoriske ændringer foretages.
+Du får hermed et fuldstændigt overblik over alle afdelinger, medarbejdernes (multiple) ansættelser, deres it-adgange, deres tilknytninger og roller rundtom i organisationen. Du får også et samlet billede af lederhierarkier, og du kan se din tillidsmandsorganisation, din lønorganisation, din sikkerhedsorganisation, din linjeorganisation, osv.
 
-Alle OS2mo's oplysninger skal afspejles i de IT-systemer, der har behov for dem, således at alle altid har den samme opfattelse af organisationen, uanset om de kigger i Active Directory, FK Organisation, i organisationsdiagrammet på intranettet, eller om det omhandler medarbejdere, eksterne konsulenter, frivillige, stillingsbetegnelser, ansættelser, kontaktinformationer, mv.
+Visionen for MO er, at det skal være kildesystemet for hele organisationen og dens ansatte: Det er her organisationsændringer foretages, og det er her, ansatte oprettes og nedlægges, og disse oplysninger vil automatisk blive sendt on the fly til andre systemer. Oplysningerne kan også komme fra andre systemer - eller beriges fra dem - men det er MO, der indeholder det komplette billede af organisationen.
 
-![image](./graphics/ForsideOS2mo.png)
+Fordi MO indeholder alle oplysninger om organisationen, og de altid er opdaterede og korrekte, er det vigtigt at forbinde MO til andre systemer, som har behov for oplysningerne - Det kan være Active Directory, et IdM-system, FK Organisation, et organisationsdiagram, et HR-system, osv.
+
+Når MO er forbundet til mange systemer, bliver arbejdsgange automatiseret, og ensartet og høj datakvalitet bliver realiseret i de tilkoblede systemer.
+
+![image](./graphics/MOforside.png)
