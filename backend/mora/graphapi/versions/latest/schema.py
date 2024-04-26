@@ -1056,6 +1056,21 @@ class Association:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
+    trade_union: LazyClass | None = strawberry.field(
+        resolver=to_only(
+            seed_resolver(
+                class_resolver,
+                {"uuids": lambda root: uuid2list(root.dynamic_class_uuid)},
+            )
+        ),
+        description=dedent(
+            """\
+            Marks associations with a trade union
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
+
     primary: LazyClass | None = strawberry.field(
         resolver=to_only(
             seed_resolver(
@@ -1227,6 +1242,13 @@ class Association:
         deprecation_reason=gen_uuid_field_deprecation("dynamic_class"),
     )
     async def dynamic_class_uuid(self, root: AssociationRead) -> UUID | None:
+        return root.dynamic_class_uuid
+
+    @strawberry.field(
+        description="UUID of the attached trade union.",
+        deprecation_reason=gen_uuid_field_deprecation("trade_union"),
+    )
+    async def trade_union_uuid(self, root: AssociationRead) -> UUID | None:
         return root.dynamic_class_uuid
 
     @strawberry.field(

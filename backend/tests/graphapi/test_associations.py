@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
 from datetime import datetime
 from unittest.mock import AsyncMock
 from unittest.mock import patch
@@ -48,7 +49,7 @@ def test_query_all(graphapi_post: GraphAPIPost):
                         job_function_uuid
                         primary_uuid
                         it_user_uuid
-                        dynamic_class_uuid
+                        trade_union_uuid
                         type
                         validity {from to}
                     }
@@ -197,9 +198,16 @@ async def test_create_association(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 async def test_create_association_integration_test(
-    data, graphapi_post: GraphAPIPost, org_uuids, employee_uuids, dynamic_class_uuids
+    data,
+    graphapi_post: GraphAPIPost,
+    org_uuids,
+    employee_uuids,
+    trade_union_uuids,
+    set_settings: Callable[..., None],
 ) -> None:
     """Test that associations can be created in LoRa via GraphQL."""
+    # Set a substitute role, to test substitute
+    set_settings(CONFDB_SUBSTITUTE_ROLES='["45751985-321f-4d4f-ae16-847f0a633360"]')
 
     org_uuid = data.draw(st.sampled_from(org_uuids))
     org_from, org_to = fetch_org_unit_validity(graphapi_post, org_uuid)
@@ -222,20 +230,23 @@ async def test_create_association_integration_test(
     # Sample 1 uuid, to check if we need a substitute
     association_type_uuid = data.draw(st.sampled_from(association_type_uuids))
 
+    # Sample employee, so we can use it in the filter
+    employee_uuid = data.draw(st.sampled_from(employee_uuids))
+
     test_data = data.draw(
         st.builds(
             AssociationCreate,
             org_unit=st.just(org_uuid),
             person=st.none(),
-            employee=st.sampled_from(employee_uuids),
+            employee=st.just(employee_uuid),
             association_type=st.just(association_type_uuid),
             primary=st.sampled_from(primary_type_uuids),
             substitute=(
-                st.sampled_from(employee_uuids)
+                st.sampled_from(employee_uuids).filter(lambda x: x != employee_uuid)
                 if is_substitute_allowed(association_type_uuid)
                 else st.none()
             ),
-            dynamic_class=st.just(dynamic_class_uuids),
+            trade_union=st.sampled_from(trade_union_uuids),
             validity=st.builds(
                 RAValidity,
                 from_date=st.just(test_data_validity_start),
@@ -266,7 +277,7 @@ async def test_create_association_integration_test(
                         association_type: association_type_uuid
                         primary: primary_uuid
                         substitute: substitute_uuid
-                        dynamic_class: dynamic_class_uuid
+                        trade_union: trade_union_uuid
                         validity {
                             from
                             to
@@ -279,7 +290,6 @@ async def test_create_association_integration_test(
     response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
     obj = one(one(response.data["associations"]["objects"])["objects"])
-
     assert obj["user_key"] == test_data.user_key or str(uuid)
     assert UUID(obj["org_unit"]) == test_data.org_unit
     assert UUID(obj["employee"]) == test_data.employee
@@ -289,7 +299,7 @@ async def test_create_association_integration_test(
         assert UUID(obj["substitute"]) == test_data.substitute
     else:
         assert obj["substitute"] == test_data.substitute
-    assert [UUID(obj["dynamic_class"])] == test_data.dynamic_class
+    assert UUID(obj["trade_union"]) == test_data.trade_union
     assert (
         datetime.fromisoformat(obj["validity"]["from"]).date()
         == test_data.validity.from_date.date()
@@ -318,10 +328,10 @@ async def test_create_association_integration_test(
             "user_key": "-",
             "org_unit": None,
             "employee": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-            "association_type": "62ec821f-4179-4758-bfdf-134529d186e9",
+            "association_type": "45751985-321f-4d4f-ae16-847f0a633360",
             "primary": None,
-            "substitute": None,
-            # "dynamic_class": Added from fixture in the test,
+            "substitute": "6ee24785-ee9a-4502-81c2-7697009c9053",
+            # "trade_union": Added from fixture in the test,
             "validity": {"to": None, "from": "2017-01-01T00:00:00+01:00"},
         },
         {
@@ -332,7 +342,7 @@ async def test_create_association_integration_test(
             "association_type": "ef71fe9c-7901-48e2-86d8-84116e210202",
             "primary": "89b6cef8-3d03-49ac-816f-f7530b383411",
             "substitute": None,
-            # "dynamic_class": Added from fixture in the test,
+            # "trade_union": Added from fixture in the test,
             "validity": {"to": None, "from": "2017-01-01T00:00:00+01:00"},
         },
         {
@@ -343,7 +353,7 @@ async def test_create_association_integration_test(
             "association_type": "d9387db2-4271-4497-a2ef-50edd6b068b1",
             "primary": "89b6cef8-3d03-49ac-816f-f7530b383411",
             "substitute": None,
-            # "dynamic_class": Added from fixture in the test,
+            # "trade_union": Added from fixture in the test,
             "validity": {"to": None, "from": "2017-01-12T00:00:00+01:00"},
         },
         {
@@ -351,10 +361,10 @@ async def test_create_association_integration_test(
             "user_key": "-",
             "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
             "employee": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-            "association_type": "8eea787c-c2c7-46ca-bd84-2dd50f47801e",
+            "association_type": "45751985-321f-4d4f-ae16-847f0a633360",
             "primary": "2f16d140-d743-4c9f-9e0e-361da91a06f6",
-            "substitute": None,
-            # "dynamic_class": Added from fixture in the test,
+            "substitute": "7626ad64-327d-481f-8b32-36c78eb12f8c",
+            # "trade_union": Added from fixture in the test,
             "validity": {
                 "to": "2025-10-02T00:00:00+02:00",
                 "from": "2017-01-01T00:00:00+01:00",
@@ -363,7 +373,10 @@ async def test_create_association_integration_test(
     ],
 )
 async def test_update_association_integration_test(
-    graphapi_post: GraphAPIPost, test_data, dynamic_class_uuids
+    graphapi_post: GraphAPIPost,
+    test_data,
+    trade_union_uuids,
+    set_settings: Callable[..., None],
 ) -> None:
     async def query_data(uuid: str) -> GQLResponse:
         query = """
@@ -379,7 +392,7 @@ async def test_update_association_integration_test(
                             association_type: association_type_uuid
                             primary: primary_uuid
                             substitute: substitute_uuid
-                            dynamic_class: dynamic_class_uuid
+                            trade_union: trade_union_uuid
                             validity {
                                 to
                                 from
@@ -394,8 +407,11 @@ async def test_update_association_integration_test(
 
         return response
 
-    # Add dynamic_class UUID from fixture `dynamic_class_uuids`
-    test_data["dynamic_class"] = str(dynamic_class_uuids[0])
+    # Set a substitute role, to test substitute
+    set_settings(CONFDB_SUBSTITUTE_ROLES='["45751985-321f-4d4f-ae16-847f0a633360"]')
+
+    # Add trade_union UUID from fixture `trade_union_uuids`
+    test_data["trade_union"] = str(trade_union_uuids[0])
 
     prior_data = await query_data(test_data["uuid"])
 
@@ -426,7 +442,7 @@ async def test_update_association_integration_test(
                         association_type: association_type_uuid
                         primary: primary_uuid
                         substitute: substitute_uuid
-                        dynamic_class: dynamic_class_uuid
+                        trade_union: trade_union_uuid
                         validity {
                             to
                             from

@@ -698,7 +698,7 @@ def employee_and_engagement_uuids(
 
 @pytest.fixture
 @pytest.mark.usefixtures("fixture_db")
-def dynamic_class_uuids(
+def trade_union_uuids(
     graphapi_post: GraphAPIPost,
 ) -> list[tuple[UUID, UUID]]:
     # Fixture that creates the facet "medarbejderorganisation" and a class under that facet called "AC (Akademikerne)"
