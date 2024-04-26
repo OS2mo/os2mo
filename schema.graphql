@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 #
-# OS2mo GraphQL API schema definition (v21).
-# https://os2mo.eksempel.dk/graphql/v21/schema.graphql
+# OS2mo GraphQL API schema definition (v22).
+# https://os2mo.eksempel.dk/graphql/v22/schema.graphql
 
 "Address information for either an employee or organisational unit\n"
 type Address {
@@ -222,13 +222,13 @@ type AddressResponse {
   ): [Registration!]!
 
   "Actual / current state entrypoint.\n\nReturns the state of the object at current validity and current assertion time.\n\nA single object is returned as only one validity can be active at a given assertion time.\n\nNote:\nThis the entrypoint is appropriate to use for actual-state integrations and UIs.\n"
-  current: Address
+  current(at: DateTime): Address
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  objects: [Address!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
+  objects(start: DateTime, end: DateTime): [Address!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  validities: [Address!]!
+  validities(start: DateTime, end: DateTime): [Address!]!
 }
 
 """Result page in cursor-based pagination."""
@@ -521,13 +521,13 @@ type AssociationResponse {
   ): [Registration!]!
 
   "Actual / current state entrypoint.\n\nReturns the state of the object at current validity and current assertion time.\n\nA single object is returned as only one validity can be active at a given assertion time.\n\nNote:\nThis the entrypoint is appropriate to use for actual-state integrations and UIs.\n"
-  current: Association
+  current(at: DateTime): Association
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  objects: [Association!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
+  objects(start: DateTime, end: DateTime): [Association!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  validities: [Association!]!
+  validities(start: DateTime, end: DateTime): [Association!]!
 }
 
 """Result page in cursor-based pagination."""
@@ -836,13 +836,13 @@ type ClassResponse {
   ): [Registration!]!
 
   "Actual / current state entrypoint.\n\nReturns the state of the object at current validity and current assertion time.\n\nA single object is returned as only one validity can be active at a given assertion time.\n\nNote:\nThis the entrypoint is appropriate to use for actual-state integrations and UIs.\n"
-  current: Class
+  current(at: DateTime): Class
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  objects: [Class!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
+  objects(start: DateTime, end: DateTime): [Class!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  validities: [Class!]!
+  validities(start: DateTime, end: DateTime): [Class!]!
 }
 
 """Result page in cursor-based pagination."""
@@ -1176,13 +1176,13 @@ type EmployeeResponse {
   ): [Registration!]!
 
   "Actual / current state entrypoint.\n\nReturns the state of the object at current validity and current assertion time.\n\nA single object is returned as only one validity can be active at a given assertion time.\n\nNote:\nThis the entrypoint is appropriate to use for actual-state integrations and UIs.\n"
-  current: Employee
+  current(at: DateTime): Employee
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  objects: [Employee!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
+  objects(start: DateTime, end: DateTime): [Employee!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  validities: [Employee!]!
+  validities(start: DateTime, end: DateTime): [Employee!]!
 }
 
 """Result page in cursor-based pagination."""
@@ -1597,13 +1597,13 @@ type EngagementResponse {
   ): [Registration!]!
 
   "Actual / current state entrypoint.\n\nReturns the state of the object at current validity and current assertion time.\n\nA single object is returned as only one validity can be active at a given assertion time.\n\nNote:\nThis the entrypoint is appropriate to use for actual-state integrations and UIs.\n"
-  current: Engagement
+  current(at: DateTime): Engagement
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  objects: [Engagement!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
+  objects(start: DateTime, end: DateTime): [Engagement!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  validities: [Engagement!]!
+  validities(start: DateTime, end: DateTime): [Engagement!]!
 }
 
 """Result page in cursor-based pagination."""
@@ -1812,13 +1812,13 @@ type FacetResponse {
   ): [Registration!]!
 
   "Actual / current state entrypoint.\n\nReturns the state of the object at current validity and current assertion time.\n\nA single object is returned as only one validity can be active at a given assertion time.\n\nNote:\nThis the entrypoint is appropriate to use for actual-state integrations and UIs.\n"
-  current: Facet
+  current(at: DateTime): Facet
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  objects: [Facet!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
+  objects(start: DateTime, end: DateTime): [Facet!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  validities: [Facet!]!
+  validities(start: DateTime, end: DateTime): [Facet!]!
 }
 
 """Result page in cursor-based pagination."""
@@ -2074,13 +2074,13 @@ type ITSystemResponse {
   ): [Registration!]!
 
   "Actual / current state entrypoint.\n\nReturns the state of the object at current validity and current assertion time.\n\nA single object is returned as only one validity can be active at a given assertion time.\n\nNote:\nThis the entrypoint is appropriate to use for actual-state integrations and UIs.\n"
-  current: ITSystem
+  current(at: DateTime): ITSystem
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  objects: [ITSystem!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
+  objects(start: DateTime, end: DateTime): [ITSystem!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  validities: [ITSystem!]!
+  validities(start: DateTime, end: DateTime): [ITSystem!]!
 }
 
 """Result page in cursor-based pagination."""
@@ -2306,13 +2306,13 @@ type ITUserResponse {
   ): [Registration!]!
 
   "Actual / current state entrypoint.\n\nReturns the state of the object at current validity and current assertion time.\n\nA single object is returned as only one validity can be active at a given assertion time.\n\nNote:\nThis the entrypoint is appropriate to use for actual-state integrations and UIs.\n"
-  current: ITUser
+  current(at: DateTime): ITUser
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  objects: [ITUser!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
+  objects(start: DateTime, end: DateTime): [ITUser!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  validities: [ITUser!]!
+  validities(start: DateTime, end: DateTime): [ITUser!]!
 }
 
 """Result page in cursor-based pagination."""
@@ -2494,13 +2494,13 @@ type KLEResponse {
   ): [Registration!]!
 
   "Actual / current state entrypoint.\n\nReturns the state of the object at current validity and current assertion time.\n\nA single object is returned as only one validity can be active at a given assertion time.\n\nNote:\nThis the entrypoint is appropriate to use for actual-state integrations and UIs.\n"
-  current: KLE
+  current(at: DateTime): KLE
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  objects: [KLE!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
+  objects(start: DateTime, end: DateTime): [KLE!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  validities: [KLE!]!
+  validities(start: DateTime, end: DateTime): [KLE!]!
 }
 
 """Result page in cursor-based pagination."""
@@ -2690,13 +2690,13 @@ type LeaveResponse {
   ): [Registration!]!
 
   "Actual / current state entrypoint.\n\nReturns the state of the object at current validity and current assertion time.\n\nA single object is returned as only one validity can be active at a given assertion time.\n\nNote:\nThis the entrypoint is appropriate to use for actual-state integrations and UIs.\n"
-  current: Leave
+  current(at: DateTime): Leave
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  objects: [Leave!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
+  objects(start: DateTime, end: DateTime): [Leave!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  validities: [Leave!]!
+  validities(start: DateTime, end: DateTime): [Leave!]!
 }
 
 """Result page in cursor-based pagination."""
@@ -2923,13 +2923,13 @@ type ManagerResponse {
   ): [Registration!]!
 
   "Actual / current state entrypoint.\n\nReturns the state of the object at current validity and current assertion time.\n\nA single object is returned as only one validity can be active at a given assertion time.\n\nNote:\nThis the entrypoint is appropriate to use for actual-state integrations and UIs.\n"
-  current: Manager
+  current(at: DateTime): Manager
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  objects: [Manager!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
+  objects(start: DateTime, end: DateTime): [Manager!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  validities: [Manager!]!
+  validities(start: DateTime, end: DateTime): [Manager!]!
 }
 
 """Result page in cursor-based pagination."""
@@ -3072,6 +3072,9 @@ type Mutation {
 
   """Terminates an employee."""
   employee_terminate(input: EmployeeTerminateInput!): EmployeeResponse!
+
+  "Deletes an employee.\n**Warning**:\nThis mutator does bitemporal deletion, **not** temporal termination.\nDo **not** use this mutator **unless** you **fully understand** its implications.\n\nBitemporal deletion and temporal termination are **very** different operations and should **not** be confused.\nIf you do not know which of the operations you need, you most likely need temporal termination.\n\nBitemporal deletion works on the bitemporal time-axis, and should **only** be used by clients that **fully understand** the underlying bitemporal model, including how a bitemporal delete affects the registration history.\n\nAfter this call the deleted entity will no longer show up in **any** temporal listing.\n\nNote:\nIt is currently the callers responsibility to ensure that references are dealt with before doing bitemporal deletions.\nFailure to do so **will** leave dangling references breaking temporal foreign-keys, and potentially breaking invariants in the data.\n"
+  employee_delete(uuid: UUID!): EmployeeResponse!
 
   """Refresh employees."""
   employee_refresh(
@@ -3730,32 +3733,15 @@ type OrganisationUnit {
 }
 
 input OrganisationUnitCreateInput {
-  """UUID to be created. Will be autogenerated if not specified."""
-  uuid: UUID = null
-
-  """Org-unit name."""
-  name: String!
-
-  """Extra info or uuid."""
-  user_key: String = null
-
-  """UUID of the related parent."""
-  parent: UUID = null
-
-  """UUID of the type."""
-  org_unit_type: UUID!
-
-  """UUID of time planning."""
-  time_planning: UUID = null
-
-  """UUID of unit level."""
-  org_unit_level: UUID = null
-
-  """UUID of the unit hierarchy."""
-  org_unit_hierarchy: UUID = null
-
-  """Validity range for the org-unit."""
+  uuid: UUID
   validity: RAValidityInput!
+  name: String!
+  user_key: String
+  parent: UUID
+  org_unit_type: UUID!
+  time_planning: UUID
+  org_unit_level: UUID
+  org_unit_hierarchy: UUID
 }
 
 """Organisation unit filter."""
@@ -3792,6 +3778,9 @@ input OrganisationUnitFilter {
 
   "Filter organisation units, returning all matches along with their ancestors.\n\nCan be used to find organisation units together with the context of their organisational placement.\n"
   subtree: OrganisationUnitFilter
+
+  "Filter organisation units to only include matches pointed to by engagements.\n\nCan be used to find organisation units for certain engagements.\n"
+  engagement: EngagementFilter = null
 }
 
 """OrganisationUnit registration filter."""
@@ -3823,13 +3812,13 @@ type OrganisationUnitResponse {
   ): [Registration!]!
 
   "Actual / current state entrypoint.\n\nReturns the state of the object at current validity and current assertion time.\n\nA single object is returned as only one validity can be active at a given assertion time.\n\nNote:\nThis the entrypoint is appropriate to use for actual-state integrations and UIs.\n"
-  current: OrganisationUnit
+  current(at: DateTime): OrganisationUnit
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  objects: [OrganisationUnit!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
+  objects(start: DateTime, end: DateTime): [OrganisationUnit!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  validities: [OrganisationUnit!]!
+  validities(start: DateTime, end: DateTime): [OrganisationUnit!]!
 }
 
 """Result page in cursor-based pagination."""
@@ -3853,32 +3842,15 @@ input OrganisationUnitTerminateInput {
 }
 
 input OrganisationUnitUpdateInput {
-  """UUID of the organisation unit to be updated."""
   uuid: UUID!
-
-  """Validity range for the organisation unit to be updated."""
   validity: RAValidityInput!
-
-  """Name of the organisation unit to be updated."""
-  name: String = null
-
-  """Extra info or uuid."""
-  user_key: String = null
-
-  """UUID of the organisation units related parent to be updated."""
-  parent: UUID = null
-
-  """UUID of the organisation units type to be updated."""
-  org_unit_type: UUID = null
-
-  """UUID of the organisation units level to be updated."""
-  org_unit_level: UUID = null
-
-  """UUID of organisation units hierarchy to be updated."""
-  org_unit_hierarchy: UUID = null
-
-  """UUID of organisation units time planning to be updated."""
-  time_planning: UUID = null
+  name: String
+  user_key: String
+  parent: UUID
+  org_unit_type: UUID
+  org_unit_level: UUID
+  org_unit_hierarchy: UUID
+  time_planning: UUID
 }
 
 "\nOwner of organisation units/employees and their connected identities.\n"
@@ -4024,13 +3996,13 @@ type OwnerResponse {
   ): [Registration!]!
 
   "Actual / current state entrypoint.\n\nReturns the state of the object at current validity and current assertion time.\n\nA single object is returned as only one validity can be active at a given assertion time.\n\nNote:\nThis the entrypoint is appropriate to use for actual-state integrations and UIs.\n"
-  current: Owner
+  current(at: DateTime): Owner
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  objects: [Owner!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
+  objects(start: DateTime, end: DateTime): [Owner!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  validities: [Owner!]!
+  validities(start: DateTime, end: DateTime): [Owner!]!
 }
 
 """Result page in cursor-based pagination."""
@@ -4120,6 +4092,7 @@ input ParentsBoundOrganisationUnitFilter {
   hierarchy: ClassFilter = null
   hierarchies: [UUID!] = null
   subtree: OrganisationUnitFilter
+  engagement: EngagementFilter = null
 }
 
 """Entrypoint for all read-operations"""
@@ -4485,13 +4458,13 @@ type RelatedUnitResponse {
   ): [Registration!]!
 
   "Actual / current state entrypoint.\n\nReturns the state of the object at current validity and current assertion time.\n\nA single object is returned as only one validity can be active at a given assertion time.\n\nNote:\nThis the entrypoint is appropriate to use for actual-state integrations and UIs.\n"
-  current: RelatedUnit
+  current(at: DateTime): RelatedUnit
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  objects: [RelatedUnit!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
+  objects(start: DateTime, end: DateTime): [RelatedUnit!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  validities: [RelatedUnit!]!
+  validities(start: DateTime, end: DateTime): [RelatedUnit!]!
 }
 
 """Result page in cursor-based pagination."""
@@ -4668,13 +4641,13 @@ type RoleResponse {
   ): [Registration!]!
 
   "Actual / current state entrypoint.\n\nReturns the state of the object at current validity and current assertion time.\n\nA single object is returned as only one validity can be active at a given assertion time.\n\nNote:\nThis the entrypoint is appropriate to use for actual-state integrations and UIs.\n"
-  current: Role
+  current(at: DateTime): Role
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  objects: [Role!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
+  objects(start: DateTime, end: DateTime): [Role!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  validities: [Role!]!
+  validities(start: DateTime, end: DateTime): [Role!]!
 }
 
 """Result page in cursor-based pagination."""
@@ -4815,6 +4788,7 @@ input UuidsBoundOrganisationUnitFilter {
   hierarchy: ClassFilter = null
   hierarchies: [UUID!] = null
   subtree: OrganisationUnitFilter
+  engagement: EngagementFilter = null
 }
 
 """Validity of objects with required from date"""

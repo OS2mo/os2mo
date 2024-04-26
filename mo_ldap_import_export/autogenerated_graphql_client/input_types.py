@@ -808,15 +808,15 @@ class OrganisationCreate(BaseModel):
 
 
 class OrganisationUnitCreateInput(BaseModel):
-    uuid: Optional[UUID] = None
-    name: str
-    user_key: Optional[str] = None
-    parent: Optional[UUID] = None
-    org_unit_type: UUID
-    time_planning: Optional[UUID] = None
-    org_unit_level: Optional[UUID] = None
-    org_unit_hierarchy: Optional[UUID] = None
+    uuid: Optional[UUID]
     validity: "RAValidityInput"
+    name: str
+    user_key: Optional[str]
+    parent: Optional[UUID]
+    org_unit_type: UUID
+    time_planning: Optional[UUID]
+    org_unit_level: Optional[UUID]
+    org_unit_hierarchy: Optional[UUID]
 
 
 class OrganisationUnitFilter(BaseModel):
@@ -831,6 +831,7 @@ class OrganisationUnitFilter(BaseModel):
     hierarchy: Optional["ClassFilter"] = None
     hierarchies: Optional[List[UUID]] = None
     subtree: Optional["OrganisationUnitFilter"]
+    engagement: Optional["EngagementFilter"] = None
 
 
 class OrganisationUnitRegistrationFilter(BaseModel):
@@ -848,13 +849,13 @@ class OrganisationUnitTerminateInput(BaseModel):
 class OrganisationUnitUpdateInput(BaseModel):
     uuid: UUID
     validity: "RAValidityInput"
-    name: Optional[str] = None
-    user_key: Optional[str] = None
-    parent: Optional[UUID] = None
-    org_unit_type: Optional[UUID] = None
-    org_unit_level: Optional[UUID] = None
-    org_unit_hierarchy: Optional[UUID] = None
-    time_planning: Optional[UUID] = None
+    name: Optional[str]
+    user_key: Optional[str]
+    parent: Optional[UUID]
+    org_unit_type: Optional[UUID]
+    org_unit_level: Optional[UUID]
+    org_unit_hierarchy: Optional[UUID]
+    time_planning: Optional[UUID]
 
 
 class OwnerCreateInput(BaseModel):
@@ -931,6 +932,7 @@ class ParentsBoundOrganisationUnitFilter(BaseModel):
     hierarchy: Optional["ClassFilter"] = None
     hierarchies: Optional[List[UUID]] = None
     subtree: Optional["OrganisationUnitFilter"]
+    engagement: Optional["EngagementFilter"] = None
 
 
 class RAOpenValidityInput(BaseModel):
@@ -1096,6 +1098,7 @@ class UuidsBoundOrganisationUnitFilter(BaseModel):
     hierarchy: Optional["ClassFilter"] = None
     hierarchies: Optional[List[UUID]] = None
     subtree: Optional["OrganisationUnitFilter"]
+    engagement: Optional["EngagementFilter"] = None
 
 
 class ValidityInput(BaseModel):

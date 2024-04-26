@@ -16,6 +16,10 @@ from .class_create import ClassCreate
 from .class_create import ClassCreateClassCreate
 from .class_update import ClassUpdate
 from .class_update import ClassUpdateClassUpdate
+from .engagement_org_unit_address_refresh import EngagementOrgUnitAddressRefresh
+from .engagement_org_unit_address_refresh import (
+    EngagementOrgUnitAddressRefreshAddressRefresh,
+)
 from .engagement_refresh import EngagementRefresh
 from .engagement_refresh import EngagementRefreshEngagementRefresh
 from .engagement_terminate import EngagementTerminate
@@ -87,8 +91,6 @@ from .read_employees_with_engagement_to_org_unit import (
 from .read_employees_with_engagement_to_org_unit import (
     ReadEmployeesWithEngagementToOrgUnitEngagements,
 )
-from .read_engagement_org_unit_uuid import ReadEngagementOrgUnitUuid
-from .read_engagement_org_unit_uuid import ReadEngagementOrgUnitUuidEngagements
 from .read_engagement_uuid_by_ituser_user_key import ReadEngagementUuidByItuserUserKey
 from .read_engagement_uuid_by_ituser_user_key import (
     ReadEngagementUuidByItuserUserKeyItusers,
@@ -679,27 +681,6 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return ReadOrgUnitAddresses.parse_obj(data).addresses
 
-    async def read_engagement_org_unit_uuid(
-        self, engagement_uuid: UUID
-    ) -> ReadEngagementOrgUnitUuidEngagements:
-        query = gql(
-            """
-            query read_engagement_org_unit_uuid($engagement_uuid: UUID!) {
-              engagements(filter: {uuids: [$engagement_uuid]}) {
-                objects {
-                  current {
-                    org_unit_uuid
-                  }
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"engagement_uuid": engagement_uuid}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadEngagementOrgUnitUuid.parse_obj(data).engagements
-
     async def read_class_uuid_by_facet_and_class_user_key(
         self, facet_user_key: str, class_user_key: str
     ) -> ReadClassUuidByFacetAndClassUserKeyClasses:
@@ -1216,3 +1197,27 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadAllEngagementUuids.parse_obj(data).engagements
+
+    async def engagement_org_unit_address_refresh(
+        self, exchange: str, engagement_uuid: UUID, address_type_uuids: List[UUID]
+    ) -> EngagementOrgUnitAddressRefreshAddressRefresh:
+        query = gql(
+            """
+            mutation engagement_org_unit_address_refresh($exchange: String!, $engagement_uuid: UUID!, $address_type_uuids: [UUID!]!) {
+              address_refresh(
+                exchange: $exchange
+                filter: {address_type: {uuids: $address_type_uuids}, org_unit: {engagement: {uuids: [$engagement_uuid]}}}
+              ) {
+                objects
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {
+            "exchange": exchange,
+            "engagement_uuid": engagement_uuid,
+            "address_type_uuids": address_type_uuids,
+        }
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return EngagementOrgUnitAddressRefresh.parse_obj(data).address_refresh
