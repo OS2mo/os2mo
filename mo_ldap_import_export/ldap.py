@@ -567,10 +567,12 @@ async def cleanup(
         user context dictionary with the configured dataloader and converter
     """
     from .dataloaders import DataLoader
+    from .converters import LdapConverter
+    from .import_export import SyncTool
 
     dataloader: DataLoader = user_context["dataloader"]
-    converter = user_context["converter"]
-    sync_tool = user_context["sync_tool"]
+    converter: LdapConverter = user_context["converter"]
+    sync_tool: SyncTool = user_context["sync_tool"]
 
     if not converter._export_to_ldap_(json_key):
         logger.info("_export_to_ldap_ == False", json_key=json_key)
