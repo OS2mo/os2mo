@@ -58,11 +58,18 @@ variables:
         DB_USER: "mox"
         DB_PASSWORD: "mox"
     # Keycloak
-    - name: quay.io/keycloak/keycloak:14.0.0
+    - name: magentaaps/os2mo-keycloak:latest
       alias: keycloak
       variables:
-        KEYCLOAK_USER: "admin"
-        KEYCLOAK_PASSWORD: "admin"
+        KC_HOSTNAME_URL: http://keycloak:8080/auth
+        KC_HOSTNAME_ADMIN_URL: http://keycloak:8080/auth
+
+        KEYCLOAK_ADMIN: admin
+        KEYCLOAK_ADMIN_PASSWORD: admin
+
+        KC_DB_URL_HOST: mox-db
+        KC_DB_USERNAME: mox
+        KC_DB_PASSWORD: mox
     - name: magentaaps/os2mo-keycloak-realm-builder:5
       entrypoint:
         - "sh"
