@@ -19,6 +19,7 @@ from functools import partial
 from operator import itemgetter
 from pathlib import Path
 from typing import Any
+from typing import AsyncContextManager
 from typing import Protocol
 from typing import TypeVar
 from unittest.mock import AsyncMock
@@ -341,10 +342,16 @@ async def _use_session(
             yield sessionmaker, session
 
 
+AnotherTransaction = Callable[
+    [],
+    AsyncContextManager[tuple[async_sessionmaker, db.AsyncSession]],
+]
+
+
 @pytest.fixture
 async def another_transaction(
     lora_settings: LoraSettings, sessionmakermaker: SessionmakerMaker
-):
+) -> AnotherTransaction:
     """This fixture can be used as an async context manager to create a
     separate database transaction.
 
@@ -355,7 +362,7 @@ async def another_transaction(
     lora connector or when loading data.
     """
 
-    def inner():
+    def inner() -> AsyncContextManager[tuple[async_sessionmaker, db.AsyncSession]]:
         return _use_session(lora_settings, sessionmakermaker.get_database_name())
 
     return inner
