@@ -267,7 +267,7 @@ async def test_load_ldap_cpr_object(
     expected_result = LdapObject(dn=dn, **ldap_attributes)
     ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)]
 
-    output = dataloader.load_ldap_cpr_object("0101012002", "Employee")
+    output = one(dataloader.load_ldap_cpr_object("0101012002", "Employee"))
     assert output == expected_result
 
     with pytest.raises(NoObjectsReturnedException):
@@ -1722,14 +1722,14 @@ async def test_find_or_make_mo_employee_dn(
     # Case where there is no IT-system that contains the DN, but the cpr lookup succeeds
     dataloader.load_mo_employee.return_value = Employee(cpr_no="0101911234")
     dataloader.extract_unique_dns.return_value = []
-    dataloader.load_ldap_cpr_object.return_value = LdapObject(
-        dn="CN=dn_already_in_ldap,DC=foo"
-    )
+    dataloader.load_ldap_cpr_object.return_value = [
+        LdapObject(dn="CN=dn_already_in_ldap,DC=foo")
+    ]
     dns = await dataloader.find_or_make_mo_employee_dn(uuid4())
     assert dns == ["CN=dn_already_in_ldap,DC=foo"]
 
     # Same as above, but the cpr-lookup does not succeed
-    dataloader.load_ldap_cpr_object.side_effect = NoObjectsReturnedException("foo")
+    dataloader.load_ldap_cpr_object.return_value = []
     username_generator.generate_dn.return_value = "CN=generated_dn_2,DC=DN"
     dataloader.get_ldap_unique_ldap_uuid.return_value = uuid_2
     dns = await dataloader.find_or_make_mo_employee_dn(uuid4())
@@ -2795,3 +2795,29 @@ async def test_terminate_fix_verb(dataloader: DataLoader) -> None:
     dataloader.context["legacy_model_client"].upload.assert_called_once_with([])
     dataloader.context["legacy_model_client"].edit.assert_called_once_with([])
     dataloader.graphql_client.address_terminate.assert_called_once()  # type: ignore
+
+
+async def test_find_mo_employee_dn_by_cpr_number(
+    dataloader: DataLoader, graphql_mock: GraphQLMocker
+) -> None:
+    employee_uuid = uuid4()
+    cpr_number = "1407711900"
+    employee = {
+        "uuid": employee_uuid,
+        "cpr_no": cpr_number,
+        "givenname": "first_name",
+        "surname": "last_name",
+        "nickname_givenname": None,
+        "nickname_surname": None,
+        "validity": {"to": None},
+    }
+    route = graphql_mock.query("read_employees")
+    route.result = {"employees": {"objects": [{"validities": [employee]}]}}
+
+    dataloader.load_ldap_cpr_object = MagicMock()  # type: ignore
+    dataloader.load_ldap_cpr_object.side_effect = NoObjectsReturnedException("BOOM")
+
+    result = await dataloader.find_mo_employee_dn_by_cpr_number(employee_uuid)
+    assert result == []
+
+    dataloader.load_ldap_cpr_object.assert_called_once_with(cpr_number, "Employee")

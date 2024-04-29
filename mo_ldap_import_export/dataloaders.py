@@ -66,6 +66,7 @@ from .ldap import get_ldap_schema
 from .ldap import get_ldap_superiors
 from .ldap import is_uuid
 from .ldap import make_ldap_object
+from .ldap import object_search
 from .ldap import paged_search
 from .ldap import single_object_search
 from .ldap_classes import LdapObject
@@ -273,7 +274,7 @@ class DataLoader:
         cpr_no: str,
         json_key: str,
         additional_attributes: list[str] = [],
-    ) -> LdapObject:
+    ) -> list[LdapObject]:
         """
         Loads an ldap object which can be found using a cpr number lookup
 
@@ -310,13 +311,15 @@ class DataLoader:
             "search_filter": f"(&({object_class_filter})({cpr_filter}))",
             "attributes": list(set(attributes)),
         }
-        # TODO: This seems faulty, there can be more than one object per CPR number
-        search_result = single_object_search(searchParameters, self.context)
-
-        ldap_object: LdapObject = make_ldap_object(search_result, self.context)
-        logger.info("Found LDAP object", dn=ldap_object.dn)
-
-        return ldap_object
+        ldap_connection = self.context["user_context"]["ldap_connection"]
+        search_results = object_search(searchParameters, ldap_connection)
+        ldap_objects: list[LdapObject] = [
+            make_ldap_object(search_result, self.context)
+            for search_result in search_results
+        ]
+        dns = [obj.dn for obj in ldap_objects]
+        logger.info("Found LDAP(s) object", dns=dns)
+        return ldap_objects
 
     def ou_in_ous_to_write_to(self, dn: str) -> bool:
         """
@@ -1013,9 +1016,10 @@ class DataLoader:
             employee_uuid=uuid,
         )
         try:
-            # TODO: This should return a list from the search
-            dns = [self.load_ldap_cpr_object(cpr_no, "Employee").dn]
+            dns = [obj.dn for obj in self.load_ldap_cpr_object(cpr_no, "Employee")]
         except NoObjectsReturnedException:
+            return []
+        if not dns:
             return []
         logger.info(
             "Found DN(s) using CPR number lookup",
