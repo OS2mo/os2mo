@@ -23,6 +23,7 @@ from mora.auth.keycloak.oidc import noauth
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.classes import ClassCreate
 from mora.graphapi.versions.latest.graphql_utils import PrintableStr
+from tests.conftest import AnotherTransaction
 
 # Helpers
 # -------------------
@@ -172,7 +173,11 @@ def test_query_all(graphapi_post: GraphAPIPost):
 )
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-async def test_integration_create_class(test_data, graphapi_post: GraphAPIPost) -> None:
+async def test_integration_create_class(
+    test_data,
+    graphapi_post: GraphAPIPost,
+    another_transaction: AnotherTransaction,
+) -> None:
     """Integrationtest for create class mutator."""
 
     test_data_model = ClassCreate(**test_data)
@@ -229,10 +234,11 @@ async def test_integration_create_class(test_data, graphapi_post: GraphAPIPost) 
           }
         }
     """
-    query_response = await execute_graphql(
-        query=query_query,
-        variable_values={"uuid": str(response_uuid)},
-    )
+    async with another_transaction():
+        query_response = await execute_graphql(
+            query=query_query,
+            variable_values={"uuid": str(response_uuid)},
+        )
 
     assert query_response.errors is None
     assert query_response.data
