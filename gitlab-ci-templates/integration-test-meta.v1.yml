@@ -72,7 +72,6 @@ variables:
             echo 'Waiting for keycloak...'
             sleep 1
           done
-          touch /builds/.keycloak-realm-builder-finished
       variables:
         # Since GitLab CI doesn't support multiple services on the same port,
         # we cannot (easily) run a separate postgres for the realm builder's
@@ -128,8 +127,27 @@ variables:
             "roles": ["owner", "reader", "service_api"]
           }
         ]'
-        KEYCLOAK_DIPEX_CLIENT_ENABLED: "true"
-        KEYCLOAK_DIPEX_CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
+    - name: magentaaps/os2mo-keycloak-integration-builder:5
+      entrypoint:
+        - "sh"
+        - "-c"
+        - |
+          while ! sh run.sh; do
+            echo 'Waiting for keycloak realm-builder...'
+            sleep 1
+          done
+          touch /builds/.keycloak-dipex-integration-builder-finished
+      variables:
+        POSTGRES_CONNECTION_STRING: "postgres://mox:mox@mox-db/mox?sslmode=disable"
+        POSTGRES_SCHEMA_NAME: terraform_remote_state_dipex_client
+
+        TF_VAR_url: "http://keycloak:8080"
+        TF_VAR_admin_password: "admin"
+
+        TF_VAR_client_name: dipex
+        TF_VAR_client_secret: "603f1c82-d012-4d04-9382-dbe659c533fb"
+        TF_VAR_client_uuid: "d1fec000-baad-c0de-0000-004449504558"
+        TF_VAR_client_roles: '["admin", "service_api"]'
     # AMQP
     # The -management images come with a set of management plugins installed and
     # enabled by default. They can be accessed through the web interface on port 15672.
@@ -138,7 +156,7 @@ variables:
       alias: msg-broker
   before_script:
     - |
-      while [ ! -f /builds/.keycloak-realm-builder-finished ]; do
+      while [ ! -f /builds/.keycloak-dipex-integration-builder-finished ]; do
         echo 'Waiting for keycloak realm builder...'
         sleep 1
       done
