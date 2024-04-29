@@ -84,10 +84,12 @@ def test_itsystem_create(graphapi_post) -> None:
             }
         }
     """
+    it_system_uuid = UUID("624e4f57-0a36-4751-9982-51ef37457ebc")
     response = graphapi_post(
         mutation,
         {
             "input": {
+                "uuid": str(it_system_uuid),
                 "user_key": "my_user_key",
                 "name": "my_name",
                 "validity": {"from": "1930-01-01"},
@@ -97,6 +99,7 @@ def test_itsystem_create(graphapi_post) -> None:
     assert response.errors is None
     assert response.data
     new_uuid = UUID(response.data["itsystem_create"]["uuid"])
+    assert new_uuid == it_system_uuid
 
     # Verify modified state
     response = graphapi_post(query)

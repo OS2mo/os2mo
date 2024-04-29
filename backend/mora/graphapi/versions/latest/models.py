@@ -9,7 +9,6 @@ from typing import Literal
 from uuid import UUID
 
 import strawberry
-from pydantic import BaseModel
 from pydantic import Extra
 from pydantic import Field
 from pydantic import root_validator
@@ -630,7 +629,7 @@ class EngagementUpdate(EngagementUpsert):
 
 # Facets
 # -----------------------
-class FacetCreate(BaseModel):
+class FacetCreate(UUIDBase):
     """Model representing a facet creation."""
 
     user_key: str = Field(description="Facet name.")
