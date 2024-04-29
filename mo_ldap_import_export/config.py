@@ -481,15 +481,38 @@ class Settings(BaseSettings):
         description="Check that OU is below or equal one of these, see #57426",
     )
 
+    discriminator_field: str | None = Field(
+        None, description="The field to look for discriminator values in"
+    )
+
     discriminator_function: Literal["exclude", "include", None] = Field(
         None,
         description="The type of discriminator function, either include or exclude",
     )
 
-    discriminator_field: str | None = Field(
-        None, description="The field to look for discriminator values in"
-    )
-
     discriminator_values: list[str] = Field(
         [], description="The values used for discrimination"
     )
+
+    @root_validator
+    def check_discriminator_settings(cls, values: dict[str, Any]) -> dict[str, Any]:
+        """Ensure that discriminator function and values is set, if field is set."""
+        # No discriminator_field, not required fields
+        if values["discriminator_field"] is None:
+            return values
+        # If our keys are not in values, a field validator failed, let it handle it
+        if (
+            "discriminator_function" not in values
+            or "discriminator_values" not in values
+        ):
+            return values
+        # Check that our now required fields are set
+        if values["discriminator_function"] is None:
+            raise ValueError(
+                "DISCRIMINATOR_FUNCTION must be set, if DISCRIMINATOR_FIELD is set"
+            )
+        if values["discriminator_values"] == []:
+            raise ValueError(
+                "DISCRIMINATOR_VALUES must be set, if DISCRIMINATOR_FIELD is set"
+            )
+        return values
