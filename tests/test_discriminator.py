@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Iterable
+from typing import Any
 from unittest.mock import ANY
 from unittest.mock import patch
 from uuid import uuid4
@@ -175,22 +176,48 @@ async def test_searching_dn_lookup(
     }
 
 
+@pytest.mark.parametrize(
+    "attributes,expected",
+    [
+        # Reading 'None' reads all fields
+        (
+            None,
+            {
+                "CN": ["foo"],
+                "objectClass": ["inetOrgPerson"],
+                "revision": ["0"],
+                "sn": ["foo_sn"],
+                "userPassword": ["bar"],
+            },
+        ),
+        # Reading no fields reads dn
+        ([], {}),
+        # Read SN
+        (["sn"], {"sn": ["foo_sn"]}),
+        (["SN"], {"sn": ["foo_sn"]}),
+        # Read CN
+        (["cn"], {"CN": ["foo"]}),
+        (["CN"], {"CN": ["foo"]}),
+        # Read SN and CN
+        (["sn", "cn"], {"sn": ["foo_sn"], "CN": ["foo"]}),
+        (["sn", "CN"], {"sn": ["foo_sn"], "CN": ["foo"]}),
+        # Read unknown field
+        (["__invalid__"], {"__invalid__": []}),
+    ],
+)
 async def test_get_ldap_object(
-    ldap_connection: Connection, settings: Settings, ldap_container_dn: str
+    ldap_connection: Connection,
+    settings: Settings,
+    ldap_container_dn: str,
+    attributes: list[str],
+    expected: dict[str, Any],
 ) -> None:
-    """Test that get_ldap_object can read our default user."""
+    """Test that get_ldap_object can read specific attributes on our default user."""
     context: Context = {
         "user_context": {"ldap_connection": ldap_connection, "settings": settings}
     }
 
     dn = f"CN={settings.ldap_user},{ldap_container_dn}"
-    result = get_ldap_object(dn, context)
+    result = get_ldap_object(dn, context, attributes=attributes)
     assert result.dn == dn
-    assert result.__dict__ == {
-        "CN": ["foo"],
-        "dn": "CN=foo,o=example",
-        "objectClass": ["inetOrgPerson"],
-        "revision": ["0"],
-        "sn": ["foo_sn"],
-        "userPassword": ["bar"],
-    }
+    assert result.__dict__ == {"dn": "CN=foo,o=example"} | expected

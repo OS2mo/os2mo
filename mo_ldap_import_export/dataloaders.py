@@ -63,6 +63,7 @@ from .exceptions import NotEnabledException
 from .exceptions import UUIDNotFoundException
 from .ldap import get_attribute_types
 from .ldap import get_ldap_attributes
+from .ldap import get_ldap_object
 from .ldap import get_ldap_schema
 from .ldap import get_ldap_superiors
 from .ldap import is_uuid
@@ -246,15 +247,10 @@ class DataLoader:
 
         return result
 
-    def load_ldap_object(self, dn, attributes, nest=True):
-        searchParameters = {
-            "search_base": dn,
-            "search_filter": "(objectclass=*)",
-            "attributes": attributes,
-            "search_scope": BASE,
-        }
-        search_result = single_object_search(searchParameters, self.context)
-        return make_ldap_object(search_result, self.context, nest=nest)
+    def load_ldap_object(self, dn, attributes, nest=True):  # pragma: no cover
+        # TODO: Actually eliminate this function by calling get_ldap_object directly.
+        #       Be warned though, doing so breaks ~25 tests because of bad mocking.
+        return get_ldap_object(dn, self.context, nest, attributes)
 
     def load_ldap_attribute_values(self, attribute, search_base=None) -> list[str]:
         """

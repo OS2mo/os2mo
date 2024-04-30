@@ -474,21 +474,27 @@ def is_dn(value):
     return True
 
 
-def get_ldap_object(dn: str, context: Context, nest: bool = True) -> LdapObject:
+def get_ldap_object(
+    dn: str, context: Context, nest: bool = True, attributes: list | None = None
+) -> LdapObject:
     """Gets a ldap object based on its DN.
 
     Args:
         dn: The DN to read.
         context: The FastRAMQPI context.
         nest: Whether to also fetch and nest related objects.
+        attributes: The list of attributes to read.
 
     Returns:
         The LDAP object fetched from the LDAP server.
     """
+    if attributes is None:
+        attributes = ["*"]
+
     searchParameters = {
         "search_base": dn,
         "search_filter": "(objectclass=*)",
-        "attributes": ["*"],
+        "attributes": attributes,
         "search_scope": BASE,
     }
     search_result = single_object_search(searchParameters, context)
