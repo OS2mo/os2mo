@@ -31,7 +31,7 @@ from .converters import LdapConverter
 from .customer_specific_checks import ExportChecks
 from .customer_specific_checks import ImportChecks
 from .dataloaders import DataLoader
-from .dataloaders import DNList
+from .dataloaders import DN
 from .dataloaders import Verb
 from .exceptions import DNNotFound
 from .exceptions import IgnoreChanges
@@ -292,10 +292,14 @@ class SyncTool:
         await self.perform_export_checks(uuid, object_uuid)
 
         try:
-            dns: DNList = await self.dataloader.find_or_make_mo_employee_dn(uuid)
+            dns: set[DN] = await self.dataloader.find_or_make_mo_employee_dn(uuid)
         except DNNotFound:
+            # TODO: Do we even want to catch this, probably not
             logger.info("DN not found", **logger_args)
             return
+
+        # TODO: Refactor logger_args to be structlog binds
+        logger_args["dns"] = dns
 
         # Get MO employee
         changed_employee = await self.dataloader.load_mo_employee(
@@ -478,7 +482,7 @@ class SyncTool:
         object_type,
     ):
         await self.perform_export_checks(affected_employee.uuid, changed_address.uuid)
-        dns: DNList = await self.dataloader.find_or_make_mo_employee_dn(
+        dns: set[DN] = await self.dataloader.find_or_make_mo_employee_dn(
             affected_employee.uuid
         )
 
@@ -830,12 +834,7 @@ class SyncTool:
             manual_import=manual_import,
         )
 
-        # Get the employee's uuid (if he exists)
-        # Note: We could optimize this by loading all relevant employees once. But:
-        # - What if an employee is created by someone else while this code is running?
-        # - We don't need the additional speed. This is meant as a one-time import
-        # - We won't gain much; This is an asynchronous request. The code moves on while
-        #   we are waiting for MO's response
+        # Get the employee's uuid (if they exists)
         employee_uuid = await self.dataloader.find_mo_employee_uuid(dn)
         if not employee_uuid:
             logger.info(
