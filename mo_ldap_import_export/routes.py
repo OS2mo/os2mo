@@ -28,6 +28,7 @@ from .ldap import get_attribute_types
 from .ldap import paged_search
 from .ldap_classes import LdapObject
 from .processors import _hide_cpr as hide_cpr
+from .types import CPRNumber
 
 logger = structlog.stdlib.get_logger()
 
@@ -94,7 +95,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
             for ldap_object in all_ldap_objects:
                 logger.info("Importing LDAP object", dn=ldap_object.dn)
                 if cpr_indexed_entries_only:
-                    cpr_no = getattr(ldap_object, cpr_field)
+                    cpr_no = CPRNumber(getattr(ldap_object, cpr_field))
                     try:
                         validate_cpr(cpr_no)
                     except (ValueError, TypeError):
@@ -142,7 +143,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
         dataloader: depends.DataLoader,
         settings: depends.Settings,
         json_key: Literal[accepted_json_keys],  # type: ignore
-        cpr: str = Depends(valid_cpr),
+        cpr: CPRNumber = Depends(valid_cpr),
     ) -> Any:
         results = dataloader.load_ldap_cpr_object(
             cpr, json_key, [settings.ldap_unique_id_field]
@@ -156,7 +157,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
         converter: depends.LdapConverter,
         json_key: Literal[accepted_json_keys],  # type: ignore
         response: Response,
-        cpr: str = Depends(valid_cpr),
+        cpr: CPRNumber = Depends(valid_cpr),
     ) -> Any:
         results = dataloader.load_ldap_cpr_object(cpr, json_key)
         try:

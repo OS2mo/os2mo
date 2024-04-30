@@ -5,6 +5,7 @@ from uuid import UUID
 
 from pydantic import Field
 
+from ..types import CPRNumber
 from .base_model import BaseModel
 
 
@@ -34,7 +35,7 @@ class ReadAddressesAddressesObjectsValidities(BaseModel):
 
 
 class ReadAddressesAddressesObjectsValiditiesPerson(BaseModel):
-    cpr_no: Optional[str]
+    cpr_no: Optional[CPRNumber]
 
 
 class ReadAddressesAddressesObjectsValiditiesValidity(BaseModel):

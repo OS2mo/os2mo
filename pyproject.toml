@@ -89,7 +89,7 @@ type = "datetime.datetime"
 [tool.ariadne-codegen.scalars.UUID]
 type = "uuid.UUID"
 [tool.ariadne-codegen.scalars.CPR]
-type = "str"
+type = "..types.CPRNumber"
 
 
 [tool.coverage.report]
