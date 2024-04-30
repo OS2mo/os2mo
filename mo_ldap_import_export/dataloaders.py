@@ -79,7 +79,8 @@ from .utils import remove_cn_from_dn
 
 logger = structlog.stdlib.get_logger()
 
-DNList = list[str]
+DN = str
+DNSet = set[DN]
 
 
 class Verb(Enum):
@@ -912,7 +913,7 @@ class DataLoader:
             )
             return None
 
-    def get_ldap_dn(self, unique_ldap_uuid: UUID) -> str:
+    def get_ldap_dn(self, unique_ldap_uuid: UUID) -> DN:
         """
         Given an unique_ldap_uuid, find the DistinguishedName
         """
@@ -954,20 +955,21 @@ class DataLoader:
                 "IT-user is not a UUID",
                 user_key=user_key,
             )
+        # TODO: Check for duplicates?
         return set(map(UUID, uuids))
 
-    def extract_unique_dns(self, it_users: list[ITUser]) -> list[str]:
+    def extract_unique_dns(self, it_users: list[ITUser]) -> DNSet:
         unique_uuids = self.extract_unique_ldap_uuids(it_users)
-        return list(map(self.get_ldap_dn, unique_uuids))
+        return set(map(self.get_ldap_dn, unique_uuids))
 
-    async def find_mo_employee_dn_by_itsystem(self, uuid: UUID) -> DNList:
+    async def find_mo_employee_dn_by_itsystem(self, uuid: UUID) -> DNSet:
         """Tries to find the LDAP DNs belonging to a MO employee via ITUsers.
 
         Args:
             uuid: UUID of the employee to try to find DNs for.
 
         Returns:
-            A potentially empty list of DNs.
+            A potentially empty set of DNs.
         """
         # TODO: How do we know if the ITUser is up-to-date with the newest DNs in AD?
 
@@ -975,17 +977,17 @@ class DataLoader:
         raw_it_system_uuid = self.get_ldap_it_system_uuid()
         # If it does not exist, we cannot fetch users for it
         if raw_it_system_uuid is None:
-            return []
+            return set()
 
         it_system_uuid = UUID(raw_it_system_uuid)
         try:
             it_users = await self.load_mo_employee_it_users(uuid, it_system_uuid)
         except NoObjectsReturnedException:  # pragma: no cover
-            return []
+            return set()
         dns = self.extract_unique_dns(it_users)
         # No DNs, no problem
         if not dns:
-            return []
+            return set()
 
         # If we have one or more ITUsers (with valid dns), return those
         logger.info(
@@ -995,32 +997,32 @@ class DataLoader:
         )
         return dns
 
-    async def find_mo_employee_dn_by_cpr_number(self, uuid: UUID) -> DNList:
+    async def find_mo_employee_dn_by_cpr_number(self, uuid: UUID) -> DNSet:
         """Tries to find the LDAP DNs belonging to a MO employee via CPR numbers.
 
         Args:
             uuid: UUID of the employee to try to find DNs for.
 
         Returns:
-            A potentially empty list of DNs.
+            A potentially empty set of DNs.
         """
         # If the employee has a cpr-no, try using that to find matchind DNs
         employee = await self.load_mo_employee(uuid)
         cpr_no = employee.cpr_no
         # No CPR, no problem
         if not cpr_no:
-            return []
+            return set()
 
         logger.info(
             "Attempting CPR number lookup",
             employee_uuid=uuid,
         )
         try:
-            dns = [obj.dn for obj in self.load_ldap_cpr_object(cpr_no, "Employee")]
+            dns = {obj.dn for obj in self.load_ldap_cpr_object(cpr_no, "Employee")}
         except NoObjectsReturnedException:
-            return []
+            return set()
         if not dns:
-            return []
+            return set()
         logger.info(
             "Found DN(s) using CPR number lookup",
             dns=dns,
@@ -1028,14 +1030,14 @@ class DataLoader:
         )
         return dns
 
-    async def find_mo_employee_dn(self, uuid: UUID) -> DNList:
+    async def find_mo_employee_dn(self, uuid: UUID) -> DNSet:
         """Tries to find the LDAP DNs belonging to a MO employee.
 
         Args:
             uuid: UUID of the employee to try to find DNs for.
 
         Returns:
-            A potentially empty list of DNs.
+            A potentially empty set of DNs.
         """
         # TODO: This should probably return a list of EntityUUIDs rather than DNs
         #       However this should probably be a change away from DNs in general
@@ -1054,16 +1056,16 @@ class DataLoader:
             self.find_mo_employee_dn_by_itsystem(uuid),
             self.find_mo_employee_dn_by_cpr_number(uuid),
         )
-        dns = ituser_dns + cpr_number_dns
+        dns = ituser_dns | cpr_number_dns
         if dns:
             return dns
         logger.warning(
             "Unable to find DNs for MO employee",
             employee_uuid=uuid,
         )
-        return []
+        return set()
 
-    async def find_or_make_mo_employee_dn(self, uuid: UUID) -> DNList:
+    async def find_or_make_mo_employee_dn(self, uuid: UUID) -> DNSet:
         """Finds or creates an LDAP DNs beloning to a MO employee.
 
         Note:
@@ -1077,7 +1079,7 @@ class DataLoader:
             DNNotFound: If no DN(s) was found, and we cannot create one.
 
         Returns:
-            A potentially empty list of DNs.
+            A potentially empty set of DNs.
         """
         logger.info(
             "Attempting to find DN",
@@ -1162,16 +1164,19 @@ class DataLoader:
         # TODO: Publish this message on the LDAP AMQP exchange
         await self.sync_tool.import_single_user(dn, force=True, manual_import=True)
         await self.sync_tool.refresh_employee(employee.uuid)
-        return [dn]
+        return {
+            dn,
+        }
 
     async def find_dn_by_engagement_uuid(
         self,
         employee_uuid: UUID,
         engagement: EngagementRef | Engagement | None,
-        dns: DNList,
-    ) -> str:
+        dns: DNSet,
+    ) -> DN:
+        # TODO: Should we still validate the DN as we do when we actually look it up?
         if len(dns) == 1:
-            return dns[0]
+            return one(dns)
         engagement_uuid: UUID | None = getattr(engagement, "uuid", None)
         ldap_it_system_uuid: UUID = UUID(self.get_ldap_it_system_uuid())
 
@@ -1189,13 +1194,8 @@ class DataLoader:
             )
         ]
 
-        if len(matching_it_users) == 1:
-            # Single match, unique ldap UUID is stored in ITUser.user_key
-            unique_uuid: UUID = UUID(matching_it_users[0].user_key)
-            dn: str = self.get_ldap_dn(unique_uuid)
-            assert dn in dns
-            return dn
-        elif len(matching_it_users) > 1:
+        # TODO: Convert to arguments to one below
+        if len(matching_it_users) > 1:
             # Multiple matches
             logger.info(
                 "Multiple matches",
@@ -1206,13 +1206,19 @@ class DataLoader:
                 f"More than one matching 'Unique LDAP UUID' IT user found for "
                 f"{employee_uuid=} and {engagement_uuid=}"
             )
-        else:
+        if len(matching_it_users) < 1:
             logger.info(
                 "No matches",
                 engagement_uuid=engagement_uuid,
                 it_users=it_users,
             )
             raise NoObjectsReturnedException("Could not find any matching IT users")
+
+        # Single match, unique ldap UUID is stored in ITUser.user_key
+        unique_uuid: UUID = UUID(one(matching_it_users).user_key)
+        dn = self.get_ldap_dn(unique_uuid)
+        assert dn in dns
+        return dn
 
     @staticmethod
     def extract_current_or_latest_object(objects: list[dict]):
