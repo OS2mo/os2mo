@@ -45,6 +45,7 @@ from .ldap_amqp import configure_ldap_amqpsystem
 from .logging import init as initialize_logging
 from .os2mo_init import InitEngine
 from .routes import construct_router
+from .types import OrgUnitUUID
 from .usernames import get_username_generator_class
 from .utils import get_object_type_from_routing_key
 from .utils import mo_datestring_to_utc
@@ -211,7 +212,7 @@ async def process_org_unit(
     # In case the name of the org-unit changed, we need to publish an
     # "engagement" message for each of its employees. Because org-unit
     # LDAP mapping is primarily done through the "Engagment" json-key.
-    await sync_tool.publish_engagements_for_org_unit(object_uuid)
+    await sync_tool.publish_engagements_for_org_unit(OrgUnitUUID(object_uuid))
     await sync_tool.refresh_org_unit_info_cache()
 
 
