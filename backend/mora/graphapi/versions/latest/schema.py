@@ -18,6 +18,7 @@ from typing import cast
 from typing import Generic
 from typing import get_args
 from typing import TypeVar
+from urllib.parse import urlparse
 from uuid import UUID
 
 import strawberry
@@ -588,7 +589,12 @@ class DARAddress(ResolvedAddress):
     latitude: float = extract_field("y")
 
     # Links
-    href: str = extract_field("href")
+    @strawberry.field
+    async def href(self, root: "DARAddress") -> str | None:
+        dar_response = await root.resolve_dar(root)
+        if (href := dar_response.get("href")) is None:
+            return None
+        return urlparse(href)._replace(scheme="https").geturl()
 
     @strawberry.field
     async def streetmap_href(self, root: "DARAddress") -> str | None:
