@@ -85,6 +85,7 @@ from mo_ldap_import_export.exceptions import NotEnabledException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
 from mo_ldap_import_export.import_export import IgnoreMe
 from mo_ldap_import_export.types import CPRNumber
+from mo_ldap_import_export.types import OrgUnitUUID
 from mo_ldap_import_export.utils import extract_ou_from_dn
 from tests.graphql_mocker import GraphQLMocker
 
@@ -1172,7 +1173,7 @@ async def test_load_mo_employees_in_org_unit(
     load_mo_employee = AsyncMock()
     dataloader.load_mo_employee = load_mo_employee  # type: ignore
 
-    await dataloader.load_mo_employees_in_org_unit(uuid4())
+    await dataloader.load_mo_employees_in_org_unit(OrgUnitUUID(uuid4()))
 
     load_mo_employee.assert_any_call(employee_uuid1)
     load_mo_employee.assert_any_call(employee_uuid2)
@@ -1194,7 +1195,9 @@ async def test_load_mo_org_unit_addresses(
 
     org_unit_uuid = uuid4()
     address_type_uuid = uuid4()
-    await dataloader.load_mo_org_unit_addresses(org_unit_uuid, address_type_uuid)
+    await dataloader.load_mo_org_unit_addresses(
+        OrgUnitUUID(org_unit_uuid), address_type_uuid
+    )
 
     assert route.called
     load_mo_address.assert_any_call(address_uuid1)
@@ -1210,7 +1213,9 @@ async def test_load_mo_org_unit_addresses_not_found(
     employee_uuid = uuid4()
     address_type_uuid = uuid4()
     with pytest.raises(NoObjectsReturnedException):
-        await dataloader.load_mo_org_unit_addresses(employee_uuid, address_type_uuid)
+        await dataloader.load_mo_org_unit_addresses(
+            OrgUnitUUID(employee_uuid), address_type_uuid
+        )
 
     assert route.called
 

@@ -72,6 +72,7 @@ from .ldap import paged_search
 from .ldap import single_object_search
 from .ldap_classes import LdapObject
 from .types import CPRNumber
+from .types import OrgUnitUUID
 from .usernames import UserNameGenerator
 from .utils import combine_dn_strings
 from .utils import extract_cn_from_dn
@@ -1280,14 +1281,12 @@ class DataLoader:
         entry.pop("validity")
         return Employee(**entry)
 
-    async def load_mo_employees_in_org_unit(
-        self, org_unit_uuid: UUID
-    ) -> list[Employee]:
+    async def load_mo_employees_in_org_unit(self, uuid: OrgUnitUUID) -> list[Employee]:
         """
         Load all current employees engaged to an org unit
         """
         result = await self.graphql_client.read_employees_with_engagement_to_org_unit(
-            org_unit_uuid
+            uuid
         )
 
         employee_uuids = {
@@ -1521,7 +1520,7 @@ class DataLoader:
         return output
 
     async def load_mo_org_unit_addresses(
-        self, org_unit_uuid: UUID, address_type_uuid: UUID
+        self, org_unit_uuid: OrgUnitUUID, address_type_uuid: UUID
     ) -> list[Address]:
         """
         Loads all current addresses of a specific type for an org unit

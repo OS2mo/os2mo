@@ -39,6 +39,7 @@ from .exceptions import NoObjectsReturnedException
 from .exceptions import NotSupportedException
 from .ldap import cleanup
 from .ldap_classes import LdapObject
+from .types import OrgUnitUUID
 from .utils import extract_ou_from_dn
 from .utils import get_object_type_from_routing_key
 
@@ -475,7 +476,7 @@ class SyncTool:
     async def process_employee_address(
         self,
         affected_employee,
-        org_unit_uuid,
+        org_unit_uuid: OrgUnitUUID,
         changed_address,
         json_key,
         delete,
@@ -517,14 +518,14 @@ class SyncTool:
                     ldap_object.dn,
                 )
 
-    async def publish_engagements_for_org_unit(self, org_unit_uuid: UUID) -> None:
+    async def publish_engagements_for_org_unit(self, uuid: OrgUnitUUID) -> None:
         """Publish events for all engagements attached to an org unit.
 
         Args:
-            org_unit_uuid: UUID of the org-unit for which to publish messages.
+            uuid: UUID of the org-unit for which to publish messages.
         """
         await self.dataloader.graphql_client.org_unit_engagements_refresh(
-            self.amqpsystem.exchange_name, org_unit_uuid
+            self.amqpsystem.exchange_name, uuid
         )
 
     async def refresh_org_unit_info_cache(self) -> None:
@@ -537,7 +538,7 @@ class SyncTool:
     @wait_for_export_to_finish
     async def listen_to_changes_in_org_units(
         self,
-        uuid: UUID,
+        uuid: OrgUnitUUID,
         object_uuid: UUID,
         routing_key: MORoutingKey,
         delete: bool,

@@ -34,6 +34,7 @@ from mo_ldap_import_export.exceptions import NotSupportedException
 from mo_ldap_import_export.import_export import IgnoreMe
 from mo_ldap_import_export.import_export import SyncTool
 from mo_ldap_import_export.ldap_classes import LdapObject
+from mo_ldap_import_export.types import OrgUnitUUID
 
 
 @pytest.fixture
@@ -1436,10 +1437,10 @@ def test_move_ldap_object_nothing_to_move(sync_tool: SyncTool, dataloader: Async
 async def test_publish_engagements_for_org_unit(
     sync_tool: SyncTool, dataloader: AsyncMock
 ) -> None:
-    org_unit_uuid = uuid4()
-    await sync_tool.publish_engagements_for_org_unit(org_unit_uuid)
+    uuid = OrgUnitUUID(uuid4())
+    await sync_tool.publish_engagements_for_org_unit(uuid)
     dataloader.graphql_client.org_unit_engagements_refresh.assert_called_with(
-        "os2mo_ldap_ie", org_unit_uuid
+        "os2mo_ldap_ie", uuid
     )
 
 
