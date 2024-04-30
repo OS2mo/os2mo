@@ -5,6 +5,7 @@ from uuid import UUID
 
 from pydantic import Field
 
+from ..types import CPRNumber
 from .base_model import BaseModel
 
 
@@ -22,7 +23,7 @@ class ReadEmployeesEmployeesObjects(BaseModel):
 
 class ReadEmployeesEmployeesObjectsValidities(BaseModel):
     uuid: UUID
-    cpr_no: Optional[str]
+    cpr_no: Optional[CPRNumber]
     givenname: str
     surname: str
     nickname_givenname: Optional[str]

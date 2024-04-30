@@ -84,6 +84,7 @@ from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import NotEnabledException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
 from mo_ldap_import_export.import_export import IgnoreMe
+from mo_ldap_import_export.types import CPRNumber
 from mo_ldap_import_export.utils import extract_ou_from_dn
 from tests.graphql_mocker import GraphQLMocker
 
@@ -268,15 +269,15 @@ async def test_load_ldap_cpr_object(
     expected_result = LdapObject(dn=dn, **ldap_attributes)
     ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)]
 
-    output = one(dataloader.load_ldap_cpr_object("0101012002", "Employee"))
+    output = one(dataloader.load_ldap_cpr_object(CPRNumber("0101012002"), "Employee"))
     assert output == expected_result
 
     with pytest.raises(NoObjectsReturnedException):
-        dataloader.load_ldap_cpr_object("None", "Employee")
+        dataloader.load_ldap_cpr_object("__invalid__", "Employee")  # type: ignore
 
     with pytest.raises(NoObjectsReturnedException):
         dataloader.user_context["cpr_field"] = None
-        dataloader.load_ldap_cpr_object("0101012002", "Employee")
+        dataloader.load_ldap_cpr_object(CPRNumber("0101012002"), "Employee")
 
 
 async def test_load_ldap_objects(

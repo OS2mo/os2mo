@@ -71,6 +71,7 @@ from .ldap import object_search
 from .ldap import paged_search
 from .ldap import single_object_search
 from .ldap_classes import LdapObject
+from .types import CPRNumber
 from .usernames import UserNameGenerator
 from .utils import combine_dn_strings
 from .utils import extract_cn_from_dn
@@ -272,7 +273,7 @@ class DataLoader:
 
     def load_ldap_cpr_object(
         self,
-        cpr_no: str,
+        cpr_no: CPRNumber,
         json_key: str,
         additional_attributes: list[str] = [],
     ) -> list[LdapObject]:
@@ -813,10 +814,11 @@ class DataLoader:
         try:
             cpr_no = validate_cpr(str(getattr(ldap_object, cpr_field)))
             assert cpr_no is not None
+            cpr_number = CPRNumber(cpr_no)
         except ValueError:
             return set()
 
-        result = await self.graphql_client.read_employee_uuid_by_cpr_number(cpr_no)
+        result = await self.graphql_client.read_employee_uuid_by_cpr_number(cpr_number)
         return {employee.uuid for employee in result.objects}
 
     async def find_mo_employee_uuid_via_ituser(self, dn: str) -> set[UUID]:
@@ -1008,7 +1010,7 @@ class DataLoader:
         """
         # If the employee has a cpr-no, try using that to find matchind DNs
         employee = await self.load_mo_employee(uuid)
-        cpr_no = employee.cpr_no
+        cpr_no = CPRNumber(employee.cpr_no) if employee.cpr_no else None
         # No CPR, no problem
         if not cpr_no:
             return set()
@@ -1091,7 +1093,7 @@ class DataLoader:
 
         raw_it_system_uuid = self.get_ldap_it_system_uuid()
         employee = await self.load_mo_employee(uuid)
-        cpr_no = employee.cpr_no
+        cpr_no = CPRNumber(employee.cpr_no) if employee.cpr_no else None
 
         # Check if we even dare create a DN
         if raw_it_system_uuid is None and cpr_no is None:

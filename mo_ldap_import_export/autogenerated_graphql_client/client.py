@@ -5,6 +5,7 @@ from typing import Optional
 from typing import Union
 from uuid import UUID
 
+from ..types import CPRNumber
 from .address_refresh import AddressRefresh
 from .address_refresh import AddressRefreshAddressRefresh
 from .address_terminate import AddressTerminate
@@ -452,7 +453,7 @@ class GraphQLClient(AsyncBaseClient):
         return SetJobTitle.parse_obj(data).engagement_update
 
     async def read_employee_uuid_by_cpr_number(
-        self, cpr_number: str
+        self, cpr_number: CPRNumber
     ) -> ReadEmployeeUuidByCprNumberEmployees:
         query = gql(
             """
