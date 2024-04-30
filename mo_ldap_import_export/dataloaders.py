@@ -14,7 +14,6 @@ from typing import AsyncIterator
 from typing import Awaitable
 from typing import Callable
 from typing import cast
-from typing import TypeAlias
 from uuid import UUID
 
 import structlog
@@ -73,6 +72,7 @@ from .ldap import paged_search
 from .ldap import single_object_search
 from .ldap_classes import LdapObject
 from .types import CPRNumber
+from .types import DN
 from .types import OrgUnitUUID
 from .usernames import UserNameGenerator
 from .utils import combine_dn_strings
@@ -82,8 +82,6 @@ from .utils import mo_datestring_to_utc
 from .utils import remove_cn_from_dn
 
 logger = structlog.stdlib.get_logger()
-
-DN: TypeAlias = str
 
 
 class Verb(Enum):

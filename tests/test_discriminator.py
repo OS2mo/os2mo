@@ -8,6 +8,7 @@ from uuid import uuid4
 
 import pytest
 from fastramqpi.ramqp.depends import Context
+from fastramqpi.ramqp.utils import RequeueMessage
 from ldap3 import BASE
 from ldap3 import Connection
 from ldap3 import MOCK_SYNC
@@ -200,3 +201,134 @@ async def test_get_ldap_object(
     result = get_ldap_object(dn, context, attributes=attributes)
     assert result.dn == dn
     assert result.__dict__ == {"dn": "CN=foo,o=example"} | expected
+
+
+async def test_first_included_no_config(
+    ldap_connection: Connection, settings: Settings
+) -> None:
+    """Test that first_included only allows one DN when not configured."""
+    context: Context = {
+        "user_context": {"ldap_connection": ldap_connection, "settings": settings}
+    }
+    assert settings.discriminator_field is None
+
+    with pytest.raises(ValueError) as exc_info:
+        first_included(context, set())
+    assert "too few items in iterable" in str(exc_info.value)
+
+    result = first_included(context, {"CN=Anzu"})
+    assert result == "CN=Anzu"
+
+    with pytest.raises(ValueError) as exc_info:
+        first_included(context, {"CN=Anzu", "CN=Arak"})
+    assert "Expected exactly one item in iterable" in str(exc_info.value)
+
+
+@pytest.mark.parametrize(
+    "discriminator_settings",
+    [
+        # Needs function and values
+        {
+            "discriminator_field": "sn",
+        },
+        # Needs function
+        {
+            "discriminator_field": "sn",
+            "discriminator_values": ["__never_gonna_match__"],
+        },
+        # Needs values
+        {"discriminator_field": "sn", "discriminator_function": "exclude"},
+        # Cannot give empty values
+        {
+            "discriminator_field": "sn",
+            "discriminator_function": "exclude",
+            "discriminator_values": [],
+        },
+        # Cannot give invalid function
+        {
+            "discriminator_field": "sn",
+            "discriminator_function": "__invalid__",
+            "discriminator_values": ["__never_gonna_match__"],
+        },
+    ],
+)
+async def test_first_included_settings_invariants(
+    ldap_connection: Connection,
+    settings: Settings,
+    ldap_container_dn: str,
+    discriminator_settings: dict[str, Any],
+) -> None:
+    """Test that first_included checks settings invariants."""
+    context: Context = {"user_context": {"ldap_connection": ldap_connection}}
+    dn = f"CN={settings.ldap_user},{ldap_container_dn}"
+
+    with pytest.raises(AssertionError):
+        # Need function and values
+        new_settings = settings.copy(update=discriminator_settings)
+        context["user_context"]["settings"] = new_settings
+        first_included(context, {dn})
+
+
+async def test_first_included_unknown_dn(
+    ldap_connection: Connection, settings: Settings
+) -> None:
+    """Test that first_included requeues on missing DNs."""
+    settings = settings.copy(
+        update={
+            "discriminator_field": "sn",
+            "discriminator_function": "exclude",
+            "discriminator_values": ["__never_gonna_match__"],
+        }
+    )
+    context: Context = {
+        "user_context": {"ldap_connection": ldap_connection, "settings": settings}
+    }
+    with pytest.raises(RequeueMessage) as exc_info:
+        first_included(context, {"CN=__missing__dn__"})
+    assert "Unable to lookup DN(s)" in str(exc_info.value)
+
+
+@pytest.mark.parametrize(
+    "discriminator_values,matches",
+    [
+        # These do not contain foo_sn
+        ([""], False),
+        (["__never_gonna_match__"], False),
+        (["__never_gonna_match__", "bar_sn"], False),
+        (["bar_sn", "__never_gonna_match__"], False),
+        # These contain foo_sn
+        (["foo_sn"], True),
+        (["__never_gonna_match__", "foo_sn"], True),
+        (["foo_sn", "__never_gonna_match__"], True),
+    ],
+)
+@pytest.mark.parametrize("discriminator_function", ("include", "exclude"))
+async def test_first_included_exclude_one_user(
+    ldap_connection: Connection,
+    settings: Settings,
+    ldap_container_dn: str,
+    discriminator_function: str,
+    discriminator_values: list[str],
+    matches: bool,
+) -> None:
+    """Test that first_included exclude works with a single user on valid settings."""
+    # This DN has 'foo_sn' as their sn
+    dn = f"CN={settings.ldap_user},{ldap_container_dn}"
+
+    if discriminator_function == "include":
+        expected = dn if matches else None
+    else:
+        expected = None if matches else dn
+
+    settings = settings.copy(
+        update={
+            "discriminator_field": "sn",
+            "discriminator_function": discriminator_function,
+            "discriminator_values": discriminator_values,
+        }
+    )
+    context: Context = {
+        "user_context": {"ldap_connection": ldap_connection, "settings": settings}
+    }
+    result = first_included(context, {dn})
+    assert result == expected

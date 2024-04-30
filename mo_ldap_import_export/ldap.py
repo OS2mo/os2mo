@@ -19,6 +19,7 @@ import structlog
 from fastramqpi.context import Context
 from fastramqpi.depends import UserContext
 from fastramqpi.ramqp import AMQPSystem
+from fastramqpi.ramqp.utils import RequeueMessage
 from ldap3 import BASE
 from ldap3 import Connection
 from ldap3 import NTLM
@@ -33,6 +34,7 @@ from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from more_itertools import always_iterable
 from more_itertools import one
+from more_itertools import only
 from ramodels.mo.employee import Employee
 
 from .config import AuthBackendEnum
@@ -43,6 +45,7 @@ from .exceptions import NoObjectsReturnedException
 from .exceptions import TimeOutException
 from .ldap_classes import LdapObject
 from .processors import _hide_cpr as hide_cpr
+from .types import DN
 from .utils import combine_dn_strings
 from .utils import datetime_to_ldap_timestamp
 from .utils import ensure_list
@@ -214,6 +217,108 @@ def get_ldap_attributes(ldap_connection: Connection, root_ldap_object: str):
         object_schema = get_ldap_object_schema(ldap_connection, ldap_object)
         all_attributes += object_schema.may_contain
     return all_attributes
+
+
+def first_included(context: Context, dns: set[DN]) -> DN | None:
+    """Find the account to synchronize from a set of DNs.
+
+    The DNs are evaluated depending on the configuration of the discriminator.
+
+    Args:
+        dns: The set of DNs to evaulate.
+
+    Raises:
+        RequeueMessage: If the provided DNs could not be read from LDAP.
+        ValueError: If too many or too few LDAP accounts are found.
+
+    Returns:
+        The account to synchronize (if any).
+    """
+    user_context = context["user_context"]
+    settings: Settings = user_context["settings"]
+
+    discriminator_field = settings.discriminator_field
+    # If discriminator is not configured, there can be only one user
+    if discriminator_field is None:
+        return one(dns)
+
+    # These settings must be set for the function to work
+    # This should always be the case, as they are enforced by pydantic
+    # But no guarantees are given as pydantic is lenient with run validators
+    assert settings.discriminator_function is not None
+    assert settings.discriminator_values != []
+
+    # Fetch the discriminator attribute for all DNs
+    # NOTE: While it is possible to fetch multiple DNs in a single operation
+    #       (by doing a complex search operation), some "guy on the internet" claims
+    #       that it is better to lookup DNs individually using the READ operation.
+    #       See: https://stackoverflow.com/a/58834059
+    try:
+        attributes = [discriminator_field]
+        # TODO: This should really be an asyncio.gather, but LDAP reading is not
+        #       currently async, but rather blocks the entire event-loop all the time.
+        #       #59422 tracks this issue, and once resolved this code can be fixed.
+        ldap_objects = [
+            get_ldap_object(dn, context, attributes=attributes, run_discriminator=False)
+            for dn in dns
+        ]
+    except NoObjectsReturnedException as exc:
+        # There could be multiple reasons why our DNs cannot be read.
+        # * The DNs could have been found by CPR number and changed since then.
+        #
+        # In this case, we wish to retry the message, so we can refetch by CPR.
+        #
+        # * The DNs could have been found by ITUsers and those could be wrong in MO
+        #
+        # In this case, we wish to retry the message until someone has fixed the
+        # problem in MO itself, and thus we will be retrying for a long time, likely
+        # raising an alarm due to messages not being processed, and thus ensuring that
+        # someone will look into the issue.
+        raise RequeueMessage("Unable to lookup DN(s)") from exc
+
+    def ldapobject2discriminator(ldap_object: LdapObject) -> str:
+        # The value can either be a string or a list, if a list we assume a 1 element
+        value = getattr(ldap_object, discriminator_field)
+        # TODO: Figure out when it is a string instead of a 1 element list
+        #       Maybe it is an AD only thing?
+        if isinstance(value, str):  # pragma: no cover
+            return value
+        unpacked_value = one(value)
+        assert isinstance(unpacked_value, str)
+        return unpacked_value
+
+    mapping: dict[DN, str] = {
+        ldap_object.dn: ldapobject2discriminator(ldap_object)
+        for ldap_object in ldap_objects
+    }
+    assert dns == set(mapping.keys())
+
+    # All values must be strings as they are being compared with strings
+    assert all(isinstance(value, str) for value in mapping.values())
+
+    # If the discriminator_function is exclude, discriminator_values will be a
+    # list of disallowed values, and we will want to find an account that does not
+    # have any of these disallowed values whatsoever.
+    # NOTE: We assume that at most one such account exists.
+    if settings.discriminator_function == "exclude":
+        return only(
+            {
+                dn
+                for dn, value in mapping.items()
+                if value not in settings.discriminator_values
+            }
+        )
+
+    assert settings.discriminator_function == "include"
+    # If the discriminator_function is include, discriminator_values will be a
+    # prioritized list of values (first meaning most important), and we will want
+    # to find the best (most important) account.
+    # NOTE: We assume that no two accounts are equally important.
+    for value in settings.discriminator_values:
+        dns_with_value = {dn for dn, dn_value in mapping.items() if dn_value == value}
+        if dns_with_value:
+            return one(dns_with_value)
+    return None
 
 
 def apply_discriminator(
@@ -416,7 +521,7 @@ def object_search(
 
 
 def single_object_search(
-    searchParameters: dict[str, Any], context: Context
+    searchParameters: dict[str, Any], context: Context, run_discriminator: bool = True
 ) -> dict[str, Any]:
     """Performs an LDAP search and ensure that it returns one result.
 
@@ -446,7 +551,8 @@ def single_object_search(
 
     settings = context["user_context"]["settings"]
     # TODO: Do we actually wanna apply discriminator here?
-    search_entries = apply_discriminator(search_entries, settings)
+    if run_discriminator:
+        search_entries = apply_discriminator(search_entries, settings)
 
     too_long_exception = MultipleObjectsReturnedException(
         hide_cpr(f"Found multiple entries for {searchParameters}: {search_entries}")
@@ -475,7 +581,11 @@ def is_dn(value):
 
 
 def get_ldap_object(
-    dn: str, context: Context, nest: bool = True, attributes: list | None = None
+    dn: str,
+    context: Context,
+    nest: bool = True,
+    attributes: list | None = None,
+    run_discriminator: bool = True,
 ) -> LdapObject:
     """Gets a ldap object based on its DN.
 
@@ -497,7 +607,9 @@ def get_ldap_object(
         "attributes": attributes,
         "search_scope": BASE,
     }
-    search_result = single_object_search(searchParameters, context)
+    search_result = single_object_search(
+        searchParameters, context, run_discriminator=run_discriminator
+    )
     dn = search_result["dn"]
     logger.info("Found DN", dn=dn)
     return make_ldap_object(search_result, context, nest=nest)
