@@ -11,7 +11,7 @@ include:
 
 variables:
   # The default config file for OS2mo-init is (re-)declared to allow integrations to
-  # overwrite with their own facets, classes and IT-systems.
+  # overwrite with their own classes and IT-systems.
   OS2MO_INIT_CONFIG: "/config/config.yml"
 
 .variables:mo:
@@ -37,42 +37,44 @@ variables:
     AMQP_ENABLE: "true"
     AMQP_URL: "amqp://guest:guest@msg-broker:5672/"
 
-# GitLab CI services are one-shot without any restart policy, and does not start in
-# the order they are defined. To replicate init containers, the entrypoint of the
-# "init" services are overwritten to retry until they succeed.
-# Additionally, GitLab does not wait for services without an EXPOSE (port) definition
-# before starting the main job. This is a problem, since we need to wait for these
-# init containers to finish. For example, the realm builder needs to create the
-# realm, and os2mo-init needs to ensure all required facets, classes and it-systems
-# exist before the integration tests tries to access them. As a workaround, we touch
-# a sentinel in /builds, which is shared among all jobs, and wait for it in the main
-# job's before_script. See https://docs.gitlab.com/ee/ci/services/ for more info.
-
 .services:mo-backing:
   services:
-    # LoRa database
+    # LoRa postgres database
+    # TODO: replace the custom image with upstream postgres when tests no longer depend
+    # on pgtap. See dev-environment/moxdb-install-pgtap.sh / docker-compose.yml.
     - name: magentaaps/postgres-os2mo:11-11.7-test
       alias: mox-db
       variables:
         DB_NAME: "mox"
         DB_USER: "mox"
         DB_PASSWORD: "mox"
+    # RabbitMQ AMQP
+    # The -management images come with a set of management plugins installed and
+    # enabled by default. They can be accessed through the web interface on port 15672.
+    # The credentials are guest/guest. The HTTP API is required by the integration
+    # tests in FastRAMQPI to inspect and reset queues.
+    - name: rabbitmq:3-management
+      alias: msg-broker
     # Keycloak
-    - name: quay.io/keycloak/keycloak:14.0.0
+    # `:latest` here is actually latest and not a cached version because we run
+    # our GitLab runners in Kubernetes, which defaults the imagePullPolicy to
+    # `Always` when the tag is `latest`.
+    # https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting
+    - name: magentaaps/os2mo-keycloak:latest
       alias: keycloak
       variables:
-        KEYCLOAK_USER: "admin"
-        KEYCLOAK_PASSWORD: "admin"
+        KC_HOSTNAME_URL: http://keycloak:8080/auth
+        KC_HOSTNAME_ADMIN_URL: http://keycloak:8080/auth
+        KEYCLOAK_ADMIN: admin
+        KEYCLOAK_ADMIN_PASSWORD: admin
+        KC_DB_URL_HOST: mox-db
+        KC_DB_USERNAME: mox
+        KC_DB_PASSWORD: mox
+      # Since GitLab CI doesn't support multiple services on the same port,
+      # we cannot (easily) run a separate postgres for keycloak. Override to use
+      # in-memory instead.
+      command: ["start", "-Dkeycloak.saml.deprecated.encryption=true", "--db=dev-mem"]
     - name: magentaaps/os2mo-keycloak-realm-builder:5
-      entrypoint:
-        - "sh"
-        - "-c"
-        - |
-          while ! sh run.sh; do
-            echo 'Waiting for keycloak...'
-            sleep 1
-          done
-          touch /builds/.keycloak-realm-builder-finished
       variables:
         # Since GitLab CI doesn't support multiple services on the same port,
         # we cannot (easily) run a separate postgres for the realm builder's
@@ -128,18 +130,42 @@ variables:
             "roles": ["owner", "reader", "service_api"]
           }
         ]'
-        KEYCLOAK_DIPEX_CLIENT_ENABLED: "true"
-        KEYCLOAK_DIPEX_CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
-    # AMQP
-    # The -management images come with a set of management plugins installed and
-    # enabled by default. They can be accessed through the web interface on port 15672.
-    # The credentials are guest/guest. Prometheus metrics are exposed on port 15692.
-    - name: rabbitmq:3-management
-      alias: msg-broker
+      entrypoint:
+        - "sh"
+        - "-c"
+        - |
+          # GitLab CI services are one-shot without any restart policy, and does not
+          # start in the order they are defined. To replicate init containers, the
+          # entrypoint of the service is overwritten to retry until it succeeds.
+          while ! sh run.sh; do
+            sleep 1
+          done
+    - name: magentaaps/os2mo-keycloak-integration-builder:5
+      variables:
+        POSTGRES_CONNECTION_STRING: "postgres://mox:mox@mox-db/mox?sslmode=disable"
+        POSTGRES_SCHEMA_NAME: terraform_remote_state_dipex_client
+        TF_VAR_url: "http://keycloak:8080"
+        TF_VAR_admin_password: "admin"
+        TF_VAR_client_name: dipex
+        TF_VAR_client_secret: "603f1c82-d012-4d04-9382-dbe659c533fb"
+        TF_VAR_client_uuid: "d1fec000-baad-c0de-0000-004449504558"
+        TF_VAR_client_roles: '["admin", "service_api"]'
+      entrypoint:
+        - "sh"
+        - "-c"
+        - |
+          while ! sh run.sh; do
+            sleep 1
+          done
+          # GitLab does not wait for services without an EXPOSE (port) definition
+          # before starting the main job. As a workaround we touch a sentinel in
+          # /builds, which is shared among all jobs, and wait for it in the main job's
+          # before_script. See https://docs.gitlab.com/ee/ci/services/ for more info.
+          touch /builds/.mo-backing-services-ready
   before_script:
     - |
-      while [ ! -f /builds/.keycloak-realm-builder-finished ]; do
-        echo 'Waiting for keycloak realm builder...'
+      while [ ! -f /builds/.mo-backing-services-ready ]; do
+        echo 'Waiting for backing-services...'
         sleep 1
       done
 
@@ -158,13 +184,16 @@ variables:
     FASTRAMQPI__AMQP__URL: "amqp://guest:guest@msg-broker:5672/"
   services:
     - !reference [ .services:mo-backing, services ]
-    # `:latest` here is actually latest and not a cached version because we run
-    # our GitLab runners in Kubernetes, which defaults the imagePullPolicy to
-    # `Always` when the tag is `latest`.
-    # https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting
     - name: magentaaps/os2mo:latest
       alias: mo
       variables: !reference [ .variables:mo, variables ]
+      entrypoint:
+        - "sh"
+        - "-c"
+        - |
+          while ! ./docker/start.sh; do
+            sleep 1
+          done
     - name: magentaaps/os2mo-init:2
       variables:
         CONFIG_FILE: $OS2MO_INIT_CONFIG
@@ -178,7 +207,6 @@ variables:
         - "-c"
         - |
           while ! python -m os2mo_init; do
-            echo 'Waiting for os2mo...'
             sleep 1
           done
           touch /builds/.os2mo-init-finished
@@ -188,21 +216,5 @@ variables:
     - |
       while [ ! -f /builds/.os2mo-init-finished ]; do
         echo 'Waiting for os2mo-init...'
-        sleep 1
-      done
-      # Using the GitLab Docker executor, the runner waits for every port in each
-      # service's Docker EXPOSE definition to be reachable before starting the main
-      # job. In Kubernetes, however, GitLab only considers the *first* port of each
-      # service's definition.
-      # This is fine for every service except RabbitMQ, which exposes six different
-      # ports; the main AMQP one not being the first.
-      # https://gitlab.com/gitlab-org/gitlab-runner/-/merge_requests/4079
-      # https://docs.gitlab.com/runner/executors/docker.html
-      # https://docs.gitlab.com/runner/executors/kubernetes.html
-      # https://github.com/docker-library/rabbitmq/blob/master/Dockerfile-ubuntu.template
-      apt update
-      apt install -y netcat-openbsd
-      while ! nc -z msg-broker 5672; do
-        echo 'Waiting for RabbitMQ...'
         sleep 1
       done
