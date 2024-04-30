@@ -590,10 +590,9 @@ class DARAddress(ResolvedAddress):
 
     # Links
     @strawberry.field
-    async def href(self, root: "DARAddress") -> str | None:
+    async def href(self, root: "DARAddress") -> str:
         dar_response = await root.resolve_dar(root)
-        if (href := dar_response.get("href")) is None:
-            return None
+        href = dar_response["href"]
         return urlparse(href)._replace(scheme="https").geturl()
 
     @strawberry.field
