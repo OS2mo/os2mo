@@ -31,7 +31,7 @@ from .converters import LdapConverter
 from .customer_specific_checks import ExportChecks
 from .customer_specific_checks import ImportChecks
 from .dataloaders import DataLoader
-from .dataloaders import DNSet
+from .dataloaders import DN
 from .dataloaders import Verb
 from .exceptions import DNNotFound
 from .exceptions import IgnoreChanges
@@ -292,7 +292,7 @@ class SyncTool:
         await self.perform_export_checks(uuid, object_uuid)
 
         try:
-            dns: DNSet = await self.dataloader.find_or_make_mo_employee_dn(uuid)
+            dns: set[DN] = await self.dataloader.find_or_make_mo_employee_dn(uuid)
         except DNNotFound:
             # TODO: Do we even want to catch this, probably not
             logger.info("DN not found", **logger_args)
@@ -482,7 +482,7 @@ class SyncTool:
         object_type,
     ):
         await self.perform_export_checks(affected_employee.uuid, changed_address.uuid)
-        dns: DNSet = await self.dataloader.find_or_make_mo_employee_dn(
+        dns: set[DN] = await self.dataloader.find_or_make_mo_employee_dn(
             affected_employee.uuid
         )
 

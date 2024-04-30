@@ -80,7 +80,6 @@ from .utils import remove_cn_from_dn
 logger = structlog.stdlib.get_logger()
 
 DN = str
-DNSet = set[DN]
 
 
 class Verb(Enum):
@@ -958,11 +957,11 @@ class DataLoader:
         # TODO: Check for duplicates?
         return set(map(UUID, uuids))
 
-    def extract_unique_dns(self, it_users: list[ITUser]) -> DNSet:
+    def extract_unique_dns(self, it_users: list[ITUser]) -> set[DN]:
         unique_uuids = self.extract_unique_ldap_uuids(it_users)
         return set(map(self.get_ldap_dn, unique_uuids))
 
-    async def find_mo_employee_dn_by_itsystem(self, uuid: UUID) -> DNSet:
+    async def find_mo_employee_dn_by_itsystem(self, uuid: UUID) -> set[DN]:
         """Tries to find the LDAP DNs belonging to a MO employee via ITUsers.
 
         Args:
@@ -997,7 +996,7 @@ class DataLoader:
         )
         return dns
 
-    async def find_mo_employee_dn_by_cpr_number(self, uuid: UUID) -> DNSet:
+    async def find_mo_employee_dn_by_cpr_number(self, uuid: UUID) -> set[DN]:
         """Tries to find the LDAP DNs belonging to a MO employee via CPR numbers.
 
         Args:
@@ -1030,7 +1029,7 @@ class DataLoader:
         )
         return dns
 
-    async def find_mo_employee_dn(self, uuid: UUID) -> DNSet:
+    async def find_mo_employee_dn(self, uuid: UUID) -> set[DN]:
         """Tries to find the LDAP DNs belonging to a MO employee.
 
         Args:
@@ -1065,7 +1064,7 @@ class DataLoader:
         )
         return set()
 
-    async def find_or_make_mo_employee_dn(self, uuid: UUID) -> DNSet:
+    async def find_or_make_mo_employee_dn(self, uuid: UUID) -> set[DN]:
         """Finds or creates an LDAP DNs beloning to a MO employee.
 
         Note:
@@ -1172,7 +1171,7 @@ class DataLoader:
         self,
         employee_uuid: UUID,
         engagement: EngagementRef | Engagement | None,
-        dns: DNSet,
+        dns: set[DN],
     ) -> DN:
         # TODO: Should we still validate the DN as we do when we actually look it up?
         if len(dns) == 1:
