@@ -14,6 +14,7 @@ from typing import AsyncIterator
 from typing import Awaitable
 from typing import Callable
 from typing import cast
+from typing import TypeAlias
 from uuid import UUID
 
 import structlog
@@ -79,7 +80,7 @@ from .utils import remove_cn_from_dn
 
 logger = structlog.stdlib.get_logger()
 
-DN = str
+DN: TypeAlias = str
 
 
 class Verb(Enum):
