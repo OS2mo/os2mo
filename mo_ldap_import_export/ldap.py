@@ -474,11 +474,16 @@ def is_dn(value):
     return True
 
 
-def get_ldap_object(dn: str, context: Context, nest: bool = True) -> Any:
-    """
-    Gets a ldap object based on its DN
+def get_ldap_object(dn: str, context: Context, nest: bool = True) -> LdapObject:
+    """Gets a ldap object based on its DN.
 
-    if nest is True, also gets ldap objects of related objects.
+    Args:
+        dn: The DN to read.
+        context: The FastRAMQPI context.
+        nest: Whether to also fetch and nest related objects.
+
+    Returns:
+        The LDAP object fetched from the LDAP server.
     """
     searchParameters = {
         "search_base": dn,
@@ -492,11 +497,16 @@ def get_ldap_object(dn: str, context: Context, nest: bool = True) -> Any:
     return make_ldap_object(search_result, context, nest=nest)
 
 
-def make_ldap_object(response: dict, context: Context, nest: bool = True) -> Any:
-    """
-    Takes an ldap response and formats it as a class
+def make_ldap_object(response: dict, context: Context, nest: bool = True) -> LdapObject:
+    """Takes an LDAP response and formats it as an LdapObject.
 
-    if nest is True, also makes ldap objects of related objects.
+    Args:
+        response: The LDAP response.
+        context: The FastRAMQPI context.
+        nest: Whether to also fetch and nest related objects.
+
+    Returns:
+        The LDAP object constructed from the response.
     """
     attributes = sorted(list(response["attributes"].keys()))
     ldap_dict = {"dn": response["dn"]}
