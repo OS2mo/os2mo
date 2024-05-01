@@ -7,6 +7,7 @@ from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
+from ldap3 import BASE
 from ldap3 import Connection
 from ldap3 import MOCK_SYNC
 from ldap3 import SUBTREE
@@ -18,7 +19,7 @@ from mo_ldap_import_export.ldap import construct_server_pool
 
 
 @pytest.fixture
-def settings(monkeypatch: pytest.MonkeyPatch):
+def settings(monkeypatch: pytest.MonkeyPatch) -> Settings:
     # Mapping
     monkeypatch.setenv(
         "CONVERSION_MAPPING",
@@ -69,6 +70,7 @@ def ldap_connection(settings: Settings, ldap_container_dn: str) -> Iterable[Conn
             ldap_connection.strategy.add_entry(
                 f"CN={settings.ldap_user},{ldap_container_dn}",
                 {
+                    "objectClass": "inetOrgPerson",
                     "userPassword": settings.ldap_password.get_secret_value(),
                     "sn": f"{settings.ldap_user}_sn",
                     "revision": 0,
@@ -80,7 +82,7 @@ def ldap_connection(settings: Settings, ldap_container_dn: str) -> Iterable[Conn
 
 async def test_searching_mocked(
     ldap_connection: MagicMock, settings: Settings, ldap_container_dn: str
-):
+) -> None:
     """Test that we can use the mocked ldap_connection to search for our default user."""
     ldap_connection.search(
         ldap_container_dn,
@@ -93,6 +95,7 @@ async def test_searching_mocked(
     search_result = one(ldap_connection.response)
     assert search_result == {
         "attributes": {
+            "objectClass": ["inetOrgPerson"],
             "userPassword": [settings.ldap_password.get_secret_value()],
             "sn": [f"{settings.ldap_user}_sn"],
             "revision": ["0"],
@@ -105,7 +108,7 @@ async def test_searching_mocked(
     }
 
 
-async def test_searching_newly_added(ldap_connection: MagicMock):
+async def test_searching_newly_added(ldap_connection: MagicMock) -> None:
     """Test that we can use the mocked ldap_connection to find newly added users."""
     username = str(uuid4())
     password = str(uuid4())
@@ -113,7 +116,12 @@ async def test_searching_newly_added(ldap_connection: MagicMock):
     # Add new entry
     ldap_connection.strategy.add_entry(
         f"cn={username},o={container}",
-        {"userPassword": password, "sn": f"{username}_sn", "revision": 1},
+        {
+            "objectClass": "inetOrgPerson",
+            "userPassword": password,
+            "sn": f"{username}_sn",
+            "revision": 1,
+        },
     )
 
     ldap_connection.search(
@@ -124,12 +132,42 @@ async def test_searching_newly_added(ldap_connection: MagicMock):
     search_result = one(ldap_connection.response)
     assert search_result == {
         "attributes": {
+            "objectClass": ["inetOrgPerson"],
             "userPassword": [password],
             "sn": [f"{username}_sn"],
             "revision": ["1"],
             "CN": [username],
         },
         "dn": f"cn={username},o={container}",
+        "raw_attributes": ANY,
+        "raw_dn": ANY,
+        "type": "searchResEntry",
+    }
+
+
+async def test_searching_dn_lookup(
+    ldap_connection: MagicMock, settings: Settings, ldap_container_dn: str
+) -> None:
+    """Test that we can read our default user."""
+    dn = f"CN={settings.ldap_user},{ldap_container_dn}"
+    ldap_connection.search(
+        dn,
+        "(objectclass=*)",
+        attributes="*",
+        search_scope=BASE,
+    )
+    assert ldap_connection.result["description"] == "success"
+
+    search_result = one(ldap_connection.response)
+    assert search_result == {
+        "attributes": {
+            "objectClass": ["inetOrgPerson"],
+            "userPassword": [settings.ldap_password.get_secret_value()],
+            "sn": [f"{settings.ldap_user}_sn"],
+            "revision": ["0"],
+            "CN": [settings.ldap_user],
+        },
+        "dn": f"CN={settings.ldap_user},{ldap_container_dn}",
         "raw_attributes": ANY,
         "raw_dn": ANY,
         "type": "searchResEntry",
