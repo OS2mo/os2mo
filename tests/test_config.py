@@ -1,10 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import json
 from functools import partial
-from typing import Any
 from typing import cast
-from typing import Iterator
 
 import pytest
 from mergedeep import merge  # type: ignore
@@ -18,26 +15,6 @@ from mo_ldap_import_export.config import Settings
 
 
 overlay = partial(merge, strategy=Strategy.TYPESAFE_ADDITIVE)
-
-
-@pytest.fixture
-def minimal_mapping() -> dict[str, Any]:
-    return {
-        "ldap_to_mo": {
-            "Employee": {
-                "objectClass": "ramodels.mo.employee.Employee",
-                "_import_to_mo_": "false",
-                "uuid": "{{ employee_uuid or NONE }}",
-            }
-        },
-        "mo_to_ldap": {
-            "Employee": {
-                "objectClass": "inetOrgPerson",
-                "_export_to_ldap_": "false",
-            }
-        },
-        "username_generator": {"objectClass": "UserNameGenerator"},
-    }
 
 
 @pytest.fixture
@@ -242,21 +219,8 @@ def test_can_terminate_address(address_mapping: dict) -> None:
     parse_obj_as(ConversionMapping, new_mapping)
 
 
-@pytest.fixture
-def minimal_valid_environmental_variables(
-    load_settings_overrides: dict[str, str],
-    minimal_mapping: dict[str, Any],
-    monkeypatch: pytest.MonkeyPatch,
-) -> Iterator[None]:
-    with monkeypatch.context() as mpc:
-        mpc.setenv("CONVERSION_MAPPING", json.dumps(minimal_mapping))
-        yield
-
-
-@pytest.mark.usefixtures("minimal_valid_environmental_variables")
-def test_minimal_settings() -> None:
-    settings = Settings()
-    assert settings.production is True
+def test_minimal_settings(minimal_valid_settings: Settings) -> None:
+    assert minimal_valid_settings.production is True
 
 
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")

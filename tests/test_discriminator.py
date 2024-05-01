@@ -17,33 +17,12 @@ from more_itertools import one
 from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.ldap import configure_ldap_connection
 from mo_ldap_import_export.ldap import construct_server_pool
+from mo_ldap_import_export.ldap import first_included
 from mo_ldap_import_export.ldap import get_ldap_object
 
 
 @pytest.fixture
-def settings(monkeypatch: pytest.MonkeyPatch) -> Settings:
-    # Mapping
-    monkeypatch.setenv(
-        "CONVERSION_MAPPING",
-        '{"ldap_to_mo": {}, "mo_to_ldap": {}, "username_generator": {}}',
-    )
-    # MO
-    monkeypatch.setenv("CLIENT_ID", "foo")
-    monkeypatch.setenv("CLIENT_SECRET", "bar")
-    # LDAP
-    monkeypatch.setenv("LDAP_CONTROLLERS", '[{"host": "0.0.0.0"}]')
-    monkeypatch.setenv("LDAP_DOMAIN", "example.com")
-    monkeypatch.setenv("LDAP_USER", "foo")
-    monkeypatch.setenv("LDAP_PASSWORD", "bar")
-    monkeypatch.setenv("LDAP_SEARCH_BASE", "dc=example,dc=com")
-    monkeypatch.setenv("LDAP_AUTH_METHOD", "simple")
-    # Misc
-    monkeypatch.setenv("DEFAULT_ORG_UNIT_LEVEL", "foo")
-    monkeypatch.setenv("DEFAULT_ORG_UNIT_TYPE", "foo")
-    # AMQP
-    monkeypatch.setenv("FASTRAMQPI__AMQP__URL", "amqp://guest:guest@msg_broker:5672/")
-    monkeypatch.setenv("INTERNAL_AMQP__URL", "amqp://guest:guest@msg_broker:5672/")
-
+def settings(minimal_valid_environmental_variables: None) -> Settings:
     return Settings()
 
 
@@ -187,7 +166,7 @@ async def test_searching_dn_lookup(
                 "objectClass": ["inetOrgPerson"],
                 "revision": ["0"],
                 "sn": ["foo_sn"],
-                "userPassword": ["bar"],
+                "userPassword": ["foo"],
             },
         ),
         # Reading no fields reads dn
