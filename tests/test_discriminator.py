@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Iterable
 from unittest.mock import ANY
-from unittest.mock import MagicMock
 from unittest.mock import patch
 from uuid import uuid4
 
@@ -57,7 +56,7 @@ def ldap_connection(settings: Settings, ldap_container_dn: str) -> Iterable[Conn
     """Fixture to construct a mocked ldap_connection.
 
     Returns:
-        The mocked ldap_connection.
+        The mocked configured ldap_connection.
     """
     # See https://ldap3.readthedocs.io/en/latest/mocking.html for details
     with patch(
@@ -83,7 +82,7 @@ def ldap_connection(settings: Settings, ldap_container_dn: str) -> Iterable[Conn
 
 
 async def test_searching_mocked(
-    ldap_connection: MagicMock, settings: Settings, ldap_container_dn: str
+    ldap_connection: Connection, settings: Settings, ldap_container_dn: str
 ) -> None:
     """Test that we can use the mocked ldap_connection to search for our default user."""
     ldap_connection.search(
@@ -93,7 +92,7 @@ async def test_searching_mocked(
         attributes="*",
     )
     assert ldap_connection.result["description"] == "success"
-
+    assert ldap_connection.response is not None
     search_result = one(ldap_connection.response)
     assert search_result == {
         "attributes": {
@@ -110,7 +109,7 @@ async def test_searching_mocked(
     }
 
 
-async def test_searching_newly_added(ldap_connection: MagicMock) -> None:
+async def test_searching_newly_added(ldap_connection: Connection) -> None:
     """Test that we can use the mocked ldap_connection to find newly added users."""
     username = str(uuid4())
     password = str(uuid4())
@@ -130,7 +129,7 @@ async def test_searching_newly_added(ldap_connection: MagicMock) -> None:
         f"o={container}", f"(cn={username})", search_scope=SUBTREE, attributes="*"
     )
     assert ldap_connection.result["description"] == "success"
-
+    assert ldap_connection.response is not None
     search_result = one(ldap_connection.response)
     assert search_result == {
         "attributes": {
@@ -148,7 +147,7 @@ async def test_searching_newly_added(ldap_connection: MagicMock) -> None:
 
 
 async def test_searching_dn_lookup(
-    ldap_connection: MagicMock, settings: Settings, ldap_container_dn: str
+    ldap_connection: Connection, settings: Settings, ldap_container_dn: str
 ) -> None:
     """Test that we can read our default user."""
     dn = f"CN={settings.ldap_user},{ldap_container_dn}"
@@ -159,7 +158,7 @@ async def test_searching_dn_lookup(
         search_scope=BASE,
     )
     assert ldap_connection.result["description"] == "success"
-
+    assert ldap_connection.response is not None
     search_result = one(ldap_connection.response)
     assert search_result == {
         "attributes": {
