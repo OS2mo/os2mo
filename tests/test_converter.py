@@ -55,6 +55,7 @@ from mo_ldap_import_export.converters import get_engagement_type_name
 from mo_ldap_import_export.converters import get_job_function_name
 from mo_ldap_import_export.converters import get_or_create_engagement_type_uuid
 from mo_ldap_import_export.converters import get_or_create_job_function_uuid
+from mo_ldap_import_export.converters import get_org_unit_address_type_uuid
 from mo_ldap_import_export.converters import get_primary_engagement_dict
 from mo_ldap_import_export.converters import get_primary_type_uuid
 from mo_ldap_import_export.converters import get_visibility_uuid
@@ -1087,18 +1088,8 @@ async def test_get_address_type_uuid(converter: LdapConverter):
     }
     converter.employee_address_type_info = employee_address_type_info
 
-    org_unit_address_type_info = {
-        uuid1: {"uuid": uuid1, "user_key": "foo-org"},
-        uuid2: {"uuid": uuid2, "user_key": "bar-org"},
-    }
-    converter.dataloader.load_mo_org_unit_address_types.return_value = (  # type: ignore
-        org_unit_address_type_info
-    )
-
     assert converter.get_employee_address_type_uuid("foo") == uuid1
     assert converter.get_employee_address_type_uuid("bar") == uuid2
-    assert await converter.get_org_unit_address_type_uuid("foo-org") == uuid1
-    assert await converter.get_org_unit_address_type_uuid("bar-org") == uuid2
 
 
 async def test_get_it_system_uuid(converter: LdapConverter):
@@ -1122,6 +1113,20 @@ async def test_get_visibility_uuid(graphql_client: AsyncMock, class_name: str) -
         ("visibility", class_name)
     ] = class_uuid
     assert await get_visibility_uuid(graphql_client, class_name) == class_uuid
+
+
+@pytest.mark.parametrize("class_name", ["EAN", "EmailUnit"])
+async def test_get_org_unit_address_type_uuid(
+    graphql_client: AsyncMock, class_name: str
+) -> None:
+    class_uuid = str(uuid4())
+
+    graphql_client.read_class_uuid_by_facet_and_class_user_key.map[
+        ("org_unit_address_type", class_name)
+    ] = class_uuid
+    assert (
+        await get_org_unit_address_type_uuid(graphql_client, class_name) == class_uuid
+    )
 
 
 async def test_get_job_function_uuid(

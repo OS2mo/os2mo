@@ -102,6 +102,9 @@ get_org_unit_type_uuid = partial(_get_facet_class_uuid, facet_user_key="org_unit
 get_org_unit_level_uuid = partial(
     _get_facet_class_uuid, facet_user_key="org_unit_level"
 )
+get_org_unit_address_type_uuid = partial(
+    _get_facet_class_uuid, facet_user_key="org_unit_address_type"
+)
 get_job_function_uuid = partial(
     _get_facet_class_uuid, facet_user_key="engagement_job_function"
 )
@@ -822,20 +825,6 @@ class LdapConverter:
             self.employee_address_type_info, address_type
         )
 
-    async def get_org_unit_address_type_uuid(self, address_type: str) -> str:
-        # TODO: Replace this with a specific GraphQL query
-        org_unit_address_type_info = (
-            await self.dataloader.load_mo_org_unit_address_types()
-        )
-        results = {
-            uuid
-            for uuid, clazz in org_unit_address_type_info.items()
-            if clazz["user_key"] == address_type
-        }
-        result = one(results)
-        assert isinstance(result, str)
-        return result
-
     def get_it_system_uuid(self, it_system: str) -> str:
         return self.get_object_uuid_from_user_key(self.it_system_info, it_system)
 
@@ -845,7 +834,7 @@ class LdapConverter:
         )
 
     async def get_org_unit_address_type_user_key(self, uuid: str) -> str:
-        # TODO: Replace this with a specific GraphQL query
+        # TODO: Do not refactor this function, rather get rid of it
         org_unit_address_type_info = (
             await self.dataloader.load_mo_org_unit_address_types()
         )
@@ -1038,7 +1027,9 @@ class LdapConverter:
             "nonejoin_orgs": partial(nonejoin_orgs, self.settings),
             "remove_first_org": partial(remove_first_org, self.settings),
             "get_employee_address_type_uuid": self.get_employee_address_type_uuid,
-            "get_org_unit_address_type_uuid": self.get_org_unit_address_type_uuid,
+            "get_org_unit_address_type_uuid": partial(
+                get_org_unit_address_type_uuid, self.dataloader.graphql_client
+            ),
             "get_it_system_uuid": self.get_it_system_uuid,
             "get_or_create_org_unit_uuid": self.get_or_create_org_unit_uuid,
             "org_unit_path_string_from_dn": self.org_unit_path_string_from_dn,
