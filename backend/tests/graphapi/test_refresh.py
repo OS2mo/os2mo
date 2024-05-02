@@ -28,7 +28,7 @@ from tests.conftest import GraphAPIPost
         # TODO (#57656): enable once employee is renamed to person
         # ("person", "236e0a78-11a0-4ed9-8545-6286bb8611c7"),
         ("related_unit", "5c68402c-2a8d-4776-9237-16349fc72648"),
-        ("role", "1b20d0b9-96a0-42a6-b196-293bb86e62e8"),
+        ("rolebinding", "1b20d0b9-96a0-42a6-b196-293bb86e62e8"),
     ],
 )
 @patch("mora.app.AMQPSystem.publish_message")

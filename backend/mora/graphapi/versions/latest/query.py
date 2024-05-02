@@ -18,6 +18,7 @@ from .filters import HealthFilter
 from .health import health_map
 from .models import ClassRead
 from .models import FacetRead
+from .models import RoleBindingRead
 from .paged import CursorType
 from .paged import LimitType
 from .paged import Paged
@@ -40,7 +41,7 @@ from .resolvers import manager_resolver
 from .resolvers import organisation_unit_resolver
 from .resolvers import owner_resolver
 from .resolvers import related_unit_resolver
-from .resolvers import role_resolver
+from .resolvers import rolebinding_resolver
 from .schema import Address
 from .schema import Association
 from .schema import Class
@@ -60,7 +61,7 @@ from .schema import OrganisationUnit
 from .schema import Owner
 from .schema import RelatedUnit
 from .schema import Response
-from .schema import Role
+from .schema import RoleBinding
 from .schema import Version
 from mora import db
 from mora.audit import audit_log
@@ -75,7 +76,6 @@ from ramodels.mo.details.leave import LeaveRead
 from ramodels.mo.details.manager import ManagerRead
 from ramodels.mo.details.owner import OwnerRead
 from ramodels.mo.details.related_unit import RelatedUnitRead
-from ramodels.mo.details.role import RoleRead
 from ramodels.mo.employee import EmployeeRead
 from ramodels.mo.organisation_unit import OrganisationUnitRead
 
@@ -312,10 +312,13 @@ class Query:
 
     # Roles
     # -----
-    roles: Paged[Response[Role]] = strawberry.field(
-        resolver=to_paged_response(role_resolver, RoleRead),
+    rolebindings: Paged[Response[RoleBinding]] = strawberry.field(
+        resolver=to_paged_response(rolebinding_resolver, RoleBindingRead),
         description="Get role-mappings.",
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("role")],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("rolebinding"),
+        ],
     )
 
     # Health

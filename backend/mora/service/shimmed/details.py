@@ -135,9 +135,6 @@ async def list_employee_details(id: UUID) -> dict[str, bool]:
                 manager: manager_roles(filter: {from_date: null, to_date: null}) {
                   uuid
                 }
-                role: roles(filter: {from_date: null, to_date: null}) {
-                  uuid
-                }
               }
             }
           }
@@ -235,9 +232,6 @@ async def list_org_unit_details(id: UUID) -> dict[str, bool]:
                   uuid
                 }
                 related_unit: related_units(filter: {from_date: null, to_date: null}) {
-                  uuid
-                }
-                role: roles(filter: {from_date: null, to_date: null}) {
                   uuid
                 }
               }

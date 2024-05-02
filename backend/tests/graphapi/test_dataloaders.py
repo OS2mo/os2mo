@@ -18,7 +18,7 @@ from mora.graphapi.versions.latest.schema import LeaveRead
 from mora.graphapi.versions.latest.schema import ManagerRead
 from mora.graphapi.versions.latest.schema import OrganisationUnitRead
 from mora.graphapi.versions.latest.schema import RelatedUnitRead
-from mora.graphapi.versions.latest.schema import RoleRead
+from mora.graphapi.versions.latest.schema import RoleBindingRead
 
 models = [
     AddressRead,
@@ -31,7 +31,7 @@ models = [
     ManagerRead,
     OrganisationUnitRead,
     RelatedUnitRead,
-    RoleRead,
+    RoleBindingRead,
 ]
 
 lora_class_multiple_attrs_and_states = {

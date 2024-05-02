@@ -259,7 +259,6 @@ async def test_terminate_via_user(
         engagement_uuid,
         association_uuid,
         manager_uuid,
-        role_uuid,
         leave_uuid,
     ],
 )

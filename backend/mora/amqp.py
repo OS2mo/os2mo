@@ -80,7 +80,7 @@ MO_TYPE = Literal[
     "owner",
     "person",
     "related_unit",
-    "role",
+    "rolebinding",
 ]
 
 
@@ -98,7 +98,7 @@ _lora_to_mo: dict[str, MO_TYPE] = {
     "Leder": "manager",
     "Orlov": "leave",
     "Relateret Enhed": "related_unit",
-    "Rolle": "role",
+    "Rollebinding": "rolebinding",
     "Tilknytning": "association",
     "owner": "owner",
 }

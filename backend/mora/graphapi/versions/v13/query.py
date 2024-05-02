@@ -31,7 +31,6 @@ from .resolvers import OrganisationUnitResolver
 from .resolvers import OwnerResolver
 from .resolvers import RelatedUnitResolver
 from .resolvers import Resolver
-from .resolvers import RoleResolver
 from .schema import Address
 from .schema import Association
 from .schema import Class
@@ -52,7 +51,6 @@ from .schema import Owner
 from .schema import Paged
 from .schema import RelatedUnit
 from .schema import Response
-from .schema import Role
 from .schema import Version
 
 
@@ -194,14 +192,6 @@ class Query:
             IsAuthenticatedPermission,
             gen_read_permission("related_unit"),
         ],
-    )
-
-    # Roles
-    # -----
-    roles: Paged[Response[Role]] = strawberry.field(
-        resolver=to_paged_response(RoleResolver()),
-        description="Get role-mappings.",
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("role")],
     )
 
     # Health

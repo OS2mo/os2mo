@@ -42,9 +42,10 @@ from .filters import ManagerFilter
 from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
 from .filters import RelatedUnitFilter
-from .filters import RoleFilter
+from .filters import RoleBindingFilter
 from .models import ClassRead
 from .models import FacetRead
+from .models import RoleBindingRead
 from .paged import CursorType
 from .paged import LimitType
 from .resolver_map import resolver_map
@@ -70,7 +71,6 @@ from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import ManagerRead
 from ramodels.mo.details import OwnerRead
 from ramodels.mo.details import RelatedUnitRead
-from ramodels.mo.details import RoleRead
 
 
 async def filter2uuids_func(
@@ -954,26 +954,28 @@ async def related_unit_resolver(
     )
 
 
-async def role_resolver(
+async def rolebinding_resolver(
     info: Info,
-    filter: RoleFilter | None = None,
+    filter: RoleBindingFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Any:
     """Resolve roles."""
     if filter is None:
-        filter = RoleFilter()
+        filter = RoleBindingFilter()
 
     await registration_filter(info, filter)
 
     kwargs = {}
-    if filter.employee is not None or filter.employees is not None:
-        kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
+    if filter.ituser is not None:
+        kwargs["tilknyttedefunktioner"] = await filter2uuids_func(
+            it_user_resolver, info, filter.ituser
+        )
 
     return await generic_resolver(
-        RoleRead,
+        RoleBindingRead,
         info=info,
         filter=filter,
         limit=limit,

@@ -40,7 +40,7 @@ FunktionsNavn = Literal[
     "Leder",
     "Orlov",
     "Relateret Enhed",
-    "Rolle",
+    "Rollebinding",
     "Tilknytning",
     "owner",
 ]

@@ -37,7 +37,7 @@ Collections = Literal[
     "org_unit",
     "registration",
     "related_unit",
-    "role",
+    "rolebinding",
     "version",
 ]
 CollectionPermissionType = Literal[

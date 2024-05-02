@@ -45,7 +45,7 @@ from .filters import ManagerFilter
 from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
 from .filters import RelatedUnitFilter
-from .filters import RoleFilter
+from .filters import RoleBindingFilter
 from .inputs import AddressCreateInput
 from .inputs import AddressTerminateInput
 from .inputs import AddressUpdateInput
@@ -89,9 +89,9 @@ from .inputs import OwnerCreateInput
 from .inputs import OwnerTerminateInput
 from .inputs import OwnerUpdateInput
 from .inputs import RelatedUnitsUpdateInput
-from .inputs import RoleCreateInput
-from .inputs import RoleTerminateInput
-from .inputs import RoleUpdateInput
+from .inputs import RoleBindingCreateInput
+from .inputs import RoleBindingTerminateInput
+from .inputs import RoleBindingUpdateInput
 from .it_association import create_itassociation
 from .it_association import terminate_itassociation
 from .it_association import update_itassociation
@@ -114,6 +114,7 @@ from .manager import update_manager
 from .models import ClassRead
 from .models import FacetRead
 from .models import FileStore
+from .models import RoleBindingRead
 from .org import create_org
 from .org import OrganisationCreate
 from .org_unit import create_org_unit
@@ -148,10 +149,10 @@ from .resolvers import manager_resolver
 from .resolvers import organisation_unit_resolver
 from .resolvers import owner_resolver
 from .resolvers import related_unit_resolver
-from .resolvers import role_resolver
-from .role import create_role
-from .role import terminate_role
-from .role import update_role
+from .resolvers import rolebinding_resolver
+from .role import create_rolebinding
+from .role import terminate_rolebinding
+from .role import update_rolebinding
 from .schema import Address
 from .schema import Association
 from .schema import Class
@@ -168,7 +169,7 @@ from .schema import OrganisationUnit
 from .schema import Owner
 from .schema import RelatedUnit
 from .schema import Response
-from .schema import Role
+from .schema import RoleBinding
 from mora import db
 from mora.auth.middleware import get_authenticated_user
 from mora.common import get_connector
@@ -184,7 +185,6 @@ from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import ManagerRead
 from ramodels.mo.details import OwnerRead
 from ramodels.mo.details import RelatedUnitRead
-from ramodels.mo.details import RoleRead
 
 logger = logging.getLogger(__name__)
 
@@ -1244,65 +1244,79 @@ class Mutation:
             info=info, page=page, model="related_unit", exchange=exchange
         )
 
-    # Roles
-    # -----
+    # Rolebindings
+    # ------------
 
     @strawberry.mutation(
-        description="Creates a role.",
+        description="Create a rolebinding.",
         permission_classes=[
             IsAuthenticatedPermission,
-            gen_create_permission("role"),
+            gen_create_permission("rolebinding"),
         ],
     )
-    async def role_create(self, input: RoleCreateInput) -> Response[Role]:
-        return uuid2response(await create_role(input.to_pydantic()), RoleRead)
+    async def rolebinding_create(
+        self, input: RoleBindingCreateInput
+    ) -> Response[RoleBinding]:
+        return uuid2response(
+            await create_rolebinding(input.to_pydantic()), RoleBindingRead
+        )
 
     @strawberry.mutation(
-        description="Updates a role.",
+        description="Update a rolebinding.",
         permission_classes=[
             IsAuthenticatedPermission,
-            gen_create_permission("role"),
+            gen_create_permission("rolebinding"),
         ],
     )
-    async def role_update(self, input: RoleUpdateInput) -> Response[Role]:
-        return uuid2response(await update_role(input.to_pydantic()), RoleRead)
+    async def rolebinding_update(
+        self, input: RoleBindingUpdateInput
+    ) -> Response[RoleBinding]:
+        return uuid2response(
+            await update_rolebinding(input.to_pydantic()), RoleBindingRead
+        )
 
     @strawberry.mutation(
-        description="Terminates a role.",
+        description="Terminate a rolebinding.",
         permission_classes=[
             IsAuthenticatedPermission,
-            gen_create_permission("role"),
+            gen_create_permission("rolebinding"),
         ],
     )
-    async def role_terminate(self, input: RoleTerminateInput) -> Response[Role]:
-        return uuid2response(await terminate_role(input.to_pydantic()), RoleRead)
+    async def rolebinding_terminate(
+        self, input: RoleBindingTerminateInput
+    ) -> Response[RoleBinding]:
+        return uuid2response(
+            await terminate_rolebinding(input.to_pydantic()), RoleBindingRead
+        )
 
     # TODO: roles_delete
 
     @strawberry.mutation(
-        description="Refresh roles.",
+        description="Refresh rolebindings.",
         permission_classes=[
             IsAuthenticatedPermission,
-            gen_refresh_permission("role"),
+            gen_refresh_permission("rolebinding"),
         ],
     )
-    async def role_refresh(
+    async def rolebinding_refresh(
         self,
         info: Info,
-        filter: RoleFilter | None = None,
+        filter: RoleBindingFilter | None = None,
         limit: LimitType = None,
         cursor: CursorType = None,
         queue: QueueType = None,
         exchange: str | None = None,
     ) -> Paged[UUID]:
-        resolve = to_paged_uuids(role_resolver, RoleRead)
+        resolve = to_paged_uuids(rolebinding_resolver, RoleBindingRead)
         page = await resolve(
             info=info,
             filter=filter,
             limit=limit,
             cursor=cursor,
         )
-        return await refresh(info=info, page=page, model="role", exchange=exchange)
+        return await refresh(
+            info=info, page=page, model="rolebinding", exchange=exchange
+        )
 
     # Files
     # -----

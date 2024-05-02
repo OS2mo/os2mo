@@ -44,7 +44,9 @@ The system currently works with the following facets:
 
   `association_type`          Types of associations
 
-  `role_type`                 Types of roles
+  `role_type`                 Legacy types of roles. Unused.
+
+  `role`                      Types of roles
 
   `leave_type`                Types of leave, e.g. maternity leave
 

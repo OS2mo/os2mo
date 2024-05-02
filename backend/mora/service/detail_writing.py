@@ -251,41 +251,6 @@ async def create(
         }
       ]
 
-    **Role**:
-
-    :<jsonarr string type: **"role"**
-    :<jsonarr object org_unit: The associated org unit
-    :<jsonarr object person: The associated employee
-    :<jsonarr object role_type: The role type
-    :<jsonarr string user_key: Short, unique key identifying the relation.
-    :<jsonarr object validity: The validities of the created object.
-
-    The parameter ``role_type`` should contain a UUID obtained from the
-    respective facet endpoint.
-    See http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
-
-    .. sourcecode:: json
-
-      [
-        {
-          "type": "role",
-          "org_unit": {
-            "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
-          },
-          "person": {
-            "uuid": "9b59d163-ea3b-4d38-9b52-3e80c34aa061"
-          },
-          "role_type": {
-            "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
-          },
-          "user_key": "1234",
-          "validity": {
-              "from": "2016-01-01",
-              "to": "2017-12-31"
-          }
-        }
-      ]
-
     **Manager**:
 
     :<jsonarr string type: **"manager"**

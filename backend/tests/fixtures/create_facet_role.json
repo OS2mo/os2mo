@@ -2,7 +2,7 @@
     "attributter": {
         "facetegenskaber": [
             {
-                "brugervendtnoegle": "role_type",
+                "brugervendtnoegle": "role",
                 "virkning": {
                     "from": "1900-01-01",
                     "to": "infinity"

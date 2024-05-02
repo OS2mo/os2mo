@@ -57,9 +57,6 @@ from ..latest.inputs import OrganisationUnitCreateInput
 from ..latest.inputs import OrganisationUnitTerminateInput
 from ..latest.inputs import OrganisationUnitUpdateInput
 from ..latest.inputs import RelatedUnitsUpdateInput
-from ..latest.inputs import RoleCreateInput
-from ..latest.inputs import RoleTerminateInput
-from ..latest.inputs import RoleUpdateInput
 from ..latest.it_association import create_itassociation
 from ..latest.it_association import terminate_itassociation
 from ..latest.it_association import update_itassociation
@@ -93,9 +90,6 @@ from ..latest.permissions import gen_terminate_permission
 from ..latest.permissions import gen_update_permission
 from ..latest.permissions import IsAuthenticatedPermission
 from ..latest.related_units import update_related_units
-from ..latest.role import create_role
-from ..latest.role import terminate_role
-from ..latest.role import update_role
 from ..v14.version import GraphQLVersion as NextGraphQLVersion
 from ..v14.version import ITSystemCreateInput
 from ..v15.version import FacetCreateInput
@@ -117,7 +111,6 @@ from .schema import Organisation
 from .schema import OrganisationUnit
 from .schema import RelatedUnit
 from .schema import Response
-from .schema import Role
 from mora import db
 from mora.auth.middleware import get_authenticated_user
 from mora.common import get_connector
@@ -134,7 +127,6 @@ from ramodels.mo.details import KLERead
 from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import ManagerRead
 from ramodels.mo.details import RelatedUnitRead
-from ramodels.mo.details import RoleRead
 
 logger = logging.getLogger(__name__)
 
@@ -764,41 +756,6 @@ class Mutation:
         return uuid2response(
             await update_related_units(input.to_pydantic()), RelatedUnitRead
         )
-
-    # Roles
-    # -----
-
-    @strawberry.mutation(
-        description="Creates a role.",
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_create_permission("role"),
-        ],
-    )
-    async def role_create(self, input: RoleCreateInput) -> Response[Role]:
-        return uuid2response(await create_role(input.to_pydantic()), RoleRead)
-
-    @strawberry.mutation(
-        description="Updates a role.",
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_create_permission("role"),
-        ],
-    )
-    async def role_update(self, input: RoleUpdateInput) -> Response[Role]:
-        return uuid2response(await update_role(input.to_pydantic()), RoleRead)
-
-    @strawberry.mutation(
-        description="Terminates a role.",
-        permission_classes=[
-            IsAuthenticatedPermission,
-            gen_create_permission("role"),
-        ],
-    )
-    async def role_terminate(self, input: RoleTerminateInput) -> Response[Role]:
-        return uuid2response(await terminate_role(input.to_pydantic()), RoleRead)
-
-    # TODO: roles_delete
 
     # Files
     # -----

@@ -87,10 +87,10 @@ serialize_cursor = Cursor._scalar_definition.serialize
         ("related_units", None, None, 1),
         ("related_units", 0, 0, 0),
         ("related_units", 1, 0, 1),
-        # Roles
-        ("roles", None, None, 1),
-        ("roles", 0, 0, 0),
-        ("roles", 1, 0, 1),
+        # Rolebindings
+        ("rolebindings", None, None, 1),
+        ("rolebindings", 0, 0, 0),
+        ("rolebindings", 1, 0, 1),
     ],
 )
 async def test_pagination(
@@ -157,10 +157,10 @@ async def test_pagination(
         ("owners", 20, 2),
         # Related Units
         ("related_units", 1, 1),
-        # Roles
-        ("roles", 1, 1),
-        ("roles", 10, 1),
-        ("roles", 20, 10),
+        # Rolebindings
+        ("rolebindings", 1, 1),
+        ("rolebindings", 10, 1),
+        ("rolebindings", 20, 10),
     ],
 )
 async def test_pagination_out_of_range(
@@ -212,7 +212,7 @@ async def test_pagination_out_of_range(
         ("org_units", 10),
         ("owners", 2),
         ("related_units", 1),
-        ("roles", 1),
+        ("rolebindings", 1),
     ],
 )
 async def test_cursor_based_pagination(

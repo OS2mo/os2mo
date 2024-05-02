@@ -684,13 +684,21 @@ class RelatedUnitFilter(BaseFilter, OrganisationUnitFiltered):
     pass
 
 
-@strawberry.input(description="Role filter.")
-class RoleFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
+@strawberry.input(description="Rolebinding filter.")
+class RoleBindingFilter(BaseFilter, OrganisationUnitFiltered):
     registration: RoleRegistrationFilter | None = strawberry.field(
         default=None,
         description=dedent(
             """\
             Registration filter limiting which entries are returned.
+            """
+        ),
+    )
+    ituser: ITUserFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            ITUser filter limiting which entries are returned.
             """
         ),
     )

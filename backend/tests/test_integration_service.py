@@ -1263,8 +1263,8 @@ not_found_error = {
                 },
                 {
                     "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/role_type/",
-                    "user_key": "role_type",
+                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/role/",
+                    "user_key": "role",
                     "uuid": "68ba77bc-4d57-43e2-9c24-0c9eda5fddc7",
                 },
                 {
@@ -1559,7 +1559,6 @@ def test_facet(service_client: TestClient, url, status_code, expected) -> None:
                 "org_unit": False,
                 "owner": False,
                 "related_unit": False,
-                "role": False,
             },
         ),
         # anders
@@ -1577,7 +1576,6 @@ def test_facet(service_client: TestClient, url, status_code, expected) -> None:
                 "org_unit": False,
                 "owner": False,
                 "related_unit": False,
-                "role": True,
             },
         ),
         # hum
@@ -1595,7 +1593,6 @@ def test_facet(service_client: TestClient, url, status_code, expected) -> None:
                 "org_unit": True,
                 "owner": True,
                 "related_unit": True,
-                "role": True,
             },
         ),
         # samf
@@ -1613,7 +1610,6 @@ def test_facet(service_client: TestClient, url, status_code, expected) -> None:
                 "org_unit": True,
                 "owner": False,
                 "related_unit": False,
-                "role": False,
             },
         ),
         # fil
@@ -1631,7 +1627,6 @@ def test_facet(service_client: TestClient, url, status_code, expected) -> None:
                 "org_unit": True,
                 "owner": False,
                 "related_unit": False,
-                "role": False,
             },
         ),
         # hist
@@ -1649,7 +1644,6 @@ def test_facet(service_client: TestClient, url, status_code, expected) -> None:
                 "org_unit": True,
                 "owner": False,
                 "related_unit": True,
-                "role": False,
             },
         ),
         # frem
@@ -1667,7 +1661,6 @@ def test_facet(service_client: TestClient, url, status_code, expected) -> None:
                 "org_unit": True,
                 "owner": False,
                 "related_unit": False,
-                "role": False,
             },
         ),
     ],

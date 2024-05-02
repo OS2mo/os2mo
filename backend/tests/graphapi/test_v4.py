@@ -79,10 +79,6 @@ from tests.conftest import GraphAPIPost
         ("related_units", None, None, 1),
         ("related_units", 0, 0, 0),
         ("related_units", 1, 0, 1),
-        # Roles
-        ("roles", None, None, 1),
-        ("roles", 0, 0, 0),
-        ("roles", 1, 0, 1),
     ],
 )
 async def test_pagination(
@@ -137,10 +133,6 @@ async def test_pagination(
         ("org_units", 1, 20),
         # Related Units
         ("related_units", 1, 1),
-        # Roles
-        ("roles", 1, 1),
-        ("roles", 10, 1),
-        ("roles", 20, 10),
     ],
 )
 async def test_pagination_out_of_range(

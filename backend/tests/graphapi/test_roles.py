@@ -18,8 +18,8 @@ from ..conftest import GraphAPIPost
 from .utils import fetch_class_uuids
 from .utils import fetch_org_unit_validity
 from mora.graphapi.shim import execute_graphql
-from mora.graphapi.versions.latest.models import RoleCreate
-from mora.graphapi.versions.latest.models import RoleUpdate
+from mora.graphapi.versions.latest.models import RoleBindingCreate
+from mora.graphapi.versions.latest.models import RoleBindingUpdate
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import Validity as RAValidity
 
@@ -27,19 +27,18 @@ from ramodels.mo import Validity as RAValidity
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 def test_query_all(graphapi_post: GraphAPIPost):
-    """Test that we can query all attributes of the role data model."""
+    """Test that we can query all attributes of the rolebinding data model."""
     query = """
         query {
-            roles {
+            rolebindings {
                 objects {
                     uuid
                     objects {
                         uuid
                         user_key
-                        employee_uuid
-                        org_unit_uuid
-                        role_type_uuid
-                        type
+                        org_unit { uuid }
+                        ituser { uuid }
+                        role { uuid }
                         validity {from to}
                     }
                 }
@@ -52,29 +51,31 @@ def test_query_all(graphapi_post: GraphAPIPost):
 
 
 @given(test_data=...)
-@patch("mora.graphapi.versions.latest.mutators.create_role", new_callable=AsyncMock)
+@patch(
+    "mora.graphapi.versions.latest.mutators.create_rolebinding", new_callable=AsyncMock
+)
 async def test_create_role_mutation_unit_test(
-    create_role: AsyncMock, test_data: RoleCreate
+    create_rolebinding: AsyncMock, test_data: RoleBindingCreate
 ) -> None:
     """Tests that the mutator function for creating a role passes through, with the
     defined pydantic model."""
 
     mutation = """
-        mutation CreateRole($input: RoleCreateInput!) {
-            role_create(input: $input) {
+        mutation CreateRolebiding($input: RoleBindingCreateInput!) {
+            rolebinding_create(input: $input) {
                 uuid
             }
         }
     """
 
-    create_role.return_value = test_data.uuid
+    create_rolebinding.return_value = test_data.uuid
 
     payload = jsonable_encoder(test_data)
     response = await execute_graphql(query=mutation, variable_values={"input": payload})
     assert response.errors is None
-    assert response.data == {"role_create": {"uuid": str(test_data.uuid)}}
+    assert response.data == {"rolebinding_create": {"uuid": str(test_data.uuid)}}
 
-    create_role.assert_called_with(test_data)
+    create_rolebinding.assert_called_with(test_data)
 
 
 @settings(
@@ -86,8 +87,8 @@ async def test_create_role_mutation_unit_test(
 @given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-async def test_create_role_integration_test(
-    data, graphapi_post: GraphAPIPost, employee_uuids, org_uuids
+async def test_create_rolebinding_integration_test(
+    data, graphapi_post: GraphAPIPost, ituser_uuids, org_uuids
 ) -> None:
     """Test that roles can be created in LoRa via GraphQL."""
 
@@ -95,6 +96,8 @@ async def test_create_role_integration_test(
     # creating the employee conflicting the dates.
     org_uuid = data.draw(st.sampled_from(org_uuids))
     org_from, org_to = fetch_org_unit_validity(graphapi_post, org_uuid)
+
+    ituser_uuid = data.draw(st.sampled_from(ituser_uuids))
 
     test_data_validity_start = data.draw(
         st.datetimes(min_value=org_from, max_value=org_to or datetime.max)
@@ -108,14 +111,14 @@ async def test_create_role_integration_test(
             min_value=test_data_validity_start,
         )
 
-    role_type = fetch_class_uuids(graphapi_post, "role_type")
+    role_type = fetch_class_uuids(graphapi_post, "role")
 
     test_data = data.draw(
         st.builds(
-            RoleCreate,
+            RoleBindingCreate,
             uuid=st.uuids() | st.none(),
-            person=st.sampled_from(employee_uuids),
-            role_type=st.sampled_from(role_type),
+            ituser=st.just(ituser_uuid),
+            role=st.sampled_from(role_type),
             org_unit=st.just(org_uuid),
             validity=st.builds(
                 RAValidity,
@@ -126,25 +129,25 @@ async def test_create_role_integration_test(
     )
 
     mutation = """
-        mutation CreateRole($input: RoleCreateInput!) {
-            role_create(input: $input) {
+        mutation CreateRolebinding($input: RoleBindingCreateInput!) {
+            rolebinding_create(input: $input) {
                 uuid
             }
         }
     """
     response = graphapi_post(mutation, {"input": jsonable_encoder(test_data)})
     assert response.errors is None
-    uuid = UUID(response.data["role_create"]["uuid"])
+    uuid = UUID(response.data["rolebinding_create"]["uuid"])
 
     verify_query = """
         query VerifyQuery($uuid: UUID!) {
-            roles(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
+            rolebindings(filter: {uuids: [$uuid], from_date: null, to_date: null}) {
                 objects {
                     objects {
                         user_key
-                        employee: employee_uuid
-                        org_unit: org_unit_uuid
-                        role_type: role_type_uuid
+                        ituser { uuid }
+                        org_unit { uuid }
+                        role { uuid }
                         validity {
                             from
                             to
@@ -157,11 +160,11 @@ async def test_create_role_integration_test(
 
     response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
-    obj = one(one(response.data["roles"]["objects"])["objects"])
+    obj = one(one(response.data["rolebindings"]["objects"])["objects"])
 
-    assert UUID(obj["org_unit"]) == test_data.org_unit
-    assert UUID(obj["employee"]) == test_data.person
-    assert UUID(obj["role_type"]) == test_data.role_type
+    assert UUID(one(obj["org_unit"])["uuid"]) == test_data.org_unit
+    assert UUID(one(obj["ituser"])["uuid"]) == test_data.ituser
+    assert UUID(one(obj["role"])["uuid"]) == test_data.role
     assert obj["user_key"] == test_data.user_key or str(uuid)
 
     assert (
@@ -183,29 +186,31 @@ async def test_create_role_integration_test(
 
 
 @given(test_data=...)
-@patch("mora.graphapi.versions.latest.mutators.update_role", new_callable=AsyncMock)
+@patch(
+    "mora.graphapi.versions.latest.mutators.update_rolebinding", new_callable=AsyncMock
+)
 async def test_update_role_unit_test(
-    update_role: AsyncMock, test_data: RoleUpdate
+    update_rolebinding: AsyncMock, test_data: RoleBindingUpdate
 ) -> None:
     """Tests that the mutator function for updating a role passes through, with the
     defined pydantic model."""
 
     mutation = """
-        mutation UpdateRole($input: RoleUpdateInput!) {
-            role_update(input: $input) {
+        mutation UpdateRole($input: RoleBindingUpdateInput!) {
+            rolebinding_update(input: $input) {
                 uuid
             }
         }
     """
 
-    update_role.return_value = test_data.uuid
+    update_rolebinding.return_value = test_data.uuid
 
     payload = jsonable_encoder(test_data)
     response = await execute_graphql(query=mutation, variable_values={"input": payload})
     assert response.errors is None
-    assert response.data == {"role_update": {"uuid": str(test_data.uuid)}}
+    assert response.data == {"rolebinding_update": {"uuid": str(test_data.uuid)}}
 
-    update_role.assert_called_with(test_data)
+    update_rolebinding.assert_called_with(test_data)
 
 
 @pytest.mark.integration_test
@@ -215,31 +220,31 @@ async def test_update_role_unit_test(
     [
         {
             "uuid": "1b20d0b9-96a0-42a6-b196-293bb86e62e8",
+            "ituser": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
             "user_key": "random_user_key",
-            "role_type": "8ca636d8-d70f-4ce4-992b-4bf4dcfc2559",
-            "org_unit": "5942ce50-2be8-476f-914b-6769a888a7c8",
+            "role": "8ca636d8-d70f-4ce4-992b-4bf4dcfc2559",
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
         },
         {
             "uuid": "1b20d0b9-96a0-42a6-b196-293bb86e62e8",
+            "ituser": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
             "user_key": None,
-            "role_type": "8ca636d8-d70f-4ce4-992b-4bf4dcfc2559",
-            "org_unit": "b688513d-11f7-4efc-b679-ab082a2055d0",
+            "role": "8ca636d8-d70f-4ce4-992b-4bf4dcfc2559",
             "validity": {"from": "2023-01-01T00:00:00+01:00", "to": None},
         },
         {
             "uuid": "1b20d0b9-96a0-42a6-b196-293bb86e62e8",
-            "user_key": "New_cool_user_key",
-            "role_type": None,
-            "org_unit": None,
-            "validity": {"from": "2023-01-01T00:00:00+01:00", "to": None},
-        },
-        {
-            "uuid": "1b20d0b9-96a0-42a6-b196-293bb86e62e8",
+            "ituser": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
             "user_key": None,
-            "role_type": "8ca636d8-d70f-4ce4-992b-4bf4dcfc2559",
-            "org_unit": None,
+            "role": "8ca636d8-d70f-4ce4-992b-4bf4dcfc2559",
             "validity": {"from": "2023-07-10T00:00:00+02:00", "to": None},
+        },
+        {
+            "uuid": "1b20d0b9-96a0-42a6-b196-293bb86e62e8",
+            "ituser": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
+            "user_key": "New_cool_user_key",
+            "role": "8ca636d8-d70f-4ce4-992b-4bf4dcfc2559",
+            "validity": {"from": "2023-01-01T00:00:00+01:00", "to": None},
         },
     ],
 )
@@ -252,13 +257,13 @@ async def test_update_role_integration_test(
 
     query = """
         query RoleQuery($uuid: UUID!) {
-            roles(filter: {uuids: [$uuid]}) {
+            rolebindings(filter: {uuids: [$uuid]}) {
                 objects {
                     objects {
                         uuid
                         user_key
-                        role_type: role_type_uuid
-                        org_unit: org_unit_uuid
+                        ituser { uuid }
+                        role { uuid }
                         validity {
                             from
                             to
@@ -272,11 +277,11 @@ async def test_update_role_integration_test(
 
     assert response.errors is None
 
-    pre_update_role = one(one(response.data["roles"]["objects"])["objects"])
+    pre_update_role = one(one(response.data["rolebindings"]["objects"])["objects"])
 
     mutation = """
-        mutation UpdateRole($input: RoleUpdateInput!) {
-            role_update(input: $input) {
+        mutation UpdateRolebinding($input: RoleBindingUpdateInput!) {
+            rolebinding_update(input: $input) {
                 uuid
             }
         }
@@ -288,13 +293,13 @@ async def test_update_role_integration_test(
     # Writing verify query to retrieve objects containing data on the desired uuids.
     verify_query = """
         query VerifyQuery($uuid: UUID!) {
-            roles(filter: {uuids: [$uuid]}){
+            rolebindings(filter: {uuids: [$uuid]}){
                 objects {
                     objects {
                         uuid
                         user_key
-                        role_type: role_type_uuid
-                        org_unit: org_unit_uuid
+                        role { uuid }
+                        ituser { uuid }
                         validity {
                             from
                             to
@@ -309,12 +314,17 @@ async def test_update_role_integration_test(
     assert verify_response.errors is None
 
     role_objects_post_update = one(
-        one(verify_response.data["roles"]["objects"])["objects"]
+        one(verify_response.data["rolebindings"]["objects"])["objects"]
     )
 
-    expected_updated_role = {k: v or pre_update_role[k] for k, v in test_data.items()}
-
-    assert expected_updated_role == role_objects_post_update
+    assert role_objects_post_update["uuid"] == test_data["uuid"]
+    assert (
+        role_objects_post_update["user_key"] == test_data["user_key"]
+        or pre_update_role["user_key"]
+    )
+    assert role_objects_post_update["role"] == [{"uuid": test_data["role"]}]
+    assert role_objects_post_update["ituser"] == [{"uuid": test_data["ituser"]}]
+    assert role_objects_post_update["validity"] == test_data["validity"]
 
 
 @pytest.mark.integration_test
@@ -338,8 +348,8 @@ async def test_role_terminate_integration(
 ) -> None:
     uuid = test_data["uuid"]
     mutation = """
-        mutation TerminateRole($input: RoleTerminateInput!) {
-            role_terminate(input: $input) {
+        mutation TerminateRolebinding($input: RoleBindingTerminateInput!) {
+            rolebinding_terminate(input: $input) {
                 uuid
             }
         }
@@ -350,7 +360,7 @@ async def test_role_terminate_integration(
 
     verify_query = """
         query VerifyQuery($uuid: UUID!) {
-            roles(filter: {uuids: [$uuid]}){
+            rolebindings(filter: {uuids: [$uuid]}){
                 objects {
                     objects {
                         uuid
@@ -366,7 +376,7 @@ async def test_role_terminate_integration(
     verify_response = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert verify_response.errors is None
     role_objects_post_terminate = one(
-        one(verify_response.data["roles"]["objects"])["objects"]
+        one(verify_response.data["rolebindings"]["objects"])["objects"]
     )
     assert test_data["uuid"] == role_objects_post_terminate["uuid"]
     assert test_data["to"] == role_objects_post_terminate["validity"]["to"]

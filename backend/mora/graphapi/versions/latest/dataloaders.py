@@ -30,7 +30,7 @@ from .schema import OrganisationRead
 from .schema import OrganisationUnitRead
 from .schema import OwnerRead
 from .schema import RelatedUnitRead
-from .schema import RoleRead
+from .schema import RoleBindingRead
 from mora.service import org
 
 MOModel = TypeVar(
@@ -48,7 +48,7 @@ MOModel = TypeVar(
     ManagerRead,
     OrganisationUnitRead,
     OwnerRead,
-    RoleRead,
+    RoleBindingRead,
     RelatedUnitRead,
 )
 
@@ -167,11 +167,11 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
             load_fn=partial(load_mo, model=AssociationRead), cache=False
         ),
         "association_getter": partial(get_mo, model=AssociationRead),
-        # Role
-        "role_loader": DataLoader(
-            load_fn=partial(load_mo, model=RoleRead), cache=False
+        # Rolebinding
+        "rolebinding_loader": DataLoader(
+            load_fn=partial(load_mo, model=RoleBindingRead), cache=False
         ),
-        "role_getter": partial(get_mo, model=RoleRead),
+        "rolebinding_getter": partial(get_mo, model=RoleBindingRead),
         # ITUser
         "ituser_loader": DataLoader(
             load_fn=partial(load_mo, model=ITUserRead), cache=False
