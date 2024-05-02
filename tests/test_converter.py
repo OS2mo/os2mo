@@ -1091,12 +1091,14 @@ async def test_get_address_type_uuid(converter: LdapConverter):
         uuid1: {"uuid": uuid1, "user_key": "foo-org"},
         uuid2: {"uuid": uuid2, "user_key": "bar-org"},
     }
-    converter.org_unit_address_type_info = org_unit_address_type_info
+    converter.dataloader.load_mo_org_unit_address_types.return_value = (  # type: ignore
+        org_unit_address_type_info
+    )
 
     assert converter.get_employee_address_type_uuid("foo") == uuid1
     assert converter.get_employee_address_type_uuid("bar") == uuid2
-    assert converter.get_org_unit_address_type_uuid("foo-org") == uuid1
-    assert converter.get_org_unit_address_type_uuid("bar-org") == uuid2
+    assert await converter.get_org_unit_address_type_uuid("foo-org") == uuid1
+    assert await converter.get_org_unit_address_type_uuid("bar-org") == uuid2
 
 
 async def test_get_it_system_uuid(converter: LdapConverter):
@@ -1260,8 +1262,10 @@ async def test_get_address_type_user_key(converter: LdapConverter):
     org_unit_address_type_info = {
         uuid1: {"uuid": uuid1, "user_key": "EmailUnit"},
     }
+    converter.dataloader.load_mo_org_unit_address_types.return_value = (  # type: ignore
+        org_unit_address_type_info
+    )
 
-    converter.org_unit_address_type_info = org_unit_address_type_info
     converter.employee_address_type_info = employee_address_type_info
 
     assert await converter.get_employee_address_type_user_key(uuid2) == "EmailEmployee"

@@ -430,9 +430,6 @@ class LdapConverter:
         self.employee_address_type_info = (
             await self.dataloader.load_mo_employee_address_types()
         )
-        self.org_unit_address_type_info = (
-            await self.dataloader.load_mo_org_unit_address_types()
-        )
         self.it_system_info = await self.dataloader.load_mo_it_systems()
 
         self.org_unit_info = await self.dataloader.load_mo_org_units()
@@ -825,10 +822,19 @@ class LdapConverter:
             self.employee_address_type_info, address_type
         )
 
-    def get_org_unit_address_type_uuid(self, address_type: str) -> str:
-        return self.get_object_uuid_from_user_key(
-            self.org_unit_address_type_info, address_type
+    async def get_org_unit_address_type_uuid(self, address_type: str) -> str:
+        # TODO: Replace this with a specific GraphQL query
+        org_unit_address_type_info = (
+            await self.dataloader.load_mo_org_unit_address_types()
         )
+        results = {
+            uuid
+            for uuid, clazz in org_unit_address_type_info.items()
+            if clazz["user_key"] == address_type
+        }
+        result = one(results)
+        assert isinstance(result, str)
+        return result
 
     def get_it_system_uuid(self, it_system: str) -> str:
         return self.get_object_uuid_from_user_key(self.it_system_info, it_system)
@@ -839,9 +845,13 @@ class LdapConverter:
         )
 
     async def get_org_unit_address_type_user_key(self, uuid: str) -> str:
-        return await self.get_object_user_key_from_uuid(
-            "org_unit_address_type_info", uuid
+        # TODO: Replace this with a specific GraphQL query
+        org_unit_address_type_info = (
+            await self.dataloader.load_mo_org_unit_address_types()
         )
+        result = org_unit_address_type_info[uuid]["user_key"]
+        assert isinstance(result, str)
+        return result
 
     async def get_it_system_user_key(self, uuid: str) -> str:
         return await self.get_object_user_key_from_uuid("it_system_info", uuid)
