@@ -791,6 +791,7 @@ def setup_listener(context: Context) -> list[Thread]:
         search_parameters = {
             "search_base": search_base,
             "search_filter": "(cn=*)",
+            # TODO: Is this actually necessary compared to just getting DN by default?
             "attributes": ["distinguishedName"],
         }
 

@@ -34,6 +34,7 @@ from mo_ldap_import_export.exceptions import NotSupportedException
 from mo_ldap_import_export.import_export import IgnoreMe
 from mo_ldap_import_export.import_export import SyncTool
 from mo_ldap_import_export.ldap_classes import LdapObject
+from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.types import OrgUnitUUID
 
 
@@ -46,6 +47,7 @@ def context(
     settings: MagicMock,
     amqpsystem: AsyncMock,
 ) -> Context:
+    settings.discriminator_field = None
     context = Context(
         {
             "amqpsystem": amqpsystem,
@@ -65,6 +67,16 @@ def context(
 def sync_tool(context: Context) -> SyncTool:
     sync_tool = SyncTool(context)
     return sync_tool
+
+
+@pytest.fixture
+def fake_dn() -> DN:
+    return DN("CN=foo")
+
+
+@pytest.fixture
+def fake_find_mo_employee_dn(sync_tool: SyncTool, fake_dn: DN) -> None:
+    sync_tool.dataloader.find_mo_employee_dn.return_value = {fake_dn}  # type: ignore
 
 
 async def test_listen_to_changes_in_org_units(
@@ -771,6 +783,7 @@ async def test_format_converted_primary_engagement_objects(
         await sync_tool.format_converted_objects(converted_objects, json_key)
 
 
+@pytest.mark.usefixtures("fake_find_mo_employee_dn")
 async def test_import_single_object_from_LDAP_ignore_twice(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
@@ -778,7 +791,6 @@ async def test_import_single_object_from_LDAP_ignore_twice(
     When an uuid already is in the uuids_to_ignore dict, it should be added once more
     so it is ignored twice.
     """
-
     uuid = uuid4()
     mo_object_mock = MagicMock
     mo_object_mock.uuid = uuid
@@ -809,6 +821,7 @@ async def test_import_single_object_from_LDAP_ignore_dn(
         assert last_log_message == "IgnoreChanges Exception"
 
 
+@pytest.mark.usefixtures("fake_find_mo_employee_dn")
 async def test_import_single_object_from_LDAP_force(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
@@ -830,9 +843,10 @@ async def test_import_single_object_from_LDAP_force(
     assert len(sync_tool.uuids_to_ignore[uuid]) == 1
 
 
+@pytest.mark.usefixtures("fake_find_mo_employee_dn")
 async def test_import_single_object_from_LDAP_but_import_equals_false(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
-):
+) -> None:
     converter._import_to_mo_.return_value = False
 
     with capture_logs() as cap_logs:
@@ -842,6 +856,7 @@ async def test_import_single_object_from_LDAP_but_import_equals_false(
         assert "Loading object" not in messages
 
 
+@pytest.mark.usefixtures("fake_find_mo_employee_dn")
 async def test_import_single_object_forces_json_key_ordering(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
@@ -870,6 +885,7 @@ async def test_import_single_object_forces_json_key_ordering(
         assert logged_json_keys == ["Employee", "Engagement", "Address"]
 
 
+@pytest.mark.usefixtures("fake_find_mo_employee_dn")
 async def test_import_single_object_collects_engagement_uuid(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
@@ -912,6 +928,7 @@ async def test_import_single_object_collects_engagement_uuid(
     assert isinstance(from_ldap_args[2][1], UUID)
 
 
+@pytest.mark.usefixtures("fake_find_mo_employee_dn")
 async def test_import_single_user_logs_empty_engagement_uuid(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
@@ -925,9 +942,10 @@ async def test_import_single_user_logs_empty_engagement_uuid(
         assert "Engagement UUID not found in MO" in logged_events
 
 
+@pytest.mark.usefixtures("fake_find_mo_employee_dn")
 async def test_import_address_objects(
     context: Context, converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
-):
+) -> None:
     converter.find_mo_object_class.return_value = "ramodels.mo.details.address.Address"
     converter.import_mo_object_class.return_value = Address
     converter.get_mo_attributes.return_value = ["value", "uuid", "validity"]
@@ -987,9 +1005,10 @@ async def test_import_address_objects(
         }
 
 
+@pytest.mark.usefixtures("fake_find_mo_employee_dn")
 async def test_import_it_user_objects(
     context: Context, converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
-):
+) -> None:
     converter.find_mo_object_class.return_value = "ramodels.mo.details.address.ITUser"
     converter.import_mo_object_class.return_value = ITUser
     converter.get_mo_attributes.return_value = ["user_key", "validity"]
@@ -1038,8 +1057,17 @@ async def test_import_it_user_objects(
 async def test_import_single_object_from_LDAP_non_existing_employee(
     context: Context, converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
+    dn = "CN=foo"
+
+    ldap_connection = MagicMock()
+    ldap_connection.response = [
+        {"type": "searchResEntry", "attributes": {"EmployeeID": "0101011234"}, "dn": dn}
+    ]
+    context["user_context"]["ldap_connection"] = ldap_connection
+    sync_tool.dataloader.load_ldap_cpr_object.return_value = [LdapObject(dn=dn)]  # type: ignore
+
     dataloader.find_mo_employee_uuid.return_value = None
-    await sync_tool.import_single_user("CN=foo")
+    await sync_tool.import_single_user(dn)
 
     # Even though find_mo_employee_uuid does not return an uuid; it is generated
     assert type(converter.from_ldap.call_args_list[0].kwargs["employee_uuid"]) is UUID
@@ -1310,9 +1338,14 @@ async def test_refresh_employee(
     )
 
 
+@pytest.mark.usefixtures("fake_find_mo_employee_dn")
 async def test_import_jobtitlefromadtomo_objects(
-    context: Context, converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
-):
+    context: Context,
+    converter: MagicMock,
+    dataloader: AsyncMock,
+    sync_tool: SyncTool,
+    fake_dn: DN,
+) -> None:
     converter.find_mo_object_class.return_value = (
         "mo_ldap_import_export.customer_specific.JobTitleFromADToMO"
     )
@@ -1352,7 +1385,7 @@ async def test_import_jobtitlefromadtomo_objects(
         "mo_ldap_import_export.customer_specific.JobTitleFromADToMO.sync_to_mo",
         return_value=job,
     ):
-        await sync_tool.import_single_user("CN=foo")
+        await sync_tool.import_single_user(fake_dn)
         dataloader.create_or_edit_mo_objects.assert_called_once()
         assert eng_uuid in sync_tool.uuids_to_ignore.ignore_dict
 
@@ -1447,13 +1480,14 @@ async def test_perform_import_checks_noop(sync_tool: SyncTool) -> None:
     assert result is True
 
 
-async def test_holstebro_import_checks(sync_tool: SyncTool):
+@pytest.mark.usefixtures("fake_find_mo_employee_dn")
+async def test_holstebro_import_checks(sync_tool: SyncTool, fake_dn: DN) -> None:
     with patch(
         "mo_ldap_import_export.import_export.SyncTool.perform_import_checks",
         return_value=False,
     ):
         with capture_logs() as cap_logs:
-            await sync_tool.import_single_user("CN=foo", force=True)
+            await sync_tool.import_single_user(fake_dn, force=True)
             assert "Import checks executed" in str(cap_logs)
 
 

@@ -15,6 +15,7 @@ from .config import LDAPAMQPConnectionSettings
 from .depends import logger_bound_message_id
 from .depends import SyncTool
 from .exceptions import NoObjectsReturnedException
+from .types import DN
 
 logger = structlog.stdlib.get_logger()
 
@@ -24,7 +25,7 @@ ldap_amqp_router = Router()
 # Try errors again after a short period of time
 delay_on_error = 10
 
-PayloadDN = Annotated[str, Depends(get_payload_as_type(str))]
+PayloadDN = Annotated[DN, Depends(get_payload_as_type(DN))]
 
 
 @ldap_amqp_router.register("dn")
@@ -36,6 +37,7 @@ async def process_dn(
 
     logger.info("Received LDAP AMQP event", dn=dn)
     try:
+        # TODO: Sync from MO to LDAP to overwrite bad manual changes
         await sync_tool.import_single_user(dn)
     except NoObjectsReturnedException as exc:
         # TODO: Stop rejecting these and actually handle it within the code
