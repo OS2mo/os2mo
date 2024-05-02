@@ -1200,14 +1200,14 @@ class GraphQLClient(AsyncBaseClient):
         return ReadAllEngagementUuids.parse_obj(data).engagements
 
     async def engagement_org_unit_address_refresh(
-        self, exchange: str, engagement_uuid: UUID, address_type_uuids: List[UUID]
+        self, exchange: str, engagement_uuid: UUID
     ) -> EngagementOrgUnitAddressRefreshAddressRefresh:
         query = gql(
             """
-            mutation engagement_org_unit_address_refresh($exchange: String!, $engagement_uuid: UUID!, $address_type_uuids: [UUID!]!) {
+            mutation engagement_org_unit_address_refresh($exchange: String!, $engagement_uuid: UUID!) {
               address_refresh(
                 exchange: $exchange
-                filter: {address_type: {uuids: $address_type_uuids}, org_unit: {engagement: {uuids: [$engagement_uuid]}}}
+                filter: {org_unit: {engagement: {uuids: [$engagement_uuid]}}}
               ) {
                 objects
               }
@@ -1217,7 +1217,6 @@ class GraphQLClient(AsyncBaseClient):
         variables: dict[str, object] = {
             "exchange": exchange,
             "engagement_uuid": engagement_uuid,
-            "address_type_uuids": address_type_uuids,
         }
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)

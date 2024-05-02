@@ -1069,13 +1069,9 @@ class SyncTool:
     async def export_org_unit_addresses_on_engagement_change(
         self, engagement_uuid: UUID
     ) -> None:
-        address_type_uuids = parse_obj_as(
-            list[UUID], list(self.converter.org_unit_address_type_info.keys())
-        )
         await self.dataloader.graphql_client.engagement_org_unit_address_refresh(
             self.amqpsystem.exchange_name,
             engagement_uuid,
-            address_type_uuids,
         )
 
     async def refresh_employee(self, employee_uuid: UUID):
