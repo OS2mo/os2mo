@@ -1,9 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import pytest
 from dateutil.parser import isoparse
+from dateutil.tz import tzoffset
 from hypothesis import given
 from hypothesis import strategies as st
 from pydantic import Field
@@ -75,3 +77,11 @@ class TestTZISODate:
     def test_fail_input(self, fail_str):
         with pytest.raises(ISOParseError):
             tz_isodate(fail_str)
+
+    def test_pre_1894(self):
+        assert tz_isodate("1885-05-01") == datetime(
+            1885, 5, 1, 0, 0, tzinfo=ZoneInfo("Europe/Copenhagen")
+        )
+        assert tz_isodate("1885-05-01T00:00:00+00:50:20") == datetime(
+            1885, 5, 1, 0, 0, tzinfo=tzoffset(None, 3600)
+        )

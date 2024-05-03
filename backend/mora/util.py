@@ -30,6 +30,7 @@ from structlog import get_logger
 from . import config
 from . import exceptions
 from . import mapping
+from ramodels.base import to_parsable_timestamp
 
 _sentinel = object()
 
@@ -86,7 +87,9 @@ def parsedatetime(
         return from_iso_time(s)
 
     try:
-        dt = dateutil.parser.parse(s, dayfirst=True, tzinfos=_tzinfos)
+        dt = dateutil.parser.parse(
+            to_parsable_timestamp(s), dayfirst=True, tzinfos=_tzinfos
+        )
     except ValueError:
         if default is not _sentinel:
             return default

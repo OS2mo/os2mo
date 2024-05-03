@@ -40,6 +40,7 @@ from .db_helpers import VaerdiRelationAttr
 from mora.audit import audit_log
 from mora.auth.middleware import get_authenticated_user
 from mora.db import get_session
+from ramodels.base import to_parsable_timestamp
 
 """
     Jinja2 Environment
@@ -753,7 +754,7 @@ def _parse_timestamp(timestamp: datetime.datetime | str) -> datetime.datetime:
     elif timestamp == "-infinity":
         dt = datetime.datetime.min
     elif type(timestamp) == str:
-        dt = dateutil.parser.isoparse(timestamp)
+        dt = dateutil.parser.isoparse(to_parsable_timestamp(timestamp))
     elif isinstance(timestamp, datetime.datetime):
         dt = timestamp
     else:
