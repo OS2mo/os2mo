@@ -70,7 +70,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
         handler = await base.get_handler_for_scope(scope).from_request(req)
 
         func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
-        bvn = handler.name or func_id
+        bvn = req.get("user_key") or handler.name or func_id
 
         # Validation
         if org_unit_uuid:

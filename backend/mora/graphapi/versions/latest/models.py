@@ -153,7 +153,9 @@ class AddressUpsert(UUIDBase):
 
     visibility: UUID | None = Field(description="Visibility for the address.")
     validity: RAValidity = Field(description="Validity range for the org-unit.")
-    user_key: str | None = Field(description="Extra info or uuid.")
+    user_key: str | None = Field(
+        description="User key of the address. If None, defaults to value"
+    )
 
     def to_handler_dict(self) -> dict:
         return {

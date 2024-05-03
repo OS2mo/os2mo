@@ -1390,3 +1390,84 @@ def test_reading(service_client: TestClient) -> None:
     )
     assert response.status_code == 200
     assert response.json() == []
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_address_user_key(graphapi_post: GraphAPIPost) -> None:
+    GET_ADDRESS = """
+    query GetAddress($uuid: [UUID!]) {
+      addresses(filter: {uuids: $uuid}) {
+        objects {
+          current {
+            uuid
+            user_key
+          }
+        }
+      }
+    }
+    """
+    CREATE_ADDRESS = """
+    mutation CreateAddress($user_key: String!) {
+      address_create(
+        input: {validity: {from: "2019-01-01"}, value: "b1f1817d-5f02-4331-b8b3-97330a5d3197", address_type: "4e337d8e-1fd2-4449-8110-e0c8a22958ed", user_key: $user_key, employee: "6ee24785-ee9a-4502-81c2-7697009c9053"}
+      ) {
+        uuid
+      }
+    }
+    """
+    EDIT_ADDRESS = """
+    mutation EditAddress($uuid: UUID!) {
+      address_update(
+        input: {uuid: $uuid, validity: {from: "2021-05-05"}, value: "b1f1817d-5f02-4331-b8b3-97330a5d3197", user_key: "opdateret", address_type: "4e337d8e-1fd2-4449-8110-e0c8a22958ed"}
+      ) {
+        uuid
+      }
+    }
+    """
+
+    # Create address
+    response = graphapi_post(
+        CREATE_ADDRESS,
+        variables={
+            "user_key": "oprettet",
+        },
+    )
+    assert response.errors is None
+    address_uuid = response.data["address_create"]["uuid"]
+    assert address_uuid
+
+    # Check created address with user_key
+    response = graphapi_post(
+        GET_ADDRESS,
+        variables={
+            "uuid": address_uuid,
+        },
+    )
+    assert response.errors is None
+    assert one(response.data["addresses"]["objects"])["current"] == {
+        "uuid": address_uuid,
+        "user_key": "oprettet",
+    }
+
+    # Edit user_key
+    response = graphapi_post(
+        EDIT_ADDRESS,
+        variables={
+            "uuid": address_uuid,
+        },
+    )
+    assert response.errors is None
+
+    # Verify that the edit was successful
+    response = graphapi_post(
+        GET_ADDRESS,
+        variables={
+            "uuid": address_uuid,
+        },
+    )
+    assert response.errors is None
+    assert one(response.data["addresses"]["objects"])["current"] == {
+        "uuid": address_uuid,
+        "user_key": "opdateret",
+    }
