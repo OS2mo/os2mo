@@ -561,12 +561,11 @@ query read_all_engagement_uuids($filter: EngagementFilter!, $cursor: Cursor = nu
 }
 
 mutation engagement_org_unit_address_refresh(
-  $exchange: String!, $engagement_uuid: UUID!, $address_type_uuids: [UUID!]!
+  $exchange: String!, $engagement_uuid: UUID!
 ) {
   address_refresh(
     exchange: $exchange,
     filter: {
-      address_type: {uuids: $address_type_uuids},
       org_unit: {
         engagement: {
           uuids: [$engagement_uuid]

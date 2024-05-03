@@ -211,7 +211,7 @@ async def process_org_unit(
     )
     # In case the name of the org-unit changed, we need to publish an
     # "engagement" message for each of its employees. Because org-unit
-    # LDAP mapping is primarily done through the "Engagment" json-key.
+    # LDAP mapping is primarily done through the "Engagement" json-key.
     await sync_tool.publish_engagements_for_org_unit(OrgUnitUUID(object_uuid))
     await sync_tool.refresh_org_unit_info_cache()
 

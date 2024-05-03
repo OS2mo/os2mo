@@ -1267,17 +1267,13 @@ async def test_refresh_object_missing(
 async def test_export_org_unit_addresses_on_engagement_change(
     sync_tool: SyncTool,
     dataloader: AsyncMock,
-    converter: MagicMock,
 ) -> None:
     engagement_uuid = uuid4()
-    address_type_uuid = uuid4()
 
-    converter.org_unit_address_type_info = {address_type_uuid: "Email"}
     await sync_tool.export_org_unit_addresses_on_engagement_change(engagement_uuid)
     dataloader.graphql_client.engagement_org_unit_address_refresh.assert_called_with(
         "os2mo_ldap_ie",
         engagement_uuid,
-        [address_type_uuid],
     )
 
 
