@@ -10,6 +10,8 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import Any
 from unittest.mock import AsyncMock
+from unittest.mock import call
+from unittest.mock import create_autospec
 from unittest.mock import MagicMock
 from unittest.mock import patch
 from uuid import uuid4
@@ -18,6 +20,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from fastramqpi.main import FastRAMQPI
+from fastramqpi.ramqp import AMQPSystem
+from fastramqpi.ramqp.depends import Context
 from fastramqpi.ramqp.depends import get_context
 from fastramqpi.ramqp.utils import RejectMessage
 from fastramqpi.ramqp.utils import RequeueMessage
@@ -193,15 +197,21 @@ def test_mo_objects() -> list:
 def dataloader(
     sync_dataloader: MagicMock, test_mo_address: Address, test_mo_objects: list
 ) -> AsyncMock:
-    test_ldap_object = LdapObject(
-        name="Tester", Department="QA", dn="someDN", EmployeeID="0101012002"
+    test_ldap_object1 = LdapObject(
+        name="Tester1", Department="QA", dn="someDN1", EmployeeID="0101012001"
+    )
+    test_ldap_object2 = LdapObject(
+        name="Tester2", Department="QA", dn="someDN2", EmployeeID="0101012002"
+    )
+    test_ldap_object3 = LdapObject(
+        name="Tester3", Department="QA", dn="someDN3", EmployeeID="0101012003"
     )
     test_mo_employee = Employee(cpr_no="1212121234")
 
     test_mo_it_user = ITUser.from_simplified_fields("foo", uuid4(), "2021-01-01")
 
     load_ldap_cpr_object = MagicMock()
-    load_ldap_cpr_object.return_value = test_ldap_object
+    load_ldap_cpr_object.return_value = test_ldap_object1
 
     dataloader = AsyncMock()
     dataloader.get_ldap_dn = MagicMock()
@@ -210,7 +220,11 @@ def dataloader(
     dataloader.load_ldap_OUs = sync_dataloader
     dataloader.load_ldap_overview = sync_dataloader
     dataloader.load_ldap_cpr_object = load_ldap_cpr_object
-    dataloader.load_ldap_objects.return_value = [test_ldap_object] * 3
+    dataloader.load_ldap_objects.return_value = [
+        test_ldap_object1,
+        test_ldap_object2,
+        test_ldap_object3,
+    ]
     dataloader.load_mo_employee.return_value = test_mo_employee
     dataloader.load_mo_address.return_value = test_mo_address
     dataloader.load_mo_it_user.return_value = test_mo_it_user
@@ -267,7 +281,7 @@ def sync_tool() -> AsyncMock:
 @pytest.fixture
 def context_dependency_injection(
     app: FastAPI, fastramqpi: FastRAMQPI
-) -> Iterator[None]:
+) -> Iterator[Context]:
     context = fastramqpi.get_context()
 
     def context_extractor() -> Any:
@@ -275,7 +289,7 @@ def context_dependency_injection(
 
     app.dependency_overrides[get_context] = context_extractor
 
-    yield
+    yield context
 
     del app.dependency_overrides[get_context]
 
@@ -631,19 +645,43 @@ def test_ldap_get_all_converted_endpoint_failure(
     assert response2.status_code == 404
 
 
-@pytest.mark.usefixtures("context_dependency_injection")
-async def test_import_all_objects_from_LDAP_first_20(test_client: TestClient) -> None:
+async def test_import_all_objects_from_LDAP_first_20(
+    context_dependency_injection: Context, test_client: TestClient
+) -> None:
+    ldap_amqpsystem = create_autospec(AMQPSystem)
+
+    context = context_dependency_injection
+    context["user_context"]["ldap_amqpsystem"] = ldap_amqpsystem
+
     params = {
         "test_on_first_20_entries": True,
     }
     response = test_client.get("/Import", params=params)
     assert response.status_code == 202
 
+    assert ldap_amqpsystem.publish_message.mock_calls == [
+        call("dn", "someDN1"),
+        call("dn", "someDN2"),
+        call("dn", "someDN3"),
+    ]
 
-@pytest.mark.usefixtures("context_dependency_injection")
-async def test_import_all_objects_from_LDAP(test_client: TestClient) -> None:
+
+async def test_import_all_objects_from_LDAP(
+    context_dependency_injection: Context, test_client: TestClient
+) -> None:
+    ldap_amqpsystem = create_autospec(AMQPSystem)
+
+    context = context_dependency_injection
+    context["user_context"]["ldap_amqpsystem"] = ldap_amqpsystem
+
     response = test_client.get("/Import")
     assert response.status_code == 202
+
+    assert ldap_amqpsystem.publish_message.mock_calls == [
+        call("dn", "someDN1"),
+        call("dn", "someDN2"),
+        call("dn", "someDN3"),
+    ]
 
 
 @pytest.mark.usefixtures("context_dependency_injection")
