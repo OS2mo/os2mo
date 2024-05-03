@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import re
 from datetime import datetime
 from typing import Any
 
@@ -50,6 +51,28 @@ class RABase(BaseModel):
         return values
 
 
+def to_parsable_timestamp(s: str) -> str:
+    """Ensure ISO timestamp isn't too exotic.
+
+    Prior to 1893-04-01, Denmark used an GMT offset of 50 minutes and 20 seconds[1,2].
+    Even though ISO 8601-2:2019 allows for general durations for time offsets such as
+    `<time>±[hh]:[mm]:[ss].[sss]` or `<time>±[n]H[n]M[n]S`, the former standards did
+    not[3]. Therefore, many parsing libraries will fail to parse timestamps with such
+    precision. This regex truncates these timestamps to ensure compatibility.
+
+    TODO: Python's stdlib datetime dumping and parsing properly supports the latest
+    standards. When we get rid of the LoRa and service APIs we should simply remove all
+    the "clever" parsing libraries and only support actual ISO timestamps in GraphQL.
+    Note that the Strawberry library itself also uses the broken dateutils library[4].
+
+    [1] https://en.wikipedia.org/wiki/Time_in_the_Danish_Realm#History
+    [2] `zdump -ivc 1900 Europe/Copenhagen`
+    [3] https://en.wikipedia.org/wiki/ISO_8601#Other_time_offset_specifications
+    [4] https://github.com/strawberry-graphql/strawberry/blob/main/strawberry/schema/types/base_scalars.py
+    """
+    return re.sub(r"\+00:5\d.*$", "+01:00", s)
+
+
 def tz_isodate(dt: Any) -> datetime:
     """Attempts to parse an incoming value as a timezone aware datetime.
 
@@ -68,7 +91,7 @@ def tz_isodate(dt: Any) -> datetime:
     # Using datetime.fromisoformat as isoparse does not handle fractional timezones
     # It is a mess, but this way we get really close to covering our bases
     try:
-        iso_dt = isoparse(str(dt))
+        iso_dt = isoparse(to_parsable_timestamp(str(dt)))
     except ValueError:
         try:
             iso_dt = datetime.fromisoformat(str(dt))
