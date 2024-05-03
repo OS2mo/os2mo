@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 """HTTP Endpoints."""
+from contextlib import suppress
 from typing import Any
 from typing import Literal
 from uuid import UUID
@@ -17,7 +18,6 @@ from fastramqpi.depends import UserContext
 from fastramqpi.ramqp.depends import Context
 from pydantic import ValidationError
 from ramodels.mo._shared import validate_cpr
-from tqdm import tqdm
 
 from . import depends
 from .dataloaders import DataLoader
@@ -60,7 +60,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
     # Load all users from LDAP, and import them into MO
     @router.get("/Import", status_code=202, tags=["Import"])
     async def import_all_objects_from_LDAP(
-        sync_tool: depends.SyncTool,
+        ldap_amqpsystem: depends.LDAPAMQPSystem,
         dataloader: depends.DataLoader,
         converter: depends.LdapConverter,
         test_on_first_20_entries: bool = False,
@@ -76,36 +76,29 @@ def construct_router(user_context: UserContext) -> APIRouter:
             "Employee",
             search_base=search_base,
         )
+        number_of_entries = len(all_ldap_objects)
+        logger.info("Found entries in LDAP", count=number_of_entries)
 
         if test_on_first_20_entries:
             # Only upload the first 20 entries
             logger.info("Slicing the first 20 entries")
             all_ldap_objects = all_ldap_objects[:20]
 
-        number_of_entries = len(all_ldap_objects)
-        logger.info("Found entries in AD", count=number_of_entries)
+        def has_valid_cpr_number(ldap_object: LdapObject) -> bool:
+            assert cpr_field is not None
+            cpr_no = CPRNumber(getattr(ldap_object, cpr_field))
+            with suppress(ValueError, TypeError):
+                validate_cpr(cpr_no)
+                return True
+            logger.info("Invalid CPR Number found", dn=ldap_object.dn)
+            return False
 
-        with tqdm(total=number_of_entries, unit="ldap object") as progress_bar:
-            progress_bar.set_description("LDAP import progress")
+        if cpr_indexed_entries_only:
+            all_ldap_objects = list(filter(has_valid_cpr_number, all_ldap_objects))
 
-            # Note: This can be done in a more parallel way using asyncio.gather() but:
-            # - it was experienced that fastapi throws broken pipe errors
-            # - MO was observed to not handle that well either.
-            # - We don't need the additional speed. This is meant as a one-time import
-            for ldap_object in all_ldap_objects:
-                logger.info("Importing LDAP object", dn=ldap_object.dn)
-                if cpr_indexed_entries_only:
-                    cpr_no = CPRNumber(getattr(ldap_object, cpr_field))
-                    try:
-                        validate_cpr(cpr_no)
-                    except (ValueError, TypeError):
-                        logger.info("Invalid CPR Number found", dn=ldap_object.dn)
-                        progress_bar.update()
-                        continue
-
-                await sync_tool.import_single_user(ldap_object.dn, manual_import=True)
-
-                progress_bar.update()
+        for ldap_object in all_ldap_objects:
+            logger.info("Importing LDAP object", dn=ldap_object.dn)
+            await ldap_amqpsystem.publish_message("dn", ldap_object.dn)
 
     # Load a single user from LDAP, and import him/her/hir into MO
     @router.get("/Import/{unique_ldap_uuid}", status_code=202, tags=["Import"])
