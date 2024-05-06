@@ -20,6 +20,7 @@ from mo_ldap_import_export.ldap import configure_ldap_connection
 from mo_ldap_import_export.ldap import construct_server_pool
 from mo_ldap_import_export.ldap import first_included
 from mo_ldap_import_export.ldap import get_ldap_object
+from mo_ldap_import_export.types import DN
 
 
 @pytest.fixture
@@ -60,6 +61,11 @@ def ldap_connection(settings: Settings, ldap_container_dn: str) -> Iterable[Conn
             )
             ldap_connection.bind()
             yield ldap_connection
+
+
+@pytest.fixture
+def ldap_dn(settings: Settings, ldap_container_dn: str) -> DN:
+    return DN(f"CN={settings.ldap_user},{ldap_container_dn}")
 
 
 async def test_searching_mocked(
@@ -128,12 +134,11 @@ async def test_searching_newly_added(ldap_connection: Connection) -> None:
 
 
 async def test_searching_dn_lookup(
-    ldap_connection: Connection, settings: Settings, ldap_container_dn: str
+    ldap_connection: Connection, settings: Settings, ldap_dn: DN, ldap_container_dn: str
 ) -> None:
     """Test that we can read our default user."""
-    dn = f"CN={settings.ldap_user},{ldap_container_dn}"
     ldap_connection.search(
-        dn,
+        ldap_dn,
         "(objectclass=*)",
         attributes="*",
         search_scope=BASE,
@@ -188,7 +193,7 @@ async def test_searching_dn_lookup(
 async def test_get_ldap_object(
     ldap_connection: Connection,
     settings: Settings,
-    ldap_container_dn: str,
+    ldap_dn: DN,
     attributes: list[str],
     expected: dict[str, Any],
 ) -> None:
@@ -197,9 +202,8 @@ async def test_get_ldap_object(
         "user_context": {"ldap_connection": ldap_connection, "settings": settings}
     }
 
-    dn = f"CN={settings.ldap_user},{ldap_container_dn}"
-    result = get_ldap_object(dn, context, attributes=attributes)
-    assert result.dn == dn
+    result = get_ldap_object(ldap_dn, context, attributes=attributes)
+    assert result.dn == ldap_dn
     assert result.__dict__ == {"dn": "CN=foo,o=example"} | expected
 
 
@@ -255,18 +259,17 @@ async def test_first_included_no_config(
 async def test_first_included_settings_invariants(
     ldap_connection: Connection,
     settings: Settings,
-    ldap_container_dn: str,
+    ldap_dn: DN,
     discriminator_settings: dict[str, Any],
 ) -> None:
     """Test that first_included checks settings invariants."""
     context: Context = {"user_context": {"ldap_connection": ldap_connection}}
-    dn = f"CN={settings.ldap_user},{ldap_container_dn}"
 
     with pytest.raises(AssertionError):
         # Need function and values
         new_settings = settings.copy(update=discriminator_settings)
         context["user_context"]["settings"] = new_settings
-        first_included(context, {dn})
+        first_included(context, {ldap_dn})
 
 
 async def test_first_included_unknown_dn(
@@ -306,19 +309,17 @@ async def test_first_included_unknown_dn(
 async def test_first_included_exclude_one_user(
     ldap_connection: Connection,
     settings: Settings,
-    ldap_container_dn: str,
+    ldap_dn: DN,
     discriminator_function: str,
     discriminator_values: list[str],
     matches: bool,
 ) -> None:
     """Test that first_included exclude works with a single user on valid settings."""
     # This DN has 'foo_sn' as their sn
-    dn = f"CN={settings.ldap_user},{ldap_container_dn}"
-
     if discriminator_function == "include":
-        expected = dn if matches else None
+        expected = ldap_dn if matches else None
     else:
-        expected = None if matches else dn
+        expected = None if matches else ldap_dn
 
     settings = settings.copy(
         update={
@@ -330,5 +331,5 @@ async def test_first_included_exclude_one_user(
     context: Context = {
         "user_context": {"ldap_connection": ldap_connection, "settings": settings}
     }
-    result = first_included(context, {dn})
+    result = first_included(context, {ldap_dn})
     assert result == expected
