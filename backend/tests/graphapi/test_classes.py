@@ -245,7 +245,7 @@ async def test_integration_create_class(
 
     created_class = one(query_response.data.get("classes")["objects"])["current"]
     assert created_class == {
-        "uuid": response_uuid,
+        "uuid": test_data["uuid"],
         "type": "class",
         "user_key": test_data_model.user_key,
         "name": test_data_model.name,

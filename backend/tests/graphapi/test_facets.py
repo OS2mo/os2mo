@@ -110,10 +110,12 @@ async def test_create_facet(graphapi_post):
             }
         }
     """
+    facet_uuid = UUID("4445ab30-42c3-4b69-b65b-09136cd77e18")
     response = graphapi_post(
         mutation,
         {
             "input": {
+                "uuid": str(facet_uuid),
                 "user_key": "my_user_key",
                 "validity": {"from": "1930-01-01"},
             }
@@ -122,6 +124,7 @@ async def test_create_facet(graphapi_post):
     assert response.errors is None
     assert response.data
     new_uuid = UUID(response.data["facet_create"]["uuid"])
+    assert new_uuid == facet_uuid
 
     # Verify modified state
     new_facet_map = read_history(graphapi_post)
