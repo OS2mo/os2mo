@@ -1,8 +1,11 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Iterable
+from collections.abc import Iterator
 from typing import Any
 from unittest.mock import ANY
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
 from unittest.mock import patch
 from uuid import uuid4
 
@@ -14,13 +17,21 @@ from ldap3 import Connection
 from ldap3 import MOCK_SYNC
 from ldap3 import SUBTREE
 from more_itertools import one
+from structlog.testing import capture_logs
 
 from mo_ldap_import_export.config import Settings
+from mo_ldap_import_export.converters import LdapConverter
+from mo_ldap_import_export.customer_specific_checks import ExportChecks
+from mo_ldap_import_export.customer_specific_checks import ImportChecks
+from mo_ldap_import_export.dataloaders import DataLoader
+from mo_ldap_import_export.depends import GraphQLClient
+from mo_ldap_import_export.import_export import SyncTool
 from mo_ldap_import_export.ldap import configure_ldap_connection
 from mo_ldap_import_export.ldap import construct_server_pool
 from mo_ldap_import_export.ldap import first_included
 from mo_ldap_import_export.ldap import get_ldap_object
 from mo_ldap_import_export.types import DN
+from tests.graphql_mocker import GraphQLMocker
 
 
 @pytest.fixture
@@ -49,6 +60,8 @@ def ldap_connection(settings: Settings, ldap_container_dn: str) -> Iterable[Conn
         with patch(
             "mo_ldap_import_export.ldap.construct_server_pool", return_value=server
         ):
+            entryUUID = uuid4()
+
             ldap_connection = configure_ldap_connection(settings)
             ldap_connection.strategy.add_entry(
                 f"CN={settings.ldap_user},{ldap_container_dn}",
@@ -57,6 +70,8 @@ def ldap_connection(settings: Settings, ldap_container_dn: str) -> Iterable[Conn
                     "userPassword": settings.ldap_password.get_secret_value(),
                     "sn": f"{settings.ldap_user}_sn",
                     "revision": 0,
+                    "entryUUID": "{" + str(entryUUID) + "}",
+                    "employeeID": "0101700001",
                 },
             )
             ldap_connection.bind()
@@ -88,6 +103,8 @@ async def test_searching_mocked(
             "sn": [f"{settings.ldap_user}_sn"],
             "revision": ["0"],
             "CN": [settings.ldap_user],
+            "entryUUID": ANY,
+            "employeeID": ["0101700001"],
         },
         "dn": f"CN={settings.ldap_user},{ldap_container_dn}",
         "raw_attributes": ANY,
@@ -101,6 +118,7 @@ async def test_searching_newly_added(ldap_connection: Connection) -> None:
     username = str(uuid4())
     password = str(uuid4())
     container = str(uuid4())
+    entryUUID = str(uuid4())
     # Add new entry
     ldap_connection.strategy.add_entry(
         f"cn={username},o={container}",
@@ -109,6 +127,8 @@ async def test_searching_newly_added(ldap_connection: Connection) -> None:
             "userPassword": password,
             "sn": f"{username}_sn",
             "revision": 1,
+            "entryUUID": "{" + entryUUID + "}",
+            "employeeID": "0101700002",
         },
     )
 
@@ -125,6 +145,8 @@ async def test_searching_newly_added(ldap_connection: Connection) -> None:
             "sn": [f"{username}_sn"],
             "revision": ["1"],
             "CN": [username],
+            "employeeID": ["0101700002"],
+            "entryUUID": ANY,
         },
         "dn": f"cn={username},o={container}",
         "raw_attributes": ANY,
@@ -153,6 +175,8 @@ async def test_searching_dn_lookup(
             "sn": [f"{settings.ldap_user}_sn"],
             "revision": ["0"],
             "CN": [settings.ldap_user],
+            "entryUUID": ANY,
+            "employeeID": ["0101700001"],
         },
         "dn": f"CN={settings.ldap_user},{ldap_container_dn}",
         "raw_attributes": ANY,
@@ -173,6 +197,8 @@ async def test_searching_dn_lookup(
                 "revision": ["0"],
                 "sn": ["foo_sn"],
                 "userPassword": ["foo"],
+                "employeeID": ["0101700001"],
+                "entryUUID": ANY,
             },
         ),
         # Reading no fields reads dn
@@ -205,6 +231,37 @@ async def test_get_ldap_object(
     result = get_ldap_object(ldap_dn, context, attributes=attributes)
     assert result.dn == ldap_dn
     assert result.__dict__ == {"dn": "CN=foo,o=example"} | expected
+
+
+async def test_get_ldap_cpr_object(
+    ldap_connection: Connection,
+    settings: Settings,
+    ldap_container_dn: str,
+) -> None:
+    ldap_connection.search(
+        ldap_container_dn,
+        "(&(objectclass=inetOrgPerson)(employeeID=0101700001))",
+        search_scope=SUBTREE,
+        attributes="*",
+    )
+    assert ldap_connection.result["description"] == "success"
+    assert ldap_connection.response is not None
+    search_result = one(ldap_connection.response)
+    assert search_result == {
+        "attributes": {
+            "objectClass": ["inetOrgPerson"],
+            "userPassword": [settings.ldap_password.get_secret_value()],
+            "sn": [f"{settings.ldap_user}_sn"],
+            "revision": ["0"],
+            "CN": [settings.ldap_user],
+            "entryUUID": ANY,
+            "employeeID": ["0101700001"],
+        },
+        "dn": f"CN={settings.ldap_user},{ldap_container_dn}",
+        "raw_attributes": ANY,
+        "raw_dn": ANY,
+        "type": "searchResEntry",
+    }
 
 
 async def test_first_included_no_config(
@@ -333,3 +390,231 @@ async def test_first_included_exclude_one_user(
     }
     result = first_included(context, {ldap_dn})
     assert result == expected
+
+
+@pytest.fixture
+async def sync_tool(
+    ldap_connection: Connection,
+    ldap_container_dn: str,
+    settings: Settings,
+    graphql_client: GraphQLClient,
+    graphql_mock: GraphQLMocker,
+) -> SyncTool:
+    settings = settings.copy(
+        update={
+            "ldap_unique_id_field": "entryUUID",
+            "ldap_search_base": ldap_container_dn,
+        }
+    )
+
+    mapping = settings.conversion_mapping.dict(exclude_unset=True, by_alias=True)
+
+    route = graphql_mock.query("read_facet_classes")
+    route.result = {"classes": {"objects": []}}
+
+    route = graphql_mock.query("read_itsystems")
+    route.result = {"itsystems": {"objects": []}}
+
+    route = graphql_mock.query("read_org_units")
+    route.result = {"org_units": {"objects": []}}
+
+    route = graphql_mock.query("read_class_user_keys")
+    route.result = {"classes": {"objects": []}}
+
+    context: Context = {
+        "user_context": {
+            "ldap_connection": ldap_connection,
+            "settings": settings,
+            "mapping": mapping,
+            # TODO: This should be set by side-effect reference, no?
+            "cpr_field": "employeeID",
+            # TODO: This should be set by side-effect reference, no?
+            "ldap_it_system_user_key": None,
+        },
+        "graphql_client": graphql_client,
+        "amqpsystem": AsyncMock(),
+    }
+    # Needs context, user_context, ldap_connection
+    with patch(
+        "mo_ldap_import_export.dataloaders.get_attribute_types",
+        return_value={
+            "objectClass": MagicMock(),
+            "employeeID": MagicMock(),
+        },
+    ):
+        dataloader = DataLoader(context)
+        dataloader.load_ldap_overview = MagicMock()  # type: ignore
+        dataloader.load_ldap_overview.return_value = {
+            "inetOrgPerson": {"attributes": {"employeeID": MagicMock()}}
+        }
+    context["user_context"]["dataloader"] = dataloader
+
+    # Needs context, user_context, settings, raw_mapping, dataloader
+    converter = LdapConverter(context)
+    await converter._init()
+    context["user_context"]["converter"] = converter
+
+    # Needs context, user_context, dataloader, converter
+    export_checks = ExportChecks(context)
+    context["user_context"]["export_checks"] = export_checks
+    # Needs context
+    import_checks = ImportChecks(context)
+    context["user_context"]["import_checks"] = import_checks
+
+    # Needs context, user_context, dataloader, converter, export_checks, import_checks, settings, amqpsystem
+    sync_tool = SyncTool(context)
+    context["user_context"]["synctool"] = sync_tool
+
+    return sync_tool
+
+
+@pytest.fixture
+def inject_environmental_variables(
+    environmental_variables: dict[str, str], monkeypatch: pytest.MonkeyPatch
+) -> Iterator[None]:
+    with monkeypatch.context() as mpc:
+        for key, value in environmental_variables.items():
+            mpc.setenv(key, value)
+        yield
+
+
+@pytest.mark.parametrize(
+    "environmental_variables,extra_account,log_lines",
+    [
+        # Discriminator not configured
+        (
+            {},
+            False,
+            [
+                "UUID Not found",
+                "Could not find engagement UUID for DN",
+                "Engagement UUID not found in MO",
+                "Import checks executed",
+                "Import to MO filtered",
+            ],
+        ),
+        # Discriminator rejecting all accounts
+        (
+            {
+                "DISCRIMINATOR_FIELD": "sn",
+                "DISCRIMINATOR_FUNCTION": "include",
+                "DISCRIMINATOR_VALUES": '["__never_gonna_match__"]',
+            },
+            True,
+            [
+                "Found DN",
+                "Aborting synchronization, as no good LDAP account was found",
+            ],
+        ),
+        # Discriminator finding original account
+        (
+            {
+                "DISCRIMINATOR_FIELD": "sn",
+                "DISCRIMINATOR_FUNCTION": "include",
+                "DISCRIMINATOR_VALUES": '["foo_sn"]',
+            },
+            True,
+            [
+                "Found DN",
+                "Found DN",
+                "UUID Not found",
+                "Could not find engagement UUID for DN",
+                "Engagement UUID not found in MO",
+                "Import checks executed",
+                "Import to MO filtered",
+            ],
+        ),
+        # Discriminator finding another account
+        (
+            {
+                "DISCRIMINATOR_FIELD": "sn",
+                "DISCRIMINATOR_FUNCTION": "include",
+                "DISCRIMINATOR_VALUES": '["bar_sn"]',
+            },
+            True,
+            [
+                "Found DN",
+                "Found better DN for employee",
+                "Found DN",
+                "UUID Not found",
+                "Could not find engagement UUID for DN",
+                "Engagement UUID not found in MO",
+                "Import checks executed",
+                "Import to MO filtered",
+            ],
+        ),
+    ],
+)
+@pytest.mark.usefixtures("inject_environmental_variables")
+async def test_import_single_user_first_included(
+    ldap_connection: Connection,
+    ldap_container_dn: str,
+    ldap_dn: DN,
+    graphql_mock: GraphQLMocker,
+    sync_tool: SyncTool,
+    extra_account: bool,
+    log_lines: list[str],
+) -> None:
+    if extra_account:
+        another_username = "bar"
+        ldap_connection.strategy.add_entry(
+            f"CN={another_username},{ldap_container_dn}",
+            {
+                "objectClass": "inetOrgPerson",
+                "userPassword": str(uuid4()),
+                "sn": f"{another_username}_sn",
+                "revision": 1,
+                "entryUUID": "{" + str(uuid4()) + "}",
+                "employeeID": "0101700001",
+            },
+        )
+
+    route = graphql_mock.query("read_employee_uuid_by_ituser_user_key")
+    route.result = {"itusers": {"objects": []}}
+
+    employee_uuid = uuid4()
+
+    route = graphql_mock.query("read_employee_uuid_by_cpr_number")
+    route.result = {"employees": {"objects": [{"uuid": employee_uuid}]}}
+
+    route = graphql_mock.query("read_employees")
+    route.result = {
+        "employees": {
+            "objects": [
+                {
+                    "validities": [
+                        {
+                            "uuid": employee_uuid,
+                            "cpr_no": "0101700001",
+                            "givenname": "Chen",
+                            "surname": "Stormstout",
+                            "nickname_givenname": "Chen",
+                            "nickname_surname": "Brewmaster",
+                            "validity": {"from": "1970-01-01T00:00:00", "to": None},
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+
+    with capture_logs() as cap_logs:
+        await sync_tool.import_single_user(ldap_dn)
+    events = [x["event"] for x in cap_logs]
+
+    assert (
+        events
+        == [
+            "Generating DN",
+            "Importing user",
+            "Found DN",
+            "Found employee via CPR matching",
+            "Attempting to find DNs",
+            "UUID Not found",
+            "Attempting CPR number lookup",
+            "Found LDAP(s) object",
+            "Found DN(s) using CPR number lookup",
+            "Found DN",
+        ]
+        + log_lines
+    )

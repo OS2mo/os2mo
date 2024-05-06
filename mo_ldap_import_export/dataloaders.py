@@ -808,7 +808,11 @@ class DataLoader:
         ldap_object = self.load_ldap_object(dn, [cpr_field])
         # Try to get the cpr number from LDAP and use that.
         try:
-            cpr_no = validate_cpr(str(getattr(ldap_object, cpr_field)))
+            raw_cpr_no = getattr(ldap_object, cpr_field)
+            # NOTE: Not sure if this only necessary for the mocked server or not
+            if isinstance(raw_cpr_no, list):
+                raw_cpr_no = one(raw_cpr_no)
+            cpr_no = validate_cpr(str(raw_cpr_no))
             assert cpr_no is not None
             cpr_number = CPRNumber(cpr_no)
         except ValueError:
@@ -860,9 +864,11 @@ class DataLoader:
 
         settings = self.user_context["settings"]
         ldap_object = self.load_ldap_object(dn, [settings.ldap_unique_id_field])
-        unique_uuid = filter_remove_curly_brackets(
-            getattr(ldap_object, settings.ldap_unique_id_field)
-        )
+        raw_unique_uuid = getattr(ldap_object, settings.ldap_unique_id_field)
+        # NOTE: Not sure if this only necessary for the mocked server or not
+        if isinstance(raw_unique_uuid, list):
+            raw_unique_uuid = one(raw_unique_uuid)
+        unique_uuid = filter_remove_curly_brackets(raw_unique_uuid)
 
         itsystem_uuid = self.get_ldap_it_system_uuid()
         if itsystem_uuid is None:
@@ -938,7 +944,7 @@ class DataLoader:
         if not uuid:
             # Some computer-account objects has no samaccountname
             raise NoObjectsReturnedException(
-                "Object has no {settings.ldap_unique_id_field}"
+                f"Object has no {settings.ldap_unique_id_field}"
             )
         return UUID(uuid)
 

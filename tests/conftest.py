@@ -78,6 +78,7 @@ def minimal_mapping() -> dict[str, Any]:
             "Employee": {
                 "objectClass": "ramodels.mo.employee.Employee",
                 "_import_to_mo_": "false",
+                "cpr_no": "{{ldap.employeeID or None}}",
                 "uuid": "{{ employee_uuid or NONE }}",
             }
         },
@@ -85,6 +86,7 @@ def minimal_mapping() -> dict[str, Any]:
             "Employee": {
                 "objectClass": "inetOrgPerson",
                 "_export_to_ldap_": "false",
+                "employeeID": "{{mo_employee.cpr_no or None}}",
             }
         },
         "username_generator": {"objectClass": "UserNameGenerator"},
@@ -233,9 +235,9 @@ def graphql_mock(respx_mock) -> Iterator[GraphQLMocker]:
     yield GraphQLMocker(respx_mock)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 async def graphql_client() -> AsyncIterator[GraphQLClient]:
-    # We can have this session-scoped as it is essentially stateless
+    # NOTE: We could have this session-scoped as it is essentially stateless
     async with GraphQLClient("http://example.com/graphql") as graphql_client:
         yield graphql_client
 

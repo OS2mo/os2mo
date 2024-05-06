@@ -186,6 +186,7 @@ async def poller_healthcheck(context: dict | Context) -> bool:
 
 
 def get_ldap_schema(ldap_connection: Connection):
+    # On OpenLDAP this returns a ldap3.protocol.rfc4512.SchemaInfo
     return ldap_connection.server.schema
 
 
@@ -663,11 +664,14 @@ def make_ldap_object(response: dict, context: Context, nest: bool = True) -> Lda
     return LdapObject(**ldap_dict)
 
 
-def get_attribute_types(ldap_connection):
+def get_attribute_types(ldap_connection: Connection):
     """
     Returns a dictionary with attribute type information for all attributes in LDAP
     """
-    return ldap_connection.server.schema.attribute_types
+    # On OpenLDAP this returns a ldap3.utils.ciDict.CaseInsensitiveWithAliasDict
+    # Mapping from str to ldap3.protocol.rfc4512.AttributeTypeInfo
+    schema = get_ldap_schema(ldap_connection)
+    return schema.attribute_types
 
 
 async def cleanup(
