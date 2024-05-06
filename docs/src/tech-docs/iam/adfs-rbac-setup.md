@@ -79,6 +79,7 @@ As "Outgoing claim value" enter `os2mo-admin`. This is the name of the expected 
 
     * `os2mo-admin` for the admin role.
     * `os2mo-owner` for the owner role.
+    * `os2mo-reader` for the reader role.
 
 Click "Finish".
 
