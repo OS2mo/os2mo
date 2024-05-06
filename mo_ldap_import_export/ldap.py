@@ -3,6 +3,7 @@
 """LDAP Connection handling."""
 import asyncio
 import signal
+import warnings
 from collections import ChainMap
 from contextlib import suppress
 from datetime import datetime
@@ -334,6 +335,10 @@ def apply_discriminator(
     Returns:
         A filtered list of LDAP search results.
     """
+    dns = [x["dn"] for x in search_result]
+    logger.warning("apply_discriminator called", dns=dns)
+    warnings.warn("apply_discriminator called", DeprecationWarning)
+
     discriminator_field = settings.discriminator_field
     discriminator_values = settings.discriminator_values
     match settings.discriminator_function:
@@ -582,7 +587,7 @@ def is_dn(value):
 
 
 def get_ldap_object(
-    dn: str,
+    dn: DN,
     context: Context,
     nest: bool = True,
     attributes: list | None = None,

@@ -246,10 +246,16 @@ class DataLoader:
 
         return result
 
-    def load_ldap_object(self, dn, attributes, nest=True):  # pragma: no cover
+    def load_ldap_object(
+        self,
+        dn: DN,
+        attributes: list | None,
+        nest: bool = True,
+        run_discriminator: bool = True,
+    ) -> LdapObject:  # pragma: no cover
         # TODO: Actually eliminate this function by calling get_ldap_object directly.
         #       Be warned though, doing so breaks ~25 tests because of bad mocking.
-        return get_ldap_object(dn, self.context, nest, attributes)
+        return get_ldap_object(dn, self.context, nest, attributes, run_discriminator)
 
     def load_ldap_attribute_values(self, attribute, search_base=None) -> list[str]:
         """
@@ -805,7 +811,7 @@ class DataLoader:
         if cpr_field is None:
             return set()
 
-        ldap_object = self.load_ldap_object(dn, [cpr_field])
+        ldap_object = self.load_ldap_object(dn, [cpr_field], run_discriminator=False)
         # Try to get the cpr number from LDAP and use that.
         try:
             raw_cpr_no = getattr(ldap_object, cpr_field)
@@ -858,12 +864,14 @@ class DataLoader:
         logger.info("No matching employee", dn=dn)
         return None
 
-    async def find_mo_engagement_uuid(self, dn: str) -> None | UUID:
+    async def find_mo_engagement_uuid(self, dn: DN) -> None | UUID:
         # Get Unique LDAP UUID from DN, then get engagement by looking for IT user with that
         # Unique LDAP UUID in MO.
 
         settings = self.user_context["settings"]
-        ldap_object = self.load_ldap_object(dn, [settings.ldap_unique_id_field])
+        ldap_object = self.load_ldap_object(
+            dn, [settings.ldap_unique_id_field], run_discriminator=False
+        )
         raw_unique_uuid = getattr(ldap_object, settings.ldap_unique_id_field)
         # NOTE: Not sure if this only necessary for the mocked server or not
         if isinstance(raw_unique_uuid, list):
