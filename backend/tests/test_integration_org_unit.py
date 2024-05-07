@@ -2161,9 +2161,10 @@ async def test_edit_org_unit_60582(graphapi_post):
     parent_uuid = response.data["org_unit_create"]["uuid"]
 
     # create child
+    child_end = "2025-01-01"
     child_input = {
         "input": {
-            "validity": {"from": "2024-01-01", "to": "2025-01-01"},
+            "validity": {"from": "2024-01-01", "to": child_end},
             "name": "Child",
             "parent": parent_uuid,
             "org_unit_type": "32547559-cfc1-4d97-94c6-70b192eff825",
@@ -2176,9 +2177,20 @@ async def test_edit_org_unit_60582(graphapi_post):
     assert response.errors is None
     child_uuid = response.data["org_unit_create"]["uuid"]
 
-    # edit child to exceed parent validity range
+    # edit child to exceed parent validity range end
     child_input["input"]["validity"]["to"] = "2027-01-01"
     child_input["input"]["uuid"] = child_uuid
+    response = graphapi_post(
+        "mutation EditOrgUnit($input: OrganisationUnitUpdateInput!) { org_unit_update(input: $input) { uuid } }",
+        child_input,
+    )
+    # expect this to fail, since child can't exceed parents validity range
+    assert response.errors is not None
+    assert response.errors[0]["message"] == "ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE"
+
+    # edit child to exceed parent validity range start
+    child_input["input"]["validity"]["to"] = child_end
+    child_input["input"]["validity"]["from"] = "2022-01-01"
     response = graphapi_post(
         "mutation EditOrgUnit($input: OrganisationUnitUpdateInput!) { org_unit_update(input: $input) { uuid } }",
         child_input,
