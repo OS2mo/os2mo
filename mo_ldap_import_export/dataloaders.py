@@ -757,7 +757,7 @@ class DataLoader:
 
         return output
 
-    def load_ldap_populated_overview(self, ldap_classes=None):
+    def load_ldap_populated_overview(self, ldap_classes=None) -> dict:
         """
         Like load_ldap_overview but only returns fields which actually contain data
         """

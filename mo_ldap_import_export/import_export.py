@@ -49,7 +49,7 @@ logger = structlog.stdlib.get_logger()
 
 
 class IgnoreMe:
-    def __init__(self):
+    def __init__(self) -> None:
         self.ignore_dict: dict[str, list[datetime]] = {}
 
     def __getitem__(self, key: str | UUID) -> list[datetime]:
