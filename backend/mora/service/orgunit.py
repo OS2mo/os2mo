@@ -43,6 +43,7 @@ from ..graphapi.middleware import is_graphql
 from ..handler.reading import get_handler_for_type
 from ..lora import LoraObjectType
 from ..triggers import Trigger
+from ..util import parsedatetime
 from .tree_helper import prepare_ancestor_tree
 from .validation import validator
 from mora.auth.keycloak import oidc
@@ -299,6 +300,24 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
             await validator.is_candidate_parent_valid(unitid, parent_uuid, new_from)
 
             update_fields.append((mapping.PARENT_FIELD, {"uuid": parent_uuid}))
+        else:
+            # Verify that we have had parents for the entire (new) duration
+            parents = original["relationer"]["overordnet"]
+            parent_from_date = min(
+                [parsedatetime(p["virkning"].get("from", "-infinity")) for p in parents]
+            )
+            parent_to_date = max(
+                [parsedatetime(p["virkning"].get("to", "infinity")) for p in parents]
+            )
+
+            if parent_from_date > new_from or parent_to_date < new_to:
+                exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE(
+                    org_unit_uuid=unitid,
+                    wanted_valid_from=parent_from_date,
+                    wanted_valid_to=parent_to_date,
+                    valid_from=new_from,
+                    valid_to=new_to,
+                )
 
         payload = common.update_payload(
             new_from, new_to, update_fields, original, payload
