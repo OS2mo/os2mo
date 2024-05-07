@@ -43,7 +43,9 @@ async def legacyauth() -> Token:
     return Token(
         azp="mo-frontend",
         uuid=str(LEGACY_AUTH_UUID),
-        realm_access=RealmAccess(roles={"admin", "owner"}.union(ALL_PERMISSIONS)),
+        realm_access=RealmAccess(
+            roles={"admin", "owner", "service_api"}.union(ALL_PERMISSIONS)
+        ),
     )
 
 
