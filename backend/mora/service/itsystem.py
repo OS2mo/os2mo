@@ -47,6 +47,7 @@ class _ITUserGroupValidation(GroupValidation):
                 "uuid": util.get_uuid(mo_object, required=False),
                 "employee_uuid": util.get_mapping_uuid(mo_object, mapping.PERSON),
                 "it_system_uuid": util.get_mapping_uuid(mo_object, mapping.ITSYSTEM),
+                "engagement_uuid": util.get_mapping_uuid(mo_object, mapping.ENGAGEMENT),
                 "it_user_username": mo_object.get(mapping.USER_KEY),
                 "is_primary": await get_mo_object_primary_value(mo_object),
             }
@@ -63,7 +64,7 @@ class _ITUserGroupValidation(GroupValidation):
 class ITUserUniqueGroupValidation(_ITUserGroupValidation):
     def validate(self) -> None:
         self.validate_unique_constraint(
-            ["employee_uuid", "it_system_uuid", "it_user_username"],
+            ["employee_uuid", "it_system_uuid", "it_user_username", "engagement_uuid"],
             exceptions.ErrorCodes.V_DUPLICATED_IT_USER,
         )
 
@@ -140,6 +141,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                     employee_uuid=employee_uuid,
                     it_system_uuid=systemid,
                     it_user_username=bvn,
+                    engagement_uuid=engagement_uuid,
                 )
             ).validate()
 
@@ -289,6 +291,9 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         # Validation prerequisites
         systemid = util.get_mapping_uuid(data, mapping.ITSYSTEM, required=False)
         employee_uuid = util.get_mapping_uuid(data, mapping.PERSON, required=False)
+        engagement_uuid = util.get_mapping_uuid(
+            data, mapping.ENGAGEMENT, required=False
+        )
         primary = util.get_mapping_uuid(data, mapping.PRIMARY, required=False)
         bvn = util.checked_get(data, mapping.USER_KEY, default="", required=False)
 
@@ -319,6 +324,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                     employee_uuid=employee_uuid,
                     it_system_uuid=systemid,
                     it_user_username=bvn,
+                    engagement_uuid=engagement_uuid,
                 ),
             ).validate()
 
