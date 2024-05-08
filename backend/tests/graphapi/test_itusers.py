@@ -509,3 +509,51 @@ async def test_it_user_systems_uuid_filter(graphapi_post):
     for itusers in r.data["itusers"]["objects"]:
         for objects in itusers["objects"]:
             assert objects["itsystem"]["uuid"] == ACTIVE_DIRECTORY
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_it_user_group_validation(graphapi_post: GraphAPIPost) -> None:
+    # ["employee_uuid", "it_system_uuid", "it_user_username", "engagement_uuid"], TODO
+    mutation = """
+      mutation CreateITUser(
+        $itsystem: UUID!,
+        $user_key: String!
+        $person: UUID!,
+        $engagement: UUID,
+      ) {
+        ituser_create(
+          input: {
+            itsystem: $itsystem,
+            user_key: $user_key,
+            person: $person,
+            engagement: $engagement,
+            validity: {from: "2020-01-01"},
+          }
+        ) {
+          uuid
+        }
+      }
+    """
+    variables = {
+        "itsystem": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+        "user_key": "a",
+        "person": "7626ad64-327d-481f-8b32-36c78eb12f8c",
+        "engagement": "00e96933-91e4-42ac-9881-0fe1738b2e59",
+    }
+    # First IT user shouldn't give any issues
+    r = graphapi_post(
+        mutation,
+        variables=variables,
+    )
+    print(r.data)
+    assert r.errors is None
+
+    # Second identical IT user should raise an error
+    r = graphapi_post(
+        mutation,
+        variables=variables,
+    )
+    print(r.data)
+    assert r.errors == {}
+

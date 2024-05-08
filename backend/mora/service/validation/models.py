@@ -13,6 +13,7 @@ from more_itertools import flatten
 
 from ... import lora
 from mora.exceptions import ErrorCodes
+from ...graphapi.middleware import with_is_graphql
 
 if TYPE_CHECKING:  # pragma: no cover
     from ...handler.reading import ReadingHandler
@@ -35,7 +36,9 @@ class GroupValidation:
         """
         connector = lora.Connector()
         reading_handler = cls.get_mo_object_reading_handler()
-        mo_objects = await reading_handler.get(connector, search_fields)
+        with with_is_graphql(False):
+            mo_objects = await reading_handler.get(connector, search_fields)
+            print("from_MO_OBJECTS", mo_objects)
         return cls(await cls._get_filtered_validation_items(mo_objects))
 
     @classmethod
@@ -124,6 +127,7 @@ class GroupValidation:
         If there are duplicates, a member of the `ErrorCodes` enum is called, raising an
         `HTTPException`.
         """
+        print("validation_items", self.validation_items)
         counter = Counter(map(itemgetter(*field_names), self.validation_items))
         if any(count > 1 for count in counter.values()):
             error()

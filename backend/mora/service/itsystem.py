@@ -42,7 +42,8 @@ MO_OBJ_TYPE = dict[str, Any]
 class _ITUserGroupValidation(GroupValidation):
     @classmethod
     async def get_validation_items_from_mo_object(cls, mo_object: dict) -> list[dict]:
-        return [
+        print("mo_object", mo_object)
+        r = [
             {
                 "uuid": util.get_uuid(mo_object, required=False),
                 "employee_uuid": util.get_mapping_uuid(mo_object, mapping.PERSON),
@@ -52,6 +53,8 @@ class _ITUserGroupValidation(GroupValidation):
                 "is_primary": await get_mo_object_primary_value(mo_object),
             }
         ]
+        print("mo_object return", r[0])
+        return r
 
     @classmethod
     def get_mo_object_reading_handler(cls) -> "ReadingHandler":
@@ -130,12 +133,19 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
             )
 
         if employee_uuid and systemid:
+            print("PREPARE CREATE OH YEAH")
+            print(                dict(
+                    tilknyttedebrugere=employee_uuid,
+                    tilknyttedeitsystemer=systemid,
+                )
+)
             validation = await ITUserUniqueGroupValidation.from_mo_objects(
                 dict(
                     tilknyttedebrugere=employee_uuid,
                     tilknyttedeitsystemer=systemid,
                 )
             )
+            print("self.validation_items", validation.validation_items)
             validation.add_validation_item(
                 dict(
                     employee_uuid=employee_uuid,
@@ -291,7 +301,9 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         # Validation prerequisites
         systemid = util.get_mapping_uuid(data, mapping.ITSYSTEM, required=False)
         employee_uuid = util.get_mapping_uuid(data, mapping.PERSON, required=False)
-        engagement_uuid = util.get_mapping_uuid(data, mapping.ENGAGEMENT, required=False)
+        engagement_uuid = util.get_mapping_uuid(
+            data, mapping.ENGAGEMENT, required=False
+        )
         primary = util.get_mapping_uuid(data, mapping.PRIMARY, required=False)
         bvn = util.checked_get(data, mapping.USER_KEY, default="", required=False)
 

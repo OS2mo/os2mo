@@ -90,6 +90,18 @@ def is_graphql() -> bool:
     return context.get(_IS_GRAPHQL_MIDDLEWARE_KEY, 0) > 0
 
 
+@contextmanager
+def with_is_graphql(is_graphql: bool) -> Iterator[None]:
+    old = context.get(_IS_GRAPHQL_MIDDLEWARE_KEY, 0)
+    new = 1 if is_graphql else 0
+    context[_IS_GRAPHQL_MIDDLEWARE_KEY] = new
+    yield
+    # Ensure no one started a new GraphQL operation, which would mess with the
+    # reference counter.
+    assert context[_IS_GRAPHQL_MIDDLEWARE_KEY] == new
+    context[_IS_GRAPHQL_MIDDLEWARE_KEY] = old
+
+
 _GRAPHQL_DATES_MIDDLEWARE_KEY = "graphql_dates"
 
 
