@@ -620,3 +620,140 @@ async def test_import_single_user_first_included(
         ]
         + log_lines
     )
+
+
+@pytest.mark.parametrize(
+    "environmental_variables,extra_account,log_lines",
+    [
+        # Discriminator not configured
+        (
+            {},
+            False,
+            [
+                "Found Employee in MO",
+                "_export_to_ldap_ == False.",
+            ],
+        ),
+        # Discriminator rejecting all accounts
+        (
+            {
+                "DISCRIMINATOR_FIELD": "sn",
+                "DISCRIMINATOR_FUNCTION": "include",
+                "DISCRIMINATOR_VALUES": '["__never_gonna_match__"]',
+            },
+            True,
+            [
+                "Found DN",
+                "Found DN",
+                "Aborting synchronization, as no good LDAP account was found",
+            ],
+        ),
+        # Discriminator finding original account
+        (
+            {
+                "DISCRIMINATOR_FIELD": "sn",
+                "DISCRIMINATOR_FUNCTION": "include",
+                "DISCRIMINATOR_VALUES": '["foo_sn"]',
+            },
+            True,
+            [
+                "Found DN",
+                "Found DN",
+                "Found Employee in MO",
+                "_export_to_ldap_ == False.",
+            ],
+        ),
+        # Discriminator finding another account
+        (
+            {
+                "DISCRIMINATOR_FIELD": "sn",
+                "DISCRIMINATOR_FUNCTION": "include",
+                "DISCRIMINATOR_VALUES": '["bar_sn"]',
+            },
+            True,
+            [
+                "Found DN",
+                "Found DN",
+                "Found Employee in MO",
+                "_export_to_ldap_ == False.",
+            ],
+        ),
+    ],
+)
+@pytest.mark.usefixtures("inject_environmental_variables")
+async def test_listen_to_changes_in_employees(
+    ldap_connection: Connection,
+    ldap_container_dn: str,
+    ldap_dn: DN,
+    graphql_mock: GraphQLMocker,
+    sync_tool: SyncTool,
+    extra_account: bool,
+    log_lines: list[str],
+) -> None:
+    if extra_account:
+        another_username = "bar"
+        ldap_connection.strategy.add_entry(
+            f"CN={another_username},{ldap_container_dn}",
+            {
+                "objectClass": "inetOrgPerson",
+                "userPassword": str(uuid4()),
+                "sn": f"{another_username}_sn",
+                "revision": 1,
+                "entryUUID": "{" + str(uuid4()) + "}",
+                "employeeID": "0101700001",
+            },
+        )
+
+    route = graphql_mock.query("read_employee_uuid_by_ituser_user_key")
+    route.result = {"itusers": {"objects": []}}
+
+    employee_uuid = uuid4()
+
+    route = graphql_mock.query("read_employee_uuid_by_cpr_number")
+    route.result = {"employees": {"objects": [{"uuid": employee_uuid}]}}
+
+    route = graphql_mock.query("read_employees")
+    route.result = {
+        "employees": {
+            "objects": [
+                {
+                    "validities": [
+                        {
+                            "uuid": employee_uuid,
+                            "cpr_no": "0101700001",
+                            "givenname": "Chen",
+                            "surname": "Stormstout",
+                            "nickname_givenname": "Chen",
+                            "nickname_surname": "Brewmaster",
+                            "validity": {"from": "1970-01-01T00:00:00", "to": None},
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+
+    with capture_logs() as cap_logs:
+        await sync_tool.listen_to_changes_in_employees(
+            uuid=employee_uuid,
+            object_uuid=employee_uuid,
+            routing_key="person",
+            delete=False,
+            current_objects_only=True,
+        )
+    events = [x["event"] for x in cap_logs]
+
+    assert (
+        events
+        == [
+            "Generating UUID",
+            "Registered change in an employee",
+            "Attempting to find DNs",
+            "UUID Not found",
+            "Attempting CPR number lookup",
+            "Found LDAP(s) object",
+            "Found DN(s) using CPR number lookup",
+            "Found DNs for user",
+        ]
+        + log_lines
+    )

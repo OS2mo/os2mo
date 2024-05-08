@@ -203,7 +203,7 @@ class SyncTool:
         logger.info("No cleanup needed")
         return False
 
-    def move_ldap_object(self, ldap_object: LdapObject, dn: str) -> LdapObject:
+    def move_ldap_object(self, ldap_object: LdapObject, dn: DN) -> LdapObject:
         """
         Parameters
         ----------------
@@ -296,15 +296,30 @@ class SyncTool:
         # TODO: Change this to only perform engagement specific import checks?
         await self.perform_export_checks(uuid, object_uuid)
 
-        try:
-            dns: set[DN] = await self.dataloader.find_or_make_mo_employee_dn(uuid)
-        except DNNotFound:
-            # TODO: Do we even want to catch this, probably not
-            logger.info("DN not found", **logger_args)
-            return
+        dns = await self.dataloader.find_mo_employee_dn(uuid)
+        # If we found DNs, we want to synchronize to the best of them
+        if dns:
+            logger.info("Found DNs for user", dns=dns, uuid=uuid)
+            best_dn = first_included(self.context, dns)
+            # If no good LDAP account was found, we do not want to synchronize at all
+            if best_dn is None:
+                logger.info(
+                    "Aborting synchronization, as no good LDAP account was found",
+                    dns=dns,
+                    uuid=uuid,
+                )
+                return
+        else:
+            # If we did not find DNs, we want to make one
+            try:
+                best_dn = await self.dataloader.make_mo_employee_dn(uuid)
+            except DNNotFound:
+                # If this occurs we were unable to generate a DN for the user
+                logger.info("Unable to generate DN", **logger_args)
+                raise RequeueMessage("Unable to generate DN")
 
         # TODO: Refactor logger_args to be structlog binds
-        logger_args["dns"] = dns
+        logger_args["dn"] = best_dn
 
         # Get MO employee
         changed_employee = await self.dataloader.load_mo_employee(
@@ -321,21 +336,20 @@ class SyncTool:
         object_type = get_object_type_from_routing_key(routing_key)
 
         if object_type == "person":
-            for dn in dns:
-                # Convert to LDAP
-                ldap_employee = await self.converter.to_ldap(
-                    mo_object_dict, "Employee", dn
-                )
-                ldap_employee = self.move_ldap_object(ldap_employee, dn)
+            # Convert to LDAP
+            ldap_employee = await self.converter.to_ldap(
+                mo_object_dict, "Employee", best_dn
+            )
+            ldap_employee = self.move_ldap_object(ldap_employee, best_dn)
 
-                # Upload to LDAP - overwrite because all employee fields are unique.
-                # One person cannot have multiple names.
-                await self.dataloader.modify_ldap_object(
-                    ldap_employee,
-                    "Employee",
-                    overwrite=True,
-                    delete=delete,
-                )
+            # Upload to LDAP - overwrite because all employee fields are unique.
+            # One person cannot have multiple names.
+            await self.dataloader.modify_ldap_object(
+                ldap_employee,
+                "Employee",
+                overwrite=True,
+                delete=delete,
+            )
 
         elif object_type == "address":
             # Get MO address
@@ -356,6 +370,7 @@ class SyncTool:
             mo_object_dict["mo_employee_address"] = changed_address
 
             # Convert & Upload to LDAP
+            # TODO: Convert this to use best_dn?
             affected_dn = await self.dataloader.find_dn_by_engagement_uuid(
                 uuid, changed_address.engagement, dns
             )
@@ -404,6 +419,7 @@ class SyncTool:
             mo_object_dict["mo_employee_it_user"] = changed_it_user
 
             # Convert & Upload to LDAP
+            # TODO: Convert this to use best_dn?
             affected_dn = await self.dataloader.find_dn_by_engagement_uuid(
                 uuid, changed_it_user.engagement, dns
             )
@@ -448,6 +464,7 @@ class SyncTool:
             # We upload an engagement to LDAP regardless of its 'primary' attribute.
             # Because it looks like you cannot set 'primary' when creating an engagement
             # in the OS2mo GUI.
+            # TODO: Convert this to use best_dn?
             affected_dn = await self.dataloader.find_dn_by_engagement_uuid(
                 uuid, changed_engagement, dns
             )
