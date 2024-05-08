@@ -56,7 +56,7 @@ def test_query_all(graphapi_post: GraphAPIPost):
                         job_function_uuid
                         primary_uuid
                         it_user_uuid
-                        dynamic_class_uuid
+                        trade_union_uuid
                         type
                         validity {from to}
                     }

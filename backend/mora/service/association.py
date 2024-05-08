@@ -22,6 +22,7 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from ..graphapi.middleware import is_graphql
 from ..handler.impl.association import AssociationReader
 from ..service.facet import get_mo_object_primary_value
 from ..service.facet import is_class_uuid_primary
@@ -98,6 +99,10 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
 
         dynamic_classes = util.checked_get(req, mapping.CLASSES, [])
         dynamic_classes = list(map(util.get_uuid, dynamic_classes))
+
+        if is_graphql():
+            dynamic_classes = util.checked_get(req, mapping.TRADE_UNION, [])
+            dynamic_classes = list(map(util.get_uuid, dynamic_classes))
 
         employee = util.checked_get(req, mapping.PERSON, {})
         employee_uuid = util.get_uuid(employee, required=False)
@@ -323,10 +328,16 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             primary = None
 
         # Update "dynamic_classes"
-        for clazz in util.checked_get(data, mapping.CLASSES, []):
-            update_fields.append(
-                (mapping.ORG_FUNK_CLASSES_FIELD, {"uuid": util.get_uuid(clazz)})
-            )
+        if is_graphql():
+            for clazz in util.checked_get(data, mapping.TRADE_UNION, []):
+                update_fields.append(
+                    (mapping.ORG_FUNK_CLASSES_FIELD, {"uuid": util.get_uuid(clazz)})
+                )
+        else:
+            for clazz in util.checked_get(data, mapping.CLASSES, []):
+                update_fields.append(
+                    (mapping.ORG_FUNK_CLASSES_FIELD, {"uuid": util.get_uuid(clazz)})
+                )
 
         # Validation
         if employee:

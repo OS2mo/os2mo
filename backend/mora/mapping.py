@@ -94,6 +94,7 @@ ASSOCIATION_KEY = "Tilknytning"
 ASSOCIATION_TYPE = "association_type"
 SUBSTITUTE = "substitute"
 CLASSES = "dynamic_classes"
+TRADE_UNION = "trade_union"
 
 # Related units
 RELATED_UNIT_KEY = "Relateret Enhed"

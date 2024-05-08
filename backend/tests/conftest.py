@@ -698,6 +698,68 @@ def employee_and_engagement_uuids(
 
 @pytest.fixture
 @pytest.mark.usefixtures("fixture_db")
+def trade_union_uuids(
+    graphapi_post: GraphAPIPost,
+) -> list[tuple[UUID, UUID]]:
+    # Fixture that creates the facet "medarbejderorganisation" and a class under that facet called "AC (Akademikerne)"
+    facet_mutate_query = """
+        mutation CreateFacet($input: FacetCreateInput!) {
+            facet_create(input: $input) {
+                uuid
+            }
+        }
+    """
+
+    facet_response = graphapi_post(
+        facet_mutate_query,
+        {
+            "input": {
+                "user_key": "medarbejderorganisation",
+                "validity": {"from": "2017-01-01T00:00:00+01:00"},
+            }
+        },
+    )
+    assert facet_response.errors is None
+
+    class_mutate_query = """
+        mutation CreateClass($input: ClassCreateInput!) {
+            class_create(input: $input) {
+                uuid
+            }
+        }
+    """
+    class_response = graphapi_post(
+        class_mutate_query,
+        {
+            "input": {
+                "name": "AC (Akademikerne)",
+                "user_key": "ac",
+                "facet_uuid": facet_response.data["facet_create"]["uuid"],
+                "validity": {"from": "2017-01-02T00:00:00+01:00"},
+            }
+        },
+    )
+    assert class_response.errors is None
+
+    classes_query = """
+        query FetchDynamicClasses {
+            classes(filter: {facet: {user_keys: "medarbejderorganisation"}}) {
+                objects {
+                    uuid
+                }
+            }
+        }
+    """
+    response = graphapi_post(classes_query)
+    assert response.errors is None
+    uuids = list(
+        map(UUID, map(itemgetter("uuid"), response.data["classes"]["objects"]))
+    )
+    return uuids
+
+
+@pytest.fixture
+@pytest.mark.usefixtures("fixture_db")
 def itsystem_uuids(graphapi_post: GraphAPIPost) -> list[UUID]:
     itsystem_uuids_query = """
         query FetchITSystemUUIDs {

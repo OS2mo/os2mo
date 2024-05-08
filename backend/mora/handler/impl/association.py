@@ -214,6 +214,11 @@ class AssociationReader(reading.OrgFunkReadingHandler):
             mapping.IT: None,
         }
 
+        if is_graphql() and classes:
+            r[mapping.CLASSES] = await facet.request_bulked_get_one_class_full(
+                classes, only_primary_uuid=only_primary_uuid
+            )
+
         if person:
             r[mapping.PERSON] = await employee.request_bulked_get_one_employee(
                 person, only_primary_uuid=only_primary_uuid

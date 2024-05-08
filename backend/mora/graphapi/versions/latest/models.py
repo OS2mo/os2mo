@@ -239,6 +239,8 @@ class AssociationUpsert(UUIDBase):
     person: UUID | None = Field(description="Employee uuid.")
     # TODO: Remove employee in a future version of GraphQL
     employee: UUID | None = Field(description="Employee uuid.")
+    substitute: UUID | None = Field(description="Substitute uuid.")
+    trade_union: UUID | None = Field(description="Trade union uuid.")
 
     def to_handler_dict(self) -> dict:
         return {
@@ -246,6 +248,9 @@ class AssociationUpsert(UUIDBase):
             "user_key": self.user_key,
             "primary": gen_uuid(self.primary),
             "person": gen_uuid(self.person) or gen_uuid(self.employee),
+            "substitute": gen_uuid(self.substitute),
+            # TODO: This should probably just return `gen_uuid(self.trade_union)`, when we've gotten rid of the service-api.
+            "trade_union": [gen_uuid(self.trade_union)] if self.trade_union else [],
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()
