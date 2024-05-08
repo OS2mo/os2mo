@@ -27,6 +27,7 @@ from structlog.testing import capture_logs
 from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.dataloaders import Verb
+from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.exceptions import DNNotFound
 from mo_ldap_import_export.exceptions import IgnoreChanges
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
@@ -36,6 +37,7 @@ from mo_ldap_import_export.import_export import SyncTool
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.types import OrgUnitUUID
+from tests.graphql_mocker import GraphQLMocker
 
 
 @pytest.fixture
@@ -260,21 +262,90 @@ async def test_listen_to_changes_in_employees_address(
     test_mo_address: Address,
     sync_tool: SyncTool,
     converter: MagicMock,
+    graphql_mock: GraphQLMocker,
 ) -> None:
     converted_ldap_object = LdapObject(dn="CN=foo")
     converter.to_ldap.return_value = converted_ldap_object
-    converter.mapping = {"mo_to_ldap": {"EmailEmployee": 2}}
 
     employee_uuid = uuid4()
     address_type_user_key = "EmailEmployee"
-    converter.get_employee_address_type_user_key = AsyncMock()
-    converter.get_employee_address_type_user_key.return_value = address_type_user_key
 
     dataloader.find_mo_employee_dn.return_value = {"CN=foo"}
+    dataloader.extract_current_or_latest_object = (
+        DataLoader.extract_current_or_latest_object
+    )
 
     # Simulate a created address
+
+    # Replace the shitty mock with a good mock
+    dataloader.graphql_client = GraphQLClient("http://example.com/graphql")
+
+    # Mock MO read
+    route = graphql_mock.query("read_filtered_addresses")
+    route.result = {
+        "addresses": {
+            "objects": [
+                {
+                    "validities": [
+                        {
+                            "address_type": {"user_key": address_type_user_key},
+                            "uuid": test_mo_address.uuid,
+                            "validity": {
+                                "from": "1970-01-01T00:00:00",
+                                "to": None,
+                            },
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+
     mo_routing_key = "address"
-    with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
+    await sync_tool.listen_to_changes_in_employees(
+        employee_uuid,
+        test_mo_address.uuid,
+        routing_key=mo_routing_key,
+        delete=False,
+        current_objects_only=True,
+    )
+    assert route.called
+    dataloader.modify_ldap_object.assert_called_with(
+        converted_ldap_object, address_type_user_key, delete=False
+    )
+
+    # Test expected behavior when reading multiple addresses of the same type
+    route.result = {
+        "addresses": {
+            "objects": [
+                {
+                    "validities": [
+                        {
+                            "address_type": {"user_key": address_type_user_key},
+                            "uuid": test_mo_address.uuid,
+                            "validity": {
+                                "from": "1970-01-01T00:00:00",
+                                "to": None,
+                            },
+                        }
+                    ]
+                },
+                {
+                    "validities": [
+                        {
+                            "address_type": {"user_key": address_type_user_key},
+                            "uuid": UUID(int=test_mo_address.uuid.int + 1),
+                            "validity": {
+                                "from": "1970-01-01T00:00:00",
+                                "to": None,
+                            },
+                        }
+                    ]
+                },
+            ]
+        }
+    }
+    with capture_logs() as cap_logs:
         await sync_tool.listen_to_changes_in_employees(
             employee_uuid,
             test_mo_address.uuid,
@@ -282,10 +353,19 @@ async def test_listen_to_changes_in_employees_address(
             delete=False,
             current_objects_only=True,
         )
-    assert dataloader.load_mo_address.called
-    dataloader.modify_ldap_object.assert_called_with(
-        converted_ldap_object, address_type_user_key, delete=False
-    )
+    assert "Multiple addresses of same type" in [x["event"] for x in cap_logs]
+
+    # Test expected behavior when unable to read address details
+    dataloader.load_mo_address.side_effect = NoObjectsReturnedException("BOOM")
+    with pytest.raises(RequeueMessage) as exc:
+        await sync_tool.listen_to_changes_in_employees(
+            employee_uuid,
+            test_mo_address.uuid,
+            routing_key=mo_routing_key,
+            delete=False,
+            current_objects_only=True,
+        )
+    assert "Unable to load mo object" in str(exc.value)
 
 
 async def test_listen_to_changes_in_employees_ituser(
