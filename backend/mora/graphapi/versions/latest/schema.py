@@ -72,7 +72,6 @@ from mora import common
 from mora import config
 from mora import db
 from mora.common import _create_graphql_connector
-from mora.graphapi.middleware import set_graphql_dates
 from mora.graphapi.middleware import with_graphql_dates
 from mora.graphapi.versions.latest.readers import _extract_search_params
 from mora.handler.reading import get_handler_for_type
@@ -473,8 +472,8 @@ async def validity_sub_query_hack(
             to_date=datetime.combine(root_validity.to_date.date(), time.max),
         )
 
-    set_graphql_dates(root_validity)
-    c = _create_graphql_connector()
+    with with_graphql_dates(root_validity):
+        c = _create_graphql_connector()
 
     # potential items
     item_potentials = await item_reading_handler.get(

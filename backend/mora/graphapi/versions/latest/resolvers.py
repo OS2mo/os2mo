@@ -27,7 +27,7 @@ from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 from strawberry.unset import UnsetType
 
-from ...middleware import set_graphql_dates
+from ...middleware import with_graphql_dates
 from .filters import AddressFilter
 from .filters import AssociationFilter
 from .filters import BaseFilter
@@ -896,45 +896,44 @@ async def generic_resolver(
 
     # Dates
     dates = get_date_interval(filter.from_date, filter.to_date)
-    set_graphql_dates(dates)
+    with with_graphql_dates(dates):
+        # UUIDs
+        if filter.uuids is not None:
+            if limit is not None or cursor is not None:
+                raise ValueError("Cannot filter 'uuid' with 'limit' or 'cursor'")
+            # Early return on empty UUID list
+            if not filter.uuids:
+                return dict()
+            resolver_name = resolver_map[model]["loader"]
+            return await get_by_uuid(info.context[resolver_name], filter.uuids)
 
-    # UUIDs
-    if filter.uuids is not None:
-        if limit is not None or cursor is not None:
-            raise ValueError("Cannot filter 'uuid' with 'limit' or 'cursor'")
-        # Early return on empty UUID list
-        if not filter.uuids:
-            return dict()
-        resolver_name = resolver_map[model]["loader"]
-        return await get_by_uuid(info.context[resolver_name], filter.uuids)
+        # User keys
+        if filter.user_keys is not None:
+            # Early return on empty user-key list
+            if not filter.user_keys:
+                return dict()
+            # We need to explicitly use a 'SIMILAR TO' search in LoRa, as the default is
+            # to 'AND' filters of the same name, i.e. 'http://lora?bvn=x&bvn=y' means
+            # "bvn is x AND Y", which is never true. Ideally, we'd use a different query
+            # parameter key for these queries - such as '&bvn~=foo' - but unfortunately
+            # such keys are hard-coded in a LOT of different places throughout LoRa.
+            # For this reason, it is easier to pass the sentinel in the VALUE at this
+            # point in time.
+            # Additionally, the values are regex-escaped since the joined string will be
+            # interpreted as one big regular expression in LoRa's SQL.
+            use_is_similar_sentinel = "|LORA-PLEASE-USE-IS-SIMILAR|"
+            escaped_user_keys = (re.escape(k) for k in filter.user_keys)
+            kwargs["bvn"] = use_is_similar_sentinel + "|".join(escaped_user_keys)
 
-    # User keys
-    if filter.user_keys is not None:
-        # Early return on empty user-key list
-        if not filter.user_keys:
-            return dict()
-        # We need to explicitly use a 'SIMILAR TO' search in LoRa, as the default is
-        # to 'AND' filters of the same name, i.e. 'http://lora?bvn=x&bvn=y' means
-        # "bvn is x AND Y", which is never true. Ideally, we'd use a different query
-        # parameter key for these queries - such as '&bvn~=foo' - but unfortunately
-        # such keys are hard-coded in a LOT of different places throughout LoRa.
-        # For this reason, it is easier to pass the sentinel in the VALUE at this
-        # point in time.
-        # Additionally, the values are regex-escaped since the joined string will be
-        # interpreted as one big regular expression in LoRa's SQL.
-        use_is_similar_sentinel = "|LORA-PLEASE-USE-IS-SIMILAR|"
-        escaped_user_keys = (re.escape(k) for k in filter.user_keys)
-        kwargs["bvn"] = use_is_similar_sentinel + "|".join(escaped_user_keys)
+        # Pagination
+        if limit is not None:
+            kwargs["maximalantalresultater"] = limit
+        if cursor is not None:
+            kwargs["foersteresultat"] = cursor.offset
+            kwargs["registreringstid"] = str(cursor.registration_time)
 
-    # Pagination
-    if limit is not None:
-        kwargs["maximalantalresultater"] = limit
-    if cursor is not None:
-        kwargs["foersteresultat"] = cursor.offset
-        kwargs["registreringstid"] = str(cursor.registration_time)
-
-    resolver_name = resolver_map[model]["getter"]
-    return await info.context[resolver_name](**kwargs)
+        resolver_name = resolver_map[model]["getter"]
+        return await info.context[resolver_name](**kwargs)
 
 
 async def related_unit_resolver(

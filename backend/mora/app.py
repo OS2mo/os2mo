@@ -48,7 +48,6 @@ from mora.auth.keycloak.router import keycloak_router
 from mora.auth.middleware import set_authenticated_user
 from mora.common import lora_connector_context
 from mora.graphapi.main import setup_graphql
-from mora.graphapi.middleware import graphql_dates_context
 from mora.graphapi.middleware import is_graphql_context
 from mora.request_scoped.query_args_context_plugin import query_args_context
 from mora.service.address_handler.dar import dar_loader_context
@@ -239,7 +238,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             Depends(lora_connector_context),
             Depends(dar_loader_context),
             Depends(is_graphql_context),
-            Depends(graphql_dates_context),
             Depends(set_graphql_context_dependencies),
         ],
         openapi_tags=list(tags_metadata),
