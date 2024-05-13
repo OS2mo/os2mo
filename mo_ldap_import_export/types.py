@@ -8,5 +8,6 @@ from uuid import UUID
 # TODO: Consider a proper type with validation
 CPRNumber = NewType("CPRNumber", str)
 OrgUnitUUID = NewType("OrgUnitUUID", UUID)
+EmployeeUUID = NewType("EmployeeUUID", UUID)
 # TODO: Convert this to a NewType
 DN: TypeAlias = str

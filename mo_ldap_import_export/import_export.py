@@ -1,15 +1,13 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-"""
-Created on Fri Mar  3 09:46:15 2023
-
-@author: nick
-"""
 import asyncio
 from collections.abc import Callable
+from contextlib import ExitStack
 from datetime import datetime
 from datetime import timedelta
+from functools import wraps
 from typing import Any
+from typing import Awaitable
 from uuid import UUID
 from uuid import uuid4
 
@@ -25,7 +23,9 @@ from more_itertools import first
 from more_itertools import one
 from more_itertools import quantify
 from pydantic import parse_obj_as
+from ramodels.mo import Employee
 from ramodels.mo import MOBase
+from structlog.contextvars import bound_contextvars
 
 from .converters import LdapConverter
 from .customer_specific_checks import ExportChecks
@@ -41,6 +41,7 @@ from .ldap import cleanup
 from .ldap import first_included
 from .ldap import get_ldap_object
 from .ldap_classes import LdapObject
+from .types import EmployeeUUID
 from .types import OrgUnitUUID
 from .utils import extract_ou_from_dn
 from .utils import get_object_type_from_routing_key
@@ -110,6 +111,26 @@ class IgnoreMe:
             oldest_timestamp = min(self.ignore_dict[str_to_check])
             self.ignore_dict[str_to_check].remove(oldest_timestamp)
             raise IgnoreChanges(f"Ignoring {str_to_check}")
+
+
+def with_exitstack(
+    func: Callable[..., Awaitable[None]],
+) -> Callable[..., Awaitable[None]]:
+    """Inject an exit-stack into decorated function.
+
+    Args:
+        func: The function to inject the exit-stack into.
+
+    Returns:
+        Decorated function that takes the exit-stack as an argument.
+    """
+
+    @wraps(func)
+    async def inner(*args: Any, **kwargs: Any) -> Any:
+        with ExitStack() as exit_stack:
+            return await func(*args, **kwargs, exit_stack=exit_stack)
+
+    return inner
 
 
 class SyncTool:
@@ -249,40 +270,197 @@ class SyncTool:
 
         return ldap_object
 
+    async def mo_address_to_ldap(
+        self,
+        uuid: EmployeeUUID,
+        object_uuid: UUID,
+        delete: bool,
+        current_objects_only: bool,
+        dns: set[DN],
+        mo_object_dict: dict[str, Any],
+        changed_employee: Employee,
+        object_type: str,
+    ) -> None:
+        # Get MO address
+        changed_address = await self.dataloader.load_mo_address(
+            object_uuid,
+            current_objects_only=current_objects_only,
+        )
+        address_type_uuid = str(changed_address.address_type.uuid)
+        json_key = await self.converter.get_employee_address_type_user_key(
+            address_type_uuid
+        )
+
+        logger.info("Obtained address", user_key=json_key)
+        mo_object_dict["mo_employee_address"] = changed_address
+
+        # Convert & Upload to LDAP
+        # TODO: Convert this to use best_dn?
+        affected_dn = await self.dataloader.find_dn_by_engagement_uuid(
+            uuid, changed_address.engagement, dns
+        )
+        ldap_object = await self.converter.to_ldap(
+            mo_object_dict, json_key, affected_dn
+        )
+        ldap_object = self.move_ldap_object(ldap_object, affected_dn)
+
+        ldap_modify_responses = await self.dataloader.modify_ldap_object(
+            ldap_object,
+            json_key,
+            delete=delete,
+        )
+
+        if self.cleanup_needed(ldap_modify_responses):
+            addresses_in_mo = await self.dataloader.load_mo_employee_addresses(
+                changed_employee.uuid, changed_address.address_type.uuid
+            )
+
+            await cleanup(
+                json_key,
+                "mo_employee_address",
+                addresses_in_mo,
+                self.user_context,
+                changed_employee,
+                object_type,
+                ldap_object.dn,
+            )
+
+    async def mo_ituser_to_ldap(
+        self,
+        uuid: EmployeeUUID,
+        object_uuid: UUID,
+        delete: bool,
+        current_objects_only: bool,
+        dns: set[DN],
+        mo_object_dict: dict[str, Any],
+        changed_employee: Employee,
+        object_type: str,
+    ) -> None:
+        # Get MO IT-user
+        changed_it_user = await self.dataloader.load_mo_it_user(
+            object_uuid,
+            current_objects_only=current_objects_only,
+        )
+        it_system_type_uuid = changed_it_user.itsystem.uuid
+        json_key = await self.converter.get_it_system_user_key(str(it_system_type_uuid))
+
+        logger.info("Obtained IT system", user_key=json_key)
+        mo_object_dict["mo_employee_it_user"] = changed_it_user
+
+        # Convert & Upload to LDAP
+        # TODO: Convert this to use best_dn?
+        affected_dn = await self.dataloader.find_dn_by_engagement_uuid(
+            uuid, changed_it_user.engagement, dns
+        )
+        ldap_object = await self.converter.to_ldap(
+            mo_object_dict, json_key, affected_dn
+        )
+        ldap_object = self.move_ldap_object(ldap_object, affected_dn)
+
+        ldap_modify_responses = await self.dataloader.modify_ldap_object(
+            ldap_object,
+            json_key,
+            delete=delete,
+        )
+
+        if self.cleanup_needed(ldap_modify_responses):
+            # Load IT users belonging to this employee
+            it_users_in_mo = await self.dataloader.load_mo_employee_it_users(
+                changed_employee.uuid, it_system_type_uuid
+            )
+
+            await cleanup(
+                json_key,
+                "mo_employee_it_user",
+                it_users_in_mo,
+                self.user_context,
+                changed_employee,
+                object_type,
+                ldap_object.dn,
+            )
+
+    async def mo_engagement_to_ldap(
+        self,
+        uuid: EmployeeUUID,
+        object_uuid: UUID,
+        delete: bool,
+        current_objects_only: bool,
+        dns: set[DN],
+        mo_object_dict: dict[str, Any],
+        changed_employee: Employee,
+        object_type: str,
+    ) -> None:
+        # Get MO Engagement
+        changed_engagement = await self.dataloader.load_mo_engagement(
+            object_uuid,
+            current_objects_only=current_objects_only,
+        )
+
+        json_key = "Engagement"
+        mo_object_dict["mo_employee_engagement"] = changed_engagement
+
+        # Convert & Upload to LDAP
+        # We upload an engagement to LDAP regardless of its 'primary' attribute.
+        # Because it looks like you cannot set 'primary' when creating an engagement
+        # in the OS2mo GUI.
+        # TODO: Convert this to use best_dn?
+        affected_dn = await self.dataloader.find_dn_by_engagement_uuid(
+            uuid, changed_engagement, dns
+        )
+        ldap_object = await self.converter.to_ldap(
+            mo_object_dict, json_key, affected_dn
+        )
+        ldap_object = self.move_ldap_object(ldap_object, affected_dn)
+        ldap_modify_responses = await self.dataloader.modify_ldap_object(
+            ldap_object,
+            json_key,
+            delete=delete,
+        )
+
+        if self.cleanup_needed(ldap_modify_responses):
+            engagements_in_mo = await self.dataloader.load_mo_employee_engagements(
+                changed_employee.uuid
+            )
+
+            await cleanup(
+                json_key,
+                "mo_employee_engagement",
+                engagements_in_mo,
+                self.user_context,
+                changed_employee,
+                object_type,
+                ldap_object.dn,
+            )
+
     @wait_for_export_to_finish
+    @with_exitstack
     async def listen_to_changes_in_employees(
         self,
-        uuid: UUID,
+        uuid: EmployeeUUID,
         object_uuid: UUID,
         routing_key: MORoutingKey,
         delete: bool,
         current_objects_only: bool,
+        exit_stack: ExitStack,
     ) -> None:
-        """
-        Parameters
-        ---------------
-        uuid: UUID
-            uuid of the changed employee
-        object_uuid: UUID
-            uuid of the changed object, belonging to the changed employee
-        routing_key: MoRoutingKey
-            Routing key of the AMQP message
-        delete: bool
-            Whether to delete the object or not
-        current_objects_only: bool
-            Whether to load currently valid objects only or not
-        """
-        logger_args = {
-            "uuid": str(uuid),
-            "object_uuid": str(object_uuid),
-            "routing_key": routing_key,
-            "delete": delete,
-        }
+        """Synchronize employee data from MO to LDAP.
 
-        logger.info(
-            "Registered change in an employee",
-            **logger_args,
+        Args:
+            uuid: UUID of the changed employee.
+            object_uuid: UUID of the changed object (belonging to the employee).
+            routing_key: Routing key of the AMQP message.
+            delete: Whether to delete the object or not.
+            current_objects_only: Whether to load currently valid objects only or not.
+        """
+        exit_stack.enter_context(
+            bound_contextvars(
+                uuid=str(uuid),
+                object_uuid=str(object_uuid),
+                routing_key=routing_key,
+                delete=delete,
+            )
         )
+        logger.info("Registered change in an employee")
 
         # If the object was uploaded by us, it does not need to be synchronized.
         # Note that this is not necessary in listen_to_changes_in_org_units. Because
@@ -315,27 +493,24 @@ class SyncTool:
                 best_dn = await self.dataloader.make_mo_employee_dn(uuid)
             except DNNotFound:
                 # If this occurs we were unable to generate a DN for the user
-                logger.info("Unable to generate DN", **logger_args)
+                logger.info("Unable to generate DN")
                 raise RequeueMessage("Unable to generate DN")
 
-        # TODO: Refactor logger_args to be structlog binds
-        logger_args["dn"] = best_dn
+        exit_stack.enter_context(bound_contextvars(dn=best_dn))
 
         # Get MO employee
         changed_employee = await self.dataloader.load_mo_employee(
             uuid,
             current_objects_only=current_objects_only,
         )
-        logger.info(
-            "Found Employee in MO",
-            changed_employee=changed_employee,
-            **logger_args,
-        )
+        logger.info("Found Employee in MO", changed_employee=changed_employee)
 
         mo_object_dict: dict[str, Any] = {"mo_employee": changed_employee}
         object_type = get_object_type_from_routing_key(routing_key)
 
         if object_type == "person":
+            assert uuid == object_uuid
+
             # Convert to LDAP
             ldap_employee = await self.converter.to_ldap(
                 mo_object_dict, "Employee", best_dn
@@ -352,146 +527,40 @@ class SyncTool:
             )
 
         elif object_type == "address":
-            # Get MO address
-            changed_address = await self.dataloader.load_mo_address(
+            await self.mo_address_to_ldap(
+                uuid,
                 object_uuid,
-                current_objects_only=current_objects_only,
+                delete,
+                current_objects_only,
+                dns,
+                mo_object_dict,
+                changed_employee,
+                object_type,
             )
-            address_type_uuid = str(changed_address.address_type.uuid)
-            json_key = await self.converter.get_employee_address_type_user_key(
-                address_type_uuid
-            )
-
-            logger.info(
-                "Obtained address",
-                user_key=json_key,
-                **logger_args,
-            )
-            mo_object_dict["mo_employee_address"] = changed_address
-
-            # Convert & Upload to LDAP
-            # TODO: Convert this to use best_dn?
-            affected_dn = await self.dataloader.find_dn_by_engagement_uuid(
-                uuid, changed_address.engagement, dns
-            )
-            ldap_object = await self.converter.to_ldap(
-                mo_object_dict, json_key, affected_dn
-            )
-            ldap_object = self.move_ldap_object(ldap_object, affected_dn)
-
-            ldap_modify_responses = await self.dataloader.modify_ldap_object(
-                ldap_object,
-                json_key,
-                delete=delete,
-            )
-
-            if self.cleanup_needed(ldap_modify_responses):
-                addresses_in_mo = await self.dataloader.load_mo_employee_addresses(
-                    changed_employee.uuid, changed_address.address_type.uuid
-                )
-
-                await cleanup(
-                    json_key,
-                    "mo_employee_address",
-                    addresses_in_mo,
-                    self.user_context,
-                    changed_employee,
-                    object_type,
-                    ldap_object.dn,
-                )
 
         elif object_type == "ituser":
-            # Get MO IT-user
-            changed_it_user = await self.dataloader.load_mo_it_user(
+            await self.mo_ituser_to_ldap(
+                uuid,
                 object_uuid,
-                current_objects_only=current_objects_only,
+                delete,
+                current_objects_only,
+                dns,
+                mo_object_dict,
+                changed_employee,
+                object_type,
             )
-            it_system_type_uuid = changed_it_user.itsystem.uuid
-            json_key = await self.converter.get_it_system_user_key(
-                str(it_system_type_uuid)
-            )
-
-            logger.info(
-                "Obtained IT system",
-                user_key=json_key,
-                **logger_args,
-            )
-            mo_object_dict["mo_employee_it_user"] = changed_it_user
-
-            # Convert & Upload to LDAP
-            # TODO: Convert this to use best_dn?
-            affected_dn = await self.dataloader.find_dn_by_engagement_uuid(
-                uuid, changed_it_user.engagement, dns
-            )
-            ldap_object = await self.converter.to_ldap(
-                mo_object_dict, json_key, affected_dn
-            )
-            ldap_object = self.move_ldap_object(ldap_object, affected_dn)
-
-            ldap_modify_responses = await self.dataloader.modify_ldap_object(
-                ldap_object,
-                json_key,
-                delete=delete,
-            )
-
-            if self.cleanup_needed(ldap_modify_responses):
-                # Load IT users belonging to this employee
-                it_users_in_mo = await self.dataloader.load_mo_employee_it_users(
-                    changed_employee.uuid, it_system_type_uuid
-                )
-
-                await cleanup(
-                    json_key,
-                    "mo_employee_it_user",
-                    it_users_in_mo,
-                    self.user_context,
-                    changed_employee,
-                    object_type,
-                    ldap_object.dn,
-                )
 
         elif object_type == "engagement":
-            # Get MO Engagement
-            changed_engagement = await self.dataloader.load_mo_engagement(
+            await self.mo_engagement_to_ldap(
+                uuid,
                 object_uuid,
-                current_objects_only=current_objects_only,
+                delete,
+                current_objects_only,
+                dns,
+                mo_object_dict,
+                changed_employee,
+                object_type,
             )
-
-            json_key = "Engagement"
-            mo_object_dict["mo_employee_engagement"] = changed_engagement
-
-            # Convert & Upload to LDAP
-            # We upload an engagement to LDAP regardless of its 'primary' attribute.
-            # Because it looks like you cannot set 'primary' when creating an engagement
-            # in the OS2mo GUI.
-            # TODO: Convert this to use best_dn?
-            affected_dn = await self.dataloader.find_dn_by_engagement_uuid(
-                uuid, changed_engagement, dns
-            )
-            ldap_object = await self.converter.to_ldap(
-                mo_object_dict, json_key, affected_dn
-            )
-            ldap_object = self.move_ldap_object(ldap_object, affected_dn)
-            ldap_modify_responses = await self.dataloader.modify_ldap_object(
-                ldap_object,
-                json_key,
-                delete=delete,
-            )
-
-            if self.cleanup_needed(ldap_modify_responses):
-                engagements_in_mo = await self.dataloader.load_mo_employee_engagements(
-                    changed_employee.uuid
-                )
-
-                await cleanup(
-                    json_key,
-                    "mo_employee_engagement",
-                    engagements_in_mo,
-                    self.user_context,
-                    changed_employee,
-                    object_type,
-                    ldap_object.dn,
-                )
 
     @wait_for_export_to_finish
     async def process_employee_address(
@@ -561,6 +630,7 @@ class SyncTool:
         self.converter.check_org_unit_info_dict()
 
     @wait_for_export_to_finish
+    @with_exitstack
     async def listen_to_changes_in_org_units(
         self,
         uuid: OrgUnitUUID,
@@ -568,33 +638,28 @@ class SyncTool:
         routing_key: MORoutingKey,
         delete: bool,
         current_objects_only: bool,
+        exit_stack: ExitStack,
     ) -> None:
-        """
-        Parameters
-        ---------------
-        uuid: UUID
-            uuid of the changed org-unit
-        object_uuid: UUID
-            uuid of the changed object, belonging to the changed org-unit
-        routing_key: MoRoutingKey
-            Routing key of the AMQP message
-        delete: bool
-            Whether to delete the object or not
-        current_objects_only: bool
-            Whether to load currently valid objects only or not
-        """
+        """Synchronize employee data from MO to LDAP.
 
-        logger_args = {
-            "uuid": str(uuid),
-            "object_uuid": str(object_uuid),
-            "routing_key": routing_key,
-            "delete": delete,
-        }
-
+        Args:
+            uuid: UUID of the changed org-unit.
+            object_uuid: UUID of the changed object (belonging to the org-unit).
+            routing_key: Routing key of the AMQP message.
+            delete: Whether to delete the object or not.
+            current_objects_only: Whether to load currently valid objects only or not.
+        """
+        exit_stack.enter_context(
+            bound_contextvars(
+                uuid=str(uuid),
+                object_uuid=str(object_uuid),
+                routing_key=routing_key,
+                delete=delete,
+            )
+        )
         logger.info(
             "Registered change in an org_unit",
             current_objects_only=current_objects_only,
-            **logger_args,
         )
 
         object_type = get_object_type_from_routing_key(routing_key)
@@ -609,11 +674,7 @@ class SyncTool:
             address_type_uuid
         )
 
-        logger.info(
-            "Obtained address",
-            user_key=json_key,
-            **logger_args,
-        )
+        logger.info("Obtained address", user_key=json_key)
 
         ldap_object_class = self.converter.find_ldap_object_class(json_key)
         employee_object_class = self.converter.find_ldap_object_class("Employee")
@@ -627,11 +688,7 @@ class SyncTool:
         affected_employees = set(
             await self.dataloader.load_mo_employees_in_org_unit(uuid)
         )
-        logger.info(
-            "Looping over 'n' employees",
-            n=len(affected_employees),
-            **logger_args,
-        )
+        logger.info("Looping over 'n' employees", n=len(affected_employees))
 
         for affected_employee in affected_employees:
             # TODO: Emit events instead
@@ -645,10 +702,10 @@ class SyncTool:
                     object_type,
                 )
             except DNNotFound:
-                logger.info("DNNotFound Exception", exc_info=True, **logger_args)
+                logger.info("DNNotFound Exception", exc_info=True)
                 continue
             except IgnoreChanges:
-                logger.info("IgnoreChanges Exception", exc_info=True, **logger_args)
+                logger.info("IgnoreChanges Exception", exc_info=True)
                 continue
 
     async def format_converted_objects(
