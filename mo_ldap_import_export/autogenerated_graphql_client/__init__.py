@@ -294,6 +294,15 @@ from .read_engagements_by_engagements_filter import (
 from .read_engagements_by_engagements_filter import (
     ReadEngagementsByEngagementsFilterEngagementsObjectsCurrent,
 )
+from .read_engagements_is_primary import ReadEngagementsIsPrimary
+from .read_engagements_is_primary import ReadEngagementsIsPrimaryEngagements
+from .read_engagements_is_primary import ReadEngagementsIsPrimaryEngagementsObjects
+from .read_engagements_is_primary import (
+    ReadEngagementsIsPrimaryEngagementsObjectsValidities,
+)
+from .read_engagements_is_primary import (
+    ReadEngagementsIsPrimaryEngagementsObjectsValiditiesValidity,
+)
 from .read_facet_classes import ReadFacetClasses
 from .read_facet_classes import ReadFacetClassesClasses
 from .read_facet_classes import ReadFacetClassesClassesObjects
@@ -582,6 +591,11 @@ __all__ = [
     "ReadEngagementsEngagementsObjects",
     "ReadEngagementsEngagementsObjectsValidities",
     "ReadEngagementsEngagementsObjectsValiditiesValidity",
+    "ReadEngagementsIsPrimary",
+    "ReadEngagementsIsPrimaryEngagements",
+    "ReadEngagementsIsPrimaryEngagementsObjects",
+    "ReadEngagementsIsPrimaryEngagementsObjectsValidities",
+    "ReadEngagementsIsPrimaryEngagementsObjectsValiditiesValidity",
     "ReadFacetClasses",
     "ReadFacetClassesClasses",
     "ReadFacetClassesClassesObjects",

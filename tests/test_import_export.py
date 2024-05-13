@@ -483,6 +483,7 @@ async def test_listen_to_changes_in_employees_engagement(
     dataloader: AsyncMock,
     sync_tool: SyncTool,
     converter: MagicMock,
+    graphql_mock: GraphQLMocker,
 ) -> None:
     converted_ldap_object = LdapObject(dn="CN=foo")
     converter.to_ldap.return_value = converted_ldap_object
@@ -491,10 +492,97 @@ async def test_listen_to_changes_in_employees_engagement(
     engagement_uuid = uuid4()
 
     dataloader.find_mo_employee_dn.return_value = {"CN=foo"}
+    dataloader.extract_current_or_latest_object = (
+        DataLoader.extract_current_or_latest_object
+    )
+    dataloader.load_mo_engagement = partial(  # partial to seed 'self'
+        DataLoader.load_mo_engagement, dataloader
+    )
 
     # Simulate a created engagement
+    # Replace the shitty mock with a good mock
+    dataloader.graphql_client = GraphQLClient("http://example.com/graphql")
+
+    route1 = graphql_mock.query("read_engagements_is_primary")
+    route1.result = {
+        "engagements": {
+            "objects": [
+                {
+                    "validities": [
+                        {
+                            "is_primary": True,
+                            "uuid": engagement_uuid,
+                            "validity": {"from": "1970-01-01T00:00:00", "to": None},
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+
+    route2 = graphql_mock.query("read_engagements")
+    route2.result = {
+        "engagements": {
+            "objects": [
+                {
+                    "validities": [
+                        {
+                            "user_key": "Depressed Developer",
+                            "extension_1": "An",
+                            "extension_2": "obscure",
+                            "extension_3": "cry",
+                            "extension_4": "for",
+                            "extension_5": "help",
+                            "extension_6": "from",
+                            "extension_7": "within",
+                            "extension_8": "the",
+                            "extension_9": "machine",
+                            "extension_10": "!",
+                            "leave_uuid": None,
+                            "primary_uuid": uuid4(),
+                            "job_function_uuid": uuid4(),
+                            "org_unit_uuid": uuid4(),
+                            "engagement_type_uuid": uuid4(),
+                            "employee_uuid": employee_uuid,
+                            "validity": {"from": "1970-01-01T00:00:00", "to": None},
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+
     mo_routing_key = "engagement"
-    with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
+    await sync_tool.listen_to_changes_in_employees(
+        employee_uuid,
+        engagement_uuid,
+        routing_key=mo_routing_key,
+        delete=False,
+        current_objects_only=True,
+    )
+    assert route1.called
+    assert route2.called
+    dataloader.modify_ldap_object.assert_called_with(
+        converted_ldap_object, "Engagement", delete=False
+    )
+
+    # Test expected behavior when unable to read any engagements
+    old = route1.result
+    route1.result = {"engagements": {"objects": []}}
+    result = await sync_tool.listen_to_changes_in_employees(
+        employee_uuid,
+        engagement_uuid,
+        routing_key=mo_routing_key,
+        delete=False,
+        current_objects_only=True,
+    )
+    assert result is None
+
+    route1.result = old
+
+    # Test expected behavior when unable to read engagement details
+    route2.result = {"engagements": {"objects": []}}
+    with pytest.raises(RequeueMessage) as exc:
         await sync_tool.listen_to_changes_in_employees(
             employee_uuid,
             engagement_uuid,
@@ -502,10 +590,7 @@ async def test_listen_to_changes_in_employees_engagement(
             delete=False,
             current_objects_only=True,
         )
-    assert dataloader.load_mo_engagement.called
-    dataloader.modify_ldap_object.assert_called_with(
-        converted_ldap_object, "Engagement", delete=False
-    )
+    assert "Unable to load mo object" in str(exc.value)
 
 
 async def test_listen_to_changes_in_employees_skipped(
