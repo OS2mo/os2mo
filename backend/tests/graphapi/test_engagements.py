@@ -21,8 +21,17 @@ from .utils import fetch_org_unit_validity
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.models import EngagementCreate
 from mora.graphapi.versions.latest.models import EngagementUpdate
+from mora.service.facet import get_primary_class_scope
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import Validity as RAValidity
+
+CREATE_ENGAGEMENT_QUERY = """
+    mutation CreateEngagement($input: EngagementCreateInput!) {
+        engagement_create(input: $input) {
+            uuid
+        }
+    }
+"""
 
 
 @pytest.mark.integration_test
@@ -220,18 +229,11 @@ async def test_create_engagement(
 ) -> None:
     """Test that pydantic jsons are passed through to engagement_create."""
 
-    mutate_query = """
-        mutation CreateEngagement($input: EngagementCreateInput!) {
-            engagement_create(input: $input) {
-                uuid
-            }
-        }
-    """
     create_engagement.return_value = test_data.uuid
 
     payload = jsonable_encoder(test_data)
     response = await execute_graphql(
-        query=mutate_query, variable_values={"input": payload}
+        query=CREATE_ENGAGEMENT_QUERY, variable_values={"input": payload}
     )
     assert response.errors is None
     assert response.data == {"engagement_create": {"uuid": str(test_data.uuid)}}
@@ -288,14 +290,9 @@ async def test_create_engagement_integration_test(
         )
     )
 
-    mutate_query = """
-        mutation CreateEngagement($input: EngagementCreateInput!) {
-            engagement_create(input: $input) {
-                uuid
-            }
-        }
-    """
-    response = graphapi_post(mutate_query, {"input": jsonable_encoder(test_data)})
+    response = graphapi_post(
+        CREATE_ENGAGEMENT_QUERY, {"input": jsonable_encoder(test_data)}
+    )
     assert response.errors is None
     uuid = UUID(response.data["engagement_create"]["uuid"])
 
@@ -676,15 +673,8 @@ async def test_create_engagement_with_extensions_fields_integrations_test(
         )
     )
 
-    mutate_query = """
-        mutation CreateEngagement($input: EngagementCreateInput!) {
-            engagement_create(input: $input) {
-                uuid
-            }
-        }
-    """
     mutation_response = graphapi_post(
-        query=mutate_query, variables={"input": jsonable_encoder(test_data)}
+        query=CREATE_ENGAGEMENT_QUERY, variables={"input": jsonable_encoder(test_data)}
     )
 
     assert mutation_response.errors is None
@@ -797,3 +787,121 @@ async def test_clear_extension_field(graphapi_post: GraphAPIPost) -> None:
     set_extension_field3(uuid, "")
     extension_3 = read_extension_field3(uuid)
     assert extension_3 is None
+
+
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay in this instance
+        HealthCheck.function_scoped_fixture,
+    ],
+)
+@given(data=st.data())
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_get_class_scope(
+    data, graphapi_post: GraphAPIPost, org_uuids, employee_uuids
+) -> None:
+    primary_uuids = fetch_class_uuids(graphapi_post, "primary_type")
+    scopes = [await get_primary_class_scope(u) for u in primary_uuids]
+    assert scopes == [10, 3000]
+
+
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay in this instance
+        HealthCheck.function_scoped_fixture,
+    ],
+)
+@given(data=st.data())
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_create_engagement_primary(
+    data, graphapi_post: GraphAPIPost, org_uuids
+) -> None:
+    """Test creating engagements and one of them is primary."""
+
+    org_uuid = data.draw(st.sampled_from(org_uuids))
+    org_from, org_to = fetch_org_unit_validity(graphapi_post, org_uuid)
+
+    test_data_validity_start = data.draw(
+        st.datetimes(min_value=org_from, max_value=org_to or datetime.max)
+    )
+    if org_to:
+        test_data_validity_end_strat = st.datetimes(
+            min_value=test_data_validity_start, max_value=org_to
+        )
+    else:
+        test_data_validity_end_strat = st.none() | st.datetimes(
+            min_value=test_data_validity_start,
+        )
+    engagement_type_uuids = fetch_class_uuids(graphapi_post, "engagement_type")
+    job_function_uuids = fetch_class_uuids(graphapi_post, "engagement_job_function")
+    primary_uuids = fetch_class_uuids(graphapi_post, "primary_type")
+    engagement_uuids = {}
+
+    mutate_query = """
+        mutation CreateEmployee($input: EmployeeCreateInput!) {
+            employee_create(input: $input) {
+                uuid
+            }
+        }
+    """
+    input = {
+        "given_name": "Garik",
+        "surname": "Weinstein",
+        "nickname_given_name": "Garry",
+        "nickname_surname": "Kasparov",
+    }
+    response = graphapi_post(mutate_query, {"input": input})
+    assert response.errors is None
+    assert response.data is not None
+    person_uuid = UUID(response.data["employee_create"]["uuid"])
+
+    for primary_uuid in primary_uuids:
+        test_data = data.draw(
+            st.builds(
+                EngagementCreate,
+                org_unit=st.just(org_uuid),
+                person=st.just(person_uuid),
+                engagement_type=st.sampled_from(engagement_type_uuids),
+                job_function=st.sampled_from(job_function_uuids),
+                primary=st.just(primary_uuid),
+                validity=st.builds(
+                    RAValidity,
+                    from_date=st.just(test_data_validity_start),
+                    to_date=test_data_validity_end_strat,
+                ),
+            )
+        )
+        mutation_response = graphapi_post(
+            query=CREATE_ENGAGEMENT_QUERY,
+            variables={"input": jsonable_encoder(test_data)},
+        )
+        primary_scope = await get_primary_class_scope(primary_uuid)
+        engagement_uuids.update(
+            {UUID(mutation_response.data["engagement_create"]["uuid"]): primary_scope}
+        )
+        assert mutation_response.errors is None
+
+    verify_query = """
+        query IsPrimaryQuery($uuid: [UUID!]!) {
+          engagements(filter: {uuids: $uuid}) {
+            objects {
+              objects {
+                is_primary
+              }
+            }
+          }
+        }
+    """
+    for uuid in engagement_uuids:
+        response = graphapi_post(query=verify_query, variables={"uuid": str(uuid)})
+        assert response.errors is None
+        engagement_objects = response.data["engagements"]["objects"]
+        if engagement_objects == []:
+            # For some reason some engagements can't be found
+            return
+        assert engagement_objects
+        is_primary = one(one(engagement_objects)["objects"])["is_primary"]
+        expected = engagement_uuids[uuid] > 10
+        assert is_primary == expected
