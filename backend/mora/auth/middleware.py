@@ -12,6 +12,7 @@ from starlette_context import request_cycle_context
 
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import token_getter
+from mora.log import canonical_log_context
 
 # This magical UUID was introduced into LoRas source code back in
 # December of 2015, it is kept here for backwards compatibility, but should
@@ -28,6 +29,10 @@ async def fetch_authenticated_user(
 ) -> UUID | None:
     try:
         token = await get_token()
+        canonical_log_context()["actor"] = {
+            "uuid": str(token.uuid),
+            "name": token.preferred_username,
+        }
     except Exception:
         return None
     return token.uuid

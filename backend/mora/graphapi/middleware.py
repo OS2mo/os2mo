@@ -13,6 +13,7 @@ from starlette_context import context
 from starlette_context import request_cycle_context
 from strawberry.extensions import SchemaExtension
 
+from mora.log import canonical_gql_context
 from ramodels.mo import OpenValidity
 
 
@@ -80,7 +81,9 @@ class StarletteContextExtension(SchemaExtension):
         # Includes GraphQL request runtime when the x-request-runtime header is set
         request = self.execution_context.context.get("request")
         if request and request.headers.get("x-request-runtime"):
-            results["runtime"] = context["stoptime"] - context["starttime"]
+            runtime = context["stoptime"] - context["starttime"]
+            results["runtime"] = runtime
+            canonical_gql_context()["runtime"] = round(runtime, 3)
 
         return results
 
