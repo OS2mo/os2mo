@@ -36,6 +36,7 @@ from .exceptions import NotSupportedException
 from .exceptions import UUIDNotFoundException
 from .ldap import is_uuid
 from .ldap_classes import LdapObject
+from .types import DN
 from .utils import delete_keys_from_dict
 from .utils import exchange_ou_in_dn
 from .utils import extract_ou_from_dn
@@ -1090,7 +1091,7 @@ class LdapConverter:
 
         return {key: populate_value(value) for key, value in mapping.items()}
 
-    async def to_ldap(self, mo_object_dict: dict, json_key: str, dn: str) -> LdapObject:
+    async def to_ldap(self, mo_object_dict: dict, json_key: str, dn: DN) -> LdapObject:
         """
         mo_object_dict : dict
             dict with mo objects to convert. for example:

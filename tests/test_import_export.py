@@ -233,6 +233,7 @@ async def test_listen_to_changes_in_employees(
 ) -> None:
     settings_mock = MagicMock()
     settings_mock.ldap_search_base = "bar"
+    settings_mock.discriminator_field = None
 
     converter.cpr_field = "EmployeeID"
     converted_ldap_object = LdapObject(dn="CN=foo")
@@ -253,6 +254,9 @@ async def test_listen_to_changes_in_employees(
 
     settings = MagicMock()
     settings.ldap_search_base = "DC=bar"
+    settings.discriminator_field = None
+
+    dataloader.find_mo_employee_dn.return_value = {"CN=foo"}
 
     # Simulate a created employee
     mo_routing_key: MORoutingKey = "person"
@@ -365,21 +369,23 @@ async def test_listen_to_changes_in_employees_no_dn(
     payload = MagicMock()
     payload.uuid = uuid4()
     mo_routing_key: MORoutingKey = "person"
-    dataloader.find_or_make_mo_employee_dn.side_effect = DNNotFound("Not found")
+    dataloader.find_mo_employee_dn.return_value = set()
+    dataloader.make_mo_employee_dn.side_effect = DNNotFound("Not found")
 
     with capture_logs() as cap_logs:
-        await sync_tool.listen_to_changes_in_employees(
-            payload.uuid,
-            payload.object_uuid,
-            routing_key=mo_routing_key,
-            delete=False,
-            current_objects_only=True,
-        )
+        with pytest.raises(RequeueMessage):
+            await sync_tool.listen_to_changes_in_employees(
+                payload.uuid,
+                payload.object_uuid,
+                routing_key=mo_routing_key,
+                delete=False,
+                current_objects_only=True,
+            )
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
         last_log_message = messages[-1]["event"]
 
-        assert last_log_message == "DN not found"
+        assert last_log_message == "Unable to generate DN"
 
 
 async def test_format_converted_engagement_objects(

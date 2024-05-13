@@ -1100,7 +1100,9 @@ class DataLoader:
         dns = await self.find_mo_employee_dn(uuid)
         if dns:
             return dns
+        return {await self.make_mo_employee_dn(uuid)}
 
+    async def make_mo_employee_dn(self, uuid: UUID) -> DN:
         raw_it_system_uuid = self.get_ldap_it_system_uuid()
         employee = await self.load_mo_employee(uuid)
         cpr_no = CPRNumber(employee.cpr_no) if employee.cpr_no else None
@@ -1176,9 +1178,7 @@ class DataLoader:
         # TODO: Publish this message on the LDAP AMQP exchange
         await self.sync_tool.import_single_user(dn, force=True, manual_import=True)
         await self.sync_tool.refresh_employee(employee.uuid)
-        return {
-            dn,
-        }
+        return dn
 
     async def find_dn_by_engagement_uuid(
         self,
