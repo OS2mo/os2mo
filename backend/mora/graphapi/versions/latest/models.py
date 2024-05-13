@@ -31,6 +31,7 @@ from ramodels.mo import Validity as RAValidity
 from ramodels.mo._shared import ITUserRef
 from ramodels.mo._shared import OrgUnitRef
 from ramodels.mo._shared import UUIDBase
+from ramodels.mo.details import AddressRead as RAAddressRead
 
 
 logger = logging.getLogger(__name__)
@@ -139,6 +140,10 @@ class Organisation(UUIDBase):
 
 # Addresses
 # ---------
+class AddressRead(RAAddressRead):
+    it_user_uuid: UUID | None = Field(description="Optional UUID of connected IT user")
+
+
 class AddressUpsert(UUIDBase):
     """Model representing an address creation/update commonalities."""
 
@@ -149,6 +154,7 @@ class AddressUpsert(UUIDBase):
     employee: UUID | None = Field(description="UUID for the related person.")
 
     engagement: UUID | None = Field(description="UUID for the related engagement.")
+    ituser: UUID | None = Field(description="UUID for the related ituser.")
 
     visibility: UUID | None = Field(description="Visibility for the address.")
     validity: RAValidity = Field(description="Validity range for the org-unit.")
@@ -170,6 +176,7 @@ class AddressUpsert(UUIDBase):
             "org_unit": gen_uuid(self.org_unit),
             "person": gen_uuid(self.person) or gen_uuid(self.employee),
             "engagement": gen_uuid(self.engagement),
+            "it": gen_uuid(self.ituser),
         }
 
 

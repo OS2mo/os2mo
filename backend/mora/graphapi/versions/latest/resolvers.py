@@ -43,6 +43,7 @@ from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
 from .filters import RelatedUnitFilter
 from .filters import RoleBindingFilter
+from .models import AddressRead
 from .models import ClassRead
 from .models import FacetRead
 from .models import RoleBindingRead
@@ -61,7 +62,6 @@ from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.orgunits import search_orgunits
 from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationUnitRead
-from ramodels.mo.details import AddressRead
 from ramodels.mo.details import AssociationRead
 from ramodels.mo.details import EngagementRead
 from ramodels.mo.details import ITSystemRead
@@ -289,8 +289,6 @@ async def address_resolver(
         kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
-    if filter.engagements is not None or filter.engagement is not None:
-        kwargs["tilknyttedefunktioner"] = await get_engagement_uuids(info, filter)
     if (
         filter.address_types is not None
         or filter.address_type_user_keys is not None
@@ -299,6 +297,16 @@ async def address_resolver(
         kwargs["organisatoriskfunktionstype"] = await _get_address_type_uuids(
             info, filter
         )
+
+    tilknyttedefunktioner = []
+    if filter.engagements is not None or filter.engagement is not None:
+        tilknyttedefunktioner.extend(await get_engagement_uuids(info, filter))
+    if filter.ituser is not None:
+        tilknyttedefunktioner.extend(
+            await filter2uuids_func(it_user_resolver, info, filter.ituser)
+        )
+    if tilknyttedefunktioner:
+        kwargs["tilknyttedefunktioner"] = tilknyttedefunktioner
 
     return await generic_resolver(
         AddressRead,

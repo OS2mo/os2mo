@@ -16,6 +16,7 @@ from .filters import ConfigurationFilter
 from .filters import FileFilter
 from .filters import HealthFilter
 from .health import health_map
+from .models import AddressRead
 from .models import ClassRead
 from .models import FacetRead
 from .models import RoleBindingRead
@@ -66,7 +67,6 @@ from .schema import Version
 from mora import db
 from mora.audit import audit_log
 from mora.config import get_public_settings
-from ramodels.mo.details.address import AddressRead
 from ramodels.mo.details.association import AssociationRead
 from ramodels.mo.details.engagement import EngagementRead
 from ramodels.mo.details.it_system import ITSystemRead

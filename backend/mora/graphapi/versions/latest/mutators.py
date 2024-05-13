@@ -111,6 +111,7 @@ from .leave import update_leave
 from .manager import create_manager
 from .manager import terminate_manager
 from .manager import update_manager
+from .models import AddressRead
 from .models import ClassRead
 from .models import FacetRead
 from .models import FileStore
@@ -175,7 +176,6 @@ from mora.auth.middleware import get_authenticated_user
 from mora.common import get_connector
 from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationUnitRead
-from ramodels.mo.details import AddressRead
 from ramodels.mo.details import AssociationRead
 from ramodels.mo.details import EngagementRead
 from ramodels.mo.details import ITSystemRead

@@ -43,6 +43,8 @@ class AddressReader(reading.OrgFunkReadingHandler):
 
         # Return early if flat model is desired
         if is_graphql():
+            it_user_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
+
             return {
                 **base_obj,
                 "value": address_obj[mapping.VALUE],
@@ -52,6 +54,7 @@ class AddressReader(reading.OrgFunkReadingHandler):
                 "org_unit_uuid": org_unit_uuid,
                 "engagement_uuid": engagement_uuid,
                 "visibility_uuid": visibility_uuid,
+                "it_user_uuid": it_user_uuid,
             }
 
         facet_obj = await facet.request_bulked_get_one_class_full(
