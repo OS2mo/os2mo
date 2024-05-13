@@ -362,35 +362,25 @@ class DataLoader:
         """
         Modifies LDAP and adds the dn to dns_to_ignore
         """
-        changes = {attribute: [(operation, value)]}
-
         # Checks
         if not self.ou_in_ous_to_write_to(dn):
             return None
 
-        attributes = list(changes.keys())
-        if len(attributes) != 1:
-            raise InvalidChangeDict("Exactly one attribute can be changed at a time")
-
-        attribute = attributes[0]
-        list_of_changes = changes[attribute]
-        if len(list_of_changes) != 1:
-            raise InvalidChangeDict("Exactly one change can be submitted at a time")
-
-        ldap_command, value_to_modify = list_of_changes[0]
-        if isinstance(value_to_modify, list):
-            if len(value_to_modify) == 1:
-                value_to_modify = value_to_modify[0]
-            elif len(value_to_modify) == 0:
-                value_to_modify = ""
-            else:
-                raise InvalidChangeDict("Exactly one value can be changed at a time")
+        if isinstance(value, list):
+            value = only(
+                value,
+                default="",
+                too_long=InvalidChangeDict(
+                    "Exactly one value can be changed at a time"
+                ),
+            )
 
         # Compare to LDAP
-        value_exists = self.ldap_connection.compare(dn, attribute, value_to_modify)
+        value_exists = self.ldap_connection.compare(dn, attribute, value)
 
         # Modify LDAP
-        if not value_exists or "DELETE" in ldap_command:
+        if not value_exists or "DELETE" in operation:
+            changes = {attribute: [(operation, value)]}
             logger.info("Uploading the changes", changes=changes, dn=dn)
             self.ldap_connection.modify(dn, changes)
             response = self.log_ldap_response(dn=dn)
@@ -414,7 +404,7 @@ class DataLoader:
             logger.info(
                 "Attribute value already exists",
                 attribute=attribute,
-                value_to_modify=value_to_modify,
+                value_to_modify=value,
             )
             return None
 
