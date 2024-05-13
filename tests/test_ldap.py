@@ -16,6 +16,7 @@ from uuid import uuid4
 import ldap3.core.exceptions
 import pytest
 from fastramqpi.context import Context
+from fastramqpi.depends import UserContext
 from ldap3 import Connection
 from ldap3 import MOCK_SYNC
 from ldap3 import Server
@@ -759,12 +760,12 @@ async def test_set_search_params_modify_timestamp():
         assert modified_search_params["attributes"] == search_params["attributes"]
 
 
-async def test_setup_poller():
+async def test_setup_poller() -> None:
     async def _poller(*args: Any) -> None:
         raise ValueError("BOOM")
 
     with patch("mo_ldap_import_export.ldap._poller", _poller):
-        context = {}
+        context: UserContext = {}
         search_parameters: dict = {}
         init_search_time = datetime.datetime.utcnow()
 

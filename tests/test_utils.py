@@ -24,7 +24,7 @@ from mo_ldap_import_export.utils import remove_cn_from_dn
 from mo_ldap_import_export.utils import remove_vowels
 
 
-async def test_import_class():
+async def test_import_class() -> None:
     imported_class = import_class("ramodels.mo.employee.Employee")
     assert imported_class.__name__ == "Employee"
 
@@ -36,7 +36,7 @@ async def test_import_class():
     assert "Unknown argument to import_class" in str(exc_info.value)
 
 
-async def test_delete_keys_from_dict():
+async def test_delete_keys_from_dict() -> None:
     dict_to_delete_from = {
         "foo": 1,
         "bar": 2,
@@ -51,21 +51,24 @@ async def test_delete_keys_from_dict():
     assert "foo" not in modified_dict["nest"]
 
 
-async def test_mo_datestring_to_utc():
+async def test_mo_datestring_to_utc() -> None:
     date = mo_datestring_to_utc("2023-02-27T00:00:00+01:00")
+    assert date is not None
     assert date.strftime("%Y-%m-%d") == "2023-02-27"
 
     date = mo_datestring_to_utc("2023-02-27T00:00:00-03:00")
+    assert date is not None
     assert date.strftime("%Y-%m-%d") == "2023-02-27"
 
     date = mo_datestring_to_utc("2023-02-27T01:02:03-03:00")
+    assert date is not None
     assert date.strftime("%Y-%m-%d %H:%M:%S") == "2023-02-27 01:02:03"
 
     date = mo_datestring_to_utc(None)
     assert date is None
 
 
-async def test_mo_object_is_valid():
+async def test_mo_object_is_valid() -> None:
     mo_object = Address.from_simplified_fields("foo", uuid4(), "2021-01-01")
     assert mo_object_is_valid(mo_object) is True
 
@@ -80,7 +83,7 @@ async def test_mo_object_is_valid():
     assert mo_object_is_valid(mo_object) is False
 
 
-async def test_datetime_to_ldap_timestamp():
+async def test_datetime_to_ldap_timestamp() -> None:
     date = datetime.datetime(2021, 1, 1, 10, 45, 20)
     result = datetime_to_ldap_timestamp(date)
     assert result == "20210101104520.0-0000"
@@ -98,17 +101,17 @@ async def test_datetime_to_ldap_timestamp():
     assert result == "20210101104520.2-0529"
 
 
-def test_combine_dn_strings():
+def test_combine_dn_strings() -> None:
     assert combine_dn_strings(["CN=Nick", "", "DC=bar"]) == "CN=Nick,DC=bar"
     assert combine_dn_strings(["CN=Nick", "OU=f", "DC=bar"]) == "CN=Nick,OU=f,DC=bar"
     assert combine_dn_strings(["CN=Nick", "DC=bar"]) == "CN=Nick,DC=bar"
 
 
-def test_remove_vowels():
+def test_remove_vowels() -> None:
     assert remove_vowels("food") == "fd"
 
 
-def test_extract_ou_from_dn():
+def test_extract_ou_from_dn() -> None:
     assert extract_ou_from_dn("CN=Nick,OU=org,OU=main org,DC=f") == "OU=org,OU=main org"
     assert extract_ou_from_dn("CN=Nick,OU=org,DC=f") == "OU=org"
     assert extract_ou_from_dn("CN=Nick,DC=f") == ""
@@ -120,19 +123,19 @@ def test_extract_ou_from_dn():
         extract_ou_from_dn("")
 
 
-def test_get_object_type_from_routing_key():
+def test_get_object_type_from_routing_key() -> None:
     routing_key: MORoutingKey = "address"
     assert get_object_type_from_routing_key(routing_key) == "address"
 
 
-def test_remove_cn_from_dn():
+def test_remove_cn_from_dn() -> None:
     assert remove_cn_from_dn("CN=Nick,OU=foo,DC=bar") == "OU=foo,DC=bar"
     assert remove_cn_from_dn("CN=Nick,CN=Janssen,OU=foo,DC=bar") == "OU=foo,DC=bar"
     assert remove_cn_from_dn("OU=foo,DC=bar") == "OU=foo,DC=bar"
     assert remove_cn_from_dn("CN=Nick") == ""
 
 
-def test_exchange_ou_in_dn():
+def test_exchange_ou_in_dn() -> None:
     assert (
         exchange_ou_in_dn("CN=Tobias,OU=foo,DC=Q", "OU=bar") == "CN=Tobias,OU=bar,DC=Q"
     )
@@ -153,7 +156,7 @@ def test_exchange_ou_in_dn():
     )
 
 
-def test_extract_cn_from_dn():
+def test_extract_cn_from_dn() -> None:
     assert extract_cn_from_dn("CN=Nick,OU=foo,DC=bar") == "CN=Nick"
     assert (
         extract_cn_from_dn("CN=Nick,CN=Janssen,OU=foo,DC=bar") == "CN=Nick,CN=Janssen"

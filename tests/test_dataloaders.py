@@ -689,20 +689,6 @@ async def test_load_mo_address(dataloader: DataLoader) -> None:
     assert output == expected_result
 
 
-def test_load_ldap_object(dataloader: DataLoader):
-    make_ldap_object = MagicMock()
-    with patch(
-        "mo_ldap_import_export.dataloaders.single_object_search",
-        return_value="foo",
-    ), patch(
-        "mo_ldap_import_export.dataloaders.make_ldap_object",
-        new_callable=make_ldap_object,
-    ):
-        dn = "CN=Nikki Minaj"
-        output = dataloader.load_ldap_object(dn, ["foo", "bar"])
-        assert output.called_once_with("foo", dataloader.context)
-
-
 def test_cleanup_attributes_in_ldap(dataloader: DataLoader):
     dataloader.single_value = {"value": False}
 

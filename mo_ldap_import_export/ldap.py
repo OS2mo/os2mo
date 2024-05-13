@@ -3,6 +3,7 @@
 """LDAP Connection handling."""
 import asyncio
 import signal
+import warnings
 from collections import ChainMap
 from contextlib import suppress
 from datetime import datetime
@@ -19,6 +20,7 @@ import structlog
 from fastramqpi.context import Context
 from fastramqpi.depends import UserContext
 from fastramqpi.ramqp import AMQPSystem
+from fastramqpi.ramqp.utils import RequeueMessage
 from ldap3 import BASE
 from ldap3 import Connection
 from ldap3 import NTLM
@@ -33,6 +35,7 @@ from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from more_itertools import always_iterable
 from more_itertools import one
+from more_itertools import only
 from ramodels.mo.employee import Employee
 
 from .config import AuthBackendEnum
@@ -43,6 +46,7 @@ from .exceptions import NoObjectsReturnedException
 from .exceptions import TimeOutException
 from .ldap_classes import LdapObject
 from .processors import _hide_cpr as hide_cpr
+from .types import DN
 from .utils import combine_dn_strings
 from .utils import datetime_to_ldap_timestamp
 from .utils import ensure_list
@@ -183,6 +187,7 @@ async def poller_healthcheck(context: dict | Context) -> bool:
 
 
 def get_ldap_schema(ldap_connection: Connection):
+    # On OpenLDAP this returns a ldap3.protocol.rfc4512.SchemaInfo
     return ldap_connection.server.schema
 
 
@@ -216,6 +221,108 @@ def get_ldap_attributes(ldap_connection: Connection, root_ldap_object: str):
     return all_attributes
 
 
+def first_included(context: Context, dns: set[DN]) -> DN | None:
+    """Find the account to synchronize from a set of DNs.
+
+    The DNs are evaluated depending on the configuration of the discriminator.
+
+    Args:
+        dns: The set of DNs to evaulate.
+
+    Raises:
+        RequeueMessage: If the provided DNs could not be read from LDAP.
+        ValueError: If too many or too few LDAP accounts are found.
+
+    Returns:
+        The account to synchronize (if any).
+    """
+    user_context = context["user_context"]
+    settings: Settings = user_context["settings"]
+
+    discriminator_field = settings.discriminator_field
+    # If discriminator is not configured, there can be only one user
+    if discriminator_field is None:
+        return one(dns)
+
+    # These settings must be set for the function to work
+    # This should always be the case, as they are enforced by pydantic
+    # But no guarantees are given as pydantic is lenient with run validators
+    assert settings.discriminator_function is not None
+    assert settings.discriminator_values != []
+
+    # Fetch the discriminator attribute for all DNs
+    # NOTE: While it is possible to fetch multiple DNs in a single operation
+    #       (by doing a complex search operation), some "guy on the internet" claims
+    #       that it is better to lookup DNs individually using the READ operation.
+    #       See: https://stackoverflow.com/a/58834059
+    try:
+        attributes = [discriminator_field]
+        # TODO: This should really be an asyncio.gather, but LDAP reading is not
+        #       currently async, but rather blocks the entire event-loop all the time.
+        #       #59422 tracks this issue, and once resolved this code can be fixed.
+        ldap_objects = [
+            get_ldap_object(dn, context, attributes=attributes, run_discriminator=False)
+            for dn in dns
+        ]
+    except NoObjectsReturnedException as exc:
+        # There could be multiple reasons why our DNs cannot be read.
+        # * The DNs could have been found by CPR number and changed since then.
+        #
+        # In this case, we wish to retry the message, so we can refetch by CPR.
+        #
+        # * The DNs could have been found by ITUsers and those could be wrong in MO
+        #
+        # In this case, we wish to retry the message until someone has fixed the
+        # problem in MO itself, and thus we will be retrying for a long time, likely
+        # raising an alarm due to messages not being processed, and thus ensuring that
+        # someone will look into the issue.
+        raise RequeueMessage("Unable to lookup DN(s)") from exc
+
+    def ldapobject2discriminator(ldap_object: LdapObject) -> str:
+        # The value can either be a string or a list, if a list we assume a 1 element
+        value = getattr(ldap_object, discriminator_field)
+        # TODO: Figure out when it is a string instead of a 1 element list
+        #       Maybe it is an AD only thing?
+        if isinstance(value, str):  # pragma: no cover
+            return value
+        unpacked_value = one(value)
+        assert isinstance(unpacked_value, str)
+        return unpacked_value
+
+    mapping: dict[DN, str] = {
+        ldap_object.dn: ldapobject2discriminator(ldap_object)
+        for ldap_object in ldap_objects
+    }
+    assert dns == set(mapping.keys())
+
+    # All values must be strings as they are being compared with strings
+    assert all(isinstance(value, str) for value in mapping.values())
+
+    # If the discriminator_function is exclude, discriminator_values will be a
+    # list of disallowed values, and we will want to find an account that does not
+    # have any of these disallowed values whatsoever.
+    # NOTE: We assume that at most one such account exists.
+    if settings.discriminator_function == "exclude":
+        return only(
+            {
+                dn
+                for dn, value in mapping.items()
+                if value not in settings.discriminator_values
+            }
+        )
+
+    assert settings.discriminator_function == "include"
+    # If the discriminator_function is include, discriminator_values will be a
+    # prioritized list of values (first meaning most important), and we will want
+    # to find the best (most important) account.
+    # NOTE: We assume that no two accounts are equally important.
+    for value in settings.discriminator_values:
+        dns_with_value = {dn for dn, dn_value in mapping.items() if dn_value == value}
+        if dns_with_value:
+            return one(dns_with_value)
+    return None
+
+
 def apply_discriminator(
     search_result: list[dict[str, Any]], settings: Settings
 ) -> list[dict[str, Any]]:
@@ -228,6 +335,10 @@ def apply_discriminator(
     Returns:
         A filtered list of LDAP search results.
     """
+    dns = [x["dn"] for x in search_result]
+    logger.warning("apply_discriminator called", dns=dns)
+    warnings.warn("apply_discriminator called", DeprecationWarning)
+
     discriminator_field = settings.discriminator_field
     discriminator_values = settings.discriminator_values
     match settings.discriminator_function:
@@ -416,7 +527,7 @@ def object_search(
 
 
 def single_object_search(
-    searchParameters: dict[str, Any], context: Context
+    searchParameters: dict[str, Any], context: Context, run_discriminator: bool = True
 ) -> dict[str, Any]:
     """Performs an LDAP search and ensure that it returns one result.
 
@@ -446,7 +557,8 @@ def single_object_search(
 
     settings = context["user_context"]["settings"]
     # TODO: Do we actually wanna apply discriminator here?
-    search_entries = apply_discriminator(search_entries, settings)
+    if run_discriminator:
+        search_entries = apply_discriminator(search_entries, settings)
 
     too_long_exception = MultipleObjectsReturnedException(
         hide_cpr(f"Found multiple entries for {searchParameters}: {search_entries}")
@@ -474,29 +586,51 @@ def is_dn(value):
     return True
 
 
-def get_ldap_object(dn: str, context: Context, nest: bool = True) -> Any:
-    """
-    Gets a ldap object based on its DN
+def get_ldap_object(
+    dn: DN,
+    context: Context,
+    nest: bool = True,
+    attributes: list | None = None,
+    run_discriminator: bool = True,
+) -> LdapObject:
+    """Gets a ldap object based on its DN.
 
-    if nest is True, also gets ldap objects of related objects.
+    Args:
+        dn: The DN to read.
+        context: The FastRAMQPI context.
+        nest: Whether to also fetch and nest related objects.
+        attributes: The list of attributes to read.
+
+    Returns:
+        The LDAP object fetched from the LDAP server.
     """
+    if attributes is None:
+        attributes = ["*"]
+
     searchParameters = {
         "search_base": dn,
         "search_filter": "(objectclass=*)",
-        "attributes": ["*"],
+        "attributes": attributes,
         "search_scope": BASE,
     }
-    search_result = single_object_search(searchParameters, context)
+    search_result = single_object_search(
+        searchParameters, context, run_discriminator=run_discriminator
+    )
     dn = search_result["dn"]
     logger.info("Found DN", dn=dn)
     return make_ldap_object(search_result, context, nest=nest)
 
 
-def make_ldap_object(response: dict, context: Context, nest: bool = True) -> Any:
-    """
-    Takes an ldap response and formats it as a class
+def make_ldap_object(response: dict, context: Context, nest: bool = True) -> LdapObject:
+    """Takes an LDAP response and formats it as an LdapObject.
 
-    if nest is True, also makes ldap objects of related objects.
+    Args:
+        response: The LDAP response.
+        context: The FastRAMQPI context.
+        nest: Whether to also fetch and nest related objects.
+
+    Returns:
+        The LDAP object constructed from the response.
     """
     attributes = sorted(list(response["attributes"].keys()))
     ldap_dict = {"dn": response["dn"]}
@@ -535,11 +669,14 @@ def make_ldap_object(response: dict, context: Context, nest: bool = True) -> Any
     return LdapObject(**ldap_dict)
 
 
-def get_attribute_types(ldap_connection):
+def get_attribute_types(ldap_connection: Connection):
     """
     Returns a dictionary with attribute type information for all attributes in LDAP
     """
-    return ldap_connection.server.schema.attribute_types
+    # On OpenLDAP this returns a ldap3.utils.ciDict.CaseInsensitiveWithAliasDict
+    # Mapping from str to ldap3.protocol.rfc4512.AttributeTypeInfo
+    schema = get_ldap_schema(ldap_connection)
+    return schema.attribute_types
 
 
 async def cleanup(
@@ -663,6 +800,7 @@ def setup_listener(context: Context) -> list[Thread]:
         search_parameters = {
             "search_base": search_base,
             "search_filter": "(cn=*)",
+            # TODO: Is this actually necessary compared to just getting DN by default?
             "attributes": ["distinguishedName"],
         }
 

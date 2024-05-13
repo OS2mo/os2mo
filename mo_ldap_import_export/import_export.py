@@ -38,6 +38,8 @@ from .exceptions import IgnoreChanges
 from .exceptions import NoObjectsReturnedException
 from .exceptions import NotSupportedException
 from .ldap import cleanup
+from .ldap import first_included
+from .ldap import get_ldap_object
 from .ldap_classes import LdapObject
 from .types import OrgUnitUUID
 from .utils import extract_ou_from_dn
@@ -47,7 +49,7 @@ logger = structlog.stdlib.get_logger()
 
 
 class IgnoreMe:
-    def __init__(self):
+    def __init__(self) -> None:
         self.ignore_dict: dict[str, list[datetime]] = {}
 
     def __getitem__(self, key: str | UUID) -> list[datetime]:
@@ -290,6 +292,8 @@ class SyncTool:
         except IgnoreChanges:
             logger.info("Ignoring UUID", exc_info=True)
             return
+
+        # TODO: Change this to only perform engagement specific import checks?
         await self.perform_export_checks(uuid, object_uuid)
 
         try:
@@ -483,6 +487,10 @@ class SyncTool:
         object_type,
     ):
         await self.perform_export_checks(affected_employee.uuid, changed_address.uuid)
+        # TODO: Attempt to read LDAP DN from UUID
+        # dn = first_included(self.context, dns)
+        # dns = {dn}
+        # TODO: If no LDAP DN was found, create one
         dns: set[DN] = await self.dataloader.find_or_make_mo_employee_dn(
             affected_employee.uuid
         )
@@ -609,6 +617,7 @@ class SyncTool:
         )
 
         for affected_employee in affected_employees:
+            # TODO: Emit events instead
             try:
                 await self.process_employee_address(
                     affected_employee,
@@ -811,15 +820,15 @@ class SyncTool:
         return operations
 
     @wait_for_import_to_finish
-    async def import_single_user(self, dn: str, force=False, manual_import=False):
-        """
-        Imports a single user from LDAP
+    async def import_single_user(
+        self, dn: DN, force: bool = False, manual_import: bool = False
+    ) -> None:
+        """Imports a single user from LDAP into MO.
 
-        Parameters
-        ----------------
-        force : bool
-            Can be set to 'True' to force import a user. Meaning that we do not check
-            if the dn is in self.dns_to_ignore.
+        Args:
+            dn: The DN that triggered our event changed in LDAP.
+            force: Whether to ignore DNs in self.dns_to_ignore.
+            manual_import: Whether this import operation was manually triggered.
         """
         try:
             if not force:
@@ -837,13 +846,60 @@ class SyncTool:
 
         # Get the employee's uuid (if they exists)
         employee_uuid = await self.dataloader.find_mo_employee_uuid(dn)
-        if not employee_uuid:
+        if employee_uuid:
+            # If we found an employee UUID, we want to use that to find all DNs
+            dns = await self.dataloader.find_mo_employee_dn(employee_uuid)
+        else:
+            # If we did not find an employee UUID, this call will create it.
+            # However we want to create it using the best possible LDAP account.
+            # As we do not have the option to find accounts via the employee UUID,
+            # we will instead try to find accounts using the CPR number in LDAP.
+            # Note however, that this will only succeed if there is a CPR number field.
+            dns = {dn}
+            cpr_field = self.converter.cpr_field
+            if cpr_field is not None:
+                cpr_no = getattr(
+                    get_ldap_object(
+                        dn,
+                        self.context,
+                        attributes=[cpr_field],
+                        run_discriminator=False,
+                    ),
+                    cpr_field,
+                )
+                dns = {
+                    obj.dn
+                    for obj in self.dataloader.load_ldap_cpr_object(cpr_no, "Employee")
+                }
+
             logger.info(
-                "Employee not found in MO",
-                task="generating employee uuid",
+                "Employee not found in MO, generating UUID",
                 dn=dn,
             )
             employee_uuid = uuid4()
+
+        # We always want to synchronize from the best LDAP account, instead of just
+        # synchronizing from the last LDAP account that has been touched.
+        # Thus we process the list of DNs found for the user to pick the best one.
+        best_dn = first_included(self.context, dns)
+        # If no good LDAP account was found, we do not want to synchronize at all
+        if best_dn is None:
+            logger.info(
+                "Aborting synchronization, as no good LDAP account was found",
+                dn=dn,
+                employee_uuid=employee_uuid,
+            )
+            return
+
+        # At this point, we have the best possible DN for the user, and their MO UUID.
+        if dn != best_dn:
+            logger.info(
+                "Found better DN for employee",
+                dn=dn,
+                best_dn=best_dn,
+                employee_uuid=employee_uuid,
+            )
+        dn = best_dn
 
         # Get the employee's engagement UUID (for the engagement matching the employee's
         # AD ObjectGUID.) This depends on whether the "ADGUID" field mapping is set up

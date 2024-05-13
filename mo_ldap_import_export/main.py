@@ -170,6 +170,10 @@ async def process_engagement(
     args, _ = await unpack_payload(context, object_uuid, mo_routing_key)
 
     await sync_tool.listen_to_changes_in_employees(**args)
+
+    # Udsende events på alle personer, der har et engagement på org-enheden vores er på
+    # TODO: giver det her overhovedet mening? - Tjek samtlige salt konfigurationer
+    #       måske kan det slettes?
     await sync_tool.export_org_unit_addresses_on_engagement_change(object_uuid)
 
 
