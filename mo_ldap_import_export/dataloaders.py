@@ -7,6 +7,7 @@ from datetime import datetime
 from enum import auto
 from enum import Enum
 from functools import partial
+from functools import partialmethod
 from functools import wraps
 from itertools import count
 from typing import Any
@@ -14,6 +15,7 @@ from typing import AsyncIterator
 from typing import Awaitable
 from typing import Callable
 from typing import cast
+from typing import Literal
 from uuid import UUID
 
 import structlog
@@ -350,66 +352,66 @@ class DataLoader:
 
     def modify_ldap(
         self,
+        operation: Literal[
+            "MODIFY_ADD", "MODIFY_DELETE", "MODIFY_REPLACE", "MODIFY_INCREMENT"
+        ],
         dn: str,
-        changes: (
-            dict[str, list[tuple[str, list[str]]]] | dict[str, list[tuple[str, str]]]
-        ),
-    ):
+        attribute: str,
+        value: list[str] | str,
+    ) -> dict | None:
         """
         Modifies LDAP and adds the dn to dns_to_ignore
         """
         # Checks
         if not self.ou_in_ous_to_write_to(dn):
-            return
+            return None
 
-        attributes = list(changes.keys())
-        if len(attributes) != 1:
-            raise InvalidChangeDict("Exactly one attribute can be changed at a time")
-
-        attribute = attributes[0]
-        list_of_changes = changes[attribute]
-        if len(list_of_changes) != 1:
-            raise InvalidChangeDict("Exactly one change can be submitted at a time")
-
-        ldap_command, value_to_modify = list_of_changes[0]
-        if isinstance(value_to_modify, list):
-            if len(value_to_modify) == 1:
-                value_to_modify = value_to_modify[0]
-            elif len(value_to_modify) == 0:
-                value_to_modify = ""
-            else:
-                raise InvalidChangeDict("Exactly one value can be changed at a time")
+        if isinstance(value, list):
+            value = only(
+                value,
+                default="",
+                too_long=InvalidChangeDict(
+                    "Exactly one value can be changed at a time"
+                ),
+            )
 
         # Compare to LDAP
-        value_exists = self.ldap_connection.compare(dn, attribute, value_to_modify)
+        value_exists = self.ldap_connection.compare(dn, attribute, value)
 
-        # Modify LDAP
-        if not value_exists or "DELETE" in ldap_command:
-            logger.info("Uploading the changes", changes=changes, dn=dn)
-            self.ldap_connection.modify(dn, changes)
-            response = self.log_ldap_response(dn=dn)
-
-            # If successful, the importer should ignore this DN
-            if response["description"] == "success":
-                # Clean all old entries
-                self.sync_tool.dns_to_ignore.clean()
-
-                # Only add if nothing is there yet. Otherwise we risk adding an
-                # ignore-command for every modified parameter
-                #
-                # Also: even if an LDAP attribute gets modified by us twice within a
-                # couple of seconds, it should still only be ignored once; Because we
-                # only retrieve the latest state of the LDAP object when polling
-                if not self.sync_tool.dns_to_ignore[dn]:
-                    self.sync_tool.dns_to_ignore.add(dn)
-
-            return response
-        else:
+        # If the value is already as expected, and we are not deleting, we are done
+        if value_exists and "DELETE" not in operation:
             logger.info(
                 "Attribute value already exists",
                 attribute=attribute,
-                value_to_modify=value_to_modify,
+                value_to_modify=value,
             )
+            return None
+
+        # Modify LDAP
+        changes = {attribute: [(operation, value)]}
+        logger.info("Uploading the changes", changes=changes, dn=dn)
+        self.ldap_connection.modify(dn, changes)
+        response = self.log_ldap_response(dn=dn)
+
+        # If successful, the importer should ignore this DN
+        if response["description"] == "success":
+            # Clean all old entries
+            self.sync_tool.dns_to_ignore.clean()
+
+            # Only add if nothing is there yet. Otherwise we risk adding an
+            # ignore-command for every modified parameter
+            #
+            # Also: even if an LDAP attribute gets modified by us twice within a
+            # couple of seconds, it should still only be ignored once; Because we
+            # only retrieve the latest state of the LDAP object when polling
+            if not self.sync_tool.dns_to_ignore[dn]:
+                self.sync_tool.dns_to_ignore.add(dn)
+
+        return response
+
+    add_ldap = partialmethod(modify_ldap, "MODIFY_ADD")
+    delete_ldap = partialmethod(modify_ldap, "MODIFY_DELETE")
+    replace_ldap = partialmethod(modify_ldap, "MODIFY_REPLACE")
 
     def cleanup_attributes_in_ldap(self, ldap_objects: list[LdapObject]):
         """
@@ -444,9 +446,7 @@ class DataLoader:
                     value_to_delete=value_to_delete,
                     attribute=attribute,
                 )
-
-                changes = {attribute: [("MODIFY_DELETE", value_to_delete)]}
-                self.modify_ldap(dn, changes)
+                self.delete_ldap(dn, attribute, value_to_delete)
 
     async def load_ldap_objects(
         self,
@@ -692,15 +692,16 @@ class DataLoader:
             value = getattr(object_to_modify, parameter_to_modify)
             value_to_modify: list[str] = [] if value is None else [value]
 
+            operation = None
             if delete:
-                changes = {parameter_to_modify: [("MODIFY_DELETE", value_to_modify)]}
+                operation = self.delete_ldap
             elif self.single_value[parameter_to_modify] or overwrite:
-                changes = {parameter_to_modify: [("MODIFY_REPLACE", value_to_modify)]}
+                operation = self.replace_ldap
             else:
-                changes = {parameter_to_modify: [("MODIFY_ADD", value_to_modify)]}
+                operation = self.add_ldap
 
             try:
-                response = self.modify_ldap(dn, changes)
+                response = operation(dn, parameter_to_modify, value_to_modify)
             except LDAPInvalidValueError:
                 logger.warning("LDAPInvalidValueError exception", exc_info=True)
                 failed += 1
