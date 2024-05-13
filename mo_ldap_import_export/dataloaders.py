@@ -378,35 +378,36 @@ class DataLoader:
         # Compare to LDAP
         value_exists = self.ldap_connection.compare(dn, attribute, value)
 
-        # Modify LDAP
-        if not value_exists or "DELETE" in operation:
-            changes = {attribute: [(operation, value)]}
-            logger.info("Uploading the changes", changes=changes, dn=dn)
-            self.ldap_connection.modify(dn, changes)
-            response = self.log_ldap_response(dn=dn)
-
-            # If successful, the importer should ignore this DN
-            if response["description"] == "success":
-                # Clean all old entries
-                self.sync_tool.dns_to_ignore.clean()
-
-                # Only add if nothing is there yet. Otherwise we risk adding an
-                # ignore-command for every modified parameter
-                #
-                # Also: even if an LDAP attribute gets modified by us twice within a
-                # couple of seconds, it should still only be ignored once; Because we
-                # only retrieve the latest state of the LDAP object when polling
-                if not self.sync_tool.dns_to_ignore[dn]:
-                    self.sync_tool.dns_to_ignore.add(dn)
-
-            return response
-        else:
+        # If the value is already as expected, and we are not deleting, we are done
+        if value_exists and "DELETE" not in operation:
             logger.info(
                 "Attribute value already exists",
                 attribute=attribute,
                 value_to_modify=value,
             )
             return None
+
+        # Modify LDAP
+        changes = {attribute: [(operation, value)]}
+        logger.info("Uploading the changes", changes=changes, dn=dn)
+        self.ldap_connection.modify(dn, changes)
+        response = self.log_ldap_response(dn=dn)
+
+        # If successful, the importer should ignore this DN
+        if response["description"] == "success":
+            # Clean all old entries
+            self.sync_tool.dns_to_ignore.clean()
+
+            # Only add if nothing is there yet. Otherwise we risk adding an
+            # ignore-command for every modified parameter
+            #
+            # Also: even if an LDAP attribute gets modified by us twice within a
+            # couple of seconds, it should still only be ignored once; Because we
+            # only retrieve the latest state of the LDAP object when polling
+            if not self.sync_tool.dns_to_ignore[dn]:
+                self.sync_tool.dns_to_ignore.add(dn)
+
+        return response
 
     add_ldap = partialmethod(modify_ldap, "MODIFY_ADD")
     delete_ldap = partialmethod(modify_ldap, "MODIFY_DELETE")
