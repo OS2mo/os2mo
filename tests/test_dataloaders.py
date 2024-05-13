@@ -78,7 +78,6 @@ from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.dataloaders import Verb
 from mo_ldap_import_export.exceptions import AttributeNotFound
 from mo_ldap_import_export.exceptions import DNNotFound
-from mo_ldap_import_export.exceptions import InvalidChangeDict
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import NotEnabledException
@@ -1573,17 +1572,16 @@ async def test_modify_ldap(
 ):
     ldap_connection.result = {"description": "success"}
     dn = "CN=foo"
-    changes: dict = {"parameter_to_modify": [("MODIFY_ADD", "value_to_modify")]}
 
     # Validate that the entry is not in the ignore dict
     assert len(sync_tool.dns_to_ignore[dn]) == 0
 
     # Modify the entry. Validate that it is added to the ignore dict
-    dataloader.modify_ldap(dn, changes)
+    dataloader.modify_ldap("MODIFY_ADD", dn, "parameter_to_modify", "value_to_modify")
     assert len(sync_tool.dns_to_ignore[dn]) == 1
 
     # Modify the same entry again. Validate that we still only ignore once
-    dataloader.modify_ldap(dn, changes)
+    dataloader.modify_ldap("MODIFY_ADD", dn, "parameter_to_modify", "value_to_modify")
     assert len(sync_tool.dns_to_ignore[dn]) == 1
 
     # Validate that any old entries get cleaned, and a new one gets added
@@ -1592,65 +1590,24 @@ async def test_modify_ldap(
         datetime.datetime(1901, 1, 1),
     ]
     assert len(sync_tool.dns_to_ignore[dn]) == 2
-    dataloader.modify_ldap(dn, changes)
+    dataloader.modify_ldap("MODIFY_ADD", dn, "parameter_to_modify", "value_to_modify")
     assert len(sync_tool.dns_to_ignore[dn]) == 1
     assert sync_tool.dns_to_ignore[dn][0] > datetime.datetime(1950, 1, 1)
 
-    # Validate that our checks work
-    with pytest.raises(
-        InvalidChangeDict, match="Exactly one attribute can be changed at a time"
-    ):
-        changes = {
-            "parameter_to_modify": [("MODIFY_ADD", "value_to_modify")],
-            "another_parameter_to_modify": [("MODIFY_ADD", "value_to_modify")],
-        }
-        dataloader.modify_ldap(dn, changes)
-
-    # Validate that our checks work
-    with pytest.raises(
-        InvalidChangeDict, match="Exactly one change can be submitted at a time"
-    ):
-        changes = {
-            "parameter_to_modify": [
-                ("MODIFY_ADD", "value_to_modify"),
-                ("MODIFY_ADD", "another_value_to_modify"),
-            ],
-        }
-        dataloader.modify_ldap(dn, changes)
-
-    # Validate that our checks work
-    with pytest.raises(
-        InvalidChangeDict, match="Exactly one value can be changed at a time"
-    ):
-        changes = {
-            "parameter_to_modify": [
-                (
-                    "MODIFY_ADD",
-                    [
-                        "value_to_modify",
-                        "another_value_to_modify",
-                    ],
-                )
-            ],
-        }
-        dataloader.modify_ldap(dn, changes)
-
     # Validate that empty lists are allowed
-    changes = {"parameter_to_modify": [("MODIFY_REPLACE", [])]}
-    dataloader.modify_ldap(dn, changes)
+    dataloader.modify_ldap("MODIFY_REPLACE", dn, "parameter_to_modify", [])
     ldap_connection.compare.assert_called_with(dn, "parameter_to_modify", "")
 
     # Simulate case where a value exists
     ldap_connection.compare.return_value = True
     with capture_logs() as cap_logs:
-        dataloader.modify_ldap(dn, changes)
+        dataloader.modify_ldap("MODIFY_REPLACE", dn, "parameter_to_modify", [])
         messages = [w for w in cap_logs if w["log_level"] == "info"]
 
         assert re.match(".*already exists.*", str(messages[-1]["event"]))
 
     # DELETE statments should still be executed, even if a value exists
-    changes = {"parameter_to_modify": [("MODIFY_DELETE", "foo")]}
-    response = dataloader.modify_ldap(dn, changes)
+    response = dataloader.modify_ldap("MODIFY_DELETE", dn, "parameter_to_modify", "foo")
     assert response == {"description": "success"}
 
 
@@ -1662,7 +1619,7 @@ async def test_modify_ldap_ou_not_in_ous_to_write_to(
     dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to.return_value = False
 
-    assert dataloader.modify_ldap("CN=foo", {}) is None  # type: ignore
+    assert dataloader.modify_ldap("CN=foo", "MODIFY_ADD", "attribute", "value") is None  # type: ignore
 
 
 async def test_get_ldap_it_system_uuid(dataloader: DataLoader, converter: MagicMock):

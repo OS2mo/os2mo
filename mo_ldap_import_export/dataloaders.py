@@ -7,6 +7,7 @@ from datetime import datetime
 from enum import auto
 from enum import Enum
 from functools import partial
+from functools import partialmethod
 from functools import wraps
 from itertools import count
 from typing import Any
@@ -14,6 +15,7 @@ from typing import AsyncIterator
 from typing import Awaitable
 from typing import Callable
 from typing import cast
+from typing import Literal
 from uuid import UUID
 
 import structlog
@@ -350,12 +352,18 @@ class DataLoader:
 
     def modify_ldap(
         self,
+        operation: Literal[
+            "MODIFY_ADD", "MODIFY_DELETE", "MODIFY_REPLACE", "MODIFY_INCREMENT"
+        ],
         dn: str,
-        changes: (dict[str, list[tuple[str, list[str] | str]]]),
+        attribute: str,
+        value: list[str] | str,
     ) -> dict | None:
         """
         Modifies LDAP and adds the dn to dns_to_ignore
         """
+        changes = {attribute: [(operation, value)]}
+
         # Checks
         if not self.ou_in_ous_to_write_to(dn):
             return None
@@ -410,21 +418,9 @@ class DataLoader:
             )
             return None
 
-    def add_ldap(self, dn: DN, attribute: str, value: list[str] | str) -> dict | None:
-        changes = {attribute: [("MODIFY_ADD", value)]}
-        return self.modify_ldap(dn, changes)
-
-    def delete_ldap(
-        self, dn: DN, attribute: str, value: list[str] | str
-    ) -> dict | None:
-        changes = {attribute: [("MODIFY_DELETE", value)]}
-        return self.modify_ldap(dn, changes)
-
-    def replace_ldap(
-        self, dn: DN, attribute: str, value: list[str] | str
-    ) -> dict | None:
-        changes = {attribute: [("MODIFY_REPLACE", value)]}
-        return self.modify_ldap(dn, changes)
+    add_ldap = partialmethod(modify_ldap, "MODIFY_ADD")
+    delete_ldap = partialmethod(modify_ldap, "MODIFY_DELETE")
+    replace_ldap = partialmethod(modify_ldap, "MODIFY_REPLACE")
 
     def cleanup_attributes_in_ldap(self, ldap_objects: list[LdapObject]):
         """
