@@ -351,16 +351,14 @@ class DataLoader:
     def modify_ldap(
         self,
         dn: str,
-        changes: (
-            dict[str, list[tuple[str, list[str]]]] | dict[str, list[tuple[str, str]]]
-        ),
-    ):
+        changes: (dict[str, list[tuple[str, list[str] | str]]]),
+    ) -> dict | None:
         """
         Modifies LDAP and adds the dn to dns_to_ignore
         """
         # Checks
         if not self.ou_in_ous_to_write_to(dn):
-            return
+            return None
 
         attributes = list(changes.keys())
         if len(attributes) != 1:
@@ -410,6 +408,23 @@ class DataLoader:
                 attribute=attribute,
                 value_to_modify=value_to_modify,
             )
+            return None
+
+    def add_ldap(self, dn: DN, attribute: str, value: list[str] | str) -> dict | None:
+        changes = {attribute: [("MODIFY_ADD", value)]}
+        return self.modify_ldap(dn, changes)
+
+    def delete_ldap(
+        self, dn: DN, attribute: str, value: list[str] | str
+    ) -> dict | None:
+        changes = {attribute: [("MODIFY_DELETE", value)]}
+        return self.modify_ldap(dn, changes)
+
+    def replace_ldap(
+        self, dn: DN, attribute: str, value: list[str] | str
+    ) -> dict | None:
+        changes = {attribute: [("MODIFY_REPLACE", value)]}
+        return self.modify_ldap(dn, changes)
 
     def cleanup_attributes_in_ldap(self, ldap_objects: list[LdapObject]):
         """
@@ -444,9 +459,7 @@ class DataLoader:
                     value_to_delete=value_to_delete,
                     attribute=attribute,
                 )
-
-                changes = {attribute: [("MODIFY_DELETE", value_to_delete)]}
-                self.modify_ldap(dn, changes)
+                self.delete_ldap(dn, attribute, value_to_delete)
 
     async def load_ldap_objects(
         self,
@@ -692,15 +705,16 @@ class DataLoader:
             value = getattr(object_to_modify, parameter_to_modify)
             value_to_modify: list[str] = [] if value is None else [value]
 
+            operation = None
             if delete:
-                changes = {parameter_to_modify: [("MODIFY_DELETE", value_to_modify)]}
+                operation = self.delete_ldap
             elif self.single_value[parameter_to_modify] or overwrite:
-                changes = {parameter_to_modify: [("MODIFY_REPLACE", value_to_modify)]}
+                operation = self.replace_ldap
             else:
-                changes = {parameter_to_modify: [("MODIFY_ADD", value_to_modify)]}
+                operation = self.add_ldap
 
             try:
-                response = self.modify_ldap(dn, changes)
+                response = operation(dn, parameter_to_modify, value_to_modify)
             except LDAPInvalidValueError:
                 logger.warning("LDAPInvalidValueError exception", exc_info=True)
                 failed += 1
