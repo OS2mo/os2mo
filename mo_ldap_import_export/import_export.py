@@ -379,6 +379,59 @@ class SyncTool:
                 ldap_object.dn,
             )
 
+    async def mo_engagement_to_ldap(
+        self,
+        uuid: EmployeeUUID,
+        object_uuid: UUID,
+        delete: bool,
+        current_objects_only: bool,
+        dns: set[DN],
+        mo_object_dict: dict[str, Any],
+        changed_employee: Employee,
+        object_type: str,
+    ) -> None:
+        # Get MO Engagement
+        changed_engagement = await self.dataloader.load_mo_engagement(
+            object_uuid,
+            current_objects_only=current_objects_only,
+        )
+
+        json_key = "Engagement"
+        mo_object_dict["mo_employee_engagement"] = changed_engagement
+
+        # Convert & Upload to LDAP
+        # We upload an engagement to LDAP regardless of its 'primary' attribute.
+        # Because it looks like you cannot set 'primary' when creating an engagement
+        # in the OS2mo GUI.
+        # TODO: Convert this to use best_dn?
+        affected_dn = await self.dataloader.find_dn_by_engagement_uuid(
+            uuid, changed_engagement, dns
+        )
+        ldap_object = await self.converter.to_ldap(
+            mo_object_dict, json_key, affected_dn
+        )
+        ldap_object = self.move_ldap_object(ldap_object, affected_dn)
+        ldap_modify_responses = await self.dataloader.modify_ldap_object(
+            ldap_object,
+            json_key,
+            delete=delete,
+        )
+
+        if self.cleanup_needed(ldap_modify_responses):
+            engagements_in_mo = await self.dataloader.load_mo_employee_engagements(
+                changed_employee.uuid
+            )
+
+            await cleanup(
+                json_key,
+                "mo_employee_engagement",
+                engagements_in_mo,
+                self.user_context,
+                changed_employee,
+                object_type,
+                ldap_object.dn,
+            )
+
     @wait_for_export_to_finish
     @with_exitstack
     async def listen_to_changes_in_employees(
@@ -498,47 +551,16 @@ class SyncTool:
             )
 
         elif object_type == "engagement":
-            # Get MO Engagement
-            changed_engagement = await self.dataloader.load_mo_engagement(
+            await self.mo_engagement_to_ldap(
+                uuid,
                 object_uuid,
-                current_objects_only=current_objects_only,
+                delete,
+                current_objects_only,
+                dns,
+                mo_object_dict,
+                changed_employee,
+                object_type,
             )
-
-            json_key = "Engagement"
-            mo_object_dict["mo_employee_engagement"] = changed_engagement
-
-            # Convert & Upload to LDAP
-            # We upload an engagement to LDAP regardless of its 'primary' attribute.
-            # Because it looks like you cannot set 'primary' when creating an engagement
-            # in the OS2mo GUI.
-            # TODO: Convert this to use best_dn?
-            affected_dn = await self.dataloader.find_dn_by_engagement_uuid(
-                uuid, changed_engagement, dns
-            )
-            ldap_object = await self.converter.to_ldap(
-                mo_object_dict, json_key, affected_dn
-            )
-            ldap_object = self.move_ldap_object(ldap_object, affected_dn)
-            ldap_modify_responses = await self.dataloader.modify_ldap_object(
-                ldap_object,
-                json_key,
-                delete=delete,
-            )
-
-            if self.cleanup_needed(ldap_modify_responses):
-                engagements_in_mo = await self.dataloader.load_mo_employee_engagements(
-                    changed_employee.uuid
-                )
-
-                await cleanup(
-                    json_key,
-                    "mo_employee_engagement",
-                    engagements_in_mo,
-                    self.user_context,
-                    changed_employee,
-                    object_type,
-                    ldap_object.dn,
-                )
 
     @wait_for_export_to_finish
     async def process_employee_address(
