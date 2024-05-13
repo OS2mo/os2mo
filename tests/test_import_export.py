@@ -263,7 +263,7 @@ async def test_listen_to_changes_in_employees(
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         await sync_tool.listen_to_changes_in_employees(
             payload.uuid,
-            payload.object_uuid,
+            payload.uuid,  # uuid and object uuid are always the same for person
             routing_key=mo_routing_key,
             delete=False,
             current_objects_only=True,

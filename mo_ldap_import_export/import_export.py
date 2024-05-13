@@ -23,6 +23,7 @@ from more_itertools import first
 from more_itertools import one
 from more_itertools import quantify
 from pydantic import parse_obj_as
+from ramodels.mo import Employee
 from ramodels.mo import MOBase
 from structlog.contextvars import bound_contextvars
 
@@ -269,6 +270,61 @@ class SyncTool:
 
         return ldap_object
 
+    async def mo_address_to_ldap(
+        self,
+        uuid: EmployeeUUID,
+        object_uuid: UUID,
+        delete: bool,
+        current_objects_only: bool,
+        dns: set[DN],
+        mo_object_dict: dict[str, Any],
+        changed_employee: Employee,
+        object_type: str,
+    ) -> None:
+        # Get MO address
+        changed_address = await self.dataloader.load_mo_address(
+            object_uuid,
+            current_objects_only=current_objects_only,
+        )
+        address_type_uuid = str(changed_address.address_type.uuid)
+        json_key = await self.converter.get_employee_address_type_user_key(
+            address_type_uuid
+        )
+
+        logger.info("Obtained address", user_key=json_key)
+        mo_object_dict["mo_employee_address"] = changed_address
+
+        # Convert & Upload to LDAP
+        # TODO: Convert this to use best_dn?
+        affected_dn = await self.dataloader.find_dn_by_engagement_uuid(
+            uuid, changed_address.engagement, dns
+        )
+        ldap_object = await self.converter.to_ldap(
+            mo_object_dict, json_key, affected_dn
+        )
+        ldap_object = self.move_ldap_object(ldap_object, affected_dn)
+
+        ldap_modify_responses = await self.dataloader.modify_ldap_object(
+            ldap_object,
+            json_key,
+            delete=delete,
+        )
+
+        if self.cleanup_needed(ldap_modify_responses):
+            addresses_in_mo = await self.dataloader.load_mo_employee_addresses(
+                changed_employee.uuid, changed_address.address_type.uuid
+            )
+
+            await cleanup(
+                json_key,
+                "mo_employee_address",
+                addresses_in_mo,
+                self.user_context,
+                changed_employee,
+                object_type,
+                ldap_object.dn,
+            )
+
     @wait_for_export_to_finish
     @with_exitstack
     async def listen_to_changes_in_employees(
@@ -346,6 +402,8 @@ class SyncTool:
         object_type = get_object_type_from_routing_key(routing_key)
 
         if object_type == "person":
+            assert uuid == object_uuid
+
             # Convert to LDAP
             ldap_employee = await self.converter.to_ldap(
                 mo_object_dict, "Employee", best_dn
@@ -362,49 +420,16 @@ class SyncTool:
             )
 
         elif object_type == "address":
-            # Get MO address
-            changed_address = await self.dataloader.load_mo_address(
+            await self.mo_address_to_ldap(
+                uuid,
                 object_uuid,
-                current_objects_only=current_objects_only,
+                delete,
+                current_objects_only,
+                dns,
+                mo_object_dict,
+                changed_employee,
+                object_type,
             )
-            address_type_uuid = str(changed_address.address_type.uuid)
-            json_key = await self.converter.get_employee_address_type_user_key(
-                address_type_uuid
-            )
-
-            logger.info("Obtained address", user_key=json_key)
-            mo_object_dict["mo_employee_address"] = changed_address
-
-            # Convert & Upload to LDAP
-            # TODO: Convert this to use best_dn?
-            affected_dn = await self.dataloader.find_dn_by_engagement_uuid(
-                uuid, changed_address.engagement, dns
-            )
-            ldap_object = await self.converter.to_ldap(
-                mo_object_dict, json_key, affected_dn
-            )
-            ldap_object = self.move_ldap_object(ldap_object, affected_dn)
-
-            ldap_modify_responses = await self.dataloader.modify_ldap_object(
-                ldap_object,
-                json_key,
-                delete=delete,
-            )
-
-            if self.cleanup_needed(ldap_modify_responses):
-                addresses_in_mo = await self.dataloader.load_mo_employee_addresses(
-                    changed_employee.uuid, changed_address.address_type.uuid
-                )
-
-                await cleanup(
-                    json_key,
-                    "mo_employee_address",
-                    addresses_in_mo,
-                    self.user_context,
-                    changed_employee,
-                    object_type,
-                    ldap_object.dn,
-                )
 
         elif object_type == "ituser":
             # Get MO IT-user
