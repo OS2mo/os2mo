@@ -41,6 +41,7 @@ from .ldap import cleanup
 from .ldap import first_included
 from .ldap import get_ldap_object
 from .ldap_classes import LdapObject
+from .types import EmployeeUUID
 from .types import OrgUnitUUID
 from .utils import extract_ou_from_dn
 from .utils import get_object_type_from_routing_key
@@ -252,7 +253,7 @@ class SyncTool:
     @wait_for_export_to_finish
     async def listen_to_changes_in_employees(
         self,
-        uuid: UUID,
+        uuid: EmployeeUUID,
         object_uuid: UUID,
         routing_key: MORoutingKey,
         delete: bool,
