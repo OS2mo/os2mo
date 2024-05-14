@@ -136,6 +136,41 @@ async def test_owner_employees_filters(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
+    "filter, inherit, expected",
+    [
+        # We only have 1 owner that can be inherited
+        ({"uuids": "85715fc7-925d-401b-822d-467eb4b163b6"}, True, 1),
+        ({"uuids": "85715fc7-925d-401b-822d-467eb4b163b6"}, False, 0),
+    ],
+)
+def test_query_inherited_owners(
+    graphapi_post: GraphAPIPost, filter, inherit, expected
+) -> None:
+    """Test that we can get inherited owners."""
+    query = """
+        query ReadInheritedOwners($filter: OrganisationUnitFilter!, $inherit: Boolean!) {
+            org_units(filter: $filter) {
+                objects {
+                    validities {
+                        owners(inherit: $inherit) {
+                            uuid
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response = graphapi_post(query, variables=dict(filter=filter, inherit=inherit))
+    assert response.errors is None
+    assert (
+        len(response.data["org_units"]["objects"][0]["validities"][0]["owners"])
+        == expected
+    )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.parametrize(
     "test_data, expected_fail",
     [
         (

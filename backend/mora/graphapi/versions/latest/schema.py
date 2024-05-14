@@ -3852,7 +3852,7 @@ class OrganisationUnit:
             """\
             Owner roles for the organisation unit.
 
-            May be empty in which case managers are usually inherited from parents.
+            May be empty in which case owners are usually inherited from parents.
             See the `inherit`-flag for details.
             """
         ),
