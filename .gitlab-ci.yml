@@ -41,7 +41,7 @@ variables:
 include:
   - project: labs/salt-automation
     file:
-      - gitlab-ci-templates/common/no-interrupt-meta.v1.yml
+      - gitlab-ci-templates/common/no-interrupt.v1.yml
       - gitlab-ci-templates/common/conventional-commits.v1.yml
       - gitlab-ci-templates/common/conventional-commits-changelog.v1.yml
       - gitlab-ci-templates/common/docker-build.v1.yml
@@ -50,9 +50,16 @@ include:
   - project: labs/salt-automation
     file:
       - gitlab-ci-templates/common/pre-commit.v1.yml
-      - gitlab-ci-templates/python/pytest.v1.yml
     rules:
       - <<: *if-merge-request
+  - project: labs/salt-automation
+    file:
+      - gitlab-ci-templates/python/pytest.v1.yml
+    inputs:
+      pytest_addopts: "-m 'not integration_test'"
+    rules:
+      - <<: *if-merge-request
+  - local: .integration-test-meta.v1.yml
 
 # Workflow
 ###########
@@ -65,4 +72,63 @@ workflow:
         # they are both running at the same time on master.
         IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
     - <<: *if-default-branch-refs
+    - <<: *if-merge-request
+
+
+Integration-test:
+  extends:
+    - .integration-test:mo
+  services:
+    - !reference [ .integration-test:mo, services ]
+    - name: osixia/openldap:1.5.0
+      alias: ldap
+      command: ["--copy-service", "--loglevel", "debug"]
+      variables:
+        LDAP_ORGANISATION: "magenta"
+        LDAP_DOMAIN: "magenta.dk"
+        LDAP_ADMIN_PASSWORD: "AdminPassword123"
+        LDAP_CONFIG_PASSWORD: "ConfigPassword123"
+
+        LDAP_LOG_LEVEL: 512
+  variables:
+    LDAP_CONTROLLERS: '[{"host": "ldap"}]'
+    LDAP_DOMAIN: "magenta.dk"
+    LDAP_USER: "cn=admin,dc=magenta,dc=dk"
+    LDAP_PASSWORD: "AdminPassword123"
+    LDAP_SEARCH_BASE: "dc=magenta,dc=dk"
+    LDAP_OUS_TO_SEARCH_IN: '["ou=os2mo,o=magenta"]'
+    LDAP_OUS_TO_WRITE_TO: '["ou=os2mo,o=magenta"]'
+    LDAP_OU_FOR_NEW_USERS: "ou=os2mo,o=magenta"
+    LDAP_UNIQUE_ID_FIELD: "entryUUID"
+    LDAP_AUTH_METHOD: "simple"
+
+    PRODUCTION: False
+
+    LISTEN_TO_CHANGES_IN_MO: True
+    LISTEN_TO_CHANGES_IN_LDAP: True
+
+    DEFAULT_ORG_UNIT_TYPE: "Afdeling"
+    DEFAULT_ORG_UNIT_LEVEL: "N1"
+
+    CONVERSION_MAPPING: >-
+      {
+          "ldap_to_mo": {
+              "Employee": {
+                  "objectClass": "ramodels.mo.employee.Employee",
+                  "_import_to_mo_": "false",
+                  "cpr_no": "{{ldap.employeeNumber or None}}",
+                  "uuid": "{{ employee_uuid or NONE }}"
+              }
+          },
+          "mo_to_ldap": {
+              "Employee": {
+                  "objectClass": "inetOrgPerson",
+                  "_export_to_ldap_": "false",
+                  "employeeNumber": "{{mo_employee.cpr_no or None}}"
+              }
+          },
+          "username_generator": {"objectClass": "UserNameGenerator"}
+      }
+
+  rules:
     - <<: *if-merge-request
