@@ -593,3 +593,20 @@ query read_filtered_addresses($filter: AddressFilter!) {
     }
   }
 }
+
+query read_filtered_itusers($filter: ITUserFilter!) {
+  itusers(filter: $filter) {
+    objects {
+      validities {
+        itsystem {
+          user_key
+        }
+        uuid
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}

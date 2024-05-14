@@ -372,21 +372,91 @@ async def test_listen_to_changes_in_employees_ituser(
     dataloader: AsyncMock,
     sync_tool: SyncTool,
     converter: MagicMock,
+    graphql_mock: GraphQLMocker,
 ) -> None:
     converted_ldap_object = LdapObject(dn="CN=foo")
     converter.to_ldap.return_value = converted_ldap_object
-    converter.get_it_system_user_key = AsyncMock()
-    converter.get_it_system_user_key.return_value = "AD"
 
     employee_uuid = uuid4()
     ituser_uuid = uuid4()
     it_system_type_name = "AD"
 
     dataloader.find_mo_employee_dn.return_value = {"CN=foo"}
+    dataloader.extract_current_or_latest_object = (
+        DataLoader.extract_current_or_latest_object
+    )
 
     # Simulate a created IT user
+
+    # Replace the shitty mock with a good mock
+    dataloader.graphql_client = GraphQLClient("http://example.com/graphql")
+
+    # Mock MO read
+    route = graphql_mock.query("read_filtered_itusers")
+    route.result = {
+        "itusers": {
+            "objects": [
+                {
+                    "validities": [
+                        {
+                            "itsystem": {"user_key": it_system_type_name},
+                            "uuid": ituser_uuid,
+                            "validity": {
+                                "from": "1970-01-01T00:00:00",
+                                "to": None,
+                            },
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+
     mo_routing_key = "ituser"
-    with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
+    await sync_tool.listen_to_changes_in_employees(
+        employee_uuid,
+        ituser_uuid,
+        routing_key=mo_routing_key,
+        delete=False,
+        current_objects_only=True,
+    )
+    assert route.called
+    dataloader.modify_ldap_object.assert_called_with(
+        converted_ldap_object, it_system_type_name, delete=False
+    )
+
+    # Test expected behavior when reading multiple addresses of the same type
+    route.result = {
+        "itusers": {
+            "objects": [
+                {
+                    "validities": [
+                        {
+                            "itsystem": {"user_key": it_system_type_name},
+                            "uuid": ituser_uuid,
+                            "validity": {
+                                "from": "1970-01-01T00:00:00",
+                                "to": None,
+                            },
+                        }
+                    ]
+                },
+                {
+                    "validities": [
+                        {
+                            "itsystem": {"user_key": it_system_type_name},
+                            "uuid": UUID(int=ituser_uuid.int + 1),
+                            "validity": {
+                                "from": "1970-01-01T00:00:00",
+                                "to": None,
+                            },
+                        }
+                    ]
+                },
+            ]
+        }
+    }
+    with capture_logs() as cap_logs:
         await sync_tool.listen_to_changes_in_employees(
             employee_uuid,
             ituser_uuid,
@@ -394,10 +464,19 @@ async def test_listen_to_changes_in_employees_ituser(
             delete=False,
             current_objects_only=True,
         )
-    assert dataloader.load_mo_it_user.called
-    dataloader.modify_ldap_object.assert_called_with(
-        converted_ldap_object, it_system_type_name, delete=False
-    )
+    assert "Multiple itusers with the same itsystem" in [x["event"] for x in cap_logs]
+
+    # Test expected behavior when unable to read address details
+    dataloader.load_mo_it_user.side_effect = NoObjectsReturnedException("BOOM")
+    with pytest.raises(RequeueMessage) as exc:
+        await sync_tool.listen_to_changes_in_employees(
+            employee_uuid,
+            ituser_uuid,
+            routing_key=mo_routing_key,
+            delete=False,
+            current_objects_only=True,
+        )
+    assert "Unable to load mo object" in str(exc.value)
 
 
 async def test_listen_to_changes_in_employees_engagement(
