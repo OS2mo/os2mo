@@ -2071,11 +2071,14 @@ class Engagement:
         root: EngagementRead,
         info: Info,
     ) -> bool:
-        # Engagements with no primary class associated or associated with a class having scope=0 can not be primary engagements.
-        if (
-            not root.primary_uuid
-            or await get_primary_class_scope(root.primary_uuid) == 0
-        ):
+        # Engagements with no primary class associated cannot be primary
+        if not root.primary_uuid:
+            return False
+        # Engagements associated with a class having scope=0 can not be primary
+        primary_scope_map = {
+            root.primary_uuid: await get_primary_class_scope(root.primary_uuid)
+        }
+        if primary_scope_map[root.primary_uuid] == 0:
             return False
 
         # Find all the users engagements
@@ -2091,19 +2094,26 @@ class Engagement:
         )
 
         all_concurrent_engagements = list(flatten(engagements.values()))
-        # Look up the scope of associated primary classes
-        scopes = await gather(
-            *[
-                get_primary_class_scope(e.primary_uuid)
-                for e in all_concurrent_engagements
-            ]
+
+        primary_uuids_set = {e.primary_uuid for e in all_concurrent_engagements}
+        # Filter Nones, we cannot lookup None
+        primary_uuids_set.discard(None)
+        # Filter root.primary_uuid as it is already in primary_scope_map
+        primary_uuids_set.discard(root.primary_uuid)
+
+        # The order of UUIDs is not important, but must be consistent for zipping
+        primary_uuids = list(primary_uuids_set)
+        scopes = await gather(*map(get_primary_class_scope, primary_uuids))
+        primary_scope_map.update(dict(zip(primary_uuids, scopes)))
+
+        # Find the primary engagement
+        # TODO: What if multiple have the same?
+        primary_engagement = max(
+            all_concurrent_engagements,
+            key=lambda engagement: primary_scope_map.get(engagement.primary_uuid, 0),
         )
-        scope_map = zip(scopes, [e.uuid for e in all_concurrent_engagements])
-        # Find the engagements with the highest scope
-        primary = max(scope_map)
         # Check whether the current (root) engagement is the primary engagement for this user.
-        _, primary_engagement_uuid = primary
-        return root.uuid == primary_engagement_uuid
+        return root.uuid == primary_engagement.uuid
 
     leave: LazyLeave | None = strawberry.field(
         resolver=to_only(

@@ -160,6 +160,7 @@ def test_query_is_primary_multiple_on_same_person(graphapi_post: GraphAPIPost) -
     created_uuid = UUID(response.data["engagement_create"]["uuid"])
 
     # These are the engagements we expected to read for the person
+    # TODO: The fixture data should probably have a non-primary primary type (scope=0)
     expected_map = {
         created_uuid: {
             "current": {"is_primary": False, "primary": None, "uuid": str(created_uuid)}
