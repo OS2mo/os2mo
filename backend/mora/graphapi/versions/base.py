@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import traceback
 from collections.abc import AsyncIterator
 from collections.abc import Iterable
 from collections.abc import Sequence
@@ -20,6 +21,7 @@ from strawberry.exceptions import StrawberryGraphQLError
 from strawberry.extensions import SchemaExtension
 from strawberry.printer import print_schema
 from strawberry.schema.config import StrawberryConfig
+from strawberry.types import ExecutionContext
 from strawberry.utils.await_maybe import AsyncIteratorOrIterator
 from structlog import get_logger
 
@@ -28,6 +30,8 @@ from mora.db import get_session
 from mora.exceptions import HTTPException
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.router import CustomGraphQLRouter
+from mora.log import canonical_gql_context
+
 
 logger = get_logger()
 
@@ -54,6 +58,18 @@ def add_exception_extension(error: GraphQLError) -> StrawberryGraphQLError:
         original_error=error.original_error,
         message=error.message,
     )
+
+
+class LogContextExtension(SchemaExtension):
+    async def on_operation(self) -> AsyncIterator[None]:
+        if self.execution_context.operation_name:
+            canonical_gql_context()["name"] = self.execution_context.operation_name
+        if self.execution_context.variables:
+            canonical_gql_context()["vars"] = self.execution_context.variables
+        yield
+        if self.execution_context.errors:
+            canonical_gql_context()["errors"] = self.execution_context.errors
+            canonical_gql_context()["query"] = self.execution_context.query
 
 
 class ExtendedErrorFormatExtension(SchemaExtension):
@@ -93,6 +109,23 @@ class IntrospectionQueryCacheExtension(SchemaExtension):
         self.cache.setdefault(cache_key, execution_context.result)
 
 
+class CustomSchema(Schema):
+    def process_errors(
+        self,
+        errors: list[GraphQLError],
+        execution_context: None | ExecutionContext = None,
+    ) -> None:
+        exceptions = [
+            "".join(traceback.format_exception(error.original_error))
+            for error in errors
+        ]
+        canonical_gql_context()["exceptions"] = exceptions
+        if not config.get_settings().is_production():
+            # Pretty-print exceptions in development
+            for exception in exceptions:
+                print(exception, end="")
+
+
 class BaseGraphQLSchema:
     """Base GraphQL Schema wrapper with MO defaults.
 
@@ -108,6 +141,7 @@ class BaseGraphQLSchema:
 
     extensions: Sequence[type[SchemaExtension] | SchemaExtension] = [
         StarletteContextExtension,
+        LogContextExtension,
         RollbackOnError,
         ExtendedErrorFormatExtension,
         IntrospectionQueryCacheExtension,
@@ -130,9 +164,9 @@ class BaseGraphQLSchema:
 
     @classmethod
     @cache
-    def get(cls) -> Schema:
+    def get(cls) -> CustomSchema:
         """Instantiate Strawberry Schema."""
-        return Schema(
+        return CustomSchema(
             query=cls.query,
             mutation=cls.mutation,
             types=cls.types,

@@ -10,10 +10,17 @@ from uuid import uuid4
 import structlog
 from fastapi import Request
 from fastapi import Response
+from starlette_context import context
+from starlette_context import request_cycle_context
 from structlog.contextvars import bound_contextvars
 from structlog.types import EventDict
 from structlog.types import Processor
 from uvicorn.protocols.utils import get_path_with_query_string
+
+from mora.config import get_settings
+
+
+logger = structlog.get_logger()
 
 
 def _drop_color_message_key(_, __, event_dict: EventDict) -> EventDict:
@@ -44,14 +51,15 @@ def gen_accesslog_middleware() -> Callable[[Request, Any], Awaitable[Response]]:
         client_port = request.client.port
         http_method = request.method
 
-        access_logger.info(
-            "Request",
-            path=path,
-            status_code=status_code,
-            method=http_method,
-            network={"client": {"ip": client_host, "port": client_port}},
-            duration=process_time,
-        )
+        if status_code >= 400:
+            access_logger.warning(
+                "Access log",
+                path=path,
+                status_code=status_code,
+                method=http_method,
+                network={"client": {"ip": client_host, "port": client_port}},
+                duration=process_time,
+            )
 
         return response
 
@@ -126,3 +134,30 @@ def init(log_level: str, json: bool = True):
     # (effectively rendering them silent).
     logging.getLogger("uvicorn.access").handlers.clear()
     logging.getLogger("uvicorn.access").propagate = False
+
+
+_CANONICAL_LOG_KEY = "canonical"
+_CANONICAL_GQL_KEY = "gql"
+
+
+async def canonical_log_dependency():
+    data = {**context, _CANONICAL_LOG_KEY: {}}
+    with request_cycle_context(data):
+        yield
+        logger_function = (
+            logger.warning
+            if data[_CANONICAL_LOG_KEY].get("gql", {}).get("errors")
+            else logger.info
+        )
+        logger_function("Canonical log line", **data[_CANONICAL_LOG_KEY])
+
+
+def canonical_log_context() -> dict:
+    if get_settings().is_under_test() and _CANONICAL_LOG_KEY not in context:
+        return {}
+    return context[_CANONICAL_LOG_KEY]
+
+
+def canonical_gql_context() -> dict:
+    log_context = canonical_log_context()
+    return log_context.setdefault(_CANONICAL_GQL_KEY, {})
