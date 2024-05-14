@@ -323,7 +323,7 @@ uvicorn = {version = ">=0.29.0", extras = ["standard"]}
 
 [[package]]
 name = "fastramqpi"
-version = "7.2.1"
+version = "7.3.6"
 description = "Rammearkitektur integrations framework"
 category = "main"
 optional = false
@@ -339,8 +339,8 @@ gql = ">=3.4.0,<4.0.0"
 httpx = ">=0.27.0,<0.28.0"
 Jinja2 = ">=3.1.2,<4.0.0"
 more-itertools = ">=9.1.0,<10.0.0"
-prometheus-client = ">=0.16,<0.18"
-prometheus-fastapi-instrumentator = ">=5.9.1,<7.0.0"
+prometheus-client = ">=0.16,<0.21"
+prometheus-fastapi-instrumentator = ">=5.9.1,<8.0.0"
 pydantic = ">=1.10.5,<2.0.0"
 pytest = ">=7.4.3,<8.0.0"
 ramodels = ">=18.5.2,<23.0.0"
@@ -1467,7 +1467,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.11"
-content-hash = "5b5ee584a7d2f0e8e9447db1422e0bd1a1b79c68fede3347180194a7e028f547"
+content-hash = "d805204f6e66efac10d655ebbee907e2340983fbfa3d01924f604cd4f7911157"
 
 [metadata.files]
 aio-pika = [
@@ -1841,8 +1841,8 @@ fastapi-cli = [
     {file = "fastapi_cli-0.0.2.tar.gz", hash = "sha256:589565ba758432632eadcf7b950e0ec76bb283b549784d9df17f261a8a9de476"},
 ]
 fastramqpi = [
-    {file = "fastramqpi-7.2.1-py3-none-any.whl", hash = "sha256:34829b975ed84f51f25b17a40af911506b9caea25584e78e7ff4be372b3579d7"},
-    {file = "fastramqpi-7.2.1.tar.gz", hash = "sha256:f83346b417f21ce90267c8fb5efc17a67c91d2bb46e117a740d9b56a7cff1445"},
+    {file = "fastramqpi-7.3.6-py3-none-any.whl", hash = "sha256:71b15df9bba17a067b739b0e828a991509ebd1a45267a4f618e84ca9abaa1501"},
+    {file = "fastramqpi-7.3.6.tar.gz", hash = "sha256:023d736744c9e5fe146f6f290e7cae35459f833268a38f7f32dbaa409ad628ff"},
 ]
 filelock = [
     {file = "filelock-3.13.1-py3-none-any.whl", hash = "sha256:57dbda9b35157b05fb3e58ee91448612eb674172fab98ee235ccb0b5bee19a1c"},
