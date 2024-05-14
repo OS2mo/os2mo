@@ -456,7 +456,7 @@ async def engagement_resolver(
         class_filter = filter.job_function or ClassFilter()
         kwargs["opgaver"] = await filter2uuids_func(class_resolver, info, class_filter)
 
-    return await generic_resolver(
+    result = await generic_resolver(
         EngagementRead,
         info=info,
         filter=filter,
@@ -464,6 +464,39 @@ async def engagement_resolver(
         cursor=cursor,
         **kwargs,
     )
+    # TODO: Reimplemenent this when is_primary is a database native operation
+    if filter.is_primary is not None:
+        primary_filter_query = """
+            query PrimaryFilterQuery($uuids: [UUID!]!) {
+              engagements(filter: {uuids: $uuids}) {
+                objects {
+                  current {
+                    is_primary
+                    uuid
+                  }
+                }
+              }
+            }
+        """
+        result_uuids = [str(uuid) for uuid in result.keys()]
+        primary_result = await info.schema.execute(
+            primary_filter_query,
+            variable_values={"uuids": result_uuids},
+            context_value=info.context,
+        )
+        assert primary_result.errors is None
+        assert primary_result.data is not None
+        primary_map = {
+            UUID(x["current"]["uuid"]): x["current"]["is_primary"]
+            for x in primary_result.data["engagements"]["objects"]
+            if x["current"] is not None
+        }
+        result = {
+            uuid: validities
+            for uuid, validities in result.items()
+            if primary_map[uuid] is filter.is_primary
+        }
+    return result
 
 
 async def manager_resolver(

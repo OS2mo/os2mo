@@ -310,6 +310,15 @@ class EngagementFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         ),
     )
 
+    is_primary: bool | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Limit the result to only engagements that are primary / non-primary.
+            """
+        ),
+    )
+
 
 @strawberry.input(description="Facet filter.")
 class FacetFilter(BaseFilter):
