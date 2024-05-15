@@ -224,37 +224,15 @@ async def test_listen_to_change_in_org_unit_address_not_supported(
         )
 
 
-async def test_listen_to_changes_in_employees(
+async def test_listen_to_changes_in_employees_person(
     dataloader: AsyncMock,
-    load_settings_overrides: dict[str, str],
-    test_mo_address: Address,
     sync_tool: SyncTool,
     converter: MagicMock,
 ) -> None:
-    settings_mock = MagicMock()
-    settings_mock.ldap_search_base = "bar"
-    settings_mock.discriminator_field = None
-
-    converter.cpr_field = "EmployeeID"
     converted_ldap_object = LdapObject(dn="CN=foo")
     converter.to_ldap.return_value = converted_ldap_object
-    converter.mapping = {"mo_to_ldap": {"EmailEmployee": 2}}
-    converter.get_it_system_user_key = AsyncMock()
-    converter.get_it_system_user_key.return_value = "AD"
 
-    address_type_user_key = "EmailEmployee"
-    converter.get_employee_address_type_user_key = AsyncMock()
-    converter.get_employee_address_type_user_key.return_value = address_type_user_key
-
-    it_system_type_name = "AD"
-
-    payload = MagicMock()
-    payload.uuid = uuid4()
-    payload.object_uuid = uuid4()
-
-    settings = MagicMock()
-    settings.ldap_search_base = "DC=bar"
-    settings.discriminator_field = None
+    employee_uuid = uuid4()
 
     dataloader.find_mo_employee_dn.return_value = {"CN=foo"}
 
@@ -262,8 +240,9 @@ async def test_listen_to_changes_in_employees(
     mo_routing_key: MORoutingKey = "person"
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         await sync_tool.listen_to_changes_in_employees(
-            payload.uuid,
-            payload.uuid,  # uuid and object uuid are always the same for person
+            # uuid and object uuid are always the same for person
+            uuid=employee_uuid,
+            object_uuid=employee_uuid,
             routing_key=mo_routing_key,
             delete=False,
             current_objects_only=True,
@@ -274,14 +253,31 @@ async def test_listen_to_changes_in_employees(
     dataloader.modify_ldap_object.assert_called_with(
         converted_ldap_object, "Employee", overwrite=True, delete=False
     )
-    assert not dataloader.load_mo_address.called
+
+
+async def test_listen_to_changes_in_employees_address(
+    dataloader: AsyncMock,
+    test_mo_address: Address,
+    sync_tool: SyncTool,
+    converter: MagicMock,
+) -> None:
+    converted_ldap_object = LdapObject(dn="CN=foo")
+    converter.to_ldap.return_value = converted_ldap_object
+    converter.mapping = {"mo_to_ldap": {"EmailEmployee": 2}}
+
+    employee_uuid = uuid4()
+    address_type_user_key = "EmailEmployee"
+    converter.get_employee_address_type_user_key = AsyncMock()
+    converter.get_employee_address_type_user_key.return_value = address_type_user_key
+
+    dataloader.find_mo_employee_dn.return_value = {"CN=foo"}
 
     # Simulate a created address
     mo_routing_key = "address"
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         await sync_tool.listen_to_changes_in_employees(
-            payload.uuid,
-            payload.object_uuid,
+            employee_uuid,
+            test_mo_address.uuid,
             routing_key=mo_routing_key,
             delete=False,
             current_objects_only=True,
@@ -291,12 +287,29 @@ async def test_listen_to_changes_in_employees(
         converted_ldap_object, address_type_user_key, delete=False
     )
 
+
+async def test_listen_to_changes_in_employees_ituser(
+    dataloader: AsyncMock,
+    sync_tool: SyncTool,
+    converter: MagicMock,
+) -> None:
+    converted_ldap_object = LdapObject(dn="CN=foo")
+    converter.to_ldap.return_value = converted_ldap_object
+    converter.get_it_system_user_key = AsyncMock()
+    converter.get_it_system_user_key.return_value = "AD"
+
+    employee_uuid = uuid4()
+    ituser_uuid = uuid4()
+    it_system_type_name = "AD"
+
+    dataloader.find_mo_employee_dn.return_value = {"CN=foo"}
+
     # Simulate a created IT user
     mo_routing_key = "ituser"
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         await sync_tool.listen_to_changes_in_employees(
-            payload.uuid,
-            payload.object_uuid,
+            employee_uuid,
+            ituser_uuid,
             routing_key=mo_routing_key,
             delete=False,
             current_objects_only=True,
@@ -306,12 +319,26 @@ async def test_listen_to_changes_in_employees(
         converted_ldap_object, it_system_type_name, delete=False
     )
 
+
+async def test_listen_to_changes_in_employees_engagement(
+    dataloader: AsyncMock,
+    sync_tool: SyncTool,
+    converter: MagicMock,
+) -> None:
+    converted_ldap_object = LdapObject(dn="CN=foo")
+    converter.to_ldap.return_value = converted_ldap_object
+
+    employee_uuid = uuid4()
+    engagement_uuid = uuid4()
+
+    dataloader.find_mo_employee_dn.return_value = {"CN=foo"}
+
     # Simulate a created engagement
     mo_routing_key = "engagement"
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         await sync_tool.listen_to_changes_in_employees(
-            payload.uuid,
-            payload.object_uuid,
+            employee_uuid,
+            engagement_uuid,
             routing_key=mo_routing_key,
             delete=False,
             current_objects_only=True,
@@ -320,6 +347,22 @@ async def test_listen_to_changes_in_employees(
     dataloader.modify_ldap_object.assert_called_with(
         converted_ldap_object, "Engagement", delete=False
     )
+
+
+async def test_listen_to_changes_in_employees_skipped(
+    dataloader: AsyncMock,
+    sync_tool: SyncTool,
+    converter: MagicMock,
+) -> None:
+    converted_ldap_object = LdapObject(dn="CN=foo")
+    converter.to_ldap.return_value = converted_ldap_object
+
+    employee_uuid = uuid4()
+    address_uuid = uuid4()
+
+    dataloader.find_mo_employee_dn.return_value = {"CN=foo"}
+
+    mo_routing_key = "address"
 
     # Simulate an uuid which should be skipped
     # And an uuid which is too old, so it will be removed from the list
@@ -330,7 +373,7 @@ async def test_listen_to_changes_in_employees(
 
     uuids_to_ignore.ignore_dict = {
         # This uuid should be ignored (once)
-        str(payload.object_uuid): [datetime.datetime.now(), datetime.datetime.now()],
+        str(address_uuid): [datetime.datetime.now(), datetime.datetime.now()],
         # This uuid has been here for too long, and should be removed
         str(old_uuid): [datetime.datetime(2020, 1, 1)],
         # This uuid should remain in the list
@@ -341,8 +384,8 @@ async def test_listen_to_changes_in_employees(
 
     with capture_logs() as cap_logs:
         await sync_tool.listen_to_changes_in_employees(
-            payload.uuid,
-            payload.object_uuid,
+            employee_uuid,
+            address_uuid,
             routing_key=mo_routing_key,
             delete=False,
             current_objects_only=True,
@@ -356,7 +399,7 @@ async def test_listen_to_changes_in_employees(
         assert len(uuids_to_ignore) == 2  # Note that the old_uuid is removed by clean()
         assert len(uuids_to_ignore[old_uuid]) == 0
         assert len(uuids_to_ignore[uuid_which_should_remain]) == 1
-        assert len(uuids_to_ignore[payload.object_uuid]) == 1
+        assert len(uuids_to_ignore[address_uuid]) == 1
 
 
 async def test_listen_to_changes_in_employees_no_dn(

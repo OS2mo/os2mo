@@ -1,10 +1,10 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from __future__ import annotations
-
 import json
 import re
 import string
+from collections import ChainMap
+from collections.abc import MutableMapping
 from datetime import datetime
 from functools import partial
 from itertools import compress
@@ -1091,25 +1091,37 @@ class LdapConverter:
 
         return {key: populate_value(value) for key, value in mapping.items()}
 
-    async def to_ldap(self, mo_object_dict: dict, json_key: str, dn: DN) -> LdapObject:
+    async def to_ldap(
+        self, mo_object_dict: MutableMapping[str, Any], json_key: str, dn: DN
+    ) -> LdapObject:
         """
-        mo_object_dict : dict
-            dict with mo objects to convert. for example:
-                {'mo_employee': Employee,
-                 'mo_address': Address}
+        Args:
+            mo_object_dict:
+                Template context for mapping templates.
 
-            Where Employee and Address are imported from ramodels.
+                Example:
+                    ```
+                        {
+                            'mo_employee': Employee,
+                            'mo_address': Address
+                        }
+                    ```
 
-        json_key : str
-            Key to look for in the mapping dict. For example:
-                - Employee
-                - mail_address_attributes
+                Where `Employee` and `Address` are imported from ramodels.
+
+            json_key:
+                Key to look for in the mapping dict.
+
+                Examples:
+                    - Employee
+                    - mail_address_attributes
+
+            dn: DN of the LDAP account to synchronize to.
         """
         ldap_object = {}
 
         # Globals
-        mo_object_dict["dn"] = dn
-
+        mo_template_dict = ChainMap({"dn": dn}, mo_object_dict)
         try:
             mapping = self.mapping["mo_to_ldap"]
         except KeyError:
@@ -1119,13 +1131,13 @@ class LdapConverter:
         except KeyError:
             raise IncorrectMapping(f"Missing '{json_key}' in mapping 'mo_to_ldap'")
 
-        if "mo_employee" not in mo_object_dict.keys():
+        if "mo_employee" not in mo_template_dict.keys():
             raise NotSupportedException(
                 "Only cpr-indexed objects are supported by to_ldap"
             )
 
         for ldap_field_name, template in object_mapping.items():
-            rendered_item = await template.render_async(mo_object_dict)
+            rendered_item = await template.render_async(mo_template_dict)
             if rendered_item:
                 ldap_object[ldap_field_name] = rendered_item
 

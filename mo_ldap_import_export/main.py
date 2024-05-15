@@ -4,7 +4,6 @@
 import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from datetime import datetime
 from functools import wraps
 from typing import Any
 
@@ -47,8 +46,8 @@ from .os2mo_init import InitEngine
 from .routes import construct_router
 from .types import OrgUnitUUID
 from .usernames import get_username_generator_class
+from .utils import get_delete_flag
 from .utils import get_object_type_from_routing_key
-from .utils import mo_datestring_to_utc
 
 logger = structlog.stdlib.get_logger()
 
@@ -84,22 +83,6 @@ def reject_on_failure(func):
 
     modified_func.__wrapped__ = func  # type: ignore
     return modified_func
-
-
-def get_delete_flag(mo_object: dict[str, Any]) -> bool:
-    """
-    Determines if an object should be deleted based on the validity to-date
-    """
-    now = datetime.utcnow()
-    validity_to = mo_datestring_to_utc(mo_object["validity"]["to"])
-    if validity_to and validity_to <= now:
-        logger.info(
-            "Returning delete=True because to_date <= current_date",
-            to_date=validity_to,
-            current_date=now,
-        )
-        return True
-    return False
 
 
 async def unpack_payload(

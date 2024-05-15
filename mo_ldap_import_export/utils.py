@@ -213,3 +213,24 @@ def ensure_list(x: Any | list[Any]) -> list[Any]:
     if is_list(x):
         return x
     return [x]
+
+
+def get_delete_flag(mo_object: dict[str, Any]) -> bool:
+    """Determines if an object should be deleted based on the validity to-date.
+
+    Args:
+        mo_object: The object to test.
+
+    Returns:
+        Whether the object should be deleted or not.
+    """
+    now = datetime.utcnow()
+    validity_to = mo_datestring_to_utc(mo_object["validity"]["to"])
+    if validity_to and validity_to <= now:
+        logger.info(
+            "Returning delete=True because to_date <= current_date",
+            to_date=validity_to,
+            current_date=now,
+        )
+        return True
+    return False
