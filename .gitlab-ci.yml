@@ -210,14 +210,13 @@ Integration-test:
     - .test-base
     - .pytest
     - .variables:mo
+    - .services:mo-backing
   needs:
     - Build OS2mo
   parallel: 8
   image: $IMAGE_SHA
   variables:
     PYTEST_ADDOPTS: "-m 'integration_test' -p no:randomly --cov=oio_rest"  # TODO: enable randomness
-  services:
-    - !reference [.services:mo-backing, services]
   before_script:
     - !reference [.pytest, before_script]
     - !reference [.services:mo-backing, before_script]

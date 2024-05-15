@@ -38,7 +38,7 @@ variables:
     AMQP_URL: "amqp://guest:guest@msg-broker:5672/"
 
 .services:mo-backing:
-  services:
+  services: &services-mo-backing-services
     # LoRa postgres database
     # TODO: replace the custom image with upstream postgres when tests no longer depend
     # on pgtap. See dev-environment/moxdb-install-pgtap.sh / docker-compose.yml.
@@ -183,7 +183,19 @@ variables:
     FASTRAMQPI__AUTH_REALM: "mo"
     FASTRAMQPI__AMQP__URL: "amqp://guest:guest@msg-broker:5672/"
   services:
-    - !reference [ .services:mo-backing, services ]
+    # Unlike what you would expect, GitLab CI's `!reference` does NOT insert
+    # the referenced configuration properly in the list. Instead, each
+    # reference will be inserted as another layer in a nested list. This works
+    # for keywords such as `script` because it implements de-nesting itself.
+    # Unfortunately the technology isn't there yet to apply de-nesting
+    # generally across all keywords (but at least they have plenty of resources
+    # to implement AI features no one asked for).
+    # Therefore, we use yaml anchors to include the backing services here,
+    # allowing the users of the template to use the one level of !reference
+    # available to us to include their own custom services.
+    # https://gitlab.com/gitlab-org/gitlab/-/issues/322992
+    # https://gitlab.com/gitlab-org/gitlab/-/issues/415831
+    - <<: *services-mo-backing-services
     - name: magentaaps/os2mo:latest
       alias: mo
       variables: !reference [ .variables:mo, variables ]
