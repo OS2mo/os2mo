@@ -8,6 +8,7 @@ from pytest import MonkeyPatch
 from .strategies import data_with_uuids_strat
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.dataloaders import MOModel
+from mora.graphapi.versions.latest.graphql_utils import LoadKey
 from mora.graphapi.versions.latest.schema import AddressRead
 from mora.graphapi.versions.latest.schema import AssociationRead
 from mora.graphapi.versions.latest.schema import EmployeeRead
@@ -133,11 +134,12 @@ async def test_load(test_data, patch_loader):
     """Test load of models."""
     # Sample data & UUIDs
     model, data, uuids, _ = test_data
+    keys = [LoadKey(uuid, None, None) for uuid in uuids]
 
     # Patch loader
     with MonkeyPatch.context() as patch:
         patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(data))
-        result = await dataloaders.load_mo(uuids, model)
+        result = await dataloaders.load_mo(keys, model)
 
     # We expect as many results as there are UUIDs passed to the function.
     # Additionally, the result must be an improper subset of the test data.
@@ -152,11 +154,12 @@ async def test_load_nonexistent(test_data, patch_loader):
     """Test load of UUIDs that do not exist in data, including the empty list."""
     # Sample data & UUIDs
     model, data, _, other_uuids = test_data
+    keys = [LoadKey(uuid, None, None) for uuid in other_uuids]
 
     # Patch loader
     with MonkeyPatch.context() as patch:
         patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(data))
-        result = await dataloaders.load_mo(other_uuids, model)
+        result = await dataloaders.load_mo(keys, model)
 
     # Again, we expect as many results as there are UUIDs passed to the function.
     assert len(result) == len(other_uuids)

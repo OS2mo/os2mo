@@ -3,9 +3,12 @@
 import random
 import re
 import string
+from datetime import datetime
+from typing import NamedTuple
 from uuid import UUID
 
 from pydantic import ConstrainedStr
+from strawberry.unset import UnsetType
 
 from tests.conftest import GraphAPIPost
 
@@ -34,8 +37,15 @@ class CprNo(ConstrainedStr):
     regex = re.compile(r"^\d{10}$")
 
 
+class LoadKey(NamedTuple):
+    uuid: UUID
+    start: datetime | UnsetType | None
+    end: datetime | UnsetType | None
+
+
 async def get_uuids(obj: str, graphapi_post: GraphAPIPost) -> UUID:
     """Queries for uuids for a given object type. Eg. Employees."""
+    # TODO: move this out of the production code and into the tests
     if obj == "org":
         query = "".join(["query FetchUUIDs {", obj, "{uuid}}"])
     else:

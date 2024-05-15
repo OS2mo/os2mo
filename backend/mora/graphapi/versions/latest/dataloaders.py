@@ -1,8 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Loaders for translating LoRa data to MO data to be returned from the GraphAPI."""
+import asyncio
+from collections import defaultdict
 from collections.abc import Callable
 from collections.abc import Iterable
+from datetime import datetime
 from functools import partial
 from typing import Any
 from typing import TypeVar
@@ -12,9 +15,13 @@ from more_itertools import bucket
 from more_itertools import unique_everseen
 from pydantic import parse_obj_as
 from strawberry.dataloader import DataLoader
+from strawberry.unset import UnsetType
 
+from ...middleware import with_graphql_dates
+from .graphql_utils import LoadKey
 from .readers import get_role_type_by_uuid
 from .readers import search_role_type
+from .resolvers import get_date_interval
 from .schema import AddressRead
 from .schema import AssociationRead
 from .schema import ClassRead
@@ -92,21 +99,44 @@ async def get_mo(model: MOModel, **kwargs: Any) -> dict[UUID, list[MOModel]]:
     return uuid_map
 
 
-async def load_mo(uuids: list[UUID], model: MOModel) -> list[list[MOModel]]:
+async def load_mo(keys: list[LoadKey], model: type[MOModel]) -> list[list[MOModel]]:
     """Load MO models from LoRa by UUID.
 
     Args:
-        uuids: UUIDs to load.
+        keys: UUIDs to load (in the given start/end interval).
         model: The MO model to parse into.
 
     Returns:
         List of parsed MO models.
     """
     mo_type = model.__fields__["type_"].default
-    results = await get_role_type_by_uuid(mo_type, uuids)
-    parsed_results: list[MOModel] = parse_obj_as(list[model], results)  # type: ignore
-    uuid_map = group_by_uuid(parsed_results, uuids)
-    return list(map(uuid_map.get, uuids))  # type: ignore
+
+    # Wrapper for get_role_type_by_uuid to pass dates using a nice(r) interface
+    async def get(
+        uuids: list[UUID],
+        start: datetime | UnsetType | None,
+        end: datetime | UnsetType | None,
+    ) -> list[MOModel]:
+        dates = get_date_interval(start, end)
+        with with_graphql_dates(dates):
+            results = await get_role_type_by_uuid(mo_type, uuids)
+        parsed_results: list[MOModel] = parse_obj_as(list[model], results)  # type: ignore[valid-type]
+        return parsed_results
+
+    # Group keys by start/end intervals to allowing batching request(s) to LoRa
+    interval_buckets = bucket(keys, key=lambda key: (key.start, key.end))
+    gets = [
+        get([key.uuid for key in interval_buckets[interval]], *interval)
+        for interval in interval_buckets
+    ]
+    results_lists = await asyncio.gather(*gets)
+
+    # Map results back to the original request keys to uphold the dataloader interface
+    loaded = defaultdict(list)
+    for results, interval in zip(results_lists, interval_buckets):
+        for result in results:
+            loaded[LoadKey(result.uuid, *interval)].append(result)
+    return [loaded[key] for key in keys]
 
 
 async def load_org(keys: list[int]) -> list[OrganisationRead]:

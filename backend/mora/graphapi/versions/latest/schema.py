@@ -36,6 +36,7 @@ from .filters import EngagementFilter
 from .filters import ITUserFilter
 from .filters import ManagerFilter
 from .filters import OwnerFilter
+from .graphql_utils import LoadKey
 from .health import health_map
 from .models import AddressRead
 from .models import ClassRead
@@ -54,7 +55,6 @@ from .resolvers import class_resolver
 from .resolvers import employee_resolver
 from .resolvers import engagement_resolver
 from .resolvers import facet_resolver
-from .resolvers import get_date_interval
 from .resolvers import it_system_resolver
 from .resolvers import it_user_resolver
 from .resolvers import kle_resolver
@@ -357,18 +357,12 @@ class Response(Generic[MOObject]):
         start: datetime | None = UNSET,
         end: datetime | None = UNSET,
     ) -> list[MOObject]:
+        if start is UNSET and end is UNSET and root.object_cache != UNSET:
+            return root.object_cache
+        # If the object cache has not been filled we must resolve objects using the uuid
         resolver = resolver_map[response2model(root)]["loader"]
         dataloader = info.context[resolver]
-
-        if start is UNSET and end is UNSET:
-            if root.object_cache != UNSET:
-                return root.object_cache
-            # If the object cache has not been filled we must resolve objects using the uuid
-            return await dataloader.load(root.uuid)
-
-        dates = get_date_interval(start, end)
-        with with_graphql_dates(dates):
-            return await dataloader.load(root.uuid)
+        return await dataloader.load(LoadKey(root.uuid, start, end))
 
     # TODO: Implement using a dataloader
     registrations: list[Registration] = strawberry.field(

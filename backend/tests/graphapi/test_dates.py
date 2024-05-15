@@ -67,3 +67,76 @@ def test_timestamp_parsing(graphapi_post: GraphAPIPost):
         validity_lookup.data["employees"]["objects"][0]["validities"][0]["uuid"]
         == employee_uuid
     )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_dates_dont_leak(graphapi_post: GraphAPIPost):
+    """Test that GraphQL dates don't leak across resolvers."""
+    # Create employee from 2000-01-01
+    create = graphapi_post(
+        """
+        mutation CreateEmployee {
+          employee_create(
+            input: {
+              given_name: "Alice",
+              surname: "2000",
+              cpr_number: "0101004058",
+            }
+          ) {
+            uuid
+          }
+        }
+        """
+    )
+    assert create.errors is None
+    employee_uuid = create.data["employee_create"]["uuid"]
+
+    # Query the employee twice, but with different to_date filter
+    query = """
+      query Employees(
+        $uuid: UUID!,
+        $to_date_1: DateTime = null,
+        $to_date_2: DateTime = null,
+      ) {
+        e1: employees(filter: {uuids: [$uuid], from_date: null, to_date: $to_date_1}) {
+          ...EmployeeResponsePagedFragment
+        }
+        e2: employees(filter: {uuids: [$uuid], from_date: null, to_date: $to_date_2}) {
+          ...EmployeeResponsePagedFragment
+        }
+      }
+      fragment EmployeeResponsePagedFragment on EmployeeResponsePaged {
+        objects {
+          validities {
+            uuid
+            validity {
+              from
+              to
+            }
+          }
+        }
+      }
+    """
+
+    # The result should be the same regardless of the order of the to_date filters
+    query_1 = graphapi_post(
+        query,
+        variables={
+            "uuid": employee_uuid,
+            "to_date_1": "1990-01-01",
+            "to_date_2": None,
+        },
+    )
+    query_2 = graphapi_post(
+        query,
+        variables={
+            "uuid": employee_uuid,
+            "to_date_1": None,
+            "to_date_2": "1990-01-01",
+        },
+    )
+    assert query_1.errors is None
+    assert query_2.errors is None
+    assert query_1.data["e1"] == query_2.data["e2"]
+    assert query_1.data["e2"] == query_2.data["e1"]
