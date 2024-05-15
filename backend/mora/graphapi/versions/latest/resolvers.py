@@ -467,13 +467,13 @@ async def engagement_resolver(
     # TODO: Reimplemenent this when is_primary is a database native operation
     if filter.is_primary is not None:
         primary_filter_query = """
-            query PrimaryFilterQuery($uuids: [UUID!]!) {
-              engagements(filter: {uuids: $uuids}) {
+            query PrimaryFilterQuery($filter: EngagementFilter!) {
+              engagements(filter: $filter) {
                 objects {
-                  current {
+                  validities {
                     is_primary
-                    uuid
                   }
+                  uuid
                 }
               }
             }
@@ -481,20 +481,25 @@ async def engagement_resolver(
         result_uuids = [str(uuid) for uuid in result.keys()]
         primary_result = await info.schema.execute(
             primary_filter_query,
-            variable_values={"uuids": result_uuids},
+            variable_values={
+                "filter": {
+                    "uuids": result_uuids,
+                    "from_date": filter.from_date,
+                    "to_date": filter.to_date,
+                }
+            },
             context_value=info.context,
         )
         assert primary_result.errors is None
         assert primary_result.data is not None
         primary_map = {
-            UUID(x["current"]["uuid"]): x["current"]["is_primary"]
+            UUID(x["uuid"]): [validity["is_primary"] for validity in x["validities"]]
             for x in primary_result.data["engagements"]["objects"]
-            if x["current"] is not None
         }
         result = {
             uuid: validities
             for uuid, validities in result.items()
-            if primary_map[uuid] is filter.is_primary
+            if filter.is_primary in primary_map[uuid]
         }
     return result
 
