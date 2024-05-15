@@ -14,6 +14,7 @@ from hypothesis import settings
 from hypothesis import strategies as st
 from hypothesis.strategies import characters
 from more_itertools import one
+from ra_utils.apply import apply
 
 from ..conftest import GraphAPIPost
 from .utils import fetch_class_uuids
@@ -77,14 +78,14 @@ def test_query_all(graphapi_post: GraphAPIPost):
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_query_is_primary(graphapi_post: GraphAPIPost):
+def test_query_is_primary(graphapi_post: GraphAPIPost) -> None:
     """Test that we can query 'is_primary' from the engagement data model."""
 
     query = """
             query {
                 engagements {
                     objects {
-                        objects {
+                        validities {
                             uuid
                             primary { uuid }
                             is_primary
@@ -95,9 +96,10 @@ def test_query_is_primary(graphapi_post: GraphAPIPost):
         """
     response = graphapi_post(query)
     assert response.errors is None
+    assert response.data is not None
     assert response.data["engagements"]["objects"] == [
         {
-            "objects": [
+            "validities": [
                 {
                     "is_primary": False,
                     "primary": {"uuid": "2f16d140-d743-4c9f-9e0e-361da91a06f6"},
@@ -106,7 +108,7 @@ def test_query_is_primary(graphapi_post: GraphAPIPost):
             ],
         },
         {
-            "objects": [
+            "validities": [
                 {
                     "is_primary": False,
                     "primary": None,
@@ -115,7 +117,7 @@ def test_query_is_primary(graphapi_post: GraphAPIPost):
             ],
         },
         {
-            "objects": [
+            "validities": [
                 {
                     "is_primary": True,
                     "primary": {"uuid": "89b6cef8-3d03-49ac-816f-f7530b383411"},
@@ -124,6 +126,101 @@ def test_query_is_primary(graphapi_post: GraphAPIPost):
             ],
         },
     ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_query_is_primary_multiple_on_same_person(graphapi_post: GraphAPIPost) -> None:
+    """Test that 'is_primary' works with multiple engagements on one person."""
+    person_uuid = "236e0a78-11a0-4ed9-8545-6286bb8611c7"
+
+    mutation = """
+        mutation CreateEngagement($input: EngagementCreateInput!) {
+          engagement_create(input: $input) {
+            uuid
+          }
+        }
+    """
+    response = graphapi_post(
+        mutation,
+        variables={
+            "input": {
+                "validity": {
+                    "from": "2020-01-01",
+                },
+                "person": person_uuid,
+                "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                "engagement_type": "06f95678-166a-455a-a2ab-121a8d92ea23",
+                "job_function": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+            }
+        },
+    )
+    assert response.errors is None
+    assert response.data is not None
+    created_uuid = UUID(response.data["engagement_create"]["uuid"])
+
+    # These are the engagements we expected to read for the person
+    expected_map = {
+        created_uuid: {
+            "current": {"is_primary": False, "primary": None, "uuid": str(created_uuid)}
+        },
+        UUID("301a906b-ef51-4d5c-9c77-386fb8410459"): {
+            "current": {
+                "is_primary": False,
+                "primary": {
+                    "scope": "10",
+                    "uuid": "2f16d140-d743-4c9f-9e0e-361da91a06f6",
+                },
+                "uuid": "301a906b-ef51-4d5c-9c77-386fb8410459",
+            }
+        },
+        UUID("d3028e2e-1d7a-48c1-ae01-d4c64e64bbab"): {
+            "current": {
+                "is_primary": True,
+                "primary": {
+                    "scope": "3000",
+                    "uuid": "89b6cef8-3d03-49ac-816f-f7530b383411",
+                },
+                "uuid": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab",
+            }
+        },
+    }
+    # We have to sort the results as created_uuid may be anywhere in the list
+    expected_map = dict(sorted(expected_map.items(), key=apply(lambda key, _: key)))
+
+    query = """
+        query CheckIsPrimary($filter: EngagementFilter!) {
+            engagements(filter: $filter) {
+                objects {
+                    current {
+                        uuid
+                        primary {
+                            uuid
+                            scope
+                        }
+                        is_primary
+                    }
+                }
+            }
+        }
+    """
+    # Test that reading all engagements for the person works
+    response = graphapi_post(
+        query, variables={"filter": {"employee": {"uuids": [person_uuid]}}}
+    )
+    assert response.errors is None
+    assert response.data is not None
+    assert response.data["engagements"]["objects"] == list(expected_map.values())
+
+    # Test that looking up a single engagement works as expected
+    for engagement_uuid, expected in expected_map.items():
+        response = graphapi_post(
+            query, variables={"filter": {"uuids": [str(engagement_uuid)]}}
+        )
+        assert response.errors is None
+        assert response.data is not None
+        result = one(response.data["engagements"]["objects"])
+        assert result == expected
 
 
 @pytest.mark.integration_test
