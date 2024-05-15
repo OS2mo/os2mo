@@ -158,83 +158,56 @@ async def load_org(keys: list[int]) -> list[OrganisationRead]:
 async def get_loaders() -> dict[str, DataLoader | Callable]:
     """Get all available dataloaders as a dictionary."""
     return {
-        # We have to clear the dataloader cache, as it is caching entirely on UUID
-        # and thus it may have cached results that does not correlate to our new dates.
-        # In the future the arguments should be passed down the stack, rather than around
-        # the stack as they are now, but for now this is our workaround.
-        # Organisation
-        "org_loader": DataLoader(load_fn=load_org, cache=False),
+        "org_loader": DataLoader(load_fn=load_org),
         # Organisation Unit
         "org_unit_loader": DataLoader(
-            load_fn=partial(load_mo, model=OrganisationUnitRead), cache=False
+            load_fn=partial(load_mo, model=OrganisationUnitRead)
         ),
         "org_unit_getter": partial(get_mo, model=OrganisationUnitRead),
         # Person
-        "employee_loader": DataLoader(
-            load_fn=partial(load_mo, model=EmployeeRead), cache=False
-        ),
+        "employee_loader": DataLoader(load_fn=partial(load_mo, model=EmployeeRead)),
         "employee_getter": partial(get_mo, model=EmployeeRead),
         # Engagement
-        "engagement_loader": DataLoader(
-            load_fn=partial(load_mo, model=EngagementRead), cache=False
-        ),
+        "engagement_loader": DataLoader(load_fn=partial(load_mo, model=EngagementRead)),
         "engagement_getter": partial(get_mo, model=EngagementRead),
         # KLE
-        "kle_loader": DataLoader(load_fn=partial(load_mo, model=KLERead), cache=False),
+        "kle_loader": DataLoader(load_fn=partial(load_mo, model=KLERead)),
         "kle_getter": partial(get_mo, model=KLERead),
         # Address
-        "address_loader": DataLoader(
-            load_fn=partial(load_mo, model=AddressRead), cache=False
-        ),
+        "address_loader": DataLoader(load_fn=partial(load_mo, model=AddressRead)),
         "address_getter": partial(get_mo, model=AddressRead),
         # Leave
-        "leave_loader": DataLoader(
-            load_fn=partial(load_mo, model=LeaveRead), cache=False
-        ),
+        "leave_loader": DataLoader(load_fn=partial(load_mo, model=LeaveRead)),
         "leave_getter": partial(get_mo, model=LeaveRead),
         # Association
         "association_loader": DataLoader(
-            load_fn=partial(load_mo, model=AssociationRead), cache=False
+            load_fn=partial(load_mo, model=AssociationRead)
         ),
         "association_getter": partial(get_mo, model=AssociationRead),
         # Rolebinding
         "rolebinding_loader": DataLoader(
-            load_fn=partial(load_mo, model=RoleBindingRead), cache=False
+            load_fn=partial(load_mo, model=RoleBindingRead)
         ),
         "rolebinding_getter": partial(get_mo, model=RoleBindingRead),
         # ITUser
-        "ituser_loader": DataLoader(
-            load_fn=partial(load_mo, model=ITUserRead), cache=False
-        ),
+        "ituser_loader": DataLoader(load_fn=partial(load_mo, model=ITUserRead)),
         "ituser_getter": partial(get_mo, model=ITUserRead),
         # Manager
-        "manager_loader": DataLoader(
-            load_fn=partial(load_mo, model=ManagerRead), cache=False
-        ),
+        "manager_loader": DataLoader(load_fn=partial(load_mo, model=ManagerRead)),
         "manager_getter": partial(get_mo, model=ManagerRead),
         # Owner
-        "owner_loader": DataLoader(
-            load_fn=partial(load_mo, model=OwnerRead), cache=False
-        ),
+        "owner_loader": DataLoader(load_fn=partial(load_mo, model=OwnerRead)),
         "owner_getter": partial(get_mo, model=OwnerRead),
         # Class
-        "class_loader": DataLoader(
-            load_fn=partial(load_mo, model=ClassRead), cache=False
-        ),
+        "class_loader": DataLoader(load_fn=partial(load_mo, model=ClassRead)),
         "class_getter": partial(get_mo, model=ClassRead),
         # Related Organisation Unit
-        "rel_unit_loader": DataLoader(
-            load_fn=partial(load_mo, model=RelatedUnitRead), cache=False
-        ),
+        "rel_unit_loader": DataLoader(load_fn=partial(load_mo, model=RelatedUnitRead)),
         "rel_unit_getter": partial(get_mo, model=RelatedUnitRead),
         # Facet
-        "facet_loader": DataLoader(
-            load_fn=partial(load_mo, model=FacetRead), cache=False
-        ),
+        "facet_loader": DataLoader(load_fn=partial(load_mo, model=FacetRead)),
         "facet_getter": partial(get_mo, model=FacetRead),
         # ITSysterm
-        "itsystem_loader": DataLoader(
-            load_fn=partial(load_mo, model=ITSystemRead), cache=False
-        ),
+        "itsystem_loader": DataLoader(load_fn=partial(load_mo, model=ITSystemRead)),
         "itsystem_getter": partial(get_mo, model=ITSystemRead),
     }
