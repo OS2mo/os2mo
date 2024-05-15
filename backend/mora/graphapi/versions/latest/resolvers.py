@@ -60,6 +60,7 @@ from mora.db import OrganisationEnhedAttrEgenskaber
 from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationEnhedRelation
 from mora.db import OrganisationEnhedRelationKode
+from mora.graphapi.shim import execute_graphql
 from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.orgunits import search_orgunits
 from ramodels.mo import EmployeeRead
@@ -466,6 +467,18 @@ async def engagement_resolver(
     )
     # TODO: Reimplemenent this when is_primary is a database native operation
     if filter.is_primary is not None:
+        # NOTE: The below if-statement should match the one in lora_connector_context
+        #       If you update one, make sure to update the other as well
+        request = info.context.get("request")
+        if request is None:
+            raise ValueError("Unable to determine GraphQL version")
+
+        graphql_match = re.match(r"/graphql/v(\d+)", request.url.path)
+        if graphql_match is not None and int(graphql_match.group(1)) <= 20:
+            raise NotImplementedError(
+                "`is_primary` filtering is only available in GraphQL 21 and later"
+            )
+
         primary_filter_query = """
             query PrimaryFilterQuery($filter: EngagementFilter!) {
               engagements(filter: $filter) {
@@ -479,7 +492,7 @@ async def engagement_resolver(
             }
         """
         result_uuids = [str(uuid) for uuid in result.keys()]
-        primary_result = await info.schema.execute(
+        primary_result = await execute_graphql(
             primary_filter_query,
             variable_values={
                 "filter": {
@@ -488,7 +501,6 @@ async def engagement_resolver(
                     "to_date": filter.to_date,
                 }
             },
-            context_value=info.context,
         )
         assert primary_result.errors is None
         assert primary_result.data is not None

@@ -44,6 +44,8 @@ async def lora_connector_context(request: Request) -> AsyncIterator[None]:
     def cached_create_connector(**kwargs):
         return _create_connector(**kwargs)
 
+    # NOTE: The below if-statement should match the one in engagement_resolver
+    #       If you update one, make sure to update the other as well
     graphql_match = re.match(r"/graphql/v(\d+)", request.url.path)
     if graphql_match is not None and int(graphql_match.group(1)) <= 20:
         lora_connector = lora.Connector
