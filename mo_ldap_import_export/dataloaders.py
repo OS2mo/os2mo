@@ -684,6 +684,15 @@ class DataLoader:
             #
             # If we would delete 'org-unit name' as a part of an org-unit address delete
             # operation, We would suddenly not be able to import engagements any more.
+
+            # TODO: This means that any attribute referenced by multiple templates will
+            #       literally never be cleared. This seems potentially highly problematic?
+            #       We should probably consider if this is the optimal design.
+            #
+            #       I have discussed this with Casper, and the solution seems to be that
+            #       we have to synchronize the entire state at once, otherwise we cannot
+            #       possibly ensure deletions work as expected. This is also what the
+            #       Omada integration does.
             parameters_to_modify = [
                 p for p in parameters_to_modify if not self.shared_attribute(p)
             ]

@@ -576,3 +576,20 @@ mutation engagement_org_unit_address_refresh(
     objects
   }
 }
+
+query read_filtered_addresses($filter: AddressFilter!) {
+  addresses(filter: $filter) {
+    objects {
+      validities {
+        address_type {
+          user_key
+        }
+        uuid
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}
