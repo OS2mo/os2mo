@@ -749,6 +749,8 @@ class LdapConverter:
         """
         Check if the org unit separator is not in any of the org unit names
         """
+        # TODO: This invariant is not upheld when the cache is invalidated
+        #       Potentially this will break all the org-unit-name helper functions
         separator = self.org_unit_path_string_separator
         for org_unit_name in [info["name"] for info in self.org_unit_info.values()]:
             if separator in org_unit_name:
@@ -924,7 +926,7 @@ class LdapConverter:
         )
 
     async def get_org_unit_path_string(self, uuid: str):
-        root_org_uuid: str = str(await self.dataloader.load_mo_root_org_uuid())
+        root_org_uuid = str(await self.dataloader.load_mo_root_org_uuid())
         org_unit_info = self.org_unit_info[str(uuid)]
         object_name = org_unit_info["name"].strip()
         parent_uuid: str = org_unit_info["parent_uuid"]
@@ -938,6 +940,62 @@ class LdapConverter:
             parent_uuid = self.org_unit_info[parent_uuid]["parent_uuid"]
 
         return path_string
+
+    # TODO: Clean this up so it always just takes an UUID
+    async def get_org_unit_name_for_parent(
+        self, uuid: UUID | str, layer: int = 0
+    ) -> str | None:
+        """Get the name of the parent in the n'th layer of the org tree.
+
+        Example:
+
+            Imagine an org-unit tree alike the following:
+                ```
+                └── Kolding Kommune
+                    └── Sundhed
+                        ├── Plejecentre
+                        │   ├── Plejecenter Nord
+                        │   │   └── Køkken <-- uuid of this provided
+                        │   └── Plejecenter Syd
+                        │       └── Køkken
+                        └── Teknik
+                ```
+
+            Calling this function with the uuid above and layer, would return:
+
+            * 0: "Kolding Kommune"
+            * 1: "Sundhed"
+            * 2: "Plejecentre"
+            * 3: "Plejecenter Nord"
+            * 4: "Køkken"
+            * n: ""
+
+        Args:
+            uuid: Organisation Unit UUID of the org-unit to find parents of.
+            layer: The layer the parent to extract is on.
+
+        Returns:
+            The name of the parent at the n'th layer above the provided org-unit.
+            If the layer provided is beyond the depth available None is returned.
+        """
+        # TODO: Implement this using MOs ancestor filter instead of org_unit_info
+        root_org_uuid = str(await self.dataloader.load_mo_root_org_uuid())
+        org_unit_info = self.org_unit_info[str(uuid)]
+
+        parent_uuid: str = org_unit_info["parent_uuid"]
+        object_name = org_unit_info["name"].strip()
+
+        parents: list[str] = [object_name]
+        while parent_uuid and parent_uuid != root_org_uuid:
+            parent_object_name = self.org_unit_info[parent_uuid]["name"].strip()
+            parents.append(parent_object_name)
+            parent_uuid = self.org_unit_info[parent_uuid]["parent_uuid"]
+
+        # List is build child --> root, but layers are defined root --> child
+        parents.reverse()
+        if layer >= len(parents):
+            return None
+        return parents[layer]
 
     def clean_org_unit_path_string(self, org_unit_path_string: str) -> str:
         """
@@ -1051,6 +1109,7 @@ class LdapConverter:
             ),
             "uuid4": uuid4,
             "get_org_unit_path_string": self.get_org_unit_path_string,
+            "get_org_unit_name_for_parent": self.get_org_unit_name_for_parent,
             "make_dn_from_org_unit_path": partial(
                 make_dn_from_org_unit_path, self.settings
             ),

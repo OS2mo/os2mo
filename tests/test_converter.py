@@ -1203,6 +1203,63 @@ async def test_get_org_unit_name(converter: LdapConverter) -> None:
     assert name == "Name"
 
 
+async def test_get_org_unit_name_for_parent(converter: LdapConverter) -> None:
+    org_tree = {
+        "Kolding Kommune": {
+            "Sundhed": {
+                "Plejecentre": {
+                    "Plejecenter Nord": {"Teknik Nord": {}},
+                    "Plejecenter Syd": {"Teknik Syd": {}},
+                }
+            },
+            "Teknik": {},
+        }
+    }
+
+    def constructor(
+        tree: dict[str, dict[str, Any]], parent: UUID | None = None
+    ) -> dict[str, dict[str, str | None]]:
+        org_unit_info = {}
+        for name, children in tree.items():
+            uuid = uuid4()
+            org_unit_info[str(uuid)] = {
+                "name": name,
+                "parent_uuid": str(parent) if parent else None,
+            }
+            org_unit_info.update(constructor(children, parent=uuid))
+        return org_unit_info
+
+    org_unit_info = constructor(org_tree)
+    name2uuid = {value["name"]: key for key, value in org_unit_info.items()}
+
+    converter.org_unit_info = org_unit_info
+
+    # Starting at Teknik Nord
+    uuid_teknik_nord = name2uuid["Teknik Nord"]
+    expected_layers = [
+        "Kolding Kommune",
+        "Sundhed",
+        "Plejecentre",
+        "Plejecenter Nord",
+        "Teknik Nord",
+        None,
+    ]
+    for layer, expected in enumerate(expected_layers):
+        name = await converter.get_org_unit_name_for_parent(uuid_teknik_nord, layer)
+        assert name == expected
+
+    # Different starting point, starting at Teknik
+    uuid_teknik_nord = name2uuid["Teknik"]
+    expected_layers = ["Kolding Kommune", "Teknik", None]
+    for layer, expected in enumerate(expected_layers):
+        name = await converter.get_org_unit_name_for_parent(uuid_teknik_nord, layer)
+        assert name == expected
+
+    # Test the default layer
+    name = await converter.get_org_unit_name_for_parent(uuid_teknik_nord)
+    assert name == "Kolding Kommune"
+
+
 @pytest.mark.parametrize("class_name", ["Ansat", "Vikar"])
 async def test_get_engagement_type_uuid(dataloader: AsyncMock, class_name: str) -> None:
     class_uuid = str(uuid4())
