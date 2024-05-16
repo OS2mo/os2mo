@@ -12,6 +12,7 @@ from typing import cast as tcast
 from uuid import UUID
 
 from more_itertools import flatten
+from more_itertools import unique_everseen
 from pydantic import ValidationError
 from sqlalchemy import and_
 from sqlalchemy import between
@@ -869,7 +870,7 @@ async def leave_resolver(
 async def get_by_uuid(
     dataloader: DataLoader, uuids: list[UUID]
 ) -> dict[UUID, dict[str, Any]]:
-    deduplicated_uuids = list(set(uuids))
+    deduplicated_uuids = list(unique_everseen(uuids))
     responses = await dataloader.load_many(deduplicated_uuids)
     # Filter empty objects, see: https://redmine.magenta-aps.dk/issues/51523.
     return {
