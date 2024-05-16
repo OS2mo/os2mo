@@ -441,18 +441,18 @@ async def test_org_unit_subtree_filter(graphapi_post: GraphAPIPost) -> None:
         {
             "validities": [
                 {
-                    "user_key": "it_sup",
-                    "uuid": it_sup,
-                    "parent": {"uuid": skole_born},
+                    "user_key": "skole-børn",
+                    "uuid": skole_born,
+                    "parent": {"uuid": root},
                 }
             ]
         },
         {
             "validities": [
                 {
-                    "user_key": "skole-børn",
-                    "uuid": skole_born,
-                    "parent": {"uuid": root},
+                    "user_key": "it_sup",
+                    "uuid": it_sup,
+                    "parent": {"uuid": skole_born},
                 }
             ]
         },
