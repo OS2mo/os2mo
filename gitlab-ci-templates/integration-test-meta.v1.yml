@@ -195,7 +195,7 @@ variables:
     # available to us to include their own custom services.
     # https://gitlab.com/gitlab-org/gitlab/-/issues/322992
     # https://gitlab.com/gitlab-org/gitlab/-/issues/415831
-    - <<: *services-mo-backing-services
+    - *services-mo-backing-services
     - name: magentaaps/os2mo:latest
       alias: mo
       variables: !reference [ .variables:mo, variables ]
