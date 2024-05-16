@@ -30,6 +30,21 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
         employee_uuid = util.get_mapping_uuid(req, mapping.PERSON, required=False)
 
         engagement_uuid = util.get_mapping_uuid(req, mapping.ENGAGEMENT, required=False)
+        it_user_uuid = util.get_mapping_uuid(req, mapping.IT, required=False)
+
+        tilknyttedefunktioner = []
+        if engagement_uuid:
+            tilknyttedefunktioner.append(
+                common.associated_orgfunc(
+                    uuid=engagement_uuid, orgfunc_type=mapping.MoOrgFunk.ENGAGEMENT
+                )
+            )
+        if it_user_uuid:
+            tilknyttedefunktioner.append(
+                common.associated_orgfunc(
+                    uuid=it_user_uuid, orgfunc_type=mapping.MoOrgFunk.IT
+                )
+            )
 
         number_of_uuids = len(
             list(
@@ -96,13 +111,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedebrugere=[employee_uuid] if employee_uuid else [],
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
-            tilknyttedefunktioner=[
-                common.associated_orgfunc(
-                    uuid=engagement_uuid, orgfunc_type=mapping.MoOrgFunk.ENGAGEMENT
-                )
-            ]
-            if engagement_uuid
-            else [],
+            tilknyttedefunktioner=tilknyttedefunktioner,
             opgaver=handler.get_lora_properties(),
         )
 
@@ -201,6 +210,17 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
                     {
                         "uuid": util.get_mapping_uuid(data, mapping.ENGAGEMENT),
                         mapping.OBJECTTYPE: mapping.ENGAGEMENT,
+                    },
+                )
+            )
+
+        if mapping.IT in data:
+            update_fields.append(
+                (
+                    mapping.ASSOCIATED_FUNCTION_FIELD,
+                    {
+                        "uuid": util.get_mapping_uuid(data, mapping.IT),
+                        mapping.OBJECTTYPE: mapping.IT,
                     },
                 )
             )

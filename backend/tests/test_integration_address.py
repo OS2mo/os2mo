@@ -1471,3 +1471,232 @@ def test_address_user_key(graphapi_post: GraphAPIPost) -> None:
         "uuid": address_uuid,
         "user_key": "opdateret",
     }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
+    GET_ITUSER = """
+    query GetITUsers {
+      itusers(limit: 2) {
+        objects {
+          current {
+            user_key
+            uuid
+          }
+        }
+      }
+    }
+    """
+    GET_ADDRESS = """
+    query GetAddress($uuid: [UUID!]) {
+      addresses(filter: {uuids: $uuid}) {
+        objects {
+          current {
+            uuid
+            user_key
+            ituser {
+                uuid
+                user_key
+            }
+          }
+        }
+      }
+    }
+    """
+    CREATE_ADDRESS = """
+    mutation CreateAddress($user_key: String!, $ituser: UUID!) {
+      address_create(
+        input: {validity: {from: "2019-01-01"}, value: "b1f1817d-5f02-4331-b8b3-97330a5d3197", address_type: "4e337d8e-1fd2-4449-8110-e0c8a22958ed", ituser: $ituser, user_key: $user_key, employee: "6ee24785-ee9a-4502-81c2-7697009c9053"}
+      ) {
+        uuid
+      }
+    }
+    """
+    EDIT_ADDRESS_USER_KEY = """
+    mutation EditAddress($uuid: UUID!, $user_key: String!) {
+      address_update(
+        input: {uuid: $uuid, validity: {from: "2021-05-05"}, value: "b1f1817d-5f02-4331-b8b3-97330a5d3197", user_key: $user_key, address_type: "4e337d8e-1fd2-4449-8110-e0c8a22958ed"}
+      ) {
+        uuid
+      }
+    }
+    """
+    EDIT_ADDRESS_ITUSER = """
+    mutation EditAddress($uuid: UUID!, $ituser: UUID!) {
+      address_update(
+        input: {uuid: $uuid, validity: {from: "2021-05-05"}, value: "b1f1817d-5f02-4331-b8b3-97330a5d3197", ituser: $ituser, address_type: "4e337d8e-1fd2-4449-8110-e0c8a22958ed"}
+      ) {
+        uuid
+      }
+    }
+    """
+
+    initial_user_key = "oprettet"
+    edited_user_key = "edited"
+
+    # Get IT User
+    response = graphapi_post(GET_ITUSER)
+    assert response.errors is None
+    ituser1 = response.data["itusers"]["objects"][0]["current"]
+    ituser2 = response.data["itusers"]["objects"][1]["current"]
+    assert ituser1 != ituser2
+    ituser1_uuid = ituser1["uuid"]
+    ituser2_uuid = ituser2["uuid"]
+
+    # Create address
+    response = graphapi_post(
+        CREATE_ADDRESS,
+        variables={
+            "user_key": initial_user_key,
+            "ituser": ituser1_uuid,
+        },
+    )
+    assert response.errors is None
+    address_uuid = response.data["address_create"]["uuid"]
+    assert address_uuid
+
+    # Check created address with user_key
+    response = graphapi_post(
+        GET_ADDRESS,
+        variables={
+            "uuid": address_uuid,
+        },
+    )
+    assert response.errors is None
+    assert one(response.data["addresses"]["objects"])["current"] == {
+        "uuid": address_uuid,
+        "user_key": initial_user_key,
+        "ituser": [ituser1],
+    }
+
+    # Edit user_key
+    response = graphapi_post(
+        EDIT_ADDRESS_USER_KEY,
+        variables={
+            "uuid": address_uuid,
+            "user_key": edited_user_key,
+        },
+    )
+    assert response.errors is None
+
+    # Verify that the edit was successful
+    response = graphapi_post(
+        GET_ADDRESS,
+        variables={
+            "uuid": address_uuid,
+        },
+    )
+    assert response.errors is None
+    assert one(response.data["addresses"]["objects"])["current"] == {
+        "uuid": address_uuid,
+        "user_key": edited_user_key,
+        "ituser": [ituser1],
+    }
+
+    # Edit ituser connection
+    response = graphapi_post(
+        EDIT_ADDRESS_ITUSER,
+        variables={
+            "uuid": address_uuid,
+            "ituser": ituser2_uuid,
+        },
+    )
+    assert response.errors is None
+
+    # Verify that the edit was successful
+    response = graphapi_post(
+        GET_ADDRESS,
+        variables={
+            "uuid": address_uuid,
+        },
+    )
+    assert response.errors is None
+    assert one(response.data["addresses"]["objects"])["current"] == {
+        "uuid": address_uuid,
+        "user_key": edited_user_key,
+        "ituser": [ituser2],
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_address_ituser_multiple_addresses(graphapi_post: GraphAPIPost) -> None:
+    GET_ITUSER = """
+    query GetITUser {
+      itusers(limit: 1) {
+        objects {
+          current {
+            uuid
+            addresses {
+                uuid
+            }
+          }
+        }
+      }
+    }
+    """
+    GET_ITUSER_BY_UUID = """
+    query GetITUser($uuid: UUID!) {
+      itusers(filter: {uuids: [$uuid]}) {
+        objects {
+          current {
+            uuid
+            addresses {
+                uuid
+            }
+          }
+        }
+      }
+    }
+    """
+    CREATE_ADDRESS = """
+    mutation CreateAddress($value: String!, $ituser: UUID!) {
+      address_create(
+        input: {validity: {from: "2019-01-01"}, value: "b1f1817d-5f02-4331-b8b3-97330a5d3197", address_type: "4e337d8e-1fd2-4449-8110-e0c8a22958ed", ituser: $ituser, user_key: $value, employee: "6ee24785-ee9a-4502-81c2-7697009c9053"}
+      ) {
+        uuid
+      }
+    }
+    """
+
+    address1_value = "Address 1"
+    address2_value = "Address 2"
+
+    # Get IT User
+    response = graphapi_post(GET_ITUSER)
+    assert response.errors is None
+    ituser = one(response.data["itusers"]["objects"])["current"]
+    ituser_uuid = ituser["uuid"]
+
+    # Create addresses
+    response = graphapi_post(
+        CREATE_ADDRESS,
+        variables={
+            "value": address1_value,
+            "ituser": ituser_uuid,
+        },
+    )
+    assert response.errors is None
+    address1_uuid = response.data["address_create"]["uuid"]
+    response = graphapi_post(
+        CREATE_ADDRESS,
+        variables={
+            "value": address2_value,
+            "ituser": ituser_uuid,
+        },
+    )
+    assert response.errors is None
+    address2_uuid = response.data["address_create"]["uuid"]
+    addresses = [{"uuid": address1_uuid}, {"uuid": address2_uuid}]
+    addresses.sort(key=lambda e: e["uuid"])
+
+    # Verify that both addresses are connected when querying through IT user
+    response = graphapi_post(GET_ITUSER_BY_UUID, variables={"uuid": ituser_uuid})
+    assert response.errors is None
+    result = one(response.data["itusers"]["objects"])["current"]
+    result["addresses"].sort(key=lambda e: e["uuid"])
+    assert result == {
+        "uuid": ituser_uuid,
+        "addresses": addresses,
+    }

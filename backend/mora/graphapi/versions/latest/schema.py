@@ -37,6 +37,7 @@ from .filters import ITUserFilter
 from .filters import ManagerFilter
 from .filters import OwnerFilter
 from .health import health_map
+from .models import AddressRead
 from .models import ClassRead
 from .models import FacetRead
 from .models import FileStore
@@ -86,7 +87,6 @@ from ramodels.mo import EmployeeRead
 from ramodels.mo import OpenValidity as RAMOpenValidity
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
-from ramodels.mo.details import AddressRead
 from ramodels.mo.details import AssociationRead
 from ramodels.mo.details import EngagementRead
 from ramodels.mo.details import ITSystemRead
@@ -775,6 +775,16 @@ class Address:
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
         ],
+    )
+
+    ituser: list[LazyITUser] = strawberry.field(
+        resolver=to_list(
+            seed_resolver(
+                it_user_resolver, {"uuids": lambda root: uuid2list(root.it_user_uuid)}
+            )
+        ),
+        description="Connected IT-user.\n",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
     @strawberry.field(
@@ -2643,6 +2653,26 @@ class ITUser:
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
         ],
+    )
+
+    addresses: list[LazyAddress] = strawberry.field(
+        resolver=to_list(
+            seed_resolver(
+                address_resolver,
+                {"ituser": lambda root: ITUserFilter(uuids=[root.uuid])},
+            )
+        ),
+        description=dedent(
+            """\
+            Addresses connected with the IT-user.
+
+            Commonly contain addresses such as:
+            * Email
+            * AD GUID
+            * FK-org UUID
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
 
     itsystem: LazyITSystem = strawberry.field(

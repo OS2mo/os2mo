@@ -141,6 +141,11 @@ class AddressFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         deprecation_reason="Replaced by the 'engagement' filter",
     )
 
+    ituser: ITUserFilter | None = strawberry.field(
+        default=None,
+        description="ITUser filter limiting which entries are returned.",
+    )
+
 
 @strawberry.input(description="Association filter.")
 class AssociationFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
