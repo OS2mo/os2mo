@@ -35,6 +35,7 @@ from strawberry.types import Info
 from .filters import EngagementFilter
 from .filters import ITUserFilter
 from .filters import ManagerFilter
+from .filters import OwnerFilter
 from .health import health_map
 from .models import ClassRead
 from .models import FacetRead
@@ -3846,20 +3847,56 @@ class OrganisationUnit:
             self=self, root=parent, info=info, inherit=True
         )
 
-    owners: list[LazyOwner] = strawberry.field(
-        resolver=to_list(
-            seed_resolver(
-                owner_resolver,
-                {"org_units": lambda root: [root.uuid]},
-            )
-        ),
+    @strawberry.field(
         description=dedent(
-            """
-            Owners of the organisation unit.
+            """\
+            Owner roles for the organisation unit.
+
+            May be empty in which case owners are usually inherited from parents.
+            See the `inherit`-flag for details.
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("owner")],
     )
+    async def owners(
+        self,
+        root: OrganisationUnitRead,
+        info: Info,
+        filter: OwnerFilter | None = None,
+        inherit: Annotated[
+            bool,
+            strawberry.argument(
+                description=dedent(
+                    """\
+                    Whether to inherit owner roles or not.
+
+                    If owner roles exist directly on this organisaion unit, the flag does nothing and these owner roles are returned.
+                    However if no owner roles exist directly, and this flag is:
+                    * Not set: An empty list is returned.
+                    * Is set: The result from calling `owners` with `inherit=True` on the parent of this organistion unit is returned.
+
+                    Calling with `inherit=True` can help ensure that an owner is always found.
+                    """
+                )
+            ),
+        ] = False,
+    ) -> list["Owner"]:
+        if filter is None:
+            filter = OwnerFilter()
+        filter.org_units = [root.uuid]
+
+        resolver = to_list(seed_resolver(owner_resolver))
+        result = await resolver(root=root, info=info, filter=filter)
+        if result:
+            return result  # type: ignore
+        if not inherit:
+            return []
+        parent = await OrganisationUnit.parent(root=root, info=info)  # type: ignore
+        if parent is None:
+            return []
+        return await OrganisationUnit.owners(
+            self=self, root=parent, info=info, inherit=True
+        )
 
     addresses: list[LazyAddress] = strawberry.field(
         resolver=to_list(
