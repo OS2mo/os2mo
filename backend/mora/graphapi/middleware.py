@@ -5,6 +5,7 @@ from collections.abc import AsyncIterator
 from collections.abc import Awaitable
 from collections.abc import Iterator
 from contextlib import contextmanager
+from contextvars import ContextVar
 from inspect import isasyncgen
 from time import monotonic
 from typing import Any
@@ -15,7 +16,6 @@ from strawberry.extensions import SchemaExtension
 
 from mora.log import canonical_gql_context
 from ramodels.mo import OpenValidity
-
 
 _IS_GRAPHQL_MIDDLEWARE_KEY = "is_graphql"
 
@@ -93,35 +93,25 @@ def is_graphql() -> bool:
     return context.get(_IS_GRAPHQL_MIDDLEWARE_KEY, 0) > 0
 
 
-_GRAPHQL_DATES_MIDDLEWARE_KEY = "graphql_dates"
-
-
-async def graphql_dates_context() -> AsyncIterator[None]:
-    """Application dependency to create the `graphql_dates` context variable.
-
-    The variable is used to store `from_date` and `to_date` and send them
-    to the LoRa connector.
-
-    When we regain control of our connectors and dataloaders, this
-    should be deleted immediately and with extreme prejudice.
-    """
-    data = {**context, _GRAPHQL_DATES_MIDDLEWARE_KEY: None}
-    with request_cycle_context(data):
-        yield
-
-
-def set_graphql_dates(dates: OpenValidity | None) -> None:
-    """Set GraphQL args directly in the Starlette context."""
-    context[_GRAPHQL_DATES_MIDDLEWARE_KEY] = dates
+_graphql_dates: ContextVar[OpenValidity | None] = ContextVar(
+    "_graphql_dates", default=None
+)
 
 
 @contextmanager
 def with_graphql_dates(dates: OpenValidity) -> Iterator[None]:
-    old = get_graphql_dates()
-    set_graphql_dates(dates)
+    """Set `graphql_dates` context variable.
+
+    The variable is used to store `from_date` and `to_date` and send them
+    to the LoRa connector around (rather than through) in call-stack.
+
+    When we regain control of our connectors and dataloaders, this
+    should be deleted immediately and with extreme prejudice.
+    """
+    token = _graphql_dates.set(dates)
     yield
-    set_graphql_dates(old)
+    _graphql_dates.reset(token)
 
 
 def get_graphql_dates() -> OpenValidity | None:
-    return context.get(_GRAPHQL_DATES_MIDDLEWARE_KEY)
+    return _graphql_dates.get()

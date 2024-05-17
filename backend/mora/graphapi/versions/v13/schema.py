@@ -28,6 +28,7 @@ from starlette_context import context
 from strawberry import UNSET
 from strawberry.types import Info
 
+from ...middleware import with_graphql_dates
 from ..latest.health import health_map
 from ..latest.models import FileStore
 from ..latest.models import OwnerInferencePriority
@@ -66,7 +67,6 @@ from mora import common
 from mora import config
 from mora import db
 from mora.common import _create_graphql_connector
-from mora.graphapi.middleware import set_graphql_dates
 from mora.graphapi.versions.latest.readers import _extract_search_params
 from mora.handler.reading import get_handler_for_type
 from mora.service.address_handler import dar
@@ -2866,8 +2866,8 @@ class OrganisationUnit:
         self, root: OrganisationUnitRead, info: Info
     ) -> list[LazyOrganisationUnit]:
         # Custom Lora-GraphQL connector - created in order to control dates in sub-queries/recursions
-        set_graphql_dates(root.validity)
-        c = _create_graphql_connector()
+        with with_graphql_dates(root.validity):
+            c = _create_graphql_connector()
         cls = get_handler_for_type("org_unit")
 
         # Query LoRa and parse result to read-model

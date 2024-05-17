@@ -27,7 +27,7 @@ from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 from strawberry.unset import UnsetType
 
-from ...middleware import set_graphql_dates
+from ...middleware import with_graphql_dates
 from .filters import AddressFilter
 from .filters import AssociationFilter
 from .filters import BaseFilter
@@ -44,6 +44,7 @@ from .filters import OrganisationUnitFilter
 from .filters import OwnerFilter
 from .filters import RelatedUnitFilter
 from .filters import RoleBindingFilter
+from .graphql_utils import LoadKey
 from .models import AddressRead
 from .models import ClassRead
 from .models import FacetRead
@@ -868,14 +869,14 @@ async def leave_resolver(
 
 # type: ignore[no-untyped-def,override]
 async def get_by_uuid(
-    dataloader: DataLoader, uuids: list[UUID]
+    dataloader: DataLoader, keys: list[LoadKey]
 ) -> dict[UUID, dict[str, Any]]:
-    deduplicated_uuids = list(unique_everseen(uuids))
-    responses = await dataloader.load_many(deduplicated_uuids)
+    deduplicated_keys = list(unique_everseen(keys))
+    responses = await dataloader.load_many(deduplicated_keys)
     # Filter empty objects, see: https://redmine.magenta-aps.dk/issues/51523.
     return {
-        uuid: objects
-        for uuid, objects in zip(deduplicated_uuids, responses)
+        key.uuid: objects
+        for key, objects in zip(deduplicated_keys, responses)
         if objects != []
     }
 
@@ -896,8 +897,6 @@ async def generic_resolver(
 
     # Dates
     dates = get_date_interval(filter.from_date, filter.to_date)
-    set_graphql_dates(dates)
-
     # UUIDs
     if filter.uuids is not None:
         if limit is not None or cursor is not None:
@@ -906,7 +905,12 @@ async def generic_resolver(
         if not filter.uuids:
             return dict()
         resolver_name = resolver_map[model]["loader"]
-        return await get_by_uuid(info.context[resolver_name], filter.uuids)
+        return await get_by_uuid(
+            dataloader=info.context[resolver_name],
+            keys=[
+                LoadKey(uuid, dates.from_date, dates.to_date) for uuid in filter.uuids
+            ],
+        )
 
     # User keys
     if filter.user_keys is not None:
@@ -934,7 +938,8 @@ async def generic_resolver(
         kwargs["registreringstid"] = str(cursor.registration_time)
 
     resolver_name = resolver_map[model]["getter"]
-    return await info.context[resolver_name](**kwargs)
+    with with_graphql_dates(dates):
+        return await info.context[resolver_name](**kwargs)
 
 
 async def related_unit_resolver(

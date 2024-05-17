@@ -1,8 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Loaders for translating LoRa data to MO data to be returned from the GraphAPI."""
+import asyncio
+from collections import defaultdict
 from collections.abc import Callable
 from collections.abc import Iterable
+from datetime import datetime
 from functools import partial
 from typing import Any
 from typing import TypeVar
@@ -12,9 +15,13 @@ from more_itertools import bucket
 from more_itertools import unique_everseen
 from pydantic import parse_obj_as
 from strawberry.dataloader import DataLoader
+from strawberry.unset import UnsetType
 
+from ...middleware import with_graphql_dates
+from .graphql_utils import LoadKey
 from .readers import get_role_type_by_uuid
 from .readers import search_role_type
+from .resolvers import get_date_interval
 from .schema import AddressRead
 from .schema import AssociationRead
 from .schema import ClassRead
@@ -92,21 +99,44 @@ async def get_mo(model: MOModel, **kwargs: Any) -> dict[UUID, list[MOModel]]:
     return uuid_map
 
 
-async def load_mo(uuids: list[UUID], model: MOModel) -> list[list[MOModel]]:
+async def load_mo(keys: list[LoadKey], model: type[MOModel]) -> list[list[MOModel]]:
     """Load MO models from LoRa by UUID.
 
     Args:
-        uuids: UUIDs to load.
+        keys: UUIDs to load (in the given start/end interval).
         model: The MO model to parse into.
 
     Returns:
         List of parsed MO models.
     """
     mo_type = model.__fields__["type_"].default
-    results = await get_role_type_by_uuid(mo_type, uuids)
-    parsed_results: list[MOModel] = parse_obj_as(list[model], results)  # type: ignore
-    uuid_map = group_by_uuid(parsed_results, uuids)
-    return list(map(uuid_map.get, uuids))  # type: ignore
+
+    # Wrapper for get_role_type_by_uuid to pass dates using a nice(r) interface
+    async def get(
+        uuids: list[UUID],
+        start: datetime | UnsetType | None,
+        end: datetime | UnsetType | None,
+    ) -> list[MOModel]:
+        dates = get_date_interval(start, end)
+        with with_graphql_dates(dates):
+            results = await get_role_type_by_uuid(mo_type, uuids)
+        parsed_results: list[MOModel] = parse_obj_as(list[model], results)  # type: ignore[valid-type]
+        return parsed_results
+
+    # Group keys by start/end intervals to allowing batching request(s) to LoRa
+    interval_buckets = bucket(keys, key=lambda key: (key.start, key.end))
+    gets = [
+        get([key.uuid for key in interval_buckets[interval]], *interval)
+        for interval in interval_buckets
+    ]
+    results_lists = await asyncio.gather(*gets)
+
+    # Map results back to the original request keys to uphold the dataloader interface
+    loaded = defaultdict(list)
+    for results, interval in zip(results_lists, interval_buckets):
+        for result in results:
+            loaded[LoadKey(result.uuid, *interval)].append(result)
+    return [loaded[key] for key in keys]
 
 
 async def load_org(keys: list[int]) -> list[OrganisationRead]:
@@ -128,83 +158,56 @@ async def load_org(keys: list[int]) -> list[OrganisationRead]:
 async def get_loaders() -> dict[str, DataLoader | Callable]:
     """Get all available dataloaders as a dictionary."""
     return {
-        # We have to clear the dataloader cache, as it is caching entirely on UUID
-        # and thus it may have cached results that does not correlate to our new dates.
-        # In the future the arguments should be passed down the stack, rather than around
-        # the stack as they are now, but for now this is our workaround.
-        # Organisation
-        "org_loader": DataLoader(load_fn=load_org, cache=False),
+        "org_loader": DataLoader(load_fn=load_org),
         # Organisation Unit
         "org_unit_loader": DataLoader(
-            load_fn=partial(load_mo, model=OrganisationUnitRead), cache=False
+            load_fn=partial(load_mo, model=OrganisationUnitRead)
         ),
         "org_unit_getter": partial(get_mo, model=OrganisationUnitRead),
         # Person
-        "employee_loader": DataLoader(
-            load_fn=partial(load_mo, model=EmployeeRead), cache=False
-        ),
+        "employee_loader": DataLoader(load_fn=partial(load_mo, model=EmployeeRead)),
         "employee_getter": partial(get_mo, model=EmployeeRead),
         # Engagement
-        "engagement_loader": DataLoader(
-            load_fn=partial(load_mo, model=EngagementRead), cache=False
-        ),
+        "engagement_loader": DataLoader(load_fn=partial(load_mo, model=EngagementRead)),
         "engagement_getter": partial(get_mo, model=EngagementRead),
         # KLE
-        "kle_loader": DataLoader(load_fn=partial(load_mo, model=KLERead), cache=False),
+        "kle_loader": DataLoader(load_fn=partial(load_mo, model=KLERead)),
         "kle_getter": partial(get_mo, model=KLERead),
         # Address
-        "address_loader": DataLoader(
-            load_fn=partial(load_mo, model=AddressRead), cache=False
-        ),
+        "address_loader": DataLoader(load_fn=partial(load_mo, model=AddressRead)),
         "address_getter": partial(get_mo, model=AddressRead),
         # Leave
-        "leave_loader": DataLoader(
-            load_fn=partial(load_mo, model=LeaveRead), cache=False
-        ),
+        "leave_loader": DataLoader(load_fn=partial(load_mo, model=LeaveRead)),
         "leave_getter": partial(get_mo, model=LeaveRead),
         # Association
         "association_loader": DataLoader(
-            load_fn=partial(load_mo, model=AssociationRead), cache=False
+            load_fn=partial(load_mo, model=AssociationRead)
         ),
         "association_getter": partial(get_mo, model=AssociationRead),
         # Rolebinding
         "rolebinding_loader": DataLoader(
-            load_fn=partial(load_mo, model=RoleBindingRead), cache=False
+            load_fn=partial(load_mo, model=RoleBindingRead)
         ),
         "rolebinding_getter": partial(get_mo, model=RoleBindingRead),
         # ITUser
-        "ituser_loader": DataLoader(
-            load_fn=partial(load_mo, model=ITUserRead), cache=False
-        ),
+        "ituser_loader": DataLoader(load_fn=partial(load_mo, model=ITUserRead)),
         "ituser_getter": partial(get_mo, model=ITUserRead),
         # Manager
-        "manager_loader": DataLoader(
-            load_fn=partial(load_mo, model=ManagerRead), cache=False
-        ),
+        "manager_loader": DataLoader(load_fn=partial(load_mo, model=ManagerRead)),
         "manager_getter": partial(get_mo, model=ManagerRead),
         # Owner
-        "owner_loader": DataLoader(
-            load_fn=partial(load_mo, model=OwnerRead), cache=False
-        ),
+        "owner_loader": DataLoader(load_fn=partial(load_mo, model=OwnerRead)),
         "owner_getter": partial(get_mo, model=OwnerRead),
         # Class
-        "class_loader": DataLoader(
-            load_fn=partial(load_mo, model=ClassRead), cache=False
-        ),
+        "class_loader": DataLoader(load_fn=partial(load_mo, model=ClassRead)),
         "class_getter": partial(get_mo, model=ClassRead),
         # Related Organisation Unit
-        "rel_unit_loader": DataLoader(
-            load_fn=partial(load_mo, model=RelatedUnitRead), cache=False
-        ),
+        "rel_unit_loader": DataLoader(load_fn=partial(load_mo, model=RelatedUnitRead)),
         "rel_unit_getter": partial(get_mo, model=RelatedUnitRead),
         # Facet
-        "facet_loader": DataLoader(
-            load_fn=partial(load_mo, model=FacetRead), cache=False
-        ),
+        "facet_loader": DataLoader(load_fn=partial(load_mo, model=FacetRead)),
         "facet_getter": partial(get_mo, model=FacetRead),
         # ITSysterm
-        "itsystem_loader": DataLoader(
-            load_fn=partial(load_mo, model=ITSystemRead), cache=False
-        ),
+        "itsystem_loader": DataLoader(load_fn=partial(load_mo, model=ITSystemRead)),
         "itsystem_getter": partial(get_mo, model=ITSystemRead),
     }
