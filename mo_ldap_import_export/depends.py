@@ -3,6 +3,7 @@
 """Dependency injection helpers."""
 from typing import Annotated
 from typing import AsyncIterable
+from uuid import uuid4
 
 from fastapi import Depends
 from fastramqpi.depends import from_user_context
@@ -30,4 +31,10 @@ LDAPAMQPSystem = Annotated[AMQPSystem, Depends(from_user_context("ldap_amqpsyste
 async def logger_bound_message_id(message: Message) -> AsyncIterable[None]:
     message_id = message.info().get("message_id")
     with bound_contextvars(message_id=message_id):
+        yield
+
+
+async def request_id() -> AsyncIterable[None]:
+    request_id = str(uuid4())
+    with bound_contextvars(request_id=request_id):
         yield
