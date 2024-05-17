@@ -13,6 +13,7 @@ from fastramqpi.ramqp.utils import RejectMessage
 
 from .config import LDAPAMQPConnectionSettings
 from .depends import logger_bound_message_id
+from .depends import request_id
 from .depends import SyncTool
 from .exceptions import NoObjectsReturnedException
 from .types import DN
@@ -55,6 +56,7 @@ def configure_ldap_amqpsystem(
         dependencies=[
             Depends(rate_limit(delay_on_error)),
             Depends(logger_bound_message_id),
+            Depends(request_id),
         ],
     )
     fastramqpi.add_context(ldap_amqpsystem=ldap_amqpsystem)
