@@ -1569,6 +1569,7 @@ async def test_modify_ldap(
     dataloader: DataLoader,
     sync_tool: AsyncMock,
     ldap_connection: MagicMock,
+    monkeypatch: pytest.MonkeyPatch,
 ):
     ldap_connection.result = {"description": "success"}
     dn = "CN=foo"
@@ -1609,6 +1610,12 @@ async def test_modify_ldap(
     # DELETE statments should still be executed, even if a value exists
     response = dataloader.modify_ldap("MODIFY_DELETE", dn, "parameter_to_modify", "foo")
     assert response == {"description": "success"}
+
+    monkeypatch.setenv("LDAP_READ_ONLY", "true")
+    dataloader.user_context["settings"] = Settings()
+    with pytest.raises(NotEnabledException) as exc:
+        dataloader.modify_ldap("MODIFY_REPLACE", dn, "parameter_to_modify", [])
+    assert "LDAP connection is read-only" in str(exc.value)
 
 
 async def test_modify_ldap_ou_not_in_ous_to_write_to(
@@ -1905,15 +1912,17 @@ async def test_create_mo_it_system(dataloader: DataLoader):
     assert isinstance(await dataloader.create_mo_it_system("foo", "bar"), UUID)
 
 
-def test_add_ldap_object(dataloader: DataLoader):
+def test_add_ldap_object(dataloader: DataLoader) -> None:
     dataloader.add_ldap_object("CN=foo", attributes={"foo": 2})
     dataloader.ldap_connection.add.assert_called_once()
 
     dataloader.user_context["settings"] = MagicMock()  # type: ignore
     dataloader.user_context["settings"].add_objects_to_ldap = False
+    dataloader.user_context["settings"].ldap_read_only = False
 
-    with pytest.raises(NotEnabledException):
+    with pytest.raises(NotEnabledException) as exc:
         dataloader.add_ldap_object("CN=foo")
+    assert "Adding LDAP objects is disabled" in str(exc.value)
 
     dataloader.ldap_connection.reset_mock()
     dataloader.user_context["settings"].add_objects_to_ldap = True
@@ -1922,6 +1931,11 @@ def test_add_ldap_object(dataloader: DataLoader):
 
     dataloader.add_ldap_object("CN=foo")
     dataloader.ldap_connection.add.assert_not_called()
+
+    dataloader.user_context["settings"].ldap_read_only = True
+    with pytest.raises(NotEnabledException) as exc:
+        dataloader.add_ldap_object("CN=foo")
+    assert "LDAP connection is read-only" in str(exc.value)
 
 
 async def test_load_mo_employee_engagement_dicts(
@@ -2349,7 +2363,7 @@ def test_decompose_ou_string(dataloader: DataLoader):
     assert output[2] == "OU=bar"
 
 
-def test_create_ou(dataloader: DataLoader):
+def test_create_ou(dataloader: DataLoader) -> None:
     dataloader.load_ldap_OUs = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to.return_value = True
@@ -2357,6 +2371,7 @@ def test_create_ou(dataloader: DataLoader):
     settings_mock = MagicMock()
     settings_mock.ldap_search_base = "DC=Magenta"
     dataloader.user_context["settings"] = settings_mock  # type: ignore
+    dataloader.user_context["settings"].ldap_read_only = False
 
     dataloader.load_ldap_OUs.return_value = {
         "OU=mucki,OU=bar": {"empty": False},
@@ -2371,8 +2386,9 @@ def test_create_ou(dataloader: DataLoader):
 
     dataloader.user_context["settings"].add_objects_to_ldap = False
 
-    with pytest.raises(NotEnabledException):
+    with pytest.raises(NotEnabledException) as exc:
         dataloader.create_ou(ou)
+    assert "Adding LDAP objects is disabled" in str(exc.value)
 
     dataloader.ldap_connection.reset_mock()
     dataloader.user_context["settings"].add_objects_to_ldap = True
@@ -2381,8 +2397,13 @@ def test_create_ou(dataloader: DataLoader):
     dataloader.create_ou(ou)
     dataloader.ldap_connection.add.assert_not_called()
 
+    dataloader.user_context["settings"].ldap_read_only = True
+    with pytest.raises(NotEnabledException) as exc:
+        dataloader.create_ou(ou)
+    assert "LDAP connection is read-only" in str(exc.value)
 
-def test_delete_ou(dataloader: DataLoader):
+
+def test_delete_ou(dataloader: DataLoader) -> None:
     dataloader.load_ldap_OUs = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to.return_value = True
@@ -2390,6 +2411,7 @@ def test_delete_ou(dataloader: DataLoader):
     settings_mock = MagicMock()
     settings_mock.ldap_search_base = "DC=Magenta"
     dataloader.user_context["settings"] = settings_mock  # type: ignore
+    dataloader.user_context["settings"].ldap_read_only = False
 
     dataloader.load_ldap_OUs.return_value = {
         "OU=foo,OU=mucki,OU=bar": {"empty": True},
@@ -2421,6 +2443,11 @@ def test_delete_ou(dataloader: DataLoader):
     dataloader.delete_ou("OU=non_existing_OU")
     dataloader.ldap_connection.delete.assert_not_called()
 
+    dataloader.user_context["settings"].ldap_read_only = True
+    with pytest.raises(NotEnabledException) as exc:
+        dataloader.delete_ou("OU=non_existing_OU")
+    assert "LDAP connection is read-only" in str(exc.value)
+
 
 def test_move_ldap_object(dataloader: DataLoader):
     dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
@@ -2430,6 +2457,7 @@ def test_move_ldap_object(dataloader: DataLoader):
 
     dataloader.log_ldap_response = MagicMock()  # type: ignore
     dataloader.log_ldap_response.return_value = {"description": "success"}
+    dataloader.user_context["settings"].ldap_read_only = False
 
     success = dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
 
@@ -2445,8 +2473,15 @@ def test_move_ldap_object(dataloader: DataLoader):
     dataloader.ou_in_ous_to_write_to.return_value = True
     dataloader.user_context["settings"].add_objects_to_ldap = False
 
-    with pytest.raises(NotEnabledException):
+    with pytest.raises(NotEnabledException) as exc:
         dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
+    assert "Adding LDAP objects is disabled" in str(exc.value)
+
+    dataloader.user_context["settings"].add_objects_to_ldap = True
+    dataloader.user_context["settings"].ldap_read_only = True
+    with pytest.raises(NotEnabledException) as exc:
+        dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
+    assert "LDAP connection is read-only" in str(exc.value)
 
 
 async def test_find_dn_by_engagement_uuid_uses_single_dn() -> None:

@@ -362,6 +362,17 @@ class DataLoader:
         """
         Modifies LDAP and adds the dn to dns_to_ignore
         """
+        # TODO: Remove this when ldap3s read-only flag works
+        settings = self.user_context["settings"]
+        if settings.ldap_read_only:
+            logger.info(
+                "LDAP connection is read-only",
+                operation="modify_ldap",
+                dn=dn,
+                attribute=attribute,
+            )
+            raise NotEnabledException("LDAP connection is read-only")
+
         # Checks
         if not self.ou_in_ous_to_write_to(dn):
             return None
@@ -540,8 +551,23 @@ class DataLoader:
 
         """
         settings: Settings = self.user_context["settings"]
+        # TODO: Remove this when ldap3s read-only flag works
+        if settings.ldap_read_only:
+            logger.info(
+                "LDAP connection is read-only",
+                operation="add_ldap_object",
+                dn=dn,
+                attributes=attributes,
+            )
+            raise NotEnabledException("LDAP connection is read-only")
+
         if not settings.add_objects_to_ldap:
-            logger.info("add_objects_to_ldap = False, aborting")
+            logger.info(
+                "Adding LDAP objects is disabled",
+                operation="add_ldap_object",
+                dn=dn,
+                attributes=attributes,
+            )
             raise NotEnabledException("Adding LDAP objects is disabled")
 
         if not self.ou_in_ous_to_write_to(dn):
@@ -580,9 +606,16 @@ class DataLoader:
         Creates an OU. If the parent OU does not exist, creates that one first
         """
         settings = self.user_context["settings"]
+
+        # TODO: Remove this when ldap3s read-only flag works
+        if settings.ldap_read_only:
+            logger.info("LDAP connection is read-only", operation="create_ou", ou=ou)
+            raise NotEnabledException("LDAP connection is read-only")
+
         if not settings.add_objects_to_ldap:
-            logger.info("add_objects_to_ldap = False, aborting")
+            logger.info("Adding LDAP objects is disabled", operation="create_ou", ou=ou)
             raise NotEnabledException("Adding LDAP objects is disabled")
+
         if not self.ou_in_ous_to_write_to(ou):
             return
 
@@ -607,6 +640,11 @@ class DataLoader:
         Only deletes OUs which are empty
         """
         settings = self.user_context["settings"]
+        # TODO: Remove this when ldap3s read-only flag works
+        if settings.ldap_read_only:
+            logger.info("LDAP connection is read-only", operation="delete_ou", ou=ou)
+            raise NotEnabledException("LDAP connection is read-only")
+
         if not self.ou_in_ous_to_write_to(ou):
             return
 
@@ -628,11 +666,28 @@ class DataLoader:
         successful.
         """
         settings = self.user_context["settings"]
+
+        # TODO: Remove this when ldap3s read-only flag works
+        if settings.ldap_read_only:
+            logger.info(
+                "LDAP connection is read-only",
+                operation="move_ldap_object",
+                old_dn=old_dn,
+                new_dn=new_dn,
+            )
+            raise NotEnabledException("LDAP connection is read-only")
+
+        if not settings.add_objects_to_ldap:
+            logger.info(
+                "Adding LDAP objects is disabled",
+                operation="move_ldap_object",
+                old_dn=old_dn,
+                new_dn=new_dn,
+            )
+            raise NotEnabledException("Adding LDAP objects is disabled")
+
         if not self.ou_in_ous_to_write_to(new_dn):
             return False
-        if not settings.add_objects_to_ldap:
-            logger.info("add_objects_to_ldap = False, aborting")
-            raise NotEnabledException("Moving LDAP objects is disabled")
 
         logger.info("Moving entry", old_dn=old_dn, new_dn=new_dn)
 
