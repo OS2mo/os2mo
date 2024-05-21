@@ -1700,3 +1700,68 @@ def test_address_ituser_multiple_addresses(graphapi_post: GraphAPIPost) -> None:
         "uuid": ituser_uuid,
         "addresses": addresses,
     }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_address_uuid_scope(graphapi_post: GraphAPIPost) -> None:
+    GET_ADDRESS = """
+    query GetAddress($uuid: [UUID!]) {
+      addresses(filter: {uuids: $uuid}) {
+        objects {
+          current {
+            address_type {
+                scope
+            }
+          }
+        }
+      }
+    }
+    """
+    CREATE_ADDRESS_TYPE = """
+    mutation CreateAddressType {
+      class_create(
+        input: {scope: "UUID", name: "TestUUID", user_key: "TestUUID", facet_uuid: "baddc4eb-406e-4c6b-8229-17e4a21d3550", validity: {from: "2020-08-01"}}
+      ) {
+        uuid
+      }
+    }
+    """
+    CREATE_ADDRESS = """
+    mutation CreateAddress($address_type: UUID!) {
+      address_create(
+        input: {validity: {from: "2019-01-01"}, value: "b1f1817d-5f02-4331-b8b3-97330a5d3197", address_type: $address_type, user_key: "Whatever", employee: "6ee24785-ee9a-4502-81c2-7697009c9053"}
+      ) {
+        uuid
+      }
+    }
+    """
+
+    # Create UUID address type
+    response = graphapi_post(CREATE_ADDRESS_TYPE)
+    assert response.errors is None
+    address_type_uuid = response.data["class_create"]["uuid"]
+
+    # Create address
+    response = graphapi_post(
+        CREATE_ADDRESS,
+        variables={
+            "address_type": address_type_uuid,
+        },
+    )
+    assert response.errors is None
+    address_uuid = response.data["address_create"]["uuid"]
+    assert address_uuid
+
+    # Check created address with user_key
+    response = graphapi_post(
+        GET_ADDRESS,
+        variables={
+            "uuid": address_uuid,
+        },
+    )
+    assert response.errors is None
+    assert (
+        one(response.data["addresses"]["objects"])["current"]["address_type"]["scope"]
+        == "UUID"
+    )
