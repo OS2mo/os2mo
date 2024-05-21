@@ -7,4 +7,5 @@ from . import multifield_text  # noqa
 from . import phone  # noqa
 from . import pnumber  # noqa
 from . import text  # noqa
+from . import uuidaddr  # noqa
 from . import www  # noqa

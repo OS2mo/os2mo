@@ -106,6 +106,7 @@ class ErrorCodes(Enum):
     V_INVALID_ADDRESS_PNUMBER = 400, "Invalid P-number"
     V_INVALID_ADDRESS_PHONE = 400, "Invalid phone number"
     V_INVALID_ADDRESS_WWW = 400, "Invalid web address"
+    V_INVALID_ADDRESS_UUID = 400, "Invalid UUID"
 
     # Input errors
     E_ORG_UNIT_NOT_FOUND = 404, "Org unit not found."
