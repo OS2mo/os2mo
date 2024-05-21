@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import inspect
 import traceback
 from enum import Enum
 from typing import NoReturn
@@ -176,9 +177,12 @@ class HTTPException(fastapiHTTPException):
             if cause is None:
                 cause = self.__cause__ or self
             # just for debugging, remove or change as needed:
-            self.stack = "".join(traceback.format_stack())
-            if isinstance(cause, Exception):
-                self.traceback = traceback.format_exc()
+            frame = inspect.currentframe()  # CPython only
+            # the stacked f_backs are just to leave out our crazy __call__
+            # from ErrorCodes of the traceback.
+            self.stack = "".join(
+                traceback.format_stack(f=frame.f_back.f_back.f_back, limit=15)
+            )
 
         super().__init__(status_code=self.key.code, detail=body)
 
