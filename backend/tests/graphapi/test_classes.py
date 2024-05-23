@@ -3,6 +3,7 @@
 import datetime
 from functools import partial
 from typing import Any
+from unittest import TestCase
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -722,3 +723,82 @@ async def test_integration_it_system_filter() -> None:
     )
     assert response.errors is None
     assert response.data == {"classes": {"objects": [{"current": {"user_key": "ad"}}]}}
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_integration_scopes_filter(graphapi_post: GraphAPIPost) -> None:
+    # Create
+    primary_type_facet_uuid = "1f6f34d8-d065-4bb7-9af0-738d25dc0fbf"
+    create_mutation = """
+        mutation Create($facet_uuid: UUID!, $scope: String!) {
+          class_create(
+            input: {
+              facet_uuid: $facet_uuid,
+              user_key: $scope,
+              name: $scope,
+              scope: $scope,
+              validity: {from: "2001-02-03"}
+            }
+          ) {
+            uuid
+          }
+        }
+    """
+    graphapi_post(
+        create_mutation,
+        {
+            "facet_uuid": primary_type_facet_uuid,
+            "scope": "OKP-7",
+        },
+    )
+    graphapi_post(
+        create_mutation,
+        {
+            "facet_uuid": primary_type_facet_uuid,
+            "scope": "Red Dot",
+        },
+    )
+    graphapi_post(
+        create_mutation,
+        {
+            "facet_uuid": primary_type_facet_uuid,
+            "scope": "Holographic",
+        },
+    )
+
+    # Filter multiple scopes
+    read_query = """
+        query ClassScopesQuery {
+          classes(filter: {scope: ["OKP-7", "Red Dot"]}) {
+            objects {
+              current {
+                user_key
+                name
+                scope
+              }
+            }
+          }
+        }
+    """
+    response = graphapi_post(read_query)
+    assert response.errors is None
+    TestCase().assertCountEqual(
+        response.data["classes"]["objects"],
+        [
+            {
+                "current": {
+                    "user_key": "OKP-7",
+                    "name": "OKP-7",
+                    "scope": "OKP-7",
+                }
+            },
+            {
+                "current": {
+                    "user_key": "Red Dot",
+                    "name": "Red Dot",
+                    "scope": "Red Dot",
+                }
+            },
+        ],
+    )
