@@ -5,6 +5,7 @@ Jinja2 templates.
 
 """
 import copy
+import sys
 from collections import OrderedDict
 from pathlib import Path
 
@@ -34,47 +35,63 @@ TEMPLATES = (
     "_as_filter_unauth",
 )
 
+IGNORED_OIO_TYPES = {
+    "aktivitet",
+    "dokument",
+    "indsats",
+    "interessefaellesskab",
+    "loghaendelse",
+    "sag",
+    "tilstand",
+}
+
+
+def _render_template(template_name):
+    for oio_type in sorted(db_structure.DATABASE_STRUCTURE):
+        if oio_type in IGNORED_OIO_TYPES:
+            continue
+        template_file = "%s.jinja.sql" % template_name
+        template = template_env.get_template(template_file)
+
+        context = copy.deepcopy(db_structure.DATABASE_STRUCTURE[oio_type])
+
+        for reltype in ("tilstande", "attributter", "relationer"):
+            if reltype not in context:
+                continue
+
+            # it is important that the order is stable, as some templates
+            # rely on this
+            context[reltype] = OrderedDict(context[reltype])
+
+            # fill these out to avoid the need to check for membership
+            meta = context.get(f"{reltype}_metadata", {})
+
+            context[f"{reltype}_metadata"] = {
+                a: {p: meta.get(a, {}).get(p, {}) for p in ps}
+                for a, ps in context["attributter"].items()
+            }
+
+            context[f"{reltype}_mandatory"] = {
+                attr: [k for k, v in vs.items() if v.get("mandatory")]
+                for attr, vs in meta.items()
+            }
+
+        context["oio_type"] = oio_type.lower()
+
+        try:
+            extra_options = db_structure.DB_TEMPLATE_EXTRA_OPTIONS
+            context["include_mixin"] = extra_options[oio_type][template_file][
+                "include_mixin"
+            ]
+        except KeyError:
+            context["include_mixin"] = "empty.jinja.sql"
+
+        yield template.render(context)
+
 
 def _render_templates():
-    for oio_type in sorted(db_structure.DATABASE_STRUCTURE):
-        for template_name in TEMPLATES:
-            template_file = "%s.jinja.sql" % template_name
-            template = template_env.get_template(template_file)
-
-            context = copy.deepcopy(db_structure.DATABASE_STRUCTURE[oio_type])
-
-            for reltype in ("tilstande", "attributter", "relationer"):
-                if reltype not in context:
-                    continue
-
-                # it is important that the order is stable, as some templates
-                # rely on this
-                context[reltype] = OrderedDict(context[reltype])
-
-                # fill these out to avoid the need to check for membership
-                meta = context.get(f"{reltype}_metadata", {})
-
-                context[f"{reltype}_metadata"] = {
-                    a: {p: meta.get(a, {}).get(p, {}) for p in ps}
-                    for a, ps in context["attributter"].items()
-                }
-
-                context[f"{reltype}_mandatory"] = {
-                    attr: [k for k, v in vs.items() if v.get("mandatory")]
-                    for attr, vs in meta.items()
-                }
-
-            context["oio_type"] = oio_type.lower()
-
-            try:
-                extra_options = db_structure.DB_TEMPLATE_EXTRA_OPTIONS
-                context["include_mixin"] = extra_options[oio_type][template_file][
-                    "include_mixin"
-                ]
-            except KeyError:
-                context["include_mixin"] = "empty.jinja.sql"
-
-            yield template.render(context)
+    for template_name in TEMPLATES:
+        yield from _render_template(template_name)
 
 
 def get_sql():
@@ -92,4 +109,9 @@ def get_sql():
 
 
 if __name__ == "__main__":
-    print("\n".join(get_sql()))
+    if len(sys.argv) == 2:
+        sql = _render_template(sys.argv[1])
+    else:
+        sql = get_sql()
+
+    print("\n".join(sql))

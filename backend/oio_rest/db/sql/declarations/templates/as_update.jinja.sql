@@ -1250,7 +1250,7 @@ END IF; --else block for skip on empty array for variants.
     IF read_prev_{{oio_type}}_reg = read_new_{{oio_type}}_reg THEN
       --RAISE NOTICE 'Note[%]. Aborted reg:%',note,to_json(read_new_{{oio_type}}_reg);
       --RAISE NOTICE 'Note[%]. Previous reg:%',note,to_json(read_prev_{{oio_type}}_reg);
-      RAISE EXCEPTION 'Aborted updating {{oio_type}} with id [%] as the given data, does not give raise to a new registration. Aborted reg:[%], previous reg:[%]', {{oio_type}}_uuid, to_json(read_new_{{oio_type}}_reg), to_json(read_prev_{{oio_type}}_reg) USING ERRCODE = 'MO400';
+      RAISE NOTICE 'Aborted updating {{oio_type}} with id [%] as the given data, does not give raise to a new registration. Aborted reg:[%], previous reg:[%]', {{oio_type}}_uuid, to_json(read_new_{{oio_type}}_reg), to_json(read_prev_{{oio_type}}_reg) USING ERRCODE = 'MO400';
     END IF;
 
 
