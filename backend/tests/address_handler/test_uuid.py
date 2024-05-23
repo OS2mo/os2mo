@@ -77,7 +77,7 @@ async def test_validation_succeeds_on_correct_values():
     # Arrange
     valid_values = [
         "25d7e8f1-1ca6-4829-b567-d2c0c283ea07",
-        "f45f2f2a-a780-47d6-97c7-da6d639dbde7",
+        "f45f2f2a-a780-47d6-97c7-dA6d639dbde7",
     ]
 
     # Act & Assert

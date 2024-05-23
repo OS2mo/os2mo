@@ -24,7 +24,8 @@ class UUIDAddressHandler(base.AddressHandler):
         * there are no curly braces.
         """
         if not re.match(
-            r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", value
+            r"^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
+            value,
         ):
             exceptions.ErrorCodes.V_INVALID_ADDRESS_UUID(value=value)
 
