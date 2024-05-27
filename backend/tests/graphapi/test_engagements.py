@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
+from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -975,6 +976,8 @@ async def test_create_engagement_primary(
             query=CREATE_ENGAGEMENT_QUERY,
             variables={"input": jsonable_encoder(test_data)},
         )
+        assert mutation_response.errors is None
+        assert mutation_response.data is not None
         primary_scope = await get_primary_class_scope(primary_uuid)
         engagement_uuids.update(
             {UUID(mutation_response.data["engagement_create"]["uuid"]): primary_scope}
@@ -995,6 +998,7 @@ async def test_create_engagement_primary(
     for uuid in engagement_uuids:
         response = graphapi_post(query=verify_query, variables={"uuid": str(uuid)})
         assert response.errors is None
+        assert response.data is not None
         engagement_objects = response.data["engagements"]["objects"]
         if engagement_objects == []:
             # For some reason some engagements can't be found
@@ -1003,3 +1007,72 @@ async def test_create_engagement_primary(
         is_primary = one(one(engagement_objects)["objects"])["is_primary"]
         expected = engagement_uuids[uuid] > 10
         assert is_primary == expected
+
+
+@pytest.mark.parametrize(
+    "filter,expected",
+    [
+        # No filter
+        (
+            {},
+            [
+                UUID("301a906b-ef51-4d5c-9c77-386fb8410459"),
+                UUID("d000591f-8705-4324-897a-075e3623f37b"),
+                UUID("d3028e2e-1d7a-48c1-ae01-d4c64e64bbab"),
+            ],
+        ),
+        (
+            {"is_primary": None},
+            [
+                UUID("301a906b-ef51-4d5c-9c77-386fb8410459"),
+                UUID("d000591f-8705-4324-897a-075e3623f37b"),
+                UUID("d3028e2e-1d7a-48c1-ae01-d4c64e64bbab"),
+            ],
+        ),
+        # Filter only by is_primary
+        ({"is_primary": True}, [UUID("d3028e2e-1d7a-48c1-ae01-d4c64e64bbab")]),
+        (
+            {"is_primary": False},
+            [
+                UUID("301a906b-ef51-4d5c-9c77-386fb8410459"),
+                UUID("d000591f-8705-4324-897a-075e3623f37b"),
+            ],
+        ),
+        # Filter by primary and date
+        (
+            {"is_primary": True, "from_date": "2026-01-01", "to_date": "2027-01-01"},
+            [UUID("d3028e2e-1d7a-48c1-ae01-d4c64e64bbab")],
+        ),
+        (
+            {"is_primary": False, "from_date": "2026-01-01", "to_date": "2027-01-01"},
+            [
+                UUID("301a906b-ef51-4d5c-9c77-386fb8410459"),
+                UUID("d000591f-8705-4324-897a-075e3623f37b"),
+            ],
+        ),
+        ({"is_primary": True, "from_date": "1926-01-01", "to_date": "1927-01-01"}, []),
+        ({"is_primary": False, "from_date": "1926-01-01", "to_date": "1927-01-01"}, []),
+    ],
+)
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_query_is_primary_filter(
+    graphapi_post: GraphAPIPost, filter: dict[str, Any], expected: list[UUID]
+) -> None:
+    """Test the 'is_primary' filter."""
+
+    query = """
+        query EngagementRead($filter: EngagementFilter!) {
+            engagements(filter: $filter) {
+                objects {
+                    uuid
+                }
+            }
+        }
+    """
+    response = graphapi_post(query, variables={"filter": filter})
+    assert response.errors is None
+    assert response.data is not None
+    assert response.data["engagements"]["objects"] == [
+        {"uuid": str(uuid)} for uuid in expected
+    ]

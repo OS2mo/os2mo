@@ -60,7 +60,7 @@ from mora.db import OrganisationEnhedAttrEgenskaber
 from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationEnhedRelation
 from mora.db import OrganisationEnhedRelationKode
-from mora.graphapi.shim import execute_graphql
+from mora.graphapi.shim import execute_graphql  # type: ignore
 from mora.service.autocomplete.employees import search_employees
 from mora.service.autocomplete.orgunits import search_orgunits
 from ramodels.mo import EmployeeRead
@@ -492,15 +492,14 @@ async def engagement_resolver(
             }
         """
         result_uuids = [str(uuid) for uuid in result.keys()]
+
+        primary_filter: dict[str, Any] = {"uuids": result_uuids}
+        if filter.from_date:
+            primary_filter["from_date"] = filter.from_date.isoformat()
+        if filter.to_date:
+            primary_filter["to_date"] = filter.to_date.isoformat()
         primary_result = await execute_graphql(
-            primary_filter_query,
-            variable_values={
-                "filter": {
-                    "uuids": result_uuids,
-                    "from_date": filter.from_date,
-                    "to_date": filter.to_date,
-                }
-            },
+            primary_filter_query, variable_values={"filter": primary_filter}
         )
         assert primary_result.errors is None
         assert primary_result.data is not None
