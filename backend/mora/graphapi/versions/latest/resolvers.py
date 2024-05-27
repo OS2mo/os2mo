@@ -54,6 +54,7 @@ from .paged import LimitType
 from .resolver_map import resolver_map
 from .validity import OpenValidityModel
 from mora.audit import audit_log
+from mora.common import is_graphql_20_or_earlier
 from mora.db import HasValidity
 from mora.db import LivscyklusKode
 from mora.db import OrganisationEnhedAttrEgenskaber
@@ -467,14 +468,11 @@ async def engagement_resolver(
     )
     # TODO: Reimplemenent this when is_primary is a database native operation
     if filter.is_primary is not None:
-        # NOTE: The below if-statement should match the one in lora_connector_context
-        #       If you update one, make sure to update the other as well
         request = info.context.get("request")
         if request is None:
             raise ValueError("Unable to determine GraphQL version")
 
-        graphql_match = re.match(r"/graphql/v(\d+)", request.url.path)
-        if graphql_match is not None and int(graphql_match.group(1)) <= 20:
+        if is_graphql_20_or_earlier(request):
             raise NotImplementedError(
                 "`is_primary` filtering is only available in GraphQL 21 and later"
             )

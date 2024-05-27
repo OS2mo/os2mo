@@ -35,6 +35,11 @@ _LORA_CONNECTOR_MIDDLEWARE_KEY = "lora_connector"
 _CREATE_CONNECTOR_MIDDLEWARE_KEY = "create_connector"
 
 
+async def is_graphql_20_or_earlier(request: Request) -> bool:
+    graphql_match = re.match(r"/graphql/v(\d+)", request.url.path)
+    return graphql_match is not None and int(graphql_match.group(1)) <= 20
+
+
 async def lora_connector_context(request: Request) -> AsyncIterator[None]:
     @functools.lru_cache
     def cached_lora_connector(**kwargs):
@@ -44,10 +49,7 @@ async def lora_connector_context(request: Request) -> AsyncIterator[None]:
     def cached_create_connector(**kwargs):
         return _create_connector(**kwargs)
 
-    # NOTE: The below if-statement should match the one in engagement_resolver
-    #       If you update one, make sure to update the other as well
-    graphql_match = re.match(r"/graphql/v(\d+)", request.url.path)
-    if graphql_match is not None and int(graphql_match.group(1)) <= 20:
+    if is_graphql_20_or_earlier(request):
         lora_connector = lora.Connector
         create_connector = cached_create_connector
     else:
