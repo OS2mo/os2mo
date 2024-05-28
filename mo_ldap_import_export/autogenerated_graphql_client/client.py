@@ -17,6 +17,8 @@ from .class_create import ClassCreate
 from .class_create import ClassCreateClassCreate
 from .class_update import ClassUpdate
 from .class_update import ClassUpdateClassUpdate
+from .employee_refresh import EmployeeRefresh
+from .employee_refresh import EmployeeRefreshEmployeeRefresh
 from .engagement_org_unit_address_refresh import EngagementOrgUnitAddressRefresh
 from .engagement_org_unit_address_refresh import (
     EngagementOrgUnitAddressRefreshAddressRefresh,
@@ -124,6 +126,8 @@ from .read_ituser_by_employee_and_itsystem_uuid import (
 from .read_ituser_by_employee_and_itsystem_uuid import (
     ReadItuserByEmployeeAndItsystemUuidItusers,
 )
+from .read_ituser_employee_uuid import ReadItuserEmployeeUuid
+from .read_ituser_employee_uuid import ReadItuserEmployeeUuidItusers
 from .read_itusers import ReadItusers
 from .read_itusers import ReadItusersItusers
 from .read_org_unit_addresses import ReadOrgUnitAddresses
@@ -878,6 +882,23 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return PersonItuserRefresh.parse_obj(data).ituser_refresh
 
+    async def employee_refresh(
+        self, exchange: str, uuid: UUID
+    ) -> EmployeeRefreshEmployeeRefresh:
+        query = gql(
+            """
+            mutation employee_refresh($exchange: String!, $uuid: UUID!) {
+              employee_refresh(exchange: $exchange, filter: {uuids: [$uuid]}) {
+                objects
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"exchange": exchange, "uuid": uuid}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return EmployeeRefresh.parse_obj(data).employee_refresh
+
     async def read_addresses(
         self,
         uuids: List[UUID],
@@ -1309,3 +1330,24 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEngagementsIsPrimary.parse_obj(data).engagements
+
+    async def read_ituser_employee_uuid(
+        self, ituser_uuid: UUID
+    ) -> ReadItuserEmployeeUuidItusers:
+        query = gql(
+            """
+            query read_ituser_employee_uuid($ituser_uuid: UUID!) {
+              itusers(filter: {uuid: $ituser_uuid}) {
+                objects {
+                  current {
+                    employee_uuid
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"ituser_uuid": ituser_uuid}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadItuserEmployeeUuid.parse_obj(data).itusers
