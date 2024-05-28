@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
-import copy
 import datetime
 import time
 from functools import partial
@@ -619,59 +618,6 @@ async def test_listen_to_changes_in_employees_engagement(
     assert "Unable to load mo object" in str(exc.value)
 
 
-async def test_listen_to_changes_in_employees_skipped(
-    dataloader: AsyncMock,
-    sync_tool: SyncTool,
-    converter: MagicMock,
-) -> None:
-    converted_ldap_object = LdapObject(dn="CN=foo")
-    converter.to_ldap.return_value = converted_ldap_object
-
-    employee_uuid = uuid4()
-    address_uuid = uuid4()
-
-    dataloader.find_mo_employee_dn.return_value = {"CN=foo"}
-
-    mo_routing_key = "address"
-
-    # Simulate an uuid which should be skipped
-    # And an uuid which is too old, so it will be removed from the list
-    old_uuid = uuid4()
-    uuid_which_should_remain = uuid4()
-
-    uuids_to_ignore = IgnoreMe()
-
-    uuids_to_ignore.ignore_dict = {
-        # This uuid should be ignored (once)
-        str(address_uuid): [datetime.datetime.now(), datetime.datetime.now()],
-        # This uuid has been here for too long, and should be removed
-        str(old_uuid): [datetime.datetime(2020, 1, 1)],
-        # This uuid should remain in the list
-        str(uuid_which_should_remain): [datetime.datetime.now()],
-    }
-
-    sync_tool.uuids_to_ignore = uuids_to_ignore
-
-    with capture_logs() as cap_logs:
-        await sync_tool.listen_to_changes_in_employees(
-            employee_uuid,
-            address_uuid,
-            routing_key=mo_routing_key,
-            delete=False,
-            current_objects_only=True,
-        )
-
-        entries = [w for w in cap_logs if w["log_level"] == "info"]
-
-        assert "Removing entry from ignore-dict" in entries[2]["event"]
-        assert entries[2]["str_to_ignore"] == str(old_uuid)
-
-        assert len(uuids_to_ignore) == 2  # Note that the old_uuid is removed by clean()
-        assert len(uuids_to_ignore[old_uuid]) == 0
-        assert len(uuids_to_ignore[uuid_which_should_remain]) == 1
-        assert len(uuids_to_ignore[address_uuid]) == 1
-
-
 async def test_listen_to_changes_in_employees_no_dn(
     dataloader: AsyncMock,
     load_settings_overrides: dict[str, str],
@@ -1102,28 +1048,6 @@ async def test_format_converted_primary_engagement_objects(
         await sync_tool.format_converted_objects(converted_objects, json_key)
 
 
-@pytest.mark.usefixtures("fake_find_mo_employee_dn")
-async def test_import_single_object_from_LDAP_ignore_twice(
-    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
-) -> None:
-    """
-    When an uuid already is in the uuids_to_ignore dict, it should be added once more
-    so it is ignored twice.
-    """
-    uuid = uuid4()
-    mo_object_mock = MagicMock
-    mo_object_mock.uuid = uuid
-    converter.from_ldap.return_value = [mo_object_mock]
-
-    uuids_to_ignore = IgnoreMe()
-    uuids_to_ignore.ignore_dict = {str(uuid): [datetime.datetime.now()]}
-    sync_tool.uuids_to_ignore = uuids_to_ignore
-
-    assert len(sync_tool.uuids_to_ignore[uuid]) == 1
-    await sync_tool.import_single_user("CN=foo")
-    assert len(sync_tool.uuids_to_ignore[uuid]) == 2
-
-
 async def test_import_single_object_from_LDAP_ignore_dn(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
@@ -1138,28 +1062,6 @@ async def test_import_single_object_from_LDAP_ignore_dn(
         messages = [w for w in cap_logs if w["log_level"] == "info"]
         last_log_message = messages[-1]["event"]
         assert last_log_message == "IgnoreChanges Exception"
-
-
-@pytest.mark.usefixtures("fake_find_mo_employee_dn")
-async def test_import_single_object_from_LDAP_force(
-    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
-) -> None:
-    dn_to_ignore = "CN=foo"
-    ldap_object = LdapObject(dn=dn_to_ignore)
-    dataloader.load_ldap_object.return_value = ldap_object
-    sync_tool.dns_to_ignore.add(dn_to_ignore)
-    sync_tool.dns_to_ignore.add(dn_to_ignore)  # Ignore this DN twice
-
-    uuid = uuid4()
-    mo_object_mock = MagicMock
-    mo_object_mock.uuid = uuid
-    converter.from_ldap.return_value = [mo_object_mock]
-
-    assert len(sync_tool.uuids_to_ignore[uuid]) == 0
-    await sync_tool.import_single_user("CN=foo", force=False)
-    assert len(sync_tool.uuids_to_ignore[uuid]) == 0
-    await sync_tool.import_single_user("CN=foo", force=True)
-    assert len(sync_tool.uuids_to_ignore[uuid]) == 1
 
 
 @pytest.mark.usefixtures("fake_find_mo_employee_dn")
@@ -1312,16 +1214,10 @@ async def test_import_address_objects(
         "invalid phone number", request=MagicMock(), response=MagicMock()
     )
     with capture_logs() as cap_logs:
-        ignore_dict = copy.deepcopy(sync_tool.uuids_to_ignore.ignore_dict)
         await sync_tool.import_single_user("CN=foo")
 
         messages = [w for w in cap_logs if w["log_level"] == "warning"]
         assert "invalid phone number" in str(messages)
-
-        # Make sure that no uuids are added to the ignore dict, if the import fails
-        assert set(ignore_dict.keys()) == {
-            key for key, val in sync_tool.uuids_to_ignore.ignore_dict.items() if val
-        }
 
 
 @pytest.mark.usefixtures("fake_find_mo_employee_dn")
@@ -1706,7 +1602,6 @@ async def test_import_jobtitlefromadtomo_objects(
     ):
         await sync_tool.import_single_user(fake_dn)
         dataloader.create_or_edit_mo_objects.assert_called_once()
-        assert eng_uuid in sync_tool.uuids_to_ignore.ignore_dict
 
 
 async def test_extract_uuid() -> None:
