@@ -135,9 +135,10 @@ async def process_address(
 ) -> None:
     args, mo_object = await unpack_payload(context, object_uuid, mo_routing_key)
     service_type = mo_object["service_type"]
+    person_uuid = args["uuid"]
 
     if service_type == "employee":
-        await sync_tool.listen_to_changes_in_employees(**args)
+        await sync_tool.listen_to_changes_in_employees(person_uuid)
     elif service_type == "org_unit":
         await sync_tool.listen_to_changes_in_org_units(**args)
 
@@ -151,8 +152,9 @@ async def process_engagement(
     sync_tool: depends.SyncTool,
 ) -> None:
     args, _ = await unpack_payload(context, object_uuid, mo_routing_key)
+    person_uuid = args["uuid"]
 
-    await sync_tool.listen_to_changes_in_employees(**args)
+    await sync_tool.listen_to_changes_in_employees(person_uuid)
 
     # Udsende events på alle personer, der har et engagement på org-enheden vores er på
     # TODO: giver det her overhovedet mening? - Tjek samtlige salt konfigurationer
@@ -169,8 +171,9 @@ async def process_ituser(
     sync_tool: depends.SyncTool,
 ) -> None:
     args, _ = await unpack_payload(context, object_uuid, mo_routing_key)
+    person_uuid = args["uuid"]
 
-    await sync_tool.listen_to_changes_in_employees(**args)
+    await sync_tool.listen_to_changes_in_employees(person_uuid)
 
 
 @amqp_router.register("person")
@@ -182,8 +185,9 @@ async def process_person(
     sync_tool: depends.SyncTool,
 ) -> None:
     args, _ = await unpack_payload(context, object_uuid, mo_routing_key)
+    person_uuid = args["uuid"]
 
-    await sync_tool.listen_to_changes_in_employees(**args)
+    await sync_tool.listen_to_changes_in_employees(person_uuid)
 
 
 @amqp_router.register("org_unit")

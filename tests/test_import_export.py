@@ -239,16 +239,8 @@ async def test_listen_to_changes_in_employee_no_employee(
     dataloader.load_mo_employee.side_effect = NoObjectsReturnedException("BOOM")
 
     # Simulate a created employee
-    mo_routing_key: MORoutingKey = "person"
     with pytest.raises(RequeueMessage) as exc_info:
-        await sync_tool.listen_to_changes_in_employees(
-            # uuid and object uuid are always the same for person
-            uuid=employee_uuid,
-            object_uuid=employee_uuid,
-            routing_key=mo_routing_key,
-            delete=False,
-            current_objects_only=True,
-        )
+        await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert "Unable to load mo object" in str(exc_info.value)
 
 
@@ -257,6 +249,11 @@ async def test_listen_to_changes_in_employees_person(
     sync_tool: SyncTool,
     converter: MagicMock,
 ) -> None:
+    # Ignore all changes, but person changes
+    sync_tool.mo_address_to_ldap = AsyncMock()  # type: ignore
+    sync_tool.mo_ituser_to_ldap = AsyncMock()  # type: ignore
+    sync_tool.mo_engagement_to_ldap = AsyncMock()  # type: ignore
+
     converted_ldap_object = LdapObject(dn="CN=foo")
     converter.to_ldap.return_value = converted_ldap_object
 
@@ -265,15 +262,7 @@ async def test_listen_to_changes_in_employees_person(
     dataloader.find_mo_employee_dn.return_value = {"CN=foo"}
 
     # Simulate a created employee
-    mo_routing_key: MORoutingKey = "person"
-    await sync_tool.listen_to_changes_in_employees(
-        # uuid and object uuid are always the same for person
-        uuid=employee_uuid,
-        object_uuid=employee_uuid,
-        routing_key=mo_routing_key,
-        delete=False,
-        current_objects_only=True,
-    )
+    await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert dataloader.load_mo_employee.called
     assert converter.to_ldap.called
     assert dataloader.modify_ldap_object.called
@@ -289,6 +278,11 @@ async def test_listen_to_changes_in_employees_address(
     converter: MagicMock,
     graphql_mock: GraphQLMocker,
 ) -> None:
+    # Ignore all changes, but address changes
+    sync_tool.mo_person_to_ldap = AsyncMock()  # type: ignore
+    sync_tool.mo_ituser_to_ldap = AsyncMock()  # type: ignore
+    sync_tool.mo_engagement_to_ldap = AsyncMock()  # type: ignore
+
     converted_ldap_object = LdapObject(dn="CN=foo")
     converter.to_ldap.return_value = converted_ldap_object
 
@@ -326,14 +320,7 @@ async def test_listen_to_changes_in_employees_address(
         }
     }
 
-    mo_routing_key = "address"
-    await sync_tool.listen_to_changes_in_employees(
-        employee_uuid,
-        test_mo_address.uuid,
-        routing_key=mo_routing_key,
-        delete=False,
-        current_objects_only=True,
-    )
+    await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert route.called
     dataloader.modify_ldap_object.assert_called_with(
         converted_ldap_object, address_type_user_key, delete=False
@@ -371,25 +358,13 @@ async def test_listen_to_changes_in_employees_address(
         }
     }
     with capture_logs() as cap_logs:
-        await sync_tool.listen_to_changes_in_employees(
-            employee_uuid,
-            test_mo_address.uuid,
-            routing_key=mo_routing_key,
-            delete=False,
-            current_objects_only=True,
-        )
+        await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert "Multiple addresses of same type" in [x["event"] for x in cap_logs]
 
     # Test expected behavior when unable to read address details
     dataloader.load_mo_address.side_effect = NoObjectsReturnedException("BOOM")
     with pytest.raises(RequeueMessage) as exc:
-        await sync_tool.listen_to_changes_in_employees(
-            employee_uuid,
-            test_mo_address.uuid,
-            routing_key=mo_routing_key,
-            delete=False,
-            current_objects_only=True,
-        )
+        await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert "Unable to load mo object" in str(exc.value)
 
 
@@ -399,6 +374,11 @@ async def test_listen_to_changes_in_employees_ituser(
     converter: MagicMock,
     graphql_mock: GraphQLMocker,
 ) -> None:
+    # Ignore all changes, but ituser changes
+    sync_tool.mo_person_to_ldap = AsyncMock()  # type: ignore
+    sync_tool.mo_address_to_ldap = AsyncMock()  # type: ignore
+    sync_tool.mo_engagement_to_ldap = AsyncMock()  # type: ignore
+
     converted_ldap_object = LdapObject(dn="CN=foo")
     converter.to_ldap.return_value = converted_ldap_object
 
@@ -437,14 +417,7 @@ async def test_listen_to_changes_in_employees_ituser(
         }
     }
 
-    mo_routing_key = "ituser"
-    await sync_tool.listen_to_changes_in_employees(
-        employee_uuid,
-        ituser_uuid,
-        routing_key=mo_routing_key,
-        delete=False,
-        current_objects_only=True,
-    )
+    await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert route.called
     dataloader.modify_ldap_object.assert_called_with(
         converted_ldap_object, it_system_type_name, delete=False
@@ -482,25 +455,13 @@ async def test_listen_to_changes_in_employees_ituser(
         }
     }
     with capture_logs() as cap_logs:
-        await sync_tool.listen_to_changes_in_employees(
-            employee_uuid,
-            ituser_uuid,
-            routing_key=mo_routing_key,
-            delete=False,
-            current_objects_only=True,
-        )
+        await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert "Multiple itusers with the same itsystem" in [x["event"] for x in cap_logs]
 
     # Test expected behavior when unable to read address details
     dataloader.load_mo_it_user.side_effect = NoObjectsReturnedException("BOOM")
     with pytest.raises(RequeueMessage) as exc:
-        await sync_tool.listen_to_changes_in_employees(
-            employee_uuid,
-            ituser_uuid,
-            routing_key=mo_routing_key,
-            delete=False,
-            current_objects_only=True,
-        )
+        await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert "Unable to load mo object" in str(exc.value)
 
 
@@ -510,6 +471,11 @@ async def test_listen_to_changes_in_employees_engagement(
     converter: MagicMock,
     graphql_mock: GraphQLMocker,
 ) -> None:
+    # Ignore all changes, but engagement changes
+    sync_tool.mo_person_to_ldap = AsyncMock()  # type: ignore
+    sync_tool.mo_address_to_ldap = AsyncMock()  # type: ignore
+    sync_tool.mo_ituser_to_ldap = AsyncMock()  # type: ignore
+
     converted_ldap_object = LdapObject(dn="CN=foo")
     converter.to_ldap.return_value = converted_ldap_object
 
@@ -577,14 +543,7 @@ async def test_listen_to_changes_in_employees_engagement(
         }
     }
 
-    mo_routing_key = "engagement"
-    await sync_tool.listen_to_changes_in_employees(
-        employee_uuid,
-        engagement_uuid,
-        routing_key=mo_routing_key,
-        delete=False,
-        current_objects_only=True,
-    )
+    await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert route1.called
     assert route2.called
     dataloader.modify_ldap_object.assert_called_with(
@@ -594,13 +553,7 @@ async def test_listen_to_changes_in_employees_engagement(
     # Test expected behavior when unable to read any engagements
     old = route1.result
     route1.result = {"engagements": {"objects": []}}
-    result = await sync_tool.listen_to_changes_in_employees(
-        employee_uuid,
-        engagement_uuid,
-        routing_key=mo_routing_key,
-        delete=False,
-        current_objects_only=True,
-    )
+    result = await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert result is None
 
     route1.result = old
@@ -608,13 +561,7 @@ async def test_listen_to_changes_in_employees_engagement(
     # Test expected behavior when unable to read engagement details
     route2.result = {"engagements": {"objects": []}}
     with pytest.raises(RequeueMessage) as exc:
-        await sync_tool.listen_to_changes_in_employees(
-            employee_uuid,
-            engagement_uuid,
-            routing_key=mo_routing_key,
-            delete=False,
-            current_objects_only=True,
-        )
+        await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert "Unable to load mo object" in str(exc.value)
 
 
@@ -625,21 +572,13 @@ async def test_listen_to_changes_in_employees_no_dn(
     sync_tool: SyncTool,
     converter: MagicMock,
 ) -> None:
-    payload = MagicMock()
-    payload.uuid = uuid4()
-    mo_routing_key: MORoutingKey = "person"
+    employee_uuid = uuid4()
     dataloader.find_mo_employee_dn.return_value = set()
     dataloader.make_mo_employee_dn.side_effect = DNNotFound("Not found")
 
     with capture_logs() as cap_logs:
         with pytest.raises(RequeueMessage):
-            await sync_tool.listen_to_changes_in_employees(
-                payload.uuid,
-                payload.object_uuid,
-                routing_key=mo_routing_key,
-                delete=False,
-                current_objects_only=True,
-            )
+            await sync_tool.listen_to_changes_in_employees(employee_uuid)
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
         last_log_message = messages[-1]["event"]
@@ -1062,6 +1001,25 @@ async def test_import_single_object_from_LDAP_ignore_dn(
         messages = [w for w in cap_logs if w["log_level"] == "info"]
         last_log_message = messages[-1]["event"]
         assert last_log_message == "IgnoreChanges Exception"
+
+
+@pytest.mark.usefixtures("fake_find_mo_employee_dn")
+async def test_import_single_object_from_LDAP_force(
+    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
+) -> None:
+    dn_to_ignore = "CN=foo"
+    ldap_object = LdapObject(dn=dn_to_ignore)
+    dataloader.load_ldap_object.return_value = ldap_object
+    sync_tool.dns_to_ignore.add(dn_to_ignore)
+    sync_tool.dns_to_ignore.add(dn_to_ignore)  # Ignore this DN twice
+
+    uuid = uuid4()
+    mo_object_mock = MagicMock
+    mo_object_mock.uuid = uuid
+    converter.from_ldap.return_value = [mo_object_mock]
+
+    await sync_tool.import_single_user("CN=foo", force=False)
+    await sync_tool.import_single_user("CN=foo", force=True)
 
 
 @pytest.mark.usefixtures("fake_find_mo_employee_dn")
