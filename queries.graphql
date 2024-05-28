@@ -610,3 +610,18 @@ query read_filtered_itusers($filter: ITUserFilter!) {
     }
   }
 }
+
+query read_engagements_is_primary($filter: EngagementFilter!) {
+  engagements(filter: $filter) {
+    objects {
+      validities {
+        is_primary
+        uuid
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}

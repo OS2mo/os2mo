@@ -104,6 +104,8 @@ from .read_engagements_by_engagements_filter import ReadEngagementsByEngagements
 from .read_engagements_by_engagements_filter import (
     ReadEngagementsByEngagementsFilterEngagements,
 )
+from .read_engagements_is_primary import ReadEngagementsIsPrimary
+from .read_engagements_is_primary import ReadEngagementsIsPrimaryEngagements
 from .read_facet_classes import ReadFacetClasses
 from .read_facet_classes import ReadFacetClassesClasses
 from .read_facet_uuid import ReadFacetUuid
@@ -1281,3 +1283,29 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadFilteredItusers.parse_obj(data).itusers
+
+    async def read_engagements_is_primary(
+        self, filter: EngagementFilter
+    ) -> ReadEngagementsIsPrimaryEngagements:
+        query = gql(
+            """
+            query read_engagements_is_primary($filter: EngagementFilter!) {
+              engagements(filter: $filter) {
+                objects {
+                  validities {
+                    is_primary
+                    uuid
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadEngagementsIsPrimary.parse_obj(data).engagements
