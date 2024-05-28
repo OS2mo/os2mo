@@ -302,6 +302,8 @@ class SyncTool:
             dn: DN of the LDAP account to synchronize to.
             mo_object_dict: Template context for mapping templates.
         """
+        await self.perform_export_checks(uuid, uuid)
+
         # Convert to LDAP
         ldap_employee = await self.converter.to_ldap(mo_object_dict, "Employee", dn)
         ldap_employee = self.move_ldap_object(ldap_employee, dn)
@@ -633,8 +635,6 @@ class SyncTool:
         except IgnoreChanges:
             logger.info("Ignoring UUID", exc_info=True)
             return
-
-        await self.perform_export_checks(uuid, object_uuid)
 
         dns = await self.dataloader.find_mo_employee_dn(uuid)
         # If we found DNs, we want to synchronize to the best of them
