@@ -240,15 +240,14 @@ async def test_listen_to_changes_in_employees_person(
 
     # Simulate a created employee
     mo_routing_key: MORoutingKey = "person"
-    with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
-        await sync_tool.listen_to_changes_in_employees(
-            # uuid and object uuid are always the same for person
-            uuid=employee_uuid,
-            object_uuid=employee_uuid,
-            routing_key=mo_routing_key,
-            delete=False,
-            current_objects_only=True,
-        )
+    await sync_tool.listen_to_changes_in_employees(
+        # uuid and object uuid are always the same for person
+        uuid=employee_uuid,
+        object_uuid=employee_uuid,
+        routing_key=mo_routing_key,
+        delete=False,
+        current_objects_only=True,
+    )
     assert dataloader.load_mo_employee.called
     assert converter.to_ldap.called
     assert dataloader.modify_ldap_object.called
