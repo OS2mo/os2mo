@@ -188,6 +188,10 @@ async def test_graphql_client(
             "read_ituser_employee_uuid",
             {"ituser_uuid": uuid4()},
         ),
+        (
+            "read_engagement_employee_uuid",
+            {"engagement_uuid": uuid4()},
+        ),
     ],
 )
 async def test_client_read_endpoints(

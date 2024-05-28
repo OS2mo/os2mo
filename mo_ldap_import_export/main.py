@@ -148,21 +148,36 @@ async def process_address(
 
 @amqp_router.register("engagement")
 @reject_on_failure
-async def process_engagement(
-    context: Context,
+async def process_engagement_attachments(
     object_uuid: PayloadUUID,
-    mo_routing_key: MORoutingKey,
     sync_tool: depends.SyncTool,
 ) -> None:
-    args, _ = await unpack_payload(context, object_uuid, mo_routing_key)
-    person_uuid = args["uuid"]
-
-    await sync_tool.listen_to_changes_in_employees(person_uuid)
-
-    # Udsende events på alle personer, der har et engagement på org-enheden vores er på
-    # TODO: giver det her overhovedet mening? - Tjek samtlige salt konfigurationer
-    #       måske kan det slettes?
+    # TODO: Remove once org-unit addresses are synchronized as part of the employee sync
+    #       i.e. once the if-statement in process_address is gone
     await sync_tool.export_org_unit_addresses_on_engagement_change(object_uuid)
+
+
+@amqp_router.register("engagement")
+@reject_on_failure
+async def process_engagement(
+    object_uuid: PayloadUUID,
+    graphql_client: depends.GraphQLClient,
+    amqpsystem: depends.AMQPSystem,
+) -> None:
+    result = await graphql_client.read_engagement_employee_uuid(object_uuid)
+
+    if len(result.objects) != 1:
+        logger.warning("Unable to lookup engagement", uuid=object_uuid)
+        raise RejectMessage("Unable to lookup engagement")
+    obj = one(result.objects)
+
+    if obj.current is None:
+        logger.warning("Engagement not currently active", uuid=object_uuid)
+        raise RejectMessage("Engagement not currently active")
+
+    person_uuid = obj.current.employee_uuid
+    # TODO: Add support for refreshing persons with a certain engagement directly
+    await graphql_client.employee_refresh(amqpsystem.exchange_name, person_uuid)
 
 
 @amqp_router.register("ituser")

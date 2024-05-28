@@ -260,6 +260,12 @@ from .read_employees_with_engagement_to_org_unit import (
 from .read_employees_with_engagement_to_org_unit import (
     ReadEmployeesWithEngagementToOrgUnitEngagementsObjectsCurrent,
 )
+from .read_engagement_employee_uuid import ReadEngagementEmployeeUuid
+from .read_engagement_employee_uuid import ReadEngagementEmployeeUuidEngagements
+from .read_engagement_employee_uuid import ReadEngagementEmployeeUuidEngagementsObjects
+from .read_engagement_employee_uuid import (
+    ReadEngagementEmployeeUuidEngagementsObjectsCurrent,
+)
 from .read_engagement_uuid_by_ituser_user_key import ReadEngagementUuidByItuserUserKey
 from .read_engagement_uuid_by_ituser_user_key import (
     ReadEngagementUuidByItuserUserKeyItusers,
@@ -581,6 +587,10 @@ __all__ = [
     "ReadEmployeesWithEngagementToOrgUnitEngagements",
     "ReadEmployeesWithEngagementToOrgUnitEngagementsObjects",
     "ReadEmployeesWithEngagementToOrgUnitEngagementsObjectsCurrent",
+    "ReadEngagementEmployeeUuid",
+    "ReadEngagementEmployeeUuidEngagements",
+    "ReadEngagementEmployeeUuidEngagementsObjects",
+    "ReadEngagementEmployeeUuidEngagementsObjectsCurrent",
     "ReadEngagementUuidByItuserUserKey",
     "ReadEngagementUuidByItuserUserKeyItusers",
     "ReadEngagementUuidByItuserUserKeyItusersObjects",
