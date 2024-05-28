@@ -622,7 +622,7 @@ async def test_listen_to_changes(dataloader: AsyncMock, sync_tool: AsyncMock):
     sync_tool.listen_to_changes_in_employees.assert_awaited_once()
 
     sync_tool.reset_mock()
-    await process_person(context, payload, "person", sync_tool)
+    await process_person(payload, sync_tool)
     sync_tool.listen_to_changes_in_employees.assert_awaited_once()
 
     sync_tool.reset_mock()

@@ -179,15 +179,10 @@ async def process_ituser(
 @amqp_router.register("person")
 @reject_on_failure
 async def process_person(
-    context: Context,
     object_uuid: PayloadUUID,
-    mo_routing_key: MORoutingKey,
     sync_tool: depends.SyncTool,
 ) -> None:
-    args, _ = await unpack_payload(context, object_uuid, mo_routing_key)
-    person_uuid = args["uuid"]
-
-    await sync_tool.listen_to_changes_in_employees(person_uuid)
+    await sync_tool.listen_to_changes_in_employees(object_uuid)
 
 
 @amqp_router.register("org_unit")
