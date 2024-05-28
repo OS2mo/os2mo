@@ -373,13 +373,15 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     return fastramqpi
 
 
-def create_app(**kwargs: Any) -> FastAPI:
+def create_app(fastramqpi: FastRAMQPI | None = None, **kwargs: Any) -> FastAPI:
     """FastAPI application factory.
 
     Returns:
         FastAPI application.
     """
-    fastramqpi = create_fastramqpi(**kwargs)
+    if fastramqpi is None:
+        fastramqpi = create_fastramqpi(**kwargs)
+    assert fastramqpi is not None
 
     app = fastramqpi.get_app()
     app.include_router(fastapi_router)
