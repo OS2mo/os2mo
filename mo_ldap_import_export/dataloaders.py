@@ -1150,7 +1150,9 @@ class DataLoader:
         #       correctly?
         # TODO: Publish this message on the LDAP AMQP exchange
         await self.sync_tool.import_single_user(dn, force=True, manual_import=True)
-        await self.sync_tool.refresh_employee(employee.uuid)
+        await self.graphql_client.employee_refresh(
+            self.sync_tool.amqpsystem.exchange_name, [employee.uuid]
+        )
         return dn
 
     async def find_dn_by_engagement_uuid(
