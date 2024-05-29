@@ -415,6 +415,10 @@ def construct_router(user_context: UserContext) -> APIRouter:
         ldap_connection: depends.Connection,
         attribute: Literal[accepted_attributes],  # type: ignore
     ) -> Any:
+        # TODO: This is already available in the construct_router scope
+        #       Should we just access that, or is the core issue that it is cached?
+        #       I.e. Should we just accept any attribute str, not just the ones that
+        #       we find on program startup?
         attribute_types = get_attribute_types(ldap_connection)
         return attribute_types[attribute]
 
