@@ -664,6 +664,9 @@ async def test_listen_to_engagement_failure(
 
 
 async def test_listen_to_address_person(graphql_mock: GraphQLMocker) -> None:
+    amqpsystem = create_autospec(AMQPSystem)
+    amqpsystem.exchange_name = "wow"
+
     sync_tool = AsyncMock()
 
     graphql_client = GraphQLClient("http://example.com/graphql")
@@ -680,11 +683,17 @@ async def test_listen_to_address_person(graphql_mock: GraphQLMocker) -> None:
         }
     }
 
-    await process_address(address_uuid, graphql_client, sync_tool)
-    sync_tool.listen_to_changes_in_employees.assert_awaited_once_with(employee_uuid)
+    employee_refresh_route = graphql_mock.query("employee_refresh")
+    employee_refresh_route.result = {"employee_refresh": {"objects": [employee_uuid]}}
+
+    await process_address(address_uuid, graphql_client, amqpsystem, sync_tool)
+    assert employee_refresh_route.called
 
 
 async def test_listen_to_address_org_unit(graphql_mock: GraphQLMocker) -> None:
+    amqpsystem = create_autospec(AMQPSystem)
+    amqpsystem.exchange_name = "wow"
+
     sync_tool = AsyncMock()
 
     graphql_client = GraphQLClient("http://example.com/graphql")
@@ -701,7 +710,7 @@ async def test_listen_to_address_org_unit(graphql_mock: GraphQLMocker) -> None:
         }
     }
 
-    await process_address(address_uuid, graphql_client, sync_tool)
+    await process_address(address_uuid, graphql_client, amqpsystem, sync_tool)
     sync_tool.listen_to_changes_in_org_units.assert_awaited_once_with(org_unit_uuid)
 
 
@@ -720,6 +729,9 @@ async def test_listen_to_address_failure(
     objects: list[dict[str, Any]],
     error: str,
 ) -> None:
+    amqpsystem = create_autospec(AMQPSystem)
+    amqpsystem.exchange_name = "wow"
+
     sync_tool = AsyncMock()
 
     graphql_client = GraphQLClient("http://example.com/graphql")
@@ -729,7 +741,7 @@ async def test_listen_to_address_failure(
 
     address_uuid = uuid4()
     with pytest.raises(RejectMessage) as exc_info:
-        await process_address(address_uuid, graphql_client, sync_tool)
+        await process_address(address_uuid, graphql_client, amqpsystem, sync_tool)
     assert error in str(exc_info.value)
 
 

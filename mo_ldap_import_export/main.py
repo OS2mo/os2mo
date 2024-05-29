@@ -89,6 +89,7 @@ def reject_on_failure(func):
 async def process_address(
     object_uuid: PayloadUUID,
     graphql_client: depends.GraphQLClient,
+    amqpsystem: depends.AMQPSystem,
     sync_tool: depends.SyncTool,
 ) -> None:
     result = await graphql_client.read_address_relation_uuids(object_uuid)
@@ -106,7 +107,8 @@ async def process_address(
     org_unit_uuid = obj.current.org_unit_uuid
 
     if person_uuid is not None:
-        await sync_tool.listen_to_changes_in_employees(person_uuid)
+        # TODO: Add support for refreshing persons with a certain address directly
+        await graphql_client.employee_refresh(amqpsystem.exchange_name, [person_uuid])
     if org_unit_uuid is not None:
         await sync_tool.listen_to_changes_in_org_units(org_unit_uuid)
 
