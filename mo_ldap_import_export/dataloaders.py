@@ -443,39 +443,6 @@ class DataLoader:
                 )
                 self.delete_ldap(dn, attribute, value_to_delete)
 
-    async def load_ldap_objects(
-        self,
-        json_key: str,
-        additional_attributes: list[str] = [],
-        search_base: str | None = None,
-    ) -> list[LdapObject]:
-        """
-        Returns list with desired ldap objects
-
-        Accepted json_keys are:
-            - 'Employee'
-            - a MO address type name
-        """
-        converter = self.user_context["converter"]
-        user_class = converter.find_ldap_object_class(json_key)
-        attributes = converter.get_ldap_attributes(json_key) + additional_attributes
-
-        searchParameters = {
-            "search_filter": f"(objectclass={user_class})",
-            "attributes": list(set(attributes)),
-        }
-
-        responses = paged_search(
-            self.context,
-            searchParameters,
-            search_base=search_base,
-        )
-
-        output: list[LdapObject]
-        output = [make_ldap_object(r, self.context, nest=False) for r in responses]
-
-        return output
-
     def load_ldap_OUs(self, search_base: str | None = None) -> dict:
         """
         Returns a dictionary where the keys are OU strings and the items are dicts

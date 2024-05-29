@@ -81,6 +81,7 @@ from mo_ldap_import_export.exceptions import NotEnabledException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
 from mo_ldap_import_export.import_export import IgnoreMe
 from mo_ldap_import_export.routes import load_ldap_attribute_values
+from mo_ldap_import_export.routes import load_ldap_objects
 from mo_ldap_import_export.types import CPRNumber
 from mo_ldap_import_export.types import OrgUnitUUID
 from mo_ldap_import_export.utils import extract_ou_from_dn
@@ -285,7 +286,7 @@ async def test_load_ldap_objects(
     expected_result = [LdapObject(dn=dn, **ldap_attributes)] * 2
     ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)] * 2
 
-    output = await dataloader.load_ldap_objects("Employee")
+    output = await load_ldap_objects(dataloader, "Employee")
 
     assert output == expected_result
 

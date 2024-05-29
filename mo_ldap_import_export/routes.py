@@ -25,6 +25,7 @@ from .dependencies import valid_cpr
 from .exceptions import CPRFieldNotFound
 from .exceptions import ObjectGUIDITSystemNotFound
 from .ldap import get_attribute_types
+from .ldap import make_ldap_object
 from .ldap import paged_search
 from .ldap_classes import LdapObject
 from .processors import _hide_cpr as hide_cpr
@@ -58,6 +59,40 @@ def load_ldap_attribute_values(context, attribute, search_base=None) -> list[str
     return sorted({str(r["attributes"][attribute]) for r in responses})
 
 
+async def load_ldap_objects(
+    dataloader,
+    json_key: str,
+    additional_attributes: list[str] = [],
+    search_base: str | None = None,
+) -> list[LdapObject]:
+    """
+    Returns list with desired ldap objects
+
+    Accepted json_keys are:
+        - 'Employee'
+        - a MO address type name
+    """
+    converter = dataloader.user_context["converter"]
+    user_class = converter.find_ldap_object_class(json_key)
+    attributes = converter.get_ldap_attributes(json_key) + additional_attributes
+
+    searchParameters = {
+        "search_filter": f"(objectclass={user_class})",
+        "attributes": list(set(attributes)),
+    }
+
+    responses = paged_search(
+        dataloader.context,
+        searchParameters,
+        search_base=search_base,
+    )
+
+    output: list[LdapObject]
+    output = [make_ldap_object(r, dataloader.context, nest=False) for r in responses]
+
+    return output
+
+
 def construct_router(user_context: UserContext) -> APIRouter:
     router = APIRouter()
 
@@ -89,7 +124,8 @@ def construct_router(user_context: UserContext) -> APIRouter:
         if cpr_indexed_entries_only and not cpr_field:
             raise CPRFieldNotFound("cpr_field is not configured")
 
-        all_ldap_objects = await dataloader.load_ldap_objects(
+        all_ldap_objects = await load_ldap_objects(
+            dataloader,
             "Employee",
             search_base=search_base,
         )
@@ -134,7 +170,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
         converter: depends.LdapConverter,
         json_key: Literal[accepted_json_keys],  # type: ignore
     ) -> Any:
-        result = await dataloader.load_ldap_objects(json_key)
+        result = await load_ldap_objects(dataloader, json_key)
         converted_results = []
         for r in result:
             try:
@@ -194,8 +230,8 @@ def construct_router(user_context: UserContext) -> APIRouter:
         json_key: Literal[accepted_json_keys],  # type: ignore
         entries_to_return: int = Query(ge=1),
     ) -> Any:
-        result = await dataloader.load_ldap_objects(
-            json_key, [settings.ldap_unique_id_field]
+        result = await load_ldap_objects(
+            dataloader, json_key, [settings.ldap_unique_id_field]
         )
         return encode_result(result[-entries_to_return:])
 
@@ -281,7 +317,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
         if not cpr_field:
             raise CPRFieldNotFound("cpr_field is not configured")
 
-        result = await dataloader.load_ldap_objects("Employee")
+        result = await load_ldap_objects(dataloader, "Employee")
 
         formatted_result = {}
         for entry in result:
