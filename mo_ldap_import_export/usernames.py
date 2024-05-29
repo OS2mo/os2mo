@@ -58,8 +58,6 @@ class UserNameGeneratorBase(ABC):
             self.context,
             searchParameters,
             search_base,
-            # We want *all* accounts, as we may otherwise conflict with filtered ones
-            run_discriminator=False,
         )
         for attribute in attributes:
             output[attribute] = [

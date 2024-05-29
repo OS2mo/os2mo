@@ -443,7 +443,7 @@ def paged_search(
     searchParameters: dict,
     search_base: str | None = None,
     mute: bool = False,
-    run_discriminator: bool = True,
+    run_discriminator: bool = False,
 ) -> list:
     """
     Execute a search on the LDAP server.

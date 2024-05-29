@@ -458,8 +458,6 @@ class DataLoader:
             searchParameters,
             search_base=search_base,
             mute=True,
-            # Our discriminator does not apply to org-unit
-            run_discriminator=False,
         )
 
         dns = [r["dn"] for r in responses]
@@ -477,9 +475,6 @@ class DataLoader:
                 searchParameters,
                 search_base=dn,
                 mute=True,
-                # We should not delete LDAP org-units just because we discriminate the
-                # users contained within that org-unit, it still has users!
-                run_discriminator=False,
             )
             ou = extract_ou_from_dn(dn)
             if len(responses) == 0:
