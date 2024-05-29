@@ -751,12 +751,16 @@ class LdapConverter:
         """
         # TODO: This invariant is not upheld when the cache is invalidated
         #       Potentially this will break all the org-unit-name helper functions
+        org_unit_names = {info["name"] for info in self.org_unit_info.values()}
+
         separator = self.org_unit_path_string_separator
-        for org_unit_name in [info["name"] for info in self.org_unit_info.values()]:
-            if separator in org_unit_name:
-                raise InvalidNameException(
-                    f"Found {separator} in '{org_unit_name}'. This is not allowed."
-                )
+        org_unit_names_with_seperator = {
+            name for name in org_unit_names if separator in name
+        }
+        if org_unit_names_with_seperator:
+            raise InvalidNameException(
+                f"Found {separator} in '{org_unit_names_with_seperator}'. This is not allowed."
+            )
 
     def check_info_dicts(self):
         logger.info("Checking info dicts")
