@@ -111,10 +111,7 @@ def load_ldap_populated_overview(dataloader, ldap_classes=None) -> dict:
             "attributes": ["*"],
         }
 
-        responses = paged_search(
-            dataloader.context,
-            searchParameters,
-        )
+        responses = paged_search(dataloader.context, searchParameters)
         responses = [
             r
             for r in responses
@@ -339,10 +336,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
 
         responses = [
             r
-            for r in paged_search(
-                context,
-                searchParameters,
-            )
+            for r in paged_search(context, searchParameters)
             if r["attributes"][cpr_field]
         ]
 

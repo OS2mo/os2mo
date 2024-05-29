@@ -54,11 +54,7 @@ class UserNameGeneratorBase(ABC):
         }
         search_base = self.settings.ldap_search_base
         output = {}
-        search_result = paged_search(
-            self.context,
-            searchParameters,
-            search_base,
-        )
+        search_result = paged_search(self.context, searchParameters, search_base)
         for attribute in attributes:
             output[attribute] = [
                 entry["attributes"][attribute].lower()

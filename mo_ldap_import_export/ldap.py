@@ -376,12 +376,10 @@ def ldapresponse2entries(ldap_response: list[dict[str, Any]]) -> list[dict[str, 
 
 
 def _paged_search(
-    settings: Settings,
     ldap_connection: Connection,
     searchParameters: dict,
     search_base: str,
     mute: bool,
-    run_discriminator: bool,
 ) -> list:
     # TODO: Eliminate mute argument? - Should be logger configuration?
     # TODO: Find max. paged_size number from LDAP rather than hard-code it?
@@ -418,9 +416,6 @@ def _paged_search(
         # TODO: Handle this error more gracefully
         assert ldap_connection.response is not None
         entries = ldapresponse2entries(ldap_connection.response)
-        # TODO: Do we actually wanna apply discriminator here?
-        if run_discriminator:
-            entries = apply_discriminator(entries, settings)
         responses.extend(entries)
 
         try:
@@ -443,7 +438,6 @@ def paged_search(
     searchParameters: dict,
     search_base: str | None = None,
     mute: bool = False,
-    run_discriminator: bool = False,
 ) -> list:
     """
     Execute a search on the LDAP server.
@@ -473,14 +467,7 @@ def paged_search(
 
     if search_base:
         # If the search base is explicitly defined: Don't try anything fancy.
-        results = _paged_search(
-            settings,
-            ldap_connection,
-            searchParameters,
-            search_base,
-            mute,
-            run_discriminator=run_discriminator,
-        )
+        results = _paged_search(ldap_connection, searchParameters, search_base, mute)
         return results
 
     # Otherwise, loop over all OUs to search in
@@ -491,14 +478,7 @@ def paged_search(
     results = []
     for search_base in search_bases:
         results.extend(
-            _paged_search(
-                settings,
-                ldap_connection,
-                searchParameters.copy(),
-                search_base,
-                mute,
-                run_discriminator=run_discriminator,
-            )
+            _paged_search(ldap_connection, searchParameters.copy(), search_base, mute)
         )
 
     return results
