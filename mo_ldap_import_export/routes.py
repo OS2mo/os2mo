@@ -410,11 +410,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
     async def load_structure_from_LDAP(
         dataloader: depends.DataLoader, search_base: str | None = None
     ) -> Any:
-        return dataloader.load_ldap_OUs(
-            search_base=search_base,
-            # The output is only used for humans, we can deactive discriminator
-            run_discriminator=False,
-        )
+        return dataloader.load_ldap_OUs(search_base=search_base)
 
     # Get populated LDAP overview
     @router.get("/Inspect/overview/populated", status_code=202, tags=["LDAP"])

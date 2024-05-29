@@ -443,9 +443,7 @@ class DataLoader:
                 )
                 self.delete_ldap(dn, attribute, value_to_delete)
 
-    def load_ldap_OUs(
-        self, search_base: str | None = None, run_discriminator: bool = True
-    ) -> dict:
+    def load_ldap_OUs(self, search_base: str | None = None) -> dict:
         """
         Returns a dictionary where the keys are OU strings and the items are dicts
         which contain information about the OU
@@ -479,7 +477,9 @@ class DataLoader:
                 searchParameters,
                 search_base=dn,
                 mute=True,
-                run_discriminator=run_discriminator,
+                # We should not delete LDAP org-units just because we discriminate the
+                # users contained within that org-unit, it still has users!
+                run_discriminator=False,
             )
             ou = extract_ou_from_dn(dn)
             if len(responses) == 0:
