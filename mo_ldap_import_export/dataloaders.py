@@ -460,7 +460,8 @@ class DataLoader:
             searchParameters,
             search_base=search_base,
             mute=True,
-            run_discriminator=run_discriminator,
+            # Our discriminator does not apply to org-unit
+            run_discriminator=False,
         )
 
         dns = [r["dn"] for r in responses]
