@@ -8,11 +8,7 @@ from enum import auto
 from enum import Enum
 from functools import partialmethod
 from functools import wraps
-from itertools import count
 from typing import Any
-from typing import AsyncIterator
-from typing import Awaitable
-from typing import Callable
 from typing import cast
 from typing import Literal
 from uuid import UUID
@@ -86,20 +82,6 @@ class Verb(Enum):
     CREATE = auto()
     EDIT = auto()
     TERMINATE = auto()
-
-
-async def paged_query(
-    query_func: Callable[[Any], Awaitable[Any]],
-) -> AsyncIterator[Any]:
-    cursor = None
-    for page_counter in count():
-        logger.info("Loading next page", page=page_counter)
-        result = await query_func(cursor)
-        for i in result.objects:
-            yield i
-        cursor = result.page_info.next_cursor
-        if cursor is None:
-            return
 
 
 class DataLoader:
