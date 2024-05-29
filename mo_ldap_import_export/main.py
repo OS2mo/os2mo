@@ -12,10 +12,8 @@ from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import FastAPI
 from fastramqpi.main import FastRAMQPI
-from fastramqpi.ramqp.depends import Context
 from fastramqpi.ramqp.depends import rate_limit
 from fastramqpi.ramqp.mo import MORouter
-from fastramqpi.ramqp.mo import MORoutingKey
 from fastramqpi.ramqp.mo import PayloadUUID
 from fastramqpi.ramqp.utils import RejectMessage
 from fastramqpi.ramqp.utils import RequeueMessage
@@ -47,8 +45,6 @@ from .os2mo_init import InitEngine
 from .routes import construct_router
 from .types import OrgUnitUUID
 from .usernames import get_username_generator_class
-from .utils import get_delete_flag
-from .utils import get_object_type_from_routing_key
 
 logger = structlog.stdlib.get_logger()
 
@@ -88,62 +84,31 @@ def reject_on_failure(func):
     return modified_func
 
 
-async def unpack_payload(
-    context: Context, object_uuid: PayloadUUID, mo_routing_key: MORoutingKey
-) -> tuple[dict[Any, Any], Any]:
-    """
-    Takes the payload of an AMQP message, and returns a set of parameters to be used
-    by export functions in `import_export.py`. Also return the mo object as a dict
-    """
-    logger.info(
-        "Unpacking payload",
-        mo_routing_key=mo_routing_key,
-        object_uuid=str(object_uuid),
-    )
-
-    dataloader: DataLoader = context["user_context"]["dataloader"]
-
-    object_type = get_object_type_from_routing_key(mo_routing_key)
-
-    mo_object = await dataloader.load_mo_object(
-        str(object_uuid),
-        object_type,
-        add_validity=True,
-        current_objects_only=False,
-    )
-    if mo_object is None:
-        raise RejectMessage("Unable to load mo object")
-
-    delete = get_delete_flag(mo_object)
-    current_objects_only = False if delete else True
-
-    args = dict(
-        uuid=mo_object["parent_uuid"],
-        object_uuid=object_uuid,
-        routing_key=mo_routing_key,
-        delete=delete,
-        current_objects_only=current_objects_only,
-    )
-
-    return args, mo_object
-
-
 @amqp_router.register("address")
 @reject_on_failure
 async def process_address(
-    context: Context,
     object_uuid: PayloadUUID,
-    mo_routing_key: MORoutingKey,
+    graphql_client: depends.GraphQLClient,
     sync_tool: depends.SyncTool,
 ) -> None:
-    args, mo_object = await unpack_payload(context, object_uuid, mo_routing_key)
-    service_type = mo_object["service_type"]
-    person_uuid = args["uuid"]
+    result = await graphql_client.read_address_relation_uuids(object_uuid)
 
-    if service_type == "employee":
+    if len(result.objects) != 1:
+        logger.warning("Unable to lookup address", uuid=object_uuid)
+        raise RejectMessage("Unable to lookup address")
+    obj = one(result.objects)
+
+    if obj.current is None:
+        logger.warning("Address not currently active", uuid=object_uuid)
+        raise RejectMessage("Address not currently active")
+
+    person_uuid = obj.current.employee_uuid
+    org_unit_uuid = obj.current.org_unit_uuid
+
+    if person_uuid is not None:
         await sync_tool.listen_to_changes_in_employees(person_uuid)
-    elif service_type == "org_unit":
-        await sync_tool.listen_to_changes_in_org_units(**args)
+    if org_unit_uuid is not None:
+        await sync_tool.listen_to_changes_in_org_units(org_unit_uuid)
 
 
 @amqp_router.register("engagement")

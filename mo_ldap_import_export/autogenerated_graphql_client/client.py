@@ -45,6 +45,8 @@ from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefresh
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefreshEngagementRefresh
+from .read_address_relation_uuids import ReadAddressRelationUuids
+from .read_address_relation_uuids import ReadAddressRelationUuidsAddresses
 from .read_addresses import ReadAddresses
 from .read_addresses import ReadAddressesAddresses
 from .read_all_address_uuids import ReadAllAddressUuids
@@ -1279,3 +1281,25 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEngagementEmployeeUuid.parse_obj(data).engagements
+
+    async def read_address_relation_uuids(
+        self, address_uuid: UUID
+    ) -> ReadAddressRelationUuidsAddresses:
+        query = gql(
+            """
+            query read_address_relation_uuids($address_uuid: UUID!) {
+              addresses(filter: {uuids: [$address_uuid]}) {
+                objects {
+                  current {
+                    employee_uuid
+                    org_unit_uuid
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"address_uuid": address_uuid}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadAddressRelationUuids.parse_obj(data).addresses

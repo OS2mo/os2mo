@@ -612,3 +612,16 @@ query read_engagement_employee_uuid($engagement_uuid: UUID!) {
     }
   }
 }
+
+query read_address_relation_uuids($address_uuid: UUID!) {
+  addresses(
+    filter: {uuids: [$address_uuid]}
+  ) {
+    objects {
+      current {
+        employee_uuid
+        org_unit_uuid
+      }
+    }
+  }
+}

@@ -145,6 +145,10 @@ from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefresh
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefreshEngagementRefresh
+from .read_address_relation_uuids import ReadAddressRelationUuids
+from .read_address_relation_uuids import ReadAddressRelationUuidsAddresses
+from .read_address_relation_uuids import ReadAddressRelationUuidsAddressesObjects
+from .read_address_relation_uuids import ReadAddressRelationUuidsAddressesObjectsCurrent
 from .read_addresses import ReadAddresses
 from .read_addresses import ReadAddressesAddresses
 from .read_addresses import ReadAddressesAddressesObjects
@@ -492,6 +496,10 @@ __all__ = [
     "ParentsBoundOrganisationUnitFilter",
     "RAOpenValidityInput",
     "RAValidityInput",
+    "ReadAddressRelationUuids",
+    "ReadAddressRelationUuidsAddresses",
+    "ReadAddressRelationUuidsAddressesObjects",
+    "ReadAddressRelationUuidsAddressesObjectsCurrent",
     "ReadAddresses",
     "ReadAddressesAddresses",
     "ReadAddressesAddressesObjects",
