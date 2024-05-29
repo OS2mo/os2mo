@@ -149,10 +149,6 @@ async def test_graphql_client(
             {"facet_user_keys": ["test"]},
         ),
         (
-            "read_all_itusers",
-            {"filter": ITUserFilter(user_keys=["test"])},
-        ),
-        (
             "read_all_employee_uuids",
             {"filter": EmployeeFilter(user_keys=["test"])},
         ),

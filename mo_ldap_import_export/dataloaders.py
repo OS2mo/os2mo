@@ -1534,26 +1534,6 @@ class DataLoader:
             if entry.validities
         ]
 
-    async def load_all_it_users(self, it_system_uuid: UUID) -> list[dict]:
-        """
-        Loads all it-users in the database. Past, current and future.
-        """
-        filter = parse_obj_as(
-            ITUserFilter,
-            {
-                "itsystem": {"uuids": [it_system_uuid]},
-                "from_date": None,
-                "to_date": None,
-            },
-        )
-        read_all_itusers = partial(self.graphql_client.read_all_itusers, filter)
-        return [
-            jsonable_encoder(validity)
-            async for entry in paged_query(read_all_itusers)
-            for validity in entry.validities
-            if entry.validities
-        ]
-
     async def load_mo_employee_it_users(
         self,
         employee_uuid: UUID,
