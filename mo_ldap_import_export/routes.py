@@ -55,7 +55,8 @@ def load_ldap_attribute_values(context, attribute, search_base=None) -> list[str
         context,
         searchParameters,
         search_base=search_base,
-        run_discriminator=True,
+        # The output is only used for humans, we can deactive discriminator
+        run_discriminator=False,
     )
     return sorted({str(r["attributes"][attribute]) for r in responses})
 
@@ -86,7 +87,8 @@ async def load_ldap_objects(
         dataloader.context,
         searchParameters,
         search_base=search_base,
-        run_discriminator=True,
+        # The output is only used for humans, we can deactive discriminator
+        run_discriminator=False,
     )
 
     output: list[LdapObject]
@@ -114,7 +116,10 @@ def load_ldap_populated_overview(dataloader, ldap_classes=None) -> dict:
         }
 
         responses = paged_search(
-            dataloader.context, searchParameters, run_discriminator=True
+            dataloader.context,
+            searchParameters,
+            # The output is only used for humans, we can deactive discriminator
+            run_discriminator=False,
         )
         responses = [
             r
@@ -340,7 +345,12 @@ def construct_router(user_context: UserContext) -> APIRouter:
 
         responses = [
             r
-            for r in paged_search(context, searchParameters, run_discriminator=True)
+            for r in paged_search(
+                context,
+                searchParameters,
+                # The output is only used for humans, we can deactive discriminator
+                run_discriminator=False,
+            )
             if r["attributes"][cpr_field]
         ]
 
@@ -400,7 +410,11 @@ def construct_router(user_context: UserContext) -> APIRouter:
     async def load_structure_from_LDAP(
         dataloader: depends.DataLoader, search_base: str | None = None
     ) -> Any:
-        return dataloader.load_ldap_OUs(search_base=search_base)
+        return dataloader.load_ldap_OUs(
+            search_base=search_base,
+            # The output is only used for humans, we can deactive discriminator
+            run_discriminator=False,
+        )
 
     # Get populated LDAP overview
     @router.get("/Inspect/overview/populated", status_code=202, tags=["LDAP"])
