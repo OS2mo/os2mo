@@ -774,6 +774,7 @@ async def test_listen_to_changes_in_employees(
 
     # Ignore all changes, but person changes
     sync_tool.mo_address_to_ldap = AsyncMock()  # type: ignore
+    sync_tool.mo_org_unit_address_to_ldap = AsyncMock()  # type: ignore
     sync_tool.mo_ituser_to_ldap = AsyncMock()  # type: ignore
     sync_tool.mo_engagement_to_ldap = AsyncMock()  # type: ignore
 

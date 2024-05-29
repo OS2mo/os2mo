@@ -12,7 +12,6 @@ from uuid import uuid4
 
 import pytest
 from fastramqpi.context import Context
-from fastramqpi.ramqp.mo import MORoutingKey
 from fastramqpi.ramqp.utils import RequeueMessage
 from httpx import HTTPStatusError
 from more_itertools import first
@@ -30,7 +29,6 @@ from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.exceptions import DNNotFound
 from mo_ldap_import_export.exceptions import IgnoreChanges
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
-from mo_ldap_import_export.exceptions import NotSupportedException
 from mo_ldap_import_export.import_export import IgnoreMe
 from mo_ldap_import_export.import_export import SyncTool
 from mo_ldap_import_export.ldap_classes import LdapObject
@@ -92,137 +90,33 @@ async def test_listen_to_changes_in_org_units(
 
 
 async def test_listen_to_change_in_org_unit_address(
-    dataloader: AsyncMock,
-    load_settings_overrides: dict[str, str],
-    converter: MagicMock,
-    sync_tool: SyncTool,
-):
-    mo_routing_key: MORoutingKey = "address"
+    graphql_mock: GraphQLMocker, sync_tool: SyncTool
+) -> None:
+    graphql_client = GraphQLClient("http://example.com/graphql")
+    sync_tool.dataloader.graphql_client = graphql_client  # type: ignore
 
-    address = Address.from_simplified_fields("foo", uuid4(), "2021-01-01")
-    employee1 = Employee(cpr_no="0101011234")
-    employee2 = Employee(cpr_no="0101011235")
+    org_unit_uuid = uuid4()
+    employee_uuid = uuid4()
 
-    load_mo_address = AsyncMock()
-    load_mo_employees_in_org_unit = AsyncMock()
-    load_mo_org_unit_addresses = AsyncMock()
-    modify_ldap_object = AsyncMock()
-    modify_ldap_object.return_value = [{"description": "success"}]
-
-    load_mo_address.return_value = address
-
-    # Note: The same employee is linked to this unit twice;
-    # The duplicate employee should not be modified twice
-    load_mo_employees_in_org_unit.return_value = [employee1, employee1, employee2]
-    load_mo_org_unit_addresses.return_value = [address]
-
-    dataloader.modify_ldap_object = modify_ldap_object
-    dataloader.load_mo_address = load_mo_address
-    dataloader.load_mo_employees_in_org_unit = load_mo_employees_in_org_unit
-    dataloader.load_mo_org_unit_addresses = load_mo_org_unit_addresses
-
-    converter.find_ldap_object_class.return_value = "user"
-
-    payload = MagicMock()
-    payload.uuid = uuid4()
-
-    # Simulate another employee which is being processed at the exact same time.
-    async def employee_in_progress():
-        await asyncio.sleep(1)
-
-    with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
-        with capture_logs() as cap_logs:
-            await asyncio.gather(
-                employee_in_progress(),
-                sync_tool.listen_to_changes_in_org_units(
-                    payload.uuid,
-                    payload.object_uuid,
-                    routing_key=mo_routing_key,
-                    delete=False,
-                    current_objects_only=True,
-                ),
-            )
-            messages = [w for w in cap_logs if w["log_level"] == "info"]
-
-            # Validate that listen_to_changes_in_org_units had to wait for
-            # employee_in_progress to finish
-            assert "Generating UUID" in str(messages)
-
-    # Assert that an address was uploaded to two ldap objects
-    # (even though load_mo_employees_in_org_unit returned three employee objects)
-    assert modify_ldap_object.await_count == 2
-
-    dataloader.find_or_make_mo_employee_dn.side_effect = DNNotFound("DN not found")
-
-    with capture_logs() as cap_logs:
-        await sync_tool.listen_to_changes_in_org_units(
-            payload.uuid,
-            payload.object_uuid,
-            routing_key=mo_routing_key,
-            delete=False,
-            current_objects_only=True,
-        )
-
-        messages = [w for w in cap_logs if w["log_level"] == "info"]
-        last_log_message = messages[-1]["event"]
-
-        assert last_log_message == "DNNotFound Exception"
-
-    dataloader.find_or_make_mo_employee_dn.side_effect = IgnoreChanges("Ignore this")
-
-    with capture_logs() as cap_logs:
-        await sync_tool.listen_to_changes_in_org_units(
-            payload.uuid,
-            payload.object_uuid,
-            routing_key=mo_routing_key,
-            delete=False,
-            current_objects_only=True,
-        )
-
-        messages = [w for w in cap_logs if w["log_level"] == "info"]
-        last_log_message = messages[-1]["event"]
-        assert last_log_message == "IgnoreChanges Exception"
-
-
-async def test_listen_to_change_in_org_unit_address_not_supported(
-    dataloader: AsyncMock,
-    load_settings_overrides: dict[str, str],
-    converter: MagicMock,
-    sync_tool: SyncTool,
-):
-    """
-    Mapping an organization unit address to non-employee objects is not supported.
-    """
-    mo_routing_key: MORoutingKey = "address"
-    payload = MagicMock()
-    payload.uuid = uuid4()
-
-    address = Address.from_simplified_fields("foo", uuid4(), "2021-01-01")
-
-    def find_ldap_object_class(json_key):
-        d = {"Employee": "user", "LocationUnit": "address"}
-        return d[json_key]
-
-    converter.find_ldap_object_class.side_effect = find_ldap_object_class
-
-    load_mo_address = AsyncMock()
-    load_mo_address.return_value = address
-    dataloader.load_mo_address = load_mo_address
-
-    converter.org_unit_address_type_info = {
-        str(address.address_type.uuid): {"user_key": "LocationUnit"}
+    employee_route = graphql_mock.query("read_employees_with_engagement_to_org_unit")
+    employee_route.result = {
+        "engagements": {"objects": [{"current": {"employee_uuid": employee_uuid}}]}
     }
-    converter.get_org_unit_address_type_user_key = AsyncMock()
-    converter.get_org_unit_address_type_user_key.return_value = "LocationUnit"
 
-    with pytest.raises(NotSupportedException):
-        await sync_tool.listen_to_changes_in_org_units(
-            payload.uuid,
-            payload.object_uuid,
-            routing_key=mo_routing_key,
-            delete=False,
-            current_objects_only=True,
-        )
+    employee_refresh_route = graphql_mock.query("employee_refresh")
+    employee_refresh_route.result = {"employee_refresh": {"objects": [employee_uuid]}}
+
+    with capture_logs() as cap_logs:
+        await sync_tool.listen_to_changes_in_org_units(org_unit_uuid)
+    assert cap_logs == [
+        {"event": "Registered change in an org-unit", "log_level": "info"},
+        {
+            "event": "Refreshing all employees in org-unit",
+            "log_level": "info",
+            "employee_uuids": {employee_uuid},
+        },
+    ]
+    assert employee_refresh_route.called
 
 
 async def test_listen_to_changes_in_employee_no_employee(
@@ -251,6 +145,7 @@ async def test_listen_to_changes_in_employees_person(
 ) -> None:
     # Ignore all changes, but person changes
     sync_tool.mo_address_to_ldap = AsyncMock()  # type: ignore
+    sync_tool.mo_org_unit_address_to_ldap = AsyncMock()  # type: ignore
     sync_tool.mo_ituser_to_ldap = AsyncMock()  # type: ignore
     sync_tool.mo_engagement_to_ldap = AsyncMock()  # type: ignore
 
@@ -271,6 +166,136 @@ async def test_listen_to_changes_in_employees_person(
     )
 
 
+async def test_listen_to_changes_in_employees_org_unit_address(
+    dataloader: AsyncMock,
+    test_mo_address: Address,
+    sync_tool: SyncTool,
+    converter: MagicMock,
+    graphql_mock: GraphQLMocker,
+) -> None:
+    # Ignore all changes, but address changes
+    sync_tool.mo_person_to_ldap = AsyncMock()  # type: ignore
+    sync_tool.mo_address_to_ldap = AsyncMock()  # type: ignore
+    sync_tool.mo_ituser_to_ldap = AsyncMock()  # type: ignore
+    sync_tool.mo_engagement_to_ldap = AsyncMock()  # type: ignore
+
+    converted_ldap_object = LdapObject(dn="CN=foo")
+    converter.to_ldap.return_value = converted_ldap_object
+
+    employee_uuid = uuid4()
+    engagement_uuid = uuid4()
+    address_type_user_key = "LocationUnit"
+
+    dataloader.find_mo_employee_dn.return_value = {"CN=foo"}
+    dataloader.extract_current_or_latest_object = (
+        DataLoader.extract_current_or_latest_object
+    )
+
+    # Simulate a created address
+
+    # Replace the shitty mock with a good mock
+    dataloader.graphql_client = GraphQLClient("http://example.com/graphql")
+
+    read_engagements_is_primary_result = {
+        "engagements": {
+            "objects": [
+                {
+                    "validities": [
+                        {
+                            "is_primary": True,
+                            "uuid": engagement_uuid,
+                            "validity": {"from": "1970-01-01T00:00:00", "to": None},
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+    read_engagements_is_primary_route = graphql_mock.query(
+        "read_engagements_is_primary"
+    )
+    read_engagements_is_primary_route.result = read_engagements_is_primary_result
+
+    # Mock MO read
+    route = graphql_mock.query("read_filtered_addresses")
+    route.result = {
+        "addresses": {
+            "objects": [
+                {
+                    "validities": [
+                        {
+                            "address_type": {"user_key": address_type_user_key},
+                            "uuid": test_mo_address.uuid,
+                            "validity": {
+                                "from": "1970-01-01T00:00:00",
+                                "to": None,
+                            },
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+
+    # Test: happy-path
+    await sync_tool.listen_to_changes_in_employees(employee_uuid)
+    assert read_engagements_is_primary_route.called
+    assert route.called
+    dataloader.modify_ldap_object.assert_called_with(
+        converted_ldap_object, address_type_user_key, delete=False
+    )
+    dataloader.modify_ldap_object.reset_mock()
+
+    # Test: No (primary) engagement
+    read_engagements_is_primary_route.result = {"engagements": {"objects": []}}
+    await sync_tool.listen_to_changes_in_employees(employee_uuid)
+    assert read_engagements_is_primary_route.called
+    dataloader.modify_ldap_object.assert_not_called()
+
+    read_engagements_is_primary_route.result = read_engagements_is_primary_result
+
+    # Test: Reading multiple addresses of the same type
+    route.result = {
+        "addresses": {
+            "objects": [
+                {
+                    "validities": [
+                        {
+                            "address_type": {"user_key": address_type_user_key},
+                            "uuid": test_mo_address.uuid,
+                            "validity": {
+                                "from": "1970-01-01T00:00:00",
+                                "to": None,
+                            },
+                        }
+                    ]
+                },
+                {
+                    "validities": [
+                        {
+                            "address_type": {"user_key": address_type_user_key},
+                            "uuid": UUID(int=test_mo_address.uuid.int + 1),
+                            "validity": {
+                                "from": "1970-01-01T00:00:00",
+                                "to": None,
+                            },
+                        }
+                    ]
+                },
+            ]
+        }
+    }
+    with capture_logs() as cap_logs:
+        await sync_tool.listen_to_changes_in_employees(employee_uuid)
+    assert "Multiple addresses of same type" in [x["event"] for x in cap_logs]
+
+    # Test: When unable to read address details
+    dataloader.load_mo_address.side_effect = NoObjectsReturnedException("BOOM")
+    with pytest.raises(RequeueMessage) as exc:
+        await sync_tool.listen_to_changes_in_employees(employee_uuid)
+    assert "Unable to load mo object" in str(exc.value)
+
+
 async def test_listen_to_changes_in_employees_address(
     dataloader: AsyncMock,
     test_mo_address: Address,
@@ -280,6 +305,7 @@ async def test_listen_to_changes_in_employees_address(
 ) -> None:
     # Ignore all changes, but address changes
     sync_tool.mo_person_to_ldap = AsyncMock()  # type: ignore
+    sync_tool.mo_org_unit_address_to_ldap = AsyncMock()  # type: ignore
     sync_tool.mo_ituser_to_ldap = AsyncMock()  # type: ignore
     sync_tool.mo_engagement_to_ldap = AsyncMock()  # type: ignore
 
@@ -377,6 +403,7 @@ async def test_listen_to_changes_in_employees_ituser(
     # Ignore all changes, but ituser changes
     sync_tool.mo_person_to_ldap = AsyncMock()  # type: ignore
     sync_tool.mo_address_to_ldap = AsyncMock()  # type: ignore
+    sync_tool.mo_org_unit_address_to_ldap = AsyncMock()  # type: ignore
     sync_tool.mo_engagement_to_ldap = AsyncMock()  # type: ignore
 
     converted_ldap_object = LdapObject(dn="CN=foo")
@@ -474,6 +501,7 @@ async def test_listen_to_changes_in_employees_engagement(
     # Ignore all changes, but engagement changes
     sync_tool.mo_person_to_ldap = AsyncMock()  # type: ignore
     sync_tool.mo_address_to_ldap = AsyncMock()  # type: ignore
+    sync_tool.mo_org_unit_address_to_ldap = AsyncMock()  # type: ignore
     sync_tool.mo_ituser_to_ldap = AsyncMock()  # type: ignore
 
     converted_ldap_object = LdapObject(dn="CN=foo")
@@ -1366,11 +1394,6 @@ async def test_wait_for_export_to_finish(sync_tool: SyncTool):
 
     assert elapsed_time >= 0.2
     assert elapsed_time < 0.3
-
-
-def test_cleanup_needed(sync_tool: SyncTool):
-    assert sync_tool.cleanup_needed([{"description": "success"}]) is True
-    assert sync_tool.cleanup_needed([{"description": "PermissionDenied"}]) is False
 
 
 async def test_wait_for_import_to_finish(sync_tool: SyncTool):

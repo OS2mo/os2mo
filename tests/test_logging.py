@@ -59,7 +59,6 @@ def test_mask_cpr2():
     logger.info("The cpr-no is hidden in this object", obj=cpr_obj)
 
     messages = [w.kwargs for w in cf.logger.calls]
-    print(messages)
     for message in messages:
         for entry in message.values():
             assert cpr_no not in entry

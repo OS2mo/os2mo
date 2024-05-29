@@ -36,7 +36,6 @@ from ldap3.utils.dn import safe_dn
 from more_itertools import always_iterable
 from more_itertools import one
 from more_itertools import only
-from ramodels.mo.employee import Employee
 
 from .config import AuthBackendEnum
 from .config import ServerConfig
@@ -51,7 +50,6 @@ from .utils import combine_dn_strings
 from .utils import datetime_to_ldap_timestamp
 from .utils import ensure_list
 from .utils import is_list
-from .utils import mo_object_is_valid
 
 logger = structlog.stdlib.get_logger()
 
@@ -685,111 +683,6 @@ def get_attribute_types(ldap_connection: Connection):
     # Mapping from str to ldap3.protocol.rfc4512.AttributeTypeInfo
     schema = get_ldap_schema(ldap_connection)
     return schema.attribute_types
-
-
-async def cleanup(
-    json_key: str,
-    mo_dict_key: str,
-    mo_objects: list[Any],
-    user_context: dict,
-    employee: Employee,
-    object_type: str,
-    dn: str,
-):
-    """
-    Cleans entries from LDAP
-
-    json_key : str
-        json key to clean for
-    value_key : str
-        name of the MO attribute that contains the value to be cleaned
-    mo_dict_key : str
-        name of the key in the conversion dict. i.e. 'mo_employee'
-        or 'mo_employee_address'
-    mo_objects: list
-        List of objects already in MO
-    user_context : dict
-        user context dictionary with the configured dataloader and converter
-    """
-    from .dataloaders import DataLoader
-    from .converters import LdapConverter
-    from .import_export import SyncTool
-
-    dataloader: DataLoader = user_context["dataloader"]
-    converter: LdapConverter = user_context["converter"]
-    sync_tool: SyncTool = user_context["sync_tool"]
-
-    if not converter._export_to_ldap_(json_key):
-        logger.info("_export_to_ldap_ == False", json_key=json_key)
-        return
-
-    # Get matching LDAP object for this user (note that LDAP can contain
-    # multiple entries in one object)
-    attributes = converter.get_ldap_attributes(json_key)
-    ldap_object = dataloader.load_ldap_object(dn, attributes)
-
-    logger.info("Found data in LDAP", ldap_object=ldap_object)
-
-    mo_objects = list(filter(mo_object_is_valid, mo_objects))
-
-    # Convert to LDAP-style to make mo-data comparable to LDAP data.
-    converted_mo_objects = [
-        await converter.to_ldap(
-            {
-                "mo_employee": employee,
-                mo_dict_key: mo_object,
-            },
-            json_key,
-            dn,
-        )
-        for mo_object in mo_objects
-    ]
-    logger.info("Found data in MO", mo_object=converted_mo_objects)
-
-    # Loop over each attribute and determine if it needs to be cleaned
-    uuids_to_publish: set[UUID] = set()
-    ldap_objects_to_clean = []
-    for attribute in attributes:
-        values_in_ldap = getattr(ldap_object, attribute)
-        values_in_mo: list[Any] = list(
-            filter(None, [getattr(o, attribute, None) for o in converted_mo_objects])
-        )
-
-        if not is_list(values_in_ldap):
-            values_in_ldap = [values_in_ldap] if values_in_ldap else []
-
-        # If a value is in LDAP but NOT in MO, it needs to be cleaned
-        for value_in_ldap in values_in_ldap:
-            if (
-                value_in_ldap not in values_in_mo
-                and str(value_in_ldap) not in values_in_mo
-            ):
-                logger.info(
-                    "Attribute value needs cleaning",
-                    attribute=attribute,
-                    value=value_in_ldap,
-                )
-                ldap_objects_to_clean.append(
-                    LdapObject(**{"dn": dn, attribute: value_in_ldap})
-                )
-
-        # If MO contains values and LDAP doesn't, send AMQP messages to export to LDAP
-        # This can happen, if we delete an address in MO, and another address already
-        # exists in MO. In that case the other address should be written to LDAP,
-        # after the first one is deleted from LDAP
-        if not values_in_ldap and values_in_mo:
-            logger.info("Attribute needs to be written to LDAP", attribute=attribute)
-            uuids_to_publish.update(o.uuid for o in mo_objects)
-
-    # Clean from LDAP
-    if len(ldap_objects_to_clean) == 0:
-        logger.info("No cleanup required")
-    else:
-        dataloader.cleanup_attributes_in_ldap(ldap_objects_to_clean)
-
-    # Publish to internal AMQP system
-    for uuid in uuids_to_publish:
-        await sync_tool.refresh_object(uuid, object_type)
 
 
 def setup_listener(context: Context) -> list[Thread]:
