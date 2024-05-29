@@ -381,6 +381,7 @@ def _paged_search(
     searchParameters: dict,
     search_base: str,
     mute: bool,
+    run_discriminator: bool,
 ) -> list:
     # TODO: Eliminate mute argument? - Should be logger configuration?
     # TODO: Find max. paged_size number from LDAP rather than hard-code it?
@@ -417,7 +418,9 @@ def _paged_search(
         # TODO: Handle this error more gracefully
         assert ldap_connection.response is not None
         entries = ldapresponse2entries(ldap_connection.response)
-        entries = apply_discriminator(entries, settings)
+        # TODO: Do we actually wanna apply discriminator here?
+        if run_discriminator:
+            entries = apply_discriminator(entries, settings)
         responses.extend(entries)
 
         try:
@@ -440,6 +443,7 @@ def paged_search(
     searchParameters: dict,
     search_base: str | None = None,
     mute: bool = False,
+    run_discriminator: bool = True,
 ) -> list:
     """
     Execute a search on the LDAP server.
@@ -470,7 +474,12 @@ def paged_search(
     if search_base:
         # If the search base is explicitly defined: Don't try anything fancy.
         results = _paged_search(
-            settings, ldap_connection, searchParameters, search_base, mute
+            settings,
+            ldap_connection,
+            searchParameters,
+            search_base,
+            mute,
+            run_discriminator=run_discriminator,
         )
         return results
 
@@ -483,7 +492,12 @@ def paged_search(
     for search_base in search_bases:
         results.extend(
             _paged_search(
-                settings, ldap_connection, searchParameters.copy(), search_base, mute
+                settings,
+                ldap_connection,
+                searchParameters.copy(),
+                search_base,
+                mute,
+                run_discriminator=run_discriminator,
             )
         )
 

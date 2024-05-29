@@ -443,7 +443,9 @@ class DataLoader:
                 )
                 self.delete_ldap(dn, attribute, value_to_delete)
 
-    def load_ldap_OUs(self, search_base: str | None = None) -> dict:
+    def load_ldap_OUs(
+        self, search_base: str | None = None, run_discriminator: bool = True
+    ) -> dict:
         """
         Returns a dictionary where the keys are OU strings and the items are dicts
         which contain information about the OU
@@ -458,6 +460,7 @@ class DataLoader:
             searchParameters,
             search_base=search_base,
             mute=True,
+            run_discriminator=run_discriminator,
         )
 
         dns = [r["dn"] for r in responses]
@@ -475,6 +478,7 @@ class DataLoader:
                 searchParameters,
                 search_base=dn,
                 mute=True,
+                run_discriminator=run_discriminator,
             )
             ou = extract_ou_from_dn(dn)
             if len(responses) == 0:
