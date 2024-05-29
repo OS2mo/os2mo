@@ -124,17 +124,6 @@ async def process_address(
 
 @amqp_router.register("engagement")
 @reject_on_failure
-async def process_engagement_attachments(
-    object_uuid: PayloadUUID,
-    sync_tool: depends.SyncTool,
-) -> None:
-    # TODO: Remove once org-unit addresses are synchronized as part of the employee sync
-    #       i.e. once the if-statement in process_address is gone
-    await sync_tool.export_org_unit_addresses_on_engagement_change(object_uuid)
-
-
-@amqp_router.register("engagement")
-@reject_on_failure
 async def process_engagement(
     object_uuid: PayloadUUID,
     graphql_client: depends.GraphQLClient,

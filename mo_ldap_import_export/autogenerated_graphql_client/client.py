@@ -21,10 +21,6 @@ from .class_update import ClassUpdate
 from .class_update import ClassUpdateClassUpdate
 from .employee_refresh import EmployeeRefresh
 from .employee_refresh import EmployeeRefreshEmployeeRefresh
-from .engagement_org_unit_address_refresh import EngagementOrgUnitAddressRefresh
-from .engagement_org_unit_address_refresh import (
-    EngagementOrgUnitAddressRefreshAddressRefresh,
-)
 from .engagement_terminate import EngagementTerminate
 from .engagement_terminate import EngagementTerminateEngagementTerminate
 from .input_types import AddressFilter
@@ -941,29 +937,6 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadAllItusers.parse_obj(data).itusers
-
-    async def engagement_org_unit_address_refresh(
-        self, exchange: str, engagement_uuid: UUID
-    ) -> EngagementOrgUnitAddressRefreshAddressRefresh:
-        query = gql(
-            """
-            mutation engagement_org_unit_address_refresh($exchange: String!, $engagement_uuid: UUID!) {
-              address_refresh(
-                exchange: $exchange
-                filter: {org_unit: {engagement: {uuids: [$engagement_uuid]}}}
-              ) {
-                objects
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {
-            "exchange": exchange,
-            "engagement_uuid": engagement_uuid,
-        }
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return EngagementOrgUnitAddressRefresh.parse_obj(data).address_refresh
 
     async def read_filtered_addresses(
         self, filter: AddressFilter

@@ -13,10 +13,6 @@ from .class_update import ClassUpdateClassUpdate
 from .client import GraphQLClient
 from .employee_refresh import EmployeeRefresh
 from .employee_refresh import EmployeeRefreshEmployeeRefresh
-from .engagement_org_unit_address_refresh import EngagementOrgUnitAddressRefresh
-from .engagement_org_unit_address_refresh import (
-    EngagementOrgUnitAddressRefreshAddressRefresh,
-)
 from .engagement_terminate import EngagementTerminate
 from .engagement_terminate import EngagementTerminateEngagementTerminate
 from .enums import AuditLogModel
@@ -374,8 +370,6 @@ __all__ = [
     "EmployeesBoundRoleFilter",
     "EngagementCreateInput",
     "EngagementFilter",
-    "EngagementOrgUnitAddressRefresh",
-    "EngagementOrgUnitAddressRefreshAddressRefresh",
     "EngagementRegistrationFilter",
     "EngagementTerminate",
     "EngagementTerminateEngagementTerminate",

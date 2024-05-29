@@ -1421,19 +1421,6 @@ async def test_wait_for_import_to_finish(sync_tool: SyncTool):
     assert elapsed_time < 0.3
 
 
-async def test_export_org_unit_addresses_on_engagement_change(
-    sync_tool: SyncTool,
-    dataloader: AsyncMock,
-) -> None:
-    engagement_uuid = uuid4()
-
-    await sync_tool.export_org_unit_addresses_on_engagement_change(engagement_uuid)
-    dataloader.graphql_client.engagement_org_unit_address_refresh.assert_called_with(
-        "os2mo_ldap_ie",
-        engagement_uuid,
-    )
-
-
 @pytest.mark.usefixtures("fake_find_mo_employee_dn")
 async def test_import_jobtitlefromadtomo_objects(
     context: Context,

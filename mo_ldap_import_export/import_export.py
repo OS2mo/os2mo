@@ -1229,11 +1229,3 @@ class SyncTool:
                     dn=dn,
                 )
         return engagement_uuid
-
-    async def export_org_unit_addresses_on_engagement_change(
-        self, engagement_uuid: UUID
-    ) -> None:
-        await self.dataloader.graphql_client.engagement_org_unit_address_refresh(
-            self.amqpsystem.exchange_name,
-            engagement_uuid,
-        )

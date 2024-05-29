@@ -49,7 +49,6 @@ from mo_ldap_import_export.main import initialize_sync_tool
 from mo_ldap_import_export.main import open_ldap_connection
 from mo_ldap_import_export.main import process_address
 from mo_ldap_import_export.main import process_engagement
-from mo_ldap_import_export.main import process_engagement_attachments
 from mo_ldap_import_export.main import process_ituser
 from mo_ldap_import_export.main import process_org_unit
 from mo_ldap_import_export.main import process_person
@@ -753,10 +752,6 @@ async def test_listen_to_changes(sync_tool: AsyncMock) -> None:
     settings.listen_to_changes_in_mo = True
 
     payload = uuid4()
-
-    sync_tool.reset_mock()
-    await process_engagement_attachments(payload, sync_tool)
-    sync_tool.export_org_unit_addresses_on_engagement_change.assert_awaited_once()
 
     sync_tool.reset_mock()
     await process_person(payload, sync_tool)

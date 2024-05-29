@@ -412,23 +412,6 @@ query read_all_itusers($filter: ITUserFilter!, $cursor: Cursor = null, $limit: i
   }
 }
 
-mutation engagement_org_unit_address_refresh(
-  $exchange: String!, $engagement_uuid: UUID!
-) {
-  address_refresh(
-    exchange: $exchange,
-    filter: {
-      org_unit: {
-        engagement: {
-          uuids: [$engagement_uuid]
-        }
-      }
-    }
-  ) {
-    objects
-  }
-}
-
 query read_filtered_addresses($filter: AddressFilter!) {
   addresses(filter: $filter) {
     objects {
