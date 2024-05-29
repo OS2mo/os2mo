@@ -82,6 +82,7 @@ from mo_ldap_import_export.exceptions import UUIDNotFoundException
 from mo_ldap_import_export.import_export import IgnoreMe
 from mo_ldap_import_export.routes import load_ldap_attribute_values
 from mo_ldap_import_export.routes import load_ldap_objects
+from mo_ldap_import_export.routes import load_ldap_populated_overview
 from mo_ldap_import_export.types import CPRNumber
 from mo_ldap_import_export.types import OrgUnitUUID
 from mo_ldap_import_export.utils import extract_ou_from_dn
@@ -587,14 +588,13 @@ async def test_get_populated_overview(dataloader: DataLoader):
         },
     ]
 
+    dataloader.load_ldap_overview = lambda: overview  # type: ignore
+
     with patch(
-        "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_overview",
-        return_value=overview,
-    ), patch(
-        "mo_ldap_import_export.dataloaders.paged_search",
+        "mo_ldap_import_export.routes.paged_search",
         return_value=responses,
     ):
-        output = dataloader.load_ldap_populated_overview()
+        output = load_ldap_populated_overview(dataloader)
 
     assert sorted(list(output["user"]["attributes"].keys())) == sorted(
         ["attr1", "objectClass"]

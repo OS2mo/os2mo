@@ -779,49 +779,6 @@ class DataLoader:
 
         return output
 
-    def load_ldap_populated_overview(self, ldap_classes=None) -> dict:
-        """
-        Like load_ldap_overview but only returns fields which actually contain data
-        """
-        nan_values: list[None | list] = [None, []]
-
-        output = {}
-        overview = self.load_ldap_overview()
-
-        if not ldap_classes:
-            ldap_classes = overview.keys()
-
-        for ldap_class in ldap_classes:
-            searchParameters = {
-                "search_filter": f"(objectclass={ldap_class})",
-                "attributes": ["*"],
-            }
-
-            responses = paged_search(self.context, searchParameters)
-            responses = [
-                r
-                for r in responses
-                if r["attributes"]["objectClass"][-1].lower() == ldap_class.lower()
-            ]
-
-            populated_attributes = []
-            example_value_dict = {}
-            for response in responses:
-                for attribute, value in response["attributes"].items():
-                    if value not in nan_values:
-                        populated_attributes.append(attribute)
-                        if attribute not in example_value_dict:
-                            example_value_dict[attribute] = value
-            populated_attributes = list(set(populated_attributes))
-
-            if len(populated_attributes) > 0:
-                superiors = overview[ldap_class]["superiors"]
-                output[ldap_class] = self.make_overview_entry(
-                    populated_attributes, superiors, example_value_dict
-                )
-
-        return output
-
     async def find_mo_employee_uuid_via_cpr_number(self, dn: str) -> set[UUID]:
         cpr_field = self.user_context["cpr_field"]
         if cpr_field is None:

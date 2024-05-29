@@ -241,7 +241,7 @@ def dataloader(
             test_ldap_object1,
             test_ldap_object2,
             test_ldap_object3,
-        ]
+        ],
     ):
         yield dataloader
 
@@ -708,7 +708,12 @@ async def test_import_all_objects_from_LDAP_invalid_cpr(
     test_client: TestClient, dataloader: AsyncMock
 ) -> None:
     with patch(
-        "mo_ldap_import_export.routes.load_ldap_objects", return_value=[LdapObject(name="Tester", Department="QA", dn="someDN", EmployeeID="5001012002")]
+        "mo_ldap_import_export.routes.load_ldap_objects",
+        return_value=[
+            LdapObject(
+                name="Tester", Department="QA", dn="someDN", EmployeeID="5001012002"
+            )
+        ],
     ), capture_logs() as cap_logs:
         response = test_client.get("/Import")
         assert response.status_code == 202
@@ -815,7 +820,8 @@ def test_get_invalid_cpr_numbers_from_LDAP_endpoint(
     invalid_object = LdapObject(dn="bar", EmployeeID="ja")
 
     with patch(
-        "mo_ldap_import_export.routes.load_ldap_objects", return_value=[valid_object, invalid_object]
+        "mo_ldap_import_export.routes.load_ldap_objects",
+        return_value=[valid_object, invalid_object],
     ):
         response = test_client.get("/Inspect/invalid_cpr_numbers")
     assert response.status_code == 202
