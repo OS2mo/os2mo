@@ -6,7 +6,6 @@ from uuid import uuid4
 
 import pytest
 import pytz  # type: ignore
-from fastramqpi.ramqp.mo import MORoutingKey
 from ldap3.core.exceptions import LDAPInvalidDnError
 from ramodels.mo.details.address import Address
 
@@ -16,7 +15,6 @@ from mo_ldap_import_export.utils import delete_keys_from_dict
 from mo_ldap_import_export.utils import exchange_ou_in_dn
 from mo_ldap_import_export.utils import extract_cn_from_dn
 from mo_ldap_import_export.utils import extract_ou_from_dn
-from mo_ldap_import_export.utils import get_object_type_from_routing_key
 from mo_ldap_import_export.utils import import_class
 from mo_ldap_import_export.utils import mo_datestring_to_utc
 from mo_ldap_import_export.utils import mo_object_is_valid
@@ -121,11 +119,6 @@ def test_extract_ou_from_dn() -> None:
 
     with pytest.raises(LDAPInvalidDnError):
         extract_ou_from_dn("")
-
-
-def test_get_object_type_from_routing_key() -> None:
-    routing_key: MORoutingKey = "address"
-    assert get_object_type_from_routing_key(routing_key) == "address"
 
 
 def test_remove_cn_from_dn() -> None:

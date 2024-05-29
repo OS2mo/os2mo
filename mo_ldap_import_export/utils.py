@@ -7,7 +7,6 @@ from functools import partial
 from typing import Any
 
 import structlog
-from fastramqpi.ramqp.mo import MORoutingKey
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
@@ -153,10 +152,6 @@ def remove_part_from_dn(dn: str, index_string: str) -> str:
 extract_ou_from_dn = partial(extract_part_from_dn, index_string="OU")
 extract_cn_from_dn = partial(extract_part_from_dn, index_string="CN")
 remove_cn_from_dn = partial(remove_part_from_dn, index_string="CN")
-
-
-def get_object_type_from_routing_key(routing_key: MORoutingKey) -> str:
-    return str(routing_key)
 
 
 def exchange_ou_in_dn(dn: str, new_ou: str) -> str:
