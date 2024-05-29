@@ -790,37 +790,6 @@ class SyncTool:
         self.converter.org_unit_info = await self.dataloader.load_mo_org_units()
         self.converter.check_org_unit_info_dict()
 
-    @with_exitstack
-    async def listen_to_changes_in_org_units(
-        self,
-        uuid: OrgUnitUUID,
-        exit_stack: ExitStack,
-    ) -> None:
-        """Refresh all employees on the related org-unit.
-
-        Args:
-            uuid: UUID of the changed org-unit.
-            exit_stack: The injected exit-stack.
-        """
-        exit_stack.enter_context(bound_contextvars(uuid=str(uuid)))
-        logger.info("Registered change in an org-unit")
-
-        # TODO: Should really only be primary engagement relations
-        result = await self.dataloader.graphql_client.read_employees_with_engagement_to_org_unit(
-            uuid
-        )
-        employee_uuids = {
-            x.current.employee_uuid for x in result.objects if x.current is not None
-        }
-
-        logger.info(
-            "Refreshing all employees in org-unit", employee_uuids=employee_uuids
-        )
-        # TODO: Add support for refreshing persons with a primary engagement relation directly
-        await self.dataloader.graphql_client.employee_refresh(
-            self.amqpsystem.exchange_name, list(employee_uuids)
-        )
-
     async def format_converted_objects(
         self,
         converted_objects,

@@ -90,7 +90,6 @@ async def process_address(
     object_uuid: PayloadUUID,
     graphql_client: depends.GraphQLClient,
     amqpsystem: depends.AMQPSystem,
-    sync_tool: depends.SyncTool,
 ) -> None:
     result = await graphql_client.read_address_relation_uuids(object_uuid)
 
@@ -110,7 +109,17 @@ async def process_address(
         # TODO: Add support for refreshing persons with a certain address directly
         await graphql_client.employee_refresh(amqpsystem.exchange_name, [person_uuid])
     if org_unit_uuid is not None:
-        await sync_tool.listen_to_changes_in_org_units(org_unit_uuid)
+        # TODO: Should really only be primary engagement relations
+        e_result = await graphql_client.read_employees_with_engagement_to_org_unit(
+            org_unit_uuid
+        )
+        employee_uuids = {
+            x.current.employee_uuid for x in e_result.objects if x.current is not None
+        }
+        # TODO: Add support for refreshing persons with a primary engagement relation directly
+        await graphql_client.employee_refresh(
+            amqpsystem.exchange_name, list(employee_uuids)
+        )
 
 
 @amqp_router.register("engagement")
