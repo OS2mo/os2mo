@@ -259,22 +259,6 @@ class DataLoader:
         #       Be warned though, doing so breaks ~25 tests because of bad mocking.
         return get_ldap_object(dn, self.context, nest, attributes, run_discriminator)
 
-    def load_ldap_attribute_values(self, attribute, search_base=None) -> list[str]:
-        """
-        Returns all values belonging to an LDAP attribute
-        """
-        searchParameters = {
-            "search_filter": "(objectclass=*)",
-            "attributes": [attribute],
-        }
-
-        responses = paged_search(
-            self.context,
-            searchParameters,
-            search_base=search_base,
-        )
-        return sorted({str(r["attributes"][attribute]) for r in responses})
-
     def load_ldap_cpr_object(
         self,
         cpr_no: CPRNumber,

@@ -80,6 +80,7 @@ from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import NotEnabledException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
 from mo_ldap_import_export.import_export import IgnoreMe
+from mo_ldap_import_export.routes import load_ldap_attribute_values
 from mo_ldap_import_export.types import CPRNumber
 from mo_ldap_import_export.types import OrgUnitUUID
 from mo_ldap_import_export.utils import extract_ou_from_dn
@@ -2014,10 +2015,10 @@ def test_load_ldap_attribute_values(dataloader: DataLoader):
         {"attributes": {"foo": []}},
     ]
     with patch(
-        "mo_ldap_import_export.dataloaders.paged_search",
+        "mo_ldap_import_export.routes.paged_search",
         return_value=responses,
     ):
-        values = dataloader.load_ldap_attribute_values("foo")
+        values = load_ldap_attribute_values(dataloader.context, "foo")
         assert "1" in values
         assert "2" in values
         assert "[]" in values

@@ -41,6 +41,23 @@ def encode_result(result):
     return json_compatible_result
 
 
+def load_ldap_attribute_values(context, attribute, search_base=None) -> list[str]:
+    """
+    Returns all values belonging to an LDAP attribute
+    """
+    searchParameters = {
+        "search_filter": "(objectclass=*)",
+        "attributes": [attribute],
+    }
+
+    responses = paged_search(
+        context,
+        searchParameters,
+        search_base=search_base,
+    )
+    return sorted({str(r["attributes"][attribute]) for r in responses})
+
+
 def construct_router(user_context: UserContext) -> APIRouter:
     router = APIRouter()
 
@@ -201,8 +218,8 @@ def construct_router(user_context: UserContext) -> APIRouter:
 
         all_unique_ldap_uuids = [
             to_uuid(u)
-            for u in dataloader.load_ldap_attribute_values(
-                settings.ldap_unique_id_field
+            for u in load_ldap_attribute_values(
+                dataloader.context, settings.ldap_unique_id_field
             )
         ]
         # TODO: Cast this to an UUID and remove the type ignore, good luck!
@@ -328,7 +345,9 @@ def construct_router(user_context: UserContext) -> APIRouter:
         attribute: Literal[accepted_attributes],  # type: ignore
         search_base: str | None = None,
     ) -> Any:
-        return dataloader.load_ldap_attribute_values(attribute, search_base=search_base)
+        return load_ldap_attribute_values(
+            dataloader.context, attribute, search_base=search_base
+        )
 
     # Get LDAP object by unique_ldap_uuid
     @router.get("/Inspect/object/unique_ldap_uuid", status_code=202, tags=["LDAP"])

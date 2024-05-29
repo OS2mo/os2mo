@@ -884,14 +884,17 @@ async def test_get_non_existing_objectGUIDs_from_MO(
         {"employee_uuid": str(uuid4()), "user_key": "foo"},
     ]
     dataloader.load_all_current_it_users.return_value = it_users
-    dataloader.load_ldap_attribute_values.return_value = [
-        it_users[0]["user_key"],
-        str(uuid4()),
-    ]
     employee = Employee(givenname="Jim", surname="")
     dataloader.load_mo_employee.return_value = employee
 
-    response = test_client.get("/Inspect/non_existing_unique_ldap_uuids")
+    with patch(
+        "mo_ldap_import_export.routes.load_ldap_attribute_values",
+        return_value=[
+            it_users[0]["user_key"],
+            str(uuid4()),
+        ],
+    ):
+        response = test_client.get("/Inspect/non_existing_unique_ldap_uuids")
     assert response.status_code == 202
 
     result = response.json()
