@@ -313,7 +313,7 @@ class SyncTool:
         # Get MO addresses
         result = await self.dataloader.graphql_client.read_filtered_addresses(
             AddressFilter(
-                employee=EmployeeFilter(uuid=uuid),
+                employee=EmployeeFilter(uuids=[uuid]),
                 address_type=ClassFilter(user_key=mapped_address_types),
                 from_date=None,
                 to_date=None,
@@ -418,7 +418,7 @@ class SyncTool:
         # Get MO ITUsers
         result = await self.dataloader.graphql_client.read_filtered_itusers(
             ITUserFilter(
-                employee=EmployeeFilter(uuid=uuid),
+                employee=EmployeeFilter(uuids=[uuid]),
                 itsystem=ITSystemFilter(user_key=mapped_itsystems),
                 from_date=None,
                 to_date=None,
@@ -509,7 +509,7 @@ class SyncTool:
         # Get engagements from MO
         result = await self.dataloader.graphql_client.read_engagements_is_primary(
             EngagementFilter(
-                employee=EmployeeFilter(uuid=uuid), from_date=None, to_date=None
+                employee=EmployeeFilter(uuids=[uuid]), from_date=None, to_date=None
             )
         )
         # TODO: Offer a non dictionary version of this function to avoid
