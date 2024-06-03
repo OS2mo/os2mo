@@ -376,7 +376,6 @@ def ldapresponse2entries(ldap_response: list[dict[str, Any]]) -> list[dict[str, 
 
 
 def _paged_search(
-    settings: Settings,
     ldap_connection: Connection,
     searchParameters: dict,
     search_base: str,
@@ -417,7 +416,6 @@ def _paged_search(
         # TODO: Handle this error more gracefully
         assert ldap_connection.response is not None
         entries = ldapresponse2entries(ldap_connection.response)
-        entries = apply_discriminator(entries, settings)
         responses.extend(entries)
 
         try:
@@ -469,9 +467,7 @@ def paged_search(
 
     if search_base:
         # If the search base is explicitly defined: Don't try anything fancy.
-        results = _paged_search(
-            settings, ldap_connection, searchParameters, search_base, mute
-        )
+        results = _paged_search(ldap_connection, searchParameters, search_base, mute)
         return results
 
     # Otherwise, loop over all OUs to search in
@@ -482,9 +478,7 @@ def paged_search(
     results = []
     for search_base in search_bases:
         results.extend(
-            _paged_search(
-                settings, ldap_connection, searchParameters.copy(), search_base, mute
-            )
+            _paged_search(ldap_connection, searchParameters.copy(), search_base, mute)
         )
 
     return results
