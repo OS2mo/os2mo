@@ -196,7 +196,7 @@ def test_mo_objects() -> list:
 @pytest.fixture(scope="module")
 def dataloader(
     sync_dataloader: MagicMock, test_mo_address: Address, test_mo_objects: list
-) -> AsyncMock:
+) -> Iterator[AsyncMock]:
     test_ldap_object1 = LdapObject(
         name="Tester1", Department="QA", dn="someDN1", EmployeeID="0101012001"
     )
@@ -220,11 +220,6 @@ def dataloader(
     dataloader.load_ldap_OUs = sync_dataloader
     dataloader.load_ldap_overview = sync_dataloader
     dataloader.load_ldap_cpr_object = load_ldap_cpr_object
-    dataloader.load_ldap_objects.return_value = [
-        test_ldap_object1,
-        test_ldap_object2,
-        test_ldap_object3,
-    ]
     dataloader.load_mo_employee.return_value = test_mo_employee
     dataloader.load_mo_address.return_value = test_mo_address
     dataloader.load_mo_it_user.return_value = test_mo_it_user
@@ -240,8 +235,15 @@ def dataloader(
     dataloader.get_ldap_unique_ldap_uuid = sync_dataloader
     dataloader.get_ldap_it_system_uuid = sync_dataloader
     dataloader.supported_object_types = ["address", "person"]
-
-    return dataloader
+    with patch(
+        "mo_ldap_import_export.routes.load_ldap_objects",
+        return_value=[
+            test_ldap_object1,
+            test_ldap_object2,
+            test_ldap_object3,
+        ],
+    ):
+        yield dataloader
 
 
 @pytest.fixture(scope="module")
@@ -705,11 +707,14 @@ async def test_import_all_objects_from_LDAP_no_cpr_field(
 async def test_import_all_objects_from_LDAP_invalid_cpr(
     test_client: TestClient, dataloader: AsyncMock
 ) -> None:
-    dataloader.load_ldap_objects.return_value = [
-        LdapObject(name="Tester", Department="QA", dn="someDN", EmployeeID="5001012002")
-    ]
-
-    with capture_logs() as cap_logs:
+    with patch(
+        "mo_ldap_import_export.routes.load_ldap_objects",
+        return_value=[
+            LdapObject(
+                name="Tester", Department="QA", dn="someDN", EmployeeID="5001012002"
+            )
+        ],
+    ), capture_logs() as cap_logs:
         response = test_client.get("/Import")
         assert response.status_code == 202
 
@@ -813,8 +818,12 @@ def test_get_invalid_cpr_numbers_from_LDAP_endpoint(
 ):
     valid_object = LdapObject(dn="foo", EmployeeID="0101011234")
     invalid_object = LdapObject(dn="bar", EmployeeID="ja")
-    dataloader.load_ldap_objects.return_value = [valid_object, invalid_object]
-    response = test_client.get("/Inspect/invalid_cpr_numbers")
+
+    with patch(
+        "mo_ldap_import_export.routes.load_ldap_objects",
+        return_value=[valid_object, invalid_object],
+    ):
+        response = test_client.get("/Inspect/invalid_cpr_numbers")
     assert response.status_code == 202
     result = response.json()
     assert "bar" in result
@@ -884,14 +893,17 @@ async def test_get_non_existing_objectGUIDs_from_MO(
         {"employee_uuid": str(uuid4()), "user_key": "foo"},
     ]
     dataloader.load_all_current_it_users.return_value = it_users
-    dataloader.load_ldap_attribute_values.return_value = [
-        it_users[0]["user_key"],
-        str(uuid4()),
-    ]
     employee = Employee(givenname="Jim", surname="")
     dataloader.load_mo_employee.return_value = employee
 
-    response = test_client.get("/Inspect/non_existing_unique_ldap_uuids")
+    with patch(
+        "mo_ldap_import_export.routes.load_ldap_attribute_values",
+        return_value=[
+            it_users[0]["user_key"],
+            str(uuid4()),
+        ],
+    ):
+        response = test_client.get("/Inspect/non_existing_unique_ldap_uuids")
     assert response.status_code == 202
 
     result = response.json()

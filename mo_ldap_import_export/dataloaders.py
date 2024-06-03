@@ -259,22 +259,6 @@ class DataLoader:
         #       Be warned though, doing so breaks ~25 tests because of bad mocking.
         return get_ldap_object(dn, self.context, nest, attributes, run_discriminator)
 
-    def load_ldap_attribute_values(self, attribute, search_base=None) -> list[str]:
-        """
-        Returns all values belonging to an LDAP attribute
-        """
-        searchParameters = {
-            "search_filter": "(objectclass=*)",
-            "attributes": [attribute],
-        }
-
-        responses = paged_search(
-            self.context,
-            searchParameters,
-            search_base=search_base,
-        )
-        return sorted({str(r["attributes"][attribute]) for r in responses})
-
     def load_ldap_cpr_object(
         self,
         cpr_no: CPRNumber,
@@ -458,39 +442,6 @@ class DataLoader:
                     attribute=attribute,
                 )
                 self.delete_ldap(dn, attribute, value_to_delete)
-
-    async def load_ldap_objects(
-        self,
-        json_key: str,
-        additional_attributes: list[str] = [],
-        search_base: str | None = None,
-    ) -> list[LdapObject]:
-        """
-        Returns list with desired ldap objects
-
-        Accepted json_keys are:
-            - 'Employee'
-            - a MO address type name
-        """
-        converter = self.user_context["converter"]
-        user_class = converter.find_ldap_object_class(json_key)
-        attributes = converter.get_ldap_attributes(json_key) + additional_attributes
-
-        searchParameters = {
-            "search_filter": f"(objectclass={user_class})",
-            "attributes": list(set(attributes)),
-        }
-
-        responses = paged_search(
-            self.context,
-            searchParameters,
-            search_base=search_base,
-        )
-
-        output: list[LdapObject]
-        output = [make_ldap_object(r, self.context, nest=False) for r in responses]
-
-        return output
 
     def load_ldap_OUs(self, search_base: str | None = None) -> dict:
         """
@@ -825,49 +776,6 @@ class DataLoader:
             all_attributes = get_ldap_attributes(self.ldap_connection, ldap_class)
             superiors = get_ldap_superiors(self.ldap_connection, ldap_class)
             output[ldap_class] = self.make_overview_entry(all_attributes, superiors)
-
-        return output
-
-    def load_ldap_populated_overview(self, ldap_classes=None) -> dict:
-        """
-        Like load_ldap_overview but only returns fields which actually contain data
-        """
-        nan_values: list[None | list] = [None, []]
-
-        output = {}
-        overview = self.load_ldap_overview()
-
-        if not ldap_classes:
-            ldap_classes = overview.keys()
-
-        for ldap_class in ldap_classes:
-            searchParameters = {
-                "search_filter": f"(objectclass={ldap_class})",
-                "attributes": ["*"],
-            }
-
-            responses = paged_search(self.context, searchParameters)
-            responses = [
-                r
-                for r in responses
-                if r["attributes"]["objectClass"][-1].lower() == ldap_class.lower()
-            ]
-
-            populated_attributes = []
-            example_value_dict = {}
-            for response in responses:
-                for attribute, value in response["attributes"].items():
-                    if value not in nan_values:
-                        populated_attributes.append(attribute)
-                        if attribute not in example_value_dict:
-                            example_value_dict[attribute] = value
-            populated_attributes = list(set(populated_attributes))
-
-            if len(populated_attributes) > 0:
-                superiors = overview[ldap_class]["superiors"]
-                output[ldap_class] = self.make_overview_entry(
-                    populated_attributes, superiors, example_value_dict
-                )
 
         return output
 

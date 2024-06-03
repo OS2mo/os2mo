@@ -80,6 +80,9 @@ from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import NotEnabledException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
 from mo_ldap_import_export.import_export import IgnoreMe
+from mo_ldap_import_export.routes import load_ldap_attribute_values
+from mo_ldap_import_export.routes import load_ldap_objects
+from mo_ldap_import_export.routes import load_ldap_populated_overview
 from mo_ldap_import_export.types import CPRNumber
 from mo_ldap_import_export.types import OrgUnitUUID
 from mo_ldap_import_export.utils import extract_ou_from_dn
@@ -284,7 +287,7 @@ async def test_load_ldap_objects(
     expected_result = [LdapObject(dn=dn, **ldap_attributes)] * 2
     ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)] * 2
 
-    output = await dataloader.load_ldap_objects("Employee")
+    output = await load_ldap_objects(dataloader, "Employee")
 
     assert output == expected_result
 
@@ -585,14 +588,13 @@ async def test_get_populated_overview(dataloader: DataLoader):
         },
     ]
 
+    dataloader.load_ldap_overview = lambda: overview  # type: ignore
+
     with patch(
-        "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_overview",
-        return_value=overview,
-    ), patch(
-        "mo_ldap_import_export.dataloaders.paged_search",
+        "mo_ldap_import_export.routes.paged_search",
         return_value=responses,
     ):
-        output = dataloader.load_ldap_populated_overview()
+        output = load_ldap_populated_overview(dataloader)
 
     assert sorted(list(output["user"]["attributes"].keys())) == sorted(
         ["attr1", "objectClass"]
@@ -2014,10 +2016,10 @@ def test_load_ldap_attribute_values(dataloader: DataLoader):
         {"attributes": {"foo": []}},
     ]
     with patch(
-        "mo_ldap_import_export.dataloaders.paged_search",
+        "mo_ldap_import_export.routes.paged_search",
         return_value=responses,
     ):
-        values = dataloader.load_ldap_attribute_values("foo")
+        values = load_ldap_attribute_values(dataloader.context, "foo")
         assert "1" in values
         assert "2" in values
         assert "[]" in values
