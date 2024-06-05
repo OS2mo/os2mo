@@ -600,28 +600,15 @@ class SyncTool:
     async def listen_to_changes_in_employees(
         self,
         uuid: EmployeeUUID,
-        object_uuid: UUID,
-        routing_key: MORoutingKey,
-        delete: bool,
-        current_objects_only: bool,
         exit_stack: ExitStack,
     ) -> None:
         """Synchronize employee data from MO to LDAP.
 
         Args:
             uuid: UUID of the changed employee.
-            object_uuid: UUID of the changed object (belonging to the employee).
-            routing_key: Routing key of the AMQP message.
-            delete: Whether to delete the object or not.
-            current_objects_only: Whether to load currently valid objects only or not.
+            exit_stack: The injected exit-stack.
         """
-        exit_stack.enter_context(
-            bound_contextvars(
-                uuid=str(uuid),
-                routing_key=routing_key,
-                delete=delete,
-            )
-        )
+        exit_stack.enter_context(bound_contextvars(uuid=str(uuid)))
         logger.info("Registered change in an employee")
 
         dns = await self.dataloader.find_mo_employee_dn(uuid)
@@ -658,19 +645,11 @@ class SyncTool:
         logger.info("Found Employee in MO", changed_employee=changed_employee)
 
         mo_object_dict: dict[str, Any] = {"mo_employee": changed_employee}
-        object_type = get_object_type_from_routing_key(routing_key)
 
-        if object_type == "person":
-            await self.mo_person_to_ldap(uuid, best_dn, mo_object_dict)
-
-        elif object_type == "address":
-            await self.mo_address_to_ldap(uuid, best_dn, mo_object_dict)
-
-        elif object_type == "ituser":
-            await self.mo_ituser_to_ldap(uuid, best_dn, mo_object_dict)
-
-        elif object_type == "engagement":
-            await self.mo_engagement_to_ldap(uuid, best_dn, mo_object_dict)
+        await self.mo_person_to_ldap(uuid, best_dn, mo_object_dict)
+        await self.mo_address_to_ldap(uuid, best_dn, mo_object_dict)
+        await self.mo_ituser_to_ldap(uuid, best_dn, mo_object_dict)
+        await self.mo_engagement_to_ldap(uuid, best_dn, mo_object_dict)
 
     @wait_for_export_to_finish
     async def process_employee_address(
