@@ -7,7 +7,7 @@ from uuid import uuid4
 
 from fastapi import Depends
 from fastramqpi.depends import from_user_context
-from fastramqpi.ramqp import AMQPSystem
+from fastramqpi.ramqp import AMQPSystem as _AMQPSystem
 from fastramqpi.ramqp.depends import from_context
 from fastramqpi.ramqp.depends import Message
 from structlog.contextvars import bound_contextvars
@@ -25,7 +25,8 @@ DataLoader = Annotated[_DataLoader, Depends(from_user_context("dataloader"))]
 Settings = Annotated[_Settings, Depends(from_user_context("settings"))]
 LdapConverter = Annotated[_LdapConverter, Depends(from_user_context("converter"))]
 Connection = Annotated[_Connection, Depends(from_user_context("ldap_connection"))]
-LDAPAMQPSystem = Annotated[AMQPSystem, Depends(from_user_context("ldap_amqpsystem"))]
+LDAPAMQPSystem = Annotated[_AMQPSystem, Depends(from_user_context("ldap_amqpsystem"))]
+AMQPSystem = Annotated[_AMQPSystem, Depends(from_context("amqpsystem"))]
 
 
 async def logger_bound_message_id(message: Message) -> AsyncIterable[None]:
