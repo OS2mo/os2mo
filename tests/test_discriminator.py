@@ -275,9 +275,8 @@ async def test_first_included_no_config(
     }
     assert settings.discriminator_field is None
 
-    with pytest.raises(ValueError) as exc_info:
-        first_included(context, set())
-    assert "too few items in iterable" in str(exc_info.value)
+    result = first_included(context, set())
+    assert result is None
 
     result = first_included(context, {"CN=Anzu"})
     assert result == "CN=Anzu"

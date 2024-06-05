@@ -227,7 +227,7 @@ def first_included(context: Context, dns: set[DN]) -> DN | None:
     The DNs are evaluated depending on the configuration of the discriminator.
 
     Args:
-        dns: The set of DNs to evaulate.
+        dns: The set of DNs to evaluate.
 
     Raises:
         RequeueMessage: If the provided DNs could not be read from LDAP.
@@ -236,8 +236,14 @@ def first_included(context: Context, dns: set[DN]) -> DN | None:
     Returns:
         The account to synchronize (if any).
     """
+    assert isinstance(dns, set)
+
     user_context = context["user_context"]
     settings: Settings = user_context["settings"]
+
+    # Empty input-set means we have no accounts to consider
+    if not dns:
+        return None
 
     discriminator_field = settings.discriminator_field
     # If discriminator is not configured, there can be only one user
