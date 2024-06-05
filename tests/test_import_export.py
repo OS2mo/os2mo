@@ -226,6 +226,33 @@ async def test_listen_to_change_in_org_unit_address_not_supported(
         )
 
 
+async def test_listen_to_changes_in_employee_no_employee(
+    dataloader: AsyncMock,
+    sync_tool: SyncTool,
+    converter: MagicMock,
+) -> None:
+    converted_ldap_object = LdapObject(dn="CN=foo")
+    converter.to_ldap.return_value = converted_ldap_object
+
+    employee_uuid = uuid4()
+
+    dataloader.find_mo_employee_dn.return_value = {"CN=foo"}
+    dataloader.load_mo_employee.side_effect = NoObjectsReturnedException("BOOM")
+
+    # Simulate a created employee
+    mo_routing_key: MORoutingKey = "person"
+    with pytest.raises(RequeueMessage) as exc_info:
+        await sync_tool.listen_to_changes_in_employees(
+            # uuid and object uuid are always the same for person
+            uuid=employee_uuid,
+            object_uuid=employee_uuid,
+            routing_key=mo_routing_key,
+            delete=False,
+            current_objects_only=True,
+        )
+    assert "Unable to load mo object" in str(exc_info.value)
+
+
 async def test_listen_to_changes_in_employees_person(
     dataloader: AsyncMock,
     sync_tool: SyncTool,
@@ -240,15 +267,14 @@ async def test_listen_to_changes_in_employees_person(
 
     # Simulate a created employee
     mo_routing_key: MORoutingKey = "person"
-    with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
-        await sync_tool.listen_to_changes_in_employees(
-            # uuid and object uuid are always the same for person
-            uuid=employee_uuid,
-            object_uuid=employee_uuid,
-            routing_key=mo_routing_key,
-            delete=False,
-            current_objects_only=True,
-        )
+    await sync_tool.listen_to_changes_in_employees(
+        # uuid and object uuid are always the same for person
+        uuid=employee_uuid,
+        object_uuid=employee_uuid,
+        routing_key=mo_routing_key,
+        delete=False,
+        current_objects_only=True,
+    )
     assert dataloader.load_mo_employee.called
     assert converter.to_ldap.called
     assert dataloader.modify_ldap_object.called

@@ -289,6 +289,37 @@ class SyncTool:
 
         return ldap_object
 
+    async def mo_person_to_ldap(
+        self,
+        uuid: EmployeeUUID,
+        dn: DN,
+        mo_object_dict: MutableMapping[str, Any],
+    ) -> None:
+        """Synchronize employee person from MO to LDAP.
+
+        Args:
+            uuid: UUID of the employee to synchronize from.
+            dn: DN of the LDAP account to synchronize to.
+            mo_object_dict: Template context for mapping templates.
+        """
+        await self.perform_export_checks(uuid, uuid)
+
+        # Convert to LDAP
+        ldap_employee = await self.converter.to_ldap(mo_object_dict, "Employee", dn)
+        ldap_employee = self.move_ldap_object(ldap_employee, dn)
+
+        # We do not generally terminate people in MO
+        delete = False
+
+        # Upload to LDAP - overwrite because all employee fields are unique.
+        # One person cannot have multiple names.
+        await self.dataloader.modify_ldap_object(
+            ldap_employee,
+            "Employee",
+            overwrite=True,
+            delete=delete,
+        )
+
     async def mo_address_to_ldap(
         self,
         uuid: EmployeeUUID,
@@ -605,8 +636,6 @@ class SyncTool:
             logger.info("Ignoring UUID", exc_info=True)
             return
 
-        await self.perform_export_checks(uuid, object_uuid)
-
         dns = await self.dataloader.find_mo_employee_dn(uuid)
         # If we found DNs, we want to synchronize to the best of them
         if dns:
@@ -632,10 +661,12 @@ class SyncTool:
         exit_stack.enter_context(bound_contextvars(dn=best_dn))
 
         # Get MO employee
-        changed_employee = await self.dataloader.load_mo_employee(
-            uuid,
-            current_objects_only=current_objects_only,
-        )
+        try:
+            changed_employee = await self.dataloader.load_mo_employee(
+                uuid, current_objects_only=False
+            )
+        except NoObjectsReturnedException as exc:
+            raise RequeueMessage("Unable to load mo object") from exc
         logger.info("Found Employee in MO", changed_employee=changed_employee)
 
         mo_object_dict: dict[str, Any] = {"mo_employee": changed_employee}
@@ -643,21 +674,7 @@ class SyncTool:
 
         if object_type == "person":
             assert uuid == object_uuid
-
-            # Convert to LDAP
-            ldap_employee = await self.converter.to_ldap(
-                mo_object_dict, "Employee", best_dn
-            )
-            ldap_employee = self.move_ldap_object(ldap_employee, best_dn)
-
-            # Upload to LDAP - overwrite because all employee fields are unique.
-            # One person cannot have multiple names.
-            await self.dataloader.modify_ldap_object(
-                ldap_employee,
-                "Employee",
-                overwrite=True,
-                delete=delete,
-            )
+            await self.mo_person_to_ldap(uuid, best_dn, mo_object_dict)
 
         elif object_type == "address":
             await self.mo_address_to_ldap(uuid, best_dn, mo_object_dict)
