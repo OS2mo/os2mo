@@ -154,8 +154,6 @@ def with_exitstack(
 
 class SyncTool:
     def __init__(self, context: Context):
-        # UUIDs in this list will be ignored by listen_to_changes ONCE
-        self.uuids_to_ignore = IgnoreMe()
         self.dns_to_ignore = IgnoreMe()
 
         self.context = context
@@ -620,21 +618,11 @@ class SyncTool:
         exit_stack.enter_context(
             bound_contextvars(
                 uuid=str(uuid),
-                object_uuid=str(object_uuid),
                 routing_key=routing_key,
                 delete=delete,
             )
         )
         logger.info("Registered change in an employee")
-
-        # If the object was uploaded by us, it does not need to be synchronized.
-        # Note that this is not necessary in listen_to_changes_in_org_units. Because
-        # those changes potentially map to multiple employees
-        try:
-            self.uuids_to_ignore.check(object_uuid)
-        except IgnoreChanges:
-            logger.info("Ignoring UUID", exc_info=True)
-            return
 
         dns = await self.dataloader.find_mo_employee_dn(uuid)
         # If we found DNs, we want to synchronize to the best of them
@@ -673,7 +661,6 @@ class SyncTool:
         object_type = get_object_type_from_routing_key(routing_key)
 
         if object_type == "person":
-            assert uuid == object_uuid
             await self.mo_person_to_ldap(uuid, best_dn, mo_object_dict)
 
         elif object_type == "address":
@@ -1252,11 +1239,8 @@ class SyncTool:
                 job_list = await obj.sync_to_mo(self.context)
                 # TODO: Asyncio.gather?
                 for job in job_list:
-                    self.uuids_to_ignore.add(job["uuid_to_ignore"])
                     await job["task"]
         else:
-            for mo_object, _ in converted_objects:
-                self.uuids_to_ignore.add(mo_object.uuid)
             try:
                 await self.dataloader.create_or_edit_mo_objects(converted_objects)
             except HTTPStatusError as e:
@@ -1272,8 +1256,6 @@ class SyncTool:
                     request=e.request,
                     dn=dn,
                 )
-                for mo_object, _ in converted_objects:
-                    self.uuids_to_ignore.remove(mo_object.uuid)
         return engagement_uuid
 
     async def refresh_mo_object(self, mo_object_dict: dict[str, Any]) -> None:
