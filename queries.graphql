@@ -643,3 +643,15 @@ query read_ituser_employee_uuid($ituser_uuid: UUID!) {
     }
   }
 }
+
+query read_engagement_employee_uuid($engagement_uuid: UUID!) {
+  engagements(
+    filter: {uuids: [$engagement_uuid]}
+  ) {
+    objects {
+      current {
+        employee_uuid
+      }
+    }
+  }
+}
