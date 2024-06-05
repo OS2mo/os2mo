@@ -1067,6 +1067,7 @@ class SyncTool:
             logger.info(
                 "Aborting synchronization, as no good LDAP account was found",
                 dn=dn,
+                dns=dns,
                 employee_uuid=employee_uuid,
             )
             return
@@ -1077,6 +1078,7 @@ class SyncTool:
                 "Found better DN for employee",
                 dn=dn,
                 best_dn=best_dn,
+                dns=dns,
                 employee_uuid=employee_uuid,
             )
         dn = best_dn
