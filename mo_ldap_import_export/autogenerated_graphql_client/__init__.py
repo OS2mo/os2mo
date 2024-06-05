@@ -1,3 +1,7 @@
+from ._testing_ituser_create import TestingItuserCreate
+from ._testing_ituser_create import TestingItuserCreateItuserCreate
+from ._testing_user_create import TestingUserCreate
+from ._testing_user_create import TestingUserCreateEmployeeCreate
 from .address_refresh import AddressRefresh
 from .address_refresh import AddressRefreshAddressRefresh
 from .address_terminate import AddressTerminate
@@ -673,6 +677,10 @@ __all__ = [
     "RoleUpdateInput",
     "SetJobTitle",
     "SetJobTitleEngagementUpdate",
+    "TestingItuserCreate",
+    "TestingItuserCreateItuserCreate",
+    "TestingUserCreate",
+    "TestingUserCreateEmployeeCreate",
     "UuidsBoundClassFilter",
     "UuidsBoundEmployeeFilter",
     "UuidsBoundEngagementFilter",
