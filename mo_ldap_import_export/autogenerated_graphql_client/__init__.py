@@ -9,6 +9,8 @@ from .class_create import ClassCreateClassCreate
 from .class_update import ClassUpdate
 from .class_update import ClassUpdateClassUpdate
 from .client import GraphQLClient
+from .employee_refresh import EmployeeRefresh
+from .employee_refresh import EmployeeRefreshEmployeeRefresh
 from .engagement_org_unit_address_refresh import EngagementOrgUnitAddressRefresh
 from .engagement_org_unit_address_refresh import (
     EngagementOrgUnitAddressRefreshAddressRefresh,
@@ -345,6 +347,10 @@ from .read_ituser_by_employee_and_itsystem_uuid import (
 from .read_ituser_by_employee_and_itsystem_uuid import (
     ReadItuserByEmployeeAndItsystemUuidItusersObjects,
 )
+from .read_ituser_employee_uuid import ReadItuserEmployeeUuid
+from .read_ituser_employee_uuid import ReadItuserEmployeeUuidItusers
+from .read_ituser_employee_uuid import ReadItuserEmployeeUuidItusersObjects
+from .read_ituser_employee_uuid import ReadItuserEmployeeUuidItusersObjectsCurrent
 from .read_itusers import ReadItusers
 from .read_itusers import ReadItusersItusers
 from .read_itusers import ReadItusersItusersObjects
@@ -394,6 +400,8 @@ __all__ = [
     "ConfigurationFilter",
     "EmployeeCreateInput",
     "EmployeeFilter",
+    "EmployeeRefresh",
+    "EmployeeRefreshEmployeeRefresh",
     "EmployeeRegistrationFilter",
     "EmployeeTerminateInput",
     "EmployeeUpdateInput",
@@ -626,6 +634,10 @@ __all__ = [
     "ReadItuserByEmployeeAndItsystemUuid",
     "ReadItuserByEmployeeAndItsystemUuidItusers",
     "ReadItuserByEmployeeAndItsystemUuidItusersObjects",
+    "ReadItuserEmployeeUuid",
+    "ReadItuserEmployeeUuidItusers",
+    "ReadItuserEmployeeUuidItusersObjects",
+    "ReadItuserEmployeeUuidItusersObjectsCurrent",
     "ReadItusers",
     "ReadItusersItusers",
     "ReadItusersItusersObjects",
