@@ -634,7 +634,7 @@ query read_engagements_is_primary($filter: EngagementFilter!) {
 
 query read_ituser_employee_uuid($ituser_uuid: UUID!) {
   itusers(
-    filter: {uuid: $ituser_uuid}
+    filter: {uuids: [$ituser_uuid]}
   ) {
     objects {
       current {
