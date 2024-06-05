@@ -6,6 +6,10 @@ from typing import Union
 from uuid import UUID
 
 from ..types import CPRNumber
+from ._testing_ituser_create import TestingItuserCreate
+from ._testing_ituser_create import TestingItuserCreateItuserCreate
+from ._testing_user_create import TestingUserCreate
+from ._testing_user_create import TestingUserCreateEmployeeCreate
 from .address_refresh import AddressRefresh
 from .address_refresh import AddressRefreshAddressRefresh
 from .address_terminate import AddressTerminate
@@ -35,6 +39,7 @@ from .input_types import EmployeeFilter
 from .input_types import EngagementFilter
 from .input_types import EngagementTerminateInput
 from .input_types import ITSystemCreateInput
+from .input_types import ITUserCreateInput
 from .input_types import ITUserFilter
 from .input_types import ITUserTerminateInput
 from .input_types import OrganisationUnitFilter
@@ -147,6 +152,40 @@ def gql(q: str) -> str:
 
 
 class GraphQLClient(AsyncBaseClient):
+    async def _testing_user_create(
+        self, given_name: str, surname: str
+    ) -> TestingUserCreateEmployeeCreate:
+        query = gql(
+            """
+            mutation __testing_user_create($given_name: String!, $surname: String!) {
+              employee_create(input: {given_name: $given_name, surname: $surname}) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"given_name": given_name, "surname": surname}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingUserCreate.parse_obj(data).employee_create
+
+    async def _testing_ituser_create(
+        self, input: ITUserCreateInput
+    ) -> TestingItuserCreateItuserCreate:
+        query = gql(
+            """
+            mutation __testing_ituser_create($input: ITUserCreateInput!) {
+              ituser_create(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingItuserCreate.parse_obj(data).ituser_create
+
     async def itsystem_create(
         self, input: ITSystemCreateInput
     ) -> ItsystemCreateItsystemCreate:
