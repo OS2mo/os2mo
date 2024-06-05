@@ -394,6 +394,46 @@ async def test_first_included_exclude_one_user(
     assert result == expected
 
 
+@pytest.mark.parametrize("discriminator_function", ("include", "exclude"))
+async def test_first_included_exclude_none(
+    ldap_connection: Connection,
+    settings: Settings,
+    discriminator_function: str,
+    ldap_container_dn: str,
+) -> None:
+    """Test that first_included exclude works with a single user on valid settings."""
+    another_username = "bar"
+    another_ldap_dn = f"CN={another_username},{ldap_container_dn}"
+    ldap_connection.strategy.add_entry(
+        another_ldap_dn,
+        {
+            "objectClass": "inetOrgPerson",
+            "userPassword": str(uuid4()),
+            "sn": [],
+            "revision": 1,
+            "entryUUID": "{" + str(uuid4()) + "}",
+            "employeeID": "0101700001",
+        },
+    )
+
+    settings = settings.copy(
+        update={
+            "discriminator_field": "sn",
+            "discriminator_function": discriminator_function,
+            "discriminator_values": ["foo_sn"],
+        }
+    )
+    context: Context = {
+        "user_context": {"ldap_connection": ldap_connection, "settings": settings}
+    }
+    with capture_logs() as cap_logs:
+        result = first_included(context, {another_ldap_dn})
+    events = [x["event"] for x in cap_logs]
+    assert events == ["Found DN", "Discriminator value is None"]
+
+    assert result is None
+
+
 @pytest.fixture
 async def sync_tool(
     ldap_connection: Connection,

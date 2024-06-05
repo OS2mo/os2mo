@@ -278,22 +278,30 @@ def first_included(context: Context, dns: set[DN]) -> DN | None:
         # someone will look into the issue.
         raise RequeueMessage("Unable to lookup DN(s)") from exc
 
-    def ldapobject2discriminator(ldap_object: LdapObject) -> str:
-        # The value can either be a string or a list, if a list we assume a 1 element
+    def ldapobject2discriminator(ldap_object: LdapObject) -> str | None:
+        # The value can either be a string or a list
         value = getattr(ldap_object, discriminator_field)
-        # TODO: Figure out when it is a string instead of a 1 element list
+        # TODO: Figure out when it is a string instead of a list
         #       Maybe it is an AD only thing?
         if isinstance(value, str):  # pragma: no cover
             return value
-        unpacked_value = one(value)
+        # If it is a list, we assume it is
+        unpacked_value = only(value)
+        if unpacked_value is None:
+            logger.warning("Discriminator value is None", dn=ldap_object.dn)
+            return None
         assert isinstance(unpacked_value, str)
         return unpacked_value
 
-    mapping: dict[DN, str] = {
+    mapping: dict[DN, str | None] = {
         ldap_object.dn: ldapobject2discriminator(ldap_object)
         for ldap_object in ldap_objects
     }
     assert dns == set(mapping.keys())
+
+    # If our discriminator value is None, we will not consider the account
+    # TODO: Is this a reasonable behavior? - or should we simply retry forever?
+    mapping = {dn: value for dn, value in mapping.items() if value is not None}
 
     # All values must be strings as they are being compared with strings
     assert all(isinstance(value, str) for value in mapping.values())
