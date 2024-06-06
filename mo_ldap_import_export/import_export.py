@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import asyncio
 from collections import ChainMap
 from collections.abc import Callable
 from collections.abc import MutableMapping
@@ -1262,51 +1261,6 @@ class SyncTool:
                 )
         return engagement_uuid
 
-    async def refresh_mo_object(self, mo_object_dict: dict[str, Any]) -> None:
-        routing_key = mo_object_dict["object_type"]
-        payload = mo_object_dict["payload"]
-
-        logger.info(
-            "Publishing",
-            routing_key=routing_key,
-            payload=payload,
-        )
-        match routing_key:
-            case "engagement":
-                await self.refresh_engagement(payload)
-            case "address":
-                await self.refresh_address(payload)
-            case "ituser":
-                await self.refresh_ituser(payload)
-            case _:  # pragma: no cover
-                raise NotImplementedError(
-                    f"Refreshing {routing_key} is not implemented!"
-                )
-
-    async def refresh_object(self, uuid: UUID, object_type: str) -> None:
-        """
-        Sends out an AMQP message on the internal AMQP system to refresh an object
-        """
-        mo_object_dict = await self.dataloader.load_mo_object(str(uuid), object_type)
-        if mo_object_dict is None:
-            raise ValueError(f"Unable to look up {object_type} with UUID: {uuid}")
-        await self.refresh_mo_object(mo_object_dict)
-
-    async def refresh_engagement(self, uuid: UUID) -> None:
-        await self.dataloader.graphql_client.engagement_refresh(
-            self.amqpsystem.exchange_name, uuid
-        )
-
-    async def refresh_address(self, uuid: UUID) -> None:
-        await self.dataloader.graphql_client.address_refresh(
-            self.amqpsystem.exchange_name, uuid
-        )
-
-    async def refresh_ituser(self, uuid: UUID) -> None:
-        await self.dataloader.graphql_client.ituser_refresh(
-            self.amqpsystem.exchange_name, uuid
-        )
-
     async def export_org_unit_addresses_on_engagement_change(
         self, engagement_uuid: UUID
     ) -> None:
@@ -1314,30 +1268,3 @@ class SyncTool:
             self.amqpsystem.exchange_name,
             engagement_uuid,
         )
-
-    async def refresh_employee(self, employee_uuid: UUID):
-        """
-        Sends out AMQP-messages for all objects related to an employee
-        """
-        # NOTE: Should this not refresh the employee itself as well?
-        logger.info("Refreshing employee", uuid=str(employee_uuid))
-
-        # Load address types and it-user types
-        address_type_uuids = parse_obj_as(
-            list[UUID], list(self.converter.employee_address_type_info.keys())
-        )
-        it_system_uuids = parse_obj_as(
-            list[UUID], list(self.converter.it_system_info.keys())
-        )
-
-        refresh_addresses = self.dataloader.graphql_client.person_address_refresh(
-            self.amqpsystem.exchange_name, employee_uuid, address_type_uuids
-        )
-        refresh_engagements = self.dataloader.graphql_client.person_engagement_refresh(
-            self.amqpsystem.exchange_name, employee_uuid
-        )
-        refresh_itusers = self.dataloader.graphql_client.person_ituser_refresh(
-            self.amqpsystem.exchange_name, employee_uuid, it_system_uuids
-        )
-
-        await asyncio.gather(*[refresh_addresses, refresh_engagements, refresh_itusers])
