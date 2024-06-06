@@ -2,8 +2,6 @@ from ._testing_ituser_create import TestingItuserCreate
 from ._testing_ituser_create import TestingItuserCreateItuserCreate
 from ._testing_user_create import TestingUserCreate
 from ._testing_user_create import TestingUserCreateEmployeeCreate
-from .address_refresh import AddressRefresh
-from .address_refresh import AddressRefreshAddressRefresh
 from .address_terminate import AddressTerminate
 from .address_terminate import AddressTerminateAddressTerminate
 from .async_base_client import AsyncBaseClient
@@ -19,8 +17,6 @@ from .engagement_org_unit_address_refresh import EngagementOrgUnitAddressRefresh
 from .engagement_org_unit_address_refresh import (
     EngagementOrgUnitAddressRefreshAddressRefresh,
 )
-from .engagement_refresh import EngagementRefresh
-from .engagement_refresh import EngagementRefreshEngagementRefresh
 from .engagement_terminate import EngagementTerminate
 from .engagement_terminate import EngagementTerminateEngagementTerminate
 from .enums import AuditLogModel
@@ -145,18 +141,10 @@ from .input_types import UuidsBoundOrganisationUnitFilter
 from .input_types import ValidityInput
 from .itsystem_create import ItsystemCreate
 from .itsystem_create import ItsystemCreateItsystemCreate
-from .ituser_refresh import ItuserRefresh
-from .ituser_refresh import ItuserRefreshItuserRefresh
 from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefresh
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefreshEngagementRefresh
-from .person_address_refresh import PersonAddressRefresh
-from .person_address_refresh import PersonAddressRefreshAddressRefresh
-from .person_engagement_refresh import PersonEngagementRefresh
-from .person_engagement_refresh import PersonEngagementRefreshEngagementRefresh
-from .person_ituser_refresh import PersonItuserRefresh
-from .person_ituser_refresh import PersonItuserRefreshItuserRefresh
 from .read_addresses import ReadAddresses
 from .read_addresses import ReadAddressesAddresses
 from .read_addresses import ReadAddressesAddressesObjects
@@ -382,8 +370,6 @@ from .set_job_title import SetJobTitleEngagementUpdate
 __all__ = [
     "AddressCreateInput",
     "AddressFilter",
-    "AddressRefresh",
-    "AddressRefreshAddressRefresh",
     "AddressRegistrationFilter",
     "AddressTerminate",
     "AddressTerminateAddressTerminate",
@@ -426,8 +412,6 @@ __all__ = [
     "EngagementFilter",
     "EngagementOrgUnitAddressRefresh",
     "EngagementOrgUnitAddressRefreshAddressRefresh",
-    "EngagementRefresh",
-    "EngagementRefreshEngagementRefresh",
     "EngagementRegistrationFilter",
     "EngagementTerminate",
     "EngagementTerminateEngagementTerminate",
@@ -463,8 +447,6 @@ __all__ = [
     "ITUserUpdateInput",
     "ItsystemCreate",
     "ItsystemCreateItsystemCreate",
-    "ItuserRefresh",
-    "ItuserRefreshItuserRefresh",
     "ItuserTerminate",
     "ItuserTerminateItuserTerminate",
     "KLECreateInput",
@@ -508,12 +490,6 @@ __all__ = [
     "ParentsBoundClassFilter",
     "ParentsBoundFacetFilter",
     "ParentsBoundOrganisationUnitFilter",
-    "PersonAddressRefresh",
-    "PersonAddressRefreshAddressRefresh",
-    "PersonEngagementRefresh",
-    "PersonEngagementRefreshEngagementRefresh",
-    "PersonItuserRefresh",
-    "PersonItuserRefreshItuserRefresh",
     "RAOpenValidityInput",
     "RAValidityInput",
     "ReadAddresses",
