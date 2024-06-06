@@ -4,6 +4,7 @@ import structlog
 from pydantic import parse_obj_as
 
 from .config import Init
+from .dataloaders import DataLoader
 
 logger = structlog.stdlib.get_logger()
 
@@ -12,7 +13,7 @@ class InitEngine:
     def __init__(self, context):
         user_context = context["user_context"]
         self.init_mapping = parse_obj_as(Init, user_context["mapping"].get("init", {}))
-        self.dataloader = user_context["dataloader"]
+        self.dataloader: DataLoader = user_context["dataloader"]
 
     async def create_facets(self):
         facet_mapping = self.init_mapping.facets

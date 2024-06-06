@@ -394,10 +394,6 @@ def test_alleroed_username_generator(
         assert username == next(expected_usernames)
         existing_names.append(username)
 
-        # Print human readable output to send to Alleroed
-        full_name = " ".join(name)
-        print(f"{full_name} -> '{username}'")
-
 
 async def test_alleroed_dn_generator(
     alleroed_username_generator: AlleroedUserNameGenerator,
