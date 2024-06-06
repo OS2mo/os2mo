@@ -92,11 +92,11 @@ async def process_address(
     amqpsystem: depends.AMQPSystem,
 ) -> None:
     result = await graphql_client.read_address_relation_uuids(object_uuid)
-
-    if len(result.objects) != 1:
+    try:
+        obj = one(result.objects)
+    except ValueError:
         logger.warning("Unable to lookup address", uuid=object_uuid)
         raise RejectMessage("Unable to lookup address")
-    obj = one(result.objects)
 
     if obj.current is None:
         logger.warning("Address not currently active", uuid=object_uuid)
@@ -130,11 +130,11 @@ async def process_engagement(
     amqpsystem: depends.AMQPSystem,
 ) -> None:
     result = await graphql_client.read_engagement_employee_uuid(object_uuid)
-
-    if len(result.objects) != 1:
+    try:
+        obj = one(result.objects)
+    except ValueError:
         logger.warning("Unable to lookup engagement", uuid=object_uuid)
         raise RejectMessage("Unable to lookup engagement")
-    obj = one(result.objects)
 
     if obj.current is None:
         logger.warning("Engagement not currently active", uuid=object_uuid)
@@ -153,11 +153,11 @@ async def process_ituser(
     amqpsystem: depends.AMQPSystem,
 ) -> None:
     result = await graphql_client.read_ituser_employee_uuid(object_uuid)
-
-    if len(result.objects) != 1:
+    try:
+        obj = one(result.objects)
+    except ValueError:
         logger.warning("Unable to lookup ITUser", uuid=object_uuid)
         raise RejectMessage("Unable to lookup ITUser")
-    obj = one(result.objects)
 
     if obj.current is None:
         logger.warning("ITUser not currently active", uuid=object_uuid)
