@@ -1522,18 +1522,6 @@ class DataLoader:
             )
         return output
 
-    async def load_all_current_it_users(self, it_system_uuid: UUID) -> list[dict]:
-        """
-        Loads all current it-users
-        """
-        filter = parse_obj_as(ITUserFilter, {"itsystem": {"uuids": [it_system_uuid]}})
-        read_all_itusers = partial(self.graphql_client.read_all_itusers, filter)
-        return [
-            jsonable_encoder(one(entry.validities))
-            async for entry in paged_query(read_all_itusers)
-            if entry.validities
-        ]
-
     async def load_mo_employee_it_users(
         self,
         employee_uuid: UUID,

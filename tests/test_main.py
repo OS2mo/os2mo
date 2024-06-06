@@ -1009,12 +1009,13 @@ async def test_get_non_existing_objectGUIDs_from_MO(
     dataloader: AsyncMock,
     test_client: TestClient,
 ) -> None:
+    dataloader.get_ldap_it_system_uuid.return_value = str(uuid4())
+
     it_users = [
         {"employee_uuid": str(uuid4()), "user_key": str(uuid4())},
         {"employee_uuid": str(uuid4()), "user_key": str(uuid4())},
         {"employee_uuid": str(uuid4()), "user_key": "foo"},
     ]
-    dataloader.load_all_current_it_users.return_value = it_users
     employee = Employee(givenname="Jim", surname="")
     dataloader.load_mo_employee.return_value = employee
 
@@ -1024,6 +1025,8 @@ async def test_get_non_existing_objectGUIDs_from_MO(
             it_users[0]["user_key"],
             str(uuid4()),
         ],
+    ), patch(
+        "mo_ldap_import_export.routes.load_all_current_it_users", return_value=it_users
     ):
         response = test_client.get("/Inspect/non_existing_unique_ldap_uuids")
     assert response.status_code == 202

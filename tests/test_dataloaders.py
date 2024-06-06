@@ -80,6 +80,7 @@ from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import NotEnabledException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
 from mo_ldap_import_export.import_export import IgnoreMe
+from mo_ldap_import_export.routes import load_all_current_it_users
 from mo_ldap_import_export.routes import load_ldap_attribute_values
 from mo_ldap_import_export.routes import load_ldap_objects
 from mo_ldap_import_export.routes import load_ldap_populated_overview
@@ -2255,7 +2256,7 @@ async def test_load_all_current_it_users_no_paged(
             "page_info": {"next_cursor": None},
         }
     }
-    results = await dataloader.load_all_current_it_users(itsystem1_uuid)
+    results = await load_all_current_it_users(dataloader.graphql_client, itsystem1_uuid)
     result = one(results)
     assert result["itsystem_uuid"] == str(itsystem1_uuid)
     assert result["user_key"] == "foo"
@@ -2312,7 +2313,7 @@ async def test_load_all_current_it_users_paged(
 
     route = graphql_mock.query("read_all_itusers")
     route.mock(side_effect=pager)
-    results = await dataloader.load_all_current_it_users(itsystem1_uuid)
+    results = await load_all_current_it_users(dataloader.graphql_client, itsystem1_uuid)
     assert len(results) == 2
 
     first, second = results
