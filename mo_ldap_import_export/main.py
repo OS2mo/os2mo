@@ -177,7 +177,7 @@ async def process_engagement(
 
     person_uuid = obj.current.employee_uuid
     # TODO: Add support for refreshing persons with a certain engagement directly
-    await graphql_client.employee_refresh(amqpsystem.exchange_name, person_uuid)
+    await graphql_client.employee_refresh(amqpsystem.exchange_name, [person_uuid])
 
 
 @amqp_router.register("ituser")
@@ -204,7 +204,7 @@ async def process_ituser(
         raise RejectMessage("ITUser not attached to a person")
 
     # TODO: Add support for refreshing persons with a certain ituser directly
-    await graphql_client.employee_refresh(amqpsystem.exchange_name, person_uuid)
+    await graphql_client.employee_refresh(amqpsystem.exchange_name, [person_uuid])
 
 
 @amqp_router.register("person")

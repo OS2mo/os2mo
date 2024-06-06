@@ -818,13 +818,8 @@ class SyncTool:
             "Refreshing all employees in org-unit", employee_uuids=employee_uuids
         )
         # TODO: Add support for refreshing persons with a primary engagement relation directly
-        await asyncio.gather(
-            *(
-                self.dataloader.graphql_client.employee_refresh(
-                    self.amqpsystem.exchange_name, person_uuid
-                )
-                for person_uuid in employee_uuids
-            )
+        await self.dataloader.graphql_client.employee_refresh(
+            self.amqpsystem.exchange_name, list(employee_uuids)
         )
 
     async def format_converted_objects(

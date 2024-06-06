@@ -924,18 +924,18 @@ class GraphQLClient(AsyncBaseClient):
         return PersonItuserRefresh.parse_obj(data).ituser_refresh
 
     async def employee_refresh(
-        self, exchange: str, uuid: UUID
+        self, exchange: str, uuids: List[UUID]
     ) -> EmployeeRefreshEmployeeRefresh:
         query = gql(
             """
-            mutation employee_refresh($exchange: String!, $uuid: UUID!) {
-              employee_refresh(exchange: $exchange, filter: {uuids: [$uuid]}) {
+            mutation employee_refresh($exchange: String!, $uuids: [UUID!]!) {
+              employee_refresh(exchange: $exchange, filter: {uuids: $uuids}) {
                 objects
               }
             }
             """
         )
-        variables: dict[str, object] = {"exchange": exchange, "uuid": uuid}
+        variables: dict[str, object] = {"exchange": exchange, "uuids": uuids}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return EmployeeRefresh.parse_obj(data).employee_refresh

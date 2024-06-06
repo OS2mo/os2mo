@@ -380,8 +380,8 @@ mutation person_ituser_refresh(
   }
 }
 
-mutation employee_refresh($exchange: String!, $uuid: UUID!) {
-  employee_refresh(exchange: $exchange, filter: {uuids: [$uuid]}) {
+mutation employee_refresh($exchange: String!, $uuids: [UUID!]!) {
+  employee_refresh(exchange: $exchange, filter: {uuids: $uuids}) {
     objects
   }
 }
