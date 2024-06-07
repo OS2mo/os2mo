@@ -10,8 +10,6 @@ from ._testing_ituser_create import TestingItuserCreate
 from ._testing_ituser_create import TestingItuserCreateItuserCreate
 from ._testing_user_create import TestingUserCreate
 from ._testing_user_create import TestingUserCreateEmployeeCreate
-from .address_refresh import AddressRefresh
-from .address_refresh import AddressRefreshAddressRefresh
 from .address_terminate import AddressTerminate
 from .address_terminate import AddressTerminateAddressTerminate
 from .async_base_client import AsyncBaseClient
@@ -23,54 +21,30 @@ from .class_update import ClassUpdate
 from .class_update import ClassUpdateClassUpdate
 from .employee_refresh import EmployeeRefresh
 from .employee_refresh import EmployeeRefreshEmployeeRefresh
-from .engagement_org_unit_address_refresh import EngagementOrgUnitAddressRefresh
-from .engagement_org_unit_address_refresh import (
-    EngagementOrgUnitAddressRefreshAddressRefresh,
-)
-from .engagement_refresh import EngagementRefresh
-from .engagement_refresh import EngagementRefreshEngagementRefresh
 from .engagement_terminate import EngagementTerminate
 from .engagement_terminate import EngagementTerminateEngagementTerminate
 from .input_types import AddressFilter
 from .input_types import AddressTerminateInput
 from .input_types import ClassCreateInput
 from .input_types import ClassUpdateInput
-from .input_types import EmployeeFilter
 from .input_types import EngagementFilter
 from .input_types import EngagementTerminateInput
 from .input_types import ITSystemCreateInput
 from .input_types import ITUserCreateInput
 from .input_types import ITUserFilter
 from .input_types import ITUserTerminateInput
-from .input_types import OrganisationUnitFilter
 from .itsystem_create import ItsystemCreate
 from .itsystem_create import ItsystemCreateItsystemCreate
-from .ituser_refresh import ItuserRefresh
-from .ituser_refresh import ItuserRefreshItuserRefresh
 from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefresh
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefreshEngagementRefresh
-from .person_address_refresh import PersonAddressRefresh
-from .person_address_refresh import PersonAddressRefreshAddressRefresh
-from .person_engagement_refresh import PersonEngagementRefresh
-from .person_engagement_refresh import PersonEngagementRefreshEngagementRefresh
-from .person_ituser_refresh import PersonItuserRefresh
-from .person_ituser_refresh import PersonItuserRefreshItuserRefresh
+from .read_address_relation_uuids import ReadAddressRelationUuids
+from .read_address_relation_uuids import ReadAddressRelationUuidsAddresses
 from .read_addresses import ReadAddresses
 from .read_addresses import ReadAddressesAddresses
-from .read_all_address_uuids import ReadAllAddressUuids
-from .read_all_address_uuids import ReadAllAddressUuidsAddresses
-from .read_all_employee_uuids import ReadAllEmployeeUuids
-from .read_all_employee_uuids import ReadAllEmployeeUuidsEmployees
-from .read_all_engagement_uuids import ReadAllEngagementUuids
-from .read_all_engagement_uuids import ReadAllEngagementUuidsEngagements
-from .read_all_ituser_uuids import ReadAllItuserUuids
-from .read_all_ituser_uuids import ReadAllItuserUuidsItusers
 from .read_all_itusers import ReadAllItusers
 from .read_all_itusers import ReadAllItusersItusers
-from .read_all_org_unit_uuids import ReadAllOrgUnitUuids
-from .read_all_org_unit_uuids import ReadAllOrgUnitUuidsOrgUnits
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuid
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuidClasses
 from .read_class_user_keys import ReadClassUserKeys
@@ -778,57 +752,6 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return ReadClassNameByClassUuid.parse_obj(data).classes
 
-    async def engagement_refresh(
-        self, exchange: str, uuid: UUID
-    ) -> EngagementRefreshEngagementRefresh:
-        query = gql(
-            """
-            mutation engagement_refresh($exchange: String!, $uuid: UUID!) {
-              engagement_refresh(exchange: $exchange, filter: {uuids: [$uuid]}) {
-                objects
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"exchange": exchange, "uuid": uuid}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return EngagementRefresh.parse_obj(data).engagement_refresh
-
-    async def address_refresh(
-        self, exchange: str, uuid: UUID
-    ) -> AddressRefreshAddressRefresh:
-        query = gql(
-            """
-            mutation address_refresh($exchange: String!, $uuid: UUID!) {
-              address_refresh(exchange: $exchange, filter: {uuids: [$uuid]}) {
-                objects
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"exchange": exchange, "uuid": uuid}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return AddressRefresh.parse_obj(data).address_refresh
-
-    async def ituser_refresh(
-        self, exchange: str, uuid: UUID
-    ) -> ItuserRefreshItuserRefresh:
-        query = gql(
-            """
-            mutation ituser_refresh($exchange: String!, $uuid: UUID!) {
-              ituser_refresh(exchange: $exchange, filter: {uuids: [$uuid]}) {
-                objects
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"exchange": exchange, "uuid": uuid}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ItuserRefresh.parse_obj(data).ituser_refresh
-
     async def org_unit_engagements_refresh(
         self, exchange: str, org_unit_uuid: UUID
     ) -> OrgUnitEngagementsRefreshEngagementRefresh:
@@ -851,77 +774,6 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return OrgUnitEngagementsRefresh.parse_obj(data).engagement_refresh
-
-    async def person_address_refresh(
-        self, exchange: str, person_uuid: UUID, address_type_uuids: List[UUID]
-    ) -> PersonAddressRefreshAddressRefresh:
-        query = gql(
-            """
-            mutation person_address_refresh($exchange: String!, $person_uuid: UUID!, $address_type_uuids: [UUID!]!) {
-              address_refresh(
-                exchange: $exchange
-                filter: {address_type: {uuids: $address_type_uuids}, employee: {uuids: [$person_uuid]}}
-              ) {
-                objects
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {
-            "exchange": exchange,
-            "person_uuid": person_uuid,
-            "address_type_uuids": address_type_uuids,
-        }
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return PersonAddressRefresh.parse_obj(data).address_refresh
-
-    async def person_engagement_refresh(
-        self, exchange: str, person_uuid: UUID
-    ) -> PersonEngagementRefreshEngagementRefresh:
-        query = gql(
-            """
-            mutation person_engagement_refresh($exchange: String!, $person_uuid: UUID!) {
-              engagement_refresh(
-                exchange: $exchange
-                filter: {employee: {uuids: [$person_uuid]}}
-              ) {
-                objects
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {
-            "exchange": exchange,
-            "person_uuid": person_uuid,
-        }
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return PersonEngagementRefresh.parse_obj(data).engagement_refresh
-
-    async def person_ituser_refresh(
-        self, exchange: str, person_uuid: UUID, it_system_uuids: List[UUID]
-    ) -> PersonItuserRefreshItuserRefresh:
-        query = gql(
-            """
-            mutation person_ituser_refresh($exchange: String!, $person_uuid: UUID!, $it_system_uuids: [UUID!]!) {
-              ituser_refresh(
-                exchange: $exchange
-                filter: {itsystem: {uuids: $it_system_uuids}, employee: {uuids: [$person_uuid]}}
-              ) {
-                objects
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {
-            "exchange": exchange,
-            "person_uuid": person_uuid,
-            "it_system_uuids": it_system_uuids,
-        }
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return PersonItuserRefresh.parse_obj(data).ituser_refresh
 
     async def employee_refresh(
         self, exchange: str, uuids: List[UUID]
@@ -1086,210 +938,6 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return ReadAllItusers.parse_obj(data).itusers
 
-    async def read_all_employee_uuids(
-        self,
-        filter: EmployeeFilter,
-        cursor: Union[Optional[Any], UnsetType] = UNSET,
-        limit: Union[Optional[Any], UnsetType] = UNSET,
-    ) -> ReadAllEmployeeUuidsEmployees:
-        query = gql(
-            """
-            query read_all_employee_uuids($filter: EmployeeFilter!, $cursor: Cursor = null, $limit: int = 100) {
-              employees(limit: $limit, cursor: $cursor, filter: $filter) {
-                objects {
-                  validities {
-                    uuid
-                    validity {
-                      from
-                      to
-                    }
-                  }
-                }
-                page_info {
-                  next_cursor
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {
-            "filter": filter,
-            "cursor": cursor,
-            "limit": limit,
-        }
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadAllEmployeeUuids.parse_obj(data).employees
-
-    async def read_all_org_unit_uuids(
-        self,
-        filter: OrganisationUnitFilter,
-        cursor: Union[Optional[Any], UnsetType] = UNSET,
-        limit: Union[Optional[Any], UnsetType] = UNSET,
-    ) -> ReadAllOrgUnitUuidsOrgUnits:
-        query = gql(
-            """
-            query read_all_org_unit_uuids($filter: OrganisationUnitFilter!, $cursor: Cursor = null, $limit: int = 100) {
-              org_units(limit: $limit, cursor: $cursor, filter: $filter) {
-                objects {
-                  validities {
-                    uuid
-                    validity {
-                      from
-                      to
-                    }
-                  }
-                }
-                page_info {
-                  next_cursor
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {
-            "filter": filter,
-            "cursor": cursor,
-            "limit": limit,
-        }
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadAllOrgUnitUuids.parse_obj(data).org_units
-
-    async def read_all_address_uuids(
-        self,
-        filter: AddressFilter,
-        cursor: Union[Optional[Any], UnsetType] = UNSET,
-        limit: Union[Optional[Any], UnsetType] = UNSET,
-    ) -> ReadAllAddressUuidsAddresses:
-        query = gql(
-            """
-            query read_all_address_uuids($filter: AddressFilter!, $cursor: Cursor = null, $limit: int = 100) {
-              addresses(limit: $limit, cursor: $cursor, filter: $filter) {
-                objects {
-                  validities {
-                    uuid
-                    org_unit_uuid
-                    employee_uuid
-                    validity {
-                      from
-                      to
-                    }
-                  }
-                }
-                page_info {
-                  next_cursor
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {
-            "filter": filter,
-            "cursor": cursor,
-            "limit": limit,
-        }
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadAllAddressUuids.parse_obj(data).addresses
-
-    async def read_all_ituser_uuids(
-        self,
-        filter: ITUserFilter,
-        cursor: Union[Optional[Any], UnsetType] = UNSET,
-        limit: Union[Optional[Any], UnsetType] = UNSET,
-    ) -> ReadAllItuserUuidsItusers:
-        query = gql(
-            """
-            query read_all_ituser_uuids($filter: ITUserFilter!, $cursor: Cursor = null, $limit: int = 100) {
-              itusers(limit: $limit, cursor: $cursor, filter: $filter) {
-                objects {
-                  validities {
-                    uuid
-                    org_unit_uuid
-                    employee_uuid
-                    validity {
-                      from
-                      to
-                    }
-                  }
-                }
-                page_info {
-                  next_cursor
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {
-            "filter": filter,
-            "cursor": cursor,
-            "limit": limit,
-        }
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadAllItuserUuids.parse_obj(data).itusers
-
-    async def read_all_engagement_uuids(
-        self,
-        filter: EngagementFilter,
-        cursor: Union[Optional[Any], UnsetType] = UNSET,
-        limit: Union[Optional[Any], UnsetType] = UNSET,
-    ) -> ReadAllEngagementUuidsEngagements:
-        query = gql(
-            """
-            query read_all_engagement_uuids($filter: EngagementFilter!, $cursor: Cursor = null, $limit: int = 100) {
-              engagements(limit: $limit, cursor: $cursor, filter: $filter) {
-                objects {
-                  validities {
-                    uuid
-                    org_unit_uuid
-                    employee_uuid
-                    validity {
-                      from
-                      to
-                    }
-                  }
-                }
-                page_info {
-                  next_cursor
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {
-            "filter": filter,
-            "cursor": cursor,
-            "limit": limit,
-        }
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadAllEngagementUuids.parse_obj(data).engagements
-
-    async def engagement_org_unit_address_refresh(
-        self, exchange: str, engagement_uuid: UUID
-    ) -> EngagementOrgUnitAddressRefreshAddressRefresh:
-        query = gql(
-            """
-            mutation engagement_org_unit_address_refresh($exchange: String!, $engagement_uuid: UUID!) {
-              address_refresh(
-                exchange: $exchange
-                filter: {org_unit: {engagement: {uuids: [$engagement_uuid]}}}
-              ) {
-                objects
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {
-            "exchange": exchange,
-            "engagement_uuid": engagement_uuid,
-        }
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return EngagementOrgUnitAddressRefresh.parse_obj(data).address_refresh
-
     async def read_filtered_addresses(
         self, filter: AddressFilter
     ) -> ReadFilteredAddressesAddresses:
@@ -1413,3 +1061,25 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEngagementEmployeeUuid.parse_obj(data).engagements
+
+    async def read_address_relation_uuids(
+        self, address_uuid: UUID
+    ) -> ReadAddressRelationUuidsAddresses:
+        query = gql(
+            """
+            query read_address_relation_uuids($address_uuid: UUID!) {
+              addresses(filter: {uuids: [$address_uuid]}) {
+                objects {
+                  current {
+                    employee_uuid
+                    org_unit_uuid
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"address_uuid": address_uuid}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadAddressRelationUuids.parse_obj(data).addresses

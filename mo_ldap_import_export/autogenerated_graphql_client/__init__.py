@@ -2,8 +2,6 @@ from ._testing_ituser_create import TestingItuserCreate
 from ._testing_ituser_create import TestingItuserCreateItuserCreate
 from ._testing_user_create import TestingUserCreate
 from ._testing_user_create import TestingUserCreateEmployeeCreate
-from .address_refresh import AddressRefresh
-from .address_refresh import AddressRefreshAddressRefresh
 from .address_terminate import AddressTerminate
 from .address_terminate import AddressTerminateAddressTerminate
 from .async_base_client import AsyncBaseClient
@@ -15,12 +13,6 @@ from .class_update import ClassUpdateClassUpdate
 from .client import GraphQLClient
 from .employee_refresh import EmployeeRefresh
 from .employee_refresh import EmployeeRefreshEmployeeRefresh
-from .engagement_org_unit_address_refresh import EngagementOrgUnitAddressRefresh
-from .engagement_org_unit_address_refresh import (
-    EngagementOrgUnitAddressRefreshAddressRefresh,
-)
-from .engagement_refresh import EngagementRefresh
-from .engagement_refresh import EngagementRefreshEngagementRefresh
 from .engagement_terminate import EngagementTerminate
 from .engagement_terminate import EngagementTerminateEngagementTerminate
 from .enums import AuditLogModel
@@ -145,18 +137,14 @@ from .input_types import UuidsBoundOrganisationUnitFilter
 from .input_types import ValidityInput
 from .itsystem_create import ItsystemCreate
 from .itsystem_create import ItsystemCreateItsystemCreate
-from .ituser_refresh import ItuserRefresh
-from .ituser_refresh import ItuserRefreshItuserRefresh
 from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefresh
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefreshEngagementRefresh
-from .person_address_refresh import PersonAddressRefresh
-from .person_address_refresh import PersonAddressRefreshAddressRefresh
-from .person_engagement_refresh import PersonEngagementRefresh
-from .person_engagement_refresh import PersonEngagementRefreshEngagementRefresh
-from .person_ituser_refresh import PersonItuserRefresh
-from .person_ituser_refresh import PersonItuserRefreshItuserRefresh
+from .read_address_relation_uuids import ReadAddressRelationUuids
+from .read_address_relation_uuids import ReadAddressRelationUuidsAddresses
+from .read_address_relation_uuids import ReadAddressRelationUuidsAddressesObjects
+from .read_address_relation_uuids import ReadAddressRelationUuidsAddressesObjectsCurrent
 from .read_addresses import ReadAddresses
 from .read_addresses import ReadAddressesAddresses
 from .read_addresses import ReadAddressesAddressesObjects
@@ -164,51 +152,11 @@ from .read_addresses import ReadAddressesAddressesObjectsValidities
 from .read_addresses import ReadAddressesAddressesObjectsValiditiesAddressType
 from .read_addresses import ReadAddressesAddressesObjectsValiditiesPerson
 from .read_addresses import ReadAddressesAddressesObjectsValiditiesValidity
-from .read_all_address_uuids import ReadAllAddressUuids
-from .read_all_address_uuids import ReadAllAddressUuidsAddresses
-from .read_all_address_uuids import ReadAllAddressUuidsAddressesObjects
-from .read_all_address_uuids import ReadAllAddressUuidsAddressesObjectsValidities
-from .read_all_address_uuids import (
-    ReadAllAddressUuidsAddressesObjectsValiditiesValidity,
-)
-from .read_all_address_uuids import ReadAllAddressUuidsAddressesPageInfo
-from .read_all_employee_uuids import ReadAllEmployeeUuids
-from .read_all_employee_uuids import ReadAllEmployeeUuidsEmployees
-from .read_all_employee_uuids import ReadAllEmployeeUuidsEmployeesObjects
-from .read_all_employee_uuids import ReadAllEmployeeUuidsEmployeesObjectsValidities
-from .read_all_employee_uuids import (
-    ReadAllEmployeeUuidsEmployeesObjectsValiditiesValidity,
-)
-from .read_all_employee_uuids import ReadAllEmployeeUuidsEmployeesPageInfo
-from .read_all_engagement_uuids import ReadAllEngagementUuids
-from .read_all_engagement_uuids import ReadAllEngagementUuidsEngagements
-from .read_all_engagement_uuids import ReadAllEngagementUuidsEngagementsObjects
-from .read_all_engagement_uuids import (
-    ReadAllEngagementUuidsEngagementsObjectsValidities,
-)
-from .read_all_engagement_uuids import (
-    ReadAllEngagementUuidsEngagementsObjectsValiditiesValidity,
-)
-from .read_all_engagement_uuids import ReadAllEngagementUuidsEngagementsPageInfo
-from .read_all_ituser_uuids import ReadAllItuserUuids
-from .read_all_ituser_uuids import ReadAllItuserUuidsItusers
-from .read_all_ituser_uuids import ReadAllItuserUuidsItusersObjects
-from .read_all_ituser_uuids import ReadAllItuserUuidsItusersObjectsValidities
-from .read_all_ituser_uuids import ReadAllItuserUuidsItusersObjectsValiditiesValidity
-from .read_all_ituser_uuids import ReadAllItuserUuidsItusersPageInfo
 from .read_all_itusers import ReadAllItusers
 from .read_all_itusers import ReadAllItusersItusers
 from .read_all_itusers import ReadAllItusersItusersObjects
 from .read_all_itusers import ReadAllItusersItusersObjectsValidities
 from .read_all_itusers import ReadAllItusersItusersPageInfo
-from .read_all_org_unit_uuids import ReadAllOrgUnitUuids
-from .read_all_org_unit_uuids import ReadAllOrgUnitUuidsOrgUnits
-from .read_all_org_unit_uuids import ReadAllOrgUnitUuidsOrgUnitsObjects
-from .read_all_org_unit_uuids import ReadAllOrgUnitUuidsOrgUnitsObjectsValidities
-from .read_all_org_unit_uuids import (
-    ReadAllOrgUnitUuidsOrgUnitsObjectsValiditiesValidity,
-)
-from .read_all_org_unit_uuids import ReadAllOrgUnitUuidsOrgUnitsPageInfo
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuid
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuidClasses
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuidClassesObjects
@@ -382,8 +330,6 @@ from .set_job_title import SetJobTitleEngagementUpdate
 __all__ = [
     "AddressCreateInput",
     "AddressFilter",
-    "AddressRefresh",
-    "AddressRefreshAddressRefresh",
     "AddressRegistrationFilter",
     "AddressTerminate",
     "AddressTerminateAddressTerminate",
@@ -424,10 +370,6 @@ __all__ = [
     "EmployeesBoundRoleFilter",
     "EngagementCreateInput",
     "EngagementFilter",
-    "EngagementOrgUnitAddressRefresh",
-    "EngagementOrgUnitAddressRefreshAddressRefresh",
-    "EngagementRefresh",
-    "EngagementRefreshEngagementRefresh",
     "EngagementRegistrationFilter",
     "EngagementTerminate",
     "EngagementTerminateEngagementTerminate",
@@ -463,8 +405,6 @@ __all__ = [
     "ITUserUpdateInput",
     "ItsystemCreate",
     "ItsystemCreateItsystemCreate",
-    "ItuserRefresh",
-    "ItuserRefreshItuserRefresh",
     "ItuserTerminate",
     "ItuserTerminateItuserTerminate",
     "KLECreateInput",
@@ -508,14 +448,12 @@ __all__ = [
     "ParentsBoundClassFilter",
     "ParentsBoundFacetFilter",
     "ParentsBoundOrganisationUnitFilter",
-    "PersonAddressRefresh",
-    "PersonAddressRefreshAddressRefresh",
-    "PersonEngagementRefresh",
-    "PersonEngagementRefreshEngagementRefresh",
-    "PersonItuserRefresh",
-    "PersonItuserRefreshItuserRefresh",
     "RAOpenValidityInput",
     "RAValidityInput",
+    "ReadAddressRelationUuids",
+    "ReadAddressRelationUuidsAddresses",
+    "ReadAddressRelationUuidsAddressesObjects",
+    "ReadAddressRelationUuidsAddressesObjectsCurrent",
     "ReadAddresses",
     "ReadAddressesAddresses",
     "ReadAddressesAddressesObjects",
@@ -523,41 +461,11 @@ __all__ = [
     "ReadAddressesAddressesObjectsValiditiesAddressType",
     "ReadAddressesAddressesObjectsValiditiesPerson",
     "ReadAddressesAddressesObjectsValiditiesValidity",
-    "ReadAllAddressUuids",
-    "ReadAllAddressUuidsAddresses",
-    "ReadAllAddressUuidsAddressesObjects",
-    "ReadAllAddressUuidsAddressesObjectsValidities",
-    "ReadAllAddressUuidsAddressesObjectsValiditiesValidity",
-    "ReadAllAddressUuidsAddressesPageInfo",
-    "ReadAllEmployeeUuids",
-    "ReadAllEmployeeUuidsEmployees",
-    "ReadAllEmployeeUuidsEmployeesObjects",
-    "ReadAllEmployeeUuidsEmployeesObjectsValidities",
-    "ReadAllEmployeeUuidsEmployeesObjectsValiditiesValidity",
-    "ReadAllEmployeeUuidsEmployeesPageInfo",
-    "ReadAllEngagementUuids",
-    "ReadAllEngagementUuidsEngagements",
-    "ReadAllEngagementUuidsEngagementsObjects",
-    "ReadAllEngagementUuidsEngagementsObjectsValidities",
-    "ReadAllEngagementUuidsEngagementsObjectsValiditiesValidity",
-    "ReadAllEngagementUuidsEngagementsPageInfo",
-    "ReadAllItuserUuids",
-    "ReadAllItuserUuidsItusers",
-    "ReadAllItuserUuidsItusersObjects",
-    "ReadAllItuserUuidsItusersObjectsValidities",
-    "ReadAllItuserUuidsItusersObjectsValiditiesValidity",
-    "ReadAllItuserUuidsItusersPageInfo",
     "ReadAllItusers",
     "ReadAllItusersItusers",
     "ReadAllItusersItusersObjects",
     "ReadAllItusersItusersObjectsValidities",
     "ReadAllItusersItusersPageInfo",
-    "ReadAllOrgUnitUuids",
-    "ReadAllOrgUnitUuidsOrgUnits",
-    "ReadAllOrgUnitUuidsOrgUnitsObjects",
-    "ReadAllOrgUnitUuidsOrgUnitsObjectsValidities",
-    "ReadAllOrgUnitUuidsOrgUnitsObjectsValiditiesValidity",
-    "ReadAllOrgUnitUuidsOrgUnitsPageInfo",
     "ReadClassNameByClassUuid",
     "ReadClassNameByClassUuidClasses",
     "ReadClassNameByClassUuidClassesObjects",

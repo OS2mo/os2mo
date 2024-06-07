@@ -412,134 +412,6 @@ query read_all_itusers($filter: ITUserFilter!, $cursor: Cursor = null, $limit: i
   }
 }
 
-query read_all_employee_uuids($filter: EmployeeFilter!, $cursor: Cursor = null, $limit: int = 100) {
-  employees(
-    limit: $limit,
-    cursor: $cursor,
-    filter: $filter,
-  ) {
-    objects {
-      validities {
-        uuid
-        validity {
-            from
-            to
-        }
-      }
-    }
-    page_info {
-      next_cursor
-    }
-  }
-}
-
-query read_all_org_unit_uuids($filter: OrganisationUnitFilter!, $cursor: Cursor = null, $limit: int = 100) {
-  org_units(
-    limit: $limit,
-    cursor: $cursor,
-    filter: $filter,
-  ) {
-    objects {
-      validities {
-        uuid
-        validity {
-            from
-            to
-        }
-      }
-    }
-    page_info {
-      next_cursor
-    }
-  }
-}
-
-query read_all_address_uuids($filter: AddressFilter!, $cursor: Cursor = null, $limit: int = 100) {
-  addresses(
-    limit: $limit,
-    cursor: $cursor,
-    filter: $filter,
-  ) {
-    objects {
-      validities {
-        uuid
-        org_unit_uuid
-        employee_uuid
-        validity {
-            from
-            to
-        }
-      }
-    }
-    page_info {
-      next_cursor
-    }
-  }
-}
-
-query read_all_ituser_uuids($filter: ITUserFilter!, $cursor: Cursor = null, $limit: int = 100) {
-  itusers(
-    limit: $limit,
-    cursor: $cursor,
-    filter: $filter,
-  ) {
-    objects {
-      validities {
-        uuid
-        org_unit_uuid
-        employee_uuid
-        validity {
-            from
-            to
-        }
-      }
-    }
-    page_info {
-      next_cursor
-    }
-  }
-}
-
-query read_all_engagement_uuids($filter: EngagementFilter!, $cursor: Cursor = null, $limit: int = 100) {
-  engagements(
-    limit: $limit,
-    cursor: $cursor,
-    filter: $filter,
-  ) {
-    objects {
-      validities {
-        uuid
-        org_unit_uuid
-        employee_uuid
-        validity {
-            from
-            to
-        }
-      }
-    }
-    page_info {
-      next_cursor
-    }
-  }
-}
-
-mutation engagement_org_unit_address_refresh(
-  $exchange: String!, $engagement_uuid: UUID!
-) {
-  address_refresh(
-    exchange: $exchange,
-    filter: {
-      org_unit: {
-        engagement: {
-          uuids: [$engagement_uuid]
-        }
-      }
-    }
-  ) {
-    objects
-  }
-}
-
 query read_filtered_addresses($filter: AddressFilter!) {
   addresses(filter: $filter) {
     objects {
@@ -608,6 +480,19 @@ query read_engagement_employee_uuid($engagement_uuid: UUID!) {
     objects {
       current {
         employee_uuid
+      }
+    }
+  }
+}
+
+query read_address_relation_uuids($address_uuid: UUID!) {
+  addresses(
+    filter: {uuids: [$address_uuid]}
+  ) {
+    objects {
+      current {
+        employee_uuid
+        org_unit_uuid
       }
     }
   }

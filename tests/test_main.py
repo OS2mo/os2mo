@@ -40,7 +40,6 @@ from mo_ldap_import_export.exceptions import NotSupportedException
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
-from mo_ldap_import_export.main import get_delete_flag
 from mo_ldap_import_export.main import initialize_checks
 from mo_ldap_import_export.main import initialize_converters
 from mo_ldap_import_export.main import initialize_info_dict_refresher
@@ -50,13 +49,13 @@ from mo_ldap_import_export.main import initialize_sync_tool
 from mo_ldap_import_export.main import open_ldap_connection
 from mo_ldap_import_export.main import process_address
 from mo_ldap_import_export.main import process_engagement
-from mo_ldap_import_export.main import process_engagement_attachments
 from mo_ldap_import_export.main import process_ituser
 from mo_ldap_import_export.main import process_org_unit
 from mo_ldap_import_export.main import process_person
 from mo_ldap_import_export.main import reject_on_failure
 from mo_ldap_import_export.usernames import get_username_generator_class
 from mo_ldap_import_export.usernames import UserNameGeneratorBase
+from mo_ldap_import_export.utils import get_delete_flag
 from tests.graphql_mocker import GraphQLMocker
 
 
@@ -563,26 +562,6 @@ def test_ldap_get_objectGUID_endpoint(test_client: TestClient) -> None:
     assert response.status_code == 202
 
 
-async def test_listen_to_missing_uuid(dataloader: AsyncMock):
-    settings = MagicMock()
-    settings.listen_to_changes_in_mo = True
-
-    context = {
-        "user_context": {
-            "dataloader": dataloader,
-            "sync_tool": sync_tool,
-            "settings": settings,
-        }
-    }
-    payload = uuid4()
-
-    dataloader.load_mo_object.return_value = None
-
-    with pytest.raises(RejectMessage):  # as exc_info:
-        await process_address(context, payload, "address", sync_tool)
-    # assert "Unable to load mo object" in str(exc_info.value)
-
-
 async def test_listen_to_ituser(graphql_mock: GraphQLMocker) -> None:
     amqpsystem = create_autospec(AMQPSystem)
     amqpsystem.exchange_name = "wow"
@@ -683,41 +662,96 @@ async def test_listen_to_engagement_failure(
     assert error in str(exc_info.value)
 
 
-async def test_listen_to_changes(dataloader: AsyncMock, sync_tool: AsyncMock):
+async def test_listen_to_address_person(graphql_mock: GraphQLMocker) -> None:
+    amqpsystem = create_autospec(AMQPSystem)
+    amqpsystem.exchange_name = "wow"
+
+    graphql_client = GraphQLClient("http://example.com/graphql")
+
+    address_uuid = uuid4()
+    employee_uuid = uuid4()
+
+    employee_route = graphql_mock.query("read_address_relation_uuids")
+    employee_route.result = {
+        "addresses": {
+            "objects": [
+                {"current": {"employee_uuid": employee_uuid, "org_unit_uuid": None}}
+            ]
+        }
+    }
+
+    employee_refresh_route = graphql_mock.query("employee_refresh")
+    employee_refresh_route.result = {"employee_refresh": {"objects": [employee_uuid]}}
+
+    await process_address(address_uuid, graphql_client, amqpsystem)
+    assert employee_refresh_route.called
+
+
+async def test_listen_to_address_org_unit(graphql_mock: GraphQLMocker) -> None:
+    amqpsystem = create_autospec(AMQPSystem)
+    amqpsystem.exchange_name = "wow"
+
+    graphql_client = GraphQLClient("http://example.com/graphql")
+
+    org_unit_uuid = uuid4()
+    employee_uuid = uuid4()
+    address_uuid = uuid4()
+
+    address_route = graphql_mock.query("read_address_relation_uuids")
+    address_route.result = {
+        "addresses": {
+            "objects": [
+                {"current": {"employee_uuid": None, "org_unit_uuid": org_unit_uuid}}
+            ]
+        }
+    }
+
+    employee_route = graphql_mock.query("read_employees_with_engagement_to_org_unit")
+    employee_route.result = {
+        "engagements": {"objects": [{"current": {"employee_uuid": employee_uuid}}]}
+    }
+
+    employee_refresh_route = graphql_mock.query("employee_refresh")
+    employee_refresh_route.result = {"employee_refresh": {"objects": [employee_uuid]}}
+
+    await process_address(address_uuid, graphql_client, amqpsystem)
+    assert employee_refresh_route.called
+
+
+@pytest.mark.parametrize(
+    "objects,error",
+    [
+        # Must return exactly one result
+        ([], "Unable to lookup address"),
+        ([{"current": None}, {"current": None}], "Unable to lookup address"),
+        # Must have current result
+        ([{"current": None}], "Address not currently active"),
+    ],
+)
+async def test_listen_to_address_failure(
+    graphql_mock: GraphQLMocker,
+    objects: list[dict[str, Any]],
+    error: str,
+) -> None:
+    amqpsystem = create_autospec(AMQPSystem)
+    amqpsystem.exchange_name = "wow"
+
+    graphql_client = GraphQLClient("http://example.com/graphql")
+
+    employee_route = graphql_mock.query("read_address_relation_uuids")
+    employee_route.result = {"addresses": {"objects": objects}}
+
+    address_uuid = uuid4()
+    with pytest.raises(RejectMessage) as exc_info:
+        await process_address(address_uuid, graphql_client, amqpsystem)
+    assert error in str(exc_info.value)
+
+
+async def test_listen_to_changes(sync_tool: AsyncMock) -> None:
     settings = MagicMock()
     settings.listen_to_changes_in_mo = True
 
-    context = {
-        "user_context": {
-            "dataloader": dataloader,
-            "sync_tool": sync_tool,
-            "settings": settings,
-        }
-    }
     payload = uuid4()
-
-    dataloader.load_mo_object.return_value = {
-        "service_type": "employee",
-        "validity": {"to": None},
-        "parent_uuid": uuid4(),
-    }
-
-    await process_address(context, payload, "address", sync_tool)
-    sync_tool.listen_to_changes_in_employees.assert_awaited_once()
-
-    dataloader.load_mo_object.return_value = {
-        "service_type": "org_unit",
-        "validity": {"to": None},
-        "parent_uuid": uuid4(),
-    }
-
-    sync_tool.reset_mock()
-    await process_address(context, payload, "address", sync_tool)
-    sync_tool.listen_to_changes_in_org_units.assert_awaited_once()
-
-    sync_tool.reset_mock()
-    await process_engagement_attachments(payload, sync_tool)
-    sync_tool.export_org_unit_addresses_on_engagement_change.assert_awaited_once()
 
     sync_tool.reset_mock()
     await process_person(payload, sync_tool)
@@ -985,12 +1019,13 @@ async def test_get_non_existing_objectGUIDs_from_MO(
     dataloader: AsyncMock,
     test_client: TestClient,
 ) -> None:
+    dataloader.get_ldap_it_system_uuid.return_value = str(uuid4())
+
     it_users = [
         {"employee_uuid": str(uuid4()), "user_key": str(uuid4())},
         {"employee_uuid": str(uuid4()), "user_key": str(uuid4())},
         {"employee_uuid": str(uuid4()), "user_key": "foo"},
     ]
-    dataloader.load_all_current_it_users.return_value = it_users
     employee = Employee(givenname="Jim", surname="")
     dataloader.load_mo_employee.return_value = employee
 
@@ -1000,6 +1035,8 @@ async def test_get_non_existing_objectGUIDs_from_MO(
             it_users[0]["user_key"],
             str(uuid4()),
         ],
+    ), patch(
+        "mo_ldap_import_export.routes.load_all_current_it_users", return_value=it_users
     ):
         response = test_client.get("/Inspect/non_existing_unique_ldap_uuids")
     assert response.status_code == 202

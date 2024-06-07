@@ -89,36 +89,6 @@ async def test_listen_to_changes_in_org_units(
     assert converter.org_unit_info == org_unit_info
 
 
-async def test_listen_to_change_in_org_unit_address(
-    graphql_mock: GraphQLMocker, sync_tool: SyncTool
-) -> None:
-    graphql_client = GraphQLClient("http://example.com/graphql")
-    sync_tool.dataloader.graphql_client = graphql_client  # type: ignore
-
-    org_unit_uuid = uuid4()
-    employee_uuid = uuid4()
-
-    employee_route = graphql_mock.query("read_employees_with_engagement_to_org_unit")
-    employee_route.result = {
-        "engagements": {"objects": [{"current": {"employee_uuid": employee_uuid}}]}
-    }
-
-    employee_refresh_route = graphql_mock.query("employee_refresh")
-    employee_refresh_route.result = {"employee_refresh": {"objects": [employee_uuid]}}
-
-    with capture_logs() as cap_logs:
-        await sync_tool.listen_to_changes_in_org_units(org_unit_uuid)
-    assert cap_logs == [
-        {"event": "Registered change in an org-unit", "log_level": "info"},
-        {
-            "event": "Refreshing all employees in org-unit",
-            "log_level": "info",
-            "employee_uuids": {employee_uuid},
-        },
-    ]
-    assert employee_refresh_route.called
-
-
 async def test_listen_to_changes_in_employee_no_employee(
     dataloader: AsyncMock,
     sync_tool: SyncTool,
@@ -1449,19 +1419,6 @@ async def test_wait_for_import_to_finish(sync_tool: SyncTool):
 
     assert elapsed_time >= 0.2
     assert elapsed_time < 0.3
-
-
-async def test_export_org_unit_addresses_on_engagement_change(
-    sync_tool: SyncTool,
-    dataloader: AsyncMock,
-) -> None:
-    engagement_uuid = uuid4()
-
-    await sync_tool.export_org_unit_addresses_on_engagement_change(engagement_uuid)
-    dataloader.graphql_client.engagement_org_unit_address_refresh.assert_called_with(
-        "os2mo_ldap_ie",
-        engagement_uuid,
-    )
 
 
 @pytest.mark.usefixtures("fake_find_mo_employee_dn")
