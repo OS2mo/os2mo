@@ -785,7 +785,6 @@ async def test_listen_to_changes_in_employees(
     assert (
         events
         == [
-            "Generating UUID",
             "Registered change in an employee",
             "Attempting to find DNs",
             "UUID Not found",

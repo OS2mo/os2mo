@@ -11,6 +11,7 @@ import structlog
 from fastapi import Depends
 from fastapi import FastAPI
 from fastramqpi.main import FastRAMQPI
+from fastramqpi.ramqp.depends import handle_exclusively_decorator
 from fastramqpi.ramqp.depends import rate_limit
 from fastramqpi.ramqp.mo import MORouter
 from fastramqpi.ramqp.mo import PayloadUUID
@@ -172,6 +173,7 @@ async def process_ituser(
 
 @amqp_router.register("person")
 @reject_on_failure
+@handle_exclusively_decorator(key=lambda object_uuid, *_, **__: object_uuid)
 async def process_person(
     object_uuid: PayloadUUID,
     sync_tool: depends.SyncTool,
