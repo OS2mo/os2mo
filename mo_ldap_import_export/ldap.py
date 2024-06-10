@@ -192,6 +192,14 @@ def ldap_modify(ldap_connection, dn, changes) -> tuple[dict, dict]:
     return response, result
 
 
+def ldap_modify_dn(ldap_connection, dn, relative_dn, new_superior) -> tuple[dict, dict]:
+    ldap_connection.modify_dn(dn, relative_dn, new_superior=new_superior)
+    response: dict = ldap_connection.response
+    result: dict = ldap_connection.result
+    # TODO: Verify that result["description"] is success?
+    return response, result
+
+
 async def poller_healthcheck(context: dict | Context) -> bool:
     pollers = context["user_context"]["pollers"]
     return all(not poller.done() for poller in pollers)

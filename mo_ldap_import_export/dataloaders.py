@@ -62,6 +62,7 @@ from .ldap import get_ldap_superiors
 from .ldap import is_uuid
 from .ldap import ldap_compare
 from .ldap import ldap_modify
+from .ldap import ldap_modify_dn
 from .ldap import make_ldap_object
 from .ldap import object_search
 from .ldap import paged_search
@@ -587,10 +588,12 @@ class DataLoader:
 
         logger.info("Moving entry", old_dn=old_dn, new_dn=new_dn)
 
-        self.ldap_connection.modify_dn(
-            old_dn, extract_cn_from_dn(new_dn), new_superior=remove_cn_from_dn(new_dn)
+        _, result = ldap_modify_dn(
+            self.ldap_connection,
+            old_dn,
+            extract_cn_from_dn(new_dn),
+            new_superior=remove_cn_from_dn(new_dn),
         )
-        result: dict = self.ldap_connection.result
         logger.info("LDAP Result", result=result, new_dn=new_dn, old_dn=old_dn)
         return True if result["description"] == "success" else False
 
