@@ -2212,7 +2212,7 @@ def test_decompose_ou_string(dataloader: DataLoader):
     assert output[2] == "OU=bar"
 
 
-def test_create_ou(dataloader: DataLoader) -> None:
+async def test_create_ou(dataloader: DataLoader) -> None:
     dataloader.load_ldap_OUs = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to.return_value = True
@@ -2228,7 +2228,7 @@ def test_create_ou(dataloader: DataLoader) -> None:
     }
 
     ou = "OU=foo,OU=mucki,OU=bar"
-    dataloader.create_ou(ou)
+    await dataloader.create_ou(ou)
     dataloader.ldap_connection.add.assert_called_once_with(
         "OU=foo,OU=mucki,OU=bar,DC=Magenta", "OrganizationalUnit"
     )
@@ -2236,19 +2236,19 @@ def test_create_ou(dataloader: DataLoader) -> None:
     dataloader.user_context["settings"].add_objects_to_ldap = False
 
     with pytest.raises(NotEnabledException) as exc:
-        dataloader.create_ou(ou)
+        await dataloader.create_ou(ou)
     assert "Adding LDAP objects is disabled" in str(exc.value)
 
     dataloader.ldap_connection.reset_mock()
     dataloader.user_context["settings"].add_objects_to_ldap = True
     dataloader.ou_in_ous_to_write_to.return_value = False
 
-    dataloader.create_ou(ou)
+    await dataloader.create_ou(ou)
     dataloader.ldap_connection.add.assert_not_called()
 
     dataloader.user_context["settings"].ldap_read_only = True
     with pytest.raises(NotEnabledException) as exc:
-        dataloader.create_ou(ou)
+        await dataloader.create_ou(ou)
     assert "LDAP connection is read-only" in str(exc.value)
 
 

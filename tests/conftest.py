@@ -219,7 +219,7 @@ def dataloader(
     dataloader.load_ldap_OUs = MagicMock()
     dataloader.move_ldap_object = MagicMock()
     dataloader.delete_ou = MagicMock()
-    dataloader.create_ou = MagicMock()
+    dataloader.create_ou = AsyncMock()
 
     return dataloader
 

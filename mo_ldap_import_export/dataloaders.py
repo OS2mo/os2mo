@@ -494,7 +494,7 @@ class DataLoader:
 
         return output
 
-    def create_ou(self, ou: str) -> None:
+    async def create_ou(self, ou: str) -> None:
         """
         Creates an OU. If the parent OU does not exist, creates that one first
         """
