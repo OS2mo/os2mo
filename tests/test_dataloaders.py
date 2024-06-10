@@ -1845,8 +1845,8 @@ async def test_create_mo_it_system(dataloader: DataLoader):
     assert isinstance(await dataloader.create_mo_it_system("foo", "bar"), UUID)
 
 
-def test_add_ldap_object(dataloader: DataLoader) -> None:
-    dataloader.add_ldap_object("CN=foo", attributes={"foo": 2})
+async def test_add_ldap_object(dataloader: DataLoader) -> None:
+    await dataloader.add_ldap_object("CN=foo", attributes={"foo": 2})
     dataloader.ldap_connection.add.assert_called_once()
 
     dataloader.user_context["settings"] = MagicMock()  # type: ignore
@@ -1854,7 +1854,7 @@ def test_add_ldap_object(dataloader: DataLoader) -> None:
     dataloader.user_context["settings"].ldap_read_only = False
 
     with pytest.raises(NotEnabledException) as exc:
-        dataloader.add_ldap_object("CN=foo")
+        await dataloader.add_ldap_object("CN=foo")
     assert "Adding LDAP objects is disabled" in str(exc.value)
 
     dataloader.ldap_connection.reset_mock()
@@ -1862,12 +1862,12 @@ def test_add_ldap_object(dataloader: DataLoader) -> None:
     dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to.return_value = False
 
-    dataloader.add_ldap_object("CN=foo")
+    await dataloader.add_ldap_object("CN=foo")
     dataloader.ldap_connection.add.assert_not_called()
 
     dataloader.user_context["settings"].ldap_read_only = True
     with pytest.raises(NotEnabledException) as exc:
-        dataloader.add_ldap_object("CN=foo")
+        await dataloader.add_ldap_object("CN=foo")
     assert "LDAP connection is read-only" in str(exc.value)
 
 

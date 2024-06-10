@@ -346,7 +346,9 @@ class UserNameGenerator(UserNameGeneratorBase):
         dn = self._make_dn(common_name)
         employee_attributes = await self._get_employee_ldap_attributes(employee, dn)
         other_attributes = {"sAMAccountName": username}
-        self.dataloader.add_ldap_object(dn, employee_attributes | other_attributes)
+        await self.dataloader.add_ldap_object(
+            dn, employee_attributes | other_attributes
+        )
         return dn
 
 
@@ -409,7 +411,7 @@ class AlleroedUserNameGenerator(UserNameGeneratorBase):
             "userPrincipalName": f"{username}@alleroed.dk",
         }
 
-        self.dataloader.add_ldap_object(
+        await self.dataloader.add_ldap_object(
             dn,
             employee_attributes | other_attributes,
         )

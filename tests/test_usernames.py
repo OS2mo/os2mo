@@ -23,6 +23,7 @@ from mo_ldap_import_export.usernames import UserNameGenerator
 def dataloader() -> MagicMock:
     mock = MagicMock()
     mock.load_all_it_users = AsyncMock()
+    mock.add_ldap_object = AsyncMock()
     return mock
 
 

@@ -435,7 +435,7 @@ class DataLoader:
         logger.info("LDAP Response", response=response, **kwargs)
         return response
 
-    def add_ldap_object(self, dn: str, attributes: dict[str, Any] | None = None):
+    async def add_ldap_object(self, dn: str, attributes: dict[str, Any] | None = None):
         """
         Adds a new object to LDAP
 
