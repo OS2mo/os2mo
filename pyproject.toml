@@ -34,7 +34,7 @@ structlog = "^23.1.0"
 python-multipart = "^0.0.6"
 prometheus-fastapi-instrumentator = "^6.1.0"
 pydantic = {extras = ["email"], version = "^1.10.13"}
-os2mo-dar-client = "^1.0.3"
+os2mo-dar-client = "^1.0.4"
 ra-utils = "^1.14.0"
 ramqp = "^9.1.0"
 uvicorn = "^0.23.2"
