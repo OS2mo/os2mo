@@ -51,7 +51,7 @@ logger = structlog.stdlib.get_logger()
 fastapi_router = APIRouter()
 amqp_router = MORouter()
 delay_on_error = 10  # Try errors again after a short period of time
-delay_on_requeue = 60 * 60 * 24  # Requeue messages for tomorrow (or after a reboot)
+delay_on_requeue = 60  # Requeue messages in a minute (or after a reboot)
 
 
 def reject_on_failure(func):
