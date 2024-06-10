@@ -179,6 +179,11 @@ async def ldap_healthcheck(context: dict | Context) -> bool:
     return cast(bool, ldap_connection.bound)
 
 
+def ldap_compare(ldap_connection, dn, attribute, value) -> bool:
+    value_exists = ldap_connection.compare(dn, attribute, value)
+    return cast(bool, value_exists)
+
+
 async def poller_healthcheck(context: dict | Context) -> bool:
     pollers = context["user_context"]["pollers"]
     return all(not poller.done() for poller in pollers)

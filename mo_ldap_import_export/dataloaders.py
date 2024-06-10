@@ -60,6 +60,7 @@ from .ldap import get_ldap_object
 from .ldap import get_ldap_schema
 from .ldap import get_ldap_superiors
 from .ldap import is_uuid
+from .ldap import ldap_compare
 from .ldap import make_ldap_object
 from .ldap import object_search
 from .ldap import paged_search
@@ -351,7 +352,7 @@ class DataLoader:
             )
 
         # Compare to LDAP
-        value_exists = self.ldap_connection.compare(dn, attribute, value)
+        value_exists = ldap_compare(self.ldap_connection, dn, attribute, value)
 
         # If the value is already as expected, and we are not deleting, we are done
         if value_exists and "DELETE" not in operation:
