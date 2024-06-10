@@ -293,7 +293,7 @@ class UserNameGeneratorBase(ABC):
 
         return attributes
 
-    def _get_existing_names(self):
+    async def _get_existing_names(self):
         # TODO: Consider if it is better to fetch all names or candidate names
         existing_values = self.get_existing_values(
             ["cn", "sAMAccountName", "userPrincipalName"]
@@ -321,7 +321,7 @@ class UserNameGenerator(UserNameGeneratorBase):
 
         Also adds an object to LDAP with this DN
         """
-        existing_usernames, existing_common_names = self._get_existing_names()
+        existing_usernames, existing_common_names = await self._get_existing_names()
 
         givenname = employee.givenname
         surname = employee.surname
@@ -366,7 +366,7 @@ class AlleroedUserNameGenerator(UserNameGeneratorBase):
 
         Follows guidelines from https://redmine.magenta-aps.dk/issues/56080
         """
-        existing_usernames, existing_common_names = self._get_existing_names()
+        existing_usernames, existing_common_names = await self._get_existing_names()
 
         # "existing_usernames_in_mo" covers all usernames which MO has ever generated.
         # Because we never delete from MO's database; We just put end-dates on objects.
