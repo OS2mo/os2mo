@@ -708,7 +708,7 @@ class SyncTool:
         # If we found DNs, we want to synchronize to the best of them
         if dns:
             logger.info("Found DNs for user", dns=dns, uuid=uuid)
-            best_dn = first_included(self.context, dns)
+            best_dn = await first_included(self.context, dns)
             # If no good LDAP account was found, we do not want to synchronize at all
             if best_dn is None:
                 logger.warning(
@@ -1012,7 +1012,7 @@ class SyncTool:
         # We always want to synchronize from the best LDAP account, instead of just
         # synchronizing from the last LDAP account that has been touched.
         # Thus we process the list of DNs found for the user to pick the best one.
-        best_dn = first_included(self.context, dns)
+        best_dn = await first_included(self.context, dns)
         # If no good LDAP account was found, we do not want to synchronize at all
         if best_dn is None:
             logger.info(

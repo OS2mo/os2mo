@@ -275,14 +275,14 @@ async def test_first_included_no_config(
     }
     assert settings.discriminator_field is None
 
-    result = first_included(context, set())
+    result = await first_included(context, set())
     assert result is None
 
-    result = first_included(context, {"CN=Anzu"})
+    result = await first_included(context, {"CN=Anzu"})
     assert result == "CN=Anzu"
 
     with pytest.raises(ValueError) as exc_info:
-        first_included(context, {"CN=Anzu", "CN=Arak"})
+        await first_included(context, {"CN=Anzu", "CN=Arak"})
     assert "Expected exactly one item in iterable" in str(exc_info.value)
 
 
@@ -327,7 +327,7 @@ async def test_first_included_settings_invariants(
         # Need function and values
         new_settings = settings.copy(update=discriminator_settings)
         context["user_context"]["settings"] = new_settings
-        first_included(context, {ldap_dn})
+        await first_included(context, {ldap_dn})
 
 
 async def test_first_included_unknown_dn(
@@ -345,7 +345,7 @@ async def test_first_included_unknown_dn(
         "user_context": {"ldap_connection": ldap_connection, "settings": settings}
     }
     with pytest.raises(RequeueMessage) as exc_info:
-        first_included(context, {"CN=__missing__dn__"})
+        await first_included(context, {"CN=__missing__dn__"})
     assert "Unable to lookup DN(s)" in str(exc_info.value)
 
 
@@ -389,7 +389,7 @@ async def test_first_included_exclude_one_user(
     context: Context = {
         "user_context": {"ldap_connection": ldap_connection, "settings": settings}
     }
-    result = first_included(context, {ldap_dn})
+    result = await first_included(context, {ldap_dn})
     assert result == expected
 
 
@@ -426,7 +426,7 @@ async def test_first_included_exclude_none(
         "user_context": {"ldap_connection": ldap_connection, "settings": settings}
     }
     with capture_logs() as cap_logs:
-        result = first_included(context, {another_ldap_dn})
+        result = await first_included(context, {another_ldap_dn})
     events = [x["event"] for x in cap_logs]
     assert events == ["Found DN", "Discriminator value is None"]
 

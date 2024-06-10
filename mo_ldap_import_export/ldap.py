@@ -219,7 +219,7 @@ def get_ldap_attributes(ldap_connection: Connection, root_ldap_object: str):
     return all_attributes
 
 
-def first_included(context: Context, dns: set[DN]) -> DN | None:
+async def first_included(context: Context, dns: set[DN]) -> DN | None:
     """Find the account to synchronize from a set of DNs.
 
     The DNs are evaluated depending on the configuration of the discriminator.
