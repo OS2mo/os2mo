@@ -314,7 +314,7 @@ class DataLoader:
         logger.info("OU not in OUs to write", ou=ou, ous_to_write_to=ous_to_write_to)
         return False
 
-    def modify_ldap(
+    async def modify_ldap(
         self,
         operation: Literal[
             "MODIFY_ADD", "MODIFY_DELETE", "MODIFY_REPLACE", "MODIFY_INCREMENT"
@@ -661,7 +661,7 @@ class DataLoader:
                 operation = self.add_ldap
 
             try:
-                response = operation(dn, parameter_to_modify, value_to_modify)
+                response = await operation(dn, parameter_to_modify, value_to_modify)
             except LDAPInvalidValueError:
                 logger.warning("LDAPInvalidValueError exception", exc_info=True)
                 failed += 1
