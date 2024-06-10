@@ -385,7 +385,7 @@ class DataLoader:
     delete_ldap = partialmethod(modify_ldap, "MODIFY_DELETE")
     replace_ldap = partialmethod(modify_ldap, "MODIFY_REPLACE")
 
-    def load_ldap_OUs(self, search_base: str | None = None) -> dict:
+    async def load_ldap_OUs(self, search_base: str | None = None) -> dict:
         """
         Returns a dictionary where the keys are OU strings and the items are dicts
         which contain information about the OU
@@ -513,7 +513,7 @@ class DataLoader:
             return
 
         # TODO: Search for specific OUs as needed instead of reading all of LDAP?
-        ou_dict = self.load_ldap_OUs()
+        ou_dict = await self.load_ldap_OUs()
 
         # Create OUs top-down (unless they already exist)
         for ou_to_create in self.decompose_ou_string(ou)[::-1]:
@@ -543,7 +543,7 @@ class DataLoader:
 
         for ou_to_delete in self.decompose_ou_string(ou):
             # TODO: Search for specific OUs as needed instead of reading all of LDAP?
-            ou_dict = self.load_ldap_OUs()
+            ou_dict = await self.load_ldap_OUs()
             if (
                 ou_dict.get(ou_to_delete, {}).get("empty", False)
                 and ou_to_delete != settings.ldap_ou_for_new_users

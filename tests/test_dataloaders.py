@@ -320,7 +320,7 @@ async def test_load_ldap_OUs(ldap_connection: MagicMock, dataloader: DataLoader)
 
     ldap_connection.search.side_effect = set_new_result
 
-    output = dataloader.load_ldap_OUs(None)
+    output = await dataloader.load_ldap_OUs(None)
 
     assert ou1 in output
     assert ou2 in output
@@ -2213,7 +2213,7 @@ def test_decompose_ou_string(dataloader: DataLoader):
 
 
 async def test_create_ou(dataloader: DataLoader) -> None:
-    dataloader.load_ldap_OUs = MagicMock()  # type: ignore
+    dataloader.load_ldap_OUs = AsyncMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to.return_value = True
 
@@ -2253,7 +2253,7 @@ async def test_create_ou(dataloader: DataLoader) -> None:
 
 
 async def test_delete_ou(dataloader: DataLoader) -> None:
-    dataloader.load_ldap_OUs = MagicMock()  # type: ignore
+    dataloader.load_ldap_OUs = AsyncMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to.return_value = True
 

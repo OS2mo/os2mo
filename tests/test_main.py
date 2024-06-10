@@ -219,7 +219,7 @@ def dataloader(
     dataloader.get_ldap_dn = MagicMock()
     dataloader.load_ldap_object = sync_dataloader
     dataloader.load_ldap_populated_overview = sync_dataloader
-    dataloader.load_ldap_OUs = sync_dataloader
+    dataloader.load_ldap_OUs = AsyncMock()
     dataloader.load_ldap_overview = sync_dataloader
     dataloader.load_ldap_cpr_object = load_ldap_cpr_object
     dataloader.load_mo_employee.return_value = test_mo_employee
@@ -502,8 +502,12 @@ def test_ldap_get_overview_endpoint(test_client: TestClient) -> None:
 
 
 @pytest.mark.usefixtures("context_dependency_injection")
-def test_ldap_get_structure_endpoint(test_client: TestClient) -> None:
+def test_ldap_get_structure_endpoint(
+    test_client: TestClient, dataloader: AsyncMock
+) -> None:
     """Test the LDAP get endpoint on our app."""
+
+    dataloader.load_ldap_OUs.return_value = []
 
     response = test_client.get("/Inspect/structure")
     assert response.status_code == 202
