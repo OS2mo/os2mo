@@ -367,11 +367,11 @@ class DataLoader:
         changes = {attribute: [(operation, value)]}
         logger.info("Uploading the changes", changes=changes, dn=dn)
         self.ldap_connection.modify(dn, changes)
-        response: dict = self.ldap_connection.result
-        logger.info("LDAP Result", result=response, dn=dn)
+        result: dict = self.ldap_connection.result
+        logger.info("LDAP Result", result=result, dn=dn)
 
         # If successful, the importer should ignore this DN
-        if response["description"] == "success":
+        if result["description"] == "success":
             # Clean all old entries
             self.sync_tool.dns_to_ignore.clean()
 
@@ -384,7 +384,7 @@ class DataLoader:
             if not self.sync_tool.dns_to_ignore[dn]:
                 self.sync_tool.dns_to_ignore.add(dn)
 
-        return response
+        return result
 
     add_ldap = partialmethod(modify_ldap, "MODIFY_ADD")
     delete_ldap = partialmethod(modify_ldap, "MODIFY_DELETE")
