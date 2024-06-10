@@ -553,8 +553,8 @@ class DataLoader:
                 logger.info("Deleting OU", ou_to_delete=ou_to_delete)
                 dn = combine_dn_strings([ou_to_delete, settings.ldap_search_base])
                 self.ldap_connection.delete(dn)
-                response: dict = self.ldap_connection.result
-                logger.info("LDAP Result", result=response, dn=dn)
+                result: dict = self.ldap_connection.result
+                logger.info("LDAP Result", result=result, dn=dn)
 
     async def move_ldap_object(self, old_dn: str, new_dn: str) -> bool:
         """
