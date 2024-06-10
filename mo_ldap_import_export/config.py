@@ -438,6 +438,12 @@ class Settings(BaseSettings):
     ldap_read_only: bool = Field(
         False, description="Whether to establish a read-only connection to the server."
     )
+    ldap_receive_timeout: int = Field(
+        10, description="Number of seconds to wait for communication (wire timeout)."
+    )
+    ldap_response_timeout: int = Field(
+        10, description="Number of seconds to wait for responses (query timeout)."
+    )
 
     mo_url: AnyHttpUrl = Field(
         parse_obj_as(AnyHttpUrl, "http://mo-service:5000"),

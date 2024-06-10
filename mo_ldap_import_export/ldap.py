@@ -21,13 +21,14 @@ from fastramqpi.context import Context
 from fastramqpi.depends import UserContext
 from fastramqpi.ramqp import AMQPSystem
 from fastramqpi.ramqp.utils import RequeueMessage
+from ldap3 import ASYNC
 from ldap3 import BASE
 from ldap3 import Connection
 from ldap3 import NTLM
 from ldap3 import RANDOM
-from ldap3 import RESTARTABLE
 from ldap3 import Server
 from ldap3 import ServerPool
+from ldap3 import set_config_parameter
 from ldap3 import SIMPLE
 from ldap3 import Tls
 from ldap3.core.exceptions import LDAPInvalidDnError
@@ -80,7 +81,9 @@ def construct_server(server_config: ServerConfig) -> Server:
 
 
 def get_client_strategy():
-    return RESTARTABLE
+    # NOTE: We probably want to use REUABLE, but it introduces issues with regards to
+    #       presumed lazily fetching of the schema. See the comment in get_ldap_schema.
+    return ASYNC
 
 
 def construct_server_pool(settings: Settings) -> ServerPool:
@@ -127,13 +130,18 @@ def configure_ldap_connection(settings: Settings) -> Connection:
 
     connection_kwargs = {
         "server": server_pool,
-        "client_strategy": get_client_strategy(),
+        "client_strategy": client_strategy,
         "password": settings.ldap_password.get_secret_value(),
         "auto_bind": True,
+        # TODO: Raise exceptions whenever a query does not run OK
+        # "raise_exceptions": True,
+        # Configure non-blocking IO, with maximum time to wait for each reply
+        "receive_timeout": settings.ldap_receive_timeout,
         # NOTE: It appears that this flag does not in fact work
         # See: https://github.com/cannatag/ldap3/issues/1008
         "read_only": settings.ldap_read_only,
     }
+    set_config_parameter("RESPONSE_WAITING_TIMEOUT", settings.ldap_response_timeout)
     match settings.ldap_auth_method:
         case AuthBackendEnum.NTLM:
             connection_kwargs.update(
@@ -179,15 +187,29 @@ async def ldap_healthcheck(context: dict | Context) -> bool:
     return cast(bool, ldap_connection.bound)
 
 
+async def wait_for_message_id(
+    ldap_connection: Connection, message_id: int
+) -> tuple[Any, Any]:
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, ldap_connection.get_response, message_id)
+
+
 async def ldap_compare(ldap_connection, dn, attribute, value) -> bool:
-    value_exists = ldap_connection.compare(dn, attribute, value)
-    return cast(bool, value_exists)
+    message_id = ldap_connection.compare(dn, attribute, value)
+    _, result = await wait_for_message_id(ldap_connection, message_id)
+    match result["description"]:
+        case "compareTrue":
+            return True
+        case "compareFalse":
+            return False
+        case _:  # pragma: no cover
+            logger.warning("Unknown comparison result", result=_)
+            raise ValueError("Unknown comparison result")
 
 
 async def ldap_modify(ldap_connection, dn, changes) -> tuple[dict, dict]:
-    ldap_connection.modify(dn, changes)
-    response: dict = ldap_connection.response
-    result: dict = ldap_connection.result
+    message_id = ldap_connection.modify(dn, changes)
+    response, result = await wait_for_message_id(ldap_connection, message_id)
     # TODO: Verify that result["description"] is success?
     return response, result
 
@@ -195,9 +217,8 @@ async def ldap_modify(ldap_connection, dn, changes) -> tuple[dict, dict]:
 async def ldap_modify_dn(
     ldap_connection, dn, relative_dn, new_superior
 ) -> tuple[dict, dict]:
-    ldap_connection.modify_dn(dn, relative_dn, new_superior=new_superior)
-    response: dict = ldap_connection.response
-    result: dict = ldap_connection.result
+    message_id = ldap_connection.modify_dn(dn, relative_dn, new_superior=new_superior)
+    response, result = await wait_for_message_id(ldap_connection, message_id)
     # TODO: Verify that result["description"] is success?
     return response, result
 
@@ -205,25 +226,22 @@ async def ldap_modify_dn(
 async def ldap_add(
     ldap_connection, dn, object_class, attributes=None
 ) -> tuple[dict, dict]:
-    ldap_connection.add(dn, object_class, attributes)
-    response: dict = ldap_connection.response
-    result: dict = ldap_connection.result
+    message_id = ldap_connection.add(dn, object_class, attributes)
+    response, result = await wait_for_message_id(ldap_connection, message_id)
     # TODO: Verify that result["description"] is success?
     return response, result
 
 
 async def ldap_delete(ldap_connection, dn) -> tuple[dict, dict]:
-    ldap_connection.delete(dn)
-    response: dict = ldap_connection.response
-    result: dict = ldap_connection.result
+    message_id = ldap_connection.delete(dn)
+    response, result = await wait_for_message_id(ldap_connection, message_id)
     # TODO: Verify that result["description"] is success?
     return response, result
 
 
 async def ldap_search(ldap_connection, **kwargs) -> tuple[list[dict[str, Any]], dict]:
-    ldap_connection.search(**kwargs)
-    response: list[dict[str, Any]] = ldap_connection.response
-    result: dict = ldap_connection.result
+    message_id = ldap_connection.search(**kwargs)
+    response, result = await wait_for_message_id(ldap_connection, message_id)
     # TODO: Verify that result["description"] is success?
     return response, result
 
@@ -235,7 +253,14 @@ async def poller_healthcheck(context: dict | Context) -> bool:
 
 def get_ldap_schema(ldap_connection: Connection):
     # On OpenLDAP this returns a ldap3.protocol.rfc4512.SchemaInfo
-    return ldap_connection.server.schema
+    schema = ldap_connection.server.schema
+    # NOTE: The schema seems sometimes be unbound here if we use the REUSABLE async
+    #       strategy. I think it is because the connections are lazy in that case, and
+    #       as such the schema is only fetched on the first operation.
+    #       In this case we would probably have to asynchronously fetch the schema info,
+    #       but the documentation provides slim to no information on how to do so.
+    assert schema is not None
+    return schema
 
 
 def get_ldap_object_schema(ldap_connection: Connection, ldap_object: str):
@@ -444,6 +469,7 @@ async def _paged_search(
     search_base: str,
     mute: bool,
 ) -> list:
+    # TODO: Consider using upstream paged_search_generator instead of this?
     # TODO: Eliminate mute argument? - Should be logger configuration?
     # TODO: Find max. paged_size number from LDAP rather than hard-code it?
     searchParameters["paged_size"] = 500
