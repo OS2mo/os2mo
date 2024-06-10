@@ -194,7 +194,7 @@ def dataloader(
     load_ldap_cpr_object.return_value = test_ldap_object
 
     dataloader = AsyncMock()
-    dataloader.load_ldap_object = sync_dataloader
+    dataloader.load_ldap_object = AsyncMock()
     dataloader.load_ldap_OUs = sync_dataloader
     dataloader.load_ldap_populated_overview = sync_dataloader
     dataloader.load_ldap_overview = sync_dataloader

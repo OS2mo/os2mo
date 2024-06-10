@@ -225,7 +225,7 @@ class DataLoader:
 
         return result
 
-    def load_ldap_object(
+    async def load_ldap_object(
         self,
         dn: DN,
         attributes: list | None,
@@ -726,7 +726,9 @@ class DataLoader:
         if cpr_field is None:
             return set()
 
-        ldap_object = self.load_ldap_object(dn, [cpr_field], run_discriminator=False)
+        ldap_object = await self.load_ldap_object(
+            dn, [cpr_field], run_discriminator=False
+        )
         # Try to get the cpr number from LDAP and use that.
         try:
             raw_cpr_no = getattr(ldap_object, cpr_field)
@@ -784,7 +786,7 @@ class DataLoader:
         # Unique LDAP UUID in MO.
 
         settings = self.user_context["settings"]
-        ldap_object = self.load_ldap_object(
+        ldap_object = await self.load_ldap_object(
             dn, [settings.ldap_unique_id_field], run_discriminator=False
         )
         raw_unique_uuid = getattr(ldap_object, settings.ldap_unique_id_field)
@@ -862,7 +864,7 @@ class DataLoader:
         """
         settings = self.user_context["settings"]
         logger.info("Looking for LDAP object", dn=dn)
-        ldap_object = self.load_ldap_object(dn, [settings.ldap_unique_id_field])
+        ldap_object = await self.load_ldap_object(dn, [settings.ldap_unique_id_field])
         uuid = getattr(ldap_object, settings.ldap_unique_id_field)
         if not uuid:
             # Some computer-account objects has no samaccountname

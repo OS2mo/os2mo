@@ -1084,7 +1084,7 @@ class SyncTool:
         self, json_key: str, dn: str, employee_uuid: UUID, engagement_uuid: UUID | None
     ) -> UUID | None:
         logger.info("Loading object", dn=dn, json_key=json_key)
-        loaded_object = self.dataloader.load_ldap_object(
+        loaded_object = await self.dataloader.load_ldap_object(
             dn,
             self.converter.get_ldap_attributes(json_key),
         )

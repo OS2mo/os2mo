@@ -1684,7 +1684,7 @@ async def test_get_ldap_dn(dataloader: DataLoader):
 
 async def test_get_ldap_unique_ldap_uuid(dataloader: DataLoader):
     uuid = uuid4()
-    dataloader.load_ldap_object = MagicMock()  # type: ignore
+    dataloader.load_ldap_object = AsyncMock()  # type: ignore
     dataloader.load_ldap_object.return_value = LdapObject(
         dn="foo", objectGUID=str(uuid)
     )
@@ -1693,7 +1693,7 @@ async def test_get_ldap_unique_ldap_uuid(dataloader: DataLoader):
 
 
 async def test_get_ldap_unique_ldap_uuid_no_objectguid(dataloader: DataLoader):
-    dataloader.load_ldap_object = MagicMock()  # type: ignore
+    dataloader.load_ldap_object = AsyncMock()  # type: ignore
     dataloader.load_ldap_object.return_value = LdapObject(dn="foo", objectGUID=[])
 
     with pytest.raises(NoObjectsReturnedException):

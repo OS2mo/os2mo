@@ -217,7 +217,7 @@ def dataloader(
 
     dataloader = AsyncMock()
     dataloader.get_ldap_dn = AsyncMock()
-    dataloader.load_ldap_object = sync_dataloader
+    dataloader.load_ldap_object = AsyncMock()
     dataloader.load_ldap_populated_overview = sync_dataloader
     dataloader.load_ldap_OUs = AsyncMock()
     dataloader.load_ldap_overview = sync_dataloader
@@ -540,8 +540,12 @@ def test_ldap_get_attribute_details_endpoint(test_client: TestClient) -> None:
 
 
 @pytest.mark.usefixtures("context_dependency_injection")
-def test_ldap_get_object_by_objectGUID_endpoint(test_client: TestClient) -> None:
+def test_ldap_get_object_by_objectGUID_endpoint(
+    test_client: TestClient, dataloader: AsyncMock
+) -> None:
     """Test the LDAP get endpoint on our app."""
+
+    dataloader.load_ldap_object.return_value = LdapObject(dn="CN=foo")
 
     uuid = uuid4()
     params = {"unique_ldap_uuid": str(uuid)}
@@ -550,8 +554,12 @@ def test_ldap_get_object_by_objectGUID_endpoint(test_client: TestClient) -> None
 
 
 @pytest.mark.usefixtures("context_dependency_injection")
-def test_ldap_get_object_by_dn_endpoint(test_client: TestClient) -> None:
+def test_ldap_get_object_by_dn_endpoint(
+    test_client: TestClient, dataloader: AsyncMock
+) -> None:
     """Test the LDAP get endpoint on our app."""
+
+    dataloader.load_ldap_object.return_value = LdapObject(dn="CN=foo")
 
     params = {"dn": "CN=foo"}
     response = test_client.get("/Inspect/object/dn", params=params)
