@@ -885,7 +885,7 @@ class DataLoader:
         # TODO: Check for duplicates?
         return set(map(UUID, uuids))
 
-    def extract_unique_dns(self, it_users: list[ITUser]) -> set[DN]:
+    async def extract_unique_dns(self, it_users: list[ITUser]) -> set[DN]:
         unique_uuids = self.extract_unique_ldap_uuids(it_users)
         return set(map(self.get_ldap_dn, unique_uuids))
 
@@ -911,7 +911,7 @@ class DataLoader:
             it_users = await self.load_mo_employee_it_users(uuid, it_system_uuid)
         except NoObjectsReturnedException:  # pragma: no cover
             return set()
-        dns = self.extract_unique_dns(it_users)
+        dns = await self.extract_unique_dns(it_users)
         # No DNs, no problem
         if not dns:
             return set()

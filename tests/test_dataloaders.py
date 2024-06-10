@@ -1572,7 +1572,7 @@ async def test_find_or_make_mo_employee_dn(
     dataloader.load_mo_employee = AsyncMock()  # type: ignore
     dataloader.load_ldap_cpr_object = AsyncMock()  # type: ignore
     dataloader.create = AsyncMock()  # type: ignore
-    dataloader.extract_unique_dns = MagicMock()  # type: ignore
+    dataloader.extract_unique_dns = AsyncMock()  # type: ignore
     dataloader.get_ldap_unique_ldap_uuid = MagicMock()  # type: ignore
 
     # Case where there is an IT-system that contains the DN
@@ -1662,14 +1662,14 @@ def test_extract_unique_objectGUIDs(dataloader: DataLoader):
     assert len(objectGUIDs) == 2
 
 
-def test_extract_unique_dns(dataloader: DataLoader):
+async def test_extract_unique_dns(dataloader: DataLoader):
     dataloader.extract_unique_ldap_uuids = MagicMock()  # type: ignore
     dataloader.extract_unique_ldap_uuids.return_value = [uuid4(), uuid4()]
 
     dataloader.get_ldap_dn = MagicMock()  # type: ignore
     dataloader.get_ldap_dn.return_value = "CN=foo"
 
-    dns = dataloader.extract_unique_dns([])
+    dns = await dataloader.extract_unique_dns([])
     dn = one(dns)
     assert dn == "CN=foo"
 
