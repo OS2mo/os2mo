@@ -594,7 +594,7 @@ async def test_get_populated_overview(dataloader: DataLoader):
         "mo_ldap_import_export.routes.paged_search",
         return_value=responses,
     ):
-        output = load_ldap_populated_overview(dataloader)
+        output = await load_ldap_populated_overview(dataloader)
 
     assert sorted(list(output["user"]["attributes"].keys())) == sorted(
         ["attr1", "objectClass"]

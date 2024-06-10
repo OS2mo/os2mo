@@ -102,7 +102,7 @@ async def load_ldap_objects(
     return output
 
 
-def load_ldap_populated_overview(dataloader, ldap_classes=None) -> dict:
+async def load_ldap_populated_overview(dataloader, ldap_classes=None) -> dict:
     """
     Like load_ldap_overview but only returns fields which actually contain data
     """
@@ -445,7 +445,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
         dataloader: depends.DataLoader,
         ldap_class: Literal[ldap_classes] = default_ldap_class,  # type: ignore
     ) -> Any:
-        ldap_overview = load_ldap_populated_overview(
+        ldap_overview = await load_ldap_populated_overview(
             dataloader, ldap_classes=[ldap_class]
         )
         return encode_result(ldap_overview.get(ldap_class))
