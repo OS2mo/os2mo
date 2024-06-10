@@ -2252,7 +2252,7 @@ async def test_create_ou(dataloader: DataLoader) -> None:
     assert "LDAP connection is read-only" in str(exc.value)
 
 
-def test_delete_ou(dataloader: DataLoader) -> None:
+async def test_delete_ou(dataloader: DataLoader) -> None:
     dataloader.load_ldap_OUs = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to.return_value = True
@@ -2269,7 +2269,7 @@ def test_delete_ou(dataloader: DataLoader) -> None:
     }
 
     ou = "OU=foo,OU=mucki,OU=bar"
-    dataloader.delete_ou(ou)
+    await dataloader.delete_ou(ou)
     dataloader.ldap_connection.delete.assert_called_once_with(
         "OU=foo,OU=mucki,OU=bar,DC=Magenta"
     )
@@ -2278,23 +2278,23 @@ def test_delete_ou(dataloader: DataLoader) -> None:
     dataloader.user_context["settings"].add_objects_to_ldap = True
     dataloader.ou_in_ous_to_write_to.return_value = False
 
-    dataloader.delete_ou(ou)
+    await dataloader.delete_ou(ou)
     dataloader.ldap_connection.delete.assert_not_called()
 
     # Test that we do not remove the ou-for-new-users
     dataloader.ou_in_ous_to_write_to.return_value = True
     settings_mock.ldap_ou_for_new_users = ou
-    dataloader.delete_ou(ou)
+    await dataloader.delete_ou(ou)
     dataloader.ldap_connection.delete.assert_not_called()
 
     # Test that we do not try to remove an OU which is not in the ou-dict
     dataloader.ou_in_ous_to_write_to.return_value = False
-    dataloader.delete_ou("OU=non_existing_OU")
+    await dataloader.delete_ou("OU=non_existing_OU")
     dataloader.ldap_connection.delete.assert_not_called()
 
     dataloader.user_context["settings"].ldap_read_only = True
     with pytest.raises(NotEnabledException) as exc:
-        dataloader.delete_ou("OU=non_existing_OU")
+        await dataloader.delete_ou("OU=non_existing_OU")
     assert "LDAP connection is read-only" in str(exc.value)
 
 

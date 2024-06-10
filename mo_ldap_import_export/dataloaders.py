@@ -524,7 +524,7 @@ class DataLoader:
                 self.ldap_connection.add(dn, "OrganizationalUnit")
                 self.log_ldap_response(dn=dn)
 
-    def delete_ou(self, ou: str) -> None:
+    async def delete_ou(self, ou: str) -> None:
         """
         Deletes an OU. If the parent OU is empty after deleting, also deletes that one
 
