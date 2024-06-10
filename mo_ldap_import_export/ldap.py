@@ -179,12 +179,12 @@ async def ldap_healthcheck(context: dict | Context) -> bool:
     return cast(bool, ldap_connection.bound)
 
 
-def ldap_compare(ldap_connection, dn, attribute, value) -> bool:
+async def ldap_compare(ldap_connection, dn, attribute, value) -> bool:
     value_exists = ldap_connection.compare(dn, attribute, value)
     return cast(bool, value_exists)
 
 
-def ldap_modify(ldap_connection, dn, changes) -> tuple[dict, dict]:
+async def ldap_modify(ldap_connection, dn, changes) -> tuple[dict, dict]:
     ldap_connection.modify(dn, changes)
     response: dict = ldap_connection.response
     result: dict = ldap_connection.result
@@ -192,7 +192,9 @@ def ldap_modify(ldap_connection, dn, changes) -> tuple[dict, dict]:
     return response, result
 
 
-def ldap_modify_dn(ldap_connection, dn, relative_dn, new_superior) -> tuple[dict, dict]:
+async def ldap_modify_dn(
+    ldap_connection, dn, relative_dn, new_superior
+) -> tuple[dict, dict]:
     ldap_connection.modify_dn(dn, relative_dn, new_superior=new_superior)
     response: dict = ldap_connection.response
     result: dict = ldap_connection.result
@@ -200,7 +202,9 @@ def ldap_modify_dn(ldap_connection, dn, relative_dn, new_superior) -> tuple[dict
     return response, result
 
 
-def ldap_add(ldap_connection, dn, object_class, attributes=None) -> tuple[dict, dict]:
+async def ldap_add(
+    ldap_connection, dn, object_class, attributes=None
+) -> tuple[dict, dict]:
     ldap_connection.add(dn, object_class, attributes)
     response: dict = ldap_connection.response
     result: dict = ldap_connection.result
@@ -208,7 +212,7 @@ def ldap_add(ldap_connection, dn, object_class, attributes=None) -> tuple[dict, 
     return response, result
 
 
-def ldap_delete(ldap_connection, dn) -> tuple[dict, dict]:
+async def ldap_delete(ldap_connection, dn) -> tuple[dict, dict]:
     ldap_connection.delete(dn)
     response: dict = ldap_connection.response
     result: dict = ldap_connection.result
@@ -216,7 +220,7 @@ def ldap_delete(ldap_connection, dn) -> tuple[dict, dict]:
     return response, result
 
 
-def ldap_search(ldap_connection, **kwargs) -> tuple[list[dict[str, Any]], dict]:
+async def ldap_search(ldap_connection, **kwargs) -> tuple[list[dict[str, Any]], dict]:
     ldap_connection.search(**kwargs)
     response: list[dict[str, Any]] = ldap_connection.response
     result: dict = ldap_connection.result
@@ -460,7 +464,8 @@ async def _paged_search(
     for page in range(0, 10_000):
         if not mute:
             logger.info("Searching page", page=page)
-        response, result = ldap_search(ldap_connection, **searchParameters)
+        # TODO: Fetch multiple pages in parallel using asyncio.gather?
+        response, result = await ldap_search(ldap_connection, **searchParameters)
 
         if result["description"] == "operationsError":
             # TODO: Should this be an exception?
@@ -572,8 +577,9 @@ async def object_search(
     search_bases = ensure_list(searchParameters["search_base"])
 
     responses = []
+    # TODO: Asyncio.gather this? - or combine the filters?
     for search_base in search_bases:
-        response, _ = ldap_search(
+        response, _ = await ldap_search(
             ldap_connection, **ChainMap(searchParameters, {"search_base": search_base})
         )
         if response:
@@ -820,7 +826,7 @@ async def _poll(
     )
     last_search_time = datetime.utcnow()
 
-    response, _ = ldap_search(ldap_connection, **timed_search_parameters)
+    response, _ = await ldap_search(ldap_connection, **timed_search_parameters)
 
     # Filter to only keep search results
     responses = ldapresponse2entries(response)

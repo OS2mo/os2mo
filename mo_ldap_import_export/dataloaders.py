@@ -356,7 +356,7 @@ class DataLoader:
             )
 
         # Compare to LDAP
-        value_exists = ldap_compare(self.ldap_connection, dn, attribute, value)
+        value_exists = await ldap_compare(self.ldap_connection, dn, attribute, value)
 
         # If the value is already as expected, and we are not deleting, we are done
         if value_exists and "DELETE" not in operation:
@@ -370,7 +370,7 @@ class DataLoader:
         # Modify LDAP
         changes = {attribute: [(operation, value)]}
         logger.info("Uploading the changes", changes=changes, dn=dn)
-        _, result = ldap_modify(self.ldap_connection, dn, changes)
+        _, result = await ldap_modify(self.ldap_connection, dn, changes)
         logger.info("LDAP Result", result=result, dn=dn)
 
         # If successful, the importer should ignore this DN
@@ -470,7 +470,7 @@ class DataLoader:
             return
 
         logger.info("Adding user to LDAP", dn=dn, attributes=attributes)
-        _, result = ldap_add(
+        _, result = await ldap_add(
             self.ldap_connection,
             dn,
             self.user_context["converter"].find_ldap_object_class("Employee"),
@@ -524,7 +524,9 @@ class DataLoader:
             if ou_to_create not in ou_dict:
                 logger.info("Creating OU", ou_to_create=ou_to_create)
                 dn = combine_dn_strings([ou_to_create, settings.ldap_search_base])
-                _, result = ldap_add(self.ldap_connection, dn, "OrganizationalUnit")
+                _, result = await ldap_add(
+                    self.ldap_connection, dn, "OrganizationalUnit"
+                )
                 logger.info("LDAP Result", result=result, dn=dn)
 
     async def delete_ou(self, ou: str) -> None:
@@ -553,7 +555,7 @@ class DataLoader:
             ):
                 logger.info("Deleting OU", ou_to_delete=ou_to_delete)
                 dn = combine_dn_strings([ou_to_delete, settings.ldap_search_base])
-                _, result = ldap_delete(self.ldap_connection, dn)
+                _, result = await ldap_delete(self.ldap_connection, dn)
                 logger.info("LDAP Result", result=result, dn=dn)
 
     async def move_ldap_object(self, old_dn: str, new_dn: str) -> bool:
@@ -587,7 +589,7 @@ class DataLoader:
 
         logger.info("Moving entry", old_dn=old_dn, new_dn=new_dn)
 
-        _, result = ldap_modify_dn(
+        _, result = await ldap_modify_dn(
             self.ldap_connection,
             old_dn,
             extract_cn_from_dn(new_dn),
