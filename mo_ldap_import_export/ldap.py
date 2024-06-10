@@ -769,10 +769,7 @@ async def _poll(
     last_search_time = datetime.utcnow()
 
     # TODO: Eliminate this thread and use asyncio code instead
-    loop = asyncio.get_running_loop()
-    await loop.run_in_executor(
-        None, partial(ldap_connection.search, **timed_search_parameters)
-    )
+    ldap_connection.search(**timed_search_parameters)
 
     # Filter to only keep search results
     responses = ldapresponse2entries(ldap_connection.response)
