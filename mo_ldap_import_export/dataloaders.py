@@ -60,6 +60,7 @@ from .ldap import get_ldap_object
 from .ldap import get_ldap_schema
 from .ldap import get_ldap_superiors
 from .ldap import is_uuid
+from .ldap import ldap_add
 from .ldap import ldap_compare
 from .ldap import ldap_modify
 from .ldap import ldap_modify_dn
@@ -468,12 +469,12 @@ class DataLoader:
             return
 
         logger.info("Adding user to LDAP", dn=dn, attributes=attributes)
-        self.ldap_connection.add(
+        _, result = ldap_add(
+            self.ldap_connection,
             dn,
             self.user_context["converter"].find_ldap_object_class("Employee"),
             attributes=attributes,
         )
-        result: dict = self.ldap_connection.result
         logger.info("LDAP Result", result=result, dn=dn)
 
     @staticmethod
@@ -522,9 +523,7 @@ class DataLoader:
             if ou_to_create not in ou_dict:
                 logger.info("Creating OU", ou_to_create=ou_to_create)
                 dn = combine_dn_strings([ou_to_create, settings.ldap_search_base])
-
-                self.ldap_connection.add(dn, "OrganizationalUnit")
-                result: dict = self.ldap_connection.result
+                _, result = ldap_add(self.ldap_connection, dn, "OrganizationalUnit")
                 logger.info("LDAP Result", result=result, dn=dn)
 
     async def delete_ou(self, ou: str) -> None:

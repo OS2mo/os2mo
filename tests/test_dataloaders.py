@@ -2243,7 +2243,7 @@ async def test_create_ou(dataloader: DataLoader) -> None:
     ou = "OU=foo,OU=mucki,OU=bar"
     await dataloader.create_ou(ou)
     dataloader.ldap_connection.add.assert_called_once_with(
-        "OU=foo,OU=mucki,OU=bar,DC=Magenta", "OrganizationalUnit"
+        "OU=foo,OU=mucki,OU=bar,DC=Magenta", "OrganizationalUnit", None
     )
 
     dataloader.user_context["settings"].add_objects_to_ldap = False

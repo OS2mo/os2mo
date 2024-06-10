@@ -200,6 +200,14 @@ def ldap_modify_dn(ldap_connection, dn, relative_dn, new_superior) -> tuple[dict
     return response, result
 
 
+def ldap_add(ldap_connection, dn, object_class, attributes=None) -> tuple[dict, dict]:
+    ldap_connection.add(dn, object_class, attributes)
+    response: dict = ldap_connection.response
+    result: dict = ldap_connection.result
+    # TODO: Verify that result["description"] is success?
+    return response, result
+
+
 async def poller_healthcheck(context: dict | Context) -> bool:
     pollers = context["user_context"]["pollers"]
     return all(not poller.done() for poller in pollers)
