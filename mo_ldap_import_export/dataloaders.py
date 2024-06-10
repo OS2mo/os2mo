@@ -590,9 +590,9 @@ class DataLoader:
         self.ldap_connection.modify_dn(
             old_dn, extract_cn_from_dn(new_dn), new_superior=remove_cn_from_dn(new_dn)
         )
-        response: dict = self.ldap_connection.result
-        logger.info("LDAP Result", result=response, new_dn=new_dn, old_dn=old_dn)
-        return True if response["description"] == "success" else False
+        result: dict = self.ldap_connection.result
+        logger.info("LDAP Result", result=result, new_dn=new_dn, old_dn=old_dn)
+        return True if result["description"] == "success" else False
 
     async def modify_ldap_object(
         self,
