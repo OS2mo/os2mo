@@ -242,7 +242,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
         sync_tool: depends.SyncTool,
         dataloader: depends.DataLoader,
     ) -> Any:
-        dn = dataloader.get_ldap_dn(unique_ldap_uuid)
+        dn = await dataloader.get_ldap_dn(unique_ldap_uuid)
         await sync_tool.import_single_user(dn, manual_import=True)
 
     # Get all objects from LDAP - Converted to MO
@@ -479,7 +479,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
     async def load_object_from_ldap_by_unique_ldap_uuid(
         dataloader: depends.DataLoader, unique_ldap_uuid: UUID, nest: bool = False
     ) -> Any:
-        dn = dataloader.get_ldap_dn(unique_ldap_uuid)
+        dn = await dataloader.get_ldap_dn(unique_ldap_uuid)
         return encode_result(dataloader.load_ldap_object(dn, ["*"], nest=nest))
 
     # Get LDAP object by DN

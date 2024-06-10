@@ -1666,7 +1666,7 @@ async def test_extract_unique_dns(dataloader: DataLoader):
     dataloader.extract_unique_ldap_uuids = MagicMock()  # type: ignore
     dataloader.extract_unique_ldap_uuids.return_value = [uuid4(), uuid4()]
 
-    dataloader.get_ldap_dn = MagicMock()  # type: ignore
+    dataloader.get_ldap_dn = AsyncMock()  # type: ignore
     dataloader.get_ldap_dn.return_value = "CN=foo"
 
     dns = await dataloader.extract_unique_dns([])
@@ -1674,12 +1674,12 @@ async def test_extract_unique_dns(dataloader: DataLoader):
     assert dn == "CN=foo"
 
 
-def test_get_ldap_dn(dataloader: DataLoader):
+async def test_get_ldap_dn(dataloader: DataLoader):
     with patch(
         "mo_ldap_import_export.dataloaders.single_object_search",
         return_value={"dn": "CN=foo"},
     ):
-        assert dataloader.get_ldap_dn(uuid4()) == "CN=foo"
+        assert await dataloader.get_ldap_dn(uuid4()) == "CN=foo"
 
 
 def test_get_ldap_unique_ldap_uuid(dataloader: DataLoader):
@@ -2394,7 +2394,7 @@ async def test_find_dn_by_engagement_uuid_finds_single_dn() -> None:
             engagement_uuid=engagement_uuid,
         )
     ]
-    dataloader.get_ldap_dn = MagicMock()  # type: ignore
+    dataloader.get_ldap_dn = AsyncMock()  # type: ignore
     dataloader.get_ldap_dn.return_value = "CN=foo"
     dns = MagicMock()
     dns.__contains__.return_value = True
@@ -2437,7 +2437,7 @@ async def test_find_dn_by_engagement_uuid_raises_exception_on_multiple_hits() ->
             engagement_uuid=engagement_uuid,
         )
     ] * 2
-    dataloader.get_ldap_dn = MagicMock()  # type: ignore
+    dataloader.get_ldap_dn = AsyncMock()  # type: ignore
     dataloader.get_ldap_dn.return_value = "CN=foo"
     dns = MagicMock()
     dns.__contains__.return_value = True

@@ -840,7 +840,7 @@ class DataLoader:
             )
             return None
 
-    def get_ldap_dn(self, unique_ldap_uuid: UUID) -> DN:
+    async def get_ldap_dn(self, unique_ldap_uuid: UUID) -> DN:
         """
         Given an unique_ldap_uuid, find the DistinguishedName
         """
@@ -887,7 +887,9 @@ class DataLoader:
 
     async def extract_unique_dns(self, it_users: list[ITUser]) -> set[DN]:
         unique_uuids = self.extract_unique_ldap_uuids(it_users)
-        return set(map(self.get_ldap_dn, unique_uuids))
+        # TODO: DataLoader / bulk here instead of this
+        dns = await asyncio.gather(*[self.get_ldap_dn(uuid) for uuid in unique_uuids])
+        return set(dns)
 
     async def find_mo_employee_dn_by_itsystem(self, uuid: UUID) -> set[DN]:
         """Tries to find the LDAP DNs belonging to a MO employee via ITUsers.
@@ -1147,7 +1149,7 @@ class DataLoader:
 
         # Single match, unique ldap UUID is stored in ITUser.user_key
         unique_uuid: UUID = UUID(one(matching_it_users).user_key)
-        dn = self.get_ldap_dn(unique_uuid)
+        dn = await self.get_ldap_dn(unique_uuid)
         assert dn in dns
         return dn
 
