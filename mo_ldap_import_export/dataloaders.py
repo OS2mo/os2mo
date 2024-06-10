@@ -395,7 +395,7 @@ class DataLoader:
             "attributes": [],
         }
 
-        responses = paged_search(
+        responses = await paged_search(
             self.context,
             searchParameters,
             search_base=search_base,
@@ -412,7 +412,7 @@ class DataLoader:
                 "size_limit": 1,
             }
 
-            responses = paged_search(
+            responses = await paged_search(
                 self.context,
                 searchParameters,
                 search_base=dn,

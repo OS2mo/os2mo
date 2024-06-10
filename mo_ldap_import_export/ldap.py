@@ -445,7 +445,7 @@ def _paged_search(
     return responses
 
 
-def paged_search(
+async def paged_search(
     context: Context,
     searchParameters: dict,
     search_base: str | None = None,

@@ -417,7 +417,7 @@ async def test_paged_search(
         "search_filter": "(objectclass=organizationalPerson)",
         "attributes": ["foo", "bar"],
     }
-    output = paged_search(context, searchParameters, search_base="foo")
+    output = await paged_search(context, searchParameters, search_base="foo")
     assert output == expected_results * len(cookies)
 
 
@@ -456,7 +456,7 @@ async def test_paged_search_no_results(
         "search_filter": "(objectclass=organizationalPerson)",
         "attributes": ["foo", "bar"],
     }
-    output = paged_search(context, searchParameters)
+    output = await paged_search(context, searchParameters)
 
     assert output == expected_results
 
@@ -477,7 +477,7 @@ async def test_invalid_paged_search(
         "search_filter": "(objectclass=organizationalPerson)",
         "attributes": ["foo", "bar"],
     }
-    output = paged_search(context, searchParameters)
+    output = await paged_search(context, searchParameters)
 
     assert output == []
 

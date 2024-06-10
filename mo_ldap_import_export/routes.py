@@ -60,7 +60,7 @@ async def load_ldap_attribute_values(context, attribute, search_base=None) -> li
         "attributes": [attribute],
     }
 
-    responses = paged_search(
+    responses = await paged_search(
         context,
         searchParameters,
         search_base=search_base,
@@ -90,7 +90,7 @@ async def load_ldap_objects(
         "attributes": list(set(attributes)),
     }
 
-    responses = paged_search(
+    responses = await paged_search(
         dataloader.context,
         searchParameters,
         search_base=search_base,
@@ -120,7 +120,7 @@ async def load_ldap_populated_overview(dataloader, ldap_classes=None) -> dict:
             "attributes": ["*"],
         }
 
-        responses = paged_search(dataloader.context, searchParameters)
+        responses = await paged_search(dataloader.context, searchParameters)
         responses = [
             r
             for r in responses
@@ -377,7 +377,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
 
         responses = [
             r
-            for r in paged_search(context, searchParameters)
+            for r in await paged_search(context, searchParameters)
             if r["attributes"][cpr_field]
         ]
 
