@@ -8,7 +8,6 @@ from functools import wraps
 from typing import Any
 
 import structlog
-from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import FastAPI
 from fastramqpi.main import FastRAMQPI
@@ -48,10 +47,7 @@ from .usernames import get_username_generator_class
 
 logger = structlog.stdlib.get_logger()
 
-fastapi_router = APIRouter()
 amqp_router = MORouter()
-delay_on_error = 10  # Try errors again after a short period of time
-delay_on_requeue = 60  # Requeue messages in a minute (or after a reboot)
 
 
 def reject_on_failure(func):
@@ -67,6 +63,11 @@ def reject_on_failure(func):
             logger.info(e)
             raise
         except (
+            RequeueMessage
+        ) as e:  # In case we explicitly requeued the message: Requeue
+            logger.warning(e)
+            raise
+        except (
             NotSupportedException,  # For features that are not supported: Abort
             IncorrectMapping,  # If the json dict is incorrectly configured: Abort
             TransportQueryError,  # In case an ldap entry cannot be uploaded: Abort
@@ -74,11 +75,8 @@ def reject_on_failure(func):
             IgnoreChanges,  # In case changes should be ignored: Abort
             NotEnabledException,  # In case a feature is not enabled: Abort
         ) as e:
-            logger.info(e)
+            logger.warning(e)
             raise RejectMessage() from e
-        except RequeueMessage:
-            await asyncio.sleep(delay_on_requeue)
-            raise
 
     modified_func.__wrapped__ = func  # type: ignore
     return modified_func
@@ -313,8 +311,10 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
 
     logger.info("AMQP router setup")
     amqpsystem = fastramqpi.get_amqpsystem()
+    # Retry messages after a short period of time
+    rate_limit_delay = 10
     amqpsystem.dependencies = [
-        Depends(rate_limit(delay_on_error)),
+        Depends(rate_limit(rate_limit_delay)),
         Depends(depends.logger_bound_message_id),
         Depends(depends.request_id),
     ]
@@ -379,8 +379,6 @@ def create_app(fastramqpi: FastRAMQPI | None = None, **kwargs: Any) -> FastAPI:
     assert fastramqpi is not None
 
     app = fastramqpi.get_app()
-    app.include_router(fastapi_router)
-
     user_context = fastramqpi._context["user_context"]
     app.include_router(construct_router(user_context))
 
