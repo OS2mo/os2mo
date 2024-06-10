@@ -51,7 +51,7 @@ def encode_result(result):
     return json_compatible_result
 
 
-def load_ldap_attribute_values(context, attribute, search_base=None) -> list[str]:
+async def load_ldap_attribute_values(context, attribute, search_base=None) -> list[str]:
     """
     Returns all values belonging to an LDAP attribute
     """
@@ -60,7 +60,7 @@ def load_ldap_attribute_values(context, attribute, search_base=None) -> list[str
         "attributes": [attribute],
     }
 
-    responses = paged_search(
+    responses = await paged_search(
         context,
         searchParameters,
         search_base=search_base,
@@ -90,19 +90,21 @@ async def load_ldap_objects(
         "attributes": list(set(attributes)),
     }
 
-    responses = paged_search(
+    responses = await paged_search(
         dataloader.context,
         searchParameters,
         search_base=search_base,
     )
 
     output: list[LdapObject]
-    output = [make_ldap_object(r, dataloader.context, nest=False) for r in responses]
+    output = [
+        await make_ldap_object(r, dataloader.context, nest=False) for r in responses
+    ]
 
     return output
 
 
-def load_ldap_populated_overview(dataloader, ldap_classes=None) -> dict:
+async def load_ldap_populated_overview(dataloader, ldap_classes=None) -> dict:
     """
     Like load_ldap_overview but only returns fields which actually contain data
     """
@@ -120,7 +122,7 @@ def load_ldap_populated_overview(dataloader, ldap_classes=None) -> dict:
             "attributes": ["*"],
         }
 
-        responses = paged_search(dataloader.context, searchParameters)
+        responses = await paged_search(dataloader.context, searchParameters)
         responses = [
             r
             for r in responses
@@ -242,7 +244,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
         sync_tool: depends.SyncTool,
         dataloader: depends.DataLoader,
     ) -> Any:
-        dn = dataloader.get_ldap_dn(unique_ldap_uuid)
+        dn = await dataloader.get_ldap_dn(unique_ldap_uuid)
         await sync_tool.import_single_user(dn, manual_import=True)
 
     # Get all objects from LDAP - Converted to MO
@@ -273,7 +275,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
         json_key: Literal[accepted_json_keys],  # type: ignore
         cpr: CPRNumber = Depends(valid_cpr),
     ) -> Any:
-        results = dataloader.load_ldap_cpr_object(
+        results = await dataloader.load_ldap_cpr_object(
             cpr, json_key, [settings.ldap_unique_id_field]
         )
         return [encode_result(result) for result in results]
@@ -287,7 +289,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
         response: Response,
         cpr: CPRNumber = Depends(valid_cpr),
     ) -> Any:
-        results = dataloader.load_ldap_cpr_object(cpr, json_key)
+        results = await dataloader.load_ldap_cpr_object(cpr, json_key)
         try:
             return [
                 await converter.from_ldap(result, json_key, employee_uuid=uuid4())
@@ -337,7 +339,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
 
         all_unique_ldap_uuids = [
             to_uuid(u)
-            for u in load_ldap_attribute_values(
+            for u in await load_ldap_attribute_values(
                 dataloader.context, settings.ldap_unique_id_field
             )
         ]
@@ -377,7 +379,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
 
         responses = [
             r
-            for r in paged_search(context, searchParameters)
+            for r in await paged_search(context, searchParameters)
             if r["attributes"][cpr_field]
         ]
 
@@ -437,7 +439,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
     async def load_structure_from_LDAP(
         dataloader: depends.DataLoader, search_base: str | None = None
     ) -> Any:
-        return dataloader.load_ldap_OUs(search_base=search_base)
+        return await dataloader.load_ldap_OUs(search_base=search_base)
 
     # Get populated LDAP overview
     @router.get("/Inspect/overview/populated", status_code=202, tags=["LDAP"])
@@ -445,7 +447,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
         dataloader: depends.DataLoader,
         ldap_class: Literal[ldap_classes] = default_ldap_class,  # type: ignore
     ) -> Any:
-        ldap_overview = load_ldap_populated_overview(
+        ldap_overview = await load_ldap_populated_overview(
             dataloader, ldap_classes=[ldap_class]
         )
         return encode_result(ldap_overview.get(ldap_class))
@@ -470,7 +472,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
         attribute: Literal[accepted_attributes],  # type: ignore
         search_base: str | None = None,
     ) -> Any:
-        return load_ldap_attribute_values(
+        return await load_ldap_attribute_values(
             dataloader.context, attribute, search_base=search_base
         )
 
@@ -479,21 +481,21 @@ def construct_router(user_context: UserContext) -> APIRouter:
     async def load_object_from_ldap_by_unique_ldap_uuid(
         dataloader: depends.DataLoader, unique_ldap_uuid: UUID, nest: bool = False
     ) -> Any:
-        dn = dataloader.get_ldap_dn(unique_ldap_uuid)
-        return encode_result(dataloader.load_ldap_object(dn, ["*"], nest=nest))
+        dn = await dataloader.get_ldap_dn(unique_ldap_uuid)
+        return encode_result(await dataloader.load_ldap_object(dn, ["*"], nest=nest))
 
     # Get LDAP object by DN
     @router.get("/Inspect/object/dn", status_code=202, tags=["LDAP"])
     async def load_object_from_ldap_by_dn(
         dataloader: depends.DataLoader, dn: str, nest: bool = False
     ) -> Any:
-        return encode_result(dataloader.load_ldap_object(dn, ["*"], nest=nest))
+        return encode_result(await dataloader.load_ldap_object(dn, ["*"], nest=nest))
 
     # Get LDAP unique_ldap_uuid
     @router.get("/unique_ldap_uuid/{dn}", status_code=202, tags=["LDAP"])
     async def load_unique_uuid_from_ldap(
         dataloader: depends.DataLoader, dn: str
     ) -> Any:
-        return dataloader.get_ldap_unique_ldap_uuid(dn)
+        return await dataloader.get_ldap_unique_ldap_uuid(dn)
 
     return router

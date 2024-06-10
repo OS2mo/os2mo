@@ -225,7 +225,7 @@ class DataLoader:
 
         return result
 
-    def load_ldap_object(
+    async def load_ldap_object(
         self,
         dn: DN,
         attributes: list | None,
@@ -234,9 +234,11 @@ class DataLoader:
     ) -> LdapObject:  # pragma: no cover
         # TODO: Actually eliminate this function by calling get_ldap_object directly.
         #       Be warned though, doing so breaks ~25 tests because of bad mocking.
-        return get_ldap_object(dn, self.context, nest, attributes, run_discriminator)
+        return await get_ldap_object(
+            dn, self.context, nest, attributes, run_discriminator
+        )
 
-    def load_ldap_cpr_object(
+    async def load_ldap_cpr_object(
         self,
         cpr_no: CPRNumber,
         json_key: str,
@@ -279,9 +281,10 @@ class DataLoader:
             "attributes": list(set(attributes)),
         }
         ldap_connection = self.context["user_context"]["ldap_connection"]
-        search_results = object_search(searchParameters, ldap_connection)
+        search_results = await object_search(searchParameters, ldap_connection)
+        # TODO: Asyncio gather this
         ldap_objects: list[LdapObject] = [
-            make_ldap_object(search_result, self.context)
+            await make_ldap_object(search_result, self.context)
             for search_result in search_results
         ]
         dns = [obj.dn for obj in ldap_objects]
@@ -311,7 +314,7 @@ class DataLoader:
         logger.info("OU not in OUs to write", ou=ou, ous_to_write_to=ous_to_write_to)
         return False
 
-    def modify_ldap(
+    async def modify_ldap(
         self,
         operation: Literal[
             "MODIFY_ADD", "MODIFY_DELETE", "MODIFY_REPLACE", "MODIFY_INCREMENT"
@@ -385,7 +388,7 @@ class DataLoader:
     delete_ldap = partialmethod(modify_ldap, "MODIFY_DELETE")
     replace_ldap = partialmethod(modify_ldap, "MODIFY_REPLACE")
 
-    def load_ldap_OUs(self, search_base: str | None = None) -> dict:
+    async def load_ldap_OUs(self, search_base: str | None = None) -> dict:
         """
         Returns a dictionary where the keys are OU strings and the items are dicts
         which contain information about the OU
@@ -395,7 +398,7 @@ class DataLoader:
             "attributes": [],
         }
 
-        responses = paged_search(
+        responses = await paged_search(
             self.context,
             searchParameters,
             search_base=search_base,
@@ -412,7 +415,7 @@ class DataLoader:
                 "size_limit": 1,
             }
 
-            responses = paged_search(
+            responses = await paged_search(
                 self.context,
                 searchParameters,
                 search_base=dn,
@@ -432,7 +435,7 @@ class DataLoader:
         logger.info("LDAP Response", response=response, **kwargs)
         return response
 
-    def add_ldap_object(self, dn: str, attributes: dict[str, Any] | None = None):
+    async def add_ldap_object(self, dn: str, attributes: dict[str, Any] | None = None):
         """
         Adds a new object to LDAP
 
@@ -494,7 +497,7 @@ class DataLoader:
 
         return output
 
-    def create_ou(self, ou: str) -> None:
+    async def create_ou(self, ou: str) -> None:
         """
         Creates an OU. If the parent OU does not exist, creates that one first
         """
@@ -513,7 +516,7 @@ class DataLoader:
             return
 
         # TODO: Search for specific OUs as needed instead of reading all of LDAP?
-        ou_dict = self.load_ldap_OUs()
+        ou_dict = await self.load_ldap_OUs()
 
         # Create OUs top-down (unless they already exist)
         for ou_to_create in self.decompose_ou_string(ou)[::-1]:
@@ -524,7 +527,7 @@ class DataLoader:
                 self.ldap_connection.add(dn, "OrganizationalUnit")
                 self.log_ldap_response(dn=dn)
 
-    def delete_ou(self, ou: str) -> None:
+    async def delete_ou(self, ou: str) -> None:
         """
         Deletes an OU. If the parent OU is empty after deleting, also deletes that one
 
@@ -543,7 +546,7 @@ class DataLoader:
 
         for ou_to_delete in self.decompose_ou_string(ou):
             # TODO: Search for specific OUs as needed instead of reading all of LDAP?
-            ou_dict = self.load_ldap_OUs()
+            ou_dict = await self.load_ldap_OUs()
             if (
                 ou_dict.get(ou_to_delete, {}).get("empty", False)
                 and ou_to_delete != settings.ldap_ou_for_new_users
@@ -553,7 +556,7 @@ class DataLoader:
                 self.ldap_connection.delete(dn)
                 self.log_ldap_response(dn=dn)
 
-    def move_ldap_object(self, old_dn: str, new_dn: str) -> bool:
+    async def move_ldap_object(self, old_dn: str, new_dn: str) -> bool:
         """
         Moves an LDAP object from one DN to another. Returns True if the move was
         successful.
@@ -658,7 +661,7 @@ class DataLoader:
                 operation = self.add_ldap
 
             try:
-                response = operation(dn, parameter_to_modify, value_to_modify)
+                response = await operation(dn, parameter_to_modify, value_to_modify)
             except LDAPInvalidValueError:
                 logger.warning("LDAPInvalidValueError exception", exc_info=True)
                 failed += 1
@@ -726,7 +729,9 @@ class DataLoader:
         if cpr_field is None:
             return set()
 
-        ldap_object = self.load_ldap_object(dn, [cpr_field], run_discriminator=False)
+        ldap_object = await self.load_ldap_object(
+            dn, [cpr_field], run_discriminator=False
+        )
         # Try to get the cpr number from LDAP and use that.
         try:
             raw_cpr_no = getattr(ldap_object, cpr_field)
@@ -743,7 +748,7 @@ class DataLoader:
         return {employee.uuid for employee in result.objects}
 
     async def find_mo_employee_uuid_via_ituser(self, dn: str) -> set[UUID]:
-        unique_uuid = self.get_ldap_unique_ldap_uuid(dn)
+        unique_uuid = await self.get_ldap_unique_ldap_uuid(dn)
         result = await self.graphql_client.read_employee_uuid_by_ituser_user_key(
             str(unique_uuid)
         )
@@ -784,7 +789,7 @@ class DataLoader:
         # Unique LDAP UUID in MO.
 
         settings = self.user_context["settings"]
-        ldap_object = self.load_ldap_object(
+        ldap_object = await self.load_ldap_object(
             dn, [settings.ldap_unique_id_field], run_discriminator=False
         )
         raw_unique_uuid = getattr(ldap_object, settings.ldap_unique_id_field)
@@ -840,7 +845,7 @@ class DataLoader:
             )
             return None
 
-    def get_ldap_dn(self, unique_ldap_uuid: UUID) -> DN:
+    async def get_ldap_dn(self, unique_ldap_uuid: UUID) -> DN:
         """
         Given an unique_ldap_uuid, find the DistinguishedName
         """
@@ -852,17 +857,17 @@ class DataLoader:
             "search_scope": BASE,
         }
 
-        search_result = single_object_search(searchParameters, self.context)
+        search_result = await single_object_search(searchParameters, self.context)
         dn: str = search_result["dn"]
         return dn
 
-    def get_ldap_unique_ldap_uuid(self, dn: str) -> UUID:
+    async def get_ldap_unique_ldap_uuid(self, dn: str) -> UUID:
         """
         Given a DN, find the unique_ldap_uuid
         """
         settings = self.user_context["settings"]
         logger.info("Looking for LDAP object", dn=dn)
-        ldap_object = self.load_ldap_object(dn, [settings.ldap_unique_id_field])
+        ldap_object = await self.load_ldap_object(dn, [settings.ldap_unique_id_field])
         uuid = getattr(ldap_object, settings.ldap_unique_id_field)
         if not uuid:
             # Some computer-account objects has no samaccountname
@@ -885,9 +890,11 @@ class DataLoader:
         # TODO: Check for duplicates?
         return set(map(UUID, uuids))
 
-    def extract_unique_dns(self, it_users: list[ITUser]) -> set[DN]:
+    async def extract_unique_dns(self, it_users: list[ITUser]) -> set[DN]:
         unique_uuids = self.extract_unique_ldap_uuids(it_users)
-        return set(map(self.get_ldap_dn, unique_uuids))
+        # TODO: DataLoader / bulk here instead of this
+        dns = await asyncio.gather(*[self.get_ldap_dn(uuid) for uuid in unique_uuids])
+        return set(dns)
 
     async def find_mo_employee_dn_by_itsystem(self, uuid: UUID) -> set[DN]:
         """Tries to find the LDAP DNs belonging to a MO employee via ITUsers.
@@ -911,7 +918,7 @@ class DataLoader:
             it_users = await self.load_mo_employee_it_users(uuid, it_system_uuid)
         except NoObjectsReturnedException:  # pragma: no cover
             return set()
-        dns = self.extract_unique_dns(it_users)
+        dns = await self.extract_unique_dns(it_users)
         # No DNs, no problem
         if not dns:
             return set()
@@ -945,7 +952,9 @@ class DataLoader:
             employee_uuid=uuid,
         )
         try:
-            dns = {obj.dn for obj in self.load_ldap_cpr_object(cpr_no, "Employee")}
+            dns = {
+                obj.dn for obj in await self.load_ldap_cpr_object(cpr_no, "Employee")
+            }
         except NoObjectsReturnedException:
             return set()
         if not dns:
@@ -1067,7 +1076,7 @@ class DataLoader:
             )
             # Get its unique ldap uuid
             # TODO: Get rid of this code and operate on EntityUUIDs thoughout
-            unique_uuid = self.get_ldap_unique_ldap_uuid(dn)
+            unique_uuid = await self.get_ldap_unique_ldap_uuid(dn)
             logger.info(
                 "LDAP UUID found for DN",
                 employee_uuid=uuid,
@@ -1145,7 +1154,7 @@ class DataLoader:
 
         # Single match, unique ldap UUID is stored in ITUser.user_key
         unique_uuid: UUID = UUID(one(matching_it_users).user_key)
-        dn = self.get_ldap_dn(unique_uuid)
+        dn = await self.get_ldap_dn(unique_uuid)
         assert dn in dns
         return dn
 

@@ -49,14 +49,14 @@ class UserNameGeneratorBase(ABC):
 
         logger.info("Found forbidden usernames", count=len(self.forbidden_usernames))
 
-    def get_existing_values(self, attributes: list[str]):
+    async def get_existing_values(self, attributes: list[str]):
         searchParameters = {
             "search_filter": "(objectclass=*)",
             "attributes": attributes,
         }
         search_base = self.settings.ldap_search_base
         output = {}
-        search_result = paged_search(self.context, searchParameters, search_base)
+        search_result = await paged_search(self.context, searchParameters, search_base)
         for attribute in attributes:
             output[attribute] = [
                 entry["attributes"][attribute].lower()
@@ -293,9 +293,9 @@ class UserNameGeneratorBase(ABC):
 
         return attributes
 
-    def _get_existing_names(self):
+    async def _get_existing_names(self):
         # TODO: Consider if it is better to fetch all names or candidate names
-        existing_values = self.get_existing_values(
+        existing_values = await self.get_existing_values(
             ["cn", "sAMAccountName", "userPrincipalName"]
         )
 
@@ -321,7 +321,7 @@ class UserNameGenerator(UserNameGeneratorBase):
 
         Also adds an object to LDAP with this DN
         """
-        existing_usernames, existing_common_names = self._get_existing_names()
+        existing_usernames, existing_common_names = await self._get_existing_names()
 
         givenname = employee.givenname
         surname = employee.surname
@@ -346,7 +346,9 @@ class UserNameGenerator(UserNameGeneratorBase):
         dn = self._make_dn(common_name)
         employee_attributes = await self._get_employee_ldap_attributes(employee, dn)
         other_attributes = {"sAMAccountName": username}
-        self.dataloader.add_ldap_object(dn, employee_attributes | other_attributes)
+        await self.dataloader.add_ldap_object(
+            dn, employee_attributes | other_attributes
+        )
         return dn
 
 
@@ -366,7 +368,7 @@ class AlleroedUserNameGenerator(UserNameGeneratorBase):
 
         Follows guidelines from https://redmine.magenta-aps.dk/issues/56080
         """
-        existing_usernames, existing_common_names = self._get_existing_names()
+        existing_usernames, existing_common_names = await self._get_existing_names()
 
         # "existing_usernames_in_mo" covers all usernames which MO has ever generated.
         # Because we never delete from MO's database; We just put end-dates on objects.
@@ -409,7 +411,7 @@ class AlleroedUserNameGenerator(UserNameGeneratorBase):
             "userPrincipalName": f"{username}@alleroed.dk",
         }
 
-        self.dataloader.add_ldap_object(
+        await self.dataloader.add_ldap_object(
             dn,
             employee_attributes | other_attributes,
         )

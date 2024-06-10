@@ -219,7 +219,7 @@ def get_ldap_attributes(ldap_connection: Connection, root_ldap_object: str):
     return all_attributes
 
 
-def first_included(context: Context, dns: set[DN]) -> DN | None:
+async def first_included(context: Context, dns: set[DN]) -> DN | None:
     """Find the account to synchronize from a set of DNs.
 
     The DNs are evaluated depending on the configuration of the discriminator.
@@ -265,7 +265,9 @@ def first_included(context: Context, dns: set[DN]) -> DN | None:
         #       currently async, but rather blocks the entire event-loop all the time.
         #       #59422 tracks this issue, and once resolved this code can be fixed.
         ldap_objects = [
-            get_ldap_object(dn, context, attributes=attributes, run_discriminator=False)
+            await get_ldap_object(
+                dn, context, attributes=attributes, run_discriminator=False
+            )
             for dn in dns
         ]
     except NoObjectsReturnedException as exc:
@@ -387,7 +389,7 @@ def ldapresponse2entries(ldap_response: list[dict[str, Any]]) -> list[dict[str, 
     return [entry for entry in ldap_response if entry["type"] == "searchResEntry"]
 
 
-def _paged_search(
+async def _paged_search(
     ldap_connection: Connection,
     searchParameters: dict,
     search_base: str,
@@ -445,7 +447,7 @@ def _paged_search(
     return responses
 
 
-def paged_search(
+async def paged_search(
     context: Context,
     searchParameters: dict,
     search_base: str | None = None,
@@ -479,7 +481,9 @@ def paged_search(
 
     if search_base:
         # If the search base is explicitly defined: Don't try anything fancy.
-        results = _paged_search(ldap_connection, searchParameters, search_base, mute)
+        results = await _paged_search(
+            ldap_connection, searchParameters, search_base, mute
+        )
         return results
 
     # Otherwise, loop over all OUs to search in
@@ -490,13 +494,15 @@ def paged_search(
     results = []
     for search_base in search_bases:
         results.extend(
-            _paged_search(ldap_connection, searchParameters.copy(), search_base, mute)
+            await _paged_search(
+                ldap_connection, searchParameters.copy(), search_base, mute
+            )
         )
 
     return results
 
 
-def object_search(
+async def object_search(
     searchParameters: dict[str, Any], ldap_connection: Connection
 ) -> list[dict[str, Any]]:
     """Performs an LDAP search and return the result.
@@ -532,7 +538,7 @@ def object_search(
     return search_entries
 
 
-def single_object_search(
+async def single_object_search(
     searchParameters: dict[str, Any], context: Context, run_discriminator: bool = True
 ) -> dict[str, Any]:
     """Performs an LDAP search and ensure that it returns one result.
@@ -559,7 +565,7 @@ def single_object_search(
         The found object.
     """
     ldap_connection = context["user_context"]["ldap_connection"]
-    search_entries = object_search(searchParameters, ldap_connection)
+    search_entries = await object_search(searchParameters, ldap_connection)
 
     settings = context["user_context"]["settings"]
     # TODO: Do we actually wanna apply discriminator here?
@@ -592,7 +598,7 @@ def is_dn(value):
     return True
 
 
-def get_ldap_object(
+async def get_ldap_object(
     dn: DN,
     context: Context,
     nest: bool = True,
@@ -619,15 +625,17 @@ def get_ldap_object(
         "attributes": attributes,
         "search_scope": BASE,
     }
-    search_result = single_object_search(
+    search_result = await single_object_search(
         searchParameters, context, run_discriminator=run_discriminator
     )
     dn = search_result["dn"]
     logger.info("Found DN", dn=dn)
-    return make_ldap_object(search_result, context, nest=nest)
+    return await make_ldap_object(search_result, context, nest=nest)
 
 
-def make_ldap_object(response: dict, context: Context, nest: bool = True) -> LdapObject:
+async def make_ldap_object(
+    response: dict, context: Context, nest: bool = True
+) -> LdapObject:
     """Takes an LDAP response and formats it as an LdapObject.
 
     Args:
@@ -641,14 +649,14 @@ def make_ldap_object(response: dict, context: Context, nest: bool = True) -> Lda
     attributes = sorted(list(response["attributes"].keys()))
     ldap_dict = {"dn": response["dn"]}
 
-    def get_nested_ldap_object(dn):
+    async def get_nested_ldap_object(dn):
         """
         Gets a ldap object based on its DN - unless we are in a nested loop
         """
 
         if nest:
             logger.info("Loading nested ldap object", dn=dn)
-            return get_ldap_object(dn, context, nest=False)
+            return await get_ldap_object(dn, context, nest=False)
         raise Exception("Already running in nested loop")  # pragma: no cover
 
     def is_other_dn(value):
@@ -663,10 +671,10 @@ def make_ldap_object(response: dict, context: Context, nest: bool = True) -> Lda
     for attribute in attributes:
         value = response["attributes"][attribute]
         if is_other_dn(value) and nest:
-            ldap_dict[attribute] = get_nested_ldap_object(value)
+            ldap_dict[attribute] = await get_nested_ldap_object(value)
         elif is_list(value):
             ldap_dict[attribute] = [
-                get_nested_ldap_object(v) if is_other_dn(v) and nest else v
+                (await get_nested_ldap_object(v)) if is_other_dn(v) and nest else v
                 for v in value
             ]
         else:

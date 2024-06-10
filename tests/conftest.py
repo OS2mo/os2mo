@@ -190,11 +190,11 @@ def dataloader(
 
     test_mo_it_user = ITUser.from_simplified_fields("foo", uuid4(), "2021-01-01")
 
-    load_ldap_cpr_object = MagicMock()
+    load_ldap_cpr_object = AsyncMock()
     load_ldap_cpr_object.return_value = test_ldap_object
 
     dataloader = AsyncMock()
-    dataloader.load_ldap_object = sync_dataloader
+    dataloader.load_ldap_object = AsyncMock()
     dataloader.load_ldap_OUs = sync_dataloader
     dataloader.load_ldap_populated_overview = sync_dataloader
     dataloader.load_ldap_overview = sync_dataloader
@@ -210,16 +210,16 @@ def dataloader(
     dataloader.load_mo_employee_addresses.return_value = [test_mo_address] * 2
     dataloader.load_all_mo_objects.return_value = test_mo_objects
     dataloader.load_mo_object.return_value = test_mo_objects[0]
-    dataloader.load_ldap_attribute_values = sync_dataloader
+    dataloader.load_ldap_attribute_values = AsyncMock()
     dataloader.modify_ldap_object.return_value = [{"description": "success"}]
     dataloader.get_ldap_objectGUID = sync_dataloader
     dataloader.find_or_make_mo_employee_dn.return_value = ["CN=foo"]
     dataloader.find_dn_by_engagement_uuid.return_value = "CN=foo"
 
-    dataloader.load_ldap_OUs = MagicMock()
-    dataloader.move_ldap_object = MagicMock()
-    dataloader.delete_ou = MagicMock()
-    dataloader.create_ou = MagicMock()
+    dataloader.load_ldap_OUs = AsyncMock()
+    dataloader.move_ldap_object = AsyncMock()
+    dataloader.delete_ou = AsyncMock()
+    dataloader.create_ou = AsyncMock()
 
     return dataloader
 

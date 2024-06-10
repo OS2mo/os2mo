@@ -201,7 +201,7 @@ class SyncTool:
             )
         return True
 
-    def move_ldap_object(self, ldap_object: LdapObject, dn: DN) -> LdapObject:
+    async def move_ldap_object(self, ldap_object: LdapObject, dn: DN) -> LdapObject:
         """
         Parameters
         ----------------
@@ -234,14 +234,14 @@ class SyncTool:
         )
 
         # Create the new OU (dataloader.create_ou checks if it exists)
-        self.dataloader.create_ou(new_ou)
+        await self.dataloader.create_ou(new_ou)
 
         # Move the object to the proper OU
-        move_successful: bool = self.dataloader.move_ldap_object(old_dn, new_dn)
+        move_successful = await self.dataloader.move_ldap_object(old_dn, new_dn)
 
         if move_successful:
             # Delete the old OU (dataloader.delete_ou checks if it is empty)
-            self.dataloader.delete_ou(old_ou)
+            await self.dataloader.delete_ou(old_ou)
         else:
             ldap_object.dn = old_dn
 
@@ -264,7 +264,7 @@ class SyncTool:
 
         # Convert to LDAP
         ldap_employee = await self.converter.to_ldap(mo_object_dict, "Employee", dn)
-        ldap_employee = self.move_ldap_object(ldap_employee, dn)
+        ldap_employee = await self.move_ldap_object(ldap_employee, dn)
 
         # We do not generally terminate people in MO
         delete = False
@@ -380,7 +380,7 @@ class SyncTool:
             )
             # Convert & Upload to LDAP
             ldap_object = await self.converter.to_ldap(template_dict, address_type, dn)
-            ldap_object = self.move_ldap_object(ldap_object, dn)
+            ldap_object = await self.move_ldap_object(ldap_object, dn)
             await self.dataloader.modify_ldap_object(
                 ldap_object, address_type, delete=delete
             )
@@ -507,7 +507,7 @@ class SyncTool:
             )
             # Convert & Upload to LDAP
             ldap_object = await self.converter.to_ldap(template_dict, address_type, dn)
-            ldap_object = self.move_ldap_object(ldap_object, dn)
+            ldap_object = await self.move_ldap_object(ldap_object, dn)
             await self.dataloader.modify_ldap_object(
                 ldap_object, address_type, delete=delete
             )
@@ -610,7 +610,7 @@ class SyncTool:
             logger.info("Obtained ituser", itsystem=itsystem, uuid=changed_ituser.uuid)
             # Convert & Upload to LDAP
             ldap_object = await self.converter.to_ldap(template_dict, itsystem, dn)
-            ldap_object = self.move_ldap_object(ldap_object, dn)
+            ldap_object = await self.move_ldap_object(ldap_object, dn)
             await self.dataloader.modify_ldap_object(
                 ldap_object, itsystem, delete=delete
             )
@@ -684,7 +684,7 @@ class SyncTool:
 
         # Convert & Upload to LDAP
         ldap_object = await self.converter.to_ldap(template_dict, "Engagement", dn)
-        ldap_object = self.move_ldap_object(ldap_object, dn)
+        ldap_object = await self.move_ldap_object(ldap_object, dn)
         await self.dataloader.modify_ldap_object(
             ldap_object, "Engagement", delete=delete
         )
@@ -708,7 +708,7 @@ class SyncTool:
         # If we found DNs, we want to synchronize to the best of them
         if dns:
             logger.info("Found DNs for user", dns=dns, uuid=uuid)
-            best_dn = first_included(self.context, dns)
+            best_dn = await first_included(self.context, dns)
             # If no good LDAP account was found, we do not want to synchronize at all
             if best_dn is None:
                 logger.warning(
@@ -988,7 +988,7 @@ class SyncTool:
             cpr_field = self.converter.cpr_field
             if cpr_field is not None:
                 cpr_no = getattr(
-                    get_ldap_object(
+                    await get_ldap_object(
                         dn,
                         self.context,
                         attributes=[cpr_field],
@@ -998,7 +998,9 @@ class SyncTool:
                 )
                 dns = {
                     obj.dn
-                    for obj in self.dataloader.load_ldap_cpr_object(cpr_no, "Employee")
+                    for obj in await self.dataloader.load_ldap_cpr_object(
+                        cpr_no, "Employee"
+                    )
                 }
 
             logger.info(
@@ -1010,7 +1012,7 @@ class SyncTool:
         # We always want to synchronize from the best LDAP account, instead of just
         # synchronizing from the last LDAP account that has been touched.
         # Thus we process the list of DNs found for the user to pick the best one.
-        best_dn = first_included(self.context, dns)
+        best_dn = await first_included(self.context, dns)
         # If no good LDAP account was found, we do not want to synchronize at all
         if best_dn is None:
             logger.info(
@@ -1082,7 +1084,7 @@ class SyncTool:
         self, json_key: str, dn: str, employee_uuid: UUID, engagement_uuid: UUID | None
     ) -> UUID | None:
         logger.info("Loading object", dn=dn, json_key=json_key)
-        loaded_object = self.dataloader.load_ldap_object(
+        loaded_object = await self.dataloader.load_ldap_object(
             dn,
             self.converter.get_ldap_attributes(json_key),
         )

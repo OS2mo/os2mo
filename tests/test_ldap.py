@@ -296,7 +296,7 @@ async def test_make_generic_ldap_object(cpr_field: str, context: Context):
         "manager": "CN=Jonie Mitchell,OU=Band,DC=Stage",
     }
 
-    ldap_object = make_ldap_object(response, context, nest=False)
+    ldap_object = await make_ldap_object(response, context, nest=False)
 
     expected_ldap_object = LdapObject(**response["attributes"], dn=response["dn"])
 
@@ -339,7 +339,7 @@ async def test_make_nested_ldap_object(cpr_field: str, context: Context):
         "mo_ldap_import_export.ldap.single_object_search",
         return_value=nested_response,
     ):
-        ldap_object = make_ldap_object(response, context, nest=True)
+        ldap_object = await make_ldap_object(response, context, nest=True)
 
     # harry is an Employee because he has a cpr no.
     assert isinstance(ldap_object, LdapObject)
@@ -417,7 +417,7 @@ async def test_paged_search(
         "search_filter": "(objectclass=organizationalPerson)",
         "attributes": ["foo", "bar"],
     }
-    output = paged_search(context, searchParameters, search_base="foo")
+    output = await paged_search(context, searchParameters, search_base="foo")
     assert output == expected_results * len(cookies)
 
 
@@ -456,7 +456,7 @@ async def test_paged_search_no_results(
         "search_filter": "(objectclass=organizationalPerson)",
         "attributes": ["foo", "bar"],
     }
-    output = paged_search(context, searchParameters)
+    output = await paged_search(context, searchParameters)
 
     assert output == expected_results
 
@@ -477,7 +477,7 @@ async def test_invalid_paged_search(
         "search_filter": "(objectclass=organizationalPerson)",
         "attributes": ["foo", "bar"],
     }
-    output = paged_search(context, searchParameters)
+    output = await paged_search(context, searchParameters)
 
     assert output == []
 
@@ -487,7 +487,7 @@ async def test_single_object_search(ldap_connection: MagicMock, context: Context
     search_entry = {"type": "searchResEntry", "dn": dn}
 
     ldap_connection.response = [search_entry]
-    output = single_object_search({"search_base": "CN=foo,DC=bar"}, context)
+    output = await single_object_search({"search_base": "CN=foo,DC=bar"}, context)
 
     assert output == search_entry
     ldap_connection.response = [search_entry]
@@ -499,16 +499,18 @@ async def test_single_object_search(ldap_connection: MagicMock, context: Context
 
     with pytest.raises(MultipleObjectsReturnedException, match="010101-xxxx"):
         ldap_connection.response = [search_entry] * 2
-        output = single_object_search(search_parameters, context)
+        output = await single_object_search(search_parameters, context)
 
     with pytest.raises(NoObjectsReturnedException, match="010101-xxxx"):
         ldap_connection.response = [search_entry] * 0
-        output = single_object_search(search_parameters, context)
+        output = await single_object_search(search_parameters, context)
 
     ldap_connection.response = [search_entry]
-    output = single_object_search({"search_base": "CN=foo,DC=bar"}, context)
+    output = await single_object_search({"search_base": "CN=foo,DC=bar"}, context)
     assert output == search_entry
-    output = single_object_search({"search_base": "CN=moo,CN=foo,DC=bar"}, context)
+    output = await single_object_search(
+        {"search_base": "CN=moo,CN=foo,DC=bar"}, context
+    )
     assert output == search_entry
 
 

@@ -269,15 +269,17 @@ async def test_load_ldap_cpr_object(
     expected_result = LdapObject(dn=dn, **ldap_attributes)
     ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)]
 
-    output = one(dataloader.load_ldap_cpr_object(CPRNumber("0101012002"), "Employee"))
+    output = one(
+        await dataloader.load_ldap_cpr_object(CPRNumber("0101012002"), "Employee")
+    )
     assert output == expected_result
 
     with pytest.raises(NoObjectsReturnedException):
-        dataloader.load_ldap_cpr_object("__invalid__", "Employee")  # type: ignore
+        await dataloader.load_ldap_cpr_object("__invalid__", "Employee")  # type: ignore
 
     with pytest.raises(NoObjectsReturnedException):
         dataloader.user_context["cpr_field"] = None
-        dataloader.load_ldap_cpr_object(CPRNumber("0101012002"), "Employee")
+        await dataloader.load_ldap_cpr_object(CPRNumber("0101012002"), "Employee")
 
 
 async def test_load_ldap_objects(
@@ -320,7 +322,7 @@ async def test_load_ldap_OUs(ldap_connection: MagicMock, dataloader: DataLoader)
 
     ldap_connection.search.side_effect = set_new_result
 
-    output = dataloader.load_ldap_OUs(None)
+    output = await dataloader.load_ldap_OUs(None)
 
     assert ou1 in output
     assert ou2 in output
@@ -594,7 +596,7 @@ async def test_get_populated_overview(dataloader: DataLoader):
         "mo_ldap_import_export.routes.paged_search",
         return_value=responses,
     ):
-        output = load_ldap_populated_overview(dataloader)
+        output = await load_ldap_populated_overview(dataloader)
 
     assert sorted(list(output["user"]["attributes"].keys())) == sorted(
         ["attr1", "objectClass"]
@@ -1498,11 +1500,15 @@ async def test_modify_ldap(
     assert len(sync_tool.dns_to_ignore[dn]) == 0
 
     # Modify the entry. Validate that it is added to the ignore dict
-    dataloader.modify_ldap("MODIFY_ADD", dn, "parameter_to_modify", "value_to_modify")
+    await dataloader.modify_ldap(
+        "MODIFY_ADD", dn, "parameter_to_modify", "value_to_modify"
+    )
     assert len(sync_tool.dns_to_ignore[dn]) == 1
 
     # Modify the same entry again. Validate that we still only ignore once
-    dataloader.modify_ldap("MODIFY_ADD", dn, "parameter_to_modify", "value_to_modify")
+    await dataloader.modify_ldap(
+        "MODIFY_ADD", dn, "parameter_to_modify", "value_to_modify"
+    )
     assert len(sync_tool.dns_to_ignore[dn]) == 1
 
     # Validate that any old entries get cleaned, and a new one gets added
@@ -1511,30 +1517,34 @@ async def test_modify_ldap(
         datetime.datetime(1901, 1, 1),
     ]
     assert len(sync_tool.dns_to_ignore[dn]) == 2
-    dataloader.modify_ldap("MODIFY_ADD", dn, "parameter_to_modify", "value_to_modify")
+    await dataloader.modify_ldap(
+        "MODIFY_ADD", dn, "parameter_to_modify", "value_to_modify"
+    )
     assert len(sync_tool.dns_to_ignore[dn]) == 1
     assert sync_tool.dns_to_ignore[dn][0] > datetime.datetime(1950, 1, 1)
 
     # Validate that empty lists are allowed
-    dataloader.modify_ldap("MODIFY_REPLACE", dn, "parameter_to_modify", [])
+    await dataloader.modify_ldap("MODIFY_REPLACE", dn, "parameter_to_modify", [])
     ldap_connection.compare.assert_called_with(dn, "parameter_to_modify", "")
 
     # Simulate case where a value exists
     ldap_connection.compare.return_value = True
     with capture_logs() as cap_logs:
-        dataloader.modify_ldap("MODIFY_REPLACE", dn, "parameter_to_modify", [])
+        await dataloader.modify_ldap("MODIFY_REPLACE", dn, "parameter_to_modify", [])
         messages = [w for w in cap_logs if w["log_level"] == "info"]
 
         assert re.match(".*already exists.*", str(messages[-1]["event"]))
 
     # DELETE statments should still be executed, even if a value exists
-    response = dataloader.modify_ldap("MODIFY_DELETE", dn, "parameter_to_modify", "foo")
+    response = await dataloader.modify_ldap(
+        "MODIFY_DELETE", dn, "parameter_to_modify", "foo"
+    )
     assert response == {"description": "success"}
 
     monkeypatch.setenv("LDAP_READ_ONLY", "true")
     dataloader.user_context["settings"] = Settings()
     with pytest.raises(NotEnabledException) as exc:
-        dataloader.modify_ldap("MODIFY_REPLACE", dn, "parameter_to_modify", [])
+        await dataloader.modify_ldap("MODIFY_REPLACE", dn, "parameter_to_modify", [])
     assert "LDAP connection is read-only" in str(exc.value)
 
 
@@ -1546,7 +1556,10 @@ async def test_modify_ldap_ou_not_in_ous_to_write_to(
     dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to.return_value = False
 
-    assert dataloader.modify_ldap("CN=foo", "MODIFY_ADD", "attribute", "value") is None  # type: ignore
+    assert (
+        await dataloader.modify_ldap("MODIFY_ADD", "CN=foo", "attribute", "value")
+        is None
+    )  # type: ignore
 
 
 async def test_get_ldap_it_system_uuid(dataloader: DataLoader, converter: MagicMock):
@@ -1568,10 +1581,10 @@ async def test_find_or_make_mo_employee_dn(
     dataloader.get_ldap_it_system_uuid = MagicMock()  # type: ignore
     dataloader.load_mo_employee_it_users = AsyncMock()  # type: ignore
     dataloader.load_mo_employee = AsyncMock()  # type: ignore
-    dataloader.load_ldap_cpr_object = MagicMock()  # type: ignore
+    dataloader.load_ldap_cpr_object = AsyncMock()  # type: ignore
     dataloader.create = AsyncMock()  # type: ignore
-    dataloader.extract_unique_dns = MagicMock()  # type: ignore
-    dataloader.get_ldap_unique_ldap_uuid = MagicMock()  # type: ignore
+    dataloader.extract_unique_dns = AsyncMock()  # type: ignore
+    dataloader.get_ldap_unique_ldap_uuid = AsyncMock()  # type: ignore
 
     # Case where there is an IT-system that contains the DN
     dataloader.load_mo_employee.return_value = Employee(cpr_no=None)
@@ -1660,45 +1673,45 @@ def test_extract_unique_objectGUIDs(dataloader: DataLoader):
     assert len(objectGUIDs) == 2
 
 
-def test_extract_unique_dns(dataloader: DataLoader):
+async def test_extract_unique_dns(dataloader: DataLoader):
     dataloader.extract_unique_ldap_uuids = MagicMock()  # type: ignore
     dataloader.extract_unique_ldap_uuids.return_value = [uuid4(), uuid4()]
 
-    dataloader.get_ldap_dn = MagicMock()  # type: ignore
+    dataloader.get_ldap_dn = AsyncMock()  # type: ignore
     dataloader.get_ldap_dn.return_value = "CN=foo"
 
-    dns = dataloader.extract_unique_dns([])
+    dns = await dataloader.extract_unique_dns([])
     dn = one(dns)
     assert dn == "CN=foo"
 
 
-def test_get_ldap_dn(dataloader: DataLoader):
+async def test_get_ldap_dn(dataloader: DataLoader):
     with patch(
         "mo_ldap_import_export.dataloaders.single_object_search",
         return_value={"dn": "CN=foo"},
     ):
-        assert dataloader.get_ldap_dn(uuid4()) == "CN=foo"
+        assert await dataloader.get_ldap_dn(uuid4()) == "CN=foo"
 
 
-def test_get_ldap_unique_ldap_uuid(dataloader: DataLoader):
+async def test_get_ldap_unique_ldap_uuid(dataloader: DataLoader):
     uuid = uuid4()
-    dataloader.load_ldap_object = MagicMock()  # type: ignore
+    dataloader.load_ldap_object = AsyncMock()  # type: ignore
     dataloader.load_ldap_object.return_value = LdapObject(
         dn="foo", objectGUID=str(uuid)
     )
 
-    assert dataloader.get_ldap_unique_ldap_uuid("") == uuid
+    assert await dataloader.get_ldap_unique_ldap_uuid("") == uuid
 
 
-def test_get_ldap_unique_ldap_uuid_no_objectguid(dataloader: DataLoader):
-    dataloader.load_ldap_object = MagicMock()  # type: ignore
+async def test_get_ldap_unique_ldap_uuid_no_objectguid(dataloader: DataLoader):
+    dataloader.load_ldap_object = AsyncMock()  # type: ignore
     dataloader.load_ldap_object.return_value = LdapObject(dn="foo", objectGUID=[])
 
     with pytest.raises(NoObjectsReturnedException):
-        dataloader.get_ldap_unique_ldap_uuid("")
+        await dataloader.get_ldap_unique_ldap_uuid("")
 
 
-def test_load_ldap_attribute_values(dataloader: DataLoader):
+async def test_load_ldap_attribute_values(dataloader: DataLoader):
     responses = [
         {"attributes": {"foo": 1}},
         {"attributes": {"foo": "2"}},
@@ -1708,7 +1721,7 @@ def test_load_ldap_attribute_values(dataloader: DataLoader):
         "mo_ldap_import_export.routes.paged_search",
         return_value=responses,
     ):
-        values = load_ldap_attribute_values(dataloader.context, "foo")
+        values = await load_ldap_attribute_values(dataloader.context, "foo")
         assert "1" in values
         assert "2" in values
         assert "[]" in values
@@ -1832,8 +1845,8 @@ async def test_create_mo_it_system(dataloader: DataLoader):
     assert isinstance(await dataloader.create_mo_it_system("foo", "bar"), UUID)
 
 
-def test_add_ldap_object(dataloader: DataLoader) -> None:
-    dataloader.add_ldap_object("CN=foo", attributes={"foo": 2})
+async def test_add_ldap_object(dataloader: DataLoader) -> None:
+    await dataloader.add_ldap_object("CN=foo", attributes={"foo": 2})
     dataloader.ldap_connection.add.assert_called_once()
 
     dataloader.user_context["settings"] = MagicMock()  # type: ignore
@@ -1841,7 +1854,7 @@ def test_add_ldap_object(dataloader: DataLoader) -> None:
     dataloader.user_context["settings"].ldap_read_only = False
 
     with pytest.raises(NotEnabledException) as exc:
-        dataloader.add_ldap_object("CN=foo")
+        await dataloader.add_ldap_object("CN=foo")
     assert "Adding LDAP objects is disabled" in str(exc.value)
 
     dataloader.ldap_connection.reset_mock()
@@ -1849,12 +1862,12 @@ def test_add_ldap_object(dataloader: DataLoader) -> None:
     dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to.return_value = False
 
-    dataloader.add_ldap_object("CN=foo")
+    await dataloader.add_ldap_object("CN=foo")
     dataloader.ldap_connection.add.assert_not_called()
 
     dataloader.user_context["settings"].ldap_read_only = True
     with pytest.raises(NotEnabledException) as exc:
-        dataloader.add_ldap_object("CN=foo")
+        await dataloader.add_ldap_object("CN=foo")
     assert "LDAP connection is read-only" in str(exc.value)
 
 
@@ -2212,8 +2225,8 @@ def test_decompose_ou_string(dataloader: DataLoader):
     assert output[2] == "OU=bar"
 
 
-def test_create_ou(dataloader: DataLoader) -> None:
-    dataloader.load_ldap_OUs = MagicMock()  # type: ignore
+async def test_create_ou(dataloader: DataLoader) -> None:
+    dataloader.load_ldap_OUs = AsyncMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to.return_value = True
 
@@ -2228,7 +2241,7 @@ def test_create_ou(dataloader: DataLoader) -> None:
     }
 
     ou = "OU=foo,OU=mucki,OU=bar"
-    dataloader.create_ou(ou)
+    await dataloader.create_ou(ou)
     dataloader.ldap_connection.add.assert_called_once_with(
         "OU=foo,OU=mucki,OU=bar,DC=Magenta", "OrganizationalUnit"
     )
@@ -2236,24 +2249,24 @@ def test_create_ou(dataloader: DataLoader) -> None:
     dataloader.user_context["settings"].add_objects_to_ldap = False
 
     with pytest.raises(NotEnabledException) as exc:
-        dataloader.create_ou(ou)
+        await dataloader.create_ou(ou)
     assert "Adding LDAP objects is disabled" in str(exc.value)
 
     dataloader.ldap_connection.reset_mock()
     dataloader.user_context["settings"].add_objects_to_ldap = True
     dataloader.ou_in_ous_to_write_to.return_value = False
 
-    dataloader.create_ou(ou)
+    await dataloader.create_ou(ou)
     dataloader.ldap_connection.add.assert_not_called()
 
     dataloader.user_context["settings"].ldap_read_only = True
     with pytest.raises(NotEnabledException) as exc:
-        dataloader.create_ou(ou)
+        await dataloader.create_ou(ou)
     assert "LDAP connection is read-only" in str(exc.value)
 
 
-def test_delete_ou(dataloader: DataLoader) -> None:
-    dataloader.load_ldap_OUs = MagicMock()  # type: ignore
+async def test_delete_ou(dataloader: DataLoader) -> None:
+    dataloader.load_ldap_OUs = AsyncMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to.return_value = True
 
@@ -2269,7 +2282,7 @@ def test_delete_ou(dataloader: DataLoader) -> None:
     }
 
     ou = "OU=foo,OU=mucki,OU=bar"
-    dataloader.delete_ou(ou)
+    await dataloader.delete_ou(ou)
     dataloader.ldap_connection.delete.assert_called_once_with(
         "OU=foo,OU=mucki,OU=bar,DC=Magenta"
     )
@@ -2278,27 +2291,27 @@ def test_delete_ou(dataloader: DataLoader) -> None:
     dataloader.user_context["settings"].add_objects_to_ldap = True
     dataloader.ou_in_ous_to_write_to.return_value = False
 
-    dataloader.delete_ou(ou)
+    await dataloader.delete_ou(ou)
     dataloader.ldap_connection.delete.assert_not_called()
 
     # Test that we do not remove the ou-for-new-users
     dataloader.ou_in_ous_to_write_to.return_value = True
     settings_mock.ldap_ou_for_new_users = ou
-    dataloader.delete_ou(ou)
+    await dataloader.delete_ou(ou)
     dataloader.ldap_connection.delete.assert_not_called()
 
     # Test that we do not try to remove an OU which is not in the ou-dict
     dataloader.ou_in_ous_to_write_to.return_value = False
-    dataloader.delete_ou("OU=non_existing_OU")
+    await dataloader.delete_ou("OU=non_existing_OU")
     dataloader.ldap_connection.delete.assert_not_called()
 
     dataloader.user_context["settings"].ldap_read_only = True
     with pytest.raises(NotEnabledException) as exc:
-        dataloader.delete_ou("OU=non_existing_OU")
+        await dataloader.delete_ou("OU=non_existing_OU")
     assert "LDAP connection is read-only" in str(exc.value)
 
 
-def test_move_ldap_object(dataloader: DataLoader):
+async def test_move_ldap_object(dataloader: DataLoader):
     dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to.return_value = True
     settings_mock = MagicMock()
@@ -2308,7 +2321,7 @@ def test_move_ldap_object(dataloader: DataLoader):
     dataloader.log_ldap_response.return_value = {"description": "success"}
     dataloader.user_context["settings"].ldap_read_only = False
 
-    success = dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
+    success = await dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
 
     dataloader.ldap_connection.modify_dn.assert_called_once_with(
         "CN=foo,OU=old_ou", "CN=foo", new_superior="OU=new_ou"
@@ -2316,20 +2329,20 @@ def test_move_ldap_object(dataloader: DataLoader):
     assert success is True
 
     dataloader.ou_in_ous_to_write_to.return_value = False
-    success = dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
+    success = await dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
     assert success is False
 
     dataloader.ou_in_ous_to_write_to.return_value = True
     dataloader.user_context["settings"].add_objects_to_ldap = False
 
     with pytest.raises(NotEnabledException) as exc:
-        dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
+        await dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
     assert "Adding LDAP objects is disabled" in str(exc.value)
 
     dataloader.user_context["settings"].add_objects_to_ldap = True
     dataloader.user_context["settings"].ldap_read_only = True
     with pytest.raises(NotEnabledException) as exc:
-        dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
+        await dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
     assert "LDAP connection is read-only" in str(exc.value)
 
 
@@ -2392,7 +2405,7 @@ async def test_find_dn_by_engagement_uuid_finds_single_dn() -> None:
             engagement_uuid=engagement_uuid,
         )
     ]
-    dataloader.get_ldap_dn = MagicMock()  # type: ignore
+    dataloader.get_ldap_dn = AsyncMock()  # type: ignore
     dataloader.get_ldap_dn.return_value = "CN=foo"
     dns = MagicMock()
     dns.__contains__.return_value = True
@@ -2435,7 +2448,7 @@ async def test_find_dn_by_engagement_uuid_raises_exception_on_multiple_hits() ->
             engagement_uuid=engagement_uuid,
         )
     ] * 2
-    dataloader.get_ldap_dn = MagicMock()  # type: ignore
+    dataloader.get_ldap_dn = AsyncMock()  # type: ignore
     dataloader.get_ldap_dn.return_value = "CN=foo"
     dns = MagicMock()
     dns.__contains__.return_value = True
@@ -2648,7 +2661,7 @@ async def test_find_mo_employee_dn_by_cpr_number(
     route = graphql_mock.query("read_employees")
     route.result = {"employees": {"objects": [{"validities": [employee]}]}}
 
-    dataloader.load_ldap_cpr_object = MagicMock()  # type: ignore
+    dataloader.load_ldap_cpr_object = AsyncMock()  # type: ignore
     dataloader.load_ldap_cpr_object.side_effect = NoObjectsReturnedException("BOOM")
 
     result = await dataloader.find_mo_employee_dn_by_cpr_number(employee_uuid)

@@ -23,6 +23,7 @@ from mo_ldap_import_export.usernames import UserNameGenerator
 def dataloader() -> MagicMock:
     mock = MagicMock()
     mock.load_all_it_users = AsyncMock()
+    mock.add_ldap_object = AsyncMock()
     return mock
 
 
@@ -188,12 +189,12 @@ def alleroed_username_generator(
         yield AlleroedUserNameGenerator(context)
 
 
-def test_get_existing_usernames(
+async def test_get_existing_usernames(
     username_generator: UserNameGenerator,
     existing_usernames: list,
     existing_common_names: list,
 ):
-    result = username_generator.get_existing_values(["sAMAccountName", "cn"])
+    result = await username_generator.get_existing_values(["sAMAccountName", "cn"])
     assert result["sAMAccountName"] == existing_usernames
     assert result["cn"] == [cn.lower() for cn in existing_common_names]
 

@@ -1414,7 +1414,7 @@ async def test_import_jobtitlefromadtomo_objects(
         dataloader.create_or_edit_mo_objects.assert_called_once()
 
 
-def test_move_ldap_object(sync_tool: SyncTool, dataloader: AsyncMock):
+async def test_move_ldap_object(sync_tool: SyncTool, dataloader: AsyncMock):
     dataloader.move_ldap_object.return_value = True
 
     # user_context = {"dataloader": dataloader}
@@ -1422,7 +1422,7 @@ def test_move_ldap_object(sync_tool: SyncTool, dataloader: AsyncMock):
     new_dn = "CN=Angus,OU=Dundee"
 
     # Attempt to move Angus from OU=Auchtertool to OU=Dundee
-    ldap_object = sync_tool.move_ldap_object(LdapObject(dn=new_dn), old_dn)
+    ldap_object = await sync_tool.move_ldap_object(LdapObject(dn=new_dn), old_dn)
 
     # Which means we need to create OU=Dundee
     dataloader.create_ou.assert_called_once_with("OU=Dundee")
@@ -1436,26 +1436,28 @@ def test_move_ldap_object(sync_tool: SyncTool, dataloader: AsyncMock):
     assert ldap_object.dn == new_dn
 
 
-def test_move_ldap_object_move_failed(sync_tool: SyncTool, dataloader: AsyncMock):
+async def test_move_ldap_object_move_failed(sync_tool: SyncTool, dataloader: AsyncMock):
     dataloader.move_ldap_object.return_value = False
 
     old_dn = "CN=Angus,OU=Auchtertool"
     new_dn = "CN=Angus,OU=Dundee"
 
     # Attempt to move Angus from OU=Auchtertool to OU=Dundee
-    ldap_object = sync_tool.move_ldap_object(LdapObject(dn=new_dn), old_dn)
+    ldap_object = await sync_tool.move_ldap_object(LdapObject(dn=new_dn), old_dn)
 
     # The move was not successful so we fall back to the old DN
     assert ldap_object.dn == old_dn
     dataloader.delete_ou.assert_not_called()
 
 
-def test_move_ldap_object_nothing_to_move(sync_tool: SyncTool, dataloader: AsyncMock):
+async def test_move_ldap_object_nothing_to_move(
+    sync_tool: SyncTool, dataloader: AsyncMock
+):
     old_dn = "CN=Angus,OU=Dundee"
     new_dn = "CN=Angus,OU=Dundee"
 
     # The new DN is equal to the old DN. We expect nothing to happen.
-    ldap_object = sync_tool.move_ldap_object(LdapObject(dn=new_dn), old_dn)
+    ldap_object = await sync_tool.move_ldap_object(LdapObject(dn=new_dn), old_dn)
 
     dataloader.create_ou.assert_not_called()
     dataloader.move_ldap_object.assert_not_called()
