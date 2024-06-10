@@ -43,7 +43,9 @@ class UserNameGeneratorBase(ABC):
         ]
         self.combinations = self.username_generator.combinations_to_try
 
-        self.dataloader = self.user_context["dataloader"]
+        from .dataloaders import DataLoader
+
+        self.dataloader: DataLoader = self.user_context["dataloader"]
 
         logger.info("Found forbidden usernames", count=len(self.forbidden_usernames))
 
@@ -366,11 +368,6 @@ class AlleroedUserNameGenerator(UserNameGeneratorBase):
         """
         existing_usernames, existing_common_names = self._get_existing_names()
 
-        converter = self.user_context["converter"]
-        sAMAccountName_it_users = await self.dataloader.load_all_it_users(
-            converter.get_it_system_uuid("ADSAMA")
-        )
-
         # "existing_usernames_in_mo" covers all usernames which MO has ever generated.
         # Because we never delete from MO's database; We just put end-dates on objects.
         #
@@ -378,7 +375,15 @@ class AlleroedUserNameGenerator(UserNameGeneratorBase):
         # That MO generates a user, which is deleted from AD some years later. In that
         # Case we should never generate the username of the deleted user.
         # Ref: https://redmine.magenta-aps.dk/issues/57043
-        existing_usernames_in_mo = [s["user_key"] for s in sAMAccountName_it_users]
+        converter = self.user_context["converter"]
+        itsystem_uuid = converter.get_it_system_uuid("ADSAMA")
+        result = await self.dataloader.graphql_client.read_all_ituser_user_keys_by_itsystem_uuid(
+            itsystem_uuid
+        )
+        # TODO: Keep this as a set and convert all operations to set operations
+        existing_usernames_in_mo = list(
+            {validity.user_key for obj in result.objects for validity in obj.validities}
+        )
 
         givenname = employee.givenname.strip()
         surname = employee.surname

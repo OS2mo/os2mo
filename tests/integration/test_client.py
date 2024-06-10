@@ -166,6 +166,10 @@ async def test_graphql_client(
             "read_address_relation_uuids",
             {"address_uuid": uuid4()},
         ),
+        (
+            "read_all_ituser_user_keys_by_itsystem_uuid",
+            {"itsystem_uuid": uuid4()},
+        ),
     ],
 )
 async def test_client_read_endpoints(

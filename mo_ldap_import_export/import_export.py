@@ -739,7 +739,7 @@ class SyncTool:
             best_dn = first_included(self.context, dns)
             # If no good LDAP account was found, we do not want to synchronize at all
             if best_dn is None:
-                logger.info(
+                logger.warning(
                     "Aborting synchronization, as no good LDAP account was found",
                     dns=dns,
                     uuid=uuid,
@@ -751,7 +751,7 @@ class SyncTool:
                 best_dn = await self.dataloader.make_mo_employee_dn(uuid)
             except DNNotFound:
                 # If this occurs we were unable to generate a DN for the user
-                logger.info("Unable to generate DN")
+                logger.error("Unable to generate DN")
                 raise RequeueMessage("Unable to generate DN")
 
         exit_stack.enter_context(bound_contextvars(dn=best_dn))
@@ -762,6 +762,7 @@ class SyncTool:
                 uuid, current_objects_only=False
             )
         except NoObjectsReturnedException as exc:
+            logger.error("Unable to load mo object")
             raise RequeueMessage("Unable to load mo object") from exc
         logger.info("Found Employee in MO", changed_employee=changed_employee)
 

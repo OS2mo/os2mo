@@ -43,6 +43,12 @@ from .read_address_relation_uuids import ReadAddressRelationUuids
 from .read_address_relation_uuids import ReadAddressRelationUuidsAddresses
 from .read_addresses import ReadAddresses
 from .read_addresses import ReadAddressesAddresses
+from .read_all_ituser_user_keys_by_itsystem_uuid import (
+    ReadAllItuserUserKeysByItsystemUuid,
+)
+from .read_all_ituser_user_keys_by_itsystem_uuid import (
+    ReadAllItuserUserKeysByItsystemUuidItusers,
+)
 from .read_all_itusers import ReadAllItusers
 from .read_all_itusers import ReadAllItusersItusers
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuid
@@ -1083,3 +1089,24 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadAddressRelationUuids.parse_obj(data).addresses
+
+    async def read_all_ituser_user_keys_by_itsystem_uuid(
+        self, itsystem_uuid: UUID
+    ) -> ReadAllItuserUserKeysByItsystemUuidItusers:
+        query = gql(
+            """
+            query read_all_ituser_user_keys_by_itsystem_uuid($itsystem_uuid: UUID!) {
+              itusers(filter: {itsystem: {uuids: [$itsystem_uuid]}}) {
+                objects {
+                  validities {
+                    user_key
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"itsystem_uuid": itsystem_uuid}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadAllItuserUserKeysByItsystemUuid.parse_obj(data).itusers

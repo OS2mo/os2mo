@@ -578,10 +578,12 @@ async def test_listen_to_changes_in_employees_no_dn(
         with pytest.raises(RequeueMessage):
             await sync_tool.listen_to_changes_in_employees(employee_uuid)
 
-        messages = [w for w in cap_logs if w["log_level"] == "info"]
-        last_log_message = messages[-1]["event"]
-
-        assert last_log_message == "Unable to generate DN"
+        messages = [w["event"] for w in cap_logs]
+        assert messages == [
+            "Generating UUID",
+            "Registered change in an employee",
+            "Unable to generate DN",
+        ]
 
 
 async def test_format_converted_engagement_objects(
