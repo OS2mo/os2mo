@@ -61,6 +61,7 @@ from .ldap import get_ldap_schema
 from .ldap import get_ldap_superiors
 from .ldap import is_uuid
 from .ldap import ldap_compare
+from .ldap import ldap_modify
 from .ldap import make_ldap_object
 from .ldap import object_search
 from .ldap import paged_search
@@ -366,8 +367,7 @@ class DataLoader:
         # Modify LDAP
         changes = {attribute: [(operation, value)]}
         logger.info("Uploading the changes", changes=changes, dn=dn)
-        self.ldap_connection.modify(dn, changes)
-        result: dict = self.ldap_connection.result
+        _, result = ldap_modify(self.ldap_connection, dn, changes)
         logger.info("LDAP Result", result=result, dn=dn)
 
         # If successful, the importer should ignore this DN
