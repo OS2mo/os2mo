@@ -387,7 +387,7 @@ def ldapresponse2entries(ldap_response: list[dict[str, Any]]) -> list[dict[str, 
     return [entry for entry in ldap_response if entry["type"] == "searchResEntry"]
 
 
-def _paged_search(
+async def _paged_search(
     ldap_connection: Connection,
     searchParameters: dict,
     search_base: str,
@@ -479,7 +479,9 @@ async def paged_search(
 
     if search_base:
         # If the search base is explicitly defined: Don't try anything fancy.
-        results = _paged_search(ldap_connection, searchParameters, search_base, mute)
+        results = await _paged_search(
+            ldap_connection, searchParameters, search_base, mute
+        )
         return results
 
     # Otherwise, loop over all OUs to search in
@@ -490,7 +492,9 @@ async def paged_search(
     results = []
     for search_base in search_bases:
         results.extend(
-            _paged_search(ldap_connection, searchParameters.copy(), search_base, mute)
+            await _paged_search(
+                ldap_connection, searchParameters.copy(), search_base, mute
+            )
         )
 
     return results
