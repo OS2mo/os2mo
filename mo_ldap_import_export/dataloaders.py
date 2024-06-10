@@ -62,6 +62,7 @@ from .ldap import get_ldap_superiors
 from .ldap import is_uuid
 from .ldap import ldap_add
 from .ldap import ldap_compare
+from .ldap import ldap_delete
 from .ldap import ldap_modify
 from .ldap import ldap_modify_dn
 from .ldap import make_ldap_object
@@ -552,8 +553,7 @@ class DataLoader:
             ):
                 logger.info("Deleting OU", ou_to_delete=ou_to_delete)
                 dn = combine_dn_strings([ou_to_delete, settings.ldap_search_base])
-                self.ldap_connection.delete(dn)
-                result: dict = self.ldap_connection.result
+                _, result = ldap_delete(self.ldap_connection, dn)
                 logger.info("LDAP Result", result=result, dn=dn)
 
     async def move_ldap_object(self, old_dn: str, new_dn: str) -> bool:
