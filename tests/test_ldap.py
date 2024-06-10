@@ -296,7 +296,7 @@ async def test_make_generic_ldap_object(cpr_field: str, context: Context):
         "manager": "CN=Jonie Mitchell,OU=Band,DC=Stage",
     }
 
-    ldap_object = make_ldap_object(response, context, nest=False)
+    ldap_object = await make_ldap_object(response, context, nest=False)
 
     expected_ldap_object = LdapObject(**response["attributes"], dn=response["dn"])
 
@@ -339,7 +339,7 @@ async def test_make_nested_ldap_object(cpr_field: str, context: Context):
         "mo_ldap_import_export.ldap.single_object_search",
         return_value=nested_response,
     ):
-        ldap_object = make_ldap_object(response, context, nest=True)
+        ldap_object = await make_ldap_object(response, context, nest=True)
 
     # harry is an Employee because he has a cpr no.
     assert isinstance(ldap_object, LdapObject)

@@ -97,7 +97,9 @@ async def load_ldap_objects(
     )
 
     output: list[LdapObject]
-    output = [make_ldap_object(r, dataloader.context, nest=False) for r in responses]
+    output = [
+        await make_ldap_object(r, dataloader.context, nest=False) for r in responses
+    ]
 
     return output
 

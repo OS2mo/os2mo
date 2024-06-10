@@ -228,7 +228,7 @@ async def test_get_ldap_object(
         "user_context": {"ldap_connection": ldap_connection, "settings": settings}
     }
 
-    result = get_ldap_object(
+    result = await get_ldap_object(
         ldap_dn, context, attributes=attributes, run_discriminator=False
     )
     assert result.dn == ldap_dn

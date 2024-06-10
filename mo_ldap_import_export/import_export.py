@@ -988,7 +988,7 @@ class SyncTool:
             cpr_field = self.converter.cpr_field
             if cpr_field is not None:
                 cpr_no = getattr(
-                    get_ldap_object(
+                    await get_ldap_object(
                         dn,
                         self.context,
                         attributes=[cpr_field],

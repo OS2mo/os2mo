@@ -265,7 +265,9 @@ async def first_included(context: Context, dns: set[DN]) -> DN | None:
         #       currently async, but rather blocks the entire event-loop all the time.
         #       #59422 tracks this issue, and once resolved this code can be fixed.
         ldap_objects = [
-            get_ldap_object(dn, context, attributes=attributes, run_discriminator=False)
+            await get_ldap_object(
+                dn, context, attributes=attributes, run_discriminator=False
+            )
             for dn in dns
         ]
     except NoObjectsReturnedException as exc:
@@ -596,7 +598,7 @@ def is_dn(value):
     return True
 
 
-def get_ldap_object(
+async def get_ldap_object(
     dn: DN,
     context: Context,
     nest: bool = True,
@@ -628,10 +630,12 @@ def get_ldap_object(
     )
     dn = search_result["dn"]
     logger.info("Found DN", dn=dn)
-    return make_ldap_object(search_result, context, nest=nest)
+    return await make_ldap_object(search_result, context, nest=nest)
 
 
-def make_ldap_object(response: dict, context: Context, nest: bool = True) -> LdapObject:
+async def make_ldap_object(
+    response: dict, context: Context, nest: bool = True
+) -> LdapObject:
     """Takes an LDAP response and formats it as an LdapObject.
 
     Args:
@@ -645,14 +649,14 @@ def make_ldap_object(response: dict, context: Context, nest: bool = True) -> Lda
     attributes = sorted(list(response["attributes"].keys()))
     ldap_dict = {"dn": response["dn"]}
 
-    def get_nested_ldap_object(dn):
+    async def get_nested_ldap_object(dn):
         """
         Gets a ldap object based on its DN - unless we are in a nested loop
         """
 
         if nest:
             logger.info("Loading nested ldap object", dn=dn)
-            return get_ldap_object(dn, context, nest=False)
+            return await get_ldap_object(dn, context, nest=False)
         raise Exception("Already running in nested loop")  # pragma: no cover
 
     def is_other_dn(value):
@@ -667,10 +671,10 @@ def make_ldap_object(response: dict, context: Context, nest: bool = True) -> Lda
     for attribute in attributes:
         value = response["attributes"][attribute]
         if is_other_dn(value) and nest:
-            ldap_dict[attribute] = get_nested_ldap_object(value)
+            ldap_dict[attribute] = await get_nested_ldap_object(value)
         elif is_list(value):
             ldap_dict[attribute] = [
-                get_nested_ldap_object(v) if is_other_dn(v) and nest else v
+                (await get_nested_ldap_object(v)) if is_other_dn(v) and nest else v
                 for v in value
             ]
         else:
