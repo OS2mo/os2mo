@@ -201,7 +201,7 @@ class SyncTool:
             )
         return True
 
-    def move_ldap_object(self, ldap_object: LdapObject, dn: DN) -> LdapObject:
+    async def move_ldap_object(self, ldap_object: LdapObject, dn: DN) -> LdapObject:
         """
         Parameters
         ----------------
@@ -264,7 +264,7 @@ class SyncTool:
 
         # Convert to LDAP
         ldap_employee = await self.converter.to_ldap(mo_object_dict, "Employee", dn)
-        ldap_employee = self.move_ldap_object(ldap_employee, dn)
+        ldap_employee = await self.move_ldap_object(ldap_employee, dn)
 
         # We do not generally terminate people in MO
         delete = False
@@ -380,7 +380,7 @@ class SyncTool:
             )
             # Convert & Upload to LDAP
             ldap_object = await self.converter.to_ldap(template_dict, address_type, dn)
-            ldap_object = self.move_ldap_object(ldap_object, dn)
+            ldap_object = await self.move_ldap_object(ldap_object, dn)
             await self.dataloader.modify_ldap_object(
                 ldap_object, address_type, delete=delete
             )
@@ -507,7 +507,7 @@ class SyncTool:
             )
             # Convert & Upload to LDAP
             ldap_object = await self.converter.to_ldap(template_dict, address_type, dn)
-            ldap_object = self.move_ldap_object(ldap_object, dn)
+            ldap_object = await self.move_ldap_object(ldap_object, dn)
             await self.dataloader.modify_ldap_object(
                 ldap_object, address_type, delete=delete
             )
@@ -610,7 +610,7 @@ class SyncTool:
             logger.info("Obtained ituser", itsystem=itsystem, uuid=changed_ituser.uuid)
             # Convert & Upload to LDAP
             ldap_object = await self.converter.to_ldap(template_dict, itsystem, dn)
-            ldap_object = self.move_ldap_object(ldap_object, dn)
+            ldap_object = await self.move_ldap_object(ldap_object, dn)
             await self.dataloader.modify_ldap_object(
                 ldap_object, itsystem, delete=delete
             )
@@ -684,7 +684,7 @@ class SyncTool:
 
         # Convert & Upload to LDAP
         ldap_object = await self.converter.to_ldap(template_dict, "Engagement", dn)
-        ldap_object = self.move_ldap_object(ldap_object, dn)
+        ldap_object = await self.move_ldap_object(ldap_object, dn)
         await self.dataloader.modify_ldap_object(
             ldap_object, "Engagement", delete=delete
         )
