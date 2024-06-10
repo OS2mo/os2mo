@@ -273,7 +273,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
         json_key: Literal[accepted_json_keys],  # type: ignore
         cpr: CPRNumber = Depends(valid_cpr),
     ) -> Any:
-        results = dataloader.load_ldap_cpr_object(
+        results = await dataloader.load_ldap_cpr_object(
             cpr, json_key, [settings.ldap_unique_id_field]
         )
         return [encode_result(result) for result in results]
@@ -287,7 +287,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
         response: Response,
         cpr: CPRNumber = Depends(valid_cpr),
     ) -> Any:
-        results = dataloader.load_ldap_cpr_object(cpr, json_key)
+        results = await dataloader.load_ldap_cpr_object(cpr, json_key)
         try:
             return [
                 await converter.from_ldap(result, json_key, employee_uuid=uuid4())

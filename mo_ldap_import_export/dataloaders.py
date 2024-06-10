@@ -236,7 +236,7 @@ class DataLoader:
         #       Be warned though, doing so breaks ~25 tests because of bad mocking.
         return get_ldap_object(dn, self.context, nest, attributes, run_discriminator)
 
-    def load_ldap_cpr_object(
+    async def load_ldap_cpr_object(
         self,
         cpr_no: CPRNumber,
         json_key: str,
@@ -945,7 +945,9 @@ class DataLoader:
             employee_uuid=uuid,
         )
         try:
-            dns = {obj.dn for obj in self.load_ldap_cpr_object(cpr_no, "Employee")}
+            dns = {
+                obj.dn for obj in await self.load_ldap_cpr_object(cpr_no, "Employee")
+            }
         except NoObjectsReturnedException:
             return set()
         if not dns:

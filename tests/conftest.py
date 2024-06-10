@@ -190,7 +190,7 @@ def dataloader(
 
     test_mo_it_user = ITUser.from_simplified_fields("foo", uuid4(), "2021-01-01")
 
-    load_ldap_cpr_object = MagicMock()
+    load_ldap_cpr_object = AsyncMock()
     load_ldap_cpr_object.return_value = test_ldap_object
 
     dataloader = AsyncMock()

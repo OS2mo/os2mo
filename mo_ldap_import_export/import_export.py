@@ -998,7 +998,9 @@ class SyncTool:
                 )
                 dns = {
                     obj.dn
-                    for obj in self.dataloader.load_ldap_cpr_object(cpr_no, "Employee")
+                    for obj in await self.dataloader.load_ldap_cpr_object(
+                        cpr_no, "Employee"
+                    )
                 }
 
             logger.info(

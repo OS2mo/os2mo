@@ -269,15 +269,17 @@ async def test_load_ldap_cpr_object(
     expected_result = LdapObject(dn=dn, **ldap_attributes)
     ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)]
 
-    output = one(dataloader.load_ldap_cpr_object(CPRNumber("0101012002"), "Employee"))
+    output = one(
+        await dataloader.load_ldap_cpr_object(CPRNumber("0101012002"), "Employee")
+    )
     assert output == expected_result
 
     with pytest.raises(NoObjectsReturnedException):
-        dataloader.load_ldap_cpr_object("__invalid__", "Employee")  # type: ignore
+        await dataloader.load_ldap_cpr_object("__invalid__", "Employee")  # type: ignore
 
     with pytest.raises(NoObjectsReturnedException):
         dataloader.user_context["cpr_field"] = None
-        dataloader.load_ldap_cpr_object(CPRNumber("0101012002"), "Employee")
+        await dataloader.load_ldap_cpr_object(CPRNumber("0101012002"), "Employee")
 
 
 async def test_load_ldap_objects(
@@ -1568,7 +1570,7 @@ async def test_find_or_make_mo_employee_dn(
     dataloader.get_ldap_it_system_uuid = MagicMock()  # type: ignore
     dataloader.load_mo_employee_it_users = AsyncMock()  # type: ignore
     dataloader.load_mo_employee = AsyncMock()  # type: ignore
-    dataloader.load_ldap_cpr_object = MagicMock()  # type: ignore
+    dataloader.load_ldap_cpr_object = AsyncMock()  # type: ignore
     dataloader.create = AsyncMock()  # type: ignore
     dataloader.extract_unique_dns = MagicMock()  # type: ignore
     dataloader.get_ldap_unique_ldap_uuid = MagicMock()  # type: ignore
@@ -2648,7 +2650,7 @@ async def test_find_mo_employee_dn_by_cpr_number(
     route = graphql_mock.query("read_employees")
     route.result = {"employees": {"objects": [{"validities": [employee]}]}}
 
-    dataloader.load_ldap_cpr_object = MagicMock()  # type: ignore
+    dataloader.load_ldap_cpr_object = AsyncMock()  # type: ignore
     dataloader.load_ldap_cpr_object.side_effect = NoObjectsReturnedException("BOOM")
 
     result = await dataloader.find_mo_employee_dn_by_cpr_number(employee_uuid)
