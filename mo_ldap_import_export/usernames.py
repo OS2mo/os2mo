@@ -49,7 +49,7 @@ class UserNameGeneratorBase(ABC):
 
         logger.info("Found forbidden usernames", count=len(self.forbidden_usernames))
 
-    def get_existing_values(self, attributes: list[str]):
+    async def get_existing_values(self, attributes: list[str]):
         searchParameters = {
             "search_filter": "(objectclass=*)",
             "attributes": attributes,
@@ -295,7 +295,7 @@ class UserNameGeneratorBase(ABC):
 
     async def _get_existing_names(self):
         # TODO: Consider if it is better to fetch all names or candidate names
-        existing_values = self.get_existing_values(
+        existing_values = await self.get_existing_values(
             ["cn", "sAMAccountName", "userPrincipalName"]
         )
 
