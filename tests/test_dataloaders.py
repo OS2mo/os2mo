@@ -2311,7 +2311,7 @@ async def test_delete_ou(dataloader: DataLoader) -> None:
     assert "LDAP connection is read-only" in str(exc.value)
 
 
-def test_move_ldap_object(dataloader: DataLoader):
+async def test_move_ldap_object(dataloader: DataLoader):
     dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to.return_value = True
     settings_mock = MagicMock()
@@ -2321,7 +2321,7 @@ def test_move_ldap_object(dataloader: DataLoader):
     dataloader.log_ldap_response.return_value = {"description": "success"}
     dataloader.user_context["settings"].ldap_read_only = False
 
-    success = dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
+    success = await dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
 
     dataloader.ldap_connection.modify_dn.assert_called_once_with(
         "CN=foo,OU=old_ou", "CN=foo", new_superior="OU=new_ou"
@@ -2329,20 +2329,20 @@ def test_move_ldap_object(dataloader: DataLoader):
     assert success is True
 
     dataloader.ou_in_ous_to_write_to.return_value = False
-    success = dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
+    success = await dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
     assert success is False
 
     dataloader.ou_in_ous_to_write_to.return_value = True
     dataloader.user_context["settings"].add_objects_to_ldap = False
 
     with pytest.raises(NotEnabledException) as exc:
-        dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
+        await dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
     assert "Adding LDAP objects is disabled" in str(exc.value)
 
     dataloader.user_context["settings"].add_objects_to_ldap = True
     dataloader.user_context["settings"].ldap_read_only = True
     with pytest.raises(NotEnabledException) as exc:
-        dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
+        await dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
     assert "LDAP connection is read-only" in str(exc.value)
 
 

@@ -217,7 +217,7 @@ def dataloader(
     dataloader.find_dn_by_engagement_uuid.return_value = "CN=foo"
 
     dataloader.load_ldap_OUs = AsyncMock()
-    dataloader.move_ldap_object = MagicMock()
+    dataloader.move_ldap_object = AsyncMock()
     dataloader.delete_ou = AsyncMock()
     dataloader.create_ou = AsyncMock()
 

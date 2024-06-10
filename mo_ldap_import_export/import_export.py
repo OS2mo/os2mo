@@ -237,7 +237,7 @@ class SyncTool:
         await self.dataloader.create_ou(new_ou)
 
         # Move the object to the proper OU
-        move_successful: bool = self.dataloader.move_ldap_object(old_dn, new_dn)
+        move_successful = await self.dataloader.move_ldap_object(old_dn, new_dn)
 
         if move_successful:
             # Delete the old OU (dataloader.delete_ou checks if it is empty)

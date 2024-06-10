@@ -556,7 +556,7 @@ class DataLoader:
                 self.ldap_connection.delete(dn)
                 self.log_ldap_response(dn=dn)
 
-    def move_ldap_object(self, old_dn: str, new_dn: str) -> bool:
+    async def move_ldap_object(self, old_dn: str, new_dn: str) -> bool:
         """
         Moves an LDAP object from one DN to another. Returns True if the move was
         successful.
