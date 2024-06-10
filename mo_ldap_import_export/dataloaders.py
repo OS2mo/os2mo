@@ -366,7 +366,8 @@ class DataLoader:
         changes = {attribute: [(operation, value)]}
         logger.info("Uploading the changes", changes=changes, dn=dn)
         self.ldap_connection.modify(dn, changes)
-        response = self.log_ldap_response(dn=dn)
+        response: dict = self.ldap_connection.result
+        logger.info("LDAP Result", result=response, dn=dn)
 
         # If successful, the importer should ignore this DN
         if response["description"] == "success":
@@ -430,11 +431,6 @@ class DataLoader:
 
         return output
 
-    def log_ldap_response(self, **kwargs) -> dict:
-        response: dict = self.ldap_connection.result
-        logger.info("LDAP Response", response=response, **kwargs)
-        return response
-
     async def add_ldap_object(self, dn: str, attributes: dict[str, Any] | None = None):
         """
         Adds a new object to LDAP
@@ -475,7 +471,8 @@ class DataLoader:
             self.user_context["converter"].find_ldap_object_class("Employee"),
             attributes=attributes,
         )
-        self.log_ldap_response(dn=dn)
+        response: dict = self.ldap_connection.result
+        logger.info("LDAP Result", result=response, dn=dn)
 
     @staticmethod
     def decompose_ou_string(ou: str) -> list[str]:
@@ -525,7 +522,8 @@ class DataLoader:
                 dn = combine_dn_strings([ou_to_create, settings.ldap_search_base])
 
                 self.ldap_connection.add(dn, "OrganizationalUnit")
-                self.log_ldap_response(dn=dn)
+                response: dict = self.ldap_connection.result
+                logger.info("LDAP Result", result=response, dn=dn)
 
     async def delete_ou(self, ou: str) -> None:
         """
@@ -554,7 +552,8 @@ class DataLoader:
                 logger.info("Deleting OU", ou_to_delete=ou_to_delete)
                 dn = combine_dn_strings([ou_to_delete, settings.ldap_search_base])
                 self.ldap_connection.delete(dn)
-                self.log_ldap_response(dn=dn)
+                response: dict = self.ldap_connection.result
+                logger.info("LDAP Result", result=response, dn=dn)
 
     async def move_ldap_object(self, old_dn: str, new_dn: str) -> bool:
         """
@@ -590,8 +589,8 @@ class DataLoader:
         self.ldap_connection.modify_dn(
             old_dn, extract_cn_from_dn(new_dn), new_superior=remove_cn_from_dn(new_dn)
         )
-
-        response = self.log_ldap_response(new_dn=new_dn, old_dn=old_dn)
+        response: dict = self.ldap_connection.result
+        logger.info("LDAP Result", result=response, new_dn=new_dn, old_dn=old_dn)
         return True if response["description"] == "success" else False
 
     async def modify_ldap_object(
