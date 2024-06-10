@@ -2243,7 +2243,7 @@ async def test_create_ou(dataloader: DataLoader) -> None:
     ou = "OU=foo,OU=mucki,OU=bar"
     await dataloader.create_ou(ou)
     dataloader.ldap_connection.add.assert_called_once_with(
-        "OU=foo,OU=mucki,OU=bar,DC=Magenta", "OrganizationalUnit"
+        "OU=foo,OU=mucki,OU=bar,DC=Magenta", "OrganizationalUnit", None
     )
 
     dataloader.user_context["settings"].add_objects_to_ldap = False
@@ -2316,10 +2316,8 @@ async def test_move_ldap_object(dataloader: DataLoader):
     dataloader.ou_in_ous_to_write_to.return_value = True
     settings_mock = MagicMock()
     dataloader.user_context["settings"] = settings_mock  # type: ignore
-
-    dataloader.log_ldap_response = MagicMock()  # type: ignore
-    dataloader.log_ldap_response.return_value = {"description": "success"}
     dataloader.user_context["settings"].ldap_read_only = False
+    dataloader.ldap_connection.result = {"description": "success"}
 
     success = await dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
 

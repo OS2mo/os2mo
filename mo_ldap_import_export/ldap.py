@@ -179,6 +179,55 @@ async def ldap_healthcheck(context: dict | Context) -> bool:
     return cast(bool, ldap_connection.bound)
 
 
+async def ldap_compare(ldap_connection, dn, attribute, value) -> bool:
+    value_exists = ldap_connection.compare(dn, attribute, value)
+    return cast(bool, value_exists)
+
+
+async def ldap_modify(ldap_connection, dn, changes) -> tuple[dict, dict]:
+    ldap_connection.modify(dn, changes)
+    response: dict = ldap_connection.response
+    result: dict = ldap_connection.result
+    # TODO: Verify that result["description"] is success?
+    return response, result
+
+
+async def ldap_modify_dn(
+    ldap_connection, dn, relative_dn, new_superior
+) -> tuple[dict, dict]:
+    ldap_connection.modify_dn(dn, relative_dn, new_superior=new_superior)
+    response: dict = ldap_connection.response
+    result: dict = ldap_connection.result
+    # TODO: Verify that result["description"] is success?
+    return response, result
+
+
+async def ldap_add(
+    ldap_connection, dn, object_class, attributes=None
+) -> tuple[dict, dict]:
+    ldap_connection.add(dn, object_class, attributes)
+    response: dict = ldap_connection.response
+    result: dict = ldap_connection.result
+    # TODO: Verify that result["description"] is success?
+    return response, result
+
+
+async def ldap_delete(ldap_connection, dn) -> tuple[dict, dict]:
+    ldap_connection.delete(dn)
+    response: dict = ldap_connection.response
+    result: dict = ldap_connection.result
+    # TODO: Verify that result["description"] is success?
+    return response, result
+
+
+async def ldap_search(ldap_connection, **kwargs) -> tuple[list[dict[str, Any]], dict]:
+    ldap_connection.search(**kwargs)
+    response: list[dict[str, Any]] = ldap_connection.response
+    result: dict = ldap_connection.result
+    # TODO: Verify that result["description"] is success?
+    return response, result
+
+
 async def poller_healthcheck(context: dict | Context) -> bool:
     pollers = context["user_context"]["pollers"]
     return all(not poller.done() for poller in pollers)
@@ -415,27 +464,28 @@ async def _paged_search(
     for page in range(0, 10_000):
         if not mute:
             logger.info("Searching page", page=page)
-        ldap_connection.search(**searchParameters)
+        # TODO: Fetch multiple pages in parallel using asyncio.gather?
+        response, result = await ldap_search(ldap_connection, **searchParameters)
 
-        if ldap_connection.result["description"] == "operationsError":
+        if result["description"] == "operationsError":
             # TODO: Should this be an exception?
             #       Currently we just return half the result?
             logger.warn(
                 "Search failed",
                 search_filter=search_filter,
-                result=ldap_connection.result,
+                result=result,
             )
             break
 
         # TODO: Handle this error more gracefully
-        assert ldap_connection.response is not None
-        entries = ldapresponse2entries(ldap_connection.response)
+        assert response is not None
+        entries = ldapresponse2entries(response)
         responses.extend(entries)
 
         try:
             # TODO: Skal "1.2.840.113556.1.4.319" være Configurerbar?
             extension = "1.2.840.113556.1.4.319"
-            cookie = ldap_connection.result["controls"][extension]["value"]["cookie"]
+            cookie = result["controls"][extension]["value"]["cookie"]
         except KeyError:
             break
 
@@ -527,11 +577,11 @@ async def object_search(
     search_bases = ensure_list(searchParameters["search_base"])
 
     responses = []
+    # TODO: Asyncio.gather this? - or combine the filters?
     for search_base in search_bases:
-        ldap_connection.search(
-            **ChainMap(searchParameters, {"search_base": search_base})
+        response, _ = await ldap_search(
+            ldap_connection, **ChainMap(searchParameters, {"search_base": search_base})
         )
-        response = ldap_connection.response
         if response:
             responses.extend(response)
     search_entries = ldapresponse2entries(responses)
@@ -776,11 +826,10 @@ async def _poll(
     )
     last_search_time = datetime.utcnow()
 
-    # TODO: Eliminate this thread and use asyncio code instead
-    ldap_connection.search(**timed_search_parameters)
+    response, _ = await ldap_search(ldap_connection, **timed_search_parameters)
 
     # Filter to only keep search results
-    responses = ldapresponse2entries(ldap_connection.response)
+    responses = ldapresponse2entries(response)
 
     # NOTE: We can add message deduplication here if needed for performance later
     #       For now we do not care about duplicates, we prefer simplicity
