@@ -551,8 +551,7 @@ async def test_listen_to_changes_in_employees_engagement(
     # Test expected behavior when unable to read any engagements
     old = route1.result
     route1.result = {"engagements": {"objects": []}}
-    result = await sync_tool.listen_to_changes_in_employees(employee_uuid)
-    assert result is None
+    await sync_tool.listen_to_changes_in_employees(employee_uuid)
 
     route1.result = old
 
@@ -580,7 +579,6 @@ async def test_listen_to_changes_in_employees_no_dn(
 
         messages = [w["event"] for w in cap_logs]
         assert messages == [
-            "Generating UUID",
             "Registered change in an employee",
             "Unable to generate DN",
         ]
@@ -1310,64 +1308,6 @@ async def test_remove_from_ignoreMe():
     assert len(strings_to_ignore[uuid]) == 0
 
 
-async def test_wait_for_export_to_finish(sync_tool: SyncTool):
-    wait_for_export_to_finish = partial(sync_tool.wait_for_export_to_finish)
-
-    @wait_for_export_to_finish
-    async def decorated_func(self, payload):
-        await asyncio.sleep(0.2)
-        return
-
-    async def regular_func(self, payload):
-        await asyncio.sleep(0.2)
-        return
-
-    payload = MagicMock()
-    payload.uuid = uuid4()
-
-    different_payload = MagicMock()
-    different_payload.uuid = uuid4()
-
-    # Normally this would execute in 0.2 seconds + overhead
-    t1 = time.time()
-    await asyncio.gather(
-        regular_func(sync_tool, payload),
-        regular_func(sync_tool, payload),
-    )
-    t2 = time.time()
-
-    elapsed_time = t2 - t1
-
-    assert elapsed_time >= 0.2
-    assert elapsed_time < 0.3
-
-    # But the decorator will make the second call wait for the first one to complete
-    t1 = time.time()
-    await asyncio.gather(
-        decorated_func(sync_tool, payload),
-        decorated_func(sync_tool, payload),
-    )
-    t2 = time.time()
-
-    elapsed_time = t2 - t1
-
-    assert elapsed_time >= 0.4
-    assert elapsed_time < 0.5
-
-    # But only if payload.uuid is the same in both calls
-    t1 = time.time()
-    await asyncio.gather(
-        decorated_func(sync_tool, payload),
-        decorated_func(sync_tool, different_payload),
-    )
-    t2 = time.time()
-
-    elapsed_time = t2 - t1
-
-    assert elapsed_time >= 0.2
-    assert elapsed_time < 0.3
-
-
 async def test_wait_for_import_to_finish(sync_tool: SyncTool):
     wait_for_import_to_finish = partial(sync_tool.wait_for_import_to_finish)
 
@@ -1472,29 +1412,6 @@ async def test_import_jobtitlefromadtomo_objects(
     ):
         await sync_tool.import_single_user(fake_dn)
         dataloader.create_or_edit_mo_objects.assert_called_once()
-
-
-async def test_extract_uuid() -> None:
-    uuid = uuid4()
-    obj1 = uuid
-    obj2 = Employee(uuid=uuid)
-
-    self = object()
-
-    @SyncTool.wait_for_export_to_finish
-    async def dummy(*args, **kwargs):
-        pass
-
-    with capture_logs() as cap_logs:
-        await dummy(self, obj1)
-        assert str(uuid) in str(cap_logs)
-
-    with capture_logs() as cap_logs:
-        await dummy(self, obj2)
-        assert str(uuid) in str(cap_logs)
-
-    with pytest.raises(TypeError):
-        await dummy(self, "foo")
 
 
 def test_move_ldap_object(sync_tool: SyncTool, dataloader: AsyncMock):

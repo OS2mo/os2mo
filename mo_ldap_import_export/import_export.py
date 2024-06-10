@@ -162,31 +162,6 @@ class SyncTool:
         self.amqpsystem = self.context["amqpsystem"]
 
     @staticmethod
-    def wait_for_export_to_finish(func: Callable):
-        """Runs the function while ensuring sequentiality w.r.t. the uuid parameter."""
-
-        def extract_uuid(obj) -> UUID:
-            """
-            Extract an uuid from an object and return it
-
-            Parameters
-            -------------
-            obj: Any
-                Object which is either an uuid or an object with an uuid attribute
-            """
-            uuid = getattr(obj, "uuid", obj)
-            if not isinstance(uuid, UUID):
-                raise TypeError(f"{uuid} is not an uuid")
-            return uuid
-
-        def uuid_extractor(self, *args, **kwargs) -> UUID:
-            uuid = extract_uuid(args[0] if args else kwargs["uuid"])
-            logger.info("Generating UUID", uuid=str(uuid))
-            return uuid
-
-        return handle_exclusively_decorator(uuid_extractor)(func)
-
-    @staticmethod
     def wait_for_import_to_finish(func: Callable):
         """Runs the function while ensuring sequentiality w.r.t. the dn parameter."""
 
@@ -714,9 +689,6 @@ class SyncTool:
             ldap_object, "Engagement", delete=delete
         )
 
-    # TODO: Figure out if this wait_for_export_to_finish can be eliminated
-    #       Maybe we need to use etags or similar? - What do we do for LDAP?
-    @wait_for_export_to_finish
     @with_exitstack
     async def listen_to_changes_in_employees(
         self,
