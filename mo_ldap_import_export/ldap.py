@@ -538,7 +538,7 @@ def object_search(
     return search_entries
 
 
-def single_object_search(
+async def single_object_search(
     searchParameters: dict[str, Any], context: Context, run_discriminator: bool = True
 ) -> dict[str, Any]:
     """Performs an LDAP search and ensure that it returns one result.
@@ -625,7 +625,7 @@ async def get_ldap_object(
         "attributes": attributes,
         "search_scope": BASE,
     }
-    search_result = single_object_search(
+    search_result = await single_object_search(
         searchParameters, context, run_discriminator=run_discriminator
     )
     dn = search_result["dn"]

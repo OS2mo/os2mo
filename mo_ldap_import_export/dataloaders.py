@@ -857,7 +857,7 @@ class DataLoader:
             "search_scope": BASE,
         }
 
-        search_result = single_object_search(searchParameters, self.context)
+        search_result = await single_object_search(searchParameters, self.context)
         dn: str = search_result["dn"]
         return dn
 
