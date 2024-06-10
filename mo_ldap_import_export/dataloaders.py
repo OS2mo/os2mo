@@ -473,8 +473,8 @@ class DataLoader:
             self.user_context["converter"].find_ldap_object_class("Employee"),
             attributes=attributes,
         )
-        response: dict = self.ldap_connection.result
-        logger.info("LDAP Result", result=response, dn=dn)
+        result: dict = self.ldap_connection.result
+        logger.info("LDAP Result", result=result, dn=dn)
 
     @staticmethod
     def decompose_ou_string(ou: str) -> list[str]:
@@ -524,8 +524,8 @@ class DataLoader:
                 dn = combine_dn_strings([ou_to_create, settings.ldap_search_base])
 
                 self.ldap_connection.add(dn, "OrganizationalUnit")
-                response: dict = self.ldap_connection.result
-                logger.info("LDAP Result", result=response, dn=dn)
+                result: dict = self.ldap_connection.result
+                logger.info("LDAP Result", result=result, dn=dn)
 
     async def delete_ou(self, ou: str) -> None:
         """
