@@ -281,7 +281,7 @@ class DataLoader:
             "attributes": list(set(attributes)),
         }
         ldap_connection = self.context["user_context"]["ldap_connection"]
-        search_results = object_search(searchParameters, ldap_connection)
+        search_results = await object_search(searchParameters, ldap_connection)
         # TODO: Asyncio gather this
         ldap_objects: list[LdapObject] = [
             await make_ldap_object(search_result, self.context)

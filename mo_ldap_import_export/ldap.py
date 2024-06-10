@@ -502,7 +502,7 @@ async def paged_search(
     return results
 
 
-def object_search(
+async def object_search(
     searchParameters: dict[str, Any], ldap_connection: Connection
 ) -> list[dict[str, Any]]:
     """Performs an LDAP search and return the result.
@@ -565,7 +565,7 @@ async def single_object_search(
         The found object.
     """
     ldap_connection = context["user_context"]["ldap_connection"]
-    search_entries = object_search(searchParameters, ldap_connection)
+    search_entries = await object_search(searchParameters, ldap_connection)
 
     settings = context["user_context"]["settings"]
     # TODO: Do we actually wanna apply discriminator here?
