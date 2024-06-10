@@ -51,7 +51,7 @@ def encode_result(result):
     return json_compatible_result
 
 
-def load_ldap_attribute_values(context, attribute, search_base=None) -> list[str]:
+async def load_ldap_attribute_values(context, attribute, search_base=None) -> list[str]:
     """
     Returns all values belonging to an LDAP attribute
     """
@@ -337,7 +337,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
 
         all_unique_ldap_uuids = [
             to_uuid(u)
-            for u in load_ldap_attribute_values(
+            for u in await load_ldap_attribute_values(
                 dataloader.context, settings.ldap_unique_id_field
             )
         ]
@@ -470,7 +470,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
         attribute: Literal[accepted_attributes],  # type: ignore
         search_base: str | None = None,
     ) -> Any:
-        return load_ldap_attribute_values(
+        return await load_ldap_attribute_values(
             dataloader.context, attribute, search_base=search_base
         )
 

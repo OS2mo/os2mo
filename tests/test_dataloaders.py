@@ -1698,7 +1698,7 @@ def test_get_ldap_unique_ldap_uuid_no_objectguid(dataloader: DataLoader):
         dataloader.get_ldap_unique_ldap_uuid("")
 
 
-def test_load_ldap_attribute_values(dataloader: DataLoader):
+async def test_load_ldap_attribute_values(dataloader: DataLoader):
     responses = [
         {"attributes": {"foo": 1}},
         {"attributes": {"foo": "2"}},
@@ -1708,7 +1708,7 @@ def test_load_ldap_attribute_values(dataloader: DataLoader):
         "mo_ldap_import_export.routes.paged_search",
         return_value=responses,
     ):
-        values = load_ldap_attribute_values(dataloader.context, "foo")
+        values = await load_ldap_attribute_values(dataloader.context, "foo")
         assert "1" in values
         assert "2" in values
         assert "[]" in values
