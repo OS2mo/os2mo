@@ -385,41 +385,6 @@ class DataLoader:
     delete_ldap = partialmethod(modify_ldap, "MODIFY_DELETE")
     replace_ldap = partialmethod(modify_ldap, "MODIFY_REPLACE")
 
-    def cleanup_attributes_in_ldap(self, ldap_objects: list[LdapObject]):
-        """
-        Deletes the values belonging to the attributes in the given ldap objects.
-
-        Notes
-        ----------
-        Will not delete values belonging to attributes which are shared between multiple
-        ldap objects. Because deleting an LDAP object should not remove the possibility
-        to compile an LDAP object of a different type.
-        """
-        for ldap_object in ldap_objects:
-            logger.info(
-                "Processing ldap object",
-                dn=ldap_object.dn,
-            )
-            attributes_to_clean = [
-                a
-                for a in ldap_object.dict().keys()
-                if a != "dn" and not self.shared_attribute(a)
-            ]
-
-            if not attributes_to_clean:
-                logger.info("No cleanable attributes")
-                return
-
-            dn = ldap_object.dn
-            for attribute in attributes_to_clean:
-                value_to_delete = ldap_object.dict()[attribute]
-                logger.info(
-                    "Cleaning attribute",
-                    value_to_delete=value_to_delete,
-                    attribute=attribute,
-                )
-                self.delete_ldap(dn, attribute, value_to_delete)
-
     def load_ldap_OUs(self, search_base: str | None = None) -> dict:
         """
         Returns a dictionary where the keys are OU strings and the items are dicts
