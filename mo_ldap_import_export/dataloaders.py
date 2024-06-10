@@ -743,7 +743,7 @@ class DataLoader:
         return {employee.uuid for employee in result.objects}
 
     async def find_mo_employee_uuid_via_ituser(self, dn: str) -> set[UUID]:
-        unique_uuid = self.get_ldap_unique_ldap_uuid(dn)
+        unique_uuid = await self.get_ldap_unique_ldap_uuid(dn)
         result = await self.graphql_client.read_employee_uuid_by_ituser_user_key(
             str(unique_uuid)
         )
@@ -856,7 +856,7 @@ class DataLoader:
         dn: str = search_result["dn"]
         return dn
 
-    def get_ldap_unique_ldap_uuid(self, dn: str) -> UUID:
+    async def get_ldap_unique_ldap_uuid(self, dn: str) -> UUID:
         """
         Given a DN, find the unique_ldap_uuid
         """
@@ -1071,7 +1071,7 @@ class DataLoader:
             )
             # Get its unique ldap uuid
             # TODO: Get rid of this code and operate on EntityUUIDs thoughout
-            unique_uuid = self.get_ldap_unique_ldap_uuid(dn)
+            unique_uuid = await self.get_ldap_unique_ldap_uuid(dn)
             logger.info(
                 "LDAP UUID found for DN",
                 employee_uuid=uuid,

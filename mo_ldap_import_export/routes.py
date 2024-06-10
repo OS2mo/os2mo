@@ -494,6 +494,6 @@ def construct_router(user_context: UserContext) -> APIRouter:
     async def load_unique_uuid_from_ldap(
         dataloader: depends.DataLoader, dn: str
     ) -> Any:
-        return dataloader.get_ldap_unique_ldap_uuid(dn)
+        return await dataloader.get_ldap_unique_ldap_uuid(dn)
 
     return router

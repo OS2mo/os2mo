@@ -234,7 +234,7 @@ def dataloader(
     dataloader.load_mo_object.return_value = test_mo_objects[0]
     dataloader.load_ldap_attribute_values = sync_dataloader
     dataloader.modify_ldap_object.return_value = [{"description": "success"}]
-    dataloader.get_ldap_unique_ldap_uuid = sync_dataloader
+    dataloader.get_ldap_unique_ldap_uuid = AsyncMock()
     dataloader.get_ldap_it_system_uuid = sync_dataloader
     dataloader.supported_object_types = ["address", "person"]
     with patch(
@@ -559,8 +559,12 @@ def test_ldap_get_object_by_dn_endpoint(test_client: TestClient) -> None:
 
 
 @pytest.mark.usefixtures("context_dependency_injection")
-def test_ldap_get_objectGUID_endpoint(test_client: TestClient) -> None:
+def test_ldap_get_objectGUID_endpoint(
+    test_client: TestClient, dataloader: AsyncMock
+) -> None:
     """Test the LDAP get endpoint on our app."""
+
+    dataloader.get_ldap_unique_ldap_uuid.return_value = uuid4()
 
     response = test_client.get("/unique_ldap_uuid/CN=foo")
     assert response.status_code == 202

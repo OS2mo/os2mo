@@ -1573,7 +1573,7 @@ async def test_find_or_make_mo_employee_dn(
     dataloader.load_ldap_cpr_object = AsyncMock()  # type: ignore
     dataloader.create = AsyncMock()  # type: ignore
     dataloader.extract_unique_dns = AsyncMock()  # type: ignore
-    dataloader.get_ldap_unique_ldap_uuid = MagicMock()  # type: ignore
+    dataloader.get_ldap_unique_ldap_uuid = AsyncMock()  # type: ignore
 
     # Case where there is an IT-system that contains the DN
     dataloader.load_mo_employee.return_value = Employee(cpr_no=None)
@@ -1682,22 +1682,22 @@ async def test_get_ldap_dn(dataloader: DataLoader):
         assert await dataloader.get_ldap_dn(uuid4()) == "CN=foo"
 
 
-def test_get_ldap_unique_ldap_uuid(dataloader: DataLoader):
+async def test_get_ldap_unique_ldap_uuid(dataloader: DataLoader):
     uuid = uuid4()
     dataloader.load_ldap_object = MagicMock()  # type: ignore
     dataloader.load_ldap_object.return_value = LdapObject(
         dn="foo", objectGUID=str(uuid)
     )
 
-    assert dataloader.get_ldap_unique_ldap_uuid("") == uuid
+    assert await dataloader.get_ldap_unique_ldap_uuid("") == uuid
 
 
-def test_get_ldap_unique_ldap_uuid_no_objectguid(dataloader: DataLoader):
+async def test_get_ldap_unique_ldap_uuid_no_objectguid(dataloader: DataLoader):
     dataloader.load_ldap_object = MagicMock()  # type: ignore
     dataloader.load_ldap_object.return_value = LdapObject(dn="foo", objectGUID=[])
 
     with pytest.raises(NoObjectsReturnedException):
-        dataloader.get_ldap_unique_ldap_uuid("")
+        await dataloader.get_ldap_unique_ldap_uuid("")
 
 
 async def test_load_ldap_attribute_values(dataloader: DataLoader):
