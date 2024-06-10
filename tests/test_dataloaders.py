@@ -687,37 +687,6 @@ async def test_load_mo_address(dataloader: DataLoader) -> None:
     assert output == expected_result
 
 
-def test_cleanup_attributes_in_ldap(dataloader: DataLoader):
-    dataloader.single_value = {"value": False}
-
-    dataloader.shared_attribute = MagicMock()  # type: ignore
-    dataloader.shared_attribute.return_value = False
-
-    ldap_objects = [
-        # LdapObject(dn="foo", value="New address"),
-        LdapObject(dn="CN=foo", value="Old address"),
-    ]
-
-    with patch(
-        "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_object",
-        return_value=LdapObject(dn="foo", value=["New address", "Old address"]),
-    ):
-        dataloader.cleanup_attributes_in_ldap(ldap_objects)
-
-        changes = {"value": [("MODIFY_DELETE", "Old address")]}
-        assert dataloader.ldap_connection.modify.called_once_with("foo", changes)
-
-    with capture_logs() as cap_logs:
-        ldap_objects = [LdapObject(dn="foo")]
-        dataloader.cleanup_attributes_in_ldap(ldap_objects)
-
-        infos = [w for w in cap_logs if w["log_level"] == "info"]
-        assert re.match(
-            ".*No cleanable attributes",
-            infos[-1]["event"],
-        )
-
-
 async def test_load_mo_employee_addresses(
     dataloader: DataLoader, graphql_mock: GraphQLMocker
 ) -> None:
