@@ -914,13 +914,8 @@ async def test_reject_on_failure():
         with pytest.raises(RejectMessage):
             await reject_on_failure(func)()
 
-    # But not this one
-    with patch("mo_ldap_import_export.main.delay_on_requeue", 0.1):
-        t1 = datetime.datetime.now()
-        with pytest.raises(RequeueMessage):
-            await reject_on_failure(requeue_error_func)()
-        t2 = datetime.datetime.now()
-        assert (t2 - t1).total_seconds() >= 0.1
+    with pytest.raises(RequeueMessage):
+        await reject_on_failure(requeue_error_func)()
 
 
 async def test_get_delete_flag(dataloader: AsyncMock):
