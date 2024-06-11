@@ -659,14 +659,32 @@ def test_get_mo_attributes(converter: LdapConverter) -> None:
 
 
 def test_check_converter_attributes(converter: LdapConverter):
+    # One illegal attribute
     detected_attributes = ["foo", "bar"]
     accepted_attributes = ["bar"]
 
-    with pytest.raises(IncorrectMapping):
+    with pytest.raises(ExceptionGroup) as exc_info:
         converter.check_attributes(detected_attributes, accepted_attributes)
+    assert "check_attributes failed" in str(exc_info.value)
 
+    inner_exception = one(exc_info.value.exceptions)
+    assert isinstance(inner_exception, IncorrectMapping)
+    assert "Attribute 'foo' not allowed." in str(inner_exception)
+
+    # Two illegal attributes
+    detected_attributes = ["foo", "bar", "baz"]
+
+    with pytest.raises(ExceptionGroup) as exc_info:
+        converter.check_attributes(detected_attributes, accepted_attributes)
+    assert "check_attributes failed" in str(exc_info.value)
+
+    exceptions = exc_info.value.exceptions
+    assert len(exceptions) == 2
+    assert isinstance(exceptions[0], IncorrectMapping)
+    assert isinstance(exceptions[1], IncorrectMapping)
+
+    # Legal attributes
     detected_attributes = ["bar", "extensionAttribute14", "sAMAccountName"]
-    accepted_attributes = ["bar"]
     converter.check_attributes(detected_attributes, accepted_attributes)
 
 
@@ -1393,12 +1411,14 @@ async def test_check_ldap_to_mo_references(converter: LdapConverter):
         "mo_ldap_import_export.converters.LdapConverter.find_ldap_object_class",
         return_value="user",
     ):
-        with pytest.raises(
-            IncorrectMapping,
-            match="Attribute 'nonExistingAttribute' not allowed",
-        ):
+        with pytest.raises(ExceptionGroup) as exc_info:
             overview = converter.dataloader.load_ldap_overview()
             converter.check_ldap_to_mo_references(overview)
+        assert "check_attributes failed" in str(exc_info.value)
+
+        inner_exception = one(exc_info.value.exceptions)
+        assert isinstance(inner_exception, IncorrectMapping)
+        assert "Attribute 'nonExistingAttribute' not allowed." in str(inner_exception)
 
 
 def test_get_object_uuid_from_user_key(converter: LdapConverter):

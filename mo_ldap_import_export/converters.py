@@ -504,7 +504,9 @@ class LdapConverter:
         return list(self.mapping["ldap_to_mo"][json_key].keys())
 
     def check_attributes(self, detected_attributes, accepted_attributes):
-        for attribute in detected_attributes:
+        problematic_attributes = {
+            attribute
+            for attribute in detected_attributes
             if (
                 attribute not in accepted_attributes
                 and not attribute.startswith("msDS-cloudExtensionAttribute")
@@ -512,11 +514,17 @@ class LdapConverter:
                 and not attribute.startswith("__")
                 and not attribute == "sAMAccountName"
                 and not attribute == "entryUUID"
-            ):
-                raise IncorrectMapping(
-                    f"Attribute '{attribute}' not allowed."
-                    f" Allowed attributes are {accepted_attributes}"
-                )
+            )
+        }
+        exceptions = [
+            IncorrectMapping(f"Attribute '{attribute}' not allowed.")
+            for attribute in problematic_attributes
+        ]
+        if exceptions:
+            raise ExceptionGroup(
+                f"check_attributes failed, allowed attributes are {accepted_attributes}",
+                exceptions,
+            )
 
     def get_json_keys(self, conversion):
         try:
