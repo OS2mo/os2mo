@@ -1231,9 +1231,16 @@ async def test_import_single_object_from_LDAP_non_existing_employee(
     dn = "CN=foo"
 
     ldap_connection = MagicMock()
-    ldap_connection.response = [
-        {"type": "searchResEntry", "attributes": {"EmployeeID": "0101011234"}, "dn": dn}
-    ]
+    ldap_connection.get_response.return_value = (
+        [
+            {
+                "type": "searchResEntry",
+                "attributes": {"EmployeeID": "0101011234"},
+                "dn": dn,
+            }
+        ],
+        {"type": "test"},
+    )
     context["user_context"]["ldap_connection"] = ldap_connection
     sync_tool.dataloader.load_ldap_cpr_object.return_value = [LdapObject(dn=dn)]  # type: ignore
 

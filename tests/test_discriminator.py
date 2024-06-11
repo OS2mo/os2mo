@@ -14,7 +14,7 @@ from fastramqpi.ramqp.depends import Context
 from fastramqpi.ramqp.utils import RequeueMessage
 from ldap3 import BASE
 from ldap3 import Connection
-from ldap3 import MOCK_SYNC
+from ldap3 import MOCK_ASYNC
 from ldap3 import SUBTREE
 from more_itertools import one
 from structlog.testing import capture_logs
@@ -30,6 +30,7 @@ from mo_ldap_import_export.ldap import configure_ldap_connection
 from mo_ldap_import_export.ldap import construct_server_pool
 from mo_ldap_import_export.ldap import first_included
 from mo_ldap_import_export.ldap import get_ldap_object
+from mo_ldap_import_export.ldap import wait_for_message_id
 from mo_ldap_import_export.types import DN
 from tests.graphql_mocker import GraphQLMocker
 
@@ -53,7 +54,7 @@ def ldap_connection(settings: Settings, ldap_container_dn: str) -> Iterable[Conn
     """
     # See https://ldap3.readthedocs.io/en/latest/mocking.html for details
     with patch(
-        "mo_ldap_import_export.ldap.get_client_strategy", return_value=MOCK_SYNC
+        "mo_ldap_import_export.ldap.get_client_strategy", return_value=MOCK_ASYNC
     ):
         # This patch is necessary due to: https://github.com/cannatag/ldap3/issues/1007
         server = one(construct_server_pool(settings).servers)
@@ -87,15 +88,16 @@ async def test_searching_mocked(
     ldap_connection: Connection, settings: Settings, ldap_container_dn: str
 ) -> None:
     """Test that we can use the mocked ldap_connection to search for our default user."""
-    ldap_connection.search(
+    message_id = ldap_connection.search(
         ldap_container_dn,
         f"(cn={settings.ldap_user})",
         search_scope=SUBTREE,
         attributes="*",
     )
-    assert ldap_connection.result["description"] == "success"
-    assert ldap_connection.response is not None
-    search_result = one(ldap_connection.response)
+    response, result = await wait_for_message_id(ldap_connection, message_id)
+    assert result["description"] == "success"
+    assert response is not None
+    search_result = one(response)
     assert search_result == {
         "attributes": {
             "objectClass": ["inetOrgPerson"],
@@ -132,12 +134,13 @@ async def test_searching_newly_added(ldap_connection: Connection) -> None:
         },
     )
 
-    ldap_connection.search(
+    message_id = ldap_connection.search(
         f"o={container}", f"(cn={username})", search_scope=SUBTREE, attributes="*"
     )
-    assert ldap_connection.result["description"] == "success"
-    assert ldap_connection.response is not None
-    search_result = one(ldap_connection.response)
+    response, result = await wait_for_message_id(ldap_connection, message_id)
+    assert result["description"] == "success"
+    assert response is not None
+    search_result = one(response)
     assert search_result == {
         "attributes": {
             "objectClass": ["inetOrgPerson"],
@@ -159,15 +162,16 @@ async def test_searching_dn_lookup(
     ldap_connection: Connection, settings: Settings, ldap_dn: DN, ldap_container_dn: str
 ) -> None:
     """Test that we can read our default user."""
-    ldap_connection.search(
+    message_id = ldap_connection.search(
         ldap_dn,
         "(objectclass=*)",
         attributes="*",
         search_scope=BASE,
     )
-    assert ldap_connection.result["description"] == "success"
-    assert ldap_connection.response is not None
-    search_result = one(ldap_connection.response)
+    response, result = await wait_for_message_id(ldap_connection, message_id)
+    assert result["description"] == "success"
+    assert response is not None
+    search_result = one(response)
     assert search_result == {
         "attributes": {
             "objectClass": ["inetOrgPerson"],
@@ -240,15 +244,16 @@ async def test_get_ldap_cpr_object(
     settings: Settings,
     ldap_container_dn: str,
 ) -> None:
-    ldap_connection.search(
+    message_id = ldap_connection.search(
         ldap_container_dn,
         "(&(objectclass=inetOrgPerson)(employeeID=0101700001))",
         search_scope=SUBTREE,
         attributes="*",
     )
-    assert ldap_connection.result["description"] == "success"
-    assert ldap_connection.response is not None
-    search_result = one(ldap_connection.response)
+    response, result = await wait_for_message_id(ldap_connection, message_id)
+    assert result["description"] == "success"
+    assert response is not None
+    search_result = one(response)
     assert search_result == {
         "attributes": {
             "objectClass": ["inetOrgPerson"],
@@ -427,7 +432,7 @@ async def test_first_included_exclude_none(
     }
     with capture_logs() as cap_logs:
         result = await first_included(context, {another_ldap_dn})
-    events = [x["event"] for x in cap_logs]
+    events = [x["event"] for x in cap_logs if x["log_level"] != "debug"]
     assert events == ["Found DN", "Discriminator value is None"]
 
     assert result is None
@@ -641,7 +646,7 @@ async def test_import_single_user_first_included(
 
     with capture_logs() as cap_logs:
         await sync_tool.import_single_user(ldap_dn)
-    events = [x["event"] for x in cap_logs]
+    events = [x["event"] for x in cap_logs if x["log_level"] != "debug"]
 
     assert (
         events
@@ -780,7 +785,7 @@ async def test_listen_to_changes_in_employees(
 
     with capture_logs() as cap_logs:
         await sync_tool.listen_to_changes_in_employees(employee_uuid)
-    events = [x["event"] for x in cap_logs]
+    events = [x["event"] for x in cap_logs if x["log_level"] != "debug"]
 
     assert (
         events

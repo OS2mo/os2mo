@@ -9,6 +9,7 @@ import re
 import time
 from collections.abc import Collection
 from collections.abc import Iterator
+from itertools import repeat
 from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
@@ -22,6 +23,7 @@ from fastramqpi.context import Context
 from gql import gql
 from httpx import Response
 from ldap3.core.exceptions import LDAPInvalidValueError
+from more_itertools import flatten
 from more_itertools import one
 from pydantic import parse_obj_as
 from ramodels.mo._shared import EngagementRef
@@ -267,7 +269,10 @@ async def test_load_ldap_cpr_object(
     dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
 
     expected_result = LdapObject(dn=dn, **ldap_attributes)
-    ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)]
+    ldap_connection.get_response.return_value = (
+        [mock_ldap_response(ldap_attributes, dn)],
+        {"type": "test"},
+    )
 
     output = one(
         await dataloader.load_ldap_cpr_object(CPRNumber("0101012002"), "Employee")
@@ -287,7 +292,10 @@ async def test_load_ldap_objects(
 ) -> None:
     dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
     expected_result = [LdapObject(dn=dn, **ldap_attributes)] * 2
-    ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)] * 2
+    ldap_connection.get_response.return_value = (
+        [mock_ldap_response(ldap_attributes, dn)] * 2,
+        {"type": "test", "description": "success"},
+    )
 
     output = await load_ldap_objects(dataloader, "Employee")
 
@@ -318,7 +326,10 @@ async def test_load_ldap_OUs(ldap_connection: MagicMock, dataloader: DataLoader)
     )
 
     def set_new_result(*args, **kwargs) -> None:
-        ldap_connection.response = next(responses)
+        ldap_connection.get_response.return_value = (
+            next(responses),
+            {"type": "test", "description": "success"},
+        )
 
     ldap_connection.search.side_effect = set_new_result
 
@@ -361,26 +372,36 @@ async def test_modify_ldap_employee(
     }
 
     # LDAP does not allow one to change the 'name' attribute and throws a bad response
-    not_allowed_on_RDN = ["name"]
-    parameters_to_upload = [k for k in employee.dict().keys() if k not in ["dn", "cpr"]]
-    allowed_parameters_to_upload = [
-        p for p in parameters_to_upload if p not in not_allowed_on_RDN
-    ]
-    disallowed_parameters_to_upload = [
-        p for p in parameters_to_upload if p not in allowed_parameters_to_upload
-    ]
+    not_allowed_on_RDN = {"name"}
+    parameters_to_upload = set(employee.dict().keys())
+    parameters_to_upload.discard("dn")
+    parameters_to_upload.discard("cpr")
 
-    results = iter(
-        [good_response] * len(allowed_parameters_to_upload)
-        + [bad_response] * len(disallowed_parameters_to_upload)
+    allowed_parameters_to_upload = parameters_to_upload - not_allowed_on_RDN
+    disallowed_parameters_to_upload = (
+        parameters_to_upload - allowed_parameters_to_upload
     )
 
+    num_allowed_parameters = len(allowed_parameters_to_upload)
+    num_disallowed_parameters = len(disallowed_parameters_to_upload)
+
+    expected = [good_response] * num_allowed_parameters + [
+        bad_response
+    ] * num_disallowed_parameters
+    compare_result = {"type": "test", "description": "compareFalse"}
+    results = flatten(zip(repeat(compare_result), expected))
+
     def set_new_result(*args, **kwargs) -> None:
-        ldap_connection.result = next(results)
+        ldap_connection.get_response.return_value = [], next(results)
 
     # Every time a modification is performed, point to the next page.
     ldap_connection.modify.side_effect = set_new_result
+    ldap_connection.compare.side_effect = set_new_result
 
+    dataloader.ldap_connection.get_response.return_value = (
+        [],
+        {"type": "test", "description": "compareFalse"},
+    )
     # Get result from dataloader
     with patch(
         "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_cpr_object",
@@ -388,10 +409,7 @@ async def test_modify_ldap_employee(
     ):
         output = await dataloader.modify_ldap_object(employee, "user")
 
-    assert output == (
-        [good_response] * len(allowed_parameters_to_upload)
-        + [bad_response] * len(disallowed_parameters_to_upload)
-    )
+    assert output == expected
 
 
 async def test_append_data_to_ldap_object(
@@ -400,6 +418,11 @@ async def test_append_data_to_ldap_object(
     ldap_attributes: dict,
     cpr_field: str,
 ):
+    dataloader.ldap_connection.get_response.return_value = (
+        [],
+        {"type": "test", "description": "compareTrue"},
+    )
+
     address = LdapObject(
         dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
         postalAddress="foo",
@@ -421,6 +444,11 @@ async def test_delete_data_from_ldap_object(
     ldap_attributes: dict,
     cpr_field: str,
 ):
+    dataloader.ldap_connection.get_response.return_value = (
+        [],
+        {"type": "test", "description": "compareTrue"},
+    )
+
     address = LdapObject(
         dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
         postalAddress="foo",
@@ -451,6 +479,11 @@ async def test_upload_ldap_object_invalid_value(
     dataloader: DataLoader,
     cpr_field: str,
 ) -> None:
+    dataloader.ldap_connection.get_response.return_value = (
+        [],
+        {"type": "test", "description": "compareFalse"},
+    )
+
     ldap_object = LdapObject(
         dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
         postalAddress="foo",
@@ -1493,19 +1526,35 @@ async def test_modify_ldap(
     ldap_connection: MagicMock,
     monkeypatch: pytest.MonkeyPatch,
 ):
-    ldap_connection.result = {"description": "success"}
+    def setup_mock(compares: bool = False):
+        result = "compareTrue" if compares else "compareFalse"
+        ldap_connection.get_response.return_value = (
+            [],
+            {"type": "test", "description": result},
+        )
+
+        def set_new_result(*args, **kwargs):
+            ldap_connection.get_response.return_value = (
+                [],
+                {"type": "test", "description": "success"},
+            )
+
+        ldap_connection.modify.side_effect = set_new_result
+
     dn = "CN=foo"
 
     # Validate that the entry is not in the ignore dict
     assert len(sync_tool.dns_to_ignore[dn]) == 0
 
     # Modify the entry. Validate that it is added to the ignore dict
+    setup_mock()
     await dataloader.modify_ldap(
         "MODIFY_ADD", dn, "parameter_to_modify", "value_to_modify"
     )
     assert len(sync_tool.dns_to_ignore[dn]) == 1
 
     # Modify the same entry again. Validate that we still only ignore once
+    setup_mock()
     await dataloader.modify_ldap(
         "MODIFY_ADD", dn, "parameter_to_modify", "value_to_modify"
     )
@@ -1517,6 +1566,7 @@ async def test_modify_ldap(
         datetime.datetime(1901, 1, 1),
     ]
     assert len(sync_tool.dns_to_ignore[dn]) == 2
+    setup_mock()
     await dataloader.modify_ldap(
         "MODIFY_ADD", dn, "parameter_to_modify", "value_to_modify"
     )
@@ -1524,26 +1574,28 @@ async def test_modify_ldap(
     assert sync_tool.dns_to_ignore[dn][0] > datetime.datetime(1950, 1, 1)
 
     # Validate that empty lists are allowed
+    setup_mock()
     await dataloader.modify_ldap("MODIFY_REPLACE", dn, "parameter_to_modify", [])
     ldap_connection.compare.assert_called_with(dn, "parameter_to_modify", "")
 
     # Simulate case where a value exists
-    ldap_connection.compare.return_value = True
     with capture_logs() as cap_logs:
+        setup_mock(True)
         await dataloader.modify_ldap("MODIFY_REPLACE", dn, "parameter_to_modify", [])
-        messages = [w for w in cap_logs if w["log_level"] == "info"]
-
-        assert re.match(".*already exists.*", str(messages[-1]["event"]))
+        messages = [w["event"] for w in cap_logs]
+        assert messages == ["Attribute value already exists"]
 
     # DELETE statments should still be executed, even if a value exists
+    setup_mock()
     response = await dataloader.modify_ldap(
         "MODIFY_DELETE", dn, "parameter_to_modify", "foo"
     )
-    assert response == {"description": "success"}
+    assert response == {"description": "success", "type": "test"}
 
     monkeypatch.setenv("LDAP_READ_ONLY", "true")
     dataloader.user_context["settings"] = Settings()
     with pytest.raises(NotEnabledException) as exc:
+        setup_mock()
         await dataloader.modify_ldap("MODIFY_REPLACE", dn, "parameter_to_modify", [])
     assert "LDAP connection is read-only" in str(exc.value)
 
@@ -1846,6 +1898,8 @@ async def test_create_mo_it_system(dataloader: DataLoader):
 
 
 async def test_add_ldap_object(dataloader: DataLoader) -> None:
+    dataloader.ldap_connection.get_response.return_value = [], {"type": "test"}
+
     await dataloader.add_ldap_object("CN=foo", attributes={"foo": 2})
     dataloader.ldap_connection.add.assert_called_once()
 
@@ -2226,6 +2280,8 @@ def test_decompose_ou_string(dataloader: DataLoader):
 
 
 async def test_create_ou(dataloader: DataLoader) -> None:
+    dataloader.ldap_connection.get_response.return_value = [], {"type": "test"}
+
     dataloader.load_ldap_OUs = AsyncMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to.return_value = True
@@ -2266,6 +2322,8 @@ async def test_create_ou(dataloader: DataLoader) -> None:
 
 
 async def test_delete_ou(dataloader: DataLoader) -> None:
+    dataloader.ldap_connection.get_response.return_value = [], {"type": "test"}
+
     dataloader.load_ldap_OUs = AsyncMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to.return_value = True
@@ -2317,7 +2375,10 @@ async def test_move_ldap_object(dataloader: DataLoader):
     settings_mock = MagicMock()
     dataloader.user_context["settings"] = settings_mock  # type: ignore
     dataloader.user_context["settings"].ldap_read_only = False
-    dataloader.ldap_connection.result = {"description": "success"}
+    dataloader.ldap_connection.get_response.return_value = (
+        [],
+        {"description": "success"},
+    )
 
     success = await dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
 

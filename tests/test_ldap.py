@@ -268,7 +268,7 @@ def test_configure_ldap_connection_unknown(
 
 def test_get_client_strategy() -> None:
     strategy = get_client_strategy()
-    assert strategy == "RESTARTABLE"
+    assert strategy == "ASYNC"
 
 
 async def test_ldap_healthcheck(ldap_connection: MagicMock) -> None:
@@ -392,9 +392,6 @@ async def test_paged_search(
 
     expected_results = [mock_ldap_response(ldap_attributes, dn)]
 
-    # Mock LDAP connection
-    ldap_connection.response = expected_results
-
     # Simulate three pages
     cookies = [bytes("first page", "utf-8"), bytes("second page", "utf-8"), None]
     results = iter(
@@ -408,7 +405,7 @@ async def test_paged_search(
     )
 
     def set_new_result(*args, **kwargs) -> None:
-        ldap_connection.result = next(results)
+        ldap_connection.get_response.return_value = expected_results, next(results)
 
     # Every time a search is performed, point to the next page.
     ldap_connection.search.side_effect = set_new_result
@@ -429,9 +426,6 @@ async def test_paged_search_no_results(
 
     expected_results: list[dict] = []
 
-    # Mock LDAP connection
-    ldap_connection.response = expected_results
-
     results = iter(
         [
             {
@@ -447,7 +441,7 @@ async def test_paged_search_no_results(
     )
 
     def set_new_result(*args, **kwargs) -> None:
-        ldap_connection.result = next(results)
+        ldap_connection.get_response.return_value = expected_results, next(results)
 
     # Every time a search is performed, point to the next page.
     ldap_connection.search.side_effect = set_new_result
@@ -467,11 +461,11 @@ async def test_invalid_paged_search(
     # Mock data
     dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
 
-    ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)]
-
-    ldap_connection.result = {
+    response = [mock_ldap_response(ldap_attributes, dn)]
+    result = {
         "description": "operationsError",
     }
+    ldap_connection.get_response.return_value = response, result
 
     searchParameters = {
         "search_filter": "(objectclass=organizationalPerson)",
@@ -486,11 +480,13 @@ async def test_single_object_search(ldap_connection: MagicMock, context: Context
     dn = "CN=foo,DC=bar"
     search_entry = {"type": "searchResEntry", "dn": dn}
 
-    ldap_connection.response = [search_entry]
+    result = {"type": "test"}
+
+    ldap_connection.get_response.return_value = [search_entry], result
     output = await single_object_search({"search_base": "CN=foo,DC=bar"}, context)
 
     assert output == search_entry
-    ldap_connection.response = [search_entry]
+    ldap_connection.get_response.return_value = [search_entry], result
 
     search_parameters = {
         "search_base": "CN=foo,DC=bar",
@@ -498,14 +494,14 @@ async def test_single_object_search(ldap_connection: MagicMock, context: Context
     }
 
     with pytest.raises(MultipleObjectsReturnedException, match="010101-xxxx"):
-        ldap_connection.response = [search_entry] * 2
+        ldap_connection.get_response.return_value = [search_entry] * 2, result
         output = await single_object_search(search_parameters, context)
 
     with pytest.raises(NoObjectsReturnedException, match="010101-xxxx"):
-        ldap_connection.response = [search_entry] * 0
+        ldap_connection.get_response.return_value = [search_entry] * 0, result
         output = await single_object_search(search_parameters, context)
 
-    ldap_connection.response = [search_entry]
+    ldap_connection.get_response.return_value = [search_entry], result
     output = await single_object_search({"search_base": "CN=foo,DC=bar"}, context)
     assert output == search_entry
     output = await single_object_search(
@@ -640,7 +636,7 @@ async def test_poller(
         "type": "searchResEntry",
         "attributes": {"distinguishedName": dn},
     }
-    ldap_connection.response = [event]
+    ldap_connection.get_response.return_value = [event], {"type": "test"}
 
     ldap_amqpsystem = AsyncMock()
 
@@ -670,7 +666,7 @@ async def test_poller_no_dn(
         "type": "searchResEntry",
         "attributes": {},
     }
-    ldap_connection.response = [event]
+    ldap_connection.get_response.return_value = [event], {"type": "test"}
 
     ldap_amqpsystem = AsyncMock()
 
@@ -708,7 +704,7 @@ async def test_poller_no_dn(
 async def test_poller_bad_result(
     load_settings_overrides: dict[str, str], ldap_connection: MagicMock, response: Any
 ) -> None:
-    ldap_connection.response = response
+    ldap_connection.get_response.return_value = response, {"type": "test"}
 
     ldap_amqpsystem = AsyncMock()
 
