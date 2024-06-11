@@ -507,6 +507,7 @@ class LdapConverter:
         for attribute in detected_attributes:
             if (
                 attribute not in accepted_attributes
+                and not attribute.startswith("msDS-cloudExtensionAttribute")
                 and not attribute.startswith("extensionAttribute")
                 and not attribute.startswith("__")
                 and not attribute == "sAMAccountName"

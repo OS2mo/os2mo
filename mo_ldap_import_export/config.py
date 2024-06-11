@@ -118,6 +118,7 @@ def check_attributes(
         attribute
         for attribute in unacceptable_attributes
         if not attribute.startswith("extensionAttribute")
+        and not attribute.startswith("msDS-cloudExtensionAttribute")
         and not attribute.startswith("__")
     }
     if unacceptable_attributes:
