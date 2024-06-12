@@ -12,6 +12,7 @@ from functools import wraps
 from typing import Any
 from typing import cast
 from typing import Literal
+from typing import TypeVar
 from uuid import UUID
 
 import structlog
@@ -79,6 +80,9 @@ from .utils import combine_dn_strings
 from .utils import extract_cn_from_dn
 from .utils import extract_ou_from_dn
 from .utils import remove_cn_from_dn
+
+
+T = TypeVar("T")
 
 logger = structlog.stdlib.get_logger()
 
@@ -1165,7 +1169,7 @@ class DataLoader:
     # TODO: Isolate this
     # TODO: Type this properly
     @staticmethod
-    def extract_current_or_latest_object(objects: list[Any]) -> Any | None:
+    def extract_current_or_latest_object(objects: list[T]) -> T | None:
         """
         Check the validity in a list of object dictionaries and return the one which
         is either valid today, or has the latest end-date
@@ -1176,10 +1180,10 @@ class DataLoader:
         if len(objects) == 1:
             return one(objects)
 
-        def is_current(obj: Any) -> bool:
+        def is_current(obj: T) -> bool:
             # TODO: Remove this casting when typing is fixed
-            valid_to = cast(datetime | None, obj.validity.to)
-            valid_from = cast(datetime | None, obj.validity.from_)
+            valid_to = cast(datetime | None, obj.validity.to)  # type: ignore
+            valid_from = cast(datetime | None, obj.validity.from_)  # type: ignore
 
             # Cannot use datetime.utcnow as it is not timezone aware
             now_utc = datetime.now(timezone.utc)
@@ -1208,7 +1212,8 @@ class DataLoader:
         # Cannot use datetime.max directly as it is not timezone aware
         datetime_max_utc = datetime.max.replace(tzinfo=timezone.utc)
         latest_object = max(
-            objects, key=lambda obj: obj.validity.to or datetime_max_utc
+            objects,
+            key=lambda obj: obj.validity.to or datetime_max_utc,  # type: ignore
         )
         return latest_object
 
