@@ -623,6 +623,7 @@ class SyncTool:
                 employee=EmployeeFilter(uuids=[uuid]), from_date=None, to_date=None
             )
         )
+        # TODO: Prefer newest primary if multiple
         # TODO: Offer a non dictionary version of this function to avoid
         #       jsonable encoding and parse right after again
         engagement_validities = [

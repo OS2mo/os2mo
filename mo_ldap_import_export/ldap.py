@@ -202,8 +202,20 @@ async def ldap_compare(ldap_connection, dn, attribute, value) -> bool:
             return True
         case "compareFalse":
             return False
-        case _:  # pragma: no cover
-            logger.warning("Unknown comparison result", result=_)
+        # False is returned even if the entry is not found in the LDAP server.
+        # NOTE: This behavior is consistent with the old synchronous behavior.
+        case []:
+            return False
+        case "noSuchAttribute":
+            return False
+        # Unknown description, this is unexpected
+        case description:
+            logger.warning(
+                "Unknown comparison result",
+                attribute=attribute,
+                value=value,
+                description=description,
+            )
             raise ValueError("Unknown comparison result")
 
 

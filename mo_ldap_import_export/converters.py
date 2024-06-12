@@ -1208,6 +1208,7 @@ class LdapConverter:
                 "Only cpr-indexed objects are supported by to_ldap"
             )
 
+        # TODO: Test what happens with exceptions here
         for ldap_field_name, template in object_mapping.items():
             rendered_item = await template.render_async(mo_template_dict)
             if rendered_item:
