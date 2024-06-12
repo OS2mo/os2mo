@@ -20,6 +20,7 @@ from uuid import uuid4
 import pytest
 from fastapi.encoders import jsonable_encoder
 from fastramqpi.context import Context
+from freezegun import freeze_time
 from gql import gql
 from httpx import Response
 from ldap3.core.exceptions import LDAPInvalidValueError
@@ -2121,143 +2122,137 @@ async def test_query_mo_paged(dataloader: DataLoader):
     assert employee3["uuid"] in uuids
 
 
+@freeze_time("2022-08-10")
 def test_extract_latest_object(dataloader: DataLoader):
     uuid_obj1 = str(uuid4())
     uuid_obj2 = str(uuid4())
     uuid_obj3 = str(uuid4())
 
-    datetime_mock = MagicMock(datetime.datetime)
-    datetime_mock.utcnow.return_value = datetime.datetime(2022, 8, 10)
-    datetime_mock.max = datetime.datetime.max
-    with patch(
-        "mo_ldap_import_export.dataloaders.datetime",
-        datetime_mock,
-    ):
-        # One of the objects is valid today - return it
-        objects = [
-            {
-                "validity": {
-                    "from": "2022-08-01T00:00:00+02:00",
-                    "to": "2022-08-02T00:00:00+02:00",
-                },
-                "uuid": uuid_obj1,
+    # One of the objects is valid today - return it
+    objects = [
+        {
+            "validity": {
+                "from": "2022-08-01T00:00:00+02:00",
+                "to": "2022-08-02T00:00:00+02:00",
             },
-            {
-                "validity": {
-                    "from": "2022-08-02T00:00:00+02:00",
-                    "to": "2022-08-15T00:00:00+02:00",
-                },
-                "uuid": uuid_obj2,
+            "uuid": uuid_obj1,
+        },
+        {
+            "validity": {
+                "from": "2022-08-02T00:00:00+02:00",
+                "to": "2022-08-15T00:00:00+02:00",
             },
-            {
-                "validity": {
-                    "from": "2022-08-15T00:00:00+02:00",
-                    "to": None,
-                },
-                "uuid": uuid_obj3,
+            "uuid": uuid_obj2,
+        },
+        {
+            "validity": {
+                "from": "2022-08-15T00:00:00+02:00",
+                "to": None,
             },
-        ]
-        assert dataloader.extract_current_or_latest_object(objects)["uuid"] == uuid_obj2
+            "uuid": uuid_obj3,
+        },
+    ]
+    assert dataloader.extract_current_or_latest_object(objects)["uuid"] == uuid_obj2
 
-        # One of the objects is valid all the time - return it
-        objects = [
-            # NOTE: This combination should never exist, but we wanna test the codepath
-            {
-                "validity": {
-                    "from": "2022-08-01T00:00:00+02:00",
-                    "to": "2022-08-02T00:00:00+02:00",
-                },
-                "uuid": uuid_obj1,
+    # One of the objects is valid all the time - return it
+    objects = [
+        # NOTE: This combination should never exist, but we wanna test the codepath
+        {
+            "validity": {
+                "from": "2022-08-01T00:00:00+02:00",
+                "to": "2022-08-02T00:00:00+02:00",
             },
-            {
-                "validity": {
-                    "from": None,
-                    "to": None,
-                },
-                "uuid": uuid_obj3,
+            "uuid": uuid_obj1,
+        },
+        {
+            "validity": {
+                "from": None,
+                "to": None,
             },
-        ]
-        assert dataloader.extract_current_or_latest_object(objects)["uuid"] == uuid_obj3
+            "uuid": uuid_obj3,
+        },
+    ]
+    assert dataloader.extract_current_or_latest_object(objects)["uuid"] == uuid_obj3
 
-        # No object is valid today - return the latest
-        objects = [
-            {
-                "validity": {
-                    "from": "2022-08-01T00:00:00+02:00",
-                    "to": "2022-08-02T00:00:00+02:00",
-                },
-                "uuid": uuid_obj1,
+    # No object is valid today - return the latest
+    objects = [
+        {
+            "validity": {
+                "from": "2022-08-01T00:00:00+02:00",
+                "to": "2022-08-02T00:00:00+02:00",
             },
-            {
-                "validity": {
-                    "from": "2022-08-15T00:00:00+02:00",
-                    "to": None,
-                },
-                "uuid": uuid_obj3,
+            "uuid": uuid_obj1,
+        },
+        {
+            "validity": {
+                "from": "2022-08-15T00:00:00+02:00",
+                "to": None,
             },
-        ]
-        assert dataloader.extract_current_or_latest_object(objects)["uuid"] == uuid_obj3
+            "uuid": uuid_obj3,
+        },
+    ]
+    assert dataloader.extract_current_or_latest_object(objects)["uuid"] == uuid_obj3
 
-        # No valid current object - return the latest
-        objects = [
-            {
-                "validity": {
-                    "from": "2022-08-01T00:00:00+02:00",
-                    "to": "2022-08-02T00:00:00+02:00",
-                },
-                "uuid": uuid_obj1,
+    # No valid current object - return the latest
+    objects = [
+        {
+            "validity": {
+                "from": "2022-08-01T00:00:00+02:00",
+                "to": "2022-08-02T00:00:00+02:00",
             },
-            {
-                "validity": {
-                    "from": "2022-08-15T00:00:00+02:00",
-                    "to": "2022-08-20T00:00:00+02:00",
-                },
-                "uuid": uuid_obj2,
+            "uuid": uuid_obj1,
+        },
+        {
+            "validity": {
+                "from": "2022-08-15T00:00:00+02:00",
+                "to": "2022-08-20T00:00:00+02:00",
             },
-        ]
-        assert dataloader.extract_current_or_latest_object(objects)["uuid"] == uuid_obj2
+            "uuid": uuid_obj2,
+        },
+    ]
+    assert dataloader.extract_current_or_latest_object(objects)["uuid"] == uuid_obj2
 
-        with pytest.raises(NoObjectsReturnedException):
-            objects = []
-            dataloader.extract_current_or_latest_object(objects)
+    with pytest.raises(NoObjectsReturnedException):
+        objects = []
+        dataloader.extract_current_or_latest_object(objects)
 
-        # One of the objects is valid today (without to-date) - return it
-        objects = [
-            {
-                "validity": {
-                    "from": "2022-08-01T00:00:00+02:00",
-                    "to": "2022-08-02T00:00:00+02:00",
-                },
-                "uuid": uuid_obj1,
+    # One of the objects is valid today (without to-date) - return it
+    objects = [
+        {
+            "validity": {
+                "from": "2022-08-01T00:00:00+02:00",
+                "to": "2022-08-02T00:00:00+02:00",
             },
-            {
-                "validity": {
-                    "from": "2022-08-02T00:00:00+02:00",
-                    "to": None,
-                },
-                "uuid": uuid_obj2,
+            "uuid": uuid_obj1,
+        },
+        {
+            "validity": {
+                "from": "2022-08-02T00:00:00+02:00",
+                "to": None,
             },
-        ]
-        assert dataloader.extract_current_or_latest_object(objects)["uuid"] == uuid_obj2
+            "uuid": uuid_obj2,
+        },
+    ]
+    assert dataloader.extract_current_or_latest_object(objects)["uuid"] == uuid_obj2
 
-        # One of the objects is valid today (without from-date)- return it
-        objects = [
-            {
-                "validity": {
-                    "from": None,
-                    "to": "2022-08-15T00:00:00+02:00",
-                },
-                "uuid": uuid_obj2,
+    # One of the objects is valid today (without from-date)- return it
+    objects = [
+        {
+            "validity": {
+                "from": None,
+                "to": "2022-08-15T00:00:00+02:00",
             },
-            {
-                "validity": {
-                    "from": "2022-08-15T00:00:00+02:00",
-                    "to": None,
-                },
-                "uuid": uuid_obj3,
+            "uuid": uuid_obj2,
+        },
+        {
+            "validity": {
+                "from": "2022-08-15T00:00:00+02:00",
+                "to": None,
             },
-        ]
-        assert dataloader.extract_current_or_latest_object(objects)["uuid"] == uuid_obj2
+            "uuid": uuid_obj3,
+        },
+    ]
+    assert dataloader.extract_current_or_latest_object(objects)["uuid"] == uuid_obj2
 
 
 async def test_load_mo_root_org_uuid(dataloader: DataLoader):
