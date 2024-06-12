@@ -52,7 +52,7 @@ from .exceptions import DNNotFound
 from .exceptions import InvalidChangeDict
 from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
-from .exceptions import NotEnabledException
+from .exceptions import ReadOnlyException
 from .exceptions import UUIDNotFoundException
 from .ldap import get_attribute_types
 from .ldap import get_ldap_attributes
@@ -340,7 +340,7 @@ class DataLoader:
                 dn=dn,
                 attribute=attribute,
             )
-            raise NotEnabledException("LDAP connection is read-only")
+            raise ReadOnlyException("LDAP connection is read-only")
 
         # Checks
         if not self.ou_in_ous_to_write_to(dn):
@@ -455,7 +455,7 @@ class DataLoader:
                 dn=dn,
                 attributes=attributes,
             )
-            raise NotEnabledException("LDAP connection is read-only")
+            raise ReadOnlyException("LDAP connection is read-only")
 
         if not settings.add_objects_to_ldap:
             logger.info(
@@ -464,7 +464,7 @@ class DataLoader:
                 dn=dn,
                 attributes=attributes,
             )
-            raise NotEnabledException("Adding LDAP objects is disabled")
+            raise ReadOnlyException("Adding LDAP objects is disabled")
 
         if not self.ou_in_ous_to_write_to(dn):
             return
@@ -507,11 +507,11 @@ class DataLoader:
         # TODO: Remove this when ldap3s read-only flag works
         if settings.ldap_read_only:
             logger.info("LDAP connection is read-only", operation="create_ou", ou=ou)
-            raise NotEnabledException("LDAP connection is read-only")
+            raise ReadOnlyException("LDAP connection is read-only")
 
         if not settings.add_objects_to_ldap:
             logger.info("Adding LDAP objects is disabled", operation="create_ou", ou=ou)
-            raise NotEnabledException("Adding LDAP objects is disabled")
+            raise ReadOnlyException("Adding LDAP objects is disabled")
 
         if not self.ou_in_ous_to_write_to(ou):
             return
@@ -541,7 +541,7 @@ class DataLoader:
         # TODO: Remove this when ldap3s read-only flag works
         if settings.ldap_read_only:
             logger.info("LDAP connection is read-only", operation="delete_ou", ou=ou)
-            raise NotEnabledException("LDAP connection is read-only")
+            raise ReadOnlyException("LDAP connection is read-only")
 
         if not self.ou_in_ous_to_write_to(ou):
             return
@@ -573,7 +573,7 @@ class DataLoader:
                 old_dn=old_dn,
                 new_dn=new_dn,
             )
-            raise NotEnabledException("LDAP connection is read-only")
+            raise ReadOnlyException("LDAP connection is read-only")
 
         if not settings.add_objects_to_ldap:
             logger.info(
@@ -582,7 +582,7 @@ class DataLoader:
                 old_dn=old_dn,
                 new_dn=new_dn,
             )
-            raise NotEnabledException("Adding LDAP objects is disabled")
+            raise ReadOnlyException("Adding LDAP objects is disabled")
 
         if not self.ou_in_ous_to_write_to(new_dn):
             return False

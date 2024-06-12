@@ -31,8 +31,8 @@ from .dataloaders import DataLoader
 from .exceptions import IgnoreChanges
 from .exceptions import IncorrectMapping
 from .exceptions import NoObjectsReturnedException
-from .exceptions import NotEnabledException
 from .exceptions import NotSupportedException
+from .exceptions import ReadOnlyException
 from .import_export import SyncTool
 from .ldap import check_ou_in_list_of_ous
 from .ldap import configure_ldap_connection
@@ -74,7 +74,7 @@ def reject_on_failure(func):
             TransportQueryError,  # In case an ldap entry cannot be uploaded: Abort
             NoObjectsReturnedException,  # In case an object is deleted halfway: Abort
             IgnoreChanges,  # In case changes should be ignored: Abort
-            NotEnabledException,  # In case a feature is not enabled: Abort
+            ReadOnlyException,  # In case a feature is not enabled: Abort
         ) as e:
             logger.warning(e)
             raise RejectMessage() from e

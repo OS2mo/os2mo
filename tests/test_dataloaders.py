@@ -78,7 +78,7 @@ from mo_ldap_import_export.exceptions import AttributeNotFound
 from mo_ldap_import_export.exceptions import DNNotFound
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
-from mo_ldap_import_export.exceptions import NotEnabledException
+from mo_ldap_import_export.exceptions import ReadOnlyException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
 from mo_ldap_import_export.import_export import IgnoreMe
 from mo_ldap_import_export.routes import load_all_current_it_users
@@ -1594,7 +1594,7 @@ async def test_modify_ldap(
 
     monkeypatch.setenv("LDAP_READ_ONLY", "true")
     dataloader.user_context["settings"] = Settings()
-    with pytest.raises(NotEnabledException) as exc:
+    with pytest.raises(ReadOnlyException) as exc:
         setup_mock()
         await dataloader.modify_ldap("MODIFY_REPLACE", dn, "parameter_to_modify", [])
     assert "LDAP connection is read-only" in str(exc.value)
@@ -1907,7 +1907,7 @@ async def test_add_ldap_object(dataloader: DataLoader) -> None:
     dataloader.user_context["settings"].add_objects_to_ldap = False
     dataloader.user_context["settings"].ldap_read_only = False
 
-    with pytest.raises(NotEnabledException) as exc:
+    with pytest.raises(ReadOnlyException) as exc:
         await dataloader.add_ldap_object("CN=foo")
     assert "Adding LDAP objects is disabled" in str(exc.value)
 
@@ -1920,7 +1920,7 @@ async def test_add_ldap_object(dataloader: DataLoader) -> None:
     dataloader.ldap_connection.add.assert_not_called()
 
     dataloader.user_context["settings"].ldap_read_only = True
-    with pytest.raises(NotEnabledException) as exc:
+    with pytest.raises(ReadOnlyException) as exc:
         await dataloader.add_ldap_object("CN=foo")
     assert "LDAP connection is read-only" in str(exc.value)
 
@@ -2304,7 +2304,7 @@ async def test_create_ou(dataloader: DataLoader) -> None:
 
     dataloader.user_context["settings"].add_objects_to_ldap = False
 
-    with pytest.raises(NotEnabledException) as exc:
+    with pytest.raises(ReadOnlyException) as exc:
         await dataloader.create_ou(ou)
     assert "Adding LDAP objects is disabled" in str(exc.value)
 
@@ -2316,7 +2316,7 @@ async def test_create_ou(dataloader: DataLoader) -> None:
     dataloader.ldap_connection.add.assert_not_called()
 
     dataloader.user_context["settings"].ldap_read_only = True
-    with pytest.raises(NotEnabledException) as exc:
+    with pytest.raises(ReadOnlyException) as exc:
         await dataloader.create_ou(ou)
     assert "LDAP connection is read-only" in str(exc.value)
 
@@ -2364,7 +2364,7 @@ async def test_delete_ou(dataloader: DataLoader) -> None:
     dataloader.ldap_connection.delete.assert_not_called()
 
     dataloader.user_context["settings"].ldap_read_only = True
-    with pytest.raises(NotEnabledException) as exc:
+    with pytest.raises(ReadOnlyException) as exc:
         await dataloader.delete_ou("OU=non_existing_OU")
     assert "LDAP connection is read-only" in str(exc.value)
 
@@ -2394,13 +2394,13 @@ async def test_move_ldap_object(dataloader: DataLoader):
     dataloader.ou_in_ous_to_write_to.return_value = True
     dataloader.user_context["settings"].add_objects_to_ldap = False
 
-    with pytest.raises(NotEnabledException) as exc:
+    with pytest.raises(ReadOnlyException) as exc:
         await dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
     assert "Adding LDAP objects is disabled" in str(exc.value)
 
     dataloader.user_context["settings"].add_objects_to_ldap = True
     dataloader.user_context["settings"].ldap_read_only = True
-    with pytest.raises(NotEnabledException) as exc:
+    with pytest.raises(ReadOnlyException) as exc:
         await dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
     assert "LDAP connection is read-only" in str(exc.value)
 
