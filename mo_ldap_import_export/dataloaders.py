@@ -93,6 +93,56 @@ class Verb(Enum):
     TERMINATE = auto()
 
 
+# TODO: Type this properly
+def extract_current_or_latest_object(objects: list[T]) -> T | None:
+    """
+    Check the validity in a list of object dictionaries and return the one which
+    is either valid today, or has the latest end-date
+    """
+    if len(objects) == 0:
+        # TODO: Simply return None instead?
+        raise NoObjectsReturnedException("Objects is empty")
+    if len(objects) == 1:
+        return one(objects)
+
+    def is_current(obj: T) -> bool:
+        # TODO: Remove this casting when typing is fixed
+        valid_to = cast(datetime | None, obj.validity.to)  # type: ignore
+        valid_from = cast(datetime | None, obj.validity.from_)  # type: ignore
+
+        # Cannot use datetime.utcnow as it is not timezone aware
+        now_utc = datetime.now(timezone.utc)
+
+        match (valid_from, valid_to):
+            case (None, None):
+                return True
+            case (start, None):
+                assert start is not None
+                return start < now_utc
+            case (None, end):
+                assert end is not None
+                return now_utc < end
+            case (start, end):
+                assert start is not None
+                assert end is not None
+                return start < now_utc and now_utc < end
+            case _:  # pragma: no cover
+                assert False
+
+    # If any of the objects is valid today, return it
+    current_object = only(filter(is_current, objects))
+    if current_object:
+        return current_object
+    # Otherwise return the latest
+    # Cannot use datetime.max directly as it is not timezone aware
+    datetime_max_utc = datetime.max.replace(tzinfo=timezone.utc)
+    latest_object = max(
+        objects,
+        key=lambda obj: obj.validity.to or datetime_max_utc,  # type: ignore
+    )
+    return latest_object
+
+
 class DataLoader:
     def __init__(self, context):
         self.context = context
@@ -1166,57 +1216,6 @@ class DataLoader:
         assert dn in dns
         return dn
 
-    # TODO: Isolate this
-    # TODO: Type this properly
-    @staticmethod
-    def extract_current_or_latest_object(objects: list[T]) -> T | None:
-        """
-        Check the validity in a list of object dictionaries and return the one which
-        is either valid today, or has the latest end-date
-        """
-        if len(objects) == 0:
-            # TODO: Simply return None instead?
-            raise NoObjectsReturnedException("Objects is empty")
-        if len(objects) == 1:
-            return one(objects)
-
-        def is_current(obj: T) -> bool:
-            # TODO: Remove this casting when typing is fixed
-            valid_to = cast(datetime | None, obj.validity.to)  # type: ignore
-            valid_from = cast(datetime | None, obj.validity.from_)  # type: ignore
-
-            # Cannot use datetime.utcnow as it is not timezone aware
-            now_utc = datetime.now(timezone.utc)
-
-            match (valid_from, valid_to):
-                case (None, None):
-                    return True
-                case (start, None):
-                    assert start is not None
-                    return start < now_utc
-                case (None, end):
-                    assert end is not None
-                    return now_utc < end
-                case (start, end):
-                    assert start is not None
-                    assert end is not None
-                    return start < now_utc and now_utc < end
-                case _:  # pragma: no cover
-                    assert False
-
-        # If any of the objects is valid today, return it
-        current_object = only(filter(is_current, objects))
-        if current_object:
-            return current_object
-        # Otherwise return the latest
-        # Cannot use datetime.max directly as it is not timezone aware
-        datetime_max_utc = datetime.max.replace(tzinfo=timezone.utc)
-        latest_object = max(
-            objects,
-            key=lambda obj: obj.validity.to or datetime_max_utc,  # type: ignore
-        )
-        return latest_object
-
     async def load_mo_employee(self, uuid: UUID, current_objects_only=True) -> Employee:
         start = end = UNSET if current_objects_only else None
         results = await self.graphql_client.read_employees([uuid], start, end)
@@ -1224,7 +1223,7 @@ class DataLoader:
         if result is None:
             raise NoObjectsReturnedException("Could not fetch employee")
 
-        result_entry = self.extract_current_or_latest_object(result.validities)
+        result_entry = extract_current_or_latest_object(result.validities)
         entry = jsonable_encoder(result_entry)
         entry.pop("validity")
         return Employee(**entry)
@@ -1334,7 +1333,7 @@ class DataLoader:
 
         return {
             str(org_unit.uuid): jsonable_encoder(
-                self.extract_current_or_latest_object(org_unit.validities)
+                extract_current_or_latest_object(org_unit.validities)
             )
             for org_unit in result.objects
         }
@@ -1346,7 +1345,7 @@ class DataLoader:
         if result is None:
             raise NoObjectsReturnedException("Could not fetch ituser")
 
-        result_entry = self.extract_current_or_latest_object(result.validities)
+        result_entry = extract_current_or_latest_object(result.validities)
         entry = jsonable_encoder(result_entry)
         return ITUser.from_simplified_fields(
             user_key=entry["user_key"],
@@ -1376,7 +1375,7 @@ class DataLoader:
         if result is None:
             raise NoObjectsReturnedException("Could not fetch address")
 
-        result_entry = self.extract_current_or_latest_object(result.validities)
+        result_entry = extract_current_or_latest_object(result.validities)
         entry = jsonable_encoder(result_entry)
         address = Address.from_simplified_fields(
             value=entry["value"],
@@ -1424,7 +1423,7 @@ class DataLoader:
         if result is None:
             raise NoObjectsReturnedException("Could not fetch engagement")
 
-        entry_result = self.extract_current_or_latest_object(result.validities)
+        entry_result = extract_current_or_latest_object(result.validities)
         entry = jsonable_encoder(entry_result)
         engagement = Engagement.from_simplified_fields(
             org_unit_uuid=entry["org_unit_uuid"],

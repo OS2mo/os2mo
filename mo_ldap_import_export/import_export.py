@@ -39,6 +39,7 @@ from .customer_specific_checks import ExportChecks
 from .customer_specific_checks import ImportChecks
 from .dataloaders import DataLoader
 from .dataloaders import DN
+from .dataloaders import extract_current_or_latest_object
 from .dataloaders import Verb
 from .exceptions import DNNotFound
 from .exceptions import IgnoreChanges
@@ -299,8 +300,7 @@ class SyncTool:
             )
         )
         address_validities = [
-            self.dataloader.extract_current_or_latest_object(obj.validities)
-            for obj in result.objects
+            extract_current_or_latest_object(obj.validities) for obj in result.objects
         ]
         addresses = [obj for obj in address_validities if obj is not None]
         # Group addresses by address-type
@@ -407,8 +407,7 @@ class SyncTool:
             )
         )
         address_validities = [
-            self.dataloader.extract_current_or_latest_object(obj.validities)
-            for obj in result.objects
+            extract_current_or_latest_object(obj.validities) for obj in result.objects
         ]
         addresses = [obj for obj in address_validities if obj is not None]
         # Group addresses by address-type
@@ -517,8 +516,7 @@ class SyncTool:
             )
         )
         ituser_validities = [
-            self.dataloader.extract_current_or_latest_object(obj.validities)
-            for obj in result.objects
+            extract_current_or_latest_object(obj.validities) for obj in result.objects
         ]
         itusers = [obj for obj in ituser_validities if obj is not None]
         # Group addresses by address-type
@@ -594,8 +592,7 @@ class SyncTool:
         )
         # TODO: Prefer newest primary if multiple
         engagement_validities = [
-            self.dataloader.extract_current_or_latest_object(obj.validities)
-            for obj in result.objects
+            extract_current_or_latest_object(obj.validities) for obj in result.objects
         ]
         engagements = [obj for obj in engagement_validities if obj is not None]
         # No engagements, not even deleted ones means nothing for us to do
