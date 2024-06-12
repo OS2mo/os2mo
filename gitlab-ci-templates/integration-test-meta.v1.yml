@@ -182,6 +182,11 @@ variables:
     FASTRAMQPI__AUTH_SERVER: "http://keycloak:8080/auth"
     FASTRAMQPI__AUTH_REALM: "mo"
     FASTRAMQPI__AMQP__URL: "amqp://guest:guest@msg-broker:5672/"
+    FASTRAMQPI__DATABASE__USER: "fastramqpi"
+    FASTRAMQPI__DATABASE__PASSWORD: "fastramqpi"
+    FASTRAMQPI__DATABASE__HOST: "db"
+    FASTRAMQPI__DATABASE__PORT: "54321"
+    FASTRAMQPI__DATABASE__NAME: "fastramqpi"
   services:
     - !reference [ .services:mo-backing, services ]
     - name: magentaaps/os2mo:latest
@@ -210,6 +215,13 @@ variables:
             sleep 1
           done
           touch /builds/.os2mo-init-finished
+    - name: postgres:16
+      alias: db
+      command: ["postgres", "-c", "port=54321"]
+      variables:
+        POSTGRES_USER: "fastramqpi"
+        POSTGRES_PASSWORD: "fastramqpi"
+        POSTGRES_DB: "fastramqpi"
   before_script:
     - !reference [ .pytest, before_script ]
     - !reference [ .services:mo-backing, before_script ]
