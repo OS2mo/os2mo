@@ -210,6 +210,7 @@ def ensure_list(x: Any | list[Any]) -> list[Any]:
     return [x]
 
 
+# TODO: Refactor this to use structured object
 def get_delete_flag(mo_object: dict[str, Any]) -> bool:
     """Determines if an object should be deleted based on the validity to-date.
 

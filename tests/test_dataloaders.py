@@ -26,6 +26,8 @@ from httpx import Response
 from ldap3.core.exceptions import LDAPInvalidValueError
 from more_itertools import flatten
 from more_itertools import one
+from pydantic import BaseModel
+from pydantic import Field
 from pydantic import parse_obj_as
 from ramodels.mo._shared import EngagementRef
 from ramodels.mo.details.address import Address
@@ -2122,9 +2124,9 @@ async def test_query_mo_paged(dataloader: DataLoader):
     assert employee3["uuid"] in uuids
 
 
-uuid_obj1 = str(uuid4())
-uuid_obj2 = str(uuid4())
-uuid_obj3 = str(uuid4())
+uuid_obj1 = uuid4()
+uuid_obj2 = uuid4()
+uuid_obj3 = uuid4()
 
 
 @freeze_time("2022-08-10")
@@ -2262,11 +2264,20 @@ uuid_obj3 = str(uuid4())
     ],
 )
 def test_extract_latest_object(
-    dataloader: DataLoader, validities: list[dict[str, Any]], expected: str
+    dataloader: DataLoader, validities: list[dict[str, Any]], expected: UUID
 ) -> None:
-    result = dataloader.extract_current_or_latest_object(validities)
+    class Validity(BaseModel):
+        from_: datetime.datetime | None = Field(alias="from")
+        to: datetime.datetime | None
+
+    class ValidityUUID(BaseModel):
+        uuid: UUID
+        validity: Validity
+
+    obj_validities = parse_obj_as(list[ValidityUUID], validities)
+    result = dataloader.extract_current_or_latest_object(obj_validities)
     assert result is not None
-    assert result["uuid"] == expected
+    assert result.uuid == expected
 
 
 def test_extract_latest_object_empty(dataloader: DataLoader) -> None:

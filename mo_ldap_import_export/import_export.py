@@ -311,8 +311,8 @@ class SyncTool:
         # TODO: Offer a non dictionary version of this function to avoid
         #       jsonable encoding and parse right after again
         address_validities = [
-            self.dataloader.extract_current_or_latest_object(
-                jsonable_encoder(obj.validities)
+            jsonable_encoder(
+                self.dataloader.extract_current_or_latest_object(obj.validities)
             )
             for obj in result.objects
         ]
@@ -426,8 +426,8 @@ class SyncTool:
         # TODO: Offer a non dictionary version of this function to avoid
         #       jsonable encoding and parse right after again
         address_validities = [
-            self.dataloader.extract_current_or_latest_object(
-                jsonable_encoder(obj.validities)
+            jsonable_encoder(
+                self.dataloader.extract_current_or_latest_object(obj.validities)
             )
             for obj in result.objects
         ]
@@ -543,8 +543,8 @@ class SyncTool:
         # TODO: Offer a non dictionary version of this function to avoid
         #       jsonable encoding and parse right after again
         ituser_validities = [
-            self.dataloader.extract_current_or_latest_object(
-                jsonable_encoder(obj.validities)
+            jsonable_encoder(
+                self.dataloader.extract_current_or_latest_object(obj.validities)
             )
             for obj in result.objects
         ]
@@ -627,8 +627,8 @@ class SyncTool:
         # TODO: Offer a non dictionary version of this function to avoid
         #       jsonable encoding and parse right after again
         engagement_validities = [
-            self.dataloader.extract_current_or_latest_object(
-                jsonable_encoder(obj.validities)
+            jsonable_encoder(
+                self.dataloader.extract_current_or_latest_object(obj.validities)
             )
             for obj in result.objects
         ]
