@@ -12,6 +12,7 @@ from functools import wraps
 from typing import Any
 from typing import cast
 from typing import Literal
+from typing import Protocol
 from typing import TypeVar
 from uuid import UUID
 
@@ -81,9 +82,6 @@ from .utils import extract_cn_from_dn
 from .utils import extract_ou_from_dn
 from .utils import remove_cn_from_dn
 
-
-T = TypeVar("T")
-
 logger = structlog.stdlib.get_logger()
 
 
@@ -93,7 +91,25 @@ class Verb(Enum):
     TERMINATE = auto()
 
 
-# TODO: Type this properly
+class Validity(Protocol):
+    @property
+    def from_(self) -> datetime | None:  # pragma: no cover
+        ...
+
+    @property
+    def to(self) -> datetime | None:  # pragma: no cover
+        ...
+
+
+class ValidityModel(Protocol):
+    @property
+    def validity(self) -> Validity:  # pragma: no cover
+        ...
+
+
+T = TypeVar("T", bound=ValidityModel)
+
+
 def extract_current_or_latest_object(objects: list[T]) -> T | None:
     """
     Check the validity in a list of object dictionaries and return the one which
@@ -106,9 +122,8 @@ def extract_current_or_latest_object(objects: list[T]) -> T | None:
         return one(objects)
 
     def is_current(obj: T) -> bool:
-        # TODO: Remove this casting when typing is fixed
-        valid_to = cast(datetime | None, obj.validity.to)  # type: ignore
-        valid_from = cast(datetime | None, obj.validity.from_)  # type: ignore
+        valid_to = obj.validity.to
+        valid_from = obj.validity.from_
 
         # Cannot use datetime.utcnow as it is not timezone aware
         now_utc = datetime.now(timezone.utc)
@@ -136,10 +151,7 @@ def extract_current_or_latest_object(objects: list[T]) -> T | None:
     # Otherwise return the latest
     # Cannot use datetime.max directly as it is not timezone aware
     datetime_max_utc = datetime.max.replace(tzinfo=timezone.utc)
-    latest_object = max(
-        objects,
-        key=lambda obj: obj.validity.to or datetime_max_utc,  # type: ignore
-    )
+    latest_object = max(objects, key=lambda obj: obj.validity.to or datetime_max_utc)
     return latest_object
 
 
