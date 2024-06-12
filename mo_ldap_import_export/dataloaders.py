@@ -122,13 +122,10 @@ def extract_current_or_latest_object(objects: list[T]) -> T | None:
         return one(objects)
 
     def is_current(obj: T) -> bool:
-        valid_to = obj.validity.to
-        valid_from = obj.validity.from_
-
         # Cannot use datetime.utcnow as it is not timezone aware
         now_utc = datetime.now(timezone.utc)
 
-        match (valid_from, valid_to):
+        match (obj.validity.from_, obj.validity.to):
             case (None, None):
                 return True
             case (start, None):
