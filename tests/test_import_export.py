@@ -3,7 +3,11 @@
 import asyncio
 import datetime
 import time
+from collections import defaultdict
 from functools import partial
+from itertools import combinations
+from random import randint
+from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -33,6 +37,7 @@ from mo_ldap_import_export.import_export import IgnoreMe
 from mo_ldap_import_export.import_export import SyncTool
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.types import DN
+from mo_ldap_import_export.types import EmployeeUUID
 from mo_ldap_import_export.types import OrgUnitUUID
 from tests.graphql_mocker import GraphQLMocker
 
@@ -1503,3 +1508,257 @@ async def test_import_single_user_entity(sync_tool: SyncTool) -> None:
         assert result == engagement_uuid
 
         assert "No converted objects" in str(cap_logs)
+
+
+engagement_uuid1 = uuid4()
+engagement_uuid2 = uuid4()
+engagement_uuid3 = uuid4()
+
+waiting_for_primary = "Waiting for primary engagement to be decided"
+waiting_for_multiple = "Waiting for multiple primary engagements to be resolved"
+
+past = {"from": "1970-01-01T00:00:00Z", "to": "1980-01-01T00:00:00Z"}
+current = {"from": "1970-01-01T00:00:00Z", "to": None}
+future = {"from": "9970-01-01T00:00:00Z", "to": None}
+
+
+def generate_random_validity() -> dict[str, str | None]:
+    # TODO: Actually generate proper random dates?
+    # TODO: Generate None in end date?
+    start_year = randint(1000, 9999)
+    end_year = randint(start_year, 9999)
+    return {
+        "from": f"{start_year}-01-01T00:00:00Z",
+        "to": f"{end_year}-01-02T00:00:00Z",
+    }
+
+
+def construct_validity(is_primary: bool, validity: Any, uuid: UUID) -> dict[str, Any]:
+    return {"is_primary": is_primary, "uuid": uuid, "validity": validity}
+
+
+def generate_object():
+    # TODO: Replace this with hypothesis?
+    num_validities = randint(1, 5)
+    return {
+        "validities": [
+            construct_validity(False, generate_random_validity(), engagement_uuid1)
+            for _ in range(num_validities)
+        ]
+    }
+
+
+@pytest.mark.parametrize(
+    "objects,expected",
+    [
+        # No objects, no validities
+        ([], None),
+    ]
+    + [
+        # Any number of objects with any number of validities, but no primary
+        (
+            [generate_object() for _ in range(num_objects)],
+            waiting_for_primary,
+        )
+        for num_objects in range(1, 5)
+    ]
+    + [
+        # One primary, any time
+        (
+            [{"validities": [construct_validity(True, validity, engagement_uuid1)]}],
+            engagement_uuid1,
+        )
+        for validity in [past, current, future]
+    ]
+    + [
+        # Two validities, non primary and primary, any time
+        # Any combination of times should be okay here
+        (
+            [
+                {
+                    "validities": [
+                        construct_validity(False, val1, engagement_uuid1),
+                        construct_validity(True, val2, engagement_uuid1),
+                    ]
+                }
+            ],
+            engagement_uuid1,
+        )
+        for val1, val2 in combinations([past, current, future], 2)
+    ]
+    + [
+        # Two objects with one validity each, non primary and primary, any time
+        # Any combination of times should be okay here
+        (
+            [
+                {"validities": [construct_validity(False, val1, engagement_uuid1)]},
+                {"validities": [construct_validity(True, val2, engagement_uuid2)]},
+            ],
+            engagement_uuid2,
+        )
+        for val1, val2 in combinations([past, current, future], 2)
+    ]
+    + [
+        # Two validities, both primary, both current
+        (
+            [
+                {
+                    "validities": [
+                        construct_validity(True, current, engagement_uuid1),
+                        construct_validity(True, current, engagement_uuid1),
+                    ]
+                }
+            ],
+            waiting_for_multiple,
+        ),
+        # Two object with one validity each, both primary, both current
+        (
+            [
+                {
+                    "validities": [
+                        construct_validity(True, current, engagement_uuid1),
+                    ]
+                },
+                {"validities": [construct_validity(True, current, engagement_uuid1)]},
+            ],
+            waiting_for_multiple,
+        ),
+        # Two validities both primary, both past
+        # TODO: This should probably fail like the above
+        (
+            [
+                {
+                    "validities": [
+                        construct_validity(True, past, engagement_uuid1),
+                        construct_validity(True, past, engagement_uuid1),
+                    ]
+                }
+            ],
+            engagement_uuid1,
+        ),
+        # Two object with one validity each, both primary, both past
+        # TODO: This should probably fail like the above
+        # NOTE: Whichever comes first wins, is this well-defined in MO?
+        (
+            [
+                {
+                    "validities": [
+                        construct_validity(True, past, engagement_uuid1),
+                    ]
+                },
+                {"validities": [construct_validity(True, past, engagement_uuid2)]},
+            ],
+            engagement_uuid1,
+        ),
+        # Two validities both primary, both future
+        # TODO: This should probably fail like the above
+        (
+            [
+                {
+                    "validities": [
+                        construct_validity(True, future, engagement_uuid1),
+                        construct_validity(True, future, engagement_uuid1),
+                    ]
+                }
+            ],
+            engagement_uuid1,
+        ),
+        # Two object with one validity each, both primary, both future
+        # TODO: This should probably fail like the above
+        # NOTE: Whichever comes first wins, is this well-defined in MO?
+        (
+            [
+                {
+                    "validities": [
+                        construct_validity(True, future, engagement_uuid2),
+                    ]
+                },
+                {"validities": [construct_validity(True, future, engagement_uuid1)]},
+            ],
+            engagement_uuid2,
+        ),
+    ]
+    + [
+        # Two validities both primary, temporally spread
+        (
+            [
+                {
+                    "validities": [
+                        construct_validity(True, val1, engagement_uuid1),
+                        construct_validity(True, val2, engagement_uuid1),
+                    ]
+                }
+            ],
+            engagement_uuid1,
+        )
+        for val1, val2 in [(past, current), (past, future), (current, future)]
+    ]
+    + [
+        # Two object with one validity each, both primary, temporally spread
+        (
+            [
+                {"validities": [construct_validity(True, val1, engagement_uuid1)]},
+                {"validities": [construct_validity(True, val2, engagement_uuid2)]},
+            ],
+            expected,
+        )
+        for val1, val2, expected in [
+            (past, current, engagement_uuid2),
+            (past, future, engagement_uuid2),
+            (current, future, engagement_uuid1),
+        ]
+    ]
+    + [
+        # Three engagements all primary, all temporally spread
+        (
+            [
+                {
+                    "validities": [
+                        construct_validity(True, past, engagement_uuid1),
+                        construct_validity(True, current, engagement_uuid2),
+                        construct_validity(True, future, engagement_uuid3),
+                    ]
+                }
+            ],
+            engagement_uuid2,
+        ),
+        # Three objects with one validity each, all primary, all temporally spread
+        (
+            [
+                {"validities": [construct_validity(True, past, engagement_uuid1)]},
+                {
+                    "validities": [
+                        construct_validity(True, current, engagement_uuid2),
+                    ]
+                },
+                {"validities": [construct_validity(True, future, engagement_uuid3)]},
+            ],
+            engagement_uuid2,
+        ),
+    ],
+)
+async def test_get_primary_engagement(
+    graphql_mock: GraphQLMocker,
+    objects: list[dict[str, Any]],
+    expected: UUID | str | None,
+) -> None:
+    employee_uuid = EmployeeUUID(uuid4())
+
+    route = graphql_mock.query("read_engagements_is_primary")
+    route.result = {"engagements": {"objects": objects}}
+
+    context = defaultdict(AsyncMock)  # type: ignore
+    context["user_context"]["dataloader"].graphql_client = GraphQLClient(
+        "http://example.com/graphql"
+    )
+    sync_tool = SyncTool(context)  # type: ignore
+
+    if isinstance(expected, str):
+        with pytest.raises(RequeueMessage) as exc_info:
+            await sync_tool.get_primary_engagement(employee_uuid)
+        assert expected in str(exc_info.value)
+    else:
+        result = await sync_tool.get_primary_engagement(employee_uuid)
+        assert result == expected
+
+    assert route.called

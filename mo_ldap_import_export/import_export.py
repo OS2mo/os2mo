@@ -9,6 +9,10 @@ from datetime import timedelta
 from functools import wraps
 from typing import Any
 from typing import Awaitable
+from typing import Generator
+from typing import Protocol
+from typing import Sequence
+from typing import TypeVar
 from uuid import UUID
 from uuid import uuid4
 
@@ -53,6 +57,29 @@ from .utils import extract_ou_from_dn
 from .utils import get_delete_flag
 
 logger = structlog.stdlib.get_logger()
+
+
+T = TypeVar("T", covariant=True)
+
+
+class HasValidities(Protocol[T]):
+    @property
+    def validities(self) -> Sequence[T]:  # pragma: no cover
+        ...
+
+
+class HasObjects(Protocol[T]):
+    @property
+    def objects(self) -> Sequence[T]:  # pragma: no cover
+        ...
+
+
+def flatten_validities(
+    response: HasObjects[HasValidities[T]],
+) -> Generator[T, None, None]:
+    for obj in response.objects:
+        for validity in obj.validities:
+            yield validity
 
 
 class IgnoreMe:
@@ -583,6 +610,17 @@ class SyncTool:
             )
 
     async def get_primary_engagement(self, uuid: EmployeeUUID) -> UUID | None:
+        """Decide the best primary engagement for the provided user.
+
+        Args:
+            uuid: UUID of the user to find the primary engagement for.
+
+        Raises:
+            RequeueMessage: If the method wants to wait for calculate_primary to run.
+
+        Returns:
+            The UUID of an engagement if found, otherwise None.
+        """
         # TODO: Implement suppport for selecting primary engagements directly from MO
         # Get engagements from MO
         result = await self.dataloader.graphql_client.read_engagements_is_primary(
@@ -590,31 +628,68 @@ class SyncTool:
                 employee=EmployeeFilter(uuids=[uuid]), from_date=None, to_date=None
             )
         )
-        # TODO: Prefer newest primary if multiple
-        engagement_validities = [
-            extract_current_or_latest_object(obj.validities) for obj in result.objects
-        ]
-        engagements = [obj for obj in engagement_validities if obj is not None]
-        # No engagements, not even deleted ones means nothing for us to do
-        if not engagements:
+        # Flatten all validities to a list
+        validities = list(flatten_validities(result))
+        # No validities --> no primary
+        if not validities:
+            logger.info("No engagement validities found")
             return None
 
-        primary_engagement_uuids = [obj.uuid for obj in engagements if obj.is_primary]
-        logger.info(
-            "Found user engagements",
-            engagement_uuids=[obj.uuid for obj in engagements],
-            primary_engagement_uuids=primary_engagement_uuids,
-        )
+        # Remove all non-primary validities
+        # This should contain a list of non-overlapping primary engagement validities,
+        # assuming that primary calculation has run succesfully, overlaps indicate that
+        # calculate_primary has not done its job correctly.
+        # TODO: Check this invariant and throw RequeueMessage whenever it is broken?
+        primary_validities = [val for val in validities if val.is_primary]
 
-        # We expect to have exactly one primary engagement
-        primary_engagement_uuid = one(
-            primary_engagement_uuids,
-            # If we have engagements, but no primary, calculate primary needs to run
-            too_short=RequeueMessage("Waiting for primary engagement to be decided"),
-            # If we have multiple primaries, calculate primary needs to run
-            too_long=RequeueMessage(
+        # If there is validities, but none of them are primary, we need to wait for
+        # calculate_primary to determine which validities are supposed to be primary.
+        # TODO: Consider if we actually care to wait, we could just return `None` and
+        #       notify that there is no primary while waiting for another AMQP message
+        #       to come in, whenever calculate_primary has made changes.
+        #       This however requires the engagement listener to actually trigger all
+        #       code-paths that may end up calling this function.
+        #       So for now we play it safe and keep this AMQP event around by requeuing.
+        if validities and not primary_validities:
+            logger.info(
+                "Waiting for primary engagement to be decided",
+                validities=validities,
+                primary_validities=[],
+            )
+            raise RequeueMessage("Waiting for primary engagement to be decided")
+
+        try:
+            primary_engagement_validity = extract_current_or_latest_object(
+                primary_validities
+            )
+        except ValueError as e:
+            # Multiple current primary engagements found, we cannot handle this
+            # situation gracefully, so we requeue until calculate_primary resolves it.
+            # NOTE: There may in fact still be multiple primary engagements in the past
+            #       or future, but these are resolved by simply picking the latest one.
+            logger.warning(
+                "Waiting for multiple primary engagements to be resolved",
+                validities=validities,
+                primary_validities=primary_validities,
+            )
+            raise RequeueMessage(
                 "Waiting for multiple primary engagements to be resolved"
-            ),
+            ) from e
+
+        # No primary engagement identified, not even a delete/past ones
+        # This should never occur since we check for primary_validities before calling
+        # the extract_current_or_latest_object function. See the TODO for this check.
+        # TODO: If we end up removing that check, then we should probably log and
+        #       return None here instead of asserting it never happens.
+        assert primary_engagement_validity is not None
+
+        primary_engagement_uuid = primary_engagement_validity.uuid
+
+        logger.info(
+            "Found primary engagement",
+            validities=validities,
+            primary_validities=primary_validities,
+            primary_engagement_uuid=primary_engagement_uuid,
         )
         return primary_engagement_uuid
 
