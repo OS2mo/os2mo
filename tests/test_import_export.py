@@ -3,7 +3,6 @@
 import asyncio
 import datetime
 import time
-from collections import defaultdict
 from functools import partial
 from itertools import combinations
 from random import randint
@@ -33,6 +32,7 @@ from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.exceptions import DNNotFound
 from mo_ldap_import_export.exceptions import IgnoreChanges
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
+from mo_ldap_import_export.import_export import get_primary_engagement
 from mo_ldap_import_export.import_export import IgnoreMe
 from mo_ldap_import_export.import_export import SyncTool
 from mo_ldap_import_export.ldap_classes import LdapObject
@@ -1742,23 +1742,19 @@ async def test_get_primary_engagement(
     objects: list[dict[str, Any]],
     expected: UUID | str | None,
 ) -> None:
+    graphql_client = GraphQLClient("http://example.com/graphql")
+
     employee_uuid = EmployeeUUID(uuid4())
 
     route = graphql_mock.query("read_engagements_is_primary")
     route.result = {"engagements": {"objects": objects}}
 
-    context = defaultdict(AsyncMock)  # type: ignore
-    context["user_context"]["dataloader"].graphql_client = GraphQLClient(
-        "http://example.com/graphql"
-    )
-    sync_tool = SyncTool(context)  # type: ignore
-
     if isinstance(expected, str):
         with pytest.raises(RequeueMessage) as exc_info:
-            await sync_tool.get_primary_engagement(employee_uuid)
+            await get_primary_engagement(graphql_client, employee_uuid)
         assert expected in str(exc_info.value)
     else:
-        result = await sync_tool.get_primary_engagement(employee_uuid)
+        result = await get_primary_engagement(graphql_client, employee_uuid)
         assert result == expected
 
     assert route.called
