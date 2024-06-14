@@ -14,6 +14,7 @@ We also map the user GUID to OS2mo, so we are able to correlate the logged in us
 OS2mo currently supports two roles, each of which require membership of a group.
 
 * `admin` - which gives read/write permissions to everything within OS2mo.
+* `reader` - which gives read permissions to everything within OS2mo.
 * `owner` - which gives read/write permissions to everything for which your user is the owner.
 
 Each of these roles should correspond to membership of a group in AD.
@@ -78,8 +79,8 @@ As "Outgoing claim value" enter `os2mo-admin`. This is the name of the expected 
     In order for OS2mo to function properly, the value of the outgoing claim **needs** to be:
 
     * `os2mo-admin` for the admin role.
-    * `os2mo-owner` for the owner role.
     * `os2mo-reader` for the reader role.
+    * `os2mo-owner` for the owner role.
 
 Click "Finish".
 
