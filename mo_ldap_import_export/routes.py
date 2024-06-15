@@ -99,7 +99,7 @@ async def load_ldap_objects(
     output: list[LdapObject]
     output = [
         await make_ldap_object(
-            r, dataloader.context, nest=False, run_discriminator=True
+            r, dataloader.context, nest=False, run_discriminator=False
         )
         for r in responses
     ]
@@ -247,7 +247,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
         sync_tool: depends.SyncTool,
         dataloader: depends.DataLoader,
     ) -> Any:
-        dn = await dataloader.get_ldap_dn(unique_ldap_uuid, run_discriminator=True)
+        dn = await dataloader.get_ldap_dn(unique_ldap_uuid, run_discriminator=False)
         await sync_tool.import_single_user(dn, manual_import=True)
 
     # Get all objects from LDAP - Converted to MO
@@ -484,10 +484,10 @@ def construct_router(user_context: UserContext) -> APIRouter:
     async def load_object_from_ldap_by_unique_ldap_uuid(
         dataloader: depends.DataLoader, unique_ldap_uuid: UUID, nest: bool = False
     ) -> Any:
-        dn = await dataloader.get_ldap_dn(unique_ldap_uuid, run_discriminator=True)
+        dn = await dataloader.get_ldap_dn(unique_ldap_uuid, run_discriminator=False)
         return encode_result(
             await dataloader.load_ldap_object(
-                dn, ["*"], nest=nest, run_discriminator=True
+                dn, ["*"], nest=nest, run_discriminator=False
             )
         )
 
@@ -498,7 +498,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
     ) -> Any:
         return encode_result(
             await dataloader.load_ldap_object(
-                dn, ["*"], nest=nest, run_discriminator=True
+                dn, ["*"], nest=nest, run_discriminator=False
             )
         )
 
