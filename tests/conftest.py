@@ -213,7 +213,6 @@ def dataloader(
     dataloader.load_ldap_attribute_values = AsyncMock()
     dataloader.modify_ldap_object.return_value = [{"description": "success"}]
     dataloader.get_ldap_objectGUID = sync_dataloader
-    dataloader.find_dn_by_engagement_uuid.return_value = "CN=foo"
 
     dataloader.load_ldap_OUs = AsyncMock()
     dataloader.move_ldap_object = AsyncMock()
