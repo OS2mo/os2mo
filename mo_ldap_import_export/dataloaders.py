@@ -968,7 +968,7 @@ class DataLoader:
         unique_uuids = self.extract_unique_ldap_uuids(it_users)
         # TODO: DataLoader / bulk here instead of this
         dns = await asyncio.gather(
-            *[self.get_ldap_dn(uuid, run_discriminator=True) for uuid in unique_uuids]
+            *[self.get_ldap_dn(uuid, run_discriminator=False) for uuid in unique_uuids]
         )
         return set(dns)
 
