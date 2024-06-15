@@ -1627,77 +1627,134 @@ async def test_get_ldap_it_system_uuid(dataloader: DataLoader, converter: MagicM
     assert dataloader.get_ldap_it_system_uuid() is None
 
 
-async def test_find_or_make_mo_employee_dn(
-    dataloader: DataLoader, username_generator: MagicMock
-):
-    uuid_1 = uuid4()
-    uuid_2 = uuid4()
+async def test_find_mo_employee_dn(dataloader: MagicMock) -> None:
+    employee_uuid = uuid4()
 
-    it_system_uuid = uuid4()
-    dataloader.get_ldap_it_system_uuid = MagicMock()  # type: ignore
-    dataloader.load_mo_employee_it_users = AsyncMock()  # type: ignore
-    dataloader.load_mo_employee = AsyncMock()  # type: ignore
-    dataloader.load_ldap_cpr_object = AsyncMock()  # type: ignore
-    dataloader.create = AsyncMock()  # type: ignore
-    dataloader.extract_unique_dns = AsyncMock()  # type: ignore
-    dataloader.get_ldap_unique_ldap_uuid = AsyncMock()  # type: ignore
+    dataloader.find_mo_employee_dn_by_itsystem = AsyncMock()
+    dataloader.find_mo_employee_dn_by_itsystem.return_value = set()
 
-    # Case where there is an IT-system that contains the DN
-    dataloader.load_mo_employee.return_value = Employee(cpr_no=None)
-    dataloader.load_mo_employee_it_users.return_value = []
-    dataloader.get_ldap_it_system_uuid.return_value = str(it_system_uuid)
-    dataloader.extract_unique_dns.return_value = {
-        "CN=foo,DC=bar",
-    }
-    dns = await dataloader.find_or_make_mo_employee_dn(uuid4())
-    assert one(dns) == "CN=foo,DC=bar"
+    dataloader.find_mo_employee_dn_by_cpr_number = AsyncMock()
+    dataloader.find_mo_employee_dn_by_cpr_number.return_value = set()
 
-    # Same as above, but the it-system contains an invalid value
-    dataloader.extract_unique_dns.return_value = set()
-    username_generator.generate_dn.return_value = "CN=generated_dn_1,DC=DN"
-    dataloader.get_ldap_unique_ldap_uuid.return_value = uuid_1
-    dns = await dataloader.find_or_make_mo_employee_dn(uuid4())
-    uploaded_uuid = dataloader.create.await_args_list[0].args[0][0].user_key
-    assert one(dns) == "CN=generated_dn_1,DC=DN"
-    assert uploaded_uuid == str(uuid_1)
-    dataloader.create.reset_mock()
-
-    # Same as above, but there are multiple IT-users
-    dataloader.extract_unique_dns.return_value = {"CN=foo,DC=bar", "CN=foo2,DC=bar"}
-    dns = await dataloader.find_or_make_mo_employee_dn(uuid4())
-    assert dns == {"CN=foo,DC=bar", "CN=foo2,DC=bar"}
-
-    # Case where there is no IT-system that contains the DN, but the cpr lookup succeeds
-    dataloader.load_mo_employee.return_value = Employee(cpr_no="0101911234")
-    dataloader.extract_unique_dns.return_value = set()
-    dataloader.load_ldap_cpr_object.return_value = [
-        LdapObject(dn="CN=dn_already_in_ldap,DC=foo")
+    with capture_logs() as cap_logs:
+        result = await dataloader.find_mo_employee_dn(employee_uuid)
+        assert result == set()
+    log_events = [log["event"] for log in cap_logs]
+    assert log_events == [
+        "Attempting to find DNs",
+        "Unable to find DNs for MO employee",
     ]
-    dns = await dataloader.find_or_make_mo_employee_dn(uuid4())
-    assert one(dns) == "CN=dn_already_in_ldap,DC=foo"
 
-    # Same as above, but the cpr-lookup does not succeed
-    dataloader.load_ldap_cpr_object.return_value = []
-    username_generator.generate_dn.return_value = "CN=generated_dn_2,DC=DN"
-    dataloader.get_ldap_unique_ldap_uuid.return_value = uuid_2
-    dns = await dataloader.find_or_make_mo_employee_dn(uuid4())
-    uploaded_uuid = dataloader.create.await_args_list[0].args[0][0].user_key
-    assert one(dns) == "CN=generated_dn_2,DC=DN"
-    assert uploaded_uuid == str(uuid_2)
-    dataloader.create.reset_mock()
+    dataloader.find_mo_employee_dn_by_itsystem.return_value = {"A", "B"}
+    dataloader.find_mo_employee_dn_by_cpr_number.return_value = {"C", "D"}
 
-    # Same as above, but an it-system does not exist
+    with capture_logs() as cap_logs:
+        result = await dataloader.find_mo_employee_dn(employee_uuid)
+        assert result == {"A", "B", "C", "D"}
+    log_events = [log["event"] for log in cap_logs]
+    assert log_events == ["Attempting to find DNs"]
+
+
+async def test_make_mo_employee_dn_no_correlation(dataloader: MagicMock) -> None:
+    employee_uuid = uuid4()
+
+    employee_object = MagicMock()
+    employee_object.cpr_no = None
+    employee_object.uuid = employee_uuid
+
+    dataloader.load_mo_employee = AsyncMock()
+    dataloader.load_mo_employee.return_value = employee_object
+
+    dataloader.get_ldap_it_system_uuid = MagicMock()
     dataloader.get_ldap_it_system_uuid.return_value = None
-    username_generator.generate_dn.return_value = "CN=generated_dn_3,DC=DN"
-    dns = await dataloader.find_or_make_mo_employee_dn(uuid4())
-    assert one(dns) == "CN=generated_dn_3,DC=DN"
-    dataloader.create.assert_not_awaited()
-    dataloader.create.reset_mock()
 
-    # Same as above, but the user also has no cpr number
-    dataloader.load_mo_employee.return_value = Employee(cpr_no=None)
-    with pytest.raises(DNNotFound):
-        await dataloader.find_or_make_mo_employee_dn(uuid4())
+    with pytest.raises(DNNotFound) as exc_info:
+        await dataloader.make_mo_employee_dn(employee_uuid)
+    assert "Unable to generate DN, no correlation key available" in str(exc_info.value)
+
+
+async def test_make_mo_employee_dn_no_itsystem(dataloader: MagicMock) -> None:
+    employee_uuid = uuid4()
+
+    employee_object = MagicMock()
+    employee_object.cpr_no = "0101700000"
+    employee_object.uuid = employee_uuid
+
+    dataloader.load_mo_employee = AsyncMock()
+    dataloader.load_mo_employee.return_value = employee_object
+
+    dataloader.get_ldap_it_system_uuid = MagicMock()
+    dataloader.get_ldap_it_system_uuid.return_value = None
+
+    dn = "CN=foo"
+    username_generator = AsyncMock()
+    username_generator.generate_dn.return_value = dn
+
+    dataloader.user_context["username_generator"] = username_generator
+
+    amqp_exchange_name = "amqp_exchange_name"
+    dataloader.sync_tool.amqpsystem.exchange_name = amqp_exchange_name
+
+    with capture_logs() as cap_logs:
+        result = await dataloader.make_mo_employee_dn(employee_uuid)
+        assert result == dn
+    log_events = [log["event"] for log in cap_logs]
+    assert log_events == ["Generating DN for user"]
+
+    dataloader.sync_tool.import_single_user.assert_called_once_with(
+        dn, force=True, manual_import=True
+    )
+    dataloader.graphql_client.employee_refresh.assert_called_once_with(
+        amqp_exchange_name, [employee_uuid]
+    )
+
+
+async def test_make_mo_employee_dn_no_cpr(dataloader: MagicMock) -> None:
+    employee_uuid = uuid4()
+
+    employee_object = MagicMock()
+    employee_object.cpr_no = None
+    employee_object.uuid = employee_uuid
+
+    dataloader.load_mo_employee = AsyncMock()
+    dataloader.load_mo_employee.return_value = employee_object
+
+    itsystem_uuid = uuid4()
+    dataloader.get_ldap_it_system_uuid = MagicMock()
+    dataloader.get_ldap_it_system_uuid.return_value = str(itsystem_uuid)
+
+    dn = "CN=foo"
+    username_generator = AsyncMock()
+    username_generator.generate_dn.return_value = dn
+
+    dataloader.user_context["username_generator"] = username_generator
+
+    ldap_uuid = uuid4()
+    dataloader.get_ldap_unique_ldap_uuid = AsyncMock()
+    dataloader.get_ldap_unique_ldap_uuid.return_value = ldap_uuid
+
+    amqp_exchange_name = "amqp_exchange_name"
+    dataloader.sync_tool.amqpsystem.exchange_name = amqp_exchange_name
+
+    dataloader.create = AsyncMock()
+
+    with capture_logs() as cap_logs:
+        result = await dataloader.make_mo_employee_dn(employee_uuid)
+        assert result == dn
+    log_events = [log["event"] for log in cap_logs]
+    assert log_events == [
+        "Generating DN for user",
+        "No ITUser found, creating one to correlate with DN",
+        "LDAP UUID found for DN",
+    ]
+
+    dataloader.create.assert_called_once()
+    dataloader.sync_tool.import_single_user.assert_called_once_with(
+        dn, force=True, manual_import=True
+    )
+    dataloader.graphql_client.employee_refresh.assert_called_once_with(
+        amqp_exchange_name, [employee_uuid]
+    )
 
 
 def test_extract_unique_objectGUIDs(dataloader: DataLoader):

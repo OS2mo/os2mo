@@ -1068,31 +1068,6 @@ class DataLoader:
         )
         return set()
 
-    async def find_or_make_mo_employee_dn(self, uuid: UUID) -> set[DN]:
-        """Finds or creates an LDAP DNs beloning to a MO employee.
-
-        Note:
-            If a DN(s) is found, one will not be created.
-            If a DN(s) is not found, one will be created.
-
-        Args:
-            uuid: UUID of the employee to try to find DNs for.
-
-        Raises:
-            DNNotFound: If no DN(s) was found, and we cannot create one.
-
-        Returns:
-            A potentially empty set of DNs.
-        """
-        logger.info(
-            "Attempting to find DN",
-            employee_uuid=uuid,
-        )
-        dns = await self.find_mo_employee_dn(uuid)
-        if dns:
-            return dns
-        return {await self.make_mo_employee_dn(uuid)}
-
     async def make_mo_employee_dn(self, uuid: UUID) -> DN:
         raw_it_system_uuid = self.get_ldap_it_system_uuid()
         employee = await self.load_mo_employee(uuid)
