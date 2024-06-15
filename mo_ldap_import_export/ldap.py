@@ -3,7 +3,6 @@
 """LDAP Connection handling."""
 import asyncio
 import signal
-import warnings
 from collections import ChainMap
 from contextlib import suppress
 from datetime import datetime
@@ -418,52 +417,6 @@ async def first_included(context: Context, dns: set[DN]) -> DN | None:
         if dns_with_value:
             return one(dns_with_value)
     return None
-
-
-def apply_discriminator(
-    search_result: list[dict[str, Any]], settings: Settings
-) -> list[dict[str, Any]]:
-    """Apply our discriminator to remove unwanted search result.
-
-    Args:
-        search_result: A list of LDAP search results.
-        settings: The application settings.
-
-    Returns:
-        A filtered list of LDAP search results.
-    """
-    dns = [x["dn"] for x in search_result]
-    logger.warning("apply_discriminator called", dns=dns)
-    warnings.warn("apply_discriminator called", DeprecationWarning)
-
-    discriminator_field = settings.discriminator_field
-    discriminator_values = settings.discriminator_values
-    match settings.discriminator_function:
-        case None:
-            return search_result
-
-        case "include":
-
-            def discriminator(res: Any) -> bool:
-                attributes = res["attributes"]
-                return (
-                    discriminator_field in attributes
-                    and str(attributes[discriminator_field]) in discriminator_values
-                )
-
-        case "exclude":
-
-            def discriminator(res: Any) -> bool:
-                attributes = res["attributes"]
-                return (
-                    discriminator_field not in attributes
-                    or str(attributes[discriminator_field]) not in discriminator_values
-                )
-
-        case _:  # pragma: no cover
-            assert False
-
-    return list(filter(discriminator, search_result))
 
 
 def ldapresponse2entries(ldap_response: list[dict[str, Any]]) -> list[dict[str, Any]]:
