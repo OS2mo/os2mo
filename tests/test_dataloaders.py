@@ -2772,3 +2772,75 @@ async def test_find_mo_employee_dn_by_cpr_number(
 
     if dns is not None:
         dataloader.load_ldap_cpr_object.assert_called_once_with(cpr_number, "Employee")
+
+
+async def test_find_mo_employee_dn_by_itsystem_no_itsystem(
+    dataloader: DataLoader,
+) -> None:
+    employee_uuid = uuid4()
+
+    dataloader.get_ldap_it_system_uuid = MagicMock()  # type: ignore
+    dataloader.get_ldap_it_system_uuid.return_value = None
+
+    result = await dataloader.find_mo_employee_dn_by_itsystem(employee_uuid)
+    assert result == set()
+
+
+async def test_find_mo_employee_dn_by_itsystem_no_match(
+    dataloader: DataLoader,
+    graphql_mock: GraphQLMocker,
+) -> None:
+    employee_uuid = uuid4()
+    itsystem_uuid = uuid4()
+
+    dataloader.get_ldap_it_system_uuid = MagicMock()  # type: ignore
+    dataloader.get_ldap_it_system_uuid.return_value = str(itsystem_uuid)
+
+    route1 = graphql_mock.query("read_ituser_by_employee_and_itsystem_uuid")
+    route1.result = {"itusers": {"objects": []}}
+
+    result = await dataloader.find_mo_employee_dn_by_itsystem(employee_uuid)
+    assert result == set()
+
+
+async def test_find_mo_employee_dn_by_itsystem(
+    dataloader: DataLoader,
+    graphql_mock: GraphQLMocker,
+) -> None:
+    employee_uuid = uuid4()
+    itsystem_uuid = uuid4()
+    ituser_uuid = uuid4()
+
+    dataloader.get_ldap_it_system_uuid = MagicMock()  # type: ignore
+    dataloader.get_ldap_it_system_uuid.return_value = str(itsystem_uuid)
+
+    route1 = graphql_mock.query("read_ituser_by_employee_and_itsystem_uuid")
+    route1.result = {"itusers": {"objects": [{"uuid": ituser_uuid}]}}
+
+    route2 = graphql_mock.query("read_itusers")
+    route2.result = {
+        "itusers": {
+            "objects": [
+                {
+                    "validities": [
+                        {
+                            "user_key": ituser_uuid,
+                            "validity": {"from": "1970-01-01T00:00:00Z"},
+                            "employee_uuid": employee_uuid,
+                            "itsystem_uuid": itsystem_uuid,
+                            "engagement_uuid": None,
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+
+    dn = "CN=foo"
+    dataloader.get_ldap_dn = AsyncMock()  # type: ignore
+    dataloader.get_ldap_dn.return_value = dn
+
+    result = await dataloader.find_mo_employee_dn_by_itsystem(employee_uuid)
+    assert result == {dn}
+
+    dataloader.get_ldap_dn.assert_called_once_with(ituser_uuid)
