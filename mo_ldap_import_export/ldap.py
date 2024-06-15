@@ -718,11 +718,13 @@ async def get_ldap_object(
     )
     dn = search_result["dn"]
     logger.info("Found DN", dn=dn)
-    return await make_ldap_object(search_result, context, nest=nest)
+    return await make_ldap_object(
+        search_result, context, nest=nest, run_discriminator=run_discriminator
+    )
 
 
 async def make_ldap_object(
-    response: dict, context: Context, nest: bool = True
+    response: dict, context: Context, nest: bool = True, run_discriminator: bool = True
 ) -> LdapObject:
     """Takes an LDAP response and formats it as an LdapObject.
 
@@ -744,7 +746,9 @@ async def make_ldap_object(
 
         if nest:
             logger.info("Loading nested ldap object", dn=dn)
-            return await get_ldap_object(dn, context, nest=False)
+            return await get_ldap_object(
+                dn, context, nest=False, run_discriminator=run_discriminator
+            )
         raise Exception("Already running in nested loop")  # pragma: no cover
 
     def is_other_dn(value):

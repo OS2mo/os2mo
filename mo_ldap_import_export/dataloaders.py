@@ -353,7 +353,7 @@ class DataLoader:
         search_results = await object_search(searchParameters, ldap_connection)
         # TODO: Asyncio gather this
         ldap_objects: list[LdapObject] = [
-            await make_ldap_object(search_result, self.context)
+            await make_ldap_object(search_result, self.context, run_discriminator=True)
             for search_result in search_results
         ]
         dns = [obj.dn for obj in ldap_objects]
@@ -913,7 +913,9 @@ class DataLoader:
             )
             return None
 
-    async def get_ldap_dn(self, unique_ldap_uuid: UUID) -> DN:
+    async def get_ldap_dn(
+        self, unique_ldap_uuid: UUID, run_discriminator: bool = True
+    ) -> DN:
         """
         Given an unique_ldap_uuid, find the DistinguishedName
         """
@@ -925,7 +927,9 @@ class DataLoader:
             "search_scope": BASE,
         }
 
-        search_result = await single_object_search(searchParameters, self.context)
+        search_result = await single_object_search(
+            searchParameters, self.context, run_discriminator=run_discriminator
+        )
         dn: str = search_result["dn"]
         return dn
 
@@ -935,7 +939,9 @@ class DataLoader:
         """
         settings = self.user_context["settings"]
         logger.info("Looking for LDAP object", dn=dn)
-        ldap_object = await self.load_ldap_object(dn, [settings.ldap_unique_id_field])
+        ldap_object = await self.load_ldap_object(
+            dn, [settings.ldap_unique_id_field], run_discriminator=True
+        )
         uuid = getattr(ldap_object, settings.ldap_unique_id_field)
         if not uuid:
             # Some computer-account objects has no samaccountname
@@ -961,7 +967,9 @@ class DataLoader:
     async def extract_unique_dns(self, it_users: list[ITUser]) -> set[DN]:
         unique_uuids = self.extract_unique_ldap_uuids(it_users)
         # TODO: DataLoader / bulk here instead of this
-        dns = await asyncio.gather(*[self.get_ldap_dn(uuid) for uuid in unique_uuids])
+        dns = await asyncio.gather(
+            *[self.get_ldap_dn(uuid, run_discriminator=True) for uuid in unique_uuids]
+        )
         return set(dns)
 
     async def find_mo_employee_dn_by_itsystem(self, uuid: UUID) -> set[DN]:
