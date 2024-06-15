@@ -1020,12 +1020,11 @@ class DataLoader:
             "Attempting CPR number lookup",
             employee_uuid=uuid,
         )
-        try:
+        dns = set()
+        with suppress(NoObjectsReturnedException):
             dns = {
                 obj.dn for obj in await self.load_ldap_cpr_object(cpr_no, "Employee")
             }
-        except NoObjectsReturnedException:
-            return set()
         if not dns:
             return set()
         logger.info(

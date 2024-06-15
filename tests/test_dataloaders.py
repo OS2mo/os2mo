@@ -2729,11 +2729,27 @@ async def test_terminate_fix_verb(dataloader: DataLoader) -> None:
     dataloader.graphql_client.address_terminate.assert_called_once()  # type: ignore
 
 
+@pytest.mark.parametrize(
+    "cpr_number,dns,expected",
+    [
+        # No CPR number -> no DNs
+        (None, None, set()),
+        # CPR number, but no accounts -> no DNs
+        ("0101700000", [], set()),
+        # CPR number and one account -> one DN
+        ("0101700000", ["CN=foo"], {"CN=foo"}),
+        # CPR number and two accounts -> two DN
+        ("0101700000", ["CN=foo", "CN=bar"], {"CN=foo", "CN=bar"}),
+    ],
+)
 async def test_find_mo_employee_dn_by_cpr_number(
-    dataloader: DataLoader, graphql_mock: GraphQLMocker
+    dataloader: DataLoader,
+    graphql_mock: GraphQLMocker,
+    cpr_number: str | None,
+    dns: list[str] | None,
+    expected: set[str] | str,
 ) -> None:
     employee_uuid = uuid4()
-    cpr_number = "1407711900"
     employee = {
         "uuid": employee_uuid,
         "cpr_no": cpr_number,
@@ -2747,9 +2763,12 @@ async def test_find_mo_employee_dn_by_cpr_number(
     route.result = {"employees": {"objects": [{"validities": [employee]}]}}
 
     dataloader.load_ldap_cpr_object = AsyncMock()  # type: ignore
-    dataloader.load_ldap_cpr_object.side_effect = NoObjectsReturnedException("BOOM")
+    dataloader.load_ldap_cpr_object.return_value = [
+        parse_obj_as(LdapObject, {"dn": dn}) for dn in (dns or [])
+    ]
 
     result = await dataloader.find_mo_employee_dn_by_cpr_number(employee_uuid)
-    assert result == set()
+    assert result == expected
 
-    dataloader.load_ldap_cpr_object.assert_called_once_with(cpr_number, "Employee")
+    if dns is not None:
+        dataloader.load_ldap_cpr_object.assert_called_once_with(cpr_number, "Employee")
