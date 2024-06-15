@@ -351,10 +351,7 @@ async def first_included(context: Context, dns: set[DN]) -> DN | None:
         #       currently async, but rather blocks the entire event-loop all the time.
         #       #59422 tracks this issue, and once resolved this code can be fixed.
         ldap_objects = [
-            await get_ldap_object(
-                dn, context, attributes=attributes, run_discriminator=False
-            )
-            for dn in dns
+            await get_ldap_object(dn, context, attributes=attributes) for dn in dns
         ]
     except NoObjectsReturnedException as exc:
         # There could be multiple reasons why our DNs cannot be read.
@@ -691,7 +688,6 @@ async def get_ldap_object(
     context: Context,
     nest: bool = True,
     attributes: list | None = None,
-    run_discriminator: bool = True,
 ) -> LdapObject:
     """Gets a ldap object based on its DN.
 
@@ -714,17 +710,15 @@ async def get_ldap_object(
         "search_scope": BASE,
     }
     search_result = await single_object_search(
-        searchParameters, context, run_discriminator=run_discriminator
+        searchParameters, context, run_discriminator=False
     )
     dn = search_result["dn"]
     logger.info("Found DN", dn=dn)
-    return await make_ldap_object(
-        search_result, context, nest=nest, run_discriminator=run_discriminator
-    )
+    return await make_ldap_object(search_result, context, nest=nest)
 
 
 async def make_ldap_object(
-    response: dict, context: Context, nest: bool = True, run_discriminator: bool = True
+    response: dict, context: Context, nest: bool = True
 ) -> LdapObject:
     """Takes an LDAP response and formats it as an LdapObject.
 
@@ -746,9 +740,7 @@ async def make_ldap_object(
 
         if nest:
             logger.info("Loading nested ldap object", dn=dn)
-            return await get_ldap_object(
-                dn, context, nest=False, run_discriminator=run_discriminator
-            )
+            return await get_ldap_object(dn, context, nest=False)
         raise Exception("Already running in nested loop")  # pragma: no cover
 
     def is_other_dn(value):

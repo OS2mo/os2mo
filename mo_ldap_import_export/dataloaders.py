@@ -302,9 +302,7 @@ class DataLoader:
     ) -> LdapObject:  # pragma: no cover
         # TODO: Actually eliminate this function by calling get_ldap_object directly.
         #       Be warned though, doing so breaks ~25 tests because of bad mocking.
-        return await get_ldap_object(
-            dn, self.context, nest, attributes, run_discriminator=False
-        )
+        return await get_ldap_object(dn, self.context, nest, attributes)
 
     async def load_ldap_cpr_object(
         self,
@@ -352,7 +350,7 @@ class DataLoader:
         search_results = await object_search(searchParameters, ldap_connection)
         # TODO: Asyncio gather this
         ldap_objects: list[LdapObject] = [
-            await make_ldap_object(search_result, self.context, run_discriminator=False)
+            await make_ldap_object(search_result, self.context)
             for search_result in search_results
         ]
         dns = [obj.dn for obj in ldap_objects]
