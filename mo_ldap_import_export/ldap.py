@@ -624,7 +624,7 @@ async def object_search(
 
 
 async def single_object_search(
-    searchParameters: dict[str, Any], context: Context, run_discriminator: bool = True
+    searchParameters: dict[str, Any], context: Context
 ) -> dict[str, Any]:
     """Performs an LDAP search and ensure that it returns one result.
 
@@ -651,11 +651,6 @@ async def single_object_search(
     """
     ldap_connection = context["user_context"]["ldap_connection"]
     search_entries = await object_search(searchParameters, ldap_connection)
-
-    settings = context["user_context"]["settings"]
-    # TODO: Do we actually wanna apply discriminator here?
-    if run_discriminator:
-        search_entries = apply_discriminator(search_entries, settings)
 
     too_long_exception = MultipleObjectsReturnedException(
         hide_cpr(f"Found multiple entries for {searchParameters}: {search_entries}")
@@ -709,9 +704,7 @@ async def get_ldap_object(
         "attributes": attributes,
         "search_scope": BASE,
     }
-    search_result = await single_object_search(
-        searchParameters, context, run_discriminator=False
-    )
+    search_result = await single_object_search(searchParameters, context)
     dn = search_result["dn"]
     logger.info("Found DN", dn=dn)
     return await make_ldap_object(search_result, context, nest=nest)
