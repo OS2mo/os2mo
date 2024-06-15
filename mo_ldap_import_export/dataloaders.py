@@ -913,9 +913,7 @@ class DataLoader:
             )
             return None
 
-    async def get_ldap_dn(
-        self, unique_ldap_uuid: UUID, run_discriminator: bool = True
-    ) -> DN:
+    async def get_ldap_dn(self, unique_ldap_uuid: UUID) -> DN:
         """
         Given an unique_ldap_uuid, find the DistinguishedName
         """
@@ -928,7 +926,7 @@ class DataLoader:
         }
 
         search_result = await single_object_search(
-            searchParameters, self.context, run_discriminator=run_discriminator
+            searchParameters, self.context, run_discriminator=False
         )
         dn: str = search_result["dn"]
         return dn
@@ -967,9 +965,7 @@ class DataLoader:
     async def extract_unique_dns(self, it_users: list[ITUser]) -> set[DN]:
         unique_uuids = self.extract_unique_ldap_uuids(it_users)
         # TODO: DataLoader / bulk here instead of this
-        dns = await asyncio.gather(
-            *[self.get_ldap_dn(uuid, run_discriminator=False) for uuid in unique_uuids]
-        )
+        dns = await asyncio.gather(*[self.get_ldap_dn(uuid) for uuid in unique_uuids])
         return set(dns)
 
     async def find_mo_employee_dn_by_itsystem(self, uuid: UUID) -> set[DN]:
