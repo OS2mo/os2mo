@@ -485,22 +485,14 @@ def construct_router(user_context: UserContext) -> APIRouter:
         dataloader: depends.DataLoader, unique_ldap_uuid: UUID, nest: bool = False
     ) -> Any:
         dn = await dataloader.get_ldap_dn(unique_ldap_uuid)
-        return encode_result(
-            await dataloader.load_ldap_object(
-                dn, ["*"], nest=nest, run_discriminator=False
-            )
-        )
+        return encode_result(await dataloader.load_ldap_object(dn, ["*"], nest=nest))
 
     # Get LDAP object by DN
     @router.get("/Inspect/object/dn", status_code=202, tags=["LDAP"])
     async def load_object_from_ldap_by_dn(
         dataloader: depends.DataLoader, dn: str, nest: bool = False
     ) -> Any:
-        return encode_result(
-            await dataloader.load_ldap_object(
-                dn, ["*"], nest=nest, run_discriminator=False
-            )
-        )
+        return encode_result(await dataloader.load_ldap_object(dn, ["*"], nest=nest))
 
     # Get LDAP unique_ldap_uuid
     @router.get("/unique_ldap_uuid/{dn}", status_code=202, tags=["LDAP"])
