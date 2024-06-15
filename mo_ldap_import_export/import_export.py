@@ -1130,7 +1130,7 @@ class SyncTool:
         loaded_object = await self.dataloader.load_ldap_object(
             dn,
             self.converter.get_ldap_attributes(json_key),
-            run_discriminator=True,
+            run_discriminator=False,
         )
         logger.info(
             "Loaded object",
