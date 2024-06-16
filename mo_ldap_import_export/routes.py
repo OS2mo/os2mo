@@ -240,12 +240,12 @@ def construct_router(user_context: UserContext) -> APIRouter:
     # Load a single user from LDAP, and import him/her/hir into MO
     @router.get("/Import/{unique_ldap_uuid}", status_code=202, tags=["Import"])
     async def import_single_user_from_LDAP(
+        ldap_amqpsystem: depends.LDAPAMQPSystem,
         unique_ldap_uuid: UUID,
-        sync_tool: depends.SyncTool,
         dataloader: depends.DataLoader,
     ) -> Any:
         dn = await dataloader.get_ldap_dn(unique_ldap_uuid)
-        await sync_tool.import_single_user(dn, manual_import=True)
+        await ldap_amqpsystem.publish_message("dn", dn)
 
     # Get all objects from LDAP - Converted to MO
     @router.get("/LDAP/{json_key}/converted", status_code=202, tags=["LDAP"])
