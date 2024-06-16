@@ -38,7 +38,9 @@ class NotSupportedException(HTTPException):
         super().__init__(status_code=501, detail=message)
 
 
-class NotEnabledException(HTTPException):
+class ReadOnlyException(HTTPException):
+    """Raised when the integration would write if not in read-only mode."""
+
     def __init__(self, message):
         super().__init__(status_code=501, detail=message)
 
