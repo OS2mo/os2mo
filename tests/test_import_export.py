@@ -157,9 +157,6 @@ async def test_listen_to_changes_in_employees_org_unit_address(
     address_type_user_key = "LocationUnit"
 
     dataloader.find_mo_employee_dn.return_value = {"CN=foo"}
-    dataloader.extract_current_or_latest_object = (
-        DataLoader.extract_current_or_latest_object
-    )
 
     # Simulate a created address
 
@@ -286,9 +283,6 @@ async def test_listen_to_changes_in_employees_address(
     address_type_user_key = "EmailEmployee"
 
     dataloader.find_mo_employee_dn.return_value = {"CN=foo"}
-    dataloader.extract_current_or_latest_object = (
-        DataLoader.extract_current_or_latest_object
-    )
 
     # Simulate a created address
 
@@ -384,9 +378,6 @@ async def test_listen_to_changes_in_employees_ituser(
     it_system_type_name = "AD"
 
     dataloader.find_mo_employee_dn.return_value = {"CN=foo"}
-    dataloader.extract_current_or_latest_object = (
-        DataLoader.extract_current_or_latest_object
-    )
 
     # Simulate a created IT user
 
@@ -481,9 +472,6 @@ async def test_listen_to_changes_in_employees_engagement(
     engagement_uuid = uuid4()
 
     dataloader.find_mo_employee_dn.return_value = {"CN=foo"}
-    dataloader.extract_current_or_latest_object = (
-        DataLoader.extract_current_or_latest_object
-    )
     dataloader.load_mo_engagement = partial(  # partial to seed 'self'
         DataLoader.load_mo_engagement, dataloader
     )

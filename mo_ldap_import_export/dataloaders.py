@@ -4,6 +4,7 @@
 import asyncio
 from contextlib import suppress
 from datetime import datetime
+from datetime import timezone
 from enum import auto
 from enum import Enum
 from functools import partialmethod
@@ -11,6 +12,8 @@ from functools import wraps
 from typing import Any
 from typing import cast
 from typing import Literal
+from typing import Protocol
+from typing import TypeVar
 from uuid import UUID
 
 import structlog
@@ -77,7 +80,6 @@ from .usernames import UserNameGenerator
 from .utils import combine_dn_strings
 from .utils import extract_cn_from_dn
 from .utils import extract_ou_from_dn
-from .utils import mo_datestring_to_utc
 from .utils import remove_cn_from_dn
 
 logger = structlog.stdlib.get_logger()
@@ -87,6 +89,67 @@ class Verb(Enum):
     CREATE = auto()
     EDIT = auto()
     TERMINATE = auto()
+
+
+class Validity(Protocol):
+    @property
+    def from_(self) -> datetime | None:  # pragma: no cover
+        ...
+
+    @property
+    def to(self) -> datetime | None:  # pragma: no cover
+        ...
+
+
+class ValidityModel(Protocol):
+    @property
+    def validity(self) -> Validity:  # pragma: no cover
+        ...
+
+
+T = TypeVar("T", bound=ValidityModel)
+
+
+def extract_current_or_latest_object(objects: list[T]) -> T | None:
+    """
+    Check the validity in a list of object dictionaries and return the one which
+    is either valid today, or has the latest end-date
+    """
+    if len(objects) == 0:
+        # TODO: Simply return None instead?
+        raise NoObjectsReturnedException("Objects is empty")
+    if len(objects) == 1:
+        return one(objects)
+
+    def is_current(obj: T) -> bool:
+        # Cannot use datetime.utcnow as it is not timezone aware
+        now_utc = datetime.now(timezone.utc)
+
+        match (obj.validity.from_, obj.validity.to):
+            case (None, None):
+                return True
+            case (start, None):
+                assert start is not None
+                return start < now_utc
+            case (None, end):
+                assert end is not None
+                return now_utc < end
+            case (start, end):
+                assert start is not None
+                assert end is not None
+                return start < now_utc and now_utc < end
+            case _:  # pragma: no cover
+                assert False
+
+    # If any of the objects is valid today, return it
+    current_object = only(filter(is_current, objects))
+    if current_object:
+        return current_object
+    # Otherwise return the latest
+    # Cannot use datetime.max directly as it is not timezone aware
+    datetime_max_utc = datetime.max.replace(tzinfo=timezone.utc)
+    latest_object = max(objects, key=lambda obj: obj.validity.to or datetime_max_utc)
+    return latest_object
 
 
 class DataLoader:
@@ -1162,52 +1225,6 @@ class DataLoader:
         assert dn in dns
         return dn
 
-    @staticmethod
-    def extract_current_or_latest_object(objects: list[dict]):
-        """
-        Check the validity in a list of object dictionaries and return the one which
-        is either valid today, or has the latest end-date
-        """
-        if len(objects) == 0:
-            raise NoObjectsReturnedException("Objects is empty")
-        if len(objects) == 1:
-            return one(objects)
-
-        def is_current(obj: dict) -> bool:
-            valid_to = mo_datestring_to_utc(obj["validity"]["to"])
-            valid_from = mo_datestring_to_utc(obj["validity"]["from"])
-
-            now_utc = datetime.utcnow()
-
-            match (valid_from, valid_to):
-                case (None, None):
-                    return True
-                case (start, None):
-                    assert start is not None
-                    return start < now_utc
-                case (None, end):
-                    assert end is not None
-                    return now_utc < end
-                case (start, end):
-                    assert start is not None
-                    assert end is not None
-                    return start < now_utc and now_utc < end
-                case _:  # pragma: no cover
-                    assert False
-
-        # If any of the objects is valid today, return it
-        current_object = only(filter(is_current, objects))
-        if current_object:
-            return current_object
-        # Otherwise return the latest
-        latest_object = max(
-            objects,
-            key=lambda obj: (
-                mo_datestring_to_utc(obj["validity"]["to"]) or datetime.max
-            ),
-        )
-        return latest_object
-
     async def load_mo_employee(self, uuid: UUID, current_objects_only=True) -> Employee:
         start = end = UNSET if current_objects_only else None
         results = await self.graphql_client.read_employees([uuid], start, end)
@@ -1215,8 +1232,8 @@ class DataLoader:
         if result is None:
             raise NoObjectsReturnedException("Could not fetch employee")
 
-        validities = jsonable_encoder(result.validities)
-        entry = self.extract_current_or_latest_object(validities)
+        result_entry = extract_current_or_latest_object(result.validities)
+        entry = jsonable_encoder(result_entry)
         entry.pop("validity")
         return Employee(**entry)
 
@@ -1322,9 +1339,10 @@ class DataLoader:
 
     async def load_mo_org_units(self) -> dict:
         result = await self.graphql_client.read_org_units()
+
         return {
-            str(org_unit.uuid): self.extract_current_or_latest_object(
-                jsonable_encoder(org_unit.validities)
+            str(org_unit.uuid): jsonable_encoder(
+                extract_current_or_latest_object(org_unit.validities)
             )
             for org_unit in result.objects
         }
@@ -1336,8 +1354,8 @@ class DataLoader:
         if result is None:
             raise NoObjectsReturnedException("Could not fetch ituser")
 
-        validities = jsonable_encoder(result.validities)
-        entry = self.extract_current_or_latest_object(validities)
+        result_entry = extract_current_or_latest_object(result.validities)
+        entry = jsonable_encoder(result_entry)
         return ITUser.from_simplified_fields(
             user_key=entry["user_key"],
             itsystem_uuid=entry["itsystem_uuid"],
@@ -1366,8 +1384,8 @@ class DataLoader:
         if result is None:
             raise NoObjectsReturnedException("Could not fetch address")
 
-        validities = jsonable_encoder(result.validities)
-        entry = self.extract_current_or_latest_object(validities)
+        result_entry = extract_current_or_latest_object(result.validities)
+        entry = jsonable_encoder(result_entry)
         address = Address.from_simplified_fields(
             value=entry["value"],
             address_type_uuid=entry["address_type"]["uuid"],
@@ -1414,8 +1432,8 @@ class DataLoader:
         if result is None:
             raise NoObjectsReturnedException("Could not fetch engagement")
 
-        validities = jsonable_encoder(result.validities)
-        entry = self.extract_current_or_latest_object(validities)
+        entry_result = extract_current_or_latest_object(result.validities)
+        entry = jsonable_encoder(entry_result)
         engagement = Engagement.from_simplified_fields(
             org_unit_uuid=entry["org_unit_uuid"],
             person_uuid=entry["employee_uuid"],
