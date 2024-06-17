@@ -37,7 +37,7 @@ from .ldap import get_attribute_types
 from .ldap import make_ldap_object
 from .ldap import paged_search
 from .ldap_classes import LdapObject
-from .ldap_emit import publish_dns
+from .ldap_emit import publish_uuids
 from .processors import _hide_cpr as hide_cpr
 from .types import CPRNumber
 
@@ -197,6 +197,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
     # Load all users from LDAP, and import them into MO
     @router.get("/Import", status_code=202, tags=["Import"])
     async def import_all_objects_from_LDAP(
+        settings: depends.Settings,
         ldap_amqpsystem: depends.LDAPAMQPSystem,
         dataloader: depends.DataLoader,
         converter: depends.LdapConverter,
@@ -209,9 +210,12 @@ def construct_router(user_context: UserContext) -> APIRouter:
         if cpr_indexed_entries_only and not cpr_field:
             raise CPRFieldNotFound("cpr_field is not configured")
 
+        additional_attributes = [settings.ldap_unique_id_field]
+
         all_ldap_objects = await load_ldap_objects(
             dataloader,
             "Employee",
+            additional_attributes=additional_attributes,
             search_base=search_base,
         )
         number_of_entries = len(all_ldap_objects)
@@ -234,8 +238,10 @@ def construct_router(user_context: UserContext) -> APIRouter:
         if cpr_indexed_entries_only:
             all_ldap_objects = list(filter(has_valid_cpr_number, all_ldap_objects))
 
-        dns = [obj.dn for obj in all_ldap_objects]
-        await publish_dns(ldap_amqpsystem, dns)
+        uuids = [
+            getattr(obj, settings.ldap_unique_id_field) for obj in all_ldap_objects
+        ]
+        await publish_uuids(ldap_amqpsystem, uuids)
 
     # Load a single user from LDAP, and import him/her/hir into MO
     @router.get("/Import/{unique_ldap_uuid}", status_code=202, tags=["Import"])
@@ -244,8 +250,9 @@ def construct_router(user_context: UserContext) -> APIRouter:
         unique_ldap_uuid: UUID,
         dataloader: depends.DataLoader,
     ) -> Any:
-        dn = await dataloader.get_ldap_dn(unique_ldap_uuid)
-        await publish_dns(ldap_amqpsystem, [dn])
+        # Check that we can find the UUID
+        await dataloader.get_ldap_dn(unique_ldap_uuid)
+        await publish_uuids(ldap_amqpsystem, [unique_ldap_uuid])
 
     # Get all objects from LDAP - Converted to MO
     @router.get("/LDAP/{json_key}/converted", status_code=202, tags=["LDAP"])

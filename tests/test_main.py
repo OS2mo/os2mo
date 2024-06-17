@@ -14,6 +14,7 @@ from unittest.mock import call
 from unittest.mock import create_autospec
 from unittest.mock import MagicMock
 from unittest.mock import patch
+from uuid import UUID
 from uuid import uuid4
 
 import pytest
@@ -201,14 +202,29 @@ def test_mo_objects() -> list:
 def dataloader(
     sync_dataloader: MagicMock, test_mo_address: Address, test_mo_objects: list
 ) -> Iterator[AsyncMock]:
+    objectGUID1 = UUID("00000000-0000-4000-1000-000000000000")
+    objectGUID2 = UUID("00000000-0000-4000-2000-000000000000")
+    objectGUID3 = UUID("00000000-0000-4000-3000-000000000000")
     test_ldap_object1 = LdapObject(
-        name="Tester1", Department="QA", dn="someDN1", EmployeeID="0101012001"
+        name="Tester1",
+        Department="QA",
+        dn="someDN1",
+        EmployeeID="0101012001",
+        objectGUID=objectGUID1,
     )
     test_ldap_object2 = LdapObject(
-        name="Tester2", Department="QA", dn="someDN2", EmployeeID="0101012002"
+        name="Tester2",
+        Department="QA",
+        dn="someDN2",
+        EmployeeID="0101012002",
+        objectGUID=objectGUID2,
     )
     test_ldap_object3 = LdapObject(
-        name="Tester3", Department="QA", dn="someDN3", EmployeeID="0101012003"
+        name="Tester3",
+        Department="QA",
+        dn="someDN3",
+        EmployeeID="0101012003",
+        objectGUID=objectGUID3,
     )
     test_mo_employee = Employee(cpr_no="1212121234")
 
@@ -812,9 +828,9 @@ async def test_import_all_objects_from_LDAP_first_20(
     assert response.status_code == 202
 
     assert ldap_amqpsystem.publish_message.mock_calls == [
-        call("dn", "someDN1"),
-        call("dn", "someDN2"),
-        call("dn", "someDN3"),
+        call("uuid", UUID("00000000-0000-4000-1000-000000000000")),
+        call("uuid", UUID("00000000-0000-4000-2000-000000000000")),
+        call("uuid", UUID("00000000-0000-4000-3000-000000000000")),
     ]
 
 
@@ -830,9 +846,9 @@ async def test_import_all_objects_from_LDAP(
     assert response.status_code == 202
 
     assert ldap_amqpsystem.publish_message.mock_calls == [
-        call("dn", "someDN1"),
-        call("dn", "someDN2"),
-        call("dn", "someDN3"),
+        call("uuid", UUID("00000000-0000-4000-1000-000000000000")),
+        call("uuid", UUID("00000000-0000-4000-2000-000000000000")),
+        call("uuid", UUID("00000000-0000-4000-3000-000000000000")),
     ]
 
 

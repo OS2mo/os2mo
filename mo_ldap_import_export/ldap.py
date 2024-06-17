@@ -44,7 +44,7 @@ from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
 from .exceptions import TimeOutException
 from .ldap_classes import LdapObject
-from .ldap_emit import publish_dns
+from .ldap_emit import publish_uuids
 from .processors import _hide_cpr as hide_cpr
 from .types import DN
 from .utils import combine_dn_strings
@@ -796,8 +796,11 @@ async def _poll(
 
         Should be provided as `last_search_time` in the next iteration.
     """
+    from .dataloaders import DataLoader
+
     ldap_amqpsystem: AMQPSystem = user_context["ldap_amqpsystem"]
-    ldap_connection = user_context["ldap_connection"]
+    ldap_connection: Connection = user_context["ldap_connection"]
+    dataloader: DataLoader = user_context["dataloader"]
 
     logger.debug(
         "Searching for changes since last search", last_search_time=last_search_time
@@ -823,10 +826,21 @@ async def _poll(
             logger.warning("Got event without dn")
         return cast(str | None, dn)
 
+    async def dn2uuid(dn: str) -> UUID | None:
+        uuid = None
+        with suppress(NoObjectsReturnedException):
+            uuid = await dataloader.get_ldap_unique_ldap_uuid(dn)
+        return uuid
+
     dns_with_none = [event2dn(event) for event in responses]
     dns = [dn for dn in dns_with_none if dn is not None]
-    if dns:
-        await publish_dns(ldap_amqpsystem, dns)
+
+    # TODO: Simply lookup LDAP UUID in the first query saving this transformation
+    uuids_with_none = [await dn2uuid(dn) for dn in dns]
+    uuids = [uuid for uuid in uuids_with_none if uuid is not None]
+
+    if uuids:
+        await publish_uuids(ldap_amqpsystem, uuids)
 
     return last_search_time
 
