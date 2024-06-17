@@ -262,6 +262,19 @@ def construct_router(user_context: UserContext) -> APIRouter:
     async def ldap_uuid2dn(dataloader: depends.DataLoader, uuid: UUID) -> str:
         return await dataloader.get_ldap_dn(uuid)
 
+    @router.get("/Inspect/dn/{dn}", status_code=200, tags=["LDAP"])
+    async def ldap_fetch_object_by_dn(
+        dataloader: depends.DataLoader, dn: str, nest: bool = False
+    ) -> Any:
+        return encode_result(await dataloader.load_ldap_object(dn, ["*"], nest=nest))
+
+    @router.get("/Inspect/uuid/{uuid}", status_code=200, tags=["LDAP"])
+    async def ldap_fetch_object_by_uuid(
+        dataloader: depends.DataLoader, uuid: UUID, nest: bool = False
+    ) -> Any:
+        dn = await dataloader.get_ldap_dn(uuid)
+        return encode_result(await dataloader.load_ldap_object(dn, ["*"], nest=nest))
+
     # Get all objects from LDAP - Converted to MO
     @router.get("/LDAP/{json_key}/converted", status_code=202, tags=["LDAP"])
     async def convert_all_objects_from_ldap(
@@ -490,20 +503,5 @@ def construct_router(user_context: UserContext) -> APIRouter:
         return await load_ldap_attribute_values(
             dataloader.context, attribute, search_base=search_base
         )
-
-    # Get LDAP object by unique_ldap_uuid
-    @router.get("/Inspect/object/unique_ldap_uuid", status_code=202, tags=["LDAP"])
-    async def load_object_from_ldap_by_unique_ldap_uuid(
-        dataloader: depends.DataLoader, unique_ldap_uuid: UUID, nest: bool = False
-    ) -> Any:
-        dn = await dataloader.get_ldap_dn(unique_ldap_uuid)
-        return encode_result(await dataloader.load_ldap_object(dn, ["*"], nest=nest))
-
-    # Get LDAP object by DN
-    @router.get("/Inspect/object/dn", status_code=202, tags=["LDAP"])
-    async def load_object_from_ldap_by_dn(
-        dataloader: depends.DataLoader, dn: str, nest: bool = False
-    ) -> Any:
-        return encode_result(await dataloader.load_ldap_object(dn, ["*"], nest=nest))
 
     return router
