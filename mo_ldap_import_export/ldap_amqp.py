@@ -21,7 +21,6 @@ from .depends import request_id
 from .depends import SyncTool
 from .exceptions import NoObjectsReturnedException
 from .ldap_emit import publish_uuids
-from .types import DN
 
 logger = structlog.stdlib.get_logger()
 
@@ -31,25 +30,7 @@ ldap_amqp_router = Router()
 # Try errors again after a short period of time
 delay_on_error = 10
 
-PayloadDN = Annotated[DN, Depends(get_payload_as_type(DN))]
 PayloadUUID = Annotated[UUID, Depends(get_payload_as_type(UUID))]
-
-
-# TODO: Eliminate this and publish_dns
-@ldap_amqp_router.register("dn")
-async def process_dn(
-    ldap_amqpsystem: LDAPAMQPSystem,
-    dataloader: DataLoader,
-    dn: PayloadDN,
-) -> None:
-    logger.info("Received LDAP AMQP event", dn=dn)
-    try:
-        uuid = await dataloader.get_ldap_unique_ldap_uuid(dn)
-    except NoObjectsReturnedException as exc:
-        logger.exception("DN could not be found", dn=dn)
-        raise RejectMessage("DN could not be found") from exc
-
-    await publish_uuids(ldap_amqpsystem, [uuid])
 
 
 @ldap_amqp_router.register("uuid")

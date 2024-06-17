@@ -8,42 +8,7 @@ from fastramqpi.ramqp.utils import RejectMessage
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
-from mo_ldap_import_export.ldap_amqp import process_dn
 from mo_ldap_import_export.ldap_amqp import process_uuid
-
-
-async def test_process_dn() -> None:
-    """Test that process_dn published messages as expected."""
-    ldap_amqpsystem = AsyncMock()
-    dataloader = AsyncMock()
-
-    uuid = uuid4()
-    dn = str(uuid4())
-
-    dataloader.get_ldap_unique_ldap_uuid.return_value = uuid
-
-    await process_dn(ldap_amqpsystem, dataloader, dn)
-
-    dataloader.get_ldap_unique_ldap_uuid.assert_called_once_with(dn)
-    ldap_amqpsystem.publish_message.assert_called_once_with("uuid", uuid)
-
-
-async def test_process_dn_missing_dn() -> None:
-    """Test that process_dn fails as expected."""
-    ldap_amqpsystem = AsyncMock()
-    dataloader = AsyncMock()
-
-    dataloader.get_ldap_unique_ldap_uuid.side_effect = NoObjectsReturnedException(
-        "BOOM"
-    )
-
-    dn = str(uuid4())
-
-    with pytest.raises(RejectMessage) as exc_info:
-        await process_dn(ldap_amqpsystem, dataloader, dn)
-    assert "DN could not be found" in str(exc_info.value)
-
-    dataloader.get_ldap_unique_ldap_uuid.assert_called_once_with(dn)
 
 
 async def test_process_uuid() -> None:
