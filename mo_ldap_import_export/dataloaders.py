@@ -983,10 +983,9 @@ class DataLoader:
             return set()
 
         it_system_uuid = UUID(raw_it_system_uuid)
-        try:
+        it_users = []
+        with suppress(NoObjectsReturnedException):
             it_users = await self.load_mo_employee_it_users(uuid, it_system_uuid)
-        except NoObjectsReturnedException:  # pragma: no cover
-            return set()
         dns = await self.extract_unique_dns(it_users)
         # No DNs, no problem
         if not dns:
@@ -1020,12 +1019,11 @@ class DataLoader:
             "Attempting CPR number lookup",
             employee_uuid=uuid,
         )
-        try:
+        dns = set()
+        with suppress(NoObjectsReturnedException):
             dns = {
                 obj.dn for obj in await self.load_ldap_cpr_object(cpr_no, "Employee")
             }
-        except NoObjectsReturnedException:
-            return set()
         if not dns:
             return set()
         logger.info(
@@ -1069,31 +1067,6 @@ class DataLoader:
             employee_uuid=uuid,
         )
         return set()
-
-    async def find_or_make_mo_employee_dn(self, uuid: UUID) -> set[DN]:
-        """Finds or creates an LDAP DNs beloning to a MO employee.
-
-        Note:
-            If a DN(s) is found, one will not be created.
-            If a DN(s) is not found, one will be created.
-
-        Args:
-            uuid: UUID of the employee to try to find DNs for.
-
-        Raises:
-            DNNotFound: If no DN(s) was found, and we cannot create one.
-
-        Returns:
-            A potentially empty set of DNs.
-        """
-        logger.info(
-            "Attempting to find DN",
-            employee_uuid=uuid,
-        )
-        dns = await self.find_mo_employee_dn(uuid)
-        if dns:
-            return dns
-        return {await self.make_mo_employee_dn(uuid)}
 
     async def make_mo_employee_dn(self, uuid: UUID) -> DN:
         raw_it_system_uuid = self.get_ldap_it_system_uuid()
