@@ -30,7 +30,6 @@ from more_itertools import one
 from more_itertools import only
 from more_itertools import partition
 from ramodels.mo import MOBase
-from ramodels.mo._shared import EngagementRef
 from ramodels.mo._shared import validate_cpr
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
@@ -1146,58 +1145,6 @@ class DataLoader:
         await self.graphql_client.employee_refresh(
             self.sync_tool.amqpsystem.exchange_name, [employee.uuid]
         )
-        return dn
-
-    async def find_dn_by_engagement_uuid(
-        self,
-        employee_uuid: UUID,
-        engagement: EngagementRef | Engagement | None,
-        dns: set[DN],
-    ) -> DN:
-        # TODO: Should we still validate the DN as we do when we actually look it up?
-        if len(dns) == 1:
-            return one(dns)
-        engagement_uuid: UUID | None = getattr(engagement, "uuid", None)
-        ldap_it_system_uuid: UUID = UUID(self.get_ldap_it_system_uuid())
-
-        it_users: list[ITUser] = await self.load_mo_employee_it_users(
-            employee_uuid,
-            ldap_it_system_uuid,
-        )
-        matching_it_users: list[ITUser] = [
-            it_user
-            for it_user in it_users
-            if (engagement_uuid is None and it_user.engagement is None)
-            or (
-                engagement_uuid is not None
-                and getattr(it_user.engagement, "uuid", None) == engagement_uuid
-            )
-        ]
-
-        # TODO: Convert to arguments to one below
-        if len(matching_it_users) > 1:
-            # Multiple matches
-            logger.info(
-                "Multiple matches",
-                engagement_uuid=engagement_uuid,
-                matching_it_users=matching_it_users,
-            )
-            raise MultipleObjectsReturnedException(
-                f"More than one matching 'Unique LDAP UUID' IT user found for "
-                f"{employee_uuid=} and {engagement_uuid=}"
-            )
-        if len(matching_it_users) < 1:
-            logger.info(
-                "No matches",
-                engagement_uuid=engagement_uuid,
-                it_users=it_users,
-            )
-            raise NoObjectsReturnedException("Could not find any matching IT users")
-
-        # Single match, unique ldap UUID is stored in ITUser.user_key
-        unique_uuid: UUID = UUID(one(matching_it_users).user_key)
-        dn = await self.get_ldap_dn(unique_uuid)
-        assert dn in dns
         return dn
 
     async def load_mo_employee(self, uuid: UUID, current_objects_only=True) -> Employee:
