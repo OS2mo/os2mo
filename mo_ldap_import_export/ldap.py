@@ -44,6 +44,7 @@ from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
 from .exceptions import TimeOutException
 from .ldap_classes import LdapObject
+from .ldap_emit import publish_dns
 from .processors import _hide_cpr as hide_cpr
 from .types import DN
 from .utils import combine_dn_strings
@@ -822,11 +823,10 @@ async def _poll(
             logger.warning("Got event without dn")
         return cast(str | None, dn)
 
-    dns = [event2dn(event) for event in responses]
-    dns = [dn for dn in dns if dn is not None]
+    dns_with_none = [event2dn(event) for event in responses]
+    dns = [dn for dn in dns_with_none if dn is not None]
     if dns:
-        logger.info("Registered change for LDAP object(s)", dns=dns)
-        await asyncio.gather(*[ldap_amqpsystem.publish_message("dn", dn) for dn in dns])
+        await publish_dns(ldap_amqpsystem, dns)
 
     return last_search_time
 
