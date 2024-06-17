@@ -26,9 +26,9 @@ from mo_ldap_import_export.customer_specific_checks import ImportChecks
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.import_export import SyncTool
+from mo_ldap_import_export.ldap import apply_discriminator
 from mo_ldap_import_export.ldap import configure_ldap_connection
 from mo_ldap_import_export.ldap import construct_server_pool
-from mo_ldap_import_export.ldap import first_included
 from mo_ldap_import_export.ldap import get_ldap_object
 from mo_ldap_import_export.ldap import ldap_compare
 from mo_ldap_import_export.ldap import wait_for_message_id
@@ -270,23 +270,23 @@ async def test_get_ldap_cpr_object(
     }
 
 
-async def test_first_included_no_config(
+async def test_apply_discriminator_no_config(
     ldap_connection: Connection, settings: Settings
 ) -> None:
-    """Test that first_included only allows one DN when not configured."""
+    """Test that apply_discriminator only allows one DN when not configured."""
     context: Context = {
         "user_context": {"ldap_connection": ldap_connection, "settings": settings}
     }
     assert settings.discriminator_field is None
 
-    result = await first_included(context, set())
+    result = await apply_discriminator(context, set())
     assert result is None
 
-    result = await first_included(context, {"CN=Anzu"})
+    result = await apply_discriminator(context, {"CN=Anzu"})
     assert result == "CN=Anzu"
 
     with pytest.raises(ValueError) as exc_info:
-        await first_included(context, {"CN=Anzu", "CN=Arak"})
+        await apply_discriminator(context, {"CN=Anzu", "CN=Arak"})
     assert "Expected exactly one item in iterable" in str(exc_info.value)
 
 
@@ -318,26 +318,26 @@ async def test_first_included_no_config(
         },
     ],
 )
-async def test_first_included_settings_invariants(
+async def test_apply_discriminator_settings_invariants(
     ldap_connection: Connection,
     settings: Settings,
     ldap_dn: DN,
     discriminator_settings: dict[str, Any],
 ) -> None:
-    """Test that first_included checks settings invariants."""
+    """Test that apply_discriminator checks settings invariants."""
     context: Context = {"user_context": {"ldap_connection": ldap_connection}}
 
     with pytest.raises(AssertionError):
         # Need function and values
         new_settings = settings.copy(update=discriminator_settings)
         context["user_context"]["settings"] = new_settings
-        await first_included(context, {ldap_dn})
+        await apply_discriminator(context, {ldap_dn})
 
 
-async def test_first_included_unknown_dn(
+async def test_apply_discriminator_unknown_dn(
     ldap_connection: Connection, settings: Settings
 ) -> None:
-    """Test that first_included requeues on missing DNs."""
+    """Test that apply_discriminator requeues on missing DNs."""
     settings = settings.copy(
         update={
             "discriminator_field": "sn",
@@ -349,7 +349,7 @@ async def test_first_included_unknown_dn(
         "user_context": {"ldap_connection": ldap_connection, "settings": settings}
     }
     with pytest.raises(RequeueMessage) as exc_info:
-        await first_included(context, {"CN=__missing__dn__"})
+        await apply_discriminator(context, {"CN=__missing__dn__"})
     assert "Unable to lookup DN(s)" in str(exc_info.value)
 
 
@@ -368,7 +368,7 @@ async def test_first_included_unknown_dn(
     ],
 )
 @pytest.mark.parametrize("discriminator_function", ("include", "exclude"))
-async def test_first_included_exclude_one_user(
+async def test_apply_discriminator_exclude_one_user(
     ldap_connection: Connection,
     settings: Settings,
     ldap_dn: DN,
@@ -376,7 +376,7 @@ async def test_first_included_exclude_one_user(
     discriminator_values: list[str],
     matches: bool,
 ) -> None:
-    """Test that first_included exclude works with a single user on valid settings."""
+    """Test that apply_discriminator exclude works with a single user on valid settings."""
     # This DN has 'foo_sn' as their sn
     if discriminator_function == "include":
         expected = ldap_dn if matches else None
@@ -393,18 +393,18 @@ async def test_first_included_exclude_one_user(
     context: Context = {
         "user_context": {"ldap_connection": ldap_connection, "settings": settings}
     }
-    result = await first_included(context, {ldap_dn})
+    result = await apply_discriminator(context, {ldap_dn})
     assert result == expected
 
 
 @pytest.mark.parametrize("discriminator_function", ("include", "exclude"))
-async def test_first_included_exclude_none(
+async def test_apply_discriminator_exclude_none(
     ldap_connection: Connection,
     settings: Settings,
     discriminator_function: str,
     ldap_container_dn: str,
 ) -> None:
-    """Test that first_included exclude works with a single user on valid settings."""
+    """Test that apply_discriminator exclude works with a single user on valid settings."""
     another_username = "bar"
     another_ldap_dn = f"CN={another_username},{ldap_container_dn}"
     ldap_connection.strategy.add_entry(
@@ -430,7 +430,7 @@ async def test_first_included_exclude_none(
         "user_context": {"ldap_connection": ldap_connection, "settings": settings}
     }
     with capture_logs() as cap_logs:
-        result = await first_included(context, {another_ldap_dn})
+        result = await apply_discriminator(context, {another_ldap_dn})
     events = [x["event"] for x in cap_logs if x["log_level"] != "debug"]
     assert events == ["Found DN", "Discriminator value is None"]
 
@@ -591,7 +591,7 @@ def inject_environmental_variables(
     ],
 )
 @pytest.mark.usefixtures("inject_environmental_variables")
-async def test_import_single_user_first_included(
+async def test_import_single_user_apply_discriminator(
     ldap_connection: Connection,
     ldap_container_dn: str,
     ldap_dn: DN,
