@@ -254,6 +254,14 @@ def construct_router(user_context: UserContext) -> APIRouter:
         await dataloader.get_ldap_dn(unique_ldap_uuid)
         await publish_uuids(ldap_amqpsystem, [unique_ldap_uuid])
 
+    @router.get("/LDAP/dn2uuid/{dn}", status_code=200, tags=["LDAP"])
+    async def ldap_dn2uuid(dataloader: depends.DataLoader, dn: str) -> UUID:
+        return await dataloader.get_ldap_unique_ldap_uuid(dn)
+
+    @router.get("/LDAP/uuid2dn/{uuid}", status_code=200, tags=["LDAP"])
+    async def ldap_uuid2dn(dataloader: depends.DataLoader, uuid: UUID) -> str:
+        return await dataloader.get_ldap_dn(uuid)
+
     # Get all objects from LDAP - Converted to MO
     @router.get("/LDAP/{json_key}/converted", status_code=202, tags=["LDAP"])
     async def convert_all_objects_from_ldap(

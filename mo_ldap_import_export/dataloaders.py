@@ -911,12 +911,21 @@ class DataLoader:
         Given an unique_ldap_uuid, find the DistinguishedName
         """
         logger.info("Looking for LDAP object", unique_ldap_uuid=unique_ldap_uuid)
+        settings = self.user_context["settings"]
         searchParameters = {
-            "search_base": f"<GUID={unique_ldap_uuid}>",
-            "search_filter": "(objectclass=*)",
+            "search_base": settings.ldap_search_base,
+            "search_filter": f"(&(objectclass=*)({settings.ldap_unique_id_field}={unique_ldap_uuid}))",
             "attributes": [],
-            "search_scope": BASE,
         }
+
+        # Special-case for AD
+        if settings.ldap_unique_id_field == "objectGUID":
+            searchParameters = {
+                "search_base": f"<GUID={unique_ldap_uuid}>",
+                "search_filter": "(objectclass=*)",
+                "attributes": [],
+                "search_scope": BASE,
+            }
 
         search_result = await single_object_search(searchParameters, self.context)
         dn: str = search_result["dn"]
