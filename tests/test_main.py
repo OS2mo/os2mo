@@ -584,18 +584,6 @@ def test_ldap_get_object_by_dn_endpoint(
     assert response.status_code == 202
 
 
-@pytest.mark.usefixtures("context_dependency_injection")
-def test_ldap_get_objectGUID_endpoint(
-    test_client: TestClient, dataloader: AsyncMock
-) -> None:
-    """Test the LDAP get endpoint on our app."""
-
-    dataloader.get_ldap_unique_ldap_uuid.return_value = uuid4()
-
-    response = test_client.get("/unique_ldap_uuid/CN=foo")
-    assert response.status_code == 202
-
-
 async def test_listen_to_ituser(graphql_mock: GraphQLMocker) -> None:
     amqpsystem = create_autospec(AMQPSystem)
     amqpsystem.exchange_name = "wow"

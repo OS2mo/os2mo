@@ -118,13 +118,12 @@ async def test_endpoint_dn2uuid_and_uuid2dn(
     ldap_dummy_data: str,
 ) -> None:
     dn = ldap_dummy_data
-    print("url:", f"/LDAP/dn2uuid/{dn}")
 
-    result = await test_client.get(f"/LDAP/dn2uuid/{dn}")
+    result = await test_client.get(f"/Inspect/dn2uuid/{dn}")
     assert result.status_code == 200
     entry_uuid = UUID(result.json())
 
-    result = await test_client.get(f"/LDAP/uuid2dn/{entry_uuid}")
+    result = await test_client.get(f"/Inspect/uuid2dn/{entry_uuid}")
     assert result.status_code == 200
     read_dn = result.json()
     assert read_dn == dn
