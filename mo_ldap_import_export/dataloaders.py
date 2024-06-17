@@ -299,13 +299,10 @@ class DataLoader:
         dn: DN,
         attributes: list | None,
         nest: bool = True,
-        run_discriminator: bool = True,
     ) -> LdapObject:  # pragma: no cover
         # TODO: Actually eliminate this function by calling get_ldap_object directly.
         #       Be warned though, doing so breaks ~25 tests because of bad mocking.
-        return await get_ldap_object(
-            dn, self.context, nest, attributes, run_discriminator
-        )
+        return await get_ldap_object(dn, self.context, nest, attributes)
 
     async def load_ldap_cpr_object(
         self,
@@ -797,9 +794,7 @@ class DataLoader:
         if cpr_field is None:
             return set()
 
-        ldap_object = await self.load_ldap_object(
-            dn, [cpr_field], run_discriminator=False
-        )
+        ldap_object = await self.load_ldap_object(dn, [cpr_field])
         # Try to get the cpr number from LDAP and use that.
         try:
             raw_cpr_no = getattr(ldap_object, cpr_field)
@@ -857,9 +852,7 @@ class DataLoader:
         # Unique LDAP UUID in MO.
 
         settings = self.user_context["settings"]
-        ldap_object = await self.load_ldap_object(
-            dn, [settings.ldap_unique_id_field], run_discriminator=False
-        )
+        ldap_object = await self.load_ldap_object(dn, [settings.ldap_unique_id_field])
         raw_unique_uuid = getattr(ldap_object, settings.ldap_unique_id_field)
         # NOTE: Not sure if this only necessary for the mocked server or not
         if isinstance(raw_unique_uuid, list):

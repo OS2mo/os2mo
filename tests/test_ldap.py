@@ -31,7 +31,6 @@ from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import TimeOutException
 from mo_ldap_import_export.ldap import _poll
-from mo_ldap_import_export.ldap import apply_discriminator
 from mo_ldap_import_export.ldap import check_ou_in_list_of_ous
 from mo_ldap_import_export.ldap import configure_ldap_connection
 from mo_ldap_import_export.ldap import construct_server
@@ -508,42 +507,6 @@ async def test_single_object_search(ldap_connection: MagicMock, context: Context
         {"search_base": "CN=moo,CN=foo,DC=bar"}, context
     )
     assert output == search_entry
-
-
-async def test_apply_discriminator() -> None:
-    settings = MagicMock()
-
-    settings.discriminator_function = "include"
-    settings.discriminator_field = "xField"
-    settings.discriminator_values = ["yes", "7"]
-
-    def gen_user(name: str, username: str, xField: Any) -> dict[str, Any]:
-        dn = f"CN={name} - {username},DC=example,DC=com"
-        return {
-            "raw_dn": dn.encode("ascii"),
-            "dn": dn,
-            "raw_attributes": {
-                "xField": [str(xField).encode("ascii")],
-                "Name": [name.encode("ascii")],
-            },
-            "attributes": {"xField": xField, "Name": name},
-            "type": "searchResEntry",
-        }
-
-    user1 = gen_user("Anders Andersen", "aa", 7)
-    user2 = gen_user("John Johnsen", "jj", "yes")
-    user3 = gen_user("Hans Hansen", "hh", "no")
-    user4 = gen_user("Peter Petersen", "pp", None)
-
-    res_list = apply_discriminator([user1, user2, user3, user4], settings)
-
-    assert res_list == [user1, user2]
-
-    settings.discriminator_function = "exclude"
-
-    res_list = apply_discriminator([user1, user2, user3, user4], settings)
-
-    assert res_list == [user3, user4]
 
 
 @pytest.fixture()

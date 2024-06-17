@@ -1031,12 +1031,7 @@ class SyncTool:
             cpr_field = self.converter.cpr_field
             if cpr_field is not None:
                 cpr_no = getattr(
-                    await get_ldap_object(
-                        dn,
-                        self.context,
-                        attributes=[cpr_field],
-                        run_discriminator=False,
-                    ),
+                    await get_ldap_object(dn, self.context, attributes=[cpr_field]),
                     cpr_field,
                 )
                 dns = {
@@ -1128,8 +1123,7 @@ class SyncTool:
     ) -> UUID | None:
         logger.info("Loading object", dn=dn, json_key=json_key)
         loaded_object = await self.dataloader.load_ldap_object(
-            dn,
-            self.converter.get_ldap_attributes(json_key),
+            dn, self.converter.get_ldap_attributes(json_key)
         )
         logger.info(
             "Loaded object",

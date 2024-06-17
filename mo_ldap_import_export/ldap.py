@@ -3,7 +3,6 @@
 """LDAP Connection handling."""
 import asyncio
 import signal
-import warnings
 from collections import ChainMap
 from contextlib import suppress
 from datetime import datetime
@@ -351,10 +350,7 @@ async def first_included(context: Context, dns: set[DN]) -> DN | None:
         #       currently async, but rather blocks the entire event-loop all the time.
         #       #59422 tracks this issue, and once resolved this code can be fixed.
         ldap_objects = [
-            await get_ldap_object(
-                dn, context, attributes=attributes, run_discriminator=False
-            )
-            for dn in dns
+            await get_ldap_object(dn, context, attributes=attributes) for dn in dns
         ]
     except NoObjectsReturnedException as exc:
         # There could be multiple reasons why our DNs cannot be read.
@@ -421,52 +417,6 @@ async def first_included(context: Context, dns: set[DN]) -> DN | None:
         if dns_with_value:
             return one(dns_with_value)
     return None
-
-
-def apply_discriminator(
-    search_result: list[dict[str, Any]], settings: Settings
-) -> list[dict[str, Any]]:
-    """Apply our discriminator to remove unwanted search result.
-
-    Args:
-        search_result: A list of LDAP search results.
-        settings: The application settings.
-
-    Returns:
-        A filtered list of LDAP search results.
-    """
-    dns = [x["dn"] for x in search_result]
-    logger.warning("apply_discriminator called", dns=dns)
-    warnings.warn("apply_discriminator called", DeprecationWarning)
-
-    discriminator_field = settings.discriminator_field
-    discriminator_values = settings.discriminator_values
-    match settings.discriminator_function:
-        case None:
-            return search_result
-
-        case "include":
-
-            def discriminator(res: Any) -> bool:
-                attributes = res["attributes"]
-                return (
-                    discriminator_field in attributes
-                    and str(attributes[discriminator_field]) in discriminator_values
-                )
-
-        case "exclude":
-
-            def discriminator(res: Any) -> bool:
-                attributes = res["attributes"]
-                return (
-                    discriminator_field not in attributes
-                    or str(attributes[discriminator_field]) not in discriminator_values
-                )
-
-        case _:  # pragma: no cover
-            assert False
-
-    return list(filter(discriminator, search_result))
 
 
 def ldapresponse2entries(ldap_response: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -627,7 +577,7 @@ async def object_search(
 
 
 async def single_object_search(
-    searchParameters: dict[str, Any], context: Context, run_discriminator: bool = True
+    searchParameters: dict[str, Any], context: Context
 ) -> dict[str, Any]:
     """Performs an LDAP search and ensure that it returns one result.
 
@@ -654,11 +604,6 @@ async def single_object_search(
     """
     ldap_connection = context["user_context"]["ldap_connection"]
     search_entries = await object_search(searchParameters, ldap_connection)
-
-    settings = context["user_context"]["settings"]
-    # TODO: Do we actually wanna apply discriminator here?
-    if run_discriminator:
-        search_entries = apply_discriminator(search_entries, settings)
 
     too_long_exception = MultipleObjectsReturnedException(
         hide_cpr(f"Found multiple entries for {searchParameters}: {search_entries}")
@@ -691,7 +636,6 @@ async def get_ldap_object(
     context: Context,
     nest: bool = True,
     attributes: list | None = None,
-    run_discriminator: bool = True,
 ) -> LdapObject:
     """Gets a ldap object based on its DN.
 
@@ -713,9 +657,7 @@ async def get_ldap_object(
         "attributes": attributes,
         "search_scope": BASE,
     }
-    search_result = await single_object_search(
-        searchParameters, context, run_discriminator=run_discriminator
-    )
+    search_result = await single_object_search(searchParameters, context)
     dn = search_result["dn"]
     logger.info("Found DN", dn=dn)
     return await make_ldap_object(search_result, context, nest=nest)
