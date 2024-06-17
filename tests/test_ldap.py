@@ -595,6 +595,7 @@ async def test_poller(
     load_settings_overrides: dict[str, str], ldap_connection: MagicMock
 ) -> None:
     dn = "CN=Valeera Singuinar,OU=Bodyguards,DC=Stormwind"
+    uuid = uuid4()
     event = {
         "type": "searchResEntry",
         "attributes": {"distinguishedName": dn},
@@ -602,12 +603,16 @@ async def test_poller(
     ldap_connection.get_response.return_value = [event], {"type": "test"}
 
     ldap_amqpsystem = AsyncMock()
+    dataloader = AsyncMock()
+
+    dataloader.get_ldap_unique_ldap_uuid.return_value = uuid
 
     last_search_time = datetime.datetime.utcnow()
     search_time = await _poll(
         user_context={
             "ldap_amqpsystem": ldap_amqpsystem,
             "ldap_connection": ldap_connection,
+            "dataloader": dataloader,
             "settings": settings,
         },
         search_parameters={
@@ -619,7 +624,8 @@ async def test_poller(
     )
     assert search_time > last_search_time
 
-    ldap_amqpsystem.publish_message.assert_called_once_with("dn", dn)
+    dataloader.get_ldap_unique_ldap_uuid.assert_called_once_with(dn)
+    ldap_amqpsystem.publish_message.assert_called_once_with("uuid", uuid)
 
 
 async def test_poller_no_dn(
@@ -632,6 +638,7 @@ async def test_poller_no_dn(
     ldap_connection.get_response.return_value = [event], {"type": "test"}
 
     ldap_amqpsystem = AsyncMock()
+    dataloader = AsyncMock()
 
     last_search_time = datetime.datetime.utcnow()
     with capture_logs() as cap_logs:
@@ -639,6 +646,7 @@ async def test_poller_no_dn(
             user_context={
                 "ldap_amqpsystem": ldap_amqpsystem,
                 "ldap_connection": ldap_connection,
+                "dataloader": dataloader,
                 "settings": settings,
             },
             search_parameters={
@@ -670,12 +678,14 @@ async def test_poller_bad_result(
     ldap_connection.get_response.return_value = response, {"type": "test"}
 
     ldap_amqpsystem = AsyncMock()
+    dataloader = AsyncMock()
 
     last_search_time = datetime.datetime.utcnow()
     search_time = await _poll(
         user_context={
             "ldap_amqpsystem": ldap_amqpsystem,
             "ldap_connection": ldap_connection,
+            "dataloader": dataloader,
             "settings": settings,
         },
         search_parameters={

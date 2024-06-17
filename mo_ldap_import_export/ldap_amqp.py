@@ -20,7 +20,7 @@ from .depends import logger_bound_message_id
 from .depends import request_id
 from .depends import SyncTool
 from .exceptions import NoObjectsReturnedException
-from .ldap_emit import publish_uuid
+from .ldap_emit import publish_uuids
 from .types import DN
 
 logger = structlog.stdlib.get_logger()
@@ -49,7 +49,7 @@ async def process_dn(
         logger.exception("DN could not be found", dn=dn)
         raise RejectMessage("DN could not be found") from exc
 
-    await publish_uuid(ldap_amqpsystem, [uuid])
+    await publish_uuids(ldap_amqpsystem, [uuid])
 
 
 @ldap_amqp_router.register("uuid")
