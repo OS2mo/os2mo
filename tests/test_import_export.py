@@ -52,6 +52,7 @@ def context(
     amqpsystem: AsyncMock,
 ) -> Context:
     settings.discriminator_field = None
+    ldap_connection = AsyncMock()
     context = Context(
         {
             "amqpsystem": amqpsystem,
@@ -61,6 +62,7 @@ def context(
                 "export_checks": export_checks,
                 "import_checks": import_checks,
                 "settings": settings,
+                "ldap_connection": ldap_connection,
             },
         }
     )

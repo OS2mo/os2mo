@@ -295,7 +295,8 @@ async def test_make_generic_ldap_object(cpr_field: str, context: Context):
         "manager": "CN=Jonie Mitchell,OU=Band,DC=Stage",
     }
 
-    ldap_object = await make_ldap_object(response, context, nest=False)
+    ldap_connection = context["user_context"]["ldap_connection"]
+    ldap_object = await make_ldap_object(response, ldap_connection, nest=False)
 
     expected_ldap_object = LdapObject(**response["attributes"], dn=response["dn"])
 
@@ -338,7 +339,8 @@ async def test_make_nested_ldap_object(cpr_field: str, context: Context):
         "mo_ldap_import_export.ldap.single_object_search",
         return_value=nested_response,
     ):
-        ldap_object = await make_ldap_object(response, context, nest=True)
+        ldap_connection = context["user_context"]["ldap_connection"]
+        ldap_object = await make_ldap_object(response, ldap_connection, nest=True)
 
     # harry is an Employee because he has a cpr no.
     assert isinstance(ldap_object, LdapObject)
@@ -482,7 +484,9 @@ async def test_single_object_search(ldap_connection: MagicMock, context: Context
     result = {"type": "test"}
 
     ldap_connection.get_response.return_value = [search_entry], result
-    output = await single_object_search({"search_base": "CN=foo,DC=bar"}, context)
+    output = await single_object_search(
+        {"search_base": "CN=foo,DC=bar"}, ldap_connection
+    )
 
     assert output == search_entry
     ldap_connection.get_response.return_value = [search_entry], result
@@ -494,17 +498,19 @@ async def test_single_object_search(ldap_connection: MagicMock, context: Context
 
     with pytest.raises(MultipleObjectsReturnedException, match="010101-xxxx"):
         ldap_connection.get_response.return_value = [search_entry] * 2, result
-        output = await single_object_search(search_parameters, context)
+        output = await single_object_search(search_parameters, ldap_connection)
 
     with pytest.raises(NoObjectsReturnedException, match="010101-xxxx"):
         ldap_connection.get_response.return_value = [search_entry] * 0, result
-        output = await single_object_search(search_parameters, context)
+        output = await single_object_search(search_parameters, ldap_connection)
 
     ldap_connection.get_response.return_value = [search_entry], result
-    output = await single_object_search({"search_base": "CN=foo,DC=bar"}, context)
+    output = await single_object_search(
+        {"search_base": "CN=foo,DC=bar"}, ldap_connection
+    )
     assert output == search_entry
     output = await single_object_search(
-        {"search_base": "CN=moo,CN=foo,DC=bar"}, context
+        {"search_base": "CN=moo,CN=foo,DC=bar"}, ldap_connection
     )
     assert output == search_entry
 
