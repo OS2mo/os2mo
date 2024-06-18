@@ -1002,6 +1002,7 @@ class SyncTool:
             force: Whether to ignore DNs in self.dns_to_ignore.
             manual_import: Whether this import operation was manually triggered.
         """
+        ldap_connection = self.context["user_context"]["ldap_connection"]
         try:
             if not force:
                 self.dns_to_ignore.check(dn)
@@ -1031,7 +1032,7 @@ class SyncTool:
             cpr_field = self.converter.cpr_field
             if cpr_field is not None:
                 cpr_no = getattr(
-                    await get_ldap_object(dn, self.context, attributes=[cpr_field]),
+                    await get_ldap_object(dn, ldap_connection, attributes=[cpr_field]),
                     cpr_field,
                 )
                 dns = {

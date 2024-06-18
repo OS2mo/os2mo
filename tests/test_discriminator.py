@@ -223,17 +223,12 @@ async def test_searching_dn_lookup(
 )
 async def test_get_ldap_object(
     ldap_connection: Connection,
-    settings: Settings,
     ldap_dn: DN,
     attributes: list[str],
     expected: dict[str, Any],
 ) -> None:
     """Test that get_ldap_object can read specific attributes on our default user."""
-    context: Context = {
-        "user_context": {"ldap_connection": ldap_connection, "settings": settings}
-    }
-
-    result = await get_ldap_object(ldap_dn, context, attributes=attributes)
+    result = await get_ldap_object(ldap_dn, ldap_connection, attributes=attributes)
     assert result.dn == ldap_dn
     assert result.__dict__ == {"dn": "CN=foo,o=example"} | expected
 

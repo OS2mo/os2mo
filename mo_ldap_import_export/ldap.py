@@ -324,6 +324,7 @@ async def apply_discriminator(context: Context, dns: set[DN]) -> DN | None:
 
     user_context = context["user_context"]
     settings: Settings = user_context["settings"]
+    ldap_connection = user_context["ldap_connection"]
 
     # Empty input-set means we have no accounts to consider
     if not dns:
@@ -351,7 +352,8 @@ async def apply_discriminator(context: Context, dns: set[DN]) -> DN | None:
         #       currently async, but rather blocks the entire event-loop all the time.
         #       #59422 tracks this issue, and once resolved this code can be fixed.
         ldap_objects = [
-            await get_ldap_object(dn, context, attributes=attributes) for dn in dns
+            await get_ldap_object(dn, ldap_connection, attributes=attributes)
+            for dn in dns
         ]
     except NoObjectsReturnedException as exc:
         # There could be multiple reasons why our DNs cannot be read.
@@ -634,7 +636,7 @@ def is_dn(value):
 
 async def get_ldap_object(
     dn: DN,
-    context: Context,
+    ldap_connection: Connection,
     nest: bool = True,
     attributes: list | None = None,
 ) -> LdapObject:
@@ -658,15 +660,14 @@ async def get_ldap_object(
         "attributes": attributes,
         "search_scope": BASE,
     }
-    ldap_connection = context["user_context"]["ldap_connection"]
     search_result = await single_object_search(searchParameters, ldap_connection)
     dn = search_result["dn"]
     logger.info("Found DN", dn=dn)
-    return await make_ldap_object(search_result, context, nest=nest)
+    return await make_ldap_object(search_result, ldap_connection, nest=nest)
 
 
 async def make_ldap_object(
-    response: dict, context: Context, nest: bool = True
+    response: dict, ldap_connection: Connection, nest: bool = True
 ) -> LdapObject:
     """Takes an LDAP response and formats it as an LdapObject.
 
@@ -688,7 +689,7 @@ async def make_ldap_object(
 
         if nest:
             logger.info("Loading nested ldap object", dn=dn)
-            return await get_ldap_object(dn, context, nest=False)
+            return await get_ldap_object(dn, ldap_connection, nest=False)
         raise Exception("Already running in nested loop")  # pragma: no cover
 
     def is_other_dn(value):
