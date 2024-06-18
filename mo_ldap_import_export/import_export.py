@@ -744,6 +744,10 @@ class SyncTool:
             uuid: UUID of the changed employee.
             exit_stack: The injected exit-stack.
         """
+        user_context = self.context["user_context"]
+        settings = user_context["settings"]
+        ldap_connection = user_context["ldap_connection"]
+
         exit_stack.enter_context(bound_contextvars(uuid=str(uuid)))
         logger.info("Registered change in an employee")
 
@@ -751,7 +755,7 @@ class SyncTool:
         # If we found DNs, we want to synchronize to the best of them
         if dns:
             logger.info("Found DNs for user", dns=dns, uuid=uuid)
-            best_dn = await apply_discriminator(self.context, dns)
+            best_dn = await apply_discriminator(settings, ldap_connection, dns)
             # If no good LDAP account was found, we do not want to synchronize at all
             if best_dn is None:
                 logger.warning(
@@ -1002,7 +1006,9 @@ class SyncTool:
             force: Whether to ignore DNs in self.dns_to_ignore.
             manual_import: Whether this import operation was manually triggered.
         """
-        ldap_connection = self.context["user_context"]["ldap_connection"]
+        user_context = self.context["user_context"]
+        settings = user_context["settings"]
+        ldap_connection = user_context["ldap_connection"]
         try:
             if not force:
                 self.dns_to_ignore.check(dn)
@@ -1051,7 +1057,7 @@ class SyncTool:
         # We always want to synchronize from the best LDAP account, instead of just
         # synchronizing from the last LDAP account that has been touched.
         # Thus we process the list of DNs found for the user to pick the best one.
-        best_dn = await apply_discriminator(self.context, dns)
+        best_dn = await apply_discriminator(settings, ldap_connection, dns)
         # If no good LDAP account was found, we do not want to synchronize at all
         if best_dn is None:
             logger.info(

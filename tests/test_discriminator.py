@@ -269,19 +269,16 @@ async def test_apply_discriminator_no_config(
     ldap_connection: Connection, settings: Settings
 ) -> None:
     """Test that apply_discriminator only allows one DN when not configured."""
-    context: Context = {
-        "user_context": {"ldap_connection": ldap_connection, "settings": settings}
-    }
     assert settings.discriminator_field is None
 
-    result = await apply_discriminator(context, set())
+    result = await apply_discriminator(settings, ldap_connection, set())
     assert result is None
 
-    result = await apply_discriminator(context, {"CN=Anzu"})
+    result = await apply_discriminator(settings, ldap_connection, {"CN=Anzu"})
     assert result == "CN=Anzu"
 
     with pytest.raises(ValueError) as exc_info:
-        await apply_discriminator(context, {"CN=Anzu", "CN=Arak"})
+        await apply_discriminator(settings, ldap_connection, {"CN=Anzu", "CN=Arak"})
     assert "Expected exactly one item in iterable" in str(exc_info.value)
 
 
@@ -320,13 +317,10 @@ async def test_apply_discriminator_settings_invariants(
     discriminator_settings: dict[str, Any],
 ) -> None:
     """Test that apply_discriminator checks settings invariants."""
-    context: Context = {"user_context": {"ldap_connection": ldap_connection}}
-
     with pytest.raises(AssertionError):
         # Need function and values
         new_settings = settings.copy(update=discriminator_settings)
-        context["user_context"]["settings"] = new_settings
-        await apply_discriminator(context, {ldap_dn})
+        await apply_discriminator(new_settings, ldap_connection, {ldap_dn})
 
 
 async def test_apply_discriminator_unknown_dn(
@@ -340,11 +334,8 @@ async def test_apply_discriminator_unknown_dn(
             "discriminator_values": ["__never_gonna_match__"],
         }
     )
-    context: Context = {
-        "user_context": {"ldap_connection": ldap_connection, "settings": settings}
-    }
     with pytest.raises(RequeueMessage) as exc_info:
-        await apply_discriminator(context, {"CN=__missing__dn__"})
+        await apply_discriminator(settings, ldap_connection, {"CN=__missing__dn__"})
     assert "Unable to lookup DN(s)" in str(exc_info.value)
 
 
@@ -385,10 +376,7 @@ async def test_apply_discriminator_exclude_one_user(
             "discriminator_values": discriminator_values,
         }
     )
-    context: Context = {
-        "user_context": {"ldap_connection": ldap_connection, "settings": settings}
-    }
-    result = await apply_discriminator(context, {ldap_dn})
+    result = await apply_discriminator(settings, ldap_connection, {ldap_dn})
     assert result == expected
 
 
@@ -421,11 +409,8 @@ async def test_apply_discriminator_exclude_none(
             "discriminator_values": ["foo_sn"],
         }
     )
-    context: Context = {
-        "user_context": {"ldap_connection": ldap_connection, "settings": settings}
-    }
     with capture_logs() as cap_logs:
-        result = await apply_discriminator(context, {another_ldap_dn})
+        result = await apply_discriminator(settings, ldap_connection, {another_ldap_dn})
     events = [x["event"] for x in cap_logs if x["log_level"] != "debug"]
     assert events == ["Found DN", "Discriminator value is None"]
 

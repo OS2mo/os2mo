@@ -305,7 +305,9 @@ def get_ldap_attributes(ldap_connection: Connection, root_ldap_object: str):
     return all_attributes
 
 
-async def apply_discriminator(context: Context, dns: set[DN]) -> DN | None:
+async def apply_discriminator(
+    settings: Settings, ldap_connection: Connection, dns: set[DN]
+) -> DN | None:
     """Find the account to synchronize from a set of DNs.
 
     The DNs are evaluated depending on the configuration of the discriminator.
@@ -321,10 +323,6 @@ async def apply_discriminator(context: Context, dns: set[DN]) -> DN | None:
         The account to synchronize (if any).
     """
     assert isinstance(dns, set)
-
-    user_context = context["user_context"]
-    settings: Settings = user_context["settings"]
-    ldap_connection = user_context["ldap_connection"]
 
     # Empty input-set means we have no accounts to consider
     if not dns:
