@@ -392,38 +392,35 @@ async def apply_discriminator(
     # All values must be strings as they are being compared with strings
     assert all(isinstance(value, str) for value in mapping.values())
 
+    discriminator_values = settings.discriminator_values
     # If the discriminator_function is exclude, discriminator_values will be a
     # list of disallowed values, and we will want to find an account that does not
     # have any of these disallowed values whatsoever.
     # NOTE: We assume that at most one such account exists.
     if settings.discriminator_function == "exclude":
         return only(
-            {
-                dn
-                for dn, value in mapping.items()
-                if value not in settings.discriminator_values
-            }
+            {dn for dn, value in mapping.items() if value not in discriminator_values}
         )
+
     if settings.discriminator_function == "include":
         # If the discriminator_function is include, discriminator_values will be a
         # prioritized list of values (first meaning most important), and we will want
         # to find the best (most important) account.
         # NOTE: We assume that no two accounts are equally important.
-        for value in settings.discriminator_values:
-            dns_with_value = {
-                dn for dn, dn_value in mapping.items() if dn_value == value
-            }
-            if dns_with_value:
-                return one(dns_with_value)
-        return None
+        # This is implemented using our template system below, so we simply wrap our
+        # values into simple jinja-templates.
+        discriminator_values = [
+            '{{ value == "' + str(dn_value) + '" }}'
+            for dn_value in discriminator_values
+        ]
 
-    assert settings.discriminator_function == "template"
+    assert settings.discriminator_function in ["include", "template"]
     # If the discriminator_function is template, discriminator values will be a
     # prioritized list of jinja templates (first meaning most important), and we will
     # want to find the best (most important) account.
     # We do this by evaluating the jinja template and looking for outcomes with "True".
     # NOTE: We assume no two accounts are equally important.
-    for discriminator in settings.discriminator_values:
+    for discriminator in discriminator_values:
         template = Template(discriminator)
         dns_passing_template = {
             dn
