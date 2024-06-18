@@ -927,7 +927,8 @@ class DataLoader:
                 "search_scope": BASE,
             }
 
-        search_result = await single_object_search(searchParameters, self.context)
+        ldap_connection = self.context["user_context"]["ldap_connection"]
+        search_result = await single_object_search(searchParameters, ldap_connection)
         dn: str = search_result["dn"]
         return dn
 

@@ -578,7 +578,8 @@ async def object_search(
 
 
 async def single_object_search(
-    searchParameters: dict[str, Any], context: Context
+    searchParameters: dict[str, Any],
+    ldap_connection: Connection,
 ) -> dict[str, Any]:
     """Performs an LDAP search and ensure that it returns one result.
 
@@ -603,7 +604,6 @@ async def single_object_search(
     Returns:
         The found object.
     """
-    ldap_connection = context["user_context"]["ldap_connection"]
     search_entries = await object_search(searchParameters, ldap_connection)
 
     too_long_exception = MultipleObjectsReturnedException(
@@ -658,7 +658,8 @@ async def get_ldap_object(
         "attributes": attributes,
         "search_scope": BASE,
     }
-    search_result = await single_object_search(searchParameters, context)
+    ldap_connection = context["user_context"]["ldap_connection"]
+    search_result = await single_object_search(searchParameters, ldap_connection)
     dn = search_result["dn"]
     logger.info("Found DN", dn=dn)
     return await make_ldap_object(search_result, context, nest=nest)
