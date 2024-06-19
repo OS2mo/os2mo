@@ -235,8 +235,8 @@ class IgnoreMe:
 
 
 def with_exitstack(
-    func: Callable[..., Awaitable[None]],
-) -> Callable[..., Awaitable[None]]:
+    func: Callable[..., Awaitable[T]],
+) -> Callable[..., Awaitable[T]]:
     """Inject an exit-stack into decorated function.
 
     Args:
@@ -358,7 +358,7 @@ class SyncTool:
         uuid: EmployeeUUID,
         dn: DN,
         mo_object_dict: MutableMapping[str, Any],
-    ) -> None:
+    ) -> LdapObject:
         """Synchronize employee person from MO to LDAP.
 
         Args:
@@ -371,25 +371,14 @@ class SyncTool:
         # Convert to LDAP
         ldap_employee = await self.converter.to_ldap(mo_object_dict, "Employee", dn)
         ldap_employee = await self.move_ldap_object(ldap_employee, dn)
-
-        # We do not generally terminate people in MO
-        delete = False
-
-        # Upload to LDAP - overwrite because all employee fields are unique.
-        # One person cannot have multiple names.
-        await self.dataloader.modify_ldap_object(
-            ldap_employee,
-            "Employee",
-            overwrite=True,
-            delete=delete,
-        )
+        return ldap_employee
 
     async def mo_address_to_ldap(
         self,
         uuid: EmployeeUUID,
         dn: DN,
         mo_object_dict: MutableMapping[str, Any],
-    ) -> None:
+    ) -> dict[str, tuple[LdapObject, bool]]:
         """Synchronize employee addresses from MO to LDAP.
 
         Args:
@@ -406,7 +395,7 @@ class SyncTool:
             and not hasattr(mapping, "org_unit")
         }
         if not mapped_address_types:
-            return None
+            return {}
         # Get MO addresses
         result = await self.dataloader.graphql_client.read_filtered_addresses(
             AddressFilter(
@@ -436,7 +425,7 @@ class SyncTool:
         #       that should be resolved instead.
         # TODO: Consider partitioning by the above set overlap into creates, modify
         #       and deletes directly.
-
+        result_map = {}
         for address_type, addresses in address_map.items():
             # At most one address of each type should exist, as we only map one
             # If more exists, our program either sucks or someone else did it
@@ -480,17 +469,15 @@ class SyncTool:
             )
             # Convert & Upload to LDAP
             ldap_object = await self.converter.to_ldap(template_dict, address_type, dn)
-            ldap_object = await self.move_ldap_object(ldap_object, dn)
-            await self.dataloader.modify_ldap_object(
-                ldap_object, address_type, delete=delete
-            )
+            result_map[address_type] = (ldap_object, delete)
+        return result_map
 
     async def mo_org_unit_address_to_ldap(
         self,
         uuid: EmployeeUUID,
         dn: DN,
         mo_object_dict: MutableMapping[str, Any],
-    ) -> None:
+    ) -> dict[str, tuple[LdapObject, bool]]:
         """Synchronize org-unit addresses from MO to LDAP.
 
         Args:
@@ -504,7 +491,7 @@ class SyncTool:
             self.dataloader.graphql_client, uuid
         )
         if primary_engagement_uuid is None:
-            return None
+            return {}
 
         # When mapping addresses, the key is the user-key of the address type
         mapped_address_types = {
@@ -514,7 +501,7 @@ class SyncTool:
             and hasattr(mapping, "org_unit")
         }
         if not mapped_address_types:
-            return None
+            return {}
         # Get MO addresses
         result = await self.dataloader.graphql_client.read_filtered_addresses(
             AddressFilter(
@@ -547,7 +534,7 @@ class SyncTool:
         #       that should be resolved instead.
         # TODO: Consider partitioning by the above set overlap into creates, modify
         #       and deletes directly.
-
+        result_map = {}
         for address_type, addresses in address_map.items():
             # TODO: Not entirely sure why this is an invariant, it is merely retained
             # TODO: Check this statically, as it does not depend on data at all
@@ -603,17 +590,15 @@ class SyncTool:
             )
             # Convert & Upload to LDAP
             ldap_object = await self.converter.to_ldap(template_dict, address_type, dn)
-            ldap_object = await self.move_ldap_object(ldap_object, dn)
-            await self.dataloader.modify_ldap_object(
-                ldap_object, address_type, delete=delete
-            )
+            result_map[address_type] = (ldap_object, delete)
+        return result_map
 
     async def mo_ituser_to_ldap(
         self,
         uuid: EmployeeUUID,
         dn: DN,
         mo_object_dict: MutableMapping[str, Any],
-    ) -> None:
+    ) -> dict[str, tuple[LdapObject, bool]]:
         """Synchronize employee itusers from MO to LDAP.
 
         Args:
@@ -628,7 +613,7 @@ class SyncTool:
             if mapping.objectClass == "ramodels.mo.details.it_system.ITUser"
         }
         if not mapped_itsystems:
-            return None
+            return {}
         # Get MO ITUsers
         result = await self.dataloader.graphql_client.read_filtered_itusers(
             ITUserFilter(
@@ -658,7 +643,7 @@ class SyncTool:
         #       that should be resolved instead.
         # TODO: Consider partitioning by the above set overlap into creates, modify
         #       and deletes directly.
-
+        result_map = {}
         for itsystem, itusers in ituser_map.items():
             # At most one ituser of each type should exist, as we only map one
             # If more exists, our program either sucks or someone else did it
@@ -700,25 +685,23 @@ class SyncTool:
             logger.info("Obtained ituser", itsystem=itsystem, uuid=changed_ituser.uuid)
             # Convert & Upload to LDAP
             ldap_object = await self.converter.to_ldap(template_dict, itsystem, dn)
-            ldap_object = await self.move_ldap_object(ldap_object, dn)
-            await self.dataloader.modify_ldap_object(
-                ldap_object, itsystem, delete=delete
-            )
+            result_map[itsystem] = (ldap_object, delete)
+        return result_map
 
     async def mo_engagement_to_ldap(
         self,
         uuid: EmployeeUUID,
         dn: DN,
         mo_object_dict: dict[str, Any],
-    ) -> None:
+    ) -> dict[str, tuple[LdapObject, bool]]:
         primary_engagement_uuid = await get_primary_engagement(
             self.dataloader.graphql_client, uuid
         )
         if primary_engagement_uuid is None:
-            return None
+            return {}
 
         if "Engagement" not in self.settings.conversion_mapping.ldap_to_mo.keys():
-            return None
+            return {}
 
         await self.perform_export_checks(uuid, primary_engagement_uuid)
 
@@ -736,12 +719,11 @@ class SyncTool:
 
         # Convert & Upload to LDAP
         ldap_object = await self.converter.to_ldap(template_dict, "Engagement", dn)
-        ldap_object = await self.move_ldap_object(ldap_object, dn)
-        await self.dataloader.modify_ldap_object(
-            ldap_object, "Engagement", delete=delete
-        )
+        return {"Engagement": (ldap_object, delete)}
 
-    async def _find_best_dn(self, uuid: EmployeeUUID) -> DN | None:
+    async def _find_best_dn(
+        self, uuid: EmployeeUUID, dry_run: bool = False
+    ) -> DN | None:
         user_context = self.context["user_context"]
         settings = user_context["settings"]
         ldap_connection = user_context["ldap_connection"]
@@ -761,6 +743,10 @@ class SyncTool:
             )
             return None
 
+        # If dry-running we do not want to generate real DNs in LDAP
+        if dry_run:
+            return "CN=Dry run,DC=example,DC=com"
+
         # If we did not find DNs, we want to make one
         try:
             best_dn = await self.dataloader.make_mo_employee_dn(uuid)
@@ -775,7 +761,8 @@ class SyncTool:
         self,
         uuid: EmployeeUUID,
         exit_stack: ExitStack,
-    ) -> None:
+        dry_run: bool = False,
+    ) -> dict[str, tuple[LdapObject, bool]]:
         """Synchronize employee data from MO to LDAP.
 
         Args:
@@ -785,9 +772,9 @@ class SyncTool:
         exit_stack.enter_context(bound_contextvars(uuid=str(uuid)))
         logger.info("Registered change in an employee")
 
-        best_dn = await self._find_best_dn(uuid)
+        best_dn = await self._find_best_dn(uuid, dry_run=dry_run)
         if best_dn is None:
-            return
+            return {}
 
         exit_stack.enter_context(bound_contextvars(dn=best_dn))
 
@@ -803,11 +790,40 @@ class SyncTool:
 
         mo_object_dict: dict[str, Any] = {"mo_employee": changed_employee}
 
-        await self.mo_person_to_ldap(uuid, best_dn, mo_object_dict)
-        await self.mo_address_to_ldap(uuid, best_dn, mo_object_dict)
-        await self.mo_org_unit_address_to_ldap(uuid, best_dn, mo_object_dict)
-        await self.mo_ituser_to_ldap(uuid, best_dn, mo_object_dict)
-        await self.mo_engagement_to_ldap(uuid, best_dn, mo_object_dict)
+        ldap_employee = await self.mo_person_to_ldap(uuid, best_dn, mo_object_dict)
+        person_addresses = await self.mo_address_to_ldap(uuid, best_dn, mo_object_dict)
+        org_unit_addresses = await self.mo_org_unit_address_to_ldap(
+            uuid, best_dn, mo_object_dict
+        )
+        itusers = await self.mo_ituser_to_ldap(uuid, best_dn, mo_object_dict)
+        engagements = await self.mo_engagement_to_ldap(uuid, best_dn, mo_object_dict)
+
+        changes = {**person_addresses, **org_unit_addresses, **itusers, **engagements}
+        all_changes = {"Employee": (ldap_employee, False), **changes}
+
+        # If dry-running we do not want to makes changes in LDAP
+        if dry_run:
+            return all_changes
+
+        # Upload person to LDAP
+        await self.dataloader.modify_ldap_object(
+            ldap_employee,
+            "Employee",
+            # Overwrite because all employee fields are unique.
+            # One person cannot have multiple names.
+            overwrite=True,
+            # We do not generally terminate people in MO
+            delete=False,
+        )
+
+        # Upload changes
+        for json_key, (ldap_object, delete) in changes.items():
+            ldap_object = await self.move_ldap_object(ldap_object, best_dn)
+            await self.dataloader.modify_ldap_object(
+                ldap_object, json_key, delete=delete
+            )
+
+        return all_changes
 
     async def publish_engagements_for_org_unit(self, uuid: OrgUnitUUID) -> None:
         """Publish events for all engagements attached to an org unit.

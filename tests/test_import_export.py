@@ -121,10 +121,12 @@ async def test_listen_to_changes_in_employees_person(
     converter: MagicMock,
 ) -> None:
     # Ignore all changes, but person changes
-    sync_tool.mo_address_to_ldap = AsyncMock()  # type: ignore
-    sync_tool.mo_org_unit_address_to_ldap = AsyncMock()  # type: ignore
-    sync_tool.mo_ituser_to_ldap = AsyncMock()  # type: ignore
-    sync_tool.mo_engagement_to_ldap = AsyncMock()  # type: ignore
+    no_changes_async_mock = AsyncMock()
+    no_changes_async_mock.return_value = {}
+    sync_tool.mo_address_to_ldap = no_changes_async_mock  # type: ignore
+    sync_tool.mo_org_unit_address_to_ldap = no_changes_async_mock  # type: ignore
+    sync_tool.mo_ituser_to_ldap = no_changes_async_mock  # type: ignore
+    sync_tool.mo_engagement_to_ldap = no_changes_async_mock  # type: ignore
 
     converted_ldap_object = LdapObject(dn="CN=foo")
     converter.to_ldap.return_value = converted_ldap_object
@@ -151,10 +153,12 @@ async def test_listen_to_changes_in_employees_org_unit_address(
     graphql_mock: GraphQLMocker,
 ) -> None:
     # Ignore all changes, but address changes
-    sync_tool.mo_person_to_ldap = AsyncMock()  # type: ignore
-    sync_tool.mo_address_to_ldap = AsyncMock()  # type: ignore
-    sync_tool.mo_ituser_to_ldap = AsyncMock()  # type: ignore
-    sync_tool.mo_engagement_to_ldap = AsyncMock()  # type: ignore
+    no_changes_async_mock = AsyncMock()
+    no_changes_async_mock.return_value = {}
+    sync_tool.mo_person_to_ldap = no_changes_async_mock  # type: ignore
+    sync_tool.mo_address_to_ldap = no_changes_async_mock  # type: ignore
+    sync_tool.mo_ituser_to_ldap = no_changes_async_mock  # type: ignore
+    sync_tool.mo_engagement_to_ldap = no_changes_async_mock  # type: ignore
 
     converted_ldap_object = LdapObject(dn="CN=foo")
     converter.to_ldap.return_value = converted_ldap_object
@@ -235,7 +239,9 @@ async def test_listen_to_changes_in_employees_org_unit_address(
     read_engagements_is_primary_route.result = {"engagements": {"objects": []}}
     await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert read_engagements_is_primary_route.called
-    dataloader.modify_ldap_object.assert_not_called()
+    dataloader.modify_ldap_object.assert_called_once_with(
+        {}, "Employee", overwrite=True, delete=False
+    )
 
     read_engagements_is_primary_route.result = read_engagements_is_primary_result
 
@@ -289,10 +295,12 @@ async def test_listen_to_changes_in_employees_address(
     graphql_mock: GraphQLMocker,
 ) -> None:
     # Ignore all changes, but address changes
-    sync_tool.mo_person_to_ldap = AsyncMock()  # type: ignore
-    sync_tool.mo_org_unit_address_to_ldap = AsyncMock()  # type: ignore
-    sync_tool.mo_ituser_to_ldap = AsyncMock()  # type: ignore
-    sync_tool.mo_engagement_to_ldap = AsyncMock()  # type: ignore
+    no_changes_async_mock = AsyncMock()
+    no_changes_async_mock.return_value = {}
+    sync_tool.mo_person_to_ldap = no_changes_async_mock  # type: ignore
+    sync_tool.mo_org_unit_address_to_ldap = no_changes_async_mock  # type: ignore
+    sync_tool.mo_ituser_to_ldap = no_changes_async_mock  # type: ignore
+    sync_tool.mo_engagement_to_ldap = no_changes_async_mock  # type: ignore
 
     converted_ldap_object = LdapObject(dn="CN=foo")
     converter.to_ldap.return_value = converted_ldap_object
@@ -396,10 +404,12 @@ async def test_listen_to_changes_in_employees_ituser(
     graphql_mock: GraphQLMocker,
 ) -> None:
     # Ignore all changes, but ituser changes
-    sync_tool.mo_person_to_ldap = AsyncMock()  # type: ignore
-    sync_tool.mo_address_to_ldap = AsyncMock()  # type: ignore
-    sync_tool.mo_org_unit_address_to_ldap = AsyncMock()  # type: ignore
-    sync_tool.mo_engagement_to_ldap = AsyncMock()  # type: ignore
+    no_changes_async_mock = AsyncMock()
+    no_changes_async_mock.return_value = {}
+    sync_tool.mo_person_to_ldap = no_changes_async_mock  # type: ignore
+    sync_tool.mo_address_to_ldap = no_changes_async_mock  # type: ignore
+    sync_tool.mo_org_unit_address_to_ldap = no_changes_async_mock  # type: ignore
+    sync_tool.mo_engagement_to_ldap = no_changes_async_mock  # type: ignore
 
     converted_ldap_object = LdapObject(dn="CN=foo")
     converter.to_ldap.return_value = converted_ldap_object
@@ -501,10 +511,12 @@ async def test_listen_to_changes_in_employees_engagement(
     graphql_mock: GraphQLMocker,
 ) -> None:
     # Ignore all changes, but engagement changes
-    sync_tool.mo_person_to_ldap = AsyncMock()  # type: ignore
-    sync_tool.mo_address_to_ldap = AsyncMock()  # type: ignore
-    sync_tool.mo_org_unit_address_to_ldap = AsyncMock()  # type: ignore
-    sync_tool.mo_ituser_to_ldap = AsyncMock()  # type: ignore
+    no_changes_async_mock = AsyncMock()
+    no_changes_async_mock.return_value = {}
+    sync_tool.mo_person_to_ldap = no_changes_async_mock  # type: ignore
+    sync_tool.mo_address_to_ldap = no_changes_async_mock  # type: ignore
+    sync_tool.mo_org_unit_address_to_ldap = no_changes_async_mock  # type: ignore
+    sync_tool.mo_ituser_to_ldap = no_changes_async_mock  # type: ignore
 
     converted_ldap_object = LdapObject(dn="CN=foo")
     converter.to_ldap.return_value = converted_ldap_object
