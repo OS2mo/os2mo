@@ -1802,3 +1802,13 @@ async def test_get_primary_engagement(
         assert result == expected
 
     assert route.called
+
+
+async def test_find_best_dn(sync_tool: SyncTool) -> None:
+    dn = "CN=foo"
+    sync_tool.dataloader.find_mo_employee_dn.return_value = set()  # type: ignore
+    sync_tool.dataloader.make_mo_employee_dn.return_value = dn  # type: ignore
+
+    uuid = EmployeeUUID(uuid4())
+    result = await sync_tool._find_best_dn(uuid)
+    assert result == dn

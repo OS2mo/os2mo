@@ -741,6 +741,35 @@ class SyncTool:
             ldap_object, "Engagement", delete=delete
         )
 
+    async def _find_best_dn(self, uuid: EmployeeUUID) -> DN | None:
+        user_context = self.context["user_context"]
+        settings = user_context["settings"]
+        ldap_connection = user_context["ldap_connection"]
+
+        dns = await self.dataloader.find_mo_employee_dn(uuid)
+        # If we found DNs, we want to synchronize to the best of them
+        if dns:
+            logger.info("Found DNs for user", dns=dns, uuid=uuid)
+            best_dn = await apply_discriminator(settings, ldap_connection, dns)
+            # If no good LDAP account was found, we do not want to synchronize at all
+            if best_dn:
+                return best_dn
+            logger.warning(
+                "Aborting synchronization, as no good LDAP account was found",
+                dns=dns,
+                uuid=uuid,
+            )
+            return None
+
+        # If we did not find DNs, we want to make one
+        try:
+            best_dn = await self.dataloader.make_mo_employee_dn(uuid)
+        except DNNotFound:
+            # If this occurs we were unable to generate a DN for the user
+            logger.error("Unable to generate DN")
+            raise RequeueMessage("Unable to generate DN")
+        return best_dn
+
     @with_exitstack
     async def listen_to_changes_in_employees(
         self,
@@ -753,34 +782,12 @@ class SyncTool:
             uuid: UUID of the changed employee.
             exit_stack: The injected exit-stack.
         """
-        user_context = self.context["user_context"]
-        settings = user_context["settings"]
-        ldap_connection = user_context["ldap_connection"]
-
         exit_stack.enter_context(bound_contextvars(uuid=str(uuid)))
         logger.info("Registered change in an employee")
 
-        dns = await self.dataloader.find_mo_employee_dn(uuid)
-        # If we found DNs, we want to synchronize to the best of them
-        if dns:
-            logger.info("Found DNs for user", dns=dns, uuid=uuid)
-            best_dn = await apply_discriminator(settings, ldap_connection, dns)
-            # If no good LDAP account was found, we do not want to synchronize at all
-            if best_dn is None:
-                logger.warning(
-                    "Aborting synchronization, as no good LDAP account was found",
-                    dns=dns,
-                    uuid=uuid,
-                )
-                return
-        else:
-            # If we did not find DNs, we want to make one
-            try:
-                best_dn = await self.dataloader.make_mo_employee_dn(uuid)
-            except DNNotFound:
-                # If this occurs we were unable to generate a DN for the user
-                logger.error("Unable to generate DN")
-                raise RequeueMessage("Unable to generate DN")
+        best_dn = await self._find_best_dn(uuid)
+        if best_dn is None:
+            return
 
         exit_stack.enter_context(bound_contextvars(dn=best_dn))
 
