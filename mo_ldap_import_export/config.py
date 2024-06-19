@@ -492,9 +492,9 @@ class Settings(BaseSettings):
         None, description="The field to look for discriminator values in"
     )
 
-    discriminator_function: Literal["exclude", "include", None] = Field(
+    discriminator_function: Literal["exclude", "include", "template", None] = Field(
         None,
-        description="The type of discriminator function, either include or exclude",
+        description="The type of discriminator function, either exclude, include or template",
     )
 
     discriminator_values: list[str] = Field(

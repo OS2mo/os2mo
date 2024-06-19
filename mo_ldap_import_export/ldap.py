@@ -20,6 +20,7 @@ from fastramqpi.context import Context
 from fastramqpi.depends import UserContext
 from fastramqpi.ramqp import AMQPSystem
 from fastramqpi.ramqp.utils import RequeueMessage
+from jinja2 import Template
 from ldap3 import ASYNC
 from ldap3 import BASE
 from ldap3 import Connection
@@ -346,13 +347,9 @@ async def apply_discriminator(
     #       See: https://stackoverflow.com/a/58834059
     try:
         attributes = [discriminator_field]
-        # TODO: This should really be an asyncio.gather, but LDAP reading is not
-        #       currently async, but rather blocks the entire event-loop all the time.
-        #       #59422 tracks this issue, and once resolved this code can be fixed.
-        ldap_objects = [
-            await get_ldap_object(dn, ldap_connection, attributes=attributes)
-            for dn in dns
-        ]
+        ldap_objects = await asyncio.gather(
+            *[get_ldap_object(dn, ldap_connection, attributes=attributes) for dn in dns]
+        )
     except NoObjectsReturnedException as exc:
         # There could be multiple reasons why our DNs cannot be read.
         # * The DNs could have been found by CPR number and changed since then.
@@ -395,28 +392,44 @@ async def apply_discriminator(
     # All values must be strings as they are being compared with strings
     assert all(isinstance(value, str) for value in mapping.values())
 
+    discriminator_values = settings.discriminator_values
     # If the discriminator_function is exclude, discriminator_values will be a
     # list of disallowed values, and we will want to find an account that does not
     # have any of these disallowed values whatsoever.
     # NOTE: We assume that at most one such account exists.
     if settings.discriminator_function == "exclude":
         return only(
-            {
-                dn
-                for dn, value in mapping.items()
-                if value not in settings.discriminator_values
-            }
+            {dn for dn, value in mapping.items() if value not in discriminator_values}
         )
 
-    assert settings.discriminator_function == "include"
-    # If the discriminator_function is include, discriminator_values will be a
-    # prioritized list of values (first meaning most important), and we will want
-    # to find the best (most important) account.
-    # NOTE: We assume that no two accounts are equally important.
-    for value in settings.discriminator_values:
-        dns_with_value = {dn for dn, dn_value in mapping.items() if dn_value == value}
-        if dns_with_value:
-            return one(dns_with_value)
+    if settings.discriminator_function == "include":
+        # If the discriminator_function is include, discriminator_values will be a
+        # prioritized list of values (first meaning most important), and we will want
+        # to find the best (most important) account.
+        # NOTE: We assume that no two accounts are equally important.
+        # This is implemented using our template system below, so we simply wrap our
+        # values into simple jinja-templates.
+        discriminator_values = [
+            '{{ value == "' + str(dn_value) + '" }}'
+            for dn_value in discriminator_values
+        ]
+
+    assert settings.discriminator_function in ["include", "template"]
+    # If the discriminator_function is template, discriminator values will be a
+    # prioritized list of jinja templates (first meaning most important), and we will
+    # want to find the best (most important) account.
+    # We do this by evaluating the jinja template and looking for outcomes with "True".
+    # NOTE: We assume no two accounts are equally important.
+    for discriminator in discriminator_values:
+        template = Template(discriminator)
+        dns_passing_template = {
+            dn
+            for dn, dn_value in mapping.items()
+            if template.render(dn=dn, value=dn_value).strip() == "True"
+        }
+        if dns_passing_template:
+            return one(dns_passing_template)
+
     return None
 
 

@@ -17,6 +17,7 @@ from ldap3 import Connection
 from ldap3 import MOCK_ASYNC
 from ldap3 import SUBTREE
 from more_itertools import one
+from pydantic import parse_obj_as
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.config import Settings
@@ -32,6 +33,7 @@ from mo_ldap_import_export.ldap import construct_server_pool
 from mo_ldap_import_export.ldap import get_ldap_object
 from mo_ldap_import_export.ldap import ldap_compare
 from mo_ldap_import_export.ldap import wait_for_message_id
+from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.types import DN
 from tests.graphql_mocker import GraphQLMocker
 
@@ -812,3 +814,67 @@ async def test_ldap_compare_mock():
     with pytest.raises(ValueError) as exc_info:
         await ldap_compare(ldap_connection, "dn", "attribute", "value")
     assert "Unknown comparison result" in str(exc_info.value)
+
+
+@pytest.mark.parametrize(
+    "field,dn_map,template,expected",
+    [
+        # Check no template matches
+        ("dn", {"CN=foo": {}, "CN=bar": {}}, "{{ False }}", None),
+        ("dn", {"CN=foo": {}, "CN=bar": {}}, "{{ PleaseHelpMe }}", None),
+        # Check dn is specific value
+        ("dn", {"CN=foo": {}, "CN=bar": {}}, "{{ dn == 'CN=foo'}}", "CN=foo"),
+        ("dn", {"CN=foo": {}, "CN=bar": {}}, "{{ dn == 'CN=bar' }}", "CN=bar"),
+        # Check SN value
+        (
+            "sn",
+            {"CN=foo": {"sn": "foo"}, "CN=bar": {"sn": "bar"}},
+            "{{ value == 'foo'}}",
+            "CN=foo",
+        ),
+        (
+            "sn",
+            {"CN=foo": {"sn": "foo"}, "CN=bar": {"sn": "bar"}},
+            "{{ value == 'bar' }}",
+            "CN=bar",
+        ),
+        # Check SN substring
+        (
+            "sn",
+            {"CN=foo": {"sn": "something foo maybe"}, "CN=bar": {"sn": "bar"}},
+            "{{ 'foo' in value }}",
+            "CN=foo",
+        ),
+        # Check SN even
+        (
+            "sn",
+            {"CN=foo": {"sn": "1"}, "CN=bar": {"sn": "3"}, "CN=baz": {"sn": "0"}},
+            "{{ value|int % 2 == 0 }}",
+            "CN=baz",
+        ),
+    ],
+)
+async def test_apply_discriminator_template(
+    settings: Settings,
+    field: str,
+    dn_map: dict[DN, dict[str, Any]],
+    template: str,
+    expected: DN | None,
+) -> None:
+    settings = settings.copy(
+        update={
+            "discriminator_field": field,
+            "discriminator_function": "template",
+            "discriminator_values": [template],
+        }
+    )
+    ldap_connection = AsyncMock()
+
+    async def get_ldap_object(dn: DN, *args: Any, **kwargs: Any) -> LdapObject:
+        return parse_obj_as(LdapObject, {"dn": dn, **dn_map[dn]})
+
+    with patch("mo_ldap_import_export.ldap.get_ldap_object", wraps=get_ldap_object):
+        result = await apply_discriminator(
+            settings, ldap_connection, set(dn_map.keys())
+        )
+        assert result == expected
