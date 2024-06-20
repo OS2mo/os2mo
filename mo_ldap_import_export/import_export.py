@@ -405,6 +405,8 @@ class SyncTool:
             if mapping.objectClass == "ramodels.mo.details.address.Address"
             and not hasattr(mapping, "org_unit")
         }
+        if not mapped_address_types:
+            return None
         # Get MO addresses
         result = await self.dataloader.graphql_client.read_filtered_addresses(
             AddressFilter(
@@ -511,6 +513,8 @@ class SyncTool:
             if mapping.objectClass == "ramodels.mo.details.address.Address"
             and hasattr(mapping, "org_unit")
         }
+        if not mapped_address_types:
+            return None
         # Get MO addresses
         result = await self.dataloader.graphql_client.read_filtered_addresses(
             AddressFilter(
@@ -623,6 +627,8 @@ class SyncTool:
             for key, mapping in self.settings.conversion_mapping.ldap_to_mo.items()
             if mapping.objectClass == "ramodels.mo.details.it_system.ITUser"
         }
+        if not mapped_itsystems:
+            return None
         # Get MO ITUsers
         result = await self.dataloader.graphql_client.read_filtered_itusers(
             ITUserFilter(
@@ -709,6 +715,9 @@ class SyncTool:
             self.dataloader.graphql_client, uuid
         )
         if primary_engagement_uuid is None:
+            return None
+
+        if "Engagement" not in self.settings.conversion_mapping.ldap_to_mo.keys():
             return None
 
         await self.perform_export_checks(uuid, primary_engagement_uuid)

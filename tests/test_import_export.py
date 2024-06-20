@@ -211,7 +211,18 @@ async def test_listen_to_changes_in_employees_org_unit_address(
         }
     }
 
-    # Test: happy-path
+    # Test no mapping configured
+    await sync_tool.listen_to_changes_in_employees(employee_uuid)
+    assert not route.called
+
+    # Setup mapping configuration
+    location_unit_mapping = MagicMock()
+    location_unit_mapping.objectClass = "ramodels.mo.details.address.Address"
+    sync_tool.settings.conversion_mapping.ldap_to_mo = {
+        "LocationUnit": location_unit_mapping
+    }
+
+    # Test happy path
     await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert read_engagements_is_primary_route.called
     assert route.called
@@ -317,6 +328,19 @@ async def test_listen_to_changes_in_employees_address(
         }
     }
 
+    # Test no mapping configured
+    await sync_tool.listen_to_changes_in_employees(employee_uuid)
+    assert not route.called
+
+    # Setup mapping configuration
+    email_employee_mapping = MagicMock()
+    email_employee_mapping.objectClass = "ramodels.mo.details.address.Address"
+    del email_employee_mapping.org_unit
+    sync_tool.settings.conversion_mapping.ldap_to_mo = {
+        "EmailEmployee": email_employee_mapping
+    }
+
+    # Test happy path
     await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert route.called
     dataloader.modify_ldap_object.assert_called_with(
@@ -412,6 +436,16 @@ async def test_listen_to_changes_in_employees_ituser(
         }
     }
 
+    # Test no mapping configured
+    await sync_tool.listen_to_changes_in_employees(employee_uuid)
+    assert not route.called
+
+    # Setup mapping configuration
+    ad_mapping = MagicMock()
+    ad_mapping.objectClass = "ramodels.mo.details.it_system.ITUser"
+    sync_tool.settings.conversion_mapping.ldap_to_mo = {"AD": ad_mapping}
+
+    # Test happy path
     await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert route.called
     dataloader.modify_ldap_object.assert_called_with(
@@ -536,6 +570,14 @@ async def test_listen_to_changes_in_employees_engagement(
         }
     }
 
+    # Test no mapping configured
+    await sync_tool.listen_to_changes_in_employees(employee_uuid)
+    assert not route2.called
+
+    # Setup mapping configuration
+    sync_tool.settings.conversion_mapping.ldap_to_mo = {"Engagement": MagicMock()}
+
+    # Test happy path
     await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert route1.called
     assert route2.called
