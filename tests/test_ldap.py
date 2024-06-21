@@ -270,14 +270,48 @@ def test_get_client_strategy() -> None:
     assert strategy == "ASYNC"
 
 
-async def test_ldap_healthcheck(ldap_connection: MagicMock) -> None:
-    for bound in [True, False]:
-        ldap_connection.bound = bound
-        context = {"user_context": {"ldap_connection": ldap_connection}}
+@pytest.mark.parametrize("bound", [True, False])
+@pytest.mark.parametrize("listening", [True, False])
+@pytest.mark.parametrize("closed", [True, False])
+@pytest.mark.parametrize("result_type", ["searchResDone", "operationsError"])
+@pytest.mark.parametrize("description", ["success", "failure"])
+async def test_ldap_healthcheck(
+    ldap_connection: MagicMock,
+    bound: bool,
+    listening: bool,
+    closed: bool,
+    result_type: str,
+    description: str,
+) -> None:
+    result = {"type": result_type, "description": description}
 
-        check = await ldap_healthcheck(context)
+    ldap_connection.get_response.return_value = [{}], result
+    ldap_connection.bound = bound
+    ldap_connection.listening = listening
+    ldap_connection.closed = closed
+    context = {"user_context": {"ldap_connection": ldap_connection}}
 
-        assert check == bound
+    check = await ldap_healthcheck(context)
+    all_ok = (
+        bound
+        and listening
+        and not closed
+        and result_type == "searchResDone"
+        and description == "success"
+    )
+    assert check == all_ok
+
+
+async def test_ldap_healthcheck_exception(ldap_connection: MagicMock) -> None:
+    ldap_connection.get_response.side_effect = ValueError("BOOM")
+    ldap_connection.bound = True
+    ldap_connection.listening = True
+    ldap_connection.closed = False
+
+    context = {"user_context": {"ldap_connection": ldap_connection}}
+
+    check = await ldap_healthcheck(context)
+    assert check is False
 
 
 async def test_is_dn():

@@ -24,6 +24,7 @@ from jinja2 import Template
 from ldap3 import ASYNC
 from ldap3 import BASE
 from ldap3 import Connection
+from ldap3 import NO_ATTRIBUTES
 from ldap3 import NTLM
 from ldap3 import RANDOM
 from ldap3 import Server
@@ -184,8 +185,46 @@ async def ldap_healthcheck(context: dict | Context) -> bool:
     Returns:
         Whether the LDAP connection is OK.
     """
+    logger.debug("Running LDAP healthcheck")
     ldap_connection = context["user_context"]["ldap_connection"]
-    return cast(bool, ldap_connection.bound)
+    if ldap_connection.bound is False:
+        logger.warning("LDAP connection not bound")
+        return False
+    if ldap_connection.listening is False:
+        logger.warning("LDAP connection not listening")
+        return False
+    if ldap_connection.closed is True:
+        logger.warning("LDAP connection not open")
+        return False
+    try:
+        # Try to do a 'SELECT 1' like query, selecting the empty DN
+        response, result = await ldap_search(
+            ldap_connection,
+            search_base="",
+            search_filter="(objectclass=*)",
+            attributes=NO_ATTRIBUTES,
+            search_scope=BASE,
+            size_limit=1,
+        )
+    except Exception:
+        logger.exception("LDAP connection was unable to search")
+        return False
+    if result["type"] != "searchResDone":
+        logger.warning(
+            "LDAP connection search returned unexpected result type",
+            response=response,
+            result=result,
+        )
+        return False
+    if result["description"] != "success":
+        logger.warning(
+            "LDAP connection did not search sucessfully",
+            response=response,
+            result=result,
+        )
+        return False
+    logger.debug("LDAP healthcheck passed", response=response, result=result)
+    return True
 
 
 async def wait_for_message_id(
