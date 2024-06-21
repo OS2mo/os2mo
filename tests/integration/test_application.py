@@ -127,3 +127,37 @@ async def test_endpoint_dn2uuid_and_uuid2dn(
     assert result.status_code == 200
     read_dn = result.json()
     assert read_dn == dn
+
+
+@pytest.mark.integration_test
+async def test_endpoint_fetch_object(
+    test_client: AsyncClient,
+    ldap_dummy_data: str,
+) -> None:
+    dn = ldap_dummy_data
+
+    expected = {
+        "cn": ["Aage Bach Klarskov"],
+        "dn": "uid=abk,ou=os2mo,o=magenta,dc=magenta,dc=dk",
+        "employeeNumber": "2108613133",
+        "givenName": ["Aage"],
+        "mail": ["abk@ad.kolding.dk"],
+        "objectClass": ["top", "person", "organizationalPerson", "inetOrgPerson"],
+        "ou": ["os2mo"],
+        "sn": ["Bach Klarskov"],
+        "title": ["Skole underviser"],
+        "uid": ["abk"],
+        "userPassword": [None],
+    }
+
+    result = await test_client.get(f"/Inspect/dn/{dn}")
+    assert result.status_code == 200
+    assert result.json() == expected
+
+    result = await test_client.get(f"/Inspect/dn2uuid/{dn}")
+    assert result.status_code == 200
+    entry_uuid = UUID(result.json())
+
+    result = await test_client.get(f"/Inspect/uuid/{entry_uuid}")
+    assert result.status_code == 200
+    assert result.json() == expected
