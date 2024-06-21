@@ -411,7 +411,7 @@ class SyncTool:
         result = await self.dataloader.graphql_client.read_filtered_addresses(
             AddressFilter(
                 employee=EmployeeFilter(uuids=[uuid]),
-                address_type=ClassFilter(user_key=mapped_address_types),
+                address_type=ClassFilter(user_keys=mapped_address_types),
                 from_date=None,
                 to_date=None,
             )
@@ -522,7 +522,7 @@ class SyncTool:
                 org_unit=OrganisationUnitFilter(
                     engagement=EngagementFilter(uuids=[primary_engagement_uuid])
                 ),
-                address_type=ClassFilter(user_key=mapped_address_types),
+                address_type=ClassFilter(user_keys=mapped_address_types),
                 from_date=None,
                 to_date=None,
             )
@@ -633,7 +633,7 @@ class SyncTool:
         result = await self.dataloader.graphql_client.read_filtered_itusers(
             ITUserFilter(
                 employee=EmployeeFilter(uuids=[uuid]),
-                itsystem=ITSystemFilter(user_key=mapped_itsystems),
+                itsystem=ITSystemFilter(user_keys=mapped_itsystems),
                 from_date=None,
                 to_date=None,
             )
