@@ -27,6 +27,7 @@ from .input_types import AddressFilter
 from .input_types import AddressTerminateInput
 from .input_types import ClassCreateInput
 from .input_types import ClassUpdateInput
+from .input_types import EmployeeCreateInput
 from .input_types import EngagementFilter
 from .input_types import EngagementTerminateInput
 from .input_types import ITSystemCreateInput
@@ -133,18 +134,18 @@ def gql(q: str) -> str:
 
 class GraphQLClient(AsyncBaseClient):
     async def _testing_user_create(
-        self, given_name: str, surname: str
+        self, input: EmployeeCreateInput
     ) -> TestingUserCreateEmployeeCreate:
         query = gql(
             """
-            mutation __testing_user_create($given_name: String!, $surname: String!) {
-              employee_create(input: {given_name: $given_name, surname: $surname}) {
+            mutation __testing_user_create($input: EmployeeCreateInput!) {
+              employee_create(input: $input) {
                 uuid
               }
             }
             """
         )
-        variables: dict[str, object] = {"given_name": given_name, "surname": surname}
+        variables: dict[str, object] = {"input": input}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingUserCreate.parse_obj(data).employee_create

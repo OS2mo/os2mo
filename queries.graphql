@@ -3,8 +3,8 @@
 
 # Testing queries
 
-mutation __testing_user_create($given_name: String!, $surname: String!) {
-  employee_create(input: {given_name: $given_name, surname: $surname}) {
+mutation __testing_user_create($input: EmployeeCreateInput!) {
+  employee_create(input: $input) {
     uuid
   }
 }
