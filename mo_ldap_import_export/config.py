@@ -105,6 +105,7 @@ def get_required_attributes(mo_class) -> set[str]:
     return set(mo_class.schema()["required"])
 
 
+# TODO: How does this function correlate with the converter one
 def check_attributes(
     detected_attributes: set[str], accepted_attributes: set[str]
 ) -> None:
@@ -430,10 +431,28 @@ class Settings(BaseSettings):
     ldap_auth_method: AuthBackendEnum = Field(
         AuthBackendEnum.NTLM, description="The auth backend to use."
     )
+    ldap_dialect: Literal["Standard", "AD"] = Field(
+        "AD", description="Which LDAP dialect to use"
+    )
     ldap_unique_id_field: str = Field(
-        "objectGUID",
+        "",
         description="Name of the attribute that holds the server-assigned unique identifier. `objectGUID` on Active Directory and `entryUUID` on most standard LDAP implementations (per RFC4530).",
     )
+
+    @root_validator
+    def set_dialect_defaults(cls, values: dict[str, Any]) -> dict[str, Any]:
+        """Root-validator to set LDAP dialect specific defaults.
+
+        This validator exists to ease the configuration of the component if one uses a
+        one of the supported LDAP dialects.
+        """
+        dialect = values.get("ldap_dialect", "UNKNOWN")
+        if dialect == "Standard":
+            values.setdefault("ldap_unique_id_field", "entryUUID")
+        if dialect == "AD":
+            values.setdefault("ldap_unique_id_field", "objectGUID")
+        return values
+
     # NOTE: It appears that this flag does not in fact work
     # See: https://github.com/cannatag/ldap3/issues/1008
     ldap_read_only: bool = Field(

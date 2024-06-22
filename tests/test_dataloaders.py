@@ -1937,8 +1937,9 @@ async def test_add_ldap_object(dataloader: DataLoader) -> None:
     dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to.return_value = False
 
-    await dataloader.add_ldap_object("CN=foo")
-    dataloader.ldap_connection.add.assert_not_called()
+    with pytest.raises(ReadOnlyException) as exc:
+        await dataloader.add_ldap_object("CN=foo")
+    assert "Not allowed to write to the specified OU" in str(exc.value)
 
     dataloader.user_context["settings"].ldap_read_only = True
     with pytest.raises(ReadOnlyException) as exc:

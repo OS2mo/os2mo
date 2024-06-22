@@ -276,3 +276,44 @@ def test_discriminator_settings(monkeypatch: pytest.MonkeyPatch) -> None:
         assert settings.discriminator_field == "xBrugertype"
         assert settings.discriminator_function == "include"
         assert settings.discriminator_values == ["hello"]
+
+
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+def test_dialect_settings(monkeypatch: pytest.MonkeyPatch) -> None:
+    settings = Settings()
+    assert settings.ldap_dialect == "AD"
+    assert settings.ldap_unique_id_field == "objectGUID"
+
+    exc_info: pytest.ExceptionInfo
+
+    with monkeypatch.context() as mpc:
+        mpc.setenv("LDAP_DIALECT", "UNKNOWN")
+        with pytest.raises(ValidationError) as exc_info:
+            Settings()
+        assert "unexpected value; permitted: 'Standard', 'AD'" in str(exc_info.value)
+
+    with monkeypatch.context() as mpc:
+        mpc.setenv("LDAP_DIALECT", "Standard")
+        settings = Settings()
+        assert settings.ldap_dialect == "Standard"
+        assert settings.ldap_unique_id_field == "entryUUID"
+
+    with monkeypatch.context() as mpc:
+        mpc.setenv("LDAP_DIALECT", "AD")
+        settings = Settings()
+        assert settings.ldap_dialect == "AD"
+        assert settings.ldap_unique_id_field == "objectGUID"
+
+    with monkeypatch.context() as mpc:
+        mpc.setenv("LDAP_DIALECT", "Standard")
+        mpc.setenv("ldap_unique_id_field", "myCustomField")
+        settings = Settings()
+        assert settings.ldap_dialect == "Standard"
+        assert settings.ldap_unique_id_field == "myCustomField"
+
+    with monkeypatch.context() as mpc:
+        mpc.setenv("LDAP_DIALECT", "AD")
+        mpc.setenv("ldap_unique_id_field", "myCustomField")
+        settings = Settings()
+        assert settings.ldap_dialect == "AD"
+        assert settings.ldap_unique_id_field == "myCustomField"

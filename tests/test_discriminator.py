@@ -35,6 +35,7 @@ from mo_ldap_import_export.ldap import ldap_compare
 from mo_ldap_import_export.ldap import wait_for_message_id
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.types import DN
+from mo_ldap_import_export.usernames import UserNameGenerator
 from tests.graphql_mocker import GraphQLMocker
 
 
@@ -915,3 +916,43 @@ async def test_apply_discriminator_template(
             settings, ldap_connection, set(dn_map.keys())
         )
         assert result == expected
+
+
+async def test_get_existing_values(sync_tool: SyncTool) -> None:
+    context = sync_tool.context
+    mapping = {
+        "mo_to_ldap": {"Employee": {"objectClass": "user"}},
+        "username_generator": {
+            "objectClass": "UserNameGenerator",
+        },
+    }
+    context["user_context"]["mapping"] = mapping
+
+    username_generator = UserNameGenerator(context)
+
+    result = await username_generator.get_existing_values(["sAMAccountName", "cn"])
+    assert result == {"cn": ["foo"], "sAMAccountName": []}
+
+    result = await username_generator.get_existing_values(["employeeID"])
+    assert result == {"employeeID": ["0101700001"]}
+
+
+async def test_get_existing_names(sync_tool: SyncTool) -> None:
+    context = sync_tool.context
+
+    settings = context["user_context"]["settings"]
+    settings = settings.copy(update={"ldap_dialect": "Standard"})
+    context["user_context"]["settings"] = settings
+
+    mapping = {
+        "mo_to_ldap": {"Employee": {"objectClass": "user"}},
+        "username_generator": {
+            "objectClass": "UserNameGenerator",
+        },
+    }
+    context["user_context"]["mapping"] = mapping
+
+    username_generator = UserNameGenerator(context)
+
+    result = await username_generator._get_existing_names()
+    assert result == ([], ["foo"])
