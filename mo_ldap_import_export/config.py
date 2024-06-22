@@ -25,6 +25,10 @@ from ramodels.mo.detail import Detail
 from .utils import import_class
 
 
+def value_or_default(dicty: dict[str, Any], key: str, default: Any) -> None:
+    dicty[key] = dicty.get(key) or default
+
+
 class ServerConfig(BaseModel):
     """Settings model for domain controllers."""
 
@@ -448,9 +452,9 @@ class Settings(BaseSettings):
         """
         dialect = values.get("ldap_dialect", "UNKNOWN")
         if dialect == "Standard":
-            values.setdefault("ldap_unique_id_field", "entryUUID")
+            value_or_default(values, "ldap_unique_id_field", "entryUUID")
         if dialect == "AD":
-            values.setdefault("ldap_unique_id_field", "objectGUID")
+            value_or_default(values, "ldap_unique_id_field", "objectGUID")
         return values
 
     # NOTE: It appears that this flag does not in fact work
