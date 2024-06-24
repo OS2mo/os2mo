@@ -155,7 +155,8 @@ async def test_listen_to_changes_in_employees_org_unit_address(
     # Ignore all changes, but address changes
     no_changes_async_mock = AsyncMock()
     no_changes_async_mock.return_value = {}
-    sync_tool.mo_person_to_ldap = no_changes_async_mock  # type: ignore
+    sync_tool.mo_person_to_ldap = AsyncMock()  # type: ignore
+    sync_tool.mo_person_to_ldap.return_value = LdapObject(dn="CN=foo")
     sync_tool.mo_address_to_ldap = no_changes_async_mock  # type: ignore
     sync_tool.mo_ituser_to_ldap = no_changes_async_mock  # type: ignore
     sync_tool.mo_engagement_to_ldap = no_changes_async_mock  # type: ignore
@@ -240,7 +241,7 @@ async def test_listen_to_changes_in_employees_org_unit_address(
     await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert read_engagements_is_primary_route.called
     dataloader.modify_ldap_object.assert_called_once_with(
-        {}, "Employee", overwrite=True, delete=False
+        LdapObject(dn="CN=foo"), "Employee", overwrite=True, delete=False
     )
 
     read_engagements_is_primary_route.result = read_engagements_is_primary_result
@@ -297,7 +298,8 @@ async def test_listen_to_changes_in_employees_address(
     # Ignore all changes, but address changes
     no_changes_async_mock = AsyncMock()
     no_changes_async_mock.return_value = {}
-    sync_tool.mo_person_to_ldap = no_changes_async_mock  # type: ignore
+    sync_tool.mo_person_to_ldap = AsyncMock()  # type: ignore
+    sync_tool.mo_person_to_ldap.return_value = LdapObject(dn="CN=foo")
     sync_tool.mo_org_unit_address_to_ldap = no_changes_async_mock  # type: ignore
     sync_tool.mo_ituser_to_ldap = no_changes_async_mock  # type: ignore
     sync_tool.mo_engagement_to_ldap = no_changes_async_mock  # type: ignore
@@ -406,7 +408,8 @@ async def test_listen_to_changes_in_employees_ituser(
     # Ignore all changes, but ituser changes
     no_changes_async_mock = AsyncMock()
     no_changes_async_mock.return_value = {}
-    sync_tool.mo_person_to_ldap = no_changes_async_mock  # type: ignore
+    sync_tool.mo_person_to_ldap = AsyncMock()  # type: ignore
+    sync_tool.mo_person_to_ldap.return_value = LdapObject(dn="CN=foo")
     sync_tool.mo_address_to_ldap = no_changes_async_mock  # type: ignore
     sync_tool.mo_org_unit_address_to_ldap = no_changes_async_mock  # type: ignore
     sync_tool.mo_engagement_to_ldap = no_changes_async_mock  # type: ignore
@@ -513,7 +516,8 @@ async def test_listen_to_changes_in_employees_engagement(
     # Ignore all changes, but engagement changes
     no_changes_async_mock = AsyncMock()
     no_changes_async_mock.return_value = {}
-    sync_tool.mo_person_to_ldap = no_changes_async_mock  # type: ignore
+    sync_tool.mo_person_to_ldap = AsyncMock()  # type: ignore
+    sync_tool.mo_person_to_ldap.return_value = LdapObject(dn="CN=foo")
     sync_tool.mo_address_to_ldap = no_changes_async_mock  # type: ignore
     sync_tool.mo_org_unit_address_to_ldap = no_changes_async_mock  # type: ignore
     sync_tool.mo_ituser_to_ldap = no_changes_async_mock  # type: ignore
