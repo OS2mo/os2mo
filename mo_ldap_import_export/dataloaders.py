@@ -966,18 +966,23 @@ class DataLoader:
         it_user_keys = {ituser.user_key for ituser in it_users}
         not_uuids, uuids = partition(is_uuid, it_user_keys)
         for user_key in not_uuids:
-            logger.info(
+            # TODO: Make this an exception instead of just ignoring bad values
+            logger.warning(
                 "IT-user is not a UUID",
                 user_key=user_key,
             )
         # TODO: Check for duplicates?
         return set(map(UUID, uuids))
 
-    async def extract_unique_dns(self, it_users: list[ITUser]) -> set[DN]:
-        unique_uuids = self.extract_unique_ldap_uuids(it_users)
+    async def convert_ldap_uuids_to_dns(self, ldap_uuids: set[UUID]) -> set[DN]:
         # TODO: DataLoader / bulk here instead of this
-        dns = await asyncio.gather(*[self.get_ldap_dn(uuid) for uuid in unique_uuids])
-        return set(dns)
+        results = await asyncio.gather(
+            *[self.get_ldap_dn(uuid) for uuid in ldap_uuids], return_exceptions=True
+        )
+        exceptions = cast(list[Exception], list(filter(is_exception, results)))
+        if exceptions:
+            raise ExceptionGroup("Exceptions during UUID2DN translation", exceptions)
+        return cast(set[DN], set(results))
 
     async def find_mo_employee_dn_by_itsystem(self, uuid: UUID) -> set[DN]:
         """Tries to find the LDAP DNs belonging to a MO employee via ITUsers.
@@ -998,7 +1003,8 @@ class DataLoader:
 
         it_system_uuid = UUID(raw_it_system_uuid)
         it_users = await self.load_mo_employee_it_users(uuid, it_system_uuid)
-        dns = await self.extract_unique_dns(it_users)
+        ldap_uuids = self.extract_unique_ldap_uuids(it_users)
+        dns = await self.convert_ldap_uuids_to_dns(ldap_uuids)
         # No DNs, no problem
         if not dns:
             return set()
