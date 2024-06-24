@@ -1073,12 +1073,14 @@ class SyncTool:
                     await get_ldap_object(dn, ldap_connection, attributes=[cpr_field]),
                     cpr_field,
                 )
-                dns = {
-                    obj.dn
-                    for obj in await self.dataloader.load_ldap_cpr_object(
-                        cpr_no, "Employee"
-                    )
-                }
+                # Only attempt to load accounts if we have a CPR number to do so with
+                if cpr_no:
+                    dns = {
+                        obj.dn
+                        for obj in await self.dataloader.load_ldap_cpr_object(
+                            cpr_no, "Employee"
+                        )
+                    }
 
             logger.info(
                 "Employee not found in MO, generating UUID",
