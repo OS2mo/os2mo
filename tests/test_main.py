@@ -746,10 +746,13 @@ async def test_listen_to_changes(sync_tool: AsyncMock) -> None:
     settings = MagicMock()
     settings.listen_to_changes_in_mo = True
 
+    amqpsystem = AsyncMock()
+    graphql_client = AsyncMock()
+
     payload = uuid4()
 
     sync_tool.reset_mock()
-    await process_person(payload, sync_tool)
+    await process_person(payload, sync_tool, graphql_client, amqpsystem)
     sync_tool.listen_to_changes_in_employees.assert_awaited_once()
 
     sync_tool.reset_mock()
