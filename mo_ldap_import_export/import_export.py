@@ -749,6 +749,9 @@ class SyncTool:
 
         # If we did not find DNs, we want to make one
         try:
+            # This call actually writes in LDAP, so make sure that is okay
+            # TODO: Restructure the code so it does not actually write
+            await self.perform_export_checks(uuid, uuid)
             best_dn = await self.dataloader.make_mo_employee_dn(uuid)
         except DNNotFound:
             # If this occurs we were unable to generate a DN for the user
