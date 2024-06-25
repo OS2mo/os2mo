@@ -178,7 +178,6 @@ async def process_ituser(
 
 
 @amqp_router.register("person")
-@reject_on_failure
 @handle_exclusively_decorator(key=lambda object_uuid, *_, **__: object_uuid)
 async def process_person(
     object_uuid: PayloadUUID,
@@ -187,7 +186,7 @@ async def process_person(
     amqpsystem: depends.AMQPSystem,
 ) -> None:
     try:
-        await sync_tool.listen_to_changes_in_employees(object_uuid)
+        await reject_on_failure(sync_tool.listen_to_changes_in_employees)(object_uuid)
     except RequeueMessage:  # pragma: no cover
         await asyncio.sleep(30)
         await graphql_client.employee_refresh(amqpsystem.exchange_name, [object_uuid])
