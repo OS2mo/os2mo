@@ -183,8 +183,14 @@ async def process_ituser(
 async def process_person(
     object_uuid: PayloadUUID,
     sync_tool: depends.SyncTool,
+    graphql_client: depends.GraphQLClient,
+    amqpsystem: depends.AMQPSystem,
 ) -> None:
-    await sync_tool.listen_to_changes_in_employees(object_uuid)
+    try:
+        await sync_tool.listen_to_changes_in_employees(object_uuid)
+    except RequeueMessage:  # pragma: no cover
+        await asyncio.sleep(30)
+        await graphql_client.employee_refresh(amqpsystem.exchange_name, [object_uuid])
 
 
 @amqp_router.register("org_unit")
