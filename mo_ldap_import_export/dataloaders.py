@@ -986,9 +986,7 @@ class DataLoader:
             return set()
 
         it_system_uuid = UUID(raw_it_system_uuid)
-        it_users = []
-        with suppress(NoObjectsReturnedException):
-            it_users = await self.load_mo_employee_it_users(uuid, it_system_uuid)
+        it_users = await self.load_mo_employee_it_users(uuid, it_system_uuid)
         dns = await self.extract_unique_dns(it_users)
         # No DNs, no problem
         if not dns:
@@ -1435,8 +1433,6 @@ class DataLoader:
         output = await asyncio.gather(
             *[self.load_mo_it_user(ituser.uuid) for ituser in result.objects]
         )
-        if not output:
-            raise NoObjectsReturnedException("load_mo_employee_it_users returned empty")
         return output
 
     async def load_mo_employee_engagement_dicts(
