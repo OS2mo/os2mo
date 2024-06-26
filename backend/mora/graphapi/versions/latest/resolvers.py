@@ -817,6 +817,10 @@ async def it_user_resolver(
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
     if filter.itsystem_uuids is not None or filter.itsystem is not None:
         kwargs["tilknyttedeitsystemer"] = await _get_itsystem_uuids(info, filter)
+    if filter.engagement is not None:
+        kwargs["tilknyttedefunktioner"] = await filter2uuids_func(
+            engagement_resolver, info, filter.engagement
+        )
 
     return await generic_resolver(
         ITUserRead,

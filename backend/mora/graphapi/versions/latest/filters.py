@@ -400,6 +400,15 @@ class ITUserFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         deprecation_reason="Replaced by the 'itsystem' filter",
     )
 
+    engagement: EngagementFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Engagement filter limiting which entries are returned.
+            """
+        ),
+    )
+
 
 @strawberry.input(description="KLE filter.")
 class KLEFilter(BaseFilter, OrganisationUnitFiltered):
