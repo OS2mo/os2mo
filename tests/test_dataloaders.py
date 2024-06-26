@@ -1132,8 +1132,8 @@ async def test_load_mo_employee_it_users_not_found(
 
     employee_uuid = uuid4()
     it_system_uuid = uuid4()
-    with pytest.raises(NoObjectsReturnedException):
-        await dataloader.load_mo_employee_it_users(employee_uuid, it_system_uuid)
+    result = await dataloader.load_mo_employee_it_users(employee_uuid, it_system_uuid)
+    assert result == []
 
     assert route.called
 
