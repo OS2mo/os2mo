@@ -74,18 +74,20 @@ class IsAuthenticatedPermission(BasePermission):
 
 @cache
 def gen_role_permission(
-    role_name: str, message: str | None = None, force_permission_check: bool = False
+    permission_role: str,
+    message: str | None = None,
+    force_permission_check: bool = False,
 ) -> type[BasePermission]:
     """Generator function for permission classes.
 
     Args:
-        role_name: The role to check existence for.
+        permission_role: The role to check existence for.
         message: Optional message override.
 
     Returns:
         Permission class that checks if `role_name` is in the OIDC token.
     """
-    fail_message = message or f"User does not have required role: {role_name}"
+    fail_message = message or f"User does not have required role: {permission_role}"
 
     class CheckRolePermission(BasePermission):
         """Permission class that checks that a given role exists on the OIDC token."""
@@ -100,12 +102,12 @@ def gen_role_permission(
                 return True
             # Allow access only if expected role is in roles
             token = await info.context["get_token"]()
-            roles = token.realm_access.roles
+            token_roles = token.realm_access.roles
             # TODO (#55042): Backwards-compatible fix for !1594. Remove when Aarhus is
             # migrated to Azure.
-            if settings.graphql_rbac_legacy_admin_role and "admin" in roles:
+            if settings.graphql_rbac_legacy_admin_role and "admin" in token_roles:
                 return True
-            allow_access = role_name in roles
+            allow_access = permission_role in token_roles
             return allow_access
 
     return CheckRolePermission
