@@ -7,13 +7,10 @@ from typing import get_args
 from typing import Literal
 
 from fastapi import HTTPException
-from prometheus_client import Counter
 from strawberry import BasePermission
 from strawberry.types import Info
 
 from mora.config import get_settings
-
-rbac_counter = Counter("graphql_rbac", "Number of RBAC checks", ["role", "allowed"])
 
 
 Collections = Literal[
@@ -109,7 +106,6 @@ def gen_role_permission(
             if settings.graphql_rbac_legacy_admin_role and "admin" in roles:
                 return True
             allow_access = role_name in roles
-            rbac_counter.labels(role=role_name, allowed=allow_access).inc()
             return allow_access
 
     return CheckRolePermission
