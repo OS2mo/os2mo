@@ -43,6 +43,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
         if is_graphql():
+            it_user_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
             return {
                 **base_obj,
                 "org_unit_uuid": org_unit,
@@ -51,6 +52,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
                 "job_function_uuid": job_function,
                 "primary_uuid": primary or None,
                 "fraction": fraction,
+                "it_user_uuid": it_user_uuid,
                 **cls._get_extension_fields(extensions),
             }
 

@@ -47,6 +47,7 @@ from .filters import RoleBindingFilter
 from .graphql_utils import LoadKey
 from .models import AddressRead
 from .models import ClassRead
+from .models import EngagementRead
 from .models import FacetRead
 from .models import RoleBindingRead
 from .paged import CursorType
@@ -65,7 +66,6 @@ from mora.service.autocomplete.orgunits import search_orgunits
 from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AssociationRead
-from ramodels.mo.details import EngagementRead
 from ramodels.mo.details import ITSystemRead
 from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead
@@ -455,6 +455,10 @@ async def engagement_resolver(
     if filter.job_function is not None:
         class_filter = filter.job_function or ClassFilter()
         kwargs["opgaver"] = await filter2uuids_func(class_resolver, info, class_filter)
+    if filter.ituser is not None:
+        kwargs["tilknyttedefunktioner"] = await filter2uuids_func(
+            it_user_resolver, info, filter.ituser
+        )
 
     return await generic_resolver(
         EngagementRead,

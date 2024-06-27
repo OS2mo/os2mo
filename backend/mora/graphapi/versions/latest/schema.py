@@ -40,6 +40,7 @@ from .graphql_utils import LoadKey
 from .health import health_map
 from .models import AddressRead
 from .models import ClassRead
+from .models import EngagementRead
 from .models import FacetRead
 from .models import FileStore
 from .models import OwnerInferencePriority
@@ -87,7 +88,6 @@ from ramodels.mo import OpenValidity as RAMOpenValidity
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AssociationRead
-from ramodels.mo.details import EngagementRead
 from ramodels.mo.details import ITSystemRead
 from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead
@@ -2176,6 +2176,16 @@ class Engagement:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
+    ituser: list[LazyITUser] = strawberry.field(
+        resolver=to_list(
+            seed_resolver(
+                it_user_resolver, {"uuids": lambda root: uuid2list(root.it_user_uuid)}
+            )
+        ),
+        description="Connected IT-user.\n",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
+    )
+
     @strawberry.field(
         description=dedent(
             """\
@@ -2633,12 +2643,42 @@ class ITUser:
                 )
             ),
         ),
+        deprecation_reason=dedent(
+            """\
+            There are no longer a 1:1 relation between engagements and it-users. Use engagements in stead
+            """
+        ),
         description=dedent(
             """\
             Engagement scoping of the account.
 
             A person may have multiple IT accounts with each account being relevant for only a single engagement.
             This field allows scoping IT accounts such that it is obvious which engagement has given which it-access.
+
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("engagement"),
+        ],
+    )
+
+    engagements: list[LazyEngagement] | None = strawberry.field(
+        resolver=force_none_return_wrapper(
+            to_list(
+                seed_resolver(
+                    engagement_resolver,
+                    {"ituser": lambda root: ITUserFilter(uuids=[root.uuid])},
+                )
+            ),
+        ),
+        description=dedent(
+            """\
+            Engagement scoping of the account.
+
+            A person may have multiple IT accounts with each account being relevant for a number of engagements.
+            This field allows scoping IT accounts such that it is obvious which engagement(s) has given which it-access.
             """
         )
         + list_to_optional_field_warning,

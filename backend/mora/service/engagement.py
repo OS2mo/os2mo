@@ -58,6 +58,16 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         )
 
         extension_attributes = self.get_extension_attribute_fields(req)
+        it_user_uuid = util.get_mapping_uuid(req, mapping.IT, required=False)
+
+        tilknyttedefunktioner = []
+
+        if it_user_uuid:
+            tilknyttedefunktioner.append(
+                common.associated_orgfunc(
+                    uuid=it_user_uuid, orgfunc_type=mapping.MoOrgFunk.IT
+                )
+            )
 
         payload = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ENGAGEMENT_KEY,
@@ -72,6 +82,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             funktionstype=engagement_type_uuid,
             opgaver=[{"uuid": job_function_uuid}] if job_function_uuid else [],
             udvidelse_attributter=extension_attributes,
+            tilknyttedefunktioner=tilknyttedefunktioner,
         )
 
         # deal with addresses
@@ -193,6 +204,17 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             primary = util.get_mapping_uuid(data, mapping.PRIMARY)
 
             update_fields.append((mapping.PRIMARY_FIELD, {"uuid": primary}))
+
+        if mapping.IT in data:
+            update_fields.append(
+                (
+                    mapping.ASSOCIATED_FUNCTION_FIELD,
+                    {
+                        "uuid": util.get_mapping_uuid(data, mapping.IT),
+                        mapping.OBJECTTYPE: mapping.IT,
+                    },
+                )
+            )
 
         # Attribute extensions
         new_extensions = {}

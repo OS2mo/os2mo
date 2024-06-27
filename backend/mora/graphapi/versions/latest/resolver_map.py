@@ -5,12 +5,12 @@ from typing import Any
 
 from .models import AddressRead
 from .models import ClassRead
+from .models import EngagementRead
 from .models import FacetRead
 from .models import RoleBindingRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AssociationRead
-from ramodels.mo.details import EngagementRead
 from ramodels.mo.details import ITSystemRead
 from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead

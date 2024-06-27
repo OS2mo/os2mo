@@ -32,7 +32,7 @@ from ramodels.mo._shared import ITUserRef
 from ramodels.mo._shared import OrgUnitRef
 from ramodels.mo._shared import UUIDBase
 from ramodels.mo.details import AddressRead as RAAddressRead
-
+from ramodels.mo.details import EngagementRead as RAEngagementRead
 
 logger = logging.getLogger(__name__)
 
@@ -530,7 +530,13 @@ class EmployeeTerminate(ValidityTerminate):
 
 
 # Engagements
-# -----------
+# ---------
+class EngagementRead(RAEngagementRead):
+    it_user_uuids: list[UUID] | None = Field(
+        description="Optional list of UUIDs of connected IT users"
+    )
+
+
 class EngagementTerminate(ValidityTerminate):
     """Model representing an engagement termination(or rather end-date update)."""
 
@@ -568,6 +574,8 @@ class EngagementUpsert(UUIDBase):
     employee: UUID | None = Field(description="UUID of the related employee.")
     person: UUID | None = Field(description="UUID of the related employee.")
 
+    ituser: UUID | None = Field(description="UUID for the related ituser.")
+
     def to_handler_dict(self) -> dict:
         return {
             "uuid": self.uuid,
@@ -580,6 +588,7 @@ class EngagementUpsert(UUIDBase):
                 else None,
             },
             "person": gen_uuid(self.person) or gen_uuid(self.employee),
+            "it": gen_uuid(self.ituser),
             "extension_1": self.extension_1,
             "extension_2": self.extension_2,
             "extension_3": self.extension_3,
