@@ -95,7 +95,9 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
     if ADMIN in roles:
         logger.debug("User has admin role - write permission granted")
         return
-    if OWNER in roles and not admin_only:
+    if admin_only:
+        raise AuthorizationError("Endpoint requires admin access. You're not admin!")
+    if OWNER in roles:
         if token.uuid is None:
             raise AuthorizationError("User has owner role, but UUID unset.")
 
