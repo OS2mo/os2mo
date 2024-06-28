@@ -68,6 +68,35 @@ DEPRECATION_NOTICE = """
 """
 
 
+PRETTIER_SCRIPT = """
+<script src="https://unpkg.com/prettier@3.3.2/standalone.js"></script>
+<script src="https://unpkg.com/prettier@3.3.2/plugins/graphql.js"></script>
+<script>
+  // setTimeout allows the React components to load
+  setTimeout(() => {
+    const queryEditor = document.querySelector('.CodeMirror').CodeMirror;
+    // Overwrite original event-listener by replacing the button with its clone.
+    // This assumes that the prettify button is the first one in the toolbar.
+    const oldButton = document.querySelector('.graphiql-toolbar-button');
+    const newButton = oldButton.cloneNode(true);
+    oldButton.replaceWith(newButton);
+    // https://prettier.io/docs/en/browser#global
+    // https://github.com/graphql/graphiql/blob/b52c39143a4269cd899b16d06de5c7fe024fae2d/packages/graphiql-react/src/editor/hooks.ts#L253-L260
+    newButton.addEventListener("click", async () => {
+      const editorContent = queryEditor.getValue();
+      const prettifiedEditorContent = await prettier.format(editorContent, {
+        parser: "graphql",
+        plugins: prettierPlugins,
+      });
+      if (prettifiedEditorContent !== editorContent) {
+        queryEditor.setValue(prettifiedEditorContent);
+      }
+    });
+  });
+</script>
+"""
+
+
 class CustomGraphQLRouter(GraphQLRouter):
     """Custom GraphQL router to inject HTML into the GraphiQL interface."""
 
@@ -89,5 +118,9 @@ class CustomGraphQLRouter(GraphQLRouter):
         # JavaScript, which is required to access the `headers` constant.
         if get_settings().os2mo_auth:
             html = html.replace("</body>", f"{AUTH_SCRIPT}</body>")
+
+        # Overwrite query prettifier button with a good prettifier
+        # https://github.com/graphql/graphiql/issues/1517
+        html = html.replace("</body>", f"{PRETTIER_SCRIPT}</body>")
 
         return HTMLResponse(html)
