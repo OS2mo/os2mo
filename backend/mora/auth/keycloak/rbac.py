@@ -106,8 +106,9 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
         # moving an org unit
         entity_type = await uuid_extractor.get_entity_type(request)
         entity_uuids = await uuid_extractor.get_entity_uuids(request)
-        logger.debug("Entity", type=entity_type, uuids=entity_uuids)
-        await check_owner(token, entity_type, entity_uuids)
+        entities = {(entity_type, uuid) for uuid in entity_uuids}
+        logger.debug("Entities", type=entity_type, uuids=entity_uuids)
+        await check_owner(token, entities)
         logger.debug(f"User {token.preferred_username} authorized")
         return
 
@@ -117,9 +118,7 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
     raise AuthorizationError("Not authorized to perform this operation")
 
 
-async def check_owner(
-    token: Token, entity_type: EntityType, entity_uuids: set[UUID]
-) -> None:
+async def check_owner(token: Token, entities: set[tuple[EntityType, UUID]]) -> None:
     """Check if the token is owner of the given entities.
 
     This function is called from both the Service-API and GraphQL.
@@ -140,7 +139,7 @@ async def check_owner(
     # when moving an org unit.
     user_uuid = await _get_employee_uuid(token)
     owners = await asyncio.gather(
-        *(get_owners(uuid, entity_type) for uuid in entity_uuids)
+        *(get_owners(entity_uuid, entity_type) for entity_type, entity_uuid in entities)
     )
     current_user_ownership_verified = [(user_uuid in owner) for owner in owners]
     if current_user_ownership_verified and all(current_user_ownership_verified):
