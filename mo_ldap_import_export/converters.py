@@ -103,6 +103,9 @@ get_org_unit_type_uuid = partial(_get_facet_class_uuid, facet_user_key="org_unit
 get_org_unit_level_uuid = partial(
     _get_facet_class_uuid, facet_user_key="org_unit_level"
 )
+get_employee_address_type_uuid = partial(
+    _get_facet_class_uuid, facet_user_key="employee_address_type"
+)
 get_org_unit_address_type_uuid = partial(
     _get_facet_class_uuid, facet_user_key="org_unit_address_type"
 )
@@ -431,9 +434,6 @@ class LdapConverter:
         # Note: If new address types or IT systems are added to MO, these dicts need
         # to be re-initialized
         logger.info("Loading info dicts")
-        self.employee_address_type_info = (
-            await self.dataloader.load_mo_employee_address_types()
-        )
         self.it_system_info = await self.dataloader.load_mo_it_systems()
 
         self.org_unit_info = await self.dataloader.load_mo_org_units()
@@ -836,18 +836,16 @@ class LdapConverter:
     def get_object_uuid_from_user_key(self, info_dict: dict, user_key: str) -> str:
         return self.get_object_uuid_from_info_dict(info_dict, "user_key", user_key)
 
-    def get_employee_address_type_uuid(self, address_type: str) -> str:
-        return self.get_object_uuid_from_user_key(
-            self.employee_address_type_info, address_type
-        )
-
     def get_it_system_uuid(self, it_system: str) -> str:
         return self.get_object_uuid_from_user_key(self.it_system_info, it_system)
 
     async def get_employee_address_type_user_key(self, uuid: str) -> str:
-        return await self.get_object_user_key_from_uuid(
-            "employee_address_type_info", uuid
+        employee_address_type_info = (
+            await self.dataloader.load_mo_employee_address_types()
         )
+        result = employee_address_type_info[uuid]["user_key"]
+        assert isinstance(result, str)
+        return result
 
     async def get_org_unit_address_type_user_key(self, uuid: str) -> str:
         # TODO: Do not refactor this function, rather get rid of it
@@ -1098,7 +1096,9 @@ class LdapConverter:
             "nonejoin": nonejoin,
             "nonejoin_orgs": partial(nonejoin_orgs, self.settings),
             "remove_first_org": partial(remove_first_org, self.settings),
-            "get_employee_address_type_uuid": self.get_employee_address_type_uuid,
+            "get_employee_address_type_uuid": partial(
+                get_employee_address_type_uuid, self.dataloader.graphql_client
+            ),
             "get_org_unit_address_type_uuid": partial(
                 get_org_unit_address_type_uuid, self.dataloader.graphql_client
             ),

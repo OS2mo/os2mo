@@ -50,6 +50,7 @@ from mo_ldap_import_export.converters import get_current_engagement_attribute_uu
 from mo_ldap_import_export.converters import get_current_engagement_type_uuid_dict
 from mo_ldap_import_export.converters import get_current_org_unit_uuid_dict
 from mo_ldap_import_export.converters import get_current_primary_uuid_dict
+from mo_ldap_import_export.converters import get_employee_address_type_uuid
 from mo_ldap_import_export.converters import get_employee_dict
 from mo_ldap_import_export.converters import get_engagement_type_name
 from mo_ldap_import_export.converters import get_job_function_name
@@ -1096,18 +1097,18 @@ async def test_check_ldap_attributes_fields_to_check(converter: LdapConverter):
         await converter.check_ldap_attributes(overview, graphql_client)
 
 
-async def test_get_address_type_uuid(converter: LdapConverter):
-    uuid1 = str(uuid4())
-    uuid2 = str(uuid4())
+@pytest.mark.parametrize("class_name", ["foo", "bar"])
+async def test_get_employee_address_type_uuid(
+    graphql_client: AsyncMock, class_name: str
+) -> None:
+    class_uuid = str(uuid4())
 
-    employee_address_type_info = {
-        uuid1: {"uuid": uuid1, "user_key": "foo"},
-        uuid2: {"uuid": uuid2, "user_key": "bar"},
-    }
-    converter.employee_address_type_info = employee_address_type_info
-
-    assert converter.get_employee_address_type_uuid("foo") == uuid1
-    assert converter.get_employee_address_type_uuid("bar") == uuid2
+    graphql_client.read_class_uuid_by_facet_and_class_user_key.map[
+        ("employee_address_type", class_name)
+    ] = class_uuid
+    assert (
+        await get_employee_address_type_uuid(graphql_client, class_name) == class_uuid
+    )
 
 
 async def test_get_it_system_uuid(converter: LdapConverter):
@@ -1345,8 +1346,9 @@ async def test_get_address_type_user_key(converter: LdapConverter):
     converter.dataloader.load_mo_org_unit_address_types.return_value = (  # type: ignore
         org_unit_address_type_info
     )
-
-    converter.employee_address_type_info = employee_address_type_info
+    converter.dataloader.load_mo_employee_address_types.return_value = (  # type: ignore
+        employee_address_type_info
+    )
 
     assert await converter.get_employee_address_type_user_key(uuid2) == "EmailEmployee"
     assert await converter.get_org_unit_address_type_user_key(uuid1) == "EmailUnit"
@@ -1982,34 +1984,6 @@ def test_make_dn_from_org_unit_path() -> None:
     dn = "CN=Angus,OU=replace_me,DC=GHU"
     new_dn = make_dn_from_org_unit_path(settings, dn, org_unit_path)
     assert new_dn == "CN=Angus,OU=bar,OU=mucki,OU=foo,DC=GHU"
-
-
-async def test_get_object_item_from_uuid(
-    converter: LdapConverter, address_type_uuid: str
-):
-    # 'address_type_uuid' is loaded when converter.load_info_dicts() is called
-    # Let's remove the employee_address_type_info dict to provoke a keyError
-    converter.employee_address_type_info = {}
-
-    # If all goes as intended, the info dict is reloaded and a keyError is NOT raised:
-    with capture_logs() as cap_logs:
-        user_key = await converter.get_employee_address_type_user_key(address_type_uuid)
-        assert user_key == "Email"
-
-        info_messages = [w for w in cap_logs if w["log_level"] == "info"]
-        assert "Loading info dicts" in str(info_messages)
-
-    # If we call the same function again, the info dicts are not reloaded:
-    with capture_logs() as cap_logs:
-        user_key = await converter.get_employee_address_type_user_key(address_type_uuid)
-        assert user_key == "Email"
-
-        info_messages = [w for w in cap_logs if w["log_level"] == "info"]
-        assert "Loading info dicts" not in str(info_messages)
-
-    # If an uuid really does not exist (not even after reloading) a keyError is raised:
-    with pytest.raises(KeyError):
-        await converter.get_employee_address_type_user_key(str(uuid4()))
 
 
 def test_unutilized_init_elements(converter: LdapConverter) -> None:
