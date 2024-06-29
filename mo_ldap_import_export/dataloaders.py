@@ -1237,9 +1237,6 @@ class DataLoader:
         facet = one(result.objects, too_short=too_short, too_long=too_long)
         return facet.uuid
 
-    async def load_mo_employee_address_types(self) -> dict:
-        return await self.load_mo_facet("employee_address_type")
-
     async def load_mo_org_unit_address_types(self) -> dict:
         return await self.load_mo_facet("org_unit_address_type")
 

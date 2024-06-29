@@ -644,7 +644,6 @@ async def test_get_populated_overview(dataloader: DataLoader):
 @pytest.mark.parametrize(
     "function_name,facet",
     [
-        ["load_mo_employee_address_types", "employee_address_type"],
         ["load_mo_org_unit_address_types", "org_unit_address_type"],
     ],
 )
@@ -912,7 +911,6 @@ async def test_load_mo_address_types_not_found(
 ):
     legacy_graphql_session.execute.return_value = {"facets": {"objects": []}}
 
-    assert await dataloader.load_mo_employee_address_types() == {}
     assert await dataloader.load_mo_org_unit_address_types() == {}
 
 

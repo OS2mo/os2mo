@@ -1334,23 +1334,12 @@ async def test_get_it_system_user_key(converter: LdapConverter):
 
 async def test_get_address_type_user_key(converter: LdapConverter):
     uuid1 = str(uuid4())
-    uuid2 = str(uuid4())
-
-    employee_address_type_info = {
-        uuid2: {"uuid": uuid2, "user_key": "EmailEmployee"},
-    }
-
     org_unit_address_type_info = {
         uuid1: {"uuid": uuid1, "user_key": "EmailUnit"},
     }
     converter.dataloader.load_mo_org_unit_address_types.return_value = (  # type: ignore
         org_unit_address_type_info
     )
-    converter.dataloader.load_mo_employee_address_types.return_value = (  # type: ignore
-        employee_address_type_info
-    )
-
-    assert await converter.get_employee_address_type_user_key(uuid2) == "EmailEmployee"
     assert await converter.get_org_unit_address_type_user_key(uuid1) == "EmailUnit"
 
 
