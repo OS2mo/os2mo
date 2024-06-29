@@ -797,12 +797,6 @@ class LdapConverter:
             await self.load_info_dicts()
             return getattr(self, info_dict)[str(uuid)][key]
 
-    async def get_object_user_key_from_uuid(self, info_dict: str, uuid: str) -> str:
-        user_key: str = await self.get_object_item_from_uuid(
-            info_dict, uuid, "user_key"
-        )
-        return user_key
-
     async def get_object_name_from_uuid(self, info_dict: str, uuid: str) -> str:
         name: str = await self.get_object_item_from_uuid(info_dict, uuid, "name")
         return name
@@ -838,9 +832,6 @@ class LdapConverter:
 
     def get_it_system_uuid(self, it_system: str) -> str:
         return self.get_object_uuid_from_user_key(self.it_system_info, it_system)
-
-    async def get_it_system_user_key(self, uuid: str) -> str:
-        return await self.get_object_user_key_from_uuid("it_system_info", uuid)
 
     async def get_org_unit_name(self, uuid: str) -> str:
         return await self.get_object_name_from_uuid("org_unit_info", uuid)

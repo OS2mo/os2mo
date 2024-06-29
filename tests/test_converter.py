@@ -1319,19 +1319,6 @@ async def test_get_primary_type_uuid(
     assert await get_primary_type_uuid(graphql_client, class_name) == class_uuid
 
 
-async def test_get_it_system_user_key(converter: LdapConverter):
-    uuid1 = str(uuid4())
-    uuid2 = str(uuid4())
-    it_system_info = {
-        uuid1: {"uuid": uuid1, "user_key": "AD"},
-        uuid2: {"uuid": uuid2, "user_key": "Office365"},
-    }
-    converter.it_system_info = it_system_info
-
-    assert await converter.get_it_system_user_key(uuid1) == "AD"
-    assert await converter.get_it_system_user_key(uuid2) == "Office365"
-
-
 @pytest.mark.parametrize("class_name", ["Ansat", "Vikar"])
 async def test_get_engagement_type_name(
     graphql_client: AsyncMock, class_name: str
