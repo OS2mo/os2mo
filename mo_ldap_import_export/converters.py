@@ -130,6 +130,14 @@ async def get_job_function_name(graphql_client: GraphQLClient, uuid: UUID) -> st
     return job_function.current.name
 
 
+async def get_org_unit_name(graphql_client: GraphQLClient, uuid: UUID) -> str:
+    result = await graphql_client.read_org_unit_name(uuid)
+    org_unit = one(result.objects)
+    if org_unit.current is None:
+        raise NoObjectsReturnedException(f"org_unit not active, uuid: {uuid}")
+    return org_unit.current.name
+
+
 def make_dn_from_org_unit_path(
     settings: Settings, dn: str, org_unit_path_string: str
 ) -> str:
@@ -788,19 +796,6 @@ class LdapConverter:
 
         self.check_org_unit_info_dict()
 
-    async def get_object_item_from_uuid(
-        self, info_dict: str, uuid: str, key: str
-    ) -> Any:
-        try:
-            return getattr(self, info_dict)[str(uuid)][key]
-        except KeyError:
-            await self.load_info_dicts()
-            return getattr(self, info_dict)[str(uuid)][key]
-
-    async def get_object_name_from_uuid(self, info_dict: str, uuid: str) -> str:
-        name: str = await self.get_object_item_from_uuid(info_dict, uuid, "name")
-        return name
-
     @staticmethod
     def string_normalizer(name):
         return name.lower().replace("-", " ")
@@ -832,9 +827,6 @@ class LdapConverter:
 
     def get_it_system_uuid(self, it_system: str) -> str:
         return self.get_object_uuid_from_user_key(self.it_system_info, it_system)
-
-    async def get_org_unit_name(self, uuid: str) -> str:
-        return await self.get_object_name_from_uuid("org_unit_info", uuid)
 
     async def create_org_unit(self, org_unit_path_string: str):
         """
@@ -1103,7 +1095,9 @@ class LdapConverter:
             "get_job_function_name": partial(
                 get_job_function_name, self.dataloader.graphql_client
             ),
-            "get_org_unit_name": self.get_org_unit_name,
+            "get_org_unit_name": partial(
+                get_org_unit_name, self.dataloader.graphql_client
+            ),
             "get_or_create_job_function_uuid": partial(
                 get_or_create_job_function_uuid, self.dataloader
             ),

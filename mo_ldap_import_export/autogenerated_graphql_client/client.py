@@ -120,6 +120,8 @@ from .read_itusers import ReadItusers
 from .read_itusers import ReadItusersItusers
 from .read_org_unit_addresses import ReadOrgUnitAddresses
 from .read_org_unit_addresses import ReadOrgUnitAddressesAddresses
+from .read_org_unit_name import ReadOrgUnitName
+from .read_org_unit_name import ReadOrgUnitNameOrgUnits
 from .read_org_units import ReadOrgUnits
 from .read_org_units import ReadOrgUnitsOrgUnits
 from .read_root_org_uuid import ReadRootOrgUuid
@@ -1111,3 +1113,22 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadAllItuserUserKeysByItsystemUuid.parse_obj(data).itusers
+
+    async def read_org_unit_name(self, org_unit_uuid: UUID) -> ReadOrgUnitNameOrgUnits:
+        query = gql(
+            """
+            query read_org_unit_name($org_unit_uuid: UUID!) {
+              org_units(filter: {uuids: [$org_unit_uuid]}) {
+                objects {
+                  current {
+                    name
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"org_unit_uuid": org_unit_uuid}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadOrgUnitName.parse_obj(data).org_units

@@ -507,3 +507,15 @@ query read_all_ituser_user_keys_by_itsystem_uuid($itsystem_uuid: UUID!) {
     }
   }
 }
+
+query read_org_unit_name($org_unit_uuid: UUID!) {
+  org_units(
+    filter: {uuids: [$org_unit_uuid]}
+  ) {
+    objects {
+      current {
+        name
+      }
+    }
+  }
+}

@@ -57,6 +57,7 @@ from mo_ldap_import_export.converters import get_job_function_name
 from mo_ldap_import_export.converters import get_or_create_engagement_type_uuid
 from mo_ldap_import_export.converters import get_or_create_job_function_uuid
 from mo_ldap_import_export.converters import get_org_unit_address_type_uuid
+from mo_ldap_import_export.converters import get_org_unit_name
 from mo_ldap_import_export.converters import get_primary_engagement_dict
 from mo_ldap_import_export.converters import get_primary_type_uuid
 from mo_ldap_import_export.converters import get_visibility_uuid
@@ -1215,13 +1216,6 @@ async def test_get_job_function_uuid_default_kwarg_does_not_override(
     assert result == uuid
 
 
-async def test_get_org_unit_name(converter: LdapConverter) -> None:
-    org_unit_uuid: str = str(uuid4())
-    converter.org_unit_info = {org_unit_uuid: {"name": "Name"}}
-    name = await converter.get_org_unit_name(org_unit_uuid)
-    assert name == "Name"
-
-
 async def test_get_org_unit_name_for_parent(converter: LdapConverter) -> None:
     org_tree = {
         "Kolding Kommune": {
@@ -1361,6 +1355,27 @@ async def test_get_job_function_name(
     with pytest.raises(NoObjectsReturnedException) as exc_info:
         await get_job_function_name(graphql_client, class_uuid)
     assert f"job_function not active, uuid: {class_uuid}" in str(exc_info.value)
+    assert route.called
+
+
+@pytest.mark.parametrize("org_unit_name", ["IT Support", "Digitalization"])
+async def test_get_org_unit_name(
+    graphql_mock: GraphQLMocker, org_unit_name: str
+) -> None:
+    graphql_client = GraphQLClient("http://example.com/graphql")
+
+    route = graphql_mock.query("read_org_unit_name")
+    route.result = {"org_units": {"objects": [{"current": {"name": org_unit_name}}]}}
+
+    org_unit_uuid = uuid4()
+    assert await get_org_unit_name(graphql_client, org_unit_uuid) == org_unit_name
+    assert route.called
+
+    route.reset()
+    route.result = {"org_units": {"objects": [{"current": None}]}}
+    with pytest.raises(NoObjectsReturnedException) as exc_info:
+        await get_org_unit_name(graphql_client, org_unit_uuid)
+    assert f"org_unit not active, uuid: {org_unit_uuid}" in str(exc_info.value)
     assert route.called
 
 
