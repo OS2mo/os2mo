@@ -839,15 +839,6 @@ class LdapConverter:
     def get_it_system_uuid(self, it_system: str) -> str:
         return self.get_object_uuid_from_user_key(self.it_system_info, it_system)
 
-    async def get_org_unit_address_type_user_key(self, uuid: str) -> str:
-        # TODO: Do not refactor this function, rather get rid of it
-        org_unit_address_type_info = (
-            await self.dataloader.load_mo_org_unit_address_types()
-        )
-        result = org_unit_address_type_info[uuid]["user_key"]
-        assert isinstance(result, str)
-        return result
-
     async def get_it_system_user_key(self, uuid: str) -> str:
         return await self.get_object_user_key_from_uuid("it_system_info", uuid)
 

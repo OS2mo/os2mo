@@ -1332,17 +1332,6 @@ async def test_get_it_system_user_key(converter: LdapConverter):
     assert await converter.get_it_system_user_key(uuid2) == "Office365"
 
 
-async def test_get_address_type_user_key(converter: LdapConverter):
-    uuid1 = str(uuid4())
-    org_unit_address_type_info = {
-        uuid1: {"uuid": uuid1, "user_key": "EmailUnit"},
-    }
-    converter.dataloader.load_mo_org_unit_address_types.return_value = (  # type: ignore
-        org_unit_address_type_info
-    )
-    assert await converter.get_org_unit_address_type_user_key(uuid1) == "EmailUnit"
-
-
 @pytest.mark.parametrize("class_name", ["Ansat", "Vikar"])
 async def test_get_engagement_type_name(
     graphql_client: AsyncMock, class_name: str
