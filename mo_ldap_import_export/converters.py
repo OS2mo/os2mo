@@ -294,6 +294,11 @@ async def get_or_create_job_function_uuid(
         return str(uuid)
 
 
+async def get_itsystem_user_keys(graphql_client: GraphQLClient) -> set[str]:
+    result = await graphql_client.read_itsystems()
+    return {obj.current.user_key for obj in result.objects if obj.current is not None}
+
+
 async def find_cpr_field(mapping: dict[str, Any]) -> str | None:
     """Get the field which contains the CPR number in LDAP.
 
@@ -330,14 +335,16 @@ async def find_cpr_field(mapping: dict[str, Any]) -> str | None:
 
 
 async def find_ldap_it_system(
-    settings: Settings, mapping: dict[str, Any], mo_it_system_user_keys: list[str]
+    graphql_client: GraphQLClient, settings: Settings, mapping: dict[str, Any]
 ) -> str | None:
     """
     Loop over all of MO's IT-systems and determine if one of them contains the AD-DN
     as a user_key
     """
+    mo_it_system_user_keys = await get_itsystem_user_keys(graphql_client)
+
     detection_key = str(uuid4())
-    relevant_keys: set[str] = set(mo_it_system_user_keys) & mapping["ldap_to_mo"].keys()
+    relevant_keys: set[str] = mo_it_system_user_keys & mapping["ldap_to_mo"].keys()
 
     async def template_contains_unique_field(user_key: str) -> bool:
         """Check if the template found at user-key utilizes the unique id.
@@ -376,10 +383,7 @@ async def get_accepted_json_keys(graphql_client: GraphQLClient) -> set[str]:
         result.current.user_key for result in address_results.objects if result.current
     }
 
-    itsystem_results = await graphql_client.read_itsystems()
-    mo_it_system_user_keys = {
-        result.current.user_key for result in itsystem_results.objects if result.current
-    }
+    mo_it_system_user_keys = await get_itsystem_user_keys(graphql_client)
 
     return (
         {"Employee", "Engagement", "Custom"}
@@ -443,8 +447,9 @@ class LdapConverter:
         self.mapping = self._populate_mapping_with_templates(mapping, environment)
 
         self.cpr_field = await find_cpr_field(mapping)
+
         self.ldap_it_system = await find_ldap_it_system(
-            self.settings, self.mapping, self.mo_it_systems
+            self.dataloader.graphql_client, self.settings, self.mapping
         )
         await self.check_mapping(mapping)
 
@@ -454,9 +459,6 @@ class LdapConverter:
         logger.info("Loading info dicts")
 
         self.org_unit_info = await self.dataloader.load_mo_org_units()
-
-        it_system_info = await self.dataloader.load_mo_it_systems()
-        self.mo_it_systems = [a["user_key"] for a in it_system_info.values()]
 
         self.all_info_dicts = {
             f: getattr(self, f)
@@ -582,6 +584,9 @@ class LdapConverter:
             for result in address_results.objects
             if result.current
         }
+        mo_it_system_user_keys = await get_itsystem_user_keys(
+            self.dataloader.graphql_client
+        )
 
         for json_key in mo_to_ldap_json_keys:
             logger.info("Checking mo_to_ldap JSON key", key=json_key)
@@ -623,7 +628,7 @@ class LdapConverter:
             fields_to_check = []
             if json_key in mo_address_type_user_keys:
                 fields_to_check = filter_fields_to_check(["mo_employee_address.value"])
-            elif json_key in self.mo_it_systems:
+            elif json_key in mo_it_system_user_keys:
                 fields_to_check = filter_fields_to_check(
                     ["mo_employee_it_user.user_key"]
                 )
