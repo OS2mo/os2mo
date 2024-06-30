@@ -53,6 +53,7 @@ from mo_ldap_import_export.converters import get_current_primary_uuid_dict
 from mo_ldap_import_export.converters import get_employee_address_type_uuid
 from mo_ldap_import_export.converters import get_employee_dict
 from mo_ldap_import_export.converters import get_engagement_type_name
+from mo_ldap_import_export.converters import get_it_system_uuid
 from mo_ldap_import_export.converters import get_job_function_name
 from mo_ldap_import_export.converters import get_or_create_engagement_type_uuid
 from mo_ldap_import_export.converters import get_or_create_job_function_uuid
@@ -310,39 +311,6 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
     )
 
     assert not mail
-
-
-async def test_ldap_to_mo_uuid_not_found(converter: LdapConverter) -> None:
-    it_users_with_typo = await converter.from_ldap(
-        LdapObject(
-            dn="",
-            msSFU30Name=["foo", "bar"],
-            itSystemName=["Active Directory", "Active Directory_typo"],
-        ),
-        "Active Directory",
-        employee_uuid=uuid4(),
-    )
-
-    it_users = await converter.from_ldap(
-        LdapObject(
-            dn="",
-            msSFU30Name=["foo", "bar"],
-            itSystemName=["Active Directory", "Active Directory"],
-        ),
-        "Active Directory",
-        employee_uuid=uuid4(),
-    )
-
-    assert it_users[0].user_key == "foo"
-    assert it_users[1].user_key == "bar"
-    ad_uuid = converter.get_it_system_uuid("Active Directory")
-    assert str(it_users[0].itsystem.uuid) == ad_uuid
-    assert str(it_users[1].itsystem.uuid) == ad_uuid
-
-    # Only one it user should be converted. The second one cannot be found because
-    # "Active Directory_typo" does not exist as an it system in MO
-    assert len(it_users_with_typo) == 1
-    assert len(it_users) == 2
 
 
 async def test_ldap_to_mo_dict_error(converter: LdapConverter) -> None:
@@ -1112,19 +1080,6 @@ async def test_get_employee_address_type_uuid(
     )
 
 
-async def test_get_it_system_uuid(converter: LdapConverter):
-    uuid1 = str(uuid4())
-    uuid2 = str(uuid4())
-    it_system_info = {
-        uuid1: {"uuid": uuid1, "user_key": "AD"},
-        uuid2: {"uuid": uuid2, "user_key": "Office365"},
-    }
-    converter.it_system_info = it_system_info
-
-    assert converter.get_it_system_uuid("AD") == uuid1
-    assert converter.get_it_system_uuid("Office365") == uuid2
-
-
 @pytest.mark.parametrize("class_name", ["Hemmelig", "Offentlig"])
 async def test_get_visibility_uuid(graphql_client: AsyncMock, class_name: str) -> None:
     class_uuid = str(uuid4())
@@ -1379,6 +1334,29 @@ async def test_get_org_unit_name(
     assert route.called
 
 
+@pytest.mark.parametrize("it_system_user_key", ["AD", "Plone"])
+async def test_get_it_system_uuid(
+    graphql_mock: GraphQLMocker, it_system_user_key: str
+) -> None:
+    graphql_client = GraphQLClient("http://example.com/graphql")
+
+    it_system_uuid = uuid4()
+    route = graphql_mock.query("read_itsystem_uuid")
+    route.result = {"itsystems": {"objects": [{"uuid": it_system_uuid}]}}
+
+    assert await get_it_system_uuid(graphql_client, it_system_user_key) == str(
+        it_system_uuid
+    )
+    assert route.called
+
+    route.reset()
+    route.result = {"itsystems": {"objects": []}}
+    with pytest.raises(UUIDNotFoundException) as exc_info:
+        await get_it_system_uuid(graphql_client, it_system_user_key)
+    assert f"itsystem not found, user_key: {it_system_user_key}" in str(exc_info.value)
+    assert route.called
+
+
 async def test_check_ldap_to_mo_references(converter: LdapConverter):
     converter.raw_mapping = {
         "ldap_to_mo": {
@@ -1401,35 +1379,6 @@ async def test_check_ldap_to_mo_references(converter: LdapConverter):
         inner_exception = one(exc_info.value.exceptions)
         assert isinstance(inner_exception, IncorrectMapping)
         assert "Attribute 'nonExistingAttribute' not allowed." in str(inner_exception)
-
-
-def test_get_object_uuid_from_user_key(converter: LdapConverter):
-    uuid = str(uuid4())
-    name = "Skt. Joseph Skole"
-    info_dict = {uuid: {"uuid": uuid, "user_key": name}}
-    assert converter.get_object_uuid_from_user_key(info_dict, name) == uuid
-
-    with pytest.raises(UUIDNotFoundException):
-        info_dict = {uuid: {"uuid": uuid, "user_key": name}}
-        converter.get_object_uuid_from_user_key(info_dict, "bar")
-
-    with pytest.raises(UUIDNotFoundException):
-        converter.get_object_uuid_from_user_key(info_dict, "")
-
-    uuid2 = str(uuid4())
-    # Check that a perfect match will be preferred over a normalized match
-    info_dict = {
-        uuid2: {"uuid": uuid2, "user_key": name.lower()},
-        uuid: {"uuid": uuid, "user_key": name},
-    }
-    assert converter.get_object_uuid_from_user_key(info_dict, name) == uuid
-
-    # Check that if no perfect matches exist, use the first match
-    info_dict = {
-        uuid: {"uuid": uuid, "user_key": name.upper()},
-        uuid2: {"uuid": uuid2, "user_key": name.lower()},
-    }
-    assert converter.get_object_uuid_from_user_key(info_dict, name) == uuid
 
 
 async def test_create_org_unit(converter: LdapConverter):

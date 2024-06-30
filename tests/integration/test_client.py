@@ -174,6 +174,10 @@ async def test_graphql_client(
             "read_org_unit_name",
             {"org_unit_uuid": uuid4()},
         ),
+        (
+            "read_itsystem_uuid",
+            {"user_key": "test"},
+        ),
     ],
 )
 async def test_client_read_endpoints(
