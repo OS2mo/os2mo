@@ -413,7 +413,7 @@ async def apply_discriminator(
         # If it is a list, we assume it is
         unpacked_value = only(value)
         if unpacked_value is None:
-            logger.warning("Discriminator value is None", dn=ldap_object.dn)
+            logger.debug("Discriminator value is None", dn=ldap_object.dn)
             return None
         assert isinstance(unpacked_value, str)
         return unpacked_value
@@ -424,13 +424,6 @@ async def apply_discriminator(
     }
     assert dns == set(mapping.keys())
 
-    # If our discriminator value is None, we will not consider the account
-    # TODO: Is this a reasonable behavior? - or should we simply retry forever?
-    mapping = {dn: value for dn, value in mapping.items() if value is not None}
-
-    # All values must be strings as they are being compared with strings
-    assert all(isinstance(value, str) for value in mapping.values())
-
     discriminator_values = settings.discriminator_values
     # If the discriminator_function is exclude, discriminator_values will be a
     # list of disallowed values, and we will want to find an account that does not
@@ -438,7 +431,11 @@ async def apply_discriminator(
     # NOTE: We assume that at most one such account exists.
     if settings.discriminator_function == "exclude":
         return only(
-            {dn for dn, value in mapping.items() if value not in discriminator_values}
+            {
+                dn
+                for dn, value in mapping.items()
+                if str(value) not in discriminator_values or value is None
+            }
         )
 
     if settings.discriminator_function == "include":
