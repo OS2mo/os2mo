@@ -206,7 +206,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
         if mapping.ENGAGEMENT in data:
             update_fields.append(
                 (
-                    mapping.ASSOCIATED_FUNCTION_FIELD,
+                    mapping.ASSOCIATED_ENGAGEMENT_FIELD,
                     {
                         "uuid": util.get_mapping_uuid(data, mapping.ENGAGEMENT),
                         mapping.OBJECTTYPE: mapping.ENGAGEMENT,
@@ -217,7 +217,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
         if mapping.IT in data:
             update_fields.append(
                 (
-                    mapping.ASSOCIATED_FUNCTION_FIELD,
+                    mapping.ASSOCIATED_ITUSER_FIELD,
                     {
                         "uuid": util.get_mapping_uuid(data, mapping.IT),
                         mapping.OBJECTTYPE: mapping.IT,
