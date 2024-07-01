@@ -846,7 +846,6 @@ async def test_check_ldap_attributes_single_value_fields(converter: LdapConverte
     }
     converter.raw_mapping = mapping.copy()
     converter.mapping = mapping.copy()
-    converter.mo_it_systems = ["AD"]
 
     with patch(
         "mo_ldap_import_export.converters.find_cpr_field",
@@ -872,12 +871,13 @@ async def test_check_ldap_attributes_single_value_fields(converter: LdapConverte
             await converter.check_ldap_attributes(overview, graphql_client)
 
             warnings = [w for w in cap_logs if w["log_level"] == "warning"]
-            assert len(warnings) == 5
+            assert len(warnings) == 4
             for warning in warnings:
                 assert re.match(
                     ".*LDAP attribute cannot contain multiple values.*",
                     warning["event"],
                 )
+
         with pytest.raises(IncorrectMapping, match="LDAP Attributes .* are a mix"):
             dataloader.single_value = {
                 "attr1": True,
@@ -1656,24 +1656,38 @@ def test_check_import_and_export_flags(
         parse_obj_as(ConversionMapping, converter.raw_mapping)
 
 
-async def test_find_ldap_it_system():
+async def test_find_ldap_it_system(graphql_mock: GraphQLMocker) -> None:
+    graphql_client = GraphQLClient("http://example.com/graphql")
+
     settings = MagicMock()
     settings.ldap_unique_id_field = "objectGUID"
 
     template_str = "{{ ldap.objectGUID }}"
     template = environment.from_string(template_str)
 
+    route = graphql_mock.query("read_itsystems")
+
+    def set_mo_itsystems(user_keys: list[str]) -> None:
+        route.result = {
+            "itsystems": {
+                "objects": [
+                    {"current": {"uuid": uuid4(), "user_key": user_key}}
+                    for user_key in user_keys
+                ]
+            }
+        }
+
     mapping = {"ldap_to_mo": {"AD": {"user_key": template}}}
-    mo_it_systems = ["AD"]
-    assert await find_ldap_it_system(settings, mapping, mo_it_systems) == "AD"
+    set_mo_itsystems(["AD"])
+    assert await find_ldap_it_system(graphql_client, settings, mapping) == "AD"
 
     mapping = {"ldap_to_mo": {"Wrong AD user_key": {"user_key": template}}}
-    mo_it_systems = ["AD"]
-    assert await find_ldap_it_system(settings, mapping, mo_it_systems) is None
+    set_mo_itsystems(["AD"])
+    assert await find_ldap_it_system(graphql_client, settings, mapping) is None
 
     mapping = {"ldap_to_mo": {"AD": {"user_key": template}}}
-    mo_it_systems = []
-    assert await find_ldap_it_system(settings, mapping, mo_it_systems) is None
+    set_mo_itsystems([])
+    assert await find_ldap_it_system(graphql_client, settings, mapping) is None
 
     mapping = {
         "ldap_to_mo": {
@@ -1681,8 +1695,8 @@ async def test_find_ldap_it_system():
             "LDAP": {"user_key": template},
         }
     }
-    mo_it_systems = ["AD", "LDAP"]
-    assert await find_ldap_it_system(settings, mapping, mo_it_systems) is None
+    set_mo_itsystems(["AD", "LDAP"])
+    assert await find_ldap_it_system(graphql_client, settings, mapping) is None
 
 
 async def test_check_cpr_field_or_it_system(converter: LdapConverter):
