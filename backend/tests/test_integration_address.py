@@ -1488,6 +1488,17 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
       }
     }
     """
+    GET_ENGAGEMENT = """
+    query GetEngagement {
+      engagements(limit: 1) {
+        objects {
+          current {
+            uuid
+          }
+        }
+      }
+    }
+    """
     GET_ADDRESS = """
     query GetAddress($uuid: [UUID!]) {
       addresses(filter: {uuids: $uuid}) {
@@ -1499,15 +1510,18 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
                 uuid
                 user_key
             }
+            engagement {
+                uuid
+            }
           }
         }
       }
     }
     """
     CREATE_ADDRESS = """
-    mutation CreateAddress($user_key: String!, $ituser: UUID!) {
+    mutation CreateAddress($user_key: String!, $ituser: UUID!, $engagement: UUID) {
       address_create(
-        input: {validity: {from: "2019-01-01"}, value: "b1f1817d-5f02-4331-b8b3-97330a5d3197", address_type: "4e337d8e-1fd2-4449-8110-e0c8a22958ed", ituser: $ituser, user_key: $user_key, employee: "6ee24785-ee9a-4502-81c2-7697009c9053"}
+        input: {validity: {from: "2019-01-01"}, value: "b1f1817d-5f02-4331-b8b3-97330a5d3197", address_type: "4e337d8e-1fd2-4449-8110-e0c8a22958ed", ituser: $ituser, user_key: $user_key, employee: "6ee24785-ee9a-4502-81c2-7697009c9053", engagement: $engagement}
       ) {
         uuid
       }
@@ -1543,13 +1557,16 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
     assert ituser1 != ituser2
     ituser1_uuid = ituser1["uuid"]
     ituser2_uuid = ituser2["uuid"]
-
+    # Get engagement
+    response = graphapi_post(GET_ENGAGEMENT)
+    engagement = one(response.data["engagements"]["objects"])["current"]
     # Create address
     response = graphapi_post(
         CREATE_ADDRESS,
         variables={
             "user_key": initial_user_key,
             "ituser": ituser1_uuid,
+            "engagement": engagement["uuid"],
         },
     )
     assert response.errors is None
@@ -1568,6 +1585,7 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
         "uuid": address_uuid,
         "user_key": initial_user_key,
         "ituser": [ituser1],
+        "engagement": [engagement],
     }
 
     # Edit user_key
@@ -1590,6 +1608,7 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
     assert response.errors is None
     assert one(response.data["addresses"]["objects"])["current"] == {
         "uuid": address_uuid,
+        "engagement": [engagement],
         "user_key": edited_user_key,
         "ituser": [ituser1],
     }
@@ -1616,6 +1635,7 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
         "uuid": address_uuid,
         "user_key": edited_user_key,
         "ituser": [ituser2],
+        "engagement": [engagement],
     }
 
 
