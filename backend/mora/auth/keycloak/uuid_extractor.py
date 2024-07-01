@@ -3,6 +3,8 @@
 import asyncio
 import functools
 import re
+from collections.abc import AsyncIterable
+from typing import Any
 from uuid import UUID
 
 from fastapi import Request
@@ -12,6 +14,9 @@ from structlog import get_logger
 from mora import common
 from mora.exceptions import ErrorCodes
 from mora.exceptions import HTTPException
+from mora.graphapi.versions.latest.inputs import EngagementCreateInput
+from mora.graphapi.versions.latest.inputs import OrganisationUnitCreateInput
+from mora.graphapi.versions.latest.permissions import CollectionPermissionType
 from mora.mapping import ASSOCIATED_ORG_UNITS_FIELD
 from mora.mapping import ASSOCIATION
 from mora.mapping import CHILDREN
@@ -291,6 +296,79 @@ async def get_entity_type(request: Request) -> EntityType:
         )
 
     return types[0]
+
+
+async def get_entities_graphql(
+    input: Any, collection: str, permission_type: CollectionPermissionType
+) -> AsyncIterable[tuple[EntityType, UUID]]:
+    """The following is based on the above functions for the Service-API."""
+
+    async def extract() -> AsyncIterable[tuple[EntityType, UUID | None]]:
+        # Allow both employee and person to avoid bugs in the future
+        if collection in {"employee", "person"}:
+            yield EntityType.EMPLOYEE, getattr(input, "uuid")
+            return
+
+        if collection == "org_unit":
+            # Nobody owns the org unit if it is being created
+            if not isinstance(input, OrganisationUnitCreateInput):
+                yield EntityType.ORG_UNIT, getattr(input, "uuid")
+            # No matter what, you must be the owner of its parent, though. Note that
+            # this allows you to remove the parent from org-units you don't own. We
+            # should probably base the check on both the existing data and the payload
+            # instead...
+            yield EntityType.ORG_UNIT, getattr(input, "parent", None)
+            return
+
+        # Terminate detail
+        # There isn't enough information available in terminate payloads to determine
+        # ownership, so we must fetch the related object from the database. To be
+        # honest, this should be the general strategy anyway - why do we trust user
+        # input?
+        if permission_type == "terminate":
+            org_function = await _get_org_function(getattr(input, "uuid"))
+            if org_unit_uuid := ASSOCIATED_ORG_UNITS_FIELD.get_uuid(org_function):
+                yield EntityType.ORG_UNIT, UUID(org_unit_uuid)
+            elif employee_uuid := USER_FIELD.get_uuid(org_function):
+                yield EntityType.EMPLOYEE, UUID(employee_uuid)
+            return
+
+        # Engagement ownership is determined by its current org unit, if there is one
+        if collection == "engagement" and not isinstance(input, EngagementCreateInput):
+            org_function = await _get_org_function(getattr(input, "uuid"))
+            if org_unit_uuid := ASSOCIATED_ORG_UNITS_FIELD.get_uuid(org_function):
+                yield EntityType.ORG_UNIT, UUID(org_unit_uuid)
+                return
+
+        # These details link both a person with an org unit, but ownership is only
+        # checked with regard to the org unit.
+        if collection in {"association", "engagement", "manager", "rolebinding"}:
+            yield EntityType.ORG_UNIT, getattr(input, "org_unit", None)
+
+        if collection == "related_unit":
+            # Related units have a single `origin` field and a list of `destination`s
+            yield EntityType.ORG_UNIT, getattr(input, "origin", None)
+            if destinations := getattr(input, "destination", None):
+                for destination in destinations:
+                    yield EntityType.ORG_UNIT, destination
+            return
+
+        # Even though some of the remaining object types (addresses, IT-users, leaves,
+        # and owners at time of writing) can reference both employees and org units, we
+        # short-circuit if an org unit is set, and care only about that.
+        if org_unit := getattr(input, "org_unit", None):
+            yield EntityType.ORG_UNIT, org_unit
+            return
+
+        # Finally, fallback to ownership of the person
+        yield EntityType.EMPLOYEE, getattr(input, "employee", None)
+        yield EntityType.EMPLOYEE, getattr(input, "person", None)
+
+    async for entity_type, uuid in extract():
+        # Make sure we don't yield None as UUID! Doing so makes the later code behave
+        # wrongly and may grant to wide access.
+        if uuid:
+            yield entity_type, uuid
 
 
 async def _get_org_function(uuid: UUID) -> dict:

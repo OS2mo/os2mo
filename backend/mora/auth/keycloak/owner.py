@@ -9,6 +9,7 @@ from structlog import get_logger
 import mora.service.orgunit
 from mora import common
 from mora.auth.keycloak import uuid_extractor
+from mora.graphapi.middleware import is_graphql
 from mora.handler.impl.owner import OwnerReader
 from mora.mapping import EntityType
 from mora.mapping import OWNER
@@ -18,7 +19,8 @@ logger = get_logger()
 
 
 async def get_owners(uuid: UUID, entity_type: EntityType) -> set[UUID]:
-    logger.debug("get_owners called")
+    logger.debug("get_owners called", uuid=uuid, entity_type=entity_type)
+    assert uuid is not None
     if entity_type == EntityType.ORG_UNIT:
         return await get_ancestor_owners(uuid)
     return await _get_entity_owners(uuid, EntityType.EMPLOYEE)
@@ -115,10 +117,14 @@ async def _get_entity_owners(uuid: UUID, entity_type: EntityType) -> set[UUID]:
     )
 
     c = common.get_connector()
-    r = await OwnerReader.get_from_type(c, entity_type.value, uuid)
-    logger.debug("OwnerReader.get_from_type", response=r)
+    objects = await OwnerReader.get_from_type(c, entity_type.value, uuid)
+    logger.debug("OwnerReader.get_from_type", response=objects)
 
-    # Filter out empty dicts and vacant owners
-    r_filtered = filter(lambda item: item.get(OWNER) is not None, r)
-
+    # Filter out empty dicts and vacant owners. GraphQL returns owners as `owner_uuid`.
+    # The Service-API returns it as `{owner: {uuid: ...}}`.
+    if is_graphql():
+        return {
+            UUID(owner) for o in objects if (owner := o.get("owner_uuid")) is not None
+        }
+    r_filtered = filter(lambda item: item.get(OWNER) is not None, objects)
     return {UUID(item[OWNER][UUID_KEY]) for item in r_filtered}

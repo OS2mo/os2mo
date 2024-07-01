@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from contextlib import suppress
 from functools import cache
 from functools import partial
 from typing import Any
@@ -7,9 +8,11 @@ from typing import get_args
 from typing import Literal
 
 from fastapi import HTTPException
+from graphql import OperationType
 from strawberry import BasePermission
 from strawberry.types import Info
 
+from mora.auth.exceptions import AuthorizationError
 from mora.config import get_settings
 
 
@@ -77,12 +80,16 @@ def gen_role_permission(
     permission_role: str,
     message: str | None = None,
     force_permission_check: bool = False,
+    collection: Collections | None = None,
+    permission_type: CollectionPermissionType | None = None,
 ) -> type[BasePermission]:
     """Generator function for permission classes.
 
     Args:
         permission_role: The role to check existence for.
         message: Optional message override.
+        collection: Optional collection used for owner check.
+        collection: Optional permission type used for owner check.
 
     Returns:
         Permission class that checks if `role_name` is in the OIDC token.
@@ -90,25 +97,67 @@ def gen_role_permission(
     fail_message = message or f"User does not have required role: {permission_role}"
 
     class CheckRolePermission(BasePermission):
-        """Permission class that checks that a given role exists on the OIDC token."""
+        """Permission class that checks that a given role exists on the OIDC token.
+
+        If the simple role-check fails, we additionally allow access if the operation
+        is a mutation and the user is an owner of the object. This probably should be
+        implemented in a separate permission class, but Strawberry does not support
+        combining multiple permissions with OR.
+        https://github.com/strawberry-graphql/strawberry/issues/2350
+        """
 
         message = fail_message
 
         async def has_permission(self, source: Any, info: Info, **kwargs: Any) -> bool:
             """Returns `True` if `role_name` exists in the token's roles."""
             settings = get_settings()
-            # If GraphQL RBAC is not enabled, do not check permissions, unless forced
+
+            # Do not check permissions (always allow) if GraphQL RBAC is disabled,
+            # unless forced.
             if (not settings.graphql_rbac) and (not force_permission_check):
                 return True
-            # Allow access only if expected role is in roles
+
             token = await info.context["get_token"]()
             token_roles = token.realm_access.roles
+
             # TODO (#55042): Backwards-compatible fix for !1594. Remove when Aarhus is
             # migrated to Azure.
             if settings.graphql_rbac_legacy_admin_role and "admin" in token_roles:
                 return True
-            allow_access = permission_role in token_roles
-            return allow_access
+
+            # Allow access if token has required role
+            if permission_role in token_roles:
+                return True
+
+            # Allow access if user is owner. This only works for mutations at the
+            # moment, since we need access to the object's UUID to determine ownership.
+            if (
+                "owner" in token_roles
+                and info.operation.operation is OperationType.MUTATION
+                and collection is not None
+                and permission_type is not None
+            ):
+                # Import here to avoid circular imports 🙂👍
+                from mora.auth.keycloak.rbac import check_owner
+                from mora.auth.keycloak.uuid_extractor import get_entities_graphql
+
+                # The arguments to this function are the same as the arguments given to the
+                # mutator. Therefore, if the mutator takes an `input` argument, `input`
+                # will be available to us in the kwargs. We don't catch KeyErrors on
+                # purpose to expose a potentially buggy implementation to the user; the
+                # permission check would have failed anyway.
+                input = kwargs["input"]
+                entities = {
+                    x
+                    async for x in get_entities_graphql(
+                        input, collection, permission_type
+                    )
+                }
+                with suppress(AuthorizationError):
+                    await check_owner(token, entities)
+                    return True
+
+            return False
 
     return CheckRolePermission
 
@@ -139,6 +188,8 @@ def gen_permission(
         permission_name,
         f"User does not have {permission_type}-access to {collection}",
         force_permission_check=force_permission_check,
+        collection=collection,
+        permission_type=permission_type,
     )
 
 
