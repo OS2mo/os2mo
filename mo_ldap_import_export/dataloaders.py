@@ -1178,15 +1178,6 @@ class DataLoader:
         )
         return employees
 
-    async def load_mo_facet(self, user_key: str) -> dict[str, Any]:
-        result = await self.graphql_client.read_facet_classes(user_key)
-        # TODO: Actually return UUID types here
-        return {
-            str(clazz.current.uuid): jsonable_encoder(clazz.current)
-            for clazz in result.objects
-            if clazz.current is not None
-        }
-
     async def load_mo_class_uuid(self, user_key: str) -> UUID:
         """Find the UUID of a class by user-key.
 
@@ -1236,12 +1227,6 @@ class DataLoader:
         )
         facet = one(result.objects, too_short=too_short, too_long=too_long)
         return facet.uuid
-
-    async def load_mo_employee_address_types(self) -> dict:
-        return await self.load_mo_facet("employee_address_type")
-
-    async def load_mo_org_unit_address_types(self) -> dict:
-        return await self.load_mo_facet("org_unit_address_type")
 
     async def load_mo_it_systems(self) -> dict[str, Any]:
         result = await self.graphql_client.read_itsystems()

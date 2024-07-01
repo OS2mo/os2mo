@@ -103,6 +103,9 @@ get_org_unit_type_uuid = partial(_get_facet_class_uuid, facet_user_key="org_unit
 get_org_unit_level_uuid = partial(
     _get_facet_class_uuid, facet_user_key="org_unit_level"
 )
+get_employee_address_type_uuid = partial(
+    _get_facet_class_uuid, facet_user_key="employee_address_type"
+)
 get_org_unit_address_type_uuid = partial(
     _get_facet_class_uuid, facet_user_key="org_unit_address_type"
 )
@@ -125,6 +128,14 @@ async def get_job_function_name(graphql_client: GraphQLClient, uuid: UUID) -> st
     if job_function.current is None:
         raise NoObjectsReturnedException(f"job_function not active, uuid: {uuid}")
     return job_function.current.name
+
+
+async def get_org_unit_name(graphql_client: GraphQLClient, uuid: UUID) -> str:
+    result = await graphql_client.read_org_unit_name(uuid)
+    org_unit = one(result.objects)
+    if org_unit.current is None:
+        raise NoObjectsReturnedException(f"org_unit not active, uuid: {uuid}")
+    return org_unit.current.name
 
 
 def make_dn_from_org_unit_path(
@@ -431,9 +442,6 @@ class LdapConverter:
         # Note: If new address types or IT systems are added to MO, these dicts need
         # to be re-initialized
         logger.info("Loading info dicts")
-        self.employee_address_type_info = (
-            await self.dataloader.load_mo_employee_address_types()
-        )
         self.it_system_info = await self.dataloader.load_mo_it_systems()
 
         self.org_unit_info = await self.dataloader.load_mo_org_units()
@@ -788,25 +796,6 @@ class LdapConverter:
 
         self.check_org_unit_info_dict()
 
-    async def get_object_item_from_uuid(
-        self, info_dict: str, uuid: str, key: str
-    ) -> Any:
-        try:
-            return getattr(self, info_dict)[str(uuid)][key]
-        except KeyError:
-            await self.load_info_dicts()
-            return getattr(self, info_dict)[str(uuid)][key]
-
-    async def get_object_user_key_from_uuid(self, info_dict: str, uuid: str) -> str:
-        user_key: str = await self.get_object_item_from_uuid(
-            info_dict, uuid, "user_key"
-        )
-        return user_key
-
-    async def get_object_name_from_uuid(self, info_dict: str, uuid: str) -> str:
-        name: str = await self.get_object_item_from_uuid(info_dict, uuid, "name")
-        return name
-
     @staticmethod
     def string_normalizer(name):
         return name.lower().replace("-", " ")
@@ -836,33 +825,8 @@ class LdapConverter:
     def get_object_uuid_from_user_key(self, info_dict: dict, user_key: str) -> str:
         return self.get_object_uuid_from_info_dict(info_dict, "user_key", user_key)
 
-    def get_employee_address_type_uuid(self, address_type: str) -> str:
-        return self.get_object_uuid_from_user_key(
-            self.employee_address_type_info, address_type
-        )
-
     def get_it_system_uuid(self, it_system: str) -> str:
         return self.get_object_uuid_from_user_key(self.it_system_info, it_system)
-
-    async def get_employee_address_type_user_key(self, uuid: str) -> str:
-        return await self.get_object_user_key_from_uuid(
-            "employee_address_type_info", uuid
-        )
-
-    async def get_org_unit_address_type_user_key(self, uuid: str) -> str:
-        # TODO: Do not refactor this function, rather get rid of it
-        org_unit_address_type_info = (
-            await self.dataloader.load_mo_org_unit_address_types()
-        )
-        result = org_unit_address_type_info[uuid]["user_key"]
-        assert isinstance(result, str)
-        return result
-
-    async def get_it_system_user_key(self, uuid: str) -> str:
-        return await self.get_object_user_key_from_uuid("it_system_info", uuid)
-
-    async def get_org_unit_name(self, uuid: str) -> str:
-        return await self.get_object_name_from_uuid("org_unit_info", uuid)
 
     async def create_org_unit(self, org_unit_path_string: str):
         """
@@ -1098,7 +1062,9 @@ class LdapConverter:
             "nonejoin": nonejoin,
             "nonejoin_orgs": partial(nonejoin_orgs, self.settings),
             "remove_first_org": partial(remove_first_org, self.settings),
-            "get_employee_address_type_uuid": self.get_employee_address_type_uuid,
+            "get_employee_address_type_uuid": partial(
+                get_employee_address_type_uuid, self.dataloader.graphql_client
+            ),
             "get_org_unit_address_type_uuid": partial(
                 get_org_unit_address_type_uuid, self.dataloader.graphql_client
             ),
@@ -1129,7 +1095,9 @@ class LdapConverter:
             "get_job_function_name": partial(
                 get_job_function_name, self.dataloader.graphql_client
             ),
-            "get_org_unit_name": self.get_org_unit_name,
+            "get_org_unit_name": partial(
+                get_org_unit_name, self.dataloader.graphql_client
+            ),
             "get_or_create_job_function_uuid": partial(
                 get_or_create_job_function_uuid, self.dataloader
             ),
