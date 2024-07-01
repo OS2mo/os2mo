@@ -253,7 +253,7 @@ def dataloader(
     dataloader.load_ldap_attribute_values = sync_dataloader
     dataloader.modify_ldap_object.return_value = [{"description": "success"}]
     dataloader.get_ldap_unique_ldap_uuid = AsyncMock()
-    dataloader.get_ldap_it_system_uuid = sync_dataloader
+    dataloader.get_ldap_it_system_uuid = AsyncMock()
     dataloader.supported_object_types = ["address", "person"]
     with patch(
         "mo_ldap_import_export.routes.load_ldap_objects",

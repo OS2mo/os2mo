@@ -304,6 +304,9 @@ from .read_is_primary_engagements import ReadIsPrimaryEngagementsEngagementsObje
 from .read_is_primary_engagements import (
     ReadIsPrimaryEngagementsEngagementsObjectsCurrent,
 )
+from .read_itsystem_uuid import ReadItsystemUuid
+from .read_itsystem_uuid import ReadItsystemUuidItsystems
+from .read_itsystem_uuid import ReadItsystemUuidItsystemsObjects
 from .read_itsystems import ReadItsystems
 from .read_itsystems import ReadItsystemsItsystems
 from .read_itsystems import ReadItsystemsItsystemsObjects
@@ -569,6 +572,9 @@ __all__ = [
     "ReadIsPrimaryEngagementsEngagements",
     "ReadIsPrimaryEngagementsEngagementsObjects",
     "ReadIsPrimaryEngagementsEngagementsObjectsCurrent",
+    "ReadItsystemUuid",
+    "ReadItsystemUuidItsystems",
+    "ReadItsystemUuidItsystemsObjects",
     "ReadItsystems",
     "ReadItsystemsItsystems",
     "ReadItsystemsItsystemsObjects",

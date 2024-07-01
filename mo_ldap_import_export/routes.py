@@ -360,8 +360,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
         settings: depends.Settings,
         dataloader: depends.DataLoader,
     ) -> Any:
-        it_system_uuid = dataloader.get_ldap_it_system_uuid()
-        print(it_system_uuid)
+        it_system_uuid = await dataloader.get_ldap_it_system_uuid()
         if not it_system_uuid:
             raise ObjectGUIDITSystemNotFound("Could not find it_system_uuid")
 

@@ -860,7 +860,7 @@ class DataLoader:
             raw_unique_uuid = one(raw_unique_uuid)
         unique_uuid = filter_remove_curly_brackets(raw_unique_uuid)
 
-        itsystem_uuid = self.get_ldap_it_system_uuid()
+        itsystem_uuid = await self.get_ldap_it_system_uuid()
         if itsystem_uuid is None:
             logger.info(
                 "Could not find engagement UUID for DN",
@@ -891,15 +891,19 @@ class DataLoader:
 
         return engagement_uuid
 
-    def get_ldap_it_system_uuid(self) -> str | None:
+    async def get_ldap_it_system_uuid(self) -> str | None:
         """
         Return the IT system uuid belonging to the LDAP-it-system
         Return None if the LDAP-it-system is not found.
         """
-        converter = self.user_context["converter"]
         user_key = self.user_context["ldap_it_system_user_key"]
+        if user_key is None:
+            return None
+
         try:
-            return cast(str, converter.get_it_system_uuid(user_key))
+            from .converters import get_it_system_uuid
+
+            return await get_it_system_uuid(self.graphql_client, user_key)
         except UUIDNotFoundException:
             logger.info(
                 "UUID Not found",
@@ -980,7 +984,7 @@ class DataLoader:
         # TODO: How do we know if the ITUser is up-to-date with the newest DNs in AD?
 
         # The ITSystem only exists if configured to do so
-        raw_it_system_uuid = self.get_ldap_it_system_uuid()
+        raw_it_system_uuid = await self.get_ldap_it_system_uuid()
         # If it does not exist, we cannot fetch users for it
         if raw_it_system_uuid is None:
             return set()
@@ -1070,7 +1074,7 @@ class DataLoader:
         return set()
 
     async def make_mo_employee_dn(self, uuid: UUID) -> DN:
-        raw_it_system_uuid = self.get_ldap_it_system_uuid()
+        raw_it_system_uuid = await self.get_ldap_it_system_uuid()
         employee = await self.load_mo_employee(uuid)
         cpr_no = CPRNumber(employee.cpr_no) if employee.cpr_no else None
 

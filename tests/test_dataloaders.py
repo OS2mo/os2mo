@@ -79,7 +79,6 @@ from mo_ldap_import_export.exceptions import DNNotFound
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import ReadOnlyException
-from mo_ldap_import_export.exceptions import UUIDNotFoundException
 from mo_ldap_import_export.import_export import IgnoreMe
 from mo_ldap_import_export.routes import load_all_current_it_users
 from mo_ldap_import_export.routes import load_ldap_attribute_values
@@ -1571,13 +1570,21 @@ async def test_modify_ldap_ou_not_in_ous_to_write_to(
     )  # type: ignore
 
 
-async def test_get_ldap_it_system_uuid(dataloader: DataLoader, converter: MagicMock):
+async def test_get_ldap_it_system_uuid(
+    graphql_mock: GraphQLMocker,
+    dataloader: DataLoader,
+) -> None:
     uuid = uuid4()
-    converter.get_it_system_uuid.return_value = uuid
-    assert dataloader.get_ldap_it_system_uuid() == uuid
+    route = graphql_mock.query("read_itsystem_uuid")
+    route.result = {"itsystems": {"objects": [{"uuid": uuid}]}}
 
-    converter.get_it_system_uuid.side_effect = UUIDNotFoundException("UUID Not found")
-    assert dataloader.get_ldap_it_system_uuid() is None
+    assert await dataloader.get_ldap_it_system_uuid() == str(uuid)
+    assert route.called
+
+    route.reset()
+    route.result = {"itsystems": {"objects": []}}
+    assert await dataloader.get_ldap_it_system_uuid() is None
+    assert route.called
 
 
 async def test_find_mo_employee_dn(dataloader: MagicMock) -> None:
@@ -1618,7 +1625,7 @@ async def test_make_mo_employee_dn_no_correlation(dataloader: MagicMock) -> None
     dataloader.load_mo_employee = AsyncMock()
     dataloader.load_mo_employee.return_value = employee_object
 
-    dataloader.get_ldap_it_system_uuid = MagicMock()
+    dataloader.get_ldap_it_system_uuid = AsyncMock()
     dataloader.get_ldap_it_system_uuid.return_value = None
 
     with pytest.raises(DNNotFound) as exc_info:
@@ -1636,7 +1643,7 @@ async def test_make_mo_employee_dn_no_itsystem(dataloader: MagicMock) -> None:
     dataloader.load_mo_employee = AsyncMock()
     dataloader.load_mo_employee.return_value = employee_object
 
-    dataloader.get_ldap_it_system_uuid = MagicMock()
+    dataloader.get_ldap_it_system_uuid = AsyncMock()
     dataloader.get_ldap_it_system_uuid.return_value = None
 
     dn = "CN=foo"
@@ -1673,7 +1680,7 @@ async def test_make_mo_employee_dn_no_cpr(dataloader: MagicMock) -> None:
     dataloader.load_mo_employee.return_value = employee_object
 
     itsystem_uuid = uuid4()
-    dataloader.get_ldap_it_system_uuid = MagicMock()
+    dataloader.get_ldap_it_system_uuid = AsyncMock()
     dataloader.get_ldap_it_system_uuid.return_value = str(itsystem_uuid)
 
     dn = "CN=foo"
@@ -2457,14 +2464,15 @@ async def test_find_mo_engagement_uuid(
         dn="CN=foo", objectGUID=f"{{{object_guid}}}"
     )
 
-    dataloader.get_ldap_it_system_uuid = lambda: None  # type: ignore
+    dataloader.get_ldap_it_system_uuid = AsyncMock()  # type: ignore
+    dataloader.get_ldap_it_system_uuid.return_value = None
     with patch.object(dataloader, "load_ldap_object", return_value=mock_ldap_object):
         # Act
         empty = await dataloader.find_mo_engagement_uuid("CN=foo")
         # Assert
         assert empty is None
 
-    dataloader.get_ldap_it_system_uuid = lambda: str(itsystem_uuid)  # type: ignore
+    dataloader.get_ldap_it_system_uuid.return_value = str(itsystem_uuid)
 
     route = graphql_mock.query("read_engagement_uuid_by_ituser_user_key")
     route.result = {
@@ -2641,7 +2649,7 @@ async def test_find_mo_employee_dn_by_itsystem_no_itsystem(
 ) -> None:
     employee_uuid = uuid4()
 
-    dataloader.get_ldap_it_system_uuid = MagicMock()  # type: ignore
+    dataloader.get_ldap_it_system_uuid = AsyncMock()  # type: ignore
     dataloader.get_ldap_it_system_uuid.return_value = None
 
     result = await dataloader.find_mo_employee_dn_by_itsystem(employee_uuid)
@@ -2655,7 +2663,7 @@ async def test_find_mo_employee_dn_by_itsystem_no_match(
     employee_uuid = uuid4()
     itsystem_uuid = uuid4()
 
-    dataloader.get_ldap_it_system_uuid = MagicMock()  # type: ignore
+    dataloader.get_ldap_it_system_uuid = AsyncMock()  # type: ignore
     dataloader.get_ldap_it_system_uuid.return_value = str(itsystem_uuid)
 
     route1 = graphql_mock.query("read_ituser_by_employee_and_itsystem_uuid")
@@ -2673,7 +2681,7 @@ async def test_find_mo_employee_dn_by_itsystem(
     itsystem_uuid = uuid4()
     ituser_uuid = uuid4()
 
-    dataloader.get_ldap_it_system_uuid = MagicMock()  # type: ignore
+    dataloader.get_ldap_it_system_uuid = AsyncMock()  # type: ignore
     dataloader.get_ldap_it_system_uuid.return_value = str(itsystem_uuid)
 
     route1 = graphql_mock.query("read_ituser_by_employee_and_itsystem_uuid")

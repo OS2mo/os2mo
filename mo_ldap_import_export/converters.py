@@ -138,6 +138,16 @@ async def get_org_unit_name(graphql_client: GraphQLClient, uuid: UUID) -> str:
     return org_unit.current.name
 
 
+async def get_it_system_uuid(
+    graphql_client: GraphQLClient, itsystem_user_key: str
+) -> str:
+    result = await graphql_client.read_itsystem_uuid(itsystem_user_key)
+    exception = UUIDNotFoundException(
+        f"itsystem not found, user_key: {itsystem_user_key}"
+    )
+    return str(one(result.objects, too_short=exception).uuid)
+
+
 def make_dn_from_org_unit_path(
     settings: Settings, dn: str, org_unit_path_string: str
 ) -> str:
@@ -442,11 +452,11 @@ class LdapConverter:
         # Note: If new address types or IT systems are added to MO, these dicts need
         # to be re-initialized
         logger.info("Loading info dicts")
-        self.it_system_info = await self.dataloader.load_mo_it_systems()
 
         self.org_unit_info = await self.dataloader.load_mo_org_units()
 
-        self.mo_it_systems = [a["user_key"] for a in self.it_system_info.values()]
+        it_system_info = await self.dataloader.load_mo_it_systems()
+        self.mo_it_systems = [a["user_key"] for a in it_system_info.values()]
 
         self.all_info_dicts = {
             f: getattr(self, f)
@@ -796,38 +806,6 @@ class LdapConverter:
 
         self.check_org_unit_info_dict()
 
-    @staticmethod
-    def string_normalizer(name):
-        return name.lower().replace("-", " ")
-
-    def get_object_uuid_from_info_dict(
-        self, info_dict: dict, key: str, value: str
-    ) -> str:
-        accepted_values = [d[key] for d in info_dict.values()]
-        error_message = f"'{value}' is not among {accepted_values}"
-        if not value:
-            raise UUIDNotFoundException(error_message)
-
-        normalized_value = self.string_normalizer(value)
-
-        candidates: dict[str, str] = {
-            info[key]: info["uuid"]
-            for info in info_dict.values()
-            if self.string_normalizer(info[key]) == normalized_value
-        }
-        if len(candidates) > 0:
-            if value in candidates:
-                return candidates[value]
-            return list(candidates.values())[0]
-        else:
-            raise UUIDNotFoundException(error_message)
-
-    def get_object_uuid_from_user_key(self, info_dict: dict, user_key: str) -> str:
-        return self.get_object_uuid_from_info_dict(info_dict, "user_key", user_key)
-
-    def get_it_system_uuid(self, it_system: str) -> str:
-        return self.get_object_uuid_from_user_key(self.it_system_info, it_system)
-
     async def create_org_unit(self, org_unit_path_string: str):
         """
         Create the parent org. in the hierarchy (if it does not exist),
@@ -1068,7 +1046,9 @@ class LdapConverter:
             "get_org_unit_address_type_uuid": partial(
                 get_org_unit_address_type_uuid, self.dataloader.graphql_client
             ),
-            "get_it_system_uuid": self.get_it_system_uuid,
+            "get_it_system_uuid": partial(
+                get_it_system_uuid, self.dataloader.graphql_client
+            ),
             "get_or_create_org_unit_uuid": self.get_or_create_org_unit_uuid,
             "org_unit_path_string_from_dn": self.org_unit_path_string_from_dn,
             "get_job_function_uuid": partial(
@@ -1245,20 +1225,17 @@ class LdapConverter:
                 raise IncorrectMapping(f"Missing '{json_key}' in mapping 'ldap_to_mo'")
 
             async def render_template(template):
-                try:
-                    value = (await template.render_async(context)).strip()
+                value = (await template.render_async(context)).strip()
 
-                    # Sloppy mapping can lead to the following rendered strings:
-                    # - {{ldap.mail or None}} renders as "None"
-                    # - {{ldap.mail}} renders as "[]" if ldap.mail is empty
-                    #
-                    # Mapping with {{ldap.mail or NONE}} solves both, but let's check
-                    # for "none" or "[]" strings anyway to be more robust.
-                    if value.lower() == "none" or value == "[]":
-                        value = ""
-                except UUIDNotFoundException as e:
-                    logger.warning(e)
-                    return None
+                # Sloppy mapping can lead to the following rendered strings:
+                # - {{ldap.mail or None}} renders as "None"
+                # - {{ldap.mail}} renders as "[]" if ldap.mail is empty
+                #
+                # Mapping with {{ldap.mail or NONE}} solves both, but let's check
+                # for "none" or "[]" strings anyway to be more robust.
+                if value.lower() == "none" or value == "[]":
+                    value = ""
+
                 # TODO: Is it possible to render a dictionary directly?
                 #       Instead of converting from a string
                 if "{" in value and ":" in value and "}" in value:
@@ -1283,14 +1260,15 @@ class LdapConverter:
 
             # If any required attributes are missing
             missing_attributes = required_attributes - set(mo_dict.keys())
-            if missing_attributes:
+            # TODO: Restructure this so rejection happens during parsing?
+            if missing_attributes:  # pragma: no cover
                 logger.info(
                     "Missing attributes in dict to model conversion",
                     mo_dict=mo_dict,
                     mo_class=mo_class,
                     missing_attributes=missing_attributes,
                 )
-                continue
+                raise ValueError("Missing attributes in dict to model conversion")
 
             # If requested to terminate, we generate and return a termination subclass
             # instead of the original class. This is to ensure we can forward the termination date,

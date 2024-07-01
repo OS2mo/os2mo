@@ -106,6 +106,8 @@ from .read_filtered_itusers import ReadFilteredItusers
 from .read_filtered_itusers import ReadFilteredItusersItusers
 from .read_is_primary_engagements import ReadIsPrimaryEngagements
 from .read_is_primary_engagements import ReadIsPrimaryEngagementsEngagements
+from .read_itsystem_uuid import ReadItsystemUuid
+from .read_itsystem_uuid import ReadItsystemUuidItsystems
 from .read_itsystems import ReadItsystems
 from .read_itsystems import ReadItsystemsItsystems
 from .read_ituser_by_employee_and_itsystem_uuid import (
@@ -1132,3 +1134,20 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadOrgUnitName.parse_obj(data).org_units
+
+    async def read_itsystem_uuid(self, user_key: str) -> ReadItsystemUuidItsystems:
+        query = gql(
+            """
+            query read_itsystem_uuid($user_key: String!) {
+              itsystems(filter: {user_keys: [$user_key]}) {
+                objects {
+                  uuid
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"user_key": user_key}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadItsystemUuid.parse_obj(data).itsystems

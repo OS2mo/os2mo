@@ -513,7 +513,6 @@ def inject_environmental_variables(
             {},
             False,
             [
-                "UUID Not found",
                 "Could not find engagement UUID for DN",
                 "Engagement UUID not found in MO",
                 "Import checks executed",
@@ -544,7 +543,6 @@ def inject_environmental_variables(
             [
                 "Found DN",
                 "Found DN",
-                "UUID Not found",
                 "Could not find engagement UUID for DN",
                 "Engagement UUID not found in MO",
                 "Import checks executed",
@@ -563,7 +561,6 @@ def inject_environmental_variables(
                 "Found DN",
                 "Found better DN for employee",
                 "Found DN",
-                "UUID Not found",
                 "Could not find engagement UUID for DN",
                 "Engagement UUID not found in MO",
                 "Import checks executed",
@@ -637,7 +634,6 @@ async def test_import_single_user_apply_discriminator(
             "Found DN",
             "Found employee via CPR matching",
             "Attempting to find DNs",
-            "UUID Not found",
             "Attempting CPR number lookup",
             "Found LDAP(s) object",
             "Found DN(s) using CPR number lookup",
@@ -776,7 +772,6 @@ async def test_listen_to_changes_in_employees(
         == [
             "Registered change in an employee",
             "Attempting to find DNs",
-            "UUID Not found",
             "Attempting CPR number lookup",
             "Found LDAP(s) object",
             "Found DN(s) using CPR number lookup",
