@@ -99,6 +99,7 @@ async def prepare_ancestor_tree(
     async def process_parent(uuid: UUID):
         # Fetch parent, if no parent is found, we must be a root node
         parent_uuid = await get_parent(uuid)
+        assert parent_uuid != uuid  # provably ensures we don't loop forever
         if not parent_uuid:
             root_uuids.add(uuid)
             return
