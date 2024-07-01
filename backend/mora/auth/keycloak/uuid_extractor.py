@@ -187,7 +187,7 @@ async def terminate_detail_extract_strategy(request: Request) -> set[UUID]:
     if payload[TYPE] == ORG_UNIT:
         return {UUID(payload[UUID_KEY])}
 
-    org_function = await _get_org_function(payload)
+    org_function = await _get_org_function(payload[UUID_KEY])
     org_unit_uuid = ASSOCIATED_ORG_UNITS_FIELD.get_uuid(org_function)
     if org_unit_uuid:
         return {UUID(org_unit_uuid)}
@@ -230,7 +230,7 @@ async def json_extract_strategy(request: Request) -> set[UUID]:
             if ORG_UNIT in obj:
                 return UUID(obj[ORG_UNIT][UUID_KEY])
             if obj[TYPE] == ENGAGEMENT:
-                org_function = await _get_org_function(obj)
+                org_function = await _get_org_function(obj[UUID_KEY])
                 org_unit_uuid = ASSOCIATED_ORG_UNITS_FIELD.get_uuid(org_function)
                 return UUID(org_unit_uuid)
             return UUID(obj[DATA][ORG_UNIT][UUID_KEY])
@@ -272,7 +272,7 @@ async def get_entity_type(request: Request) -> EntityType:
             if obj[TYPE] == ORG_UNIT:
                 return EntityType.ORG_UNIT
             else:
-                org_function = await _get_org_function(obj)
+                org_function = await _get_org_function(obj[UUID_KEY])
                 org_unit_uuid = ASSOCIATED_ORG_UNITS_FIELD.get_uuid(org_function)
                 return EntityType.ORG_UNIT if org_unit_uuid else EntityType.EMPLOYEE
         if obj.get(TYPE) in {ENGAGEMENT, ROLEBINDING, ASSOCIATION, MANAGER}:
@@ -293,9 +293,9 @@ async def get_entity_type(request: Request) -> EntityType:
     return types[0]
 
 
-async def _get_org_function(payload: dict) -> dict:
+async def _get_org_function(uuid: UUID) -> dict:
     c = common.get_connector()
-    return await c.organisationfunktion.get(uuid=payload[UUID_KEY])
+    return await c.organisationfunktion.get(uuid=uuid)
 
 
 # TODO: so far there are only integration tests covering this module -
