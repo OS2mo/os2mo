@@ -47,7 +47,6 @@ from mora.app import create_app
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import Token
 from mora.auth.keycloak.oidc import token_getter
-from mora.auth.middleware import fetch_authenticated_user
 from mora.config import get_settings
 from mora.graphapi.main import newest as newest_graphql_version
 from mora.graphapi.versions.latest.permissions import ALL_PERMISSIONS
@@ -261,7 +260,6 @@ def fastapi_admin_test_app(monkeypatch, sessionmakermaker) -> FastAPI:
     monkeypatch.setattr(db, "_get_sessionmaker", sessionmakermaker.get_sessionmaker)
     app.dependency_overrides[auth] = admin_auth
     app.dependency_overrides[token_getter] = admin_token_getter
-    app.dependency_overrides[fetch_authenticated_user] = admin_auth_uuid
     return app
 
 
