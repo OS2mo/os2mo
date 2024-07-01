@@ -20,6 +20,7 @@ from .models import AddressRead
 from .models import ClassRead
 from .models import EngagementRead
 from .models import FacetRead
+from .models import ITUserRead
 from .models import RoleBindingRead
 from .paged import CursorType
 from .paged import LimitType
@@ -70,7 +71,6 @@ from mora.audit import audit_log
 from mora.config import get_public_settings
 from ramodels.mo.details.association import AssociationRead
 from ramodels.mo.details.it_system import ITSystemRead
-from ramodels.mo.details.it_system import ITUserRead
 from ramodels.mo.details.kle import KLERead
 from ramodels.mo.details.leave import LeaveRead
 from ramodels.mo.details.manager import ManagerRead

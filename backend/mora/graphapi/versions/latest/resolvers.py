@@ -49,6 +49,7 @@ from .models import AddressRead
 from .models import ClassRead
 from .models import EngagementRead
 from .models import FacetRead
+from .models import ITUserRead
 from .models import RoleBindingRead
 from .paged import CursorType
 from .paged import LimitType
@@ -67,7 +68,6 @@ from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AssociationRead
 from ramodels.mo.details import ITSystemRead
-from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead
 from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import ManagerRead
@@ -455,9 +455,9 @@ async def engagement_resolver(
     if filter.job_function is not None:
         class_filter = filter.job_function or ClassFilter()
         kwargs["opgaver"] = await filter2uuids_func(class_resolver, info, class_filter)
-    if filter.ituser is not None:
+    if filter.itusers is not None:
         kwargs["tilknyttedefunktioner"] = await filter2uuids_func(
-            it_user_resolver, info, filter.ituser
+            it_user_resolver, info, filter.itusers
         )
 
     return await generic_resolver(
@@ -821,9 +821,9 @@ async def it_user_resolver(
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
     if filter.itsystem_uuids is not None or filter.itsystem is not None:
         kwargs["tilknyttedeitsystemer"] = await _get_itsystem_uuids(info, filter)
-    if filter.engagement is not None:
+    if filter.engagements is not None:
         kwargs["tilknyttedefunktioner"] = await filter2uuids_func(
-            engagement_resolver, info, filter.engagement
+            engagement_resolver, info, filter.engagements
         )
 
     return await generic_resolver(

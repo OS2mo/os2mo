@@ -116,6 +116,7 @@ from .models import ClassRead
 from .models import EngagementRead
 from .models import FacetRead
 from .models import FileStore
+from .models import ITUserRead
 from .models import RoleBindingRead
 from .org import create_org
 from .org import OrganisationCreate
@@ -179,7 +180,6 @@ from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AssociationRead
 from ramodels.mo.details import ITSystemRead
-from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead
 from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import ManagerRead

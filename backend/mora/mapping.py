@@ -302,6 +302,18 @@ ASSOCIATED_FUNCTION_FIELD = FieldTuple(
     path=("relationer", "tilknyttedefunktioner"),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
+ASSOCIATED_ENGAGEMENT_FIELD = FieldTuple(
+    path=("relationer", "tilknyttedefunktioner"),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+    filter_fn=lambda x: x["objekttype"] == "engagement",
+)
+
+ASSOCIATED_IT_USER_FIELD = FieldTuple(
+    path=("relationer", "tilknyttedefunktioner"),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+    filter_fn=lambda x: x["objekttype"] == "it",
+)
+
 
 ASSOCIATED_MANAGER_ADDRESSES_FIELD = FieldTuple(
     path=("relationer", "tilknyttedefunktioner"), type=FieldTypes.ZERO_TO_MANY

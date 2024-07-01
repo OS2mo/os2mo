@@ -309,7 +309,7 @@ class EngagementFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
             """
         ),
     )
-    ituser: ITUserFilter | None = strawberry.field(
+    itusers: ITUserFilter | None = strawberry.field(
         default=None,
         description="ITUser filter limiting which entries are returned.",
     )
@@ -404,7 +404,7 @@ class ITUserFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         deprecation_reason="Replaced by the 'itsystem' filter",
     )
 
-    engagement: EngagementFilter | None = strawberry.field(
+    engagements: EngagementFilter | None = strawberry.field(
         default=None,
         description=dedent(
             """\

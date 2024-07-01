@@ -160,6 +160,16 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         # TODO: validate that the date range is in
         # the validity of the IT system!
 
+        tilknyttede_funktioner = []
+
+        for it_uuid in util.get_mapping_uuid(req, mapping.IT, required=False):
+            tilknyttede_funktioner.append(
+                common.associated_orgfunc(
+                    uuid=it_uuid, orgfunc_type=mapping.MoOrgFunk.ENGAGEMENT
+                )
+            )
+
+        util.get_mapping_uuid(req, mapping.IT, required=False)
         func = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ITSYSTEM_KEY,
             primær=primary,
@@ -170,13 +180,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
             tilknyttedeitsystemer=[systemid],
-            tilknyttedefunktioner=[
-                common.associated_orgfunc(
-                    uuid=engagement_uuid, orgfunc_type=mapping.MoOrgFunk.ENGAGEMENT
-                )
-            ]
-            if engagement_uuid
-            else [],
+            tilknyttedefunktioner=tilknyttede_funktioner,
             note=note,
         )
 
@@ -239,12 +243,12 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        if data.get(mapping.ENGAGEMENT):
+        for engagement_uuid in util.get_mapping_uuid(data, mapping.ENGAGEMENT):
             update_fields.append(
                 (
                     mapping.ASSOCIATED_FUNCTION_FIELD,
                     {
-                        "uuid": util.get_mapping_uuid(data, mapping.ENGAGEMENT),
+                        "uuid": engagement_uuid,
                         mapping.OBJECTTYPE: mapping.ENGAGEMENT,
                     },
                 )

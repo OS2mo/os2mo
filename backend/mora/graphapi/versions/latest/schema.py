@@ -43,6 +43,7 @@ from .models import ClassRead
 from .models import EngagementRead
 from .models import FacetRead
 from .models import FileStore
+from .models import ITUserRead
 from .models import OwnerInferencePriority
 from .models import RoleBindingRead
 from .permissions import gen_read_permission
@@ -89,7 +90,6 @@ from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AssociationRead
 from ramodels.mo.details import ITSystemRead
-from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead
 from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import ManagerRead
@@ -2176,11 +2176,9 @@ class Engagement:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    ituser: list[LazyITUser] = strawberry.field(
+    itusers: list[LazyITUser] = strawberry.field(
         resolver=to_list(
-            seed_resolver(
-                it_user_resolver, {"uuids": lambda root: uuid2list(root.it_user_uuid)}
-            )
+            seed_resolver(it_user_resolver, {"uuids": lambda root: root.it_user_uuids})
         ),
         description="Connected IT-user.\n",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
@@ -2637,7 +2635,7 @@ class ITUser:
                     {
                         "uuids": partial(
                             raise_force_none_return_if_uuid_none,
-                            get_uuid=lambda root: root.engagement_uuid,
+                            get_uuid=lambda root: one(root.engagement_uuids),
                         )
                     },
                 )
@@ -2669,7 +2667,7 @@ class ITUser:
             to_list(
                 seed_resolver(
                     engagement_resolver,
-                    {"ituser": lambda root: ITUserFilter(uuids=[root.uuid])},
+                    {"itusers": lambda root: ITUserFilter(uuids=root.uuid)},
                 )
             ),
         ),

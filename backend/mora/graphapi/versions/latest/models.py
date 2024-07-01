@@ -33,6 +33,7 @@ from ramodels.mo._shared import OrgUnitRef
 from ramodels.mo._shared import UUIDBase
 from ramodels.mo.details import AddressRead as RAAddressRead
 from ramodels.mo.details import EngagementRead as RAEngagementRead
+from ramodels.mo.details import ITUserRead as RAItuserRead
 
 logger = logging.getLogger(__name__)
 
@@ -574,7 +575,9 @@ class EngagementUpsert(UUIDBase):
     employee: UUID | None = Field(description="UUID of the related employee.")
     person: UUID | None = Field(description="UUID of the related employee.")
 
-    ituser: UUID | None = Field(description="UUID for the related ituser.")
+    it_user_uuids: list[UUID] | None = Field(
+        description="Optional list of UUIDs of connected IT users"
+    )
 
     def to_handler_dict(self) -> dict:
         return {
@@ -588,7 +591,9 @@ class EngagementUpsert(UUIDBase):
                 else None,
             },
             "person": gen_uuid(self.person) or gen_uuid(self.employee),
-            "it": gen_uuid(self.ituser),
+            "it": [gen_uuid(u) for u in self.it_user_uuids]
+            if self.it_user_uuids
+            else None,
             "extension_1": self.extension_1,
             "extension_2": self.extension_2,
             "extension_3": self.extension_3,
@@ -872,6 +877,12 @@ class ITSystemTerminate(ValidityTerminate):
 
 # ITUsers
 # -------
+class ITUserRead(RAItuserRead):
+    engagement_uuids: list[UUID] | None = Field(
+        description="List of UUIDs of connected engagements"
+    )
+
+
 class ITUserUpsert(UUIDBase):
     primary: UUID | None = Field(description="Primary field of the IT user object")
     person: UUID | None = Field(
@@ -880,7 +891,7 @@ class ITUserUpsert(UUIDBase):
     org_unit: UUID | None = Field(
         description="Reference to the organisation unit of the IT user (if any)."
     )
-    engagement: UUID | None = Field(
+    engagements: list[UUID] | None = Field(
         description="Reference to the engagement of the IT user (if any)."
     )
     validity: RAValidity = Field(description="Validity of the created IT user object.")
@@ -891,7 +902,9 @@ class ITUserUpsert(UUIDBase):
             "primary": gen_uuid(self.primary),
             "person": gen_uuid(self.person),
             "org_unit": gen_uuid(self.org_unit),
-            "engagement": gen_uuid(self.engagement),
+            "engagements": [gen_uuid(eng) for eng in self.engagements]
+            if self.engagements
+            else None,
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()
