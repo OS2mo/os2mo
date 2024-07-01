@@ -1,27 +1,13 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
-from copy import deepcopy
-from typing import Any
 
 import pytest
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
-from more_itertools import one
-from starlette.status import HTTP_200_OK
-from starlette.status import HTTP_201_CREATED
-from starlette.status import HTTP_400_BAD_REQUEST
-from starlette.status import HTTP_403_FORBIDDEN
 
-from mora.auth.keycloak.oidc import auth
-from mora.config import Settings
+from .test_integration_rbac_graphql import set_auth
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
-from mora.mapping import PERSON
-from mora.mapping import UUID
-from tests.test_integration_rbac import mock_auth
-from tests.util import jsonfile_to_dict
-from tests.util import override_config
+from tests.conftest import GraphAPIPost
 
 # Users
 ANDERS_AND = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -30,227 +16,218 @@ LIS_JENSEN = "7626ad64-327d-481f-8b32-36c78eb12f8c"
 ERIK_SMIDT_HANSEN = "236e0a78-11a0-4ed9-8545-6286bb8611c7"
 
 
-def parametrize_roles_code(status_code: int) -> Callable:
-    def wrapper(func: Callable) -> Callable:
-        return pytest.mark.parametrize(
-            "role, userid, status_code",
-            # Test of write access for the following cases:
-            [
-                # 1) Normal user (no roles set)
-                (None, None, HTTP_403_FORBIDDEN),
-                # 2) User with the owner role, but not owner of the relevant entity
-                (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
-                # 3) User with the owner role and owner of the relative entity
-                (OWNER, ANDERS_AND, status_code),
-                # 4) User with the admin role
-                (ADMIN, FEDTMULE, status_code),
-            ],
-        )(func)
-
-    return wrapper
+@pytest.fixture(autouse=True)
+def enable_rbac(set_settings: Callable[..., None]) -> None:
+    """Configure settings as required to enable GraphQL RBAC."""
+    set_settings(
+        **{
+            "os2mo_auth": "True",
+            "keycloak_rbac_enabled": "True",
+            "graphql_rbac": "True",
+        }
+    )
 
 
-parametrize_roles = parametrize_roles_code(HTTP_200_OK)
-parametrize_roles_create = parametrize_roles_code(HTTP_201_CREATED)
-
-
-@pytest.fixture
-def create_employee_owner_payload() -> dict[str, Any]:
-    payload = one(jsonfile_to_dict("tests/fixtures/rbac/create_employee_owner.json"))
-    payload[OWNER][UUID] = ANDERS_AND
-    payload[PERSON][UUID] = LIS_JENSEN
-    return payload
+parametrize_roles = (
+    "role, userid, success",
+    # Test of write access for the following cases:
+    [
+        # 1) Normal user (no roles set)
+        (None, None, False),
+        # 2) User with the owner role, but not owner of the relevant entity
+        (OWNER, FEDTMULE, False),
+        # 3) User with the owner role and owner of the relative entity
+        (OWNER, ANDERS_AND, True),
+        # 4) User with the admin role
+        (ADMIN, FEDTMULE, True),
+    ],
+)
 
 
 @pytest.fixture
 async def create_lis_owner(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
-    create_employee_owner_payload: dict[str, Any],
+    set_auth: Callable[[str | None, str | None], None],
+    graphapi_post: GraphAPIPost,
 ) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(ADMIN, FEDTMULE)
+    # Let Anders And be the owner of Lis Jensen
+    set_auth(ADMIN, ANDERS_AND)
 
-    payload = create_employee_owner_payload
-    response = service_client.request("POST", "/service/details/create", json=payload)
-    assert response.status_code == 201
+    owner = {
+        "owner": ANDERS_AND,
+        "person": LIS_JENSEN,
+        "validity": {"from": "2021-08-03"},
+    }
+    r = graphapi_post(
+        """
+        mutation OwnerCreate($input: OwnerCreateInput!) {
+          owner_create(input: $input) {
+            uuid
+          }
+        }
+        """,
+        variables=dict(input=owner),
+    )
+    assert r.errors is None
 
 
 @pytest.fixture
 async def create_fedtmule_owner(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
-    create_employee_owner_payload: dict[str, Any],
+    set_auth: Callable[[str | None, str | None], None],
+    graphapi_post: GraphAPIPost,
 ) -> None:
-    # Let Anders And be the owner of Erik Smidt Hansen
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(ADMIN, ANDERS_AND)
+    # Let Anders And be the owner of Fedtmule
+    set_auth(ADMIN, ANDERS_AND)
 
-    payload = create_employee_owner_payload
-    payload[PERSON][UUID] = FEDTMULE
-
-    response = service_client.request("POST", "/service/details/create", json=payload)
-    assert response.status_code == 201
+    owner = {
+        "owner": ANDERS_AND,
+        "person": FEDTMULE,
+        "validity": {"from": "2021-08-03"},
+    }
+    r = graphapi_post(
+        """
+        mutation OwnerCreate($input: OwnerCreateInput!) {
+          owner_create(input: $input) {
+            uuid
+          }
+        }
+        """,
+        variables=dict(input=owner),
+    )
+    assert r.errors is None
 
 
 @pytest.fixture
 async def create_erik_owner(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
-    create_employee_owner_payload: dict[str, Any],
+    set_auth: Callable[[str | None, str | None], None],
+    graphapi_post: GraphAPIPost,
 ) -> None:
     # Let Anders And be the owner of Erik Smidt Hansen
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(ADMIN, ANDERS_AND)
+    set_auth(ADMIN, ANDERS_AND)
 
-    payload = create_employee_owner_payload
-    payload[PERSON][UUID] = ERIK_SMIDT_HANSEN
-
-    response = service_client.request("POST", "/service/details/create", json=payload)
-    assert response.status_code == 201
-
-
-@pytest.fixture
-def create_it_system_payload() -> dict[str, Any]:
-    return {
-        "type": "it",
-        "user_key": "AD",
-        "person": {"uuid": LIS_JENSEN},
-        "itsystem": {"uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb"},
-        "org": {
-            "name": "Aarhus Universitet",
-            "user_key": "AU",
-            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-        },
-        "validity": {"from": "2021-08-11", "to": None},
+    owner = {
+        "owner": ANDERS_AND,
+        "person": ERIK_SMIDT_HANSEN,
+        "validity": {"from": "2021-08-03"},
     }
-
-
-@pytest.fixture
-def create_employee_payload() -> dict[str, Any]:
-    payload = one(jsonfile_to_dict("tests/fixtures/rbac/create_employee_detail.json"))
-    payload["person"]["uuid"] = LIS_JENSEN
-    return payload
-
-
-@pytest.fixture
-def create_employment_payload(
-    create_employee_payload: dict[str, Any]
-) -> dict[str, Any]:
-    payload = create_employee_payload
-    payload["type"] = "engagement"
-    payload["job_function"] = {
-        "uuid": "f42dd694-f1fd-42a6-8a97-38777b73adc4",
-        "name": "Bogopsætter",
-        "user_key": "Bogopsætter",
-        "example": None,
-        "scope": None,
-        "owner": None,
-    }
-    payload["engagement_type"] = {
-        "uuid": "06f95678-166a-455a-a2ab-121a8d92ea23",
-        "name": "Ansat",
-        "user_key": "ansat",
-        "example": None,
-        "scope": None,
-        "owner": None,
-    }
-    return payload
+    r = graphapi_post(
+        """
+        mutation OwnerCreate($input: OwnerCreateInput!) {
+          owner_create(input: $input) {
+            uuid
+          }
+        }
+        """,
+        variables=dict(input=owner),
+    )
+    assert r.errors is None
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
-    "role, userid, status_code",
+    "role, userid, success",
     # Test of write access for the following cases:
     [
         # 1) Normal user (no roles set)
-        (None, None, HTTP_403_FORBIDDEN),
+        (None, None, False),
         # 2) User with owner role
-        (OWNER, ANDERS_AND, HTTP_403_FORBIDDEN),
+        (OWNER, ANDERS_AND, False),
         # 3) User with the admin role
-        (ADMIN, ANDERS_AND, HTTP_201_CREATED),
+        (ADMIN, ANDERS_AND, True),
     ],
 )
-@override_config(Settings(keycloak_rbac_enabled=True))
 def test_create_employee(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
+    set_auth: Callable[[str | None, str | None], None],
+    graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
-    status_code: int,
+    success: bool,
 ) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
-    response = service_client.request(
-        "POST",
-        "/service/e/create",
-        json={
-            "name": "Mickey Mouse",
-            "nickname_givenname": "",
-            "cpr_no": "1111111111",
-            "org": {
-                "name": "Aarhus Universitet",
-                "user_key": "AU",
-                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-            },
-            "details": [],
-        },
+    set_auth(role, userid)
+    input = {
+        "given_name": "Mickey",
+        "surname": "Mouse",
+        "nickname_given_name": "",
+        "cpr_number": "1111111111",
+    }
+    r = graphapi_post(
+        """
+        mutation EmployeeCreate($input: EmployeeCreateInput!) {
+          employee_create(input: $input) {
+            uuid
+          }
+        }
+        """,
+        variables=dict(input=input),
     )
-    assert response.status_code == status_code
+    if success:
+        assert r.errors is None
+    else:
+        assert r.errors is not None
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db", "create_lis_owner")
-@parametrize_roles_create
-@override_config(Settings(keycloak_rbac_enabled=True))
+@pytest.mark.parametrize(*parametrize_roles)
 def test_creating_detail_address(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
+    set_auth: Callable[[str | None, str | None], None],
+    graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
-    status_code: int,
+    success: bool,
 ) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    set_auth(role, userid)
 
     # Payload for creating detail (phone number) on employee
-    payload = one(
-        jsonfile_to_dict("tests/fixtures/rbac/create_employee_detail_phone.json")
+    input = {
+        "address_type": "cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d",
+        "visibility": "f63ad763-0e53-4972-a6a9-63b42a0f8cb7",
+        "employee": LIS_JENSEN,
+        "validity": {"from": "2021-08-04"},
+        "value": "12345678",
+    }
+    r = graphapi_post(
+        """
+        mutation AddressCreate($input: AddressCreateInput!) {
+          address_create(input: $input) {
+            uuid
+          }
+        }
+        """,
+        variables=dict(input=input),
     )
-    payload[PERSON][UUID] = LIS_JENSEN
-
-    response = service_client.request("POST", "/service/details/create", json=payload)
-    assert response.status_code == status_code
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
-@override_config(Settings(keycloak_rbac_enabled=True))
-def test_201_when_creating_it_system_detail_as_owner_of_employee(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
-    create_it_system_payload: dict[str, Any],
-) -> None:
-    # Use user "Anders And" (who owns the employee)
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
-
-    payload = [create_it_system_payload]
-
-    response = service_client.request("POST", "/service/details/create", json=payload)
-    assert response.status_code == HTTP_201_CREATED
+    if success:
+        assert r.errors is None
+    else:
+        assert r.errors is not None
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db", "create_lis_owner")
-@override_config(Settings(keycloak_rbac_enabled=True))
-def test_201_when_creating_multiple_it_system_details_as_owner_of_employee(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
-    create_it_system_payload: dict[str, Any],
+def test_success_when_creating_it_system_detail_as_owner_of_employee(
+    set_auth: Callable[[str | None, str | None], None],
+    graphapi_post: GraphAPIPost,
 ) -> None:
     # Use user "Anders And" (who owns the employee)
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
+    set_auth(OWNER, ANDERS_AND)
 
-    payload = [create_it_system_payload, create_it_system_payload]
-
-    response = service_client.request("POST", "/service/details/create", json=payload)
-    assert response.status_code == HTTP_201_CREATED
+    input = {
+        "user_key": "AD",
+        "person": LIS_JENSEN,
+        "itsystem": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+        "validity": {"from": "2021-08-11"},
+    }
+    r = graphapi_post(
+        """
+        mutation CreateITUser($input: ITUserCreateInput!){
+            ituser_create(input: $input){
+                uuid
+            }
+        }
+        """,
+        variables=dict(input=input),
+    )
+    assert r.errors is None
 
 
 # When creating employee details in the frontend some details actually
@@ -260,291 +237,379 @@ def test_201_when_creating_multiple_it_system_details_as_owner_of_employee(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db", "create_lis_owner")
-@parametrize_roles_create
-@override_config(Settings(keycloak_rbac_enabled=True))
+@pytest.mark.parametrize(*parametrize_roles)
 def test_create_employment(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
-    create_employment_payload: dict[str, Any],
+    set_auth: Callable[[str | None, str | None], None],
+    graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
-    status_code: int,
+    success: bool,
 ) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    set_auth(role, userid)
 
-    payload = create_employment_payload
-
-    response = service_client.request("POST", "/service/details/create", json=payload)
-    assert response.status_code == status_code
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
-@override_config(Settings(keycloak_rbac_enabled=True))
-def test_create_multiple_employments_owns_one_unit_but_not_the_other(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
-) -> None:
-    # Use user "Anders And" (who owns one unit but not the other)
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
-
-    payload = jsonfile_to_dict("tests/fixtures/rbac/create_multiple_employments.json")
-    response = service_client.request("POST", "/service/details/create", json=payload)
-    assert response.status_code == HTTP_403_FORBIDDEN
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
-@override_config(Settings(keycloak_rbac_enabled=True))
-def test_create_multiple_employments_owns_all_units(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
-    create_employment_payload: dict[str, Any],
-) -> None:
-    # Use user "Anders And" (who owns all units)
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
-
-    payload = [create_employment_payload, create_employment_payload]
-
-    response = service_client.request("POST", "/service/details/create", json=payload)
-    assert response.status_code == HTTP_201_CREATED
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
-@override_config(Settings(keycloak_rbac_enabled=True))
-def test_create_multiple_associations_owns_one_unit_but_not_the_other(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
-) -> None:
-    # Use user "Anders And" (who owns one unit but not the other)
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
-
-    create_multiple_associations = jsonfile_to_dict(
-        "tests/fixtures/rbac/create_multiple_associations.json"
-    )
-    payload = create_multiple_associations
-
-    response = service_client.request("POST", "/service/details/create", json=payload)
-    assert response.status_code == HTTP_403_FORBIDDEN
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
-@override_config(Settings(keycloak_rbac_enabled=True))
-def test_create_multiple_associations_owns_all_units(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
-) -> None:
-    # Use user "Anders And" (who owns all units)
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
-
-    create_multiple_associations = jsonfile_to_dict(
-        "tests/fixtures/rbac/create_multiple_associations.json"
-    )
-    create_multiple_associations[1] = create_multiple_associations[0]
-    payload = create_multiple_associations
-
-    response = service_client.request("POST", "/service/details/create", json=payload)
-    assert response.status_code == HTTP_201_CREATED
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
-@parametrize_roles_create
-@override_config(Settings(keycloak_rbac_enabled=True))
-def test_create_association(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
-    create_employee_payload: dict[str, Any],
-    role: str,
-    userid: str,
-    status_code: int,
-) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
-
-    payload = create_employee_payload
-    payload["type"] = "association"
-    payload["association_type"] = {
-        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
-        "name": "Medlem",
-        "user_key": "medl",
-        "example": None,
-        "scope": None,
-        "owner": None,
+    input = {
+        "person": LIS_JENSEN,
+        "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+        "engagement_type": "06f95678-166a-455a-a2ab-121a8d92ea23",
+        "job_function": "f42dd694-f1fd-42a6-8a97-38777b73adc4",
+        "validity": {"from": "2021-08-11"},
     }
-
-    response = service_client.request("POST", "/service/details/create", json=payload)
-    assert response.status_code == status_code
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
-@parametrize_roles_create
-@override_config(Settings(keycloak_rbac_enabled=True))
-def test_create_manager(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
-    create_employee_payload: dict[str, Any],
-    role: str,
-    userid: str,
-    status_code: int,
-) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
-
-    payload = create_employee_payload
-    payload["type"] = "manager"
-    payload["manager_type"] = {
-        "uuid": "0d72900a-22a4-4390-a01e-fd65d0e0999d",
-        "name": "Direktør",
-        "user_key": "Direktør",
-        "example": None,
-        "scope": None,
-        "owner": None,
-    }
-    payload["manager_level"] = {
-        "uuid": "3c791935-2cfa-46b5-a12e-66f7f54e70fe",
-        "name": "Niveau 1",
-        "user_key": "Niveau1",
-        "example": None,
-        "scope": None,
-        "owner": None,
-    }
-    payload["responsibility"] = [
-        {
-            "uuid": "93ea44f9-127c-4465-a34c-77d149e3e928",
-            "name": "Beredskabsledelse",
-            "user_key": "Beredskabsledelse",
-            "example": None,
-            "scope": None,
-            "owner": None,
+    r = graphapi_post(
+        """
+        mutation CreateEngagement($input: EngagementCreateInput!) {
+          engagement_create(input: $input) {
+            uuid
+          }
         }
-    ]
-
-    response = service_client.request("POST", "/service/details/create", json=payload)
-    assert response.status_code == status_code
+        """,
+        variables=dict(input=input),
+    )
+    if success:
+        assert r.errors is None
+    else:
+        assert r.errors is not None
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
-@override_config(Settings(keycloak_rbac_enabled=True))
-def test_object_types_in_list_must_be_identical(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
+@pytest.mark.parametrize(*parametrize_roles)
+def test_create_association(
+    set_auth: Callable[[str | None, str | None], None],
+    graphapi_post: GraphAPIPost,
+    role: str,
+    userid: str,
+    success: bool,
 ) -> None:
-    # Use user "Anders And" (who owns all units)
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
+    set_auth(role, userid)
 
-    create_multiple_associations = jsonfile_to_dict(
-        "tests/fixtures/rbac/create_multiple_associations.json"
+    input = {
+        "person": LIS_JENSEN,
+        "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+        "association_type": "62ec821f-4179-4758-bfdf-134529d186e9",
+        "validity": {"from": "2021-08-11"},
+    }
+    r = graphapi_post(
+        """
+        mutation CreateAssociation($input: AssociationCreateInput!) {
+          association_create(input: $input) {
+            uuid
+          }
+        }
+        """,
+        variables=dict(input=input),
     )
-    create_multiple_associations[1] = deepcopy(create_multiple_associations[0])
-    create_multiple_associations[1]["type"] = "address"
-
-    response = service_client.request(
-        "POST", "/service/details/create", json=create_multiple_associations
-    )
-    assert response.status_code == HTTP_400_BAD_REQUEST
+    if success:
+        assert r.errors is None
+    else:
+        assert r.errors is not None
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
-@pytest.mark.parametrize(
-    "fixture",
-    [
-        "edit_address",
-        "edit_association",
-        "edit_employment",
-        "edit_manager",
-        "move_employment",
-        "move_multiple_employments",
-    ],
-)
-@parametrize_roles
-@override_config(Settings(keycloak_rbac_enabled=True))
-def test_edit(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
-    fixture: str,
+@pytest.mark.parametrize(*parametrize_roles)
+def test_create_manager(
+    set_auth: Callable[[str | None, str | None], None],
+    graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
-    status_code: int,
+    success: bool,
 ) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    set_auth(role, userid)
 
-    payload = jsonfile_to_dict(f"tests/fixtures/rbac/{fixture}.json")
-    response = service_client.request("POST", "/service/details/edit", json=payload)
-    assert response.status_code == status_code
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
-@pytest.mark.parametrize(
-    "payload",
-    [
-        # Address
-        {
-            "type": "address",
-            "uuid": "64ea02e2-8469-4c54-a523-3d46729e86a7",
-            "validity": {"to": "2021-08-20"},
-        },
-        # Engagement
-        {
-            "type": "engagement",
-            "uuid": "301a906b-ef51-4d5c-9c77-386fb8410459",
-            "validity": {"to": "2021-08-13"},
-        },
-    ],
-)
-@parametrize_roles
-@override_config(Settings(keycloak_rbac_enabled=True))
-def test_terminate_details(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
-    payload: dict[str, Any],
-    role: str,
-    userid: str,
-    status_code: int,
-) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
-    response = service_client.request(
-        "POST", "/service/details/terminate", json=payload
+    input = {
+        "person": LIS_JENSEN,
+        "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+        "manager_type": "0d72900a-22a4-4390-a01e-fd65d0e0999d",
+        "manager_level": "3c791935-2cfa-46b5-a12e-66f7f54e70fe",
+        "responsibility": "93ea44f9-127c-4465-a34c-77d149e3e928",
+        "validity": {"from": "2021-08-11"},
+    }
+    r = graphapi_post(
+        """
+        mutation CreateManager($input: ManagerCreateInput!) {
+          manager_create(input: $input) {
+            uuid
+          }
+        }
+        """,
+        variables=dict(input=input),
     )
-    assert response.status_code == status_code
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
-@parametrize_roles
-@override_config(Settings(keycloak_rbac_enabled=True))
-def test_terminate_employee(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
-    role: str,
-    userid: str,
-    status_code: int,
-) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
-    response = service_client.request(
-        "POST",
-        f"/service/e/{LIS_JENSEN}/terminate",
-        json={"validity": {"to": "2021-08-17"}},
-    )
-    assert response.status_code == status_code
+    if success:
+        assert r.errors is None
+    else:
+        assert r.errors is not None
 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db", "create_erik_owner")
-@parametrize_roles_create
-@override_config(Settings(keycloak_rbac_enabled=True))
-def test_employee_leave(
-    fastapi_test_app: FastAPI,
-    service_client: TestClient,
+@pytest.mark.parametrize(*parametrize_roles)
+def test_create_leave(
+    set_auth: Callable[[str | None, str | None], None],
+    graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
-    status_code: int,
+    success: bool,
 ) -> None:
-    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
-    payload = jsonfile_to_dict("tests/fixtures/rbac/leave.json")
-    response = service_client.request("POST", "/service/details/create", json=payload)
-    assert response.status_code == status_code
+    set_auth(role, userid)
+
+    input = {
+        "person": ERIK_SMIDT_HANSEN,
+        "leave_type": "bf65769c-5227-49b4-97c5-642cfbe41aa1",
+        "engagement": "301a906b-ef51-4d5c-9c77-386fb8410459",
+        "validity": {"from": "2021-08-20"},
+    }
+    r = graphapi_post(
+        """
+        mutation CreateLeave($input: LeaveCreateInput!) {
+          leave_create(input: $input) {
+            uuid
+          }
+        }
+        """,
+        variables=dict(input=input),
+    )
+    if success:
+        assert r.errors is None
+    else:
+        assert r.errors is not None
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.parametrize(*parametrize_roles)
+def test_edit_address(
+    set_auth: Callable[[str | None, str | None], None],
+    graphapi_post: GraphAPIPost,
+    role: str,
+    userid: str,
+    success: bool,
+) -> None:
+    set_auth(role, userid)
+
+    input = {
+        "uuid": "64ea02e2-8469-4c54-a523-3d46729e86a7",
+        "address_type": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
+        "visibility": "f63ad763-0e53-4972-a6a9-63b42a0f8cb7",
+        "employee": FEDTMULE,
+        "validity": {"from": "2021-08-13"},
+        "value": "goofy@andeby.dk",
+    }
+    r = graphapi_post(
+        """
+        mutation AddressUpdate($input: AddressUpdateInput!) {
+          address_update(input: $input) {
+            uuid
+          }
+        }
+        """,
+        variables=dict(input=input),
+    )
+    if success:
+        assert r.errors is None
+    else:
+        assert r.errors is not None
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.parametrize(*parametrize_roles)
+def test_edit_association(
+    set_auth: Callable[[str | None, str | None], None],
+    graphapi_post: GraphAPIPost,
+    role: str,
+    userid: str,
+    success: bool,
+) -> None:
+    set_auth(role, userid)
+
+    input = {
+        "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
+        "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+        "association_type": "8eea787c-c2c7-46ca-bd84-2dd50f47801e",
+        "employee": ANDERS_AND,
+        "validity": {"from": "2021-08-25"},
+    }
+    r = graphapi_post(
+        """
+        mutation AssociationUpdate($input: AssociationUpdateInput!) {
+          association_update(input: $input) {
+            uuid
+          }
+        }
+        """,
+        variables=dict(input=input),
+    )
+    if success:
+        assert r.errors is None
+    else:
+        assert r.errors is not None
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.parametrize(*parametrize_roles)
+def test_edit_engagement(
+    set_auth: Callable[[str | None, str | None], None],
+    graphapi_post: GraphAPIPost,
+    role: str,
+    userid: str,
+    success: bool,
+) -> None:
+    set_auth(role, userid)
+
+    input = {
+        "uuid": "301a906b-ef51-4d5c-9c77-386fb8410459",
+        "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+        "job_function": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+        "engagement_type": "06f95678-166a-455a-a2ab-121a8d92ea23",
+        "primary": "2f16d140-d743-4c9f-9e0e-361da91a06f6",
+        "employee": ERIK_SMIDT_HANSEN,
+        "validity": {"from": "2021-08-17"},
+    }
+    r = graphapi_post(
+        """
+        mutation EngagementUpdate($input: EngagementUpdateInput!) {
+          engagement_update(input: $input) {
+            uuid
+          }
+        }
+        """,
+        variables=dict(input=input),
+    )
+    if success:
+        assert r.errors is None
+    else:
+        assert r.errors is not None
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.parametrize(*parametrize_roles)
+def test_move_engagement(
+    set_auth: Callable[[str | None, str | None], None],
+    graphapi_post: GraphAPIPost,
+    role: str,
+    userid: str,
+    success: bool,
+) -> None:
+    set_auth(role, userid)
+
+    input = {
+        "uuid": "301a906b-ef51-4d5c-9c77-386fb8410459",
+        "employee": ERIK_SMIDT_HANSEN,
+        "org_unit": "b688513d-11f7-4efc-b679-ab082a2055d0",
+        "validity": {"from": "2021-08-25"},
+        # The remaining fields are only required because graphql doesn't support
+        # patch writes.
+        "job_function": "ca76a441-6226-404f-88a9-31e02e420e52",
+        "engagement_type": "06f95678-166a-455a-a2ab-121a8d92ea23",
+        "primary": "2f16d140-d743-4c9f-9e0e-361da91a06f6",
+    }
+    r = graphapi_post(
+        """
+        mutation EngagementUpdate($input: EngagementUpdateInput!) {
+          engagement_update(input: $input) {
+            uuid
+          }
+        }
+        """,
+        variables=dict(input=input),
+    )
+    if success:
+        assert r.errors is None
+    else:
+        assert r.errors is not None
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.parametrize(*parametrize_roles)
+def test_edit_manager(
+    set_auth: Callable[[str | None, str | None], None],
+    graphapi_post: GraphAPIPost,
+    role: str,
+    userid: str,
+    success: bool,
+) -> None:
+    set_auth(role, userid)
+
+    input = {
+        "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
+        "org_unit": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+        "responsibility": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+        "manager_type": "0d72900a-22a4-4390-a01e-fd65d0e0999d",
+        "manager_level": "991915c0-f4f4-4337-95fa-dbeb9da13247",
+        "person": ANDERS_AND,
+        "validity": {"from": "2021-08-25"},
+    }
+    r = graphapi_post(
+        """
+        mutation ManagerUpdate($input: ManagerUpdateInput!) {
+          manager_update(input: $input) {
+            uuid
+          }
+        }
+        """,
+        variables=dict(input=input),
+    )
+    if success:
+        assert r.errors is None
+    else:
+        assert r.errors is not None
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        'mutation Terminate {address_terminate(input: {uuid: "64ea02e2-8469-4c54-a523-3d46729e86a7", to: "2021-08-20"}) {uuid}}',
+        'mutation Terminate {engagement_terminate(input: {uuid: "301a906b-ef51-4d5c-9c77-386fb8410459", to: "2021-08-13"}) {uuid}}',
+    ],
+)
+@pytest.mark.parametrize(*parametrize_roles)
+def test_terminate_details(
+    set_auth: Callable[[str | None, str | None], None],
+    graphapi_post: GraphAPIPost,
+    mutation: str,
+    role: str,
+    userid: str,
+    success: bool,
+) -> None:
+    set_auth(role, userid)
+    r = graphapi_post(mutation)
+    if success:
+        assert r.errors is None
+    else:
+        assert r.errors is not None
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db", "create_lis_owner")
+@pytest.mark.parametrize(*parametrize_roles)
+def test_terminate_employee(
+    set_auth: Callable[[str | None, str | None], None],
+    graphapi_post: GraphAPIPost,
+    role: str,
+    userid: str,
+    success: bool,
+) -> None:
+    set_auth(role, userid)
+    input = {
+        "uuid": LIS_JENSEN,
+        "to": "2021-08-17",
+    }
+    r = graphapi_post(
+        """
+        mutation TerminateEmployee($input: EmployeeTerminateInput!) {
+          employee_terminate(input: $input) {
+            uuid
+          }
+        }
+        """,
+        variables=dict(input=input),
+    )
+    if success:
+        assert r.errors is None
+    else:
+        assert r.errors is not None

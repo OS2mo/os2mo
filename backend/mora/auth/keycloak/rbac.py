@@ -107,7 +107,6 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
         entity_type = await uuid_extractor.get_entity_type(request)
         entity_uuids = await uuid_extractor.get_entity_uuids(request)
         entities = {(entity_type, uuid) for uuid in entity_uuids}
-        logger.debug("Entities", type=entity_type, uuids=entity_uuids)
         await check_owner(token, entities)
         logger.debug(f"User {token.preferred_username} authorized")
         return
@@ -137,6 +136,7 @@ async def check_owner(token: Token, entities: set[tuple[EntityType, UUID]]) -> N
     #   {<tar_owner_uuid>, <tar_owner_parent_uuid>, <tar_owner_grand_parent_uuid>}
     # }
     # when moving an org unit.
+    logger.debug("Check owner", entities=entities)
     user_uuid = await _get_employee_uuid(token)
     owners = await asyncio.gather(
         *(get_owners(entity_uuid, entity_type) for entity_type, entity_uuid in entities)

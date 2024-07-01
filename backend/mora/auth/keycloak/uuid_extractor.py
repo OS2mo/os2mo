@@ -3,6 +3,8 @@
 import asyncio
 import functools
 import re
+from collections.abc import AsyncIterable
+from typing import Any
 from uuid import UUID
 
 from fastapi import Request
@@ -12,6 +14,10 @@ from structlog import get_logger
 from mora import common
 from mora.exceptions import ErrorCodes
 from mora.exceptions import HTTPException
+from mora.graphapi.versions.latest.inputs import EngagementCreateInput
+from mora.graphapi.versions.latest.inputs import OrganisationUnitCreateInput
+from mora.graphapi.versions.latest.permissions import CollectionPermissionType
+from mora.graphapi.versions.latest.permissions import Collections
 from mora.mapping import ASSOCIATED_ORG_UNITS_FIELD
 from mora.mapping import ASSOCIATION
 from mora.mapping import CHILDREN
@@ -21,6 +27,7 @@ from mora.mapping import EntityType
 from mora.mapping import MANAGER
 from mora.mapping import ORG_UNIT
 from mora.mapping import PARENT
+from mora.mapping import PARENT_FIELD
 from mora.mapping import PERSON
 from mora.mapping import ROLEBINDING
 from mora.mapping import TYPE
@@ -99,20 +106,14 @@ def get_ancestor_uuids(tree: list[dict]) -> set[UUID]:
 async def get_entity_uuids(request: Request) -> set[UUID]:
     # State like pattern - choose appropriate UUID extraction strategy based
     # on the URL path of the incoming request
-    """
-    Extract the UUID(s) for the relevant entity (org unit or employee).
+    """Extract the UUID(s) for the relevant entity (org unit or employee).
 
-    For an org unit the coroutine gets the UUIDs in the entire relevant branch of
-    the org unit ancestor tree. For example, if UnitA is a parent of UnitB
-    which is a parent of UnitC, then will return a list containing the UUIDs
-    of UnitA, UnitB and UnitC.
-
-    For an employee the coroutine just returns the UUID of the employee
+    NOTE: This function should (try to) be equivalent to the one for GraphQL defined
+    below.
 
     :param request: the incoming request to the endpoint
     :return: list of the entity UUID(s)
     """
-
     logger.debug("uuid_extract_strategy called")
 
     if request.url.path == CREATE_OU:
@@ -255,11 +256,13 @@ async def json_extract_strategy(request: Request) -> set[UUID]:
         return {UUID(data[UUID_KEY]), UUID(data[PARENT][UUID_KEY])}
 
     # Renaming or editing details on the unit itself
-    return {UUID(one(payload)[DATA][UUID_KEY])}
+    return {UUID(data[UUID_KEY])}
 
 
 @return_value_logger
 async def get_entity_type(request: Request) -> EntityType:
+    # NOTE: This function should (try to) be equivalent to the one for GraphQL defined
+    # below.
     if request.url.path == CREATE_OU or TERMINATE_UNIT.match(request.url.path):
         return EntityType.ORG_UNIT
 
@@ -291,6 +294,103 @@ async def get_entity_type(request: Request) -> EntityType:
         )
 
     return types[0]
+
+
+async def get_entities_graphql(
+    input: Any, collection: Collections, permission_type: CollectionPermissionType
+) -> AsyncIterable[tuple[EntityType, UUID]]:
+    """Extract the types and UUID(s) for the relevant entities (org unit or employee).
+
+    NOTE: This function should (try to) be equivalent to the ones for the Service-API
+    defined above.
+
+    Args:
+        input: The `input` object from the GraphQL mutator.
+        collection: The object collection (address, employee, org_unit, etc.).
+        permission_type: The operation type (create, update, terminate, delete).
+
+    Returns:
+        An iterable of (entity_type, uuid) tuples for check_owner().
+    """
+
+    async def extract() -> AsyncIterable[tuple[EntityType, UUID | None]]:
+        # Allow both employee and person to avoid bugs in the future
+        if collection in {"employee", "person"}:
+            yield EntityType.EMPLOYEE, getattr(input, "uuid")
+            return
+
+        if collection == "org_unit":
+            # Create requires ownership of the parent we are trying to insert under
+            if isinstance(input, OrganisationUnitCreateInput):
+                yield EntityType.ORG_UNIT, getattr(input, "parent", None)
+                return
+            # Otherwise, changes always requires ownership of the org unit itself
+            yield EntityType.ORG_UNIT, getattr(input, "uuid")
+            # Additionally, moving an org unit (changing its parent) requires ownership
+            # of the new parent. GraphQL edits always contain the full object, so we
+            # must compare with the current parent in the database to figure out if it
+            # was changed.
+            if parent := getattr(input, "parent", None):
+                current = await _get_org_unit(uuid)
+                current_parent = PARENT_FIELD.get_uuid(current)
+                if str(parent) != current_parent:
+                    yield EntityType.ORG_UNIT, parent
+            return
+
+        # Terminate detail
+        # There isn't enough information available in terminate payloads to determine
+        # ownership, so we must fetch the related object from the database. To be
+        # honest, this should be the general strategy anyway - why do we trust user
+        # input?
+        if permission_type == "terminate":
+            org_function = await _get_org_function(getattr(input, "uuid"))
+            if org_unit_uuid := ASSOCIATED_ORG_UNITS_FIELD.get_uuid(org_function):
+                yield EntityType.ORG_UNIT, UUID(org_unit_uuid)
+            elif employee_uuid := USER_FIELD.get_uuid(org_function):
+                yield EntityType.EMPLOYEE, UUID(employee_uuid)
+            return
+
+        # Engagement ownership is determined by its current org unit, if there is one
+        if collection == "engagement" and not isinstance(input, EngagementCreateInput):
+            org_function = await _get_org_function(getattr(input, "uuid"))
+            if org_unit_uuid := ASSOCIATED_ORG_UNITS_FIELD.get_uuid(org_function):
+                yield EntityType.ORG_UNIT, UUID(org_unit_uuid)
+                return
+
+        # These details link both a person with an org unit, but ownership is only
+        # checked with regard to the org unit.
+        if collection in {"association", "engagement", "manager", "rolebinding"}:
+            yield EntityType.ORG_UNIT, getattr(input, "org_unit", None)
+
+        if collection == "related_unit":
+            # Related units have a single `origin` field and a list of `destination`s
+            yield EntityType.ORG_UNIT, getattr(input, "origin", None)
+            if destinations := getattr(input, "destination", None):
+                for destination in destinations:
+                    yield EntityType.ORG_UNIT, destination
+            return
+
+        # Even though some of the remaining object types (addresses, IT-users, leaves,
+        # and owners at time of writing) can reference both employees and org units, we
+        # short-circuit if an org unit is set, and care only about that.
+        if org_unit := getattr(input, "org_unit", None):
+            yield EntityType.ORG_UNIT, org_unit
+            return
+
+        # Finally, fallback to ownership of the person
+        yield EntityType.EMPLOYEE, getattr(input, "employee", None)
+        yield EntityType.EMPLOYEE, getattr(input, "person", None)
+
+    async for entity_type, uuid in extract():
+        # Make sure we don't yield None as UUID! Doing so makes the later code behave
+        # wrongly and may grant too wide access.
+        if uuid:
+            yield entity_type, uuid
+
+
+async def _get_org_unit(uuid: UUID) -> dict:
+    c = common.get_connector()
+    return await c.organisationenhed.get(uuid=uuid)
 
 
 async def _get_org_function(uuid: UUID) -> dict:
