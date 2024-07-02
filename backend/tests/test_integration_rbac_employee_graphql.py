@@ -4,7 +4,6 @@ from collections.abc import Callable
 
 import pytest
 
-from .test_integration_rbac_graphql import set_auth
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
 from tests.conftest import GraphAPIPost
