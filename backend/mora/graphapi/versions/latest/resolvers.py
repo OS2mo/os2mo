@@ -48,6 +48,7 @@ from .graphql_utils import LoadKey
 from .models import AddressRead
 from .models import ClassRead
 from .models import FacetRead
+from .models import ITUserRead
 from .models import RoleBindingRead
 from .paged import CursorType
 from .paged import LimitType
@@ -67,7 +68,6 @@ from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AssociationRead
 from ramodels.mo.details import EngagementRead
 from ramodels.mo.details import ITSystemRead
-from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead
 from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import ManagerRead

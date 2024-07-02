@@ -42,6 +42,7 @@ from .models import AddressRead
 from .models import ClassRead
 from .models import FacetRead
 from .models import FileStore
+from .models import ITUserRead
 from .models import OwnerInferencePriority
 from .models import RoleBindingRead
 from .permissions import gen_read_permission
@@ -89,7 +90,6 @@ from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AssociationRead
 from ramodels.mo.details import EngagementRead
 from ramodels.mo.details import ITSystemRead
-from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead
 from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import ManagerRead
@@ -2176,6 +2176,17 @@ class Engagement:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
+    ituser: list[LazyITUser] = strawberry.field(
+        resolver=to_list(
+            seed_resolver(
+                it_user_resolver,
+                {"engagement": lambda root: EngagementFilter(uuids=[root.uuid])},
+            )
+        ),
+        description="Connected IT-user.\n",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
+    )
+
     @strawberry.field(
         description=dedent(
             """\
@@ -2618,6 +2629,31 @@ class ITUser:
         + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
+    engagements: list[LazyEngagement] | None = strawberry.field(
+        resolver=force_none_return_wrapper(
+            to_list(
+                seed_resolver(
+                    engagement_resolver,
+                    {
+                        "uuids": lambda root: root.engagement_uuids,
+                    },
+                )
+            ),
+        ),
+        description=dedent(
+            """\
+            Engagement scoping of the account.
+
+            A person may have multiple IT accounts with each account being relevant for only a single engagement.
+            This field allows scoping IT accounts such that it is obvious which engagement has given which it-access.
+            """
+        )
+        + list_to_optional_field_warning,
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("engagement"),
+        ],
+    )
 
     engagement: list[LazyEngagement] | None = strawberry.field(
         resolver=force_none_return_wrapper(
@@ -2627,7 +2663,7 @@ class ITUser:
                     {
                         "uuids": partial(
                             raise_force_none_return_if_uuid_none,
-                            get_uuid=lambda root: root.engagement_uuid,
+                            get_uuid=lambda root: one(root.engagement_uuids),
                         )
                     },
                 )
@@ -2764,10 +2800,11 @@ class ITUser:
 
     @strawberry.field(
         description="UUID of the engagement related to the user.",
-        deprecation_reason=gen_uuid_field_deprecation("engagement"),
+        deprecation_reason=gen_uuid_field_deprecation("engagements")
+        + "There can now be multiple engagements associated with an ituser",
     )
     async def engagement_uuid(self, root: ITUserRead) -> UUID | None:
-        return root.engagement_uuid
+        return only(root.engagement_uuids) if root.engagement_uuids else None
 
     @strawberry.field(
         description="UUID of the primary klasse of the user.",
