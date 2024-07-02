@@ -38,6 +38,7 @@ nav:
       - SD:
         - integrations/sd-laes.md
         - integrations/sd-skriv.md
+        - integrations/sdtoolplus.md
         - integrations/organisationsopmaerkning.md
       - integrations/os2phonebook.md
   - "Implementering & Drift":

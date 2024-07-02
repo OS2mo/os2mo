@@ -2,74 +2,149 @@
 title: SDTOOL+
 ---
 
-SDTOOL+ udvider SD-integrationen med muligheden for automatisk at ajourføre organisationstræet i OS2MO, så det svarer til organisationstræet i SD Løn. Det erstatter dermed den såkaldte "SDTool-knap" i OS2MO's brugerflade.
+## Beskrivelse
 
-SDTOOL+ bygger ovenpå den Docker-baserede SD-integration, og er derfor afhængig af at denne kører.
+SDTool+ udvider SD-integrationen med muligheden for automatisk at ajourføre
+organisationstræet i OS2mo, så det svarer til det aktuelle organisationstræ i
+SD Løn. Da SDs API kun indeholder muligheden for at hente seneste ændringer på
+personer og disses engagementer, er opretholdelsen af organisationsstrukturen
+et mere omstændeligt problem, men SDTool+ håndterer dette ved at anvende benytte
+de muligheder SDs API tilbyder for at hente organisationsstrukturinformationer
+fra forskellige kilder og stykke resultaterne sammen til et fuldt
+organisationstræ. SDTool+ erstatter dermed den såkaldte "SDTool-knap" i
+OS2mo's brugerflade, som vil blive udfaset inden længe.
 
-SDTOOL+ er en FastAPI web-applikation, der udstiller et API via HTTP. Den antages at køre i samme Docker-netværk som resten af OS2MO-installationen (selve OS2MO og evt. andre integrationer.)
+Det er også muligt (valgfri feature) at konfigurere SDTool+ til at synkronisere
+postadresser og P-numre fra organisationsenhederne i SD til OS2mo.
 
-## Opsætning
+### Synkronisering af organisationstræet
 
-SDTOOL+ kræver en række oplysninger for at kunne køre. Disse indstillinger gives vha. miljøvariable.
+SDTool+ køres via et automatisk job (fx en gang dagligt), og vil ved hver
+kørsel gøre følgende:
 
-### Klient-oplysninger til OS2MO:
+1. Udlæse alle organisationsenheder fra SD og bygge det tilhørende
+   organisationstræ.
+2. Udlæse alle organisationsenheder i OS2mo og bygge det tilhørende
+   organisationstræ.
+3. Sammenligne SD-organisationstræet og OS2mo-organisationstræet og generere en
+   liste af operationer, som skal udføres på OS2mo-træet. Operationerne kan
+   være af typen "Tilføj", som tilføjer nye enheder fra SD, eller
+   "Opdatér", som flytter enheder til en ny forældrenhed og/eller omdøber
+   enheder.
+     1. Der er mulighed for at få frafiltreret enheder fra SD, som man ikke
+        ønsker synkroniseret til OS2mo - fx enheder, som begynder med "Ø_"
+        eller "%" eller lignende.
+     2. Der er også mulighed for at konfigurere SDTool+ til kun at sammenligne
+        et givet undertræ i OS2mo med organisationstræet i SD.
+4. Sikre, at der ved opdateringsoperationer, hvor en enhed potentielt kan have fået en ny
+   forældrenhed), laves et kald til SD-integrationen (SD-changed-at), som
+   sikrer, at engagementer flyttes op i et nyt relevant NY-niveau, såfremt
+   dette skulle være nødvendigt pga. den potentielt nye forældreenhed (denne
+   funktionalitet kaldes "apply-NY-logic" og er ikke relevant for alle kunder).
+5. (Valgfri feature) Udsende emails til relevante medarbejdere såfremt SDTool+
+   forsøger at udføre en "ulovlig" operation. Ved en ulovlig operation forstås
+   flytning af en enhed, som stadig indeholder aktive eller fremtidigt aktive
+   engagementer, til enheden "Udgåede afdelinger" (navnene på disse enheder kan
+   variere fra kunde til kunde).
 
-- `mora_base`: (Valgfri) URL, der angiver adressen på OS2MO. Default-værdi er `http://mo:5000`.
-- `client_id`: (Valgfrit) klient-ID, der anvendes når SDTOOL+ kommunikerer med OS2MO. Default-værdi er `integration_sdtool_plus`.
-- `client_secret`: (Obligatorisk) klient-hemmelighed, der anvendes når SDTOOL+ kommunikerer med OS2MO.
-- `auth_realm`: (Valgfri) "realm", der anvendes når SDTOOL+ kommunikerer med OS2MO. Default-værdi er `mo`.
-- `auth_server`: (Valgfri) URL, der angiver adressen på den anvendte Keycloak-installation. Default-værdi er `http://keycloak:8080/auth`.
+#### Opmærksomhedspunkter
 
-### Klient-oplysninger til SD-Løn:
+* De fleste kunder har fået konfigureret et filter som det, der er nævnt i
+  punkt 3.a ovenfor, hvilket kan resultere i følgende opførsel i SDTool+: Lad
+  os forestille os, at der er opsat i filter, som frasorterer operationer, der
+  skal udføres på enheder, hvis navn begynder med "%", da man ikke ønsker, at
+  sådanne enheder skal figurere i OS2mo. Antag dernæst, at
+  enheden "Sundhed" i SD omdøbes til "% Sundhed". Denne ændring vil ikke slå
+  igennem i OS2mo (selv om man sandsynlig ville ønske dette), da operationen
+  filtreres pga., at det nye navn begynder med "%". Det er dog mulig at
+  konfigurere SDTool+ til _alligevel_ at omdøbe enheden, så den i OS2mo kommer
+  til at hedde "% Sundhed". Resultats bliver således, at
+    1. Enhedens navn i OS2mo stemmer overens med det, som enheden (nu) hedder i
+       SD.
+    2. Man har en uønsket "%"-enhed stående i OS2mo, hvilket ikke er en fejl i
+       SDTool+, men snarere en konsekvens af, at enheden i SD er ændret fra en
+       almindelig enhed til en "%"-enhed. Problemet kan dog let løses ved blot
+       manuelt at afslutte "% Sundhed" i OS2mo (hvilket sandsynligvis er det,
+       man alligevel ønsker).
 
-- `sd_username`: (Obligatorisk) brugernavn til den SD-servicebruger, der anvendes ved opslag i SD-Løn.
-- `sd_password`: (Obligatorisk) password på den SD-servicebruger, der anvendes ved opslag i SD-Løn.
-- `sd_institution_identifier`: (Obligatorisk) institutions-ID, der anvendes ved opslag i SD-Løn.
+#### SDTool+'s brug af SDs API (for teknikere)
 
-### Klient-oplysninger til SD-integrationen:
+SDTool+ anvender i forbindelse med punkt 1) i ovenstående beskrivelse følgende
+endepunkter fra SDs API:
 
-- `sd_lon_base_url`: (Valgfri) URL på SD-integrationen, som SDTOOL+ kommunikerer med. Default-værdi er `http://sdtool_plus:8000`.
+1. Det grundlæggende organisatonstræ bygges via SDs endpoint
+   `GetOrganization20111201`, som udstiller alle enheder i træet, der har et
+   afdelingsniveau som blad (leaf node) i
+   [træstrukturen](https://en.wikipedia.org/wiki/Tree_(data_structure)).
+2. Dernæst tilføjes de resterende enheder (NY-niveauer, som ikke har
+   et afdelingsniveau under sig længere ned i træet) ved at kigge på
+   forskellen mellem ovenstående respons fra `GetOrganization20111201` og
+   responset fra `GetDepartment20111201` (som indeholder _alle_ enheder,
+   men ikke informationer om deres forældreneheder) og responsene fra en
+   række kald til `GetDepartmentParent20190701` returnerer forlældreenheden
+   for en given enhed.
 
-### Styring af SDTOOL+ enhedsoprettelse:
+### Synkronisering af adresser
 
-- `org_unit_type`: (Valgfrit) navn på den organisationenheds-type (`org_unit_type`), som SDTOOL+ skal anvende, når det opretter nye enheder i OS2MO. Default-værdi: `Enhed`.
+SDTool+'s postadresse og P-nummer synkronisering er en valgfri feature i
+applikationen. Hvis featuren er aktiveret, kan man (fx dagligt) køre et job,
+som:
 
-### Logging, fejlrapportering, mv.:
+1. Udlæser alle P-numre og postadresser fra SD.
+2. Udlæser alle P-numre og postadresser fra OS2mo.
+3. Sammenligner ovenstående informationer for hver enhed og opdaterer enhederne
+   i OS2mo de steder, hvor ændringer er nødvendige.
 
-- `log_level`: (Valgfrit) niveau for logging - default-værdi er `INFO`.
-- `sentry_dsn`: (Valgfrit) DSN på Sentry, der anvendes til indsamling af fejlrapporter.
+Følgende skal bemærkes mht. synkroniseringen af organisationsenhedernes
+postadresser:
 
-## Anvendelse
+I OS2mo er adresser gemt som UUID'er (eksempelvis som værdien
+de228324-97df-4893-b140-f863da6c0cf3), som er unikke værdier, der stammer fra
+[Dansk Adresseregister](https://danmarksadresser.dk/) (DAR) - dvs. adresserne i
+OS2mo er "vasket", og de er gemt så præcist, som det kan lade sig gøre. Når den
+fysiske adresse skal vises i OS2mo's frontend, så sender OS2mo adresse-UUID'et
+til DAR og får den fysiske adresse tilbage (fx "Paradisæblevej 13, 8000 Aarhus C
+"), og det er denne adresse, der ses i frontenden.
 
-SDTOOL+ virker ved at det henter oplysninger om organisationstræets udseende i SD-Løn, og derefter bringer organisationstræet i OS2MO i overensstemmelse med SD-træet, ved at udføre de relevante oprettelser og ændringer i OS2MO's GraphQL-API.
+Når man fra SD henter data om en enhed og dennes postadresse, så kommer den ikke
+tilbage som et DAR UUID og ofte heller ikke som den tilsvarende fysiske adresse,
+der står i DAR. Et tænkt eksempel: lad os forestille os, at man i SD
+henter enheden "Administration", som har adressen "Paradisæblevej 13 - 15,
+8000 Aarhus C". Men denne adresse kan ikke (nødvendigvis) findes i DAR, da den
+i DAR er delt ud på tre forskellige adresser (og dermed tre unikke UUID'er)
+nemlig adresserne "Paradisæblevej 13, 8000 Aarhus C", "Paradisæblevej 14,
+8000 Aarhus C" og "Paradisæblevej 15, 8000 Aarhus C". Sådanne forskelle gør, at
+SDTool+ har svært ved at sammenligne adresserne i SD og MO, hvorfor adresserne
+på enhederne i SD skal opdateres til at være gyldige DAR-adresser, inden
+featuren til synkronisering af postadresser aktivers i SDTool+.
 
-SDTOOl+ anvender flg. dele af SD-Løns API:
+## Teknisk beskrivelse
 
-- `GetOrganization20111201`
-- `GetDepartment20111201`
+* SDTOOL+ bygger ovenpå den Docker-baserede SD-integration, og er derfor
+  afhængig af, at denne kører.
+* SDTOOL+ er en FastAPI webapplikation, der udstiller et API via HTTP. On-prem
+  antages den at køre i samme Docker-netværk som resten af OS2mo-installationen
+  (selve OS2mo og evt. andre integrationer).
+* SDTool+ har en RunDB, hvori der gemmes informationer om resultatet af forrige
+  kørsel. Hvis den forrige kørsel fejlede, kan den næste kørsel ikke startes
+  før problemet, som fik forrige kørsel til at fejle, er udbedret. Årsagen til
+  dette er, at de operationer, som SDTool+ foretager, ikke altid er uafhængige
+  af hinanden. Hvis fx to nye SD-enheder, "Enhed A" og "Enhed B", skal oprettes
+  i OS2mo, hvor "Enhed B" er en underenhed til "Enhed A", og oprettelsen af
+  "Enhed A" fejler, så kan operationen, som opretter "Enhed B", ikke gennemføres
+  før oprettelsen af "Enhed A" er gået godt.
+* Det er muligt at lave "dry runs" med SDTool+, så man kan se hvilke ændringer,
+  applikationen har tænkt sig at foretage i OS2mo, inden ændringerne rent
+  faktisk persisteres.
 
-SD-Løn ønsker, at der ikke laves for mange API-kald til disse dele af deres API, og derfor er SDTOOL+ indrettet på at blive aktiveret een gang dagligt, via et cronjob. Dette kan ske ved:
+## Konfiguration
 
-- `curl -X POST http://<SDTOOL+-url>/trigger`
+Applikationen konfigureres via miljøvariable i Docker containeren for
+SDTool+. Der er en del konfigurationsmuligheder (mest relevant for teknikere),
+som er beskrevet via kommentarer i koden i applikationens
+[konfigurationsmodul](https://github.com/magenta-aps/os2mo-sdtool-plus/blob/master/sdtoolplus/config.py).
 
-Denne forespørgsel henter SD-organisationstræet, og ajourfører OS2MO-organisationstræet ud fra dette. SDTOOL+ svarer på forespørgslen med en liste af de ændringer, der er blevet udført i OS2MO-organisationstræet.
+## Kildekode
 
-For hver organisationsenhed, som oprettes eller ændres i OS2MO ved denne kørsel, kalder SDTOOL+ endvidere `/trigger/fix-departments/{org_unit_uuid}` i SD-integrationen. Dette sikrer, at medarbejdere i OS2MO flyttes til den rette organisationsenhed (enten den ændrede enhed, eller en af dens overliggende enheder.)
-
-SDTOOL+ kan detektere en enheds-sletning i SD, men effektuerer ikke denne sletning i OS2MO's organisationstræ, da sletning af enheder i SD anses for at være umulige, eller ihvertfald højest usædvanlige, idet den gængse SD-praksis er at flytte nedlagte enheder ned under en enhed kaldet "Lukkede afdelinger" eller lignende.
-
-SDTOOL+ kan desuden udføre en "tør" kørsel således:
-
-- `curl -X POST http://<SDTOOL+-url>/trigger/dry`
-
-Denne forespørgsel svarer med en liste af de ændringer, som _ville blive_ udført i OS2MO's organisationstræ.
-
-SDTOOL+ kommunikerer med OS2MO's GraphQL-API, og forventer i skrivende stund GraphQL API-version 7.
-
-## Monitorering og alarmer
-
-SDTOOL+ skriver log-output til `stdout`, og defaulter til log-niveau `DEBUG`.
-
-SDTOOL+ kan konfigureres til at indsende fejlrapporter til Sentry, således at "unhandled exceptions" i applikations-koden bliver opsamlet og sendt til Sentry.
-
-SDTOOL+ vedligeholder et Prometheus `gauge` ved navn `dipex_last_success_timestamp`, som nulstilles ved hver ny kørsel af logikken i `/trigger`. Derved bliver det muligt at spore evt. manglende eller fejlende kørsler, ved at måle tiden siden den sidste succesfulde kørsel, og sammenligne med det forventede (typisk 1 succesfuld kørsel per døgn.)
+Kildekoden til SDTool+ kan finde på GitHub:
+[https://github.com/magenta-aps/os2mo-sdtool-plus](https://github.com/magenta-aps/os2mo-sdtool-plus)
