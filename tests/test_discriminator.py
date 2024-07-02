@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Iterable
-from collections.abc import Iterator
 from typing import Any
 from unittest.mock import ANY
 from unittest.mock import AsyncMock
@@ -533,16 +532,6 @@ async def sync_tool(
     context["user_context"]["synctool"] = sync_tool
 
     return sync_tool
-
-
-@pytest.fixture
-def inject_environmental_variables(
-    environmental_variables: dict[str, str], monkeypatch: pytest.MonkeyPatch
-) -> Iterator[None]:
-    with monkeypatch.context() as mpc:
-        for key, value in environmental_variables.items():
-            mpc.setenv(key, value)
-        yield
 
 
 @pytest.mark.parametrize(

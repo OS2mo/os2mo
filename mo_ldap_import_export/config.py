@@ -469,6 +469,7 @@ class Settings(BaseSettings):
         10, description="Number of seconds to wait for responses (query timeout)."
     )
 
+    # TODO: Remove this, as it already exists within FastRAMQPI?
     mo_url: AnyHttpUrl = Field(
         parse_obj_as(AnyHttpUrl, "http://mo-service:5000"),
         description="Base URL for OS2mo.",
