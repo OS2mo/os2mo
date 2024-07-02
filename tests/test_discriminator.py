@@ -413,10 +413,49 @@ async def test_apply_discriminator_exclude_none(
     )
     with capture_logs() as cap_logs:
         result = await apply_discriminator(settings, ldap_connection, {another_ldap_dn})
-    events = [x["event"] for x in cap_logs if x["log_level"] != "debug"]
-    assert events == ["Found DN", "Discriminator value is None"]
+        assert "Discriminator value is None" in (x["event"] for x in cap_logs)
 
-    assert result is None
+    if discriminator_function == "include":
+        assert result is None
+    else:
+        assert result == another_ldap_dn
+
+
+@pytest.mark.parametrize("discriminator_function", ("include", "exclude"))
+async def test_apply_discriminator_missing_field(
+    ldap_connection: Connection,
+    settings: Settings,
+    discriminator_function: str,
+    ldap_container_dn: str,
+) -> None:
+    """Test that apply_discriminator exclude works with a single user on valid settings."""
+    another_username = "bar"
+    another_ldap_dn = f"CN={another_username},{ldap_container_dn}"
+    ldap_connection.strategy.add_entry(
+        another_ldap_dn,
+        {
+            "objectClass": "inetOrgPerson",
+            "userPassword": str(uuid4()),
+            "revision": 1,
+            "entryUUID": "{" + str(uuid4()) + "}",
+            "employeeID": "0101700001",
+        },
+    )
+    settings = settings.copy(
+        update={
+            "discriminator_field": "hkOS2MOSync",
+            "discriminator_function": discriminator_function,
+            "discriminator_values": ["No"],
+        }
+    )
+    with capture_logs() as cap_logs:
+        result = await apply_discriminator(settings, ldap_connection, {another_ldap_dn})
+        assert "Discriminator value is None" in (x["event"] for x in cap_logs)
+
+    if discriminator_function == "include":
+        assert result is None
+    else:
+        assert result == another_ldap_dn
 
 
 @pytest.fixture
