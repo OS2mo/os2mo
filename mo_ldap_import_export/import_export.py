@@ -370,7 +370,6 @@ class SyncTool:
 
         # Convert to LDAP
         ldap_employee = await self.converter.to_ldap(mo_object_dict, "Employee", dn)
-        ldap_employee = await self.move_ldap_object(ldap_employee, dn)
         return ldap_employee
 
     async def mo_address_to_ldap(
@@ -809,6 +808,7 @@ class SyncTool:
             return all_changes
 
         # Upload person to LDAP
+        ldap_employee = await self.move_ldap_object(ldap_employee, best_dn)
         await self.dataloader.modify_ldap_object(
             ldap_employee,
             "Employee",
