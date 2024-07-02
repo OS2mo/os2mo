@@ -35,6 +35,9 @@ class ITUserRead(MOBase):
     engagement_uuid: UUID | None = Field(
         description="UUID of the engagement related to the user."
     )
+    engagement_uuids: list[UUID] | None = Field(
+        description="Optional UUID of connected IT user"
+    )
     primary_uuid: UUID | None = Field(
         description="UUID of an associated `primary_type` class."
     )
