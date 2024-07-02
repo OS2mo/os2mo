@@ -532,10 +532,17 @@ class LdapConverter:
                 and not attribute.startswith("msDS-cloudExtensionAttribute")
                 and not attribute.startswith("extensionAttribute")
                 and not attribute.startswith("__")
-                and not attribute == "sAMAccountName"
-                and not attribute == "entryUUID"
             )
         }
+        match self.settings.ldap_dialect:
+            case "Standard":
+                problematic_attributes.discard("entryUUID")
+                problematic_attributes.discard("sn")
+            case "AD":
+                problematic_attributes.discard("sAMAccountName")
+            case _:  # pragma: no cover
+                assert False, "Unknown LDAP dialect"
+
         exceptions = [
             IncorrectMapping(f"Attribute '{attribute}' not allowed.")
             for attribute in problematic_attributes

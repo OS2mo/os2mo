@@ -57,7 +57,7 @@ from mo_ldap_import_export.main import process_org_unit
 from mo_ldap_import_export.main import process_person
 from mo_ldap_import_export.main import reject_on_failure
 from mo_ldap_import_export.usernames import get_username_generator_class
-from mo_ldap_import_export.usernames import UserNameGeneratorBase
+from mo_ldap_import_export.usernames import UserNameGenerator
 from mo_ldap_import_export.utils import get_delete_flag
 from tests.graphql_mocker import GraphQLMocker
 
@@ -876,7 +876,7 @@ async def test_load_faulty_username_generator() -> None:
     username_generators = ["UserNameGenerator", "AlleroedUserNameGenerator"]
     for username_generator in username_generators:
         clazz = get_username_generator_class(username_generator)
-        assert issubclass(clazz, UserNameGeneratorBase)
+        assert issubclass(clazz, UserNameGenerator)
 
     with pytest.raises(ValueError) as exc_info:
         get_username_generator_class("__unknown_username_generator")

@@ -143,6 +143,7 @@ def context(address_type_uuid: str) -> Context:
     }
 
     settings_mock = MagicMock()
+    settings_mock.ldap_dialect = "AD"
     settings_mock.ldap_search_base = "bar"
     settings_mock.default_org_unit_type = "Afdeling"
     settings_mock.default_org_unit_level = "N1"
@@ -668,6 +669,38 @@ def test_check_attributes():
     detected_attributes = {"bar", "extensionAttribute14", "sAMAccountName"}
     accepted_attributes = {"bar"}
     check_attributes(detected_attributes, accepted_attributes)
+
+
+def test_converter_check_attributes_dialect_specific(converter: LdapConverter) -> None:
+    accepted_attributes: set[str] = set()
+
+    # Got entry UUID
+    detected_attributes = {"entryUUID"}
+
+    converter.settings.ldap_dialect = "Standard"
+    converter.check_attributes(detected_attributes, accepted_attributes)
+
+    with pytest.raises(ExceptionGroup) as exc_info:
+        converter.settings.ldap_dialect = "AD"
+        converter.check_attributes(detected_attributes, accepted_attributes)
+    assert "check_attributes failed" in str(exc_info.value)
+    exception = one(exc_info.value.exceptions)
+    assert isinstance(exception, IncorrectMapping)
+    assert "Attribute 'entryUUID' not allowed." in str(exception)
+
+    # Got sAMAccountName
+    detected_attributes = {"sAMAccountName"}
+
+    with pytest.raises(ExceptionGroup) as exc_info:
+        converter.settings.ldap_dialect = "Standard"
+        converter.check_attributes(detected_attributes, accepted_attributes)
+    assert "check_attributes failed" in str(exc_info.value)
+    exception = one(exc_info.value.exceptions)
+    assert isinstance(exception, IncorrectMapping)
+    assert "Attribute 'sAMAccountName' not allowed." in str(exception)
+
+    converter.settings.ldap_dialect = "AD"
+    converter.check_attributes(detected_attributes, accepted_attributes)
 
 
 async def test_get_accepted_json_keys(converter: LdapConverter) -> None:

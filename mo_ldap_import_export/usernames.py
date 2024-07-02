@@ -1,12 +1,11 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import re
-from abc import ABC
-from abc import abstractmethod
 from collections.abc import Iterator
 
 import structlog
 from fastramqpi.context import Context
+from more_itertools import one
 from more_itertools import split_when
 from pydantic import parse_obj_as
 from ramodels.mo.employee import Employee
@@ -19,7 +18,7 @@ from .utils import remove_vowels
 logger = structlog.stdlib.get_logger()
 
 
-class UserNameGeneratorBase(ABC):
+class UserNameGenerator:
     """
     Class with functions to generate valid LDAP usernames.
 
@@ -55,14 +54,19 @@ class UserNameGeneratorBase(ABC):
             "attributes": attributes,
         }
         search_base = self.settings.ldap_search_base
-        output = {}
         search_result = await paged_search(self.context, searchParameters, search_base)
+
+        output = {}
         for attribute in attributes:
-            output[attribute] = [
-                entry["attributes"][attribute].lower()
-                for entry in search_result
-                if entry["attributes"][attribute]
-            ]
+            values = []
+            for entry in search_result:
+                value = entry["attributes"][attribute]
+                if not value:
+                    continue
+                if isinstance(value, list):
+                    value = one(value)
+                values.append(value.lower())
+            output[attribute] = values
         return output
 
     def _make_cn(self, username_string: str):
@@ -294,26 +298,34 @@ class UserNameGeneratorBase(ABC):
         return attributes
 
     async def _get_existing_names(self):
+        match self.settings.ldap_dialect:
+            case "Standard":
+                login_fields = ["distinguishedName"]
+            case "AD":
+                login_fields = ["sAMAccountName", "userPrincipalName"]
+            case _:  # pragma: no cover
+                assert False, "Unknown LDAP dialect"
+
         # TODO: Consider if it is better to fetch all names or candidate names
-        existing_values = await self.get_existing_values(
-            ["cn", "sAMAccountName", "userPrincipalName"]
-        )
+        existing_values = await self.get_existing_values(["cn"] + login_fields)
 
-        user_principal_names = [
-            s.split("@")[0] for s in existing_values["userPrincipalName"]
-        ]
+        match self.settings.ldap_dialect:
+            case "Standard":
+                existing_usernames = existing_values["distinguishedName"]
+            case "AD":
+                user_principal_names = [
+                    s.split("@")[0] for s in existing_values["userPrincipalName"]
+                ]
+                existing_usernames = (
+                    existing_values["sAMAccountName"] + user_principal_names
+                )
+            case _:  # pragma: no cover
+                assert False, "Unknown LDAP dialect"
 
-        existing_usernames = existing_values["sAMAccountName"] + user_principal_names
         existing_common_names = existing_values["cn"]
 
         return existing_usernames, existing_common_names
 
-    @abstractmethod
-    async def generate_dn(self, employee: Employee) -> str:  # pragma: no cover
-        ...
-
-
-class UserNameGenerator(UserNameGeneratorBase):
     async def generate_dn(self, employee: Employee) -> str:
         """
         Generates a LDAP DN (Distinguished Name) based on information from a MO Employee
@@ -345,14 +357,16 @@ class UserNameGenerator(UserNameGeneratorBase):
 
         dn = self._make_dn(common_name)
         employee_attributes = await self._get_employee_ldap_attributes(employee, dn)
-        other_attributes = {"sAMAccountName": username}
+        other_attributes = {}
+        if self.settings.ldap_dialect == "AD":
+            other_attributes = {"sAMAccountName": username}
         await self.dataloader.add_ldap_object(
             dn, employee_attributes | other_attributes
         )
         return dn
 
 
-class AlleroedUserNameGenerator(UserNameGeneratorBase):
+class AlleroedUserNameGenerator(UserNameGenerator):
     def generate_username(self, name, existing_usernames: list[str]):
         # Remove vowels from all but first name
         name = [name[0]] + [remove_vowels(n) for n in self._name_fixer(name)[1:]]
@@ -368,6 +382,8 @@ class AlleroedUserNameGenerator(UserNameGeneratorBase):
 
         Follows guidelines from https://redmine.magenta-aps.dk/issues/56080
         """
+        assert self.settings.ldap_dialect == "AD"
+
         existing_usernames, existing_common_names = await self._get_existing_names()
 
         # "existing_usernames_in_mo" covers all usernames which MO has ever generated.
@@ -421,7 +437,7 @@ class AlleroedUserNameGenerator(UserNameGeneratorBase):
 
 def get_username_generator_class(
     username_generator: str,
-) -> type[UserNameGeneratorBase]:
+) -> type[UserNameGenerator]:
     match username_generator:
         case "UserNameGenerator":
             return UserNameGenerator

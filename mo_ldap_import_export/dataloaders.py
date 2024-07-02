@@ -529,7 +529,13 @@ class DataLoader:
             raise ReadOnlyException("Adding LDAP objects is disabled")
 
         if not self.ou_in_ous_to_write_to(dn):
-            return
+            logger.info(
+                "Not allowed to write to the specified OU",
+                operation="add_ldap_object",
+                dn=dn,
+                attributes=attributes,
+            )
+            raise ReadOnlyException("Not allowed to write to the specified OU")
 
         logger.info("Adding user to LDAP", dn=dn, attributes=attributes)
         _, result = await ldap_add(
