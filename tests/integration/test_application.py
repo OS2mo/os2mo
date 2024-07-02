@@ -180,6 +180,9 @@ async def test_endpoint_load_ldap_object_from_ldap(test_client: AsyncClient) -> 
             "dn": "uid=abk,ou=os2mo,o=magenta,dc=magenta,dc=dk",
             "employeeNumber": "2108613133",
             "entryUUID": ANY,
+            "givenName": ["Aage"],
+            "sn": ["Bach Klarskov"],
+            "title": ["Skole underviser"],
         },
     ]
 
@@ -209,12 +212,14 @@ async def test_endpoint_mo2ldap_templating(
     test_client: AsyncClient,
     graphql_client: GraphQLClient,
 ) -> None:
+    given_name = "John"
+    surname = "Hansen"
     cpr_number = "0101700000"
     # Create a person
     person_result = await graphql_client._testing_user_create(
         input=EmployeeCreateInput(
-            given_name="John",
-            surname="Hansen",
+            given_name=given_name,
+            surname=surname,
             cpr_number=cpr_number,
         )
     )
@@ -227,6 +232,9 @@ async def test_endpoint_mo2ldap_templating(
             {
                 "dn": "CN=Dry run,DC=example,DC=com",
                 "employeeNumber": cpr_number,
+                "givenName": given_name,
+                "sn": surname,
+                "title": str(person_uuid),
             },
             False,
         ]

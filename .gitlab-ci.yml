@@ -99,7 +99,7 @@ Integration-test:
     LDAP_OUS_TO_SEARCH_IN: '["ou=os2mo,o=magenta"]'
     LDAP_OUS_TO_WRITE_TO: '["ou=os2mo,o=magenta"]'
     LDAP_OU_FOR_NEW_USERS: "ou=os2mo,o=magenta"
-    LDAP_UNIQUE_ID_FIELD: "entryUUID"
+    LDAP_DIALECT: "Standard"
     LDAP_AUTH_METHOD: "simple"
 
     PRODUCTION: False
@@ -116,15 +116,21 @@ Integration-test:
               "Employee": {
                   "objectClass": "ramodels.mo.employee.Employee",
                   "_import_to_mo_": "false",
-                  "cpr_no": "{{ldap.employeeNumber or None}}",
-                  "uuid": "{{ employee_uuid or NONE }}"
+                  "uuid": "{{ employee_uuid or NONE }}",
+                  "cpr_no": "{{ldap.employeeNumber|strip_non_digits or NONE}}",
+                  "user_key": "{{ ldap.title }}",
+                  "givenname": "{{ ldap.givenName }}",
+                  "surname": "{{ ldap.sn }}"
               }
           },
           "mo_to_ldap": {
               "Employee": {
                   "objectClass": "inetOrgPerson",
                   "_export_to_ldap_": "false",
-                  "employeeNumber": "{{mo_employee.cpr_no or None}}"
+                  "employeeNumber": "{{mo_employee.cpr_no}}",
+                  "title": "{{ mo_employee.user_key }}",
+                  "givenName": "{{ mo_employee.givenname }}",
+                  "sn": "{{ mo_employee.surname }}"
               }
           },
           "username_generator": {"objectClass": "UserNameGenerator"}
