@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from more_itertools import first
 from structlog import get_logger
 
 from .. import reading
@@ -63,7 +64,10 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
         org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         itsystem_uuid = mapping.SINGLE_ITSYSTEM_FIELD.get_uuid(effect)
         primary_uuid = mapping.PRIMARY_FIELD.get_uuid(effect)
-        engagement_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
+        # Emptied lists of engagements contains an empty uuid which we need to remove:
+        engagement_uuids = [
+            x for x in mapping.ASSOCIATED_FUNCTION_FIELD.get_uuids(effect) if x
+        ]
 
         extensions = mapping.ORG_FUNK_UDVIDELSER_FIELD(effect)
         extensions = extensions[0] if extensions else {}
@@ -76,7 +80,7 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
                 **base_obj,
                 "employee_uuid": person_uuid,
                 "org_unit_uuid": org_unit_uuid,
-                "engagement_uuid": engagement_uuid,
+                "engagement_uuids": engagement_uuids,
                 "itsystem_uuid": itsystem_uuid,
                 "primary_uuid": primary_uuid,
                 "external_id": external_id,
@@ -109,7 +113,7 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
 
         if engagement_uuid:
             r[mapping.ENGAGEMENT] = await get_engagement(
-                get_connector(), uuid=engagement_uuid
+                get_connector(), uuid=first(sorted(engagement_uuid))
             )
 
         if primary_uuid:
