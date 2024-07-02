@@ -97,7 +97,7 @@ Integration-test:
     LDAP_PASSWORD: "AdminPassword123"
     LDAP_SEARCH_BASE: "dc=magenta,dc=dk"
     LDAP_OUS_TO_SEARCH_IN: '["ou=os2mo,o=magenta"]'
-    LDAP_OUS_TO_WRITE_TO: '["ou=os2mo,o=magenta"]'
+    LDAP_OUS_TO_WRITE_TO: '[""]'
     LDAP_OU_FOR_NEW_USERS: "ou=os2mo,o=magenta"
     LDAP_DIALECT: "Standard"
     LDAP_AUTH_METHOD: "simple"
@@ -126,14 +126,17 @@ Integration-test:
           "mo_to_ldap": {
               "Employee": {
                   "objectClass": "inetOrgPerson",
-                  "_export_to_ldap_": "false",
+                  "_export_to_ldap_": "true",
                   "employeeNumber": "{{mo_employee.cpr_no}}",
                   "title": "{{ mo_employee.user_key }}",
                   "givenName": "{{ mo_employee.givenname }}",
                   "sn": "{{ mo_employee.surname }}"
               }
           },
-          "username_generator": {"objectClass": "UserNameGenerator"}
+          "username_generator": {
+            "objectClass": "UserNameGenerator",
+            "combinations_to_try": ["FFFX", "LLLX"]
+          }
       }
 
   rules:
