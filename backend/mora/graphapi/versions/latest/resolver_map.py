@@ -6,6 +6,7 @@ from typing import Any
 from .models import AddressRead
 from .models import ClassRead
 from .models import FacetRead
+from .models import ITUserRead
 from .models import RoleBindingRead
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead

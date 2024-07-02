@@ -115,6 +115,7 @@ from .models import AddressRead
 from .models import ClassRead
 from .models import FacetRead
 from .models import FileStore
+from .models import ITUserRead
 from .models import RoleBindingRead
 from .org import create_org
 from .org import OrganisationCreate

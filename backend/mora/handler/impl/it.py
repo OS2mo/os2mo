@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from more_itertools import one
 from structlog import get_logger
 
 from .. import reading
@@ -63,7 +64,7 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
         org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         itsystem_uuid = mapping.SINGLE_ITSYSTEM_FIELD.get_uuid(effect)
         primary_uuid = mapping.PRIMARY_FIELD.get_uuid(effect)
-        engagement_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
+        engagement_uuid = list(mapping.ASSOCIATED_FUNCTION_FIELD.get_uuids(effect))
 
         base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)
 
@@ -72,7 +73,7 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
                 **base_obj,
                 "employee_uuid": person_uuid,
                 "org_unit_uuid": org_unit_uuid,
-                "engagement_uuid": engagement_uuid,
+                "engagement_uuids": engagement_uuid,
                 "itsystem_uuid": itsystem_uuid,
                 "primary_uuid": primary_uuid,
             }
@@ -104,7 +105,7 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
 
         if engagement_uuid:
             r[mapping.ENGAGEMENT] = await get_engagement(
-                get_connector(), uuid=engagement_uuid
+                get_connector(), uuid=one(engagement_uuid)
             )
 
         if primary_uuid:

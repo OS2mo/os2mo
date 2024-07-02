@@ -33,7 +33,6 @@ from mora.util import POSITIVE_INFINITY
 from mora.util import to_lora_time
 from oio_rest import validate
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -863,6 +862,12 @@ class ITSystemTerminate(ValidityTerminate):
 
 # ITUsers
 # -------
+class ITUserRead(RAITUserRead):
+    engagement_uuids: list[UUID] | None = Field(
+        description="Optional UUID of connected IT user"
+    )
+
+
 class ITUserUpsert(UUIDBase):
     primary: UUID | None = Field(description="Primary field of the IT user object")
     person: UUID | None = Field(
@@ -871,7 +876,7 @@ class ITUserUpsert(UUIDBase):
     org_unit: UUID | None = Field(
         description="Reference to the organisation unit of the IT user (if any)."
     )
-    engagement: UUID | None = Field(
+    engagements: list[UUID] | None = Field(
         description="Reference to the engagement of the IT user (if any)."
     )
     validity: RAValidity = Field(description="Validity of the created IT user object.")
@@ -882,7 +887,9 @@ class ITUserUpsert(UUIDBase):
             "primary": gen_uuid(self.primary),
             "person": gen_uuid(self.person),
             "org_unit": gen_uuid(self.org_unit),
-            "engagement": gen_uuid(self.engagement),
+            "engagements": list(map(gen_uuid, self.engagements))
+            if self.engagements
+            else None,
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()

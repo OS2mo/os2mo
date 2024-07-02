@@ -172,11 +172,12 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeitsystemer=[systemid],
             tilknyttedefunktioner=[
                 common.associated_orgfunc(
-                    uuid=engagement_uuid, orgfunc_type=mapping.MoOrgFunk.ENGAGEMENT
+                    uuid=eng, orgfunc_type=mapping.MoOrgFunk.ENGAGEMENT
                 )
+                for eng in engagement_uuid
             ]
             if engagement_uuid
-            else [],
+            else None,
             note=note,
         )
 
@@ -239,12 +240,12 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        if data.get(mapping.ENGAGEMENT):
+        for engagement in util.checked_get(data, "engagements", default=[]):
             update_fields.append(
                 (
                     mapping.ASSOCIATED_FUNCTION_FIELD,
                     {
-                        "uuid": util.get_mapping_uuid(data, mapping.ENGAGEMENT),
+                        "uuid": engagement["uuid"],
                         mapping.OBJECTTYPE: mapping.ENGAGEMENT,
                     },
                 )
@@ -327,7 +328,6 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                     engagement_uuid=engagement_uuid,
                 ),
             ).validate()
-
         payload = common.update_payload(
             new_from, new_to, update_fields, original, payload
         )

@@ -48,6 +48,7 @@ from .graphql_utils import LoadKey
 from .models import AddressRead
 from .models import ClassRead
 from .models import FacetRead
+from .models import ITUserRead
 from .models import RoleBindingRead
 from .paged import CursorType
 from .paged import LimitType
