@@ -50,6 +50,7 @@ from mora.auth.keycloak.oidc import token_getter
 from mora.config import get_settings
 from mora.graphapi.main import newest as newest_graphql_version
 from mora.graphapi.versions.latest.permissions import ALL_PERMISSIONS
+from mora.mapping import ADMIN
 from mora.service.org import ConfiguredOrganisation
 from mora.testing import copy_database
 from mora.testing import drop_database
@@ -184,6 +185,56 @@ def admin_token_getter() -> Callable[[], Awaitable[Token]]:
         return token
 
     return get_fake_admin_token
+
+
+@pytest.fixture
+def set_auth(
+    fastapi_admin_test_app: FastAPI,
+) -> Callable[[str | None, str | None], None]:
+    """Set authentication token used by GraphAPIPost."""
+
+    def _set_auth(role: str | None = None, user_uuid: str | None = None) -> None:
+        token_data = {
+            "acr": "1",
+            "allowed-origins": ["http://localhost:5001"],
+            "azp": "vue",
+            "email": "bruce@kung.fu",
+            "email_verified": False,
+            "exp": 1621779689,
+            "family_name": "Lee",
+            "given_name": "Bruce",
+            "iat": 1621779389,
+            "iss": "http://localhost:8081/auth/realms/mo",
+            "jti": "25dbb58d-b3cb-4880-8b51-8b92ada4528a",
+            "name": "Bruce Lee",
+            "preferred_username": "bruce",
+            "scope": "email profile",
+            "session_state": "d94f8dc3-d930-49b3-a9dd-9cdc1893b86a",
+            "sub": "c420894f-36ba-4cd5-b4f8-1b24bd8c53db",
+            "typ": "Bearer",
+            "uuid": user_uuid,
+        }
+        if role is not None:
+            if role == ADMIN:
+                roles = ALL_PERMISSIONS
+            else:
+                roles = {role}
+            token_data["realm_access"] = {"roles": roles}
+        token = Token.parse_obj(token_data)
+
+        def _auth():
+            return token
+
+        def _token_getter():
+            async def _get():
+                return token
+
+            return _get
+
+        fastapi_admin_test_app.dependency_overrides[auth] = _auth
+        fastapi_admin_test_app.dependency_overrides[token_getter] = _token_getter
+
+    return _set_auth
 
 
 class SessionmakerMaker:

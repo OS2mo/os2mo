@@ -7,15 +7,10 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
-from fastapi import FastAPI
 
 from mora.auth.exceptions import AuthorizationError
-from mora.auth.keycloak.models import Token
-from mora.auth.keycloak.oidc import auth
-from mora.auth.keycloak.oidc import token_getter
 from mora.auth.keycloak.rbac import _get_employee_uuid_via_it_system
 from mora.config import Settings
-from mora.graphapi.versions.latest.permissions import ALL_PERMISSIONS
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
 from tests import util
@@ -49,56 +44,6 @@ def enable_rbac(set_settings: Callable[..., None]) -> None:
             "graphql_rbac": "True",
         }
     )
-
-
-@pytest.fixture
-def set_auth(
-    fastapi_admin_test_app: FastAPI,
-) -> Callable[[str | None, str | None], None]:
-    """Set authentication token used by GraphAPIPost."""
-
-    def _set_auth(role: str | None = None, user_uuid: str | None = None) -> None:
-        token_data = {
-            "acr": "1",
-            "allowed-origins": ["http://localhost:5001"],
-            "azp": "vue",
-            "email": "bruce@kung.fu",
-            "email_verified": False,
-            "exp": 1621779689,
-            "family_name": "Lee",
-            "given_name": "Bruce",
-            "iat": 1621779389,
-            "iss": "http://localhost:8081/auth/realms/mo",
-            "jti": "25dbb58d-b3cb-4880-8b51-8b92ada4528a",
-            "name": "Bruce Lee",
-            "preferred_username": "bruce",
-            "scope": "email profile",
-            "session_state": "d94f8dc3-d930-49b3-a9dd-9cdc1893b86a",
-            "sub": "c420894f-36ba-4cd5-b4f8-1b24bd8c53db",
-            "typ": "Bearer",
-            "uuid": user_uuid,
-        }
-        if role is not None:
-            if role == ADMIN:
-                roles = ALL_PERMISSIONS
-            else:
-                roles = {role}
-            token_data["realm_access"] = {"roles": roles}
-        token = Token.parse_obj(token_data)
-
-        def _auth():
-            return token
-
-        def _token_getter():
-            async def _get():
-                return token
-
-            return _get
-
-        fastapi_admin_test_app.dependency_overrides[auth] = _auth
-        fastapi_admin_test_app.dependency_overrides[token_getter] = _token_getter
-
-    return _set_auth
 
 
 @pytest.fixture
