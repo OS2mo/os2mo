@@ -4,7 +4,11 @@ from uuid import UUID
 
 import structlog
 from fastramqpi.context import Context
+from fastramqpi.depends import UserContext
 
+from .converters import get_it_system_uuid
+from .converters import LdapConverter
+from .dataloaders import DataLoader
 from .exceptions import IgnoreChanges
 from .ldap import check_ou_in_list_of_ous
 from .utils import extract_ou_from_dn
@@ -20,9 +24,9 @@ class ExportChecks:
 
     def __init__(self, context: Context):
         self.context = context
-        self.user_context = self.context["user_context"]
-        self.dataloader = self.user_context["dataloader"]
-        self.converter = self.user_context["converter"]
+        self.user_context: UserContext = self.context["user_context"]
+        self.dataloader: DataLoader = self.user_context["dataloader"]
+        self.converter: LdapConverter = self.user_context["converter"]
 
     async def check_alleroed_sd_number(self, employee_uuid: UUID, object_uuid: UUID):
         """
@@ -62,9 +66,11 @@ class ExportChecks:
         if not it_system_user_key:
             return
 
-        it_system_uuid = self.converter.get_it_system_uuid(it_system_user_key)
+        it_system_uuid = await get_it_system_uuid(
+            self.dataloader.graphql_client, it_system_user_key
+        )
         it_users = await self.dataloader.load_mo_employee_it_users(
-            employee_uuid, it_system_uuid
+            employee_uuid, UUID(it_system_uuid)
         )
 
         if not it_users:

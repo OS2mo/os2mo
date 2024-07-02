@@ -287,7 +287,6 @@ async def test_create_ldap_person(
     await verify(person_uuid)
 
 
-@pytest.mark.xfail
 @pytest.mark.integration_test
 @pytest.mark.envvar(
     {"IT_USER_TO_CHECK": "SynchronizeToLDAP", "LISTEN_TO_CHANGES_IN_LDAP": "False"}
