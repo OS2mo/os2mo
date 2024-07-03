@@ -15,6 +15,7 @@ from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.owner import get_owners
 from mora.graphapi.shim import execute_graphql
 from mora.mapping import ADMIN
+from mora.mapping import EntityType
 from mora.mapping import OWNER
 
 
@@ -87,56 +88,63 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
     :param request: the incoming FastAPI request.
     :param admin_only: true if endpoint only accessible to admins
     """
-
     logger.debug("_rbac called")
-
     roles = token.realm_access.roles
-
     if ADMIN in roles:
         logger.debug("User has admin role - write permission granted")
         return
-    if OWNER in roles and not admin_only:
+    if admin_only:
+        logger.debug("User is not admin, but endpoint is admin_only")
+        raise AuthorizationError("Endpoint requires admin access. You're not admin!")
+
+    if OWNER in roles:
         if token.uuid is None:
             raise AuthorizationError("User has owner role, but UUID unset.")
-
-        user_uuid = await _get_employee_uuid(token)
-
         logger.debug("User has owner role - checking ownership...")
-
-        # E.g. the uuids variable will be {<uuid1>} if we are editing details
+        # E.g. the entity_uuids variable will be {<uuid1>} if we are editing details
         # of an org unit or an employee and {<uuid1>, <uuid2>} if we are
         # moving an org unit
-        uuids = await uuid_extractor.get_entity_uuids(request)
-        logger.debug("UUIDs", uuids=uuids)
-
         entity_type = await uuid_extractor.get_entity_type(request)
-
-        # In some cases several ancestor owner sets are needed, e.g. if
-        # we are moving a unit. In such cases we have to check for
-        # ownerships in both the source (the unit to be moved) and target
-        # (the receiving unit) ancestor trees. In some cases only the
-        # source is relevant, e.g. if an org unit detail is created/edited.
-        # The owners list below will have exactly two elements (sets) if we
-        # are moving a unit and exactly one element otherwise, e.g.
-        # {{<owner_uuid>, <owner_parent_uuid>, <owner_grand_parent_uuid>}}
-        # when editing details of a unit and
-        # {
-        #   {<src_owner_uuid>, <src_owner_parent_uuid>, <src_owner_grand_parent_uuid>},
-        #   {<tar_owner_uuid>, <tar_owner_parent_uuid>, <tar_owner_grand_parent_uuid>}
-        # }
-        # when moving an org unit.
-
-        owners = await asyncio.gather(
-            *(get_owners(uuid, entity_type) for uuid in uuids)
-        )
-
-        current_user_ownership_verified = [(user_uuid in owner) for owner in owners]
-        if current_user_ownership_verified and all(current_user_ownership_verified):
-            logger.debug(f"User {token.preferred_username} authorized")
-            return
+        entity_uuids = await uuid_extractor.get_entity_uuids(request)
+        entities = {(entity_type, uuid) for uuid in entity_uuids}
+        await check_owner(token, entities)
+        logger.debug(f"User {token.preferred_username} authorized")
+        return
 
     logger.debug(
         f"User {token.preferred_username} with UUID " f"{token.uuid} not authorized"
     )
-
     raise AuthorizationError("Not authorized to perform this operation")
+
+
+async def check_owner(token: Token, entities: set[tuple[EntityType, UUID]]) -> None:
+    """Check if the token is owner of the given entities.
+
+    This function is called from both the Service-API and GraphQL.
+    """
+    # In some cases several ancestor owner sets are needed, e.g. if
+    # we are moving a unit. In such cases we have to check for
+    # ownerships in both the source (the unit to be moved) and target
+    # (the receiving unit) ancestor trees. In some cases only the
+    # source is relevant, e.g. if an org unit detail is created/edited.
+    # The owners list below will have exactly two elements (sets) if we
+    # are moving a unit and exactly one element otherwise, e.g.
+    # {{<owner_uuid>, <owner_parent_uuid>, <owner_grand_parent_uuid>}}
+    # when editing details of a unit and
+    # {
+    #   {<src_owner_uuid>, <src_owner_parent_uuid>, <src_owner_grand_parent_uuid>},
+    #   {<tar_owner_uuid>, <tar_owner_parent_uuid>, <tar_owner_grand_parent_uuid>}
+    # }
+    # when moving an org unit.
+    logger.debug("Check owner", entities=entities)
+    user_uuid = await _get_employee_uuid(token)
+    owners = await asyncio.gather(
+        *(get_owners(entity_uuid, entity_type) for entity_type, entity_uuid in entities)
+    )
+    current_user_ownership_verified = [(user_uuid in owner) for owner in owners]
+    if current_user_ownership_verified and all(current_user_ownership_verified):
+        return None
+    # This function intentionally returns None or raises (instead of returning a
+    # boolean) because _get_employee_uuid() might also raise an AuthorizationError,
+    # which we would like to propagate to the error message in the Service-API.
+    raise AuthorizationError("Not owner")
