@@ -95,6 +95,19 @@ def get_num_queued_messages(
     return _get_num_queued_messages
 
 
+@pytest.fixture
+def get_num_consumed_messages(
+    rabbitmq_management_client: AsyncClient,
+) -> Callable[[], Awaitable[int]]:
+    """Get number of consumed messages in RabbitMQ AMQP."""
+
+    async def _get_num_consumed_messages() -> int:
+        queues = (await rabbitmq_management_client.get("queues")).json()
+        return sum(queue.get("message_stats", {}).get("ack", 0) for queue in queues)
+
+    return _get_num_consumed_messages
+
+
 @pytest.fixture(autouse=True)
 async def purge_ldap(ldap_connection: Connection) -> AsyncIterator[None]:
     def entry2dn(entry) -> DN:

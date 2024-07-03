@@ -285,3 +285,53 @@ async def test_create_ldap_person(
         }
 
     await verify(person_uuid)
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {"IT_USER_TO_CHECK": "SynchronizeToLDAP", "LISTEN_TO_CHANGES_IN_LDAP": "False"}
+)
+@pytest.mark.usefixtures("test_client", "ldap_dummy_data")
+async def test_create_ldap_person_blocked_by_itsystem_check(
+    test_client: AsyncClient,
+    graphql_client: GraphQLClient,
+    get_num_queued_messages: Callable[[], Awaitable[int]],
+    get_num_consumed_messages: Callable[[], Awaitable[int]],
+) -> None:
+    given_name = "John"
+    surname = "Hansen"
+    cpr_number = "0101700000"
+
+    # Create the SynchronizeToLDAP ITSystem
+    await graphql_client.itsystem_create(
+        ITSystemCreateInput(
+            user_key="SynchronizeToLDAP",
+            name="SynchronizeToLDAP",
+            validity=RAOpenValidityInput(),
+        )
+    )
+
+    # Create a person
+    person_result = await graphql_client._testing_user_create(
+        input=EmployeeCreateInput(
+            given_name=given_name,
+            surname=surname,
+            cpr_number=cpr_number,
+        )
+    )
+    person_uuid = person_result.uuid
+
+    @retry()
+    async def verify(person_uuid: UUID) -> None:
+        num_messages = await get_num_queued_messages()
+        assert num_messages == 0
+
+        num_messages = await get_num_consumed_messages()
+        assert num_messages > 0
+
+        # Check that the user has not been created
+        result = await test_client.get(f"/Inspect/mo/uuid2dn/{person_uuid}")
+        assert result.status_code == 200
+        assert result.json() == []
+
+    await verify(person_uuid)
