@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 """Integration tests."""
+from typing import Awaitable
+from typing import Callable
 from unittest.mock import ANY
 from unittest.mock import AsyncMock
 from uuid import UUID
@@ -180,6 +182,9 @@ async def test_endpoint_load_ldap_object_from_ldap(test_client: AsyncClient) -> 
             "dn": "uid=abk,ou=os2mo,o=magenta,dc=magenta,dc=dk",
             "employeeNumber": "2108613133",
             "entryUUID": ANY,
+            "givenName": ["Aage"],
+            "sn": ["Bach Klarskov"],
+            "title": ["Skole underviser"],
         },
     ]
 
@@ -209,12 +214,14 @@ async def test_endpoint_mo2ldap_templating(
     test_client: AsyncClient,
     graphql_client: GraphQLClient,
 ) -> None:
+    given_name = "John"
+    surname = "Hansen"
     cpr_number = "0101700000"
     # Create a person
     person_result = await graphql_client._testing_user_create(
         input=EmployeeCreateInput(
-            given_name="John",
-            surname="Hansen",
+            given_name=given_name,
+            surname=surname,
             cpr_number=cpr_number,
         )
     )
@@ -227,7 +234,54 @@ async def test_endpoint_mo2ldap_templating(
             {
                 "dn": "CN=Dry run,DC=example,DC=com",
                 "employeeNumber": cpr_number,
+                "givenName": given_name,
+                "sn": surname,
+                "title": str(person_uuid),
             },
             False,
         ]
     }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("test_client", "ldap_dummy_data")
+async def test_create_ldap_person(
+    test_client: AsyncClient,
+    graphql_client: GraphQLClient,
+    get_num_queued_messages: Callable[[], Awaitable[int]],
+) -> None:
+    given_name = "John"
+    surname = "Hansen"
+    cpr_number = "0101700000"
+    # Create a person
+    person_result = await graphql_client._testing_user_create(
+        input=EmployeeCreateInput(
+            given_name=given_name,
+            surname=surname,
+            cpr_number=cpr_number,
+        )
+    )
+    person_uuid = person_result.uuid
+
+    @retry()
+    async def verify(person_uuid: UUID) -> None:
+        num_messages = await get_num_queued_messages()
+        assert num_messages == 0
+
+        result = await test_client.get(f"/Inspect/mo/uuid2dn/{person_uuid}")
+        assert result.status_code == 200
+        dn = one(result.json())
+
+        result = await test_client.get(f"/Inspect/dn/{dn}")
+        assert result.status_code == 200
+        assert result.json() == {
+            "objectClass": ["inetOrgPerson"],
+            "dn": dn,
+            "cn": [given_name + " " + surname],
+            "employeeNumber": cpr_number,
+            "givenName": [given_name],
+            "sn": [surname],
+            "title": [str(person_uuid)],
+        }
+
+    await verify(person_uuid)
