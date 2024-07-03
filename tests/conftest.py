@@ -80,48 +80,6 @@ def load_marked_envvars(
 
 
 @pytest.fixture
-def inject_environmental_variables(
-    monkeypatch: pytest.MonkeyPatch,
-    environmental_variables: Mapping[str, str],
-) -> Iterator[None]:
-    """Fixture to inject environmental variable via parametrization.
-
-    Example:
-        ```
-        @pytest.mark.parametrize(
-            "environmental_variables,key,expected",
-            [
-                ({}, "VAR1", None),
-                ({"VAR1": "1"}, "VAR1", "1"),
-                ({"VAR1": "2"}, "VAR1", "2"),
-                ({"VAR1": "2"}, "VAR2", None),
-                ({"VAR1": "2", "VAR2": "2"}, "VAR2", "2"),
-            ]
-        )
-        @pytest.mark.usefixtures("inject_environmental_variables")
-        def test_inject_envvars(key: str, expected: str) -> None:
-            assert os.environ.get(key) == expected
-        ```
-
-        Note that `inject_environmental_variables` depends on `environmental_variables`
-        as such the parametrization *MUST* use the variable name for the variables to
-        be injected. Failure to do so will produce errors regarding the name
-        `environmental_variables` being unknown and/or errors regarding the name not
-        being used within the test function declaration.
-
-    Args:
-        monkeypatch: The patcher to use for settings the environmental variables.
-        environmental_variables: Mapping of environmental variables to set.
-
-    Yields:
-        None, but keeps the settings overrides active.
-    """
-    for key, value in environmental_variables.items():
-        monkeypatch.setenv(key, value)
-    yield
-
-
-@pytest.fixture
 def settings_overrides() -> Iterator[dict[str, str]]:
     """Fixture to construct dictionary of minimal overrides for valid settings.
 

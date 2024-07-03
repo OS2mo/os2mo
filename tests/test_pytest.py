@@ -15,21 +15,6 @@ def monkeysession() -> Iterator[pytest.MonkeyPatch]:
         yield mpc
 
 
-@pytest.mark.parametrize(
-    "environmental_variables,key,expected",
-    [
-        ({}, "VAR1", None),
-        ({"VAR1": "1"}, "VAR1", "1"),
-        ({"VAR1": "2"}, "VAR1", "2"),
-        ({"VAR1": "2"}, "VAR2", None),
-        ({"VAR1": "2", "VAR2": "2"}, "VAR2", "2"),
-    ],
-)
-@pytest.mark.usefixtures("inject_environmental_variables")
-def test_inject_envvars(key: str, expected: str) -> None:
-    assert os.environ.get(key) == expected
-
-
 @pytest.mark.envvar({"VAR1": "1", "VAR2": "2"})
 @pytest.mark.envvar({"VAR3": "3"})
 def test_load_marked_envvars() -> None:

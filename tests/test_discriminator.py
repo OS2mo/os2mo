@@ -535,11 +535,10 @@ async def sync_tool(
 
 
 @pytest.mark.parametrize(
-    "environmental_variables,extra_account,log_lines",
+    "extra_account,log_lines",
     [
         # Discriminator not configured
-        (
-            {},
+        pytest.param(
             False,
             [
                 "Could not find engagement UUID for DN",
@@ -547,27 +546,25 @@ async def sync_tool(
                 "Import checks executed",
                 "Import to MO filtered",
             ],
+            marks=pytest.mark.envvar({}),
         ),
         # Discriminator rejecting all accounts
-        (
-            {
-                "DISCRIMINATOR_FIELD": "sn",
-                "DISCRIMINATOR_FUNCTION": "include",
-                "DISCRIMINATOR_VALUES": '["__never_gonna_match__"]',
-            },
+        pytest.param(
             True,
             [
                 "Found DN",
                 "Aborting synchronization, as no good LDAP account was found",
             ],
+            marks=pytest.mark.envvar(
+                {
+                    "DISCRIMINATOR_FIELD": "sn",
+                    "DISCRIMINATOR_FUNCTION": "include",
+                    "DISCRIMINATOR_VALUES": '["__never_gonna_match__"]',
+                }
+            ),
         ),
         # Discriminator finding original account
-        (
-            {
-                "DISCRIMINATOR_FIELD": "sn",
-                "DISCRIMINATOR_FUNCTION": "include",
-                "DISCRIMINATOR_VALUES": '["foo_sn"]',
-            },
+        pytest.param(
             True,
             [
                 "Found DN",
@@ -577,14 +574,16 @@ async def sync_tool(
                 "Import checks executed",
                 "Import to MO filtered",
             ],
+            marks=pytest.mark.envvar(
+                {
+                    "DISCRIMINATOR_FIELD": "sn",
+                    "DISCRIMINATOR_FUNCTION": "include",
+                    "DISCRIMINATOR_VALUES": '["foo_sn"]',
+                }
+            ),
         ),
         # Discriminator finding another account
-        (
-            {
-                "DISCRIMINATOR_FIELD": "sn",
-                "DISCRIMINATOR_FUNCTION": "include",
-                "DISCRIMINATOR_VALUES": '["bar_sn"]',
-            },
+        pytest.param(
             True,
             [
                 "Found DN",
@@ -595,10 +594,16 @@ async def sync_tool(
                 "Import checks executed",
                 "Import to MO filtered",
             ],
+            marks=pytest.mark.envvar(
+                {
+                    "DISCRIMINATOR_FIELD": "sn",
+                    "DISCRIMINATOR_FUNCTION": "include",
+                    "DISCRIMINATOR_VALUES": '["bar_sn"]',
+                }
+            ),
         ),
     ],
 )
-@pytest.mark.usefixtures("inject_environmental_variables")
 async def test_import_single_user_apply_discriminator(
     ldap_connection: Connection,
     ldap_container_dn: str,
@@ -673,38 +678,35 @@ async def test_import_single_user_apply_discriminator(
 
 
 @pytest.mark.parametrize(
-    "environmental_variables,extra_account,log_lines",
+    "extra_account,log_lines",
     [
         # Discriminator not configured
-        (
-            {},
+        pytest.param(
             False,
             [
                 "Found Employee in MO",
                 "_export_to_ldap_ == False.",
             ],
+            marks=pytest.mark.envvar({}),
         ),
         # Discriminator rejecting all accounts
-        (
-            {
-                "DISCRIMINATOR_FIELD": "sn",
-                "DISCRIMINATOR_FUNCTION": "include",
-                "DISCRIMINATOR_VALUES": '["__never_gonna_match__"]',
-            },
+        pytest.param(
             True,
             [
                 "Found DN",
                 "Found DN",
                 "Aborting synchronization, as no good LDAP account was found",
             ],
+            marks=pytest.mark.envvar(
+                {
+                    "DISCRIMINATOR_FIELD": "sn",
+                    "DISCRIMINATOR_FUNCTION": "include",
+                    "DISCRIMINATOR_VALUES": '["__never_gonna_match__"]',
+                }
+            ),
         ),
         # Discriminator finding original account
-        (
-            {
-                "DISCRIMINATOR_FIELD": "sn",
-                "DISCRIMINATOR_FUNCTION": "include",
-                "DISCRIMINATOR_VALUES": '["foo_sn"]',
-            },
+        pytest.param(
             True,
             [
                 "Found DN",
@@ -712,14 +714,16 @@ async def test_import_single_user_apply_discriminator(
                 "Found Employee in MO",
                 "_export_to_ldap_ == False.",
             ],
+            marks=pytest.mark.envvar(
+                {
+                    "DISCRIMINATOR_FIELD": "sn",
+                    "DISCRIMINATOR_FUNCTION": "include",
+                    "DISCRIMINATOR_VALUES": '["foo_sn"]',
+                }
+            ),
         ),
         # Discriminator finding another account
-        (
-            {
-                "DISCRIMINATOR_FIELD": "sn",
-                "DISCRIMINATOR_FUNCTION": "include",
-                "DISCRIMINATOR_VALUES": '["bar_sn"]',
-            },
+        pytest.param(
             True,
             [
                 "Found DN",
@@ -727,10 +731,16 @@ async def test_import_single_user_apply_discriminator(
                 "Found Employee in MO",
                 "_export_to_ldap_ == False.",
             ],
+            marks=pytest.mark.envvar(
+                {
+                    "DISCRIMINATOR_FIELD": "sn",
+                    "DISCRIMINATOR_FUNCTION": "include",
+                    "DISCRIMINATOR_VALUES": '["bar_sn"]',
+                }
+            ),
         ),
     ],
 )
-@pytest.mark.usefixtures("inject_environmental_variables")
 async def test_listen_to_changes_in_employees(
     ldap_connection: Connection,
     ldap_container_dn: str,
