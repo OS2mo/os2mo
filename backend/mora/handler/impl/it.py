@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from more_itertools import one
+from more_itertools import first
 from structlog import get_logger
 
 from .. import reading
@@ -105,7 +105,7 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
 
         if engagement_uuid:
             r[mapping.ENGAGEMENT] = await get_engagement(
-                get_connector(), uuid=one(engagement_uuid)
+                get_connector(), uuid=first(sorted(engagement_uuid))
             )
 
         if primary_uuid:

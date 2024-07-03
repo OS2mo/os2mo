@@ -103,7 +103,19 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         employee_uuid = util.get_uuid(employee, required=False)
 
         engagement = util.checked_get(req, mapping.ENGAGEMENT, {}, required=False)
-        engagement_uuid = util.get_uuid(engagement, required=False)
+        engagements = util.checked_get(req, mapping.ENGAGEMENTS, [], required=False)
+
+        assert not (engagement and engagements)
+        engagements = [engagement] if engagement and not engagements else engagements
+
+        engagement_uuids = [eng["uuid"] for eng in engagements]
+        associated_functions = [
+            common.associated_orgfunc(
+                uuid=engagement_uuid, orgfunc_type=mapping.MoOrgFunk.ENGAGEMENT
+            )
+            for engagement_uuid in engagement_uuids
+            if engagement_uuid
+        ]
 
         org_uuid = (
             await org.get_configured_organisation(
@@ -141,7 +153,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                     employee_uuid=employee_uuid,
                     it_system_uuid=systemid,
                     it_user_username=bvn,
-                    engagement_uuid=engagement_uuid,
+                    engagement_uuid=tuple(engagement_uuids),
                 )
             ).validate()
 
@@ -170,14 +182,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
             tilknyttedeitsystemer=[systemid],
-            tilknyttedefunktioner=[
-                common.associated_orgfunc(
-                    uuid=eng, orgfunc_type=mapping.MoOrgFunk.ENGAGEMENT
-                )
-                for eng in engagement_uuid
-            ]
-            if engagement_uuid
-            else None,
+            tilknyttedefunktioner=associated_functions or None,
             note=note,
         )
 
@@ -240,7 +245,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        for engagement in util.checked_get(data, "engagements", default=[]):
+        for engagement in util.checked_get(data, mapping.ENGAGEMENTS, default=[]):
             update_fields.append(
                 (
                     mapping.ASSOCIATED_FUNCTION_FIELD,

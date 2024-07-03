@@ -876,20 +876,29 @@ class ITUserUpsert(UUIDBase):
     org_unit: UUID | None = Field(
         description="Reference to the organisation unit of the IT user (if any)."
     )
+    engagement: UUID | None = Field(
+        description="Deprecated! Reference to the engagement of the IT user (if any)."
+    )
     engagements: list[UUID] | None = Field(
-        description="Reference to the engagement of the IT user (if any)."
+        description="Reference to the engagements related to the IT user (if any)."
     )
     validity: RAValidity = Field(description="Validity of the created IT user object.")
 
     def to_handler_dict(self) -> dict:
+        if self.engagement and self.engagements:
+            logger.exception("Attempted use of both 'engagement' and 'engagements'")
+        elif self.engagement:
+            engagements = [gen_uuid(self.engagement)]
+        elif self.engagements:
+            engagements = list(map(gen_uuid, self.engagements))
+        else:
+            engagements = None
         return {
             "uuid": self.uuid,
             "primary": gen_uuid(self.primary),
             "person": gen_uuid(self.person),
             "org_unit": gen_uuid(self.org_unit),
-            "engagements": list(map(gen_uuid, self.engagements))
-            if self.engagements
-            else None,
+            "engagements": engagements,
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()
