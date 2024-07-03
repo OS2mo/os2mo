@@ -40,6 +40,7 @@ from .ldap_classes import LdapObject
 from .ldap_emit import publish_uuids
 from .processors import _hide_cpr as hide_cpr
 from .types import CPRNumber
+from .types import DN
 
 logger = structlog.stdlib.get_logger()
 
@@ -280,6 +281,10 @@ def construct_router(user_context: UserContext) -> APIRouter:
         return encode_result(
             await sync_tool.listen_to_changes_in_employees(uuid, dry_run=True)
         )
+
+    @router.get("/Inspect/mo/uuid2dn/{uuid}", status_code=200, tags=["LDAP"])
+    async def mo_uuid_to_ldap_dn(dataloader: depends.DataLoader, uuid: UUID) -> set[DN]:
+        return await dataloader.find_mo_employee_dn(uuid)
 
     # Get all objects from LDAP - Converted to MO
     @router.get("/LDAP/{json_key}/converted", status_code=202, tags=["LDAP"])
