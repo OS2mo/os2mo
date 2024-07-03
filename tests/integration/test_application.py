@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 """Integration tests."""
+from unittest.mock import ANY
 from unittest.mock import AsyncMock
 from uuid import UUID
 
@@ -166,6 +167,20 @@ async def test_endpoint_fetch_object(
     result = await test_client.get(f"/Inspect/uuid/{entry_uuid}")
     assert result.status_code == 200
     assert result.json() == expected
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("ldap_dummy_data")
+async def test_endpoint_load_ldap_object_from_ldap(test_client: AsyncClient) -> None:
+    result = await test_client.get("/LDAP/Employee/2108613133")
+    assert result.status_code == 202
+    assert result.json() == [
+        {
+            "dn": "uid=abk,ou=os2mo,o=magenta,dc=magenta,dc=dk",
+            "employeeNumber": "2108613133",
+            "entryUUID": ANY,
+        },
+    ]
 
 
 @pytest.mark.integration_test
