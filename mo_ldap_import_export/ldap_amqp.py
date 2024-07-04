@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
 from typing import Annotated
 from uuid import UUID
 
@@ -11,7 +12,6 @@ from fastramqpi.ramqp.amqp import Router
 from fastramqpi.ramqp.depends import get_payload_as_type
 from fastramqpi.ramqp.depends import rate_limit
 from fastramqpi.ramqp.utils import RejectMessage
-from fastramqpi.ramqp.utils import RequeueMessage
 
 from .config import LDAPAMQPConnectionSettings
 from .depends import DataLoader
@@ -54,6 +54,7 @@ async def process_dn(
 
 @ldap_amqp_router.register("uuid")
 async def process_uuid(
+    ldap_amqpsystem: LDAPAMQPSystem,
     sync_tool: SyncTool,
     dataloader: DataLoader,
     uuid: PayloadUUID,
@@ -69,9 +70,11 @@ async def process_uuid(
 
     try:
         await sync_tool.import_single_user(dn)
-    except Exception as exc:
+    except Exception:
         logger.exception("Unable to synchronize DN to MO", dn=dn, uuid=uuid)
-        raise RequeueMessage("Unable to synchronize DN to MO") from exc
+        # NOTE: This is a hack to cycle messages because quorum queues do not work
+        await asyncio.sleep(30)
+        await publish_uuids(ldap_amqpsystem, [uuid])
 
 
 def configure_ldap_amqpsystem(

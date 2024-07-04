@@ -188,6 +188,7 @@ async def process_person(
     try:
         await reject_on_failure(sync_tool.listen_to_changes_in_employees)(object_uuid)
     except RequeueMessage:  # pragma: no cover
+        # NOTE: This is a hack to cycle messages because quorum queues do not work
         await asyncio.sleep(30)
         await graphql_client.employee_refresh(amqpsystem.exchange_name, [object_uuid])
 
