@@ -79,14 +79,11 @@ PRETTIER_SCRIPT = """
     const queryEditor = document.querySelector('.CodeMirror').CodeMirror;
     const originalSetValue = queryEditor.setValue;
     queryEditor.setValue = function(value) {
-      // We don't use the value passed in the function since that has been
-      // through GraphiQLs builtin prettifier, which removes comments.
-      const editorContent = queryEditor.getValue();
-      const prettifiedEditorContent = prettier.format(editorContent, {
+      const prettyValue = prettier.format(value, {
         parser: "graphql",
         plugins: prettierPlugins,
       });
-      return originalSetValue.call(this, prettifiedEditorContent);
+      return originalSetValue.call(this, prettyValue);
     };
   });
 </script>
