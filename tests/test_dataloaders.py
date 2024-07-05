@@ -723,8 +723,10 @@ async def test_load_mo_employee_addresses_not_found(
 
     employee_uuid = uuid4()
     address_type_uuid = uuid4()
-    with pytest.raises(NoObjectsReturnedException):
-        await dataloader.load_mo_employee_addresses(employee_uuid, address_type_uuid)
+    result = await dataloader.load_mo_employee_addresses(
+        employee_uuid, address_type_uuid
+    )
+    assert result == []
 
     assert route.called
 
@@ -1156,10 +1158,10 @@ async def test_load_mo_org_unit_addresses_not_found(
 
     employee_uuid = uuid4()
     address_type_uuid = uuid4()
-    with pytest.raises(NoObjectsReturnedException):
-        await dataloader.load_mo_org_unit_addresses(
-            OrgUnitUUID(employee_uuid), address_type_uuid
-        )
+    result = await dataloader.load_mo_org_unit_addresses(
+        OrgUnitUUID(employee_uuid), address_type_uuid
+    )
+    assert result == []
 
     assert route.called
 
