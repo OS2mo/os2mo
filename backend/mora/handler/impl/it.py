@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from more_itertools import first
 from structlog import get_logger
 
 from .. import reading
@@ -65,9 +64,10 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
         itsystem_uuid = mapping.SINGLE_ITSYSTEM_FIELD.get_uuid(effect)
         primary_uuid = mapping.PRIMARY_FIELD.get_uuid(effect)
         # Emptied lists of engagements contains an empty uuid which we need to remove:
-        engagement_uuids = [
-            x for x in mapping.ASSOCIATED_FUNCTION_FIELD.get_uuids(effect) if x
-        ]
+        engagement_uuids = (
+            tuple(x for x in mapping.ASSOCIATED_FUNCTION_FIELD.get_uuids(effect) if x)
+            or None
+        )
 
         extensions = mapping.ORG_FUNK_UDVIDELSER_FIELD(effect)
         extensions = extensions[0] if extensions else {}
@@ -111,9 +111,11 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
                 only_primary_uuid=only_primary_uuid,
             )
 
-        if engagement_uuid:
+        if engagement_uuids:
+            # For backwards compatibility we only return one engagement.
+            # Use graphql to fetch more than one engagement for an ituser.
             r[mapping.ENGAGEMENT] = await get_engagement(
-                get_connector(), uuid=first(sorted(engagement_uuid))
+                get_connector(), uuid=min(engagement_uuids)
             )
 
         if primary_uuid:
