@@ -1389,10 +1389,6 @@ class DataLoader:
         output = await asyncio.gather(
             *[self.load_mo_address(address.uuid) for address in result.objects]
         )
-        if not output:
-            raise NoObjectsReturnedException(
-                "load_mo_employee_addresses returned empty"
-            )
         return output
 
     async def load_mo_org_unit_addresses(
@@ -1408,10 +1404,6 @@ class DataLoader:
         output = await asyncio.gather(
             *[self.load_mo_address(address.uuid) for address in result.objects]
         )
-        if not output:
-            raise NoObjectsReturnedException(
-                "load_mo_org_unit_addresses returned empty"
-            )
         return output
 
     async def load_mo_employee_it_users(

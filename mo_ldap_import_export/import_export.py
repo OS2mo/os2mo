@@ -1230,6 +1230,8 @@ class SyncTool:
             # Because an address cannot be imported for an employee that does not
             # exist. The non-existing employee is also not created because
             # converter._import_to_mo_('Employee') = False
+            # TODO: Verify that the above doc-string is correct.
+            #       Can the format function ever raise NoObjectsReturnedException?
             logger.info(
                 "Could not format converted objects",
                 task="Moving on",
