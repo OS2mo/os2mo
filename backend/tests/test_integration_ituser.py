@@ -5,6 +5,7 @@ from typing import Any
 import freezegun
 import pytest
 from fastapi.testclient import TestClient
+from more_itertools import first
 from more_itertools import one
 
 from mora import lora
@@ -715,7 +716,7 @@ def test_create_ituser_multiple_engagements(graphapi_post: GraphAPIPost) -> None
           current {
             uuid
             user_key
-            ituser {
+            itusers {
               uuid
               user_key
             }
@@ -732,6 +733,9 @@ def test_create_ituser_multiple_engagements(graphapi_post: GraphAPIPost) -> None
           current {
             uuid
             engagements {
+                uuid
+            }
+            engagement {
                 uuid
             }
           }
@@ -775,7 +779,7 @@ def test_create_ituser_multiple_engagements(graphapi_post: GraphAPIPost) -> None
         },
     )
     assert response.errors is None
-    ituser_uuid = response.data["itusers"]["objects"][0]["current"][0]["uuid"]
+    ituser_uuid = response.data["ituser_create"]["uuid"]
 
     # Verify that both engagements are connected when querying through IT user
     response = graphapi_post(GET_ITUSER_BY_UUID, variables={"uuid": ituser_uuid})
@@ -786,6 +790,8 @@ def test_create_ituser_multiple_engagements(graphapi_post: GraphAPIPost) -> None
     assert result == {
         "uuid": ituser_uuid,
         "engagements": engagements,
+        # Test backward compatibility by ensuring "engagement" only has one object
+        "engagement": [first(engagements)],
     }
 
 
@@ -830,14 +836,12 @@ def test_update_ituser_engagements(graphapi_post: GraphAPIPost) -> None:
     }
     """
     UPDATE_ITUSER = """
-    mutation MyMutation($engagements: [UUID!], $user_key: String = "") {
-      ituser_create(
+    mutation MyMutation($uuid: UUID!, $engagements: [UUID!]) {
+      ituser_update(
         input: {
-          person: "6ee24785-ee9a-4502-81c2-7697009c9053"
+          uuid: $uuid
           validity: { from: "2020-08-01" }
-          itsystem: "0872fb72-926d-4c5c-a063-ff800b8ee697"
           engagements: $engagements
-          user_key: $user_key
         }
       ) {
         uuid
@@ -848,7 +852,7 @@ def test_update_ituser_engagements(graphapi_post: GraphAPIPost) -> None:
     # Get an it_user
     response = graphapi_post(GET_ITUSER)
     assert response.errors is None
-    ituser_uuid = response.data["itusers"]["objects"][0]["current"][0]["uuid"]
+    ituser_uuid = response.data["itusers"]["objects"][0]["current"]["uuid"]
 
     # Get two engagements
     response = graphapi_post(GET_ENGAGEMENTS)
@@ -865,6 +869,7 @@ def test_update_ituser_engagements(graphapi_post: GraphAPIPost) -> None:
     response = graphapi_post(
         UPDATE_ITUSER,
         variables={
+            "uuid": ituser_uuid,
             "engagements": [engagement1_uuid, engagement2_uuid],
         },
     )
@@ -883,6 +888,7 @@ def test_update_ituser_engagements(graphapi_post: GraphAPIPost) -> None:
     response = graphapi_post(
         UPDATE_ITUSER,
         variables={
+            "uuid": ituser_uuid,
             "engagements": [engagement1_uuid],
         },
     )
@@ -900,6 +906,7 @@ def test_update_ituser_engagements(graphapi_post: GraphAPIPost) -> None:
     response = graphapi_post(
         UPDATE_ITUSER,
         variables={
+            "uuid": ituser_uuid,
             "engagements": [],
         },
     )
@@ -911,7 +918,7 @@ def test_update_ituser_engagements(graphapi_post: GraphAPIPost) -> None:
 
     assert result == {
         "uuid": ituser_uuid,
-        "engagements": None,
+        "engagements": [],
     }
 
 
@@ -921,15 +928,13 @@ def test_create_multiple_itusers_linked_to_engagement(
     graphapi_post: GraphAPIPost,
 ) -> None:
     GET_ENGAGEMENT = """
-    query GetEngagement($limit: int = null, $uuids: [UUID!] = null) {
-      engagements(limit: $limit, filter: { uuids: $uuids }) {
+    query GetEngagement($limit: int = null, $uuid: [UUID!] = null) {
+      engagements(limit: $limit, filter: { uuids: $uuid }) {
         objects {
           current {
             uuid
-            user_key
-            ituser {
+            itusers {
               uuid
-              user_key
             }
           }
         }
@@ -938,14 +943,14 @@ def test_create_multiple_itusers_linked_to_engagement(
     """
 
     CREATE_ITUSER = """
-    mutation MyMutation($engagements: [UUID!], $user_key: String = "") {
+    mutation MyMutation($engagements: [UUID!]) {
       ituser_create(
         input: {
           person: "6ee24785-ee9a-4502-81c2-7697009c9053"
           validity: { from: "2020-08-01" }
           itsystem: "0872fb72-926d-4c5c-a063-ff800b8ee697"
           engagements: $engagements
-          user_key: $user_key
+          user_key: "username"
         }
       ) {
         uuid
@@ -967,7 +972,7 @@ def test_create_multiple_itusers_linked_to_engagement(
         },
     )
     assert response.errors is None
-    ituser1_uuid = response.data["itusers"]["objects"][0]["current"][0]["uuid"]
+    ituser1_uuid = response.data["ituser_create"]["uuid"]
 
     response = graphapi_post(
         CREATE_ITUSER,
@@ -976,15 +981,15 @@ def test_create_multiple_itusers_linked_to_engagement(
         },
     )
     assert response.errors is None
-    ituser2_uuid = response.data["itusers"]["objects"][0]["current"][0]["uuid"]
+    ituser2_uuid = response.data["ituser_create"]["uuid"]
 
     itusers = [{"uuid": ituser1_uuid}, {"uuid": ituser2_uuid}]
     itusers.sort(key=lambda e: e["uuid"])
 
     # Verify that both engagements are connected when querying through IT user
-    response = graphapi_post(GET_ENGAGEMENT, variables={"uuid": engagement_uuid})
+    response = graphapi_post(GET_ENGAGEMENT, variables={"uuid": [engagement_uuid]})
     assert response.errors is None
-    result = one(response.data["itusers"]["objects"])["current"]
+    result = one(response.data["engagements"]["objects"])["current"]
     result["itusers"].sort(key=lambda e: e["uuid"])
 
     assert result == {

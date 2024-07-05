@@ -102,11 +102,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         employee = util.checked_get(req, mapping.PERSON, {}, required=False)
         employee_uuid = util.get_uuid(employee, required=False)
 
-        engagement = util.checked_get(req, mapping.ENGAGEMENT, {}, required=False)
         engagements = util.checked_get(req, mapping.ENGAGEMENTS, [], required=False)
-
-        assert not (engagement and engagements)
-        engagements = [engagement] if engagement and not engagements else engagements
 
         engagement_uuids = [eng["uuid"] for eng in engagements]
         associated_functions = [
@@ -244,17 +240,24 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                     },
                 )
             )
-
-        for engagement in util.checked_get(data, mapping.ENGAGEMENTS, default=[]):
-            update_fields.append(
-                (
-                    mapping.ASSOCIATED_FUNCTION_FIELD,
-                    {
-                        "uuid": engagement["uuid"],
-                        mapping.OBJECTTYPE: mapping.ENGAGEMENT,
-                    },
+        if (engagements := data.get(mapping.ENGAGEMENTS)) is not None:
+            # If an empty list is returned it is registered as a relation to a function with no uuid,
+            if len(engagements) == 0:
+                update_fields.append(
+                    (mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": "", "urn": ""})
                 )
-            )
+            else:
+                for engagement in engagements:
+                    update_fields.append(
+                        (
+                            mapping.ASSOCIATED_FUNCTION_FIELD,
+                            {
+                                "uuid": engagement["uuid"],
+                                mapping.OBJECTTYPE: mapping.ENGAGEMENT,
+                            },
+                        )
+                    )
+
         if data.get(mapping.ORG_UNIT):
             update_fields.append(
                 (
@@ -330,7 +333,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                     employee_uuid=employee_uuid,
                     it_system_uuid=systemid,
                     it_user_username=bvn,
-                    engagement_uuid=engagement_uuid,
+                    engagement_uuid=tuple(engagement_uuid),
                 ),
             ).validate()
         payload = common.update_payload(
