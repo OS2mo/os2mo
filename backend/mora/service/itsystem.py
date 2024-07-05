@@ -102,7 +102,6 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         employee = util.checked_get(req, mapping.PERSON, {}, required=False)
         employee_uuid = util.get_uuid(employee, required=False)
 
-        engagement = util.checked_get(req, mapping.ENGAGEMENT, {}, required=False)
         engagements = util.checked_get(req, mapping.ENGAGEMENTS, [], required=False)
 
         engagement_uuids = tuple(eng["uuid"] for eng in engagements)
@@ -246,17 +245,24 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                     },
                 )
             )
-
-        for engagement in util.checked_get(data, mapping.ENGAGEMENTS, default=[]):
-            update_fields.append(
-                (
-                    mapping.ASSOCIATED_FUNCTION_FIELD,
-                    {
-                        "uuid": engagement["uuid"],
-                        mapping.OBJECTTYPE: mapping.ENGAGEMENT,
-                    },
+        if (engagements := data.get(mapping.ENGAGEMENTS)) is not None:
+            # If an empty list is returned it is registered as a relation to a function with no uuid,
+            if not engagements:
+                update_fields.append(
+                    (mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": "", "urn": ""})
                 )
-            )
+            else:
+                for engagement in engagements:
+                    update_fields.append(
+                        (
+                            mapping.ASSOCIATED_FUNCTION_FIELD,
+                            {
+                                "uuid": engagement["uuid"],
+                                mapping.OBJECTTYPE: mapping.ENGAGEMENT,
+                            },
+                        )
+                    )
+
         if data.get(mapping.ORG_UNIT):
             update_fields.append(
                 (

@@ -24,7 +24,6 @@ from uuid import UUID
 
 import strawberry
 from fastapi.encoders import jsonable_encoder
-from more_itertools import first
 from more_itertools import flatten
 from more_itertools import one
 from more_itertools import only
@@ -2641,9 +2640,7 @@ class ITUser:
             to_list(
                 seed_resolver(
                     engagement_resolver,
-                    {
-                        "uuids": lambda root: root.engagement_uuids,
-                    },
+                    {"uuids": lambda root: root.engagement_uuids or []},
                 )
             ),
         ),
@@ -2670,7 +2667,9 @@ class ITUser:
                     {
                         "uuids": partial(
                             raise_force_none_return_if_uuid_none,
-                            get_uuid=lambda root: first(sorted(root.engagement_uuids)),
+                            get_uuid=lambda root: min(
+                                root.engagement_uuids or [], default=None
+                            ),
                         )
                     },
                 )
@@ -2811,7 +2810,7 @@ class ITUser:
         + "There can now be multiple engagements associated with an ituser",
     )
     async def engagement_uuid(self, root: ITUserRead) -> UUID | None:
-        return first(sorted(root.engagement_uuids)) if root.engagement_uuids else None
+        return min(root.engagement_uuids or [], default=None)
 
     @strawberry.field(
         description="UUID of the primary klasse of the user.",
