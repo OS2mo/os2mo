@@ -883,10 +883,12 @@ class ITUserUpsert(UUIDBase):
 
     def to_handler_dict(self) -> dict:
         if self.engagement and self.engagements:
-            logger.exception("Attempted use of both 'engagement' and 'engagements'")
-        elif self.engagement:
+            exceptions.ErrorCodes.E_INVALID_INPUT(
+                "Attempted use of both 'engagement' and 'engagements'"
+            )
+        elif self.engagement is not None:
             engagements = [gen_uuid(self.engagement)]
-        elif self.engagements:
+        elif self.engagements is not None:
             engagements = list(map(gen_uuid, self.engagements))
         else:
             engagements = None
