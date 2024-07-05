@@ -226,9 +226,11 @@ async def test_integration_create_class(
                 user_key
                 name
                 facet_uuid
+                parent_uuid
+                it_system_uuid
                 validity {
-                    from
-                    to
+                  from
+                  to
                 }
               }
             }
@@ -251,6 +253,16 @@ async def test_integration_create_class(
         "user_key": test_data_model.user_key,
         "name": test_data_model.name,
         "facet_uuid": str(test_data_model.facet_uuid),
+        "parent_uuid": (
+            str(test_data_model.parent_uuid)
+            if test_data_model.parent_uuid is not None
+            else None
+        ),
+        "it_system_uuid": (
+            str(test_data_model.it_system_uuid)
+            if test_data_model.it_system_uuid is not None
+            else None
+        ),
         "validity": {
             "from": datetime.datetime.combine(
                 test_data_model.validity.from_date.date(), datetime.time.min
