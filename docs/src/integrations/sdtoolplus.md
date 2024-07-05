@@ -44,7 +44,7 @@ kørsel gøre følgende:
    forsøger at udføre en "ulovlig" operation. Ved en ulovlig operation forstås
    flytning af en enhed, som stadig indeholder aktive eller fremtidigt aktive
    engagementer, til enheden "Udgåede afdelinger" (navnene på disse enheder kan
-   variere fra kunde til kunde).
+   variere).
 
 #### Opmærksomhedspunkter
 
