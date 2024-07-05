@@ -20,7 +20,7 @@ import random
 from typing import Literal
 from uuid import UUID
 
-from ramqp import AMQPSystem
+from fastramqpi.ramqp import AMQPSystem
 from sqlalchemy import func
 from sqlalchemy import or_
 from sqlalchemy import select

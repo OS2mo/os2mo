@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from unittest.mock import ANY
+
 import pytest
 
 
@@ -36,7 +38,8 @@ async def test_mutator_extended_exception(graphapi_post) -> None:
                 }
             },
             "locations": [{"column": 13, "line": 3}],
-            "message": "ErrorCodes.V_MISSING_REQUIRED_VALUE",
+            "message": ANY,
             "path": ["address_update"],
         }
     ]
+    assert "V_MISSING_REQUIRED_VALUE" in response.errors[0]["message"]
