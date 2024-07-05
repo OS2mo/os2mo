@@ -124,7 +124,7 @@ featuren til synkronisering af postadresser aktivers i SDTool+.
 * SDTOOL+ er en FastAPI webapplikation, der udstiller et API via HTTP. On-prem
   antages den at køre i samme Docker-netværk som resten af OS2mo-installationen
   (selve OS2mo og evt. andre integrationer).
-* SDTool+ har en RunDB, hvori der gemmes informationer om resultatet af forrige
+* SDTool+ kræver adgang til en database (fx postgresql), hvori der gemmes informationer om resultatet af forrige
   kørsel. Hvis den forrige kørsel fejlede, kan den næste kørsel ikke startes
   før problemet, som fik forrige kørsel til at fejle, er udbedret. Årsagen til
   dette er, at de operationer, som SDTool+ foretager, ikke altid er uafhængige
