@@ -11,8 +11,7 @@ personer og disses engagementer, er opretholdelsen af organisationsstrukturen
 et mere omstændeligt problem, men SDTool+ håndterer dette ved at anvende benytte
 de muligheder SDs API tilbyder for at hente organisationsstrukturinformationer
 fra forskellige kilder og stykke resultaterne sammen til et fuldt
-organisationstræ. SDTool+ erstatter dermed den såkaldte "SDTool-knap" i
-OS2mo's brugerflade, som vil blive udfaset inden længe.
+organisationstræ.
 
 Det er også muligt (valgfri feature) at konfigurere SDTool+ til at synkronisere
 postadresser og P-numre fra organisationsenhederne i SD til OS2mo.
