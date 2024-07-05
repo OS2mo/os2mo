@@ -79,6 +79,7 @@ from .usernames import UserNameGenerator
 from .utils import combine_dn_strings
 from .utils import extract_cn_from_dn
 from .utils import extract_ou_from_dn
+from .utils import is_exception
 from .utils import remove_cn_from_dn
 
 logger = structlog.stdlib.get_logger()
@@ -1488,9 +1489,50 @@ class DataLoader:
         )
         return cast(list[Any | None], create_results + edit_results + terminate_results)
 
-    async def create(self, creates: list[MOBase]) -> list[Any]:
+    async def create_employee(self, obj: Employee) -> Any:
         model_client = self.context["legacy_model_client"]
-        return cast(list[Any], await model_client.upload(creates))
+        result = cast(list[Any], await model_client.upload([obj]))
+        return one(result)
+
+    async def create_address(self, obj: Address) -> Any:
+        model_client = self.context["legacy_model_client"]
+        result = cast(list[Any], await model_client.upload([obj]))
+        return one(result)
+
+    async def create_engagement(self, obj: Engagement) -> Any:
+        model_client = self.context["legacy_model_client"]
+        result = cast(list[Any], await model_client.upload([obj]))
+        return one(result)
+
+    async def create_ituser(self, obj: ITUser) -> Any:
+        model_client = self.context["legacy_model_client"]
+        result = cast(list[Any], await model_client.upload([obj]))
+        return one(result)
+
+    async def create_object(self, obj: MOBase) -> Any:
+        match obj.type_:  # type: ignore
+            case "address":
+                assert isinstance(obj, Address)
+                return await self.create_address(obj)
+            case "employee":
+                assert isinstance(obj, Employee)
+                return await self.create_employee(obj)
+            case "engagement":
+                assert isinstance(obj, Engagement)
+                return await self.create_engagement(obj)
+            case "it":
+                assert isinstance(obj, ITUser)
+                return await self.create_ituser(obj)
+            case other:
+                raise NotImplementedError(f"Unable to create type: {other}")
+
+    async def create(self, creates: list[MOBase]) -> list[Any]:
+        tasks = [self.create_object(obj) for obj in creates]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        exceptions = cast(list[Exception], list(filter(is_exception, results)))
+        if exceptions:
+            raise ExceptionGroup("Exceptions during creation", exceptions)
+        return results
 
     async def edit(self, edits: list[MOBase]) -> list[Any]:
         model_client = self.context["legacy_model_client"]
@@ -1534,7 +1576,7 @@ class DataLoader:
             case "it":
                 return await self.terminate_ituser(uuid, at)
             case _:
-                raise ValueError(f"Unable to terminate type: {motype}")
+                raise NotImplementedError(f"Unable to terminate type: {motype}")
 
     async def terminate(self, terminatees: list[Any]) -> list[UUID]:
         """Terminate a list of details.
@@ -1547,10 +1589,6 @@ class DataLoader:
         Returns:
             UUIDs of the terminated entries
         """
-
-        def is_exception(x: Any) -> bool:
-            return isinstance(x, Exception)
-
         detail_terminations: list[dict[str, Any]] = [
             {
                 "motype": terminate.type_,
