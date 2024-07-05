@@ -13,7 +13,7 @@ de muligheder SDs API tilbyder for at hente organisationsstrukturinformationer
 fra forskellige kilder og stykke resultaterne sammen til et fuldt
 organisationstræ.
 
-Det er også muligt (valgfri feature) at konfigurere SDTool+ til at synkronisere
+Det er også muligt at konfigurere SDTool+ til at synkronisere
 postadresser og P-numre fra organisationsenhederne i SD til OS2mo.
 
 ### Synkronisering af organisationstræet
