@@ -3,6 +3,7 @@
 import datetime
 import json
 from contextlib import nullcontext as does_not_raise
+from typing import Any
 
 import dateutil.tz
 import freezegun
@@ -354,34 +355,22 @@ def test_get_uuid_with_key():
 @pytest.mark.parametrize(
     "key, default, required, expected_raise",
     [
-        ("list", [], False, does_not_raise()),
-        ("dict", {}, False, does_not_raise()),
-        ("string", "", False, does_not_raise()),
-        ("int", 1337, False, does_not_raise()),
-        ("nonexistent", [], False, does_not_raise()),
-        ("nonexistent", {}, False, does_not_raise()),
-        ("null", None, False, does_not_raise()),
-        ("empty_list", [], False, does_not_raise()),
-        ("empty_dict", {}, False, does_not_raise()),
-        (
-            "nonexistent",
-            [],
-            True,
-            pytest.raises(
-                exceptions.HTTPException, match="ErrorCodes.V_MISSING_REQUIRED_VALUE"
-            ),
-        ),
-        (
-            "nonexistent",
-            {},
-            True,
-            pytest.raises(
-                exceptions.HTTPException, match="ErrorCodes.V_MISSING_REQUIRED_VALUE"
-            ),
-        ),
+        ("list", [], False, None),
+        ("dict", {}, False, None),
+        ("string", "", False, None),
+        ("int", 1337, False, None),
+        ("nonexistent", [], False, None),
+        ("nonexistent", {}, False, None),
+        ("null", None, False, None),
+        ("empty_list", [], False, None),
+        ("empty_dict", {}, False, None),
+        ("nonexistent", [], True, "V_MISSING_REQUIRED_VALUE"),
+        ("nonexistent", {}, True, "V_MISSING_REQUIRED_VALUE"),
     ],
 )
-def test_checked_get_py(key, default, required, expected_raise):
+def test_checked_get_py(
+    key: str, default: Any, required: bool, expected_raise: str | None
+) -> None:
     mapping = {
         "list": [1337],
         "dict": {1337: 1337},
@@ -392,10 +381,14 @@ def test_checked_get_py(key, default, required, expected_raise):
         "empty_dict": {},
         "empty_str": "",
     }
-    with expected_raise:
+    if expected_raise is None:
         assert util.checked_get(
             mapping, key, default, required=required
         ) == mapping.get(key, default)
+    else:
+        with pytest.raises(exceptions.HTTPException) as exc_info:
+            util.checked_get(mapping, key, default, required=required)
+        assert expected_raise in str(exc_info.value)
 
 
 @pytest.mark.parametrize(
