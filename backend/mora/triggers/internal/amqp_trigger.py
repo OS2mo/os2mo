@@ -7,8 +7,8 @@ from itertools import product
 from typing import Literal
 from uuid import UUID
 
-from fastramqpi.ramqp import AMQPSystem
-from fastramqpi.ramqp.mo import PayloadType
+from ramqp import AMQPSystem
+from ramqp.mo import PayloadType
 from structlog import get_logger
 
 from mora import config

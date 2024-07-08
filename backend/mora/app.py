@@ -11,11 +11,11 @@ from fastapi import HTTPException as FastAPIHTTPException
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from fastramqpi.ramqp import AMQPSystem
 from more_itertools import only
 from prometheus_client import Gauge
 from prometheus_client import Info
 from prometheus_fastapi_instrumentator import Instrumentator
+from ramqp import AMQPSystem
 from sentry_sdk.integrations.strawberry import StrawberryIntegration
 from sqlalchemy.exc import DataError
 from starlette.middleware import Middleware
