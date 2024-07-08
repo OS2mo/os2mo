@@ -94,7 +94,7 @@ async def test_process_uuid_bad_sync() -> None:
 
     with capture_logs() as cap_logs:
         await process_uuid(ldap_amqpsystem, sync_tool, dataloader, uuid)
-        assert "Unable to synchronize DN to MO" in (x["event"] for x in cap_logs)
+        assert "Unable to synchronize DN to MO" in [x["event"] for x in cap_logs]
 
     dataloader.get_ldap_dn.assert_called_once_with(uuid)
     sync_tool.import_single_user.assert_called_once_with(dn)
