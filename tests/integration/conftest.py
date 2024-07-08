@@ -103,7 +103,11 @@ def get_num_consumed_messages(
 
     async def _get_num_consumed_messages() -> int:
         queues = (await rabbitmq_management_client.get("queues")).json()
-        return sum(queue.get("message_stats", {}).get("ack", 0) for queue in queues)
+        return sum(
+            queue.get("message_stats", {}).get("ack", 0)
+            + queue.get("messages_unacknowledged", 0)
+            for queue in queues
+        )
 
     return _get_num_consumed_messages
 

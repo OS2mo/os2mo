@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import re
 from collections.abc import Iterator
+from uuid import UUID
 
 import structlog
 from fastramqpi.context import Context
@@ -288,7 +289,9 @@ class UserNameGenerator:
         raise RuntimeError("Failed to create common name")
 
     async def _get_employee_ldap_attributes(self, employee: Employee, dn: str):
-        converter = self.user_context["converter"]
+        from .converters import LdapConverter
+
+        converter: LdapConverter = self.user_context["converter"]
         employee_ldap = await converter.to_ldap(
             {"mo_employee": employee}, "Employee", dn
         )
@@ -393,10 +396,13 @@ class AlleroedUserNameGenerator(UserNameGenerator):
         # That MO generates a user, which is deleted from AD some years later. In that
         # Case we should never generate the username of the deleted user.
         # Ref: https://redmine.magenta-aps.dk/issues/57043
-        converter = self.user_context["converter"]
-        itsystem_uuid = converter.get_it_system_uuid("ADSAMA")
+        from .converters import get_it_system_uuid
+
+        itsystem_uuid = await get_it_system_uuid(
+            self.dataloader.graphql_client, "ADSAMA"
+        )
         result = await self.dataloader.graphql_client.read_all_ituser_user_keys_by_itsystem_uuid(
-            itsystem_uuid
+            UUID(itsystem_uuid)
         )
         # TODO: Keep this as a set and convert all operations to set operations
         existing_usernames_in_mo = list(
