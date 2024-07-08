@@ -50,7 +50,7 @@ async def test_invalid_query_no_organisation(graphapi_post: GraphAPIPost, monkey
 
     # We expect one and only one error
     error = one(result.errors)
-    assert "E_ORG_UNCONFIGURED" in error["message"]
+    assert error["message"] == "ErrorCodes.E_ORG_UNCONFIGURED"
     assert result.data is None
 
 

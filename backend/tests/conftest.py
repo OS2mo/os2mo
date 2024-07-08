@@ -80,22 +80,7 @@ h_settings.register_profile(
 h_settings.load_profile(os.getenv("HYPOTHESIS_PROFILE", "dev"))
 
 
-@pytest.hookimpl(trylast=True)
-def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
-    # Remove FastRAMQPI fixtures
-    fastramqpi_integration_test_fixtures = [
-        "fastramqpi_database_setup",
-        "fastramqpi_database_isolation",
-        "amqp_event_emitter",
-        "os2mo_database_snapshot_and_restore",
-        "amqp_queue_isolation",
-        "passthrough_backing_services",
-    ]
-    for item in items:
-        if item.get_closest_marker("integration_test"):
-            for fixture in fastramqpi_integration_test_fixtures:
-                if fixture in item.fixturenames:
-                    item.fixturenames.remove(fixture)
+def pytest_collection_modifyitems(items):
     # httpx
     for item in items:
         item.add_marker(pytest.mark.respx(using="httpx"))

@@ -5,8 +5,8 @@ import secrets
 from uuid import UUID
 
 import pytest
-from fastramqpi.ramqp import AMQPSystem
-from fastramqpi.ramqp.mo import PayloadUUID
+from ramqp import AMQPSystem
+from ramqp.mo import PayloadUUID
 from starlette.testclient import TestClient
 
 from mora.config import get_settings
