@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import pytest
+from more_itertools import one
 
 from ..conftest import GraphAPIPost
 
@@ -140,3 +141,77 @@ def test_dates_dont_leak(graphapi_post: GraphAPIPost):
     assert query_2.errors is None
     assert query_1.data["e1"] == query_2.data["e2"]
     assert query_1.data["e2"] == query_2.data["e1"]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.parametrize(
+    "input_validity,expected_validity",
+    [
+        # Date
+        (
+            {"from": "2020-01-01", "to": "2020-02-01"},
+            {"from": "2020-01-01T00:00:00+01:00", "to": "2020-02-01T00:00:00+01:00"},
+        ),
+        # Datetime
+        (
+            {"from": "2020-01-01T00:00:00+01:00", "to": "2020-02-01T00:00:00+01:00"},
+            {"from": "2020-01-01T00:00:00+01:00", "to": "2020-02-01T00:00:00+01:00"},
+        ),
+    ],
+)
+async def test_integration_datetimes(
+    graphapi_post: GraphAPIPost, input_validity: dict, expected_validity: dict
+) -> None:
+    """Test that GraphQL dates aren't messed with.
+
+    Previously, MO would sometimes subtract a day from the end-date.
+    """
+    primary_type_facet_uuid = "1f6f34d8-d065-4bb7-9af0-738d25dc0fbf"
+    create = graphapi_post(
+        """
+        mutation Create($facet_uuid: UUID!, $validity: ValidityInput!) {
+          class_create(
+            input: {
+              facet_uuid: $facet_uuid
+              name: "foo"
+              user_key: "foo"
+              validity: $validity
+            }
+          ) {
+            uuid
+          }
+        }
+        """,
+        variables={
+            "facet_uuid": primary_type_facet_uuid,
+            "validity": input_validity,
+        },
+    )
+    assert create.errors is None
+    uuid = create.data["class_create"]["uuid"]
+
+    read = graphapi_post(
+        """
+        query Read($uuid: UUID!) {
+          classes(filter: { uuids: [$uuid], from_date: null, to_date: null }) {
+            objects {
+              validities(start: null, end: null) {
+                validity {
+                  from
+                  to
+                }
+              }
+            }
+          }
+        }
+        """,
+        variables={
+            "uuid": uuid,
+        },
+    )
+    assert read.errors is None
+    read_object = one(read.data["classes"]["objects"])
+    read_validity = one(read_object["validities"])
+    read_validity_interval = read_validity["validity"]
+    assert read_validity_interval == expected_validity

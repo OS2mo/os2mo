@@ -30,6 +30,7 @@ from structlog import get_logger
 from . import config
 from . import exceptions
 from . import mapping
+from .graphapi.middleware import is_graphql
 from ramodels.base import to_parsable_timestamp
 
 _sentinel = object()
@@ -156,7 +157,7 @@ def to_iso_date(s, is_end: bool = False):
     if dt.tzinfo != DEFAULT_TIMEZONE and dt.year != POSITIVE_INFINITY.year:
         dt = dt.astimezone(DEFAULT_TIMEZONE)
 
-    if is_end:
+    if is_end and not is_graphql():
         dt -= datetime.timedelta(minutes=1)
 
     return dt.date().isoformat()
