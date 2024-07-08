@@ -2185,4 +2185,4 @@ async def test_edit_org_unit_60582(graphapi_post):
     )
     # expect this to fail, since child can't exceed parents validity range
     assert response.errors is not None
-    assert "V_DATE_OUTSIDE_ORG_UNIT_RANGE" in response.errors[0]["message"]
+    assert response.errors[0]["message"] == "ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE"
