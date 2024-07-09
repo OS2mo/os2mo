@@ -920,11 +920,15 @@ class DataLoader:
         """
         it_user_keys = {ituser.user_key for ituser in it_users}
         not_uuids, uuids = partition(is_uuid, it_user_keys)
-        for user_key in not_uuids:
-            # TODO: Make this an exception instead of just ignoring bad values
-            logger.warning(
-                "IT-user is not a UUID",
-                user_key=user_key,
+        not_uuid_set = set(not_uuids)
+        if not_uuid_set:
+            logger.warning("Non UUID IT-user user-keys", user_keys=not_uuid_set)
+            raise ExceptionGroup(
+                "Exceptions during IT-user UUID extraction",
+                [
+                    ValueError(f"Non UUID IT-user user-key: {user_key}")
+                    for user_key in not_uuid_set
+                ],
             )
         # TODO: Check for duplicates?
         return set(map(UUID, uuids))
