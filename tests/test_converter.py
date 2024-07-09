@@ -742,15 +742,29 @@ def test_str_to_dict(converter: LdapConverter):
     assert output == {"foo": None}
 
 
-def test_get_number_of_entries(converter: LdapConverter):
-    single_entry_object = LdapObject(dn="foo", value="bar")
-    multi_entry_object = LdapObject(dn="foo", value=["bar", "bar2"])
-
-    output = converter.get_number_of_entries(single_entry_object)
-    assert output == 1
-
-    output = converter.get_number_of_entries(multi_entry_object)
-    assert output == 2
+@pytest.mark.parametrize(
+    "ldap_object,expected",
+    [
+        (LdapObject(dn="foo"), 1),
+        pytest.param(LdapObject(dn="foo", value=[]), 1, marks=pytest.mark.xfail),
+        pytest.param(
+            LdapObject(dn="foo", value=[], value2=[]), 1, marks=pytest.mark.xfail
+        ),
+        (LdapObject(dn="foo", value=["bar"]), 1),
+        (LdapObject(dn="foo", value=["bar"], value2=[]), 1),
+        (LdapObject(dn="foo", value=["bar", "baz"]), 2),
+        (LdapObject(dn="foo", value=["bar", "baz"], value2=[]), 2),
+        (LdapObject(dn="foo", value=["bar"], value2=["baz"]), 1),
+        (LdapObject(dn="foo", value=["bar", "baz", "qux"]), 3),
+        (LdapObject(dn="foo", value=["bar", "baz", "qux"], value2=[]), 3),
+        (LdapObject(dn="foo", value=["bar", "baz", "qux"], value2=["quux"]), 3),
+        (LdapObject(dn="foo", value=["bar", "baz"], value2=["qux", "quux"]), 2),
+    ],
+)
+def test_get_number_of_entries(
+    converter: LdapConverter, ldap_object: LdapObject, expected: int
+) -> None:
+    assert converter.get_number_of_entries(ldap_object) == expected
 
 
 EMPLOYEE_OBJ = {
