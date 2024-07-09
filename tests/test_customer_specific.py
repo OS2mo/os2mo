@@ -87,7 +87,7 @@ async def test_import_jobtitlefromadtomo_objects(context: Context) -> None:
     graphql_client_mock.set_job_title.assert_called_once_with(
         job_function=test_job_function_uuid,
         uuid=test_eng_uuid,
-        **{"from": start_time, "to": end_time},
+        **{"from_": start_time, "to": end_time},
     )
 
     graphql_client_mock.set_job_title.assert_not_awaited()
@@ -95,5 +95,5 @@ async def test_import_jobtitlefromadtomo_objects(context: Context) -> None:
     graphql_client_mock.set_job_title.assert_awaited_once_with(
         job_function=test_job_function_uuid,
         uuid=test_eng_uuid,
-        **{"from": start_time, "to": end_time},
+        **{"from_": start_time, "to": end_time},
     )

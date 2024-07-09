@@ -72,7 +72,7 @@ class JobTitleFromADToMO(CustomerSpecific):
             return [
                 {
                     "uuid": res.current.uuid,
-                    "from": res.current.validity.from_,
+                    "from_": res.current.validity.from_,
                     "to": res.current.validity.to,
                 }
                 for res in result.objects
