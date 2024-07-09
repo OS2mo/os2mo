@@ -2809,6 +2809,16 @@ async def test_create_unknown_type(dataloader: DataLoader) -> None:
     assert "Unable to create type: faceless" in str(exc_info.value)
 
 
+async def test_edit_unknown_type(dataloader: DataLoader) -> None:
+    """Test that trying to edit an unknown type throws an exception."""
+    unknown_type = MagicMock()
+    unknown_type.type_ = "faceless"
+
+    with pytest.raises(NotImplementedError) as exc_info:
+        await dataloader.edit_object(unknown_type)
+    assert "Unable to edit type: faceless" in str(exc_info.value)
+
+
 @pytest.mark.parametrize(
     "obj",
     [
@@ -2828,3 +2838,24 @@ async def test_create_each_type(
     result = await dataloader.create_object(obj)
     assert result == create_uuid
     legacy_model_client.upload.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    "obj",
+    [
+        gen_ituser("1"),
+        gen_address("2"),
+        gen_engagement("3"),
+        gen_employee("4"),
+    ],
+)
+async def test_edit_each_type(
+    legacy_model_client: AsyncMock, dataloader: DataLoader, obj: MOBase
+) -> None:
+    edit_uuid = uuid4()
+
+    legacy_model_client.edit.return_value = [edit_uuid]
+
+    result = await dataloader.edit_object(obj)
+    assert result == edit_uuid
+    legacy_model_client.edit.assert_called_once()

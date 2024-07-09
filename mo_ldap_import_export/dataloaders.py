@@ -1534,10 +1534,42 @@ class DataLoader:
             raise ExceptionGroup("Exceptions during creation", exceptions)
         return results
 
-    async def edit_object(self, obj: MOBase) -> Any:
+    async def edit_employee(self, obj: Employee) -> Any:
         model_client = self.context["legacy_model_client"]
         result = cast(list[Any], await model_client.edit([obj]))
         return one(result)
+
+    async def edit_address(self, obj: Address) -> Any:
+        model_client = self.context["legacy_model_client"]
+        result = cast(list[Any], await model_client.edit([obj]))
+        return one(result)
+
+    async def edit_engagement(self, obj: Engagement) -> Any:
+        model_client = self.context["legacy_model_client"]
+        result = cast(list[Any], await model_client.edit([obj]))
+        return one(result)
+
+    async def edit_ituser(self, obj: ITUser) -> Any:
+        model_client = self.context["legacy_model_client"]
+        result = cast(list[Any], await model_client.edit([obj]))
+        return one(result)
+
+    async def edit_object(self, obj: MOBase) -> Any:
+        match obj.type_:  # type: ignore
+            case "address":
+                assert isinstance(obj, Address)
+                return await self.edit_address(obj)
+            case "employee":
+                assert isinstance(obj, Employee)
+                return await self.edit_employee(obj)
+            case "engagement":
+                assert isinstance(obj, Engagement)
+                return await self.edit_engagement(obj)
+            case "it":
+                assert isinstance(obj, ITUser)
+                return await self.edit_ituser(obj)
+            case other:
+                raise NotImplementedError(f"Unable to edit type: {other}")
 
     async def edit(self, edits: list[MOBase]) -> list[Any]:
         tasks = [self.edit_object(obj) for obj in edits]
