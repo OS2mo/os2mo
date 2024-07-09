@@ -1179,16 +1179,30 @@ class LdapConverter:
 
         return LdapObject(**ldap_object)
 
-    def get_number_of_entries(self, ldap_object: LdapObject):
+    def get_number_of_entries(self, ldap_object: LdapObject) -> int:
+        """Returns the maximum cardinality of data fields within an LdapObject.
+
+        If a given data field has multiple values it will be a list within the
+        ldap_object, we wish to find the length of the longest list.
+
+        Non list data fields will be interpreted as having length 1.
+
+        Args:
+            ldap_object: The object to find the maximum cardinality within.
+
+        Returns:
+            The maximum cardinality contained within ldap_object.
+            Will always return atleast 1 as the ldap_object always contains a DN.
         """
-        Returns the number of data entries in an LDAP object. It is possible for a
-        single LDAP field to contain multiple values. This function determines
-        if that is the case.
-        """
+
+        def ldap_field2cardinality(value: Any) -> int:
+            if isinstance(value, list):
+                return len(value)
+            return 1
+
         values = ldap_object.dict().values()
-        list_values = filter(is_list, values)
-        list_lengths = map(len, list_values)
-        return max(list_lengths, default=1)
+        cardinality_values = map(ldap_field2cardinality, values)
+        return max(cardinality_values)
 
     async def from_ldap(
         self,

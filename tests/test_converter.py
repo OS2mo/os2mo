@@ -746,10 +746,8 @@ def test_str_to_dict(converter: LdapConverter):
     "ldap_object,expected",
     [
         (LdapObject(dn="foo"), 1),
-        pytest.param(LdapObject(dn="foo", value=[]), 1, marks=pytest.mark.xfail),
-        pytest.param(
-            LdapObject(dn="foo", value=[], value2=[]), 1, marks=pytest.mark.xfail
-        ),
+        (LdapObject(dn="foo", value=[]), 1),
+        (LdapObject(dn="foo", value=[], value2=[]), 1),
         (LdapObject(dn="foo", value=["bar"]), 1),
         (LdapObject(dn="foo", value=["bar"], value2=[]), 1),
         (LdapObject(dn="foo", value=["bar", "baz"]), 2),
