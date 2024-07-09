@@ -873,7 +873,7 @@ class LdapConverter:
                     uuid=uuid,
                 )
 
-                await self.dataloader.create([org_unit])
+                await self.dataloader.create_org_unit(org_unit)
                 self.org_unit_info[str(uuid)] = {
                     "uuid": str(uuid),
                     "name": name,
