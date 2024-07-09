@@ -1236,7 +1236,7 @@ class LdapConverter:
             except KeyError:
                 raise IncorrectMapping(f"Missing '{json_key}' in mapping 'ldap_to_mo'")
 
-            async def render_template(template):
+            async def render_template(field_name: str, template) -> Any:
                 value = (await template.render_async(context)).strip()
 
                 # Sloppy mapping can lead to the following rendered strings:
@@ -1256,17 +1256,16 @@ class LdapConverter:
                     except JSONDecodeError:
                         raise IncorrectMapping(
                             f"Could not convert {value} in "
-                            f"{json_key}['{mo_field_name}'] to dict "
+                            f"{json_key}['{field_name}'] to dict "
                             f"(context={context!r})"
                         )
                 return value
 
-            mo_dict = {}
-            for mo_field_name, template in object_mapping.items():
-                value = await render_template(template)
-                if value:
-                    mo_dict[mo_field_name] = value
-
+            # TODO: asyncio.gather this for future dataloader bulking
+            mo_dict = {
+                mo_field_name: await render_template(mo_field_name, template)
+                for mo_field_name, template in object_mapping.items()
+            }
             mo_class: Any = self.import_mo_object_class(json_key)
             required_attributes = set(self.get_required_attributes(mo_class))
 
@@ -1281,6 +1280,19 @@ class LdapConverter:
                     missing_attributes=missing_attributes,
                 )
                 raise ValueError("Missing attributes in dict to model conversion")
+
+            # Remove empty values
+            mo_dict = {key: value for key, value in mo_dict.items() if value}
+            # If any required attributes are missing
+            missing_attributes = required_attributes - set(mo_dict.keys())
+            if missing_attributes:  # pragma: no cover
+                logger.info(
+                    "Missing values in LDAP to synchronize, skipping",
+                    mo_dict=mo_dict,
+                    mo_class=mo_class,
+                    missing_attributes=missing_attributes,
+                )
+                continue
 
             # If requested to terminate, we generate and return a termination subclass
             # instead of the original class. This is to ensure we can forward the termination date,
