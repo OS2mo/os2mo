@@ -1789,16 +1789,44 @@ def test_extract_unique_objectGUIDs(dataloader: DataLoader):
     assert len(objectGUIDs) == 2
 
 
-async def test_extract_unique_dns(dataloader: DataLoader):
-    dataloader.extract_unique_ldap_uuids = MagicMock()  # type: ignore
-    dataloader.extract_unique_ldap_uuids.return_value = [uuid4(), uuid4()]
-
+@pytest.mark.parametrize(
+    "ldap_dns,expected",
+    [
+        ([], set()),
+        (["CN=foo"], {"CN=foo"}),
+        (["CN=foo", "CN=foo"], {"CN=foo"}),
+        (["CN=foo", "CN=bar"], {"CN=foo", "CN=bar"}),
+        (["CN=foo", "CN=bar", "CN=bar"], {"CN=foo", "CN=bar"}),
+        (["CN=foo", "CN=bar", "CN=baz"], {"CN=foo", "CN=bar", "CN=baz"}),
+    ],
+)
+async def test_convert_ldap_uuids_to_dns(
+    dataloader: DataLoader,
+    ldap_dns: list[str],
+    expected: set[str],
+) -> None:
     dataloader.get_ldap_dn = AsyncMock()  # type: ignore
-    dataloader.get_ldap_dn.return_value = "CN=foo"
+    dataloader.get_ldap_dn.side_effect = ldap_dns
 
-    dns = await dataloader.extract_unique_dns([])
-    dn = one(dns)
-    assert dn == "CN=foo"
+    dns = await dataloader.convert_ldap_uuids_to_dns({uuid4() for _ in ldap_dns})
+    assert dns == expected
+
+
+async def test_convert_ldap_uuids_to_dns_exception(dataloader: DataLoader) -> None:
+    dataloader.get_ldap_dn = AsyncMock()  # type: ignore
+    dataloader.get_ldap_dn.side_effect = ["CN=foo", ValueError("BOOM")]
+
+    with pytest.raises(ExceptionGroup) as exc_info:
+        await dataloader.convert_ldap_uuids_to_dns({uuid4(), uuid4()})
+    assert "Exceptions during UUID2DN translation" in str(exc_info.value)
+    assert len(exc_info.value.exceptions) == 1
+
+    dataloader.get_ldap_dn.side_effect = [ValueError("BANG"), ValueError("BOOM")]
+
+    with pytest.raises(ExceptionGroup) as exc_info:
+        await dataloader.convert_ldap_uuids_to_dns({uuid4(), uuid4()})
+    assert "Exceptions during UUID2DN translation" in str(exc_info.value)
+    assert len(exc_info.value.exceptions) == 2
 
 
 async def test_get_ldap_dn(dataloader: DataLoader):
