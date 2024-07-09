@@ -1534,9 +1534,18 @@ class DataLoader:
             raise ExceptionGroup("Exceptions during creation", exceptions)
         return results
 
-    async def edit(self, edits: list[MOBase]) -> list[Any]:
+    async def edit_object(self, obj: MOBase) -> Any:
         model_client = self.context["legacy_model_client"]
-        return cast(list[Any], await model_client.edit(edits))
+        result = cast(list[Any], await model_client.edit([obj]))
+        return one(result)
+
+    async def edit(self, edits: list[MOBase]) -> list[Any]:
+        tasks = [self.edit_object(obj) for obj in edits]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        exceptions = cast(list[Exception], list(filter(is_exception, results)))
+        if exceptions:
+            raise ExceptionGroup("Exceptions during modification", exceptions)
+        return results
 
     async def terminate_address(self, uuid: UUID, at: datetime) -> UUID:
         result = await self.graphql_client.address_terminate(

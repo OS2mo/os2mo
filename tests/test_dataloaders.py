@@ -2546,7 +2546,8 @@ async def test_create_or_edit_mo_objects_empty(
 ) -> None:
     # *Empty* list of object/verb pairs.
     await dataloader.create_or_edit_mo_objects([])
-    legacy_model_client.edit.assert_called_once_with([])
+    legacy_model_client.upload.assert_not_called()
+    legacy_model_client.edit.assert_not_called()
 
 
 async def test_create_or_edit_mo_objects(dataloader: DataLoader) -> None:
@@ -2575,7 +2576,6 @@ async def test_create_objects(
     dataloader: DataLoader,
     legacy_model_client: AsyncMock,
 ) -> None:
-    # One object is created and another is edited.
     create = gen_address("test")
 
     objs = [(create, Verb.CREATE)]
@@ -2586,15 +2586,17 @@ async def test_create_objects(
     legacy_model_client.upload.assert_called_once_with([create])
 
 
-async def test_edit_objects(dataloader: DataLoader) -> None:
-    # One object is created and another is edited.
-    edit = MagicMock()
-    del edit.terminate_
+async def test_edit_objects(
+    dataloader: DataLoader, legacy_model_client: AsyncMock
+) -> None:
+    edit = gen_address("test")
 
     objs = [(edit, Verb.EDIT)]
 
+    legacy_model_client.edit.return_value = [uuid4()]
+
     await dataloader.create_or_edit_mo_objects(objs)  # type: ignore
-    dataloader.context["legacy_model_client"].edit.assert_called_once_with([edit])
+    legacy_model_client.edit.assert_called_once_with([edit])
 
 
 @pytest.mark.parametrize(
@@ -2633,7 +2635,10 @@ async def test_terminate_unknown_type(dataloader: DataLoader) -> None:
     assert "Unable to terminate type: gaxi" in str(one(exc_info.value.exceptions))
 
 
-async def test_terminate_fix_verb(dataloader: DataLoader) -> None:
+async def test_terminate_fix_verb(
+    dataloader: DataLoader,
+    legacy_model_client: AsyncMock,
+) -> None:
     """Test that our hacky code makes terminates Verb.TERMINATE."""
     terminate = MagicMock()
     terminate.terminate_ = datetime.datetime.now().isoformat()
@@ -2644,7 +2649,8 @@ async def test_terminate_fix_verb(dataloader: DataLoader) -> None:
     objs = [(terminate, Verb.EDIT)]
 
     await dataloader.create_or_edit_mo_objects(objs)  # type: ignore
-    dataloader.context["legacy_model_client"].edit.assert_called_once_with([])
+    legacy_model_client.create.assert_not_called()
+    legacy_model_client.edit.assert_not_called()
     dataloader.graphql_client.address_terminate.assert_called_once()  # type: ignore
 
 
@@ -2777,6 +2783,20 @@ async def test_create_exceptions(
     with pytest.raises(ExceptionGroup) as exc_info:
         await dataloader.create([obj])
     assert "Exceptions during creation" in str(exc_info.value)
+
+
+async def test_edit_exceptions(
+    dataloader: DataLoader,
+    legacy_model_client: AsyncMock,
+) -> None:
+    """Test that trying to edit with exceptions reraise exceptions."""
+    legacy_model_client.edit.side_effect = ValueError("BOOM")
+
+    obj = gen_ituser("1")
+
+    with pytest.raises(ExceptionGroup) as exc_info:
+        await dataloader.edit([obj])
+    assert "Exceptions during modification" in str(exc_info.value)
 
 
 async def test_create_unknown_type(dataloader: DataLoader) -> None:
