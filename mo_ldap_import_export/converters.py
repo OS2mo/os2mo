@@ -1179,16 +1179,30 @@ class LdapConverter:
 
         return LdapObject(**ldap_object)
 
-    def get_number_of_entries(self, ldap_object: LdapObject):
+    def get_number_of_entries(self, ldap_object: LdapObject) -> int:
+        """Returns the maximum cardinality of data fields within an LdapObject.
+
+        If a given data field has multiple values it will be a list within the
+        ldap_object, we wish to find the length of the longest list.
+
+        Non list data fields will be interpreted as having length 1.
+
+        Args:
+            ldap_object: The object to find the maximum cardinality within.
+
+        Returns:
+            The maximum cardinality contained within ldap_object.
+            Will always return atleast 1 as the ldap_object always contains a DN.
         """
-        Returns the number of data entries in an LDAP object. It is possible for a
-        single LDAP field to contain multiple values. This function determines
-        if that is the case.
-        """
+
+        def ldap_field2cardinality(value: Any) -> int:
+            if isinstance(value, list):
+                return len(value)
+            return 1
+
         values = ldap_object.dict().values()
-        list_values = filter(is_list, values)
-        list_lengths = map(len, list_values)
-        return max(list_lengths, default=1)
+        cardinality_values = map(ldap_field2cardinality, values)
+        return max(cardinality_values)
 
     async def from_ldap(
         self,
@@ -1236,7 +1250,7 @@ class LdapConverter:
             except KeyError:
                 raise IncorrectMapping(f"Missing '{json_key}' in mapping 'ldap_to_mo'")
 
-            async def render_template(template):
+            async def render_template(field_name: str, template) -> Any:
                 value = (await template.render_async(context)).strip()
 
                 # Sloppy mapping can lead to the following rendered strings:
@@ -1256,17 +1270,16 @@ class LdapConverter:
                     except JSONDecodeError:
                         raise IncorrectMapping(
                             f"Could not convert {value} in "
-                            f"{json_key}['{mo_field_name}'] to dict "
+                            f"{json_key}['{field_name}'] to dict "
                             f"(context={context!r})"
                         )
                 return value
 
-            mo_dict = {}
-            for mo_field_name, template in object_mapping.items():
-                value = await render_template(template)
-                if value:
-                    mo_dict[mo_field_name] = value
-
+            # TODO: asyncio.gather this for future dataloader bulking
+            mo_dict = {
+                mo_field_name: await render_template(mo_field_name, template)
+                for mo_field_name, template in object_mapping.items()
+            }
             mo_class: Any = self.import_mo_object_class(json_key)
             required_attributes = set(self.get_required_attributes(mo_class))
 
@@ -1281,6 +1294,19 @@ class LdapConverter:
                     missing_attributes=missing_attributes,
                 )
                 raise ValueError("Missing attributes in dict to model conversion")
+
+            # Remove empty values
+            mo_dict = {key: value for key, value in mo_dict.items() if value}
+            # If any required attributes are missing
+            missing_attributes = required_attributes - set(mo_dict.keys())
+            if missing_attributes:  # pragma: no cover
+                logger.info(
+                    "Missing values in LDAP to synchronize, skipping",
+                    mo_dict=mo_dict,
+                    mo_class=mo_class,
+                    missing_attributes=missing_attributes,
+                )
+                continue
 
             # If requested to terminate, we generate and return a termination subclass
             # instead of the original class. This is to ensure we can forward the termination date,
