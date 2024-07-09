@@ -1150,9 +1150,7 @@ class DataLoader:
                 datetime.today().strftime("%Y-%m-%d"),
                 person_uuid=uuid,
             )
-            # TODO: Convert this to creating the ITUser directly when the modelclient
-            #       has been replaced with a GraphQL mutator.
-            await self.create([it_user])
+            await self.create_ituser(it_user)
 
         # TODO: What is this purpose of this import, if we just created the DN,
         #       the data should already be up-to-date, no?

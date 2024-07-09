@@ -1739,7 +1739,7 @@ async def test_make_mo_employee_dn_no_cpr(dataloader: MagicMock) -> None:
     amqp_exchange_name = "amqp_exchange_name"
     dataloader.sync_tool.amqpsystem.exchange_name = amqp_exchange_name
 
-    dataloader.create = AsyncMock()
+    dataloader.create_ituser = AsyncMock()
 
     with capture_logs() as cap_logs:
         result = await dataloader.make_mo_employee_dn(employee_uuid)
@@ -1751,7 +1751,7 @@ async def test_make_mo_employee_dn_no_cpr(dataloader: MagicMock) -> None:
         "LDAP UUID found for DN",
     ]
 
-    dataloader.create.assert_called_once()
+    dataloader.create_ituser.assert_called_once()
     dataloader.sync_tool.import_single_user.assert_called_once_with(
         dn, force=True, manual_import=True
     )
