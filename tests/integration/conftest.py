@@ -95,21 +95,24 @@ def get_num_queued_messages(
     return _get_num_queued_messages
 
 
-@pytest.fixture
-def get_num_consumed_messages(
-    rabbitmq_management_client: AsyncClient,
+def get_num_x_messages(
+    rabbitmq_management_client: AsyncClient, stats_key: str
 ) -> Callable[[], Awaitable[int]]:
     """Get number of consumed messages in RabbitMQ AMQP."""
 
     async def _get_num_consumed_messages() -> int:
         queues = (await rabbitmq_management_client.get("queues")).json()
-        return sum(
-            queue.get("message_stats", {}).get("ack", 0)
-            + queue.get("messages_unacknowledged", 0)
-            for queue in queues
-        )
+        return sum(queue.get("message_stats", {}).get(stats_key, 0) for queue in queues)
 
     return _get_num_consumed_messages
+
+
+@pytest.fixture
+def get_num_published_messages(
+    rabbitmq_management_client: AsyncClient,
+) -> Callable[[], Awaitable[int]]:
+    """Get number of published messages in RabbitMQ AMQP."""
+    return get_num_x_messages(rabbitmq_management_client, "publish")
 
 
 @pytest.fixture(autouse=True)

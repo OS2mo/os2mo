@@ -249,6 +249,7 @@ async def test_create_ldap_person(
     test_client: AsyncClient,
     graphql_client: GraphQLClient,
     get_num_queued_messages: Callable[[], Awaitable[int]],
+    get_num_published_messages: Callable[[], Awaitable[int]],
 ) -> None:
     given_name = "John"
     surname = "Hansen"
@@ -265,6 +266,9 @@ async def test_create_ldap_person(
 
     @retry()
     async def verify(person_uuid: UUID) -> None:
+        num_messages = await get_num_published_messages()
+        assert num_messages > 0
+
         num_messages = await get_num_queued_messages()
         assert num_messages == 0
 
@@ -296,7 +300,7 @@ async def test_create_ldap_person_blocked_by_itsystem_check(
     test_client: AsyncClient,
     graphql_client: GraphQLClient,
     get_num_queued_messages: Callable[[], Awaitable[int]],
-    get_num_consumed_messages: Callable[[], Awaitable[int]],
+    get_num_published_messages: Callable[[], Awaitable[int]],
 ) -> None:
     given_name = "John"
     surname = "Hansen"
@@ -323,11 +327,11 @@ async def test_create_ldap_person_blocked_by_itsystem_check(
 
     @retry()
     async def verify(person_uuid: UUID) -> None:
+        num_messages = await get_num_published_messages()
+        assert num_messages > 0
+
         num_messages = await get_num_queued_messages()
         assert num_messages == 0
-
-        num_messages = await get_num_consumed_messages()
-        assert num_messages > 0
 
         # Check that the user has not been created
         result = await test_client.get(f"/Inspect/mo/uuid2dn/{person_uuid}")
