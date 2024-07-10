@@ -82,7 +82,6 @@ from mo_ldap_import_export.exceptions import DNNotFound
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import ReadOnlyException
-from mo_ldap_import_export.import_export import IgnoreMe
 from mo_ldap_import_export.routes import load_all_current_it_users
 from mo_ldap_import_export.routes import load_ldap_attribute_values
 from mo_ldap_import_export.routes import load_ldap_objects
@@ -223,7 +222,6 @@ def username_generator() -> MagicMock:
 @pytest.fixture
 def sync_tool() -> AsyncMock:
     sync_tool = AsyncMock()
-    sync_tool.dns_to_ignore = IgnoreMe()
     return sync_tool
 
 
@@ -1555,36 +1553,6 @@ async def test_modify_ldap(
 
     dn = "CN=foo"
 
-    # Validate that the entry is not in the ignore dict
-    assert len(sync_tool.dns_to_ignore[dn]) == 0
-
-    # Modify the entry. Validate that it is added to the ignore dict
-    setup_mock()
-    await dataloader.modify_ldap(
-        "MODIFY_ADD", dn, "parameter_to_modify", "value_to_modify"
-    )
-    assert len(sync_tool.dns_to_ignore[dn]) == 1
-
-    # Modify the same entry again. Validate that we still only ignore once
-    setup_mock()
-    await dataloader.modify_ldap(
-        "MODIFY_ADD", dn, "parameter_to_modify", "value_to_modify"
-    )
-    assert len(sync_tool.dns_to_ignore[dn]) == 1
-
-    # Validate that any old entries get cleaned, and a new one gets added
-    sync_tool.dns_to_ignore.ignore_dict[dn.lower()] = [
-        datetime.datetime(1900, 1, 1),
-        datetime.datetime(1901, 1, 1),
-    ]
-    assert len(sync_tool.dns_to_ignore[dn]) == 2
-    setup_mock()
-    await dataloader.modify_ldap(
-        "MODIFY_ADD", dn, "parameter_to_modify", "value_to_modify"
-    )
-    assert len(sync_tool.dns_to_ignore[dn]) == 1
-    assert sync_tool.dns_to_ignore[dn][0] > datetime.datetime(1950, 1, 1)
-
     # Validate that empty lists are allowed
     setup_mock()
     await dataloader.modify_ldap("MODIFY_REPLACE", dn, "parameter_to_modify", [])
@@ -1718,7 +1686,7 @@ async def test_make_mo_employee_dn_no_itsystem(dataloader: MagicMock) -> None:
     assert log_events == ["Generating DN for user"]
 
     dataloader.sync_tool.import_single_user.assert_called_once_with(
-        dn, force=True, manual_import=True
+        dn, manual_import=True
     )
     dataloader.graphql_client.employee_refresh.assert_called_once_with(
         amqp_exchange_name, [employee_uuid]
@@ -1766,7 +1734,7 @@ async def test_make_mo_employee_dn_no_cpr(dataloader: MagicMock) -> None:
 
     dataloader.create_ituser.assert_called_once()
     dataloader.sync_tool.import_single_user.assert_called_once_with(
-        dn, force=True, manual_import=True
+        dn, manual_import=True
     )
     dataloader.graphql_client.employee_refresh.assert_called_once_with(
         amqp_exchange_name, [employee_uuid]

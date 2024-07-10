@@ -256,8 +256,6 @@ def with_exitstack(
 
 class SyncTool:
     def __init__(self, context: Context):
-        self.dns_to_ignore = IgnoreMe()
-
         self.context = context
         self.user_context = self.context["user_context"]
         self.dataloader: DataLoader = self.user_context["dataloader"]
@@ -1031,32 +1029,18 @@ class SyncTool:
         return operations
 
     @wait_for_import_to_finish
-    async def import_single_user(
-        self, dn: DN, force: bool = False, manual_import: bool = False
-    ) -> None:
+    async def import_single_user(self, dn: DN, manual_import: bool = False) -> None:
         """Imports a single user from LDAP into MO.
 
         Args:
             dn: The DN that triggered our event changed in LDAP.
-            force: Whether to ignore DNs in self.dns_to_ignore.
             manual_import: Whether this import operation was manually triggered.
         """
         user_context = self.context["user_context"]
         settings = user_context["settings"]
         ldap_connection = user_context["ldap_connection"]
-        try:
-            if not force:
-                self.dns_to_ignore.check(dn)
-        except IgnoreChanges:
-            logger.info("IgnoreChanges Exception", exc_info=True, dn=dn)
-            return
 
-        logger.info(
-            "Importing user",
-            dn=dn,
-            force=force,
-            manual_import=manual_import,
-        )
+        logger.info("Importing user", dn=dn, manual_import=manual_import)
 
         # Get the employee's uuid (if they exists)
         employee_uuid = await self.dataloader.find_mo_employee_uuid(dn)
