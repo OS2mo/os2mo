@@ -4,8 +4,6 @@ from collections import ChainMap
 from collections.abc import Callable
 from collections.abc import MutableMapping
 from contextlib import ExitStack
-from datetime import datetime
-from datetime import timedelta
 from functools import wraps
 from typing import Any
 from typing import Awaitable
@@ -47,7 +45,6 @@ from .dataloaders import DN
 from .dataloaders import extract_current_or_latest_object
 from .dataloaders import Verb
 from .exceptions import DNNotFound
-from .exceptions import IgnoreChanges
 from .exceptions import NoObjectsReturnedException
 from .ldap import apply_discriminator
 from .ldap import get_ldap_object
@@ -168,70 +165,6 @@ async def get_primary_engagement(
         primary_engagement_uuid=primary_engagement_uuid,
     )
     return primary_engagement_uuid
-
-
-class IgnoreMe:
-    def __init__(self) -> None:
-        self.ignore_dict: dict[str, list[datetime]] = {}
-
-    def __getitem__(self, key: str | UUID) -> list[datetime]:
-        key = self.format_entry(key)
-        return self.ignore_dict.get(key, [])
-
-    def __len__(self):
-        return len(self.ignore_dict)
-
-    def format_entry(self, entry: str | UUID) -> str:
-        if not isinstance(entry, str):
-            entry = str(entry)
-        return entry.lower()
-
-    def clean(self):
-        # Remove all timestamps which have been in the ignore dict for more than 60 sec.
-        now = datetime.now()
-        max_age = 60  # seconds
-        cutoff = now - timedelta(seconds=max_age)
-        for str_to_ignore, timestamps in self.ignore_dict.items():
-            for timestamp in timestamps.copy():
-                if timestamp < cutoff:
-                    logger.info(
-                        "Removing entry from ignore-dict",
-                        timestamp=timestamp,
-                        str_to_ignore=str_to_ignore,
-                        max_age=max_age,
-                    )
-                    timestamps.remove(timestamp)
-
-        # Remove keys with empty lists
-        self.ignore_dict = {k: v for k, v in self.ignore_dict.items() if v}
-
-    def add(self, str_to_add: str | UUID):
-        # Add a string to the ignore dict
-        str_to_add = self.format_entry(str_to_add)
-
-        if str_to_add in self.ignore_dict:
-            self.ignore_dict[str_to_add].append(datetime.now())
-        else:
-            self.ignore_dict[str_to_add] = [datetime.now()]
-
-    def remove(self, str_to_remove: str | UUID):
-        str_to_remove = self.format_entry(str_to_remove)
-
-        if str_to_remove in self.ignore_dict:
-            # Remove latest entry from the ignore dict
-            newest_timestamp = max(self.ignore_dict[str_to_remove])
-            self.ignore_dict[str_to_remove].remove(newest_timestamp)
-
-    def check(self, str_to_check: str | UUID):
-        # Raise ignoreChanges if the string to check is in self.ignore_dict
-        str_to_check = self.format_entry(str_to_check)
-        self.clean()
-
-        if str_to_check in self.ignore_dict and self.ignore_dict[str_to_check]:
-            # Remove timestamp so it does not get ignored twice.
-            oldest_timestamp = min(self.ignore_dict[str_to_check])
-            self.ignore_dict[str_to_check].remove(oldest_timestamp)
-            raise IgnoreChanges(f"Ignoring {str_to_check}")
 
 
 def with_exitstack(
