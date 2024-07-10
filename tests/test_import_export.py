@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
-import datetime
 import time
 from functools import partial
 from itertools import combinations
@@ -30,10 +29,8 @@ from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.dataloaders import Verb
 from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.exceptions import DNNotFound
-from mo_ldap_import_export.exceptions import IgnoreChanges
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.import_export import get_primary_engagement
-from mo_ldap_import_export.import_export import IgnoreMe
 from mo_ldap_import_export.import_export import SyncTool
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.types import DN
@@ -1038,41 +1035,6 @@ async def test_format_converted_primary_engagement_objects(
         await sync_tool.format_converted_objects(converted_objects, json_key)
 
 
-async def test_import_single_object_from_LDAP_ignore_dn(
-    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
-) -> None:
-    dn_to_ignore = "CN=foo"
-    ldap_object = LdapObject(dn=dn_to_ignore)
-    dataloader.load_ldap_object.return_value = ldap_object
-    sync_tool.dns_to_ignore.add(dn_to_ignore)
-
-    with capture_logs() as cap_logs:
-        await sync_tool.import_single_user("CN=foo")
-
-        messages = [w for w in cap_logs if w["log_level"] == "info"]
-        last_log_message = messages[-1]["event"]
-        assert last_log_message == "IgnoreChanges Exception"
-
-
-@pytest.mark.usefixtures("fake_find_mo_employee_dn")
-async def test_import_single_object_from_LDAP_force(
-    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
-) -> None:
-    dn_to_ignore = "CN=foo"
-    ldap_object = LdapObject(dn=dn_to_ignore)
-    dataloader.load_ldap_object.return_value = ldap_object
-    sync_tool.dns_to_ignore.add(dn_to_ignore)
-    sync_tool.dns_to_ignore.add(dn_to_ignore)  # Ignore this DN twice
-
-    uuid = uuid4()
-    mo_object_mock = MagicMock
-    mo_object_mock.uuid = uuid
-    converter.from_ldap.return_value = [mo_object_mock]
-
-    await sync_tool.import_single_user("CN=foo", force=False)
-    await sync_tool.import_single_user("CN=foo", force=True)
-
-
 @pytest.mark.usefixtures("fake_find_mo_employee_dn")
 async def test_import_single_object_from_LDAP_but_import_equals_false(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
@@ -1304,70 +1266,6 @@ async def test_import_single_object_from_LDAP_non_existing_employee(
     assert type(converter.from_ldap.call_args_list[0].kwargs["employee_uuid"]) is UUID
 
 
-async def test_ignoreMe():
-    # Initialize empty ignore dict
-    strings_to_ignore = IgnoreMe()
-    assert len(strings_to_ignore) == 0
-
-    # Add a string which should be ignored
-    strings_to_ignore.add("ignore_me")
-    assert len(strings_to_ignore) == 1
-    assert len(strings_to_ignore["ignore_me"]) == 1
-
-    # Raise an ignore exception so the string gets removed
-    with pytest.raises(IgnoreChanges):
-        strings_to_ignore.check("ignore_me")
-    assert len(strings_to_ignore["ignore_me"]) == 0
-
-    # Add an out-dated entry
-    strings_to_ignore.ignore_dict = {
-        "old_ignore_string": [datetime.datetime(1900, 1, 1)]
-    }
-    assert len(strings_to_ignore) == 1
-    assert len(strings_to_ignore["old_ignore_string"]) == 1
-
-    # Validate that it is gone after we clean
-    strings_to_ignore.clean()
-    assert len(strings_to_ignore) == 0
-    assert len(strings_to_ignore["old_ignore_string"]) == 0
-
-    # Add multiple out-dated entries
-    strings_to_ignore.ignore_dict = {
-        "old_ignore_string": [
-            datetime.datetime(1900, 1, 1),
-            datetime.datetime(1901, 1, 1),
-            datetime.datetime(1902, 1, 1),
-        ]
-    }
-    assert len(strings_to_ignore) == 1
-    assert len(strings_to_ignore["old_ignore_string"]) == 3
-
-    # Validate that they are all gone after we clean
-    strings_to_ignore.clean()
-    assert len(strings_to_ignore) == 0
-    assert len(strings_to_ignore["old_ignore_string"]) == 0
-
-
-async def test_remove_from_ignoreMe():
-    # Initialize empty ignore dict
-    strings_to_ignore = IgnoreMe()
-
-    uuid = uuid4()
-    strings_to_ignore.add(uuid)
-    strings_to_ignore.add(uuid)
-
-    timestamps = strings_to_ignore[uuid]
-
-    assert len(strings_to_ignore[uuid]) == 2
-
-    strings_to_ignore.remove(uuid)
-    assert len(strings_to_ignore[uuid]) == 1
-    assert strings_to_ignore[uuid][0] == min(timestamps)
-
-    strings_to_ignore.remove(uuid)
-    assert len(strings_to_ignore[uuid]) == 0
-
-
 async def test_wait_for_import_to_finish(sync_tool: SyncTool):
     wait_for_import_to_finish = partial(sync_tool.wait_for_import_to_finish)
 
@@ -1550,7 +1448,7 @@ async def test_holstebro_import_checks(sync_tool: SyncTool, fake_dn: DN) -> None
         return_value=False,
     ):
         with capture_logs() as cap_logs:
-            await sync_tool.import_single_user(fake_dn, force=True)
+            await sync_tool.import_single_user(fake_dn)
             assert "Import checks executed" in str(cap_logs)
 
 

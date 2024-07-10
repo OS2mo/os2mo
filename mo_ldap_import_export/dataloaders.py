@@ -393,7 +393,7 @@ class DataLoader:
         value: list[str] | str,
     ) -> dict | None:
         """
-        Modifies LDAP and adds the dn to dns_to_ignore
+        Modifies LDAP
         """
         # TODO: Remove this when ldap3s read-only flag works
         settings = self.user_context["settings"]
@@ -436,21 +436,6 @@ class DataLoader:
         logger.info("Uploading the changes", changes=changes, dn=dn)
         _, result = await ldap_modify(self.ldap_connection, dn, changes)
         logger.info("LDAP Result", result=result, dn=dn)
-
-        # If successful, the importer should ignore this DN
-        if result["description"] == "success":
-            # Clean all old entries
-            self.sync_tool.dns_to_ignore.clean()
-
-            # Only add if nothing is there yet. Otherwise we risk adding an
-            # ignore-command for every modified parameter
-            #
-            # Also: even if an LDAP attribute gets modified by us twice within a
-            # couple of seconds, it should still only be ignored once; Because we
-            # only retrieve the latest state of the LDAP object when polling
-            if not self.sync_tool.dns_to_ignore[dn]:
-                self.sync_tool.dns_to_ignore.add(dn)
-
         return result
 
     add_ldap = partialmethod(modify_ldap, "MODIFY_ADD")
@@ -1105,10 +1090,7 @@ class DataLoader:
         # a binding between the two.
         username_generator: UserNameGenerator = self.user_context["username_generator"]
 
-        logger.info(
-            "Generating DN for user",
-            employee_uuid=uuid,
-        )
+        logger.info("Generating DN for user", employee_uuid=uuid)
         # NOTE: This not only generates the DN as the name suggests,
         #       rather it also *creates it in LDAP*, be warned!
         #
@@ -1159,7 +1141,7 @@ class DataLoader:
         #       is just because the create by generate_dn does not in fact create it
         #       correctly?
         # TODO: Publish this message on the LDAP AMQP exchange
-        await self.sync_tool.import_single_user(dn, force=True, manual_import=True)
+        await self.sync_tool.import_single_user(dn, manual_import=True)
         await self.graphql_client.employee_refresh(
             self.sync_tool.amqpsystem.exchange_name, [employee.uuid]
         )

@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from unittest.mock import AsyncMock
+from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
@@ -58,7 +59,8 @@ async def test_process_uuid_bad_sync() -> None:
     sync_tool.import_single_user.side_effect = ValueError("BOOM")
 
     with capture_logs() as cap_logs:
-        await process_uuid(ldap_amqpsystem, sync_tool, dataloader, uuid)
+        with patch("asyncio.sleep", return_value=None):
+            await process_uuid(ldap_amqpsystem, sync_tool, dataloader, uuid)
         assert "Unable to synchronize DN to MO" in [x["event"] for x in cap_logs]
 
     dataloader.get_ldap_dn.assert_called_once_with(uuid)
