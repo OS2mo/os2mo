@@ -19,13 +19,10 @@ class AttributeNotFound(HTTPException):
 
 
 class IncorrectMapping(HTTPException):
+    """Raised when the integration is improperly configured."""
+
     def __init__(self, message):
         super().__init__(status_code=500, detail=message)
-
-
-class NotSupportedException(HTTPException):
-    def __init__(self, message):
-        super().__init__(status_code=501, detail=message)
 
 
 class ReadOnlyException(HTTPException):

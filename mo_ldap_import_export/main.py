@@ -31,7 +31,6 @@ from .dataloaders import DataLoader
 from .exceptions import IgnoreChanges
 from .exceptions import IncorrectMapping
 from .exceptions import NoObjectsReturnedException
-from .exceptions import NotSupportedException
 from .exceptions import ReadOnlyException
 from .import_export import SyncTool
 from .ldap import check_ou_in_list_of_ous
@@ -70,8 +69,8 @@ def reject_on_failure(func):
             raise
         except (
             # Misconfiguration
-            NotSupportedException,  # For features that are not supported: Abort
-            IncorrectMapping,  # If the json dict is incorrectly configured: Abort
+            # This is raised when the integration is improperly configured
+            IncorrectMapping,
             # Temporary downtime
             TransportQueryError,  # In case an ldap entry cannot be uploaded: Abort
             NoObjectsReturnedException,  # In case an object is deleted halfway: Abort

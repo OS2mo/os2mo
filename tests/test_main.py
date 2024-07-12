@@ -38,7 +38,6 @@ from mo_ldap_import_export.config import ConversionMapping
 from mo_ldap_import_export.exceptions import IgnoreChanges
 from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
-from mo_ldap_import_export.exceptions import NotSupportedException
 from mo_ldap_import_export.exceptions import ReadOnlyException
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.main import create_app
@@ -884,9 +883,6 @@ async def test_load_faulty_username_generator() -> None:
 
 
 async def test_reject_on_failure():
-    async def not_supported_func():
-        raise NotSupportedException("")
-
     async def incorrect_mapping_func():
         raise IncorrectMapping("")
 
@@ -907,7 +903,6 @@ async def test_reject_on_failure():
 
     # These exceptions should result in RequeueMessage exceptions
     for func in [
-        not_supported_func,
         incorrect_mapping_func,
         transport_query_error_func,
         no_objects_returned_func,
