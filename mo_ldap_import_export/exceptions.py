@@ -61,6 +61,8 @@ class TimeOutException(HTTPException):
 
 
 class IgnoreChanges(HTTPException):
+    """Exception raised if the import/export checks reject a message."""
+
     def __init__(self, message):
         super().__init__(status_code=400, detail=message)
 

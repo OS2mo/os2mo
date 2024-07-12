@@ -79,7 +79,8 @@ def reject_on_failure(func):
             logger.warning(e)
             raise RequeueMessage() from e
         except (
-            IgnoreChanges,  # In case changes should be ignored: Abort
+            # This is raised if the import/export checks reject a message
+            IgnoreChanges,
             ReadOnlyException,  # In case a feature is not enabled: Abort
         ) as e:
             logger.info(e)
