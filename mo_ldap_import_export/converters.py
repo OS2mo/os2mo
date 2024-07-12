@@ -32,7 +32,6 @@ from .environments import environment
 from .exceptions import IncorrectMapping
 from .exceptions import InvalidNameException
 from .exceptions import NoObjectsReturnedException
-from .exceptions import NotSupportedException
 from .exceptions import UUIDNotFoundException
 from .ldap import is_uuid
 from .ldap_classes import LdapObject
@@ -1141,6 +1140,8 @@ class LdapConverter:
 
                 Where `Employee` and `Address` are imported from ramodels.
 
+                Must always have 'mo_employee'.
+
             json_key:
                 Key to look for in the mapping dict.
 
@@ -1151,6 +1152,7 @@ class LdapConverter:
             dn: DN of the LDAP account to synchronize to.
         """
         ldap_object = {}
+        assert "mo_employee" in mo_object_dict
 
         # Globals
         mo_template_dict = ChainMap({"dn": dn}, mo_object_dict)
@@ -1162,11 +1164,6 @@ class LdapConverter:
             object_mapping = mapping[json_key]
         except KeyError:
             raise IncorrectMapping(f"Missing '{json_key}' in mapping 'mo_to_ldap'")
-
-        if "mo_employee" not in mo_template_dict.keys():
-            raise NotSupportedException(
-                "Only cpr-indexed objects are supported by to_ldap"
-            )
 
         # TODO: Test what happens with exceptions here
         for ldap_field_name, template in object_mapping.items():

@@ -74,7 +74,6 @@ from mo_ldap_import_export.environments import environment
 from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import InvalidNameException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
-from mo_ldap_import_export.exceptions import NotSupportedException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
 from tests.graphql_mocker import GraphQLMocker
 
@@ -420,7 +419,7 @@ async def test_mo_to_ldap(converter: LdapConverter) -> None:
     assert ldap_object.name == "Tester Testersen"
     assert ldap_object.dn == "CN=foo"
 
-    with pytest.raises(NotSupportedException):
+    with pytest.raises(AssertionError):
         obj_dict = {"mo_employee_address": "foo"}
         await converter.to_ldap(obj_dict, "Employee", "CN=foo")
 
