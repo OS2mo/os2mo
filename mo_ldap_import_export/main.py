@@ -72,7 +72,8 @@ def reject_on_failure(func):
             # This is raised when the integration is improperly configured
             IncorrectMapping,
             # Temporary downtime
-            TransportQueryError,  # In case an ldap entry cannot be uploaded: Abort
+            # This is raised when a GraphQL query is invalid or has temporary downtime
+            TransportQueryError,
             NoObjectsReturnedException,  # In case an object is deleted halfway: Abort
         ) as e:
             logger.warning(e)
