@@ -600,7 +600,9 @@ class SyncTool:
                     changed_ituser.uuid, current_objects_only=False
                 )
                 if fetched_ituser is None:
-                    raise NoObjectsReturnedException("Could not fetch ituser")
+                    raise NoObjectsReturnedException(
+                        f"Unable to lookup ituser: {changed_ituser.uuid}"
+                    )
             except NoObjectsReturnedException as exc:
                 raise RequeueMessage("Unable to load mo object") from exc
             delete = get_delete_flag(jsonable_encoder(fetched_ituser))

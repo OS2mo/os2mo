@@ -1291,9 +1291,8 @@ class DataLoader:
         result = await self.graphql_client.read_ituser_by_employee_and_itsystem_uuid(
             employee_uuid, it_system_uuid
         )
-        output = await asyncio.gather(
-            *[self.load_mo_it_user(ituser.uuid) for ituser in result.objects]
-        )
+        ituser_uuids = [ituser.uuid for ituser in result.objects]
+        output = await asyncio.gather(*map(self.load_mo_it_user, ituser_uuids))
         # If no active validities, pretend we did not get the object at all
         output = [obj for obj in output if obj is not None]
         return cast(list[ITUser], output)
