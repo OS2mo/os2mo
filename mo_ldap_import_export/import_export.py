@@ -595,16 +595,12 @@ class SyncTool:
             await self.perform_export_checks(uuid, changed_ituser.uuid)
 
             # TODO: Fetch the required fields directly during `read_filtered_itusers`
-            try:
-                fetched_ituser = await self.dataloader.load_mo_it_user(
-                    changed_ituser.uuid, current_objects_only=False
-                )
-                if fetched_ituser is None:
-                    raise NoObjectsReturnedException(
-                        f"Unable to lookup ituser: {changed_ituser.uuid}"
-                    )
-            except NoObjectsReturnedException as exc:
-                raise RequeueMessage("Unable to load mo object") from exc
+            fetched_ituser = await self.dataloader.load_mo_it_user(
+                changed_ituser.uuid, current_objects_only=False
+            )
+            if fetched_ituser is None:
+                logger.error("Unable to load mo it-user")
+                raise RequeueMessage("Unable to load mo it-user")
             delete = get_delete_flag(jsonable_encoder(fetched_ituser))
 
             template_dict = ChainMap(

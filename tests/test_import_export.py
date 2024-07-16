@@ -486,11 +486,11 @@ async def test_listen_to_changes_in_employees_ituser(
         await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert "Multiple itusers with the same itsystem" in [x["event"] for x in cap_logs]
 
-    # Test expected behavior when unable to read address details
-    dataloader.load_mo_it_user.side_effect = NoObjectsReturnedException("BOOM")
+    # Test expected behavior when unable to read itusers
+    dataloader.load_mo_it_user.return_value = None
     with pytest.raises(RequeueMessage) as exc:
         await sync_tool.listen_to_changes_in_employees(employee_uuid)
-    assert "Unable to load mo object" in str(exc.value)
+    assert "Unable to load mo it-user" in str(exc.value)
 
 
 async def test_listen_to_changes_in_employees_engagement(
