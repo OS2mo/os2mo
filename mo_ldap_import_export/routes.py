@@ -403,8 +403,11 @@ def construct_router(user_context: UserContext) -> APIRouter:
             if unique_ldap_uuid not in all_unique_ldap_uuids:
                 employee_uuid = it_user["employee_uuid"]
                 employee = await dataloader.load_mo_employee(employee_uuid)
-                if employee is None:
-                    raise NoObjectsReturnedException("Could not fetch employee")
+                # Fixed in an upcoming commit reworking the entire method
+                if employee is None:  # pragma: no cover
+                    raise NoObjectsReturnedException(
+                        f"Unable to lookup employee: {employee_uuid}"
+                    )
                 output_dict = {
                     "name": f"{employee.givenname} {employee.surname}".strip(),
                     "MO employee uuid": employee.uuid,

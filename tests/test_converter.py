@@ -1949,6 +1949,16 @@ async def test_get_primary_engagement_dict(dataloader: AsyncMock) -> None:
     assert "too few items in iterable (expected 1)" in str(exc_info.value)
 
 
+async def test_get_employee_dict_no_employee(dataloader: AsyncMock) -> None:
+    employee_uuid = uuid4()
+
+    dataloader.load_mo_employee.return_value = None
+
+    with pytest.raises(NoObjectsReturnedException) as exc_info:
+        await get_employee_dict(dataloader, employee_uuid)
+    assert f"Unable to lookup employee: {employee_uuid}" in str(exc_info.value)
+
+
 async def test_get_employee_dict(dataloader: AsyncMock) -> None:
     cpr_no = "1407711900"
     uuid = uuid4()

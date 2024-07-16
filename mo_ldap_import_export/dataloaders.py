@@ -967,7 +967,7 @@ class DataLoader:
         # If the employee has a cpr-no, try using that to find matchind DNs
         employee = await self.load_mo_employee(uuid)
         if employee is None:
-            raise NoObjectsReturnedException("Could not fetch employee")
+            raise NoObjectsReturnedException(f"Unable to lookup employee: {uuid}")
         cpr_no = CPRNumber(employee.cpr_no) if employee.cpr_no else None
         # No CPR, no problem
         if not cpr_no:
@@ -1027,13 +1027,13 @@ class DataLoader:
         return set()
 
     async def make_mo_employee_dn(self, uuid: UUID) -> DN:
-        raw_it_system_uuid = await self.get_ldap_it_system_uuid()
         employee = await self.load_mo_employee(uuid)
         if employee is None:
-            raise NoObjectsReturnedException("Could not fetch employee")
+            raise NoObjectsReturnedException(f"Unable to lookup employee: {uuid}")
         cpr_no = CPRNumber(employee.cpr_no) if employee.cpr_no else None
 
         # Check if we even dare create a DN
+        raw_it_system_uuid = await self.get_ldap_it_system_uuid()
         if raw_it_system_uuid is None and cpr_no is None:
             logger.warning(
                 "Could not or generate a DN for employee (cannot correlate)",

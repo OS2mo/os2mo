@@ -712,7 +712,7 @@ class SyncTool:
                 uuid, current_objects_only=False
             )
             if changed_employee is None:
-                raise NoObjectsReturnedException("Could not fetch employee")
+                raise NoObjectsReturnedException(f"Unable to lookup employee: {uuid}")
         except NoObjectsReturnedException as exc:
             logger.error("Unable to load mo object")
             raise RequeueMessage("Unable to load mo object") from exc

@@ -1457,6 +1457,21 @@ async def test_find_mo_employee_dn(dataloader: MagicMock) -> None:
     assert log_events == ["Attempting to find DNs"]
 
 
+async def test_make_mo_employee_dn_no_user(
+    graphql_mock: GraphQLMocker, dataloader: MagicMock
+) -> None:
+    employee_uuid = uuid4()
+
+    route = graphql_mock.query("read_employees")
+    route.result = {"employees": {"objects": []}}
+
+    with pytest.raises(NoObjectsReturnedException) as exc_info:
+        await dataloader.make_mo_employee_dn(employee_uuid)
+    assert f"Unable to lookup employee: {employee_uuid}" in str(exc_info.value)
+
+    assert route.called
+
+
 async def test_make_mo_employee_dn_no_correlation(dataloader: MagicMock) -> None:
     employee_uuid = uuid4()
 
