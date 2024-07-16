@@ -996,7 +996,7 @@ async def test_get_non_existing_objectGUIDs_from_MO(
     it_users = [
         {"employee_uuid": str(uuid4()), "user_key": str(uuid4())},
         {"employee_uuid": str(uuid4()), "user_key": str(uuid4())},
-        {"employee_uuid": str(uuid4()), "user_key": "foo"},
+        {"employee_uuid": str(uuid4()), "user_key": str(uuid4())},
     ]
     employee = Employee(givenname="Jim", surname="")
     dataloader.load_mo_employee.return_value = employee
@@ -1014,11 +1014,13 @@ async def test_get_non_existing_objectGUIDs_from_MO(
     assert response.status_code == 202
 
     result = response.json()
-    assert len(result) == 2
-    assert result[0]["MO employee uuid"] == str(employee.uuid)
-    assert result[0]["name"] == "Jim"
-    assert result[0]["unique_ldap_uuid in MO"] == it_users[1]["user_key"]
-    assert result[1]["unique_ldap_uuid in MO"] == it_users[2]["user_key"]
+    assert result == [
+        {
+            "MO employee uuid": it_user["employee_uuid"],
+            "unique_ldap_uuid in MO": it_user["user_key"],
+        }
+        for it_user in it_users[1:]
+    ]
 
 
 @pytest.mark.usefixtures("context_dependency_injection")
