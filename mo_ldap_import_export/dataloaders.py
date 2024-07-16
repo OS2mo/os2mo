@@ -1588,17 +1588,3 @@ class DataLoader:
             )
             result = await self.graphql_client.class_create(input)
             return result.uuid
-
-    async def create_mo_engagement_type(self, name) -> UUID:
-        """
-        Creates an engagement type class in MO
-
-        Returns
-        ----------
-        uuid: UUID
-            The uuid of the created class
-        """
-        logger.info("Creating MO engagement type", name=name)
-        facet_uuid = await self.load_mo_facet_uuid("engagement_type")
-        user_key = name
-        return await self.create_mo_class(name, user_key, facet_uuid)

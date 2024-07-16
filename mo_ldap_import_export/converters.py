@@ -268,6 +268,23 @@ async def get_employee_dict(dataloader: DataLoader, employee_uuid: UUID) -> dict
     return mo_employee.dict()
 
 
+async def create_engagement_type(dataloader: DataLoader, name: str) -> UUID:
+    """Creates an engagement type class in MO.
+
+    Args:
+        dataloader: Our dataloader instance
+        name: The name/user-key to give the class
+
+    Returns:
+        The uuid of the created class
+    """
+    logger.info("Creating MO engagement type", name=name)
+    facet_uuid = await dataloader.load_mo_facet_uuid("engagement_type")
+    return await dataloader.create_mo_class(
+        name=name, user_key=name, facet_uuid=facet_uuid
+    )
+
+
 async def get_or_create_engagement_type_uuid(
     dataloader: DataLoader, engagement_type: str
 ) -> str:
@@ -278,7 +295,7 @@ async def get_or_create_engagement_type_uuid(
             dataloader.graphql_client, engagement_type
         )
     except UUIDNotFoundException:
-        uuid = await dataloader.create_mo_engagement_type(engagement_type)
+        uuid = await create_engagement_type(dataloader, engagement_type)
         return str(uuid)
 
 

@@ -1195,7 +1195,7 @@ async def test_get_engagement_type_uuid(dataloader: AsyncMock, class_name: str) 
 async def test_get_engagement_type_non_existing_uuid(dataloader: AsyncMock) -> None:
     uuid = uuid4()
 
-    dataloader.create_mo_engagement_type.return_value = uuid
+    dataloader.create_mo_class.return_value = uuid
 
     assert await get_or_create_engagement_type_uuid(
         dataloader, "non-existing_engagement_type"
