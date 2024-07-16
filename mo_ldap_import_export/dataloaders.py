@@ -1121,7 +1121,7 @@ class DataLoader:
         entry.pop("validity")
         return Employee(**entry)
 
-    async def load_mo_class_uuid(self, user_key: str) -> UUID:
+    async def load_mo_class_uuid(self, user_key: str) -> UUID | None:
         """Find the UUID of a class by user-key.
 
         Args:
@@ -1130,20 +1130,17 @@ class DataLoader:
         Raises:
             MultipleObjectsReturnedException:
                 If multiple classes share the same user-key.
-            NoObjectsReturnedException:
-                If no active classes were found with the user-key.
 
         Returns:
-            The uuid of the corresponding class.
+            The UUID of the class or None if not found.
         """
         result = await self.graphql_client.read_class_uuid(user_key)
         too_long = MultipleObjectsReturnedException(
             f"Found multiple classes with user_key = '{user_key}': {result}"
         )
-        too_short = NoObjectsReturnedException(
-            f"Could not find class with user_key = '{user_key}"
-        )
-        klass = one(result.objects, too_short=too_short, too_long=too_long)
+        klass = only(result.objects, too_long=too_long)
+        if klass is None:
+            return None
         return klass.uuid
 
     async def load_mo_facet_uuid(self, user_key: str) -> UUID:
@@ -1576,8 +1573,8 @@ class DataLoader:
         """
         async with self.create_mo_class_lock:
             # If class already exists, noop
-            with suppress(NoObjectsReturnedException):
-                uuid = await self.load_mo_class_uuid(user_key)
+            uuid = await self.load_mo_class_uuid(user_key)
+            if uuid:
                 logger.info("MO class exists", user_key=user_key)
                 return uuid
 
