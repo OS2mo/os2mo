@@ -580,6 +580,32 @@ async def test_load_mo_employee(
     assert route.called
 
 
+async def test_load_mo_employee_no_objects(
+    dataloader: DataLoader, graphql_mock: GraphQLMocker
+) -> None:
+    uuid = uuid4()
+
+    route = graphql_mock.query("read_employees")
+    route.result = {"employees": {"objects": []}}
+
+    result = await dataloader.load_mo_employee(uuid)
+    assert result is None
+    assert route.called
+
+
+async def test_load_mo_employee_no_validities(
+    dataloader: DataLoader, graphql_mock: GraphQLMocker
+) -> None:
+    uuid = uuid4()
+
+    route = graphql_mock.query("read_employees")
+    route.result = {"employees": {"objects": [{"validities": []}]}}
+
+    result = await dataloader.load_mo_employee(uuid)
+    assert result is None
+    assert route.called
+
+
 @pytest.mark.parametrize(
     "input_value,return_value",
     [
@@ -909,8 +935,8 @@ async def test_load_mo_employee_not_found(
 
     uuid = uuid4()
 
-    with pytest.raises(NoObjectsReturnedException):
-        await dataloader.load_mo_employee(uuid)
+    result = await dataloader.load_mo_employee(uuid)
+    assert result is None
 
 
 async def test_load_mo_it_user(

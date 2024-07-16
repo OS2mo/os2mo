@@ -711,6 +711,8 @@ class SyncTool:
             changed_employee = await self.dataloader.load_mo_employee(
                 uuid, current_objects_only=False
             )
+            if changed_employee is None:
+                raise NoObjectsReturnedException("Could not fetch employee")
         except NoObjectsReturnedException as exc:
             logger.error("Unable to load mo object")
             raise RequeueMessage("Unable to load mo object") from exc
