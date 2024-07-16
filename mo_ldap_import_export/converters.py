@@ -268,21 +268,30 @@ async def get_employee_dict(dataloader: DataLoader, employee_uuid: UUID) -> dict
     return mo_employee.dict()
 
 
-async def create_engagement_type(dataloader: DataLoader, name: str) -> UUID:
-    """Creates an engagement type class in MO.
+async def _create_facet_class(
+    dataloader: DataLoader, class_user_key: str, facet_user_key: str
+) -> UUID:
+    """Creates a class under the specified facet in MO.
 
     Args:
         dataloader: Our dataloader instance
-        name: The name/user-key to give the class
+        facet_user_key: User-key of the facet to create the class under.
+        class_user_key: The name/user-key to give the class.
 
     Returns:
         The uuid of the created class
     """
-    logger.info("Creating MO engagement type", name=name)
-    facet_uuid = await dataloader.load_mo_facet_uuid("engagement_type")
+    logger.info("Creating MO class", facet_user_key=facet_user_key, name=class_user_key)
+    facet_uuid = await dataloader.load_mo_facet_uuid(facet_user_key)
     return await dataloader.create_mo_class(
-        name=name, user_key=name, facet_uuid=facet_uuid
+        name=class_user_key, user_key=class_user_key, facet_uuid=facet_uuid
     )
+
+
+create_engagement_type = partial(_create_facet_class, facet_user_key="engagement_type")
+create_job_function = partial(
+    _create_facet_class, facet_user_key="engagement_job_function"
+)
 
 
 async def get_or_create_engagement_type_uuid(
@@ -297,23 +306,6 @@ async def get_or_create_engagement_type_uuid(
     except UUIDNotFoundException:
         uuid = await create_engagement_type(dataloader, engagement_type)
         return str(uuid)
-
-
-async def create_job_function(dataloader: DataLoader, name: str) -> UUID:
-    """Creates a job function class in MO.
-
-    Args:
-        dataloader: Our dataloader instance
-        name: The name/user-key to give the class
-
-    Returns:
-        The uuid of the created class
-    """
-    logger.info("Creating MO job function", name=name)
-    facet_uuid = await dataloader.load_mo_facet_uuid("engagement_job_function")
-    return await dataloader.create_mo_class(
-        name=name, user_key=name, facet_uuid=facet_uuid
-    )
 
 
 async def get_or_create_job_function_uuid(
