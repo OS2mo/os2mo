@@ -282,6 +282,23 @@ async def get_or_create_engagement_type_uuid(
         return str(uuid)
 
 
+async def create_job_function(dataloader: DataLoader, name: str) -> UUID:
+    """Creates a job function class in MO.
+
+    Args:
+        dataloader: Our dataloader instance
+        name: The name/user-key to give the class
+
+    Returns:
+        The uuid of the created class
+    """
+    logger.info("Creating MO job function", name=name)
+    facet_uuid = await dataloader.load_mo_facet_uuid("engagement_job_function")
+    return await dataloader.create_mo_class(
+        name=name, user_key=name, facet_uuid=facet_uuid
+    )
+
+
 async def get_or_create_job_function_uuid(
     dataloader: DataLoader, job_function: str, default: str | None = None
 ) -> str:
@@ -295,7 +312,7 @@ async def get_or_create_job_function_uuid(
     try:
         return await get_job_function_uuid(dataloader.graphql_client, job_function)
     except UUIDNotFoundException:
-        uuid = await dataloader.create_mo_job_function(job_function)
+        uuid = await create_job_function(dataloader, job_function)
         return str(uuid)
 
 

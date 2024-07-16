@@ -1135,7 +1135,7 @@ async def test_get_job_function_uuid(
 
     new_uuid = uuid4()
     dataloader = AsyncMock()
-    dataloader.create_mo_job_function.return_value = new_uuid
+    dataloader.create_mo_class.return_value = new_uuid
 
     result = await get_or_create_job_function_uuid(dataloader, "non-existing_job")
     assert result == str(new_uuid)
@@ -1152,7 +1152,7 @@ async def test_get_job_function_uuid_default_kwarg(dataloader: AsyncMock) -> Non
     # Arrange: mock the UUID of a newly created job function
     uuid_for_new_job_function = str(uuid4())
     dataloader = AsyncMock()
-    dataloader.create_mo_job_function.return_value = uuid_for_new_job_function
+    dataloader.create_mo_class.return_value = uuid_for_new_job_function
 
     # Act
     result = await get_or_create_job_function_uuid(dataloader, "", default="Default")
@@ -1169,7 +1169,7 @@ async def test_get_job_function_uuid_default_kwarg_does_not_override(
     # Arrange
     uuid = str(uuid4())
     dataloader = AsyncMock()
-    dataloader.create_mo_job_function.return_value = uuid
+    dataloader.create_mo_class.return_value = uuid
 
     # Act
     result = await get_or_create_job_function_uuid(
