@@ -66,7 +66,7 @@ from mo_ldap_import_export.dataloaders import DN
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.dataloaders import Verb
-from mo_ldap_import_export.dataloaders import extract_current_or_latest_object
+from mo_ldap_import_export.dataloaders import extract_current_or_latest_validity
 from mo_ldap_import_export.exceptions import AttributeNotFound
 from mo_ldap_import_export.exceptions import DNNotFound
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
@@ -2117,14 +2117,14 @@ def test_extract_latest_object(
         validity: Validity
 
     obj_validities = parse_obj_as(list[ValidityUUID], validities)
-    result = extract_current_or_latest_object(obj_validities)
+    result = extract_current_or_latest_validity(obj_validities)
     assert result is not None
     assert result.uuid == expected
 
 
 def test_extract_latest_object_empty() -> None:
     with pytest.raises(NoObjectsReturnedException):
-        extract_current_or_latest_object([])
+        extract_current_or_latest_validity([])
 
 
 async def test_load_mo_root_org_uuid(dataloader: DataLoader):

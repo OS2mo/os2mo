@@ -46,7 +46,7 @@ from .customer_specific_checks import ImportChecks
 from .dataloaders import DN
 from .dataloaders import DataLoader
 from .dataloaders import Verb
-from .dataloaders import extract_current_or_latest_object
+from .dataloaders import extract_current_or_latest_validity
 from .exceptions import DNNotFound
 from .exceptions import NoObjectsReturnedException
 from .ldap import apply_discriminator
@@ -135,7 +135,7 @@ async def get_primary_engagement(
         raise RequeueMessage("Waiting for primary engagement to be decided")
 
     try:
-        primary_engagement_validity = extract_current_or_latest_object(
+        primary_engagement_validity = extract_current_or_latest_validity(
             primary_validities
         )
     except ValueError as e:
@@ -331,7 +331,7 @@ class SyncTool:
             )
         )
         address_validities = [
-            extract_current_or_latest_object(obj.validities) for obj in result.objects
+            extract_current_or_latest_validity(obj.validities) for obj in result.objects
         ]
         addresses = [obj for obj in address_validities if obj is not None]
         # Group addresses by address-type
@@ -440,7 +440,7 @@ class SyncTool:
             )
         )
         address_validities = [
-            extract_current_or_latest_object(obj.validities) for obj in result.objects
+            extract_current_or_latest_validity(obj.validities) for obj in result.objects
         ]
         addresses = [obj for obj in address_validities if obj is not None]
         # Group addresses by address-type
@@ -549,7 +549,7 @@ class SyncTool:
             )
         )
         ituser_validities = [
-            extract_current_or_latest_object(obj.validities) for obj in result.objects
+            extract_current_or_latest_validity(obj.validities) for obj in result.objects
         ]
         itusers = [obj for obj in ituser_validities if obj is not None]
         # Group addresses by address-type
