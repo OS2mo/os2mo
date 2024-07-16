@@ -1143,7 +1143,7 @@ class DataLoader:
             return None
         return klass.uuid
 
-    async def load_mo_facet_uuid(self, user_key: str) -> UUID:
+    async def load_mo_facet_uuid(self, user_key: str) -> UUID | None:
         """Find the UUID of a facet by user-key.
 
         Args:
@@ -1152,20 +1152,17 @@ class DataLoader:
         Raises:
             MultipleObjectsReturnedException:
                 If multiple facets share the same user-key.
-            NoObjectsReturnedException:
-                If no active facets were found with the user-key.
 
         Returns:
-            The uuid of the corresponding facet.
+            The uuid of the facet or None if not found.
         """
         result = await self.graphql_client.read_facet_uuid(user_key)
         too_long = MultipleObjectsReturnedException(
             f"Found multiple facets with user_key = '{user_key}': {result}"
         )
-        too_short = NoObjectsReturnedException(
-            f"Could not find facet with user_key = '{user_key}"
-        )
-        facet = one(result.objects, too_short=too_short, too_long=too_long)
+        facet = only(result.objects, too_long=too_long)
+        if facet is None:
+            return None
         return facet.uuid
 
     async def load_mo_root_org_uuid(self) -> UUID:

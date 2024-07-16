@@ -1780,8 +1780,8 @@ async def test_load_mo_facet_uuid_no_result(dataloader: DataLoader):
     dataloader.graphql_client.read_facet_uuid.return_value = parse_obj_as(  # type: ignore
         ReadFacetUuidFacets, {"objects": []}
     )
-    with pytest.raises(NoObjectsReturnedException):
-        await dataloader.load_mo_facet_uuid("")
+    result = await dataloader.load_mo_facet_uuid("")
+    assert result is None
 
 
 async def test_add_ldap_object(dataloader: DataLoader) -> None:

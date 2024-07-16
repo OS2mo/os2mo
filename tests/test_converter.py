@@ -42,6 +42,7 @@ from mo_ldap_import_export.config import LDAP2MOMapping
 from mo_ldap_import_export.config import MO2LDAPMapping
 from mo_ldap_import_export.config import check_attributes
 from mo_ldap_import_export.converters import LdapConverter
+from mo_ldap_import_export.converters import _create_facet_class
 from mo_ldap_import_export.converters import check_key_validity
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
@@ -2018,3 +2019,11 @@ async def test_ldap_to_mo_termination(converter: LdapConverter) -> None:
     assert hasattr(mail, "terminate_")
     assert mail.value == "foo@bar.dk"
     assert mail.person.uuid == employee_uuid
+
+
+async def test_create_facet_class_no_facet() -> None:
+    dataloader = AsyncMock()
+    dataloader.load_mo_facet_uuid.return_value = None
+    with pytest.raises(NoObjectsReturnedException) as exc_info:
+        await _create_facet_class(dataloader, "class_key", "facet_key")
+    assert "Could not find facet with user_key = 'facet_key'" in str(exc_info.value)
