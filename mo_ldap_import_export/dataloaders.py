@@ -107,7 +107,7 @@ class ValidityModel(Protocol):
 T = TypeVar("T", bound=ValidityModel)
 
 
-def extract_current_or_latest_validity(validities: list[T]) -> T | None:
+def extract_current_or_latest_validity(validities: list[T]) -> T:
     """
     Check each validity in a list of validities and return the one which is either
     valid today, or has the latest end-date
