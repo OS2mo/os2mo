@@ -275,6 +275,9 @@ query read_org_unit_addresses($org_unit_uuid: UUID!, $address_type_uuid: UUID!) 
   ) {
     objects {
       uuid
+      validities {
+        ...address_validity_fields
+      }
     }
   }
 }
