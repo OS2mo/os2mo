@@ -143,6 +143,7 @@ async def get_primary_engagement(
         # situation gracefully, so we requeue until calculate_primary resolves it.
         # NOTE: There may in fact still be multiple primary engagements in the past
         #       or future, but these are resolved by simply picking the latest one.
+        # TODO: This should probably be fixed so we detect all overlaps
         logger.warning(
             "Waiting for multiple primary engagements to be resolved",
             validities=validities,
