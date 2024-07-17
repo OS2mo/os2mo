@@ -259,6 +259,9 @@ query read_employee_addresses($employee_uuid: UUID!, $address_type_uuid: UUID!) 
   ) {
     objects {
       uuid
+      validities {
+        ...address_validity_fields
+      }
     }
   }
 }

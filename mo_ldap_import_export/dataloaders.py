@@ -1279,12 +1279,20 @@ class DataLoader:
         result = await self.graphql_client.read_employee_addresses(
             employee_uuid, address_type_uuid
         )
-        # TODO: Bulk this
-        address_uuids = [address.uuid for address in result.objects]
-        output = await asyncio.gather(*map(self.load_mo_address, address_uuids))
+        output = {
+            obj.uuid: graphql_address_to_ramodels_address(obj.validities)
+            for obj in result.objects
+        }
         # If no active validities, pretend we did not get the object at all
-        output = [obj for obj in output if obj is not None]
-        return cast(list[Address], output)
+        no_validity_uuids = [
+            uuid for uuid, address in output.items() if address is None
+        ]
+        if no_validity_uuids:
+            logger.warning(
+                "Unable to lookup employee addresses", uuids=no_validity_uuids
+            )
+        objects = [obj for obj in output.values() if obj is not None]
+        return cast(list[Address], objects)
 
     async def load_mo_org_unit_addresses(
         self, org_unit_uuid: OrgUnitUUID, address_type_uuid: UUID
