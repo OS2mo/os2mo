@@ -381,6 +381,8 @@ class SyncTool:
                 fetched_address = await self.dataloader.load_mo_address(
                     changed_address.uuid, current_objects_only=False
                 )
+                if fetched_address is None:
+                    raise NoObjectsReturnedException("Could not fetch address")
             except NoObjectsReturnedException as exc:
                 raise RequeueMessage("Unable to load mo object") from exc
             delete = get_delete_flag(jsonable_encoder(fetched_address))
@@ -502,6 +504,8 @@ class SyncTool:
                 fetched_address = await self.dataloader.load_mo_address(
                     changed_address.uuid, current_objects_only=False
                 )
+                if fetched_address is None:
+                    raise NoObjectsReturnedException("Could not fetch address")
             except NoObjectsReturnedException as exc:
                 raise RequeueMessage("Unable to load mo object") from exc
             delete = get_delete_flag(jsonable_encoder(fetched_address))
