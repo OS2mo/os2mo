@@ -377,14 +377,12 @@ class SyncTool:
             await self.perform_export_checks(uuid, changed_address.uuid)
 
             # TODO: Fetch the required fields directly during `read_filtered_addresses`
-            try:
-                fetched_address = await self.dataloader.load_mo_address(
-                    changed_address.uuid, current_objects_only=False
-                )
-                if fetched_address is None:
-                    raise NoObjectsReturnedException("Could not fetch address")
-            except NoObjectsReturnedException as exc:
-                raise RequeueMessage("Unable to load mo object") from exc
+            fetched_address = await self.dataloader.load_mo_address(
+                changed_address.uuid, current_objects_only=False
+            )
+            if fetched_address is None:
+                logger.error("Unable to load mo address")
+                raise RequeueMessage("Unable to load mo address")
             delete = get_delete_flag(jsonable_encoder(fetched_address))
 
             template_dict = ChainMap(
@@ -500,14 +498,12 @@ class SyncTool:
             await self.perform_export_checks(uuid, changed_address.uuid)
 
             # TODO: Fetch the required fields directly during `read_filtered_addresses`
-            try:
-                fetched_address = await self.dataloader.load_mo_address(
-                    changed_address.uuid, current_objects_only=False
-                )
-                if fetched_address is None:
-                    raise NoObjectsReturnedException("Could not fetch address")
-            except NoObjectsReturnedException as exc:
-                raise RequeueMessage("Unable to load mo object") from exc
+            fetched_address = await self.dataloader.load_mo_address(
+                changed_address.uuid, current_objects_only=False
+            )
+            if fetched_address is None:
+                logger.error("Unable to load mo address")
+                raise RequeueMessage("Unable to load mo address")
             delete = get_delete_flag(jsonable_encoder(fetched_address))
 
             template_dict = ChainMap(
