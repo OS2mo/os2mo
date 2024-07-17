@@ -796,26 +796,30 @@ class GraphQLClient(AsyncBaseClient):
               addresses(filter: {uuids: $uuids, from_date: $from_date, to_date: $to_date}) {
                 objects {
                   validities {
-                    value: name
-                    value2
-                    uuid
-                    visibility_uuid
-                    employee_uuid
-                    org_unit_uuid
-                    engagement_uuid
-                    person: employee {
-                      cpr_no
-                    }
-                    validity {
-                      from
-                      to
-                    }
-                    address_type {
-                      user_key
-                      uuid
-                    }
+                    ...address_validity_fields
                   }
                 }
+              }
+            }
+
+            fragment address_validity_fields on Address {
+              value: name
+              value2
+              uuid
+              visibility_uuid
+              employee_uuid
+              org_unit_uuid
+              engagement_uuid
+              person: employee {
+                cpr_no
+              }
+              validity {
+                from
+                to
+              }
+              address_type {
+                user_key
+                uuid
               }
             }
             """
