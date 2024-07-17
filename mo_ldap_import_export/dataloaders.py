@@ -1262,9 +1262,8 @@ class DataLoader:
             employee_uuid, address_type_uuid
         )
         # TODO: Bulk this
-        output = await asyncio.gather(
-            *[self.load_mo_address(address.uuid) for address in result.objects]
-        )
+        address_uuids = [address.uuid for address in result.objects]
+        output = await asyncio.gather(*map(self.load_mo_address, address_uuids))
         # If no active validities, pretend we did not get the object at all
         output = [obj for obj in output if obj is not None]
         return cast(list[Address], output)
@@ -1279,9 +1278,8 @@ class DataLoader:
             org_unit_uuid, address_type_uuid
         )
         # TODO: Bulk this
-        output = await asyncio.gather(
-            *[self.load_mo_address(address.uuid) for address in result.objects]
-        )
+        address_uuids = [address.uuid for address in result.objects]
+        output = await asyncio.gather(*map(self.load_mo_address, address_uuids))
         # If no active validities, pretend we did not get the object at all
         output = [obj for obj in output if obj is not None]
         return cast(list[Address], output)
