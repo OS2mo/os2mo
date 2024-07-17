@@ -634,6 +634,8 @@ class SyncTool:
             fetched_engagement = await self.dataloader.load_mo_engagement(
                 primary_engagement_uuid, current_objects_only=False
             )
+            if fetched_engagement is None:
+                raise NoObjectsReturnedException("Could not fetch engagement")
         except NoObjectsReturnedException as exc:
             raise RequeueMessage("Unable to load mo object") from exc
         delete = get_delete_flag(jsonable_encoder(fetched_engagement))

@@ -1021,6 +1021,7 @@ async def test_load_mo_engagement(
     }
 
     output = await dataloader.load_mo_engagement(uuid4())
+    assert output is not None
     assert output.user_key == "foo"
     assert output.validity.from_date.strftime("%Y-%m-%d") == "2021-01-01"
     assert output.extension_1 == "extra info"
@@ -1029,14 +1030,23 @@ async def test_load_mo_engagement(
     assert route.called
 
 
-async def test_load_mo_engagement_missing(
-    dataloader: DataLoader, graphql_mock: GraphQLMocker
+@pytest.mark.parametrize(
+    "objects",
+    [
+        # No objects returned
+        [],
+        # Object returned, but no validities
+        [{"validities": []}],
+    ],
+)
+async def test_load_mo_engagement_not_found(
+    dataloader: DataLoader, graphql_mock: GraphQLMocker, objects: list[dict]
 ) -> None:
     route = graphql_mock.query("read_engagements")
-    route.result = {"engagements": {"objects": []}}
+    route.result = {"engagements": {"objects": objects}}
 
-    with pytest.raises(NoObjectsReturnedException):
-        await dataloader.load_mo_engagement(uuid4())
+    result = await dataloader.load_mo_engagement(uuid4())
+    assert result is None
 
     assert route.called
 
