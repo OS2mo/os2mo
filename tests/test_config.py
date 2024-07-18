@@ -4,7 +4,7 @@ from functools import partial
 from typing import cast
 
 import pytest
-from mergedeep import Strategy
+from mergedeep import Strategy  # type: ignore
 from mergedeep import merge  # type: ignore
 from pydantic import ValidationError
 from pydantic import parse_obj_as
