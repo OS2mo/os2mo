@@ -111,3 +111,9 @@ DEP002 = [
   # uvicorn is used by the Dockerfile
   "uvicorn",
 ]
+
+[tool.ruff.lint]
+extend-select = ["I"]
+
+[tool.ruff.lint.isort]
+force-single-line = true

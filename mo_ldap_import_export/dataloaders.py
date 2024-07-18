@@ -5,15 +5,15 @@ import asyncio
 from contextlib import suppress
 from datetime import datetime
 from datetime import timezone
-from enum import auto
 from enum import Enum
+from enum import auto
 from functools import partialmethod
 from functools import wraps
 from typing import Any
-from typing import cast
 from typing import Literal
 from typing import Protocol
 from typing import TypeVar
+from typing import cast
 from uuid import UUID
 
 import structlog
@@ -73,8 +73,8 @@ from .ldap import object_search
 from .ldap import paged_search
 from .ldap import single_object_search
 from .ldap_classes import LdapObject
-from .types import CPRNumber
 from .types import DN
+from .types import CPRNumber
 from .types import OrgUnitUUID
 from .usernames import UserNameGenerator
 from .utils import combine_dn_strings

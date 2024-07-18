@@ -8,8 +8,8 @@ from collections.abc import Iterator
 from typing import Any
 from typing import Mapping
 from unittest.mock import AsyncMock
-from unittest.mock import create_autospec
 from unittest.mock import MagicMock
+from unittest.mock import create_autospec
 from uuid import uuid4
 
 import pytest

@@ -12,9 +12,9 @@ import pytest
 from fastramqpi.ramqp.depends import Context
 from fastramqpi.ramqp.utils import RequeueMessage
 from ldap3 import BASE
-from ldap3 import Connection
 from ldap3 import MOCK_ASYNC
 from ldap3 import SUBTREE
+from ldap3 import Connection
 from more_itertools import one
 from pydantic import parse_obj_as
 from structlog.testing import capture_logs

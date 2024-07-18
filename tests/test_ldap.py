@@ -15,14 +15,13 @@ import ldap3.core.exceptions
 import pytest
 from fastramqpi.context import Context
 from fastramqpi.depends import UserContext
-from ldap3 import Connection
 from ldap3 import MOCK_SYNC
+from ldap3 import Connection
 from ldap3 import Server
 from more_itertools import collapse
 from pydantic import parse_obj_as
 from structlog.testing import capture_logs
 
-from .test_dataloaders import mock_ldap_response
 from mo_ldap_import_export.config import AuthBackendEnum
 from mo_ldap_import_export.config import ConversionMapping
 from mo_ldap_import_export.config import ServerConfig
@@ -47,6 +46,8 @@ from mo_ldap_import_export.ldap import set_search_params_modify_timestamp
 from mo_ldap_import_export.ldap import setup_poller
 from mo_ldap_import_export.ldap import single_object_search
 from mo_ldap_import_export.ldap_classes import LdapObject
+
+from .test_dataloaders import mock_ldap_response
 
 
 @pytest.fixture()

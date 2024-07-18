@@ -30,8 +30,8 @@ from mo_ldap_import_export.dataloaders import Verb
 from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.exceptions import DNNotFound
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
-from mo_ldap_import_export.import_export import get_primary_engagement
 from mo_ldap_import_export.import_export import SyncTool
+from mo_ldap_import_export.import_export import get_primary_engagement
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.types import EmployeeUUID

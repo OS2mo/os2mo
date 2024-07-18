@@ -23,8 +23,8 @@ from fastapi.encoders import jsonable_encoder
 from fastramqpi.depends import UserContext
 from fastramqpi.ramqp.depends import Context
 from more_itertools import one
-from pydantic import parse_obj_as
 from pydantic import ValidationError
+from pydantic import parse_obj_as
 from ramodels.mo._shared import validate_cpr
 
 from . import depends
@@ -38,8 +38,8 @@ from .ldap import paged_search
 from .ldap_classes import LdapObject
 from .ldap_emit import publish_uuids
 from .processors import _hide_cpr as hide_cpr
-from .types import CPRNumber
 from .types import DN
+from .types import CPRNumber
 
 logger = structlog.stdlib.get_logger()
 

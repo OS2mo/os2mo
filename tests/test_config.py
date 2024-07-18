@@ -4,15 +4,14 @@ from functools import partial
 from typing import cast
 
 import pytest
-from mergedeep import merge  # type: ignore
 from mergedeep import Strategy
-from pydantic import parse_obj_as
+from mergedeep import merge  # type: ignore
 from pydantic import ValidationError
+from pydantic import parse_obj_as
 from pydantic.env_settings import SettingsError
 
 from mo_ldap_import_export.config import ConversionMapping
 from mo_ldap_import_export.config import Settings
-
 
 overlay = partial(merge, strategy=Strategy.TYPESAFE_ADDITIVE)
 
