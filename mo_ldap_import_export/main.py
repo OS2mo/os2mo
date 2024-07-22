@@ -4,10 +4,13 @@
 import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Annotated
 from typing import Any
+from uuid import UUID
 
 import structlog
 from fastapi import APIRouter
+from fastapi import Body
 from fastapi import Depends
 from fastapi import FastAPI
 from fastramqpi.main import FastRAMQPI
@@ -28,6 +31,7 @@ from .customer_specific_checks import ExportChecks
 from .customer_specific_checks import ImportChecks
 from .dataloaders import DataLoader
 from .exceptions import amqp_reject_on_failure
+from .exceptions import http_reject_on_failure
 from .import_export import SyncTool
 from .ldap import check_ou_in_list_of_ous
 from .ldap import configure_ldap_connection
@@ -48,10 +52,28 @@ amqp_router = MORouter()
 mo2ldap_router = APIRouter(prefix="/mo2ldap")
 
 
+@mo2ldap_router.post("/address")
+@http_reject_on_failure
+async def http_process_address(
+    object_uuid: Annotated[UUID, Body()],
+    graphql_client: depends.GraphQLClient,
+    amqpsystem: depends.AMQPSystem,
+) -> None:
+    await handle_address(object_uuid, graphql_client, amqpsystem)
+
+
 @amqp_router.register("address")
 @amqp_reject_on_failure
 async def process_address(
     object_uuid: PayloadUUID,
+    graphql_client: depends.GraphQLClient,
+    amqpsystem: depends.AMQPSystem,
+) -> None:
+    await handle_address(object_uuid, graphql_client, amqpsystem)
+
+
+async def handle_address(
+    object_uuid: UUID,
     graphql_client: depends.GraphQLClient,
     amqpsystem: depends.AMQPSystem,
 ) -> None:

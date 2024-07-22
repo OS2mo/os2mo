@@ -349,3 +349,14 @@ async def test_ldap2mo(test_client: AsyncClient) -> None:
     result = await test_client.post("/ldap2mo/uuid", content=content, headers=headers)
     assert result.status_code == 451
     assert result.json() == {"detail": "LDAP UUID could not be found"}
+
+
+@pytest.mark.integration_test
+async def test_mo2ldap_address(test_client: AsyncClient) -> None:
+    content = str(uuid4())
+    headers = {"Content-Type": "text/plain"}
+    result = await test_client.post(
+        "/mo2ldap/address", content=content, headers=headers
+    )
+    assert result.status_code == 451
+    assert result.json() == {"detail": "Unable to lookup address"}
