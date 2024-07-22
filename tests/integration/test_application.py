@@ -389,3 +389,14 @@ async def test_mo2ldap_person(test_client: AsyncClient) -> None:
     result = await test_client.post("/mo2ldap/person", content=content, headers=headers)
     assert result.status_code == 200
     assert result.json() is None
+
+
+@pytest.mark.integration_test
+async def test_mo2ldap_org_unit(test_client: AsyncClient) -> None:
+    content = str(uuid4())
+    headers = {"Content-Type": "text/plain"}
+    result = await test_client.post(
+        "/mo2ldap/org_unit", content=content, headers=headers
+    )
+    assert result.status_code == 200
+    assert result.json() is None

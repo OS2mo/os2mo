@@ -222,10 +222,26 @@ async def process_person(
         await graphql_client.employee_refresh(amqpsystem.exchange_name, [object_uuid])
 
 
+@mo2ldap_router.post("/org_unit")
+@http_reject_on_failure
+async def http_process_org_unit(
+    object_uuid: Annotated[UUID, Body()],
+    sync_tool: depends.SyncTool,
+) -> None:
+    await handle_org_unit(object_uuid, sync_tool)
+
+
 @amqp_router.register("org_unit")
 @amqp_reject_on_failure
 async def process_org_unit(
     object_uuid: PayloadUUID,
+    sync_tool: depends.SyncTool,
+) -> None:
+    await handle_org_unit(object_uuid, sync_tool)
+
+
+async def handle_org_unit(
+    object_uuid: UUID,
     sync_tool: depends.SyncTool,
 ) -> None:
     logger.info(
