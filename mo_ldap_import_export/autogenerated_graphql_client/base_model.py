@@ -1,9 +1,9 @@
 from typing import Any
 from typing import Dict
-from typing import get_args
-from typing import get_origin
 from typing import Type
 from typing import Union
+from typing import get_args
+from typing import get_origin
 
 from pydantic import BaseModel as PydanticBaseModel
 from pydantic.class_validators import validator

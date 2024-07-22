@@ -6,13 +6,12 @@ import structlog
 from fastramqpi.context import Context
 from fastramqpi.depends import UserContext
 
-from .converters import get_it_system_uuid
 from .converters import LdapConverter
+from .converters import get_it_system_uuid
 from .dataloaders import DataLoader
 from .exceptions import IgnoreChanges
 from .ldap import check_ou_in_list_of_ous
 from .utils import extract_ou_from_dn
-
 
 logger = structlog.stdlib.get_logger()
 

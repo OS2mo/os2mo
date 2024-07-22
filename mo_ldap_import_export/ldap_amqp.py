@@ -16,9 +16,9 @@ from fastramqpi.ramqp.utils import RejectMessage
 from .config import LDAPAMQPConnectionSettings
 from .depends import DataLoader
 from .depends import LDAPAMQPSystem
+from .depends import SyncTool
 from .depends import logger_bound_message_id
 from .depends import request_id
-from .depends import SyncTool
 from .exceptions import NoObjectsReturnedException
 from .ldap_emit import publish_uuids
 

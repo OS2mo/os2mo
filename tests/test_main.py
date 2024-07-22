@@ -10,9 +10,9 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import Any
 from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
 from unittest.mock import call
 from unittest.mock import create_autospec
-from unittest.mock import MagicMock
 from unittest.mock import patch
 from uuid import UUID
 from uuid import uuid4
@@ -55,8 +55,8 @@ from mo_ldap_import_export.main import process_ituser
 from mo_ldap_import_export.main import process_org_unit
 from mo_ldap_import_export.main import process_person
 from mo_ldap_import_export.main import reject_on_failure
-from mo_ldap_import_export.usernames import get_username_generator_class
 from mo_ldap_import_export.usernames import UserNameGenerator
+from mo_ldap_import_export.usernames import get_username_generator_class
 from mo_ldap_import_export.utils import get_delete_flag
 from tests.graphql_mocker import GraphQLMocker
 

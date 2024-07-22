@@ -8,8 +8,8 @@ from uuid import uuid4
 
 import pytest
 from fastramqpi.context import Context
-from pydantic import parse_obj_as
 from pydantic import ValidationError
+from pydantic import parse_obj_as
 from ramodels.mo import Employee
 
 from mo_ldap_import_export.config import UsernameGeneratorConfig
