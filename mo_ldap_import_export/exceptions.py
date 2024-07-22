@@ -1,6 +1,10 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Awaitable
 from functools import wraps
+from typing import Callable
+from typing import ParamSpec
+from typing import TypeVar
 
 import structlog
 from fastapi import HTTPException
@@ -77,22 +81,33 @@ class DNNotFound(HTTPException):
         super().__init__(status_code=404, detail=message)
 
 
-def reject_on_failure(func):
-    """
-    Decorator to turn message into dead letter in case of exceptions.
+Params = ParamSpec("Params")
+ReturnType = TypeVar("ReturnType")
+
+
+def reject_on_failure(
+    func: Callable[Params, Awaitable[ReturnType]],
+) -> Callable[Params, Awaitable[ReturnType]]:
+    """Decorator to convert the above exceptions into RAMQP exceptions.
+
+    Args:
+        func: The function to decorate.
+
+    Returns:
+        The decorated function, converting exceptions into RAMQP exceptions.
     """
 
     @wraps(func)
-    async def modified_func(*args, **kwargs):
+    async def modified_func(*args: Params.args, **kwargs: Params.kwargs) -> ReturnType:
         try:
-            await func(*args, **kwargs)
+            return await func(*args, **kwargs)
         except RejectMessage as e:  # In case we explicitly reject the message: Abort
-            logger.info(e)
+            logger.info(str(e))
             raise
         except (
             RequeueMessage
         ) as e:  # In case we explicitly requeued the message: Requeue
-            logger.warning(e)
+            logger.warning(str(e))
             raise
         except (
             # Misconfiguration
@@ -103,15 +118,16 @@ def reject_on_failure(func):
             TransportQueryError,
             NoObjectsReturnedException,  # In case an object is deleted halfway: Abort
         ) as e:
-            logger.warning(e)
+            logger.warning(str(e))
             raise RequeueMessage() from e
         except (
             # This is raised if the import/export checks reject a message
             IgnoreChanges,
             ReadOnlyException,  # In case a feature is not enabled: Abort
         ) as e:
-            logger.info(e)
+            logger.info(str(e))
             raise RejectMessage() from e
 
+    # TODO: Why is this necessary?
     modified_func.__wrapped__ = func  # type: ignore
     return modified_func
