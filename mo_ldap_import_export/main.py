@@ -149,10 +149,28 @@ async def handle_engagement(
     await graphql_client.employee_refresh(amqpsystem.exchange_name, [person_uuid])
 
 
+@mo2ldap_router.post("/ituser")
+@http_reject_on_failure
+async def http_process_ituser(
+    object_uuid: Annotated[UUID, Body()],
+    graphql_client: depends.GraphQLClient,
+    amqpsystem: depends.AMQPSystem,
+) -> None:
+    await handle_ituser(object_uuid, graphql_client, amqpsystem)
+
+
 @amqp_router.register("ituser")
 @amqp_reject_on_failure
 async def process_ituser(
     object_uuid: PayloadUUID,
+    graphql_client: depends.GraphQLClient,
+    amqpsystem: depends.AMQPSystem,
+) -> None:
+    await handle_ituser(object_uuid, graphql_client, amqpsystem)
+
+
+async def handle_ituser(
+    object_uuid: UUID,
     graphql_client: depends.GraphQLClient,
     amqpsystem: depends.AMQPSystem,
 ) -> None:
