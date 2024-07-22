@@ -108,10 +108,28 @@ async def handle_address(
         )
 
 
+@mo2ldap_router.post("/engagement")
+@http_reject_on_failure
+async def http_process_engagement(
+    object_uuid: Annotated[UUID, Body()],
+    graphql_client: depends.GraphQLClient,
+    amqpsystem: depends.AMQPSystem,
+) -> None:
+    await handle_engagement(object_uuid, graphql_client, amqpsystem)
+
+
 @amqp_router.register("engagement")
 @amqp_reject_on_failure
 async def process_engagement(
     object_uuid: PayloadUUID,
+    graphql_client: depends.GraphQLClient,
+    amqpsystem: depends.AMQPSystem,
+) -> None:
+    await handle_engagement(object_uuid, graphql_client, amqpsystem)
+
+
+async def handle_engagement(
+    object_uuid: UUID,
     graphql_client: depends.GraphQLClient,
     amqpsystem: depends.AMQPSystem,
 ) -> None:
