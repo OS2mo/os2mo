@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 import structlog
+from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import FastAPI
 from fastramqpi.main import FastRAMQPI
@@ -34,6 +35,7 @@ from .ldap import ldap_healthcheck
 from .ldap import poller_healthcheck
 from .ldap import setup_listener
 from .ldap_amqp import configure_ldap_amqpsystem
+from .ldap_amqp import ldap2mo_router
 from .logging import init as initialize_logging
 from .os2mo_init import InitEngine
 from .routes import construct_router
@@ -43,6 +45,7 @@ from .usernames import get_username_generator_class
 logger = structlog.stdlib.get_logger()
 
 amqp_router = MORouter()
+mo2ldap_router = APIRouter(prefix="/mo2ldap")
 
 
 @amqp_router.register("address")
@@ -353,5 +356,7 @@ def create_app(fastramqpi: FastRAMQPI | None = None, **kwargs: Any) -> FastAPI:
     app = fastramqpi.get_app()
     user_context = fastramqpi._context["user_context"]
     app.include_router(construct_router(user_context))
+    app.include_router(mo2ldap_router)
+    app.include_router(ldap2mo_router)
 
     return app

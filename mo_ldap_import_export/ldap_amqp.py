@@ -5,6 +5,7 @@ from typing import Annotated
 from uuid import UUID
 
 import structlog
+from fastapi import APIRouter
 from fastapi import Depends
 from fastramqpi.main import FastRAMQPI
 from fastramqpi.ramqp import AMQPSystem
@@ -27,6 +28,7 @@ logger = structlog.stdlib.get_logger()
 
 
 ldap_amqp_router = Router()
+ldap2mo_router = APIRouter(prefix="/ldap2mo")
 
 # Try errors again after a short period of time
 delay_on_error = 10
