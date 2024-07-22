@@ -4,7 +4,6 @@
 import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from functools import wraps
 from typing import Any
 
 import structlog
@@ -17,7 +16,6 @@ from fastramqpi.ramqp.mo import MORouter
 from fastramqpi.ramqp.mo import PayloadUUID
 from fastramqpi.ramqp.utils import RejectMessage
 from fastramqpi.ramqp.utils import RequeueMessage
-from gql.transport.exceptions import TransportQueryError
 from ldap3 import Connection
 from more_itertools import one
 
@@ -28,10 +26,7 @@ from .converters import LdapConverter
 from .customer_specific_checks import ExportChecks
 from .customer_specific_checks import ImportChecks
 from .dataloaders import DataLoader
-from .exceptions import IgnoreChanges
-from .exceptions import IncorrectMapping
-from .exceptions import NoObjectsReturnedException
-from .exceptions import ReadOnlyException
+from .exceptions import reject_on_failure
 from .import_export import SyncTool
 from .ldap import check_ou_in_list_of_ous
 from .ldap import configure_ldap_connection
@@ -48,46 +43,6 @@ from .usernames import get_username_generator_class
 logger = structlog.stdlib.get_logger()
 
 amqp_router = MORouter()
-
-
-def reject_on_failure(func):
-    """
-    Decorator to turn message into dead letter in case of exceptions.
-    """
-
-    @wraps(func)
-    async def modified_func(*args, **kwargs):
-        try:
-            await func(*args, **kwargs)
-        except RejectMessage as e:  # In case we explicitly reject the message: Abort
-            logger.info(e)
-            raise
-        except (
-            RequeueMessage
-        ) as e:  # In case we explicitly requeued the message: Requeue
-            logger.warning(e)
-            raise
-        except (
-            # Misconfiguration
-            # This is raised when the integration is improperly configured
-            IncorrectMapping,
-            # Temporary downtime
-            # This is raised when a GraphQL query is invalid or has temporary downtime
-            TransportQueryError,
-            NoObjectsReturnedException,  # In case an object is deleted halfway: Abort
-        ) as e:
-            logger.warning(e)
-            raise RequeueMessage() from e
-        except (
-            # This is raised if the import/export checks reject a message
-            IgnoreChanges,
-            ReadOnlyException,  # In case a feature is not enabled: Abort
-        ) as e:
-            logger.info(e)
-            raise RejectMessage() from e
-
-    modified_func.__wrapped__ = func  # type: ignore
-    return modified_func
 
 
 @amqp_router.register("address")
