@@ -20,7 +20,7 @@ from .depends import SyncTool
 from .depends import logger_bound_message_id
 from .depends import request_id
 from .exceptions import NoObjectsReturnedException
-from .exceptions import reject_on_failure
+from .exceptions import amqp_reject_on_failure
 from .ldap_emit import publish_uuids
 
 logger = structlog.stdlib.get_logger()
@@ -35,7 +35,7 @@ PayloadUUID = Annotated[UUID, Depends(get_payload_as_type(UUID))]
 
 
 @ldap_amqp_router.register("uuid")
-@reject_on_failure
+@amqp_reject_on_failure
 async def process_uuid(
     ldap_amqpsystem: LDAPAMQPSystem,
     sync_tool: SyncTool,

@@ -26,7 +26,7 @@ from .converters import LdapConverter
 from .customer_specific_checks import ExportChecks
 from .customer_specific_checks import ImportChecks
 from .dataloaders import DataLoader
-from .exceptions import reject_on_failure
+from .exceptions import amqp_reject_on_failure
 from .import_export import SyncTool
 from .ldap import check_ou_in_list_of_ous
 from .ldap import configure_ldap_connection
@@ -46,7 +46,7 @@ amqp_router = MORouter()
 
 
 @amqp_router.register("address")
-@reject_on_failure
+@amqp_reject_on_failure
 async def process_address(
     object_uuid: PayloadUUID,
     graphql_client: depends.GraphQLClient,
@@ -84,7 +84,7 @@ async def process_address(
 
 
 @amqp_router.register("engagement")
-@reject_on_failure
+@amqp_reject_on_failure
 async def process_engagement(
     object_uuid: PayloadUUID,
     graphql_client: depends.GraphQLClient,
@@ -107,7 +107,7 @@ async def process_engagement(
 
 
 @amqp_router.register("ituser")
-@reject_on_failure
+@amqp_reject_on_failure
 async def process_ituser(
     object_uuid: PayloadUUID,
     graphql_client: depends.GraphQLClient,
@@ -142,7 +142,9 @@ async def process_person(
     amqpsystem: depends.AMQPSystem,
 ) -> None:
     try:
-        await reject_on_failure(sync_tool.listen_to_changes_in_employees)(object_uuid)
+        await amqp_reject_on_failure(sync_tool.listen_to_changes_in_employees)(
+            object_uuid
+        )
     except RequeueMessage:  # pragma: no cover
         # NOTE: This is a hack to cycle messages because quorum queues do not work
         await asyncio.sleep(30)
@@ -150,7 +152,7 @@ async def process_person(
 
 
 @amqp_router.register("org_unit")
-@reject_on_failure
+@amqp_reject_on_failure
 async def process_org_unit(
     object_uuid: PayloadUUID,
     sync_tool: depends.SyncTool,

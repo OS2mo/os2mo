@@ -85,7 +85,7 @@ Params = ParamSpec("Params")
 ReturnType = TypeVar("ReturnType")
 
 
-def reject_on_failure(
+def amqp_reject_on_failure(
     func: Callable[Params, Awaitable[ReturnType]],
 ) -> Callable[Params, Awaitable[ReturnType]]:
     """Decorator to convert the above exceptions into RAMQP exceptions.

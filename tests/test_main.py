@@ -40,6 +40,7 @@ from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import ReadOnlyException
 from mo_ldap_import_export.ldap_classes import LdapObject
+from mo_ldap_import_export.main import amqp_reject_on_failure
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
 from mo_ldap_import_export.main import initialize_checks
@@ -54,7 +55,6 @@ from mo_ldap_import_export.main import process_engagement
 from mo_ldap_import_export.main import process_ituser
 from mo_ldap_import_export.main import process_org_unit
 from mo_ldap_import_export.main import process_person
-from mo_ldap_import_export.main import reject_on_failure
 from mo_ldap_import_export.usernames import UserNameGenerator
 from mo_ldap_import_export.usernames import get_username_generator_class
 from mo_ldap_import_export.utils import get_delete_flag
@@ -908,14 +908,14 @@ async def test_reject_on_failure():
         no_objects_returned_func,
     ]:
         with pytest.raises(RequeueMessage):
-            await reject_on_failure(func)()
+            await amqp_reject_on_failure(func)()
 
     with pytest.raises(RequeueMessage):
-        await reject_on_failure(requeue_error_func)()
+        await amqp_reject_on_failure(requeue_error_func)()
 
     for func in [ignore_changes_func, read_only_func]:
         with pytest.raises(RejectMessage):
-            await reject_on_failure(func)()
+            await amqp_reject_on_failure(func)()
 
 
 async def test_get_delete_flag(dataloader: AsyncMock):
