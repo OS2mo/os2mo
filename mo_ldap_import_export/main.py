@@ -194,6 +194,16 @@ async def handle_ituser(
     await graphql_client.employee_refresh(amqpsystem.exchange_name, [person_uuid])
 
 
+@mo2ldap_router.post("/person")
+@handle_exclusively_decorator(key=lambda object_uuid, *_, **__: object_uuid)
+@http_reject_on_failure
+async def http_process_person(
+    object_uuid: Annotated[UUID, Body()],
+    sync_tool: depends.SyncTool,
+) -> None:
+    sync_tool.listen_to_changes_in_employees(object_uuid)
+
+
 @amqp_router.register("person")
 @handle_exclusively_decorator(key=lambda object_uuid, *_, **__: object_uuid)
 async def process_person(
