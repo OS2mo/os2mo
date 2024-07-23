@@ -22,7 +22,7 @@ class MultipleObjectsReturnedException(HTTPException):
 
 class NoObjectsReturnedException(HTTPException):
     def __init__(self, message):
-        super().__init__(status_code=404, detail=message)
+        super().__init__(status_code=500, detail=message)
 
 
 class AttributeNotFound(HTTPException):
@@ -41,7 +41,7 @@ class ReadOnlyException(HTTPException):
     """Raised when the integration would write if not in read-only mode."""
 
     def __init__(self, message):
-        super().__init__(status_code=501, detail=message)
+        super().__init__(status_code=451, detail=message)
 
 
 class InvalidNameException(HTTPException):
@@ -63,7 +63,7 @@ class IgnoreChanges(HTTPException):
     """Exception raised if the import/export checks reject a message."""
 
     def __init__(self, message):
-        super().__init__(status_code=400, detail=message)
+        super().__init__(status_code=451, detail=message)
 
 
 class InvalidChangeDict(HTTPException):
@@ -85,7 +85,7 @@ Params = ParamSpec("Params")
 ReturnType = TypeVar("ReturnType")
 
 
-def reject_on_failure(
+def amqp_reject_on_failure(
     func: Callable[Params, Awaitable[ReturnType]],
 ) -> Callable[Params, Awaitable[ReturnType]]:
     """Decorator to convert the above exceptions into RAMQP exceptions.
@@ -127,6 +127,46 @@ def reject_on_failure(
         ) as e:
             logger.info(str(e))
             raise RejectMessage() from e
+
+    # TODO: Why is this necessary?
+    modified_func.__wrapped__ = func  # type: ignore
+    return modified_func
+
+
+def http_reject_on_failure(
+    func: Callable[Params, Awaitable[ReturnType]],
+) -> Callable[Params, Awaitable[ReturnType]]:
+    """Decorator to convert the exceptions into HTTP exceptions.
+
+    Args:
+        func: The function to decorate.
+
+    Returns:
+        The decorated function, converting exceptions into HTTP exceptions.
+    """
+
+    @wraps(func)
+    async def modified_func(*args: Params.args, **kwargs: Params.kwargs) -> ReturnType:
+        try:
+            return await func(*args, **kwargs)
+        except RejectMessage as e:  # In case we explicitly reject the message: Abort
+            logger.info(str(e))
+            raise HTTPException(status_code=451, detail=str(e)) from e
+        except (
+            # In case we explicitly requeued the message: Requeue
+            RequeueMessage,
+            # Temporary downtime
+            # This is raised when a GraphQL query is invalid or has temporary downtime
+            TransportQueryError,
+        ) as e:
+            logger.warning(str(e))
+            raise HTTPException(status_code=409, detail=str(e)) from e
+        except HTTPException as e:
+            logger.info(str(e))
+            raise
+        except Exception as e:
+            logger.warning(str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
 
     # TODO: Why is this necessary?
     modified_func.__wrapped__ = func  # type: ignore

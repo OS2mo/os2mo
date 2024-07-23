@@ -4,9 +4,13 @@
 import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Annotated
 from typing import Any
+from uuid import UUID
 
 import structlog
+from fastapi import APIRouter
+from fastapi import Body
 from fastapi import Depends
 from fastapi import FastAPI
 from fastramqpi.main import FastRAMQPI
@@ -26,7 +30,8 @@ from .converters import LdapConverter
 from .customer_specific_checks import ExportChecks
 from .customer_specific_checks import ImportChecks
 from .dataloaders import DataLoader
-from .exceptions import reject_on_failure
+from .exceptions import amqp_reject_on_failure
+from .exceptions import http_reject_on_failure
 from .import_export import SyncTool
 from .ldap import check_ou_in_list_of_ous
 from .ldap import configure_ldap_connection
@@ -34,6 +39,7 @@ from .ldap import ldap_healthcheck
 from .ldap import poller_healthcheck
 from .ldap import setup_listener
 from .ldap_amqp import configure_ldap_amqpsystem
+from .ldap_amqp import ldap2mo_router
 from .logging import init as initialize_logging
 from .os2mo_init import InitEngine
 from .routes import construct_router
@@ -43,12 +49,31 @@ from .usernames import get_username_generator_class
 logger = structlog.stdlib.get_logger()
 
 amqp_router = MORouter()
+mo2ldap_router = APIRouter(prefix="/mo2ldap")
+
+
+@mo2ldap_router.post("/address")
+@http_reject_on_failure
+async def http_process_address(
+    object_uuid: Annotated[UUID, Body()],
+    graphql_client: depends.GraphQLClient,
+    amqpsystem: depends.AMQPSystem,
+) -> None:
+    await handle_address(object_uuid, graphql_client, amqpsystem)
 
 
 @amqp_router.register("address")
-@reject_on_failure
+@amqp_reject_on_failure
 async def process_address(
     object_uuid: PayloadUUID,
+    graphql_client: depends.GraphQLClient,
+    amqpsystem: depends.AMQPSystem,
+) -> None:
+    await handle_address(object_uuid, graphql_client, amqpsystem)
+
+
+async def handle_address(
+    object_uuid: UUID,
     graphql_client: depends.GraphQLClient,
     amqpsystem: depends.AMQPSystem,
 ) -> None:
@@ -83,10 +108,28 @@ async def process_address(
         )
 
 
+@mo2ldap_router.post("/engagement")
+@http_reject_on_failure
+async def http_process_engagement(
+    object_uuid: Annotated[UUID, Body()],
+    graphql_client: depends.GraphQLClient,
+    amqpsystem: depends.AMQPSystem,
+) -> None:
+    await handle_engagement(object_uuid, graphql_client, amqpsystem)
+
+
 @amqp_router.register("engagement")
-@reject_on_failure
+@amqp_reject_on_failure
 async def process_engagement(
     object_uuid: PayloadUUID,
+    graphql_client: depends.GraphQLClient,
+    amqpsystem: depends.AMQPSystem,
+) -> None:
+    await handle_engagement(object_uuid, graphql_client, amqpsystem)
+
+
+async def handle_engagement(
+    object_uuid: UUID,
     graphql_client: depends.GraphQLClient,
     amqpsystem: depends.AMQPSystem,
 ) -> None:
@@ -106,10 +149,28 @@ async def process_engagement(
     await graphql_client.employee_refresh(amqpsystem.exchange_name, [person_uuid])
 
 
+@mo2ldap_router.post("/ituser")
+@http_reject_on_failure
+async def http_process_ituser(
+    object_uuid: Annotated[UUID, Body()],
+    graphql_client: depends.GraphQLClient,
+    amqpsystem: depends.AMQPSystem,
+) -> None:
+    await handle_ituser(object_uuid, graphql_client, amqpsystem)
+
+
 @amqp_router.register("ituser")
-@reject_on_failure
+@amqp_reject_on_failure
 async def process_ituser(
     object_uuid: PayloadUUID,
+    graphql_client: depends.GraphQLClient,
+    amqpsystem: depends.AMQPSystem,
+) -> None:
+    await handle_ituser(object_uuid, graphql_client, amqpsystem)
+
+
+async def handle_ituser(
+    object_uuid: UUID,
     graphql_client: depends.GraphQLClient,
     amqpsystem: depends.AMQPSystem,
 ) -> None:
@@ -133,6 +194,16 @@ async def process_ituser(
     await graphql_client.employee_refresh(amqpsystem.exchange_name, [person_uuid])
 
 
+@mo2ldap_router.post("/person")
+@handle_exclusively_decorator(key=lambda object_uuid, *_, **__: object_uuid)
+@http_reject_on_failure
+async def http_process_person(
+    object_uuid: Annotated[UUID, Body()],
+    sync_tool: depends.SyncTool,
+) -> None:
+    sync_tool.listen_to_changes_in_employees(object_uuid)
+
+
 @amqp_router.register("person")
 @handle_exclusively_decorator(key=lambda object_uuid, *_, **__: object_uuid)
 async def process_person(
@@ -142,17 +213,35 @@ async def process_person(
     amqpsystem: depends.AMQPSystem,
 ) -> None:
     try:
-        await reject_on_failure(sync_tool.listen_to_changes_in_employees)(object_uuid)
+        await amqp_reject_on_failure(sync_tool.listen_to_changes_in_employees)(
+            object_uuid
+        )
     except RequeueMessage:  # pragma: no cover
         # NOTE: This is a hack to cycle messages because quorum queues do not work
         await asyncio.sleep(30)
         await graphql_client.employee_refresh(amqpsystem.exchange_name, [object_uuid])
 
 
+@mo2ldap_router.post("/org_unit")
+@http_reject_on_failure
+async def http_process_org_unit(
+    object_uuid: Annotated[UUID, Body()],
+    sync_tool: depends.SyncTool,
+) -> None:
+    await handle_org_unit(object_uuid, sync_tool)
+
+
 @amqp_router.register("org_unit")
-@reject_on_failure
+@amqp_reject_on_failure
 async def process_org_unit(
     object_uuid: PayloadUUID,
+    sync_tool: depends.SyncTool,
+) -> None:
+    await handle_org_unit(object_uuid, sync_tool)
+
+
+async def handle_org_unit(
+    object_uuid: UUID,
     sync_tool: depends.SyncTool,
 ) -> None:
     logger.info(
@@ -351,5 +440,7 @@ def create_app(fastramqpi: FastRAMQPI | None = None, **kwargs: Any) -> FastAPI:
     app = fastramqpi.get_app()
     user_context = fastramqpi._context["user_context"]
     app.include_router(construct_router(user_context))
+    app.include_router(mo2ldap_router)
+    app.include_router(ldap2mo_router)
 
     return app

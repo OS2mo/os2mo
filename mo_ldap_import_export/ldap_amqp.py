@@ -5,6 +5,8 @@ from typing import Annotated
 from uuid import UUID
 
 import structlog
+from fastapi import APIRouter
+from fastapi import Body
 from fastapi import Depends
 from fastramqpi.main import FastRAMQPI
 from fastramqpi.ramqp import AMQPSystem
@@ -20,13 +22,15 @@ from .depends import SyncTool
 from .depends import logger_bound_message_id
 from .depends import request_id
 from .exceptions import NoObjectsReturnedException
-from .exceptions import reject_on_failure
+from .exceptions import amqp_reject_on_failure
+from .exceptions import http_reject_on_failure
 from .ldap_emit import publish_uuids
 
 logger = structlog.stdlib.get_logger()
 
 
 ldap_amqp_router = Router()
+ldap2mo_router = APIRouter(prefix="/ldap2mo")
 
 # Try errors again after a short period of time
 delay_on_error = 10
@@ -34,13 +38,33 @@ delay_on_error = 10
 PayloadUUID = Annotated[UUID, Depends(get_payload_as_type(UUID))]
 
 
+@ldap2mo_router.post("/uuid")
+@http_reject_on_failure
+async def http_process_uuid(
+    ldap_amqpsystem: LDAPAMQPSystem,
+    sync_tool: SyncTool,
+    dataloader: DataLoader,
+    uuid: Annotated[UUID, Body()],
+) -> None:
+    await handle_uuid(ldap_amqpsystem, sync_tool, dataloader, uuid)
+
+
 @ldap_amqp_router.register("uuid")
-@reject_on_failure
+@amqp_reject_on_failure
 async def process_uuid(
     ldap_amqpsystem: LDAPAMQPSystem,
     sync_tool: SyncTool,
     dataloader: DataLoader,
     uuid: PayloadUUID,
+) -> None:
+    await handle_uuid(ldap_amqpsystem, sync_tool, dataloader, uuid)
+
+
+async def handle_uuid(
+    ldap_amqpsystem: LDAPAMQPSystem,
+    sync_tool: SyncTool,
+    dataloader: DataLoader,
+    uuid: UUID,
 ) -> None:
     # TODO: Sync from MO to LDAP to overwrite bad manual changes
 
