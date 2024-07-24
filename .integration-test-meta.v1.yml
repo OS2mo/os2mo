@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+# Copied from os2mo/gitlab-ci-templates/integration-test-meta.v1.yml
+# As of 25463b28, with local modifications
 
 include:
   - project: labs/salt-automation
