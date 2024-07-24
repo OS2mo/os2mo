@@ -151,6 +151,9 @@ class HTTPException(fastapiHTTPException):
     def code(self):
         return self.key.code
 
+    # Added to have pre 0.29.0 Starlette HTTPException behavior
+    __str__ = Exception.__str__
+
     def __init__(
         self,
         error_key: ErrorCodes | None = None,
