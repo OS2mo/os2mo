@@ -4,7 +4,7 @@ from typing import Annotated
 
 from fastapi import Depends
 from fastapi import Request
-from ramqp import AMQPSystem as _AMQPSystem
+from fastramqpi.ramqp import AMQPSystem as _AMQPSystem
 
 from .db import AsyncSession
 from .db import get_session

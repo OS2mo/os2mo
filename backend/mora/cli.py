@@ -11,9 +11,9 @@ import sys
 import time
 
 import click
+from fastramqpi.ramqp import AMQPSystem
+from fastramqpi.ramqp.mo import MOAMQPSystem
 from ra_utils.async_to_sync import async_to_sync
-from ramqp import AMQPSystem
-from ramqp.mo import MOAMQPSystem
 from sqlalchemy import select
 from sqlalchemy import update
 from structlog import get_logger

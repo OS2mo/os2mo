@@ -6,6 +6,7 @@ from functools import lru_cache
 from textwrap import dedent
 from typing import Any
 
+from fastramqpi.ramqp.config import AMQPConnectionSettings
 from pydantic import AmqpDsn
 from pydantic import AnyHttpUrl
 from pydantic import BaseSettings
@@ -15,7 +16,6 @@ from pydantic import root_validator
 from pydantic import validator
 from pydantic.types import FilePath
 from pydantic.types import UUID
-from ramqp.config import AMQPConnectionSettings
 from structlog import get_logger
 
 logger = get_logger()

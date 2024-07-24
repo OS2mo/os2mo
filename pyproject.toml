@@ -36,13 +36,13 @@ prometheus-fastapi-instrumentator = "^6.1.0"
 pydantic = {extras = ["email"], version = "^1.10.13"}
 os2mo-dar-client = "^1.0.4"
 ra-utils = "^1.14.0"
-ramqp = "9.1.1"
 uvicorn = "^0.23.2"
 strawberry-graphql = "^0.219.2"
 jsonschema = "^4.20.0"
 sentry-sdk = {extras = ["fastapi"], version = "^1.34.0"}
 psycopg = "^3.1.13"
 service-person-stamdata-udvidet = "^1.0.3"
+fastramqpi = "^8"
 
 [tool.poetry.group.dev.dependencies]
 requests-mock = "^1.11.0"
