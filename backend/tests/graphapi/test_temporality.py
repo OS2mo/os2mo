@@ -7,7 +7,7 @@ from uuid import UUID
 import pytest
 from more_itertools import one
 from strawberry import UNSET
-from strawberry.unset import UnsetType
+from strawberry.types.unset import UnsetType
 
 from ..conftest import GraphAPIPost
 

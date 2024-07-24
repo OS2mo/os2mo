@@ -6,7 +6,7 @@ from uuid import UUID
 import pytest
 from more_itertools import one
 from strawberry import UNSET
-from strawberry.unset import UnsetType
+from strawberry.types.unset import UnsetType
 
 from .utils import gen_read_parent
 from .utils import gen_set_parent

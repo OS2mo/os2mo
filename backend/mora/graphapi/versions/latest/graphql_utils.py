@@ -8,7 +8,7 @@ from typing import NamedTuple
 from uuid import UUID
 
 from pydantic import ConstrainedStr
-from strawberry.unset import UnsetType
+from strawberry.types.unset import UnsetType
 
 from tests.conftest import GraphAPIPost
 

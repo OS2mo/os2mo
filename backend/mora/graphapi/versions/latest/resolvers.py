@@ -25,7 +25,7 @@ from starlette_context import context
 from strawberry import UNSET
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
-from strawberry.unset import UnsetType
+from strawberry.types.unset import UnsetType
 
 from ...middleware import with_graphql_dates
 from .filters import AddressFilter

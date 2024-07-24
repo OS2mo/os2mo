@@ -9,7 +9,7 @@ from uuid import UUID
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
 from strawberry import UNSET
-from strawberry.unset import UnsetType
+from strawberry.types.unset import UnsetType
 
 from tests.conftest import GraphAPIPost
 

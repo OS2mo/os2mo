@@ -15,13 +15,13 @@ from graphql import ExecutionResult
 from graphql.error import GraphQLError
 from starlette.responses import PlainTextResponse
 from strawberry import Schema
-from strawberry.custom_scalar import ScalarDefinition
-from strawberry.custom_scalar import ScalarWrapper
 from strawberry.exceptions import StrawberryGraphQLError
 from strawberry.extensions import SchemaExtension
 from strawberry.printer import print_schema
 from strawberry.schema.config import StrawberryConfig
 from strawberry.types import ExecutionContext
+from strawberry.types.scalar import ScalarDefinition
+from strawberry.types.scalar import ScalarWrapper
 from strawberry.utils.await_maybe import AsyncIteratorOrIterator
 from structlog import get_logger
 
