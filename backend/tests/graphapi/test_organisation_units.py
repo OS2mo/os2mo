@@ -14,7 +14,7 @@ from hypothesis import settings
 from hypothesis import strategies as st
 from more_itertools import one
 from strawberry import UNSET
-from strawberry.unset import UnsetType
+from strawberry.types.unset import UnsetType
 
 from ..conftest import GraphAPIPost
 from .utils import fetch_class_uuids

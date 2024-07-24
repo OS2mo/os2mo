@@ -15,7 +15,7 @@ from more_itertools import bucket
 from more_itertools import unique_everseen
 from pydantic import parse_obj_as
 from strawberry.dataloader import DataLoader
-from strawberry.unset import UnsetType
+from strawberry.types.unset import UnsetType
 
 from ...middleware import with_graphql_dates
 from .graphql_utils import LoadKey

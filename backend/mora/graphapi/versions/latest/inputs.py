@@ -8,7 +8,7 @@ from uuid import uuid4
 
 import strawberry
 from strawberry import UNSET
-from strawberry.unset import UnsetType
+from strawberry.types.unset import UnsetType
 
 from .models import AddressCreate
 from .models import AddressTerminate

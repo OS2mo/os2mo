@@ -37,7 +37,7 @@ repos:
           - fastramqpi==8.3.0
           - sqlalchemy
           - starlette_context
-          - strawberry-graphql==0.209.6
+          - strawberry-graphql==0.237.1
           - structlog
           - types-python-dateutil
 
