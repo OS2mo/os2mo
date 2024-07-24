@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 # Copied from os2mo/gitlab-ci-templates/integration-test-meta.v1.yml
-# As of 25463b28, with local modifications
+# As of 494d38bf, with local modifications
 
 include:
   - project: labs/salt-automation
@@ -24,6 +24,11 @@ include:
     FASTRAMQPI__AUTH_SERVER: "http://keycloak:8080/auth"
     FASTRAMQPI__AUTH_REALM: "mo"
     FASTRAMQPI__AMQP__URL: "amqp://guest:guest@msg-broker:5672/"
+    FASTRAMQPI__DATABASE__USER: "fastramqpi"
+    FASTRAMQPI__DATABASE__PASSWORD: "fastramqpi"
+    FASTRAMQPI__DATABASE__HOST: "db"
+    FASTRAMQPI__DATABASE__PORT: "54321"
+    FASTRAMQPI__DATABASE__NAME: "fastramqpi"
   services:
     # LoRa postgres database
     # TODO: replace the custom image with upstream postgres when tests no longer depend
@@ -60,7 +65,7 @@ include:
       # we cannot (easily) run a separate postgres for keycloak. Override to use
       # in-memory instead.
       command: ["start", "-Dkeycloak.saml.deprecated.encryption=true", "--db=dev-mem"]
-    - name: magentaaps/os2mo-keycloak-realm-builder:5
+    - name: magentaaps/os2mo-keycloak-realm-builder:6
       variables:
         # Since GitLab CI doesn't support multiple services on the same port,
         # we cannot (easily) run a separate postgres for the realm builder's
@@ -195,6 +200,12 @@ include:
             sleep 1
           done
           touch /builds/.os2mo-init-finished
+    - name: postgres:16
+      alias: db
+      command: ["postgres", "-c", "port=54321"]
+      variables:
+        POSTGRES_USER: "fastramqpi"
+        POSTGRES_PASSWORD: "fastramqpi"
   before_script:
     - !reference [ .pytest, before_script ]
     - |
