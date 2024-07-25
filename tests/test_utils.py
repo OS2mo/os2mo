@@ -63,22 +63,31 @@ async def test_mo_datestring_to_utc() -> None:
     assert date is None
 
 
-async def test_datetime_to_ldap_timestamp() -> None:
-    date = datetime.datetime(2021, 1, 1, 10, 45, 20)
-    result = datetime_to_ldap_timestamp(date)
-    assert result == "20210101104520.0-0000"
-
-    date = datetime.datetime(2021, 1, 1, 10, 45, 20, 2000)
-    result = datetime_to_ldap_timestamp(date)
-    assert result == "20210101104520.2-0000"
-
-    date = datetime.datetime(2021, 1, 1, 10, 45, 20, 2100)
-    result = datetime_to_ldap_timestamp(date)
-    assert result == "20210101104520.2-0000"
-
-    date = datetime.datetime(2021, 1, 1, 10, 45, 20, 2100, pytz.timezone("Cuba"))
-    result = datetime_to_ldap_timestamp(date)
-    assert result == "20210101104520.2-0529"
+@pytest.mark.parametrize(
+    "datetime,expected",
+    [
+        (
+            datetime.datetime(2021, 1, 1, 10, 45, 20),
+            "20210101104520.0-0000",
+        ),
+        (
+            datetime.datetime(2021, 1, 1, 10, 45, 20, 2000),
+            "20210101104520.2-0000",
+        ),
+        (
+            datetime.datetime(2021, 1, 1, 10, 45, 20, 2100),
+            "20210101104520.2-0000",
+        ),
+        (
+            datetime.datetime(2021, 1, 1, 10, 45, 20, 2100, pytz.timezone("Cuba")),
+            "20210101104520.2-0529",
+        ),
+    ],
+)
+async def test_datetime_to_ldap_timestamp(
+    datetime: datetime.datetime, expected: str
+) -> None:
+    assert datetime_to_ldap_timestamp(datetime) == expected
 
 
 def test_combine_dn_strings() -> None:

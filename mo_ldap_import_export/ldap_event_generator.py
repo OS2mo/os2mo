@@ -184,6 +184,14 @@ async def poller_healthcheck(
 
 
 def datetime_to_ldap_timestamp(dt: datetime) -> str:
+    # This function seems severely broken
+    #
+    # Calling this method with 2000 microseconds yield: .2
+    # Calling this method with 20000 microsecond yield: .20
+    # Calling this method with 200000 microseconds yield: .200
+    # Thus adding more microseconds add precision, not actually more time
+    #
+    # This by extension has the consequence that we are losing change events
     return "".join(
         [
             dt.strftime("%Y%m%d%H%M%S"),
