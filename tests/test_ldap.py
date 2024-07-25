@@ -613,18 +613,17 @@ async def test_setup_poller() -> None:
 async def test_poller(
     load_settings_overrides: dict[str, str], ldap_connection: MagicMock
 ) -> None:
-    dn = "CN=Valeera Singuinar,OU=Bodyguards,DC=Stormwind"
+    settings = Settings()
+
     uuid = uuid4()
     event = {
         "type": "searchResEntry",
-        "attributes": {"distinguishedName": dn},
+        "attributes": {settings.ldap_unique_id_field: str(uuid)},
     }
     ldap_connection.get_response.return_value = [event], {"type": "test"}
 
     ldap_amqpsystem = AsyncMock()
     dataloader = AsyncMock()
-
-    dataloader.get_ldap_unique_ldap_uuid.return_value = uuid
 
     last_search_time = datetime.datetime.now(timezone.utc)
     search_time = await _poll(
@@ -643,13 +642,14 @@ async def test_poller(
     )
     assert search_time > last_search_time
 
-    dataloader.get_ldap_unique_ldap_uuid.assert_called_once_with(dn)
     ldap_amqpsystem.publish_message.assert_called_once_with("uuid", uuid)
 
 
-async def test_poller_no_dn(
+async def test_poller_no_uuid(
     load_settings_overrides: dict[str, str], ldap_connection: MagicMock
 ) -> None:
+    settings = Settings()
+
     event = {
         "type": "searchResEntry",
         "attributes": {},
@@ -679,7 +679,7 @@ async def test_poller_no_dn(
 
         ldap_amqpsystem.publish_message.assert_not_called()
     assert {
-        "event": "Got event without dn",
+        "event": "Got event without uuid",
         "log_level": "warning",
     } in cap_logs
 
