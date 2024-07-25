@@ -4,6 +4,7 @@
 import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from contextlib import suppress
 from typing import Annotated
 from typing import Any
 from uuid import UUID
@@ -312,6 +313,13 @@ async def initialize_ldap_listener(fastramqpi: FastRAMQPI) -> AsyncIterator[None
     fastramqpi.add_context(pollers=pollers)
     fastramqpi.add_healthcheck(name="LDAPPoller", healthcheck=poller_healthcheck)
     yield
+    # Signal all pollers to shutdown
+    for poller in pollers:
+        poller.cancel()
+    # Wait for all pollers to be shutdown
+    for poller in pollers:
+        with suppress(asyncio.CancelledError):
+            await poller
 
 
 # TODO: Eliminate this function and make reloading dicts eventdriven
