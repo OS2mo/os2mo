@@ -1159,23 +1159,6 @@ class DataLoader:
         entry.pop("validity")
         return Employee(**entry)
 
-    async def load_mo_employees_in_org_unit(self, uuid: OrgUnitUUID) -> list[Employee]:
-        """
-        Load all current employees engaged to an org unit
-        """
-        result = await self.graphql_client.read_employees_with_engagement_to_org_unit(
-            uuid
-        )
-
-        employee_uuids = {
-            x.current.employee_uuid for x in result.objects if x.current is not None
-        }
-        # TODO: dataloader?
-        employees = await asyncio.gather(
-            *[self.load_mo_employee(employee_uuid) for employee_uuid in employee_uuids]
-        )
-        return employees
-
     async def load_mo_class_uuid(self, user_key: str) -> UUID:
         """Find the UUID of a class by user-key.
 
