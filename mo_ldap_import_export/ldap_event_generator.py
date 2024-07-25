@@ -42,7 +42,6 @@ def setup_listener(context: Context) -> set[asyncio.Task]:
             user_context,
             {
                 "search_base": search_base,
-                "search_filter": "(cn=*)",
                 # TODO: Is this actually necessary compared to just getting DN by default?
                 "attributes": ["distinguishedName"],
             },
@@ -101,12 +100,15 @@ async def _poll(
     logger.debug(
         "Searching for changes since last search", last_search_time=last_search_time
     )
-    timed_search_parameters = set_search_params_modify_timestamp(
-        search_parameters, last_search_time
-    )
+    # NOTE: I am not convinced that using modifyTimestamp actually works, since it is
+    #       a non-replicable attribute, and thus every single domain controller may have
+    #       a different value for the same entry, thus if we hit different domain
+    #       controllers we may get duplicate (fine) and missed (not fine) events.
+    search_filter = f"(modifyTimestamp>={datetime_to_ldap_timestamp(last_search_time)})"
+    search_parameters["search_filter"] = search_filter
     last_search_time = datetime.utcnow()
 
-    response, _ = await ldap_search(ldap_connection, **timed_search_parameters)
+    response, _ = await ldap_search(ldap_connection, **search_parameters)
 
     # Filter to only keep search results
     responses = ldapresponse2entries(response)
@@ -173,19 +175,6 @@ async def _poller(
     while True:
         last_search_time = await seeded_poller(last_search_time=last_search_time)
         await asyncio.sleep(poll_time)
-
-
-def set_search_params_modify_timestamp(
-    search_parameters: dict[str, str], timestamp: datetime
-) -> dict[str, str]:
-    changed_str = f"(modifyTimestamp>={datetime_to_ldap_timestamp(timestamp)})"
-    search_filter = search_parameters["search_filter"]
-    if not search_filter.startswith("(") or not search_filter.endswith(")"):
-        search_filter = f"({search_filter})"
-    return {
-        **search_parameters,
-        "search_filter": "(&" + changed_str + search_filter + ")",
-    }
 
 
 async def poller_healthcheck(

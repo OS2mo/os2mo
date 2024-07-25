@@ -45,9 +45,6 @@ from mo_ldap_import_export.ldap import single_object_search
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.ldap_event_generator import _poll
 from mo_ldap_import_export.ldap_event_generator import poller_healthcheck
-from mo_ldap_import_export.ldap_event_generator import (
-    set_search_params_modify_timestamp,
-)
 from mo_ldap_import_export.ldap_event_generator import setup_poller
 
 from .test_dataloaders import mock_ldap_response
@@ -587,29 +584,6 @@ def user_context(
 ) -> dict:
     user_context = dict(dataloader=dataloader, converter=converter, sync_tool=sync_tool)
     return user_context
-
-
-async def test_set_search_params_modify_timestamp():
-    for search_filter in ["(cn=*)", "cn=*"]:
-        search_params = {
-            "search_base": "foo",
-            "search_filter": search_filter,
-            "attributes": ["employeeID"],
-        }
-        timestamp = datetime.datetime(2021, 1, 1)
-
-        modified_search_params = set_search_params_modify_timestamp(
-            search_params,
-            timestamp,
-        )
-
-        assert (
-            modified_search_params["search_filter"]
-            == "(&(modifyTimestamp>=20210101000000.0-0000)(cn=*))"
-        )
-
-        assert modified_search_params["search_base"] == search_params["search_base"]
-        assert modified_search_params["attributes"] == search_params["attributes"]
 
 
 async def test_setup_poller() -> None:
