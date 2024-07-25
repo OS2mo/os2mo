@@ -1248,64 +1248,6 @@ async def test_load_mo_employee_engagements(
 
 
 @pytest.mark.parametrize(
-    "results,expected",
-    [
-        # Base case, one reply (ours), primary and non-primary respectively
-        (
-            [
-                {
-                    "current": {
-                        "is_primary": True,
-                        "uuid": "085bef5d-f435-4fe1-89d6-3d0f6b72d8e8",
-                    }
-                }
-            ],
-            True,
-        ),
-        (
-            [
-                {
-                    "current": {
-                        "is_primary": False,
-                        "uuid": "085bef5d-f435-4fe1-89d6-3d0f6b72d8e8",
-                    }
-                }
-            ],
-            False,
-        ),
-        # No results at all
-        ([], False),
-        # No current results
-        ([{"current": None}], False),
-        # Multiple results should never occur, but assuming they did, we should be well-behaved
-        ([{"current": None}, {"current": None}], False),
-        (
-            [
-                {"current": {"is_primary": True, "uuid": uuid4()}},
-                {"current": {"is_primary": True, "uuid": uuid4()}},
-            ],
-            False,
-        ),
-    ],
-)
-async def test_is_primary(
-    dataloader: DataLoader,
-    graphql_mock: GraphQLMocker,
-    results: list[dict[str, Any]],
-    expected: bool,
-) -> None:
-    engagement_uuid = "085bef5d-f435-4fe1-89d6-3d0f6b72d8e8"
-
-    is_primary_engagements_route = graphql_mock.query("read_is_primary_engagements")
-    is_primary_engagements_route.result = {"engagements": {"objects": results}}
-
-    primary = await dataloader.is_primary(UUID(engagement_uuid))
-    assert primary is expected
-
-    assert is_primary_engagements_route.called
-
-
-@pytest.mark.parametrize(
     "engagement_uuids,results,expected",
     [
         # Zero UUIDs requested

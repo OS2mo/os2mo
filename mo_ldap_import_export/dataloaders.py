@@ -1321,13 +1321,6 @@ class DataLoader:
         }
         return [result_map.get(uuid, False) for uuid in engagements]
 
-    # TODO: Offer this via a dataloader, and change calls to use that
-    async def is_primary(self, engagement_uuid: UUID) -> bool:
-        """
-        Determine if an engagement is the primary engagement or not.
-        """
-        return one(await self.is_primaries([engagement_uuid]))
-
     async def load_mo_engagement(
         self,
         uuid: UUID,
