@@ -47,7 +47,6 @@ from mo_ldap_import_export.main import initialize_checks
 from mo_ldap_import_export.main import initialize_converters
 from mo_ldap_import_export.main import initialize_info_dict_refresher
 from mo_ldap_import_export.main import initialize_init_engine
-from mo_ldap_import_export.main import initialize_ldap_listener
 from mo_ldap_import_export.main import initialize_sync_tool
 from mo_ldap_import_export.main import open_ldap_connection
 from mo_ldap_import_export.main import process_address
@@ -383,12 +382,6 @@ async def always_initialize_sync_tool(
     with patch("mo_ldap_import_export.main.SyncTool", return_value=sync_tool):
         async with initialize_sync_tool(fastramqpi):
             assert user_context.get("sync_tool") is not None
-
-
-@pytest.fixture(autouse=True, scope="module")
-async def always_initialize_ldap_listener(fastramqpi: FastRAMQPI) -> None:
-    async with initialize_ldap_listener(fastramqpi):
-        pass
 
 
 @pytest.fixture(autouse=True, scope="module")
