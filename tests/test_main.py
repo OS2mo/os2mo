@@ -387,13 +387,8 @@ async def always_initialize_sync_tool(
 
 @pytest.fixture(autouse=True, scope="module")
 async def always_initialize_ldap_listener(fastramqpi: FastRAMQPI) -> None:
-    user_context = fastramqpi.get_context()["user_context"]
-    assert user_context.get("pollers") is None
-
     async with initialize_ldap_listener(fastramqpi):
-        await asyncio.sleep(0)
-        await asyncio.sleep(0)
-        assert user_context.get("pollers") is not None
+        pass
 
 
 @pytest.fixture(autouse=True, scope="module")

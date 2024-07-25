@@ -5,6 +5,7 @@ import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from contextlib import suppress
+from functools import partial
 from typing import Annotated
 from typing import Any
 from uuid import UUID
@@ -310,8 +311,9 @@ async def initialize_init_engine(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
 async def initialize_ldap_listener(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
     logger.info("Initializing LDAP listener")
     pollers = setup_listener(fastramqpi.get_context())
-    fastramqpi.add_context(pollers=pollers)
-    fastramqpi.add_healthcheck(name="LDAPPoller", healthcheck=poller_healthcheck)
+    fastramqpi.add_healthcheck(
+        name="LDAPPoller", healthcheck=partial(poller_healthcheck, pollers)
+    )
     yield
     # Signal all pollers to shutdown
     for poller in pollers:

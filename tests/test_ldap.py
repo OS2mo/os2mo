@@ -5,6 +5,7 @@ import datetime
 import os
 import time
 from collections.abc import Iterator
+from contextlib import suppress
 from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
@@ -749,19 +750,45 @@ def test_is_uuid():
     assert is_uuid(uuid4()) is True
 
 
-async def test_poller_healthcheck():
-    poller = MagicMock()
-    poller.done.return_value = True
-    assert (await poller_healthcheck({"user_context": {"pollers": [poller]}})) is False
+@pytest.mark.parametrize(
+    "running,expected",
+    [
+        # No pollers
+        ([], True),
+        # One poller
+        ([False], False),
+        ([True], True),
+        # Two pollers
+        ([False, False], False),
+        ([False, True], False),
+        ([True, False], False),
+        ([True, True], True),
+    ],
+)
+async def test_poller_healthcheck(running: list[bool], expected: bool) -> None:
+    async def waiter(event: asyncio.Event) -> None:
+        await event.wait()
 
-    poller.done.return_value = False
-    assert (await poller_healthcheck({"user_context": {"pollers": [poller]}})) is True
+    events = [asyncio.Event() for _ in running]
+    pollers = {asyncio.create_task(waiter(event)) for event in events}
+    await asyncio.sleep(0)
 
-    second_poller = MagicMock()
-    second_poller.done.return_value = True
-    pollers = [poller, second_poller]
+    # Set events
+    for event, is_running in zip(events, running):
+        if not is_running:
+            event.set()
+    await asyncio.sleep(0)
 
-    assert (await poller_healthcheck({"user_context": {"pollers": pollers}})) is False
+    context: Context = {}
+    assert (await poller_healthcheck(pollers, context)) is expected
+
+    # Signal all pollers to run
+    for event in events:
+        event.set()
+    # Wait for all pollers to be shutdown
+    for poller in pollers:
+        with suppress(asyncio.CancelledError):
+            await poller
 
 
 def test_check_ou_in_list_of_ous():

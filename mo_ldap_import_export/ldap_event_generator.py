@@ -191,8 +191,9 @@ def set_search_params_modify_timestamp(
     }
 
 
-async def poller_healthcheck(context: dict | Context) -> bool:
-    pollers = context["user_context"]["pollers"]
+async def poller_healthcheck(
+    pollers: set[asyncio.Task], context: dict | Context
+) -> bool:
     return all(not poller.done() for poller in pollers)
 
 
