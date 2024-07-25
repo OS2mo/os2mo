@@ -9,7 +9,6 @@ from datetime import datetime
 from functools import partial
 from ssl import CERT_NONE
 from ssl import CERT_REQUIRED
-from threading import Thread
 from typing import Any
 from typing import cast
 from uuid import UUID
@@ -773,7 +772,7 @@ def get_attribute_types(ldap_connection: Connection):
     return schema.attribute_types
 
 
-def setup_listener(context: Context) -> list[Thread]:
+def setup_listener(context: Context) -> list[asyncio.Task]:
     user_context = context["user_context"]
 
     # Note:
@@ -810,7 +809,7 @@ def setup_poller(
     search_parameters: dict,
     init_search_time: datetime,
     poll_time: float,
-) -> Any:
+) -> asyncio.Task:
     def done_callback(future):
         # This ensures exceptions go to the terminal
         future.result()
