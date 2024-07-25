@@ -772,14 +772,14 @@ def get_attribute_types(ldap_connection: Connection):
     return schema.attribute_types
 
 
-def setup_listener(context: Context) -> list[asyncio.Task]:
+def setup_listener(context: Context) -> set[asyncio.Task]:
     user_context = context["user_context"]
 
     # Note:
     # We need the dn attribute to trigger sync_tool.import_single_user()
     # We need the modifyTimeStamp attribute to check for duplicate events in _poller()
     settings = user_context["settings"]
-    pollers = []
+    pollers = set()
     for ldap_ou_to_scan_for_changes in settings.ldap_ous_to_search_in:
         search_base = combine_dn_strings(
             [ldap_ou_to_scan_for_changes, settings.ldap_search_base]
@@ -793,7 +793,7 @@ def setup_listener(context: Context) -> list[asyncio.Task]:
         }
 
         # Polling search
-        pollers.append(
+        pollers.add(
             setup_poller(
                 user_context,
                 search_parameters,
