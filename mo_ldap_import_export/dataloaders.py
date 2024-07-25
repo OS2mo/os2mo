@@ -272,30 +272,6 @@ class DataLoader:
             self._check_if_empty(result)
         return result
 
-    async def query_mo_paged(self, query):
-        result = await self.query_mo(query, raise_if_empty=False)
-
-        for key in result.keys():
-            cursor = result[key]["page_info"]["next_cursor"]
-            page_counter = 0
-
-            while cursor:
-                logger.info("Loading next page", key=key, page=page_counter)
-                next_result = await self.query_mo(
-                    query,
-                    raise_if_empty=False,
-                    variable_values={"cursor": cursor},
-                )
-
-                # Append next page to result
-                result[key]["objects"] += next_result[key]["objects"]
-
-                # Update cursor and page counter
-                page_counter += 1
-                cursor = next_result[key]["page_info"]["next_cursor"]
-
-        return result
-
     async def load_ldap_object(
         self,
         dn: DN,

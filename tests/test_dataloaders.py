@@ -2060,48 +2060,6 @@ async def test_load_all_current_it_users_paged(
     assert second["user_key"] == "bar"
 
 
-async def test_query_mo_paged(dataloader: DataLoader):
-    employee1 = {"uuid": uuid4()}
-    employee2 = {"uuid": uuid4()}
-    employee3 = {"uuid": uuid4()}
-
-    results = [
-        {
-            "employees": {
-                "objects": [employee1, employee2],
-                "page_info": {"next_cursor": "MWq"},
-            }
-        },
-        {"employees": {"objects": [employee3], "page_info": {"next_cursor": None}}},
-    ]
-
-    dataloader.query_mo = AsyncMock()  # type: ignore
-    dataloader.query_mo.side_effect = results
-
-    query = gql(
-        """
-        query AllEmployees($cursor: Cursor) {
-          itusers (limit: 2, cursor: $cursor) {
-            objects {
-                uuid
-            }
-            page_info {
-              next_cursor
-            }
-          }
-        }
-        """
-    )
-
-    output = await dataloader.query_mo_paged(query)
-
-    uuids = [res["uuid"] for res in output["employees"]["objects"]]
-
-    assert employee1["uuid"] in uuids
-    assert employee2["uuid"] in uuids
-    assert employee3["uuid"] in uuids
-
-
 uuid_obj1 = uuid4()
 uuid_obj2 = uuid4()
 uuid_obj3 = uuid4()
