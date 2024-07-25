@@ -18,8 +18,6 @@ from uuid import UUID
 
 import structlog
 from fastapi.encoders import jsonable_encoder
-from gql.client import AsyncClientSession
-from graphql import DocumentNode
 from ldap3 import BASE
 from ldap3.core.exceptions import LDAPInvalidValueError
 from ldap3.protocol import oid
@@ -260,17 +258,6 @@ class DataLoader:
             raise AttributeNotFound(
                 f"'{attribute}' not found in 'mo_to_ldap' attributes"
             )
-
-    async def query_mo(
-        self, query: DocumentNode, raise_if_empty: bool = True, variable_values={}
-    ):
-        graphql_session: AsyncClientSession = self.context["legacy_graphql_session"]
-        result = await graphql_session.execute(
-            query, variable_values=jsonable_encoder(variable_values)
-        )
-        if raise_if_empty:
-            self._check_if_empty(result)
-        return result
 
     async def load_ldap_object(
         self,

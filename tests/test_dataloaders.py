@@ -21,7 +21,6 @@ import pytest
 from fastapi.encoders import jsonable_encoder
 from fastramqpi.context import Context
 from freezegun import freeze_time
-from gql import gql
 from httpx import Response
 from ldap3.core.exceptions import LDAPInvalidValueError
 from more_itertools import flatten
@@ -1398,27 +1397,6 @@ async def test_is_primaries(
     assert is_primary_engagements_route.called
 
 
-async def test_query_mo(dataloader: DataLoader, legacy_graphql_session: AsyncMock):
-    expected_output: dict = {"objects": {"objects": []}}
-    legacy_graphql_session.execute.return_value = expected_output
-
-    query = gql(
-        """
-        query TestQuery {
-          employees {
-            uuid
-          }
-        }
-        """
-    )
-
-    output = await dataloader.query_mo(query, raise_if_empty=False)
-    assert output == expected_output
-
-    with pytest.raises(NoObjectsReturnedException):
-        await dataloader.query_mo(query, raise_if_empty=True)
-
-
 async def test_shared_attribute(dataloader: DataLoader):
     converter = MagicMock()
     converter.mapping = {
@@ -1763,8 +1741,6 @@ async def test_load_ldap_attribute_values(dataloader: DataLoader):
 async def test_create_mo_class(dataloader: DataLoader):
     uuid = uuid4()
     existing_class_uuid = uuid4()
-
-    dataloader.query_mo = AsyncMock()  # type: ignore
 
     async def class_create(_) -> ClassCreateClassCreate:
         # Simulate creation time delay
