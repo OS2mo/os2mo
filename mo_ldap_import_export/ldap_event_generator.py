@@ -32,28 +32,25 @@ def setup_listener(context: Context) -> set[asyncio.Task]:
     # We need the dn attribute to trigger sync_tool.import_single_user()
     # We need the modifyTimeStamp attribute to check for duplicate events in _poller()
     settings = user_context["settings"]
-    pollers = set()
-    for ldap_ou_to_scan_for_changes in settings.ldap_ous_to_search_in:
-        search_base = combine_dn_strings(
-            [ldap_ou_to_scan_for_changes, settings.ldap_search_base]
-        )
+    search_bases = {
+        combine_dn_strings([ldap_ou_to_scan_for_changes, settings.ldap_search_base])
+        for ldap_ou_to_scan_for_changes in settings.ldap_ous_to_search_in
+    }
 
-        search_parameters = {
-            "search_base": search_base,
-            "search_filter": "(cn=*)",
-            # TODO: Is this actually necessary compared to just getting DN by default?
-            "attributes": ["distinguishedName"],
-        }
-
-        # Polling search
-        pollers.add(
-            setup_poller(
-                user_context,
-                search_parameters,
-                datetime.utcnow(),
-                settings.poll_time,
-            )
+    pollers = {
+        setup_poller(
+            user_context,
+            {
+                "search_base": search_base,
+                "search_filter": "(cn=*)",
+                # TODO: Is this actually necessary compared to just getting DN by default?
+                "attributes": ["distinguishedName"],
+            },
+            datetime.utcnow(),
+            settings.poll_time,
         )
+        for search_base in search_bases
+    }
     return pollers
 
 
