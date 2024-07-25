@@ -178,15 +178,6 @@ class DataLoader:
 
         self.supported_object_types = list(self.object_type_dict_inv.keys())
 
-    def _check_if_empty(self, result: dict):
-        for key, value in result.items():
-            if "objects" in value and len(value["objects"]) == 0:
-                raise NoObjectsReturnedException(
-                    f"query_result['{key}'] is empty. "
-                    f"Does the '{key}' object still exist as a current object? "
-                    f"Does the '{key}' object exist in MO?"
-                )
-
     @property
     def graphql_client(self) -> GraphQLClient:
         return cast(GraphQLClient, self.context["graphql_client"])
