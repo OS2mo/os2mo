@@ -15,6 +15,7 @@ from fastramqpi.depends import UserContext
 from fastramqpi.ramqp import AMQPSystem
 from ldap3 import Connection
 
+from .dataloaders import DataLoader
 from .exceptions import NoObjectsReturnedException
 from .ldap import ldap_search
 from .ldap import ldapresponse2entries
@@ -96,8 +97,6 @@ async def _poll(
 
         Should be provided as `last_search_time` in the next iteration.
     """
-    from .dataloaders import DataLoader
-
     ldap_amqpsystem: AMQPSystem = user_context["ldap_amqpsystem"]
     ldap_connection: Connection = user_context["ldap_connection"]
     dataloader: DataLoader = user_context["dataloader"]
