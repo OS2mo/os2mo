@@ -2,12 +2,10 @@
 # SPDX-License-Identifier: MPL-2.0
 # -*- coding: utf-8 -*-
 import datetime
-from uuid import uuid4
 
 import pytest
 import pytz  # type: ignore
 from ldap3.core.exceptions import LDAPInvalidDnError
-from ramodels.mo.details.address import Address
 
 from mo_ldap_import_export.utils import combine_dn_strings
 from mo_ldap_import_export.utils import datetime_to_ldap_timestamp
@@ -17,7 +15,6 @@ from mo_ldap_import_export.utils import extract_cn_from_dn
 from mo_ldap_import_export.utils import extract_ou_from_dn
 from mo_ldap_import_export.utils import import_class
 from mo_ldap_import_export.utils import mo_datestring_to_utc
-from mo_ldap_import_export.utils import mo_object_is_valid
 from mo_ldap_import_export.utils import remove_cn_from_dn
 from mo_ldap_import_export.utils import remove_vowels
 
@@ -64,21 +61,6 @@ async def test_mo_datestring_to_utc() -> None:
 
     date = mo_datestring_to_utc(None)
     assert date is None
-
-
-async def test_mo_object_is_valid() -> None:
-    mo_object = Address.from_simplified_fields("foo", uuid4(), "2021-01-01")
-    assert mo_object_is_valid(mo_object) is True
-
-    mo_object = Address.from_simplified_fields(
-        "foo", uuid4(), "2021-01-01", to_date="2200-01-01"
-    )
-    assert mo_object_is_valid(mo_object) is True
-
-    mo_object = Address.from_simplified_fields(
-        "foo", uuid4(), "2021-01-01", to_date="2021-02-01"
-    )
-    assert mo_object_is_valid(mo_object) is False
 
 
 async def test_datetime_to_ldap_timestamp() -> None:

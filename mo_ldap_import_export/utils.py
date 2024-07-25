@@ -67,16 +67,6 @@ def mo_datestring_to_utc(datestring: str | None) -> datetime | None:
     return datetime.fromisoformat(datestring).replace(tzinfo=None)
 
 
-def mo_object_is_valid(mo_object) -> bool:
-    now = datetime.utcnow()
-
-    if mo_object.validity.to_date is None:
-        return True
-    if mo_object.validity.to_date.replace(tzinfo=None) > now:
-        return True
-    return False
-
-
 def datetime_to_ldap_timestamp(dt: datetime) -> str:
     return "".join(
         [
