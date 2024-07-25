@@ -7,8 +7,8 @@ import pytest
 import pytz  # type: ignore
 from ldap3.core.exceptions import LDAPInvalidDnError
 
+from mo_ldap_import_export.ldap_event_generator import datetime_to_ldap_timestamp
 from mo_ldap_import_export.utils import combine_dn_strings
-from mo_ldap_import_export.utils import datetime_to_ldap_timestamp
 from mo_ldap_import_export.utils import delete_keys_from_dict
 from mo_ldap_import_export.utils import exchange_ou_in_dn
 from mo_ldap_import_export.utils import extract_cn_from_dn

@@ -29,7 +29,6 @@ from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import TimeOutException
-from mo_ldap_import_export.ldap import _poll
 from mo_ldap_import_export.ldap import check_ou_in_list_of_ous
 from mo_ldap_import_export.ldap import configure_ldap_connection
 from mo_ldap_import_export.ldap import construct_server
@@ -41,11 +40,14 @@ from mo_ldap_import_export.ldap import is_uuid
 from mo_ldap_import_export.ldap import ldap_healthcheck
 from mo_ldap_import_export.ldap import make_ldap_object
 from mo_ldap_import_export.ldap import paged_search
-from mo_ldap_import_export.ldap import poller_healthcheck
-from mo_ldap_import_export.ldap import set_search_params_modify_timestamp
-from mo_ldap_import_export.ldap import setup_poller
 from mo_ldap_import_export.ldap import single_object_search
 from mo_ldap_import_export.ldap_classes import LdapObject
+from mo_ldap_import_export.ldap_event_generator import _poll
+from mo_ldap_import_export.ldap_event_generator import poller_healthcheck
+from mo_ldap_import_export.ldap_event_generator import (
+    set_search_params_modify_timestamp,
+)
+from mo_ldap_import_export.ldap_event_generator import setup_poller
 
 from .test_dataloaders import mock_ldap_response
 
@@ -613,7 +615,7 @@ async def test_setup_poller() -> None:
     async def _poller(*args: Any) -> None:
         raise ValueError("BOOM")
 
-    with patch("mo_ldap_import_export.ldap._poller", _poller):
+    with patch("mo_ldap_import_export.ldap_event_generator._poller", _poller):
         context: UserContext = {}
         search_parameters: dict = {}
         init_search_time = datetime.datetime.utcnow()

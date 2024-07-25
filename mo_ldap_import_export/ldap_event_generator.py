@@ -1,0 +1,208 @@
+# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+"""LDAP change event generation."""
+import asyncio
+from contextlib import suppress
+from datetime import datetime
+from functools import partial
+from typing import Any
+from typing import cast
+from uuid import UUID
+
+import structlog
+from fastramqpi.context import Context
+from fastramqpi.depends import UserContext
+from fastramqpi.ramqp import AMQPSystem
+from ldap3 import Connection
+
+from .exceptions import NoObjectsReturnedException
+from .ldap import ldap_search
+from .ldap import ldapresponse2entries
+from .ldap_emit import publish_uuids
+from .utils import combine_dn_strings
+
+logger = structlog.stdlib.get_logger()
+
+
+def setup_listener(context: Context) -> set[asyncio.Task]:
+    user_context = context["user_context"]
+
+    # Note:
+    # We need the dn attribute to trigger sync_tool.import_single_user()
+    # We need the modifyTimeStamp attribute to check for duplicate events in _poller()
+    settings = user_context["settings"]
+    pollers = set()
+    for ldap_ou_to_scan_for_changes in settings.ldap_ous_to_search_in:
+        search_base = combine_dn_strings(
+            [ldap_ou_to_scan_for_changes, settings.ldap_search_base]
+        )
+
+        search_parameters = {
+            "search_base": search_base,
+            "search_filter": "(cn=*)",
+            # TODO: Is this actually necessary compared to just getting DN by default?
+            "attributes": ["distinguishedName"],
+        }
+
+        # Polling search
+        pollers.add(
+            setup_poller(
+                user_context,
+                search_parameters,
+                datetime.utcnow(),
+                settings.poll_time,
+            )
+        )
+    return pollers
+
+
+def setup_poller(
+    user_context: UserContext,
+    search_parameters: dict,
+    init_search_time: datetime,
+    poll_time: float,
+) -> asyncio.Task:
+    def done_callback(future):
+        # This ensures exceptions go to the terminal
+        future.result()
+
+    handle = asyncio.create_task(
+        _poller(user_context, search_parameters, init_search_time, poll_time)
+    )
+    handle.add_done_callback(done_callback)
+    return handle
+
+
+async def _poll(
+    user_context: UserContext,
+    search_parameters: dict,
+    last_search_time: datetime,
+) -> datetime:
+    """Pool the LDAP server for changes once.
+
+    Args:
+        context:
+            The entire settings context.
+        search_params:
+            LDAP search parameters.
+        callback:
+            Function to call with all changes since `last_search_time`.
+        last_search_time:
+            Find events that occured since this time.
+
+    Returns:
+        A two-tuple containing a list of events to ignore and the time at
+        which the last search was done.
+
+        Should be provided as `last_search_time` in the next iteration.
+    """
+    from .dataloaders import DataLoader
+
+    ldap_amqpsystem: AMQPSystem = user_context["ldap_amqpsystem"]
+    ldap_connection: Connection = user_context["ldap_connection"]
+    dataloader: DataLoader = user_context["dataloader"]
+
+    logger.debug(
+        "Searching for changes since last search", last_search_time=last_search_time
+    )
+    timed_search_parameters = set_search_params_modify_timestamp(
+        search_parameters, last_search_time
+    )
+    last_search_time = datetime.utcnow()
+
+    response, _ = await ldap_search(ldap_connection, **timed_search_parameters)
+
+    # Filter to only keep search results
+    responses = ldapresponse2entries(response)
+
+    # NOTE: We can add message deduplication here if needed for performance later
+    #       For now we do not care about duplicates, we prefer simplicity
+    #       See: !499 for details
+
+    def event2dn(event: dict[str, Any]) -> str | None:
+        dn = event.get("attributes", {}).get("distinguishedName", None)
+        dn = dn or event.get("dn", None)
+        if dn is None:
+            logger.warning("Got event without dn")
+        return cast(str | None, dn)
+
+    async def dn2uuid(dn: str) -> UUID | None:
+        uuid = None
+        with suppress(NoObjectsReturnedException):
+            uuid = await dataloader.get_ldap_unique_ldap_uuid(dn)
+        return uuid
+
+    dns_with_none = [event2dn(event) for event in responses]
+    dns = [dn for dn in dns_with_none if dn is not None]
+
+    # TODO: Simply lookup LDAP UUID in the first query saving this transformation
+    uuids_with_none = [await dn2uuid(dn) for dn in dns]
+    uuids = [uuid for uuid in uuids_with_none if uuid is not None]
+
+    if uuids:
+        await publish_uuids(ldap_amqpsystem, uuids)
+
+    return last_search_time
+
+
+async def _poller(
+    user_context: UserContext,
+    search_parameters: dict,
+    init_search_time: datetime,
+    poll_time: float,
+) -> None:
+    """Poll the LDAP server continuously every `poll_time` seconds.
+
+    Args:
+        context:
+            The entire settings context.
+        search_params:
+            LDAP search parameters.
+        callback:
+            Function to call with all changes since `last_search_time`.
+        init_search_time:
+            Find events that occured since this time.
+        pool_time:
+            The interval with which to poll.
+    """
+    logger.info("Poller started", search_base=search_parameters["search_base"])
+
+    seeded_poller = partial(
+        _poll,
+        user_context=user_context,
+        search_parameters=search_parameters,
+    )
+
+    last_search_time = init_search_time
+    while True:
+        last_search_time = await seeded_poller(last_search_time=last_search_time)
+        await asyncio.sleep(poll_time)
+
+
+def set_search_params_modify_timestamp(
+    search_parameters: dict[str, str], timestamp: datetime
+) -> dict[str, str]:
+    changed_str = f"(modifyTimestamp>={datetime_to_ldap_timestamp(timestamp)})"
+    search_filter = search_parameters["search_filter"]
+    if not search_filter.startswith("(") or not search_filter.endswith(")"):
+        search_filter = f"({search_filter})"
+    return {
+        **search_parameters,
+        "search_filter": "(&" + changed_str + search_filter + ")",
+    }
+
+
+async def poller_healthcheck(context: dict | Context) -> bool:
+    pollers = context["user_context"]["pollers"]
+    return all(not poller.done() for poller in pollers)
+
+
+def datetime_to_ldap_timestamp(dt: datetime) -> str:
+    return "".join(
+        [
+            dt.strftime("%Y%m%d%H%M%S"),
+            ".",
+            str(int(dt.microsecond / 1000)),
+            (dt.strftime("%z") or "-0000"),
+        ]
+    )

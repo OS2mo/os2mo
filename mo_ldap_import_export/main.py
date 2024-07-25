@@ -36,10 +36,10 @@ from .import_export import SyncTool
 from .ldap import check_ou_in_list_of_ous
 from .ldap import configure_ldap_connection
 from .ldap import ldap_healthcheck
-from .ldap import poller_healthcheck
-from .ldap import setup_listener
 from .ldap_amqp import configure_ldap_amqpsystem
 from .ldap_amqp import ldap2mo_router
+from .ldap_event_generator import poller_healthcheck
+from .ldap_event_generator import setup_listener
 from .logging import init as initialize_logging
 from .os2mo_init import InitEngine
 from .routes import construct_router
