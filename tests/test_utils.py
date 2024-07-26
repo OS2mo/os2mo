@@ -2,9 +2,10 @@
 # SPDX-License-Identifier: MPL-2.0
 # -*- coding: utf-8 -*-
 import datetime
+from datetime import timedelta
+from datetime import timezone
 
 import pytest
-import pytz  # type: ignore
 from ldap3.core.exceptions import LDAPInvalidDnError
 
 from mo_ldap_import_export.ldap_event_generator import datetime_to_ldap_timestamp
@@ -67,20 +68,22 @@ async def test_mo_datestring_to_utc() -> None:
     "datetime,expected",
     [
         (
-            datetime.datetime(2021, 1, 1, 10, 45, 20),
-            "20210101104520.0-0000",
+            datetime.datetime(2021, 1, 1, 10, 45, 20, 0, timezone.utc),
+            "20210101104520.000000+0000",
         ),
         (
-            datetime.datetime(2021, 1, 1, 10, 45, 20, 2000),
-            "20210101104520.2-0000",
+            datetime.datetime(2021, 1, 1, 10, 45, 20, 2000, timezone.utc),
+            "20210101104520.002000+0000",
         ),
         (
-            datetime.datetime(2021, 1, 1, 10, 45, 20, 2100),
-            "20210101104520.2-0000",
+            datetime.datetime(2021, 1, 1, 10, 45, 20, 2100, timezone.utc),
+            "20210101104520.002100+0000",
         ),
         (
-            datetime.datetime(2021, 1, 1, 10, 45, 20, 2100, pytz.timezone("Cuba")),
-            "20210101104520.2-0529",
+            datetime.datetime(
+                2021, 1, 1, 10, 45, 20, 2100, timezone(timedelta(hours=-5, minutes=-29))
+            ),
+            "20210101104520.002100-0529",
         ),
     ],
 )

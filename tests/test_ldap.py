@@ -6,6 +6,7 @@ import os
 import time
 from collections.abc import Iterator
 from contextlib import suppress
+from datetime import timezone
 from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
@@ -593,7 +594,7 @@ async def test_setup_poller() -> None:
     with patch("mo_ldap_import_export.ldap_event_generator._poller", _poller):
         context: UserContext = {}
         search_parameters: dict = {}
-        init_search_time = datetime.datetime.utcnow()
+        init_search_time = datetime.datetime.now(timezone.utc)
 
         handle = setup_poller(context, search_parameters, init_search_time, 5)
 
@@ -625,7 +626,7 @@ async def test_poller(
 
     dataloader.get_ldap_unique_ldap_uuid.return_value = uuid
 
-    last_search_time = datetime.datetime.utcnow()
+    last_search_time = datetime.datetime.now(timezone.utc)
     search_time = await _poll(
         user_context={
             "ldap_amqpsystem": ldap_amqpsystem,
@@ -658,7 +659,7 @@ async def test_poller_no_dn(
     ldap_amqpsystem = AsyncMock()
     dataloader = AsyncMock()
 
-    last_search_time = datetime.datetime.utcnow()
+    last_search_time = datetime.datetime.now(timezone.utc)
     with capture_logs() as cap_logs:
         search_time = await _poll(
             user_context={
@@ -698,7 +699,7 @@ async def test_poller_bad_result(
     ldap_amqpsystem = AsyncMock()
     dataloader = AsyncMock()
 
-    last_search_time = datetime.datetime.utcnow()
+    last_search_time = datetime.datetime.now(timezone.utc)
     search_time = await _poll(
         user_context={
             "ldap_amqpsystem": ldap_amqpsystem,

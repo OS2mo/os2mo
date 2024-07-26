@@ -4,6 +4,7 @@
 import asyncio
 from contextlib import suppress
 from datetime import datetime
+from datetime import timezone
 from functools import partial
 from typing import Any
 from typing import cast
@@ -45,7 +46,7 @@ def setup_listener(context: Context) -> set[asyncio.Task]:
                 # TODO: Is this actually necessary compared to just getting DN by default?
                 "attributes": ["distinguishedName"],
             },
-            datetime.utcnow(),
+            datetime.now(timezone.utc),
             settings.poll_time,
         )
         for search_base in search_bases
@@ -106,7 +107,7 @@ async def _poll(
     #       controllers we may get duplicate (fine) and missed (not fine) events.
     search_filter = f"(modifyTimestamp>={datetime_to_ldap_timestamp(last_search_time)})"
     search_parameters["search_filter"] = search_filter
-    last_search_time = datetime.utcnow()
+    last_search_time = datetime.now(timezone.utc)
 
     response, _ = await ldap_search(ldap_connection, **search_parameters)
 
@@ -184,19 +185,5 @@ async def poller_healthcheck(
 
 
 def datetime_to_ldap_timestamp(dt: datetime) -> str:
-    # This function seems severely broken
-    #
-    # Calling this method with 2000 microseconds yield: .2
-    # Calling this method with 20000 microsecond yield: .20
-    # Calling this method with 200000 microseconds yield: .200
-    # Thus adding more microseconds add precision, not actually more time
-    #
-    # This by extension has the consequence that we are losing change events
-    return "".join(
-        [
-            dt.strftime("%Y%m%d%H%M%S"),
-            ".",
-            str(int(dt.microsecond / 1000)),
-            (dt.strftime("%z") or "-0000"),
-        ]
-    )
+    assert dt.tzinfo is not None
+    return dt.strftime("%Y%m%d%H%M%S.%f%z")
