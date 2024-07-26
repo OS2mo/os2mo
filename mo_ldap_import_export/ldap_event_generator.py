@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 """LDAP change event generation."""
 import asyncio
-from contextlib import suppress
 from datetime import datetime
 from datetime import timezone
 from functools import partial
@@ -16,8 +15,7 @@ from fastramqpi.depends import UserContext
 from fastramqpi.ramqp import AMQPSystem
 from ldap3 import Connection
 
-from .dataloaders import DataLoader
-from .exceptions import NoObjectsReturnedException
+from .depends import Settings
 from .ldap import ldap_search
 from .ldap import ldapresponse2entries
 from .ldap_emit import publish_uuids
@@ -27,12 +25,9 @@ logger = structlog.stdlib.get_logger()
 
 
 def setup_listener(context: Context) -> set[asyncio.Task]:
-    user_context = context["user_context"]
+    user_context: UserContext = context["user_context"]
 
-    # Note:
-    # We need the dn attribute to trigger sync_tool.import_single_user()
-    # We need the modifyTimeStamp attribute to check for duplicate events in _poller()
-    settings = user_context["settings"]
+    settings: Settings = user_context["settings"]
     search_bases = {
         combine_dn_strings([ldap_ou_to_scan_for_changes, settings.ldap_search_base])
         for ldap_ou_to_scan_for_changes in settings.ldap_ous_to_search_in
@@ -43,8 +38,7 @@ def setup_listener(context: Context) -> set[asyncio.Task]:
             user_context,
             {
                 "search_base": search_base,
-                # TODO: Is this actually necessary compared to just getting DN by default?
-                "attributes": ["distinguishedName"],
+                "attributes": [settings.ldap_unique_id_field],
             },
             datetime.now(timezone.utc),
             settings.poll_time,
@@ -96,7 +90,7 @@ async def _poll(
     """
     ldap_amqpsystem: AMQPSystem = user_context["ldap_amqpsystem"]
     ldap_connection: Connection = user_context["ldap_connection"]
-    dataloader: DataLoader = user_context["dataloader"]
+    settings: Settings = user_context["settings"]
 
     logger.debug(
         "Searching for changes since last search", last_search_time=last_search_time
@@ -114,32 +108,17 @@ async def _poll(
     # Filter to only keep search results
     responses = ldapresponse2entries(response)
 
-    # NOTE: We can add message deduplication here if needed for performance later
-    #       For now we do not care about duplicates, we prefer simplicity
-    #       See: !499 for details
+    def event2uuid(event: dict[str, Any]) -> UUID | None:
+        uuid = event.get("attributes", {}).get(settings.ldap_unique_id_field, None)
+        if uuid is None:
+            logger.warning("Got event without uuid")
+            return None
+        return UUID(uuid)
 
-    def event2dn(event: dict[str, Any]) -> str | None:
-        dn = event.get("attributes", {}).get("distinguishedName", None)
-        dn = dn or event.get("dn", None)
-        if dn is None:
-            logger.warning("Got event without dn")
-        return cast(str | None, dn)
-
-    async def dn2uuid(dn: str) -> UUID | None:
-        uuid = None
-        with suppress(NoObjectsReturnedException):
-            uuid = await dataloader.get_ldap_unique_ldap_uuid(dn)
-        return uuid
-
-    dns_with_none = [event2dn(event) for event in responses]
-    dns = [dn for dn in dns_with_none if dn is not None]
-
-    # TODO: Simply lookup LDAP UUID in the first query saving this transformation
-    uuids_with_none = [await dn2uuid(dn) for dn in dns]
-    uuids = [uuid for uuid in uuids_with_none if uuid is not None]
-
-    if uuids:
-        await publish_uuids(ldap_amqpsystem, uuids)
+    uuids_with_none = {event2uuid(event) for event in responses}
+    uuids_with_none.discard(None)
+    uuids = cast(set[UUID], uuids_with_none)
+    await publish_uuids(ldap_amqpsystem, list(uuids))
 
     return last_search_time
 

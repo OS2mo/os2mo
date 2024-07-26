@@ -13,6 +13,8 @@ async def publish_uuids(
     ldap_amqpsystem: AMQPSystem,
     uuids: list[UUID],
 ) -> None:
+    if not uuids:
+        return None
     logger.info("Registered change for LDAP object(s)", uuids=uuids)
     await asyncio.gather(
         *[ldap_amqpsystem.publish_message("uuid", uuid) for uuid in uuids]
