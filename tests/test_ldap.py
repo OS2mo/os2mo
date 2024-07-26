@@ -5,6 +5,7 @@ import datetime
 import os
 import time
 from collections.abc import Iterator
+from contextlib import suppress
 from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
@@ -29,7 +30,6 @@ from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import TimeOutException
-from mo_ldap_import_export.ldap import _poll
 from mo_ldap_import_export.ldap import check_ou_in_list_of_ous
 from mo_ldap_import_export.ldap import configure_ldap_connection
 from mo_ldap_import_export.ldap import construct_server
@@ -41,11 +41,11 @@ from mo_ldap_import_export.ldap import is_uuid
 from mo_ldap_import_export.ldap import ldap_healthcheck
 from mo_ldap_import_export.ldap import make_ldap_object
 from mo_ldap_import_export.ldap import paged_search
-from mo_ldap_import_export.ldap import poller_healthcheck
-from mo_ldap_import_export.ldap import set_search_params_modify_timestamp
-from mo_ldap_import_export.ldap import setup_poller
 from mo_ldap_import_export.ldap import single_object_search
 from mo_ldap_import_export.ldap_classes import LdapObject
+from mo_ldap_import_export.ldap_event_generator import _poll
+from mo_ldap_import_export.ldap_event_generator import poller_healthcheck
+from mo_ldap_import_export.ldap_event_generator import setup_poller
 
 from .test_dataloaders import mock_ldap_response
 
@@ -586,34 +586,11 @@ def user_context(
     return user_context
 
 
-async def test_set_search_params_modify_timestamp():
-    for search_filter in ["(cn=*)", "cn=*"]:
-        search_params = {
-            "search_base": "foo",
-            "search_filter": search_filter,
-            "attributes": ["employeeID"],
-        }
-        timestamp = datetime.datetime(2021, 1, 1)
-
-        modified_search_params = set_search_params_modify_timestamp(
-            search_params,
-            timestamp,
-        )
-
-        assert (
-            modified_search_params["search_filter"]
-            == "(&(modifyTimestamp>=20210101000000.0-0000)(cn=*))"
-        )
-
-        assert modified_search_params["search_base"] == search_params["search_base"]
-        assert modified_search_params["attributes"] == search_params["attributes"]
-
-
 async def test_setup_poller() -> None:
     async def _poller(*args: Any) -> None:
         raise ValueError("BOOM")
 
-    with patch("mo_ldap_import_export.ldap._poller", _poller):
+    with patch("mo_ldap_import_export.ldap_event_generator._poller", _poller):
         context: UserContext = {}
         search_parameters: dict = {}
         init_search_time = datetime.datetime.utcnow()
@@ -747,19 +724,45 @@ def test_is_uuid():
     assert is_uuid(uuid4()) is True
 
 
-async def test_poller_healthcheck():
-    poller = MagicMock()
-    poller.done.return_value = True
-    assert (await poller_healthcheck({"user_context": {"pollers": [poller]}})) is False
+@pytest.mark.parametrize(
+    "running,expected",
+    [
+        # No pollers
+        ([], True),
+        # One poller
+        ([False], False),
+        ([True], True),
+        # Two pollers
+        ([False, False], False),
+        ([False, True], False),
+        ([True, False], False),
+        ([True, True], True),
+    ],
+)
+async def test_poller_healthcheck(running: list[bool], expected: bool) -> None:
+    async def waiter(event: asyncio.Event) -> None:
+        await event.wait()
 
-    poller.done.return_value = False
-    assert (await poller_healthcheck({"user_context": {"pollers": [poller]}})) is True
+    events = [asyncio.Event() for _ in running]
+    pollers = {asyncio.create_task(waiter(event)) for event in events}
+    await asyncio.sleep(0)
 
-    second_poller = MagicMock()
-    second_poller.done.return_value = True
-    pollers = [poller, second_poller]
+    # Set events
+    for event, is_running in zip(events, running):
+        if not is_running:
+            event.set()
+    await asyncio.sleep(0)
 
-    assert (await poller_healthcheck({"user_context": {"pollers": pollers}})) is False
+    context: Context = {}
+    assert (await poller_healthcheck(pollers, context)) is expected
+
+    # Signal all pollers to run
+    for event in events:
+        event.set()
+    # Wait for all pollers to be shutdown
+    for poller in pollers:
+        with suppress(asyncio.CancelledError):
+            await poller
 
 
 def test_check_ou_in_list_of_ous():

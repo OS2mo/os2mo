@@ -4,6 +4,8 @@
 import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from contextlib import suppress
+from functools import partial
 from typing import Annotated
 from typing import Any
 from uuid import UUID
@@ -36,10 +38,10 @@ from .import_export import SyncTool
 from .ldap import check_ou_in_list_of_ous
 from .ldap import configure_ldap_connection
 from .ldap import ldap_healthcheck
-from .ldap import poller_healthcheck
-from .ldap import setup_listener
 from .ldap_amqp import configure_ldap_amqpsystem
 from .ldap_amqp import ldap2mo_router
+from .ldap_event_generator import poller_healthcheck
+from .ldap_event_generator import setup_listener
 from .logging import init as initialize_logging
 from .os2mo_init import InitEngine
 from .routes import construct_router
@@ -309,9 +311,17 @@ async def initialize_init_engine(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
 async def initialize_ldap_listener(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
     logger.info("Initializing LDAP listener")
     pollers = setup_listener(fastramqpi.get_context())
-    fastramqpi.add_context(pollers=pollers)
-    fastramqpi.add_healthcheck(name="LDAPPoller", healthcheck=poller_healthcheck)
+    fastramqpi.add_healthcheck(
+        name="LDAPPoller", healthcheck=partial(poller_healthcheck, pollers)
+    )
     yield
+    # Signal all pollers to shutdown
+    for poller in pollers:
+        poller.cancel()
+    # Wait for all pollers to be shutdown
+    for poller in pollers:
+        with suppress(asyncio.CancelledError):
+            await poller
 
 
 # TODO: Eliminate this function and make reloading dicts eventdriven

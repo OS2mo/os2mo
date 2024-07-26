@@ -67,17 +67,6 @@ def mo_datestring_to_utc(datestring: str | None) -> datetime | None:
     return datetime.fromisoformat(datestring).replace(tzinfo=None)
 
 
-def datetime_to_ldap_timestamp(dt: datetime) -> str:
-    return "".join(
-        [
-            dt.strftime("%Y%m%d%H%M%S"),
-            ".",
-            str(int(dt.microsecond / 1000)),
-            (dt.strftime("%z") or "-0000"),
-        ]
-    )
-
-
 def combine_dn_strings(dn_strings: list[str]) -> str:
     """
     Combine LDAP DN strings, skipping if a string is empty
