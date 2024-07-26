@@ -2,10 +2,13 @@
 # SPDX-License-Identifier: MPL-2.0
 """LDAP change event generation."""
 import asyncio
+from contextlib import suppress
 from datetime import datetime
 from datetime import timezone
 from functools import partial
 from typing import Any
+from typing import AsyncContextManager
+from typing import Self
 from typing import cast
 from uuid import UUID
 
@@ -15,7 +18,7 @@ from fastramqpi.depends import UserContext
 from fastramqpi.ramqp import AMQPSystem
 from ldap3 import Connection
 
-from .depends import Settings
+from .config import Settings
 from .ldap import ldap_search
 from .ldap import ldapresponse2entries
 from .ldap_emit import publish_uuids
@@ -24,28 +27,50 @@ from .utils import combine_dn_strings
 logger = structlog.stdlib.get_logger()
 
 
-def setup_listener(context: Context) -> set[asyncio.Task]:
-    user_context: UserContext = context["user_context"]
+class LDAPEventGenerator(AsyncContextManager):
+    def __init__(self, context: Context) -> None:
+        """Periodically poll LDAP for changes."""
+        self._context = context
+        self._pollers: set[asyncio.Task] = set()
 
-    settings: Settings = user_context["settings"]
-    search_bases = {
-        combine_dn_strings([ldap_ou_to_scan_for_changes, settings.ldap_search_base])
-        for ldap_ou_to_scan_for_changes in settings.ldap_ous_to_search_in
-    }
+    async def __aenter__(self) -> Self:
+        """Start event generator."""
+        user_context: UserContext = self._context["user_context"]
+        settings: Settings = user_context["settings"]
 
-    pollers = {
-        setup_poller(
-            user_context,
-            {
-                "search_base": search_base,
-                "attributes": [settings.ldap_unique_id_field],
-            },
-            datetime.now(timezone.utc),
-            settings.poll_time,
-        )
-        for search_base in search_bases
-    }
-    return pollers
+        search_bases = {
+            combine_dn_strings([ldap_ou_to_scan_for_changes, settings.ldap_search_base])
+            for ldap_ou_to_scan_for_changes in settings.ldap_ous_to_search_in
+        }
+
+        self._pollers = {
+            setup_poller(
+                user_context,
+                {
+                    "search_base": search_base,
+                    "attributes": [settings.ldap_unique_id_field],
+                },
+                datetime.now(timezone.utc),
+                settings.poll_time,
+            )
+            for search_base in search_bases
+        }
+        return self
+
+    async def __aexit__(
+        self, __exc_tpe: object, __exc_value: object, __traceback: object
+    ) -> None:
+        """Stop event generator."""
+        # Signal all pollers to shutdown
+        for poller in self._pollers:
+            poller.cancel()
+        # Wait for all pollers to be shutdown
+        for poller in self._pollers:
+            with suppress(asyncio.CancelledError):
+                await poller
+
+    async def healthcheck(self, context: dict | Context) -> bool:
+        return all(not poller.done() for poller in self._pollers)
 
 
 def setup_poller(
@@ -155,12 +180,6 @@ async def _poller(
     while True:
         last_search_time = await seeded_poller(last_search_time=last_search_time)
         await asyncio.sleep(poll_time)
-
-
-async def poller_healthcheck(
-    pollers: set[asyncio.Task], context: dict | Context
-) -> bool:
-    return all(not poller.done() for poller in pollers)
 
 
 def datetime_to_ldap_timestamp(dt: datetime) -> str:

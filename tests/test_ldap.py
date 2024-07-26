@@ -44,8 +44,8 @@ from mo_ldap_import_export.ldap import make_ldap_object
 from mo_ldap_import_export.ldap import paged_search
 from mo_ldap_import_export.ldap import single_object_search
 from mo_ldap_import_export.ldap_classes import LdapObject
+from mo_ldap_import_export.ldap_event_generator import LDAPEventGenerator
 from mo_ldap_import_export.ldap_event_generator import _poll
-from mo_ldap_import_export.ldap_event_generator import poller_healthcheck
 from mo_ldap_import_export.ldap_event_generator import setup_poller
 
 from .test_dataloaders import mock_ldap_response
@@ -755,7 +755,10 @@ async def test_poller_healthcheck(running: list[bool], expected: bool) -> None:
     await asyncio.sleep(0)
 
     context: Context = {}
-    assert (await poller_healthcheck(pollers, context)) is expected
+    ldap_event_generator = LDAPEventGenerator(context)
+    ldap_event_generator._pollers = pollers
+
+    assert (await ldap_event_generator.healthcheck(context)) is expected
 
     # Signal all pollers to run
     for event in events:
