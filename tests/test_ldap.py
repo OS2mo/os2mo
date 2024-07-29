@@ -625,7 +625,7 @@ async def test_poller(
     dataloader = AsyncMock()
 
     last_search_time = datetime.datetime.now(timezone.utc)
-    search_time = await _poll(
+    await _poll(
         user_context={
             "ldap_amqpsystem": ldap_amqpsystem,
             "ldap_connection": ldap_connection,
@@ -635,7 +635,6 @@ async def test_poller(
         search_base="dc=ad",
         last_search_time=last_search_time,
     )
-    assert search_time > last_search_time
 
     ldap_amqpsystem.publish_message.assert_called_once_with("uuid", uuid)
 
@@ -656,7 +655,7 @@ async def test_poller_no_uuid(
 
     last_search_time = datetime.datetime.now(timezone.utc)
     with capture_logs() as cap_logs:
-        search_time = await _poll(
+        await _poll(
             user_context={
                 "ldap_amqpsystem": ldap_amqpsystem,
                 "ldap_connection": ldap_connection,
@@ -666,7 +665,6 @@ async def test_poller_no_uuid(
             search_base="dc=ad",
             last_search_time=last_search_time,
         )
-        assert search_time > last_search_time
 
         ldap_amqpsystem.publish_message.assert_not_called()
     assert {
@@ -693,7 +691,7 @@ async def test_poller_bad_result(
     dataloader = AsyncMock()
 
     last_search_time = datetime.datetime.now(timezone.utc)
-    search_time = await _poll(
+    await _poll(
         user_context={
             "ldap_amqpsystem": ldap_amqpsystem,
             "ldap_connection": ldap_connection,
@@ -703,7 +701,6 @@ async def test_poller_bad_result(
         search_base="dc=ad",
         last_search_time=last_search_time,
     )
-    assert search_time > last_search_time
     assert ldap_amqpsystem.call_count == 0
 
 

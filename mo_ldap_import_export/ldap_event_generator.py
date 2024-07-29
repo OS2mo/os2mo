@@ -87,7 +87,7 @@ async def _poll(
     user_context: UserContext,
     search_base: str,
     last_search_time: datetime,
-) -> datetime:
+) -> None:
     """Pool the LDAP server for changes once.
 
     Args:
@@ -99,11 +99,6 @@ async def _poll(
             Function to call with all changes since `last_search_time`.
         last_search_time:
             Find events that occured since this time.
-
-    Returns:
-        The datatime at which the last search was done.
-
-        Should be provided as `last_search_time` in the next iteration.
     """
     ldap_amqpsystem: AMQPSystem = user_context["ldap_amqpsystem"]
     ldap_connection: Connection = user_context["ldap_connection"]
@@ -122,7 +117,6 @@ async def _poll(
         "search_filter": search_filter,
         "attributes": [settings.ldap_unique_id_field],
     }
-    last_search_time = datetime.now(timezone.utc)
 
     response, _ = await ldap_search(ldap_connection, **search_parameters)
 
@@ -140,8 +134,6 @@ async def _poll(
     uuids_with_none.discard(None)
     uuids = cast(set[UUID], uuids_with_none)
     await publish_uuids(ldap_amqpsystem, list(uuids))
-
-    return last_search_time
 
 
 async def _poller(
@@ -171,7 +163,10 @@ async def _poller(
 
     last_search_time = datetime.now(timezone.utc)
     while True:
-        last_search_time = await seeded_poller(last_search_time=last_search_time)
+        now = datetime.now(timezone.utc)
+        await seeded_poller(last_search_time=last_search_time)
+        last_search_time = now
+
         await asyncio.sleep(poll_time)
 
 
