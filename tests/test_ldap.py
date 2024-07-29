@@ -622,17 +622,13 @@ async def test_poller(
     ldap_connection.get_response.return_value = [event], {"type": "test"}
 
     ldap_amqpsystem = AsyncMock()
-    dataloader = AsyncMock()
 
     last_search_time = datetime.datetime.now(timezone.utc)
     await _poll(
-        user_context={
-            "ldap_amqpsystem": ldap_amqpsystem,
-            "ldap_connection": ldap_connection,
-            "dataloader": dataloader,
-            "settings": settings,
-        },
+        ldap_amqpsystem=ldap_amqpsystem,
+        ldap_connection=ldap_connection,
         search_base="dc=ad",
+        ldap_unique_id_field=settings.ldap_unique_id_field,
         last_search_time=last_search_time,
     )
 
@@ -642,8 +638,6 @@ async def test_poller(
 async def test_poller_no_uuid(
     load_settings_overrides: dict[str, str], ldap_connection: MagicMock
 ) -> None:
-    settings = Settings()
-
     event = {
         "type": "searchResEntry",
         "attributes": {},
@@ -651,18 +645,14 @@ async def test_poller_no_uuid(
     ldap_connection.get_response.return_value = [event], {"type": "test"}
 
     ldap_amqpsystem = AsyncMock()
-    dataloader = AsyncMock()
 
     last_search_time = datetime.datetime.now(timezone.utc)
     with capture_logs() as cap_logs:
         await _poll(
-            user_context={
-                "ldap_amqpsystem": ldap_amqpsystem,
-                "ldap_connection": ldap_connection,
-                "dataloader": dataloader,
-                "settings": settings,
-            },
+            ldap_amqpsystem=ldap_amqpsystem,
+            ldap_connection=ldap_connection,
             search_base="dc=ad",
+            ldap_unique_id_field="entryUUID",
             last_search_time=last_search_time,
         )
 
@@ -683,22 +673,16 @@ async def test_poller_no_uuid(
 async def test_poller_bad_result(
     load_settings_overrides: dict[str, str], ldap_connection: MagicMock, response: Any
 ) -> None:
-    settings = Settings()
-
     ldap_connection.get_response.return_value = response, {"type": "test"}
 
     ldap_amqpsystem = AsyncMock()
-    dataloader = AsyncMock()
 
     last_search_time = datetime.datetime.now(timezone.utc)
     await _poll(
-        user_context={
-            "ldap_amqpsystem": ldap_amqpsystem,
-            "ldap_connection": ldap_connection,
-            "dataloader": dataloader,
-            "settings": settings,
-        },
+        ldap_amqpsystem=ldap_amqpsystem,
+        ldap_connection=ldap_connection,
         search_base="dc=ad",
+        ldap_unique_id_field="entryUUID",
         last_search_time=last_search_time,
     )
     assert ldap_amqpsystem.call_count == 0

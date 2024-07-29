@@ -84,24 +84,26 @@ def setup_poller(
 
 
 async def _poll(
-    user_context: UserContext,
+    ldap_amqpsystem: AMQPSystem,
+    ldap_connection: Connection,
     search_base: str,
+    ldap_unique_id_field: str,
     last_search_time: datetime,
 ) -> None:
     """Pool the LDAP server for changes once.
 
     Args:
-        context:
-            The entire settings context.
+        ldap_amqpsystem:
+            The AMQP system to emit events on.
+        ldap_connection:
+            The LDAP connection to use when searching for changes.
         search_base:
             LDAP search base to look for changes in.
+        ldap_unique_id_field:
+            The name of the unique entity UUID field.
         last_search_time:
             Find events that occured since this time.
     """
-    ldap_amqpsystem: AMQPSystem = user_context["ldap_amqpsystem"]
-    ldap_connection: Connection = user_context["ldap_connection"]
-    settings: Settings = user_context["settings"]
-
     logger.debug(
         "Searching for changes since last search", last_search_time=last_search_time
     )
@@ -113,7 +115,7 @@ async def _poll(
     search_parameters = {
         "search_base": search_base,
         "search_filter": search_filter,
-        "attributes": [settings.ldap_unique_id_field],
+        "attributes": [ldap_unique_id_field],
     }
 
     response, _ = await ldap_search(ldap_connection, **search_parameters)
@@ -122,7 +124,7 @@ async def _poll(
     responses = ldapresponse2entries(response)
 
     def event2uuid(event: dict[str, Any]) -> UUID | None:
-        uuid = event.get("attributes", {}).get(settings.ldap_unique_id_field, None)
+        uuid = event.get("attributes", {}).get(ldap_unique_id_field, None)
         if uuid is None:
             logger.warning("Got event without uuid")
             return None
@@ -149,12 +151,15 @@ async def _poller(
         pool_time:
             The interval with which to poll.
     """
+    settings: Settings = user_context["settings"]
     logger.info("Poller started", search_base=search_base)
 
     seeded_poller = partial(
         _poll,
-        user_context=user_context,
+        ldap_amqpsystem=user_context["ldap_amqpsystem"],
+        ldap_connection=user_context["ldap_connection"],
         search_base=search_base,
+        ldap_unique_id_field=settings.ldap_unique_id_field,
     )
 
     last_search_time = datetime.now(timezone.utc)
