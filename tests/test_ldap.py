@@ -595,7 +595,7 @@ async def test_setup_poller() -> None:
         context: UserContext = {}
         search_base = "dc=magenta,dc=dk"
 
-        handle = setup_poller(context, search_base, 5)
+        handle = setup_poller(context, search_base)
 
         assert handle.done() is False
 

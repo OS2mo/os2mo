@@ -43,12 +43,7 @@ class LDAPEventGenerator(AsyncContextManager):
         }
 
         self._pollers = {
-            setup_poller(
-                user_context,
-                search_base,
-                settings.poll_time,
-            )
-            for search_base in search_bases
+            setup_poller(user_context, search_base) for search_base in search_bases
         }
         return self
 
@@ -68,16 +63,12 @@ class LDAPEventGenerator(AsyncContextManager):
         return all(not poller.done() for poller in self._pollers)
 
 
-def setup_poller(
-    user_context: UserContext,
-    search_base: str,
-    poll_time: float,
-) -> asyncio.Task:
+def setup_poller(user_context: UserContext, search_base: str) -> asyncio.Task:
     def done_callback(future):
         # This ensures exceptions go to the terminal
         future.result()
 
-    handle = asyncio.create_task(_poller(user_context, search_base, poll_time))
+    handle = asyncio.create_task(_poller(user_context, search_base))
     handle.add_done_callback(done_callback)
     return handle
 
@@ -135,20 +126,14 @@ async def _poll(
     return uuids
 
 
-async def _poller(
-    user_context: UserContext,
-    search_base: str,
-    poll_time: float,
-) -> None:
-    """Poll the LDAP server continuously every `poll_time` seconds.
+async def _poller(user_context: UserContext, search_base: str) -> None:
+    """Poll the LDAP server continuously every `settings.poll_time` seconds.
 
     Args:
         context:
             The entire settings context.
         search_base:
             LDAP search base to look for changes in.
-        pool_time:
-            The interval with which to poll.
     """
     settings: Settings = user_context["settings"]
     logger.info("Poller started", search_base=search_base)
@@ -169,7 +154,7 @@ async def _poller(
         last_search_time = now
 
         await publish_uuids(ldap_amqpsystem, list(uuids))
-        await asyncio.sleep(poll_time)
+        await asyncio.sleep(settings.poll_time)
 
 
 def datetime_to_ldap_timestamp(dt: datetime) -> str:
