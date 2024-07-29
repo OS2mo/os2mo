@@ -86,15 +86,13 @@ async def test_mo_datestring_to_utc() -> None:
             "20210101104520.002100-0529",
         ),
         # Test sub 4 digit years
-        pytest.param(
+        (
             datetime.datetime(1, 1, 1, tzinfo=timezone.utc),
             "00010101000000.000000+0000",
-            marks=pytest.mark.xfail,
         ),
-        pytest.param(
+        (
             datetime.datetime(936, 7, 12, 12, 0, 0, tzinfo=timezone.utc),
             "09360712120000.000000+0000",
-            marks=pytest.mark.xfail,
         ),
     ],
 )

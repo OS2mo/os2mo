@@ -184,4 +184,6 @@ async def _poller(
 
 def datetime_to_ldap_timestamp(dt: datetime) -> str:
     assert dt.tzinfo is not None
-    return dt.strftime("%Y%m%d%H%M%S.%f%z")
+    # The LDAP Generalized Time ABNF requires century+year to be 4 digits.
+    # However strftime %Y only returns a single digit (1) for year 1.
+    return dt.strftime("%Y").rjust(4, "0") + dt.strftime("%m%d%H%M%S.%f%z")
