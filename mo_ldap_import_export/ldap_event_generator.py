@@ -47,7 +47,6 @@ class LDAPEventGenerator(AsyncContextManager):
             setup_poller(
                 user_context,
                 search_base,
-                datetime.now(timezone.utc),
                 settings.poll_time,
             )
             for search_base in search_bases
@@ -73,16 +72,13 @@ class LDAPEventGenerator(AsyncContextManager):
 def setup_poller(
     user_context: UserContext,
     search_base: str,
-    init_search_time: datetime,
     poll_time: float,
 ) -> asyncio.Task:
     def done_callback(future):
         # This ensures exceptions go to the terminal
         future.result()
 
-    handle = asyncio.create_task(
-        _poller(user_context, search_base, init_search_time, poll_time)
-    )
+    handle = asyncio.create_task(_poller(user_context, search_base, poll_time))
     handle.add_done_callback(done_callback)
     return handle
 
@@ -151,7 +147,6 @@ async def _poll(
 async def _poller(
     user_context: UserContext,
     search_base: str,
-    init_search_time: datetime,
     poll_time: float,
 ) -> None:
     """Poll the LDAP server continuously every `poll_time` seconds.
@@ -163,8 +158,6 @@ async def _poller(
             LDAP search base to look for changes in.
         callback:
             Function to call with all changes since `last_search_time`.
-        init_search_time:
-            Find events that occured since this time.
         pool_time:
             The interval with which to poll.
     """
@@ -176,7 +169,7 @@ async def _poller(
         search_base=search_base,
     )
 
-    last_search_time = init_search_time
+    last_search_time = datetime.now(timezone.utc)
     while True:
         last_search_time = await seeded_poller(last_search_time=last_search_time)
         await asyncio.sleep(poll_time)

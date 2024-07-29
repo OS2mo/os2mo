@@ -594,9 +594,8 @@ async def test_setup_poller() -> None:
     with patch("mo_ldap_import_export.ldap_event_generator._poller", _poller):
         context: UserContext = {}
         search_base = "dc=magenta,dc=dk"
-        init_search_time = datetime.datetime.now(timezone.utc)
 
-        handle = setup_poller(context, search_base, init_search_time, 5)
+        handle = setup_poller(context, search_base, 5)
 
         assert handle.done() is False
 
