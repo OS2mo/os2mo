@@ -15,7 +15,6 @@ from uuid import UUID
 import structlog
 from fastramqpi.context import Context
 from fastramqpi.depends import UserContext
-from fastramqpi.ramqp import AMQPSystem
 from ldap3 import Connection
 
 from .config import Settings
@@ -84,17 +83,14 @@ def setup_poller(
 
 
 async def _poll(
-    ldap_amqpsystem: AMQPSystem,
     ldap_connection: Connection,
     search_base: str,
     ldap_unique_id_field: str,
     last_search_time: datetime,
-) -> None:
+) -> set[UUID]:
     """Pool the LDAP server for changes once.
 
     Args:
-        ldap_amqpsystem:
-            The AMQP system to emit events on.
         ldap_connection:
             The LDAP connection to use when searching for changes.
         search_base:
@@ -103,6 +99,9 @@ async def _poll(
             The name of the unique entity UUID field.
         last_search_time:
             Find events that occured since this time.
+
+    Returns:
+        The set of UUIDs that have changed since last_search_time.
     """
     logger.debug(
         "Searching for changes since last search", last_search_time=last_search_time
@@ -133,7 +132,7 @@ async def _poll(
     uuids_with_none = {event2uuid(event) for event in responses}
     uuids_with_none.discard(None)
     uuids = cast(set[UUID], uuids_with_none)
-    await publish_uuids(ldap_amqpsystem, list(uuids))
+    return uuids
 
 
 async def _poller(
@@ -154,9 +153,10 @@ async def _poller(
     settings: Settings = user_context["settings"]
     logger.info("Poller started", search_base=search_base)
 
+    ldap_amqpsystem = user_context["ldap_amqpsystem"]
+
     seeded_poller = partial(
         _poll,
-        ldap_amqpsystem=user_context["ldap_amqpsystem"],
         ldap_connection=user_context["ldap_connection"],
         search_base=search_base,
         ldap_unique_id_field=settings.ldap_unique_id_field,
@@ -165,9 +165,10 @@ async def _poller(
     last_search_time = datetime.now(timezone.utc)
     while True:
         now = datetime.now(timezone.utc)
-        await seeded_poller(last_search_time=last_search_time)
+        uuids = await seeded_poller(last_search_time=last_search_time)
         last_search_time = now
 
+        await publish_uuids(ldap_amqpsystem, list(uuids))
         await asyncio.sleep(poll_time)
 
 

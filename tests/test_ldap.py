@@ -621,18 +621,14 @@ async def test_poller(
     }
     ldap_connection.get_response.return_value = [event], {"type": "test"}
 
-    ldap_amqpsystem = AsyncMock()
-
     last_search_time = datetime.datetime.now(timezone.utc)
-    await _poll(
-        ldap_amqpsystem=ldap_amqpsystem,
+    uuids = await _poll(
         ldap_connection=ldap_connection,
         search_base="dc=ad",
         ldap_unique_id_field=settings.ldap_unique_id_field,
         last_search_time=last_search_time,
     )
-
-    ldap_amqpsystem.publish_message.assert_called_once_with("uuid", uuid)
+    assert uuids == {uuid}
 
 
 async def test_poller_no_uuid(
@@ -644,19 +640,15 @@ async def test_poller_no_uuid(
     }
     ldap_connection.get_response.return_value = [event], {"type": "test"}
 
-    ldap_amqpsystem = AsyncMock()
-
     last_search_time = datetime.datetime.now(timezone.utc)
     with capture_logs() as cap_logs:
-        await _poll(
-            ldap_amqpsystem=ldap_amqpsystem,
+        uuids = await _poll(
             ldap_connection=ldap_connection,
             search_base="dc=ad",
             ldap_unique_id_field="entryUUID",
             last_search_time=last_search_time,
         )
-
-        ldap_amqpsystem.publish_message.assert_not_called()
+        assert uuids == set()
     assert {
         "event": "Got event without uuid",
         "log_level": "warning",
@@ -679,7 +671,6 @@ async def test_poller_bad_result(
 
     last_search_time = datetime.datetime.now(timezone.utc)
     await _poll(
-        ldap_amqpsystem=ldap_amqpsystem,
         ldap_connection=ldap_connection,
         search_base="dc=ad",
         ldap_unique_id_field="entryUUID",
