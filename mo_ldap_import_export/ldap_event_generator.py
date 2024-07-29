@@ -46,10 +46,7 @@ class LDAPEventGenerator(AsyncContextManager):
         self._pollers = {
             setup_poller(
                 user_context,
-                {
-                    "search_base": search_base,
-                    "attributes": [settings.ldap_unique_id_field],
-                },
+                search_base,
                 datetime.now(timezone.utc),
                 settings.poll_time,
             )
@@ -75,7 +72,7 @@ class LDAPEventGenerator(AsyncContextManager):
 
 def setup_poller(
     user_context: UserContext,
-    search_parameters: dict,
+    search_base: str,
     init_search_time: datetime,
     poll_time: float,
 ) -> asyncio.Task:
@@ -84,7 +81,7 @@ def setup_poller(
         future.result()
 
     handle = asyncio.create_task(
-        _poller(user_context, search_parameters, init_search_time, poll_time)
+        _poller(user_context, search_base, init_search_time, poll_time)
     )
     handle.add_done_callback(done_callback)
     return handle
@@ -92,7 +89,7 @@ def setup_poller(
 
 async def _poll(
     user_context: UserContext,
-    search_parameters: dict,
+    search_base: str,
     last_search_time: datetime,
 ) -> datetime:
     """Pool the LDAP server for changes once.
@@ -100,16 +97,15 @@ async def _poll(
     Args:
         context:
             The entire settings context.
-        search_params:
-            LDAP search parameters.
+        search_base:
+            LDAP search base to look for changes in.
         callback:
             Function to call with all changes since `last_search_time`.
         last_search_time:
             Find events that occured since this time.
 
     Returns:
-        A two-tuple containing a list of events to ignore and the time at
-        which the last search was done.
+        The datatime at which the last search was done.
 
         Should be provided as `last_search_time` in the next iteration.
     """
@@ -125,7 +121,11 @@ async def _poll(
     #       a different value for the same entry, thus if we hit different domain
     #       controllers we may get duplicate (fine) and missed (not fine) events.
     search_filter = f"(modifyTimestamp>={datetime_to_ldap_timestamp(last_search_time)})"
-    search_parameters["search_filter"] = search_filter
+    search_parameters = {
+        "search_base": search_base,
+        "search_filter": search_filter,
+        "attributes": [settings.ldap_unique_id_field],
+    }
     last_search_time = datetime.now(timezone.utc)
 
     response, _ = await ldap_search(ldap_connection, **search_parameters)
@@ -150,7 +150,7 @@ async def _poll(
 
 async def _poller(
     user_context: UserContext,
-    search_parameters: dict,
+    search_base: str,
     init_search_time: datetime,
     poll_time: float,
 ) -> None:
@@ -159,8 +159,8 @@ async def _poller(
     Args:
         context:
             The entire settings context.
-        search_params:
-            LDAP search parameters.
+        search_base:
+            LDAP search base to look for changes in.
         callback:
             Function to call with all changes since `last_search_time`.
         init_search_time:
@@ -168,12 +168,12 @@ async def _poller(
         pool_time:
             The interval with which to poll.
     """
-    logger.info("Poller started", search_base=search_parameters["search_base"])
+    logger.info("Poller started", search_base=search_base)
 
     seeded_poller = partial(
         _poll,
         user_context=user_context,
-        search_parameters=search_parameters,
+        search_base=search_base,
     )
 
     last_search_time = init_search_time

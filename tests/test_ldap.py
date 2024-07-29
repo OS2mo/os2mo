@@ -593,10 +593,10 @@ async def test_setup_poller() -> None:
 
     with patch("mo_ldap_import_export.ldap_event_generator._poller", _poller):
         context: UserContext = {}
-        search_parameters: dict = {}
+        search_base = "dc=magenta,dc=dk"
         init_search_time = datetime.datetime.now(timezone.utc)
 
-        handle = setup_poller(context, search_parameters, init_search_time, 5)
+        handle = setup_poller(context, search_base, init_search_time, 5)
 
         assert handle.done() is False
 
@@ -633,11 +633,7 @@ async def test_poller(
             "dataloader": dataloader,
             "settings": settings,
         },
-        search_parameters={
-            "search_base": "dc=ad",
-            "search_filter": "cn=*",
-            "attributes": ["cpr_no"],
-        },
+        search_base="dc=ad",
         last_search_time=last_search_time,
     )
     assert search_time > last_search_time
@@ -668,11 +664,7 @@ async def test_poller_no_uuid(
                 "dataloader": dataloader,
                 "settings": settings,
             },
-            search_parameters={
-                "search_base": "dc=ad",
-                "search_filter": "cn=*",
-                "attributes": ["cpr_no"],
-            },
+            search_base="dc=ad",
             last_search_time=last_search_time,
         )
         assert search_time > last_search_time
@@ -694,6 +686,8 @@ async def test_poller_no_uuid(
 async def test_poller_bad_result(
     load_settings_overrides: dict[str, str], ldap_connection: MagicMock, response: Any
 ) -> None:
+    settings = Settings()
+
     ldap_connection.get_response.return_value = response, {"type": "test"}
 
     ldap_amqpsystem = AsyncMock()
@@ -707,11 +701,7 @@ async def test_poller_bad_result(
             "dataloader": dataloader,
             "settings": settings,
         },
-        search_parameters={
-            "search_base": "dc=ad",
-            "search_filter": "cn=*",
-            "attributes": ["cpr_no"],
-        },
+        search_base="dc=ad",
         last_search_time=last_search_time,
     )
     assert search_time > last_search_time
