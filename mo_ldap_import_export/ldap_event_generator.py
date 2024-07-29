@@ -95,8 +95,6 @@ async def _poll(
             The entire settings context.
         search_base:
             LDAP search base to look for changes in.
-        callback:
-            Function to call with all changes since `last_search_time`.
         last_search_time:
             Find events that occured since this time.
     """
@@ -148,8 +146,6 @@ async def _poller(
             The entire settings context.
         search_base:
             LDAP search base to look for changes in.
-        callback:
-            Function to call with all changes since `last_search_time`.
         pool_time:
             The interval with which to poll.
     """
