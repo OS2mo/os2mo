@@ -85,6 +85,15 @@ async def test_mo_datestring_to_utc() -> None:
             ),
             "20210101104520.002100-0529",
         ),
+        # Test sub 4 digit years
+        (
+            datetime.datetime(1, 1, 1, tzinfo=timezone.utc),
+            "00010101000000.000000+0000",
+        ),
+        (
+            datetime.datetime(936, 7, 12, 12, 0, 0, tzinfo=timezone.utc),
+            "09360712120000.000000+0000",
+        ),
     ],
 )
 async def test_datetime_to_ldap_timestamp(
