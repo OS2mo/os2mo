@@ -60,6 +60,7 @@ class LDAPEventGenerator(AsyncContextManager):
         """Start event generator."""
         user_context: UserContext = self._context["user_context"]
         settings: Settings = user_context["settings"]
+        sessionmaker: async_sessionmaker[AsyncSession] = self._context["sessionmaker"]
 
         search_bases = {
             combine_dn_strings([ldap_ou_to_scan_for_changes, settings.ldap_search_base])
@@ -67,7 +68,8 @@ class LDAPEventGenerator(AsyncContextManager):
         }
 
         self._pollers = {
-            setup_poller(user_context, search_base) for search_base in search_bases
+            setup_poller(user_context, search_base, sessionmaker)
+            for search_base in search_bases
         }
         return self
 
@@ -87,12 +89,18 @@ class LDAPEventGenerator(AsyncContextManager):
         return all(not poller.done() for poller in self._pollers)
 
 
-def setup_poller(user_context: UserContext, search_base: str) -> asyncio.Task:
+def setup_poller(
+    user_context: UserContext,
+    search_base: str,
+    sessionmaker: async_sessionmaker[AsyncSession],
+) -> asyncio.Task:
     def done_callback(future):
-        # This ensures exceptions go to the terminal
-        future.result()
+        # Silence CancelledErrors on shutdown
+        with suppress(asyncio.CancelledError):
+            # This ensures exceptions go to the terminal
+            future.result()
 
-    handle = asyncio.create_task(_poller(user_context, search_base))
+    handle = asyncio.create_task(_poller(user_context, search_base, sessionmaker))
     handle.add_done_callback(done_callback)
     return handle
 
@@ -187,7 +195,11 @@ async def update_timestamp(
         session.add(last_run)
 
 
-async def _poller(user_context: UserContext, search_base: str) -> None:
+async def _poller(
+    user_context: UserContext,
+    search_base: str,
+    sessionmaker: async_sessionmaker[AsyncSession],
+) -> None:
     """Poll the LDAP server continuously every `settings.poll_time` seconds.
 
     Args:
@@ -195,6 +207,8 @@ async def _poller(user_context: UserContext, search_base: str) -> None:
             The entire settings context.
         search_base:
             LDAP search base to look for changes in.
+        sessionmaker:
+            Sessionmaker to create database sessions for our rundb.
     """
     settings: Settings = user_context["settings"]
     logger.info("Poller started", search_base=search_base)
@@ -208,13 +222,14 @@ async def _poller(user_context: UserContext, search_base: str) -> None:
         ldap_unique_id_field=settings.ldap_unique_id_field,
     )
 
-    last_search_time = datetime.now(timezone.utc)
     while True:
-        now = datetime.now(timezone.utc)
-        uuids = await seeded_poller(last_search_time=last_search_time)
-        last_search_time = now
+        # Fetch the last run time, and update it after running
+        async with update_timestamp(sessionmaker, search_base) as last_run:
+            # Fetch changes since last-run and emit events for them
+            uuids = await seeded_poller(last_search_time=last_run)
+            await publish_uuids(ldap_amqpsystem, list(uuids))
 
-        await publish_uuids(ldap_amqpsystem, list(uuids))
+        # Wait for a while before running again
         await asyncio.sleep(settings.poll_time)
 
 
