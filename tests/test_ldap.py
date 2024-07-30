@@ -593,10 +593,9 @@ async def test_setup_poller() -> None:
 
     with patch("mo_ldap_import_export.ldap_event_generator._poller", _poller):
         context: UserContext = {}
-        search_parameters: dict = {}
-        init_search_time = datetime.datetime.now(timezone.utc)
+        search_base = "dc=magenta,dc=dk"
 
-        handle = setup_poller(context, search_parameters, init_search_time, 5)
+        handle = setup_poller(context, search_base)
 
         assert handle.done() is False
 
@@ -622,62 +621,34 @@ async def test_poller(
     }
     ldap_connection.get_response.return_value = [event], {"type": "test"}
 
-    ldap_amqpsystem = AsyncMock()
-    dataloader = AsyncMock()
-
     last_search_time = datetime.datetime.now(timezone.utc)
-    search_time = await _poll(
-        user_context={
-            "ldap_amqpsystem": ldap_amqpsystem,
-            "ldap_connection": ldap_connection,
-            "dataloader": dataloader,
-            "settings": settings,
-        },
-        search_parameters={
-            "search_base": "dc=ad",
-            "search_filter": "cn=*",
-            "attributes": ["cpr_no"],
-        },
+    uuids = await _poll(
+        ldap_connection=ldap_connection,
+        search_base="dc=ad",
+        ldap_unique_id_field=settings.ldap_unique_id_field,
         last_search_time=last_search_time,
     )
-    assert search_time > last_search_time
-
-    ldap_amqpsystem.publish_message.assert_called_once_with("uuid", uuid)
+    assert uuids == {uuid}
 
 
 async def test_poller_no_uuid(
     load_settings_overrides: dict[str, str], ldap_connection: MagicMock
 ) -> None:
-    settings = Settings()
-
     event = {
         "type": "searchResEntry",
         "attributes": {},
     }
     ldap_connection.get_response.return_value = [event], {"type": "test"}
 
-    ldap_amqpsystem = AsyncMock()
-    dataloader = AsyncMock()
-
     last_search_time = datetime.datetime.now(timezone.utc)
     with capture_logs() as cap_logs:
-        search_time = await _poll(
-            user_context={
-                "ldap_amqpsystem": ldap_amqpsystem,
-                "ldap_connection": ldap_connection,
-                "dataloader": dataloader,
-                "settings": settings,
-            },
-            search_parameters={
-                "search_base": "dc=ad",
-                "search_filter": "cn=*",
-                "attributes": ["cpr_no"],
-            },
+        uuids = await _poll(
+            ldap_connection=ldap_connection,
+            search_base="dc=ad",
+            ldap_unique_id_field="entryUUID",
             last_search_time=last_search_time,
         )
-        assert search_time > last_search_time
-
-        ldap_amqpsystem.publish_message.assert_not_called()
+        assert uuids == set()
     assert {
         "event": "Got event without uuid",
         "log_level": "warning",
@@ -697,24 +668,14 @@ async def test_poller_bad_result(
     ldap_connection.get_response.return_value = response, {"type": "test"}
 
     ldap_amqpsystem = AsyncMock()
-    dataloader = AsyncMock()
 
     last_search_time = datetime.datetime.now(timezone.utc)
-    search_time = await _poll(
-        user_context={
-            "ldap_amqpsystem": ldap_amqpsystem,
-            "ldap_connection": ldap_connection,
-            "dataloader": dataloader,
-            "settings": settings,
-        },
-        search_parameters={
-            "search_base": "dc=ad",
-            "search_filter": "cn=*",
-            "attributes": ["cpr_no"],
-        },
+    await _poll(
+        ldap_connection=ldap_connection,
+        search_base="dc=ad",
+        ldap_unique_id_field="entryUUID",
         last_search_time=last_search_time,
     )
-    assert search_time > last_search_time
     assert ldap_amqpsystem.call_count == 0
 
 

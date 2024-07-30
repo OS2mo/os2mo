@@ -15,7 +15,6 @@ from uuid import UUID
 import structlog
 from fastramqpi.context import Context
 from fastramqpi.depends import UserContext
-from fastramqpi.ramqp import AMQPSystem
 from ldap3 import Connection
 
 from .config import Settings
@@ -44,16 +43,7 @@ class LDAPEventGenerator(AsyncContextManager):
         }
 
         self._pollers = {
-            setup_poller(
-                user_context,
-                {
-                    "search_base": search_base,
-                    "attributes": [settings.ldap_unique_id_field],
-                },
-                datetime.now(timezone.utc),
-                settings.poll_time,
-            )
-            for search_base in search_bases
+            setup_poller(user_context, search_base) for search_base in search_bases
         }
         return self
 
@@ -73,50 +63,37 @@ class LDAPEventGenerator(AsyncContextManager):
         return all(not poller.done() for poller in self._pollers)
 
 
-def setup_poller(
-    user_context: UserContext,
-    search_parameters: dict,
-    init_search_time: datetime,
-    poll_time: float,
-) -> asyncio.Task:
+def setup_poller(user_context: UserContext, search_base: str) -> asyncio.Task:
     def done_callback(future):
         # This ensures exceptions go to the terminal
         future.result()
 
-    handle = asyncio.create_task(
-        _poller(user_context, search_parameters, init_search_time, poll_time)
-    )
+    handle = asyncio.create_task(_poller(user_context, search_base))
     handle.add_done_callback(done_callback)
     return handle
 
 
 async def _poll(
-    user_context: UserContext,
-    search_parameters: dict,
+    ldap_connection: Connection,
+    search_base: str,
+    ldap_unique_id_field: str,
     last_search_time: datetime,
-) -> datetime:
+) -> set[UUID]:
     """Pool the LDAP server for changes once.
 
     Args:
-        context:
-            The entire settings context.
-        search_params:
-            LDAP search parameters.
-        callback:
-            Function to call with all changes since `last_search_time`.
+        ldap_connection:
+            The LDAP connection to use when searching for changes.
+        search_base:
+            LDAP search base to look for changes in.
+        ldap_unique_id_field:
+            The name of the unique entity UUID field.
         last_search_time:
             Find events that occured since this time.
 
     Returns:
-        A two-tuple containing a list of events to ignore and the time at
-        which the last search was done.
-
-        Should be provided as `last_search_time` in the next iteration.
+        The set of UUIDs that have changed since last_search_time.
     """
-    ldap_amqpsystem: AMQPSystem = user_context["ldap_amqpsystem"]
-    ldap_connection: Connection = user_context["ldap_connection"]
-    settings: Settings = user_context["settings"]
-
     logger.debug(
         "Searching for changes since last search", last_search_time=last_search_time
     )
@@ -125,8 +102,11 @@ async def _poll(
     #       a different value for the same entry, thus if we hit different domain
     #       controllers we may get duplicate (fine) and missed (not fine) events.
     search_filter = f"(modifyTimestamp>={datetime_to_ldap_timestamp(last_search_time)})"
-    search_parameters["search_filter"] = search_filter
-    last_search_time = datetime.now(timezone.utc)
+    search_parameters = {
+        "search_base": search_base,
+        "search_filter": search_filter,
+        "attributes": [ldap_unique_id_field],
+    }
 
     response, _ = await ldap_search(ldap_connection, **search_parameters)
 
@@ -134,7 +114,7 @@ async def _poll(
     responses = ldapresponse2entries(response)
 
     def event2uuid(event: dict[str, Any]) -> UUID | None:
-        uuid = event.get("attributes", {}).get(settings.ldap_unique_id_field, None)
+        uuid = event.get("attributes", {}).get(ldap_unique_id_field, None)
         if uuid is None:
             logger.warning("Got event without uuid")
             return None
@@ -143,43 +123,38 @@ async def _poll(
     uuids_with_none = {event2uuid(event) for event in responses}
     uuids_with_none.discard(None)
     uuids = cast(set[UUID], uuids_with_none)
-    await publish_uuids(ldap_amqpsystem, list(uuids))
-
-    return last_search_time
+    return uuids
 
 
-async def _poller(
-    user_context: UserContext,
-    search_parameters: dict,
-    init_search_time: datetime,
-    poll_time: float,
-) -> None:
-    """Poll the LDAP server continuously every `poll_time` seconds.
+async def _poller(user_context: UserContext, search_base: str) -> None:
+    """Poll the LDAP server continuously every `settings.poll_time` seconds.
 
     Args:
         context:
             The entire settings context.
-        search_params:
-            LDAP search parameters.
-        callback:
-            Function to call with all changes since `last_search_time`.
-        init_search_time:
-            Find events that occured since this time.
-        pool_time:
-            The interval with which to poll.
+        search_base:
+            LDAP search base to look for changes in.
     """
-    logger.info("Poller started", search_base=search_parameters["search_base"])
+    settings: Settings = user_context["settings"]
+    logger.info("Poller started", search_base=search_base)
+
+    ldap_amqpsystem = user_context["ldap_amqpsystem"]
 
     seeded_poller = partial(
         _poll,
-        user_context=user_context,
-        search_parameters=search_parameters,
+        ldap_connection=user_context["ldap_connection"],
+        search_base=search_base,
+        ldap_unique_id_field=settings.ldap_unique_id_field,
     )
 
-    last_search_time = init_search_time
+    last_search_time = datetime.now(timezone.utc)
     while True:
-        last_search_time = await seeded_poller(last_search_time=last_search_time)
-        await asyncio.sleep(poll_time)
+        now = datetime.now(timezone.utc)
+        uuids = await seeded_poller(last_search_time=last_search_time)
+        last_search_time = now
+
+        await publish_uuids(ldap_amqpsystem, list(uuids))
+        await asyncio.sleep(settings.poll_time)
 
 
 def datetime_to_ldap_timestamp(dt: datetime) -> str:
