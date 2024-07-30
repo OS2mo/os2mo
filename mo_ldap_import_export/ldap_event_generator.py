@@ -2,12 +2,14 @@
 # SPDX-License-Identifier: MPL-2.0
 """LDAP change event generation."""
 import asyncio
+from contextlib import asynccontextmanager
 from contextlib import suppress
 from datetime import datetime
 from datetime import timezone
 from functools import partial
 from typing import Any
 from typing import AsyncContextManager
+from typing import AsyncIterator
 from typing import Self
 from typing import cast
 from uuid import UUID
@@ -18,6 +20,9 @@ from fastramqpi.depends import UserContext
 from ldap3 import Connection
 from sqlalchemy import TIMESTAMP
 from sqlalchemy import Text
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
@@ -143,6 +148,43 @@ async def _poll(
     uuids_with_none.discard(None)
     uuids = cast(set[UUID], uuids_with_none)
     return uuids
+
+
+@asynccontextmanager
+async def update_timestamp(
+    sessionmaker: async_sessionmaker[AsyncSession], search_base: str
+) -> AsyncIterator[datetime]:
+    """Async context manager to fetch and update last run time from our rundb.
+
+    Args:
+        sessionmaker: The sessionmaker used to create our database sessions.
+        search_base: The search base to fetch and update time for.
+
+    Yields:
+        The last run time as read from the database.
+    """
+    # Ensure that a last-run row exists for our search_base
+    # We do creates separately to support update locks in normal operation
+    async with sessionmaker() as session, session.begin():
+        last_run = await session.scalar(
+            select(LastRun).where(LastRun.search_base == search_base).with_for_update()
+        )
+        last_run = last_run or LastRun(search_base=search_base)
+        session.add(last_run)
+
+    async with sessionmaker() as session, session.begin():
+        # Get last run time from database for updating
+        last_run = await session.scalar(
+            select(LastRun).where(LastRun.search_base == search_base).with_for_update()
+        )
+        assert last_run is not None
+        assert last_run.datetime is not None
+
+        now = datetime.now(timezone.utc)
+        yield last_run.datetime
+        # Update last run time in database
+        last_run.datetime = now
+        session.add(last_run)
 
 
 async def _poller(user_context: UserContext, search_base: str) -> None:
