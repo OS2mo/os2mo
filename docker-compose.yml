@@ -24,12 +24,13 @@ services:
   mo_ldap_import_export:
     container_name: mo_ldap_ie
     build: .
-    command: ["uvicorn", "--factory", "app.main:create_app", "--host", "0.0.0.0", "--reload"]
+    command: ["uvicorn", "--factory", "mo_ldap_import_export.main:create_app", "--host", "0.0.0.0", "--reload"]
     environment:
       FASTRAMQPI__DAP: "true"
       TZ: "Europe/Copenhagen"
     volumes:
-      - ./mo_ldap_import_export:/opt/app/
+      - ./mo_ldap_import_export/:/app/mo_ldap_import_export:ro
+      - ./tests/:/app/tests/:ro
       - ./dev-environment/mo_ldap_import_export.env:/var/run/.env
     networks:
       - os2mo_default

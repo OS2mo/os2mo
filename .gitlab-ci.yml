@@ -22,7 +22,7 @@ variables:
   PYTEST_COV_MODULE: mo_ldap_import_export
   PYTEST_COV_FAIL_UNDER: 100
 
-  POETRY_VERSION: "1.4.2"
+  POETRY_VERSION: "1.8"
   PRECOMMIT_USE_POETRY: "true"
 
 # Conditions
