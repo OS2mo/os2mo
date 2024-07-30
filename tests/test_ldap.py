@@ -551,42 +551,6 @@ async def test_single_object_search(ldap_connection: MagicMock, context: Context
     assert output == search_entry
 
 
-@pytest.fixture()
-def dataloader() -> AsyncMock:
-    dataloader = AsyncMock()
-    dataloader.cleanup_attributes_in_ldap = MagicMock()
-    dataloader.load_ldap_object = MagicMock()
-    return dataloader
-
-
-@pytest.fixture()
-def converter() -> MagicMock:
-    converter = MagicMock()
-    converter._export_to_ldap_ = MagicMock()
-    converter._export_to_ldap_.return_value = True
-
-    def to_ldap(conversion_dict, json_key, dn):
-        return LdapObject(
-            dn="CN=foo", address=conversion_dict["mo_employee_address"].value
-        )
-
-    converter.to_ldap = AsyncMock()
-    converter.from_ldap = AsyncMock()
-
-    converter.to_ldap.side_effect = to_ldap
-    converter.get_ldap_attributes.return_value = ["address"]
-
-    return converter
-
-
-@pytest.fixture()
-def user_context(
-    dataloader: AsyncMock, converter: MagicMock, sync_tool: AsyncMock
-) -> dict:
-    user_context = dict(dataloader=dataloader, converter=converter, sync_tool=sync_tool)
-    return user_context
-
-
 async def test_setup_poller() -> None:
     async def _poller(*args: Any) -> None:
         raise ValueError("BOOM")

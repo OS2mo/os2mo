@@ -6,6 +6,7 @@ from functools import partial
 from itertools import combinations
 from random import randint
 from typing import Any
+from unittest.mock import ANY
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -46,13 +47,12 @@ def context(
     export_checks: AsyncMock,
     import_checks: AsyncMock,
     settings: MagicMock,
-    amqpsystem: AsyncMock,
 ) -> Context:
     settings.discriminator_field = None
     ldap_connection = AsyncMock()
     context = Context(
         {
-            "amqpsystem": amqpsystem,
+            "amqpsystem": AsyncMock(),
             "user_context": {
                 "dataloader": dataloader,
                 "converter": converter,
@@ -1429,9 +1429,7 @@ async def test_publish_engagements_for_org_unit(
 ) -> None:
     uuid = OrgUnitUUID(uuid4())
     await sync_tool.publish_engagements_for_org_unit(uuid)
-    dataloader.graphql_client.org_unit_engagements_refresh.assert_called_with(
-        "os2mo_ldap_ie", uuid
-    )
+    dataloader.graphql_client.org_unit_engagements_refresh.assert_called_with(ANY, uuid)
 
 
 async def test_perform_import_checks_noop(sync_tool: SyncTool) -> None:

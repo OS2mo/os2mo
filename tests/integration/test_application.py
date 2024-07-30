@@ -296,7 +296,7 @@ async def test_create_ldap_person(
 @pytest.mark.envvar(
     {"IT_USER_TO_CHECK": "SynchronizeToLDAP", "LISTEN_TO_CHANGES_IN_LDAP": "False"}
 )
-@pytest.mark.usefixtures("test_client", "ldap_dummy_data")
+@pytest.mark.usefixtures("ldap_dummy_data")
 async def test_create_ldap_person_blocked_by_itsystem_check(
     test_client: AsyncClient,
     graphql_client: GraphQLClient,
