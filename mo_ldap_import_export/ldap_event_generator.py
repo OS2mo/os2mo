@@ -16,14 +16,33 @@ import structlog
 from fastramqpi.context import Context
 from fastramqpi.depends import UserContext
 from ldap3 import Connection
+from sqlalchemy import TIMESTAMP
+from sqlalchemy import Text
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
 
 from .config import Settings
+from .database import Base
 from .ldap import ldap_search
 from .ldap import ldapresponse2entries
 from .ldap_emit import publish_uuids
 from .utils import combine_dn_strings
 
 logger = structlog.stdlib.get_logger()
+
+
+class LastRun(Base):
+    __tablename__ = "last_run"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    search_base: Mapped[str] = mapped_column(
+        Text, index=True, unique=True, nullable=False
+    )
+    datetime: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        default=datetime.min.replace(tzinfo=timezone.utc),
+        nullable=False,
+    )
 
 
 class LDAPEventGenerator(AsyncContextManager):
