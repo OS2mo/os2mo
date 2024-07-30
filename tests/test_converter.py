@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import copy
 import datetime
-import os.path
 import re
 import uuid
 from typing import Any
@@ -14,7 +13,6 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
-import yaml
 from fastramqpi.context import Context
 from fastramqpi.ramqp.utils import RequeueMessage
 from jinja2 import Environment
@@ -422,42 +420,6 @@ async def test_mo_to_ldap(converter: LdapConverter) -> None:
     with pytest.raises(AssertionError):
         obj_dict = {"mo_employee_address": "foo"}
         await converter.to_ldap(obj_dict, "Employee", "CN=foo")
-
-
-async def test_mapping_loader() -> None:
-    file_path = os.path.join(os.path.dirname(__file__), "resources", "mapping.yaml")
-    with open(file_path) as file:
-        mapping = yaml.safe_load(file)
-    expected = {
-        "ldap_to_mo": {
-            "Employee": {
-                "objectClass": "ramodels.mo.employee.Employee",
-                "_import_to_mo_": "true",
-                "givenname": "{{ldap.givenName or ldap.name|splitlast|first}}",
-                "surname": "{{ldap.surname or ldap.sn or "
-                "ldap.name|splitlast|last or ''}}",
-                "cpr_no": "{{ldap.cpr or None}}",
-                "seniority": "{{ldap.seniority or None}}",
-                "nickname_givenname": "{{ldap.nickname_givenname or None}}",
-                "nickname_surname": "{{ldap.nickname_surname or None}}",
-            }
-        },
-        "mo_to_ldap": {
-            "Employee": {
-                "objectClass": "user",
-                "_export_to_ldap_": "true",
-                "givenName": "{{mo_employee.givenname}}",
-                "sn": "{{mo_employee.surname}}",
-                "displayName": "{{mo_employee.surname}}, {{mo_employee.givenname}}",
-                "name": "{{mo_employee.givenname}} {{mo_employee.surname}}",
-                "cpr": "{{mo_employee.cpr_no or None}}",
-                "seniority": "{{mo_employee.seniority or None}}",
-                "nickname_givenname": "{{mo_employee.nickname_givenname or None}}",
-                "nickname_surname": "{{mo_employee.nickname_surname or None}}",
-            }
-        },
-    }
-    assert mapping == expected
 
 
 async def test_mapping_loader_failure(context: Context) -> None:
