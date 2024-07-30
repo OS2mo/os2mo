@@ -29,6 +29,7 @@ from .config import Settings
 from .converters import LdapConverter
 from .customer_specific_checks import ExportChecks
 from .customer_specific_checks import ImportChecks
+from .database import Base
 from .dataloaders import DataLoader
 from .exceptions import amqp_reject_on_failure
 from .exceptions import http_reject_on_failure
@@ -355,6 +356,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
         settings=settings.fastramqpi,
         graphql_version=22,
         graphql_client_cls=GraphQLClient,
+        database_metadata=Base.metadata,
     )
     fastramqpi.add_context(settings=settings)
 

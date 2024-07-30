@@ -17,7 +17,7 @@ services:
       - ./dev-environment/ldif/:/container/service/slapd/assets/config/bootstrap/ldif/custom/:ro
       - ./dev-environment/schema/:/container/service/slapd/assets/config/bootstrap/schema/custom/:ro
     networks:
-      - os2mo_default
+      - default
 #    ports:
 #      - "389:389"
 
@@ -28,15 +28,31 @@ services:
     environment:
       FASTRAMQPI__DAP: "true"
       TZ: "Europe/Copenhagen"
+
+      # Database
+      FASTRAMQPI__DATABASE__USER: "fastramqpi"
+      FASTRAMQPI__DATABASE__PASSWORD: "fastramqpi"
+      FASTRAMQPI__DATABASE__HOST: "db"
+      FASTRAMQPI__DATABASE__NAME: "fastramqpi"
     volumes:
       - ./mo_ldap_import_export/:/app/mo_ldap_import_export:ro
       - ./tests/:/app/tests/:ro
       - ./dev-environment/mo_ldap_import_export.env:/var/run/.env
     networks:
+      - default
       - os2mo_default
     ports:
       - "127.0.0.1:8000:8000"
       - "127.0.0.1:5678:5678"
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: "fastramqpi"
+      POSTGRES_PASSWORD: "fastramqpi"
+      POSTGRES_DB: "fastramqpi"
+    networks:
+      - default
 
 networks:
   os2mo_default:

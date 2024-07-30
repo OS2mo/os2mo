@@ -123,6 +123,10 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "DEFAULT_ORG_UNIT_LEVEL": "foo",
         "DEFAULT_ORG_UNIT_TYPE": "foo",
         "FASTRAMQPI__AMQP__URL": "amqp://guest:guest@msg_broker:5672/",
+        "FASTRAMQPI__DATABASE__USER": "fastramqpi",
+        "FASTRAMQPI__DATABASE__PASSWORD": "fastramqpi",
+        "FASTRAMQPI__DATABASE__HOST": "db",
+        "FASTRAMQPI__DATABASE__NAME": "fastramqpi",
     }
     yield overrides
 
