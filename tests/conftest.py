@@ -360,7 +360,7 @@ def read_mapping(filename):
 
 
 @pytest.fixture
-async def fastramqpi() -> FastRAMQPI:
+async def fastramqpi(load_marked_envvars: None) -> FastRAMQPI:
     return create_fastramqpi()
 
 
