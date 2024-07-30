@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Iterable
 from typing import Any
+from typing import AsyncIterator
 from unittest.mock import ANY
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
@@ -36,6 +37,13 @@ from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.usernames import UserNameGenerator
 from tests.graphql_mocker import GraphQLMocker
+
+
+@pytest.fixture
+async def graphql_client() -> AsyncIterator[GraphQLClient]:
+    # NOTE: We could have this session-scoped as it is essentially stateless
+    async with GraphQLClient("http://example.com/graphql") as graphql_client:
+        yield graphql_client
 
 
 @pytest.fixture
