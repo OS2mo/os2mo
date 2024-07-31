@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from ramodels.base import RABase
-from ramodels.mo._shared import EmployeeRef
-from ramodels.mo._shared import OrgUnitRef
+from mora.graphapi.gmodels.base import RABase
+from mora.graphapi.gmodels.mo._shared import EmployeeRef
+from mora.graphapi.gmodels.mo._shared import OrgUnitRef
 
 
 class Details(RABase):

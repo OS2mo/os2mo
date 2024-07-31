@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import Field
 
-from ramodels.mo._shared import UUIDBase
+from mora.graphapi.gmodels.mo._shared import UUIDBase
 
 
 class Detail(UUIDBase):

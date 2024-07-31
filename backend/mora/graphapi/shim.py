@@ -23,12 +23,12 @@ from .versions.base import BaseGraphQLVersion
 from mora import depends
 from mora import util
 from mora.auth.keycloak.oidc import noauth
-from ramodels.mo import ClassRead
-from ramodels.mo import EmployeeRead
-from ramodels.mo import FacetRead
-from ramodels.mo import OrganisationRead
-from ramodels.mo import OrganisationUnitRead
-from ramodels.mo.details import AddressRead
+from mora.graphapi.gmodels.mo import ClassRead
+from mora.graphapi.gmodels.mo import EmployeeRead
+from mora.graphapi.gmodels.mo import FacetRead
+from mora.graphapi.gmodels.mo import OrganisationRead
+from mora.graphapi.gmodels.mo import OrganisationUnitRead
+from mora.graphapi.gmodels.mo.details import AddressRead
 
 
 class MOEmployee(EmployeeRead):

@@ -3,8 +3,8 @@
 """Strawberry types describing the MO graph."""
 import strawberry
 
-from ramodels.mo._shared import OpenValidity as OpenValidityModel
-from ramodels.mo._shared import Validity as ValidityModel
+from mora.graphapi.gmodels.mo._shared import OpenValidity as OpenValidityModel
+from mora.graphapi.gmodels.mo._shared import Validity as ValidityModel
 
 
 # Validities

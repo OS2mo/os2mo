@@ -21,7 +21,7 @@ from ..latest.schema import Facet
 from ..latest.schema import ITSystem
 from ..latest.schema import Response
 from ..v19.version import GraphQLVersion as NextGraphQLVersion
-from ramodels.mo._shared import UUIDBase
+from mora.graphapi.gmodels.mo._shared import UUIDBase
 
 
 class TerminatorMixin:

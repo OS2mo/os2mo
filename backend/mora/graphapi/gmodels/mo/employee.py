@@ -15,8 +15,8 @@ from ._shared import OrganisationRef
 from ._shared import validate_cpr
 from ._shared import validate_names
 from .details import EmployeeDetails
-from ramodels.base import RABase
-from ramodels.base import tz_isodate
+from mora.graphapi.gmodels.base import RABase
+from mora.graphapi.gmodels.base import tz_isodate
 
 
 # Type aliases
@@ -101,8 +101,8 @@ class Employee(MOBase):
     type_: Literal["employee"] = Field(
         "employee", alias="type", description="The object type"
     )
-    givenname: str = Field(None, description="Given name of the employee.")
-    surname: str = Field(None, description="Surname of the employee.")
+    givenname: str = Field(None, description="Given name of the employee.")  # type: ignore
+    surname: str = Field(None, description="Surname of the employee.")  # type: ignore
     name: str | None = Field(
         description=(
             "The full name of the employee. "

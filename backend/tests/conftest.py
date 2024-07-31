@@ -48,6 +48,7 @@ from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import Token
 from mora.auth.keycloak.oidc import token_getter
 from mora.config import get_settings
+from mora.graphapi.gmodels.mo import Validity as GValidity
 from mora.graphapi.main import newest as newest_graphql_version
 from mora.graphapi.versions.latest.permissions import ALL_PERMISSIONS
 from mora.mapping import ADMIN
@@ -113,6 +114,7 @@ def pytest_runtest_protocol(item) -> None:
 
 
 st.register_type_strategy(Validity, validity_model_strat())
+st.register_type_strategy(GValidity, validity_model_strat())
 
 
 @pytest.fixture(autouse=True)

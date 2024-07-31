@@ -8,7 +8,7 @@ from uuid import UUID
 import strawberry
 
 from mora import common
-from ramodels.lora.organisation import Organisation
+from mora.graphapi.gmodels.lora.organisation import Organisation
 
 logger = logging.getLogger(__name__)
 

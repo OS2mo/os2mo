@@ -11,8 +11,8 @@ from ..v13.mutators import uuid2response
 from ..v13.schema import OrganisationUnit
 from ..v13.schema import Response
 from ..v9.version import GraphQLVersion as NextGraphQLVersion
+from mora.graphapi.gmodels.mo.organisation_unit import OrganisationUnitRead
 from mora.graphapi.shim import execute_graphql  # type: ignore[attr-defined]
-from ramodels.mo.organisation_unit import OrganisationUnitRead
 
 
 @strawberry.type

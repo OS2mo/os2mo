@@ -13,10 +13,10 @@ from pydantic import Field
 from pydantic import root_validator
 from pydantic import validator
 
-from ramodels.base import NEG_INF
-from ramodels.base import POS_INF
-from ramodels.base import RABase
-from ramodels.base import tz_isodate
+from mora.graphapi.gmodels.base import NEG_INF
+from mora.graphapi.gmodels.base import POS_INF
+from mora.graphapi.gmodels.base import RABase
+from mora.graphapi.gmodels.base import tz_isodate
 
 try:
     import zoneinfo
@@ -40,7 +40,7 @@ class LoraBase(RABase):
             raise TypeError("LoraBase may not be instantiated")
         return super().__new__(cls)
 
-    uuid: UUID = Field(None)
+    uuid: UUID = Field(None)  # type: ignore
 
     # Autogenerate UUID if necessary
     # TODO: in pydantic v2, this can be replaced with Field(default_factory=uuid4)

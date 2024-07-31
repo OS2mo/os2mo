@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from pydantic import Extra
 from pydantic import root_validator
 
-from ramodels.exceptions import ISOParseError
+from mora.graphapi.gmodels.exceptions import ISOParseError
 
 try:
     import zoneinfo

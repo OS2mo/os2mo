@@ -19,12 +19,12 @@ from pydantic import Field
 from ..conftest import GraphAPIPost
 from .utils import fetch_class_uuids
 from .utils import fetch_org_unit_validity
+from mora.graphapi.gmodels.mo import Validity as RAValidity
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.models import ITAssociationCreate
 from mora.graphapi.versions.latest.models import ITAssociationUpdate
 from mora.graphapi.versions.latest.schema import AssociationRead
 from mora.util import POSITIVE_INFINITY
-from ramodels.mo import Validity as RAValidity
 
 
 class ITAssociationRead(AssociationRead):

@@ -20,12 +20,12 @@ from pydantic import parse_obj_as
 from ..conftest import GraphAPIPost
 from .utils import fetch_class_uuids
 from .utils import fetch_org_unit_validity
+from mora.graphapi.gmodels.mo import Validity as RAValidity
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.models import AssociationCreate
 from mora.graphapi.versions.latest.models import AssociationUpdate
 from mora.util import is_substitute_allowed
 from mora.util import POSITIVE_INFINITY
-from ramodels.mo import Validity as RAValidity
 from tests.conftest import GQLResponse
 
 

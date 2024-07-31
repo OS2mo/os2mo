@@ -19,11 +19,11 @@ from pytest import MonkeyPatch
 from ..conftest import GraphAPIPost
 from .utils import fetch_employee_validity
 from .utils import fetch_org_unit_validity
+from mora.graphapi.gmodels.mo import Validity as RAValidity
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.models import ITUserCreate
 from mora.graphapi.versions.latest.models import ITUserUpdate
 from mora.util import POSITIVE_INFINITY
-from ramodels.mo import Validity as RAValidity
 from tests.conftest import GQLResponse
 
 

@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import Field
 
-from ramodels.mo._shared import MOBase
+from mora.graphapi.gmodels.mo._shared import MOBase
 
 
 class FacetRead(MOBase):

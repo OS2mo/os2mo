@@ -13,7 +13,7 @@ from ..latest.permissions import IsAuthenticatedPermission
 from ..latest.schema import OrganisationUnit
 from ..latest.schema import Response
 from ..v22.version import GraphQLVersion as NextGraphQLVersion
-from ramodels.mo import OrganisationUnitRead
+from mora.graphapi.gmodels.mo import OrganisationUnitRead
 
 
 class OrganisationUnitUpdateInput(OrganisationUnitUpdateInputLatest):
