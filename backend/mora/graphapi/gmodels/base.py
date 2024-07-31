@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import re
+import zoneinfo
 from datetime import datetime
 from typing import Any
 
@@ -10,12 +11,6 @@ from pydantic import Extra
 from pydantic import root_validator
 
 from mora.graphapi.gmodels.exceptions import ISOParseError
-
-try:
-    import zoneinfo
-except ImportError:  # pragma: no cover
-    from backports import zoneinfo  # type: ignore
-
 
 # TODO: Perhaps it's worth reading from e.g. env vars here
 DEFAULT_TZ = zoneinfo.ZoneInfo("Europe/Copenhagen")
