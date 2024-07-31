@@ -28,12 +28,3 @@ class ClassRead(ClassBase):
     name: str = Field(description="Name/title of the class.")
     facet_uuid: UUID = Field(description="UUID of the related facet.")
     org_uuid: UUID = Field(description="UUID of the related organisation.")
-
-
-class ClassWrite(ClassBase):
-
-    """A MO Class write object."""
-
-    name: str = Field(description="Mo-class name.")
-    facet_uuid: UUID | None = Field(description="UUID of the related facet.")
-    org_uuid: UUID = Field(description="UUID of the related organisation.")

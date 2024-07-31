@@ -5,7 +5,6 @@ from uuid import UUID
 from pydantic import Field
 
 from .._shared import MOBase
-from .._shared import OrgUnitRef
 from .._shared import Validity
 
 
@@ -21,12 +20,4 @@ class RelatedUnitRead(RelatedUnitBase):
 
     org_unit_uuids: list[UUID] = Field(
         description="UUIDs of the related organisation units."
-    )
-
-
-class RelatedUnitWrite(RelatedUnitBase):
-    """A MO RelatedUnitWrite object."""
-
-    org_units: list[OrgUnitRef] = Field(
-        description="List of references of the related the organisation units."
     )
