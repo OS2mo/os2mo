@@ -19,15 +19,11 @@ class ITSystemRead(MOBase):
     validity: OpenValidity = Field(description="Validity of the IT system object.")
 
 
-class ITUserBase(MOBase):
-    """A MO IT user object."""
+class ITUserRead(MOBase):
+    """A MO IT user read object."""
 
     type_: str = Field("it", alias="type", description="The object type.")
     validity: Validity = Field(description="Validity of the IT user object.")
-
-
-class ITUserRead(ITUserBase):
-    """A MO IT user read object."""
 
     itsystem_uuid: UUID = Field(description="UUID of the ITSystem related to the user.")
     employee_uuid: UUID | None = Field(
