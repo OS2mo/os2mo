@@ -86,28 +86,22 @@ def all_fields(model: Any) -> set[str]:
 
 # Various
 # -------
-@strawberry.experimental.pydantic.input(
-    model=Validity,
-    all_fields=True,
-)
+@strawberry.input
 class ValidityInput:
-    pass
+    from_date: datetime | None
+    to_date: datetime | None
 
 
-@strawberry.experimental.pydantic.input(
-    model=RAValidity,
-    all_fields=True,
-)
+@strawberry.input
 class RAValidityInput:
-    pass
+    from_date: datetime | None
+    to_date: datetime | None
 
 
-@strawberry.experimental.pydantic.input(
-    model=RAOpenValidity,
-    all_fields=True,
-)
+@strawberry.input
 class RAOpenValidityInput:
-    pass
+    from_date: datetime | None
+    to_date: datetime | None
 
 
 def validity2dict(validity: Any) -> dict:
