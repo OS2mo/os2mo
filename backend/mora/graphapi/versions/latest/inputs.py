@@ -80,6 +80,10 @@ def strip_none_and_unset(d: dict[str, Any]) -> dict[str, Any]:
     return strip_none(strip_unset(d))
 
 
+def all_fields(model: Any) -> set[str]:
+    return set(model.__fields__.keys())
+
+
 # Various
 # -------
 @strawberry.experimental.pydantic.input(
@@ -131,8 +135,7 @@ class OrganisationInput:
 # Addresses
 # ---------
 @strawberry.experimental.pydantic.input(
-    model=AddressCreate,
-    all_fields=True,
+    model=AddressCreate, fields=list(all_fields(AddressCreate) - {"employee"})
 )
 class AddressCreateInput:
     """input model for creating addresses."""
@@ -151,8 +154,7 @@ class AddressTerminateInput:
 
 
 @strawberry.experimental.pydantic.input(
-    model=AddressUpdate,
-    all_fields=True,
+    model=AddressUpdate, fields=list(all_fields(AddressUpdate) - {"employee"})
 )
 class AddressUpdateInput:
     """input model for updating addresses."""
@@ -165,8 +167,7 @@ class AddressUpdateInput:
 # Associations
 # ------------
 @strawberry.experimental.pydantic.input(
-    model=AssociationCreate,
-    all_fields=True,
+    model=AssociationCreate, fields=list(all_fields(AssociationCreate) - {"employee"})
 )
 class AssociationCreateInput:
     """input model for creating associations."""
@@ -177,8 +178,7 @@ class AssociationCreateInput:
 
 
 @strawberry.experimental.pydantic.input(
-    model=AssociationUpdate,
-    all_fields=True,
+    model=AssociationUpdate, fields=list(all_fields(AssociationUpdate) - {"employee"})
 )
 class AssociationUpdateInput:
     """input model for updating associations."""
@@ -259,8 +259,7 @@ class EngagementTerminateInput:
 
 
 @strawberry.experimental.pydantic.input(
-    model=EngagementCreate,
-    all_fields=True,
+    model=EngagementCreate, fields=list(all_fields(EngagementCreate) - {"employee"})
 )
 class EngagementCreateInput:
     """input model for creating engagements."""
@@ -271,8 +270,7 @@ class EngagementCreateInput:
 
 
 @strawberry.experimental.pydantic.input(
-    model=EngagementUpdate,
-    all_fields=True,
+    model=EngagementUpdate, fields=list(all_fields(EngagementUpdate) - {"employee"})
 )
 class EngagementUpdateInput:
     """input model for updating Engagements."""
