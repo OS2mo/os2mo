@@ -135,7 +135,8 @@ class OrganisationInput:
 # Addresses
 # ---------
 @strawberry.experimental.pydantic.input(
-    model=AddressCreate, fields=list(all_fields(AddressCreate) - {"employee"})
+    model=AddressCreate,
+    fields=list(all_fields(AddressCreate) - {"employee", "validity"}),
 )
 class AddressCreateInput:
     """input model for creating addresses."""
@@ -143,6 +144,7 @@ class AddressCreateInput:
     employee: UUID | None = strawberry.field(
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo."
     )
+    validity: ValidityInput
 
 
 @strawberry.experimental.pydantic.input(
@@ -154,7 +156,8 @@ class AddressTerminateInput:
 
 
 @strawberry.experimental.pydantic.input(
-    model=AddressUpdate, fields=list(all_fields(AddressUpdate) - {"employee"})
+    model=AddressUpdate,
+    fields=list(all_fields(AddressUpdate) - {"employee", "validity"}),
 )
 class AddressUpdateInput:
     """input model for updating addresses."""
@@ -162,12 +165,14 @@ class AddressUpdateInput:
     employee: UUID | None = strawberry.field(
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo."
     )
+    validity: ValidityInput
 
 
 # Associations
 # ------------
 @strawberry.experimental.pydantic.input(
-    model=AssociationCreate, fields=list(all_fields(AssociationCreate) - {"employee"})
+    model=AssociationCreate,
+    fields=list(all_fields(AssociationCreate) - {"employee", "validity"}),
 )
 class AssociationCreateInput:
     """input model for creating associations."""
@@ -175,10 +180,12 @@ class AssociationCreateInput:
     employee: UUID | None = strawberry.field(
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo."
     )
+    validity: ValidityInput
 
 
 @strawberry.experimental.pydantic.input(
-    model=AssociationUpdate, fields=list(all_fields(AssociationUpdate) - {"employee"})
+    model=AssociationUpdate,
+    fields=list(all_fields(AssociationUpdate) - {"employee", "validity"}),
 )
 class AssociationUpdateInput:
     """input model for updating associations."""
@@ -186,6 +193,7 @@ class AssociationUpdateInput:
     employee: UUID | None = strawberry.field(
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo."
     )
+    validity: ValidityInput
 
 
 @strawberry.experimental.pydantic.input(
@@ -199,19 +207,21 @@ class AssociationTerminateInput:
 # Classes
 # ---------
 @strawberry.experimental.pydantic.input(
-    model=ClassCreate,
-    all_fields=True,
+    model=ClassCreate, fields=list(all_fields(ClassCreate) - {"validity"})
 )
 class ClassCreateInput:
     """input model for creating a class."""
 
+    validity: ValidityInput
+
 
 @strawberry.experimental.pydantic.input(
-    model=ClassUpdate,
-    all_fields=True,
+    model=ClassUpdate, fields=list(all_fields(ClassUpdate) - {"validity"})
 )
 class ClassUpdateInput:
     """input model for updating a class."""
+
+    validity: ValidityInput
 
 
 @strawberry.experimental.pydantic.input(
@@ -233,11 +243,12 @@ class EmployeeCreateInput:
 
 
 @strawberry.experimental.pydantic.input(
-    model=EmployeeUpdate,
-    all_fields=True,
+    model=EmployeeUpdate, fields=list(all_fields(EmployeeUpdate) - {"validity"})
 )
 class EmployeeUpdateInput:
     """Input model for updating an employee."""
+
+    validity: ValidityInput
 
 
 @strawberry.experimental.pydantic.input(
@@ -259,7 +270,8 @@ class EngagementTerminateInput:
 
 
 @strawberry.experimental.pydantic.input(
-    model=EngagementCreate, fields=list(all_fields(EngagementCreate) - {"employee"})
+    model=EngagementCreate,
+    fields=list(all_fields(EngagementCreate) - {"employee", "validity"}),
 )
 class EngagementCreateInput:
     """input model for creating engagements."""
@@ -267,10 +279,12 @@ class EngagementCreateInput:
     employee: UUID | None = strawberry.field(
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo."
     )
+    validity: ValidityInput
 
 
 @strawberry.experimental.pydantic.input(
-    model=EngagementUpdate, fields=list(all_fields(EngagementUpdate) - {"employee"})
+    model=EngagementUpdate,
+    fields=list(all_fields(EngagementUpdate) - {"employee", "validity"}),
 )
 class EngagementUpdateInput:
     """input model for updating Engagements."""
@@ -278,6 +292,7 @@ class EngagementUpdateInput:
     employee: UUID | None = strawberry.field(
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo."
     )
+    validity: ValidityInput
 
 
 # EngagementsAssociations
@@ -288,18 +303,22 @@ class EngagementUpdateInput:
 # ---------
 @strawberry.experimental.pydantic.input(
     model=ITAssociationCreate,
-    all_fields=True,
+    fields=list(all_fields(ITAssociationCreate) - {"validity"}),
 )
 class ITAssociationCreateInput:
     """input model for creating IT-associations."""
 
+    validity: ValidityInput
+
 
 @strawberry.experimental.pydantic.input(
     model=ITAssociationUpdate,
-    all_fields=True,
+    fields=list(all_fields(ITAssociationUpdate) - {"validity"}),
 )
 class ITAssociationUpdateInput:
     """input model for updating IT-associations."""
+
+    validity: ValidityInput
 
 
 @strawberry.experimental.pydantic.input(
@@ -313,19 +332,21 @@ class ITAssociationTerminateInput:
 # Facets
 # ------
 @strawberry.experimental.pydantic.input(
-    model=FacetCreate,
-    all_fields=True,
+    model=FacetCreate, fields=list(all_fields(FacetCreate) - {"validity"})
 )
 class FacetCreateInput:
     """Input model for creating a facet."""
 
+    validity: ValidityInput
+
 
 @strawberry.experimental.pydantic.input(
-    model=FacetUpdate,
-    all_fields=True,
+    model=FacetUpdate, fields=list(all_fields(FacetUpdate) - {"validity"})
 )
 class FacetUpdateInput:
     """Input model for updating a facet."""
+
+    validity: ValidityInput
 
 
 @strawberry.experimental.pydantic.input(
@@ -339,19 +360,21 @@ class FacetTerminateInput:
 # ITSystems
 # ---------
 @strawberry.experimental.pydantic.input(
-    model=ITSystemCreate,
-    all_fields=True,
+    model=ITSystemCreate, fields=list(all_fields(ITSystemCreate) - {"validity"})
 )
 class ITSystemCreateInput:
     """input model for creating ITSystems."""
 
+    validity: ValidityInput
+
 
 @strawberry.experimental.pydantic.input(
-    model=ITSystemUpdate,
-    all_fields=True,
+    model=ITSystemUpdate, fields=list(all_fields(ITSystemCreate) - {"validity"})
 )
 class ITSystemUpdateInput:
     """Input model for updating ITSystems."""
+
+    validity: ValidityInput
 
 
 @strawberry.experimental.pydantic.input(
@@ -365,19 +388,21 @@ class ITSystemTerminateInput:
 # ITUsers
 # -------
 @strawberry.experimental.pydantic.input(
-    model=ITUserCreate,
-    all_fields=True,
+    model=ITUserCreate, fields=list(all_fields(ITUserCreate) - {"validity"})
 )
 class ITUserCreateInput:
     """input model for creating IT-Users."""
 
+    validity: ValidityInput
+
 
 @strawberry.experimental.pydantic.input(
-    model=ITUserUpdate,
-    all_fields=True,
+    model=ITUserUpdate, fields=list(all_fields(ITUserUpdate) - {"validity"})
 )
 class ITUserUpdateInput:
     """input model for creating IT-Users."""
+
+    validity: ValidityInput
 
 
 @strawberry.experimental.pydantic.input(
@@ -393,19 +418,21 @@ class ITUserTerminateInput:
 
 
 @strawberry.experimental.pydantic.input(
-    model=KLECreate,
-    all_fields=True,
+    model=KLECreate, fields=list(all_fields(KLECreate) - {"validity"})
 )
 class KLECreateInput:
     """Input model for creating a KLE annotation."""
 
+    validity: ValidityInput
+
 
 @strawberry.experimental.pydantic.input(
-    model=KLEUpdate,
-    all_fields=True,
+    model=KLEUpdate, fields=list(all_fields(KLEUpdate) - {"validity"})
 )
 class KLEUpdateInput:
     """Input model for updating a KLE annotation."""
+
+    validity: ValidityInput
 
 
 @strawberry.experimental.pydantic.input(
@@ -419,19 +446,21 @@ class KLETerminateInput:
 # Leave
 # -----
 @strawberry.experimental.pydantic.input(
-    model=LeaveCreate,
-    all_fields=True,
+    model=LeaveCreate, fields=list(all_fields(LeaveCreate) - {"validity"})
 )
 class LeaveCreateInput:
     """Input model for creating a leave."""
 
+    validity: ValidityInput
+
 
 @strawberry.experimental.pydantic.input(
-    model=LeaveUpdate,
-    all_fields=True,
+    model=LeaveUpdate, fields=list(all_fields(LeaveUpdate) - {"validity"})
 )
 class LeaveUpdateInput:
     """Input model for updating a leave."""
+
+    validity: ValidityInput
 
 
 @strawberry.experimental.pydantic.input(
@@ -447,19 +476,21 @@ class LeaveTerminateInput:
 
 
 @strawberry.experimental.pydantic.input(
-    model=ManagerCreate,
-    all_fields=True,
+    model=ManagerCreate, fields=list(all_fields(ManagerCreate) - {"validity"})
 )
 class ManagerCreateInput:
     """Input model for creating a manager."""
 
+    validity: ValidityInput
+
 
 @strawberry.experimental.pydantic.input(
-    model=ManagerUpdate,
-    all_fields=True,
+    model=ManagerUpdate, fields=list(all_fields(ManagerUpdate) - {"validity"})
 )
 class ManagerUpdateInput:
     """Input model for updating a manager."""
+
+    validity: ValidityInput
 
 
 @strawberry.experimental.pydantic.input(
@@ -615,19 +646,21 @@ class OrganisationUnitUpdateInput:
 # Owners
 # -----
 @strawberry.experimental.pydantic.input(
-    model=OwnerCreate,
-    all_fields=True,
+    model=OwnerCreate, fields=list(all_fields(OwnerCreate) - {"validity"})
 )
 class OwnerCreateInput:
     """Input model for creating owners."""
 
+    validity: ValidityInput
+
 
 @strawberry.experimental.pydantic.input(
-    model=OwnerUpdate,
-    all_fields=True,
+    model=OwnerUpdate, fields=list(all_fields(OwnerUpdate) - {"validity"})
 )
 class OwnerUpdateInput:
     """Input model for updating owners."""
+
+    validity: ValidityInput
 
 
 @strawberry.experimental.pydantic.input(
@@ -643,29 +676,32 @@ class OwnerTerminateInput:
 
 
 @strawberry.experimental.pydantic.input(
-    model=RelatedUnitsUpdate,
-    all_fields=True,
+    model=RelatedUnitsUpdate, fields=list(all_fields(RelatedUnitsUpdate) - {"validity"})
 )
 class RelatedUnitsUpdateInput:
     """Input model for creating related_units."""
+
+    validity: ValidityInput
 
 
 # Roles
 # -----
 @strawberry.experimental.pydantic.input(
-    model=RoleBindingCreate,
-    all_fields=True,
+    model=RoleBindingCreate, fields=list(all_fields(RoleBindingCreate) - {"validity"})
 )
 class RoleBindingCreateInput:
     """Input model for creating roles."""
 
+    validity: ValidityInput
+
 
 @strawberry.experimental.pydantic.input(
-    model=RoleBindingUpdate,
-    all_fields=True,
+    model=RoleBindingUpdate, fields=list(all_fields(RoleBindingUpdate) - {"validity"})
 )
 class RoleBindingUpdateInput:
     """Input model for updating roles."""
+
+    validity: ValidityInput
 
 
 @strawberry.experimental.pydantic.input(

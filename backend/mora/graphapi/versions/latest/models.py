@@ -503,7 +503,7 @@ class EmployeeUpdate(EmployeeUpsert):
         None,
         description="New last-name value of the employee nickname.",
     )
-    validity: RAValidity = Field(description="Validity range for the change.")
+    # validity: RAValidity = Field(description="Validity range for the change.")
 
     def to_handler_dict(self) -> dict:
         data_dict = super().to_handler_dict()

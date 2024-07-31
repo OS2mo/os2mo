@@ -27,6 +27,7 @@ from mora.graphapi.gmodels.mo import OpenValidity
 from mora.graphapi.gmodels.mo import Validity as RAValidity
 from mora.graphapi.shim import execute_graphql  # type: ignore
 from mora.graphapi.versions.latest.inputs import all_fields
+from mora.graphapi.versions.latest.inputs import ValidityInput
 from mora.util import CPR
 
 
@@ -159,7 +160,8 @@ class EmployeeUpdateV12(EmployeeUpsertV12, OpenValidity):
 @strawberry.experimental.pydantic.input(
     model=EmployeeCreateV12,
     fields=list(
-        all_fields(EmployeeCreateV12) - {"name", "nickname", "cpr_no", "givenname"}
+        all_fields(EmployeeCreateV12)
+        - {"name", "nickname", "cpr_no", "givenname", "validity"}
     ),
 )
 class EmployeeCreateInput:
@@ -177,13 +179,22 @@ class EmployeeCreateInput:
     givenname: str | None = strawberry.field(
         deprecation_reason="Use 'given_name' instead. Will be removed in a future version of OS2mo."
     )
+    validity: ValidityInput
 
 
 @strawberry.experimental.pydantic.input(
     model=EmployeeUpdateV12,
     fields=list(
         all_fields(EmployeeUpdateV12)
-        - {"name", "nickname", "cpr_no", "givenname", "from_date", "to_date"}
+        - {
+            "name",
+            "nickname",
+            "cpr_no",
+            "givenname",
+            "from_date",
+            "to_date",
+            "validity",
+        }
     ),
 )
 class EmployeeUpdateInput:
@@ -208,6 +219,7 @@ class EmployeeUpdateInput:
     to_date: datetime | None = strawberry.field(
         deprecation_reason="Use 'validity.to_date' instead. Will be removed in a future version of OS2mo."
     )
+    validity: ValidityInput
 
 
 @strawberry.type

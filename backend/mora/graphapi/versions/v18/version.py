@@ -7,9 +7,11 @@ import strawberry
 from pydantic.v1 import Field
 from pydantic.v1 import parse_obj_as
 
+from ..latest.inputs import all_fields
 from ..latest.inputs import ClassTerminateInput as LatestClassTerminateInput
 from ..latest.inputs import FacetTerminateInput as LatestFacetTerminateInput
 from ..latest.inputs import ITSystemTerminateInput as LatestITSystemTerminateInput
+from ..latest.inputs import ValidityInput
 from ..latest.models import ClassTerminate as LatestClassTerminate
 from ..latest.models import FacetTerminate as LatestFacetTerminate
 from ..latest.models import ITSystemTerminate as LatestITSystemTerminate
@@ -65,26 +67,32 @@ class ITSystemTerminateV18(UUIDBase, TerminatorMixin):
 
 @strawberry.experimental.pydantic.input(
     model=ClassTerminateV18,
-    all_fields=True,
+    fields=list(all_fields(ClassTerminateV18) - {"validity"}),
 )
 class ClassTerminateInput:
     """Input model for terminating a class."""
 
+    validity: ValidityInput
+
 
 @strawberry.experimental.pydantic.input(
     model=FacetTerminateV18,
-    all_fields=True,
+    fields=list(all_fields(FacetTerminateV18) - {"validity"}),
 )
 class FacetTerminateInput:
     """Input model for terminating a facet."""
 
+    validity: ValidityInput
+
 
 @strawberry.experimental.pydantic.input(
     model=ITSystemTerminateV18,
-    all_fields=True,
+    fields=list(all_fields(ITSystemTerminateV18) - {"validity"}),
 )
 class ITSystemTerminateInput:
     """Input model for terminating an ITSystem."""
+
+    validity: ValidityInput
 
 
 @strawberry.type

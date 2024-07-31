@@ -12,6 +12,8 @@ from ..v13.mutators import uuid2response
 from ..v13.schema import ITUser
 from ..v13.schema import Response
 from mora.graphapi.gmodels.mo.details import ITUserRead
+from mora.graphapi.versions.latest.inputs import all_fields
+from mora.graphapi.versions.latest.inputs import ValidityInput
 
 
 class ITUserCreateV11(ITUserCreate):
@@ -24,11 +26,12 @@ class ITUserCreateV11(ITUserCreate):
 
 
 @strawberry.experimental.pydantic.input(
-    model=ITUserCreateV11,
-    all_fields=True,
+    model=ITUserCreateV11, fields=list(all_fields(ITUserCreateV11) - {"validity"})
 )
 class ITUserCreateInput:
     """input model for creating IT-Users."""
+
+    validity: ValidityInput
 
 
 @strawberry.type

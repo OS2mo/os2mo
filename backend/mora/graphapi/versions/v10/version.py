@@ -12,6 +12,8 @@ from ..v13.mutators import uuid2response
 from ..v13.schema import Manager
 from ..v13.schema import Response
 from mora.graphapi.gmodels.mo.details import ManagerRead
+from mora.graphapi.versions.latest.inputs import all_fields
+from mora.graphapi.versions.latest.inputs import ValidityInput
 
 
 class ManagerCreateV10(ManagerCreate):
@@ -24,11 +26,12 @@ class ManagerCreateV10(ManagerCreate):
 
 
 @strawberry.experimental.pydantic.input(
-    model=ManagerCreateV10,
-    all_fields=True,
+    model=ManagerCreateV10, fields=list(all_fields(ManagerCreateV10) - {"validity"})
 )
 class ManagerCreateInput:
     """Input model for creating a manager."""
+
+    validity: ValidityInput
 
 
 @strawberry.type
