@@ -12,7 +12,6 @@ from ._shared import OrganisationProperties
 from ._shared import OrganisationRelations
 from ._shared import OrganisationStates
 from ._shared import OrganisationValidState
-from ._shared import RegistrationTime
 
 
 class Organisation(LoraBase):
@@ -68,18 +67,3 @@ class Organisation(LoraBase):
             relations=relations,
             uuid=uuid,
         )
-
-
-class OrganisationRead(Organisation):
-    from_time: RegistrationTime = Field(
-        alias="fratidspunkt", description="The facet registration from time."
-    )
-    to_time: RegistrationTime = Field(
-        alias="tiltidspunkt", description="The facet registration to time."
-    )
-    life_cycle_code: str = Field(
-        alias="livscykluskode", description="The facet registation life cycle code."
-    )
-    user_ref: UUID = Field(
-        alias="brugerref", description="The facet registration user."
-    )

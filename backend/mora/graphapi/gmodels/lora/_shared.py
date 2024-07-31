@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import zoneinfo
 from collections.abc import Callable
 from collections.abc import Iterator
 from datetime import datetime
@@ -8,7 +9,6 @@ from typing import Literal
 from uuid import UUID
 from uuid import uuid4
 
-from pydantic import BaseModel
 from pydantic import Field
 from pydantic import root_validator
 from pydantic import validator
@@ -17,11 +17,6 @@ from mora.graphapi.gmodels.base import NEG_INF
 from mora.graphapi.gmodels.base import POS_INF
 from mora.graphapi.gmodels.base import RABase
 from mora.graphapi.gmodels.base import tz_isodate
-
-try:
-    import zoneinfo
-except ImportError:  # pragma: no cover
-    from backports import zoneinfo  # type: ignore
 
 UTC = zoneinfo.ZoneInfo("UTC")
 
@@ -263,32 +258,6 @@ class FacetStates(RABase):
     )
 
 
-class Relation(RABase):
-    """Relation object for a model.
-
-    According to the OIO v.1.1 spec, Relation objects have different types, like
-    `OrgUnit`, `OrgFunction`, etc.. However they are all defined solely by an
-    `UUID` and `EffectiveTime`, and thus all Relations are of the same type here.
-
-    """
-
-    uuid: UUID = Field(description="UUID of the related object.")
-    effective_time: EffectiveTime = Field(alias="virkning")
-
-
-def get_relations(
-    uuids: None | UUID | list[UUID] = None,
-    effective_time: EffectiveTime | None = None,
-) -> list[Relation] | None:
-    """Returns a list of `Relation`s obtained from UUIDs or None if `uuids=None`"""
-
-    if uuids is None or effective_time is None:
-        return None
-    if isinstance(uuids, list):
-        return [Relation(uuid=uuid, effective_time=effective_time) for uuid in uuids]
-    return [Relation(uuid=uuids, effective_time=effective_time)]
-
-
 class Responsible(LoraBase):
     """
     Responsible object in LoRa.
@@ -303,34 +272,6 @@ class Responsible(LoraBase):
     )
 
 
-class ClassRef(LoraBase):
-    """
-    Reference to given LoRa class.
-    """
-
-    object_type: Literal["klasse"] = Field(
-        "klasse", alias="objekttype", description="Object type."
-    )
-    uuid: UUID = Field(description="UUID of the reference.")
-    effective_time: EffectiveTime = Field(
-        alias="virkning", description="Effective time of the reference."
-    )
-
-
-class OwnerRef(LoraBase):
-    """
-    Reference to an organisation unit marked as owner for a LoRa class
-    """
-
-    object_type: Literal["organisationenhed"] = Field(
-        "organisationenhed", alias="objekttype", description="Object type."
-    )
-    uuid: UUID = Field(description="UUID of the reference.")
-    effective_time: EffectiveTime = Field(
-        alias="virkning", description="Effective time of the reference."
-    )
-
-
 class ParentClassification(LoraBase):
     """
     ParentClassification object in LoRa.
@@ -342,20 +283,6 @@ class ParentClassification(LoraBase):
     uuid: UUID = Field(description="UUID of the object.")
     effective_time: EffectiveTime = Field(
         alias="virkning", description="Effective time of the object."
-    )
-
-
-class FacetRef(LoraBase):
-    """
-    Reference to given LoRa facets.
-    """
-
-    object_type: Literal["facet"] = Field(
-        "facet", alias="objekttype", description="Object type."
-    )
-    uuid: UUID = Field(description="UUID of the reference.")
-    effective_time: EffectiveTime = Field(
-        alias="virkning", description="Effective time of the reference."
     )
 
 
@@ -375,197 +302,6 @@ class FacetRelations(RABase):
         min_items=1,
         max_items=1,
         description="The parent classification.",
-    )
-
-
-class ITSystemProperties(RABase):
-    """Properties for an ITSystem attribute."""
-
-    user_key: str = Field(alias="brugervendtnoegle", description="Short, unique key.")
-    effective_time: EffectiveTime | None = Field(
-        alias="virkning", description="Effective time of the properties."
-    )
-    name: str | None = Field(
-        alias="itsystemnavn", description="Official name for the ITSystem."
-    )
-    type: str | None = Field(
-        alias="itsystemtype", description="Short description of the type of properties."
-    )
-    configuration_ref: list[str] | None = Field(
-        alias="konfigurationsreference", description="One of ['Ja', 'Nej', 'Ved ikke']."
-    )
-
-
-class ITSystemAttributes(RABase):
-    """Attributes for an ITSystem
-
-    Referencing a list of `ITSystemProperties`."""
-
-    properties: list[ITSystemProperties] = Field(
-        alias="itsystemegenskaber", min_items=1, max_items=1
-    )
-
-
-class ITSystemValidState(RABase):
-    """State for an ITSystem."""
-
-    state: str = Field(
-        default="Aktiv",
-        alias="gyldighed",
-        description="State of the ITSystem. Can be `Aktiv` or `Inaktiv`",
-    )
-    effective_time: EffectiveTime = Field(
-        alias="virkning", description="Effective time of the state."
-    )
-
-
-class ITSystemStates(RABase):
-    """States for a ITSystem.
-
-    Referencing a list of `ITSystemValidState`
-    """
-
-    valid_state: list[ITSystemValidState] = Field(
-        alias="itsystemgyldighed", min_items=1, max_items=1
-    )
-
-
-class ITSystemRelations(RABase):
-    """Relations for a ITSystem"""
-
-    # The type of the relation is different for most of the relations (ie. org,
-    # org_unit, user, klasse, etc). But a relation only requires and UUID and
-    # effetive_time; thus they share type here.
-
-    # zero2one relation
-    belongs_to: list[Relation] | None = Field(
-        alias="tilhoerer",
-        min_items=1,
-        max_items=1,
-        description="Reference to a organisation the ITSystem belongs to",
-    )
-    # zero2many relations
-    affiliated_orgs: list[Relation] | None = Field(
-        alias="tilknyttedeorganisationer",
-        description="Reference to affiliated organisations",
-        min_items=1,
-    )
-    affiliated_units: list[Relation] | None = Field(
-        alias="tilknyttedeenheder",
-        description="Reference to affiliated organisation units",
-        min_items=1,
-    )
-    affiliated_functions: list[Relation] | None = Field(
-        alias="tilknyttedefunktioner",
-        description="Reference to affiliated organisation functions",
-        min_items=1,
-    )
-    affiliated_users: list[Relation] | None = Field(
-        alias="tilknyttedebrugere",
-        description="Reference to affiliated users",
-        min_items=1,
-    )
-    affiliated_interests: list[Relation] | None = Field(
-        alias="tilknyttedeinteressefaelleskaber",
-        description="Reference to affiliated common interest",
-        min_items=1,
-    )
-    affiliated_itsystems: list[Relation] | None = Field(
-        alias="tilknyttedeitsystemer",
-        description="Reference to affiliated ITSystems",
-        min_items=1,
-    )
-    affiliated_persons: list[Relation] | None = Field(
-        alias="tilknyttedepersoner",
-        description="Reference to affiliated persons",
-        min_items=1,
-    )
-    addresses: list[Relation] | None = Field(
-        alias="adresser",
-        description="Affiliated addresses, like URL",
-        min_items=1,
-    )
-    # the two following are type Klasse
-    system_types: list[Relation] | None = Field(
-        alias="systemtyper",
-        description="Reference to affiliated systemtypes, like STORM",
-        min_items=1,
-    )
-    tasks: list[Relation] | None = Field(
-        alias="opgaver",
-        description="Reference to affiliated tasks, like FORM",
-        min_items=1,
-    )
-
-
-class KlasseProperties(RABase):
-    """
-    LoRa klasse properties.
-    """
-
-    user_key: str = Field(alias="brugervendtnoegle", description="Short, unique key.")
-    title: str = Field(alias="titel", description="Title of the LoRa Klasse.")
-    scope: str | None = Field(alias="omfang", description="Scope of the LoRa Klasse.")
-    effective_time: EffectiveTime = Field(
-        alias="virkning", description="Effective time of the properties."
-    )
-    example: str | None = Field(alias="eksempel", description="Example usage.")
-    description: str | None = Field(
-        alias="beskrivelse", description="Description of the Klasse."
-    )
-
-
-class KlasseRelations(RABase):
-    """
-    Klasse relations given by responsible objects and facet references.
-    """
-
-    responsible: list[Responsible] = Field(
-        alias="ansvarlig",
-        min_items=1,
-        max_items=1,
-        description="The responsible object.",
-    )
-    facet: list[FacetRef] = Field(
-        min_items=1, max_items=1, description="Facet reference."
-    )
-    parent: list[ClassRef] | None = Field(
-        alias="overordnetklasse",
-        min_items=1,
-        max_items=1,
-        description="The parent class object.",
-    )
-    owner: list[OwnerRef] | None = Field(
-        alias="ejer",
-        min_items=1,
-        max_items=1,
-        description="Owner of class relation",
-    )
-
-
-class KlasseAttributes(RABase):
-    """
-    LoRa Klasse attributes.
-    """
-
-    properties: list[KlasseProperties] = Field(
-        alias="klasseegenskaber",
-        min_items=1,
-        max_items=1,
-        description="Properties denoting the klasse attributes.",
-    )
-
-
-class KlasseStates(RABase):
-    """
-    Published state of a LoRa Klasse.
-    """
-
-    published_state: list[Published] = Field(
-        alias="klassepubliceret",
-        min_items=1,
-        max_items=1,
-        description="Published state objects. ",
     )
 
 
@@ -634,13 +370,4 @@ class OrganisationRelations(RABase):
         min_items=1,
         max_items=1,
         description="Authority object denoting the relations.",
-    )
-
-
-class RegistrationTime(BaseModel):
-    timestamp_datetime: InfiniteDatetime = Field(
-        alias="tidsstempeldatotid", description="The registration timestamp"
-    )
-    limit_indicator: bool | None = Field(
-        alias="graenseindikator", description="The registration limit indicator"
     )
