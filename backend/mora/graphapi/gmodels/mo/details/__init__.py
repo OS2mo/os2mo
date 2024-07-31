@@ -6,7 +6,6 @@ from .engagement import EngagementRead
 from .it_system import ITSystemRead
 from .it_system import ITUserRead
 from .kle import KLERead
-from .leave import LeaveBase
 from .leave import LeaveRead
 from .manager import ManagerBase
 from .manager import ManagerRead
@@ -29,6 +28,5 @@ __all__ = [
     "OwnerRead",
     "RelatedUnitBase",
     "RelatedUnitRead",
-    "LeaveBase",
     "LeaveRead",
 ]
