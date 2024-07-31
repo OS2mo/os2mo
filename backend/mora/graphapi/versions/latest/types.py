@@ -8,7 +8,7 @@ from hashlib import shake_128
 from textwrap import dedent
 
 import strawberry
-from pydantic import BaseModel
+from pydantic.v1 import BaseModel
 
 from mora.util import CPR
 

@@ -13,7 +13,7 @@ import hypothesis as ht
 import pytest
 from hypothesis import HealthCheck
 from hypothesis import strategies as st
-from pydantic import ValidationError
+from pydantic.v1 import ValidationError
 
 from ramodels.mo import Validity
 

@@ -8,7 +8,7 @@ from typing import Any
 
 import strawberry
 from more_itertools import flatten
-from pydantic import PositiveInt
+from pydantic.v1 import PositiveInt
 
 from ..latest.permissions import gen_read_permission
 from ..latest.permissions import IsAuthenticatedPermission

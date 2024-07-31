@@ -3,7 +3,7 @@
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
-from pydantic import ValidationError
+from pydantic.v1 import ValidationError
 from ramodels_tests.conftest import from_date_strat
 from ramodels_tests.conftest import not_from_regex
 from ramodels_tests.conftest import to_date_strat

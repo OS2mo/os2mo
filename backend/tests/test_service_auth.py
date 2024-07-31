@@ -7,9 +7,9 @@ from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from fastapi.routing import APIWebSocketRoute
 from fastapi.testclient import TestClient
-from pydantic import MissingError
-from pydantic import ValidationError
-from pydantic.error_wrappers import ErrorWrapper
+from pydantic.v1 import MissingError
+from pydantic.v1 import ValidationError
+from pydantic.v1.error_wrappers import ErrorWrapper
 
 import mora.auth.keycloak.oidc
 from .conftest import fake_auth

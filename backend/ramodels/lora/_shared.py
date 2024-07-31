@@ -8,10 +8,10 @@ from typing import Literal
 from uuid import UUID
 from uuid import uuid4
 
-from pydantic import BaseModel
-from pydantic import Field
-from pydantic import root_validator
-from pydantic import validator
+from pydantic.v1 import BaseModel
+from pydantic.v1 import Field
+from pydantic.v1 import root_validator
+from pydantic.v1 import validator
 
 from ramodels.base import NEG_INF
 from ramodels.base import POS_INF

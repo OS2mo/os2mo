@@ -14,8 +14,8 @@ from zipfile import ZipFile
 
 from fastapi import Query
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
-from pydantic import Extra
+from pydantic.v1 import BaseModel
+from pydantic.v1 import Extra
 
 from .errors import handle_gql_error
 from mora.graphapi.shim import execute_graphql

@@ -7,10 +7,10 @@ from uuid import UUID
 
 import strawberry
 from fastapi.encoders import jsonable_encoder
-from pydantic import ConstrainedStr
-from pydantic import Field
-from pydantic import parse_obj_as
-from pydantic import root_validator
+from pydantic.v1 import ConstrainedStr
+from pydantic.v1 import Field
+from pydantic.v1 import parse_obj_as
+from pydantic.v1 import root_validator
 from strawberry.types import Info
 
 from ..latest.models import EmployeeUpsert

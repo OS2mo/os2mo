@@ -6,8 +6,8 @@ from typing import Any
 import requests
 import service_person_stamdata_udvidet
 from fastapi import Query
-from pydantic import BaseModel
-from pydantic import Field
+from pydantic.v1 import BaseModel
+from pydantic.v1 import Field
 from structlog import get_logger
 
 from mora import config

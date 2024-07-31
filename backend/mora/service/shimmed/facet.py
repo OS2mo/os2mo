@@ -10,9 +10,9 @@ from fastapi import Path
 from fastapi import Query
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
-from pydantic import BaseModel
-from pydantic import Field
-from pydantic.generics import GenericModel
+from pydantic.v1 import BaseModel
+from pydantic.v1 import Field
+from pydantic.v1.generics import GenericModel
 
 from .errors import handle_gql_error
 from mora import exceptions

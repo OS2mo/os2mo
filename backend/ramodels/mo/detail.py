@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from typing import Literal
 
-from pydantic import Field
+from pydantic.v1 import Field
 
 from ramodels.mo._shared import UUIDBase
 

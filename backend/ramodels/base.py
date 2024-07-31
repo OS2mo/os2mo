@@ -5,9 +5,9 @@ from datetime import datetime
 from typing import Any
 
 from dateutil.parser import isoparse
-from pydantic import BaseModel
-from pydantic import Extra
-from pydantic import root_validator
+from pydantic.v1 import BaseModel
+from pydantic.v1 import Extra
+from pydantic.v1 import root_validator
 
 from ramodels.exceptions import ISOParseError
 

@@ -15,7 +15,7 @@ from jwt.exceptions import InvalidAudienceError
 from jwt.exceptions import InvalidSignatureError
 from jwt.exceptions import InvalidTokenError
 from jwt.exceptions import PyJWTError
-from pydantic import ValidationError
+from pydantic.v1 import ValidationError
 from starlette.status import HTTP_401_UNAUTHORIZED
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 from structlog import get_logger

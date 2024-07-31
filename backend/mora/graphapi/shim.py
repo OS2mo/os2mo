@@ -11,10 +11,10 @@ from typing import Optional
 from uuid import UUID
 
 from more_itertools import flatten
-from pydantic import BaseModel
-from pydantic import Field
-from pydantic import root_validator
-from pydantic import validator
+from pydantic.v1 import BaseModel
+from pydantic.v1 import Field
+from pydantic.v1 import root_validator
+from pydantic.v1 import validator
 from starlette_context import context
 from starlette_context import request_cycle_context
 from strawberry.types import ExecutionResult

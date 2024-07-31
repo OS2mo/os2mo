@@ -6,9 +6,9 @@ from typing import Any
 from uuid import UUID
 from uuid import uuid4
 
-from pydantic import Field
-from pydantic import root_validator
-from pydantic import validator
+from pydantic.v1 import Field
+from pydantic.v1 import root_validator
+from pydantic.v1 import validator
 
 from mora.graphapi.gmodels.base import RABase
 from mora.graphapi.gmodels.base import tz_isodate

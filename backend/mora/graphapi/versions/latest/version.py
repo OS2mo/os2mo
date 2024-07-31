@@ -7,7 +7,7 @@ from typing import Any
 import strawberry
 from fastapi import Depends
 from fastramqpi.ramqp import AMQPSystem
-from pydantic import PositiveInt
+from pydantic.v1 import PositiveInt
 
 from ..base import BaseGraphQLSchema
 from ..base import BaseGraphQLVersion

@@ -9,9 +9,9 @@ from typing import Literal
 from uuid import UUID
 
 import strawberry
-from pydantic import Extra
-from pydantic import Field
-from pydantic import root_validator
+from pydantic.v1 import Extra
+from pydantic.v1 import Field
+from pydantic.v1 import root_validator
 
 from mora import common
 from mora import exceptions

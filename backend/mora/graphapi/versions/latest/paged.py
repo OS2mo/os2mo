@@ -10,7 +10,7 @@ from typing import Generic
 from typing import TypeVar
 
 import strawberry
-from pydantic import PositiveInt
+from pydantic.v1 import PositiveInt
 from starlette_context import context
 
 from .types import Cursor

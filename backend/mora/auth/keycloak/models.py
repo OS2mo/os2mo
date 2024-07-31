@@ -6,10 +6,10 @@ from contextlib import suppress
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel
-from pydantic import EmailStr
-from pydantic import Extra
-from pydantic import validator
+from pydantic.v1 import BaseModel
+from pydantic.v1 import EmailStr
+from pydantic.v1 import Extra
+from pydantic.v1 import validator
 
 
 class RealmAccess(BaseModel):

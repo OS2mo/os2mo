@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from pydantic import Field
+from pydantic.v1 import Field
 
 from ._shared import MOBase
 

@@ -5,8 +5,8 @@ from uuid import UUID
 import httpx
 from fastapi import Path
 from fastapi import Query
-from pydantic import BaseModel
-from pydantic import Field
+from pydantic.v1 import BaseModel
+from pydantic.v1 import Field
 
 from mora import config
 from mora import exceptions

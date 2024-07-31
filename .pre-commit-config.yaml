@@ -33,7 +33,7 @@ repos:
           - httpx
           - os2mo-dar-client==1.0.3
           - prometheus_client
-          - pydantic==1.10.11
+          - pydantic
           - fastramqpi==8.3.0
           - sqlalchemy
           - starlette_context

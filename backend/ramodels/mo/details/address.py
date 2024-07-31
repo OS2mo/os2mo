@@ -4,8 +4,8 @@ from typing import Literal
 from uuid import UUID
 
 from more_itertools import one
-from pydantic import Field
-from pydantic import root_validator
+from pydantic.v1 import Field
+from pydantic.v1 import root_validator
 
 from .._shared import AddressType
 from .._shared import DictStrAny

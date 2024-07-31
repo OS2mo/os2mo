@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import strawberry
-from pydantic import Field
+from pydantic.v1 import Field
 
 from ..latest.manager import create_manager
 from ..latest.models import ManagerCreate

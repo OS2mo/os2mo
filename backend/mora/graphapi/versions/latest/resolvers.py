@@ -13,7 +13,7 @@ from uuid import UUID
 
 from more_itertools import flatten
 from more_itertools import unique_everseen
-from pydantic import ValidationError
+from pydantic.v1 import ValidationError
 from sqlalchemy import and_
 from sqlalchemy import between
 from sqlalchemy import cast

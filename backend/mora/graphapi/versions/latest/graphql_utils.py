@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import NamedTuple
 from uuid import UUID
 
-from pydantic import ConstrainedStr
+from pydantic.v1 import ConstrainedStr
 from strawberry.types.unset import UnsetType
 
 from tests.conftest import GraphAPIPost

@@ -33,7 +33,7 @@ click = "^8.1.7"
 structlog = "^23.1.0"
 python-multipart = "^0.0.9"
 prometheus-fastapi-instrumentator = "^6.1.0"
-pydantic = {extras = ["email"], version = "^1.10.13"}
+pydantic = {extras = ["email"], version = "^2.8.2"}
 os2mo-dar-client = "^1.0.4"
 ra-utils = "^1.14.0"
 uvicorn = "^0.23.2"

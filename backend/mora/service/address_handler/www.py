@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from pydantic import AnyHttpUrl
-from pydantic import parse_obj_as
-from pydantic import ValidationError
+from pydantic.v1 import AnyHttpUrl
+from pydantic.v1 import parse_obj_as
+from pydantic.v1 import ValidationError
 
 from . import base
 from ... import exceptions

@@ -13,7 +13,7 @@ from uuid import UUID
 
 from more_itertools import bucket
 from more_itertools import unique_everseen
-from pydantic import parse_obj_as
+from pydantic.v1 import parse_obj_as
 from strawberry.dataloader import DataLoader
 from strawberry.types.unset import UnsetType
 

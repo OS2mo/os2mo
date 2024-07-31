@@ -23,7 +23,7 @@ import strawberry
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
 from more_itertools import only
-from pydantic import parse_obj_as
+from pydantic.v1 import parse_obj_as
 from starlette_context import context
 from strawberry import UNSET
 from strawberry.types import Info

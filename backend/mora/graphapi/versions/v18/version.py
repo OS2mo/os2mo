@@ -4,8 +4,8 @@ from typing import Any
 from uuid import UUID
 
 import strawberry
-from pydantic import Field
-from pydantic import parse_obj_as
+from pydantic.v1 import Field
+from pydantic.v1 import parse_obj_as
 
 from ..latest.inputs import ClassTerminateInput as LatestClassTerminateInput
 from ..latest.inputs import FacetTerminateInput as LatestFacetTerminateInput

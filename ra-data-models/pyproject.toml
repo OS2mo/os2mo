@@ -14,7 +14,7 @@ packages = [ { include = "ramodels" } ]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-pydantic = "^1.10.2"
+pydantic = "^2.8.2"
 more-itertools = "^9.0.0"
 python-dateutil = "^2.8.2"
 mkdocstrings = {extras = ["python"], version = "^0.19.0"}

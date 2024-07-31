@@ -3,7 +3,7 @@
 """GraphQL org related helper functions."""
 from uuid import UUID
 
-from pydantic import Field
+from pydantic.v1 import Field
 
 from mora.graphapi.gmodels.base import RABase
 from mora.graphapi.gmodels.lora._shared import EffectiveTime

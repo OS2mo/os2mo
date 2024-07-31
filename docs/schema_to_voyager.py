@@ -9,7 +9,7 @@ from graphql import utilities as gql_util
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from jinja2 import Template
-from pydantic import BaseSettings
+from pydantic.v1 import BaseSettings
 
 try:
     from mora.graphapi.versions.latest.version import LatestGraphQLSchema

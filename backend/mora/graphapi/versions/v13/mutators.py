@@ -8,7 +8,7 @@ from typing import Any
 from uuid import UUID
 
 import strawberry
-from pydantic import parse_obj_as
+from pydantic.v1 import parse_obj_as
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 

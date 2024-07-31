@@ -8,8 +8,8 @@ from dateutil.parser import isoparse
 from dateutil.tz import tzoffset
 from hypothesis import given
 from hypothesis import strategies as st
-from pydantic import Field
-from pydantic import ValidationError
+from pydantic.v1 import Field
+from pydantic.v1 import ValidationError
 from ramodels_tests.conftest import date_strat
 from ramodels_tests.conftest import tz_dt_strat
 

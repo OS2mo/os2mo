@@ -5,9 +5,9 @@ from datetime import datetime
 from typing import Any
 from typing import Literal
 
-from pydantic import Field
-from pydantic import root_validator
-from pydantic import validator
+from pydantic.v1 import Field
+from pydantic.v1 import root_validator
+from pydantic.v1 import validator
 
 from ._shared import MOBase
 from ._shared import OpenValidity

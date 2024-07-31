@@ -4,8 +4,8 @@ from typing import Any
 from uuid import UUID
 
 import strawberry
-from pydantic import Extra
-from pydantic import Field
+from pydantic.v1 import Extra
+from pydantic.v1 import Field
 from strawberry.types import Info
 
 from ..latest.models import ClassRead

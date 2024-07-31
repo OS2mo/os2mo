@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from functools import lru_cache
 
-from pydantic import BaseSettings
+from pydantic.v1 import BaseSettings
 
 
 class Settings(BaseSettings):

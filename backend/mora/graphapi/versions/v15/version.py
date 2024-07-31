@@ -4,10 +4,10 @@ from typing import Any
 from uuid import UUID
 
 import strawberry
-from pydantic import BaseModel
-from pydantic import Extra
-from pydantic import Field
-from pydantic import parse_obj_as
+from pydantic.v1 import BaseModel
+from pydantic.v1 import Extra
+from pydantic.v1 import Field
+from pydantic.v1 import parse_obj_as
 from strawberry.types import Info
 
 from ..latest.inputs import FacetCreateInput as LatestFacetCreateInput

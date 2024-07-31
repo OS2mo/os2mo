@@ -5,7 +5,7 @@ from uuid import UUID
 
 import strawberry
 from fastapi.encoders import jsonable_encoder
-from pydantic import Field
+from pydantic.v1 import Field
 
 from ..latest.permissions import gen_create_permission
 from ..latest.permissions import IsAuthenticatedPermission

@@ -7,15 +7,15 @@ from textwrap import dedent
 from typing import Any
 
 from fastramqpi.ramqp.config import AMQPConnectionSettings
-from pydantic import AmqpDsn
-from pydantic import AnyHttpUrl
-from pydantic import BaseSettings
-from pydantic import Field
-from pydantic import parse_obj_as
-from pydantic import root_validator
-from pydantic import validator
-from pydantic.types import FilePath
-from pydantic.types import UUID
+from pydantic.v1 import AmqpDsn
+from pydantic.v1 import AnyHttpUrl
+from pydantic.v1 import BaseSettings
+from pydantic.v1 import Field
+from pydantic.v1 import parse_obj_as
+from pydantic.v1 import root_validator
+from pydantic.v1 import validator
+from pydantic.v1.types import FilePath
+from pydantic.v1.types import UUID
 from structlog import get_logger
 
 logger = get_logger()

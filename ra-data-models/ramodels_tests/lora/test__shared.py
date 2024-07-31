@@ -11,9 +11,9 @@ from hypothesis import assume
 from hypothesis import example
 from hypothesis import given
 from hypothesis import strategies as st
-from pydantic import BaseModel
-from pydantic import Field
-from pydantic import ValidationError
+from pydantic.v1 import BaseModel
+from pydantic.v1 import Field
+from pydantic.v1 import ValidationError
 from ramodels_tests.conftest import date_strat
 from ramodels_tests.conftest import not_from_regex
 from ramodels_tests.conftest import tz_dt_strat

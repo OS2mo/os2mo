@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from uuid import UUID
 
-from pydantic import Field
+from pydantic.v1 import Field
 
 from .._shared import KLEAspectRef
 from .._shared import KLENumberRef

@@ -4,8 +4,8 @@ from typing import Any
 from typing import Literal
 from uuid import UUID
 
-from pydantic import Field
-from pydantic import validator
+from pydantic.v1 import Field
+from pydantic.v1 import validator
 
 from .._shared import AssociationType
 from .._shared import EmployeeRef

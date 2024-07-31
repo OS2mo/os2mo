@@ -5,7 +5,7 @@ from typing import Any
 from fastapi import Request
 from fastapi.exceptions import HTTPException
 from jwt.exceptions import InvalidTokenError
-from pydantic.error_wrappers import ValidationError
+from pydantic.v1.error_wrappers import ValidationError
 from starlette.responses import JSONResponse
 from starlette.status import HTTP_401_UNAUTHORIZED
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR

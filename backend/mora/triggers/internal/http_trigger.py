@@ -7,7 +7,7 @@ import aiohttp
 from fastapi.encoders import jsonable_encoder
 from os2mo_http_trigger_protocol import MOTriggerPayload
 from os2mo_http_trigger_protocol import MOTriggerRegister
-from pydantic import parse_obj_as
+from pydantic.v1 import parse_obj_as
 from structlog import get_logger
 
 from mora import config

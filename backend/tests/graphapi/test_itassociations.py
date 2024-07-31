@@ -14,7 +14,7 @@ from hypothesis import HealthCheck
 from hypothesis import settings
 from hypothesis import strategies as st
 from more_itertools import one
-from pydantic import Field
+from pydantic.v1 import Field
 
 from ..conftest import GraphAPIPost
 from .utils import fetch_class_uuids
