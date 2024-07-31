@@ -8,8 +8,8 @@ from .._shared import MOBase
 from .._shared import Validity
 
 
-class KLEBase(MOBase):
-    """A MO KLE object.
+class KLERead(MOBase):
+    """A MO KLERead object.
 
     An overview of KLE, Kommunernes Landsforenings Emnesystematik, can be found
     http://www.kle-online.dk/emneplan
@@ -17,10 +17,6 @@ class KLEBase(MOBase):
 
     type_: str = Field("kle", alias="type", description="The object type.")
     validity: Validity = Field(description="Validity of the kle object.")
-
-
-class KLERead(KLEBase):
-    """A MO KLERead object."""
 
     kle_number_uuid: UUID = Field(description="UUID of the KLE number.")
     kle_aspect_uuids: list[UUID] = Field(description="List of UUIDs of the KLE aspect.")
