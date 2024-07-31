@@ -9,7 +9,6 @@ from .kle import KLERead
 from .leave import LeaveRead
 from .manager import ManagerRead
 from .owner import OwnerRead
-from .related_unit import RelatedUnitBase
 from .related_unit import RelatedUnitRead
 
 
@@ -22,7 +21,6 @@ __all__ = [
     "KLERead",
     "ManagerRead",
     "OwnerRead",
-    "RelatedUnitBase",
     "RelatedUnitRead",
     "LeaveRead",
 ]
