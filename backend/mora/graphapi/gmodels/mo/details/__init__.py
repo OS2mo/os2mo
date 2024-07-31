@@ -7,7 +7,6 @@ from .it_system import ITSystemRead
 from .it_system import ITUserRead
 from .kle import KLERead
 from .leave import LeaveRead
-from .manager import ManagerBase
 from .manager import ManagerRead
 from .owner import OwnerBase
 from .owner import OwnerRead
@@ -22,7 +21,6 @@ __all__ = [
     "ITSystemRead",
     "ITUserRead",
     "KLERead",
-    "ManagerBase",
     "ManagerRead",
     "OwnerBase",
     "OwnerRead",
