@@ -10,8 +10,8 @@ from pydantic import Field
 from ..latest.permissions import gen_create_permission
 from ..latest.permissions import IsAuthenticatedPermission
 from ..v6.version import GraphQLVersion as NextGraphQLVersion
+from .facet import Facet as LoraFacet
 from mora.common import get_connector
-from mora.graphapi.gmodels.lora.facet import Facet as LoraFacet
 from mora.graphapi.gmodels.mo._shared import UUIDBase
 
 

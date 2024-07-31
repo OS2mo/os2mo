@@ -5,7 +5,6 @@ from collections.abc import Callable
 from collections.abc import Iterator
 from datetime import datetime
 from typing import Any
-from typing import Literal
 from uuid import UUID
 from uuid import uuid4
 
@@ -197,111 +196,6 @@ class Authority(RABase):
     )
     effective_time: EffectiveTime = Field(
         alias="virkning", description="Effective time of the authority."
-    )
-
-
-class FacetProperties(RABase):
-    """
-    Properties of a given LoRa facet.
-    """
-
-    user_key: str = Field(alias="brugervendtnoegle", description="Short, unique key.")
-    description: str | None = Field(
-        alias="beskrivelse", description="The facet description."
-    )
-    effective_time: EffectiveTime = Field(
-        alias="virkning", description="Effective time of the property."
-    )
-
-
-class FacetAttributes(RABase):
-    """
-    Attributes of a given LoRa facet.
-    """
-
-    properties: list[FacetProperties] = Field(
-        alias="facetegenskaber",
-        min_items=1,
-        max_items=1,
-        description="The facet property denoting the attributes.",
-    )
-
-
-class Published(RABase):
-    """
-    Published state of a given object in LoRa.
-    """
-
-    # TODO: published are actually Enums in LoRa, but it's currently not possible
-    # to lift them from LoRa systematically. We should definitely fix this!
-
-    published: str = Field(
-        "Publiceret",
-        alias="publiceret",
-        description="String representing the published status.",
-    )
-    effective_time: EffectiveTime = Field(
-        alias="virkning", description="The effective time of the states."
-    )
-
-
-class FacetStates(RABase):
-    """
-    States of a given LoRa facet.
-    """
-
-    published_state: list[Published] = Field(
-        alias="facetpubliceret",
-        min_items=1,
-        max_items=1,
-        description="The published state of the facet.",
-    )
-
-
-class Responsible(LoraBase):
-    """
-    Responsible object in LoRa.
-    """
-
-    object_type: Literal["organisation"] = Field(
-        "organisation", alias="objekttype", description="Object type."
-    )
-    uuid: UUID = Field(description="UUID of the object.")
-    effective_time: EffectiveTime = Field(
-        alias="virkning", description="Effective time of the object."
-    )
-
-
-class ParentClassification(LoraBase):
-    """
-    ParentClassification object in LoRa.
-    """
-
-    object_type: Literal["klassifikation"] = Field(
-        "klassifikation", alias="objekttype", description="Object type."
-    )
-    uuid: UUID = Field(description="UUID of the object.")
-    effective_time: EffectiveTime = Field(
-        alias="virkning", description="Effective time of the object."
-    )
-
-
-class FacetRelations(RABase):
-    """
-    Facet relations given by responsible objects.
-    """
-
-    responsible: list[Responsible] = Field(
-        alias="ansvarlig",
-        min_items=1,
-        max_items=1,
-        description="The responsible object.",
-    )
-    parent: list[ParentClassification] | None = Field(
-        alias="facettilhoerer",
-        min_items=1,
-        max_items=1,
-        description="The parent classification.",
     )
 
 
