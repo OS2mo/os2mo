@@ -10,16 +10,12 @@ from .._shared import MOBase
 from .._shared import Validity
 
 
-class AssociationBase(MOBase):
-    """A MO association object."""
+class AssociationRead(MOBase):
+    """A MO AssociationRead object."""
 
     type_: str = Field("association", alias="type", description="The object type.")
     validity: Validity = Field(description="Validity of the association object.")
     dynamic_class_uuid: UUID | None = Field(description="Attached class")
-
-
-class AssociationRead(AssociationBase):
-    """A MO AssociationRead object."""
 
     org_unit_uuid: UUID = Field(
         description="UUID of the organisation unit related to the association."

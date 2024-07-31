@@ -8,15 +8,13 @@ from ._shared import MOBase
 from ._shared import Validity
 
 
-class OrganisationUnitBase(MOBase):
+class OrganisationUnitRead(MOBase):
     """A MO organisation unit object."""
 
     type_: str = Field("org_unit", alias="type", description="The object type.")
     name: str = Field(description="Name of the created organisation unit.")
     validity: Validity = Field(description="Validity of the created organisation unit.")
 
-
-class OrganisationUnitRead(OrganisationUnitBase):
     parent_uuid: UUID | None = Field(
         description="UUID of the parent organisation unit."
     )

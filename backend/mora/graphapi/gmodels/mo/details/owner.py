@@ -10,15 +10,11 @@ from .._shared import MOBase
 from .._shared import Validity
 
 
-class OwnerBase(MOBase):
-    """A MO owner object."""
+class OwnerRead(MOBase):
+    """A MO OwnerRead object."""
 
     type_: str = Field("owner", alias="type", description="The object type.")
     validity: Validity = Field(description="Validity of the owner object.")
-
-
-class OwnerRead(OwnerBase):
-    """A MO OwnerRead object."""
 
     owner_uuid: UUID | None = Field(description="UUID of the owner.")
     org_unit_uuid: UUID | None = Field(

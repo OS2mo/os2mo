@@ -7,8 +7,8 @@ from pydantic import Field
 from mora.graphapi.gmodels.mo._shared import MOBase
 
 
-class ClassBase(MOBase):
-    """A MO class base object."""
+class ClassRead(MOBase):
+    """A MO Class read object."""
 
     # uuid and user_key is inherited from MOBase
 
@@ -20,10 +20,6 @@ class ClassBase(MOBase):
     parent_uuid: UUID | None = Field(description="UUID of the parent class.")
     example: str | None = Field(description="Example usage.")
     owner: UUID | None = Field(description="Owner of class")
-
-
-class ClassRead(ClassBase):
-    """A MO Class read object."""
 
     name: str = Field(description="Name/title of the class.")
     facet_uuid: UUID = Field(description="UUID of the related facet.")

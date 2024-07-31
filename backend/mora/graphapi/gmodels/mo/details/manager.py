@@ -10,15 +10,11 @@ from .._shared import MOBase
 from .._shared import Validity
 
 
-class ManagerBase(MOBase):
-    """A MO manager object."""
+class ManagerRead(MOBase):
+    """A MO ManagerRead object."""
 
     type_: str = Field("manager", alias="type", description="The object type.")
     validity: Validity = Field(description="Validity of the manager object.")
-
-
-class ManagerRead(ManagerBase):
-    """A MO ManagerRead object."""
 
     org_unit_uuid: UUID = Field(
         description="UUID of the organisation unit related to the manager."
