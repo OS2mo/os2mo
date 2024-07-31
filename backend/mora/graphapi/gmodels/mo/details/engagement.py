@@ -8,8 +8,8 @@ from .._shared import MOBase
 from .._shared import Validity
 
 
-class EngagementBase(MOBase):
-    """A MO engagement object."""
+class EngagementRead(MOBase):
+    """A MO engagement read object."""
 
     type_: str = Field("engagement", alias="type", description="The object type.")
     validity: Validity = Field(description="Validity of the engagement object.")
@@ -29,10 +29,6 @@ class EngagementBase(MOBase):
     extension_8: str | None = Field(description="Optional extra information.")
     extension_9: str | None = Field(description="Optional extra information.")
     extension_10: str | None = Field(description="Optional extra information.")
-
-
-class EngagementRead(EngagementBase):
-    """A MO engagement read object."""
 
     org_unit_uuid: UUID = Field(
         description="UUID of the organisation unit related to the engagement."
