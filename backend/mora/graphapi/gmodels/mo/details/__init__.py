@@ -19,8 +19,8 @@ __all__ = [
     "ITSystemRead",
     "ITUserRead",
     "KLERead",
+    "LeaveRead",
     "ManagerRead",
     "OwnerRead",
     "RelatedUnitRead",
-    "LeaveRead",
 ]
