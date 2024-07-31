@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from .address import AddressRead
-from .association import AssociationBase
 from .association import AssociationRead
 from .engagement import EngagementRead
 from .it_system import ITSystemRead
@@ -20,7 +19,6 @@ from .related_unit import RelatedUnitRead
 
 __all__ = [
     "AddressRead",
-    "AssociationBase",
     "AssociationRead",
     "EngagementRead",
     "ITSystemRead",
