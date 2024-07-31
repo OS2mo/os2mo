@@ -16,7 +16,7 @@ from ._shared import OpenValidity
 DictStrAny = dict[str, Any]
 
 
-class EmployeeBase(MOBase):
+class EmployeeRead(MOBase):
     """A MO employee object."""
 
     type_: str = Field("employee", alias="type", description="The object type")
@@ -40,8 +40,6 @@ class EmployeeBase(MOBase):
         except (ValueError, TypeError):
             return seniority
 
-
-class EmployeeRead(EmployeeBase):
     validity: OpenValidity = Field(description="Validity of the employee.")
 
     @root_validator(pre=True)
