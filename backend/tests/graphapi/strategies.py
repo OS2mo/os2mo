@@ -6,9 +6,9 @@ import datetime
 from fastapi.encoders import jsonable_encoder
 from hypothesis import strategies as st
 
+from mora.graphapi.gmodels.mo import Validity as RAValidity
 from mora.graphapi.versions.latest.dataloaders import MOModel
 from mora.graphapi.versions.latest.graphql_utils import PrintableStr
-from ramodels.mo import Validity as RAValidity
 
 
 @st.composite

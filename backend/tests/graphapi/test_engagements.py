@@ -19,12 +19,12 @@ from ra_utils.apply import apply
 from ..conftest import GraphAPIPost
 from .utils import fetch_class_uuids
 from .utils import fetch_org_unit_validity
+from mora.graphapi.gmodels.mo import Validity as RAValidity
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.models import EngagementCreate
 from mora.graphapi.versions.latest.models import EngagementUpdate
 from mora.service.facet import get_primary_class_scope
 from mora.util import POSITIVE_INFINITY
-from ramodels.mo import Validity as RAValidity
 
 CREATE_ENGAGEMENT_QUERY = """
     mutation CreateEngagement($input: EngagementCreateInput!) {

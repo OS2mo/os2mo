@@ -7,17 +7,17 @@ from .models import AddressRead
 from .models import ClassRead
 from .models import FacetRead
 from .models import RoleBindingRead
-from ramodels.mo import EmployeeRead
-from ramodels.mo import OrganisationUnitRead
-from ramodels.mo.details import AssociationRead
-from ramodels.mo.details import EngagementRead
-from ramodels.mo.details import ITSystemRead
-from ramodels.mo.details import ITUserRead
-from ramodels.mo.details import KLERead
-from ramodels.mo.details import LeaveRead
-from ramodels.mo.details import ManagerRead
-from ramodels.mo.details import OwnerRead
-from ramodels.mo.details import RelatedUnitRead
+from mora.graphapi.gmodels.mo import EmployeeRead
+from mora.graphapi.gmodels.mo import OrganisationUnitRead
+from mora.graphapi.gmodels.mo.details import AssociationRead
+from mora.graphapi.gmodels.mo.details import EngagementRead
+from mora.graphapi.gmodels.mo.details import ITSystemRead
+from mora.graphapi.gmodels.mo.details import ITUserRead
+from mora.graphapi.gmodels.mo.details import KLERead
+from mora.graphapi.gmodels.mo.details import LeaveRead
+from mora.graphapi.gmodels.mo.details import ManagerRead
+from mora.graphapi.gmodels.mo.details import OwnerRead
+from mora.graphapi.gmodels.mo.details import RelatedUnitRead
 
 
 # TODO: Encode this relation using Annotated types

@@ -16,22 +16,22 @@ from pydantic import root_validator
 from mora import common
 from mora import exceptions
 from mora import mapping
+from mora.graphapi.gmodels.mo import ClassRead as RAClassRead
+from mora.graphapi.gmodels.mo import FacetRead as RAFacetRead
+from mora.graphapi.gmodels.mo import MOBase
+from mora.graphapi.gmodels.mo import MORef
+from mora.graphapi.gmodels.mo import OpenValidity as RAOpenValidity
+from mora.graphapi.gmodels.mo import Validity as RAValidity
+from mora.graphapi.gmodels.mo._shared import ITUserRef
+from mora.graphapi.gmodels.mo._shared import OrgUnitRef
+from mora.graphapi.gmodels.mo._shared import UUIDBase
+from mora.graphapi.gmodels.mo.details import AddressRead as RAAddressRead
 from mora.util import CPR
 from mora.util import NEGATIVE_INFINITY
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from mora.util import to_lora_time
 from oio_rest import validate
-from ramodels.mo import ClassRead as RAClassRead
-from ramodels.mo import FacetRead as RAFacetRead
-from ramodels.mo import MOBase
-from ramodels.mo import MORef
-from ramodels.mo import OpenValidity as RAOpenValidity
-from ramodels.mo import Validity as RAValidity
-from ramodels.mo._shared import ITUserRef
-from ramodels.mo._shared import OrgUnitRef
-from ramodels.mo._shared import UUIDBase
-from ramodels.mo.details import AddressRead as RAAddressRead
 
 
 logger = logging.getLogger(__name__)

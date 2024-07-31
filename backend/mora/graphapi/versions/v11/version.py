@@ -11,7 +11,7 @@ from ..v12.version import GraphQLVersion as NextGraphQLVersion  # type: ignore
 from ..v13.mutators import uuid2response
 from ..v13.schema import ITUser
 from ..v13.schema import Response
-from ramodels.mo.details import ITUserRead
+from mora.graphapi.gmodels.mo.details import ITUserRead
 
 
 class ITUserCreateV11(ITUserCreate):

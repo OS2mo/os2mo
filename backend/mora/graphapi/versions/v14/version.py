@@ -27,7 +27,7 @@ from ..latest.resolvers import it_system_resolver as latest_it_system_resolver
 from ..latest.schema import ITSystem
 from ..latest.schema import Response
 from ..v15.version import GraphQLVersion as NextGraphQLVersion
-from ramodels.mo._shared import UUIDBase
+from mora.graphapi.gmodels.mo._shared import UUIDBase
 
 
 class ITSystemCreateV14(UUIDBase):

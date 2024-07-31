@@ -11,8 +11,8 @@ from ..v13.mutators import uuid2response
 from ..v13.schema import Address
 from ..v13.schema import Response
 from ..v8.version import GraphQLVersion as NextGraphQLVersion
+from mora.graphapi.gmodels.mo.details import AddressRead
 from mora.graphapi.shim import execute_graphql  # type: ignore[attr-defined]
-from ramodels.mo.details import AddressRead
 
 
 @strawberry.type

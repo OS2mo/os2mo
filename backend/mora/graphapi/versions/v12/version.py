@@ -22,11 +22,11 @@ from ..v13.schema import Employee
 from ..v13.schema import Response
 from ..v13.version import GraphQLVersion as NextGraphQLVersion
 from mora import exceptions
+from mora.graphapi.gmodels.mo import EmployeeRead
+from mora.graphapi.gmodels.mo import OpenValidity
+from mora.graphapi.gmodels.mo import Validity as RAValidity
 from mora.graphapi.shim import execute_graphql  # type: ignore
 from mora.util import CPR
-from ramodels.mo import EmployeeRead
-from ramodels.mo import OpenValidity
-from ramodels.mo import Validity as RAValidity
 
 
 class NonEmptyString(ConstrainedStr):

@@ -67,17 +67,17 @@ from .schema import Version
 from mora import db
 from mora.audit import audit_log
 from mora.config import get_public_settings
-from ramodels.mo.details.association import AssociationRead
-from ramodels.mo.details.engagement import EngagementRead
-from ramodels.mo.details.it_system import ITSystemRead
-from ramodels.mo.details.it_system import ITUserRead
-from ramodels.mo.details.kle import KLERead
-from ramodels.mo.details.leave import LeaveRead
-from ramodels.mo.details.manager import ManagerRead
-from ramodels.mo.details.owner import OwnerRead
-from ramodels.mo.details.related_unit import RelatedUnitRead
-from ramodels.mo.employee import EmployeeRead
-from ramodels.mo.organisation_unit import OrganisationUnitRead
+from mora.graphapi.gmodels.mo.details.association import AssociationRead
+from mora.graphapi.gmodels.mo.details.engagement import EngagementRead
+from mora.graphapi.gmodels.mo.details.it_system import ITSystemRead
+from mora.graphapi.gmodels.mo.details.it_system import ITUserRead
+from mora.graphapi.gmodels.mo.details.kle import KLERead
+from mora.graphapi.gmodels.mo.details.leave import LeaveRead
+from mora.graphapi.gmodels.mo.details.manager import ManagerRead
+from mora.graphapi.gmodels.mo.details.owner import OwnerRead
+from mora.graphapi.gmodels.mo.details.related_unit import RelatedUnitRead
+from mora.graphapi.gmodels.mo.employee import EmployeeRead
+from mora.graphapi.gmodels.mo.organisation_unit import OrganisationUnitRead
 
 
 T = TypeVar("T")

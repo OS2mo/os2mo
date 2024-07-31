@@ -14,8 +14,8 @@ from starlette_context import context
 from starlette_context import request_cycle_context
 from strawberry.extensions import SchemaExtension
 
+from mora.graphapi.gmodels.mo import OpenValidity
 from mora.log import canonical_gql_context
-from ramodels.mo import OpenValidity
 
 _IS_GRAPHQL_MIDDLEWARE_KEY = "is_graphql"
 

@@ -11,7 +11,7 @@ from ..v11.version import GraphQLVersion as NextGraphQLVersion
 from ..v13.mutators import uuid2response
 from ..v13.schema import Manager
 from ..v13.schema import Response
-from ramodels.mo.details import ManagerRead
+from mora.graphapi.gmodels.mo.details import ManagerRead
 
 
 class ManagerCreateV10(ManagerCreate):

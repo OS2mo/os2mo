@@ -114,19 +114,19 @@ from .schema import Response
 from mora import db
 from mora.auth.middleware import get_authenticated_user
 from mora.common import get_connector
-from ramodels.mo import ClassRead
-from ramodels.mo import EmployeeRead
-from ramodels.mo import FacetRead
-from ramodels.mo import OrganisationUnitRead
-from ramodels.mo.details import AddressRead
-from ramodels.mo.details import AssociationRead
-from ramodels.mo.details import EngagementRead
-from ramodels.mo.details import ITSystemRead
-from ramodels.mo.details import ITUserRead
-from ramodels.mo.details import KLERead
-from ramodels.mo.details import LeaveRead
-from ramodels.mo.details import ManagerRead
-from ramodels.mo.details import RelatedUnitRead
+from mora.graphapi.gmodels.mo import ClassRead
+from mora.graphapi.gmodels.mo import EmployeeRead
+from mora.graphapi.gmodels.mo import FacetRead
+from mora.graphapi.gmodels.mo import OrganisationUnitRead
+from mora.graphapi.gmodels.mo.details import AddressRead
+from mora.graphapi.gmodels.mo.details import AssociationRead
+from mora.graphapi.gmodels.mo.details import EngagementRead
+from mora.graphapi.gmodels.mo.details import ITSystemRead
+from mora.graphapi.gmodels.mo.details import ITUserRead
+from mora.graphapi.gmodels.mo.details import KLERead
+from mora.graphapi.gmodels.mo.details import LeaveRead
+from mora.graphapi.gmodels.mo.details import ManagerRead
+from mora.graphapi.gmodels.mo.details import RelatedUnitRead
 
 logger = logging.getLogger(__name__)
 

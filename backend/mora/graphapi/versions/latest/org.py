@@ -7,8 +7,9 @@ from uuid import UUID
 
 import strawberry
 
+from .orgmodel import Organisation
 from mora import common
-from ramodels.lora.organisation import Organisation
+
 
 logger = logging.getLogger(__name__)
 

@@ -17,11 +17,11 @@ from more_itertools import one
 from ..conftest import GraphAPIPost
 from .utils import fetch_class_uuids
 from .utils import fetch_org_unit_validity
+from mora.graphapi.gmodels.mo import Validity as RAValidity
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.models import KLECreate
 from mora.graphapi.versions.latest.models import KLEUpdate
 from mora.util import POSITIVE_INFINITY
-from ramodels.mo import Validity as RAValidity
 
 
 @pytest.mark.integration_test

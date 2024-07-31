@@ -56,8 +56,8 @@ from .models import RoleBindingCreate
 from .models import RoleBindingTerminate
 from .models import RoleBindingUpdate
 from .models import Validity
-from ramodels.mo import OpenValidity as RAOpenValidity
-from ramodels.mo import Validity as RAValidity
+from mora.graphapi.gmodels.mo import OpenValidity as RAOpenValidity
+from mora.graphapi.gmodels.mo import Validity as RAValidity
 
 
 def gen_uuid_unset(uuid: UUID | UnsetType | None) -> dict[str, str] | UnsetType | None:

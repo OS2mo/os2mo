@@ -21,11 +21,11 @@ from strawberry.dataloader import DataLoader
 
 from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
+from mora.graphapi.gmodels.mo import OrganisationRead
+from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.schema import AddressRead
 from mora.graphapi.versions.latest.version import LatestGraphQLSchema
-from ramodels.mo import OrganisationRead
-from ramodels.mo import OrganisationUnitRead
 
 SCHEMA = str(LatestGraphQLSchema.get())
 
