@@ -425,7 +425,9 @@ async def test_mo_to_ldap(converter: LdapConverter) -> None:
 async def test_mapping_loader_failure(context: Context) -> None:
     good_context = copy.deepcopy(context)
 
-    for bad_mapping in ({}, {"ldap_to_mo": {}}, {"mo_to_ldap": {}}):
+    mappings: tuple[dict, dict, dict] = {}, {"ldap_to_mo": {}}, {"mo_to_ldap": {}}
+
+    for bad_mapping in mappings:
         bad_context = copy.deepcopy(context)
         bad_context["user_context"]["mapping"] = bad_mapping
 
@@ -1178,7 +1180,7 @@ async def test_get_job_function_uuid_default_kwarg_does_not_override(
 
 
 async def test_get_org_unit_name_for_parent(converter: LdapConverter) -> None:
-    org_tree = {
+    org_tree: dict[str, dict] = {
         "Kolding Kommune": {
             "Sundhed": {
                 "Plejecentre": {
