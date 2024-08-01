@@ -386,7 +386,7 @@ async def test_edit_org_unit(
 
     actual = await c.organisationenhed.get(org_unit_uuid)
     assert actual is not None
-    assert_registrations_equal(actual, expected)
+    assert_registrations_equal(expected, actual)
 
 
 @pytest.mark.integration_test
@@ -518,7 +518,7 @@ async def test_edit_org_unit_earlier_start_on_created(
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
     actual = await c.organisationenhed.get(org_unit_uuid)
 
-    assert_registrations_equal(actual, expected)
+    assert_registrations_equal(expected, actual)
 
 
 @pytest.mark.integration_test
@@ -682,7 +682,7 @@ async def test_create_org_unit(service_client: TestClient) -> None:
     }
 
     actual_org_unit = await c.organisationenhed.get(unitid)
-    assert_registrations_equal(actual_org_unit, expected)
+    assert_registrations_equal(expected, actual_org_unit)
 
     org_unit_type_institute_without_published = deepcopy(org_unit_type_institute)
     org_unit_type_institute_without_published.pop("published")
@@ -834,7 +834,7 @@ async def test_rename_root_org_unit(service_client: TestClient) -> None:
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
     actual = await c.organisationenhed.get(org_unit_uuid)
 
-    assert_registrations_equal(actual, expected)
+    assert_registrations_equal(expected, actual)
 
 
 @pytest.mark.integration_test
@@ -940,7 +940,7 @@ async def test_rename_root_org_unit_no_parent(service_client: TestClient) -> Non
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
     actual = await c.organisationenhed.get(org_unit_uuid)
 
-    assert_registrations_equal(actual, expected)
+    assert_registrations_equal(expected, actual)
 
 
 @pytest.mark.integration_test
@@ -1056,7 +1056,7 @@ async def test_move_org_unit(service_client: TestClient):
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
     actual = await c.organisationenhed.get(org_unit_uuid)
 
-    assert_registrations_equal(actual, expected)
+    assert_registrations_equal(expected, actual)
 
 
 @pytest.mark.integration_test
@@ -1172,7 +1172,7 @@ async def test_move_org_unit_to_root(service_client: TestClient):
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
     actual = await c.organisationenhed.get(org_unit_uuid)
 
-    assert_registrations_equal(actual, expected)
+    assert_registrations_equal(expected, actual)
 
 
 @pytest.mark.integration_test

@@ -207,7 +207,7 @@ async def test_create_association(
     )
     associationid = one(associations)
     actual_association = await c.organisationfunktion.get(associationid)
-    assert_registrations_equal(actual_association, expected)
+    assert_registrations_equal(expected, actual_association)
 
     # Check that we get the expected response from MO, case 1
     expected = {
@@ -441,7 +441,7 @@ async def test_create_vacant_association(service_client: TestClient) -> None:
         # check that the content is also as expected
         actual_association = await c.organisationfunktion.get(associationid)
 
-        assert_registrations_equal(actual_association, expected)
+        assert_registrations_equal(expected, actual_association)
 
     def assoc_content_only_primary_uuid(assoc_uuid):
         """
@@ -623,7 +623,7 @@ async def test_create_association_with_dynamic_classes(
 
     actual_association = await c.organisationfunktion.get(associationid)
 
-    assert_registrations_equal(actual_association, expected)
+    assert_registrations_equal(expected, actual_association)
 
     expected = [
         {
