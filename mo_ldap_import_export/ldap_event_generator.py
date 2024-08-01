@@ -2,12 +2,14 @@
 # SPDX-License-Identifier: MPL-2.0
 """LDAP change event generation."""
 import asyncio
+from contextlib import asynccontextmanager
 from contextlib import suppress
 from datetime import datetime
 from datetime import timezone
 from functools import partial
 from typing import Any
 from typing import AsyncContextManager
+from typing import AsyncIterator
 from typing import Self
 from typing import cast
 from uuid import UUID
@@ -16,14 +18,36 @@ import structlog
 from fastramqpi.context import Context
 from fastramqpi.depends import UserContext
 from ldap3 import Connection
+from sqlalchemy import TIMESTAMP
+from sqlalchemy import Text
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
 
 from .config import Settings
+from .database import Base
 from .ldap import ldap_search
 from .ldap import ldapresponse2entries
 from .ldap_emit import publish_uuids
 from .utils import combine_dn_strings
 
 logger = structlog.stdlib.get_logger()
+
+
+class LastRun(Base):
+    __tablename__ = "last_run"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    search_base: Mapped[str] = mapped_column(
+        Text, index=True, unique=True, nullable=False
+    )
+    datetime: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        default=datetime.min.replace(tzinfo=timezone.utc),
+        nullable=False,
+    )
 
 
 class LDAPEventGenerator(AsyncContextManager):
@@ -36,6 +60,7 @@ class LDAPEventGenerator(AsyncContextManager):
         """Start event generator."""
         user_context: UserContext = self._context["user_context"]
         settings: Settings = user_context["settings"]
+        sessionmaker: async_sessionmaker[AsyncSession] = self._context["sessionmaker"]
 
         search_bases = {
             combine_dn_strings([ldap_ou_to_scan_for_changes, settings.ldap_search_base])
@@ -43,7 +68,8 @@ class LDAPEventGenerator(AsyncContextManager):
         }
 
         self._pollers = {
-            setup_poller(user_context, search_base) for search_base in search_bases
+            setup_poller(user_context, search_base, sessionmaker)
+            for search_base in search_bases
         }
         return self
 
@@ -63,12 +89,18 @@ class LDAPEventGenerator(AsyncContextManager):
         return all(not poller.done() for poller in self._pollers)
 
 
-def setup_poller(user_context: UserContext, search_base: str) -> asyncio.Task:
+def setup_poller(
+    user_context: UserContext,
+    search_base: str,
+    sessionmaker: async_sessionmaker[AsyncSession],
+) -> asyncio.Task:
     def done_callback(future):
-        # This ensures exceptions go to the terminal
-        future.result()
+        # Silence CancelledErrors on shutdown
+        with suppress(asyncio.CancelledError):
+            # This ensures exceptions go to the terminal
+            future.result()
 
-    handle = asyncio.create_task(_poller(user_context, search_base))
+    handle = asyncio.create_task(_poller(user_context, search_base, sessionmaker))
     handle.add_done_callback(done_callback)
     return handle
 
@@ -126,7 +158,48 @@ async def _poll(
     return uuids
 
 
-async def _poller(user_context: UserContext, search_base: str) -> None:
+@asynccontextmanager
+async def update_timestamp(
+    sessionmaker: async_sessionmaker[AsyncSession], search_base: str
+) -> AsyncIterator[datetime]:
+    """Async context manager to fetch and update last run time from our rundb.
+
+    Args:
+        sessionmaker: The sessionmaker used to create our database sessions.
+        search_base: The search base to fetch and update time for.
+
+    Yields:
+        The last run time as read from the database.
+    """
+    # Ensure that a last-run row exists for our search_base
+    # We do creates separately to support update locks in normal operation
+    async with sessionmaker() as session, session.begin():
+        last_run = await session.scalar(
+            select(LastRun).where(LastRun.search_base == search_base).with_for_update()
+        )
+        last_run = last_run or LastRun(search_base=search_base)
+        session.add(last_run)
+
+    async with sessionmaker() as session, session.begin():
+        # Get last run time from database for updating
+        last_run = await session.scalar(
+            select(LastRun).where(LastRun.search_base == search_base).with_for_update()
+        )
+        assert last_run is not None
+        assert last_run.datetime is not None
+
+        now = datetime.now(timezone.utc)
+        yield last_run.datetime
+        # Update last run time in database
+        last_run.datetime = now
+        session.add(last_run)
+
+
+async def _poller(
+    user_context: UserContext,
+    search_base: str,
+    sessionmaker: async_sessionmaker[AsyncSession],
+) -> None:
     """Poll the LDAP server continuously every `settings.poll_time` seconds.
 
     Args:
@@ -134,6 +207,8 @@ async def _poller(user_context: UserContext, search_base: str) -> None:
             The entire settings context.
         search_base:
             LDAP search base to look for changes in.
+        sessionmaker:
+            Sessionmaker to create database sessions for our rundb.
     """
     settings: Settings = user_context["settings"]
     logger.info("Poller started", search_base=search_base)
@@ -147,13 +222,14 @@ async def _poller(user_context: UserContext, search_base: str) -> None:
         ldap_unique_id_field=settings.ldap_unique_id_field,
     )
 
-    last_search_time = datetime.now(timezone.utc)
     while True:
-        now = datetime.now(timezone.utc)
-        uuids = await seeded_poller(last_search_time=last_search_time)
-        last_search_time = now
+        # Fetch the last run time, and update it after running
+        async with update_timestamp(sessionmaker, search_base) as last_run:
+            # Fetch changes since last-run and emit events for them
+            uuids = await seeded_poller(last_search_time=last_run)
+            await publish_uuids(ldap_amqpsystem, list(uuids))
 
-        await publish_uuids(ldap_amqpsystem, list(uuids))
+        # Wait for a while before running again
         await asyncio.sleep(settings.poll_time)
 
 

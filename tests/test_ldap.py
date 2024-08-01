@@ -555,11 +555,13 @@ async def test_setup_poller() -> None:
     async def _poller(*args: Any) -> None:
         raise ValueError("BOOM")
 
+    sessionmaker = AsyncMock()
+
     with patch("mo_ldap_import_export.ldap_event_generator._poller", _poller):
         context: UserContext = {}
         search_base = "dc=magenta,dc=dk"
 
-        handle = setup_poller(context, search_base)
+        handle = setup_poller(context, search_base, sessionmaker)
 
         assert handle.done() is False
 

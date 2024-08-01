@@ -96,6 +96,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
     conversion_mapping_setting = conversion_mapping.json(
         exclude_unset=True, by_alias=True
     )
+    # TODO: This seems duplicated with the version in conftest
     overrides = {
         "CONVERSION_MAPPING": conversion_mapping_setting,
         "CLIENT_ID": "Foo",
@@ -110,6 +111,10 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "LDAP_OUS_TO_SEARCH_IN": '["OU=bar"]',
         "LDAP_OU_FOR_NEW_USERS": "OU=foo,OU=bar",
         "FASTRAMQPI__AMQP__URL": "amqp://guest:guest@msg_broker:5672/",
+        "FASTRAMQPI__DATABASE__USER": "fastramqpi",
+        "FASTRAMQPI__DATABASE__PASSWORD": "fastramqpi",
+        "FASTRAMQPI__DATABASE__HOST": "db",
+        "FASTRAMQPI__DATABASE__NAME": "fastramqpi",
     }
     yield overrides
 
@@ -326,7 +331,7 @@ def patch_modules(
         "mo_ldap_import_export.main.configure_ldap_connection", new_callable=MagicMock()
     ), patch("mo_ldap_import_export.main.DataLoader", return_value=dataloader), patch(
         "mo_ldap_import_export.routes.get_attribute_types", return_value={"foo": {}}
-    ):
+    ), patch("fastramqpi.main.database", return_value=AsyncMock()):
         yield
 
 
