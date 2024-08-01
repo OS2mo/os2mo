@@ -66,16 +66,16 @@ server {
         proxy_pass http://$keycloak:8080;
     }
 
-    # New frontend
-    location /new {
-        set $frontend_new_static frontend_new_static;
-        proxy_pass http://$frontend_new_static:3000;
-    }
-
-    # Frontend
-    # (everything unmatched)
-    location / {
+    # Old frontend
+    location /old/ {
         set $frontend_static frontend_static;
         proxy_pass http://$frontend_static;
+    }
+
+    # New frontend
+    # (everything unmatched)
+    location / {
+        set $frontend_new_static frontend_new_static;
+        proxy_pass http://$frontend_new_static:3000;
     }
 }
