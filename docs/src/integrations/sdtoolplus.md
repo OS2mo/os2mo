@@ -41,7 +41,8 @@ kørsel gøre følgende:
 
 #### Opmærksomhedspunkter
 
-* De fleste kunder har fået konfigureret et filter som det, der er nævnt i
+* De fleste anvendere af SDTool+ har fået konfigureret et filter som det, der
+  er nævnt i
   punkt 3.a ovenfor, hvilket kan resultere i følgende opførsel i SDTool+: Lad
   os forestille os, at der er opsat i filter, som frasorterer operationer, der
   skal udføres på enheder, hvis navn begynder med "%", da man ikke ønsker, at
