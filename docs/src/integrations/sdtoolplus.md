@@ -83,7 +83,7 @@ endepunkter fra SDs API:
 
 SDTool+'s postadresse og P-nummer synkronisering er en valgfri feature i
 applikationen. Hvis featuren er aktiveret, kan man (fx dagligt) køre et job,
-som:
+som for organisationsenheder:
 
 1. Udlæser alle P-numre og postadresser fra SD.
 2. Udlæser alle P-numre og postadresser fra OS2mo.
