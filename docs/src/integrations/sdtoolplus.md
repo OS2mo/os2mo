@@ -113,25 +113,6 @@ SDTool+ har svært ved at sammenligne adresserne i SD og MO, hvorfor adresserne
 på enhederne i SD skal opdateres til at være gyldige DAR-adresser, inden
 featuren til synkronisering af postadresser aktivers i SDTool+.
 
-## Teknisk beskrivelse
-
-* SDTOOL+ bygger ovenpå den Docker-baserede SD-integration, og er derfor
-  afhængig af, at denne kører.
-* SDTOOL+ er en FastAPI webapplikation, der udstiller et API via HTTP. On-prem
-  antages den at køre i samme Docker-netværk som resten af OS2mo-installationen
-  (selve OS2mo og evt. andre integrationer).
-* SDTool+ kræver adgang til en database (fx postgresql), hvori der gemmes informationer om resultatet af forrige
-  kørsel. Hvis den forrige kørsel fejlede, kan den næste kørsel ikke startes
-  før problemet, som fik forrige kørsel til at fejle, er udbedret. Årsagen til
-  dette er, at de operationer, som SDTool+ foretager, ikke altid er uafhængige
-  af hinanden. Hvis fx to nye SD-enheder, "Enhed A" og "Enhed B", skal oprettes
-  i OS2mo, hvor "Enhed B" er en underenhed til "Enhed A", og oprettelsen af
-  "Enhed A" fejler, så kan operationen, som opretter "Enhed B", ikke gennemføres
-  før oprettelsen af "Enhed A" er gået godt.
-* Det er muligt at lave "dry runs" med SDTool+, så man kan se hvilke ændringer,
-  applikationen har tænkt sig at foretage i OS2mo, inden ændringerne rent
-  faktisk persisteres.
-
 ## Konfiguration
 
 Applikationen konfigureres via miljøvariable i Docker containeren for
