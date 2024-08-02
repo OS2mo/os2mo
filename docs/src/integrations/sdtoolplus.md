@@ -42,8 +42,8 @@ kørsel gøre følgende:
 #### Opmærksomhedspunkter
 
 * De fleste anvendere af SDTool+ har fået konfigureret et filter som det, der
-  er nævnt i
-  punkt 3.a ovenfor, hvilket kan resultere i følgende opførsel i SDTool+: Lad
+  er nævnt afsnittet [Konfiguration](#konfiguration) nedenfor,
+  hvilket kan resultere i følgende opførsel i SDTool+: Lad
   os forestille os, at der er opsat i filter, som frasorterer operationer, der
   skal udføres på enheder, hvis navn begynder med "%", da man ikke ønsker, at
   sådanne enheder skal figurere i OS2mo. Antag dernæst, at
@@ -51,7 +51,9 @@ kørsel gøre følgende:
   igennem i OS2mo (selv om man sandsynlig ville ønske dette), da operationen
   filtreres pga., at det nye navn begynder med "%". Det er dog mulig at
   konfigurere SDTool+ til _alligevel_ at omdøbe enheden, så den i OS2mo kommer
-  til at hedde "% Sundhed". Resultats bliver således, at
+  til at hedde "% Sundhed", idet omdøbningsoperationer kan tillades på trods af
+  det konfigurerede filter for enheder, som begynder med "%". Resultats bliver
+  således, at
     1. Enhedens navn i OS2mo stemmer overens med det, som enheden (nu) hedder i
        SD.
     2. Man har en uønsket "%"-enhed stående i OS2mo, hvilket ikke er en fejl i
