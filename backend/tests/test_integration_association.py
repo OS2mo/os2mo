@@ -31,7 +31,7 @@ def _lora_virkning(**kwargs):
         "virkning": {
             "from": "2017-12-01 00:00:00+01",
             "from_included": True,
-            "to": "2017-12-02 00:00:00+01",
+            "to": "2017-12-03 00:00:00+01",
             "to_included": False,
         },
     }
@@ -187,7 +187,7 @@ async def test_create_association(
             "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
             "user_key": "1234",
             "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
-            "validity": {"from": "2017-12-01", "to": "2017-12-01"},
+            "validity": {"from": "2017-12-01", "to": "2017-12-02"},
         }
     ]
 
@@ -218,7 +218,7 @@ async def test_create_association(
         "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
         "user_key": "1234",
         "uuid": "00000000-0000-0000-0000-000000000000",
-        "validity": {"from": "2017-12-01", "to": "2017-12-01"},
+        "validity": {"from": "2017-12-01", "to": "2017-12-02"},
     }
     expected.update(mo_expected)
     with seed_substitute_roles():
@@ -235,7 +235,7 @@ async def test_create_association(
         "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
         "user_key": "1234",
         "uuid": "00000000-0000-0000-0000-000000000000",
-        "validity": {"from": "2017-12-01", "to": "2017-12-01"},
+        "validity": {"from": "2017-12-01", "to": "2017-12-02"},
         "first_party_association_type": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
         },
@@ -265,7 +265,7 @@ async def test_create_association(
         "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
         "user_key": "1234",
         "uuid": "00000000-0000-0000-0000-000000000000",
-        "validity": {"from": "2017-12-01", "to": "2017-12-01"},
+        "validity": {"from": "2017-12-01", "to": "2017-12-02"},
         "first_party_association_type": _substitute_association,
         "third_party_associated": {"uuid": _userid},
         "third_party_association_type": {
@@ -312,7 +312,7 @@ async def test_create_vacant_association(service_client: TestClient) -> None:
             "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
             "validity": {
                 "from": "2017-12-01",
-                "to": "2017-12-01",
+                "to": "2017-12-02",
             },
             "it": None,
             "job_function": None,
@@ -345,7 +345,7 @@ async def test_create_vacant_association(service_client: TestClient) -> None:
                 {
                     "virkning": {
                         "to_included": False,
-                        "to": "2017-12-02 00:00:00+01",
+                        "to": "2017-12-03 00:00:00+01",
                         "from_included": True,
                         "from": "2017-12-01 00:00:00+01",
                     },
@@ -359,7 +359,7 @@ async def test_create_vacant_association(service_client: TestClient) -> None:
                 {
                     "virkning": {
                         "to_included": False,
-                        "to": "2017-12-02 00:00:00+01",
+                        "to": "2017-12-03 00:00:00+01",
                         "from_included": True,
                         "from": "2017-12-01 00:00:00+01",
                     },
@@ -370,7 +370,7 @@ async def test_create_vacant_association(service_client: TestClient) -> None:
                 {
                     "virkning": {
                         "to_included": False,
-                        "to": "2017-12-02 00:00:00+01",
+                        "to": "2017-12-03 00:00:00+01",
                         "from_included": True,
                         "from": "2017-12-01 00:00:00+01",
                     },
@@ -381,7 +381,7 @@ async def test_create_vacant_association(service_client: TestClient) -> None:
                 {
                     "virkning": {
                         "to_included": False,
-                        "to": "2017-12-02 00:00:00+01",
+                        "to": "2017-12-03 00:00:00+01",
                         "from_included": True,
                         "from": "2017-12-01 00:00:00+01",
                     },
@@ -394,7 +394,7 @@ async def test_create_vacant_association(service_client: TestClient) -> None:
                     "virkning": {
                         "from": "2017-12-01 00:00:00+01",
                         "from_included": True,
-                        "to": "2017-12-02 00:00:00+01",
+                        "to": "2017-12-03 00:00:00+01",
                         "to_included": False,
                     },
                 }
@@ -405,7 +405,7 @@ async def test_create_vacant_association(service_client: TestClient) -> None:
                     "virkning": {
                         "from": "2017-12-01 00:00:00+01",
                         "from_included": True,
-                        "to": "2017-12-02 00:00:00+01",
+                        "to": "2017-12-03 00:00:00+01",
                         "to_included": False,
                     },
                 }
@@ -416,7 +416,7 @@ async def test_create_vacant_association(service_client: TestClient) -> None:
                 {
                     "virkning": {
                         "to_included": False,
-                        "to": "2017-12-02 00:00:00+01",
+                        "to": "2017-12-03 00:00:00+01",
                         "from_included": True,
                         "from": "2017-12-01 00:00:00+01",
                     },
@@ -459,7 +459,7 @@ async def test_create_vacant_association(service_client: TestClient) -> None:
             "user_key": "1234",
             "uuid": assoc_uuid,
             "substitute": {"uuid": subid},
-            "validity": {"from": "2017-12-01", "to": "2017-12-01"},
+            "validity": {"from": "2017-12-01", "to": "2017-12-02"},
             "it": None,
             "job_function": None,
         }
@@ -508,7 +508,7 @@ async def test_create_association_with_dynamic_classes(
             "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
             "validity": {
                 "from": "2017-12-01",
-                "to": "2017-12-01",
+                "to": "2017-12-03",
             },
         }
     ]
@@ -523,7 +523,7 @@ async def test_create_association_with_dynamic_classes(
                 {
                     "virkning": {
                         "to_included": False,
-                        "to": "2017-12-02 00:00:00+01",
+                        "to": "2017-12-04 00:00:00+01",
                         "from_included": True,
                         "from": "2017-12-01 00:00:00+01",
                     },
@@ -537,7 +537,7 @@ async def test_create_association_with_dynamic_classes(
                 {
                     "virkning": {
                         "to_included": False,
-                        "to": "2017-12-02 00:00:00+01",
+                        "to": "2017-12-04 00:00:00+01",
                         "from_included": True,
                         "from": "2017-12-01 00:00:00+01",
                     },
@@ -548,7 +548,7 @@ async def test_create_association_with_dynamic_classes(
                 {
                     "virkning": {
                         "to_included": False,
-                        "to": "2017-12-02 00:00:00+01",
+                        "to": "2017-12-04 00:00:00+01",
                         "from_included": True,
                         "from": "2017-12-01 00:00:00+01",
                     },
@@ -559,7 +559,7 @@ async def test_create_association_with_dynamic_classes(
                 {
                     "virkning": {
                         "to_included": False,
-                        "to": "2017-12-02 00:00:00+01",
+                        "to": "2017-12-04 00:00:00+01",
                         "from_included": True,
                         "from": "2017-12-01 00:00:00+01",
                     },
@@ -570,7 +570,7 @@ async def test_create_association_with_dynamic_classes(
                 {
                     "virkning": {
                         "to_included": False,
-                        "to": "2017-12-02 00:00:00+01",
+                        "to": "2017-12-04 00:00:00+01",
                         "from_included": True,
                         "from": "2017-12-01 00:00:00+01",
                     },
@@ -581,7 +581,7 @@ async def test_create_association_with_dynamic_classes(
                 {
                     "virkning": {
                         "to_included": False,
-                        "to": "2017-12-02 00:00:00+01",
+                        "to": "2017-12-04 00:00:00+01",
                         "from_included": True,
                         "from": "2017-12-01 00:00:00+01",
                     },
@@ -594,7 +594,7 @@ async def test_create_association_with_dynamic_classes(
                     "virkning": {
                         "from": "2017-12-01 00:00:00+01",
                         "from_included": True,
-                        "to": "2017-12-02 00:00:00+01",
+                        "to": "2017-12-04 00:00:00+01",
                         "to_included": False,
                     },
                 }
@@ -605,7 +605,7 @@ async def test_create_association_with_dynamic_classes(
                 {
                     "virkning": {
                         "to_included": False,
-                        "to": "2017-12-02 00:00:00+01",
+                        "to": "2017-12-04 00:00:00+01",
                         "from_included": True,
                         "from": "2017-12-01 00:00:00+01",
                     },
@@ -635,7 +635,7 @@ async def test_create_association_with_dynamic_classes(
             "user_key": "1234",
             "uuid": "00000000-0000-0000-0000-000000000000",
             "substitute": None,
-            "validity": {"from": "2017-12-01", "to": "2017-12-01"},
+            "validity": {"from": "2017-12-01", "to": "2017-12-03"},
             "it": None,
             "job_function": None,
         }
@@ -669,7 +669,7 @@ async def test_edit_association_with_preexisting(service_client: TestClient) -> 
         "dynamic_classes": [],
         "validity": {
             "from": "2017-12-01",
-            "to": "2017-12-01",
+            "to": "2017-12-02",
         },
     }
     response = service_client.request("POST", "/service/details/create", json=payload)
@@ -691,7 +691,7 @@ async def test_edit_association_with_preexisting(service_client: TestClient) -> 
             "data": {
                 "validity": {
                     "from": "2017-12-01",
-                    "to": "2017-12-01",
+                    "to": "2017-12-02",
                 },
                 "org_unit": {"uuid": unitid},
             },
@@ -708,7 +708,7 @@ async def test_edit_association_with_preexisting(service_client: TestClient) -> 
             "data": {
                 "validity": {
                     "from": "2017-12-02",
-                    "to": "2017-12-02",
+                    "to": "2017-12-03",
                 },
                 "org_unit": {"uuid": unitid},
             },
@@ -1021,7 +1021,7 @@ def test_create_association_from_missing_unit(service_client: TestClient) -> Non
             },
             "validity": {
                 "from": "2017-12-01",
-                "to": "2017-12-01",
+                "to": "2017-12-02",
             },
         }
     ]
@@ -1057,7 +1057,7 @@ def test_create_association_succeeds_on_two_associations(
             "address": {"uuid": "414044e0-fe5f-4f82-be20-1e107ad50e80"},
             "validity": {
                 "from": "2017-12-01",
-                "to": "2017-12-01",
+                "to": "2017-12-02",
             },
         }
     ]
@@ -1144,7 +1144,7 @@ def test_create_association_no_unit(service_client: TestClient) -> None:
             },
             "validity": {
                 "from": "2017-12-01",
-                "to": "2017-12-01",
+                "to": "2017-12-02",
             },
         }
     ]

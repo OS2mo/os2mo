@@ -137,7 +137,7 @@ def _create_address_create_hypothesis_test_data(
         st.tuples(
             st.datetimes(**dt_options),
             st.datetimes(**dt_options) | st.none(),
-        ).filter(lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True)
+        ).filter(lambda dts: dts[0] < dts[1] if dts[0] and dts[1] else True)
     )
     test_data_from, test_data_to = test_datavalidity_tuple
 
