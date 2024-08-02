@@ -30,11 +30,9 @@ kørsel gøre følgende:
    være af typen "Tilføj", som tilføjer nye enheder fra SD, eller
    "Opdatér", som flytter enheder til en ny forældrenhed og/eller omdøber
    enheder.
-4. Sikre, at der ved opdateringsoperationer, hvor en enhed potentielt kan have fået en ny
-   forældrenhed), laves et kald til SD-integrationen (SD-changed-at), som
-   sikrer, at engagementer flyttes op i et nyt relevant NY-niveau, såfremt
-   dette skulle være nødvendigt pga. den potentielt nye forældreenhed (denne
-   funktionalitet kaldes "apply-NY-logic" og er ikke relevant for alle kunder).
+4. Sikre, at engagementer flyttes til de korrekte enheder ved
+   opdateringsoperationer, såfremt dette er nødvendigt (den såkaldte
+   "apply-NY-logic").
 5. (Valgfri feature) Udsende emails til relevante medarbejdere såfremt SDTool+
    forsøger at udføre en "ulovlig" operation. Ved en ulovlig operation forstås
    flytning af en enhed, som stadig indeholder aktive eller fremtidigt aktive
