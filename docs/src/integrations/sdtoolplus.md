@@ -30,11 +30,6 @@ kørsel gøre følgende:
    være af typen "Tilføj", som tilføjer nye enheder fra SD, eller
    "Opdatér", som flytter enheder til en ny forældrenhed og/eller omdøber
    enheder.
-     1. Der er mulighed for at få frafiltreret enheder fra SD, som man ikke
-        ønsker synkroniseret til OS2mo - fx enheder, som begynder med "Ø_"
-        eller "%" eller lignende.
-     2. Der er også mulighed for at konfigurere SDTool+ til kun at sammenligne
-        et givet undertræ i OS2mo med organisationstræet i SD.
 4. Sikre, at der ved opdateringsoperationer, hvor en enhed potentielt kan have fået en ny
    forældrenhed), laves et kald til SD-integrationen (SD-changed-at), som
    sikrer, at engagementer flyttes op i et nyt relevant NY-niveau, såfremt
@@ -142,6 +137,14 @@ Applikationen konfigureres via miljøvariable i Docker containeren for
 SDTool+. Der er en del konfigurationsmuligheder (mest relevant for teknikere),
 som er beskrevet via kommentarer i koden i applikationens
 [konfigurationsmodul](https://github.com/magenta-aps/os2mo-sdtool-plus/blob/master/sdtoolplus/config.py).
+
+Bemærk specielt mulighederne for
+
+1. at få frafiltreret enheder fra SD, som man ikke
+   ønsker synkroniseret til OS2mo - fx enheder, som begynder med "Ø_"
+   eller "%" eller lignende.
+2. at konfigurere SDTool+ til kun at sammenligne
+   et givet undertræ i OS2mo med organisationstræet i SD.
 
 ## Kildekode
 
