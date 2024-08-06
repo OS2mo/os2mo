@@ -491,14 +491,6 @@ class Settings(BaseSettings):
         5, description="Seconds between calls to LDAP to search for updates"
     )
 
-    check_alleroed_sd_number: bool = Field(
-        False,
-        description=(
-            "Check that an SD-employee number does not start with 9, "
-            "before writing to LDAP"
-        ),
-    )
-
     it_user_to_check: str = Field(
         "",
         description=(

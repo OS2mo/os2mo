@@ -220,7 +220,7 @@ async def test_listen_to_changes_in_employees_org_unit_address(
     # Setup mapping configuration
     location_unit_mapping = MagicMock()
     location_unit_mapping.objectClass = "ramodels.mo.details.address.Address"
-    sync_tool.settings.conversion_mapping.ldap_to_mo = {
+    sync_tool.settings.conversion_mapping.ldap_to_mo = {  # type: ignore
         "LocationUnit": location_unit_mapping
     }
 
@@ -343,7 +343,7 @@ async def test_listen_to_changes_in_employees_address(
     email_employee_mapping = MagicMock()
     email_employee_mapping.objectClass = "ramodels.mo.details.address.Address"
     del email_employee_mapping.org_unit
-    sync_tool.settings.conversion_mapping.ldap_to_mo = {
+    sync_tool.settings.conversion_mapping.ldap_to_mo = {  # type: ignore
         "EmailEmployee": email_employee_mapping
     }
 
@@ -453,7 +453,7 @@ async def test_listen_to_changes_in_employees_ituser(
     # Setup mapping configuration
     ad_mapping = MagicMock()
     ad_mapping.objectClass = "ramodels.mo.details.it_system.ITUser"
-    sync_tool.settings.conversion_mapping.ldap_to_mo = {"AD": ad_mapping}
+    sync_tool.settings.conversion_mapping.ldap_to_mo = {"AD": ad_mapping}  # type: ignore
 
     # Test happy path
     await sync_tool.listen_to_changes_in_employees(employee_uuid)
@@ -588,7 +588,7 @@ async def test_listen_to_changes_in_employees_engagement(
     assert not route2.called
 
     # Setup mapping configuration
-    sync_tool.settings.conversion_mapping.ldap_to_mo = {"Engagement": MagicMock()}
+    sync_tool.settings.conversion_mapping.ldap_to_mo = {"Engagement": MagicMock()}  # type: ignore
 
     # Test happy path
     await sync_tool.listen_to_changes_in_employees(employee_uuid)
@@ -1434,7 +1434,7 @@ async def test_publish_engagements_for_org_unit(
 
 async def test_perform_import_checks_noop(sync_tool: SyncTool) -> None:
     """Test that perform_import_checks returns True when nothing is checked."""
-    sync_tool.settings.check_holstebro_ou_issue_57426 = False
+    sync_tool.settings.check_holstebro_ou_issue_57426 = False  # type: ignore
     result = await sync_tool.perform_import_checks("CN=foo", "Employee")
     assert result is True
 
