@@ -812,7 +812,7 @@ async def test_create_engagement(
 
     actual_engagement = await c.organisationfunktion.get(engagementid)
     assert actual_engagement is not None
-    assert_registrations_equal(actual_engagement, expected)
+    assert_registrations_equal(expected, actual_engagement)
 
 
 @pytest.mark.integration_test

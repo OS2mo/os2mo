@@ -556,7 +556,7 @@ async def test_create_manager(
 
     actual = await c.organisationfunktion.get(managerid)
     assert actual is not None
-    assert_registrations_equal(actual, expected)
+    assert_registrations_equal(expected, actual)
 
 
 @pytest.mark.integration_test
