@@ -406,10 +406,10 @@ async def test_mo2ldap_org_unit(test_client: AsyncClient) -> None:
 @pytest.mark.envvar(
     {"LISTEN_TO_CHANGES_IN_MO": "False", "LISTEN_TO_CHANGES_IN_LDAP": "False"}
 )
-@pytest.mark.parameterize(
+@pytest.mark.parametrize(
     "expected", ([], pytest.param([], marks=pytest.mark.usefixtures("ldap_dummy_data")))
 )
-async def test_changed_since(test_client: AsyncClient) -> None:
+async def test_changed_since(test_client: AsyncClient, expected: list[str]) -> None:
     content = "ou=os2mo,o=magenta,dc=magenta,dc=dk"
     headers = {"Content-Type": "text/plain"}
     result = await test_client.request(
@@ -419,4 +419,4 @@ async def test_changed_since(test_client: AsyncClient) -> None:
         headers=headers,
     )
     assert result.status_code == 200
-    assert result.json() == []
+    assert result.json() == expected
