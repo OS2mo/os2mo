@@ -400,3 +400,23 @@ async def test_mo2ldap_org_unit(test_client: AsyncClient) -> None:
     )
     assert result.status_code == 200
     assert result.json() is None
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {"LISTEN_TO_CHANGES_IN_MO": "False", "LISTEN_TO_CHANGES_IN_LDAP": "False"}
+)
+@pytest.mark.parameterize(
+    "expected", ([], pytest.param([], marks=pytest.mark.usefixtures("ldap_dummy_data")))
+)
+async def test_changed_since(test_client: AsyncClient) -> None:
+    content = "ou=os2mo,o=magenta,dc=magenta,dc=dk"
+    headers = {"Content-Type": "text/plain"}
+    result = await test_client.request(
+        "GET",
+        "/ldap_event_generator/2000-01-01T00:00:00Z",
+        content=content,
+        headers=headers,
+    )
+    assert result.status_code == 200
+    assert result.json() == []

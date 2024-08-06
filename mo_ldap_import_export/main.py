@@ -40,6 +40,7 @@ from .ldap import ldap_healthcheck
 from .ldap_amqp import configure_ldap_amqpsystem
 from .ldap_amqp import ldap2mo_router
 from .ldap_event_generator import LDAPEventGenerator
+from .ldap_event_generator import ldap_event_router
 from .logging import init as initialize_logging
 from .os2mo_init import InitEngine
 from .routes import construct_router
@@ -439,5 +440,6 @@ def create_app(fastramqpi: FastRAMQPI | None = None, **kwargs: Any) -> FastAPI:
     app.include_router(construct_router(user_context))
     app.include_router(mo2ldap_router)
     app.include_router(ldap2mo_router)
+    app.include_router(ldap_event_router)
 
     return app
