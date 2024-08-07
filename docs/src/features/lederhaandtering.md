@@ -24,21 +24,26 @@ opmærker ledere i lønsystemet.)
 
 ## Opret leder i MO
 
-Når en leder er manuelt oprettet i MO, vil OS2mo automatisk undersøge, om medarbejderens ansættelse/engagement er i den
-samme organisationsenhed. Hvis ikke, vil OS2mo flytte medarbejderens engagement, så medarbejderens lederrolle og
-engagement er placeret i samme enhed.
+Det er muligt at aktivere en komponent i OS2mo, som sikrer, at en leders engagement altid
+er placeret i samme enhed som enheden, hvor medarbejderens lederrolle findes. Mekanismen
+illustreres af eksemplet på nedenstående figur:
 
 ![image](../graphics/engagementsflytning.png)
 
-F.eks. Er it-chefens engagement placeret i IT-support, men når en bruger opmærker it-chefen til at være leder for IT og
-Digitalisering, vil it-chefens engagement automatisk blive flyttet fra IT-support til IT og Digitalisering.
+1. En medarbejder har et engagement, som er placeret i enheden "IT-support".
+2. En OS2mo-bruger opmærker manuelt medarbejderen til at være leder i enheden
+   "IT og Digitalisering".
+3. Komponenten flytter herefter automatisk medarbejderens engagement fra "IT-support"
+   til "IT og Digitalisering".
 
-Følgende regler er gældende, emn kan tilpasses:
+Konkret gælder følgende regler for flytning af lederens engagement (kan tilpasses
+efter behov):
 
-1. Hvis medarbejderen har et eller flere engagementer i sideordnede enheder, flyttes der ikke på engagementerne.
-
-2. Hvis medarbejderen har et eller flere engagementer i lavereliggende enheder, flyttes engagementet dertil, hvor
-   medarbejderen gøres til leder.
+1. Når en medarbejder gøres til leder i en enhed, flyttes medarbejderens engagement
+   automatisk til enheden, hvor medarbejderen er blevet gjort til leder. Hvis
+   medarbejderen har mere en ét engagement, foretages der ikke nogen flytning, da
+   komponenten ikke har mulighed for at vide, hvilket engagement der skal flyttes.
+2. Øvrige eksisterende ledere på enheden afsluttes automatisk.
 
 ## Automatisk afslutning af ledere i MO
 
