@@ -387,8 +387,8 @@ async def test_mo2ldap_person(test_client: AsyncClient) -> None:
     content = str(uuid4())
     headers = {"Content-Type": "text/plain"}
     result = await test_client.post("/mo2ldap/person", content=content, headers=headers)
-    assert result.status_code == 200
-    assert result.json() is None
+    assert result.status_code == 500
+    assert result.json() == {"detail": "Could not fetch employee"}
 
 
 @pytest.mark.integration_test
