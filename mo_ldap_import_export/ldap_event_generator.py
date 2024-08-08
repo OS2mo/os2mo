@@ -7,6 +7,7 @@ from contextlib import suppress
 from datetime import datetime
 from datetime import timezone
 from functools import partial
+from typing import Annotated
 from typing import Any
 from typing import AsyncContextManager
 from typing import AsyncIterator
@@ -15,6 +16,8 @@ from typing import cast
 from uuid import UUID
 
 import structlog
+from fastapi import APIRouter
+from fastapi import Body
 from fastramqpi.context import Context
 from fastramqpi.depends import UserContext
 from ldap3 import Connection
@@ -26,6 +29,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
+from . import depends
 from .config import Settings
 from .database import Base
 from .ldap import ldap_search
@@ -238,3 +242,18 @@ def datetime_to_ldap_timestamp(dt: datetime) -> str:
     # The LDAP Generalized Time ABNF requires century+year to be 4 digits.
     # However strftime %Y only returns a single digit (1) for year 1.
     return dt.strftime("%Y").rjust(4, "0") + dt.strftime("%m%d%H%M%S.%f%z")
+
+
+ldap_event_router = APIRouter(prefix="/ldap_event_generator")
+
+
+@ldap_event_router.get("/{since}")
+async def fetch_changes_since(
+    ldap_connection: depends.Connection,
+    settings: depends.Settings,
+    since: datetime,
+    search_base: Annotated[str, Body()],
+) -> set[UUID]:
+    return await _poll(
+        ldap_connection, search_base, settings.ldap_unique_id_field, since
+    )
