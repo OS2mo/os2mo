@@ -202,7 +202,7 @@ async def http_process_person(
     object_uuid: Annotated[UUID, Body()],
     sync_tool: depends.SyncTool,
 ) -> None:
-    sync_tool.listen_to_changes_in_employees(object_uuid)
+    await sync_tool.listen_to_changes_in_employees(object_uuid)
 
 
 @amqp_router.register("person")
