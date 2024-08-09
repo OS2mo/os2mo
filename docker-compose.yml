@@ -2,24 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 version: "3"
 services:
-  ldap:
-    container_name: ldap
-    image: osixia/openldap:1.5.0
-    command: ["--copy-service", "--loglevel", "debug"]
-    environment:
-      LDAP_ORGANISATION: "magenta"
-      LDAP_DOMAIN: "magenta.dk"
-      LDAP_ADMIN_PASSWORD: "AdminPassword123"
-      LDAP_CONFIG_PASSWORD: "ConfigPassword123"
 
-      LDAP_LOG_LEVEL: 512
-    volumes:
-      - ./dev-environment/ldif/:/container/service/slapd/assets/config/bootstrap/ldif/custom/:ro
-      - ./dev-environment/schema/:/container/service/slapd/assets/config/bootstrap/schema/custom/:ro
-    networks:
-      - default
-#    ports:
-#      - "389:389"
 
   mo-init:
     image: magentaaps/os2mo-init:5
@@ -43,6 +26,11 @@ services:
     build: .
     command: ["uvicorn", "--factory", "mo_ldap_import_export.main:create_app", "--host", "0.0.0.0", "--reload"]
     environment:
+      FASTRAMQPI__AMQP__URL: "amqp://guest:guest@msg-broker"
+      FASTRAMQPI__AUTH_SERVER: "http://keycloak:8080/auth"
+      FASTRAMQPI__MO_URL: "http://mo:5000"
+      FASTRAMQPI__CLIENT_ID: "dipex"
+      FASTRAMQPI__CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
       FASTRAMQPI__DAP: "true"
       TZ: "Europe/Copenhagen"
 
@@ -54,7 +42,6 @@ services:
     volumes:
       - ./mo_ldap_import_export/:/app/mo_ldap_import_export:ro
       - ./tests/:/app/tests/:ro
-      - ./dev-environment/mo_ldap_import_export.env:/var/run/.env
     networks:
       - default
       - os2mo_default

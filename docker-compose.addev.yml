@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+services:
+  mo_ldap_import_export:
+    env_file:
+      - secrets.txt
+    volumes:
+      - ./dev-environment/magenta-addev.env:/var/run/.env
