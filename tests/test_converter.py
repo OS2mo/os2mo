@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import copy
 import datetime
+import json
 import re
 import uuid
 from typing import Any
@@ -1424,39 +1425,47 @@ async def test_create_org_unit(converter: LdapConverter):
     assert "Ørsted" in org_units
 
 
-async def test_get_or_create_org_unit_uuid(converter: LdapConverter):
-    uuid_root_org_uuid = uuid4()
-    root_org_uuid = str(uuid_root_org_uuid)
-    converter.dataloader.load_mo_root_org_uuid.return_value = root_org_uuid  # type: ignore
+async def test_get_or_create_org_unit_uuid_get(
+    graphql_mock: GraphQLMocker, converter: LdapConverter
+) -> None:
+    graphql_client = GraphQLClient("http://example.com/graphql")
+    converter.dataloader.graphql_client = graphql_client  # type: ignore
 
-    uuid = str(uuid4())
-    converter.org_unit_info = {
-        uuid: {"name": "Magenta Aps", "uuid": uuid, "parent_uuid": root_org_uuid}
-    }
+    magenta_aps_uuid = UUID("4d183b26-38a8-4c63-95cc-19d7c2c6ebe1")
+
+    route = graphql_mock.query("read_org_unit_uuid")
+    route.result = {"org_units": {"objects": [{"uuid": magenta_aps_uuid}]}}
 
     # Get an organization UUID
     org_uuid = await converter.get_or_create_org_unit_uuid("Magenta Aps")
-    assert org_uuid == uuid
+    assert org_uuid == str(magenta_aps_uuid)
 
-    # Create a new organization and return its UUID
-    uuid_magenta_aarhus = await converter.get_or_create_org_unit_uuid(
-        "Magenta Aps\\Magenta Aarhus"
-    )
-    org_units = [info["name"] for info in converter.org_unit_info.values()]
-    assert "Magenta Aarhus" in org_units
-
+    # Attempt to fetch empty string
     with pytest.raises(UUIDNotFoundException):
         await converter.get_or_create_org_unit_uuid("")
 
-    org_uuid = await converter.get_or_create_org_unit_uuid(
-        "Magenta Aps\\Magenta Aarhus"
-    )
-    assert org_uuid == uuid_magenta_aarhus
 
-    org_uuid = await converter.get_or_create_org_unit_uuid(
-        "Magenta Aps \\ Magenta Aarhus"
-    )
-    assert org_uuid == uuid_magenta_aarhus
+async def test_get_or_create_org_unit_uuid_create(
+    graphql_mock: GraphQLMocker, converter: LdapConverter
+) -> None:
+    graphql_client = GraphQLClient("http://example.com/graphql")
+    converter.dataloader.graphql_client = graphql_client  # type: ignore
+
+    converter.dataloader.load_mo_root_org_uuid.return_value = uuid4()  # type: ignore
+
+    route1 = graphql_mock.query("read_org_unit_uuid")
+    route1.result = {"org_units": {"objects": []}}
+
+    route2 = graphql_mock.query("read_class_uuid_by_facet_and_class_user_key")
+    route2.result = {"classes": {"objects": [{"uuid": uuid4()}]}}
+
+    org_units = {info["name"] for info in converter.org_unit_info.values()}
+    assert org_units == set()
+
+    # Create a new organization and return its UUID
+    await converter.get_or_create_org_unit_uuid("ACME")
+    org_units = {info["name"] for info in converter.org_unit_info.values()}
+    assert org_units == {"ACME"}
 
 
 def test_clean_org_unit_path_string(converter: LdapConverter):
@@ -1865,50 +1874,43 @@ def test_clean_calls_to_get_current_method_from_template_string(
     assert "ldap.foo" in cleaned_template
 
 
-async def test_get_org_unit_uuid_from_path(converter: LdapConverter):
-    uuid_org1 = str(uuid4())
-    uuid_org2 = str(uuid4())
-    uuid_org3 = str(uuid4())
+async def test_get_org_unit_uuid_from_path(
+    graphql_mock: GraphQLMocker, converter: LdapConverter
+) -> None:
+    org_unit_uuid = uuid4()
 
-    uuid_root_org_uuid = uuid4()
-    root_org_uuid = str(uuid_root_org_uuid)
-    converter.dataloader.load_mo_root_org_uuid.return_value = uuid_root_org_uuid  # type: ignore
+    graphql_client = GraphQLClient("http://example.com/graphql")
+    converter.dataloader.graphql_client = graphql_client  # type: ignore
 
-    converter.org_unit_info = {
-        uuid_org1: {"name": "org1", "uuid": uuid_org1, "parent_uuid": root_org_uuid},
-        uuid_org2: {"name": "org2", "uuid": uuid_org2, "parent_uuid": uuid_org1},
-        uuid_org3: {"name": "org3", "uuid": uuid_org3, "parent_uuid": uuid_org2},
+    route = graphql_mock.query("read_org_unit_uuid")
+    route.result = {"org_units": {"objects": [{"uuid": org_unit_uuid}]}}
+
+    result = await converter.get_org_unit_uuid_from_path("org1\\org2\\org3")
+    assert result == str(org_unit_uuid)
+    call_content = json.loads(one(route.calls).request.content)
+    filter = call_content["variables"]["filter"]
+    assert filter == {
+        "names": ["org3"],
+        "parent": {"names": ["org2"], "parent": {"names": ["org1"], "parent": None}},
     }
 
-    assert await converter.get_org_unit_uuid_from_path("org1\\org2\\org3") == uuid_org3
-    assert await converter.get_org_unit_uuid_from_path("org1\\org2") == uuid_org2
-    with pytest.raises(UUIDNotFoundException):
-        await converter.get_org_unit_uuid_from_path("org1\\org4")
-    with pytest.raises(UUIDNotFoundException):
-        await converter.get_org_unit_uuid_from_path("org1\\org3")
 
-    converter.org_unit_info = {
-        uuid_org1: {
-            "name": "org1",
-            "uuid": uuid_org1,
-            "parent_uuid": root_org_uuid,
-        },
-        uuid_org2: {
-            "name": "org2",
-            "uuid": uuid_org2,
-            "parent_uuid": uuid_org1,
-        },
-        uuid_org3: {
-            "name": "org3",
-            "uuid": uuid_org3,
-            "parent_uuid": uuid_org2,
-        },
-    }
+async def test_get_org_unit_uuid_from_path_no_match(
+    graphql_mock: GraphQLMocker, converter: LdapConverter
+) -> None:
+    graphql_client = GraphQLClient("http://example.com/graphql")
+    converter.dataloader.graphql_client = graphql_client  # type: ignore
 
-    assert await converter.get_org_unit_uuid_from_path("org1\\org2\\org3") == uuid_org3
-    assert await converter.get_org_unit_uuid_from_path("org1\\org2") == uuid_org2
-    with pytest.raises(UUIDNotFoundException):
+    route = graphql_mock.query("read_org_unit_uuid")
+    route.result = {"org_units": {"objects": []}}
+
+    with pytest.raises(UUIDNotFoundException) as exc_info:
         await converter.get_org_unit_uuid_from_path("org1\\org4")
+    assert "org1\\org4' not found in OS2mo" in str(exc_info.value)
+
+    call_content = json.loads(one(route.calls).request.content)
+    filter = call_content["variables"]["filter"]
+    assert filter == {"names": ["org4"], "parent": {"names": ["org1"], "parent": None}}
 
 
 def test_org_unit_path_string_from_dn(converter: LdapConverter):

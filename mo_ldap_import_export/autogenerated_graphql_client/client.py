@@ -33,6 +33,7 @@ from .input_types import ITSystemCreateInput
 from .input_types import ITUserCreateInput
 from .input_types import ITUserFilter
 from .input_types import ITUserTerminateInput
+from .input_types import OrganisationUnitFilter
 from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefresh
@@ -119,6 +120,8 @@ from .read_org_unit_addresses import ReadOrgUnitAddresses
 from .read_org_unit_addresses import ReadOrgUnitAddressesAddresses
 from .read_org_unit_name import ReadOrgUnitName
 from .read_org_unit_name import ReadOrgUnitNameOrgUnits
+from .read_org_unit_uuid import ReadOrgUnitUuid
+from .read_org_unit_uuid import ReadOrgUnitUuidOrgUnits
 from .read_org_units import ReadOrgUnits
 from .read_org_units import ReadOrgUnitsOrgUnits
 from .read_root_org_uuid import ReadRootOrgUuid
@@ -1109,3 +1112,22 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadItsystemUuid.parse_obj(data).itsystems
+
+    async def read_org_unit_uuid(
+        self, filter: OrganisationUnitFilter
+    ) -> ReadOrgUnitUuidOrgUnits:
+        query = gql(
+            """
+            query read_org_unit_uuid($filter: OrganisationUnitFilter!) {
+              org_units(filter: $filter) {
+                objects {
+                  uuid
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadOrgUnitUuid.parse_obj(data).org_units
