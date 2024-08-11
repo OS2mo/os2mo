@@ -968,24 +968,14 @@ class LdapConverter:
             The name of the parent at the n'th layer above the provided org-unit.
             If the layer provided is beyond the depth available None is returned.
         """
-        # TODO: Implement this using MOs ancestor filter instead of org_unit_info
-        root_org_uuid = str(await self.dataloader.load_mo_root_org_uuid())
-        org_unit_info = self.org_unit_info[str(uuid)]
-
-        parent_uuid: str = org_unit_info["parent_uuid"]
-        object_name = org_unit_info["name"].strip()
-
-        parents: list[str] = [object_name]
-        while parent_uuid and parent_uuid != root_org_uuid:
-            parent_object_name = self.org_unit_info[parent_uuid]["name"].strip()
-            parents.append(parent_object_name)
-            parent_uuid = self.org_unit_info[parent_uuid]["parent_uuid"]
-
-        # List is build child --> root, but layers are defined root --> child
-        parents.reverse()
-        if layer >= len(parents):
-            return None
-        return parents[layer]
+        uuid = uuid if isinstance(uuid, UUID) else UUID(uuid)
+        result = await self.dataloader.graphql_client.read_org_unit_ancestor_names(uuid)
+        current = one(result.objects).current
+        assert current is not None
+        names = [x.name for x in reversed(current.ancestors)] + [current.name]
+        with suppress(IndexError):
+            return names[layer]
+        return None
 
     def clean_org_unit_path_string(self, org_unit_path_string: str) -> str:
         """
