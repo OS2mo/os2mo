@@ -463,6 +463,54 @@ async def get_org_unit_path_string(
     return org_unit_path_string_separator.join(names)
 
 
+# TODO: Clean this up so it always just takes an UUID
+async def get_org_unit_name_for_parent(
+    graphql_client: GraphQLClient, uuid: UUID | str, layer: int = 0
+) -> str | None:
+    """Get the name of the parent in the n'th layer of the org tree.
+
+    Example:
+
+        Imagine an org-unit tree alike the following:
+            ```
+            └── Kolding Kommune
+                └── Sundhed
+                    ├── Plejecentre
+                    │   ├── Plejecenter Nord
+                    │   │   └── Køkken <-- uuid of this provided
+                    │   └── Plejecenter Syd
+                    │       └── Køkken
+                    └── Teknik
+            ```
+
+        Calling this function with the uuid above and layer, would return:
+
+        * 0: "Kolding Kommune"
+        * 1: "Sundhed"
+        * 2: "Plejecentre"
+        * 3: "Plejecenter Nord"
+        * 4: "Køkken"
+        * n: ""
+
+    Args:
+        graphql_client: GraphQLClient to fetch org-units from MO with.
+        uuid: Organisation Unit UUID of the org-unit to find parents of.
+        layer: The layer the parent to extract is on.
+
+    Returns:
+        The name of the parent at the n'th layer above the provided org-unit.
+        If the layer provided is beyond the depth available None is returned.
+    """
+    uuid = uuid if isinstance(uuid, UUID) else UUID(uuid)
+    result = await graphql_client.read_org_unit_ancestor_names(uuid)
+    current = one(result.objects).current
+    assert current is not None
+    names = [x.name for x in reversed(current.ancestors)] + [current.name]
+    with suppress(IndexError):
+        return names[layer]
+    return None
+
+
 class LdapConverter:
     def __init__(self, context: Context):
         self.context = context
@@ -931,52 +979,6 @@ class LdapConverter:
         }
         return uuid
 
-    # TODO: Clean this up so it always just takes an UUID
-    async def get_org_unit_name_for_parent(
-        self, uuid: UUID | str, layer: int = 0
-    ) -> str | None:
-        """Get the name of the parent in the n'th layer of the org tree.
-
-        Example:
-
-            Imagine an org-unit tree alike the following:
-                ```
-                └── Kolding Kommune
-                    └── Sundhed
-                        ├── Plejecentre
-                        │   ├── Plejecenter Nord
-                        │   │   └── Køkken <-- uuid of this provided
-                        │   └── Plejecenter Syd
-                        │       └── Køkken
-                        └── Teknik
-                ```
-
-            Calling this function with the uuid above and layer, would return:
-
-            * 0: "Kolding Kommune"
-            * 1: "Sundhed"
-            * 2: "Plejecentre"
-            * 3: "Plejecenter Nord"
-            * 4: "Køkken"
-            * n: ""
-
-        Args:
-            uuid: Organisation Unit UUID of the org-unit to find parents of.
-            layer: The layer the parent to extract is on.
-
-        Returns:
-            The name of the parent at the n'th layer above the provided org-unit.
-            If the layer provided is beyond the depth available None is returned.
-        """
-        uuid = uuid if isinstance(uuid, UUID) else UUID(uuid)
-        result = await self.dataloader.graphql_client.read_org_unit_ancestor_names(uuid)
-        current = one(result.objects).current
-        assert current is not None
-        names = [x.name for x in reversed(current.ancestors)] + [current.name]
-        with suppress(IndexError):
-            return names[layer]
-        return None
-
     def clean_org_unit_path_string(self, org_unit_path_string: str) -> str:
         """
         Cleans leading and trailing whitespace from org units in an org unit path string
@@ -1088,7 +1090,9 @@ class LdapConverter:
                 self.dataloader.graphql_client,
                 self.org_unit_path_string_separator,
             ),
-            "get_org_unit_name_for_parent": self.get_org_unit_name_for_parent,
+            "get_org_unit_name_for_parent": partial(
+                get_org_unit_name_for_parent, self.dataloader.graphql_client
+            ),
             "make_dn_from_org_unit_path": partial(
                 make_dn_from_org_unit_path, self.settings
             ),
