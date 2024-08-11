@@ -325,6 +325,13 @@ from .read_itusers import ReadItusersItusersObjectsValiditiesValidity
 from .read_org_unit_addresses import ReadOrgUnitAddresses
 from .read_org_unit_addresses import ReadOrgUnitAddressesAddresses
 from .read_org_unit_addresses import ReadOrgUnitAddressesAddressesObjects
+from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNames
+from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNamesOrgUnits
+from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNamesOrgUnitsObjects
+from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNamesOrgUnitsObjectsCurrent
+from .read_org_unit_ancestor_names import (
+    ReadOrgUnitAncestorNamesOrgUnitsObjectsCurrentAncestors,
+)
 from .read_org_unit_name import ReadOrgUnitName
 from .read_org_unit_name import ReadOrgUnitNameOrgUnits
 from .read_org_unit_name import ReadOrgUnitNameOrgUnitsObjects
@@ -581,6 +588,11 @@ __all__ = [
     "ReadOrgUnitAddresses",
     "ReadOrgUnitAddressesAddresses",
     "ReadOrgUnitAddressesAddressesObjects",
+    "ReadOrgUnitAncestorNames",
+    "ReadOrgUnitAncestorNamesOrgUnits",
+    "ReadOrgUnitAncestorNamesOrgUnitsObjects",
+    "ReadOrgUnitAncestorNamesOrgUnitsObjectsCurrent",
+    "ReadOrgUnitAncestorNamesOrgUnitsObjectsCurrentAncestors",
     "ReadOrgUnitName",
     "ReadOrgUnitNameOrgUnits",
     "ReadOrgUnitNameOrgUnitsObjects",

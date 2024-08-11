@@ -519,3 +519,16 @@ query read_org_unit_uuid($filter: OrganisationUnitFilter!) {
     }
   }
 }
+
+query read_org_unit_ancestor_names($uuid: UUID!) {
+  org_units(filter: { uuids: [$uuid] }) {
+    objects {
+      current {
+        name
+        ancestors {
+          name
+        }
+      }
+    }
+  }
+}

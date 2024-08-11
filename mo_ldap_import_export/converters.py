@@ -919,23 +919,14 @@ class LdapConverter:
         }
         return uuid
 
-    # NOTE: Intentionally added with no cover as it was only tested by side-effect and
-    #       as it is being reimplemented in a coming pull-request.
-    async def get_org_unit_path_string(self, uuid: str) -> str:  # pragma: no cover
-        root_org_uuid = str(await self.dataloader.load_mo_root_org_uuid())
-        org_unit_info = self.org_unit_info[str(uuid)]
-        object_name = org_unit_info["name"].strip()
-        parent_uuid: str = org_unit_info["parent_uuid"]
-
-        path_string = object_name
-        while parent_uuid and parent_uuid != root_org_uuid:
-            parent_object_name = self.org_unit_info[parent_uuid]["name"].strip()
-            path_string = (
-                parent_object_name + self.org_unit_path_string_separator + path_string
-            )
-            parent_uuid = self.org_unit_info[parent_uuid]["parent_uuid"]
-
-        return cast(str, path_string)
+    async def get_org_unit_path_string(self, uuid: str | UUID) -> str:
+        uuid = uuid if isinstance(uuid, UUID) else UUID(uuid)
+        result = await self.dataloader.graphql_client.read_org_unit_ancestor_names(uuid)
+        current = one(result.objects).current
+        assert current is not None
+        names = [x.name for x in reversed(current.ancestors)] + [current.name]
+        assert self.org_unit_path_string_separator not in names
+        return self.org_unit_path_string_separator.join(names)
 
     # TODO: Clean this up so it always just takes an UUID
     async def get_org_unit_name_for_parent(

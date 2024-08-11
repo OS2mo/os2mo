@@ -118,6 +118,8 @@ from .read_itusers import ReadItusers
 from .read_itusers import ReadItusersItusers
 from .read_org_unit_addresses import ReadOrgUnitAddresses
 from .read_org_unit_addresses import ReadOrgUnitAddressesAddresses
+from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNames
+from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNamesOrgUnits
 from .read_org_unit_name import ReadOrgUnitName
 from .read_org_unit_name import ReadOrgUnitNameOrgUnits
 from .read_org_unit_uuid import ReadOrgUnitUuid
@@ -1131,3 +1133,27 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadOrgUnitUuid.parse_obj(data).org_units
+
+    async def read_org_unit_ancestor_names(
+        self, uuid: UUID
+    ) -> ReadOrgUnitAncestorNamesOrgUnits:
+        query = gql(
+            """
+            query read_org_unit_ancestor_names($uuid: UUID!) {
+              org_units(filter: {uuids: [$uuid]}) {
+                objects {
+                  current {
+                    name
+                    ancestors {
+                      name
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"uuid": uuid}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadOrgUnitAncestorNames.parse_obj(data).org_units
