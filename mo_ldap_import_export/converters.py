@@ -824,12 +824,14 @@ class LdapConverter:
         then create the next one and keep doing that
         until we've reached the final child.
         """
+        # This function maps a list of org-unit names to an org-unit path
+        path2str = self.org_unit_path_string_separator.join
 
         org_unit_path = org_unit_path_string.split(self.org_unit_path_string_separator)
 
         for nesting_level in range(len(org_unit_path)):
             partial_path = org_unit_path[: nesting_level + 1]
-            partial_path_string = self.org_unit_path_string_separator.join(partial_path)
+            partial_path_string = path2str(partial_path)
 
             # If it already exists, skip creating it
             if await self.get_org_unit_path_exists(partial_path_string):
@@ -841,9 +843,7 @@ class LdapConverter:
                 parent_uuid = str(await self.dataloader.load_mo_root_org_uuid())
             else:
                 parent_path = org_unit_path[:nesting_level]
-                parent_path_string = self.org_unit_path_string_separator.join(
-                    parent_path
-                )
+                parent_path_string = path2str(parent_path)
                 parent_uuid = await self.get_org_unit_uuid_from_path(parent_path_string)
 
             uuid = uuid4()
