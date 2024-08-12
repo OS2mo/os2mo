@@ -5,6 +5,7 @@ import re
 import string
 from collections import ChainMap
 from collections.abc import MutableMapping
+from contextlib import suppress
 from datetime import datetime
 from functools import partial
 from itertools import compress
@@ -830,54 +831,67 @@ class LdapConverter:
             partial_path = org_unit_path[: nesting_level + 1]
             partial_path_string = self.org_unit_path_string_separator.join(partial_path)
 
-            try:
-                await self.get_org_unit_uuid_from_path(partial_path_string)
-            except UUIDNotFoundException:
-                logger.info("Importing", path=partial_path_string)
+            # If it already exists, skip creating it
+            if await self.get_org_unit_path_exists(partial_path_string):
+                continue
 
-                if nesting_level == 0:
-                    parent_uuid = str(await self.dataloader.load_mo_root_org_uuid())
-                else:
-                    parent_path = org_unit_path[:nesting_level]
-                    parent_path_string = self.org_unit_path_string_separator.join(
-                        parent_path
-                    )
-                    parent_uuid = await self.get_org_unit_uuid_from_path(
-                        parent_path_string
-                    )
+            logger.info("Importing", path=partial_path_string)
 
-                uuid = uuid4()
-                name = partial_path[-1]
-
-                default_org_unit_type_uuid = await get_org_unit_type_uuid(
-                    self.dataloader.graphql_client, self.settings.default_org_unit_type
+            if nesting_level == 0:
+                parent_uuid = str(await self.dataloader.load_mo_root_org_uuid())
+            else:
+                parent_path = org_unit_path[:nesting_level]
+                parent_path_string = self.org_unit_path_string_separator.join(
+                    parent_path
                 )
-                default_org_unit_level_uuid = await get_org_unit_level_uuid(
-                    self.dataloader.graphql_client, self.settings.default_org_unit_level
-                )
+                parent_uuid = await self.get_org_unit_uuid_from_path(parent_path_string)
 
-                # Note: 1902 seems to be the earliest accepted year by OS2mo
-                # We pick 1960 because MO's dummy data also starts all organizations
-                # in 1960...
-                # We just want a very early date here, to avoid that imported employee
-                # engagements start before the org-unit existed.
-                from_date = datetime(1960, 1, 1).strftime("%Y-%m-%dT00:00:00")
-                org_unit = OrganisationUnit.from_simplified_fields(
-                    user_key=str(uuid4()),
-                    name=name,
-                    org_unit_type_uuid=UUID(default_org_unit_type_uuid),
-                    org_unit_level_uuid=UUID(default_org_unit_level_uuid),
-                    from_date=from_date,
-                    parent_uuid=UUID(parent_uuid) if parent_uuid else None,
-                    uuid=uuid,
-                )
+            uuid = uuid4()
+            name = partial_path[-1]
 
-                await self.dataloader.create_org_unit(org_unit)
-                self.org_unit_info[str(uuid)] = {
-                    "uuid": str(uuid),
-                    "name": name,
-                    "parent_uuid": parent_uuid,
-                }
+            default_org_unit_type_uuid = await get_org_unit_type_uuid(
+                self.dataloader.graphql_client, self.settings.default_org_unit_type
+            )
+            default_org_unit_level_uuid = await get_org_unit_level_uuid(
+                self.dataloader.graphql_client, self.settings.default_org_unit_level
+            )
+
+            # Note: 1902 seems to be the earliest accepted year by OS2mo
+            # We pick 1960 because MO's dummy data also starts all organizations
+            # in 1960...
+            # We just want a very early date here, to avoid that imported employee
+            # engagements start before the org-unit existed.
+            from_date = datetime(1960, 1, 1).strftime("%Y-%m-%dT00:00:00")
+            org_unit = OrganisationUnit.from_simplified_fields(
+                user_key=str(uuid4()),
+                name=name,
+                org_unit_type_uuid=UUID(default_org_unit_type_uuid),
+                org_unit_level_uuid=UUID(default_org_unit_level_uuid),
+                from_date=from_date,
+                parent_uuid=UUID(parent_uuid) if parent_uuid else None,
+                uuid=uuid,
+            )
+
+            await self.dataloader.create_org_unit(org_unit)
+            self.org_unit_info[str(uuid)] = {
+                "uuid": str(uuid),
+                "name": name,
+                "parent_uuid": parent_uuid,
+            }
+
+    async def get_org_unit_path_exists(self, org_unit_path: str) -> bool:
+        """Check whether the given org-unit path already exists in OS2mo.
+
+        Args:
+            org_unit_path: The path to check.
+
+        Returns:
+            Whether the path already exists within OS2mo.
+        """
+        with suppress(UUIDNotFoundException):
+            await self.get_org_unit_uuid_from_path(org_unit_path)
+            return True
+        return False
 
     async def get_org_unit_uuid_from_path(self, org_unit_path_string: str):
         for info in self.org_unit_info.values():
