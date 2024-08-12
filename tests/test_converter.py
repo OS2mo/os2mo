@@ -59,6 +59,7 @@ from mo_ldap_import_export.converters import get_or_create_engagement_type_uuid
 from mo_ldap_import_export.converters import get_or_create_job_function_uuid
 from mo_ldap_import_export.converters import get_org_unit_address_type_uuid
 from mo_ldap_import_export.converters import get_org_unit_name
+from mo_ldap_import_export.converters import get_org_unit_uuid_from_path
 from mo_ldap_import_export.converters import get_primary_engagement_dict
 from mo_ldap_import_export.converters import get_primary_type_uuid
 from mo_ldap_import_export.converters import get_visibility_uuid
@@ -1874,18 +1875,15 @@ def test_clean_calls_to_get_current_method_from_template_string(
     assert "ldap.foo" in cleaned_template
 
 
-async def test_get_org_unit_uuid_from_path(
-    graphql_mock: GraphQLMocker, converter: LdapConverter
-) -> None:
+async def test_get_org_unit_uuid_from_path(graphql_mock: GraphQLMocker) -> None:
     org_unit_uuid = uuid4()
 
     graphql_client = GraphQLClient("http://example.com/graphql")
-    converter.dataloader.graphql_client = graphql_client  # type: ignore
 
     route = graphql_mock.query("read_org_unit_uuid")
     route.result = {"org_units": {"objects": [{"uuid": org_unit_uuid}]}}
 
-    result = await converter.get_org_unit_uuid_from_path("org1\\org2\\org3")
+    result = await get_org_unit_uuid_from_path(graphql_client, "\\", "org1\\org2\\org3")
     assert result == str(org_unit_uuid)
     call_content = json.loads(one(route.calls).request.content)
     filter = call_content["variables"]["filter"]
@@ -1896,16 +1894,15 @@ async def test_get_org_unit_uuid_from_path(
 
 
 async def test_get_org_unit_uuid_from_path_no_match(
-    graphql_mock: GraphQLMocker, converter: LdapConverter
+    graphql_mock: GraphQLMocker,
 ) -> None:
     graphql_client = GraphQLClient("http://example.com/graphql")
-    converter.dataloader.graphql_client = graphql_client  # type: ignore
 
     route = graphql_mock.query("read_org_unit_uuid")
     route.result = {"org_units": {"objects": []}}
 
     with pytest.raises(UUIDNotFoundException) as exc_info:
-        await converter.get_org_unit_uuid_from_path("org1\\org4")
+        await get_org_unit_uuid_from_path(graphql_client, "\\", "org1\\org4")
     assert "org1\\org4' not found in OS2mo" in str(exc_info.value)
 
     call_content = json.loads(one(route.calls).request.content)
