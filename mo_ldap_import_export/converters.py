@@ -836,12 +836,25 @@ class LdapConverter:
             org_unit_path[: n + 1] for n in range(len(org_unit_path))
         ]
 
-        for partial_path in org_unit_prefix_paths:
-            partial_path_string = path2str(partial_path)
+        # Decide which paths still need to be created
+        create_paths = [
+            partial_path
+            for partial_path in org_unit_prefix_paths
+            if not await self.get_org_unit_path_exists(path2str(partial_path))
+        ]
+        # No paths need to be created, early return
+        if not create_paths:
+            return
 
-            # If it already exists, skip creating it
-            if await self.get_org_unit_path_exists(partial_path_string):
-                continue
+        default_org_unit_type_uuid = await get_org_unit_type_uuid(
+            self.dataloader.graphql_client, self.settings.default_org_unit_type
+        )
+        default_org_unit_level_uuid = await get_org_unit_level_uuid(
+            self.dataloader.graphql_client, self.settings.default_org_unit_level
+        )
+
+        for partial_path in create_paths:
+            partial_path_string = path2str(partial_path)
 
             logger.info("Importing", path=partial_path_string)
 
@@ -854,13 +867,6 @@ class LdapConverter:
 
             uuid = uuid4()
             name = partial_path[-1]
-
-            default_org_unit_type_uuid = await get_org_unit_type_uuid(
-                self.dataloader.graphql_client, self.settings.default_org_unit_type
-            )
-            default_org_unit_level_uuid = await get_org_unit_level_uuid(
-                self.dataloader.graphql_client, self.settings.default_org_unit_level
-            )
 
             # Note: 1902 seems to be the earliest accepted year by OS2mo
             # We pick 1960 because MO's dummy data also starts all organizations
