@@ -1937,24 +1937,6 @@ def test_make_dn_from_org_unit_path() -> None:
     assert new_dn == "CN=Angus,OU=bar,OU=mucki,OU=foo,DC=GHU"
 
 
-def test_unutilized_init_elements(converter: LdapConverter) -> None:
-    converter.raw_mapping["username_generator"] = {}
-
-    converter.raw_mapping.update(
-        {
-            "init": {"it_systems": {"Whatever": "Whatever"}},
-            "mo_to_ldap": {
-                "Employee": {**EMPLOYEE_OBJ, "_export_to_ldap_": "True"},
-            },
-            "ldap_to_mo": {
-                "Employee": {**EMPLOYEE_OBJ, "_import_to_mo_": "True"},
-            },
-        }
-    )
-    with pytest.raises(ValidationError, match="Unutilized elements in init"):
-        parse_obj_as(ConversionMapping, converter.raw_mapping)
-
-
 @pytest.mark.parametrize(
     "orgstr,result",
     [

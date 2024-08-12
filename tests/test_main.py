@@ -46,7 +46,6 @@ from mo_ldap_import_export.main import create_fastramqpi
 from mo_ldap_import_export.main import initialize_checks
 from mo_ldap_import_export.main import initialize_converters
 from mo_ldap_import_export.main import initialize_info_dict_refresher
-from mo_ldap_import_export.main import initialize_init_engine
 from mo_ldap_import_export.main import initialize_sync_tool
 from mo_ldap_import_export.main import open_ldap_connection
 from mo_ldap_import_export.main import process_address
@@ -416,20 +415,6 @@ async def always_initialize_converter(
             assert user_context.get("converter") is not None
             assert user_context.get("ldap_it_system_user_key") == "ADGUID"
             assert user_context.get("cpr_field") == "EmployeeID"
-
-
-@pytest.fixture(autouse=True, scope="module")
-async def always_initialize_init_engine(fastramqpi: FastRAMQPI) -> None:
-    user_context = fastramqpi.get_context()["user_context"]
-    assert user_context.get("init_engine") is None
-
-    init_engine = AsyncMock()
-
-    with patch("mo_ldap_import_export.main.InitEngine", return_value=init_engine):
-        async with initialize_init_engine(fastramqpi):
-            assert user_context.get("init_engine") is not None
-            init_engine.create_facets.assert_called_once()
-            init_engine.create_it_systems.assert_called_once()
 
 
 async def test_open_ldap_connection() -> None:

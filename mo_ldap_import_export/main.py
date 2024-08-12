@@ -42,7 +42,6 @@ from .ldap_amqp import ldap2mo_router
 from .ldap_event_generator import LDAPEventGenerator
 from .ldap_event_generator import ldap_event_router
 from .logging import init as initialize_logging
-from .os2mo_init import InitEngine
 from .routes import construct_router
 from .types import OrgUnitUUID
 from .usernames import get_username_generator_class
@@ -296,16 +295,6 @@ async def initialize_converters(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
     yield
 
 
-@asynccontextmanager
-async def initialize_init_engine(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
-    logger.info("Initializing os2mo-init engine")
-    init_engine = InitEngine(fastramqpi.get_context())
-    await init_engine.create_facets()
-    await init_engine.create_it_systems()
-    fastramqpi.add_context(init_engine=init_engine)
-    yield
-
-
 # TODO: Eliminate this function and make reloading dicts eventdriven
 @asynccontextmanager
 async def initialize_info_dict_refresher(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
@@ -404,7 +393,6 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     username_generator = username_generator_class(fastramqpi.get_context())
     fastramqpi.add_context(username_generator=username_generator)
 
-    fastramqpi.add_lifespan_manager(initialize_init_engine(fastramqpi), 1200)
     fastramqpi.add_lifespan_manager(initialize_converters(fastramqpi), 1250)
 
     # NOTE: info_dict_refresher depends on converters

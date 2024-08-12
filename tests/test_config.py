@@ -21,13 +21,6 @@ def address_mapping(minimal_mapping: dict) -> dict:
     new_mapping = overlay(
         minimal_mapping,
         {
-            "init": {
-                "facets": {
-                    "employee_address_type": {
-                        "EmailEmployee": {"title": "Mail (AD)", "scope": "EMAIL"}
-                    }
-                }
-            },
             "ldap_to_mo": {
                 "EmailEmployee": {
                     "objectClass": "ramodels.mo.details.address.Address",
@@ -63,35 +56,6 @@ def test_address_config(address_mapping: dict) -> None:
     assert conversion_mapping.dict(exclude_unset=True, by_alias=True) == address_mapping
 
 
-def test_unused_init_facets(minimal_mapping: dict) -> None:
-    """Test that unutilized elements in init are disallowed."""
-    new_mapping = overlay(
-        minimal_mapping,
-        {
-            "init": {
-                "facets": {
-                    "employee_address_type": {
-                        "EmailEmployee": {"title": "Mail (AD)", "scope": "EMAIL"}
-                    }
-                }
-            }
-        },
-    )
-    with pytest.raises(ValidationError) as exc_info:
-        parse_obj_as(ConversionMapping, new_mapping)
-    assert "Unutilized elements in init configuration" in str(exc_info.value)
-
-
-def test_unused_init_itsystems(minimal_mapping: dict) -> None:
-    """Test that unutilized elements in init are disallowed."""
-    new_mapping = overlay(
-        minimal_mapping, {"init": {"it_systems": {"ADUUID": "Active Directory UUID"}}}
-    )
-    with pytest.raises(ValidationError) as exc_info:
-        parse_obj_as(ConversionMapping, new_mapping)
-    assert "Unutilized elements in init configuration" in str(exc_info.value)
-
-
 def test_address_type_employee_validator(address_mapping: dict) -> None:
     """Test that address_type template usage is checked."""
     new_mapping = overlay(
@@ -108,13 +72,6 @@ def test_address_type_org_unit_validator(minimal_mapping: dict) -> None:
     new_mapping = overlay(
         minimal_mapping,
         {
-            "init": {
-                "facets": {
-                    "org_unit_address_type": {
-                        "EmailOrgUnit": {"title": "Mail (AD)", "scope": "EMAIL"}
-                    }
-                }
-            },
             "ldap_to_mo": {
                 "EmailOrgUnit": {
                     "objectClass": "ramodels.mo.details.address.Address",
@@ -155,7 +112,6 @@ def test_itsystem_validator(minimal_mapping: dict) -> None:
     new_mapping = overlay(
         minimal_mapping,
         {
-            "init": {"it_systems": {"ADUUID": "Active Directory UUID"}},
             "ldap_to_mo": {
                 "ADUUID": {
                     "objectClass": "ramodels.mo.details.it_system.ITUser",

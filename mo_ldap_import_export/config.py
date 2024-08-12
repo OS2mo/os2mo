@@ -96,13 +96,6 @@ class Class(MappingBaseModel):
     scope: str
 
 
-class Init(MappingBaseModel):
-    # facet_user_key: {class_user_key: class}
-    facets: dict[str, dict[str, Class]] = {}
-    # user_key: name
-    it_systems: dict[str, str] = {}
-
-
 def get_required_attributes(mo_class) -> set[str]:
     if "required" not in mo_class.schema().keys():
         return set()
@@ -273,7 +266,6 @@ class UsernameGeneratorConfig(MappingBaseModel):
 
 
 class ConversionMapping(MappingBaseModel):
-    init: Init = Field(default_factory=Init)
     ldap_to_mo: dict[str, LDAP2MOMapping]
     mo_to_ldap: dict[str, MO2LDAPMapping]
     username_generator: UsernameGeneratorConfig = Field(
@@ -318,25 +310,6 @@ class ConversionMapping(MappingBaseModel):
                     )
                     if ldap2mo.itsystem != it_system_template:
                         raise ValueError("IT-System not templating it-system UUID")
-        return values
-
-    @root_validator(skip_on_failure=True)
-    def validate_init_entries_used(cls, values: dict[str, Any]) -> dict[str, Any]:
-        """Ensure that all entries created on init are used in mappings."""
-        it_system_user_keys = set(values["init"].it_systems.keys())
-        class_user_keys = {
-            class_user_key
-            for classes in values["init"].facets.values()
-            for class_user_key in classes.keys()
-        }
-
-        init_user_keys = class_user_keys | it_system_user_keys
-        mapped_user_keys = set(values["mo_to_ldap"].keys())
-
-        unutilized_user_keys = init_user_keys - mapped_user_keys
-        if unutilized_user_keys:
-            raise ValueError("Unutilized elements in init configuration")
-
         return values
 
 

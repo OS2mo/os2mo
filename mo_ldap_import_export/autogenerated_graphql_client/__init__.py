@@ -1,3 +1,5 @@
+from ._testing__itsystem_create import TestingItsystemCreate
+from ._testing__itsystem_create import TestingItsystemCreateItsystemCreate
 from ._testing_ituser_create import TestingItuserCreate
 from ._testing_ituser_create import TestingItuserCreateItuserCreate
 from ._testing_user_create import TestingUserCreate
@@ -8,8 +10,6 @@ from .async_base_client import AsyncBaseClient
 from .base_model import BaseModel
 from .class_create import ClassCreate
 from .class_create import ClassCreateClassCreate
-from .class_update import ClassUpdate
-from .class_update import ClassUpdateClassUpdate
 from .client import GraphQLClient
 from .employee_refresh import EmployeeRefresh
 from .employee_refresh import EmployeeRefreshEmployeeRefresh
@@ -135,8 +135,6 @@ from .input_types import UuidsBoundITUserFilter
 from .input_types import UuidsBoundLeaveFilter
 from .input_types import UuidsBoundOrganisationUnitFilter
 from .input_types import ValidityInput
-from .itsystem_create import ItsystemCreate
-from .itsystem_create import ItsystemCreateItsystemCreate
 from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefresh
@@ -275,10 +273,6 @@ from .read_engagements_is_primary import (
 from .read_engagements_is_primary import (
     ReadEngagementsIsPrimaryEngagementsObjectsValiditiesValidity,
 )
-from .read_facet_classes import ReadFacetClasses
-from .read_facet_classes import ReadFacetClassesClasses
-from .read_facet_classes import ReadFacetClassesClassesObjects
-from .read_facet_classes import ReadFacetClassesClassesObjectsCurrent
 from .read_facet_uuid import ReadFacetUuid
 from .read_facet_uuid import ReadFacetUuidFacets
 from .read_facet_uuid import ReadFacetUuidFacetsObjects
@@ -369,8 +363,6 @@ __all__ = [
     "ClassFilter",
     "ClassRegistrationFilter",
     "ClassTerminateInput",
-    "ClassUpdate",
-    "ClassUpdateClassUpdate",
     "ClassUpdateInput",
     "ConfigurationFilter",
     "EmployeeCreateInput",
@@ -422,8 +414,6 @@ __all__ = [
     "ITUserRegistrationFilter",
     "ITUserTerminateInput",
     "ITUserUpdateInput",
-    "ItsystemCreate",
-    "ItsystemCreateItsystemCreate",
     "ItuserTerminate",
     "ItuserTerminateItuserTerminate",
     "KLECreateInput",
@@ -549,10 +539,6 @@ __all__ = [
     "ReadEngagementsIsPrimaryEngagementsObjects",
     "ReadEngagementsIsPrimaryEngagementsObjectsValidities",
     "ReadEngagementsIsPrimaryEngagementsObjectsValiditiesValidity",
-    "ReadFacetClasses",
-    "ReadFacetClassesClasses",
-    "ReadFacetClassesClassesObjects",
-    "ReadFacetClassesClassesObjectsCurrent",
     "ReadFacetUuid",
     "ReadFacetUuidFacets",
     "ReadFacetUuidFacetsObjects",
@@ -615,6 +601,8 @@ __all__ = [
     "RoleUpdateInput",
     "SetJobTitle",
     "SetJobTitleEngagementUpdate",
+    "TestingItsystemCreate",
+    "TestingItsystemCreateItsystemCreate",
     "TestingItuserCreate",
     "TestingItuserCreateItuserCreate",
     "TestingUserCreate",
