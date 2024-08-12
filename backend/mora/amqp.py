@@ -266,7 +266,8 @@ async def _emit_events(session: AsyncSession, amqp_system: AMQPSystem) -> None:
                         OrganisationFunktionRelation.organisationfunktion_registrering_id
                     ).where(validity_condition(OrganisationFunktionRelation)),
                 )
-            )
+            ),
+            OrganisationFunktionAttrEgenskaber.funktionsnavn.in_(_lora_to_mo.keys()),
         ),
     ).execution_options(yield_per=55)
 
