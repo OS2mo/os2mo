@@ -827,10 +827,16 @@ class LdapConverter:
         # This function maps a list of org-unit names to an org-unit path
         path2str = self.org_unit_path_string_separator.join
 
+        # Splits a path like "org1/org2/org3" into ["org1", "org2", "org3"]
         org_unit_path = org_unit_path_string.split(self.org_unit_path_string_separator)
 
-        for nesting_level in range(len(org_unit_path)):
-            partial_path = org_unit_path[: nesting_level + 1]
+        # Generater a list of prefix paths, like ["org1", "org2", "org3"] into:
+        # [["org1"], ["org1", "org2"], ["org1", "org2", "org3"]]
+        org_unit_prefix_paths = [
+            org_unit_path[: n + 1] for n in range(len(org_unit_path))
+        ]
+
+        for partial_path in org_unit_prefix_paths:
             partial_path_string = path2str(partial_path)
 
             # If it already exists, skip creating it
@@ -839,10 +845,10 @@ class LdapConverter:
 
             logger.info("Importing", path=partial_path_string)
 
-            if nesting_level == 0:
+            parent_path = partial_path[:-1]
+            if not parent_path:
                 parent_uuid = str(await self.dataloader.load_mo_root_org_uuid())
             else:
-                parent_path = org_unit_path[:nesting_level]
                 parent_path_string = path2str(parent_path)
                 parent_uuid = await self.get_org_unit_uuid_from_path(parent_path_string)
 
