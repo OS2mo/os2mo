@@ -15,6 +15,7 @@ from structlog import get_logger
 from mora import amqp
 from mora import db
 from mora import depends
+from mora.service.org import ConfiguredOrganisation
 from oio_rest.config import get_settings as lora_get_settings
 from oio_rest.config import Settings as LoraSettings
 
@@ -166,3 +167,4 @@ async def restore(session: depends.Session) -> None:
             source=_get_snapshot_database(session),
             destination=_get_current_database(session),
         )
+    ConfiguredOrganisation.clear()
