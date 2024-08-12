@@ -477,6 +477,15 @@ class OrganisationUnitFilter(BaseFilter):
             """
         ),
     )
+    names: list[str] | None = strawberry.field(
+        default=UNSET,
+        description=dedent(
+            """\
+            Name filter finding exact matches by name.
+            """
+        )
+        + gen_filter_table("names"),
+    )
 
     parent: OrganisationUnitFilter | None = strawberry.field(
         default=UNSET,
