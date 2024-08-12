@@ -764,13 +764,6 @@ class SyncTool:
             self.amqpsystem.exchange_name, uuid
         )
 
-    async def refresh_org_unit_info_cache(self) -> None:
-        # When an org-unit is changed we need to update the org unit info. So we
-        # know the new name of the org unit in case it was changed
-        logger.info("Updating org unit info")
-        self.converter.org_unit_info = await self.dataloader.load_mo_org_units()
-        self.converter.check_org_unit_info_dict()
-
     async def format_converted_objects(
         self,
         converted_objects,

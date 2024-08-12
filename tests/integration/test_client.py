@@ -131,10 +131,6 @@ async def test_graphql_client(
             {},
         ),
         (
-            "read_org_units",
-            {},
-        ),
-        (
             "read_class_user_keys",
             {"facet_user_keys": ["test"]},
         ),

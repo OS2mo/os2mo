@@ -72,7 +72,6 @@ from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.environments import environment
 from mo_ldap_import_export.exceptions import IncorrectMapping
-from mo_ldap_import_export.exceptions import InvalidNameException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
 from tests.graphql_mocker import GraphQLMocker
@@ -1417,24 +1416,6 @@ def test_clean_org_unit_path_string(converter: LdapConverter):
     assert converter.clean_org_unit_path_string("foo \\ bar") == "foo\\bar"
 
 
-def test_check_info_dict_for_duplicates(converter: LdapConverter):
-    info_dict_with_duplicates = {
-        uuid4(): {"user_key": "foo"},
-        uuid4(): {"user_key": "foo"},
-    }
-
-    with pytest.raises(InvalidNameException):
-        converter.check_info_dict_for_duplicates(info_dict_with_duplicates)
-
-
-def test_check_org_unit_info_dict(converter: LdapConverter):
-    # This name is invalid because it contains backslashes;
-    # Because the org unit path separator is also a backslash.
-    converter.org_unit_info = {uuid4(): {"name": "invalid\\name"}}
-    with pytest.raises(InvalidNameException):
-        converter.check_org_unit_info_dict()
-
-
 def test_check_uuid_refs_in_mo_objects(converter: LdapConverter):
     converter.raw_mapping["username_generator"] = {}
 
@@ -1672,30 +1653,6 @@ async def test_check_cpr_field_or_it_system(converter: LdapConverter):
             match="Neither a cpr-field or an ldap it-system could be found",
         ):
             await converter.check_cpr_field_or_it_system()
-
-
-def test_check_info_dicts(converter: LdapConverter):
-    uuid = str(uuid4())
-    converter.all_info_dicts = {
-        "my_info_dict": {uuid: {"uuid": uuid, "user_key": "foo"}}
-    }
-    converter.check_info_dicts()
-
-    with pytest.raises(IncorrectMapping, match="not an uuid"):
-        converter.all_info_dicts = {
-            "my_info_dict": {uuid: {"uuid": "not_an_uuid", "user_key": "foo"}}
-        }
-        converter.check_info_dicts()
-
-    with pytest.raises(IncorrectMapping, match="not a string"):
-        converter.all_info_dicts = {
-            "my_info_dict": {uuid: {"uuid": uuid4(), "user_key": "foo"}}
-        }
-        converter.check_info_dicts()
-
-    with pytest.raises(IncorrectMapping, match="'uuid' key not found"):
-        converter.all_info_dicts = {"my_info_dict": {uuid: {"user_key": "foo"}}}
-        converter.check_info_dicts()
 
 
 async def test_get_current_engagement_attribute(converter: LdapConverter):

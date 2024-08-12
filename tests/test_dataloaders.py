@@ -913,62 +913,6 @@ async def test_load_mo_employee_not_found(
         await dataloader.load_mo_employee(uuid)
 
 
-async def test_load_mo_org_units(
-    dataloader: DataLoader, graphql_mock: GraphQLMocker
-) -> None:
-    uuid1 = str(uuid4())
-    uuid2 = str(uuid4())
-
-    route = graphql_mock.query("read_org_units")
-    route.result = {
-        "org_units": {
-            "objects": [
-                {
-                    "uuid": uuid1,
-                    "validities": [
-                        {
-                            "uuid": uuid1,
-                            "name": "Magenta ApS",
-                            "user_key": "Magenta ApS",
-                            "validity": {"from": "1970-01-01T00:00:00"},
-                        }
-                    ],
-                },
-                {
-                    "uuid": uuid2,
-                    "validities": [
-                        {
-                            "uuid": uuid2,
-                            "name": "Magenta Aarhus",
-                            "user_key": "Magenta Aarhus",
-                            "parent_uuid": uuid1,
-                            "validity": {"from": "1970-01-01T00:00:00"},
-                        }
-                    ],
-                },
-            ]
-        }
-    }
-
-    output = await dataloader.load_mo_org_units()
-    assert output[uuid1]["name"] == "Magenta ApS"
-    assert output[uuid2]["name"] == "Magenta Aarhus"
-    assert output[uuid2]["parent_uuid"] == uuid1
-
-    assert route.called
-
-
-async def test_load_mo_org_units_empty_response(
-    dataloader: DataLoader, legacy_graphql_session: AsyncMock
-):
-    return_value: dict = {"org_units": {"objects": []}}
-
-    legacy_graphql_session.execute.return_value = return_value
-
-    output = await dataloader.load_mo_org_units()
-    assert output == {}
-
-
 async def test_load_mo_it_user(
     dataloader: DataLoader, graphql_mock: GraphQLMocker
 ) -> None:

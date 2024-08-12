@@ -127,8 +127,6 @@ from .read_org_unit_name import ReadOrgUnitName
 from .read_org_unit_name import ReadOrgUnitNameOrgUnits
 from .read_org_unit_uuid import ReadOrgUnitUuid
 from .read_org_unit_uuid import ReadOrgUnitUuidOrgUnits
-from .read_org_units import ReadOrgUnits
-from .read_org_units import ReadOrgUnitsOrgUnits
 from .read_root_org_uuid import ReadRootOrgUuid
 from .read_root_org_uuid import ReadRootOrgUuidOrg
 from .set_job_title import SetJobTitle
@@ -850,33 +848,6 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadItsystems.parse_obj(data).itsystems
-
-    async def read_org_units(self) -> ReadOrgUnitsOrgUnits:
-        query = gql(
-            """
-            query read_org_units {
-              org_units(filter: {from_date: null, to_date: null}) {
-                objects {
-                  uuid
-                  validities {
-                    uuid
-                    name
-                    user_key
-                    parent_uuid
-                    validity {
-                      to
-                      from
-                    }
-                  }
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadOrgUnits.parse_obj(data).org_units
 
     async def read_class_user_keys(
         self, facet_user_keys: List[str]

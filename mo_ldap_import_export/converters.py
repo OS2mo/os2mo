@@ -36,10 +36,8 @@ from .config import Settings
 from .dataloaders import DataLoader
 from .environments import environment
 from .exceptions import IncorrectMapping
-from .exceptions import InvalidNameException
 from .exceptions import NoObjectsReturnedException
 from .exceptions import UUIDNotFoundException
-from .ldap import is_uuid
 from .ldap_classes import LdapObject
 from .types import DN
 from .utils import delete_keys_from_dict
@@ -523,8 +521,6 @@ class LdapConverter:
         )
 
     async def _init(self):
-        await self.load_info_dicts()
-
         mapping = delete_keys_from_dict(
             self.raw_mapping,
             ["objectClass", "_import_to_mo_", "_export_to_ldap_"],
@@ -538,22 +534,6 @@ class LdapConverter:
             self.dataloader.graphql_client, self.settings, self.mapping
         )
         await self.check_mapping(mapping)
-
-    async def load_info_dicts(self):
-        # Note: If new address types or IT systems are added to MO, these dicts need
-        # to be re-initialized
-        logger.info("Loading info dicts")
-
-        self.org_unit_info = await self.dataloader.load_mo_org_units()
-
-        self.all_info_dicts = {
-            f: getattr(self, f)
-            for f in dir(self)
-            if f.endswith("_info") and isinstance(getattr(self, f), dict)
-        }
-
-        self.check_info_dicts()
-        logger.info("Info dicts loaded successfully")
 
     def _import_to_mo_(self, json_key: str, manual_import: bool):
         """
@@ -859,51 +839,6 @@ class LdapConverter:
 
         logger.info("Attributes OK")
 
-    def check_info_dict_for_duplicates(self, info_dict, name_key="user_key"):
-        """
-        Check that we do not see the same name twice in one info dict
-        """
-        names = [info[name_key] for info in info_dict.values()]
-        if len(set(names)) != len(names):
-            duplicates = [name for name in names if names.count(name) > 1]
-            raise InvalidNameException(
-                f"Duplicate values found in info_dict['{name_key}'] = {sorted(duplicates)}"
-            )
-
-    def check_org_unit_info_dict(self):
-        """
-        Check if the org unit separator is not in any of the org unit names
-        """
-        # TODO: This invariant is not upheld when the cache is invalidated
-        #       Potentially this will break all the org-unit-name helper functions
-        org_unit_names = {info["name"] for info in self.org_unit_info.values()}
-
-        separator = self.org_unit_path_string_separator
-        org_unit_names_with_seperator = {
-            name for name in org_unit_names if separator in name
-        }
-        if org_unit_names_with_seperator:
-            raise InvalidNameException(
-                f"Found {separator} in '{org_unit_names_with_seperator}'. This is not allowed."
-            )
-
-    def check_info_dicts(self):
-        logger.info("Checking info dicts")
-        for info_dict_name, info_dict in self.all_info_dicts.items():
-            if info_dict_name != "org_unit_info":
-                self.check_info_dict_for_duplicates(info_dict)
-
-            for info in info_dict.values():
-                if "uuid" not in info:
-                    raise IncorrectMapping("'uuid' key not found in info-dict")
-                uuid = info["uuid"]
-                if not isinstance(uuid, str):
-                    raise IncorrectMapping(f"{uuid} is not a string")
-                if not is_uuid(uuid):
-                    raise IncorrectMapping(f"{uuid} is not an uuid")
-
-        self.check_org_unit_info_dict()
-
     async def create_org_unit(self, org_unit_path: str) -> UUID:
         """Create the org-unit and any missing parents in org_unit_path.
 
@@ -972,11 +907,6 @@ class LdapConverter:
         )
 
         await self.dataloader.create_org_unit(org_unit)
-        self.org_unit_info[str(uuid)] = {
-            "uuid": str(uuid),
-            "name": name,
-            "parent_uuid": str(parent_uuid),
-        }
         return uuid
 
     def clean_org_unit_path_string(self, org_unit_path_string: str) -> str:

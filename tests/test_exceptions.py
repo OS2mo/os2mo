@@ -8,7 +8,6 @@ from fastramqpi.ramqp.utils import RejectMessage
 from fastramqpi.ramqp.utils import RequeueMessage
 from gql.transport.exceptions import TransportQueryError
 
-from mo_ldap_import_export.exceptions import InvalidNameException
 from mo_ldap_import_export.exceptions import http_reject_on_failure
 
 
@@ -18,7 +17,6 @@ from mo_ldap_import_export.exceptions import http_reject_on_failure
         (RejectMessage("Rejected"), 451, "Rejected"),
         (RequeueMessage("Requeue"), 409, "Requeue"),
         (TransportQueryError("Connection refused"), 409, "Connection refused"),
-        (InvalidNameException("Christophpher"), 422, "Christophpher"),
         (ValueError("BOOM"), 500, "BOOM"),
     ],
 )

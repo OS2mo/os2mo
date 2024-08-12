@@ -82,17 +82,6 @@ def fake_find_mo_employee_dn(sync_tool: SyncTool, fake_dn: DN) -> None:
     sync_tool.dataloader.find_mo_employee_dn.return_value = {fake_dn}  # type: ignore
 
 
-async def test_listen_to_changes_in_org_units(
-    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
-):
-    org_unit_info = {uuid4(): {"name": "Magenta Aps"}}
-
-    dataloader.load_mo_org_units.return_value = org_unit_info
-
-    await sync_tool.refresh_org_unit_info_cache()
-    assert converter.org_unit_info == org_unit_info
-
-
 async def test_listen_to_changes_in_employee_no_employee(
     dataloader: AsyncMock,
     sync_tool: SyncTool,
