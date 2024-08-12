@@ -646,6 +646,19 @@ async def organisation_unit_resolver(
             )
         )
 
+    # Name
+    if filter.names is not UNSET and filter.names is not None:
+        query = query.where(
+            OrganisationEnhedRegistrering.id.in_(
+                select(
+                    OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
+                ).where(
+                    OrganisationEnhedAttrEgenskaber.enhedsnavn.in_(filter.names),
+                    _virkning(OrganisationEnhedAttrEgenskaber),
+                )
+            )
+        )
+
     # Parents
     if filter.parent is not UNSET or filter.parents is not UNSET:
         # TODO: _get_parent_uuids should not be an awaitable

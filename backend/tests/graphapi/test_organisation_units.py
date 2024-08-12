@@ -225,6 +225,67 @@ def test_create_org_unit_integration_test(
     "filter,expected",
     [
         ({}, 10),
+        # Deactivated filter
+        ({"names": None}, 10),
+        # Filter empty list
+        ({"names": []}, 0),
+        # Filter unknown name
+        ({"names": ["__this__should__never__match__"]}, 0),
+        # Filter one known name
+        ({"names": ["Filosofisk Institut"]}, 1),
+        # Filter one known name, with multiple matches
+        ({"names": ["Social og sundhed"]}, 2),
+        # Filter multiple known names
+        (
+            {
+                "names": [
+                    "Filosofisk Institut",
+                    "Humanistisk fakultet",
+                ]
+            },
+            2,
+        ),
+        # Filter multiple known names, with multiple matches
+        (
+            {
+                "names": [
+                    "Filosofisk Institut",
+                    "Humanistisk fakultet",
+                    "Social og sundhed",
+                ]
+            },
+            4,
+        ),
+    ],
+)
+async def test_org_unit_name_filter(
+    graphapi_post: GraphAPIPost, filter: dict[str, list[str] | None], expected: int
+) -> None:
+    """Test name filter on organisation units."""
+    org_unit_query = """
+        query OrgUnit($filter: OrganisationUnitFilter!) {
+            org_units(filter: $filter) {
+                objects {
+                    current {
+                        name
+                    }
+                    uuid
+                }
+            }
+        }
+    """
+    response = graphapi_post(org_unit_query, variables=dict(filter=filter))
+    assert response.errors is None
+    assert response.data is not None
+    assert len(response.data["org_units"]["objects"]) == expected
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.parametrize(
+    "filter,expected",
+    [
+        ({}, 10),
         # Filter roots
         ({"parents": None}, 3),
         # Filter under node
