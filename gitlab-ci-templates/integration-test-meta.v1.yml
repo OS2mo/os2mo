@@ -211,9 +211,13 @@ variables:
         - "sh"
         - "-c"
         - |
-          while ! python -m os2mo_init; do
-            sleep 1
-          done
+          if [ -n "$OS2MO_INIT_CONFIG" ]; then
+            while ! python -m os2mo_init; do
+              sleep 1
+            done
+          else
+            echo 'OS2MO_INIT_CONFIG is empty: Skipping OS2mo-init'
+          fi
           touch /builds/.os2mo-init-finished
     - name: postgres:16
       alias: db
