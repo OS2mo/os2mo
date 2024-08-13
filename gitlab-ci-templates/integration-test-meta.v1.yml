@@ -199,7 +199,7 @@ variables:
           while ! ./docker/start.sh; do
             sleep 1
           done
-    - name: magentaaps/os2mo-init:4
+    - name: magentaaps/os2mo-init:5
       variables:
         CONFIG_FILE: $OS2MO_INIT_CONFIG
         MO_URL: "http://mo:5000"
