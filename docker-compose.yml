@@ -98,7 +98,7 @@ services:
     restart: on-failure
 
   mo-init:
-    image: magentaaps/os2mo-init:4
+    image: magentaaps/os2mo-init:5
     environment:
       MO_URL: "http://mo:5000"
       CLIENT_ID: "dipex"
