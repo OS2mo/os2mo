@@ -5,7 +5,6 @@
 .hypothesis/**
 /.coverage
 /.coveragerc
-/docker-compose.override.yml
 **.rum-bak
 .cache/**
 **/.cache/**
