@@ -102,7 +102,7 @@ Integration-test:
     LDAP_DIALECT: "Standard"
     LDAP_AUTH_METHOD: "simple"
 
-    PRODUCTION: False
+    FASTRAMQPI__JSON_LOGS: False
 
     LISTEN_TO_CHANGES_IN_MO: True
     LISTEN_TO_CHANGES_IN_LDAP: True

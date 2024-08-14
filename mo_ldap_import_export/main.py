@@ -41,7 +41,6 @@ from .ldap_amqp import configure_ldap_amqpsystem
 from .ldap_amqp import ldap2mo_router
 from .ldap_event_generator import LDAPEventGenerator
 from .ldap_event_generator import ldap_event_router
-from .logging import init as initialize_logging
 from .routes import construct_router
 from .types import OrgUnitUUID
 from .usernames import get_username_generator_class
@@ -324,8 +323,6 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     """
     logger.info("Retrieving settings")
     settings = Settings(**kwargs)
-
-    initialize_logging(settings.fastramqpi.log_level, settings.production)
 
     # ldap_ou_for_new_users needs to be in the search base. Otherwise we cannot
     # find newly created users...
