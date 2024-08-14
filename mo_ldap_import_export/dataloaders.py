@@ -1181,7 +1181,7 @@ class DataLoader:
         result = await self.graphql_client.read_root_org_uuid()
         return result.uuid
 
-    async def load_mo_org_units(self) -> dict:
+    async def load_mo_org_units(self) -> dict[str, Any]:
         result = await self.graphql_client.read_org_units()
 
         return {

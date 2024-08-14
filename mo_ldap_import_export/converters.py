@@ -5,6 +5,7 @@ import re
 import string
 from collections import ChainMap
 from collections.abc import MutableMapping
+from contextlib import suppress
 from datetime import datetime
 from functools import partial
 from itertools import compress
@@ -817,81 +818,88 @@ class LdapConverter:
 
         self.check_org_unit_info_dict()
 
-    async def create_org_unit(self, org_unit_path_string: str):
+    async def create_org_unit(self, org_unit_path: str) -> UUID:
+        """Create the org-unit and any missing parents in org_unit_path.
+
+        The function works by recursively creating parents until an existing parent is
+        found or we arrive at the root org.
+
+        Args:
+            org_unit_path: The org-unit path to ensure exists.
+
+        Returns:
+            UUID of the newly created org-unit.
         """
-        Create the parent org. in the hierarchy (if it does not exist),
-        then create the next one and keep doing that
-        until we've reached the final child.
-        """
+        # If asked to create the root org, simply return it
+        if not org_unit_path:
+            return await self.dataloader.load_mo_root_org_uuid()
 
-        org_unit_path = org_unit_path_string.split(self.org_unit_path_string_separator)
+        # If the org-unit path already exists, no need to create, simply return it
+        with suppress(UUIDNotFoundException):
+            return UUID(await self.get_org_unit_uuid_from_path(org_unit_path))
 
-        for nesting_level in range(len(org_unit_path)):
-            partial_path = org_unit_path[: nesting_level + 1]
-            partial_path_string = self.org_unit_path_string_separator.join(partial_path)
+        # If we get here, the path did not already exist, so we need to create it
+        logger.info("Importing", path=org_unit_path)
 
-            try:
-                await self.get_org_unit_uuid_from_path(partial_path_string)
-            except UUIDNotFoundException:
-                logger.info("Importing", path=partial_path_string)
+        # Figure out our name and our parent path
+        org_unit_path_list = org_unit_path.split(self.org_unit_path_string_separator)
+        # Our name is the last element of the path
+        name = org_unit_path_list.pop()
+        # Out parent path is all the elements coming before our name
+        parent_path = self.org_unit_path_string_separator.join(org_unit_path_list)
 
-                if nesting_level == 0:
-                    parent_uuid = str(await self.dataloader.load_mo_root_org_uuid())
-                else:
-                    parent_path = org_unit_path[:nesting_level]
-                    parent_path_string = self.org_unit_path_string_separator.join(
-                        parent_path
-                    )
-                    parent_uuid = await self.get_org_unit_uuid_from_path(
-                        parent_path_string
-                    )
+        # Get or create our parent uuid (recursively)
+        parent_uuid = await self.create_org_unit(parent_path)
 
-                uuid = uuid4()
-                name = partial_path[-1]
+        default_org_unit_type_uuid = UUID(
+            await get_org_unit_type_uuid(
+                self.dataloader.graphql_client, self.settings.default_org_unit_type
+            )
+        )
+        default_org_unit_level_uuid = UUID(
+            await get_org_unit_level_uuid(
+                self.dataloader.graphql_client, self.settings.default_org_unit_level
+            )
+        )
 
-                default_org_unit_type_uuid = await get_org_unit_type_uuid(
-                    self.dataloader.graphql_client, self.settings.default_org_unit_type
-                )
-                default_org_unit_level_uuid = await get_org_unit_level_uuid(
-                    self.dataloader.graphql_client, self.settings.default_org_unit_level
-                )
+        uuid = uuid4()
+        org_unit = OrganisationUnit.from_simplified_fields(
+            org_unit_type_uuid=default_org_unit_type_uuid,
+            org_unit_level_uuid=default_org_unit_level_uuid,
+            # Note: 1902 seems to be the earliest accepted year by OS2mo
+            # We pick 1960 because MO's dummy data also starts all organizations
+            # in 1960...
+            # We just want a very early date here, to avoid that imported employee
+            # engagements start before the org-unit existed.
+            from_date="1960-01-01T00:00:00",
+            # Org-unit specific fields
+            user_key=str(uuid4()),
+            name=name,
+            parent_uuid=parent_uuid,
+            uuid=uuid,
+        )
 
-                # Note: 1902 seems to be the earliest accepted year by OS2mo
-                # We pick 1960 because MO's dummy data also starts all organizations
-                # in 1960...
-                # We just want a very early date here, to avoid that imported employee
-                # engagements start before the org-unit existed.
-                from_date = datetime(1960, 1, 1).strftime("%Y-%m-%dT00:00:00")
-                org_unit = OrganisationUnit.from_simplified_fields(
-                    user_key=str(uuid4()),
-                    name=name,
-                    org_unit_type_uuid=UUID(default_org_unit_type_uuid),
-                    org_unit_level_uuid=UUID(default_org_unit_level_uuid),
-                    from_date=from_date,
-                    parent_uuid=UUID(parent_uuid) if parent_uuid else None,
-                    uuid=uuid,
-                )
+        await self.dataloader.create_org_unit(org_unit)
+        self.org_unit_info[str(uuid)] = {
+            "uuid": str(uuid),
+            "name": name,
+            "parent_uuid": str(parent_uuid),
+        }
+        return uuid
 
-                await self.dataloader.create_org_unit(org_unit)
-                self.org_unit_info[str(uuid)] = {
-                    "uuid": str(uuid),
-                    "name": name,
-                    "parent_uuid": parent_uuid,
-                }
-
-    async def get_org_unit_uuid_from_path(self, org_unit_path_string: str):
+    async def get_org_unit_uuid_from_path(self, org_unit_path_string: str) -> str:
         for info in self.org_unit_info.values():
             clean_name = info["name"].strip()
             if not org_unit_path_string.strip().endswith(clean_name):
                 continue
             path_string = await self.get_org_unit_path_string(info["uuid"])
             if path_string == org_unit_path_string:
-                return info["uuid"]
+                return cast(str, info["uuid"])
         raise UUIDNotFoundException(
             f"'{org_unit_path_string}' not found in self.org_unit_info"
         )
 
-    async def get_org_unit_path_string(self, uuid: str):
+    async def get_org_unit_path_string(self, uuid: str) -> str:
         root_org_uuid = str(await self.dataloader.load_mo_root_org_uuid())
         org_unit_info = self.org_unit_info[str(uuid)]
         object_name = org_unit_info["name"].strip()
@@ -905,7 +913,7 @@ class LdapConverter:
             )
             parent_uuid = self.org_unit_info[parent_uuid]["parent_uuid"]
 
-        return path_string
+        return cast(str, path_string)
 
     # TODO: Clean this up so it always just takes an UUID
     async def get_org_unit_name_for_parent(
@@ -1024,16 +1032,7 @@ class LdapConverter:
 
         # Clean leading and trailing whitespace from org unit path string
         org_unit_path_string = self.clean_org_unit_path_string(org_unit_path_string)
-
-        try:
-            return await self.get_org_unit_uuid_from_path(org_unit_path_string)
-        except UUIDNotFoundException:
-            logger.info(
-                "Creating org-unit at path, as it could not be found",
-                path=org_unit_path_string,
-            )
-            await self.create_org_unit(org_unit_path_string)
-            return await self.get_org_unit_uuid_from_path(org_unit_path_string)
+        return str(await self.create_org_unit(org_unit_path_string))
 
     @staticmethod
     def str_to_dict(text):
