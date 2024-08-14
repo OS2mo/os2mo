@@ -900,18 +900,20 @@ class LdapConverter:
         await self.dataloader.create_org_unit(org_unit)
         return uuid
 
-    def clean_org_unit_path_string(self, org_unit_path_string: str) -> str:
-        """
-        Cleans leading and trailing whitespace from org units in an org unit path string
+    def clean_org_unit_path_string(self, org_unit_path: list[str]) -> list[str]:
+        """Cleans leading and trailing whitespace from org units names.
 
-        Example
-        ----------
-        >>> org_unit_path_string = "foo / bar"
-        >>> clean_org_unit_path_string(org_unit_path_string)
-        >>> "foo/bar"
+        Example:
+            ```python
+            org_unit_path = ["foo ", " bar", " baz "]
+            clean_org_unit_path_string(org_unit_path)
+            # Returns ["foo", "bar", "baz"]
+            ```
+
+        Args:
+            org_unit_path: A list of org-unit names.
         """
-        sep = self.org_unit_path_string_separator
-        return sep.join([s.strip() for s in org_unit_path_string.split(sep)])
+        return [x.strip() for x in org_unit_path]
 
     def org_unit_path_string_from_dn(self, dn, number_of_ous_to_ignore=0) -> str:
         """
@@ -960,11 +962,9 @@ class LdapConverter:
             raise UUIDNotFoundException("Organization unit string is empty")
 
         # Clean leading and trailing whitespace from org unit path string
-        org_unit_path_string = self.clean_org_unit_path_string(org_unit_path_string)
-        org_unit_path_list = org_unit_path_string.split(
-            self.org_unit_path_string_separator
-        )
-        return str(await self.create_org_unit(org_unit_path_list))
+        org_unit_path = org_unit_path_string.split(self.org_unit_path_string_separator)
+        org_unit_path = self.clean_org_unit_path_string(org_unit_path)
+        return str(await self.create_org_unit(org_unit_path))
 
     @staticmethod
     def str_to_dict(text):

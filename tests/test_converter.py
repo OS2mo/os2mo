@@ -1417,8 +1417,12 @@ async def test_get_or_create_org_unit_uuid_create(
 
 
 def test_clean_org_unit_path_string(converter: LdapConverter):
-    assert converter.clean_org_unit_path_string("foo\\bar") == "foo\\bar"
-    assert converter.clean_org_unit_path_string("foo \\ bar") == "foo\\bar"
+    assert converter.clean_org_unit_path_string(["foo", "bar"]) == ["foo", "bar"]
+    assert converter.clean_org_unit_path_string([" foo", " bar ", "baz "]) == [
+        "foo",
+        "bar",
+        "baz",
+    ]
 
 
 def test_check_uuid_refs_in_mo_objects(converter: LdapConverter):
