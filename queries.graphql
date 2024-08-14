@@ -21,6 +21,11 @@ mutation __testing__itsystem_create($input: ITSystemCreateInput!) {
   }
 }
 
+mutation __testing_org_unit_create($input: OrganisationUnitCreateInput!) {
+  org_unit_create(input: $input) {
+    uuid
+  }
+}
 
 # Normal queries
 
