@@ -2,7 +2,97 @@
 # SPDX-License-Identifier: MPL-2.0
 services:
   mo_ldap_import_export:
+    environment:
+      LDAP_CONTROLLERS: "[{'host': 'ad.addev.magentahosted.dk'}]"
+      LDAP_DOMAIN: "magenta.dk"
+      LDAP_SEARCH_BASE: "DC=ad,DC=addev"
+      LDAP_OUS_TO_SEARCH_IN: '["OU=Users,OU=ldap-tests,OU=OS2MO"]'
+      LDAP_OUS_TO_WRITE_TO: '["OU=Users,OU=ldap-tests,OU=OS2MO"]'
+      LDAP_OU_FOR_NEW_USERS: "OU=Users,OU=ldap-tests,OU=OS2MO"
+      LDAP_DIALECT: "AD"
+
+      LDAP_AUTH_METHOD: "simple"
+
+      LISTEN_TO_CHANGES_IN_MO: "True"
+      LISTEN_TO_CHANGES_IN_LDAP: "True"
+
+      DEFAULT_ORG_UNIT_TYPE: "Afdeling"
+      DEFAULT_ORG_UNIT_LEVEL: "N1"
+
+      PRODUCTION: "False"
+
+      CONVERSION_MAPPING: |
+        '{
+        "init": {
+
+        "it_systems": {
+          "Active Directory": "Active Directory"
+        }
+        },
+        "ldap_to_mo": {
+          "Employee": {
+            "objectClass": "ramodels.mo.employee.Employee",
+            "_import_to_mo_": "true",
+            "cpr_no": "{{ ldap.employeeID|strip_non_digits or NONE }}",
+            "uuid": "{{ employee_uuid or NONE }}",
+            "givenname": "{{ get_employee_dict(employee_uuid).givenname }}",
+            "surname": "{{ get_employee_dict(employee_uuid).surname }}",
+            "nickname_givenname": "{{ get_employee_dict(employee_uuid).nickname_givenname }}",
+            "nickname_surname": "{{ get_employee_dict(employee_uuid).nickname_surname }}",
+            "user_key": "{{ ldap.initials }}"
+          },
+          "Engagement": {
+            "objectClass": "ramodels.mo.details.engagement.Engagement",
+            "_import_to_mo_": "true",
+            "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+            "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+            "user_key": "{{ get_primary_engagement_dict(employee_uuid).user_key }}",
+            "engagement_type": "{{ dict(uuid=get_primary_engagement_dict(employee_uuid).engagement_type_uuid) }}",
+            "org_unit": "{{ dict(uuid=get_primary_engagement_dict(employee_uuid).org_unit_uuid) }}",
+            "job_function": "{{ dict(uuid=get_primary_engagement_dict(employee_uuid).job_function_uuid) }}",
+            "primary": "{{ dict(uuid=get_primary_engagement_dict(employee_uuid).primary_uuid) }}",
+            "uuid": "{{ get_primary_engagement_dict(employee_uuid).uuid }}",
+            "extension_2": "{{ ldap.title }}"
+          },
+          "Active Directory": {
+            "objectClass": "ramodels.mo.details.it_system.ITUser",
+            "_import_to_mo_": "true",
+            "uuid": "{{ ldap.objectGUID|remove_curly_brackets }}",
+            "user_key": "{{ ldap.sAMAccountName }}",
+            "itsystem": "{{ dict(uuid=get_it_system_uuid(\'Active Directory\')) }}",
+            "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+            "person": "{{ dict(uuid=employee_uuid or NONE) }}"
+          }
+        },
+        "mo_to_ldap": {
+          "Employee": {
+            "objectClass": "user",
+            "_export_to_ldap_": "true",
+            "employeeID": "{{ mo_employee.cpr_no }}",
+            "sn": "{{ mo_employee.nickname_surname or mo_employee.surname}}",
+            "displayName": "{{mo_employee.nickname_givenname or mo_employee.givenname}} {{mo_employee.nickname_surname or mo_employee.surname}}"
+          },
+          "Engagement": {
+            "objectClass": "user",
+            "_export_to_ldap_": "true",
+            "title": "{{ mo_employee_engagement.user_key }}"
+          },
+          "Active Directory": {
+            "objectClass": "user",
+            "_export_to_ldap_": "true",
+            "objectGUID": "{{ mo_employee_it_user.uuid  }}",
+            "sAMAccountName": "{{ mo_employee_it_user.user_key }}"    }
+        },
+        "username_generator": {
+          "objectClass": "UserNameGenerator",
+          "combinations_to_try": ["F123L",
+                                  "F12LL",
+                                  "F1LLL",
+                                  "FLLLL",
+                                  "FLLLLX"]
+        }
+        }
+        '
+
     env_file:
-      - secrets.txt
-    volumes:
-      - ./dev-environment/magenta-addev.env:/var/run/.env
+      secrets.txt
