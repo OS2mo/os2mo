@@ -1333,39 +1333,45 @@ async def test_check_ldap_to_mo_references(converter: LdapConverter):
         assert "Attribute 'nonExistingAttribute' not allowed." in str(inner_exception)
 
 
-async def test_create_org_unit(converter: LdapConverter):
-    uuids = [str(uuid4()), str(uuid4()), str(uuid4())]
-    org_units = ["Magenta Aps", "Magenta Aarhus", "GrønlandsTeam"]
-    org_unit_infos = [
-        {"name": org_units[i], "uuid": uuids[i]} for i in range(len(uuids))
-    ]
+async def test_create_org_unit_already_exists(
+    graphql_mock: GraphQLMocker, converter: LdapConverter
+) -> None:
+    graphql_client = GraphQLClient("http://example.com/graphql")
+    converter.dataloader.graphql_client = graphql_client  # type: ignore
+
+    route = graphql_mock.query("read_org_unit_uuid")
+    route.result = {"org_units": {"objects": [{"uuid": uuid4()}]}}
+
+    await converter.create_org_unit("Magenta Aps\\Magenta Aarhus")
+    converter.dataloader.create_org_unit.assert_not_called()  # type: ignore
+
+
+@pytest.mark.parametrize(
+    "path,expected",
+    [
+        ("Magenta Aps", 1),
+        ("Magenta Aps\\Magenta Aarhus", 2),
+        ("Magenta Aps\\Magenta Aarhus\\OS2mo", 3),
+    ],
+)
+async def test_create_org_unit_all_missing(
+    graphql_mock: GraphQLMocker, converter: LdapConverter, path: str, expected: int
+) -> None:
+    graphql_client = GraphQLClient("http://example.com/graphql")
+    converter.dataloader.graphql_client = graphql_client  # type: ignore
 
     uuid_root_org_uuid = uuid4()
-    root_org_uuid = str(uuid_root_org_uuid)
     converter.dataloader.load_mo_root_org_uuid.return_value = uuid_root_org_uuid  # type: ignore
 
-    converter.org_unit_info = {
-        uuids[0]: {**org_unit_infos[0], "parent_uuid": root_org_uuid},
-        uuids[1]: {**org_unit_infos[1], "parent_uuid": org_unit_infos[0]["uuid"]},
-    }
+    route1 = graphql_mock.query("read_org_unit_uuid")
+    route1.result = {"org_units": {"objects": []}}
 
-    org_unit_path_string = converter.org_unit_path_string_separator.join(org_units)
-    org_units = [info["name"] for info in converter.org_unit_info.values()]
+    route2 = graphql_mock.query("read_class_uuid_by_facet_and_class_user_key")
+    route2.result = {"classes": {"objects": [{"uuid": uuid4()}]}}
 
-    assert "Magenta Aps" in org_units
-    assert "Magenta Aarhus" in org_units
-    assert "GrønlandsTeam" not in org_units
-
-    # Create a unit with parents
-    await converter.create_org_unit(org_unit_path_string)
-
-    org_units = [info["name"] for info in converter.org_unit_info.values()]
-    assert "GrønlandsTeam" in org_units
-
-    # Try to create a unit without parents
-    await converter.create_org_unit("Ørsted")
-    org_units = [info["name"] for info in converter.org_unit_info.values()]
-    assert "Ørsted" in org_units
+    await converter.create_org_unit(path)
+    num_calls = len(converter.dataloader.create_org_unit.mock_calls)  # type: ignore
+    assert num_calls == expected
 
 
 async def test_get_or_create_org_unit_uuid_get(
@@ -1402,13 +1408,9 @@ async def test_get_or_create_org_unit_uuid_create(
     route2 = graphql_mock.query("read_class_uuid_by_facet_and_class_user_key")
     route2.result = {"classes": {"objects": [{"uuid": uuid4()}]}}
 
-    org_units = {info["name"] for info in converter.org_unit_info.values()}
-    assert org_units == set()
-
     # Create a new organization and return its UUID
     await converter.get_or_create_org_unit_uuid("ACME")
-    org_units = {info["name"] for info in converter.org_unit_info.values()}
-    assert org_units == {"ACME"}
+    converter.dataloader.create_org_unit.assert_awaited_once()  # type: ignore
 
 
 def test_clean_org_unit_path_string(converter: LdapConverter):

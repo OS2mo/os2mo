@@ -905,7 +905,6 @@ class LdapConverter:
             parent_uuid=parent_uuid,
             uuid=uuid,
         )
-
         await self.dataloader.create_org_unit(org_unit)
         return uuid
 
