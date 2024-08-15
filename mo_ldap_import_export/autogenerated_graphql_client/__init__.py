@@ -49,7 +49,6 @@ from .input_types import EmployeesBoundEngagementFilter
 from .input_types import EmployeesBoundITUserFilter
 from .input_types import EmployeesBoundLeaveFilter
 from .input_types import EmployeesBoundManagerFilter
-from .input_types import EmployeesBoundRoleFilter
 from .input_types import EmployeeTerminateInput
 from .input_types import EmployeeUpdateInput
 from .input_types import EngagementCreateInput
@@ -73,6 +72,8 @@ from .input_types import ITSystemFilter
 from .input_types import ITSystemRegistrationFilter
 from .input_types import ITSystemTerminateInput
 from .input_types import ITSystemUpdateInput
+from .input_types import ItuserBoundAddressFilter
+from .input_types import ItuserBoundRoleBindingFilter
 from .input_types import ITUserCreateInput
 from .input_types import ITUserFilter
 from .input_types import ITUserRegistrationFilter
@@ -106,9 +107,7 @@ from .input_types import OrgUnitsboundengagementfilter
 from .input_types import OrgUnitsboundituserfilter
 from .input_types import OrgUnitsboundklefilter
 from .input_types import OrgUnitsboundleavefilter
-from .input_types import OrgUnitsboundownerfilter
 from .input_types import OrgUnitsboundrelatedunitfilter
-from .input_types import OrgUnitsboundrolefilter
 from .input_types import OwnerCreateInput
 from .input_types import OwnerFilter
 from .input_types import OwnerTerminateInput
@@ -121,11 +120,11 @@ from .input_types import RAValidityInput
 from .input_types import RegistrationFilter
 from .input_types import RelatedUnitFilter
 from .input_types import RelatedUnitsUpdateInput
-from .input_types import RoleCreateInput
-from .input_types import RoleFilter
+from .input_types import RoleBindingCreateInput
+from .input_types import RoleBindingFilter
+from .input_types import RoleBindingTerminateInput
+from .input_types import RoleBindingUpdateInput
 from .input_types import RoleRegistrationFilter
-from .input_types import RoleTerminateInput
-from .input_types import RoleUpdateInput
 from .input_types import UuidsBoundClassFilter
 from .input_types import UuidsBoundEmployeeFilter
 from .input_types import UuidsBoundEngagementFilter
@@ -330,6 +329,9 @@ from .read_org_unit_name import ReadOrgUnitName
 from .read_org_unit_name import ReadOrgUnitNameOrgUnits
 from .read_org_unit_name import ReadOrgUnitNameOrgUnitsObjects
 from .read_org_unit_name import ReadOrgUnitNameOrgUnitsObjectsCurrent
+from .read_org_unit_uuid import ReadOrgUnitUuid
+from .read_org_unit_uuid import ReadOrgUnitUuidOrgUnits
+from .read_org_unit_uuid import ReadOrgUnitUuidOrgUnitsObjects
 from .read_org_units import ReadOrgUnits
 from .read_org_units import ReadOrgUnitsOrgUnits
 from .read_org_units import ReadOrgUnitsOrgUnitsObjects
@@ -378,7 +380,6 @@ __all__ = [
     "EmployeesBoundITUserFilter",
     "EmployeesBoundLeaveFilter",
     "EmployeesBoundManagerFilter",
-    "EmployeesBoundRoleFilter",
     "EngagementCreateInput",
     "EngagementFilter",
     "EngagementRegistrationFilter",
@@ -414,6 +415,8 @@ __all__ = [
     "ITUserRegistrationFilter",
     "ITUserTerminateInput",
     "ITUserUpdateInput",
+    "ItuserBoundAddressFilter",
+    "ItuserBoundRoleBindingFilter",
     "ItuserTerminate",
     "ItuserTerminateItuserTerminate",
     "KLECreateInput",
@@ -440,9 +443,7 @@ __all__ = [
     "OrgUnitsboundituserfilter",
     "OrgUnitsboundklefilter",
     "OrgUnitsboundleavefilter",
-    "OrgUnitsboundownerfilter",
     "OrgUnitsboundrelatedunitfilter",
-    "OrgUnitsboundrolefilter",
     "OrganisationCreate",
     "OrganisationUnitCreateInput",
     "OrganisationUnitFilter",
@@ -584,6 +585,9 @@ __all__ = [
     "ReadOrgUnitNameOrgUnits",
     "ReadOrgUnitNameOrgUnitsObjects",
     "ReadOrgUnitNameOrgUnitsObjectsCurrent",
+    "ReadOrgUnitUuid",
+    "ReadOrgUnitUuidOrgUnits",
+    "ReadOrgUnitUuidOrgUnitsObjects",
     "ReadOrgUnits",
     "ReadOrgUnitsOrgUnits",
     "ReadOrgUnitsOrgUnitsObjects",
@@ -594,11 +598,11 @@ __all__ = [
     "RegistrationFilter",
     "RelatedUnitFilter",
     "RelatedUnitsUpdateInput",
-    "RoleCreateInput",
-    "RoleFilter",
+    "RoleBindingCreateInput",
+    "RoleBindingFilter",
+    "RoleBindingTerminateInput",
+    "RoleBindingUpdateInput",
     "RoleRegistrationFilter",
-    "RoleTerminateInput",
-    "RoleUpdateInput",
     "SetJobTitle",
     "SetJobTitleEngagementUpdate",
     "TestingItsystemCreate",

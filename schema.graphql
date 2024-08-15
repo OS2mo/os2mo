@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 #
-# OS2mo GraphQL API schema definition (v22).
-# https://os2mo.eksempel.dk/graphql/v22/schema.graphql
+# OS2mo GraphQL API schema definition (v21).
+# https://os2mo.eksempel.dk/graphql/v21/schema.graphql
 
 "Address information for either an employee or organisational unit\n"
 type Address {
@@ -72,6 +72,17 @@ type Address {
     cursor: Cursor = null
   ): [Engagement!]
 
+  "Connected IT-user.\n"
+  ituser(
+    filter: UuidsBoundITUserFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): [ITUser!]!
+
   "Human readable name of the address.\n\nName is *usually* equal to `value`, but may differ if `value` is not human readable.\nThis may for instance be the case for `DAR` addresses, where the value is the DAR UUID, while the name is a human readable address.\n\nThis is the value that should be shown to users in UIs.\n\nExamples:\n* `\"Vifdam 20, 1. th, 6000 Kolding\"`\n* `\"25052943\"`\n* `\"info@magenta.dk\"`\n* `\"Building 11\"`\n\nNote:\nRequesting this field may incur a performance penalty as the returned value may be dynamically resolved from the `value`-field.\n"
   name: String
   resolve: ResolvedAddress!
@@ -132,13 +143,16 @@ input AddressCreateInput {
   """UUID for the related engagement."""
   engagement: UUID = null
 
+  """UUID for the related ituser."""
+  ituser: UUID = null
+
   """Visibility for the address."""
   visibility: UUID = null
 
   """Validity range for the org-unit."""
   validity: RAValidityInput!
 
-  """Extra info or uuid."""
+  """User key of the address. If None, defaults to value"""
   user_key: String = null
 
   """The actual address value."""
@@ -191,6 +205,9 @@ input AddressFilter {
 
   "Engagement UUID filter limiting which entries are returned.\n\n| `engagements`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
   engagements: [UUID!] = null @deprecated(reason: "Replaced by the 'engagement' filter")
+
+  """ITUser filter limiting which entries are returned."""
+  ituser: ITUserFilter = null
 }
 
 """Address registration filter."""
@@ -267,13 +284,16 @@ input AddressUpdateInput {
   """UUID for the related engagement."""
   engagement: UUID = null
 
+  """UUID for the related ituser."""
+  ituser: UUID = null
+
   """Visibility for the address."""
   visibility: UUID = null
 
   """Validity range for the org-unit."""
   validity: RAValidityInput!
 
-  """Extra info or uuid."""
+  """User key of the address. If None, defaults to value"""
   user_key: String = null
 
   """The actual address value."""
@@ -306,6 +326,17 @@ type Association {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): Class @deprecated(reason: "Will be removed in a future version of GraphQL.\nCurrently no replacement is in place, but specialized fields will probably arive in the future.\n")
+
+  "Marks associations with a trade union\n"
+  trade_union(
+    filter: UuidsBoundClassFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): Class
 
   "Marks which association is primary.\n\nWhen exporting data from OS2mo to external systems, that only support a single engagement or associations, this field can be used to export the primary one.\nWhat primarity means is vaguely defined, but usually derived from workload or time-allocation.\n\nExamples  of user-keys:\n* `\"primary\"`\n* `\"non-primary\"`\n* `\"explicitly-primary\"`\n\nIt is a convention that at most one association for each employee is set as either `primary` or `explicitly-primary`.\nThis convention is in place as if more associations are primary, the entire purpose of the field breaks down.\nIn the future this convention may become an invariant.\n\nNote:\nThe calculate-primary integration can be used to automatically calculate and update primarity fields.\n"
   primary(
@@ -396,6 +427,9 @@ type Association {
   """UUID of the dynamically attached class."""
   dynamic_class_uuid: UUID @deprecated(reason: "Will be removed in a future version of GraphQL.\nUse `dynamic_class {uuid}` instead.\n")
 
+  """UUID of the attached trade union."""
+  trade_union_uuid: UUID @deprecated(reason: "Will be removed in a future version of GraphQL.\nUse `trade_union {uuid}` instead.\n")
+
   """UUID of the organisation unit related to the association."""
   org_unit_uuid: UUID! @deprecated(reason: "Will be removed in a future version of GraphQL.\nUse `org_unit {uuid}` instead.\n")
 
@@ -442,6 +476,12 @@ input AssociationCreateInput {
 
   """Employee uuid."""
   employee: UUID = null @deprecated(reason: "Use 'person' instead. Will be removed in a future version of OS2mo.")
+
+  """Substitute uuid."""
+  substitute: UUID = null
+
+  """Trade union uuid."""
+  trade_union: UUID = null
 
   """org-unit uuid."""
   org_unit: UUID!
@@ -568,6 +608,12 @@ input AssociationUpdateInput {
 
   """Employee uuid."""
   employee: UUID = null @deprecated(reason: "Use 'person' instead. Will be removed in a future version of OS2mo.")
+
+  """Substitute uuid."""
+  substitute: UUID = null
+
+  """Trade union uuid."""
+  trade_union: UUID = null
 
   """org-unit uuid."""
   org_unit: UUID = null
@@ -943,8 +989,8 @@ type DARAddress implements ResolvedAddress {
   municipality_code: String!
   longitude: Float!
   latitude: Float!
-  href: String!
   name: String!
+  href: String!
   streetmap_href: String
 }
 
@@ -1014,17 +1060,6 @@ type Employee {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Association!]!
-
-  "Roles the employee has within the organisation.\n\nMay be an empty list if the employee does not fulfill any roles in the organisation.\n"
-  roles(
-    filter: EmployeesBoundRoleFilter
-
-    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
-    limit: int = null
-
-    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
-    cursor: Cursor = null
-  ): [Role!]!
 
   "IT accounts for the employee.\n\nMay be an empty list if the employee does not have any IT-access whatsoever.\n"
   itusers(
@@ -1253,6 +1288,7 @@ input EmployeesBoundAddressFilter {
   address_type_user_keys: [String!] = null
   engagement: EngagementFilter = null
   engagements: [UUID!] = null
+  ituser: ITUserFilter = null
 }
 
 input EmployeesBoundAssociationFilter {
@@ -1293,6 +1329,7 @@ input EmployeesBoundITUserFilter {
   registration: ITUserRegistrationFilter = null
   itsystem: ITSystemFilter = null
   itsystem_uuids: [UUID!] = null
+  engagement: EngagementFilter = null
 }
 
 input EmployeesBoundLeaveFilter {
@@ -1316,17 +1353,6 @@ input EmployeesBoundManagerFilter {
   to_date: DateTime
   registration: ManagerRegistrationFilter = null
   responsibility: ClassFilter = null
-}
-
-input EmployeesBoundRoleFilter {
-  org_unit: OrganisationUnitFilter = null
-  org_units: [UUID!] = null
-  employee: EmployeeFilter = null
-  uuids: [UUID!] = null
-  user_keys: [String!] = null
-  from_date: DateTime
-  to_date: DateTime
-  registration: RoleRegistrationFilter = null
 }
 
 """Employee engagement in an organisation unit"""
@@ -1414,7 +1440,7 @@ type Engagement {
   "Short unique key.\n\nUsually set to the `id` used in external systems.\n\nExamples:\n* `\"11009\"`\n* `\"02782\"`\n"
   user_key: String!
 
-  "Whether this engagement is the primary engagement.\n\nChecks if the `primary` field contains either a class with user-key: `\"primary\"` or `\"explicitly-primary\"`.\n"
+  "Whether this engagement is the primary engagement.\n\nChecks this engagements against the users other engagements. The engagement with the highest scope in the associated primary class\nis marked as primary. Only one engagement can be primary.\n"
   is_primary: Boolean!
 
   "The object type.\n\nAlways contains the string `engagement`.\n"
@@ -1746,6 +1772,9 @@ type Facet {
 }
 
 input FacetCreateInput {
+  """UUID to be created. Will be autogenerated if not specified."""
+  uuid: UUID = null
+
   """Facet name."""
   user_key: String!
 
@@ -1842,6 +1871,9 @@ input FacetTerminateInput {
 }
 
 input FacetUpdateInput {
+  """UUID of the facet to update."""
+  uuid: UUID!
+
   """Facet name."""
   user_key: String!
 
@@ -1850,9 +1882,6 @@ input FacetUpdateInput {
 
   """Validity range for the facet. Default to ['-infinity', 'infinity']"""
   validity: ValidityInput!
-
-  """UUID of the facet to update."""
-  uuid: UUID!
 }
 
 input FacetsBoundClassFilter {
@@ -2159,6 +2188,17 @@ type ITUser {
     cursor: Cursor = null
   ): [Engagement!]
 
+  "Addresses connected with the IT-user.\n\nCommonly contain addresses such as:\n* Email\n* AD GUID\n* FK-org UUID\n"
+  addresses(
+    filter: ItuserBoundAddressFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): [Address!]!
+
   "ITSystem this account is for.\n"
   itsystem(
     filter: UuidsBoundITSystemFilter
@@ -2169,6 +2209,17 @@ type ITUser {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): ITSystem!
+
+  """Rolebindings this IT User has in the connected IT system."""
+  rolebindings(
+    filter: ItuserBoundRoleBindingFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): [RoleBinding!]!
 
   "Marks which IT account is primary.\n\nWhen exporting data from OS2mo to external systems, that only support a single IT account, this field can be used to export the primary one.\nWhat primarity means is vaguely defined, but usually derived from workload or time-allocation.\n\nExamples  of user-keys:\n* `\"primary\"`\n* `\"non-primary\"`\n* `\"explicitly-primary\"`\n\nIt is a convention that at most one IT account for each employee / employee+engagement is set as either `primary` or `explicitly-primary`.\nThis convention is in place as if more IT accounts are primary, the entire purpose of the field breaks down.\nIn the future this convention may become an invariant.\n"
   primary(
@@ -2275,6 +2326,9 @@ input ITUserFilter {
 
   "Only return IT users of ITSystem with these UUIDs filter limiting which entries are returned.\n\n| `itsystem_uuids`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
   itsystem_uuids: [UUID!] = null @deprecated(reason: "Replaced by the 'itsystem' filter")
+
+  "Engagement filter limiting which entries are returned.\n"
+  engagement: EngagementFilter = null
 }
 
 """ITUser registration filter."""
@@ -2362,6 +2416,33 @@ input ITUserUpdateInput {
 
   """Note associated with the update of this IT user."""
   note: String = null
+}
+
+input ItuserBoundAddressFilter {
+  org_unit: OrganisationUnitFilter = null
+  org_units: [UUID!] = null
+  employee: EmployeeFilter = null
+  employees: [UUID!] = null
+  uuids: [UUID!] = null
+  user_keys: [String!] = null
+  from_date: DateTime
+  to_date: DateTime
+  registration: AddressRegistrationFilter = null
+  address_type: ClassFilter = null
+  address_types: [UUID!] = null
+  address_type_user_keys: [String!] = null
+  engagement: EngagementFilter = null
+  engagements: [UUID!] = null
+}
+
+input ItuserBoundRoleBindingFilter {
+  org_unit: OrganisationUnitFilter = null
+  org_units: [UUID!] = null
+  uuids: [UUID!] = null
+  user_keys: [String!] = null
+  from_date: DateTime
+  to_date: DateTime
+  registration: RoleRegistrationFilter = null
 }
 
 "KLE responsibility mapping.\n\nKLE stands for \"Kommunernes Landsforenings Emnesystematik\" which is a municipality taxonomy for mapping out municipality tasks.\n\nIn OS2mo KLE responsibilities can be mapped to organisation units to signify that a given organisational unit operates within certain municipality tasks.\nAdding KLE responsibilities to organisational units can help out with regards to GDPR by identifying which organisational units operate with sensitive tasks.\n\nThe KLE numbers themselves are dot seperated structured numbers alike this:\n* `\"00.75.00\"`: General data exchanges\n* `\"21.02.05\"`: Library study cafes\n* `\"32.15.08\"`: Alimony\n\nThe first number specifies the main-group, such as:\n* `\"00\"`: Municipality operations (Kommunens styrelse)\n* `\"21\"`: Libraries\n* `\"31\"`: Monetary benefits\n\nThe second number specifies the group, such as (for libraries):\n* `\"02\"`: On-site usage\n* `\"05\"`: AV Materials\n* `\"20\"`: Online services\n\nThe third and final number specifies the topic, such as (for library on-site usage):\n* `\"00\"`: General usage\n* `\"05\"`: Study cafes\n* `\"10\"`: Study centers\n\nSome KLE ranges are pre-reserved by The National Association of Municipalities (Kommunernes Landsforenings), however outside of these pre-reserved ranges municipalies are allowed to add their own local numbers.\nSpecifically no main-groups can be added, only groups and topics, both above 79.\n\nFor more details see: https://www.kle-online.dk\n"
@@ -2990,7 +3071,6 @@ type MultifieldAddress implements ResolvedAddress {
   name: String!
 }
 
-"Entrypoint for all modification-operations.\n\n**Warning**:\nDo **not** use any `*_delete`-mutators without **thoroughly** understanding its implications and the documentation.\n"
 type Mutation {
   """Creates an address."""
   address_create(input: AddressCreateInput!): AddressResponse!
@@ -3327,18 +3407,18 @@ type Mutation {
     exchange: String = null
   ): UUIDPaged!
 
-  """Creates a role."""
-  role_create(input: RoleCreateInput!): RoleResponse!
+  """Create a rolebinding."""
+  rolebinding_create(input: RoleBindingCreateInput!): RoleBindingResponse!
 
-  """Updates a role."""
-  role_update(input: RoleUpdateInput!): RoleResponse!
+  """Update a rolebinding."""
+  rolebinding_update(input: RoleBindingUpdateInput!): RoleBindingResponse!
 
-  """Terminates a role."""
-  role_terminate(input: RoleTerminateInput!): RoleResponse!
+  """Terminate a rolebinding."""
+  rolebinding_terminate(input: RoleBindingTerminateInput!): RoleBindingResponse!
 
-  """Refresh roles."""
-  role_refresh(
-    filter: RoleFilter = null
+  """Refresh rolebindings."""
+  rolebinding_refresh(
+    filter: RoleBindingFilter = null
 
     "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
     limit: int = null
@@ -3385,6 +3465,7 @@ input OrgUnitsboundaddressfilter {
   address_type_user_keys: [String!] = null
   engagement: EngagementFilter = null
   engagements: [UUID!] = null
+  ituser: ITUserFilter = null
 }
 
 input OrgUnitsboundassociationfilter {
@@ -3425,6 +3506,7 @@ input OrgUnitsboundituserfilter {
   registration: ITUserRegistrationFilter = null
   itsystem: ITSystemFilter = null
   itsystem_uuids: [UUID!] = null
+  engagement: EngagementFilter = null
 }
 
 input OrgUnitsboundklefilter {
@@ -3447,34 +3529,12 @@ input OrgUnitsboundleavefilter {
   registration: LeaveRegistrationFilter = null
 }
 
-input OrgUnitsboundownerfilter {
-  org_unit: OrganisationUnitFilter = null
-  employee: EmployeeFilter = null
-  employees: [UUID!] = null
-  uuids: [UUID!] = null
-  user_keys: [String!] = null
-  from_date: DateTime
-  to_date: DateTime
-  owner: EmployeeFilter = null
-}
-
 input OrgUnitsboundrelatedunitfilter {
   org_unit: OrganisationUnitFilter = null
   uuids: [UUID!] = null
   user_keys: [String!] = null
   from_date: DateTime
   to_date: DateTime
-}
-
-input OrgUnitsboundrolefilter {
-  org_unit: OrganisationUnitFilter = null
-  employee: EmployeeFilter = null
-  employees: [UUID!] = null
-  uuids: [UUID!] = null
-  user_keys: [String!] = null
-  from_date: DateTime
-  to_date: DateTime
-  registration: RoleRegistrationFilter = null
 }
 
 """Root organisation - one and only one of these can exist"""
@@ -3590,17 +3650,6 @@ type OrganisationUnit {
     cursor: Cursor = null
   ): [Engagement!]!
 
-  "\nOwners of the organisation unit.\n"
-  owners(
-    filter: OrgUnitsboundownerfilter
-
-    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
-    limit: int = null
-
-    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
-    cursor: Cursor = null
-  ): [Owner!]!
-
   "Addresses for the organisation unit.\n\nCommonly contain addresses such as, their:\n* Location\n* Contact phone number\n* Contact email\n"
   addresses(
     filter: OrgUnitsboundaddressfilter
@@ -3633,17 +3682,6 @@ type OrganisationUnit {
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
   ): [Association!]!
-
-  "Roles being fulfilled within the organisational unit.\n\nMay be an empty list if the organistion unit is purely hierarchical.\nThis situation may occur especially in the middle or the organisation tree.\n"
-  roles(
-    filter: OrgUnitsboundrolefilter
-
-    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
-    limit: int = null
-
-    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
-    cursor: Cursor = null
-  ): [Role!]!
 
   "IT (service) accounts.\n\nMay be an empty list if the organistion unit does not have any IT (service) accounts whatsoever.\nThis situation may occur especially in the middle or the organisation tree.\n"
   itusers(
@@ -3700,6 +3738,14 @@ type OrganisationUnit {
     "Whether to inherit managerial roles or not.\n\nIf managerial roles exist directly on this organisation unit, the flag does nothing and these managerial roles are returned.\nHowever if no managerial roles exist directly, and this flag is:\n* Not set: An empty list is returned.\n* Is set: The result from calling `managers` with `inherit=True` on the parent of this organistion unit is returned.\n\nCalling with `inherit=True` can help ensure that a manager is always found.\n"
     inherit: Boolean! = false
   ): [Manager!]!
+
+  "Owner roles for the organisation unit.\n\nMay be empty in which case owners are usually inherited from parents.\nSee the `inherit`-flag for details.\n"
+  owners(
+    filter: OwnerFilter = null
+
+    "Whether to inherit owner roles or not.\n\nIf owner roles exist directly on this organisaion unit, the flag does nothing and these owner roles are returned.\nHowever if no owner roles exist directly, and this flag is:\n* Not set: An empty list is returned.\n* Is set: The result from calling `owners` with `inherit=True` on the parent of this organistion unit is returned.\n\nCalling with `inherit=True` can help ensure that an owner is always found.\n"
+    inherit: Boolean! = false
+  ): [Owner!]!
 
   """UUID of the parent organisation unit."""
   org_unit_hierarchy: UUID @deprecated(reason: "Will be removed in a future version of GraphQL.\nUse `org_unit_hierarchy_model {uuid}` instead.\n")
@@ -3763,6 +3809,9 @@ input OrganisationUnitFilter {
 
   "Free text search.\n\nDoes best effort lookup to find entities matching the query string.\nNo quarantees are given w.r.t. the entries returned.\n"
   query: String
+
+  "Name filter finding exact matches by name.\n\n| `names`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
+  names: [String!]
 
   "Parent filter limiting which entries are returned.\n\nSet to `None` to find root units.\n"
   parent: OrganisationUnitFilter
@@ -4088,6 +4137,7 @@ input ParentsBoundOrganisationUnitFilter {
   to_date: DateTime
   registration: OrganisationUnitRegistrationFilter = null
   query: String
+  names: [String!]
   parent: OrganisationUnitFilter
   hierarchy: ClassFilter = null
   hierarchies: [UUID!] = null
@@ -4252,15 +4302,15 @@ type Query {
   ): RelatedUnitResponsePaged!
 
   """Get role-mappings."""
-  roles(
-    filter: RoleFilter = null
+  rolebindings(
+    filter: RoleBindingFilter = null
 
     "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
     limit: int = null
 
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
-  ): RoleResponsePaged!
+  ): RoleBindingResponsePaged!
 
   """Query healthcheck status."""
   healths(
@@ -4495,39 +4545,17 @@ interface ResolvedAddress {
 }
 
 """The role a person has within an organisation unit"""
-type Role {
-  "The role that is being fulfilled.\n\nExamples of user-keys:\n* `\"Staff representative\"`\n* `\"Coordinator\"`\n* `\"Security personnel\"`\n"
-  role_type(
-    filter: UuidsBoundClassFilter
+type RoleBinding {
+  "The IT-user that should be granted this role\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
+  ituser(
+    filter: UuidsBoundITUserFilter
 
     "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
     limit: int = null
 
     "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
     cursor: Cursor = null
-  ): Class!
-
-  "The person fulfilling the role.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
-  employee(
-    filter: UuidsBoundEmployeeFilter
-
-    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
-    limit: int = null
-
-    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
-    cursor: Cursor = null
-  ): [Employee!]! @deprecated(reason: "Use 'person' instead. Will be removed in a future version of OS2mo.")
-
-  "The person fulfilling the role.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
-  person(
-    filter: UuidsBoundEmployeeFilter
-
-    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
-    limit: int = null
-
-    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
-    cursor: Cursor = null
-  ): [Employee!]!
+  ): [ITUser!]!
 
   "The organisational unit in which the role is being fulfilled.\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
   org_unit(
@@ -4543,26 +4571,25 @@ type Role {
   """UUID of the entity"""
   uuid: UUID!
 
-  "The object type.\n\nAlways contains the string `role`.\n"
-  type: String! @deprecated(reason: "Unintentionally exposed implementation detail.\nProvides no value whatsoever.\n")
-
-  """UUID of the role type class."""
-  role_type_uuid: UUID! @deprecated(reason: "Will be removed in a future version of GraphQL.\nUse `role_type {uuid}` instead.\n")
-
-  """UUID of the employee related to the role."""
-  employee_uuid: UUID! @deprecated(reason: "Will be removed in a future version of GraphQL.\nUse `employee {uuid}` instead.\n")
-
-  """UUID of the organisation unit related to the association."""
-  org_unit_uuid: UUID! @deprecated(reason: "Will be removed in a future version of GraphQL.\nUse `org_unit {uuid}` instead.\n")
-
   """Short, unique key. Defaults to object UUID."""
   user_key: String!
 
   """Validity of the role object."""
   validity: Validity!
+
+  "The role that is being fulfilled.\n\nExamples of user-keys:\n* `\"AD Read\"`\n* `\"AD Write\"`\n* `\"SAP Admin\"`\n\n**Warning**:\nThis field will probably become an optional entity instead of a list in the future.\n"
+  role(
+    filter: UuidsBoundClassFilter
+
+    "\nLimit the maximum number of elements to fetch.\n\n| `limit`      | \\# elements fetched |\n|--------------|---------------------|\n| not provided | All                 |\n| `null`       | All                 |\n| `0`          | `0` (`*`)           |\n| `x`          | Between `0` and `x` |\n\n`*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.\n\nNote:\n\nSometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.\n\nThis may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.\n\nNot to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.\n"
+    limit: int = null
+
+    "Cursor defining the next elements to fetch.\n\n| `cursor`       | Next element is    |\n|----------------|--------------------|\n| not provided   | First              |\n| `null`         | First              |\n| `\"MA==\"` (`*`) | First after Cursor |\n\n`*`: Placeholder for the cursor returned by the previous iteration.\n"
+    cursor: Cursor = null
+  ): [Class!]!
 }
 
-input RoleCreateInput {
+input RoleBindingCreateInput {
   """UUID to be created. Will be autogenerated if not specified."""
   uuid: UUID = null
 
@@ -4570,20 +4597,20 @@ input RoleCreateInput {
   user_key: String = null
 
   """UUID of the org_unit"""
-  org_unit: UUID!
+  org_unit: UUID = null
 
-  """UUID of the person"""
-  person: UUID!
+  """UUID of the ituser"""
+  ituser: UUID!
 
   """UUID of the role type"""
-  role_type: UUID!
+  role: UUID!
 
   """Validity range for the role."""
   validity: RAValidityInput!
 }
 
-"""Role filter."""
-input RoleFilter {
+"""Rolebinding filter."""
+input RoleBindingFilter {
   "UUID filter limiting which entries are returned.\n\n| `uuids`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
   uuids: [UUID!] = null
 
@@ -4596,12 +4623,6 @@ input RoleFilter {
   """Limit the elements returned by their ending validity."""
   to_date: DateTime
 
-  "Employee filter limiting which entries are returned.\n"
-  employee: EmployeeFilter = null
-
-  "Employee UUID filter limiting which entries are returned.\n\n| `employees`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
-  employees: [UUID!] = null @deprecated(reason: "Replaced by the 'employee' filter")
-
   "Organisation Unit filter limiting which entries are returned.\n"
   org_unit: OrganisationUnitFilter = null
 
@@ -4610,22 +4631,13 @@ input RoleFilter {
 
   "Registration filter limiting which entries are returned.\n"
   registration: RoleRegistrationFilter = null
-}
 
-"""Role registration filter."""
-input RoleRegistrationFilter {
-  "Filter registrations by their changing actor.\n\nCan be used to select all changes made by a particular user or integration.\n\n| `actors`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
-  actors: [UUID!] = null
-
-  """Limit the elements returned by their starting validity."""
-  start: DateTime = null
-
-  """Limit the elements returned by their ending validity."""
-  end: DateTime = null
+  "ITUser filter limiting which entries are returned.\n"
+  ituser: ITUserFilter = null
 }
 
 "Top-level container for (bi)-temporal and actual state data access.\n\nContains a UUID uniquely denoting the bitemporal object.\n\nContains three different object temporality axis:\n\n| entrypoint      | temporal axis | validity time | assertion time |\n|-----------------|---------------|---------------|----------------|\n| `current`       | actual state  | current       | current        |\n| `objects`       | temporal      | varying       | current        |\n| `registrations` | bitemporal    | varying       | varying        |\n\nThe argument for having three different entrypoints into the data is limiting complexity according to use-case.\n\nThat is, if a certain integration or UI only needs, say, actual state data, the complexities of the bitemporal data modelling is unwanted complexity, and as such, better left out.\n"
-type RoleResponse {
+type RoleBindingResponse {
   """UUID of the bitemporal object"""
   uuid: UUID!
 
@@ -4641,25 +4653,25 @@ type RoleResponse {
   ): [Registration!]!
 
   "Actual / current state entrypoint.\n\nReturns the state of the object at current validity and current assertion time.\n\nA single object is returned as only one validity can be active at a given assertion time.\n\nNote:\nThis the entrypoint is appropriate to use for actual-state integrations and UIs.\n"
-  current(at: DateTime): Role
+  current(at: DateTime): RoleBinding
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  objects(start: DateTime, end: DateTime): [Role!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
+  objects(start: DateTime, end: DateTime): [RoleBinding!]! @deprecated(reason: "\nWill be removed in a future version of GraphQL.\nUse validities instead.\n")
 
   "Temporal state entrypoint.\n\nReturns the state of the object at varying validities and current assertion time.\n\nA list of objects are returned as only many different validity intervals can be active at a given assertion time.\n\nNote:\nThis the entrypoint should be used for temporal integrations and UIs.\nFor actual-state integrations, please consider using `current` instead.\n"
-  validities(start: DateTime, end: DateTime): [Role!]!
+  validities(start: DateTime, end: DateTime): [RoleBinding!]!
 }
 
 """Result page in cursor-based pagination."""
-type RoleResponsePaged {
+type RoleBindingResponsePaged {
   "List of results.\n\nThe number of elements is defined by the `limit` argument.\n"
-  objects: [RoleResponse!]!
+  objects: [RoleBindingResponse!]!
 
   "Container for page information.\n\nContains the cursors necessary to fetch other pages.\nContains information on when to stop iteration.\n"
   page_info: PageInfo!
 }
 
-input RoleTerminateInput {
+input RoleBindingTerminateInput {
   """Start date of the validity."""
   from: DateTime = null
 
@@ -4670,7 +4682,7 @@ input RoleTerminateInput {
   uuid: UUID!
 }
 
-input RoleUpdateInput {
+input RoleBindingUpdateInput {
   """UUID of the role to be updated."""
   uuid: UUID!
 
@@ -4680,11 +4692,26 @@ input RoleUpdateInput {
   """UUID of the role's organisation unit to be updated."""
   org_unit: UUID = null
 
+  """UUID of the ituser"""
+  ituser: UUID!
+
   """UUID of the role type"""
-  role_type: UUID = null
+  role: UUID = null
 
   """Validity range for the role to be updated."""
   validity: RAValidityInput!
+}
+
+"""Role registration filter."""
+input RoleRegistrationFilter {
+  "Filter registrations by their changing actor.\n\nCan be used to select all changes made by a particular user or integration.\n\n| `actors`      | Elements returned                            |\n|--------------|----------------------------------------------|\n| not provided | All                                          |\n| `null`       | All                                          |\n| `[]`         | None                                         |\n| `\"x\"`        | `[\"x\"]` or `[]` (`*`)                        |\n| `[\"x\", \"y\"]` | `[\"x\", \"y\"]`, `[\"x\"]`, `[\"y\"]` or `[]` (`*`) |\n\n`*`: Elements returned depends on which elements were found.\n"
+  actors: [UUID!] = null
+
+  """Limit the elements returned by their starting validity."""
+  start: DateTime = null
+
+  """Limit the elements returned by their ending validity."""
+  end: DateTime = null
 }
 
 scalar UUID
@@ -4764,6 +4791,7 @@ input UuidsBoundITUserFilter {
   registration: ITUserRegistrationFilter = null
   itsystem: ITSystemFilter = null
   itsystem_uuids: [UUID!] = null
+  engagement: EngagementFilter = null
 }
 
 input UuidsBoundLeaveFilter {
@@ -4783,6 +4811,7 @@ input UuidsBoundOrganisationUnitFilter {
   to_date: DateTime
   registration: OrganisationUnitRegistrationFilter = null
   query: String
+  names: [String!]
   parent: OrganisationUnitFilter
   parents: [UUID!]
   hierarchy: ClassFilter = null
