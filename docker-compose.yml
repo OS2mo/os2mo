@@ -21,6 +21,23 @@ services:
 #    ports:
 #      - "389:389"
 
+  mo-init:
+    image: magentaaps/os2mo-init:5
+    environment:
+      MO_URL: "http://mo:5000"
+      CLIENT_ID: "dipex"
+      CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
+      AUTH_SERVER: "http://keycloak:8080/auth"
+      AUTH_REALM: "mo"
+    volumes:
+      - type: bind
+        source: ./dev-environment/init.config.yaml
+        target: /config/config.yml
+        read_only: true
+    restart: on-failure
+    networks:
+      - os2mo_default
+
   mo_ldap_import_export:
     container_name: mo_ldap_ie
     build: .

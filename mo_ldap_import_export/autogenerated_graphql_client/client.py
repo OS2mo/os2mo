@@ -6,6 +6,8 @@ from typing import Union
 from uuid import UUID
 
 from ..types import CPRNumber
+from ._testing__itsystem_create import TestingItsystemCreate
+from ._testing__itsystem_create import TestingItsystemCreateItsystemCreate
 from ._testing_ituser_create import TestingItuserCreate
 from ._testing_ituser_create import TestingItuserCreateItuserCreate
 from ._testing_user_create import TestingUserCreate
@@ -17,8 +19,6 @@ from .base_model import UNSET
 from .base_model import UnsetType
 from .class_create import ClassCreate
 from .class_create import ClassCreateClassCreate
-from .class_update import ClassUpdate
-from .class_update import ClassUpdateClassUpdate
 from .employee_refresh import EmployeeRefresh
 from .employee_refresh import EmployeeRefreshEmployeeRefresh
 from .engagement_terminate import EngagementTerminate
@@ -26,7 +26,6 @@ from .engagement_terminate import EngagementTerminateEngagementTerminate
 from .input_types import AddressFilter
 from .input_types import AddressTerminateInput
 from .input_types import ClassCreateInput
-from .input_types import ClassUpdateInput
 from .input_types import EmployeeCreateInput
 from .input_types import EngagementFilter
 from .input_types import EngagementTerminateInput
@@ -34,8 +33,6 @@ from .input_types import ITSystemCreateInput
 from .input_types import ITUserCreateInput
 from .input_types import ITUserFilter
 from .input_types import ITUserTerminateInput
-from .itsystem_create import ItsystemCreate
-from .itsystem_create import ItsystemCreateItsystemCreate
 from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefresh
@@ -96,8 +93,6 @@ from .read_engagements_by_engagements_filter import (
 )
 from .read_engagements_is_primary import ReadEngagementsIsPrimary
 from .read_engagements_is_primary import ReadEngagementsIsPrimaryEngagements
-from .read_facet_classes import ReadFacetClasses
-from .read_facet_classes import ReadFacetClassesClasses
 from .read_facet_uuid import ReadFacetUuid
 from .read_facet_uuid import ReadFacetUuidFacets
 from .read_filtered_addresses import ReadFilteredAddresses
@@ -171,12 +166,12 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return TestingItuserCreate.parse_obj(data).ituser_create
 
-    async def itsystem_create(
+    async def _testing__itsystem_create(
         self, input: ITSystemCreateInput
-    ) -> ItsystemCreateItsystemCreate:
+    ) -> TestingItsystemCreateItsystemCreate:
         query = gql(
             """
-            mutation itsystem_create($input: ITSystemCreateInput!) {
+            mutation __testing__itsystem_create($input: ITSystemCreateInput!) {
               itsystem_create(input: $input) {
                 uuid
               }
@@ -186,29 +181,7 @@ class GraphQLClient(AsyncBaseClient):
         variables: dict[str, object] = {"input": input}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
-        return ItsystemCreate.parse_obj(data).itsystem_create
-
-    async def read_facet_classes(self, facet_user_key: str) -> ReadFacetClassesClasses:
-        query = gql(
-            """
-            query read_facet_classes($facet_user_key: String!) {
-              classes(filter: {facet: {user_keys: [$facet_user_key]}}) {
-                objects {
-                  current {
-                    user_key
-                    uuid
-                    scope
-                    name
-                  }
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"facet_user_key": facet_user_key}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadFacetClasses.parse_obj(data).classes
+        return TestingItsystemCreate.parse_obj(data).itsystem_create
 
     async def read_facet_uuid(self, user_key: str) -> ReadFacetUuidFacets:
         query = gql(
@@ -258,21 +231,6 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadClassUuid.parse_obj(data).classes
-
-    async def class_update(self, input: ClassUpdateInput) -> ClassUpdateClassUpdate:
-        query = gql(
-            """
-            mutation class_update($input: ClassUpdateInput!) {
-              class_update(input: $input) {
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"input": input}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ClassUpdate.parse_obj(data).class_update
 
     async def read_root_org_uuid(self) -> ReadRootOrgUuidOrg:
         query = gql(

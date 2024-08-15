@@ -60,7 +60,7 @@ async def test_process_person(
     # Create an ITUser and verify that it ends up calling listen_to_changes_in_employees
     # In this case it does it by first emitting a employee_refresh event
 
-    itsystem_result = await graphql_client.itsystem_create(
+    itsystem_result = await graphql_client._testing__itsystem_create(
         ITSystemCreateInput(
             user_key="test", name="test", validity=RAOpenValidityInput()
         )
@@ -308,7 +308,7 @@ async def test_create_ldap_person_blocked_by_itsystem_check(
     cpr_number = "0101700000"
 
     # Create the SynchronizeToLDAP ITSystem
-    await graphql_client.itsystem_create(
+    await graphql_client._testing__itsystem_create(
         ITSystemCreateInput(
             user_key="SynchronizeToLDAP",
             name="SynchronizeToLDAP",

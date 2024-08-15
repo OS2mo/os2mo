@@ -30,7 +30,7 @@ async def test_graphql_client(
     itsystems = await graphql_client.read_itsystems()
     assert itsystems.objects == []
 
-    result = await graphql_client.itsystem_create(
+    result = await graphql_client._testing__itsystem_create(
         ITSystemCreateInput(
             user_key="test", name="test", validity=RAOpenValidityInput()
         )
@@ -50,10 +50,6 @@ async def test_graphql_client(
 @pytest.mark.parametrize(
     "method_name,arguments",
     [
-        (
-            "read_facet_classes",
-            {"facet_user_key": "test"},
-        ),
         (
             "read_facet_uuid",
             {"user_key": "test"},

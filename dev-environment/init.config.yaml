@@ -1,0 +1,6 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+---
+it_systems:
+  ADUUID: "Active Directory UUID"
+  ADtitle: "Active Directory Title"
