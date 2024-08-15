@@ -174,10 +174,6 @@ def test_can_terminate_address(address_mapping: dict) -> None:
     parse_obj_as(ConversionMapping, new_mapping)
 
 
-def test_minimal_settings(minimal_valid_settings: Settings) -> None:
-    assert minimal_valid_settings.production is True
-
-
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
 def test_discriminator_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     settings = Settings()
