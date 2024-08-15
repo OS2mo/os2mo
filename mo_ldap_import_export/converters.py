@@ -467,11 +467,11 @@ async def get_org_unit_path_string(
 async def get_org_unit_name_for_parent(
     graphql_client: GraphQLClient, uuid: UUID | str, layer: int = 0
 ) -> str | None:
-    """Get the name of the parent in the n'th layer of the org tree.
+    """Get the name of the ancestor in the n'th layer of the org tree.
 
     Example:
 
-        Imagine an org-unit tree alike the following:
+        Imagine an org-unit tree like the following:
             ```
             └── Kolding Kommune
                 └── Sundhed
@@ -494,11 +494,11 @@ async def get_org_unit_name_for_parent(
 
     Args:
         graphql_client: GraphQLClient to fetch org-units from MO with.
-        uuid: Organisation Unit UUID of the org-unit to find parents of.
-        layer: The layer the parent to extract is on.
+        uuid: Organisation Unit UUID of the org-unit to find ancestors of.
+        layer: The layer the ancestor to extract is on.
 
     Returns:
-        The name of the parent at the n'th layer above the provided org-unit.
+        The name of the ancestor at the n'th layer above the provided org-unit.
         If the layer provided is beyond the depth available None is returned.
     """
     uuid = uuid if isinstance(uuid, UUID) else UUID(uuid)
