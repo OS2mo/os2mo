@@ -21,6 +21,11 @@ mutation __testing__itsystem_create($input: ITSystemCreateInput!) {
   }
 }
 
+mutation __testing_org_unit_create($input: OrganisationUnitCreateInput!) {
+  org_unit_create(input: $input) {
+    uuid
+  }
+}
 
 # Normal queries
 
@@ -516,6 +521,19 @@ query read_org_unit_uuid($filter: OrganisationUnitFilter!) {
   org_units(filter: $filter) {
     objects {
       uuid
+    }
+  }
+}
+
+query read_org_unit_ancestor_names($uuid: UUID!) {
+  org_units(filter: { uuids: [$uuid] }) {
+    objects {
+      current {
+        name
+        ancestors {
+          name
+        }
+      }
     }
   }
 }

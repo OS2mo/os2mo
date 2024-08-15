@@ -10,6 +10,8 @@ from ._testing__itsystem_create import TestingItsystemCreate
 from ._testing__itsystem_create import TestingItsystemCreateItsystemCreate
 from ._testing_ituser_create import TestingItuserCreate
 from ._testing_ituser_create import TestingItuserCreateItuserCreate
+from ._testing_org_unit_create import TestingOrgUnitCreate
+from ._testing_org_unit_create import TestingOrgUnitCreateOrgUnitCreate
 from ._testing_user_create import TestingUserCreate
 from ._testing_user_create import TestingUserCreateEmployeeCreate
 from .address_terminate import AddressTerminate
@@ -33,6 +35,7 @@ from .input_types import ITSystemCreateInput
 from .input_types import ITUserCreateInput
 from .input_types import ITUserFilter
 from .input_types import ITUserTerminateInput
+from .input_types import OrganisationUnitCreateInput
 from .input_types import OrganisationUnitFilter
 from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
@@ -118,6 +121,8 @@ from .read_itusers import ReadItusers
 from .read_itusers import ReadItusersItusers
 from .read_org_unit_addresses import ReadOrgUnitAddresses
 from .read_org_unit_addresses import ReadOrgUnitAddressesAddresses
+from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNames
+from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNamesOrgUnits
 from .read_org_unit_name import ReadOrgUnitName
 from .read_org_unit_name import ReadOrgUnitNameOrgUnits
 from .read_org_unit_uuid import ReadOrgUnitUuid
@@ -185,6 +190,23 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingItsystemCreate.parse_obj(data).itsystem_create
+
+    async def _testing_org_unit_create(
+        self, input: OrganisationUnitCreateInput
+    ) -> TestingOrgUnitCreateOrgUnitCreate:
+        query = gql(
+            """
+            mutation __testing_org_unit_create($input: OrganisationUnitCreateInput!) {
+              org_unit_create(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingOrgUnitCreate.parse_obj(data).org_unit_create
 
     async def read_facet_uuid(self, user_key: str) -> ReadFacetUuidFacets:
         query = gql(
@@ -1131,3 +1153,27 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadOrgUnitUuid.parse_obj(data).org_units
+
+    async def read_org_unit_ancestor_names(
+        self, uuid: UUID
+    ) -> ReadOrgUnitAncestorNamesOrgUnits:
+        query = gql(
+            """
+            query read_org_unit_ancestor_names($uuid: UUID!) {
+              org_units(filter: {uuids: [$uuid]}) {
+                objects {
+                  current {
+                    name
+                    ancestors {
+                      name
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"uuid": uuid}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadOrgUnitAncestorNames.parse_obj(data).org_units

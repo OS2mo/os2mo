@@ -451,6 +451,18 @@ async def get_org_unit_uuid_from_path(
     return str(obj.uuid)
 
 
+async def get_org_unit_path_string(
+    graphql_client: GraphQLClient, org_unit_path_string_separator: str, uuid: str | UUID
+) -> str:
+    uuid = uuid if isinstance(uuid, UUID) else UUID(uuid)
+    result = await graphql_client.read_org_unit_ancestor_names(uuid)
+    current = one(result.objects).current
+    assert current is not None
+    names = [x.name for x in reversed(current.ancestors)] + [current.name]
+    assert org_unit_path_string_separator not in names
+    return org_unit_path_string_separator.join(names)
+
+
 class LdapConverter:
     def __init__(self, context: Context):
         self.context = context
@@ -919,24 +931,6 @@ class LdapConverter:
         }
         return uuid
 
-    # NOTE: Intentionally added with no cover as it was only tested by side-effect and
-    #       as it is being reimplemented in a coming pull-request.
-    async def get_org_unit_path_string(self, uuid: str) -> str:  # pragma: no cover
-        root_org_uuid = str(await self.dataloader.load_mo_root_org_uuid())
-        org_unit_info = self.org_unit_info[str(uuid)]
-        object_name = org_unit_info["name"].strip()
-        parent_uuid: str = org_unit_info["parent_uuid"]
-
-        path_string = object_name
-        while parent_uuid and parent_uuid != root_org_uuid:
-            parent_object_name = self.org_unit_info[parent_uuid]["name"].strip()
-            path_string = (
-                parent_object_name + self.org_unit_path_string_separator + path_string
-            )
-            parent_uuid = self.org_unit_info[parent_uuid]["parent_uuid"]
-
-        return cast(str, path_string)
-
     # TODO: Clean this up so it always just takes an UUID
     async def get_org_unit_name_for_parent(
         self, uuid: UUID | str, layer: int = 0
@@ -1099,7 +1093,11 @@ class LdapConverter:
                 get_engagement_type_name, self.dataloader.graphql_client
             ),
             "uuid4": uuid4,
-            "get_org_unit_path_string": self.get_org_unit_path_string,
+            "get_org_unit_path_string": partial(
+                get_org_unit_path_string,
+                self.dataloader.graphql_client,
+                self.org_unit_path_string_separator,
+            ),
             "get_org_unit_name_for_parent": self.get_org_unit_name_for_parent,
             "make_dn_from_org_unit_path": partial(
                 make_dn_from_org_unit_path, self.settings
