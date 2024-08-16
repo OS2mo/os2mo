@@ -1342,20 +1342,23 @@ async def test_create_org_unit_already_exists(
     route = graphql_mock.query("read_org_unit_uuid")
     route.result = {"org_units": {"objects": [{"uuid": uuid4()}]}}
 
-    await converter.create_org_unit("Magenta Aps\\Magenta Aarhus")
+    await converter.create_org_unit(["Magenta Aps", "Magenta Aarhus"])
     converter.dataloader.create_org_unit.assert_not_called()  # type: ignore
 
 
 @pytest.mark.parametrize(
     "path,expected",
     [
-        ("Magenta Aps", 1),
-        ("Magenta Aps\\Magenta Aarhus", 2),
-        ("Magenta Aps\\Magenta Aarhus\\OS2mo", 3),
+        (["Magenta Aps"], 1),
+        (["Magenta Aps", "Magenta Aarhus"], 2),
+        (["Magenta Aps", "Magenta Aarhus", "OS2mo"], 3),
     ],
 )
 async def test_create_org_unit_all_missing(
-    graphql_mock: GraphQLMocker, converter: LdapConverter, path: str, expected: int
+    graphql_mock: GraphQLMocker,
+    converter: LdapConverter,
+    path: list[str],
+    expected: int,
 ) -> None:
     graphql_client = GraphQLClient("http://example.com/graphql")
     converter.dataloader.graphql_client = graphql_client  # type: ignore

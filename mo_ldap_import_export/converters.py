@@ -837,7 +837,7 @@ class LdapConverter:
 
         logger.info("Attributes OK")
 
-    async def create_org_unit(self, org_unit_path: str) -> UUID:
+    async def create_org_unit(self, org_unit_path: list[str]) -> UUID:
         """Create the org-unit and any missing parents in org_unit_path.
 
         The function works by recursively creating parents until an existing parent is
@@ -853,11 +853,10 @@ class LdapConverter:
         if not org_unit_path:
             return await self.dataloader.load_mo_root_org_uuid()
 
-        org_unit_path_list = org_unit_path.split(self.org_unit_path_string_separator)
         # If the org-unit path already exists, no need to create, simply return it
         with suppress(UUIDNotFoundException):
             return await get_org_unit_uuid_from_path(
-                self.dataloader.graphql_client, org_unit_path_list
+                self.dataloader.graphql_client, org_unit_path
             )
 
         # If we get here, the path did not already exist, so we need to create it
@@ -866,8 +865,7 @@ class LdapConverter:
         # Figure out our name and our parent path
         # Split the org-unit path into name and parent path
         # The last element is the name with all the rest coming before being the parent
-        *parent_path_list, name = org_unit_path_list
-        parent_path = self.org_unit_path_string_separator.join(parent_path_list)
+        *parent_path, name = org_unit_path
 
         # Get or create our parent uuid (recursively)
         parent_uuid = await self.create_org_unit(parent_path)
@@ -963,7 +961,10 @@ class LdapConverter:
 
         # Clean leading and trailing whitespace from org unit path string
         org_unit_path_string = self.clean_org_unit_path_string(org_unit_path_string)
-        return str(await self.create_org_unit(org_unit_path_string))
+        org_unit_path_list = org_unit_path_string.split(
+            self.org_unit_path_string_separator
+        )
+        return str(await self.create_org_unit(org_unit_path_list))
 
     @staticmethod
     def str_to_dict(text):
