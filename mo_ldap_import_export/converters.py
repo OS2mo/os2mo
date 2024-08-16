@@ -463,6 +463,54 @@ async def get_org_unit_path_string(
     return org_unit_path_string_separator.join(names)
 
 
+# TODO: Clean this up so it always just takes an UUID
+async def get_org_unit_name_for_parent(
+    graphql_client: GraphQLClient, uuid: UUID | str, layer: int = 0
+) -> str | None:
+    """Get the name of the ancestor in the n'th layer of the org tree.
+
+    Example:
+
+        Imagine an org-unit tree like the following:
+            ```
+            └── Kolding Kommune
+                └── Sundhed
+                    ├── Plejecentre
+                    │   ├── Plejecenter Nord
+                    │   │   └── Køkken <-- uuid of this provided
+                    │   └── Plejecenter Syd
+                    │       └── Køkken
+                    └── Teknik
+            ```
+
+        Calling this function with the uuid above and layer, would return:
+
+        * 0: "Kolding Kommune"
+        * 1: "Sundhed"
+        * 2: "Plejecentre"
+        * 3: "Plejecenter Nord"
+        * 4: "Køkken"
+        * n: ""
+
+    Args:
+        graphql_client: GraphQLClient to fetch org-units from MO with.
+        uuid: Organisation Unit UUID of the org-unit to find ancestors of.
+        layer: The layer the ancestor to extract is on.
+
+    Returns:
+        The name of the ancestor at the n'th layer above the provided org-unit.
+        If the layer provided is beyond the depth available None is returned.
+    """
+    uuid = uuid if isinstance(uuid, UUID) else UUID(uuid)
+    result = await graphql_client.read_org_unit_ancestor_names(uuid)
+    current = one(result.objects).current
+    assert current is not None
+    names = [x.name for x in reversed(current.ancestors)] + [current.name]
+    with suppress(IndexError):
+        return names[layer]
+    return None
+
+
 class LdapConverter:
     def __init__(self, context: Context):
         self.context = context
@@ -931,62 +979,6 @@ class LdapConverter:
         }
         return uuid
 
-    # TODO: Clean this up so it always just takes an UUID
-    async def get_org_unit_name_for_parent(
-        self, uuid: UUID | str, layer: int = 0
-    ) -> str | None:
-        """Get the name of the parent in the n'th layer of the org tree.
-
-        Example:
-
-            Imagine an org-unit tree alike the following:
-                ```
-                └── Kolding Kommune
-                    └── Sundhed
-                        ├── Plejecentre
-                        │   ├── Plejecenter Nord
-                        │   │   └── Køkken <-- uuid of this provided
-                        │   └── Plejecenter Syd
-                        │       └── Køkken
-                        └── Teknik
-                ```
-
-            Calling this function with the uuid above and layer, would return:
-
-            * 0: "Kolding Kommune"
-            * 1: "Sundhed"
-            * 2: "Plejecentre"
-            * 3: "Plejecenter Nord"
-            * 4: "Køkken"
-            * n: ""
-
-        Args:
-            uuid: Organisation Unit UUID of the org-unit to find parents of.
-            layer: The layer the parent to extract is on.
-
-        Returns:
-            The name of the parent at the n'th layer above the provided org-unit.
-            If the layer provided is beyond the depth available None is returned.
-        """
-        # TODO: Implement this using MOs ancestor filter instead of org_unit_info
-        root_org_uuid = str(await self.dataloader.load_mo_root_org_uuid())
-        org_unit_info = self.org_unit_info[str(uuid)]
-
-        parent_uuid: str = org_unit_info["parent_uuid"]
-        object_name = org_unit_info["name"].strip()
-
-        parents: list[str] = [object_name]
-        while parent_uuid and parent_uuid != root_org_uuid:
-            parent_object_name = self.org_unit_info[parent_uuid]["name"].strip()
-            parents.append(parent_object_name)
-            parent_uuid = self.org_unit_info[parent_uuid]["parent_uuid"]
-
-        # List is build child --> root, but layers are defined root --> child
-        parents.reverse()
-        if layer >= len(parents):
-            return None
-        return parents[layer]
-
     def clean_org_unit_path_string(self, org_unit_path_string: str) -> str:
         """
         Cleans leading and trailing whitespace from org units in an org unit path string
@@ -1098,7 +1090,9 @@ class LdapConverter:
                 self.dataloader.graphql_client,
                 self.org_unit_path_string_separator,
             ),
-            "get_org_unit_name_for_parent": self.get_org_unit_name_for_parent,
+            "get_org_unit_name_for_parent": partial(
+                get_org_unit_name_for_parent, self.dataloader.graphql_client
+            ),
             "make_dn_from_org_unit_path": partial(
                 make_dn_from_org_unit_path, self.settings
             ),
