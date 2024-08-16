@@ -72,7 +72,6 @@ from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.environments import environment
 from mo_ldap_import_export.exceptions import IncorrectMapping
-from mo_ldap_import_export.exceptions import InvalidNameException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
 from tests.graphql_mocker import GraphQLMocker
@@ -1334,39 +1333,45 @@ async def test_check_ldap_to_mo_references(converter: LdapConverter):
         assert "Attribute 'nonExistingAttribute' not allowed." in str(inner_exception)
 
 
-async def test_create_org_unit(converter: LdapConverter):
-    uuids = [str(uuid4()), str(uuid4()), str(uuid4())]
-    org_units = ["Magenta Aps", "Magenta Aarhus", "GrønlandsTeam"]
-    org_unit_infos = [
-        {"name": org_units[i], "uuid": uuids[i]} for i in range(len(uuids))
-    ]
+async def test_create_org_unit_already_exists(
+    graphql_mock: GraphQLMocker, converter: LdapConverter
+) -> None:
+    graphql_client = GraphQLClient("http://example.com/graphql")
+    converter.dataloader.graphql_client = graphql_client  # type: ignore
+
+    route = graphql_mock.query("read_org_unit_uuid")
+    route.result = {"org_units": {"objects": [{"uuid": uuid4()}]}}
+
+    await converter.create_org_unit("Magenta Aps\\Magenta Aarhus")
+    converter.dataloader.create_org_unit.assert_not_called()  # type: ignore
+
+
+@pytest.mark.parametrize(
+    "path,expected",
+    [
+        ("Magenta Aps", 1),
+        ("Magenta Aps\\Magenta Aarhus", 2),
+        ("Magenta Aps\\Magenta Aarhus\\OS2mo", 3),
+    ],
+)
+async def test_create_org_unit_all_missing(
+    graphql_mock: GraphQLMocker, converter: LdapConverter, path: str, expected: int
+) -> None:
+    graphql_client = GraphQLClient("http://example.com/graphql")
+    converter.dataloader.graphql_client = graphql_client  # type: ignore
 
     uuid_root_org_uuid = uuid4()
-    root_org_uuid = str(uuid_root_org_uuid)
     converter.dataloader.load_mo_root_org_uuid.return_value = uuid_root_org_uuid  # type: ignore
 
-    converter.org_unit_info = {
-        uuids[0]: {**org_unit_infos[0], "parent_uuid": root_org_uuid},
-        uuids[1]: {**org_unit_infos[1], "parent_uuid": org_unit_infos[0]["uuid"]},
-    }
+    route1 = graphql_mock.query("read_org_unit_uuid")
+    route1.result = {"org_units": {"objects": []}}
 
-    org_unit_path_string = converter.org_unit_path_string_separator.join(org_units)
-    org_units = [info["name"] for info in converter.org_unit_info.values()]
+    route2 = graphql_mock.query("read_class_uuid_by_facet_and_class_user_key")
+    route2.result = {"classes": {"objects": [{"uuid": uuid4()}]}}
 
-    assert "Magenta Aps" in org_units
-    assert "Magenta Aarhus" in org_units
-    assert "GrønlandsTeam" not in org_units
-
-    # Create a unit with parents
-    await converter.create_org_unit(org_unit_path_string)
-
-    org_units = [info["name"] for info in converter.org_unit_info.values()]
-    assert "GrønlandsTeam" in org_units
-
-    # Try to create a unit without parents
-    await converter.create_org_unit("Ørsted")
-    org_units = [info["name"] for info in converter.org_unit_info.values()]
-    assert "Ørsted" in org_units
+    await converter.create_org_unit(path)
+    num_calls = len(converter.dataloader.create_org_unit.mock_calls)  # type: ignore
+    assert num_calls == expected
 
 
 async def test_get_or_create_org_unit_uuid_get(
@@ -1403,36 +1408,14 @@ async def test_get_or_create_org_unit_uuid_create(
     route2 = graphql_mock.query("read_class_uuid_by_facet_and_class_user_key")
     route2.result = {"classes": {"objects": [{"uuid": uuid4()}]}}
 
-    org_units = {info["name"] for info in converter.org_unit_info.values()}
-    assert org_units == set()
-
     # Create a new organization and return its UUID
     await converter.get_or_create_org_unit_uuid("ACME")
-    org_units = {info["name"] for info in converter.org_unit_info.values()}
-    assert org_units == {"ACME"}
+    converter.dataloader.create_org_unit.assert_awaited_once()  # type: ignore
 
 
 def test_clean_org_unit_path_string(converter: LdapConverter):
     assert converter.clean_org_unit_path_string("foo\\bar") == "foo\\bar"
     assert converter.clean_org_unit_path_string("foo \\ bar") == "foo\\bar"
-
-
-def test_check_info_dict_for_duplicates(converter: LdapConverter):
-    info_dict_with_duplicates = {
-        uuid4(): {"user_key": "foo"},
-        uuid4(): {"user_key": "foo"},
-    }
-
-    with pytest.raises(InvalidNameException):
-        converter.check_info_dict_for_duplicates(info_dict_with_duplicates)
-
-
-def test_check_org_unit_info_dict(converter: LdapConverter):
-    # This name is invalid because it contains backslashes;
-    # Because the org unit path separator is also a backslash.
-    converter.org_unit_info = {uuid4(): {"name": "invalid\\name"}}
-    with pytest.raises(InvalidNameException):
-        converter.check_org_unit_info_dict()
 
 
 def test_check_uuid_refs_in_mo_objects(converter: LdapConverter):
@@ -1672,30 +1655,6 @@ async def test_check_cpr_field_or_it_system(converter: LdapConverter):
             match="Neither a cpr-field or an ldap it-system could be found",
         ):
             await converter.check_cpr_field_or_it_system()
-
-
-def test_check_info_dicts(converter: LdapConverter):
-    uuid = str(uuid4())
-    converter.all_info_dicts = {
-        "my_info_dict": {uuid: {"uuid": uuid, "user_key": "foo"}}
-    }
-    converter.check_info_dicts()
-
-    with pytest.raises(IncorrectMapping, match="not an uuid"):
-        converter.all_info_dicts = {
-            "my_info_dict": {uuid: {"uuid": "not_an_uuid", "user_key": "foo"}}
-        }
-        converter.check_info_dicts()
-
-    with pytest.raises(IncorrectMapping, match="not a string"):
-        converter.all_info_dicts = {
-            "my_info_dict": {uuid: {"uuid": uuid4(), "user_key": "foo"}}
-        }
-        converter.check_info_dicts()
-
-    with pytest.raises(IncorrectMapping, match="'uuid' key not found"):
-        converter.all_info_dicts = {"my_info_dict": {uuid: {"user_key": "foo"}}}
-        converter.check_info_dicts()
 
 
 async def test_get_current_engagement_attribute(converter: LdapConverter):

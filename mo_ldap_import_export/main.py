@@ -251,7 +251,6 @@ async def handle_org_unit(
     # "engagement" message for each of its employees. Because org-unit
     # LDAP mapping is primarily done through the "Engagement" json-key.
     await sync_tool.publish_engagements_for_org_unit(OrgUnitUUID(object_uuid))
-    await sync_tool.refresh_org_unit_info_cache()
 
 
 @asynccontextmanager
@@ -292,27 +291,6 @@ async def initialize_converters(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
     fastramqpi.add_context(ldap_it_system_user_key=converter.ldap_it_system)
     fastramqpi.add_context(converter=converter)
     yield
-
-
-# TODO: Eliminate this function and make reloading dicts eventdriven
-@asynccontextmanager
-async def initialize_info_dict_refresher(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
-    async def refresher() -> None:
-        user_context = fastramqpi._context["user_context"]
-        converter = user_context["converter"]
-        while True:
-            await converter.load_info_dicts()
-            await asyncio.sleep(24 * 60 * 60)
-
-    task = asyncio.create_task(refresher())
-
-    yield
-
-    task.cancel()
-    try:
-        await task
-    except asyncio.CancelledError:
-        pass
 
 
 def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
@@ -391,9 +369,6 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     fastramqpi.add_context(username_generator=username_generator)
 
     fastramqpi.add_lifespan_manager(initialize_converters(fastramqpi), 1250)
-
-    # NOTE: info_dict_refresher depends on converters
-    fastramqpi.add_lifespan_manager(initialize_info_dict_refresher(fastramqpi), 1275)
 
     fastramqpi.add_lifespan_manager(initialize_checks(fastramqpi), 1300)
     fastramqpi.add_lifespan_manager(initialize_sync_tool(fastramqpi), 1350)

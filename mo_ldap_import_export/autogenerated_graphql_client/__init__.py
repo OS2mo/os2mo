@@ -341,11 +341,6 @@ from .read_org_unit_name import ReadOrgUnitNameOrgUnitsObjectsCurrent
 from .read_org_unit_uuid import ReadOrgUnitUuid
 from .read_org_unit_uuid import ReadOrgUnitUuidOrgUnits
 from .read_org_unit_uuid import ReadOrgUnitUuidOrgUnitsObjects
-from .read_org_units import ReadOrgUnits
-from .read_org_units import ReadOrgUnitsOrgUnits
-from .read_org_units import ReadOrgUnitsOrgUnitsObjects
-from .read_org_units import ReadOrgUnitsOrgUnitsObjectsValidities
-from .read_org_units import ReadOrgUnitsOrgUnitsObjectsValiditiesValidity
 from .read_root_org_uuid import ReadRootOrgUuid
 from .read_root_org_uuid import ReadRootOrgUuidOrg
 from .set_job_title import SetJobTitle
@@ -602,11 +597,6 @@ __all__ = [
     "ReadOrgUnitUuid",
     "ReadOrgUnitUuidOrgUnits",
     "ReadOrgUnitUuidOrgUnitsObjects",
-    "ReadOrgUnits",
-    "ReadOrgUnitsOrgUnits",
-    "ReadOrgUnitsOrgUnitsObjects",
-    "ReadOrgUnitsOrgUnitsObjectsValidities",
-    "ReadOrgUnitsOrgUnitsObjectsValiditiesValidity",
     "ReadRootOrgUuid",
     "ReadRootOrgUuidOrg",
     "RegistrationFilter",

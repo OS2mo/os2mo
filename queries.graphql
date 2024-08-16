@@ -352,24 +352,6 @@ query read_itsystems {
   }
 }
 
-query read_org_units {
-  org_units(filter: {from_date: null, to_date: null}) {
-    objects {
-      uuid
-      validities {
-        uuid
-        name
-        user_key
-        parent_uuid
-        validity {
-          to
-          from
-        }
-      }
-    }
-  }
-}
-
 query read_class_user_keys($facet_user_keys: [String!]!) {
   classes(filter: {facet: {user_keys: $facet_user_keys}}) {
     objects {
