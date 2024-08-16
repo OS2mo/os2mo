@@ -432,7 +432,7 @@ async def get_org_unit_uuid_from_path(
     graphql_client: GraphQLClient,
     org_unit_path_string_separator: str,
     org_unit_path_string: str,
-) -> str:
+) -> UUID:
     def construct_filter(names: Iterator[str]) -> OrganisationUnitFilter | None:
         name = next(names, None)
         if name is None:
@@ -446,7 +446,7 @@ async def get_org_unit_uuid_from_path(
     obj = only(result.objects)
     if obj is None:
         raise UUIDNotFoundException(f"'{org_unit_path_string}' not found in OS2mo")
-    return str(obj.uuid)
+    return obj.uuid
 
 
 async def get_org_unit_path_string(
@@ -857,12 +857,10 @@ class LdapConverter:
 
         # If the org-unit path already exists, no need to create, simply return it
         with suppress(UUIDNotFoundException):
-            return UUID(
-                await get_org_unit_uuid_from_path(
-                    self.dataloader.graphql_client,
-                    self.org_unit_path_string_separator,
-                    org_unit_path,
-                )
+            return await get_org_unit_uuid_from_path(
+                self.dataloader.graphql_client,
+                self.org_unit_path_string_separator,
+                org_unit_path,
             )
 
         # If we get here, the path did not already exist, so we need to create it

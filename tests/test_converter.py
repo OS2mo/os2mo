@@ -1786,7 +1786,7 @@ async def test_get_org_unit_uuid_from_path(graphql_mock: GraphQLMocker) -> None:
     route.result = {"org_units": {"objects": [{"uuid": org_unit_uuid}]}}
 
     result = await get_org_unit_uuid_from_path(graphql_client, "\\", "org1\\org2\\org3")
-    assert result == str(org_unit_uuid)
+    assert result == org_unit_uuid
     call_content = json.loads(one(route.calls).request.content)
     filter = call_content["variables"]["filter"]
     assert filter == {
