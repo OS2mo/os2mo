@@ -430,8 +430,7 @@ async def check_key_validity(
 
 async def get_org_unit_uuid_from_path(
     graphql_client: GraphQLClient,
-    org_unit_path_string_separator: str,
-    org_unit_path_string: str,
+    org_unit_path: list[str],
 ) -> UUID:
     def construct_filter(names: Iterator[str]) -> OrganisationUnitFilter | None:
         name = next(names, None)
@@ -439,13 +438,12 @@ async def get_org_unit_uuid_from_path(
             return None
         return OrganisationUnitFilter(names=[name], parent=construct_filter(names))
 
-    org_unit_names = org_unit_path_string.split(org_unit_path_string_separator)
-    filter = construct_filter(reversed(org_unit_names))
+    filter = construct_filter(reversed(org_unit_path))
     assert filter is not None
     result = await graphql_client.read_org_unit_uuid(filter)
     obj = only(result.objects)
     if obj is None:
-        raise UUIDNotFoundException(f"'{org_unit_path_string}' not found in OS2mo")
+        raise UUIDNotFoundException(f"{org_unit_path} not found in OS2mo")
     return obj.uuid
 
 
@@ -855,19 +853,17 @@ class LdapConverter:
         if not org_unit_path:
             return await self.dataloader.load_mo_root_org_uuid()
 
+        org_unit_path_list = org_unit_path.split(self.org_unit_path_string_separator)
         # If the org-unit path already exists, no need to create, simply return it
         with suppress(UUIDNotFoundException):
             return await get_org_unit_uuid_from_path(
-                self.dataloader.graphql_client,
-                self.org_unit_path_string_separator,
-                org_unit_path,
+                self.dataloader.graphql_client, org_unit_path_list
             )
 
         # If we get here, the path did not already exist, so we need to create it
         logger.info("Importing", path=org_unit_path)
 
         # Figure out our name and our parent path
-        org_unit_path_list = org_unit_path.split(self.org_unit_path_string_separator)
         # Split the org-unit path into name and parent path
         # The last element is the name with all the rest coming before being the parent
         *parent_path_list, name = org_unit_path_list

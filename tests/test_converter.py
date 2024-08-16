@@ -1785,7 +1785,7 @@ async def test_get_org_unit_uuid_from_path(graphql_mock: GraphQLMocker) -> None:
     route = graphql_mock.query("read_org_unit_uuid")
     route.result = {"org_units": {"objects": [{"uuid": org_unit_uuid}]}}
 
-    result = await get_org_unit_uuid_from_path(graphql_client, "\\", "org1\\org2\\org3")
+    result = await get_org_unit_uuid_from_path(graphql_client, ["org1", "org2", "org3"])
     assert result == org_unit_uuid
     call_content = json.loads(one(route.calls).request.content)
     filter = call_content["variables"]["filter"]
@@ -1804,8 +1804,8 @@ async def test_get_org_unit_uuid_from_path_no_match(
     route.result = {"org_units": {"objects": []}}
 
     with pytest.raises(UUIDNotFoundException) as exc_info:
-        await get_org_unit_uuid_from_path(graphql_client, "\\", "org1\\org4")
-    assert "org1\\org4' not found in OS2mo" in str(exc_info.value)
+        await get_org_unit_uuid_from_path(graphql_client, ["org1", "org4"])
+    assert "['org1', 'org4'] not found in OS2mo" in str(exc_info.value)
 
     call_content = json.loads(one(route.calls).request.content)
     filter = call_content["variables"]["filter"]
