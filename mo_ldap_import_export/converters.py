@@ -870,10 +870,10 @@ class LdapConverter:
 
         # Figure out our name and our parent path
         org_unit_path_list = org_unit_path.split(self.org_unit_path_string_separator)
-        # Our name is the last element of the path
-        name = org_unit_path_list.pop()
-        # Out parent path is all the elements coming before our name
-        parent_path = self.org_unit_path_string_separator.join(org_unit_path_list)
+        # Split the org-unit path into name and parent path
+        # The last element is the name with all the rest coming before being the parent
+        *parent_path_list, name = org_unit_path_list
+        parent_path = self.org_unit_path_string_separator.join(parent_path_list)
 
         # Get or create our parent uuid (recursively)
         parent_uuid = await self.create_org_unit(parent_path)
