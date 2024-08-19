@@ -167,7 +167,6 @@ def context(address_type_uuid: str) -> Context:
     dataloader.load_mo_employee_address_types.return_value = mo_employee_address_types
     dataloader.load_mo_org_unit_address_types.return_value = mo_org_unit_address_types
     dataloader.load_mo_it_systems.return_value = mo_it_systems
-    dataloader.load_mo_org_units.return_value = {}
 
     dataloader.graphql_client.read_class_user_keys.return_value = parse_obj_as(
         ReadClassUserKeysClasses,
@@ -1364,14 +1363,14 @@ async def test_create_org_unit_all_missing(
     graphql_client = GraphQLClient("http://example.com/graphql")
     converter.dataloader.graphql_client = graphql_client  # type: ignore
 
-    uuid_root_org_uuid = uuid4()
-    converter.dataloader.load_mo_root_org_uuid.return_value = uuid_root_org_uuid  # type: ignore
-
     route1 = graphql_mock.query("read_org_unit_uuid")
     route1.result = {"org_units": {"objects": []}}
 
     route2 = graphql_mock.query("read_class_uuid_by_facet_and_class_user_key")
     route2.result = {"classes": {"objects": [{"uuid": uuid4()}]}}
+
+    route3 = graphql_mock.query("read_root_org_uuid")
+    route3.result = {"org": {"uuid": uuid4()}}
 
     await converter.create_org_unit(path)
     num_calls = len(converter.dataloader.create_org_unit.mock_calls)  # type: ignore
@@ -1404,13 +1403,14 @@ async def test_get_or_create_org_unit_uuid_create(
     graphql_client = GraphQLClient("http://example.com/graphql")
     converter.dataloader.graphql_client = graphql_client  # type: ignore
 
-    converter.dataloader.load_mo_root_org_uuid.return_value = uuid4()  # type: ignore
-
     route1 = graphql_mock.query("read_org_unit_uuid")
     route1.result = {"org_units": {"objects": []}}
 
     route2 = graphql_mock.query("read_class_uuid_by_facet_and_class_user_key")
     route2.result = {"classes": {"objects": [{"uuid": uuid4()}]}}
+
+    route3 = graphql_mock.query("read_root_org_uuid")
+    route3.result = {"org": {"uuid": uuid4()}}
 
     # Create a new organization and return its UUID
     await converter.get_or_create_org_unit_uuid("ACME")

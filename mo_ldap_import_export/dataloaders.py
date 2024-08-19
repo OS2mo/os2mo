@@ -1165,15 +1165,6 @@ class DataLoader:
             return None
         return facet.uuid
 
-    async def load_mo_root_org_uuid(self) -> UUID:
-        """Get the UUID of the root organisational unit in MO.
-
-        Returns:
-            The UUID of the root organisational unit.
-        """
-        result = await self.graphql_client.read_root_org_uuid()
-        return result.uuid
-
     async def load_mo_it_user(self, uuid: UUID, current_objects_only=True) -> ITUser:
         start = end = UNSET if current_objects_only else None
         results = await self.graphql_client.read_itusers([uuid], start, end)
