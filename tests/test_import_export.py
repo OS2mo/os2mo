@@ -93,7 +93,7 @@ async def test_listen_to_changes_in_employee_no_employee(
     employee_uuid = uuid4()
 
     dataloader.find_mo_employee_dn.return_value = {"CN=foo"}
-    dataloader.load_mo_employee.side_effect = NoObjectsReturnedException("BOOM")
+    dataloader.load_mo_employee.return_value = None
 
     # Simulate a created employee
     with pytest.raises(RequeueMessage) as exc_info:

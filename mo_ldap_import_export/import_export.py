@@ -707,13 +707,12 @@ class SyncTool:
         exit_stack.enter_context(bound_contextvars(dn=best_dn))
 
         # Get MO employee
-        try:
-            changed_employee = await self.dataloader.load_mo_employee(
-                uuid, current_objects_only=False
-            )
-        except NoObjectsReturnedException as exc:
-            logger.error("Unable to load mo object")
-            raise RequeueMessage("Unable to load mo object") from exc
+        changed_employee = await self.dataloader.load_mo_employee(
+            uuid, current_objects_only=False
+        )
+        if changed_employee is None:
+            logger.error("Unable to load mo employee")
+            raise RequeueMessage("Unable to load mo object")
         logger.info("Found Employee in MO", changed_employee=changed_employee)
 
         mo_object_dict: dict[str, Any] = {"mo_employee": changed_employee}

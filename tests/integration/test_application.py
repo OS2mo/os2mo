@@ -388,7 +388,9 @@ async def test_mo2ldap_person(test_client: AsyncClient) -> None:
     headers = {"Content-Type": "text/plain"}
     result = await test_client.post("/mo2ldap/person", content=content, headers=headers)
     assert result.status_code == 500
-    assert result.json() == {"detail": "Could not fetch employee"}
+    payload = result.json()
+    assert payload.keys() == {"detail"}
+    assert "Unable to lookup employee" in payload["detail"]
 
 
 @pytest.mark.integration_test
