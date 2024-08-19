@@ -430,23 +430,21 @@ async def check_key_validity(
 
 async def get_org_unit_uuid_from_path(
     graphql_client: GraphQLClient,
-    org_unit_path_string_separator: str,
-    org_unit_path_string: str,
-) -> str:
+    org_unit_path: list[str],
+) -> UUID:
     def construct_filter(names: Iterator[str]) -> OrganisationUnitFilter | None:
         name = next(names, None)
         if name is None:
             return None
         return OrganisationUnitFilter(names=[name], parent=construct_filter(names))
 
-    org_unit_names = org_unit_path_string.split(org_unit_path_string_separator)
-    filter = construct_filter(reversed(org_unit_names))
+    filter = construct_filter(reversed(org_unit_path))
     assert filter is not None
     result = await graphql_client.read_org_unit_uuid(filter)
     obj = only(result.objects)
     if obj is None:
-        raise UUIDNotFoundException(f"'{org_unit_path_string}' not found in OS2mo")
-    return str(obj.uuid)
+        raise UUIDNotFoundException(f"{org_unit_path} not found in OS2mo")
+    return obj.uuid
 
 
 async def get_org_unit_path_string(
@@ -839,7 +837,7 @@ class LdapConverter:
 
         logger.info("Attributes OK")
 
-    async def create_org_unit(self, org_unit_path: str) -> UUID:
+    async def create_org_unit(self, org_unit_path: list[str]) -> UUID:
         """Create the org-unit and any missing parents in org_unit_path.
 
         The function works by recursively creating parents until an existing parent is
@@ -857,23 +855,17 @@ class LdapConverter:
 
         # If the org-unit path already exists, no need to create, simply return it
         with suppress(UUIDNotFoundException):
-            return UUID(
-                await get_org_unit_uuid_from_path(
-                    self.dataloader.graphql_client,
-                    self.org_unit_path_string_separator,
-                    org_unit_path,
-                )
+            return await get_org_unit_uuid_from_path(
+                self.dataloader.graphql_client, org_unit_path
             )
 
         # If we get here, the path did not already exist, so we need to create it
         logger.info("Importing", path=org_unit_path)
 
         # Figure out our name and our parent path
-        org_unit_path_list = org_unit_path.split(self.org_unit_path_string_separator)
         # Split the org-unit path into name and parent path
         # The last element is the name with all the rest coming before being the parent
-        *parent_path_list, name = org_unit_path_list
-        parent_path = self.org_unit_path_string_separator.join(parent_path_list)
+        *parent_path, name = org_unit_path
 
         # Get or create our parent uuid (recursively)
         parent_uuid = await self.create_org_unit(parent_path)
@@ -908,18 +900,20 @@ class LdapConverter:
         await self.dataloader.create_org_unit(org_unit)
         return uuid
 
-    def clean_org_unit_path_string(self, org_unit_path_string: str) -> str:
-        """
-        Cleans leading and trailing whitespace from org units in an org unit path string
+    def clean_org_unit_path_string(self, org_unit_path: list[str]) -> list[str]:
+        """Cleans leading and trailing whitespace from org units names.
 
-        Example
-        ----------
-        >>> org_unit_path_string = "foo / bar"
-        >>> clean_org_unit_path_string(org_unit_path_string)
-        >>> "foo/bar"
+        Example:
+            ```python
+            org_unit_path = ["foo ", " bar", " baz "]
+            clean_org_unit_path_string(org_unit_path)
+            # Returns ["foo", "bar", "baz"]
+            ```
+
+        Args:
+            org_unit_path: A list of org-unit names.
         """
-        sep = self.org_unit_path_string_separator
-        return sep.join([s.strip() for s in org_unit_path_string.split(sep)])
+        return [x.strip() for x in org_unit_path]
 
     def org_unit_path_string_from_dn(self, dn, number_of_ous_to_ignore=0) -> str:
         """
@@ -968,8 +962,9 @@ class LdapConverter:
             raise UUIDNotFoundException("Organization unit string is empty")
 
         # Clean leading and trailing whitespace from org unit path string
-        org_unit_path_string = self.clean_org_unit_path_string(org_unit_path_string)
-        return str(await self.create_org_unit(org_unit_path_string))
+        org_unit_path = org_unit_path_string.split(self.org_unit_path_string_separator)
+        org_unit_path = self.clean_org_unit_path_string(org_unit_path)
+        return str(await self.create_org_unit(org_unit_path))
 
     @staticmethod
     def str_to_dict(text):
