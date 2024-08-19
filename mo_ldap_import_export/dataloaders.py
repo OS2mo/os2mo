@@ -1121,7 +1121,7 @@ class DataLoader:
         entry.pop("validity")
         return Employee(**entry)
 
-    async def load_mo_class_uuid(self, user_key: str) -> UUID:
+    async def load_mo_class_uuid(self, user_key: str) -> UUID | None:
         """Find the UUID of a class by user-key.
 
         Args:
@@ -1130,23 +1130,20 @@ class DataLoader:
         Raises:
             MultipleObjectsReturnedException:
                 If multiple classes share the same user-key.
-            NoObjectsReturnedException:
-                If no active classes were found with the user-key.
 
         Returns:
-            The uuid of the corresponding class.
+            The UUID of the class or None if not found.
         """
         result = await self.graphql_client.read_class_uuid(user_key)
         too_long = MultipleObjectsReturnedException(
             f"Found multiple classes with user_key = '{user_key}': {result}"
         )
-        too_short = NoObjectsReturnedException(
-            f"Could not find class with user_key = '{user_key}"
-        )
-        klass = one(result.objects, too_short=too_short, too_long=too_long)
+        klass = only(result.objects, too_long=too_long)
+        if klass is None:
+            return None
         return klass.uuid
 
-    async def load_mo_facet_uuid(self, user_key: str) -> UUID:
+    async def load_mo_facet_uuid(self, user_key: str) -> UUID | None:
         """Find the UUID of a facet by user-key.
 
         Args:
@@ -1155,20 +1152,17 @@ class DataLoader:
         Raises:
             MultipleObjectsReturnedException:
                 If multiple facets share the same user-key.
-            NoObjectsReturnedException:
-                If no active facets were found with the user-key.
 
         Returns:
-            The uuid of the corresponding facet.
+            The uuid of the facet or None if not found.
         """
         result = await self.graphql_client.read_facet_uuid(user_key)
         too_long = MultipleObjectsReturnedException(
             f"Found multiple facets with user_key = '{user_key}': {result}"
         )
-        too_short = NoObjectsReturnedException(
-            f"Could not find facet with user_key = '{user_key}"
-        )
-        facet = one(result.objects, too_short=too_short, too_long=too_long)
+        facet = only(result.objects, too_long=too_long)
+        if facet is None:
+            return None
         return facet.uuid
 
     async def load_mo_root_org_uuid(self) -> UUID:
@@ -1576,8 +1570,8 @@ class DataLoader:
         """
         async with self.create_mo_class_lock:
             # If class already exists, noop
-            with suppress(NoObjectsReturnedException):
-                uuid = await self.load_mo_class_uuid(user_key)
+            uuid = await self.load_mo_class_uuid(user_key)
+            if uuid:
                 logger.info("MO class exists", user_key=user_key)
                 return uuid
 
@@ -1591,31 +1585,3 @@ class DataLoader:
             )
             result = await self.graphql_client.class_create(input)
             return result.uuid
-
-    async def create_mo_job_function(self, name) -> UUID:
-        """
-        Creates a job function class in MO
-
-        Returns
-        ----------
-        uuid: UUID
-            The uuid of the created class
-        """
-        logger.info("Creating MO job function", name=name)
-        facet_uuid = await self.load_mo_facet_uuid("engagement_job_function")
-        user_key = name
-        return await self.create_mo_class(name, user_key, facet_uuid)
-
-    async def create_mo_engagement_type(self, name) -> UUID:
-        """
-        Creates an engagement type class in MO
-
-        Returns
-        ----------
-        uuid: UUID
-            The uuid of the created class
-        """
-        logger.info("Creating MO engagement type", name=name)
-        facet_uuid = await self.load_mo_facet_uuid("engagement_type")
-        user_key = name
-        return await self.create_mo_class(name, user_key, facet_uuid)

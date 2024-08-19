@@ -42,6 +42,7 @@ from mo_ldap_import_export.config import LDAP2MOMapping
 from mo_ldap_import_export.config import MO2LDAPMapping
 from mo_ldap_import_export.config import check_attributes
 from mo_ldap_import_export.converters import LdapConverter
+from mo_ldap_import_export.converters import _create_facet_class
 from mo_ldap_import_export.converters import check_key_validity
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
@@ -1135,7 +1136,7 @@ async def test_get_job_function_uuid(
 
     new_uuid = uuid4()
     dataloader = AsyncMock()
-    dataloader.create_mo_job_function.return_value = new_uuid
+    dataloader.create_mo_class.return_value = new_uuid
 
     result = await get_or_create_job_function_uuid(dataloader, "non-existing_job")
     assert result == str(new_uuid)
@@ -1152,7 +1153,7 @@ async def test_get_job_function_uuid_default_kwarg(dataloader: AsyncMock) -> Non
     # Arrange: mock the UUID of a newly created job function
     uuid_for_new_job_function = str(uuid4())
     dataloader = AsyncMock()
-    dataloader.create_mo_job_function.return_value = uuid_for_new_job_function
+    dataloader.create_mo_class.return_value = uuid_for_new_job_function
 
     # Act
     result = await get_or_create_job_function_uuid(dataloader, "", default="Default")
@@ -1169,7 +1170,7 @@ async def test_get_job_function_uuid_default_kwarg_does_not_override(
     # Arrange
     uuid = str(uuid4())
     dataloader = AsyncMock()
-    dataloader.create_mo_job_function.return_value = uuid
+    dataloader.create_mo_class.return_value = uuid
 
     # Act
     result = await get_or_create_job_function_uuid(
@@ -1195,7 +1196,7 @@ async def test_get_engagement_type_uuid(dataloader: AsyncMock, class_name: str) 
 async def test_get_engagement_type_non_existing_uuid(dataloader: AsyncMock) -> None:
     uuid = uuid4()
 
-    dataloader.create_mo_engagement_type.return_value = uuid
+    dataloader.create_mo_class.return_value = uuid
 
     assert await get_or_create_engagement_type_uuid(
         dataloader, "non-existing_engagement_type"
@@ -2018,3 +2019,11 @@ async def test_ldap_to_mo_termination(converter: LdapConverter) -> None:
     assert hasattr(mail, "terminate_")
     assert mail.value == "foo@bar.dk"
     assert mail.person.uuid == employee_uuid
+
+
+async def test_create_facet_class_no_facet() -> None:
+    dataloader = AsyncMock()
+    dataloader.load_mo_facet_uuid.return_value = None
+    with pytest.raises(NoObjectsReturnedException) as exc_info:
+        await _create_facet_class(dataloader, "class_key", "facet_key")
+    assert "Could not find facet with user_key = 'facet_key'" in str(exc_info.value)

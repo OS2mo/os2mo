@@ -268,35 +268,60 @@ async def get_employee_dict(dataloader: DataLoader, employee_uuid: UUID) -> dict
     return mo_employee.dict()
 
 
-async def get_or_create_engagement_type_uuid(
-    dataloader: DataLoader, engagement_type: str
+async def _create_facet_class(
+    dataloader: DataLoader, class_user_key: str, facet_user_key: str
+) -> UUID:
+    """Creates a class under the specified facet in MO.
+
+    Args:
+        dataloader: Our dataloader instance
+        facet_user_key: User-key of the facet to create the class under.
+        class_user_key: The name/user-key to give the class.
+
+    Returns:
+        The uuid of the created class
+    """
+    logger.info("Creating MO class", facet_user_key=facet_user_key, name=class_user_key)
+    facet_uuid = await dataloader.load_mo_facet_uuid(facet_user_key)
+    if facet_uuid is None:
+        raise NoObjectsReturnedException(
+            f"Could not find facet with user_key = '{facet_user_key}'"
+        )
+    return await dataloader.create_mo_class(
+        name=class_user_key, user_key=class_user_key, facet_uuid=facet_uuid
+    )
+
+
+async def _get_or_create_facet_class(
+    dataloader: DataLoader,
+    class_user_key: str,
+    facet_user_key: str,
+    default: str | None = None,
 ) -> str:
-    if not engagement_type:
-        raise UUIDNotFoundException("engagement_type is empty")
+    if not class_user_key:
+        if default is None:
+            raise UUIDNotFoundException("Cannot create class without user-key")
+        logger.info("class_user_key is empty, using provided default", default=default)
+        class_user_key = default
     try:
-        return await get_engagement_type_uuid(
-            dataloader.graphql_client, engagement_type
+        return await _get_facet_class_uuid(
+            dataloader.graphql_client,
+            class_user_key=class_user_key,
+            facet_user_key=facet_user_key,
         )
     except UUIDNotFoundException:
-        uuid = await dataloader.create_mo_engagement_type(engagement_type)
+        uuid = await _create_facet_class(
+            dataloader, class_user_key=class_user_key, facet_user_key=facet_user_key
+        )
         return str(uuid)
 
 
-async def get_or_create_job_function_uuid(
-    dataloader: DataLoader, job_function: str, default: str | None = None
-) -> str:
-    if not job_function:
-        if default is None:
-            raise UUIDNotFoundException("job_function is empty")
-
-        logger.info("job_function is empty, using provided default", default=default)
-        job_function = default
-
-    try:
-        return await get_job_function_uuid(dataloader.graphql_client, job_function)
-    except UUIDNotFoundException:
-        uuid = await dataloader.create_mo_job_function(job_function)
-        return str(uuid)
+get_or_create_engagement_type_uuid = partial(
+    _get_or_create_facet_class, facet_user_key="engagement_type"
+)
+get_or_create_job_function_uuid = partial(
+    _get_or_create_facet_class, facet_user_key="engagement_job_function"
+)
 
 
 async def get_itsystem_user_keys(graphql_client: GraphQLClient) -> set[str]:
