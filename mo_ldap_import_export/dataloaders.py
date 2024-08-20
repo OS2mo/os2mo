@@ -19,6 +19,7 @@ from uuid import UUID
 import structlog
 from fastapi.encoders import jsonable_encoder
 from fastramqpi.context import Context
+from fastramqpi.raclients.modelclient.mo import ModelClient as LegacyModelClient
 from ldap3 import BASE
 from ldap3 import Connection
 from ldap3.core.exceptions import LDAPInvalidValueError
@@ -158,6 +159,9 @@ class DataLoader:
         self.user_context = context["user_context"]
         self.ldap_connection: Connection = self.user_context["ldap_connection"]
         self.settings: Settings = self.user_context["settings"]
+        self.legacy_model_client: LegacyModelClient = self.context[
+            "legacy_model_client"
+        ]
         self.attribute_types = get_attribute_types(self.ldap_connection)
         self.single_value = {k: v.single_value for k, v in self.attribute_types.items()}
         self.create_mo_class_lock = asyncio.Lock()
@@ -1357,27 +1361,27 @@ class DataLoader:
         return cast(list[Any | None], create_results + edit_results + terminate_results)
 
     async def create_employee(self, obj: Employee) -> Any:
-        model_client = self.context["legacy_model_client"]
+        model_client = self.legacy_model_client
         result = cast(list[Any], await model_client.upload([obj]))
         return one(result)
 
     async def create_address(self, obj: Address) -> Any:
-        model_client = self.context["legacy_model_client"]
+        model_client = self.legacy_model_client
         result = cast(list[Any], await model_client.upload([obj]))
         return one(result)
 
     async def create_engagement(self, obj: Engagement) -> Any:
-        model_client = self.context["legacy_model_client"]
+        model_client = self.legacy_model_client
         result = cast(list[Any], await model_client.upload([obj]))
         return one(result)
 
     async def create_ituser(self, obj: ITUser) -> Any:
-        model_client = self.context["legacy_model_client"]
+        model_client = self.legacy_model_client
         result = cast(list[Any], await model_client.upload([obj]))
         return one(result)
 
     async def create_org_unit(self, obj: OrganisationUnit) -> Any:
-        model_client = self.context["legacy_model_client"]
+        model_client = self.legacy_model_client
         result = cast(list[Any], await model_client.upload([obj]))
         return one(result)
 
@@ -1407,22 +1411,22 @@ class DataLoader:
         return results
 
     async def edit_employee(self, obj: Employee) -> Any:
-        model_client = self.context["legacy_model_client"]
+        model_client = self.legacy_model_client
         result = cast(list[Any], await model_client.edit([obj]))
         return one(result)
 
     async def edit_address(self, obj: Address) -> Any:
-        model_client = self.context["legacy_model_client"]
+        model_client = self.legacy_model_client
         result = cast(list[Any], await model_client.edit([obj]))
         return one(result)
 
     async def edit_engagement(self, obj: Engagement) -> Any:
-        model_client = self.context["legacy_model_client"]
+        model_client = self.legacy_model_client
         result = cast(list[Any], await model_client.edit([obj]))
         return one(result)
 
     async def edit_ituser(self, obj: ITUser) -> Any:
-        model_client = self.context["legacy_model_client"]
+        model_client = self.legacy_model_client
         result = cast(list[Any], await model_client.edit([obj]))
         return one(result)
 
