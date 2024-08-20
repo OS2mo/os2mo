@@ -285,7 +285,7 @@ class DataLoader:
         search_results = await object_search(searchParameters, ldap_connection)
         # TODO: Asyncio gather this
         ldap_objects: list[LdapObject] = [
-            await make_ldap_object(search_result, self.context)  # type: ignore
+            await make_ldap_object(search_result, ldap_connection)
             for search_result in search_results
         ]
         dns = [obj.dn for obj in ldap_objects]
