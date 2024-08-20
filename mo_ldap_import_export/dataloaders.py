@@ -163,21 +163,6 @@ class DataLoader:
         self._mo_to_ldap_attributes = []
         self.create_mo_class_lock = asyncio.Lock()
 
-        # Relate graphQL object types (left) to AMQP routing key object types (right)
-        self.object_type_dict = {
-            "employees": "person",
-            "org_units": "org_unit",
-            "addresses": "address",
-            "itusers": "ituser",
-            "engagements": "engagement",
-        }
-
-        self.object_type_dict_inv = {
-            str(v): k for k, v in self.object_type_dict.items()
-        }
-
-        self.supported_object_types = list(self.object_type_dict_inv.keys())
-
     @property
     def graphql_client(self) -> GraphQLClient:
         return cast(GraphQLClient, self.context["graphql_client"])
