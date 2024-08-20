@@ -259,10 +259,8 @@ class DataLoader:
         if not cpr_field:
             raise NoObjectsReturnedException("cpr_field is not configured")
 
-        settings = self.settings
-
-        search_base = settings.ldap_search_base
-        ous_to_search_in = settings.ldap_ous_to_search_in
+        search_base = self.settings.ldap_search_base
+        ous_to_search_in = self.settings.ldap_ous_to_search_in
         search_bases = [
             combine_dn_strings([ou, search_base]) for ou in ous_to_search_in
         ]
@@ -293,14 +291,12 @@ class DataLoader:
         """
         Determine if an OU is among those to which we are allowed to write.
         """
-        settings = self.settings
-
-        if "" in settings.ldap_ous_to_write_to:
+        if "" in self.settings.ldap_ous_to_write_to:
             # Empty string means that it is allowed to write to all OUs
             return True
 
         ou = extract_ou_from_dn(dn)
-        ous_to_write_to = [safe_dn(ou) for ou in settings.ldap_ous_to_write_to]
+        ous_to_write_to = [safe_dn(ou) for ou in self.settings.ldap_ous_to_write_to]
         for ou_to_write_to in ous_to_write_to:
             if ou.endswith(ou_to_write_to):
                 # If an OU ends with one of the OUs-to-write-to, it's OK.
@@ -325,8 +321,7 @@ class DataLoader:
         Modifies LDAP
         """
         # TODO: Remove this when ldap3s read-only flag works
-        settings = self.settings
-        if settings.ldap_read_only:
+        if self.settings.ldap_read_only:
             logger.info(
                 "LDAP connection is read-only",
                 operation="modify_ldap",
@@ -424,9 +419,8 @@ class DataLoader:
             See https://ldap3.readthedocs.io/en/latest/add.html for more information
 
         """
-        settings = self.settings
         # TODO: Remove this when ldap3s read-only flag works
-        if settings.ldap_read_only:
+        if self.settings.ldap_read_only:
             logger.info(
                 "LDAP connection is read-only",
                 operation="add_ldap_object",
@@ -435,7 +429,7 @@ class DataLoader:
             )
             raise ReadOnlyException("LDAP connection is read-only")
 
-        if not settings.add_objects_to_ldap:
+        if not self.settings.add_objects_to_ldap:
             logger.info(
                 "Adding LDAP objects is disabled",
                 operation="add_ldap_object",
@@ -486,14 +480,12 @@ class DataLoader:
         """
         Creates an OU. If the parent OU does not exist, creates that one first
         """
-        settings = self.settings
-
         # TODO: Remove this when ldap3s read-only flag works
-        if settings.ldap_read_only:
+        if self.settings.ldap_read_only:
             logger.info("LDAP connection is read-only", operation="create_ou", ou=ou)
             raise ReadOnlyException("LDAP connection is read-only")
 
-        if not settings.add_objects_to_ldap:
+        if not self.settings.add_objects_to_ldap:
             logger.info("Adding LDAP objects is disabled", operation="create_ou", ou=ou)
             raise ReadOnlyException("Adding LDAP objects is disabled")
 
@@ -507,7 +499,7 @@ class DataLoader:
         for ou_to_create in self.decompose_ou_string(ou)[::-1]:
             if ou_to_create not in ou_dict:
                 logger.info("Creating OU", ou_to_create=ou_to_create)
-                dn = combine_dn_strings([ou_to_create, settings.ldap_search_base])
+                dn = combine_dn_strings([ou_to_create, self.settings.ldap_search_base])
                 _, result = await ldap_add(
                     self.ldap_connection, dn, "OrganizationalUnit"
                 )
@@ -521,9 +513,8 @@ class DataLoader:
         --------
         Only deletes OUs which are empty
         """
-        settings = self.settings
         # TODO: Remove this when ldap3s read-only flag works
-        if settings.ldap_read_only:
+        if self.settings.ldap_read_only:
             logger.info("LDAP connection is read-only", operation="delete_ou", ou=ou)
             raise ReadOnlyException("LDAP connection is read-only")
 
@@ -535,10 +526,10 @@ class DataLoader:
             ou_dict = await self.load_ldap_OUs()
             if (
                 ou_dict.get(ou_to_delete, {}).get("empty", False)
-                and ou_to_delete != settings.ldap_ou_for_new_users
+                and ou_to_delete != self.settings.ldap_ou_for_new_users
             ):
                 logger.info("Deleting OU", ou_to_delete=ou_to_delete)
-                dn = combine_dn_strings([ou_to_delete, settings.ldap_search_base])
+                dn = combine_dn_strings([ou_to_delete, self.settings.ldap_search_base])
                 _, result = await ldap_delete(self.ldap_connection, dn)
                 logger.info("LDAP Result", result=result, dn=dn)
 
@@ -547,10 +538,8 @@ class DataLoader:
         Moves an LDAP object from one DN to another. Returns True if the move was
         successful.
         """
-        settings = self.settings
-
         # TODO: Remove this when ldap3s read-only flag works
-        if settings.ldap_read_only:
+        if self.settings.ldap_read_only:
             logger.info(
                 "LDAP connection is read-only",
                 operation="move_ldap_object",
@@ -559,7 +548,7 @@ class DataLoader:
             )
             raise ReadOnlyException("LDAP connection is read-only")
 
-        if not settings.add_objects_to_ldap:
+        if not self.settings.add_objects_to_ldap:
             logger.info(
                 "Adding LDAP objects is disabled",
                 operation="move_ldap_object",
@@ -774,9 +763,10 @@ class DataLoader:
         # Get Unique LDAP UUID from DN, then get engagement by looking for IT user with that
         # Unique LDAP UUID in MO.
 
-        settings = self.settings
-        ldap_object = await self.load_ldap_object(dn, [settings.ldap_unique_id_field])
-        raw_unique_uuid = getattr(ldap_object, settings.ldap_unique_id_field)
+        ldap_object = await self.load_ldap_object(
+            dn, [self.settings.ldap_unique_id_field]
+        )
+        raw_unique_uuid = getattr(ldap_object, self.settings.ldap_unique_id_field)
         # NOTE: Not sure if this only necessary for the mocked server or not
         if isinstance(raw_unique_uuid, list):
             raw_unique_uuid = one(raw_unique_uuid)
@@ -838,15 +828,14 @@ class DataLoader:
         Given an unique_ldap_uuid, find the DistinguishedName
         """
         logger.info("Looking for LDAP object", unique_ldap_uuid=unique_ldap_uuid)
-        settings = self.settings
         searchParameters = {
-            "search_base": settings.ldap_search_base,
-            "search_filter": f"(&(objectclass=*)({settings.ldap_unique_id_field}={unique_ldap_uuid}))",
+            "search_base": self.settings.ldap_search_base,
+            "search_filter": f"(&(objectclass=*)({self.settings.ldap_unique_id_field}={unique_ldap_uuid}))",
             "attributes": [],
         }
 
         # Special-case for AD
-        if settings.ldap_unique_id_field == "objectGUID":
+        if self.settings.ldap_unique_id_field == "objectGUID":
             searchParameters = {
                 "search_base": f"<GUID={unique_ldap_uuid}>",
                 "search_filter": "(objectclass=*)",
@@ -864,14 +853,15 @@ class DataLoader:
         """
         Given a DN, find the unique_ldap_uuid
         """
-        settings = self.settings
         logger.info("Looking for LDAP object", dn=dn)
-        ldap_object = await self.load_ldap_object(dn, [settings.ldap_unique_id_field])
-        uuid = getattr(ldap_object, settings.ldap_unique_id_field)
+        ldap_object = await self.load_ldap_object(
+            dn, [self.settings.ldap_unique_id_field]
+        )
+        uuid = getattr(ldap_object, self.settings.ldap_unique_id_field)
         if not uuid:
             # Some computer-account objects has no samaccountname
             raise NoObjectsReturnedException(
-                f"Object has no {settings.ldap_unique_id_field}"
+                f"Object has no {self.settings.ldap_unique_id_field}"
             )
         return UUID(uuid)
 
