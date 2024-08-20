@@ -965,6 +965,7 @@ async def test_load_mo_it_user(
     }
 
     output = await dataloader.load_mo_it_user(uuid4())
+    assert output is not None
     assert output.user_key == "foo"
     assert output.itsystem.uuid == uuid2
     assert output.person.uuid == uuid1  # type: ignore
@@ -1030,15 +1031,25 @@ async def test_load_mo_engagement_missing(
     assert route.called
 
 
+@pytest.mark.parametrize(
+    "objects",
+    [
+        # No objects returned
+        [],
+        # Object returned, but no validities
+        [{"validities": []}],
+    ],
+)
 async def test_load_mo_it_user_not_found(
-    dataloader: DataLoader, legacy_graphql_session: AsyncMock
-):
-    return_value: dict = {"itusers": {"objects": []}}
+    dataloader: DataLoader, graphql_mock: GraphQLMocker, objects: list[dict]
+) -> None:
+    route = graphql_mock.query("read_itusers")
+    route.result = {"itusers": {"objects": objects}}
 
-    legacy_graphql_session.execute.return_value = return_value
+    result = await dataloader.load_mo_it_user(uuid4())
+    assert result is None
 
-    with pytest.raises(NoObjectsReturnedException):
-        await dataloader.load_mo_it_user(uuid4())
+    assert route.called
 
 
 async def test_load_mo_employee_it_users(
