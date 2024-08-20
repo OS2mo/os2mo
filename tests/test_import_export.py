@@ -268,10 +268,10 @@ async def test_listen_to_changes_in_employees_org_unit_address(
     assert "Multiple addresses of same type" in [x["event"] for x in cap_logs]
 
     # Test: When unable to read address details
-    dataloader.load_mo_address.side_effect = NoObjectsReturnedException("BOOM")
+    dataloader.load_mo_address.return_value = None
     with pytest.raises(RequeueMessage) as exc:
         await sync_tool.listen_to_changes_in_employees(employee_uuid)
-    assert "Unable to load mo object" in str(exc.value)
+    assert "Unable to load mo address" in str(exc.value)
 
 
 async def test_listen_to_changes_in_employees_address(
@@ -379,10 +379,10 @@ async def test_listen_to_changes_in_employees_address(
     assert "Multiple addresses of same type" in [x["event"] for x in cap_logs]
 
     # Test expected behavior when unable to read address details
-    dataloader.load_mo_address.side_effect = NoObjectsReturnedException("BOOM")
+    dataloader.load_mo_address.return_value = None
     with pytest.raises(RequeueMessage) as exc:
         await sync_tool.listen_to_changes_in_employees(employee_uuid)
-    assert "Unable to load mo object" in str(exc.value)
+    assert "Unable to load mo address" in str(exc.value)
 
 
 async def test_listen_to_changes_in_employees_ituser(

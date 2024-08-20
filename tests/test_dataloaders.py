@@ -705,15 +705,25 @@ async def test_get_populated_overview(dataloader: DataLoader):
     assert output["user"]["attributes"]["attr1"]["single_value"] is False
 
 
-async def test_load_mo_address_no_valid_addresses(dataloader: DataLoader) -> None:
-    uuid = uuid4()
+@pytest.mark.parametrize(
+    "objects",
+    [
+        # No objects returned
+        [],
+        # Object returned, but no validities
+        [{"validities": []}],
+    ],
+)
+async def test_load_mo_address_not_found(
+    dataloader: DataLoader, graphql_mock: GraphQLMocker, objects: list[dict]
+) -> None:
+    route = graphql_mock.query("read_addresses")
+    route.result = {"addresses": {"objects": objects}}
 
-    dataloader.graphql_client.read_addresses.return_value = parse_obj_as(  # type: ignore
-        ReadAddressesAddresses, {"objects": []}
-    )
+    result = await dataloader.load_mo_address(uuid4())
+    assert result is None
 
-    with pytest.raises(NoObjectsReturnedException):
-        await dataloader.load_mo_address(uuid)
+    assert route.called
 
 
 async def test_load_mo_address(dataloader: DataLoader) -> None:
