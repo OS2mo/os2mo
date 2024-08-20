@@ -495,6 +495,21 @@ async def manager_resolver(
             )
         ),
     ] = False,
+    ignore_self: Annotated[
+        bool,
+        strawberry.argument(
+            description=dedent(
+                """\
+                    Whether to ignore self or not, when querying for managers on engagements.
+
+                    If the person of the engagement isn't a manager, the flag does nothing and manager(s) of the org_unit are returned.
+                    However if the person of the engagement is a manager in the same org_unit as the engagement:
+                    * False: Return managers normally, as for `org_units -> managers`.
+                    * True: If combined with `inherit=True`, this will trigger a recursive lookup for "nearest manager", also called "manager's manager". If combined with `inherit=False` the function will return an empty result, since filtering out the manager in question wouldn ot suffice, since if there's more than 1 manager in the org_unit, the other manager would not be "manager's manager"
+                    """
+            )
+        ),
+    ] = False,
 ) -> Any:
     """Resolve managers."""
     if filter is None:
@@ -531,7 +546,16 @@ async def manager_resolver(
         cursor=cursor,
         **kwargs,
     )
-    if result or not inherit:
+    if ignore_self:
+        manager_list = list(flatten(result.values()))
+        if any(manager.employee_uuid == filter.ignore_self for manager in manager_list):
+            if not inherit:
+                # If inherit=False, we return nothing, since filtering out the manager
+                # in question, will not be sufficient, because if there's more than 1
+                # manager in the org_unit, the other manager(s) isn't the "manager's manager"
+                return {}
+
+    if result and not ignore_self or not inherit:
         return result
 
     org_unit = await organisation_unit_resolver(

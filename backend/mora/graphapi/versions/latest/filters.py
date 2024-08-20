@@ -454,6 +454,15 @@ class ManagerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         ),
     )
 
+    ignore_self: EmployeeFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            # TODO: Document this.
+            """
+        ),
+    )
+
 
 @strawberry.input(description="Organisation unit filter.")
 class OrganisationUnitFilter(BaseFilter):

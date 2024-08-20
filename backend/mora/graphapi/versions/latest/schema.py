@@ -2061,6 +2061,30 @@ class Engagement:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
+    managers: list[LazyManager] = strawberry.field(
+        resolver=to_list(
+            seed_resolver(
+                manager_resolver,
+                {
+                    "org_units": lambda root: uuid2list(root.org_unit_uuid),
+                    "ignore_self": lambda root: root.employee_uuid,
+                },
+            )
+        ),
+        description=dedent(
+            """\
+            Managerial roles for the organisation unit.
+
+            May be empty in which case managers are usually inherited from parents.
+            See the `inherit`-flag for details.
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("manager"),
+        ],
+    )
+
     @strawberry.field(
         description=dedent(
             """\
