@@ -534,6 +534,19 @@ async def get_org_unit_name_for_parent(
     return None
 
 
+async def load_mo_root_org_uuid(graphql_client: GraphQLClient) -> UUID:
+    """Get the UUID of the root organisational unit in MO.
+
+    Args:
+        graphql_client: GraphQLClient to fetch root org from MO with.
+
+    Returns:
+        The UUID of the root organisational unit.
+    """
+    result = await graphql_client.read_root_org_uuid()
+    return result.uuid
+
+
 class LdapConverter:
     def __init__(self, context: Context):
         self.context = context
@@ -878,7 +891,7 @@ class LdapConverter:
         """
         # If asked to create the root org, simply return it
         if not org_unit_path:
-            return await self.dataloader.load_mo_root_org_uuid()
+            return await load_mo_root_org_uuid(self.dataloader.graphql_client)
 
         # If the org-unit path already exists, no need to create, simply return it
         with suppress(UUIDNotFoundException):
