@@ -157,6 +157,7 @@ class DataLoader:
         self.context = context
         self.user_context = context["user_context"]
         self.ldap_connection: Connection = self.user_context["ldap_connection"]
+        self.settings: Settings = self.user_context["settings"]
         self.attribute_types = get_attribute_types(self.ldap_connection)
         self.single_value = {k: v.single_value for k, v in self.attribute_types.items()}
         self.create_mo_class_lock = asyncio.Lock()
@@ -258,7 +259,7 @@ class DataLoader:
         if not cpr_field:
             raise NoObjectsReturnedException("cpr_field is not configured")
 
-        settings = self.user_context["settings"]
+        settings = self.settings
 
         search_base = settings.ldap_search_base
         ous_to_search_in = settings.ldap_ous_to_search_in
@@ -292,7 +293,7 @@ class DataLoader:
         """
         Determine if an OU is among those to which we are allowed to write.
         """
-        settings = self.user_context["settings"]
+        settings = self.settings
 
         if "" in settings.ldap_ous_to_write_to:
             # Empty string means that it is allowed to write to all OUs
@@ -324,7 +325,7 @@ class DataLoader:
         Modifies LDAP
         """
         # TODO: Remove this when ldap3s read-only flag works
-        settings = self.user_context["settings"]
+        settings = self.settings
         if settings.ldap_read_only:
             logger.info(
                 "LDAP connection is read-only",
@@ -423,7 +424,7 @@ class DataLoader:
             See https://ldap3.readthedocs.io/en/latest/add.html for more information
 
         """
-        settings: Settings = self.user_context["settings"]
+        settings = self.settings
         # TODO: Remove this when ldap3s read-only flag works
         if settings.ldap_read_only:
             logger.info(
@@ -485,7 +486,7 @@ class DataLoader:
         """
         Creates an OU. If the parent OU does not exist, creates that one first
         """
-        settings = self.user_context["settings"]
+        settings = self.settings
 
         # TODO: Remove this when ldap3s read-only flag works
         if settings.ldap_read_only:
@@ -520,7 +521,7 @@ class DataLoader:
         --------
         Only deletes OUs which are empty
         """
-        settings = self.user_context["settings"]
+        settings = self.settings
         # TODO: Remove this when ldap3s read-only flag works
         if settings.ldap_read_only:
             logger.info("LDAP connection is read-only", operation="delete_ou", ou=ou)
@@ -546,7 +547,7 @@ class DataLoader:
         Moves an LDAP object from one DN to another. Returns True if the move was
         successful.
         """
-        settings = self.user_context["settings"]
+        settings = self.settings
 
         # TODO: Remove this when ldap3s read-only flag works
         if settings.ldap_read_only:
@@ -773,7 +774,7 @@ class DataLoader:
         # Get Unique LDAP UUID from DN, then get engagement by looking for IT user with that
         # Unique LDAP UUID in MO.
 
-        settings = self.user_context["settings"]
+        settings = self.settings
         ldap_object = await self.load_ldap_object(dn, [settings.ldap_unique_id_field])
         raw_unique_uuid = getattr(ldap_object, settings.ldap_unique_id_field)
         # NOTE: Not sure if this only necessary for the mocked server or not
@@ -837,7 +838,7 @@ class DataLoader:
         Given an unique_ldap_uuid, find the DistinguishedName
         """
         logger.info("Looking for LDAP object", unique_ldap_uuid=unique_ldap_uuid)
-        settings = self.user_context["settings"]
+        settings = self.settings
         searchParameters = {
             "search_base": settings.ldap_search_base,
             "search_filter": f"(&(objectclass=*)({settings.ldap_unique_id_field}={unique_ldap_uuid}))",
@@ -863,7 +864,7 @@ class DataLoader:
         """
         Given a DN, find the unique_ldap_uuid
         """
-        settings = self.user_context["settings"]
+        settings = self.settings
         logger.info("Looking for LDAP object", dn=dn)
         ldap_object = await self.load_ldap_object(dn, [settings.ldap_unique_id_field])
         uuid = getattr(ldap_object, settings.ldap_unique_id_field)
