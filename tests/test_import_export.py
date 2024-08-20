@@ -598,7 +598,7 @@ async def test_listen_to_changes_in_employees_engagement(
     route2.result = {"engagements": {"objects": []}}
     with pytest.raises(RequeueMessage) as exc:
         await sync_tool.listen_to_changes_in_employees(employee_uuid)
-    assert "Unable to load mo object" in str(exc.value)
+    assert "Unable to load mo engagement" in str(exc.value)
 
 
 async def test_listen_to_changes_in_employees_no_dn(
