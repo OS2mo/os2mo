@@ -160,7 +160,6 @@ class DataLoader:
         self.ldap_connection = self.user_context["ldap_connection"]
         self.attribute_types = get_attribute_types(self.ldap_connection)
         self.single_value = {k: v.single_value for k, v in self.attribute_types.items()}
-        self._mo_to_ldap_attributes = []
         self.create_mo_class_lock = asyncio.Lock()
 
     @property
@@ -176,21 +175,14 @@ class DataLoader:
     @property
     def mo_to_ldap_attributes(self):
         """
-        Populates self._mo_to_ldap_attributes and returns it.
-
-        self._mo_to_ldap_attributes is a list of all LDAP attribute names which
-        are synchronized to LDAP
-
-        Notes
-        -------
-        This is not done in __init__() because the converter is not initialized yet,
-        when we initialize the dataloader.
+        Returns a list of all LDAP attribute names which are synchronized to LDAP.
         """
-        if not self._mo_to_ldap_attributes:
-            converter = self.user_context["converter"]
-            for json_dict in converter.mapping["mo_to_ldap"].values():
-                self._mo_to_ldap_attributes.extend(list(json_dict.keys()))
-        return self._mo_to_ldap_attributes
+        converter = self.user_context["converter"]
+
+        mo_to_ldap_attributes = []
+        for json_dict in converter.mapping["mo_to_ldap"].values():
+            mo_to_ldap_attributes.extend(list(json_dict.keys()))
+        return mo_to_ldap_attributes
 
     def shared_attribute(self, attribute: str):
         """

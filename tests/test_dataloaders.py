@@ -493,13 +493,13 @@ async def test_delete_data_from_ldap_object(
     dataloader.single_value = {"postalAddress": False, cpr_field: True}
 
     # Note: 'sharedValue' won't be deleted because it is shared with another ldap object
-    dataloader._mo_to_ldap_attributes = [
-        "postalAddress",
-        cpr_field,
-        cpr_field,
-        "sharedValue",
-        "sharedValue",
-    ]
+    converter = dataloader.user_context["converter"]
+    converter.mapping = {
+        "mo_to_ldap": {
+            "Employee": {cpr_field: None, "sharedValue": None},
+            "Address": {cpr_field: None, "sharedValue": None, "postalAddress": None},
+        }
+    }
 
     await dataloader.modify_ldap_object(address, "user", delete=True)
 
