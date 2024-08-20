@@ -548,12 +548,11 @@ async def load_mo_root_org_uuid(graphql_client: GraphQLClient) -> UUID:
 
 
 class LdapConverter:
-    def __init__(self, context: Context):
-        self.context = context
-        self.user_context = context["user_context"]
-        self.settings = self.user_context["settings"]
-        self.raw_mapping = self.user_context["mapping"]
-        self.dataloader: DataLoader = self.user_context["dataloader"]
+    def __init__(self, context: Context) -> None:
+        user_context = context["user_context"]
+        self.settings = user_context["settings"]
+        self.raw_mapping = user_context["mapping"]
+        self.dataloader: DataLoader = user_context["dataloader"]
         self.org_unit_path_string_separator: str = (
             self.settings.org_unit_path_string_separator
         )
