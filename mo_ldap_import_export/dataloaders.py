@@ -189,10 +189,8 @@ class DataLoader:
         """
         Returns a list of all LDAP attribute names which are synchronized to LDAP.
         """
-        converter = self.converter
-
         mo_to_ldap_attributes = []
-        for json_dict in converter.mapping["mo_to_ldap"].values():
+        for json_dict in self.converter.mapping["mo_to_ldap"].values():
             mo_to_ldap_attributes.extend(list(json_dict.keys()))
         return mo_to_ldap_attributes
 
@@ -276,10 +274,10 @@ class DataLoader:
         search_bases = [
             combine_dn_strings([ou, search_base]) for ou in ous_to_search_in
         ]
-        converter = self.converter
-
-        object_class = converter.find_ldap_object_class(json_key)
-        attributes = converter.get_ldap_attributes(json_key) + additional_attributes
+        object_class = self.converter.find_ldap_object_class(json_key)
+        attributes = (
+            self.converter.get_ldap_attributes(json_key) + additional_attributes
+        )
 
         object_class_filter = f"objectclass={object_class}"
         cpr_filter = f"{cpr_field}={cpr_no}"
@@ -603,8 +601,7 @@ class DataLoader:
         delete: bool
             Set to True to delete contents in LDAP, instead of creating/modifying them
         """
-        converter = self.converter
-        if not converter._export_to_ldap_(json_key):
+        if not self.converter._export_to_ldap_(json_key):
             logger.info("_export_to_ldap_ == False.", json_key=json_key)
             return []
         success = 0
