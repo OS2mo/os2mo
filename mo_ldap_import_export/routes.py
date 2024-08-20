@@ -213,8 +213,9 @@ async def get_non_existing_unique_ldap_uuids(
     ituser_uuids_not_in_ldap = unique_ituser_ldap_uuids - unique_ldap_uuids
     return [
         {
-            "MO employee uuid": it_user_map[uuid]["employee_uuid"],
-            "unique_ldap_uuid in MO": it_user_map[uuid]["user_key"],
+            "ituser_uuid": it_user_map[uuid]["uuid"],
+            "mo_employee_uuid": it_user_map[uuid]["employee_uuid"],
+            "unique_ldap_uuid": it_user_map[uuid]["user_key"],
         }
         for uuid in ituser_uuids_not_in_ldap
     ]
@@ -405,7 +406,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
     async def get_non_existing_unique_ldap_uuids_from_MO(
         settings: depends.Settings,
         dataloader: depends.DataLoader,
-    ) -> Any:
+    ) -> list[dict[str, Any]]:
         return await get_non_existing_unique_ldap_uuids(settings, dataloader)
 
     @router.get("/Inspect/duplicate_cpr_numbers", status_code=202, tags=["LDAP"])

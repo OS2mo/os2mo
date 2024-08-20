@@ -994,9 +994,9 @@ async def test_get_non_existing_objectGUIDs_from_MO(
     dataloader.get_ldap_it_system_uuid.return_value = str(uuid4())
 
     it_users = [
-        {"employee_uuid": str(uuid4()), "user_key": str(uuid4())},
-        {"employee_uuid": str(uuid4()), "user_key": str(uuid4())},
-        {"employee_uuid": str(uuid4()), "user_key": str(uuid4())},
+        {"employee_uuid": str(uuid4()), "user_key": str(uuid4()), "uuid": str(uuid4())},
+        {"employee_uuid": str(uuid4()), "user_key": str(uuid4()), "uuid": str(uuid4())},
+        {"employee_uuid": str(uuid4()), "user_key": str(uuid4()), "uuid": str(uuid4())},
     ]
     employee = Employee(givenname="Jim", surname="")
     dataloader.load_mo_employee.return_value = employee
@@ -1014,13 +1014,13 @@ async def test_get_non_existing_objectGUIDs_from_MO(
     assert response.status_code == 202
 
     result = response.json()
-    assert result == [
-        {
-            "MO employee uuid": it_user["employee_uuid"],
-            "unique_ldap_uuid in MO": it_user["user_key"],
-        }
-        for it_user in it_users[1:]
-    ]
+    assert len(result) == 2
+    for it_user in it_users[1:]:
+        assert {
+            "ituser_uuid": it_user["uuid"],
+            "mo_employee_uuid": it_user["employee_uuid"],
+            "unique_ldap_uuid": it_user["user_key"],
+        } in result
 
 
 @pytest.mark.usefixtures("context_dependency_injection")
