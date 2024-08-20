@@ -197,28 +197,26 @@ async def get_non_existing_unique_ldap_uuids(
         raise ObjectGUIDITSystemNotFound("Could not find it_system_uuid")
 
     # Fetch all entity UUIDs in LDAP
-    unique_ldap_uuids = {
-        UUID(u)
-        for u in await load_ldap_attribute_values(
-            dataloader.context, settings.ldap_unique_id_field
-        )
-    }
+    ldap_uuid_attributes = await load_ldap_attribute_values(
+        dataloader.context, settings.ldap_unique_id_field
+    )
+    unique_ldap_uuids = set(map(UUID, ldap_uuid_attributes))
 
     # Fetch all MO IT-users and extract all LDAP UUIDs
     all_it_users = await load_all_current_it_users(
         dataloader.graphql_client, UUID(it_system_uuid)
     )
-    unique_ituser_ldap_uuids = {UUID(it_user["user_key"]) for it_user in all_it_users}
+    it_user_map = {UUID(it_user["user_key"]): it_user for it_user in all_it_users}
+    unique_ituser_ldap_uuids = set(it_user_map.keys())
 
     # Find LDAP UUIDs in MO, which do not exist in LDAP
     ituser_uuids_not_in_ldap = unique_ituser_ldap_uuids - unique_ldap_uuids
     return [
         {
-            "MO employee uuid": it_user["employee_uuid"],
-            "unique_ldap_uuid in MO": it_user["user_key"],
+            "MO employee uuid": it_user_map[uuid]["employee_uuid"],
+            "unique_ldap_uuid in MO": it_user_map[uuid]["user_key"],
         }
-        for it_user in all_it_users
-        if UUID(it_user["user_key"]) in ituser_uuids_not_in_ldap
+        for uuid in ituser_uuids_not_in_ldap
     ]
 
 
