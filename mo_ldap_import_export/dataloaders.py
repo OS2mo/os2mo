@@ -18,6 +18,7 @@ from uuid import UUID
 
 import structlog
 from fastapi.encoders import jsonable_encoder
+from fastramqpi.context import Context
 from ldap3 import BASE
 from ldap3.core.exceptions import LDAPInvalidValueError
 from ldap3.protocol import oid
@@ -154,7 +155,7 @@ def extract_current_or_latest_validity(validities: list[T]) -> T:
 
 
 class DataLoader:
-    def __init__(self, context):
+    def __init__(self, context: Context) -> None:
         self.context = context
         self.user_context = context["user_context"]
         self.ldap_connection = self.user_context["ldap_connection"]
@@ -284,7 +285,7 @@ class DataLoader:
         search_results = await object_search(searchParameters, ldap_connection)
         # TODO: Asyncio gather this
         ldap_objects: list[LdapObject] = [
-            await make_ldap_object(search_result, self.context)
+            await make_ldap_object(search_result, self.context)  # type: ignore
             for search_result in search_results
         ]
         dns = [obj.dn for obj in ldap_objects]
