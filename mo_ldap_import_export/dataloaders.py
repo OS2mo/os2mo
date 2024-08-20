@@ -20,6 +20,7 @@ import structlog
 from fastapi.encoders import jsonable_encoder
 from fastramqpi.context import Context
 from ldap3 import BASE
+from ldap3 import Connection
 from ldap3.core.exceptions import LDAPInvalidValueError
 from ldap3.protocol import oid
 from ldap3.utils.dn import safe_dn
@@ -155,7 +156,7 @@ class DataLoader:
     def __init__(self, context: Context) -> None:
         self.context = context
         self.user_context = context["user_context"]
-        self.ldap_connection = self.user_context["ldap_connection"]
+        self.ldap_connection: Connection = self.user_context["ldap_connection"]
         self.attribute_types = get_attribute_types(self.ldap_connection)
         self.single_value = {k: v.single_value for k, v in self.attribute_types.items()}
         self.create_mo_class_lock = asyncio.Lock()
@@ -852,7 +853,9 @@ class DataLoader:
                 "search_scope": BASE,
             }
 
-        search_result = await single_object_search(searchParameters, self.ldap_connection)
+        search_result = await single_object_search(
+            searchParameters, self.ldap_connection
+        )
         dn: str = search_result["dn"]
         return dn
 

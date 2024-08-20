@@ -1817,7 +1817,7 @@ async def test_add_ldap_object(dataloader: DataLoader) -> None:
     dataloader.ldap_connection.get_response.return_value = [], {"type": "test"}
 
     await dataloader.add_ldap_object("CN=foo", attributes={"foo": 2})
-    dataloader.ldap_connection.add.assert_called_once()
+    dataloader.ldap_connection.add.assert_called_once()  # type: ignore
 
     dataloader.user_context["settings"] = MagicMock()  # type: ignore
     dataloader.user_context["settings"].add_objects_to_ldap = False
@@ -1827,7 +1827,7 @@ async def test_add_ldap_object(dataloader: DataLoader) -> None:
         await dataloader.add_ldap_object("CN=foo")
     assert "Adding LDAP objects is disabled" in str(exc.value)
 
-    dataloader.ldap_connection.reset_mock()
+    dataloader.ldap_connection.reset_mock()  # type: ignore
     dataloader.user_context["settings"].add_objects_to_ldap = True
     dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     dataloader.ou_in_ous_to_write_to.return_value = False
@@ -2199,7 +2199,7 @@ async def test_create_ou(dataloader: DataLoader) -> None:
 
     ou = "OU=foo,OU=mucki,OU=bar"
     await dataloader.create_ou(ou)
-    dataloader.ldap_connection.add.assert_called_once_with(
+    dataloader.ldap_connection.add.assert_called_once_with(  # type: ignore
         "OU=foo,OU=mucki,OU=bar,DC=Magenta", "OrganizationalUnit", None
     )
 
@@ -2209,12 +2209,12 @@ async def test_create_ou(dataloader: DataLoader) -> None:
         await dataloader.create_ou(ou)
     assert "Adding LDAP objects is disabled" in str(exc.value)
 
-    dataloader.ldap_connection.reset_mock()
+    dataloader.ldap_connection.reset_mock()  # type: ignore
     dataloader.user_context["settings"].add_objects_to_ldap = True
     dataloader.ou_in_ous_to_write_to.return_value = False
 
     await dataloader.create_ou(ou)
-    dataloader.ldap_connection.add.assert_not_called()
+    dataloader.ldap_connection.add.assert_not_called()  # type: ignore
 
     dataloader.user_context["settings"].ldap_read_only = True
     with pytest.raises(ReadOnlyException) as exc:
@@ -2242,27 +2242,27 @@ async def test_delete_ou(dataloader: DataLoader) -> None:
 
     ou = "OU=foo,OU=mucki,OU=bar"
     await dataloader.delete_ou(ou)
-    dataloader.ldap_connection.delete.assert_called_once_with(
+    dataloader.ldap_connection.delete.assert_called_once_with(  # type: ignore
         "OU=foo,OU=mucki,OU=bar,DC=Magenta"
     )
 
-    dataloader.ldap_connection.reset_mock()
+    dataloader.ldap_connection.reset_mock()  # type: ignore
     dataloader.user_context["settings"].add_objects_to_ldap = True
     dataloader.ou_in_ous_to_write_to.return_value = False
 
     await dataloader.delete_ou(ou)
-    dataloader.ldap_connection.delete.assert_not_called()
+    dataloader.ldap_connection.delete.assert_not_called()  # type: ignore
 
     # Test that we do not remove the ou-for-new-users
     dataloader.ou_in_ous_to_write_to.return_value = True
     settings_mock.ldap_ou_for_new_users = ou
     await dataloader.delete_ou(ou)
-    dataloader.ldap_connection.delete.assert_not_called()
+    dataloader.ldap_connection.delete.assert_not_called()  # type: ignore
 
     # Test that we do not try to remove an OU which is not in the ou-dict
     dataloader.ou_in_ous_to_write_to.return_value = False
     await dataloader.delete_ou("OU=non_existing_OU")
-    dataloader.ldap_connection.delete.assert_not_called()
+    dataloader.ldap_connection.delete.assert_not_called()  # type: ignore
 
     dataloader.user_context["settings"].ldap_read_only = True
     with pytest.raises(ReadOnlyException) as exc:
@@ -2283,7 +2283,7 @@ async def test_move_ldap_object(dataloader: DataLoader):
 
     success = await dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
 
-    dataloader.ldap_connection.modify_dn.assert_called_once_with(
+    dataloader.ldap_connection.modify_dn.assert_called_once_with(  # type: ignore
         "CN=foo,OU=old_ou", "CN=foo", new_superior="OU=new_ou"
     )
     assert success is True
