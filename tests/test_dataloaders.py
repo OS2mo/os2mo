@@ -2153,8 +2153,8 @@ def test_extract_latest_object(
 
 
 def test_extract_latest_object_empty() -> None:
-    with pytest.raises(NoObjectsReturnedException):
-        extract_current_or_latest_validity([])
+    result = extract_current_or_latest_validity([])
+    assert result is None
 
 
 async def test_load_mo_root_org_uuid(graphql_mock: GraphQLMocker) -> None:
