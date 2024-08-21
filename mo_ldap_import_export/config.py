@@ -91,11 +91,6 @@ class MappingBaseModel(BaseModel):
         extra = Extra.forbid
 
 
-class Class(MappingBaseModel):
-    title: str
-    scope: str
-
-
 def get_required_attributes(mo_class) -> set[str]:
     if "required" not in mo_class.schema().keys():
         return set()
