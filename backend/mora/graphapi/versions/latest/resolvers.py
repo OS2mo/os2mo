@@ -534,12 +534,36 @@ async def organisation_unit_resolver(
     filter: OrganisationUnitFilter | None = None,
     limit: LimitType = None,
     cursor: CursorType = None,
+    ignore: OrganisationUnitFilter | None = None,
 ) -> Any:
     """Resolve organisation units."""
     if filter is None:
         filter = OrganisationUnitFilter()
+    if ignore is None:
+        ignore = OrganisationUnitFilter()
 
     await registration_filter(info, filter)
+
+    async def _get_ignore_uuids() -> set[UUID]:
+        ignore_uuids = set()
+
+        if ignore.uuids is not None:
+            ignore_uuids.update(ignore.uuids)
+
+        if ignore.parent is not UNSET or ignore.parents is not UNSET:
+            ignore_uuids.update(await _get_parent_uuids(ignore))
+
+        if ignore.hierarchy is not None or ignore.hierarchies is not None:
+            ignore_uuids.update(await _get_hierarchy_uuids(ignore))
+
+        if ignore.subtree is not UNSET:
+            ignore_uuids.update(await _get_subtree_uuids(ignore))
+
+        if ignore.query:
+            query_uuids = await search_orgunits(info.context["session"], ignore.query)
+            ignore_uuids.update(query_uuids)
+
+        return ignore_uuids
 
     async def _get_parent_uuids() -> list[UUID]:
         org_unit_filter = filter.parent or OrganisationUnitFilter()
@@ -735,6 +759,37 @@ async def organisation_unit_resolver(
             )
         )
 
+    ignore_uuids = await _get_ignore_uuids()
+
+    if ignore_uuids:
+        query = query.where(
+            OrganisationEnhedRegistrering.organisationenhed_id.notin_(ignore_uuids)
+        )
+
+    if ignore.user_keys is not None:
+        query = query.where(
+            OrganisationEnhedRegistrering.id.notin_(
+                select(
+                    OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
+                ).where(
+                    OrganisationEnhedAttrEgenskaber.brugervendtnoegle.in_(ignore.user_keys),
+                    _virkning(OrganisationEnhedAttrEgenskaber),
+                )
+            )
+        )
+
+    if ignore.names is not UNSET and ignore.names is not None:
+        query = query.where(
+            OrganisationEnhedRegistrering.id.notin_(
+                select(
+                    OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
+                ).where(
+                    OrganisationEnhedAttrEgenskaber.enhedsnavn.in_(ignore.names),
+                    _virkning(OrganisationEnhedAttrEgenskaber),
+                )
+            )
+        )
+
     # Pagination. Must be done here since the generic_resolver (lora) does not support
     # filtering on UUIDs and limit/cursor at the same time.
     if limit is not None:
@@ -769,6 +824,7 @@ async def organisation_unit_resolver(
             "filter": filter,
             "limit": limit,
             "cursor": cursor,
+            "ignore": ignore,
         },
         uuids,
     )
