@@ -950,7 +950,10 @@ class SyncTool:
         return operations
 
     @wait_for_import_to_finish
-    async def import_single_user(self, dn: DN, manual_import: bool = False) -> None:
+    @with_exitstack
+    async def import_single_user(
+        self, dn: DN, exit_stack: ExitStack, manual_import: bool = False
+    ) -> None:
         """Imports a single user from LDAP into MO.
 
         Args:
@@ -961,14 +964,23 @@ class SyncTool:
         settings = user_context["settings"]
         ldap_connection = user_context["ldap_connection"]
 
-        logger.info("Importing user", dn=dn, manual_import=manual_import)
+        exit_stack.enter_context(bound_contextvars(dn=dn, manual_import=manual_import))
+
+        logger.info("Importing user")
 
         # Get the employee's uuid (if they exists)
         employee_uuid = await self.dataloader.find_mo_employee_uuid(dn)
         if employee_uuid:
             # If we found an employee UUID, we want to use that to find all DNs
             dns = await self.dataloader.find_mo_employee_dn(employee_uuid)
-        else:
+        else:  # We did not find an employee UUID
+            # Check if we wish to create the employee or not
+            create_employee = self.converter._import_to_mo_("Employee", manual_import)
+            if not create_employee:
+                logger.info("Employee not found in MO, and not configured to create it")
+                return
+            logger.info("Employee not found, but configured to create it")
+
             # If we did not find an employee UUID, this call will create it.
             # However we want to create it using the best possible LDAP account.
             # As we do not have the option to find accounts via the employee UUID,
@@ -990,11 +1002,13 @@ class SyncTool:
                         )
                     }
 
-            logger.info(
-                "Employee not found in MO, generating UUID",
-                dn=dn,
-            )
             employee_uuid = uuid4()
+            logger.info(
+                "Employee not found in MO, generated UUID", employee_uuid=employee_uuid
+            )
+
+        # At this point 'employee_uuid' is an UUID that may or may not be in MO
+        # At this point 'dns' is a list of LDAP account DNs
 
         # We always want to synchronize from the best LDAP account, instead of just
         # synchronizing from the last LDAP account that has been touched.
@@ -1004,22 +1018,21 @@ class SyncTool:
         if best_dn is None:
             logger.info(
                 "Aborting synchronization, as no good LDAP account was found",
-                dn=dn,
                 dns=dns,
                 employee_uuid=employee_uuid,
             )
             return
 
-        # At this point, we have the best possible DN for the user, and their MO UUID.
+        # At this point, we have the best possible DN for the user, and their employee UUID
         if dn != best_dn:
             logger.info(
                 "Found better DN for employee",
-                dn=dn,
                 best_dn=best_dn,
                 dns=dns,
                 employee_uuid=employee_uuid,
             )
         dn = best_dn
+        exit_stack.enter_context(bound_contextvars(dn=dn))
 
         # Get the employee's engagement UUID (for the engagement matching the employee's
         # AD ObjectGUID.) This depends on whether the "ADGUID" field mapping is set up

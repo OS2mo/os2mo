@@ -1024,6 +1024,23 @@ async def test_format_converted_primary_engagement_objects(
         await sync_tool.format_converted_objects(converted_objects, json_key)
 
 
+async def test_import_single_object_no_employee_no_sync(
+    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
+) -> None:
+    converter._import_to_mo_.return_value = False
+    dataloader.find_mo_employee_uuid.return_value = None
+
+    with capture_logs() as cap_logs:
+        await sync_tool.import_single_user("CN=foo")
+
+    messages = [w["event"] for w in cap_logs]
+    assert messages == [
+        "Generating DN",
+        "Importing user",
+        "Employee not found in MO, and not configured to create it",
+    ]
+
+
 @pytest.mark.usefixtures("fake_find_mo_employee_dn")
 async def test_import_single_object_from_LDAP_but_import_equals_false(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
