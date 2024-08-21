@@ -1921,6 +1921,7 @@ async def test_load_all_current_it_users_no_paged(
                             "itsystem_uuid": str(itsystem1_uuid),
                             "employee_uuid": str(uuid4()),
                             "user_key": "foo",
+                            "uuid": str(uuid4()),
                         }
                     ]
                 }
@@ -1950,6 +1951,7 @@ async def test_load_all_current_it_users_paged(
                                 "itsystem_uuid": str(itsystem1_uuid),
                                 "employee_uuid": str(uuid4()),
                                 "user_key": "foo",
+                                "uuid": str(uuid4()),
                             }
                         ]
                     }
@@ -1968,6 +1970,7 @@ async def test_load_all_current_it_users_paged(
                                 "itsystem_uuid": str(itsystem1_uuid),
                                 "employee_uuid": str(uuid4()),
                                 "user_key": "bar",
+                                "uuid": str(uuid4()),
                             }
                         ]
                     }

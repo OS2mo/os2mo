@@ -373,6 +373,7 @@ query read_all_itusers($filter: ITUserFilter!, $cursor: Cursor = null, $limit: i
         itsystem_uuid
         employee_uuid
         user_key
+        uuid
       }
     }
     page_info {

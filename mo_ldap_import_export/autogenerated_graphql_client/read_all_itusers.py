@@ -23,6 +23,7 @@ class ReadAllItusersItusersObjectsValidities(BaseModel):
     itsystem_uuid: UUID
     employee_uuid: Optional[UUID]
     user_key: str
+    uuid: UUID
 
 
 class ReadAllItusersItusersPageInfo(BaseModel):
