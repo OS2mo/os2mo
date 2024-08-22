@@ -1008,8 +1008,7 @@ async def test_delete_non_existing_unique_ldap_uuids(
     ]
 
     with patch(
-        "mo_ldap_import_export.routes.load_ldap_attribute_values",
-        return_value=[],
+        "mo_ldap_import_export.routes.load_ldap_attribute_values", return_value=set()
     ), patch(
         "mo_ldap_import_export.routes.load_all_current_it_users", return_value=it_users
     ):
@@ -1037,10 +1036,10 @@ async def test_get_non_existing_objectGUIDs_from_MO(
 
     with patch(
         "mo_ldap_import_export.routes.load_ldap_attribute_values",
-        return_value=[
+        return_value={
             it_users[0]["user_key"],
             str(uuid4()),
-        ],
+        },
     ), patch(
         "mo_ldap_import_export.routes.load_all_current_it_users", return_value=it_users
     ):

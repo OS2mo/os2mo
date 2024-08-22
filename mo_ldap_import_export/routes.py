@@ -74,7 +74,7 @@ def encode_result(result):
     return json_compatible_result
 
 
-async def load_ldap_attribute_values(context, attribute, search_base=None) -> list[str]:
+async def load_ldap_attribute_values(context, attribute, search_base=None) -> set[str]:
     """
     Returns all values belonging to an LDAP attribute
     """
@@ -88,7 +88,7 @@ async def load_ldap_attribute_values(context, attribute, search_base=None) -> li
         searchParameters,
         search_base=search_base,
     )
-    return sorted({str(r["attributes"][attribute]) for r in responses})
+    return {str(r["attributes"][attribute]) for r in responses}
 
 
 async def load_ldap_objects(
@@ -211,6 +211,11 @@ async def get_non_existing_unique_ldap_uuids(
     ldap_uuid_attributes = await load_ldap_attribute_values(
         dataloader.context, settings.ldap_unique_id_field
     )
+    # load_ldap_attribute_values stringify the attribute values before converting them
+    # to a set, thus if one or more entries do not have the attribute, we may end up
+    # with the string '[]' in our output. '[]' is not an UUID so we discard it.
+    ldap_uuid_attributes.discard("[]")
+
     unique_ldap_uuids = set(map(UUID, ldap_uuid_attributes))
 
     # Fetch all MO IT-users and extract all LDAP UUIDs
@@ -548,8 +553,10 @@ def construct_router(user_context: UserContext) -> APIRouter:
         attribute: Literal[accepted_attributes],  # type: ignore
         search_base: str | None = None,
     ) -> Any:
-        return await load_ldap_attribute_values(
-            dataloader.context, attribute, search_base=search_base
+        return sorted(
+            await load_ldap_attribute_values(
+                dataloader.context, attribute, search_base=search_base
+            )
         )
 
     return router
