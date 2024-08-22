@@ -1,8 +1,15 @@
 ### Running against AD
-When using `docker compose up -d` the default configuration sets up an instance of openldap. If you want to use the integration against
-an Active Directory server you can use the configuration in magenta-addev.env. To run the integration without openldap use
 
-`docker compose -f docker-compose.yml -f docker-compose.override.addev.yml  up -d --remove-orphans`
+When using `docker compose up -d` to setup a local development environment, the
+integration is deployed in its default configuration with a local OpenLDAP server.
+
+If you instead want to use the integration against an Active Directory server you can
+use the configuration in magenta-addev.env to connect to Magenta's Active Directory
+development instance, simply run:
+```
+docker compose -f docker-compose.yml -f docker-compose.override.addev.yml up -d --remove-orphans
+```
+Or copy `docker-compose.override.addev.yml` to `docker-compose.override.yml`.
 
 ### Running the tests
 
