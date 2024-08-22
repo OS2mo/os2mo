@@ -41,7 +41,6 @@ def context(
 
 async def test_template(sync_tool: SyncTool):
     temp = CustomerSpecific()
-    await temp.sync_to_ldap()
     await temp.sync_to_mo(context=sync_tool.context)
 
 
@@ -72,8 +71,6 @@ async def test_import_jobtitlefromadtomo_objects(context: Context) -> None:
         user_uuid=test_user_uuid,
         job_function_uuid=test_job_function_uuid,
     )
-
-    await test_object.sync_to_ldap()
 
     graphql_client_mock.set_job_title.assert_not_called()
     await test_object.sync_to_mo(context)

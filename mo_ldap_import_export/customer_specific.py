@@ -19,9 +19,6 @@ class CustomerSpecific(MOBase, extra=Extra.allow):  # type: ignore
     async def sync_to_mo(self, context: Context) -> None:
         pass
 
-    async def sync_to_ldap(self):
-        pass
-
 
 class JobTitleFromADToMO(CustomerSpecific):
     user: PersonRef = Field(
