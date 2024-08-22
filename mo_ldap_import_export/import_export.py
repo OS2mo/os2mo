@@ -969,7 +969,7 @@ class SyncTool:
 
         logger.info("Importing user")
 
-        # Get the employee's uuid (if they exists)
+        # Get the employee's UUID (if they exists)
         employee_uuid = await self.dataloader.find_mo_employee_uuid(dn)
         if employee_uuid:
             # If we found an employee UUID, we want to use that to find all DNs
@@ -978,35 +978,39 @@ class SyncTool:
             # Check if we wish to create the employee or not
             create_employee = self.converter._import_to_mo_("Employee", manual_import)
             if not create_employee:
+                # If we do not want to create the employee and it does not exist, there
+                # is no more to be done, as we cannot create dependent resources with no
+                # employee to attach them to.
                 logger.info("Employee not found in MO, and not configured to create it")
                 return
             logger.info("Employee not found, but configured to create it")
 
-            # If we did not find an employee UUID, this call will create it.
-            # However we want to create it using the best possible LDAP account.
-            # As we do not have the option to find accounts via the employee UUID,
-            # we will instead try to find accounts using the CPR number in LDAP.
-            # Note however, that this will only succeed if there is a CPR number field.
-            dns = {dn}
-            cpr_field = self.converter.cpr_field
-            if cpr_field is not None:
-                cpr_no = getattr(
-                    await get_ldap_object(dn, ldap_connection, attributes=[cpr_field]),
-                    cpr_field,
-                )
-                # Only attempt to load accounts if we have a CPR number to do so with
-                if cpr_no:
-                    dns = {
-                        obj.dn
-                        for obj in await self.dataloader.load_ldap_cpr_object(
-                            cpr_no, "Employee"
-                        )
-                    }
-
+            # As we wish to create an employee, we need to generate an UUID for it
             employee_uuid = uuid4()
             logger.info(
                 "Employee not found in MO, generated UUID", employee_uuid=employee_uuid
             )
+            # At this point employee_uuid is always set
+
+            # We want to create our employee using the best possible LDAP account.
+            # By default, we will use the account that was provided to us in the event.
+            dns = {dn}
+
+            # However we may be able to find other accounts using the CPR number on the
+            # event triggered account, by searching for the CPR number in all of LDAP.
+            # Note however, that this will only succeed if there is a CPR number field.
+            if self.converter.cpr_field:
+                ldap_obj = await get_ldap_object(
+                    dn, ldap_connection, attributes=[self.converter.cpr_field]
+                )
+                cpr_no = getattr(ldap_obj, self.converter.cpr_field)
+                # Only attempt to load accounts if we have a CPR number to do so with
+                # and only if the CPR number is not the commonly used test CPR number
+                if cpr_no and cpr_no != "0000000000":
+                    ldap_objs = await self.dataloader.load_ldap_cpr_object(
+                        cpr_no, "Employee"
+                    )
+                    dns = {obj.dn for obj in ldap_objs}
 
         # At this point 'employee_uuid' is an UUID that may or may not be in MO
         # At this point 'dns' is a list of LDAP account DNs
