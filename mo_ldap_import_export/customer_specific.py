@@ -27,16 +27,13 @@ class JobTitleFromADToMO(CustomerSpecific):
     user: PersonRef = Field(
         description=("Reference to the employee of the created engagement object.")
     )
-    job_function: JobFunction | None = Field(
+    job_function: JobFunction = Field(
         description=(
             "Reference to the job function class for the created engagement object."
         ),
-        default=None,
     )
-    job_function_fallback: JobFunction = Field(
-        description=(
-            "Reference to the job function class for the created engagement object."
-        )
+    job_function_fallback: JobFunction | None = Field(
+        description="Noop left for backwards compatibility", default=None
     )
     type_: Literal["jobtitlefromadtomo"] = Field(
         "jobtitlefromadtomo", alias="type", description="The object type."
@@ -46,18 +43,15 @@ class JobTitleFromADToMO(CustomerSpecific):
     def from_simplified_fields(
         cls,
         user_uuid: UUID,
-        job_function_uuid: UUID | None,
-        job_function_fallback_uuid: UUID,
+        job_function_uuid: UUID,
         **kwargs,
     ) -> "JobTitleFromADToMO":
         """Create an jobtitlefromadtomo from simplified fields."""
         user = PersonRef(uuid=user_uuid)
         job_function = JobFunction(uuid=job_function_uuid)
-        job_function_fallback = JobFunction(uuid=job_function_fallback_uuid)
         return cls(
             user=user,
             job_function=job_function,
-            job_function_fallback=job_function_fallback,
             **kwargs,
         )
 
@@ -80,9 +74,7 @@ class JobTitleFromADToMO(CustomerSpecific):
             ]
 
         async def set_job_title(engagement_details: list):
-            job_func = self.job_function_fallback.uuid
-            if self.job_function is not None:
-                job_func = self.job_function.uuid
+            job_func = self.job_function.uuid
             # obj is the dict sent from get engagements
             return [
                 {
