@@ -19,6 +19,8 @@ from fastramqpi.ramqp.utils import RequeueMessage
 from httpx import HTTPStatusError
 from more_itertools import first
 from more_itertools import last
+from ramodels.mo._shared import JobFunction
+from ramodels.mo._shared import PersonRef
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
@@ -1346,14 +1348,12 @@ async def test_import_jobtitlefromadtomo_objects(
 
     user_uuid = uuid4()
     job_function_uuid = uuid4()
-    job_function_fallback_uuid = uuid4()
     eng_uuid = str(uuid4())
 
     converted_objects = [
-        JobTitleFromADToMO.from_simplified_fields(
-            user_uuid=user_uuid,
-            job_function_uuid=job_function_uuid,
-            job_function_fallback_uuid=job_function_fallback_uuid,
+        JobTitleFromADToMO(
+            user=PersonRef(uuid=user_uuid),
+            job_function=JobFunction(uuid=job_function_uuid),
         ),
     ]
 
