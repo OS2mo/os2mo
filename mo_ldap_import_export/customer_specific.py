@@ -28,6 +28,7 @@ class JobTitleFromADToMO(CustomerSpecific):
             "Reference to the job function class for the created engagement object."
         ),
     )
+    # TODO: Delete once no configurations use it anymore
     job_function_fallback: JobFunction | None = Field(
         description="Noop left for backwards compatibility", default=None
     )
