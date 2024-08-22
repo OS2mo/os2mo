@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
 from collections import ChainMap
 from collections.abc import Callable
 from collections.abc import MutableMapping
@@ -1183,11 +1184,9 @@ class SyncTool:
         )
 
         if json_key == "Custom":
-            for obj, _ in converted_objects:
-                job_list = await obj.sync_to_mo(self.context)
-                # TODO: Asyncio.gather?
-                for job in job_list:
-                    await job["task"]
+            await asyncio.gather(
+                *[obj.sync_to_mo(self.context) for obj, _ in converted_objects]
+            )
         else:
             try:
                 await self.dataloader.create_or_edit_mo_objects(converted_objects)

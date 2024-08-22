@@ -1346,14 +1346,12 @@ async def test_import_jobtitlefromadtomo_objects(
 
     user_uuid = uuid4()
     job_function_uuid = uuid4()
-    job_function_fallback_uuid = uuid4()
     eng_uuid = str(uuid4())
 
     converted_objects = [
         JobTitleFromADToMO.from_simplified_fields(
             user_uuid=user_uuid,
             job_function_uuid=job_function_uuid,
-            job_function_fallback_uuid=job_function_fallback_uuid,
         ),
     ]
 
