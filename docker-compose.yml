@@ -21,7 +21,6 @@ services:
 #    ports:
 #      - "389:389"
 
-
   mo-init:
     image: magentaaps/os2mo-init:5
     environment:
@@ -44,7 +43,7 @@ services:
     build: .
     command: ["uvicorn", "--factory", "mo_ldap_import_export.main:create_app", "--host", "0.0.0.0", "--reload"]
     environment:
-      #os2mo
+      # MO
       FASTRAMQPI__AMQP__URL: "amqp://guest:guest@msg-broker"
       FASTRAMQPI__AUTH_SERVER: "http://keycloak:8080/auth"
       FASTRAMQPI__MO_URL: "http://mo:5000"
@@ -59,7 +58,7 @@ services:
       FASTRAMQPI__DATABASE__HOST: "db"
       FASTRAMQPI__DATABASE__NAME: "fastramqpi"
 
-      #LDAP
+      # LDAP
       LDAP_CONTROLLERS: '[{"host": "ldap"}]'
       LDAP_DOMAIN: "magenta.dk"
       LDAP_USER: "cn=admin,dc=magenta,dc=dk"
@@ -81,74 +80,66 @@ services:
 
       # Produced using: yq -o=json kolding_fixture.yaml
       # Followed by escaping the single quotes within templates
-      CONVERSION_MAPPING: |
-        '
+      CONVERSION_MAPPING: >-
         {
-        "init": {
-          "it_systems": {
-            "ADUUID": "Active Directory UUID",
-            "ADtitle": "Active Directory Title"
-          }
-        },
-        "ldap_to_mo": {
-          "Employee": {
-            "objectClass": "ramodels.mo.employee.Employee",
-            "_import_to_mo_": "true",
-            "uuid": "{{ employee_uuid or NONE }}",
-            "nickname_givenname": "{{ get_employee_dict(employee_uuid).nickname_givenname }}",
-            "nickname_surname": "{{ get_employee_dict(employee_uuid).nickname_surname }}",
-            "cpr_no": "{{ ldap.employeeNumber|strip_non_digits or NONE }}",
-            "user_key": "{{ ldap.title }}",
-            "givenname": "{{ ldap.givenName }}",
-            "surname": "{{ ldap.sn }}"
-          },
-          "ADtitle": {
-            "objectClass": "ramodels.mo.details.it_system.ITUser",
-            "_import_to_mo_": "true",
-            "user_key": "{{ ldap.title }}",
-            "itsystem": "{{ dict(uuid=get_it_system_uuid(\'ADtitle\')) }}",
-            "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-            "person": "{{ dict(uuid=employee_uuid or NONE) }}"
-          },
-          "ADUUID": {
-            "objectClass": "ramodels.mo.details.it_system.ITUser",
-            "_import_to_mo_": "true",
-            "_terminate_": "{{ now()|mo_datestring if ldap.title == \"WOW\" else NONE }}",
-            "user_key": "{{ ldap.entryUUID }}",
-            "itsystem": "{{ dict(uuid=get_it_system_uuid(\'ADUUID\')) }}",
-            "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-            "person": "{{ dict(uuid=employee_uuid or NONE) }}"
-          }
-        },
-        "mo_to_ldap": {
-          "Employee": {
-            "objectClass": "inetOrgPerson",
-            "_export_to_ldap_": "false",
-            "employeeNumber": "{{ mo_employee.cpr_no }}",
-            "title": "{{ mo_employee.user_key }}",
-            "givenName": "{{ mo_employee.givenname }}",
-            "sn": "{{ mo_employee.surname }}"
-          },
-          "ADtitle": {
-            "objectClass": "inetOrgPerson",
-            "_export_to_ldap_": "false",
-            "title": "{{ mo_employee_it_user.user_key }}",
-            "employeeNumber": "{{ mo_employee.cpr_no }}"
-          },
-          "ADUUID": {
-            "objectClass": "inetOrgPerson",
-            "_export_to_ldap_": "false",
-            "title": "{{ NONE }}",
-            "entryUUID": "{{ mo_employee_it_user.user_key }}",
-            "employeeNumber": "{{ mo_employee.cpr_no }}"
-          }
-        },
-        "username_generator": {
-          "objectClass": "UserNameGenerator",
-          "combinations_to_try": ["FFFX", "LLLX"]
+            "ldap_to_mo": {
+                "Employee": {
+                    "objectClass": "ramodels.mo.employee.Employee",
+                    "_import_to_mo_": "false",
+                    "uuid": "{{ employee_uuid or NONE }}",
+                    "nickname_givenname": "{{ get_employee_dict(employee_uuid).nickname_givenname }}",
+                    "nickname_surname": "{{ get_employee_dict(employee_uuid).nickname_surname }}",
+                    "cpr_no": "{{ldap.employeeNumber|strip_non_digits or NONE}}",
+                    "user_key": "{{ ldap.title }}",
+                    "givenname": "{{ ldap.givenName }}",
+                    "surname": "{{ ldap.sn }}"
+                },
+                "ADtitle": {
+                    "objectClass": "ramodels.mo.details.it_system.ITUser",
+                    "_import_to_mo_": "true",
+                    "user_key": "{{ ldap.title }}",
+                    "itsystem": "{{ dict(uuid=get_it_system_uuid('ADtitle')) }}",
+                    "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+                    "person": "{{ dict(uuid=employee_uuid or NONE) }}"
+                },
+                "ADUUID": {
+                    "objectClass": "ramodels.mo.details.it_system.ITUser",
+                    "_import_to_mo_": "true",
+                    "_terminate_": "{{ now()|mo_datestring if ldap.title == \"WOW\" else NONE }}",
+                    "user_key": "{{ ldap.entryUUID }}",
+                    "itsystem": "{{ dict(uuid=get_it_system_uuid('ADUUID')) }}",
+                    "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+                    "person": "{{ dict(uuid=employee_uuid or NONE) }}"
+                }
+            },
+            "mo_to_ldap": {
+                "Employee": {
+                    "objectClass": "inetOrgPerson",
+                    "_export_to_ldap_": "true",
+                    "employeeNumber": "{{mo_employee.cpr_no}}",
+                    "title": "{{ mo_employee.user_key }}",
+                    "givenName": "{{ mo_employee.givenname }}",
+                    "sn": "{{ mo_employee.surname }}"
+                },
+                "ADtitle": {
+                    "objectClass": "inetOrgPerson",
+                    "_export_to_ldap_": "false",
+                    "title": "{{ mo_employee_it_user.user_key }}",
+                    "employeeNumber": "{{ mo_employee.cpr_no }}"
+                },
+                "ADUUID": {
+                    "objectClass": "inetOrgPerson",
+                    "_export_to_ldap_": "false",
+                    "title": "{{ NONE }}",
+                    "entryUUID": "{{ mo_employee_it_user.user_key }}",
+                    "employeeNumber": "{{ mo_employee.cpr_no }}"
+                }
+            },
+            "username_generator": {
+                "objectClass": "UserNameGenerator",
+                "combinations_to_try": ["FFFX", "LLLX"]
+            }
         }
-        }
-        '
 
     volumes:
       - ./mo_ldap_import_export/:/app/mo_ldap_import_export:ro
