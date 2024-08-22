@@ -1000,14 +1000,13 @@ class SyncTool:
             # event triggered account, by searching for the CPR number in all of LDAP.
             # Note however, that this will only succeed if there is a CPR number field.
             if self.converter.cpr_field:
-                ldap_obj = (
-                    await get_ldap_object(
-                        dn, ldap_connection, attributes=[self.converter.cpr_field]
-                    ),
+                ldap_obj = await get_ldap_object(
+                    dn, ldap_connection, attributes=[self.converter.cpr_field]
                 )
                 cpr_no = getattr(ldap_obj, self.converter.cpr_field)
                 # Only attempt to load accounts if we have a CPR number to do so with
-                if cpr_no:
+                # and only if the CPR number is not the commonly used test CPR number
+                if cpr_no and cpr_no != "0000000000":
                     ldap_objs = await self.dataloader.load_ldap_cpr_object(
                         cpr_no, "Employee"
                     )
