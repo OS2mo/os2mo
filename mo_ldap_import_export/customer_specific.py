@@ -7,7 +7,6 @@ from typing import cast
 from fastramqpi.context import Context
 from pydantic import Extra
 from pydantic import Field
-from ramodels.mo._shared import UUID
 from ramodels.mo._shared import JobFunction
 from ramodels.mo._shared import MOBase
 from ramodels.mo._shared import PersonRef
@@ -35,22 +34,6 @@ class JobTitleFromADToMO(CustomerSpecific):
     type_: Literal["jobtitlefromadtomo"] = Field(
         "jobtitlefromadtomo", alias="type", description="The object type."
     )
-
-    @classmethod
-    def from_simplified_fields(
-        cls,
-        user_uuid: UUID,
-        job_function_uuid: UUID,
-        **kwargs,
-    ) -> "JobTitleFromADToMO":
-        """Create an jobtitlefromadtomo from simplified fields."""
-        user = PersonRef(uuid=user_uuid)
-        job_function = JobFunction(uuid=job_function_uuid)
-        return cls(
-            user=user,
-            job_function=job_function,
-            **kwargs,
-        )
 
     async def sync_to_mo(self, context: Context) -> None:
         graphql_client = cast(GraphQLClient, context["graphql_client"])
