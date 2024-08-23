@@ -134,7 +134,7 @@ class ReadingHandler:
         :param object_tuples: An iterable of (UUID, object) tuples
         """
         # flatten a bunch of nested tasks
-        objs = [
+        return [
             x
             for sublist in await gather(
                 *[
@@ -148,33 +148,6 @@ class ReadingHandler:
             )
             for x in sublist
         ]
-
-        # TODO(#61001): filter objects with zero-length validity since they do not make
-        # sense in terms of the business logic. Ideally, we would disallow the creation
-        # of these objects in the first place, or - less ideally - filter them directly
-        # in the database, but MO and LoRa do not model objects and their datetimes in
-        # the same way:
-        # MO subtracts ~1 day from the timestamp returned from LoRa in some cases,
-        # depending on whether or not it is a 'from' or 'to' date. This logic is too
-        # convoluted to reimplement in the database to properly detect MO zero-lengths.
-        # Additionally, MO splits a single LoRa object registration into multiple MO
-        # object validities. This makes it hard to validate and reason about whether or
-        # not a write in MOs GraphQL result in a zero-length validity after it has been
-        # converted to a LoRa registration, written to the database, read out, and
-        # converted back to MO object validities.
-        def is_zero_validity(obj: dict) -> bool:
-            try:
-                from_ = obj["validity"]["from"]
-                to = obj["validity"]["to"]
-            except KeyError:
-                return False
-            # An infinite validity (from=None,to=None) is not zero
-            if from_ is None and to is None:
-                return False
-            return from_ == to
-
-        objs = [o for o in objs if not is_zero_validity(o)]
-        return objs
 
 
 class OrgFunkReadingHandler(ReadingHandler):
