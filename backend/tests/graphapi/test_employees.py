@@ -378,7 +378,7 @@ async def test_create_employee_with_nickname(graphapi_post) -> None:
     st.uuids(),
     # from & to
     st.tuples(st.datetimes(), st.datetimes() | st.none()).filter(
-        lambda dts: dts[0] < dts[1] if dts[0] and dts[1] else True
+        lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
     ),
     # given_name, surname
     st.tuples(
