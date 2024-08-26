@@ -193,8 +193,7 @@ def with_exitstack(
 
 class SyncTool:
     def __init__(self, context: Context, ldap_connection: Connection) -> None:
-        self.context = context
-        user_context: UserContext = self.context["user_context"]
+        user_context: UserContext = context["user_context"]
         self.dataloader: DataLoader = user_context["dataloader"]
         self.converter: LdapConverter = user_context["converter"]
         self.export_checks: ExportChecks = user_context["export_checks"]

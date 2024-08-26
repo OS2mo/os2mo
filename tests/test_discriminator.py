@@ -467,13 +467,13 @@ async def test_apply_discriminator_missing_field(
 
 
 @pytest.fixture
-async def sync_tool(
+async def sync_tool_and_context(
     ldap_connection: Connection,
     ldap_container_dn: str,
     settings: Settings,
     graphql_client: GraphQLClient,
     graphql_mock: GraphQLMocker,
-) -> SyncTool:
+) -> tuple[SyncTool, Context]:
     settings = settings.copy(
         update={
             "ldap_unique_id_field": "entryUUID",
@@ -540,7 +540,17 @@ async def sync_tool(
     sync_tool = SyncTool(context, ldap_connection)
     context["user_context"]["synctool"] = sync_tool
 
-    return sync_tool
+    return sync_tool, context
+
+
+@pytest.fixture
+async def sync_tool(sync_tool_and_context: tuple[SyncTool, Context]) -> SyncTool:
+    return sync_tool_and_context[0]
+
+
+@pytest.fixture
+async def context(sync_tool_and_context: tuple[SyncTool, Context]) -> Context:
+    return sync_tool_and_context[1]
 
 
 @pytest.mark.parametrize(
@@ -926,8 +936,7 @@ async def test_apply_discriminator_template(
         assert result == expected
 
 
-async def test_get_existing_values(sync_tool: SyncTool) -> None:
-    context = sync_tool.context
+async def test_get_existing_values(sync_tool: SyncTool, context: Context) -> None:
     mapping = {
         "mo_to_ldap": {"Employee": {"objectClass": "user"}},
         "username_generator": {
@@ -945,9 +954,7 @@ async def test_get_existing_values(sync_tool: SyncTool) -> None:
     assert result == {"employeeID": ["0101700001"]}
 
 
-async def test_get_existing_names(sync_tool: SyncTool) -> None:
-    context = sync_tool.context
-
+async def test_get_existing_names(sync_tool: SyncTool, context: Context) -> None:
     settings = context["user_context"]["settings"]
     settings = settings.copy(update={"ldap_dialect": "Standard"})
     context["user_context"]["settings"] = settings
