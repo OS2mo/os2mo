@@ -14,6 +14,7 @@ from fastapi import Body
 from fastapi import Depends
 from fastapi import FastAPI
 from fastramqpi.main import FastRAMQPI
+from fastramqpi.ramqp import AMQPSystem
 from fastramqpi.ramqp.depends import handle_exclusively_decorator
 from fastramqpi.ramqp.depends import rate_limit
 from fastramqpi.ramqp.mo import MORouter
@@ -42,7 +43,6 @@ from .ldap_amqp import ldap2mo_router
 from .ldap_event_generator import LDAPEventGenerator
 from .ldap_event_generator import ldap_event_router
 from .routes import construct_router
-from .types import OrgUnitUUID
 from .usernames import get_username_generator_class
 
 logger = structlog.stdlib.get_logger()
@@ -225,23 +225,26 @@ async def process_person(
 @http_reject_on_failure
 async def http_process_org_unit(
     object_uuid: Annotated[UUID, Body()],
-    sync_tool: depends.SyncTool,
+    graphql_client: depends.GraphQLClient,
+    amqpsystem: depends.AMQPSystem,
 ) -> None:
-    await handle_org_unit(object_uuid, sync_tool)
+    await handle_org_unit(object_uuid, graphql_client, amqpsystem)
 
 
 @amqp_router.register("org_unit")
 @amqp_reject_on_failure
 async def process_org_unit(
     object_uuid: PayloadUUID,
-    sync_tool: depends.SyncTool,
+    graphql_client: depends.GraphQLClient,
+    amqpsystem: depends.AMQPSystem,
 ) -> None:
-    await handle_org_unit(object_uuid, sync_tool)
+    await handle_org_unit(object_uuid, graphql_client, amqpsystem)
 
 
 async def handle_org_unit(
     object_uuid: UUID,
-    sync_tool: depends.SyncTool,
+    graphql_client: GraphQLClient,
+    amqpsystem: AMQPSystem,
 ) -> None:
     logger.info(
         "Registered change in an org_unit",
@@ -250,7 +253,9 @@ async def handle_org_unit(
     # In case the name of the org-unit changed, we need to publish an
     # "engagement" message for each of its employees. Because org-unit
     # LDAP mapping is primarily done through the "Engagement" json-key.
-    await sync_tool.publish_engagements_for_org_unit(OrgUnitUUID(object_uuid))
+    await graphql_client.org_unit_engagements_refresh(
+        amqpsystem.exchange_name, object_uuid
+    )
 
 
 @asynccontextmanager
