@@ -247,6 +247,10 @@ class UsernameGeneratorConfig(MappingBaseModel):
     forbidden_usernames: list[str] = []
     combinations_to_try: list[str] = []
 
+    @validator("forbidden_usernames")
+    def casefold_forbidden_usernames(cls, v: list[str]) -> list[str]:
+        return [u.casefold() for u in v]
+
     @validator("combinations_to_try")
     def check_combinations(cls, v: list[str]) -> list[str]:
         # Validator for combinations_to_try

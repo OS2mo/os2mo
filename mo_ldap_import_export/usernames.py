@@ -34,20 +34,16 @@ class UserNameGenerator:
         self.user_context = context["user_context"]
         self.settings = self.user_context["settings"]
 
-        self.mapping = self.user_context["mapping"]
-
-        self.username_generator = parse_obj_as(
-            UsernameGeneratorConfig, self.mapping["username_generator"]
-        )
-        self.char_replacement = self.username_generator.char_replacement
-        self.forbidden_usernames = [
-            u.lower() for u in self.username_generator.forbidden_usernames
-        ]
-        self.combinations = self.username_generator.combinations_to_try
-
         self.dataloader: DataLoader = self.user_context["dataloader"]
         self.ldap_connection = self.user_context["ldap_connection"]
 
+        mapping = self.user_context["mapping"]
+        username_generator_config = parse_obj_as(
+            UsernameGeneratorConfig, mapping["username_generator"]
+        )
+        self.char_replacement = username_generator_config.char_replacement
+        self.forbidden_usernames = username_generator_config.forbidden_usernames
+        self.combinations = username_generator_config.combinations_to_try
         logger.info("Found forbidden usernames", count=len(self.forbidden_usernames))
 
     @property
