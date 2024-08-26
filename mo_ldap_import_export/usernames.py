@@ -7,11 +7,12 @@ from uuid import UUID
 
 import structlog
 from fastramqpi.context import Context
+from ldap3 import Connection
 from more_itertools import one
 from more_itertools import split_when
-from pydantic import parse_obj_as
 from ramodels.mo.employee import Employee
 
+from .config import Settings
 from .config import UsernameGeneratorConfig
 from .dataloaders import DataLoader
 from .ldap import paged_search
@@ -29,18 +30,21 @@ class UserNameGenerator:
     to do, is refer to the proper function inside the json dict.
     """
 
-    def __init__(self, context: Context):
-        self.context = context
+    def __init__(
+        self,
+        context: Context,
+        settings: Settings,
+        username_generator_config: UsernameGeneratorConfig,
+        dataloader: DataLoader,
+        ldap_connection: Connection,
+    ) -> None:
+        # Reference needed for deferred lookup of converter in context
         self.user_context = context["user_context"]
-        self.settings = self.user_context["settings"]
 
-        self.dataloader: DataLoader = self.user_context["dataloader"]
-        self.ldap_connection = self.user_context["ldap_connection"]
+        self.settings = settings
+        self.dataloader = dataloader
+        self.ldap_connection = ldap_connection
 
-        mapping = self.user_context["mapping"]
-        username_generator_config = parse_obj_as(
-            UsernameGeneratorConfig, mapping["username_generator"]
-        )
         self.char_replacement = username_generator_config.char_replacement
         self.forbidden_usernames = username_generator_config.forbidden_usernames
         self.combinations = username_generator_config.combinations_to_try
