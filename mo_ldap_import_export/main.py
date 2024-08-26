@@ -378,7 +378,13 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     username_generator_class = get_username_generator_class(
         userNameGeneratorClass_string
     )
-    username_generator = username_generator_class(fastramqpi.get_context())
+    username_generator = username_generator_class(
+        fastramqpi.get_context(),
+        settings,
+        settings.conversion_mapping.username_generator,
+        dataloader,
+        ldap_connection,
+    )
     fastramqpi.add_context(username_generator=username_generator)
 
     fastramqpi.add_lifespan_manager(

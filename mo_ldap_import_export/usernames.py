@@ -2,16 +2,19 @@
 # SPDX-License-Identifier: MPL-2.0
 import re
 from collections.abc import Iterator
+from typing import cast
 from uuid import UUID
 
 import structlog
 from fastramqpi.context import Context
+from ldap3 import Connection
 from more_itertools import one
 from more_itertools import split_when
-from pydantic import parse_obj_as
 from ramodels.mo.employee import Employee
 
+from .config import Settings
 from .config import UsernameGeneratorConfig
+from .dataloaders import DataLoader
 from .ldap import paged_search
 from .utils import combine_dn_strings
 from .utils import remove_vowels
@@ -27,27 +30,31 @@ class UserNameGenerator:
     to do, is refer to the proper function inside the json dict.
     """
 
-    def __init__(self, context: Context):
-        self.context = context
+    def __init__(
+        self,
+        context: Context,
+        settings: Settings,
+        username_generator_config: UsernameGeneratorConfig,
+        dataloader: DataLoader,
+        ldap_connection: Connection,
+    ) -> None:
+        # Reference needed for deferred lookup of converter in context
         self.user_context = context["user_context"]
-        self.settings = self.user_context["settings"]
 
-        self.mapping = self.user_context["mapping"]
+        self.settings = settings
+        self.dataloader = dataloader
+        self.ldap_connection = ldap_connection
 
-        self.username_generator = parse_obj_as(
-            UsernameGeneratorConfig, self.mapping["username_generator"]
-        )
-        self.char_replacement = self.username_generator.char_replacement
-        self.forbidden_usernames = [
-            u.lower() for u in self.username_generator.forbidden_usernames
-        ]
-        self.combinations = self.username_generator.combinations_to_try
-
-        from .dataloaders import DataLoader
-
-        self.dataloader: DataLoader = self.user_context["dataloader"]
-
+        self.char_replacement = username_generator_config.char_replacement
+        self.forbidden_usernames = username_generator_config.forbidden_usernames
+        self.combinations = username_generator_config.combinations_to_try
         logger.info("Found forbidden usernames", count=len(self.forbidden_usernames))
+
+    @property
+    def converter(self):
+        from .converters import LdapConverter
+
+        return cast(LdapConverter, self.user_context["converter"])
 
     async def get_existing_values(self, attributes: list[str]):
         searchParameters = {
@@ -57,7 +64,7 @@ class UserNameGenerator:
         search_base = self.settings.ldap_search_base
         search_result = await paged_search(
             self.settings,
-            self.user_context["ldap_connection"],
+            self.ldap_connection,
             searchParameters,
             search_base,
         )
@@ -294,10 +301,7 @@ class UserNameGenerator:
         raise RuntimeError("Failed to create common name")
 
     async def _get_employee_ldap_attributes(self, employee: Employee, dn: str):
-        from .converters import LdapConverter
-
-        converter: LdapConverter = self.user_context["converter"]
-        employee_ldap = await converter.to_ldap(
+        employee_ldap = await self.converter.to_ldap(
             {"mo_employee": employee}, "Employee", dn
         )
         attributes = employee_ldap.dict()

@@ -21,6 +21,7 @@ from pydantic import parse_obj_as
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.config import Settings
+from mo_ldap_import_export.config import UsernameGeneratorConfig
 from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.customer_specific_checks import ExportChecks
 from mo_ldap_import_export.customer_specific_checks import ImportChecks
@@ -943,7 +944,16 @@ async def test_get_existing_values(sync_tool: SyncTool, context: Context) -> Non
     }
     context["user_context"]["mapping"] = mapping
 
-    username_generator = UserNameGenerator(context)
+    user_context = context["user_context"]
+    username_generator = UserNameGenerator(
+        context,
+        user_context["settings"],
+        parse_obj_as(
+            UsernameGeneratorConfig, user_context["mapping"]["username_generator"]
+        ),
+        user_context["dataloader"],
+        user_context["ldap_connection"],
+    )
 
     result = await username_generator.get_existing_values(["sAMAccountName", "cn"])
     assert result == {"cn": ["foo"], "sAMAccountName": []}
@@ -965,7 +975,16 @@ async def test_get_existing_names(sync_tool: SyncTool, context: Context) -> None
     }
     context["user_context"]["mapping"] = mapping
 
-    username_generator = UserNameGenerator(context)
+    user_context = context["user_context"]
+    username_generator = UserNameGenerator(
+        context,
+        user_context["settings"],
+        parse_obj_as(
+            UsernameGeneratorConfig, user_context["mapping"]["username_generator"]
+        ),
+        user_context["dataloader"],
+        user_context["ldap_connection"],
+    )
 
     result = await username_generator._get_existing_names()
     assert result == ([], ["foo"])
