@@ -331,8 +331,9 @@ async def test_load_ldap_objects(
         [mock_ldap_response(ldap_attributes, dn)] * 2,
         {"type": "test", "description": "success"},
     )
-
-    output = await load_ldap_objects(dataloader, "Employee")
+    settings = dataloader.settings
+    converter = dataloader.converter
+    output = await load_ldap_objects(settings, ldap_connection, converter, "Employee")
 
     assert output == expected_result
 
@@ -697,7 +698,11 @@ async def test_get_populated_overview(dataloader: DataLoader):
         "mo_ldap_import_export.routes.paged_search",
         return_value=responses,
     ):
-        output = await load_ldap_populated_overview(dataloader)
+        settings = dataloader.settings
+        ldap_connection = dataloader.ldap_connection
+        output = await load_ldap_populated_overview(
+            settings, ldap_connection, dataloader
+        )
 
     assert sorted(list(output["user"]["attributes"].keys())) == sorted(
         ["attr1", "objectClass"]
@@ -1711,7 +1716,9 @@ async def test_load_ldap_attribute_values(dataloader: DataLoader):
         "mo_ldap_import_export.routes.paged_search",
         return_value=responses,
     ):
-        values = await load_ldap_attribute_values(dataloader.context, "foo")
+        settings = dataloader.settings
+        ldap_connection = dataloader.ldap_connection
+        values = await load_ldap_attribute_values(settings, ldap_connection, "foo")
         assert "1" in values
         assert "2" in values
         assert "[]" in values

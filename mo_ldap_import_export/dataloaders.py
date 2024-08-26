@@ -399,7 +399,8 @@ class DataLoader:
         }
 
         responses = await paged_search(
-            self.context,
+            self.settings,
+            self.ldap_connection,
             searchParameters,
             search_base=search_base,
             mute=True,
@@ -416,7 +417,8 @@ class DataLoader:
             }
 
             responses = await paged_search(
-                self.context,
+                self.settings,
+                self.ldap_connection,
                 searchParameters,
                 search_base=dn,
                 mute=True,

@@ -329,8 +329,15 @@ def patch_modules(
     """
     Fixture to patch modules needed in main.py
     """
+    ldap_connection = MagicMock()
+    ldap_connection.get_response.return_value = (
+        [],
+        {"type": "test", "description": "success"},
+    )
+
     with patch(
-        "mo_ldap_import_export.main.configure_ldap_connection", new_callable=MagicMock()
+        "mo_ldap_import_export.main.configure_ldap_connection",
+        return_value=ldap_connection,
     ), patch("mo_ldap_import_export.main.DataLoader", return_value=dataloader), patch(
         "mo_ldap_import_export.routes.get_attribute_types", return_value={"foo": {}}
     ), patch("fastramqpi.main.database", return_value=AsyncMock()):
