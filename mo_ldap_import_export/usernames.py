@@ -47,6 +47,7 @@ class UserNameGenerator:
         from .dataloaders import DataLoader
 
         self.dataloader: DataLoader = self.user_context["dataloader"]
+        self.ldap_connection = self.user_context["ldap_connection"]
 
         logger.info("Found forbidden usernames", count=len(self.forbidden_usernames))
 
@@ -64,7 +65,7 @@ class UserNameGenerator:
         search_base = self.settings.ldap_search_base
         search_result = await paged_search(
             self.settings,
-            self.user_context["ldap_connection"],
+            self.ldap_connection,
             searchParameters,
             search_base,
         )
