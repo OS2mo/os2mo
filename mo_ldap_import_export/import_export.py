@@ -24,6 +24,7 @@ from fastramqpi.ramqp.depends import handle_exclusively_decorator
 from fastramqpi.ramqp.mo import MOAMQPSystem
 from fastramqpi.ramqp.utils import RequeueMessage
 from httpx import HTTPStatusError
+from ldap3 import Connection
 from more_itertools import all_equal
 from more_itertools import bucket
 from more_itertools import first
@@ -193,7 +194,7 @@ def with_exitstack(
 
 
 class SyncTool:
-    def __init__(self, context: Context):
+    def __init__(self, context: Context, ldap_connection: Connection) -> None:
         self.context = context
         self.user_context: UserContext = self.context["user_context"]
         self.dataloader: DataLoader = self.user_context["dataloader"]
@@ -202,6 +203,8 @@ class SyncTool:
         self.import_checks: ImportChecks = self.user_context["import_checks"]
         self.settings: Settings = self.user_context["settings"]
         self.amqpsystem: MOAMQPSystem = self.context["amqpsystem"]
+
+        self.ldap_connection: Connection = ldap_connection
 
     @staticmethod
     def wait_for_import_to_finish(func: Callable):
@@ -653,13 +656,12 @@ class SyncTool:
     ) -> DN | None:
         user_context = self.context["user_context"]
         settings = user_context["settings"]
-        ldap_connection = user_context["ldap_connection"]
 
         dns = await self.dataloader.find_mo_employee_dn(uuid)
         # If we found DNs, we want to synchronize to the best of them
         if dns:
             logger.info("Found DNs for user", dns=dns, uuid=uuid)
-            best_dn = await apply_discriminator(settings, ldap_connection, dns)
+            best_dn = await apply_discriminator(settings, self.ldap_connection, dns)
             # If no good LDAP account was found, we do not want to synchronize at all
             if best_dn:
                 return best_dn
@@ -963,7 +965,6 @@ class SyncTool:
         """
         user_context = self.context["user_context"]
         settings = user_context["settings"]
-        ldap_connection = user_context["ldap_connection"]
 
         exit_stack.enter_context(bound_contextvars(dn=dn, manual_import=manual_import))
 
@@ -1001,7 +1002,7 @@ class SyncTool:
             # Note however, that this will only succeed if there is a CPR number field.
             if self.converter.cpr_field:
                 ldap_obj = await get_ldap_object(
-                    dn, ldap_connection, attributes=[self.converter.cpr_field]
+                    dn, self.ldap_connection, attributes=[self.converter.cpr_field]
                 )
                 cpr_no = getattr(ldap_obj, self.converter.cpr_field)
                 # Only attempt to load accounts if we have a CPR number to do so with
@@ -1018,7 +1019,7 @@ class SyncTool:
         # We always want to synchronize from the best LDAP account, instead of just
         # synchronizing from the last LDAP account that has been touched.
         # Thus we process the list of DNs found for the user to pick the best one.
-        best_dn = await apply_discriminator(settings, ldap_connection, dns)
+        best_dn = await apply_discriminator(settings, self.ldap_connection, dns)
         # If no good LDAP account was found, we do not want to synchronize at all
         if best_dn is None:
             logger.info(

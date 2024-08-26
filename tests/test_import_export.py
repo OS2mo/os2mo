@@ -70,7 +70,7 @@ def context(
 
 @pytest.fixture
 def sync_tool(context: Context) -> SyncTool:
-    sync_tool = SyncTool(context)
+    sync_tool = SyncTool(context, context["user_context"]["ldap_connection"])
     return sync_tool
 
 
@@ -1264,7 +1264,7 @@ async def test_import_single_object_from_LDAP_non_existing_employee(
         ],
         {"type": "test"},
     )
-    context["user_context"]["ldap_connection"] = ldap_connection
+    sync_tool.ldap_connection = ldap_connection
     sync_tool.dataloader.load_ldap_cpr_object.return_value = [LdapObject(dn=dn)]  # type: ignore
 
     dataloader.find_mo_employee_uuid.return_value = None

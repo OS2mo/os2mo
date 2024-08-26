@@ -537,7 +537,7 @@ async def sync_tool(
     context["user_context"]["import_checks"] = import_checks
 
     # Needs context, user_context, dataloader, converter, export_checks, import_checks, settings, amqpsystem
-    sync_tool = SyncTool(context)
+    sync_tool = SyncTool(context, ldap_connection)
     context["user_context"]["synctool"] = sync_tool
 
     return sync_tool
