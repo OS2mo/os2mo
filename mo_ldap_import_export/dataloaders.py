@@ -190,6 +190,10 @@ class DataLoader:
         return cast(UserNameGenerator, self.user_context["username_generator"])
 
     @property
+    def cpr_field(self):
+        return self.user_context["cpr_field"]
+
+    @property
     def mo_to_ldap_attributes(self):
         """
         Returns a list of all LDAP attribute names which are synchronized to LDAP.
@@ -270,8 +274,7 @@ class DataLoader:
         except (ValueError, TypeError):
             raise NoObjectsReturnedException(f"cpr_no '{cpr_no}' is invalid")
 
-        cpr_field = self.user_context["cpr_field"]
-        if not cpr_field:
+        if not self.cpr_field:
             raise NoObjectsReturnedException("cpr_field is not configured")
 
         search_base = self.settings.ldap_search_base
@@ -285,7 +288,7 @@ class DataLoader:
         )
 
         object_class_filter = f"objectclass={object_class}"
-        cpr_filter = f"{cpr_field}={cpr_no}"
+        cpr_filter = f"{self.cpr_field}={cpr_no}"
 
         searchParameters = {
             "search_base": search_bases,
@@ -716,14 +719,13 @@ class DataLoader:
         return output
 
     async def find_mo_employee_uuid_via_cpr_number(self, dn: str) -> set[UUID]:
-        cpr_field = self.user_context["cpr_field"]
-        if cpr_field is None:
+        if self.cpr_field is None:
             return set()
 
-        ldap_object = await self.load_ldap_object(dn, [cpr_field])
+        ldap_object = await self.load_ldap_object(dn, [self.cpr_field])
         # Try to get the cpr number from LDAP and use that.
         try:
-            raw_cpr_no = getattr(ldap_object, cpr_field)
+            raw_cpr_no = getattr(ldap_object, self.cpr_field)
             # NOTE: Not sure if this only necessary for the mocked server or not
             if isinstance(raw_cpr_no, list):
                 raw_cpr_no = one(raw_cpr_no)
