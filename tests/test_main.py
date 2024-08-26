@@ -386,7 +386,7 @@ async def always_initialize_sync_tool(
     assert user_context.get("sync_tool") is None
 
     with patch("mo_ldap_import_export.main.SyncTool", return_value=sync_tool):
-        async with initialize_sync_tool(fastramqpi):
+        async with initialize_sync_tool(fastramqpi, user_context["ldap_connection"]):
             assert user_context.get("sync_tool") is not None
 
 

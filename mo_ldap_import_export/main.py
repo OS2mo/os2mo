@@ -266,9 +266,11 @@ async def open_ldap_connection(ldap_connection: Connection) -> AsyncIterator[Non
 
 # https://fastapi.tiangolo.com/advanced/events/
 @asynccontextmanager
-async def initialize_sync_tool(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
+async def initialize_sync_tool(
+    fastramqpi: FastRAMQPI, ldap_connection: Connection
+) -> AsyncIterator[None]:
     logger.info("Initializing Sync tool")
-    sync_tool = SyncTool(fastramqpi.get_context())
+    sync_tool = SyncTool(fastramqpi.get_context(), ldap_connection)
     fastramqpi.add_context(sync_tool=sync_tool)
     yield
 
@@ -378,7 +380,9 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     )
 
     fastramqpi.add_lifespan_manager(initialize_checks(fastramqpi), 1300)
-    fastramqpi.add_lifespan_manager(initialize_sync_tool(fastramqpi), 1350)
+    fastramqpi.add_lifespan_manager(
+        initialize_sync_tool(fastramqpi, ldap_connection), 1350
+    )
 
     if settings.listen_to_changes_in_ldap:
         logger.info("Initializing LDAP listener")
