@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 # -*- coding: utf-8 -*-
+from collections import defaultdict
+from typing import Any
 from unittest.mock import MagicMock
 from uuid import uuid4
 
@@ -69,14 +71,10 @@ async def test_check_holstebro_ou_is_externals_error2(import_checks: ImportCheck
 
 async def test_check_it_user(graphql_mock: GraphQLMocker) -> None:
     graphql_client = GraphQLClient("http://example.com/graphql")
-    dataloader = DataLoader(
-        {
-            "user_context": {
-                "ldap_connection": MagicMock(),
-            },
-            "graphql_client": graphql_client,
-        }
-    )
+    context: dict[str, Any] = defaultdict(MagicMock)
+    context["graphql_client"] = graphql_client
+
+    dataloader = DataLoader(context)  # type: ignore
     export_checks = ExportChecks(
         {"user_context": {"dataloader": dataloader, "converter": MagicMock()}}
     )

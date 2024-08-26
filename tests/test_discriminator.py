@@ -506,6 +506,7 @@ async def sync_tool(
             "ldap_it_system_user_key": None,
         },
         "graphql_client": graphql_client,
+        "legacy_model_client": AsyncMock(),
         "amqpsystem": AsyncMock(),
     }
     # Needs context, user_context, ldap_connection
