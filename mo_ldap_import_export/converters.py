@@ -18,7 +18,6 @@ from uuid import uuid4
 
 import pydantic
 import structlog
-from fastramqpi.context import Context
 from fastramqpi.ramqp.utils import RequeueMessage
 from jinja2 import Environment
 from ldap3.utils.ciDict import CaseInsensitiveDict
@@ -548,11 +547,12 @@ async def load_mo_root_org_uuid(graphql_client: GraphQLClient) -> UUID:
 
 
 class LdapConverter:
-    def __init__(self, context: Context) -> None:
-        user_context = context["user_context"]
-        self.settings = user_context["settings"]
-        self.raw_mapping = user_context["mapping"]
-        self.dataloader: DataLoader = user_context["dataloader"]
+    def __init__(
+        self, settings: Settings, raw_mapping: dict[str, Any], dataloader: DataLoader
+    ) -> None:
+        self.settings = settings
+        self.raw_mapping = raw_mapping
+        self.dataloader = dataloader
         self.org_unit_path_string_separator: str = (
             self.settings.org_unit_path_string_separator
         )
@@ -644,7 +644,7 @@ class LdapConverter:
             case "AD":
                 problematic_attributes.discard("sAMAccountName")
             case _:  # pragma: no cover
-                assert False, "Unknown LDAP dialect"
+                assert False, f"Unknown LDAP dialect: {self.settings.ldap_dialect}"
 
         exceptions = [
             IncorrectMapping(f"Attribute '{attribute}' not allowed.")

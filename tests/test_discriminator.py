@@ -524,7 +524,7 @@ async def sync_tool(
     context["user_context"]["dataloader"] = dataloader
 
     # Needs context, user_context, settings, raw_mapping, dataloader
-    converter = LdapConverter(context)
+    converter = LdapConverter(settings, mapping, dataloader)
     await converter._init()
     context["user_context"]["converter"] = converter
 

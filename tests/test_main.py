@@ -413,7 +413,12 @@ async def always_initialize_converter(
     assert user_context.get("cpr_field") is None
 
     with patch("mo_ldap_import_export.main.LdapConverter", return_value=converter):
-        async with initialize_converters(fastramqpi):
+        async with initialize_converters(
+            fastramqpi,
+            user_context["settings"],
+            user_context["mapping"],
+            user_context["dataloader"],
+        ):
             assert user_context.get("converter") is not None
             assert user_context.get("ldap_it_system_user_key") == "ADGUID"
             assert user_context.get("cpr_field") == "EmployeeID"
