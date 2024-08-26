@@ -194,6 +194,10 @@ class DataLoader:
         return self.user_context["cpr_field"]
 
     @property
+    def ldap_it_system_user_key(self):
+        return self.user_context["ldap_it_system_user_key"]
+
+    @property
     def mo_to_ldap_attributes(self):
         """
         Returns a list of all LDAP attribute names which are synchronized to LDAP.
@@ -824,18 +828,19 @@ class DataLoader:
         Return the IT system uuid belonging to the LDAP-it-system
         Return None if the LDAP-it-system is not found.
         """
-        user_key = self.user_context["ldap_it_system_user_key"]
-        if user_key is None:
+        if self.ldap_it_system_user_key is None:
             return None
 
         try:
             from .converters import get_it_system_uuid
 
-            return await get_it_system_uuid(self.graphql_client, user_key)
+            return await get_it_system_uuid(
+                self.graphql_client, self.ldap_it_system_user_key
+            )
         except UUIDNotFoundException:
             logger.info(
                 "UUID Not found",
-                suggestion=f"Does the '{user_key}' it-system exist?",
+                suggestion=f"Does the '{self.ldap_it_system_user_key}' it-system exist?",
             )
             return None
 
