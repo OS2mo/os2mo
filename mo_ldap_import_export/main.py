@@ -274,6 +274,8 @@ async def open_ldap_connection(ldap_connection: Connection) -> AsyncIterator[Non
 async def initialize_sync_tool(
     fastramqpi: FastRAMQPI,
     dataloader: DataLoader,
+    export_checks: ExportChecks,
+    import_checks: ImportChecks,
     settings: Settings,
     ldap_connection: Connection,
 ) -> AsyncIterator[None]:
@@ -281,21 +283,10 @@ async def initialize_sync_tool(
     context = fastramqpi.get_context()
     user_context = context["user_context"]
     converter = user_context["converter"]
-    export_checks = user_context["export_checks"]
-    import_checks = user_context["import_checks"]
     sync_tool = SyncTool(
         dataloader, converter, export_checks, import_checks, settings, ldap_connection
     )
     fastramqpi.add_context(sync_tool=sync_tool)
-    yield
-
-
-@asynccontextmanager
-async def initialize_checks(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
-    logger.info("Initializing Import/Export checks")
-    export_checks = ExportChecks(fastramqpi.get_context())
-    import_checks = ImportChecks(fastramqpi.get_context())
-    fastramqpi.add_context(export_checks=export_checks, import_checks=import_checks)
     yield
 
 
@@ -394,9 +385,20 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
         initialize_converters(fastramqpi, settings, mapping, dataloader), 1250
     )
 
-    fastramqpi.add_lifespan_manager(initialize_checks(fastramqpi), 1300)
+    logger.info("Initializing Import/Export checks")
+    export_checks = ExportChecks(dataloader)
+    import_checks = ImportChecks()
+
     fastramqpi.add_lifespan_manager(
-        initialize_sync_tool(fastramqpi, dataloader, settings, ldap_connection), 1350
+        initialize_sync_tool(
+            fastramqpi,
+            dataloader,
+            export_checks,
+            import_checks,
+            settings,
+            ldap_connection,
+        ),
+        1350,
     )
 
     if settings.listen_to_changes_in_ldap:

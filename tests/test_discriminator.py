@@ -529,12 +529,8 @@ async def sync_tool_and_context(
     await converter._init()
     context["user_context"]["converter"] = converter
 
-    # Needs context, user_context, dataloader, converter
-    export_checks = ExportChecks(context)
-    context["user_context"]["export_checks"] = export_checks
-    # Needs context
-    import_checks = ImportChecks(context)
-    context["user_context"]["import_checks"] = import_checks
+    export_checks = ExportChecks(dataloader)
+    import_checks = ImportChecks()
 
     sync_tool = SyncTool(
         dataloader, converter, export_checks, import_checks, settings, ldap_connection

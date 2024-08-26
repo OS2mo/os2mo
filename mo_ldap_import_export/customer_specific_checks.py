@@ -3,8 +3,6 @@
 from uuid import UUID
 
 import structlog
-from fastramqpi.context import Context
-from fastramqpi.depends import UserContext
 
 from .converters import get_it_system_uuid
 from .dataloaders import DataLoader
@@ -20,9 +18,8 @@ class ExportChecks:
     Class with modules that are invoked when exporting data to LDAP
     """
 
-    def __init__(self, context: Context):
-        user_context: UserContext = context["user_context"]
-        self.dataloader: DataLoader = user_context["dataloader"]
+    def __init__(self, dataloader: DataLoader) -> None:
+        self.dataloader = dataloader
 
     async def check_it_user(self, employee_uuid: UUID, it_system_user_key: str):
         if not it_system_user_key:
@@ -43,9 +40,6 @@ class ExportChecks:
 
 
 class ImportChecks:
-    def __init__(self, context: Context):
-        self.context = context
-
     async def check_holstebro_ou_is_externals_issue_57426(
         self, ou_includes: list[str], current_dn: str, json_key: str
     ) -> bool:

@@ -26,13 +26,13 @@ def context(dataloader: MagicMock) -> Context:
 
 
 @pytest.fixture
-def export_checks(context: Context) -> ExportChecks:
-    return ExportChecks(context)
+def export_checks(dataloader: MagicMock) -> ExportChecks:
+    return ExportChecks(dataloader)
 
 
 @pytest.fixture
-def import_checks(context: Context) -> ImportChecks:
-    return ImportChecks(context)
+def import_checks() -> ImportChecks:
+    return ImportChecks()
 
 
 async def test_check_holstebro_ou_is_externals_custom_succeeds(
@@ -75,9 +75,7 @@ async def test_check_it_user(graphql_mock: GraphQLMocker) -> None:
     context["graphql_client"] = graphql_client
 
     dataloader = DataLoader(context)  # type: ignore
-    export_checks = ExportChecks(
-        {"user_context": {"dataloader": dataloader, "converter": MagicMock()}}
-    )
+    export_checks = ExportChecks(dataloader)
 
     route1 = graphql_mock.query("read_itsystem_uuid")
     route1.result = {"itsystems": {"objects": []}}
