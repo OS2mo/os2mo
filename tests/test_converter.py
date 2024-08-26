@@ -2002,7 +2002,7 @@ async def test_ldap_to_mo_termination(converter: LdapConverter) -> None:
     assert mail.person.uuid == employee_uuid
 
     # Add _terminate_ key to Email mapping
-    converter.context["user_context"]["mapping"]["ldap_to_mo"]["Email"][
+    converter.raw_mapping["ldap_to_mo"]["Email"][
         "_terminate_"
     ] = "{{ now()|mo_datestring }}"
     await converter._init()
