@@ -19,7 +19,6 @@ import structlog
 from fastapi import APIRouter
 from fastapi import Body
 from fastramqpi.context import Context
-from fastramqpi.depends import UserContext
 from fastramqpi.ramqp import AMQPSystem
 from ldap3 import Connection
 from sqlalchemy import TIMESTAMP
@@ -56,14 +55,18 @@ class LastRun(Base):
 
 
 class LDAPEventGenerator(AsyncContextManager):
-    def __init__(self, context: Context) -> None:
+    def __init__(
+        self,
+        sessionmaker: async_sessionmaker[AsyncSession],
+        settings: Settings,
+        ldap_amqpsystem: AMQPSystem,
+        ldap_connection: Connection,
+    ) -> None:
         """Periodically poll LDAP for changes."""
-        self.sessionmaker: async_sessionmaker[AsyncSession] = context["sessionmaker"]
-
-        user_context: UserContext = context["user_context"]
-        self.settings: Settings = user_context["settings"]
-        self.ldap_amqpsystem: AMQPSystem = user_context["ldap_amqpsystem"]
-        self.ldap_connection: Connection = user_context["ldap_connection"]
+        self.sessionmaker = sessionmaker
+        self.settings = settings
+        self.ldap_amqpsystem = ldap_amqpsystem
+        self.ldap_connection = ldap_connection
 
         self._pollers: set[asyncio.Task] = set()
 

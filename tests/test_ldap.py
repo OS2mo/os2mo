@@ -689,10 +689,16 @@ async def test_poller_healthcheck(running: list[bool], expected: bool) -> None:
             event.set()
     await asyncio.sleep(0)
 
-    context: Context = MagicMock()
-    ldap_event_generator = LDAPEventGenerator(context)
+    sessionmaker = AsyncMock()
+    settings = MagicMock()
+    ldap_amqpsystem = AsyncMock()
+    ldap_connection = MagicMock()
+    ldap_event_generator = LDAPEventGenerator(
+        sessionmaker, settings, ldap_amqpsystem, ldap_connection
+    )
     ldap_event_generator._pollers = pollers
 
+    context: Context = MagicMock()
     assert (await ldap_event_generator.healthcheck(context)) is expected
 
     # Signal all pollers to run
