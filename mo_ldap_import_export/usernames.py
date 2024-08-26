@@ -13,6 +13,7 @@ from pydantic import parse_obj_as
 from ramodels.mo.employee import Employee
 
 from .config import UsernameGeneratorConfig
+from .dataloaders import DataLoader
 from .ldap import paged_search
 from .utils import combine_dn_strings
 from .utils import remove_vowels
@@ -43,8 +44,6 @@ class UserNameGenerator:
             u.lower() for u in self.username_generator.forbidden_usernames
         ]
         self.combinations = self.username_generator.combinations_to_try
-
-        from .dataloaders import DataLoader
 
         self.dataloader: DataLoader = self.user_context["dataloader"]
         self.ldap_connection = self.user_context["ldap_connection"]
