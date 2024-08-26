@@ -370,7 +370,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     fastramqpi.add_context(mapping=mapping)
 
     logger.info("Initializing dataloader")
-    dataloader = DataLoader(fastramqpi.get_context())
+    dataloader = DataLoader(fastramqpi.get_context(), amqpsystem)
     fastramqpi.add_context(dataloader=dataloader)
 
     userNameGeneratorClass_string = mapping["username_generator"]["objectClass"]

@@ -3,6 +3,7 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 from typing import Any
+from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from uuid import uuid4
 
@@ -73,8 +74,9 @@ async def test_check_it_user(graphql_mock: GraphQLMocker) -> None:
     graphql_client = GraphQLClient("http://example.com/graphql")
     context: dict[str, Any] = defaultdict(MagicMock)
     context["graphql_client"] = graphql_client
+    amqpsystem = AsyncMock()
 
-    dataloader = DataLoader(context)  # type: ignore
+    dataloader = DataLoader(context, amqpsystem)  # type: ignore
     export_checks = ExportChecks(dataloader)
 
     route1 = graphql_mock.query("read_itsystem_uuid")
