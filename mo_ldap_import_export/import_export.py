@@ -17,8 +17,6 @@ from uuid import uuid4
 
 import structlog
 from fastapi.encoders import jsonable_encoder
-from fastramqpi.context import Context
-from fastramqpi.depends import UserContext
 from fastramqpi.ra_utils.transpose_dict import transpose_dict
 from fastramqpi.ramqp.depends import handle_exclusively_decorator
 from fastramqpi.ramqp.utils import RequeueMessage
@@ -192,14 +190,20 @@ def with_exitstack(
 
 
 class SyncTool:
-    def __init__(self, context: Context, ldap_connection: Connection) -> None:
-        user_context: UserContext = context["user_context"]
-        self.dataloader: DataLoader = user_context["dataloader"]
-        self.converter: LdapConverter = user_context["converter"]
-        self.export_checks: ExportChecks = user_context["export_checks"]
-        self.import_checks: ImportChecks = user_context["import_checks"]
-        self.settings: Settings = user_context["settings"]
-
+    def __init__(
+        self,
+        dataloader: DataLoader,
+        converter: LdapConverter,
+        export_checks: ExportChecks,
+        import_checks: ImportChecks,
+        settings: Settings,
+        ldap_connection: Connection,
+    ) -> None:
+        self.dataloader: DataLoader = dataloader
+        self.converter: LdapConverter = converter
+        self.export_checks: ExportChecks = export_checks
+        self.import_checks: ImportChecks = import_checks
+        self.settings: Settings = settings
         self.ldap_connection: Connection = ldap_connection
 
     @staticmethod
