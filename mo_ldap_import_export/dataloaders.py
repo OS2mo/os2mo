@@ -179,14 +179,18 @@ class DataLoader:
         return cast(SyncTool, self.user_context["sync_tool"])
 
     @property
+    def converter(self):
+        from .converters import LdapConverter
+
+        return cast(LdapConverter, self.user_context["converter"])
+
+    @property
     def mo_to_ldap_attributes(self):
         """
         Returns a list of all LDAP attribute names which are synchronized to LDAP.
         """
-        converter = self.user_context["converter"]
-
         mo_to_ldap_attributes = []
-        for json_dict in converter.mapping["mo_to_ldap"].values():
+        for json_dict in self.converter.mapping["mo_to_ldap"].values():
             mo_to_ldap_attributes.extend(list(json_dict.keys()))
         return mo_to_ldap_attributes
 
@@ -270,10 +274,10 @@ class DataLoader:
         search_bases = [
             combine_dn_strings([ou, search_base]) for ou in ous_to_search_in
         ]
-        converter = self.user_context["converter"]
-
-        object_class = converter.find_ldap_object_class(json_key)
-        attributes = converter.get_ldap_attributes(json_key) + additional_attributes
+        object_class = self.converter.find_ldap_object_class(json_key)
+        attributes = (
+            self.converter.get_ldap_attributes(json_key) + additional_attributes
+        )
 
         object_class_filter = f"objectclass={object_class}"
         cpr_filter = f"{cpr_field}={cpr_no}"
@@ -457,7 +461,7 @@ class DataLoader:
         _, result = await ldap_add(
             self.ldap_connection,
             dn,
-            self.user_context["converter"].find_ldap_object_class("Employee"),
+            self.converter.find_ldap_object_class("Employee"),
             attributes=attributes,
         )
         logger.info("LDAP Result", result=result, dn=dn)
@@ -597,8 +601,7 @@ class DataLoader:
         delete: bool
             Set to True to delete contents in LDAP, instead of creating/modifying them
         """
-        converter = self.user_context["converter"]
-        if not converter._export_to_ldap_(json_key):
+        if not self.converter._export_to_ldap_(json_key):
             logger.info("_export_to_ldap_ == False.", json_key=json_key)
             return []
         success = 0
