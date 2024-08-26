@@ -70,7 +70,8 @@ def context(
 
 @pytest.fixture
 def sync_tool(context: Context) -> SyncTool:
-    sync_tool = SyncTool(context, context["user_context"]["ldap_connection"])
+    user_context = context["user_context"]
+    sync_tool = SyncTool(**user_context)
     return sync_tool
 
 
