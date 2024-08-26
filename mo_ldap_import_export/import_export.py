@@ -21,7 +21,6 @@ from fastramqpi.context import Context
 from fastramqpi.depends import UserContext
 from fastramqpi.ra_utils.transpose_dict import transpose_dict
 from fastramqpi.ramqp.depends import handle_exclusively_decorator
-from fastramqpi.ramqp.mo import MOAMQPSystem
 from fastramqpi.ramqp.utils import RequeueMessage
 from httpx import HTTPStatusError
 from ldap3 import Connection
@@ -55,7 +54,6 @@ from .ldap import apply_discriminator
 from .ldap import get_ldap_object
 from .ldap_classes import LdapObject
 from .types import EmployeeUUID
-from .types import OrgUnitUUID
 from .utils import extract_ou_from_dn
 from .utils import get_delete_flag
 
@@ -202,7 +200,6 @@ class SyncTool:
         self.export_checks: ExportChecks = self.user_context["export_checks"]
         self.import_checks: ImportChecks = self.user_context["import_checks"]
         self.settings: Settings = self.user_context["settings"]
-        self.amqpsystem: MOAMQPSystem = self.context["amqpsystem"]
 
         self.ldap_connection: Connection = ldap_connection
 
@@ -756,16 +753,6 @@ class SyncTool:
             )
 
         return all_changes
-
-    async def publish_engagements_for_org_unit(self, uuid: OrgUnitUUID) -> None:
-        """Publish events for all engagements attached to an org unit.
-
-        Args:
-            uuid: UUID of the org-unit for which to publish messages.
-        """
-        await self.dataloader.graphql_client.org_unit_engagements_refresh(
-            self.amqpsystem.exchange_name, uuid
-        )
 
     async def format_converted_objects(
         self,

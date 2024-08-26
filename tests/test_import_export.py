@@ -6,7 +6,6 @@ from functools import partial
 from itertools import combinations
 from random import randint
 from typing import Any
-from unittest.mock import ANY
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -36,6 +35,7 @@ from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.import_export import SyncTool
 from mo_ldap_import_export.import_export import get_primary_engagement
 from mo_ldap_import_export.ldap_classes import LdapObject
+from mo_ldap_import_export.main import handle_org_unit
 from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.types import EmployeeUUID
 from mo_ldap_import_export.types import OrgUnitUUID
@@ -1430,12 +1430,14 @@ async def test_move_ldap_object_nothing_to_move(
     assert ldap_object.dn == old_dn
 
 
-async def test_publish_engagements_for_org_unit(
-    sync_tool: SyncTool, dataloader: AsyncMock
-) -> None:
+async def test_publish_engagements_for_org_unit(dataloader: AsyncMock) -> None:
+    amqpsystem = AsyncMock()
+    amqpsystem.exchange_name = "my-unique-exchange-name"
     uuid = OrgUnitUUID(uuid4())
-    await sync_tool.publish_engagements_for_org_unit(uuid)
-    dataloader.graphql_client.org_unit_engagements_refresh.assert_called_with(ANY, uuid)
+    await handle_org_unit(uuid, dataloader.graphql_client, amqpsystem)
+    dataloader.graphql_client.org_unit_engagements_refresh.assert_called_with(
+        amqpsystem.exchange_name, uuid
+    )
 
 
 async def test_perform_import_checks_noop(sync_tool: SyncTool) -> None:

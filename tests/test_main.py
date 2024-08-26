@@ -731,6 +731,7 @@ async def test_listen_to_changes(sync_tool: AsyncMock) -> None:
     settings.listen_to_changes_in_mo = True
 
     amqpsystem = AsyncMock()
+    amqpsystem.exchange_name = "wow"
     graphql_client = AsyncMock()
 
     payload = uuid4()
@@ -739,9 +740,10 @@ async def test_listen_to_changes(sync_tool: AsyncMock) -> None:
     await process_person(payload, sync_tool, graphql_client, amqpsystem)
     sync_tool.listen_to_changes_in_employees.assert_awaited_once()
 
-    sync_tool.reset_mock()
-    await process_org_unit(payload, sync_tool)
-    sync_tool.publish_engagements_for_org_unit.assert_awaited_once_with(payload)
+    await process_org_unit(payload, graphql_client, amqpsystem)
+    graphql_client.org_unit_engagements_refresh.assert_called_with(
+        amqpsystem.exchange_name, payload
+    )
 
 
 @pytest.mark.usefixtures("context_dependency_injection")
