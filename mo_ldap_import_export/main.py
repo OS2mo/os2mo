@@ -409,12 +409,14 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
 
     if settings.listen_to_changes_in_ldap:
         logger.info("Initializing LDAP listener")
+        configure_ldap_amqpsystem(fastramqpi, settings.ldap_amqp, 2000)
+
+        logger.info("Initializing LDAP event generator")
         ldap_event_generator = LDAPEventGenerator(fastramqpi.get_context())
-        fastramqpi.add_lifespan_manager(ldap_event_generator, 1400)
+        fastramqpi.add_lifespan_manager(ldap_event_generator, 2050)
         fastramqpi.add_healthcheck(
             name="LDAPEventGenerator", healthcheck=ldap_event_generator.healthcheck
         )
-        configure_ldap_amqpsystem(fastramqpi, settings.ldap_amqp, 2000)
 
     return fastramqpi
 
