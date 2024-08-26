@@ -1173,7 +1173,10 @@ class SyncTool:
 
         if json_key == "Custom":
             await asyncio.gather(
-                *[obj.sync_to_mo(self.context) for obj, _ in converted_objects]
+                *[
+                    obj.sync_to_mo(self.dataloader.graphql_client)
+                    for obj, _ in converted_objects
+                ]
             )
         else:
             try:
