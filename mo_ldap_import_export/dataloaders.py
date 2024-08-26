@@ -76,7 +76,6 @@ from .ldap_classes import LdapObject
 from .types import DN
 from .types import CPRNumber
 from .types import OrgUnitUUID
-from .usernames import UserNameGenerator
 from .utils import combine_dn_strings
 from .utils import extract_cn_from_dn
 from .utils import extract_ou_from_dn
@@ -183,6 +182,12 @@ class DataLoader:
         from .converters import LdapConverter
 
         return cast(LdapConverter, self.user_context["converter"])
+
+    @property
+    def username_generator(self):
+        from .usernames import UserNameGenerator
+
+        return cast(UserNameGenerator, self.user_context["username_generator"])
 
     @property
     def mo_to_ldap_attributes(self):
@@ -1021,7 +1026,6 @@ class DataLoader:
         # If we did not find a DN neither via ITUser nor via CPR-number, then we want
         # to create one, by generating a DN, importing the user and potentially creating
         # a binding between the two.
-        username_generator: UserNameGenerator = self.user_context["username_generator"]
 
         logger.info("Generating DN for user", employee_uuid=uuid)
         # NOTE: This not only generates the DN as the name suggests,
@@ -1034,7 +1038,8 @@ class DataLoader:
         #       If we do not have the CPR number nor the ITSystem, we would be leaking
         #       the DN we generate, so maybe we should guard for this, the old code seemed
         #       to do so, maybe we should simply not upload anything in that case.
-        dn = await username_generator.generate_dn(employee)
+        dn = await self.username_generator.generate_dn(employee)
+        assert isinstance(dn, str)
 
         # If the LDAP ITSystem exists, we want to create a binding to our newly
         # generated (and created) DN, such that it can be correlated in the future.
