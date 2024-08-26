@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import re
 from collections.abc import Iterator
+from typing import cast
 from uuid import UUID
 
 import structlog
@@ -48,6 +49,12 @@ class UserNameGenerator:
         self.dataloader: DataLoader = self.user_context["dataloader"]
 
         logger.info("Found forbidden usernames", count=len(self.forbidden_usernames))
+
+    @property
+    def converter(self):
+        from .converters import LdapConverter
+
+        return cast(LdapConverter, self.user_context["converter"])
 
     async def get_existing_values(self, attributes: list[str]):
         searchParameters = {
@@ -294,10 +301,7 @@ class UserNameGenerator:
         raise RuntimeError("Failed to create common name")
 
     async def _get_employee_ldap_attributes(self, employee: Employee, dn: str):
-        from .converters import LdapConverter
-
-        converter: LdapConverter = self.user_context["converter"]
-        employee_ldap = await converter.to_ldap(
+        employee_ldap = await self.converter.to_ldap(
             {"mo_employee": employee}, "Employee", dn
         )
         attributes = employee_ldap.dict()
