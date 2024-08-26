@@ -55,7 +55,12 @@ class UserNameGenerator:
             "attributes": attributes,
         }
         search_base = self.settings.ldap_search_base
-        search_result = await paged_search(self.context, searchParameters, search_base)
+        search_result = await paged_search(
+            self.settings,
+            self.user_context["ldap_connection"],
+            searchParameters,
+            search_base,
+        )
 
         output = {}
         for attribute in attributes:

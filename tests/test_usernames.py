@@ -44,12 +44,15 @@ def context(dataloader: MagicMock, converter: MagicMock) -> Context:
     settings_mock.ldap_dialect = "AD"
     settings_mock.ldap_ou_for_new_users = ""
 
+    ldap_connection = AsyncMock()
+
     context: Context = {
         "user_context": {
             "mapping": mapping,
             "settings": settings_mock,
             "dataloader": dataloader,
             "converter": converter,
+            "ldap_connection": ldap_connection,
         }
     }
 

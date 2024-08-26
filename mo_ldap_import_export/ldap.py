@@ -523,7 +523,8 @@ async def _paged_search(
 
 
 async def paged_search(
-    context: Context,
+    settings: Settings,
+    ldap_connection: Connection,
     searchParameters: dict,
     search_base: str | None = None,
     mute: bool = False,
@@ -549,10 +550,6 @@ async def paged_search(
     #       Except from a single call from usernames.py
     # TODO: Consider moving this to its own module separate from business logic
     # TODO: Make a class for the searchParameters if it has a fixed format?
-
-    user_context = context["user_context"]
-    ldap_connection = user_context["ldap_connection"]
-    settings = user_context["settings"]
 
     if search_base:
         # If the search base is explicitly defined: Don't try anything fancy.
