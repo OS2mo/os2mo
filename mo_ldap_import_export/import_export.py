@@ -194,12 +194,12 @@ def with_exitstack(
 class SyncTool:
     def __init__(self, context: Context, ldap_connection: Connection) -> None:
         self.context = context
-        self.user_context: UserContext = self.context["user_context"]
-        self.dataloader: DataLoader = self.user_context["dataloader"]
-        self.converter: LdapConverter = self.user_context["converter"]
-        self.export_checks: ExportChecks = self.user_context["export_checks"]
-        self.import_checks: ImportChecks = self.user_context["import_checks"]
-        self.settings: Settings = self.user_context["settings"]
+        user_context: UserContext = self.context["user_context"]
+        self.dataloader: DataLoader = user_context["dataloader"]
+        self.converter: LdapConverter = user_context["converter"]
+        self.export_checks: ExportChecks = user_context["export_checks"]
+        self.import_checks: ImportChecks = user_context["import_checks"]
+        self.settings: Settings = user_context["settings"]
 
         self.ldap_connection: Connection = ldap_connection
 
@@ -651,14 +651,13 @@ class SyncTool:
     async def _find_best_dn(
         self, uuid: EmployeeUUID, dry_run: bool = False
     ) -> DN | None:
-        user_context = self.context["user_context"]
-        settings = user_context["settings"]
-
         dns = await self.dataloader.find_mo_employee_dn(uuid)
         # If we found DNs, we want to synchronize to the best of them
         if dns:
             logger.info("Found DNs for user", dns=dns, uuid=uuid)
-            best_dn = await apply_discriminator(settings, self.ldap_connection, dns)
+            best_dn = await apply_discriminator(
+                self.settings, self.ldap_connection, dns
+            )
             # If no good LDAP account was found, we do not want to synchronize at all
             if best_dn:
                 return best_dn
@@ -950,9 +949,6 @@ class SyncTool:
             dn: The DN that triggered our event changed in LDAP.
             manual_import: Whether this import operation was manually triggered.
         """
-        user_context = self.context["user_context"]
-        settings = user_context["settings"]
-
         exit_stack.enter_context(bound_contextvars(dn=dn, manual_import=manual_import))
 
         logger.info("Importing user")
@@ -1006,7 +1002,7 @@ class SyncTool:
         # We always want to synchronize from the best LDAP account, instead of just
         # synchronizing from the last LDAP account that has been touched.
         # Thus we process the list of DNs found for the user to pick the best one.
-        best_dn = await apply_discriminator(settings, self.ldap_connection, dns)
+        best_dn = await apply_discriminator(self.settings, self.ldap_connection, dns)
         # If no good LDAP account was found, we do not want to synchronize at all
         if best_dn is None:
             logger.info(
