@@ -283,9 +283,14 @@ async def initialize_checks(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
 
 
 @asynccontextmanager
-async def initialize_converters(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
+async def initialize_converters(
+    fastramqpi: FastRAMQPI,
+    settings: Settings,
+    raw_mapping: dict[str, Any],
+    dataloader: DataLoader,
+) -> AsyncIterator[None]:
     logger.info("Initializing converters")
-    converter = LdapConverter(fastramqpi.get_context())
+    converter = LdapConverter(settings, raw_mapping, dataloader)
     await converter._init()
     fastramqpi.add_context(cpr_field=converter.cpr_field)
     fastramqpi.add_context(ldap_it_system_user_key=converter.ldap_it_system)
@@ -368,7 +373,9 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     username_generator = username_generator_class(fastramqpi.get_context())
     fastramqpi.add_context(username_generator=username_generator)
 
-    fastramqpi.add_lifespan_manager(initialize_converters(fastramqpi), 1250)
+    fastramqpi.add_lifespan_manager(
+        initialize_converters(fastramqpi, settings, mapping, dataloader), 1250
+    )
 
     fastramqpi.add_lifespan_manager(initialize_checks(fastramqpi), 1300)
     fastramqpi.add_lifespan_manager(initialize_sync_tool(fastramqpi), 1350)

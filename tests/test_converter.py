@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import copy
 import datetime
 import json
 import re
@@ -247,7 +246,11 @@ def context(address_type_uuid: str) -> Context:
 
 @pytest.fixture
 async def converter(context: Context) -> LdapConverter:
-    converter = LdapConverter(context)
+    converter = LdapConverter(
+        context["user_context"]["settings"],
+        context["user_context"]["mapping"],
+        context["user_context"]["dataloader"],
+    )
     await converter._init()
     return converter
 
@@ -424,20 +427,21 @@ async def test_mo_to_ldap(converter: LdapConverter) -> None:
 
 
 async def test_mapping_loader_failure(context: Context) -> None:
-    good_context = copy.deepcopy(context)
-
     mappings: tuple[dict, dict, dict] = {}, {"ldap_to_mo": {}}, {"mo_to_ldap": {}}
 
     for bad_mapping in mappings:
-        bad_context = copy.deepcopy(context)
-        bad_context["user_context"]["mapping"] = bad_mapping
-
         with pytest.raises(IncorrectMapping):
-            await LdapConverter(context=bad_context)._init()
-        with pytest.raises(IncorrectMapping):
-            await LdapConverter(context=bad_context)._init()
+            await LdapConverter(
+                context["user_context"]["settings"],
+                bad_mapping,
+                context["user_context"]["dataloader"],
+            )._init()
 
-        converter = LdapConverter(context=good_context)
+        converter = LdapConverter(
+            context["user_context"]["settings"],
+            context["user_context"]["mapping"],
+            context["user_context"]["dataloader"],
+        )
         await converter._init()
         converter.mapping = bad_mapping
         with pytest.raises(IncorrectMapping):
@@ -578,7 +582,11 @@ def test_get_ldap_attributes(converter: LdapConverter, context: Context) -> None
 async def test_get_ldap_attributes_dn_removed(context: Context) -> None:
     context["user_context"]["mapping"]["mo_to_ldap"]["Employee"]["dn"] = "fixed"
 
-    converter = LdapConverter(context)
+    converter = LdapConverter(
+        context["user_context"]["settings"],
+        context["user_context"]["mapping"],
+        context["user_context"]["dataloader"],
+    )
     await converter._init()
 
     attributes = set(converter.get_ldap_attributes("Employee"))
@@ -641,11 +649,11 @@ def test_converter_check_attributes_dialect_specific(converter: LdapConverter) -
     # Got entry UUID
     detected_attributes = {"entryUUID"}
 
-    converter.settings.ldap_dialect = "Standard"
+    converter.settings.ldap_dialect = "Standard"  # type: ignore
     converter.check_attributes(detected_attributes, accepted_attributes)
 
     with pytest.raises(ExceptionGroup) as exc_info:
-        converter.settings.ldap_dialect = "AD"
+        converter.settings.ldap_dialect = "AD"  # type: ignore
         converter.check_attributes(detected_attributes, accepted_attributes)
     assert "check_attributes failed" in str(exc_info.value)
     exception = one(exc_info.value.exceptions)
@@ -656,14 +664,14 @@ def test_converter_check_attributes_dialect_specific(converter: LdapConverter) -
     detected_attributes = {"sAMAccountName"}
 
     with pytest.raises(ExceptionGroup) as exc_info:
-        converter.settings.ldap_dialect = "Standard"
+        converter.settings.ldap_dialect = "Standard"  # type: ignore
         converter.check_attributes(detected_attributes, accepted_attributes)
     assert "check_attributes failed" in str(exc_info.value)
     exception = one(exc_info.value.exceptions)
     assert isinstance(exception, IncorrectMapping)
     assert "Attribute 'sAMAccountName' not allowed." in str(exception)
 
-    converter.settings.ldap_dialect = "AD"
+    converter.settings.ldap_dialect = "AD"  # type: ignore
     converter.check_attributes(detected_attributes, accepted_attributes)
 
 
