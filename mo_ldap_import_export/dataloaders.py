@@ -20,6 +20,7 @@ import structlog
 from fastapi.encoders import jsonable_encoder
 from fastramqpi.context import Context
 from fastramqpi.raclients.modelclient.mo import ModelClient as LegacyModelClient
+from fastramqpi.ramqp.mo import MOAMQPSystem
 from ldap3 import BASE
 from ldap3 import Connection
 from ldap3.core.exceptions import LDAPInvalidValueError
@@ -154,7 +155,7 @@ def extract_current_or_latest_validity(validities: list[T]) -> T | None:
 
 
 class DataLoader:
-    def __init__(self, context: Context) -> None:
+    def __init__(self, context: Context, amqpsystem: MOAMQPSystem) -> None:
         self.context = context
         self.user_context = context["user_context"]
         self.ldap_connection: Connection = self.user_context["ldap_connection"]
@@ -165,6 +166,7 @@ class DataLoader:
         self.attribute_types = get_attribute_types(self.ldap_connection)
         self.single_value = {k: v.single_value for k, v in self.attribute_types.items()}
         self.create_mo_class_lock = asyncio.Lock()
+        self.amqpsystem: MOAMQPSystem = amqpsystem
 
     @property
     def graphql_client(self) -> GraphQLClient:
@@ -1071,7 +1073,7 @@ class DataLoader:
         # TODO: Publish this message on the LDAP AMQP exchange
         await self.sync_tool.import_single_user(dn, manual_import=True)
         await self.graphql_client.employee_refresh(
-            self.sync_tool.amqpsystem.exchange_name, [employee.uuid]
+            self.amqpsystem.exchange_name, [employee.uuid]
         )
         return dn
 

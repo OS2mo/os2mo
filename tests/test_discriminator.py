@@ -495,6 +495,7 @@ async def sync_tool_and_context(
     route = graphql_mock.query("read_class_user_keys")
     route.result = {"classes": {"objects": []}}
 
+    amqpsystem = AsyncMock()
     context: Context = {
         "user_context": {
             "ldap_connection": ldap_connection,
@@ -507,7 +508,7 @@ async def sync_tool_and_context(
         },
         "graphql_client": graphql_client,
         "legacy_model_client": AsyncMock(),
-        "amqpsystem": AsyncMock(),
+        "amqpsystem": amqpsystem,
     }
     # Needs context, user_context, ldap_connection
     with patch(
@@ -517,7 +518,7 @@ async def sync_tool_and_context(
             "employeeID": MagicMock(),
         },
     ):
-        dataloader = DataLoader(context)
+        dataloader = DataLoader(context, amqpsystem)
         dataloader.load_ldap_overview = MagicMock()  # type: ignore
         dataloader.load_ldap_overview.return_value = {
             "inetOrgPerson": {"attributes": {"employeeID": MagicMock()}}

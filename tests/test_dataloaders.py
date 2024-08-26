@@ -269,11 +269,12 @@ def dataloader(context: Context, get_attribute_types: dict) -> DataLoader:
     Yields:
         Dataloaders with mocked clients.
     """
+    amqpsystem = AsyncMock()
     with patch(
         "mo_ldap_import_export.dataloaders.get_attribute_types",
         return_value=get_attribute_types,
     ):
-        return DataLoader(context)
+        return DataLoader(context, amqpsystem)
 
 
 @pytest.fixture
@@ -1541,7 +1542,7 @@ async def test_make_mo_employee_dn_no_itsystem(dataloader: MagicMock) -> None:
     dataloader.user_context["username_generator"] = username_generator
 
     amqp_exchange_name = "amqp_exchange_name"
-    dataloader.sync_tool.amqpsystem.exchange_name = amqp_exchange_name
+    dataloader.amqpsystem.exchange_name = amqp_exchange_name
 
     with capture_logs() as cap_logs:
         result = await dataloader.make_mo_employee_dn(employee_uuid)
@@ -1582,7 +1583,7 @@ async def test_make_mo_employee_dn_no_cpr(dataloader: MagicMock) -> None:
     dataloader.get_ldap_unique_ldap_uuid.return_value = ldap_uuid
 
     amqp_exchange_name = "amqp_exchange_name"
-    dataloader.sync_tool.amqpsystem.exchange_name = amqp_exchange_name
+    dataloader.amqpsystem.exchange_name = amqp_exchange_name
 
     dataloader.create_ituser = AsyncMock()
 
