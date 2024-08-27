@@ -16,7 +16,6 @@ from uuid import uuid4
 import ldap3.core.exceptions
 import pytest
 from fastramqpi.context import Context
-from fastramqpi.depends import UserContext
 from ldap3 import MOCK_SYNC
 from ldap3 import Connection
 from ldap3 import Server
@@ -560,13 +559,17 @@ async def test_setup_poller() -> None:
     async def _poller(*args: Any) -> None:
         raise ValueError("BOOM")
 
+    settings = MagicMock()
+    ldap_amqpsystem = AsyncMock()
     sessionmaker = AsyncMock()
+    ldap_connection = AsyncMock()
 
     with patch("mo_ldap_import_export.ldap_event_generator._poller", _poller):
-        context: UserContext = {}
         search_base = "dc=magenta,dc=dk"
 
-        handle = setup_poller(context, search_base, sessionmaker)
+        handle = setup_poller(
+            settings, ldap_amqpsystem, ldap_connection, sessionmaker, search_base
+        )
 
         assert handle.done() is False
 
@@ -686,10 +689,16 @@ async def test_poller_healthcheck(running: list[bool], expected: bool) -> None:
             event.set()
     await asyncio.sleep(0)
 
-    context: Context = {}
-    ldap_event_generator = LDAPEventGenerator(context)
+    sessionmaker = AsyncMock()
+    settings = MagicMock()
+    ldap_amqpsystem = AsyncMock()
+    ldap_connection = MagicMock()
+    ldap_event_generator = LDAPEventGenerator(
+        sessionmaker, settings, ldap_amqpsystem, ldap_connection
+    )
     ldap_event_generator._pollers = pollers
 
+    context: Context = MagicMock()
     assert (await ldap_event_generator.healthcheck(context)) is expected
 
     # Signal all pollers to run

@@ -19,7 +19,7 @@ import structlog
 from fastapi import APIRouter
 from fastapi import Body
 from fastramqpi.context import Context
-from fastramqpi.depends import UserContext
+from fastramqpi.ramqp import AMQPSystem
 from ldap3 import Connection
 from sqlalchemy import TIMESTAMP
 from sqlalchemy import Text
@@ -55,24 +55,38 @@ class LastRun(Base):
 
 
 class LDAPEventGenerator(AsyncContextManager):
-    def __init__(self, context: Context) -> None:
+    def __init__(
+        self,
+        sessionmaker: async_sessionmaker[AsyncSession],
+        settings: Settings,
+        ldap_amqpsystem: AMQPSystem,
+        ldap_connection: Connection,
+    ) -> None:
         """Periodically poll LDAP for changes."""
-        self._context = context
+        self.sessionmaker = sessionmaker
+        self.settings = settings
+        self.ldap_amqpsystem = ldap_amqpsystem
+        self.ldap_connection = ldap_connection
+
         self._pollers: set[asyncio.Task] = set()
 
     async def __aenter__(self) -> Self:
         """Start event generator."""
-        user_context: UserContext = self._context["user_context"]
-        settings: Settings = user_context["settings"]
-        sessionmaker: async_sessionmaker[AsyncSession] = self._context["sessionmaker"]
-
         search_bases = {
-            combine_dn_strings([ldap_ou_to_scan_for_changes, settings.ldap_search_base])
-            for ldap_ou_to_scan_for_changes in settings.ldap_ous_to_search_in
+            combine_dn_strings(
+                [ldap_ou_to_scan_for_changes, self.settings.ldap_search_base]
+            )
+            for ldap_ou_to_scan_for_changes in self.settings.ldap_ous_to_search_in
         }
 
         self._pollers = {
-            setup_poller(user_context, search_base, sessionmaker)
+            setup_poller(
+                self.settings,
+                self.ldap_amqpsystem,
+                self.ldap_connection,
+                self.sessionmaker,
+                search_base,
+            )
             for search_base in search_bases
         }
         return self
@@ -94,9 +108,11 @@ class LDAPEventGenerator(AsyncContextManager):
 
 
 def setup_poller(
-    user_context: UserContext,
-    search_base: str,
+    settings: Settings,
+    ldap_amqpsystem: AMQPSystem,
+    ldap_connection: Connection,
     sessionmaker: async_sessionmaker[AsyncSession],
+    search_base: str,
 ) -> asyncio.Task:
     def done_callback(future):
         # Silence CancelledErrors on shutdown
@@ -104,7 +120,9 @@ def setup_poller(
             # This ensures exceptions go to the terminal
             future.result()
 
-    handle = asyncio.create_task(_poller(user_context, search_base, sessionmaker))
+    handle = asyncio.create_task(
+        _poller(settings, ldap_amqpsystem, ldap_connection, search_base, sessionmaker)
+    )
     handle.add_done_callback(done_callback)
     return handle
 
@@ -200,7 +218,9 @@ async def update_timestamp(
 
 
 async def _poller(
-    user_context: UserContext,
+    settings: Settings,
+    ldap_amqpsystem: AMQPSystem,
+    ldap_connection: Connection,
     search_base: str,
     sessionmaker: async_sessionmaker[AsyncSession],
 ) -> None:
@@ -214,14 +234,11 @@ async def _poller(
         sessionmaker:
             Sessionmaker to create database sessions for our rundb.
     """
-    settings: Settings = user_context["settings"]
     logger.info("Poller started", search_base=search_base)
-
-    ldap_amqpsystem = user_context["ldap_amqpsystem"]
 
     seeded_poller = partial(
         _poll,
-        ldap_connection=user_context["ldap_connection"],
+        ldap_connection=ldap_connection,
         search_base=search_base,
         ldap_unique_id_field=settings.ldap_unique_id_field,
     )
