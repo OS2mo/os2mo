@@ -8,7 +8,6 @@ from datetime import timezone
 from enum import Enum
 from enum import auto
 from functools import partialmethod
-from functools import wraps
 from typing import Any
 from typing import Literal
 from typing import Protocol
@@ -82,6 +81,7 @@ from .utils import extract_cn_from_dn
 from .utils import extract_ou_from_dn
 from .utils import is_exception
 from .utils import remove_cn_from_dn
+from .utils import star
 
 logger = structlog.stdlib.get_logger()
 
@@ -1284,15 +1284,18 @@ class DataLoader:
             for obj in result.objects
         }
         # If no active validities, pretend we did not get the object at all
+        no_validity, validity = partition(
+            star(lambda _, address: address), output.items()
+        )
         no_validity_uuids = [
             uuid for uuid, address in output.items() if address is None
         ]
+        no_validity_uuids = [uuid for uuid, _ in no_validity]
         if no_validity_uuids:
             logger.warning(
                 "Unable to lookup employee addresses", uuids=no_validity_uuids
             )
-        objects = [obj for obj in output.values() if obj is not None]
-        return cast(list[Address], objects)
+        return cast(list[Address], [obj for _, obj in validity])
 
     async def load_mo_org_unit_addresses(
         self, org_unit_uuid: OrgUnitUUID, address_type_uuid: UUID
@@ -1308,15 +1311,15 @@ class DataLoader:
             for obj in result.objects
         }
         # If no active validities, pretend we did not get the object at all
-        no_validity_uuids = [
-            uuid for uuid, address in output.items() if address is None
-        ]
+        no_validity, validity = partition(
+            star(lambda _, address: address), output.items()
+        )
+        no_validity_uuids = [uuid for uuid, _ in no_validity]
         if no_validity_uuids:
             logger.warning(
                 "Unable to lookup org-unit addresses", uuids=no_validity_uuids
             )
-        objects = [obj for obj in output.values() if obj is not None]
-        return cast(list[Address], objects)
+        return cast(list[Address], [obj for _, obj in validity])
 
     async def load_mo_employee_it_users(
         self,
@@ -1374,13 +1377,6 @@ class DataLoader:
         return cast(list[Engagement], output)
 
     async def create_or_edit_mo_objects(self, objects: list[tuple[MOBase, Verb]]):
-        def star(func):
-            @wraps(func)
-            def wrapper(tup: tuple) -> Any:
-                return func(*tup)
-
-            return wrapper
-
         def fix_verb(obj: MOBase, verb: Verb) -> tuple[MOBase, Verb]:
             if hasattr(obj, "terminate_"):
                 return obj, Verb.TERMINATE
