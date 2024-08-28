@@ -60,6 +60,7 @@ from .resolvers import it_user_resolver
 from .resolvers import kle_resolver
 from .resolvers import leave_resolver
 from .resolvers import manager_resolver
+from .resolvers import organisation_unit_has_children
 from .resolvers import organisation_unit_resolver
 from .resolvers import owner_resolver
 from .resolvers import related_unit_resolver
@@ -3639,9 +3640,19 @@ class OrganisationUnit:
         deprecation_reason=dedent(
             """\
             Will be removed in a future version of GraphQL.
-            Count the elements returned by `children {{uuid}}` instead.
+            Consider if `has_children` can answer your query. Otherwise, count
+            the elements returned by `children {{uuid}}`.
             """
         ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+    )
+
+    has_children: bool = strawberry.field(
+        resolver=seed_resolver(
+            organisation_unit_has_children,
+            {"parents": lambda root: [root.uuid]},
+        ),
+        description="Returns whether the organisation unit has children.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
