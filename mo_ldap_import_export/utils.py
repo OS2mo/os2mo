@@ -4,6 +4,7 @@ import copy
 import re
 from datetime import datetime
 from functools import partial
+from functools import wraps
 from typing import Any
 
 import structlog
@@ -221,3 +222,11 @@ def get_delete_flag(mo_object: dict[str, Any]) -> bool:
         )
         return True
     return False
+
+
+def star(func):
+    @wraps(func)
+    def wrapper(tup: tuple) -> Any:
+        return func(*tup)
+
+    return wrapper

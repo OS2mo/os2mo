@@ -29,7 +29,9 @@ from pydantic import BaseModel
 from pydantic import Field
 from pydantic import parse_obj_as
 from ramodels.mo._shared import MOBase
+from ramodels.mo._shared import Validity
 from ramodels.mo.details.address import Address
+from ramodels.mo.details.address import AddressType
 from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
@@ -774,29 +776,47 @@ async def test_load_mo_address(dataloader: DataLoader) -> None:
 async def test_load_mo_employee_addresses(
     dataloader: DataLoader, graphql_mock: GraphQLMocker
 ) -> None:
-    address1_uuid = uuid4()
-    address2_uuid = uuid4()
+    address_uuid = uuid4()
+    address_type_uuid = uuid4()
 
     route = graphql_mock.query("read_employee_addresses")
     route.result = {
         "addresses": {
             "objects": [
-                {"uuid": address1_uuid},
-                {"uuid": address2_uuid},
+                {
+                    "uuid": address_uuid,
+                    "validities": [
+                        {
+                            "value": "Test",
+                            "uuid": address_uuid,
+                            "validity": {"from": "1900-01-01T00:00:00"},
+                            "address_type": {
+                                "user_key": "postalAddress",
+                                "uuid": address_type_uuid,
+                            },
+                        }
+                    ],
+                }
             ]
         }
     }
 
-    load_mo_address = AsyncMock()
-    dataloader.load_mo_address = load_mo_address  # type: ignore
-
     employee_uuid = uuid4()
-    address_type_uuid = uuid4()
-    await dataloader.load_mo_employee_addresses(employee_uuid, address_type_uuid)
+    result = await dataloader.load_mo_employee_addresses(
+        employee_uuid, address_type_uuid
+    )
+    assert result == [
+        Address(
+            type_="address",
+            uuid=address_uuid,
+            user_key=str(address_uuid),
+            value="Test",
+            address_type=AddressType(uuid=address_type_uuid),
+            validity=Validity(from_date=datetime.datetime(1900, 1, 1, 0, 0)),
+        )
+    ]
 
     assert route.called
-    load_mo_address.assert_any_call(address1_uuid)
-    load_mo_address.assert_any_call(address2_uuid)
 
 
 async def test_load_mo_employee_addresses_not_found(
@@ -811,6 +831,34 @@ async def test_load_mo_employee_addresses_not_found(
         employee_uuid, address_type_uuid
     )
     assert result == []
+
+    assert route.called
+
+
+async def test_load_mo_employee_addresses_not_validity(
+    dataloader: DataLoader, graphql_mock: GraphQLMocker
+) -> None:
+    address_uuid = uuid4()
+
+    route = graphql_mock.query("read_employee_addresses")
+    route.result = {
+        "addresses": {"objects": [{"uuid": address_uuid, "validities": []}]}
+    }
+
+    employee_uuid = uuid4()
+    address_type_uuid = uuid4()
+    with capture_logs() as cap_logs:
+        result = await dataloader.load_mo_employee_addresses(
+            employee_uuid, address_type_uuid
+        )
+        assert result == []
+    assert cap_logs == [
+        {
+            "event": "Unable to lookup employee addresses",
+            "log_level": "warning",
+            "uuids": [address_uuid],
+        }
+    ]
 
     assert route.called
 
@@ -1114,26 +1162,47 @@ async def test_load_mo_employee_it_users_not_found(
 async def test_load_mo_org_unit_addresses(
     dataloader: DataLoader, graphql_mock: GraphQLMocker
 ):
-    address_uuid1 = uuid4()
-    address_uuid2 = uuid4()
+    address_uuid = uuid4()
+    address_type_uuid = uuid4()
 
     route = graphql_mock.query("read_org_unit_addresses")
     route.result = {
-        "addresses": {"objects": [{"uuid": address_uuid1}, {"uuid": address_uuid2}]}
+        "addresses": {
+            "objects": [
+                {
+                    "uuid": address_uuid,
+                    "validities": [
+                        {
+                            "value": "Test",
+                            "uuid": address_uuid,
+                            "validity": {"from": "1900-01-01T00:00:00"},
+                            "address_type": {
+                                "user_key": "postalAddress",
+                                "uuid": address_type_uuid,
+                            },
+                        }
+                    ],
+                }
+            ]
+        }
     }
 
-    load_mo_address = AsyncMock()
-    dataloader.load_mo_address = load_mo_address  # type: ignore
-
     org_unit_uuid = uuid4()
-    address_type_uuid = uuid4()
-    await dataloader.load_mo_org_unit_addresses(
+    result = await dataloader.load_mo_org_unit_addresses(
         OrgUnitUUID(org_unit_uuid), address_type_uuid
     )
+    assert result == [
+        Address(
+            type_="address",
+            uuid=address_uuid,
+            user_key=str(address_uuid),
+            value="Test",
+            address_type=AddressType(uuid=address_type_uuid),
+            validity=Validity(from_date=datetime.datetime(1900, 1, 1, 0, 0)),
+        )
+    ]
 
     assert route.called
-    load_mo_address.assert_any_call(address_uuid1)
-    load_mo_address.assert_any_call(address_uuid2)
 
 
 async def test_load_mo_org_unit_addresses_not_found(
@@ -1148,6 +1217,34 @@ async def test_load_mo_org_unit_addresses_not_found(
         OrgUnitUUID(employee_uuid), address_type_uuid
     )
     assert result == []
+
+    assert route.called
+
+
+async def test_load_mo_org_unit_addresses_no_validity(
+    dataloader: DataLoader, graphql_mock: GraphQLMocker
+) -> None:
+    address_uuid = uuid4()
+
+    route = graphql_mock.query("read_org_unit_addresses")
+    route.result = {
+        "addresses": {"objects": [{"uuid": address_uuid, "validities": []}]}
+    }
+
+    employee_uuid = uuid4()
+    address_type_uuid = uuid4()
+    with capture_logs() as cap_logs:
+        result = await dataloader.load_mo_org_unit_addresses(
+            OrgUnitUUID(employee_uuid), address_type_uuid
+        )
+        assert result == []
+    assert cap_logs == [
+        {
+            "event": "Unable to lookup org-unit addresses",
+            "log_level": "warning",
+            "uuids": [address_uuid],
+        }
+    ]
 
     assert route.called
 
