@@ -529,16 +529,12 @@ async def owner_resolver(
     )
 
 
-async def organisation_unit_resolver(
+async def organisation_unit_resolver_query(
     info: Info,
-    filter: OrganisationUnitFilter | None = None,
+    filter: OrganisationUnitFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Any:
-    """Resolve organisation units."""
-    if filter is None:
-        filter = OrganisationUnitFilter()
-
     await registration_filter(info, filter)
 
     async def _get_parent_uuids() -> list[UUID]:
@@ -741,6 +737,26 @@ async def organisation_unit_resolver(
         query = query.limit(limit)
     if cursor is not None:
         query = query.offset(cursor.offset)
+
+    return query
+
+
+async def organisation_unit_resolver(
+    info: Info,
+    filter: OrganisationUnitFilter | None = None,
+    limit: LimitType = None,
+    cursor: CursorType = None,
+) -> Any:
+    """Resolve organisation units."""
+    if filter is None:
+        filter = OrganisationUnitFilter()
+
+    query = await organisation_unit_resolver_query(
+        info=info,
+        filter=filter,
+        limit=limit,
+        cursor=cursor,
+    )
 
     # Execute
     session = info.context["session"]
