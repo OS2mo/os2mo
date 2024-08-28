@@ -10,7 +10,7 @@ license = "MPL-2.0"
 [tool.poetry.dependencies]
 python = "^3.11"
 structlog = "^24.4.0"
-fastramqpi = "^10.0.0"
+fastramqpi = "^10.0.1"
 pydantic = {version = "^1.10.18", extras = ["dotenv"]}
 gql = "^3.5.0"
 more-itertools = "^9.1.0"
