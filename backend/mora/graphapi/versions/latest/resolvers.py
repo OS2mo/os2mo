@@ -19,7 +19,9 @@ from sqlalchemy import between
 from sqlalchemy import cast
 from sqlalchemy import ColumnElement
 from sqlalchemy import distinct
+from sqlalchemy import exists
 from sqlalchemy import func
+from sqlalchemy import Select
 from sqlalchemy import select
 from starlette_context import context
 from strawberry import UNSET
@@ -534,7 +536,7 @@ async def organisation_unit_resolver_query(
     filter: OrganisationUnitFilter,
     limit: LimitType = None,
     cursor: CursorType = None,
-) -> Any:
+) -> Select:
     await registration_filter(info, filter)
 
     async def _get_parent_uuids() -> list[UUID]:
@@ -798,6 +800,18 @@ async def organisation_unit_resolver(
             to_date=filter.to_date,
         ),
     )
+
+
+async def organisation_unit_has_children(
+    info: Info,
+    filter: OrganisationUnitFilter | None,
+) -> bool:
+    """Resolve whether an organisation unit has children."""
+    assert filter is not None  # cannot be None, but signature required for seeding
+    query = await organisation_unit_resolver_query(info=info, filter=filter)
+    session = info.context["session"]
+    result = await session.execute(select(exists(query)))
+    return result.scalar()
 
 
 async def it_system_resolver(

@@ -858,3 +858,43 @@ async def test_parent_changes(
     set_parent(new)
     parent_uuid = read_parent()
     assert parent_uuid == expected
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.parametrize(
+    "children_filter",
+    [
+        None,
+        {"from_date": None, "to_date": None},
+    ],
+)
+async def test_has_children(
+    graphapi_post: GraphAPIPost,
+    children_filter: dict | None,
+) -> None:
+    """Test has_children works."""
+    query = """
+        query GetChildren(
+          $children_filter: ParentsBoundOrganisationUnitFilter
+        ) {
+          org_units(filter: { from_date: null, to_date: null }) {
+            objects {
+              validities(start: null, end: null) {
+                children(filter: $children_filter) { uuid }
+                has_children(filter: $children_filter)
+              }
+            }
+          }
+        }
+    """
+    response = graphapi_post(
+        query,
+        variables={
+            "children_filter": children_filter,
+        },
+    )
+    assert response.errors is None
+    for obj in response.data["org_units"]["objects"]:
+        for validity in obj["validities"]:
+            assert bool(validity["children"]) == validity["has_children"]
