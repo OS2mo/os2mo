@@ -450,11 +450,10 @@ class DataLoader:
                 mute=True,
             )
             ou = extract_ou_from_dn(dn)
-            if len(responses) == 0:
-                output[ou] = {"empty": True}
-            else:
-                output[ou] = {"empty": False}
-            output[ou]["dn"] = dn
+            output[ou] = {
+                "empty": len(responses) == 0,
+                "dn": dn,
+            }
 
         return output
 
