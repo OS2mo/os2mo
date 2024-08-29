@@ -1026,23 +1026,6 @@ class SyncTool:
         dn = best_dn
         exit_stack.enter_context(bound_contextvars(dn=dn))
 
-        # Get the employee's engagement UUID (for the engagement matching the employee's
-        # AD ObjectGUID.) This depends on whether the "ADGUID" field mapping is set up
-        # to map the engagement UUID into MO, so that when `import_single_user` creates
-        # or updates a MO `ITUser` for "ADGUID", the relevant engagement UUID is used.
-        engagement_uuid: UUID | None = await self.dataloader.find_mo_engagement_uuid(dn)
-        if engagement_uuid is None:
-            logger.info(
-                "Engagement UUID not found in MO",
-                dn=dn,
-            )
-        else:
-            logger.info(
-                "Engagement UUID found in MO",
-                engagement_uuid=engagement_uuid,
-                dn=dn,
-            )
-
         # First import the Employee, then Engagement if present, then the rest.
         # We want this order so dependencies exist before their dependent objects
         # TODO: Maybe there should be a dependency graph in the future
@@ -1067,14 +1050,11 @@ class SyncTool:
         logger.info("Import to MO filtered", json_keys=json_keys)
 
         for json_key in json_keys:
-            updated_engagement_uuid = await self.import_single_user_entity(
-                json_key, dn, employee_uuid, engagement_uuid
-            )
-            engagement_uuid = updated_engagement_uuid or engagement_uuid
+            await self.import_single_user_entity(json_key, dn, employee_uuid)
 
     async def import_single_user_entity(
-        self, json_key: str, dn: str, employee_uuid: UUID, engagement_uuid: UUID | None
-    ) -> UUID | None:
+        self, json_key: str, dn: str, employee_uuid: UUID
+    ) -> None:
         logger.info("Loading object", dn=dn, json_key=json_key)
         loaded_object = await self.dataloader.load_ldap_object(
             dn, self.converter.get_ldap_attributes(json_key)
@@ -1093,7 +1073,7 @@ class SyncTool:
         )
         if not converted_objects:
             logger.info("No converted objects", dn=dn)
-            return engagement_uuid
+            return
 
         logger.info(
             "Converted 'n' objects ",
@@ -1101,33 +1081,10 @@ class SyncTool:
             dn=dn,
         )
 
-        # In case the engagement does not exist yet
-        if json_key == "Engagement":
-            # TODO: Why are we extracting the first object as opposed to the last?
-            engagement_uuid = first(converted_objects).uuid
-            logger.info(
-                "Saving engagement UUID for DN",
-                engagement_uuid=engagement_uuid,
-                source_object=first(converted_objects),
-                dn=dn,
-            )
-
         try:
             converted_objects = await self.format_converted_objects(
                 converted_objects, json_key
             )
-            # In case the engagement exists, but is outdated. If it exists,
-            # but is identical, the list will be empty.
-            if json_key == "Engagement" and len(converted_objects):
-                operation = first(converted_objects)
-                engagement, _ = operation
-                engagement_uuid = engagement.uuid
-                logger.info(
-                    "Updating engagement UUID",
-                    engagement_uuid=engagement_uuid,
-                    source_object=engagement,
-                    dn=dn,
-                )
         except NoObjectsReturnedException:
             # If any of the objects which this object links to does not exist
             # The dataloader will raise NoObjectsReturnedException
@@ -1146,26 +1103,12 @@ class SyncTool:
                 task="Moving on",
                 dn=dn,
             )
-            return engagement_uuid
+            return
 
         # TODO: Convert this to an assert? - The above try-catch ensures it is always set, no?
         if not converted_objects:  # pragma: no cover
             logger.info("No converted objects after formatting", dn=dn)
-            return engagement_uuid
-
-        # In case the engagement exists, but is outdated.
-        # If it exists, but is identical, the list will be empty.
-        if json_key == "Engagement":
-            # TODO: Why are we extracting the first object as opposed to the last?
-            operation = first(converted_objects)
-            engagement, _ = operation
-            engagement_uuid = engagement.uuid
-            logger.info(
-                "Updating engagement UUID",
-                engagement_uuid=engagement_uuid,
-                source_object=engagement,
-                dn=dn,
-            )
+            return
 
         logger.info(
             "Importing objects",
@@ -1180,20 +1123,20 @@ class SyncTool:
                     for obj, _ in converted_objects
                 ]
             )
-        else:
-            try:
-                await self.dataloader.create_or_edit_mo_objects(converted_objects)
-            except HTTPStatusError as e:
-                # TODO: This could also happen if MO is just busy, right?
-                #       In which case we would probably like to retry I imagine?
+            return
 
-                # This can happen, for example if a phone number in LDAP is
-                # invalid
-                logger.warning(
-                    "Failed to upload objects",
-                    error=e,
-                    converted_objects=converted_objects,
-                    request=e.request,
-                    dn=dn,
-                )
-        return engagement_uuid
+        try:
+            await self.dataloader.create_or_edit_mo_objects(converted_objects)
+        except HTTPStatusError as e:
+            # TODO: This could also happen if MO is just busy, right?
+            #       In which case we would probably like to retry I imagine?
+
+            # This can happen, for example if a phone number in LDAP is
+            # invalid
+            logger.warning(
+                "Failed to upload objects",
+                error=e,
+                converted_objects=converted_objects,
+                request=e.request,
+                dn=dn,
+            )

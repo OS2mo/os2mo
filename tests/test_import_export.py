@@ -1087,20 +1087,6 @@ async def test_import_single_object_forces_json_key_ordering(
 
 
 @pytest.mark.usefixtures("fake_find_mo_employee_dn")
-async def test_import_single_user_logs_empty_engagement_uuid(
-    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
-) -> None:
-    # Arrange
-    dataloader.find_mo_engagement_uuid.return_value = None
-    with capture_logs() as cap_logs:
-        # Act
-        await sync_tool.import_single_user("CN=foo")
-        # Assert
-        logged_events: list[str] = [log["event"] for log in cap_logs]
-        assert "Engagement UUID not found in MO" in logged_events
-
-
-@pytest.mark.usefixtures("fake_find_mo_employee_dn")
 async def test_import_address_objects(
     context: Context, converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
@@ -1422,12 +1408,8 @@ async def test_import_single_user_entity(sync_tool: SyncTool) -> None:
     json_key = "Engagement"
     dn = "CN=foo"
     employee_uuid = uuid4()
-    engagement_uuid = uuid4()
     with capture_logs() as cap_logs:
-        result = await sync_tool.import_single_user_entity(
-            json_key, dn, employee_uuid, engagement_uuid
-        )
-        assert result == engagement_uuid
+        await sync_tool.import_single_user_entity(json_key, dn, employee_uuid)
 
         assert "No converted objects" in str(cap_logs)
 
