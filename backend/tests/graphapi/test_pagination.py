@@ -75,10 +75,10 @@ serialize_cursor = Cursor._scalar_definition.serialize
         # While OFFSET and LIMITing is done in LoRa/SQL, further filtering is sometimes
         # applied in MO. Confusingly, this means that receiving a list shorter than the
         # requested limit does not imply that we are at the end.
-        ("org_units", 9, 0, 7),
-        ("org_units", 11, 0, 9),
+        ("org_units", 9, 0, 9),
+        ("org_units", 11, 0, 10),
         ("org_units", 10, 1, 9),
-        ("org_units", 10, 9, 3),
+        ("org_units", 10, 9, 1),
         # Owners
         ("owners", None, None, 2),
         ("owners", 0, 0, 0),
