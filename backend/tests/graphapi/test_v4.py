@@ -71,10 +71,10 @@ from tests.conftest import GraphAPIPost
         # While OFFSET and LIMITing is done in LoRa/SQL, further filtering is sometimes
         # applied in MO. Confusingly, this means that receiving a list shorter than the
         # requested limit does not imply that we are at the end.
-        ("org_units", 9, 0, 7),
-        ("org_units", 11, 0, 9),
+        ("org_units", 9, 0, 9),
+        ("org_units", 11, 0, 10),
         ("org_units", 10, 1, 9),
-        ("org_units", 10, 9, 3),
+        ("org_units", 10, 9, 1),
         # Related Units
         ("related_units", None, None, 1),
         ("related_units", 0, 0, 0),

@@ -62,6 +62,7 @@ from mora.db import OrganisationEnhedAttrEgenskaber
 from mora.db import OrganisationEnhedRegistrering
 from mora.db import OrganisationEnhedRelation
 from mora.db import OrganisationEnhedRelationKode
+from mora.db import OrganisationEnhedTilsGyldighed
 from mora.graphapi.gmodels.mo import EmployeeRead
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import AssociationRead
@@ -581,6 +582,16 @@ async def organisation_unit_resolver_query(
             ),
         )
 
+    def _gyldighed() -> ColumnElement:
+        return OrganisationEnhedRegistrering.id.in_(
+            select(
+                OrganisationEnhedTilsGyldighed.organisationenhed_registrering_id
+            ).where(
+                OrganisationEnhedTilsGyldighed.gyldighed == "Aktiv",
+                _virkning(OrganisationEnhedTilsGyldighed),
+            )
+        )
+
     def _virkning(cls: type[HasValidity]) -> ColumnElement:
         start, end = get_sqlalchemy_date_interval(filter.from_date, filter.to_date)
         return and_(cls.virkning_start <= end, cls.virkning_slut > start)
@@ -591,6 +602,7 @@ async def organisation_unit_resolver_query(
         )
         .where(
             _registrering(),
+            _gyldighed(),
         )
         .order_by(
             OrganisationEnhedRegistrering.organisationenhed_id,
