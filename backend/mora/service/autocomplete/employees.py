@@ -39,6 +39,7 @@ async def search_employees(
 
     ctes = await asyncio.gather(
         _get_cte_uuid_hits(query),
+        _get_cte_user_key_hits(query),
         _get_cte_name_hits(query),
         _get_cte_cpr_hits(query),
         _get_cte_addr_hits(query),
@@ -303,6 +304,26 @@ async def _get_cte_itsystem_hits(query: str):
             cast(OrganisationFunktionRelation.rel_type, String)
             == OrganisationFunktionRelationKode.tilknyttedebrugere,
             OrganisationFunktionAttrEgenskaber.funktionsnavn == "IT-system",
+            OrganisationFunktionAttrEgenskaber.brugervendtnoegle.ilike(search_phrase),
+        )
+        .cte()
+    )
+
+
+async def _get_cte_user_key_hits(query: str):
+    search_phrase = util.query_to_search_phrase(query)
+    return (
+        select(OrganisationFunktionRelation.rel_maal_uuid.label("uuid"))
+        .outerjoin(
+            OrganisationFunktionAttrEgenskaber,
+            OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+            == OrganisationFunktionRelation.organisationfunktion_registrering_id,
+        )
+        .where(
+            OrganisationFunktionRelation.rel_maal_uuid != None,  # noqa: E711
+            cast(OrganisationFunktionRelation.rel_type, String)
+            == OrganisationFunktionRelationKode.tilknyttedebrugere,
+            OrganisationFunktionAttrEgenskaber.funktionsnavn == "Engagement",
             OrganisationFunktionAttrEgenskaber.brugervendtnoegle.ilike(search_phrase),
         )
         .cte()
