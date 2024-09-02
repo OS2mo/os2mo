@@ -1087,49 +1087,6 @@ async def test_import_single_object_forces_json_key_ordering(
 
 
 @pytest.mark.usefixtures("fake_find_mo_employee_dn")
-async def test_import_single_object_collects_engagement_uuid(
-    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
-) -> None:
-    """
-    Test that the engagement UUID is saved when importing an engagement, and used when
-    importing subsequent MO objects.
-    """
-    # Arrange
-    converter.get_ldap_to_mo_json_keys.return_value = ["Engagement", "Address"]
-    converter.from_ldap.return_value = [
-        Engagement.from_simplified_fields(
-            person_uuid=uuid4(),
-            org_unit_uuid=uuid4(),
-            job_function_uuid=uuid4(),
-            engagement_type_uuid=uuid4(),
-            user_key="user_key",
-            from_date="2020-01-01",
-        ),
-        Address.from_simplified_fields(
-            value="Address value",
-            address_type_uuid=uuid4(),
-            from_date="2020-01-01",
-        ),
-    ]
-    # Act
-    await sync_tool.import_single_user("CN=foo")
-    # Assert
-    from_ldap_args: list[tuple[str, UUID | None]] = [
-        (call.args[1], call.kwargs["engagement_uuid"])
-        for call in converter.from_ldap.call_args_list
-    ]
-    # Assert: first call to `from_ldap` is for "Employee", engagement UUID is None
-    assert from_ldap_args[0][0] == "Employee"
-    assert isinstance(from_ldap_args[0][1], AsyncMock)
-    # Assert: second call to `from_ldap` is for "Engagement", engagement UUID is None
-    assert from_ldap_args[1][0] == "Engagement"
-    assert isinstance(from_ldap_args[1][1], AsyncMock)
-    # Assert: third call to `from_ldap` is for "Address", engagement UUID is an UUID
-    assert from_ldap_args[2][0] == "Address"
-    assert isinstance(from_ldap_args[2][1], UUID)
-
-
-@pytest.mark.usefixtures("fake_find_mo_employee_dn")
 async def test_import_single_user_logs_empty_engagement_uuid(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:

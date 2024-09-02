@@ -1090,7 +1090,6 @@ class SyncTool:
             loaded_object,
             json_key,
             employee_uuid=employee_uuid,
-            engagement_uuid=engagement_uuid,
         )
         if not converted_objects:
             logger.info("No converted objects", dn=dn)
