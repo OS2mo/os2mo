@@ -1049,8 +1049,12 @@ class SyncTool:
         ]
         logger.info("Import to MO filtered", json_keys=json_keys)
 
-        for json_key in json_keys:
-            await self.import_single_user_entity(json_key, dn, employee_uuid)
+        await asyncio.gather(
+            *[
+                self.import_single_user_entity(json_key, dn, employee_uuid)
+                for json_key in json_keys
+            ]
+        )
 
     async def import_single_user_entity(
         self, json_key: str, dn: str, employee_uuid: UUID
