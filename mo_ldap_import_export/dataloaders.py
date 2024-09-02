@@ -453,16 +453,13 @@ class DataLoader:
         )
         dn_map = dict(zip(dns, dn_responses))
 
-        output = {}
-
-        for dn in dns:
-            ou = extract_ou_from_dn(dn)
-            output[ou] = {
+        return {
+            extract_ou_from_dn(dn): {
                 "empty": len(dn_map[dn]) == 0,
                 "dn": dn,
             }
-
-        return output
+            for dn in dns
+        }
 
     async def add_ldap_object(self, dn: str, attributes: dict[str, Any] | None = None):
         """
