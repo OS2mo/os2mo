@@ -715,7 +715,7 @@ async def test_format_converted_engagement_objects(
 async def test_format_converted_multiple_primary_engagements(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
-    converter.find_mo_object_class.return_value = "Engagement"
+    converter.import_mo_object_class.return_value = Engagement
 
     employee_uuid = uuid4()
 
@@ -756,7 +756,7 @@ async def test_format_converted_multiple_primary_engagements(
 async def test_format_converted_employee_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
-    converter.find_mo_object_class.return_value = "Employee"
+    converter.import_mo_object_class.return_value = Employee
 
     employee1 = Employee(cpr_no="1212121234")
     employee2 = Employee(cpr_no="1212121235")
@@ -1067,6 +1067,8 @@ async def test_import_single_object_forces_json_key_ordering(
     keys.
     """
     # Arrange: inject a list of JSON keys that have the wrong order
+    sync_tool.format_converted_objects = AsyncMock()  # type: ignore
+    sync_tool.format_converted_objects.return_value = []
     converter.get_ldap_to_mo_json_keys.return_value = [
         "Address",
         "Engagement",
@@ -1191,6 +1193,9 @@ async def test_import_single_object_from_LDAP_non_existing_employee(
     context: Context, converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
     dn = "CN=foo"
+
+    sync_tool.format_converted_objects = AsyncMock()  # type: ignore
+    sync_tool.format_converted_objects.return_value = []
 
     ldap_connection = MagicMock()
     ldap_connection.get_response.return_value = (
