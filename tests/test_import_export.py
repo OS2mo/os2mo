@@ -1133,14 +1133,19 @@ async def test_import_address_objects(
             assert "Could not format converted objects" in str(messages)
 
     # Simulate invalid phone number
-    dataloader.create_or_edit_mo_objects.side_effect = HTTPStatusError(
+    # Undo lots and lots of useless mocking
+    dataloader.create_or_edit_mo_objects = partial(
+        DataLoader.create_or_edit_mo_objects, dataloader
+    )
+    dataloader.create = partial(DataLoader.create, dataloader)
+    dataloader.create_object = partial(DataLoader.create_object, dataloader)
+    exception = HTTPStatusError(
         "invalid phone number", request=MagicMock(), response=MagicMock()
     )
-    with capture_logs() as cap_logs:
+    dataloader.create_address.side_effect = exception
+    with pytest.raises(ExceptionGroup) as exc_info:
         await sync_tool.import_single_user("CN=foo")
-
-        messages = [w for w in cap_logs if w["log_level"] == "warning"]
-        assert "invalid phone number" in str(messages)
+    assert exc_info.value.exceptions == (exception, exception)
 
 
 @pytest.mark.usefixtures("fake_find_mo_employee_dn")

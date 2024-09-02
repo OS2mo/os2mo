@@ -20,7 +20,6 @@ from fastapi.encoders import jsonable_encoder
 from fastramqpi.ra_utils.transpose_dict import transpose_dict
 from fastramqpi.ramqp.depends import handle_exclusively_decorator
 from fastramqpi.ramqp.utils import RequeueMessage
-from httpx import HTTPStatusError
 from ldap3 import Connection
 from more_itertools import all_equal
 from more_itertools import bucket
@@ -1128,19 +1127,4 @@ class SyncTool:
             converted_objects=converted_objects,
             dn=dn,
         )
-
-        try:
-            await self.dataloader.create_or_edit_mo_objects(converted_objects)
-        except HTTPStatusError as e:
-            # TODO: This could also happen if MO is just busy, right?
-            #       In which case we would probably like to retry I imagine?
-
-            # This can happen, for example if a phone number in LDAP is
-            # invalid
-            logger.warning(
-                "Failed to upload objects",
-                error=e,
-                converted_objects=converted_objects,
-                request=e.request,
-                dn=dn,
-            )
+        await self.dataloader.create_or_edit_mo_objects(converted_objects)
