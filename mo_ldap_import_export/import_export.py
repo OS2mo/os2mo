@@ -1081,6 +1081,15 @@ class SyncTool:
             dn=dn,
         )
 
+        if json_key == "Custom":
+            await asyncio.gather(
+                *[
+                    obj.sync_to_mo(self.dataloader.graphql_client)
+                    for obj in converted_objects
+                ]
+            )
+            return
+
         try:
             converted_objects = await self.format_converted_objects(
                 converted_objects, json_key
@@ -1115,15 +1124,6 @@ class SyncTool:
             converted_objects=converted_objects,
             dn=dn,
         )
-
-        if json_key == "Custom":
-            await asyncio.gather(
-                *[
-                    obj.sync_to_mo(self.dataloader.graphql_client)
-                    for obj, _ in converted_objects
-                ]
-            )
-            return
 
         try:
             await self.dataloader.create_or_edit_mo_objects(converted_objects)
