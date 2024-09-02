@@ -1122,16 +1122,6 @@ async def test_import_address_objects(
         await sync_tool.import_single_user("CN=foo")
         dataloader.create_or_edit_mo_objects.assert_called_with(formatted_objects)
 
-    with patch(
-        "mo_ldap_import_export.import_export.SyncTool.format_converted_objects",
-        side_effect=NoObjectsReturnedException("foo"),
-    ):
-        with capture_logs() as cap_logs:
-            await sync_tool.import_single_user("CN=foo")
-
-            messages = [w for w in cap_logs if w["log_level"] == "info"]
-            assert "Could not format converted objects" in str(messages)
-
     # Simulate invalid phone number
     # Undo lots and lots of useless mocking
     dataloader.create_or_edit_mo_objects = partial(

@@ -46,7 +46,6 @@ from .dataloaders import DataLoader
 from .dataloaders import Verb
 from .dataloaders import extract_current_or_latest_validity
 from .exceptions import DNNotFound
-from .exceptions import NoObjectsReturnedException
 from .ldap import apply_discriminator
 from .ldap import get_ldap_object
 from .ldap_classes import LdapObject
@@ -1093,31 +1092,9 @@ class SyncTool:
             )
             return
 
-        try:
-            converted_objects = await self.format_converted_objects(
-                converted_objects, json_key
-            )
-        except NoObjectsReturnedException:
-            # If any of the objects which this object links to does not exist
-            # The dataloader will raise NoObjectsReturnedException
-            #
-            # This can happen, for example:
-            # If converter._import_to_mo_('Address') = True
-            # And converter._import_to_mo_('Employee') = False
-            #
-            # Because an address cannot be imported for an employee that does not
-            # exist. The non-existing employee is also not created because
-            # converter._import_to_mo_('Employee') = False
-            # TODO: Verify that the above doc-string is correct.
-            #       Can the format function ever raise NoObjectsReturnedException?
-            logger.info(
-                "Could not format converted objects",
-                task="Moving on",
-                dn=dn,
-            )
-            return
-
-        # TODO: Convert this to an assert? - The above try-catch ensures it is always set, no?
+        converted_objects = await self.format_converted_objects(
+            converted_objects, json_key
+        )
         if not converted_objects:  # pragma: no cover
             logger.info("No converted objects after formatting", dn=dn)
             return
