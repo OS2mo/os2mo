@@ -439,19 +439,26 @@ class DataLoader:
             "attributes": [],
             "size_limit": 1,
         }
+        dn_responses = await asyncio.gather(
+            *[
+                paged_search(
+                    self.settings,
+                    self.ldap_connection,
+                    searchParameters,
+                    search_base=dn,
+                    mute=True,
+                )
+                for dn in dns
+            ]
+        )
+        dn_map = dict(zip(dns, dn_responses))
+
         output = {}
 
         for dn in dns:
-            responses = await paged_search(
-                self.settings,
-                self.ldap_connection,
-                searchParameters,
-                search_base=dn,
-                mute=True,
-            )
             ou = extract_ou_from_dn(dn)
             output[ou] = {
-                "empty": len(responses) == 0,
+                "empty": len(dn_map[dn]) == 0,
                 "dn": dn,
             }
 
