@@ -509,3 +509,98 @@ async def test_it_user_systems_uuid_filter(graphapi_post):
     for itusers in r.data["itusers"]["objects"]:
         for objects in itusers["objects"]:
             assert objects["itsystem"]["uuid"] == ACTIVE_DIRECTORY
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_it_user_external_id(graphapi_post: GraphAPIPost) -> None:
+    # Create
+    r = graphapi_post(
+        """
+        mutation Create($input: ITUserCreateInput!) {
+          ituser_create(input: $input) {
+            uuid
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "person": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "itsystem": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+                "user_key": "foo",
+                "external_id": "foo",
+                "validity": {"from": "2021-01-01"},
+            }
+        },
+    )
+    assert r.errors is None
+    assert r.data is not None
+    uuid = r.data["ituser_create"]["uuid"]
+
+    # Check
+    read_query = """
+      query Read($uuid: UUID!) {
+        itusers(filter: { uuids: [$uuid], from_date: null, to_date: null }) {
+          objects {
+            validities(start: null, end: null) {
+              user_key
+              external_id
+              validity {
+                from
+                to
+              }
+            }
+          }
+        }
+      }
+    """
+    r = graphapi_post(read_query, variables={"uuid": uuid})
+    assert r.errors is None
+    obj = one(r.data["itusers"]["objects"])
+    assert obj["validities"] == [
+        {
+            "user_key": "foo",
+            "external_id": "foo",
+            "validity": {"from": "2021-01-01T00:00:00+01:00", "to": None},
+        }
+    ]
+
+    # Update
+    r = graphapi_post(
+        """
+        mutation Update($input: ITUserUpdateInput!) {
+          ituser_update(input: $input) {
+            uuid
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "uuid": uuid,
+                "external_id": "bar",
+                "validity": {"from": "2022-02-02"},
+            }
+        },
+    )
+    assert r.errors is None
+
+    # Check
+    r = graphapi_post(read_query, variables={"uuid": uuid})
+    assert r.errors is None
+    assert r.data is not None
+    obj = one(r.data["itusers"]["objects"])
+    assert obj["validities"] == [
+        {
+            "user_key": "foo",
+            "external_id": "foo",
+            "validity": {
+                "from": "2021-01-01T00:00:00+01:00",
+                "to": "2022-02-01T00:00:00+01:00",
+            },
+        },
+        {
+            "user_key": "foo",
+            "external_id": "bar",
+            "validity": {"from": "2022-02-02T00:00:00+01:00", "to": None},
+        },
+    ]

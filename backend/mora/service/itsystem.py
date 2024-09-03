@@ -160,6 +160,8 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         # TODO: validate that the date range is in
         # the validity of the IT system!
 
+        external_id = req.get(mapping.EXTERNAL_ID)
+
         func = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ITSYSTEM_KEY,
             primær=primary,
@@ -177,6 +179,9 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
             ]
             if engagement_uuid
             else [],
+            udvidelse_attributter={mapping.EXTENSION_1: external_id}
+            if external_id is not None
+            else None,
             note=note,
         )
 
@@ -266,6 +271,14 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                     {
                         "uuid": util.get_mapping_uuid(data, mapping.PRIMARY),
                     },
+                )
+            )
+
+        if mapping.EXTERNAL_ID in data:
+            update_fields.append(
+                (
+                    mapping.ORG_FUNK_UDVIDELSER_FIELD,
+                    {mapping.EXTENSION_1: data.get(mapping.EXTERNAL_ID)},
                 )
             )
 

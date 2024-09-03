@@ -38,3 +38,6 @@ class ITUserRead(MOBase):
     primary_uuid: UUID | None = Field(
         description="UUID of an associated `primary_type` class."
     )
+    external_id: str | None = Field(
+        description="ID of the user account in the external system."
+    )

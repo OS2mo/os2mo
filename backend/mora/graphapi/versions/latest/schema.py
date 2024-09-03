@@ -2539,6 +2539,10 @@ class ITUser:
     async def user_key(self, root: ITUserRead) -> str:
         return root.user_key
 
+    @strawberry.field(description="ID of the user account in the external system.")
+    async def external_id(self, root: ITUserRead) -> str | None:
+        return root.external_id
+
     employee: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             to_list(
