@@ -436,8 +436,9 @@ class DataLoader:
         output = {}
 
         for dn in dns:
+            user_object_class = self.settings.ldap_user_objectclass
             searchParameters = {
-                "search_filter": "(objectclass=user)",
+                "search_filter": f"(objectclass={user_object_class})",
                 "attributes": [],
                 "size_limit": 1,
             }
