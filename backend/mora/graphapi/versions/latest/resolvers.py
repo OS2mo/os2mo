@@ -566,12 +566,6 @@ async def organisation_unit_resolver_query(
         extend_uuids(class_filter, filter.hierarchies)
         return await filter2uuids_func(class_resolver, info, class_filter)
 
-    async def _get_subtree_uuids() -> list[UUID]:
-        org_unit_filter = filter.subtree or OrganisationUnitFilter()
-        return await filter2uuids_func(
-            organisation_unit_resolver, info, org_unit_filter
-        )
-
     def _registrering() -> ColumnElement:
         return and_(
             OrganisationEnhedRegistrering.lifecycle != cast("Slettet", LivscyklusKode),
@@ -708,8 +702,11 @@ async def organisation_unit_resolver_query(
         # The subtree filter finds subtrees which has at least one org unit matching
         # the given filter. In other words, find all the matching children leafs, and
         # then recursively find their ancestors.
-        # TODO: _get_subtree_uuids should not be an awaitable
-        base_leafs = await _get_subtree_uuids()
+        org_unit_filter = filter.subtree or OrganisationUnitFilter()
+        base_leafs = await organisation_unit_resolver_query(
+            info=info,
+            filter=org_unit_filter,
+        )
         leafs = (
             select(
                 OrganisationEnhedRegistrering.organisationenhed_id,
