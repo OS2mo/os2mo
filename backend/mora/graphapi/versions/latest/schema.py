@@ -62,7 +62,6 @@ from mora.util import POSITIVE_INFINITY
 from mora.util import now
 
 from .filters import ITUserFilter
-from .filters import ManagerFilter
 from .filters import OwnerFilter
 from .graphql_utils import LoadKey
 from .health import health_map
@@ -3804,7 +3803,13 @@ class OrganisationUnit:
     async def name(self, root: OrganisationUnitRead) -> str:
         return root.name
 
-    @strawberry.field(
+    managers: list[LazyManager] = strawberry.field(
+        resolver=to_list(
+            seed_resolver(
+                manager_resolver,
+                {"org_units": lambda root: [root.uuid]},
+            )
+        ),
         description=dedent(
             """\
             Managerial roles for the organisation unit.
@@ -3813,47 +3818,11 @@ class OrganisationUnit:
             See the `inherit`-flag for details.
             """
         ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_read_permission("manager"),
+        ],
     )
-    async def managers(
-        self,
-        root: OrganisationUnitRead,
-        info: Info,
-        filter: ManagerFilter | None = None,
-        inherit: Annotated[
-            bool,
-            strawberry.argument(
-                description=dedent(
-                    """\
-                    Whether to inherit managerial roles or not.
-
-                    If managerial roles exist directly on this organisation unit, the flag does nothing and these managerial roles are returned.
-                    However if no managerial roles exist directly, and this flag is:
-                    * Not set: An empty list is returned.
-                    * Is set: The result from calling `managers` with `inherit=True` on the parent of this organistion unit is returned.
-
-                    Calling with `inherit=True` can help ensure that a manager is always found.
-                    """
-                )
-            ),
-        ] = False,
-    ) -> list["Manager"]:
-        if filter is None:
-            filter = ManagerFilter()
-        filter.org_units = [root.uuid]
-
-        resolver = to_list(seed_resolver(manager_resolver))
-        result = await resolver(root=root, info=info, filter=filter)
-        if result:
-            return result  # type: ignore
-        if not inherit:
-            return []
-        parent = await OrganisationUnit.parent(root=root, info=info)  # type: ignore
-        if parent is None:
-            return []
-        return await OrganisationUnit.managers(
-            self=self, root=parent, info=info, inherit=True
-        )
 
     @strawberry.field(
         description=dedent(
@@ -3889,6 +3858,7 @@ class OrganisationUnit:
             ),
         ] = False,
     ) -> list["Owner"]:
+        # TODO: Move inherit to resolver, like `manager_resolver`
         if filter is None:
             filter = OwnerFilter()
         filter.org_units = [root.uuid]
