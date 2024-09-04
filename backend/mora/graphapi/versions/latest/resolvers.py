@@ -538,9 +538,11 @@ async def organisation_unit_resolver_query(
     limit: LimitType = None,
     cursor: CursorType = None,
 ) -> Select:
+    # TODO: this function should not be an awaitable
+
     await registration_filter(info, filter)
 
-    async def _get_parent_uuids() -> list[UUID]:
+    async def _get_parent_uuids() -> list[UUID] | Select:
         org_unit_filter = filter.parent or OrganisationUnitFilter()
         # Handle deprecated filter
         # parents vs parent values
@@ -551,13 +553,27 @@ async def organisation_unit_resolver_query(
         #
         # The above assignment handles all parent=ys cases
         # Thus we only need to check for parents=xs and Nones
+
+        # The root unit isn't really an org unit in the database, so we can't
+        # craft a query which will fetch it. We assume the user didn't supply
+        # any other filters if they're looking for the root unit and return its
+        # UUID directly.
+        root_org: UUID = (await info.context["org_loader"].load(0)).uuid
         if filter.parents is None or filter.parent is None:
-            org = await info.context["org_loader"].load(0)
-            extend_uuids(org_unit_filter, [org.uuid])
+            return [root_org]
+        if root_org in filter.parents:
+            if filter.parents != [root_org]:
+                raise ValueError("Cannot filter root org unit with other org units")
+            return [root_org]
+        if org_unit_filter.uuids is not None and root_org in org_unit_filter.uuids:
+            if org_unit_filter.uuids != [root_org]:
+                raise ValueError("Cannot filter root org unit with other org units")
+            return [root_org]
         if filter.parents is not UNSET:
             extend_uuids(org_unit_filter, filter.parents)
-        return await filter2uuids_func(
-            organisation_unit_resolver, info, org_unit_filter
+        return await organisation_unit_resolver_query(
+            info=info,
+            filter=org_unit_filter,
         )
 
     async def _get_hierarchy_uuids() -> list[UUID]:
@@ -665,7 +681,6 @@ async def organisation_unit_resolver_query(
 
     # Parents
     if filter.parent is not UNSET or filter.parents is not UNSET:
-        # TODO: _get_parent_uuids should not be an awaitable
         parent_uuids = await _get_parent_uuids()
         query = query.where(
             OrganisationEnhedRegistrering.id.in_(
