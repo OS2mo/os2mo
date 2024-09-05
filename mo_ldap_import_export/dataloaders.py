@@ -431,32 +431,32 @@ class DataLoader:
             search_base=search_base,
             mute=True,
         )
-
         dns = [r["dn"] for r in responses]
-        output = {}
 
-        for dn in dns:
-            searchParameters = {
-                "search_filter": "(objectclass=user)",
-                "attributes": [],
-                "size_limit": 1,
+        user_object_class = self.settings.ldap_user_objectclass
+        dn_responses = await asyncio.gather(
+            *[
+                object_search(
+                    {
+                        "search_base": dn,
+                        "search_filter": f"(objectclass={user_object_class})",
+                        "attributes": [],
+                        "size_limit": 1,
+                    },
+                    self.ldap_connection,
+                )
+                for dn in dns
+            ]
+        )
+        dn_map = dict(zip(dns, dn_responses))
+
+        return {
+            extract_ou_from_dn(dn): {
+                "empty": len(dn_map[dn]) == 0,
+                "dn": dn,
             }
-
-            responses = await paged_search(
-                self.settings,
-                self.ldap_connection,
-                searchParameters,
-                search_base=dn,
-                mute=True,
-            )
-            ou = extract_ou_from_dn(dn)
-            if len(responses) == 0:
-                output[ou] = {"empty": True}
-            else:
-                output[ou] = {"empty": False}
-            output[ou]["dn"] = dn
-
-        return output
+            for dn in dns
+        }
 
     async def add_ldap_object(self, dn: str, attributes: dict[str, Any] | None = None):
         """

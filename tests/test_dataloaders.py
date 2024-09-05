@@ -80,7 +80,6 @@ from mo_ldap_import_export.routes import load_ldap_objects
 from mo_ldap_import_export.routes import load_ldap_populated_overview
 from mo_ldap_import_export.types import CPRNumber
 from mo_ldap_import_export.types import OrgUnitUUID
-from mo_ldap_import_export.utils import extract_ou_from_dn
 from tests.graphql_mocker import GraphQLMocker
 
 
@@ -338,45 +337,6 @@ async def test_load_ldap_objects(
     output = await load_ldap_objects(settings, ldap_connection, converter, "Employee")
 
     assert output == expected_result
-
-
-async def test_load_ldap_OUs(ldap_connection: MagicMock, dataloader: DataLoader):
-    group_dn1 = "OU=Users,OU=Magenta,DC=ad,DC=addev"
-    group_dn2 = "OU=Groups,OU=Magenta,DC=ad,DC=addev"
-    ou1 = extract_ou_from_dn(group_dn1)
-    ou2 = extract_ou_from_dn(group_dn2)
-    user_dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
-
-    first_response = [
-        mock_ldap_response({}, group_dn1),
-        mock_ldap_response({}, group_dn2),
-    ]
-
-    second_response = [mock_ldap_response({}, user_dn)]
-    third_response: list = []
-
-    responses = iter(
-        [
-            first_response,
-            second_response,
-            third_response,
-        ]
-    )
-
-    def set_new_result(*args, **kwargs) -> None:
-        ldap_connection.get_response.return_value = (
-            next(responses),
-            {"type": "test", "description": "success"},
-        )
-
-    ldap_connection.search.side_effect = set_new_result
-
-    output = await dataloader.load_ldap_OUs(None)
-
-    assert ou1 in output
-    assert ou2 in output
-    assert output[ou1]["empty"] is False
-    assert output[ou2]["empty"] is True
 
 
 async def test_modify_ldap_employee(

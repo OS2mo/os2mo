@@ -410,6 +410,7 @@ class Settings(BaseSettings):
         "",
         description="Name of the attribute that holds the server-assigned unique identifier. `objectGUID` on Active Directory and `entryUUID` on most standard LDAP implementations (per RFC4530).",
     )
+    ldap_user_objectclass: str = Field("", description="Object class for users")
 
     @root_validator
     def set_dialect_defaults(cls, values: dict[str, Any]) -> dict[str, Any]:
@@ -421,8 +422,10 @@ class Settings(BaseSettings):
         dialect = values.get("ldap_dialect", "UNKNOWN")
         if dialect == "Standard":
             value_or_default(values, "ldap_unique_id_field", "entryUUID")
+            value_or_default(values, "ldap_user_objectclass", "inetOrgPerson")
         if dialect == "AD":
             value_or_default(values, "ldap_unique_id_field", "objectGUID")
+            value_or_default(values, "ldap_user_objectclass", "user")
         return values
 
     # NOTE: It appears that this flag does not in fact work

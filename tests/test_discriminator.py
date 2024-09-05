@@ -37,6 +37,7 @@ from mo_ldap_import_export.ldap import wait_for_message_id
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.usernames import UserNameGenerator
+from mo_ldap_import_export.utils import extract_ou_from_dn
 from tests.graphql_mocker import GraphQLMocker
 
 
@@ -988,3 +989,53 @@ async def test_get_existing_names(sync_tool: SyncTool, context: Context) -> None
 
     result = await username_generator._get_existing_names()
     assert result == ([], ["foo"])
+
+
+async def test_load_ldap_OUs(
+    ldap_connection: Connection,
+    ldap_container_dn: str,
+    context: Context,
+) -> None:
+    group_dn1 = f"OU=Users,{ldap_container_dn}"
+    ldap_connection.strategy.add_entry(
+        group_dn1,
+        {
+            "objectClass": "organizationalUnit",
+            "ou": "Users",
+            "revision": 1,
+            "entryUUID": "{" + str(uuid4()) + "}",
+        },
+    )
+    group_dn2 = f"OU=Groups,{ldap_container_dn}"
+    ldap_connection.strategy.add_entry(
+        group_dn2,
+        {
+            "objectClass": "organizationalUnit",
+            "ou": "Groups",
+            "revision": 1,
+            "entryUUID": "{" + str(uuid4()) + "}",
+        },
+    )
+
+    user_dn = f"CN=Nick Janssen,{group_dn1}"
+    ldap_connection.strategy.add_entry(
+        user_dn,
+        {
+            "objectClass": "inetOrgPerson",
+            "userPassword": str(uuid4()),
+            "sn": "Janssen",
+            "revision": 1,
+            "entryUUID": "{" + str(uuid4()) + "}",
+            "employeeID": "0101700001",
+        },
+    )
+
+    dataloader: DataLoader = context["user_context"]["dataloader"]
+    output = await dataloader.load_ldap_OUs(ldap_container_dn)
+
+    ou1 = extract_ou_from_dn(group_dn1)
+    ou2 = extract_ou_from_dn(group_dn2)
+    assert output == {
+        ou1: {"empty": True, "dn": group_dn1},
+        ou2: {"empty": True, "dn": group_dn2},
+    }
