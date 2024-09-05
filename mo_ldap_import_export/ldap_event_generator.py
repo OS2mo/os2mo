@@ -11,6 +11,8 @@ from typing import Annotated
 from typing import Any
 from typing import AsyncContextManager
 from typing import AsyncIterator
+from typing import Awaitable
+from typing import Callable
 from typing import Self
 from typing import cast
 from uuid import UUID
@@ -244,14 +246,24 @@ async def _poller(
     )
 
     while True:
-        # Fetch the last run time, and update it after running
-        async with update_timestamp(sessionmaker, search_base) as last_run:
-            # Fetch changes since last-run and emit events for them
-            uuids = await seeded_poller(last_search_time=last_run)
-            await publish_uuids(ldap_amqpsystem, list(uuids))
-
+        await asyncio.shield(
+            _generate_events(ldap_amqpsystem, search_base, sessionmaker, seeded_poller)
+        )
         # Wait for a while before running again
         await asyncio.sleep(settings.poll_time)
+
+
+async def _generate_events(
+    ldap_amqpsystem: AMQPSystem,
+    search_base: str,
+    sessionmaker: async_sessionmaker[AsyncSession],
+    seeded_poller: Callable[..., Awaitable[set[UUID]]],
+) -> None:
+    # Fetch the last run time, and update it after running
+    async with update_timestamp(sessionmaker, search_base) as last_run:
+        # Fetch changes since last-run and emit events for them
+        uuids = await seeded_poller(last_search_time=last_run)
+        await publish_uuids(ldap_amqpsystem, list(uuids))
 
 
 def datetime_to_ldap_timestamp(dt: datetime) -> str:
