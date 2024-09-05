@@ -65,6 +65,10 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
         primary_uuid = mapping.PRIMARY_FIELD.get_uuid(effect)
         engagement_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
 
+        extensions = mapping.ORG_FUNK_UDVIDELSER_FIELD(effect)
+        extensions = extensions[0] if extensions else {}
+        external_id = extensions.get(mapping.EXTENSION_1)
+
         base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)
 
         if is_graphql():
@@ -75,6 +79,7 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
                 "engagement_uuid": engagement_uuid,
                 "itsystem_uuid": itsystem_uuid,
                 "primary_uuid": primary_uuid,
+                "external_id": external_id,
             }
 
         r = {
