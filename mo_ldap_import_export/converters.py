@@ -1182,14 +1182,11 @@ class LdapConverter:
         ldap_object: LdapObject,
         json_key: str,
         employee_uuid: UUID,
-        engagement_uuid: UUID | None = None,
     ) -> Any:
         """
         uuid : UUID
             Uuid of the employee whom this object belongs to. If None: Generates a new
             uuid
-        engagement_uuid: UUID
-            Engagement UUID to use when creating `Address` and `ITUser` instances.
         """
 
         # This is how many MO objects we need to return - a MO object can have only
@@ -1212,7 +1209,6 @@ class LdapConverter:
             context = {
                 "ldap": ldap_dict,
                 "employee_uuid": str(employee_uuid),
-                "engagement_uuid": str(engagement_uuid) if engagement_uuid else None,
             }
             try:
                 mapping = self.mapping["ldap_to_mo"]

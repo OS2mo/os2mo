@@ -816,7 +816,7 @@ class DataLoader:
         )
         raw_unique_uuid = getattr(ldap_object, self.settings.ldap_unique_id_field)
         # NOTE: Not sure if this only necessary for the mocked server or not
-        if isinstance(raw_unique_uuid, list):
+        if isinstance(raw_unique_uuid, list):  # pragma: no cover
             raw_unique_uuid = one(raw_unique_uuid)
         unique_uuid = filter_remove_curly_brackets(raw_unique_uuid)
 

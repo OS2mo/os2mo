@@ -715,7 +715,7 @@ async def test_format_converted_engagement_objects(
 async def test_format_converted_multiple_primary_engagements(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
-    converter.find_mo_object_class.return_value = "Engagement"
+    converter.import_mo_object_class.return_value = Engagement
 
     employee_uuid = uuid4()
 
@@ -756,7 +756,7 @@ async def test_format_converted_multiple_primary_engagements(
 async def test_format_converted_employee_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
-    converter.find_mo_object_class.return_value = "Employee"
+    converter.import_mo_object_class.return_value = Employee
 
     employee1 = Employee(cpr_no="1212121234")
     employee2 = Employee(cpr_no="1212121235")
@@ -1067,6 +1067,8 @@ async def test_import_single_object_forces_json_key_ordering(
     keys.
     """
     # Arrange: inject a list of JSON keys that have the wrong order
+    sync_tool.format_converted_objects = AsyncMock()  # type: ignore
+    sync_tool.format_converted_objects.return_value = []
     converter.get_ldap_to_mo_json_keys.return_value = [
         "Address",
         "Engagement",
@@ -1084,63 +1086,6 @@ async def test_import_single_object_forces_json_key_ordering(
             if m.get("json_key") and "Loaded object" in m["event"]
         ]
         assert logged_json_keys == ["Employee", "Engagement", "Address"]
-
-
-@pytest.mark.usefixtures("fake_find_mo_employee_dn")
-async def test_import_single_object_collects_engagement_uuid(
-    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
-) -> None:
-    """
-    Test that the engagement UUID is saved when importing an engagement, and used when
-    importing subsequent MO objects.
-    """
-    # Arrange
-    converter.get_ldap_to_mo_json_keys.return_value = ["Engagement", "Address"]
-    converter.from_ldap.return_value = [
-        Engagement.from_simplified_fields(
-            person_uuid=uuid4(),
-            org_unit_uuid=uuid4(),
-            job_function_uuid=uuid4(),
-            engagement_type_uuid=uuid4(),
-            user_key="user_key",
-            from_date="2020-01-01",
-        ),
-        Address.from_simplified_fields(
-            value="Address value",
-            address_type_uuid=uuid4(),
-            from_date="2020-01-01",
-        ),
-    ]
-    # Act
-    await sync_tool.import_single_user("CN=foo")
-    # Assert
-    from_ldap_args: list[tuple[str, UUID | None]] = [
-        (call.args[1], call.kwargs["engagement_uuid"])
-        for call in converter.from_ldap.call_args_list
-    ]
-    # Assert: first call to `from_ldap` is for "Employee", engagement UUID is None
-    assert from_ldap_args[0][0] == "Employee"
-    assert isinstance(from_ldap_args[0][1], AsyncMock)
-    # Assert: second call to `from_ldap` is for "Engagement", engagement UUID is None
-    assert from_ldap_args[1][0] == "Engagement"
-    assert isinstance(from_ldap_args[1][1], AsyncMock)
-    # Assert: third call to `from_ldap` is for "Address", engagement UUID is an UUID
-    assert from_ldap_args[2][0] == "Address"
-    assert isinstance(from_ldap_args[2][1], UUID)
-
-
-@pytest.mark.usefixtures("fake_find_mo_employee_dn")
-async def test_import_single_user_logs_empty_engagement_uuid(
-    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
-) -> None:
-    # Arrange
-    dataloader.find_mo_engagement_uuid.return_value = None
-    with capture_logs() as cap_logs:
-        # Act
-        await sync_tool.import_single_user("CN=foo")
-        # Assert
-        logged_events: list[str] = [log["event"] for log in cap_logs]
-        assert "Engagement UUID not found in MO" in logged_events
 
 
 @pytest.mark.usefixtures("fake_find_mo_employee_dn")
@@ -1179,25 +1124,20 @@ async def test_import_address_objects(
         await sync_tool.import_single_user("CN=foo")
         dataloader.create_or_edit_mo_objects.assert_called_with(formatted_objects)
 
-    with patch(
-        "mo_ldap_import_export.import_export.SyncTool.format_converted_objects",
-        side_effect=NoObjectsReturnedException("foo"),
-    ):
-        with capture_logs() as cap_logs:
-            await sync_tool.import_single_user("CN=foo")
-
-            messages = [w for w in cap_logs if w["log_level"] == "info"]
-            assert "Could not format converted objects" in str(messages)
-
     # Simulate invalid phone number
-    dataloader.create_or_edit_mo_objects.side_effect = HTTPStatusError(
+    # Undo lots and lots of useless mocking
+    dataloader.create_or_edit_mo_objects = partial(
+        DataLoader.create_or_edit_mo_objects, dataloader
+    )
+    dataloader.create = partial(DataLoader.create, dataloader)
+    dataloader.create_object = partial(DataLoader.create_object, dataloader)
+    exception = HTTPStatusError(
         "invalid phone number", request=MagicMock(), response=MagicMock()
     )
-    with capture_logs() as cap_logs:
+    dataloader.create_address.side_effect = exception
+    with pytest.raises(ExceptionGroup) as exc_info:
         await sync_tool.import_single_user("CN=foo")
-
-        messages = [w for w in cap_logs if w["log_level"] == "warning"]
-        assert "invalid phone number" in str(messages)
+    assert exc_info.value.exceptions == (exception, exception)
 
 
 @pytest.mark.usefixtures("fake_find_mo_employee_dn")
@@ -1253,6 +1193,9 @@ async def test_import_single_object_from_LDAP_non_existing_employee(
     context: Context, converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
     dn = "CN=foo"
+
+    sync_tool.format_converted_objects = AsyncMock()  # type: ignore
+    sync_tool.format_converted_objects.return_value = []
 
     ldap_connection = MagicMock()
     ldap_connection.get_response.return_value = (
@@ -1465,12 +1408,8 @@ async def test_import_single_user_entity(sync_tool: SyncTool) -> None:
     json_key = "Engagement"
     dn = "CN=foo"
     employee_uuid = uuid4()
-    engagement_uuid = uuid4()
     with capture_logs() as cap_logs:
-        result = await sync_tool.import_single_user_entity(
-            json_key, dn, employee_uuid, engagement_uuid
-        )
-        assert result == engagement_uuid
+        await sync_tool.import_single_user_entity(json_key, dn, employee_uuid)
 
         assert "No converted objects" in str(cap_logs)
 

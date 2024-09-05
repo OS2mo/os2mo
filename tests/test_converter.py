@@ -378,41 +378,6 @@ async def test_ldap_to_mo_dict_validation_error(converter: LdapConverter) -> Non
         assert "Exception during object parsing" in str(info_messages)
 
 
-async def test_ldap_to_mo_uses_engagement_uuid(converter: LdapConverter) -> None:
-    """
-    Passing an optional `engagement_uuid` to `from_ldap` should inject the engagement
-    UUID in the returned MO object (if that object is an `Address` or `ITUser`.)
-    """
-
-    # Arrange
-    employee_uuid: UUID = uuid4()
-    engagement_uuid: UUID = uuid4()
-    # Arrange: replace the 'render_async' method on one of the field templates with a
-    # mock, so we can test the arguments passed to it.
-    with patch.object(
-        converter.mapping["ldap_to_mo"]["Email"]["value"],
-        "render_async",
-        return_value="<value>",
-    ) as mock_render_async:
-        # Act
-        await converter.from_ldap(
-            LdapObject(
-                dn="",
-                mail="foo@bar.dk",
-                mail_validity_from=datetime.datetime(2019, 1, 1, 0, 10, 0),
-            ),
-            "Email",
-            employee_uuid,
-            engagement_uuid=engagement_uuid,
-        )
-        # Assert: check that `render_async` was awaited
-        mock_render_async.assert_awaited_once()
-        # Assert: check actual engagement UUID vs. the one passed to `from_ldap`
-        context: dict = mock_render_async.await_args.args[0]  # type: ignore
-        actual_engagement_uuid: UUID = UUID(context["engagement_uuid"])
-        assert actual_engagement_uuid == engagement_uuid
-
-
 async def test_mo_to_ldap(converter: LdapConverter) -> None:
     obj_dict: dict = {"mo_employee": Employee(givenname="Tester", surname="Testersen")}
     ldap_object: Any = await converter.to_ldap(obj_dict, "Employee", "CN=foo")

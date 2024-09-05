@@ -560,8 +560,6 @@ async def context(sync_tool_and_context: tuple[SyncTool, Context]) -> Context:
         pytest.param(
             False,
             [
-                "Could not find engagement UUID for DN",
-                "Engagement UUID not found in MO",
                 "Import checks executed",
                 "Import to MO filtered",
             ],
@@ -571,6 +569,7 @@ async def context(sync_tool_and_context: tuple[SyncTool, Context]) -> Context:
         pytest.param(
             True,
             [
+                "Found DN",
                 "Found DN",
                 "Aborting synchronization, as no good LDAP account was found",
             ],
@@ -588,8 +587,6 @@ async def context(sync_tool_and_context: tuple[SyncTool, Context]) -> Context:
             [
                 "Found DN",
                 "Found DN",
-                "Could not find engagement UUID for DN",
-                "Engagement UUID not found in MO",
                 "Import checks executed",
                 "Import to MO filtered",
             ],
@@ -606,10 +603,8 @@ async def context(sync_tool_and_context: tuple[SyncTool, Context]) -> Context:
             True,
             [
                 "Found DN",
-                "Found better DN for employee",
                 "Found DN",
-                "Could not find engagement UUID for DN",
-                "Engagement UUID not found in MO",
+                "Found better DN for employee",
                 "Import checks executed",
                 "Import to MO filtered",
             ],
@@ -690,7 +685,6 @@ async def test_import_single_user_apply_discriminator(
             "Attempting CPR number lookup",
             "Found LDAP(s) object",
             "Found DN(s) using CPR number lookup",
-            "Found DN",
         ]
         + log_lines
     )
