@@ -1668,7 +1668,7 @@ async def test_make_mo_employee_dn_no_cpr(dataloader: MagicMock) -> None:
     )
 
 
-def test_extract_unique_objectGUIDs(dataloader: DataLoader):
+def test_extract_unique_objectGUIDs(dataloader: DataLoader) -> None:
     ad_it_user_1 = ITUser.from_simplified_fields(
         str(uuid4()),
         uuid4(),
@@ -1681,20 +1681,22 @@ def test_extract_unique_objectGUIDs(dataloader: DataLoader):
         datetime.datetime.today().strftime("%Y-%m-%d"),
         person_uuid=uuid4(),
     )
+
+    objectGUIDs = dataloader.extract_unique_ldap_uuids([ad_it_user_1, ad_it_user_2])
+    assert UUID(ad_it_user_1.user_key) in objectGUIDs
+    assert UUID(ad_it_user_2.user_key) in objectGUIDs
+    assert len(objectGUIDs) == 2
+
     ad_it_user_3 = ITUser.from_simplified_fields(
         "not_an_uuid",
         uuid4(),
         datetime.datetime.today().strftime("%Y-%m-%d"),
         person_uuid=uuid4(),
     )
-
-    objectGUIDs = dataloader.extract_unique_ldap_uuids(
-        [ad_it_user_1, ad_it_user_2, ad_it_user_3]
-    )
-
-    assert UUID(ad_it_user_1.user_key) in objectGUIDs
-    assert UUID(ad_it_user_2.user_key) in objectGUIDs
-    assert len(objectGUIDs) == 2
+    with pytest.raises(ExceptionGroup) as exc_info:
+        dataloader.extract_unique_ldap_uuids([ad_it_user_1, ad_it_user_2, ad_it_user_3])
+    exception = one(exc_info.value.exceptions)
+    assert str(exception) == "Non UUID IT-user user-key: not_an_uuid"
 
 
 @pytest.mark.parametrize(
