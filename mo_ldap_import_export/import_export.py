@@ -24,6 +24,7 @@ from fastramqpi.ramqp.utils import RequeueMessage
 from ldap3 import Connection
 from more_itertools import all_equal
 from more_itertools import first
+from more_itertools import one
 from more_itertools import only
 from more_itertools import partition
 from more_itertools import quantify
@@ -891,16 +892,27 @@ class SyncTool:
             for key, value in values_in_mo.items()
         }
 
-        # At this point we can map each converted_object to its MO object
-        converted_tuples = [
-            (obj, value_in_mo.get(getattr(obj, value_key))) for obj in converted_objects
+        # If we have more than one converted per value-key there cannot be a bijection.
+        # This probably means we have a misconfiguration of the integration.
+        # Perhaps a bad discriminator between MO objects per converted object.
+        bad_discriminator_exception = RequeueMessage(
+            "Bad bijection: Multiple converted"
+        )
+        value_converted = {
+            key: one(value, too_long=bad_discriminator_exception)
+            for key, value in values_converted.items()
+        }
+
+        # At this point we know a bijection exists from converted objects to MO objects
+        bijection = [
+            (value_converted[key], value_in_mo.get(key)) for key in value_converted
         ]
 
-        # Partition converted objects into creates and updates
+        # Partition the bijection into creates and updates
         creates, updates = partition(
             # We have an update if there is no MO object in the bijection
             star(lambda converted, mo_object: mo_object is not None),
-            converted_tuples,
+            bijection,
         )
         updates = cast(Iterator[tuple[MOBase, MOBase]], updates)
 
@@ -912,6 +924,7 @@ class SyncTool:
         # Convert updates to operations
         mo_attributes = set(self.converter.get_mo_attributes(json_key))
         for converted_object, matching_object in updates:
+            # Convert our objects to dicts
             mo_object_dict_to_upload = matching_object.dict()
             converted_mo_object_dict = converted_object.dict()
 
@@ -931,6 +944,7 @@ class SyncTool:
                 uuid=mo_object_dict_to_upload["uuid"],
                 values=update_values,
             )
+
             mo_object_dict_to_upload.update(update_values)
             converted_object_uuid_checked = mo_class(**mo_object_dict_to_upload)
 
