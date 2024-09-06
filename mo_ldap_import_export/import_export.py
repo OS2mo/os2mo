@@ -897,31 +897,30 @@ class SyncTool:
                 continue
             # Exactly 1 match found
             logger.info(
-                "Found matching key",
-                json_key=json_key,
-                value=getattr(converted_object, value_key),
+                "Found matching key", json_key=json_key, value=converted_object_value
             )
 
             matching_object = one(values)
             mo_object_dict_to_upload = matching_object.dict()
-
             converted_mo_object_dict = converted_object.dict()
 
-            # TODO: We always used the matched UUID, even if we have one templated out?
-            #       Is this the desired behavior, if I template an UUID I would have
-            #       imagined that I would only ever touch the object with that UUID?
+            # Update the existing MO object with the converted values
+            # NOTE: UUID cannot be updated as it is used to decide what we update
+            # NOTE: objectClass is removed as it is an LDAP implemenation detail
+            # TODO: Why do we not update validity???
             mo_attributes = mo_attributes - {"validity", "uuid", "objectClass"}
             # Only copy over keys that exist in both sets
             mo_attributes = mo_attributes & converted_mo_object_dict.keys()
 
-            for key in mo_attributes:
-                logger.info(
-                    "Setting value on upload dict",
-                    key=key,
-                    value=converted_mo_object_dict[key],
-                )
-                mo_object_dict_to_upload[key] = converted_mo_object_dict[key]
-
+            update_values = {
+                key: converted_mo_object_dict[key] for key in mo_attributes
+            }
+            logger.info(
+                "Setting values on upload dict",
+                uuid=mo_object_dict_to_upload["uuid"],
+                values=update_values,
+            )
+            mo_object_dict_to_upload.update(update_values)
             converted_object_uuid_checked = mo_class(**mo_object_dict_to_upload)
 
             # TODO: Try to get this reactivated, see: 87683a2b
