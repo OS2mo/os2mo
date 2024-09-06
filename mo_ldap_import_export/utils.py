@@ -2,15 +2,19 @@
 # SPDX-License-Identifier: MPL-2.0
 import copy
 import re
+from collections.abc import Callable
+from collections.abc import Iterable
 from datetime import datetime
 from functools import partial
 from functools import wraps
 from typing import Any
+from typing import TypeVar
 
 import structlog
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
+from more_itertools import bucket
 from ramodels.mo._shared import MOBase
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
@@ -20,6 +24,9 @@ from ramodels.mo.employee import Employee
 from .customer_specific import JobTitleFromADToMO
 
 logger = structlog.stdlib.get_logger()
+
+T = TypeVar("T")
+R = TypeVar("R")
 
 
 def import_class(name: str) -> type[MOBase]:
@@ -230,3 +237,8 @@ def star(func):
         return func(*tup)
 
     return wrapper
+
+
+def bucketdict(iterable: Iterable[T], key: Callable[[T], R]) -> dict[R, list[T]]:
+    buck = bucket(iterable, key)
+    return {key: list(buck[key]) for key in buck}

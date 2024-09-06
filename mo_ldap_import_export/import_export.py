@@ -23,7 +23,6 @@ from fastramqpi.ramqp.depends import handle_exclusively_decorator
 from fastramqpi.ramqp.utils import RequeueMessage
 from ldap3 import Connection
 from more_itertools import all_equal
-from more_itertools import bucket
 from more_itertools import first
 from more_itertools import one
 from more_itertools import quantify
@@ -56,6 +55,7 @@ from .ldap import get_ldap_object
 from .ldap_classes import LdapObject
 from .types import EmployeeUUID
 from .types import OrgUnitUUID
+from .utils import bucketdict
 from .utils import extract_ou_from_dn
 from .utils import get_delete_flag
 
@@ -343,13 +343,9 @@ class SyncTool:
         ]
         addresses = [obj for obj in address_validities if obj is not None]
         # Group addresses by address-type
-        address_by_type = bucket(
+        address_map = bucketdict(
             addresses, key=lambda address: address.address_type.user_key
         )
-        address_map = {
-            address_type: list(address_by_type[address_type])
-            for address_type in address_by_type
-        }
         # TODO: Support deletion here, possibly by detecting address_types in our
         #       configuration, which are not in the address_map keys, i.e.
         #       mapped_address_types - address_map.keys()
@@ -452,13 +448,9 @@ class SyncTool:
         ]
         addresses = [obj for obj in address_validities if obj is not None]
         # Group addresses by address-type
-        address_by_type = bucket(
+        address_map = bucketdict(
             addresses, key=lambda address: address.address_type.user_key
         )
-        address_map = {
-            address_type: list(address_by_type[address_type])
-            for address_type in address_by_type
-        }
         # TODO: Support deletion here, possibly by detecting address_types in our
         #       configuration, which are not in the address_map keys, i.e.
         #       mapped_address_types - address_map.keys()
@@ -561,13 +553,7 @@ class SyncTool:
         ]
         itusers = [obj for obj in ituser_validities if obj is not None]
         # Group addresses by address-type
-        ituser_by_itsystem = bucket(
-            itusers, key=lambda ituser: ituser.itsystem.user_key
-        )
-        ituser_map = {
-            itsystem: list(ituser_by_itsystem[itsystem])
-            for itsystem in ituser_by_itsystem
-        }
+        ituser_map = bucketdict(itusers, key=lambda ituser: ituser.itsystem.user_key)
         # TODO: Support deletion here, possibly by detecting itsystems in our
         #       configuration, which are not in the ituser_map keys, i.e.
         #       mapped_itsystems - ituser_map.keys()
