@@ -1038,16 +1038,16 @@ class SyncTool:
         json_keys = [
             json_key
             for json_key in json_keys
-            if await self.perform_import_checks(dn, json_key)
+            if self.converter._import_to_mo_(json_key, manual_import)
         ]
-        logger.info("Import checks executed", json_keys=json_keys)
+        logger.info("Import to MO filtered", json_keys=json_keys)
 
         json_keys = [
             json_key
             for json_key in json_keys
-            if self.converter._import_to_mo_(json_key, manual_import)
+            if await self.perform_import_checks(dn, json_key)
         ]
-        logger.info("Import to MO filtered", json_keys=json_keys)
+        logger.info("Import checks executed", json_keys=json_keys)
 
         await asyncio.gather(
             *[
