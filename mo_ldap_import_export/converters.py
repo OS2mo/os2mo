@@ -342,12 +342,12 @@ async def find_cpr_field(mapping: dict[str, Any]) -> str | None:
     """
     try:
         mo_to_ldap = mapping["mo_to_ldap"]
-    except KeyError:
-        raise IncorrectMapping("Missing 'mo_to_ldap' in mapping")
+    except KeyError as error:
+        raise IncorrectMapping("Missing 'mo_to_ldap' in mapping") from error
     try:
         employee_mapping = mo_to_ldap["Employee"]
-    except KeyError:
-        raise IncorrectMapping("Missing 'Employee' in mapping 'mo_to_ldap'")
+    except KeyError as error:
+        raise IncorrectMapping("Missing 'Employee' in mapping 'mo_to_ldap'") from error
 
     cpr_fields = [
         ldap_field_name
@@ -644,7 +644,9 @@ class LdapConverter:
             case "AD":
                 problematic_attributes.discard("sAMAccountName")
             case _:  # pragma: no cover
-                assert False, f"Unknown LDAP dialect: {self.settings.ldap_dialect}"
+                raise AssertionError(
+                    f"Unknown LDAP dialect: {self.settings.ldap_dialect}"
+                )
 
         exceptions = [
             IncorrectMapping(f"Attribute '{attribute}' not allowed.")
@@ -659,9 +661,9 @@ class LdapConverter:
     def get_json_keys(self, conversion):
         try:
             return list(self.mapping[conversion].keys())
-        except KeyError:  # pragma: no cover
+        except KeyError as error:  # pragma: no cover
             # NOTE: We are not testing this as we intend to remove it
-            raise IncorrectMapping(f"Missing key: '{conversion}'")
+            raise IncorrectMapping(f"Missing key: '{conversion}'") from error
 
     def get_ldap_to_mo_json_keys(self):
         return self.get_json_keys("ldap_to_mo")
@@ -718,7 +720,7 @@ class LdapConverter:
             # We like fields which map to these MO objects to be multi-value fields,
             # to avoid data being overwritten if two objects of the same type are
             # added in MO
-            def filter_fields_to_check(fields_to_check):
+            def filter_fields_to_check(fields_to_check, json_key):
                 """
                 A field only needs to be checked if we use information from LDAP in
                 the 'ldap_to_mo' mapping. If we do not, we also do not need to make
@@ -737,10 +739,12 @@ class LdapConverter:
 
             fields_to_check = []
             if json_key in mo_address_type_user_keys:
-                fields_to_check = filter_fields_to_check(["mo_employee_address.value"])
+                fields_to_check = filter_fields_to_check(
+                    ["mo_employee_address.value"], json_key
+                )
             elif json_key in mo_it_system_user_keys:
                 fields_to_check = filter_fields_to_check(
-                    ["mo_employee_it_user.user_key"]
+                    ["mo_employee_it_user.user_key"], json_key
                 )
             elif json_key == "Engagement":
                 fields_to_check = filter_fields_to_check(
@@ -749,7 +753,8 @@ class LdapConverter:
                         "mo_employee_engagement.org_unit.uuid",
                         "mo_employee_engagement.engagement_type.uuid",
                         "mo_employee_engagement.job_function.uuid",
-                    ]
+                    ],
+                    json_key,
                 )
 
             for attribute in detected_single_value_attributes:
@@ -1136,12 +1141,14 @@ class LdapConverter:
         mo_template_dict = ChainMap({"dn": dn}, mo_object_dict)
         try:
             mapping = self.mapping["mo_to_ldap"]
-        except KeyError:
-            raise IncorrectMapping("Missing mapping 'mo_to_ldap'")
+        except KeyError as error:
+            raise IncorrectMapping("Missing mapping 'mo_to_ldap'") from error
         try:
             object_mapping = mapping[json_key]
-        except KeyError:
-            raise IncorrectMapping(f"Missing '{json_key}' in mapping 'mo_to_ldap'")
+        except KeyError as error:
+            raise IncorrectMapping(
+                f"Missing '{json_key}' in mapping 'mo_to_ldap'"
+            ) from error
 
         # TODO: Test what happens with exceptions here
         for ldap_field_name, template in object_mapping.items():
@@ -1214,14 +1221,16 @@ class LdapConverter:
             }
             try:
                 mapping = self.mapping["ldap_to_mo"]
-            except KeyError:
-                raise IncorrectMapping("Missing mapping 'ldap_to_mo'")
+            except KeyError as error:
+                raise IncorrectMapping("Missing mapping 'ldap_to_mo'") from error
             try:
                 object_mapping = mapping[json_key]
-            except KeyError:
-                raise IncorrectMapping(f"Missing '{json_key}' in mapping 'ldap_to_mo'")
+            except KeyError as error:
+                raise IncorrectMapping(
+                    f"Missing '{json_key}' in mapping 'ldap_to_mo'"
+                ) from error
 
-            async def render_template(field_name: str, template) -> Any:
+            async def render_template(field_name: str, template, context) -> Any:
                 value = (await template.render_async(context)).strip()
 
                 # Sloppy mapping can lead to the following rendered strings:
@@ -1238,17 +1247,14 @@ class LdapConverter:
                 if "{" in value and ":" in value and "}" in value:
                     try:
                         value = self.str_to_dict(value)
-                    except JSONDecodeError:
-                        raise IncorrectMapping(
-                            f"Could not convert {value} in "
-                            f"{json_key}['{field_name}'] to dict "
-                            f"(context={context!r})"
-                        )
+                    except JSONDecodeError as error:
+                        error_string = f"Could not convert {value} in {json_key}['{field_name}'] to dict (context={context!r})"
+                        raise IncorrectMapping(error_string) from error
                 return value
 
             # TODO: asyncio.gather this for future dataloader bulking
             mo_dict = {
-                mo_field_name: await render_template(mo_field_name, template)
+                mo_field_name: await render_template(mo_field_name, template, context)
                 for mo_field_name, template in object_mapping.items()
             }
             mo_class: Any = self.import_mo_object_class(json_key)

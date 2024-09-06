@@ -685,7 +685,7 @@ async def test_poller_healthcheck(running: list[bool], expected: bool) -> None:
     await asyncio.sleep(0)
 
     # Set events
-    for event, is_running in zip(events, running):
+    for event, is_running in zip(events, running, strict=False):
         if not is_running:
             event.set()
     await asyncio.sleep(0)
