@@ -868,6 +868,34 @@ class SyncTool:
 
         # Construct a map from value-key to list of matching objects
         values_in_mo = bucketdict(objects_in_mo, lambda obj: getattr(obj, value_key))
+        values_converted = bucketdict(
+            converted_objects, lambda obj: getattr(obj, value_key)
+        )
+
+        # Only values in MO targeted by our converted values are relevant
+        values_in_mo = {
+            key: value for key, value in values_in_mo.items() if key in values_converted
+        }
+
+        # If we have more than one MO object for each converted, the match is ambigious.
+        # Ambigious matches mean no bijection and must be handled by human intervention.
+        ambigious_keys = {
+            key for key, values in values_in_mo.items() if values and len(values) > 1
+        }
+        for ambigious_key in ambigious_keys:
+            # TODO: Should this really throw a RequeueMessage?
+            logger.warning(
+                "Could not determine MO object bijection, skipping",
+                json_key=json_key,
+                value_key=value_key,
+                converted_object_value=ambigious_key,
+            )
+        # Do not process ambigious objects
+        converted_objects = [
+            obj
+            for obj in converted_objects
+            if getattr(obj, value_key) not in ambigious_keys
+        ]
 
         mo_attributes = set(self.converter.get_mo_attributes(json_key))
 
@@ -877,24 +905,14 @@ class SyncTool:
         operations = []
         for converted_object in converted_objects:
             converted_object_value = getattr(converted_object, value_key)
-
             values = values_in_mo.get(converted_object_value)
             # Either None or empty list means no match
             if not values:  # pragma: no cover
                 # No match means we are creating a new object
                 operations.append((converted_object, Verb.CREATE))
                 continue
-            # Multiple values means that it is ambiguous
-            if len(values) > 1:  # pragma: no cover
-                # Ambigious match means we do nothing
-                # TODO: Should this really throw a RequeueMessage?
-                logger.warning(
-                    "Could not determine MO object bijection, skipping",
-                    json_key=json_key,
-                    value_key=value_key,
-                    converted_object_value=converted_object_value,
-                )
-                continue
+            # Ambigious matches already filtered
+
             # Exactly 1 match found
             logger.info(
                 "Found matching key", json_key=json_key, value=converted_object_value
