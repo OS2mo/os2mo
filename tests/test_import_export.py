@@ -1396,10 +1396,9 @@ async def test_holstebro_import_checks(sync_tool: SyncTool, fake_dn: DN) -> None
     with patch(
         "mo_ldap_import_export.import_export.SyncTool.perform_import_checks",
         return_value=False,
-    ):
-        with capture_logs() as cap_logs:
-            await sync_tool.import_single_user(fake_dn)
-            assert "Import checks executed" in str(cap_logs)
+    ), capture_logs() as cap_logs:
+        await sync_tool.import_single_user(fake_dn)
+        assert "Import checks executed" in str(cap_logs)
 
 
 async def test_import_single_user_entity(sync_tool: SyncTool) -> None:

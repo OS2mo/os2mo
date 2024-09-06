@@ -93,7 +93,7 @@ class MappingBaseModel(BaseModel):
 
 
 def get_required_attributes(mo_class) -> set[str]:
-    if "required" not in mo_class.schema().keys():
+    if "required" not in mo_class.schema():
         return set()
     return set(mo_class.schema()["required"])
 
