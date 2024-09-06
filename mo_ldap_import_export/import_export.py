@@ -12,6 +12,7 @@ from functools import wraps
 from typing import Any
 from typing import Protocol
 from typing import TypeVar
+from typing import cast
 from uuid import UUID
 from uuid import uuid4
 
@@ -54,6 +55,7 @@ from .ldap import apply_discriminator
 from .ldap import get_ldap_object
 from .ldap_classes import LdapObject
 from .types import EmployeeUUID
+from .types import OrgUnitUUID
 from .utils import extract_ou_from_dn
 from .utils import get_delete_flag
 
@@ -759,8 +761,8 @@ class SyncTool:
 
     async def format_converted_objects(
         self,
-        converted_objects,
-        json_key,
+        converted_objects: Sequence[MOBase],
+        json_key: str,
     ) -> list[tuple[MOBase, Verb]]:
         """
         for Address and Engagement objects:
@@ -777,6 +779,8 @@ class SyncTool:
 
         # Load addresses already in MO
         if issubclass(mo_class, Address):
+            converted_objects = cast(Sequence[Address], converted_objects)
+
             assert all_equal([obj.person for obj in converted_objects])
             person = first(converted_objects).person
 
@@ -793,7 +797,7 @@ class SyncTool:
                 )
             elif org_unit:
                 objects_in_mo = await self.dataloader.load_mo_org_unit_addresses(
-                    org_unit.uuid,
+                    OrgUnitUUID(org_unit.uuid),
                     address_type.uuid,
                 )
             else:
@@ -811,6 +815,8 @@ class SyncTool:
 
         # Load engagements already in MO
         elif issubclass(mo_class, Engagement):
+            converted_objects = cast(Sequence[Engagement], converted_objects)
+
             assert all_equal([obj.person for obj in converted_objects])
             person = first(converted_objects).person
 
@@ -851,8 +857,11 @@ class SyncTool:
                     ]
 
         elif issubclass(mo_class, ITUser):
+            converted_objects = cast(Sequence[ITUser], converted_objects)
+
             assert all_equal([obj.person for obj in converted_objects])
             person = first(converted_objects).person
+            assert person is not None
 
             assert all_equal([obj.itsystem for obj in converted_objects])
             itsystem = first(converted_objects).itsystem
@@ -863,6 +872,8 @@ class SyncTool:
 
             value_key = "user_key"
         elif issubclass(mo_class, Employee):
+            converted_objects = cast(Sequence[Employee], converted_objects)
+
             return [
                 (converted_object, Verb.CREATE)
                 for converted_object in converted_objects
