@@ -1,4 +1,3 @@
-from typing import List
 from typing import Optional
 from uuid import UUID
 
@@ -10,7 +9,7 @@ class ReadEngagementsByEngagementsFilter(BaseModel):
 
 
 class ReadEngagementsByEngagementsFilterEngagements(BaseModel):
-    objects: List["ReadEngagementsByEngagementsFilterEngagementsObjects"]
+    objects: list["ReadEngagementsByEngagementsFilterEngagementsObjects"]
 
 
 class ReadEngagementsByEngagementsFilterEngagementsObjects(BaseModel):
@@ -23,7 +22,7 @@ class ReadEngagementsByEngagementsFilterEngagementsObjectsCurrent(BaseModel):
     org_unit_uuid: UUID
     job_function_uuid: UUID
     engagement_type_uuid: UUID
-    primary_uuid: Optional[UUID]
+    primary_uuid: UUID | None
 
 
 ReadEngagementsByEngagementsFilter.update_forward_refs()

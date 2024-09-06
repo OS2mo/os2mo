@@ -1,6 +1,4 @@
 from datetime import datetime
-from typing import List
-from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
@@ -14,26 +12,26 @@ class ReadEmployees(BaseModel):
 
 
 class ReadEmployeesEmployees(BaseModel):
-    objects: List["ReadEmployeesEmployeesObjects"]
+    objects: list["ReadEmployeesEmployeesObjects"]
 
 
 class ReadEmployeesEmployeesObjects(BaseModel):
-    validities: List["ReadEmployeesEmployeesObjectsValidities"]
+    validities: list["ReadEmployeesEmployeesObjectsValidities"]
 
 
 class ReadEmployeesEmployeesObjectsValidities(BaseModel):
     uuid: UUID
-    cpr_no: Optional[CPRNumber]
+    cpr_no: CPRNumber | None
     givenname: str
     surname: str
-    nickname_givenname: Optional[str]
-    nickname_surname: Optional[str]
+    nickname_givenname: str | None
+    nickname_surname: str | None
     validity: "ReadEmployeesEmployeesObjectsValiditiesValidity"
 
 
 class ReadEmployeesEmployeesObjectsValiditiesValidity(BaseModel):
-    to: Optional[datetime]
-    from_: Optional[datetime] = Field(alias="from")
+    to: datetime | None
+    from_: datetime | None = Field(alias="from")
 
 
 ReadEmployees.update_forward_refs()

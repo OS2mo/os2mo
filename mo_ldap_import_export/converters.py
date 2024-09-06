@@ -4,6 +4,7 @@ import json
 import re
 import string
 from collections import ChainMap
+from collections.abc import Iterator
 from collections.abc import MutableMapping
 from contextlib import suppress
 from datetime import datetime
@@ -11,7 +12,6 @@ from functools import partial
 from itertools import compress
 from json.decoder import JSONDecodeError
 from typing import Any
-from typing import Iterator
 from typing import cast
 from uuid import UUID
 from uuid import uuid4
@@ -828,7 +828,7 @@ class LdapConverter:
         # and HYPHEN (‘-’). Underscores ‘_’ are not permitted.
         valid_chars = string.ascii_letters + string.digits + "-"
         invalid_chars = "".join([s for s in string.punctuation if s not in valid_chars])
-        invalid_chars_regex = r"[%s\s]\s*" % invalid_chars
+        invalid_chars_regex = rf"[{invalid_chars}\s]\s*"
 
         raw_mapping = self.raw_mapping["ldap_to_mo"]
         for json_key in self.get_ldap_to_mo_json_keys():

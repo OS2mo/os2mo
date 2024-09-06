@@ -1,6 +1,4 @@
 from datetime import datetime
-from typing import List
-from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
@@ -13,27 +11,27 @@ class ReadEngagements(BaseModel):
 
 
 class ReadEngagementsEngagements(BaseModel):
-    objects: List["ReadEngagementsEngagementsObjects"]
+    objects: list["ReadEngagementsEngagementsObjects"]
 
 
 class ReadEngagementsEngagementsObjects(BaseModel):
-    validities: List["ReadEngagementsEngagementsObjectsValidities"]
+    validities: list["ReadEngagementsEngagementsObjectsValidities"]
 
 
 class ReadEngagementsEngagementsObjectsValidities(BaseModel):
     user_key: str
-    extension_1: Optional[str]
-    extension_2: Optional[str]
-    extension_3: Optional[str]
-    extension_4: Optional[str]
-    extension_5: Optional[str]
-    extension_6: Optional[str]
-    extension_7: Optional[str]
-    extension_8: Optional[str]
-    extension_9: Optional[str]
-    extension_10: Optional[str]
-    leave_uuid: Optional[UUID]
-    primary_uuid: Optional[UUID]
+    extension_1: str | None
+    extension_2: str | None
+    extension_3: str | None
+    extension_4: str | None
+    extension_5: str | None
+    extension_6: str | None
+    extension_7: str | None
+    extension_8: str | None
+    extension_9: str | None
+    extension_10: str | None
+    leave_uuid: UUID | None
+    primary_uuid: UUID | None
     job_function_uuid: UUID
     org_unit_uuid: UUID
     engagement_type_uuid: UUID
@@ -43,7 +41,7 @@ class ReadEngagementsEngagementsObjectsValidities(BaseModel):
 
 class ReadEngagementsEngagementsObjectsValiditiesValidity(BaseModel):
     from_: datetime = Field(alias="from")
-    to: Optional[datetime]
+    to: datetime | None
 
 
 ReadEngagements.update_forward_refs()

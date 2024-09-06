@@ -4,8 +4,8 @@
 
 import asyncio
 from contextlib import suppress
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from enum import Enum
 from enum import auto
 from functools import partialmethod
@@ -147,7 +147,7 @@ def extract_current_or_latest_validity(validities: list[T]) -> T | None:
 
     def is_current(val: T) -> bool:
         # Cannot use datetime.utcnow as it is not timezone aware
-        now_utc = datetime.now(timezone.utc)
+        now_utc = datetime.now(UTC)
 
         match (val.validity.from_, val.validity.to):
             case (None, None):
@@ -173,7 +173,7 @@ def extract_current_or_latest_validity(validities: list[T]) -> T | None:
     # TODO: Does this actually make sense? - Should we not return the one which is the
     #       closest to now, rather than the one that is the furthest into the future?
     # Cannot use datetime.max directly as it is not timezone aware
-    datetime_max_utc = datetime.max.replace(tzinfo=timezone.utc)
+    datetime_max_utc = datetime.max.replace(tzinfo=UTC)
     latest_validity = max(
         validities, key=lambda val: val.validity.to or datetime_max_utc
     )

@@ -1,4 +1,3 @@
-from typing import List
 from typing import Optional
 from uuid import UUID
 
@@ -10,7 +9,7 @@ class ReadIsPrimaryEngagements(BaseModel):
 
 
 class ReadIsPrimaryEngagementsEngagements(BaseModel):
-    objects: List["ReadIsPrimaryEngagementsEngagementsObjects"]
+    objects: list["ReadIsPrimaryEngagementsEngagementsObjects"]
 
 
 class ReadIsPrimaryEngagementsEngagementsObjects(BaseModel):

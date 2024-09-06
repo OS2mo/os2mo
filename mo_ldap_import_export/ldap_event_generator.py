@@ -3,17 +3,17 @@
 """LDAP change event generation."""
 
 import asyncio
+from collections.abc import AsyncIterator
+from collections.abc import Awaitable
+from collections.abc import Callable
+from contextlib import AbstractAsyncContextManager
 from contextlib import asynccontextmanager
 from contextlib import suppress
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from functools import partial
 from typing import Annotated
 from typing import Any
-from typing import AsyncContextManager
-from typing import AsyncIterator
-from typing import Awaitable
-from typing import Callable
 from typing import Self
 from typing import cast
 from uuid import UUID
@@ -52,12 +52,12 @@ class LastRun(Base):
     )
     datetime: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),
-        default=datetime.min.replace(tzinfo=timezone.utc),
+        default=datetime.min.replace(tzinfo=UTC),
         nullable=False,
     )
 
 
-class LDAPEventGenerator(AsyncContextManager):
+class LDAPEventGenerator(AbstractAsyncContextManager):
     def __init__(
         self,
         sessionmaker: async_sessionmaker[AsyncSession],
@@ -213,7 +213,7 @@ async def update_timestamp(
         assert last_run is not None
         assert last_run.datetime is not None
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         yield last_run.datetime
         # Update last run time in database
         last_run.datetime = now

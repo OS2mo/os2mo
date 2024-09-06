@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 
 import pytest
 from fastramqpi.context import Context
@@ -28,11 +28,11 @@ async def num_last_run_entries(sessionmaker: async_sessionmaker[AsyncSession]) -
 async def test_update_timestamp_postgres(context: Context) -> None:
     sessionmaker = context["sessionmaker"]
 
-    test_start = datetime.now(timezone.utc)
+    test_start = datetime.now(UTC)
     assert await num_last_run_entries(sessionmaker) == 0
 
     async with update_timestamp(sessionmaker, "dc=ad1") as last_run:
-        assert last_run == datetime.min.replace(tzinfo=timezone.utc)
+        assert last_run == datetime.min.replace(tzinfo=UTC)
     assert await num_last_run_entries(sessionmaker) == 1
 
     async with update_timestamp(sessionmaker, "dc=ad1") as last_run:
@@ -40,7 +40,7 @@ async def test_update_timestamp_postgres(context: Context) -> None:
     assert await num_last_run_entries(sessionmaker) == 1
 
     async with update_timestamp(sessionmaker, "dc=ad2") as last_run:
-        assert last_run == datetime.min.replace(tzinfo=timezone.utc)
+        assert last_run == datetime.min.replace(tzinfo=UTC)
     assert await num_last_run_entries(sessionmaker) == 2
 
     async with update_timestamp(sessionmaker, "dc=ad2") as last_run:

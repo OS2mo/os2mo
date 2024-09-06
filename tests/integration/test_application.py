@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 """Integration tests."""
 
-from typing import Awaitable
-from typing import Callable
+from collections.abc import Awaitable
+from collections.abc import Callable
 from unittest.mock import ANY
 from unittest.mock import AsyncMock
 from uuid import UUID

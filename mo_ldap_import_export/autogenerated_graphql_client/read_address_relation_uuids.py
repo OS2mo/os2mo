@@ -1,4 +1,3 @@
-from typing import List
 from typing import Optional
 from uuid import UUID
 
@@ -10,7 +9,7 @@ class ReadAddressRelationUuids(BaseModel):
 
 
 class ReadAddressRelationUuidsAddresses(BaseModel):
-    objects: List["ReadAddressRelationUuidsAddressesObjects"]
+    objects: list["ReadAddressRelationUuidsAddressesObjects"]
 
 
 class ReadAddressRelationUuidsAddressesObjects(BaseModel):
@@ -18,8 +17,8 @@ class ReadAddressRelationUuidsAddressesObjects(BaseModel):
 
 
 class ReadAddressRelationUuidsAddressesObjectsCurrent(BaseModel):
-    employee_uuid: Optional[UUID]
-    org_unit_uuid: Optional[UUID]
+    employee_uuid: UUID | None
+    org_unit_uuid: UUID | None
 
 
 ReadAddressRelationUuids.update_forward_refs()

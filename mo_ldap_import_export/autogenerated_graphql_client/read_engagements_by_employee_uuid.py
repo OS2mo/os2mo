@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List
 from typing import Optional
 from uuid import UUID
 
@@ -13,7 +12,7 @@ class ReadEngagementsByEmployeeUuid(BaseModel):
 
 
 class ReadEngagementsByEmployeeUuidEngagements(BaseModel):
-    objects: List["ReadEngagementsByEmployeeUuidEngagementsObjects"]
+    objects: list["ReadEngagementsByEmployeeUuidEngagementsObjects"]
 
 
 class ReadEngagementsByEmployeeUuidEngagementsObjects(BaseModel):
@@ -27,7 +26,7 @@ class ReadEngagementsByEmployeeUuidEngagementsObjectsCurrent(BaseModel):
 
 class ReadEngagementsByEmployeeUuidEngagementsObjectsCurrentValidity(BaseModel):
     from_: datetime = Field(alias="from")
-    to: Optional[datetime]
+    to: datetime | None
 
 
 ReadEngagementsByEmployeeUuid.update_forward_refs()

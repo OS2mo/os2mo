@@ -1,4 +1,3 @@
-from typing import List
 from uuid import UUID
 
 from .base_model import BaseModel
@@ -9,7 +8,7 @@ class ReadClassUuid(BaseModel):
 
 
 class ReadClassUuidClasses(BaseModel):
-    objects: List["ReadClassUuidClassesObjects"]
+    objects: list["ReadClassUuidClassesObjects"]
 
 
 class ReadClassUuidClassesObjects(BaseModel):

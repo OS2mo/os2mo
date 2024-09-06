@@ -1,4 +1,3 @@
-from typing import List
 from uuid import UUID
 
 from .base_model import BaseModel
@@ -10,12 +9,12 @@ class ReadEmployeeAddresses(BaseModel):
 
 
 class ReadEmployeeAddressesAddresses(BaseModel):
-    objects: List["ReadEmployeeAddressesAddressesObjects"]
+    objects: list["ReadEmployeeAddressesAddressesObjects"]
 
 
 class ReadEmployeeAddressesAddressesObjects(BaseModel):
     uuid: UUID
-    validities: List["ReadEmployeeAddressesAddressesObjectsValidities"]
+    validities: list["ReadEmployeeAddressesAddressesObjectsValidities"]
 
 
 class ReadEmployeeAddressesAddressesObjectsValidities(AddressValidityFields):

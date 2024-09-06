@@ -2,15 +2,15 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 from collections import ChainMap
+from collections.abc import Awaitable
 from collections.abc import Callable
+from collections.abc import Generator
 from collections.abc import MutableMapping
+from collections.abc import Sequence
 from contextlib import ExitStack
 from functools import wraps
 from typing import Any
-from typing import Awaitable
-from typing import Generator
 from typing import Protocol
-from typing import Sequence
 from typing import TypeVar
 from uuid import UUID
 from uuid import uuid4
@@ -79,8 +79,7 @@ def flatten_validities(
     response: HasObjects[HasValidities[T]],
 ) -> Generator[T, None, None]:
     for obj in response.objects:
-        for validity in obj.validities:
-            yield validity
+        yield from obj.validities
 
 
 async def get_primary_engagement(

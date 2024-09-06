@@ -1,5 +1,3 @@
-from typing import List
-
 from .base_model import BaseModel
 
 
@@ -8,11 +6,11 @@ class ReadAllItuserUserKeysByItsystemUuid(BaseModel):
 
 
 class ReadAllItuserUserKeysByItsystemUuidItusers(BaseModel):
-    objects: List["ReadAllItuserUserKeysByItsystemUuidItusersObjects"]
+    objects: list["ReadAllItuserUserKeysByItsystemUuidItusersObjects"]
 
 
 class ReadAllItuserUserKeysByItsystemUuidItusersObjects(BaseModel):
-    validities: List["ReadAllItuserUserKeysByItsystemUuidItusersObjectsValidities"]
+    validities: list["ReadAllItuserUserKeysByItsystemUuidItusersObjectsValidities"]
 
 
 class ReadAllItuserUserKeysByItsystemUuidItusersObjectsValidities(BaseModel):

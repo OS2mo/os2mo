@@ -109,6 +109,8 @@ DEP002 = [
 
 [tool.ruff.lint]
 extend-select = [
+    # pyupgrade
+    "UP",
     # flake8-bugbear
     "B",
     # flake8-simplify

@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 """Dependency injection helpers."""
 
+from collections.abc import AsyncIterable
 from typing import Annotated
-from typing import AsyncIterable
 from uuid import uuid4
 
 from fastapi import Depends

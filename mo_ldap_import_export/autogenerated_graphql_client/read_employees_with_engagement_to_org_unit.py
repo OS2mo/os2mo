@@ -1,4 +1,3 @@
-from typing import List
 from typing import Optional
 from uuid import UUID
 
@@ -10,7 +9,7 @@ class ReadEmployeesWithEngagementToOrgUnit(BaseModel):
 
 
 class ReadEmployeesWithEngagementToOrgUnitEngagements(BaseModel):
-    objects: List["ReadEmployeesWithEngagementToOrgUnitEngagementsObjects"]
+    objects: list["ReadEmployeesWithEngagementToOrgUnitEngagementsObjects"]
 
 
 class ReadEmployeesWithEngagementToOrgUnitEngagementsObjects(BaseModel):

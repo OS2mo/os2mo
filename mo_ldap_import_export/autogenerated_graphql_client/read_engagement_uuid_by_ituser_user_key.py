@@ -1,4 +1,3 @@
-from typing import List
 from typing import Optional
 from uuid import UUID
 
@@ -10,7 +9,7 @@ class ReadEngagementUuidByItuserUserKey(BaseModel):
 
 
 class ReadEngagementUuidByItuserUserKeyItusers(BaseModel):
-    objects: List["ReadEngagementUuidByItuserUserKeyItusersObjects"]
+    objects: list["ReadEngagementUuidByItuserUserKeyItusersObjects"]
 
 
 class ReadEngagementUuidByItuserUserKeyItusersObjects(BaseModel):
@@ -18,7 +17,7 @@ class ReadEngagementUuidByItuserUserKeyItusersObjects(BaseModel):
 
 
 class ReadEngagementUuidByItuserUserKeyItusersObjectsCurrent(BaseModel):
-    engagement_uuid: Optional[UUID]
+    engagement_uuid: UUID | None
 
 
 ReadEngagementUuidByItuserUserKey.update_forward_refs()

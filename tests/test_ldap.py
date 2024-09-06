@@ -6,7 +6,6 @@ import os
 import time
 from collections.abc import Iterator
 from contextlib import suppress
-from datetime import timezone
 from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
@@ -596,7 +595,7 @@ async def test_poller(
     }
     ldap_connection.get_response.return_value = [event], {"type": "test"}
 
-    last_search_time = datetime.datetime.now(timezone.utc)
+    last_search_time = datetime.datetime.now(datetime.UTC)
     uuids = await _poll(
         ldap_connection=ldap_connection,
         search_base="dc=ad",
@@ -615,7 +614,7 @@ async def test_poller_no_uuid(
     }
     ldap_connection.get_response.return_value = [event], {"type": "test"}
 
-    last_search_time = datetime.datetime.now(timezone.utc)
+    last_search_time = datetime.datetime.now(datetime.UTC)
     with capture_logs() as cap_logs:
         uuids = await _poll(
             ldap_connection=ldap_connection,
@@ -644,7 +643,7 @@ async def test_poller_bad_result(
 
     ldap_amqpsystem = AsyncMock()
 
-    last_search_time = datetime.datetime.now(timezone.utc)
+    last_search_time = datetime.datetime.now(datetime.UTC)
     await _poll(
         ldap_connection=ldap_connection,
         search_base="dc=ad",

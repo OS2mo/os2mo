@@ -1,6 +1,4 @@
 from datetime import datetime
-from typing import List
-from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
@@ -13,11 +11,11 @@ class ReadEngagementsIsPrimary(BaseModel):
 
 
 class ReadEngagementsIsPrimaryEngagements(BaseModel):
-    objects: List["ReadEngagementsIsPrimaryEngagementsObjects"]
+    objects: list["ReadEngagementsIsPrimaryEngagementsObjects"]
 
 
 class ReadEngagementsIsPrimaryEngagementsObjects(BaseModel):
-    validities: List["ReadEngagementsIsPrimaryEngagementsObjectsValidities"]
+    validities: list["ReadEngagementsIsPrimaryEngagementsObjectsValidities"]
 
 
 class ReadEngagementsIsPrimaryEngagementsObjectsValidities(BaseModel):
@@ -28,7 +26,7 @@ class ReadEngagementsIsPrimaryEngagementsObjectsValidities(BaseModel):
 
 class ReadEngagementsIsPrimaryEngagementsObjectsValiditiesValidity(BaseModel):
     from_: datetime = Field(alias="from")
-    to: Optional[datetime]
+    to: datetime | None
 
 
 ReadEngagementsIsPrimary.update_forward_refs()
