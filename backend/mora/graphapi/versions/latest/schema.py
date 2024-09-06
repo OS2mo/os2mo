@@ -60,6 +60,7 @@ from .resolvers import it_user_resolver
 from .resolvers import kle_resolver
 from .resolvers import leave_resolver
 from .resolvers import manager_resolver
+from .resolvers import organisation_unit_child_count
 from .resolvers import organisation_unit_has_children
 from .resolvers import organisation_unit_resolver
 from .resolvers import owner_resolver
@@ -3631,23 +3632,11 @@ class OrganisationUnit:
     )
 
     child_count: int = strawberry.field(
-        resolver=cast(
-            Callable[..., Any],
-            result_translation(lambda result: len(result.keys()))(
-                seed_resolver(
-                    organisation_unit_resolver,
-                    {"parents": lambda root: [root.uuid]},
-                ),
-            ),
+        resolver=seed_resolver(
+            organisation_unit_child_count,
+            {"parents": lambda root: [root.uuid]},
         ),
-        description="Children count of the organisation unit.",
-        deprecation_reason=dedent(
-            """\
-            Will be removed in a future version of GraphQL.
-            Consider if `has_children` can answer your query. Otherwise, count
-            the elements returned by `children {{uuid}}`.
-            """
-        ),
+        description="Children count of the organisation unit. For performance, consider if `has_children` can answer your query instead.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 

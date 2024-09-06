@@ -834,8 +834,18 @@ async def organisation_unit_has_children(
     assert filter is not None  # cannot be None, but signature required for seeding
     query = await organisation_unit_resolver_query(info=info, filter=filter)
     session = info.context["session"]
-    result = await session.execute(select(exists(query)))
-    return result.scalar()
+    return await session.scalar(select(exists(query)))
+
+
+async def organisation_unit_child_count(
+    info: Info,
+    filter: OrganisationUnitFilter | None,
+) -> int:
+    """Resolve the number of children of an organisation unit."""
+    assert filter is not None  # cannot be None, but signature required for seeding
+    query = await organisation_unit_resolver_query(info=info, filter=filter)
+    session = info.context["session"]
+    return await session.scalar(select(func.count()).select_from(query.subquery()))
 
 
 async def it_system_resolver(
