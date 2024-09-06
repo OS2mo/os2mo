@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 # pylint: disable=too-few-public-methods
 """Settings handling."""
+
 from contextlib import suppress
 from enum import Enum
 from typing import Any

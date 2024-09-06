@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 """HTTP Endpoints."""
+
 import re
 from contextlib import suppress
 from datetime import datetime

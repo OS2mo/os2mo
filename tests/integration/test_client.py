@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 """Integration tests."""
+
 from typing import Any
 from uuid import UUID
 from uuid import uuid4

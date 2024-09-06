@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 """LDAP change event generation."""
+
 import asyncio
 from contextlib import asynccontextmanager
 from contextlib import suppress

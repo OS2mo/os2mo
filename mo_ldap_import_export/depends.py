@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 """Dependency injection helpers."""
+
 from typing import Annotated
 from typing import AsyncIterable
 from uuid import uuid4
