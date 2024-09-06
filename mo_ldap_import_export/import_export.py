@@ -18,7 +18,6 @@ from uuid import uuid4
 
 import structlog
 from fastapi.encoders import jsonable_encoder
-from fastramqpi.ra_utils.transpose_dict import transpose_dict
 from fastramqpi.ramqp.depends import handle_exclusively_decorator
 from fastramqpi.ramqp.utils import RequeueMessage
 from ldap3 import Connection
@@ -761,7 +760,7 @@ class SyncTool:
             returns the input list of converted_objects
         """
         mo_class = self.converter.import_mo_object_class(json_key)
-        objects_in_mo: list[Any] = []
+        objects_in_mo: Sequence[MOBase] = []
 
         # Load addresses already in MO
         if issubclass(mo_class, Address):
@@ -868,7 +867,8 @@ class SyncTool:
             raise AssertionError(f"Unknown mo_class: {mo_class}")
 
         # Construct a map from value-key to list of matching objects
-        values_in_mo = transpose_dict({a: getattr(a, value_key) for a in objects_in_mo})
+        values_in_mo = bucketdict(objects_in_mo, lambda obj: getattr(obj, value_key))
+
         mo_attributes = set(self.converter.get_mo_attributes(json_key))
 
         # Set uuid if a matching one is found. so an object gets updated
