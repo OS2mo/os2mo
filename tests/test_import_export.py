@@ -707,9 +707,9 @@ async def test_format_converted_engagement_objects(
     assert len(operations) == 2
     formatted_objects = [obj for obj, _ in operations]
     assert engagement3 not in formatted_objects
-    assert first(formatted_objects).uuid == engagement1_in_mo.uuid
-    assert first(formatted_objects).user_key == engagement1.user_key
-    assert last(formatted_objects) == engagement2
+    assert last(formatted_objects).uuid == engagement1_in_mo.uuid
+    assert last(formatted_objects).user_key == engagement1.user_key
+    assert first(formatted_objects) == engagement2
 
 
 async def test_format_converted_multiple_primary_engagements(
@@ -800,10 +800,8 @@ async def test_format_converted_employee_address_objects(
         "Address",
     )
 
-    # assert formatted_objects[1][0] == address2
-
-    assert formatted_objects[0][0].uuid == address1_in_mo.uuid
-    assert formatted_objects[0][0].value == "foo"  # type: ignore
+    assert formatted_objects[1][0].uuid == address1_in_mo.uuid
+    assert formatted_objects[1][0].value == "foo"  # type: ignore
 
     # Simulate that a matching employee for this address does not exist
     dataloader.load_mo_employee_addresses.side_effect = NoObjectsReturnedException("f")
@@ -840,10 +838,8 @@ async def test_format_converted_org_unit_address_objects(
         "Address",
     )
 
-    # assert formatted_objects[1][0] == address2
-
-    assert formatted_objects[0][0].uuid == address1_in_mo.uuid
-    assert formatted_objects[0][0].value == "foo"  # type: ignore
+    assert formatted_objects[1][0].uuid == address1_in_mo.uuid
+    assert formatted_objects[1][0].value == "foo"  # type: ignore
 
     # Simulate that a matching org unit for this address does not exist
     dataloader.load_mo_org_unit_addresses.side_effect = NoObjectsReturnedException("f")
@@ -883,8 +879,8 @@ async def test_format_converted_org_unit_address_objects_identical_to_mo(
     assert len(operations) == 2
     formatted_objects = [obj for obj, _ in operations]
 
-    assert first(formatted_objects).value == "foo"  # type: ignore
-    assert last(formatted_objects).value == "bar"  # type: ignore
+    assert last(formatted_objects).value == "foo"  # type: ignore
+    assert first(formatted_objects).value == "bar"  # type: ignore
 
 
 async def test_format_converted_address_objects_without_person_or_org_unit(
@@ -1176,9 +1172,9 @@ async def test_import_it_user_objects(
     await sync_tool.import_single_user("CN=foo")
 
     expected = [
-        (converted_objects[0].user_key, it_user_in_mo.uuid, Verb.EDIT),
         (converted_objects[1].user_key, converted_objects[1].uuid, Verb.CREATE),
         (converted_objects[2].user_key, converted_objects[2].uuid, Verb.CREATE),
+        (converted_objects[0].user_key, it_user_in_mo.uuid, Verb.EDIT),
     ]
 
     actual = [

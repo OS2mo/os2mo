@@ -24,6 +24,7 @@ from ldap3 import Connection
 from more_itertools import all_equal
 from more_itertools import first
 from more_itertools import one
+from more_itertools import partition
 from more_itertools import quantify
 from ramodels.mo import MOBase
 from ramodels.mo.details.address import Address
@@ -897,28 +898,25 @@ class SyncTool:
             if getattr(obj, value_key) not in ambigious_keys
         ]
 
+        # Partition converted objects into creates and updates
+        creates, updates = partition(
+            # We have an update if there is no MO object in the bijection
+            lambda obj: getattr(obj, value_key) in values_in_mo,
+            converted_objects,
+        )
+
+        # Convert creates to operations
+        operations = [(converted_object, Verb.CREATE) for converted_object in creates]
+
+        # Convert updates to operations
         mo_attributes = set(self.converter.get_mo_attributes(json_key))
-
-        # Set uuid if a matching one is found. so an object gets updated
-        # instead of duplicated
-        # TODO: Consider partitioning converted_objects before-hand
-        operations = []
-        for converted_object in converted_objects:
+        for converted_object in updates:
             converted_object_value = getattr(converted_object, value_key)
-            values = values_in_mo.get(converted_object_value)
-            # Either None or empty list means no match
-            if not values:  # pragma: no cover
-                # No match means we are creating a new object
-                operations.append((converted_object, Verb.CREATE))
-                continue
-            # Ambigious matches already filtered
-
-            # Exactly 1 match found
             logger.info(
                 "Found matching key", json_key=json_key, value=converted_object_value
             )
+            matching_object = one(values_in_mo[converted_object_value])
 
-            matching_object = one(values)
             mo_object_dict_to_upload = matching_object.dict()
             converted_mo_object_dict = converted_object.dict()
 
