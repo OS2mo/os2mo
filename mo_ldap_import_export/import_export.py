@@ -5,6 +5,7 @@ from collections import ChainMap
 from collections.abc import Awaitable
 from collections.abc import Callable
 from collections.abc import Generator
+from collections.abc import Iterator
 from collections.abc import MutableMapping
 from collections.abc import Sequence
 from contextlib import ExitStack
@@ -23,7 +24,7 @@ from fastramqpi.ramqp.utils import RequeueMessage
 from ldap3 import Connection
 from more_itertools import all_equal
 from more_itertools import first
-from more_itertools import one
+from more_itertools import only
 from more_itertools import partition
 from more_itertools import quantify
 from ramodels.mo import MOBase
@@ -58,6 +59,7 @@ from .types import OrgUnitUUID
 from .utils import bucketdict
 from .utils import extract_ou_from_dn
 from .utils import get_delete_flag
+from .utils import star
 
 logger = structlog.stdlib.get_logger()
 
@@ -878,45 +880,38 @@ class SyncTool:
             key: value for key, value in values_in_mo.items() if key in values_converted
         }
 
+        # We need a bijection between MO objects and converted objects.
+        # Without a bijection we cannot maintain temporality of objects in MO.
+
         # If we have more than one MO object for each converted, the match is ambigious.
         # Ambigious matches mean no bijection and must be handled by human intervention.
-        ambigious_keys = {
-            key for key, values in values_in_mo.items() if values and len(values) > 1
+        ambigious_exception = RequeueMessage("Bad bijection: Multiple MO objects")
+        value_in_mo = {
+            key: only(value, too_long=ambigious_exception)
+            for key, value in values_in_mo.items()
         }
-        for ambigious_key in ambigious_keys:
-            # TODO: Should this really throw a RequeueMessage?
-            logger.warning(
-                "Could not determine MO object bijection, skipping",
-                json_key=json_key,
-                value_key=value_key,
-                converted_object_value=ambigious_key,
-            )
-        # Do not process ambigious objects
-        converted_objects = [
-            obj
-            for obj in converted_objects
-            if getattr(obj, value_key) not in ambigious_keys
+
+        # At this point we can map each converted_object to its MO object
+        converted_tuples = [
+            (obj, value_in_mo.get(getattr(obj, value_key))) for obj in converted_objects
         ]
 
         # Partition converted objects into creates and updates
         creates, updates = partition(
             # We have an update if there is no MO object in the bijection
-            lambda obj: getattr(obj, value_key) in values_in_mo,
-            converted_objects,
+            star(lambda converted, mo_object: mo_object is not None),
+            converted_tuples,
         )
+        updates = cast(Iterator[tuple[MOBase, MOBase]], updates)
 
         # Convert creates to operations
-        operations = [(converted_object, Verb.CREATE) for converted_object in creates]
+        operations = [
+            (converted_object, Verb.CREATE) for converted_object, _ in creates
+        ]
 
         # Convert updates to operations
         mo_attributes = set(self.converter.get_mo_attributes(json_key))
-        for converted_object in updates:
-            converted_object_value = getattr(converted_object, value_key)
-            logger.info(
-                "Found matching key", json_key=json_key, value=converted_object_value
-            )
-            matching_object = one(values_in_mo[converted_object_value])
-
+        for converted_object, matching_object in updates:
             mo_object_dict_to_upload = matching_object.dict()
             converted_mo_object_dict = converted_object.dict()
 
