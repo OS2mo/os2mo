@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 """Event handling."""
+
 import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager

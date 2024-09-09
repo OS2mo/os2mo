@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 """Respx helpers for mocking GraphQL endpoints."""
+
 from typing import Any
 
 from fastapi.encoders import jsonable_encoder

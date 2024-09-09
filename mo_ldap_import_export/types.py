@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 """New types for mypy validation."""
+
 from typing import NewType
 from typing import TypeAlias
 from uuid import UUID

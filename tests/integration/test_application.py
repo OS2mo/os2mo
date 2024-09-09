@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 """Integration tests."""
+
 from typing import Awaitable
 from typing import Callable
 from unittest.mock import ANY
