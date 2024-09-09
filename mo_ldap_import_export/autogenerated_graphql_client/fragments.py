@@ -1,6 +1,4 @@
 from datetime import datetime
-from typing import List
-from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
@@ -10,25 +8,25 @@ from .base_model import BaseModel
 
 
 class AddressValidityFields(BaseModel):
-    value: Optional[str]
-    value2: Optional[str]
+    value: str | None
+    value2: str | None
     uuid: UUID
-    visibility_uuid: Optional[UUID]
-    employee_uuid: Optional[UUID]
-    org_unit_uuid: Optional[UUID]
-    engagement_uuid: Optional[UUID]
-    person: Optional[List["AddressValidityFieldsPerson"]]
+    visibility_uuid: UUID | None
+    employee_uuid: UUID | None
+    org_unit_uuid: UUID | None
+    engagement_uuid: UUID | None
+    person: list["AddressValidityFieldsPerson"] | None
     validity: "AddressValidityFieldsValidity"
     address_type: "AddressValidityFieldsAddressType"
 
 
 class AddressValidityFieldsPerson(BaseModel):
-    cpr_no: Optional[CPRNumber]
+    cpr_no: CPRNumber | None
 
 
 class AddressValidityFieldsValidity(BaseModel):
     from_: datetime = Field(alias="from")
-    to: Optional[datetime]
+    to: datetime | None
 
 
 class AddressValidityFieldsAddressType(BaseModel):

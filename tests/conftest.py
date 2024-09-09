@@ -6,10 +6,10 @@ import json
 import os
 import warnings
 from collections.abc import AsyncIterator
+from collections.abc import Awaitable
+from collections.abc import Callable
 from collections.abc import Iterator
 from typing import Any
-from typing import Awaitable
-from typing import Callable
 from typing import cast
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock

@@ -1,6 +1,4 @@
 from datetime import datetime
-from typing import List
-from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
@@ -13,11 +11,11 @@ class ReadFilteredItusers(BaseModel):
 
 
 class ReadFilteredItusersItusers(BaseModel):
-    objects: List["ReadFilteredItusersItusersObjects"]
+    objects: list["ReadFilteredItusersItusersObjects"]
 
 
 class ReadFilteredItusersItusersObjects(BaseModel):
-    validities: List["ReadFilteredItusersItusersObjectsValidities"]
+    validities: list["ReadFilteredItusersItusersObjectsValidities"]
 
 
 class ReadFilteredItusersItusersObjectsValidities(BaseModel):
@@ -32,7 +30,7 @@ class ReadFilteredItusersItusersObjectsValiditiesItsystem(BaseModel):
 
 class ReadFilteredItusersItusersObjectsValiditiesValidity(BaseModel):
     from_: datetime = Field(alias="from")
-    to: Optional[datetime]
+    to: datetime | None
 
 
 ReadFilteredItusers.update_forward_refs()

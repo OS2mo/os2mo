@@ -1,4 +1,3 @@
-from typing import List
 from typing import Optional
 
 from .base_model import BaseModel
@@ -9,7 +8,7 @@ class ReadOrgUnitAncestorNames(BaseModel):
 
 
 class ReadOrgUnitAncestorNamesOrgUnits(BaseModel):
-    objects: List["ReadOrgUnitAncestorNamesOrgUnitsObjects"]
+    objects: list["ReadOrgUnitAncestorNamesOrgUnitsObjects"]
 
 
 class ReadOrgUnitAncestorNamesOrgUnitsObjects(BaseModel):
@@ -18,7 +17,7 @@ class ReadOrgUnitAncestorNamesOrgUnitsObjects(BaseModel):
 
 class ReadOrgUnitAncestorNamesOrgUnitsObjectsCurrent(BaseModel):
     name: str
-    ancestors: List["ReadOrgUnitAncestorNamesOrgUnitsObjectsCurrentAncestors"]
+    ancestors: list["ReadOrgUnitAncestorNamesOrgUnitsObjectsCurrentAncestors"]
 
 
 class ReadOrgUnitAncestorNamesOrgUnitsObjectsCurrentAncestors(BaseModel):

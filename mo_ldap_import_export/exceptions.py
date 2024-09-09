@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Awaitable
+from collections.abc import Callable
 from functools import wraps
-from typing import Callable
 from typing import ParamSpec
 from typing import TypeVar
 

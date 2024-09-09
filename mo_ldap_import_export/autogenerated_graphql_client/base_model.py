@@ -1,6 +1,4 @@
 from typing import Any
-from typing import Dict
-from typing import Type
 from typing import Union
 from typing import get_args
 from typing import get_origin
@@ -33,7 +31,7 @@ class BaseModel(PydanticBaseModel):
         return cls._parse_custom_scalar_value(value, field.annotation)
 
     @classmethod
-    def _parse_custom_scalar_value(cls, value: Any, type_: Type[Any]) -> Any:
+    def _parse_custom_scalar_value(cls, value: Any, type_: type[Any]) -> Any:
         origin = get_origin(type_)
         args = get_args(type_)
         if origin is list and isinstance(value, list):
@@ -49,7 +47,7 @@ class BaseModel(PydanticBaseModel):
 
         return value
 
-    def dict(self, **kwargs: Any) -> Dict[str, Any]:
+    def dict(self, **kwargs: Any) -> dict[str, Any]:
         dict_ = super().dict(**kwargs)
         return {key: self._serialize_value(value) for key, value in dict_.items()}
 

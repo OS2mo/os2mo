@@ -1,5 +1,3 @@
-from typing import List
-
 from .base_model import BaseModel
 from .fragments import AddressValidityFields
 
@@ -9,11 +7,11 @@ class ReadAddresses(BaseModel):
 
 
 class ReadAddressesAddresses(BaseModel):
-    objects: List["ReadAddressesAddressesObjects"]
+    objects: list["ReadAddressesAddressesObjects"]
 
 
 class ReadAddressesAddressesObjects(BaseModel):
-    validities: List["ReadAddressesAddressesObjectsValidities"]
+    validities: list["ReadAddressesAddressesObjectsValidities"]
 
 
 class ReadAddressesAddressesObjectsValidities(AddressValidityFields):

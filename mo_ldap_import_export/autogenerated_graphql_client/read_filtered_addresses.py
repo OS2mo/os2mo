@@ -1,6 +1,4 @@
 from datetime import datetime
-from typing import List
-from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
@@ -13,11 +11,11 @@ class ReadFilteredAddresses(BaseModel):
 
 
 class ReadFilteredAddressesAddresses(BaseModel):
-    objects: List["ReadFilteredAddressesAddressesObjects"]
+    objects: list["ReadFilteredAddressesAddressesObjects"]
 
 
 class ReadFilteredAddressesAddressesObjects(BaseModel):
-    validities: List["ReadFilteredAddressesAddressesObjectsValidities"]
+    validities: list["ReadFilteredAddressesAddressesObjectsValidities"]
 
 
 class ReadFilteredAddressesAddressesObjectsValidities(BaseModel):
@@ -32,7 +30,7 @@ class ReadFilteredAddressesAddressesObjectsValiditiesAddressType(BaseModel):
 
 class ReadFilteredAddressesAddressesObjectsValiditiesValidity(BaseModel):
     from_: datetime = Field(alias="from")
-    to: Optional[datetime]
+    to: datetime | None
 
 
 ReadFilteredAddresses.update_forward_refs()

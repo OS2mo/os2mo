@@ -1,4 +1,3 @@
-from typing import List
 from typing import Optional
 
 from .base_model import BaseModel
@@ -9,7 +8,7 @@ class ReadOrgUnitName(BaseModel):
 
 
 class ReadOrgUnitNameOrgUnits(BaseModel):
-    objects: List["ReadOrgUnitNameOrgUnitsObjects"]
+    objects: list["ReadOrgUnitNameOrgUnitsObjects"]
 
 
 class ReadOrgUnitNameOrgUnitsObjects(BaseModel):

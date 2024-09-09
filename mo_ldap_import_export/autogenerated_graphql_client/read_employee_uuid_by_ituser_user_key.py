@@ -1,4 +1,3 @@
-from typing import List
 from typing import Optional
 from uuid import UUID
 
@@ -10,7 +9,7 @@ class ReadEmployeeUuidByItuserUserKey(BaseModel):
 
 
 class ReadEmployeeUuidByItuserUserKeyItusers(BaseModel):
-    objects: List["ReadEmployeeUuidByItuserUserKeyItusersObjects"]
+    objects: list["ReadEmployeeUuidByItuserUserKeyItusersObjects"]
 
 
 class ReadEmployeeUuidByItuserUserKeyItusersObjects(BaseModel):
@@ -18,7 +17,7 @@ class ReadEmployeeUuidByItuserUserKeyItusersObjects(BaseModel):
 
 
 class ReadEmployeeUuidByItuserUserKeyItusersObjectsCurrent(BaseModel):
-    employee_uuid: Optional[UUID]
+    employee_uuid: UUID | None
 
 
 ReadEmployeeUuidByItuserUserKey.update_forward_refs()

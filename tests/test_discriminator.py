@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import AsyncIterator
 from collections.abc import Iterable
 from typing import Any
-from typing import AsyncIterator
 from unittest.mock import ANY
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock

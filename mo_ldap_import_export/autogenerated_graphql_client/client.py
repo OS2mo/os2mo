@@ -1,8 +1,5 @@
 from datetime import datetime
 from typing import Any
-from typing import List
-from typing import Optional
-from typing import Union
 from uuid import UUID
 
 from ..types import CPRNumber
@@ -344,9 +341,9 @@ class GraphQLClient(AsyncBaseClient):
 
     async def read_engagements(
         self,
-        uuids: List[UUID],
-        from_date: Union[Optional[datetime], UnsetType] = UNSET,
-        to_date: Union[Optional[datetime], UnsetType] = UNSET,
+        uuids: list[UUID],
+        from_date: datetime | None | UnsetType = UNSET,
+        to_date: datetime | None | UnsetType = UNSET,
     ) -> ReadEngagementsEngagements:
         query = gql(
             """
@@ -445,8 +442,8 @@ class GraphQLClient(AsyncBaseClient):
         self,
         uuid: UUID,
         from_: datetime,
-        to: Union[Optional[datetime], UnsetType] = UNSET,
-        job_function: Union[Optional[UUID], UnsetType] = UNSET,
+        to: datetime | None | UnsetType = UNSET,
+        job_function: UUID | None | UnsetType = UNSET,
     ) -> SetJobTitleEngagementUpdate:
         query = gql(
             """
@@ -490,9 +487,9 @@ class GraphQLClient(AsyncBaseClient):
 
     async def read_employees(
         self,
-        uuids: List[UUID],
-        from_date: Union[Optional[datetime], UnsetType] = UNSET,
-        to_date: Union[Optional[datetime], UnsetType] = UNSET,
+        uuids: list[UUID],
+        from_date: datetime | None | UnsetType = UNSET,
+        to_date: datetime | None | UnsetType = UNSET,
     ) -> ReadEmployeesEmployees:
         query = gql(
             """
@@ -527,9 +524,9 @@ class GraphQLClient(AsyncBaseClient):
 
     async def read_itusers(
         self,
-        uuids: List[UUID],
-        from_date: Union[Optional[datetime], UnsetType] = UNSET,
-        to_date: Union[Optional[datetime], UnsetType] = UNSET,
+        uuids: list[UUID],
+        from_date: datetime | None | UnsetType = UNSET,
+        to_date: datetime | None | UnsetType = UNSET,
     ) -> ReadItusersItusers:
         query = gql(
             """
@@ -630,7 +627,7 @@ class GraphQLClient(AsyncBaseClient):
         return ReadItuserByEmployeeAndItsystemUuid.parse_obj(data).itusers
 
     async def read_is_primary_engagements(
-        self, uuids: List[UUID]
+        self, uuids: list[UUID]
     ) -> ReadIsPrimaryEngagementsEngagements:
         query = gql(
             """
@@ -816,7 +813,7 @@ class GraphQLClient(AsyncBaseClient):
         return OrgUnitEngagementsRefresh.parse_obj(data).engagement_refresh
 
     async def employee_refresh(
-        self, exchange: str, uuids: List[UUID]
+        self, exchange: str, uuids: list[UUID]
     ) -> EmployeeRefreshEmployeeRefresh:
         query = gql(
             """
@@ -834,9 +831,9 @@ class GraphQLClient(AsyncBaseClient):
 
     async def read_addresses(
         self,
-        uuids: List[UUID],
-        from_date: Union[Optional[datetime], UnsetType] = UNSET,
-        to_date: Union[Optional[datetime], UnsetType] = UNSET,
+        uuids: list[UUID],
+        from_date: datetime | None | UnsetType = UNSET,
+        to_date: datetime | None | UnsetType = UNSET,
     ) -> ReadAddressesAddresses:
         query = gql(
             """
@@ -902,7 +899,7 @@ class GraphQLClient(AsyncBaseClient):
         return ReadItsystems.parse_obj(data).itsystems
 
     async def read_class_user_keys(
-        self, facet_user_keys: List[str]
+        self, facet_user_keys: list[str]
     ) -> ReadClassUserKeysClasses:
         query = gql(
             """
@@ -925,8 +922,8 @@ class GraphQLClient(AsyncBaseClient):
     async def read_all_itusers(
         self,
         filter: ITUserFilter,
-        cursor: Union[Optional[Any], UnsetType] = UNSET,
-        limit: Union[Optional[Any], UnsetType] = UNSET,
+        cursor: Any | None | UnsetType = UNSET,
+        limit: Any | None | UnsetType = UNSET,
     ) -> ReadAllItusersItusers:
         query = gql(
             """

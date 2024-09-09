@@ -1,4 +1,3 @@
-from typing import List
 from typing import Optional
 
 from .base_model import BaseModel
@@ -9,7 +8,7 @@ class ReadClassUserKeys(BaseModel):
 
 
 class ReadClassUserKeysClasses(BaseModel):
-    objects: List["ReadClassUserKeysClassesObjects"]
+    objects: list["ReadClassUserKeysClassesObjects"]
 
 
 class ReadClassUserKeysClassesObjects(BaseModel):

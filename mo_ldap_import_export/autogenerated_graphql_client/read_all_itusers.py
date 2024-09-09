@@ -1,6 +1,4 @@
 from typing import Any
-from typing import List
-from typing import Optional
 from uuid import UUID
 
 from .base_model import BaseModel
@@ -11,23 +9,23 @@ class ReadAllItusers(BaseModel):
 
 
 class ReadAllItusersItusers(BaseModel):
-    objects: List["ReadAllItusersItusersObjects"]
+    objects: list["ReadAllItusersItusersObjects"]
     page_info: "ReadAllItusersItusersPageInfo"
 
 
 class ReadAllItusersItusersObjects(BaseModel):
-    validities: List["ReadAllItusersItusersObjectsValidities"]
+    validities: list["ReadAllItusersItusersObjectsValidities"]
 
 
 class ReadAllItusersItusersObjectsValidities(BaseModel):
     itsystem_uuid: UUID
-    employee_uuid: Optional[UUID]
+    employee_uuid: UUID | None
     user_key: str
     uuid: UUID
 
 
 class ReadAllItusersItusersPageInfo(BaseModel):
-    next_cursor: Optional[Any]
+    next_cursor: Any | None
 
 
 ReadAllItusers.update_forward_refs()

@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import Any
-from typing import List
 from typing import Optional
 from uuid import UUID
 
@@ -14,164 +13,164 @@ from .enums import OwnerInferencePriority
 
 
 class AddressCreateInput(BaseModel):
-    uuid: Optional[UUID] = None
-    org_unit: Optional[UUID] = None
-    person: Optional[UUID] = None
-    employee: Optional[UUID] = None
-    engagement: Optional[UUID] = None
-    ituser: Optional[UUID] = None
-    visibility: Optional[UUID] = None
+    uuid: UUID | None = None
+    org_unit: UUID | None = None
+    person: UUID | None = None
+    employee: UUID | None = None
+    engagement: UUID | None = None
+    ituser: UUID | None = None
+    visibility: UUID | None = None
     validity: "RAValidityInput"
-    user_key: Optional[str] = None
+    user_key: str | None = None
     value: str
     address_type: UUID
 
 
 class AddressFilter(BaseModel):
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     employee: Optional["EmployeeFilter"] = None
-    employees: Optional[List[UUID]] = None
+    employees: list[UUID] | None = None
     org_unit: Optional["OrganisationUnitFilter"] = None
-    org_units: Optional[List[UUID]] = None
+    org_units: list[UUID] | None = None
     registration: Optional["AddressRegistrationFilter"] = None
     address_type: Optional["ClassFilter"] = None
-    address_types: Optional[List[UUID]] = None
-    address_type_user_keys: Optional[List[str]] = None
+    address_types: list[UUID] | None = None
+    address_type_user_keys: list[str] | None = None
     engagement: Optional["EngagementFilter"] = None
-    engagements: Optional[List[UUID]] = None
+    engagements: list[UUID] | None = None
     ituser: Optional["ITUserFilter"] = None
 
 
 class AddressRegistrationFilter(BaseModel):
-    actors: Optional[List[UUID]] = None
-    start: Optional[datetime] = None
-    end: Optional[datetime] = None
+    actors: list[UUID] | None = None
+    start: datetime | None = None
+    end: datetime | None = None
 
 
 class AddressTerminateInput(BaseModel):
-    from_: Optional[datetime] = Field(alias="from", default=None)
+    from_: datetime | None = Field(alias="from", default=None)
     to: datetime
     uuid: UUID
 
 
 class AddressUpdateInput(BaseModel):
     uuid: UUID
-    org_unit: Optional[UUID] = None
-    person: Optional[UUID] = None
-    employee: Optional[UUID] = None
-    engagement: Optional[UUID] = None
-    ituser: Optional[UUID] = None
-    visibility: Optional[UUID] = None
+    org_unit: UUID | None = None
+    person: UUID | None = None
+    employee: UUID | None = None
+    engagement: UUID | None = None
+    ituser: UUID | None = None
+    visibility: UUID | None = None
     validity: "RAValidityInput"
-    user_key: Optional[str] = None
-    value: Optional[str] = None
-    address_type: Optional[UUID] = None
+    user_key: str | None = None
+    value: str | None = None
+    address_type: UUID | None = None
 
 
 class AssociationCreateInput(BaseModel):
-    uuid: Optional[UUID] = None
-    user_key: Optional[str] = None
-    primary: Optional[UUID] = None
+    uuid: UUID | None = None
+    user_key: str | None = None
+    primary: UUID | None = None
     validity: "RAValidityInput"
-    person: Optional[UUID] = None
-    employee: Optional[UUID] = None
-    substitute: Optional[UUID] = None
-    trade_union: Optional[UUID] = None
+    person: UUID | None = None
+    employee: UUID | None = None
+    substitute: UUID | None = None
+    trade_union: UUID | None = None
     org_unit: UUID
     association_type: UUID
 
 
 class AssociationFilter(BaseModel):
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     employee: Optional["EmployeeFilter"] = None
-    employees: Optional[List[UUID]] = None
+    employees: list[UUID] | None = None
     org_unit: Optional["OrganisationUnitFilter"] = None
-    org_units: Optional[List[UUID]] = None
+    org_units: list[UUID] | None = None
     registration: Optional["AssociationRegistrationFilter"] = None
     association_type: Optional["ClassFilter"] = None
-    association_types: Optional[List[UUID]] = None
-    association_type_user_keys: Optional[List[str]] = None
-    it_association: Optional[bool] = None
+    association_types: list[UUID] | None = None
+    association_type_user_keys: list[str] | None = None
+    it_association: bool | None = None
 
 
 class AssociationRegistrationFilter(BaseModel):
-    actors: Optional[List[UUID]] = None
-    start: Optional[datetime] = None
-    end: Optional[datetime] = None
+    actors: list[UUID] | None = None
+    start: datetime | None = None
+    end: datetime | None = None
 
 
 class AssociationTerminateInput(BaseModel):
-    from_: Optional[datetime] = Field(alias="from", default=None)
+    from_: datetime | None = Field(alias="from", default=None)
     to: datetime
     uuid: UUID
 
 
 class AssociationUpdateInput(BaseModel):
     uuid: UUID
-    user_key: Optional[str] = None
-    primary: Optional[UUID] = None
+    user_key: str | None = None
+    primary: UUID | None = None
     validity: "RAValidityInput"
-    person: Optional[UUID] = None
-    employee: Optional[UUID] = None
-    substitute: Optional[UUID] = None
-    trade_union: Optional[UUID] = None
-    org_unit: Optional[UUID] = None
-    association_type: Optional[UUID] = None
+    person: UUID | None = None
+    employee: UUID | None = None
+    substitute: UUID | None = None
+    trade_union: UUID | None = None
+    org_unit: UUID | None = None
+    association_type: UUID | None = None
 
 
 class AuditLogFilter(BaseModel):
-    ids: Optional[List[UUID]] = None
-    uuids: Optional[List[UUID]] = None
-    actors: Optional[List[UUID]] = None
-    models: Optional[List[AuditLogModel]] = None
-    start: Optional[datetime] = None
-    end: Optional[datetime] = None
+    ids: list[UUID] | None = None
+    uuids: list[UUID] | None = None
+    actors: list[UUID] | None = None
+    models: list[AuditLogModel] | None = None
+    start: datetime | None = None
+    end: datetime | None = None
 
 
 class ClassCreateInput(BaseModel):
-    uuid: Optional[UUID] = None
+    uuid: UUID | None = None
     name: str
     user_key: str
     facet_uuid: UUID
-    scope: Optional[str] = None
+    scope: str | None = None
     published: str = "Publiceret"
-    parent_uuid: Optional[UUID] = None
-    example: Optional[str] = None
-    owner: Optional[UUID] = None
+    parent_uuid: UUID | None = None
+    example: str | None = None
+    owner: UUID | None = None
     validity: "ValidityInput"
-    it_system_uuid: Optional[UUID] = None
+    it_system_uuid: UUID | None = None
 
 
 class ClassFilter(BaseModel):
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["ClassRegistrationFilter"] = None
     facet: Optional["FacetFilter"] = None
-    facets: Optional[List[UUID]] = None
-    facet_user_keys: Optional[List[str]] = None
+    facets: list[UUID] | None = None
+    facet_user_keys: list[str] | None = None
     parent: Optional["ClassFilter"] = None
-    parents: Optional[List[UUID]] = None
-    parent_user_keys: Optional[List[str]] = None
+    parents: list[UUID] | None = None
+    parent_user_keys: list[str] | None = None
     it_system: Optional["ITSystemFilter"] = None
-    scope: Optional[List[str]] = None
+    scope: list[str] | None = None
 
 
 class ClassRegistrationFilter(BaseModel):
-    actors: Optional[List[UUID]] = None
-    start: Optional[datetime] = None
-    end: Optional[datetime] = None
+    actors: list[UUID] | None = None
+    start: datetime | None = None
+    end: datetime | None = None
 
 
 class ClassTerminateInput(BaseModel):
-    from_: Optional[datetime] = Field(alias="from", default=None)
+    from_: datetime | None = Field(alias="from", default=None)
     to: datetime
     uuid: UUID
 
@@ -181,48 +180,48 @@ class ClassUpdateInput(BaseModel):
     name: str
     user_key: str
     facet_uuid: UUID
-    scope: Optional[str] = None
+    scope: str | None = None
     published: str = "Publiceret"
-    parent_uuid: Optional[UUID] = None
-    example: Optional[str] = None
-    owner: Optional[UUID] = None
+    parent_uuid: UUID | None = None
+    example: str | None = None
+    owner: UUID | None = None
     validity: "ValidityInput"
-    it_system_uuid: Optional[UUID] = None
+    it_system_uuid: UUID | None = None
 
 
 class ConfigurationFilter(BaseModel):
-    identifiers: Optional[List[str]] = None
+    identifiers: list[str] | None = None
 
 
 class EmployeeCreateInput(BaseModel):
-    uuid: Optional[UUID] = None
-    user_key: Optional[str] = None
-    nickname_given_name: Optional[str] = None
-    nickname_surname: Optional[str] = None
-    seniority: Optional[Any] = None
-    cpr_number: Optional[CPRNumber] = None
+    uuid: UUID | None = None
+    user_key: str | None = None
+    nickname_given_name: str | None = None
+    nickname_surname: str | None = None
+    seniority: Any | None = None
+    cpr_number: CPRNumber | None = None
     given_name: str
     surname: str
 
 
 class EmployeeFilter(BaseModel):
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["EmployeeRegistrationFilter"] = None
-    query: Optional[str]
-    cpr_numbers: Optional[List[CPRNumber]] = None
+    query: str | None
+    cpr_numbers: list[CPRNumber] | None = None
 
 
 class EmployeeRegistrationFilter(BaseModel):
-    actors: Optional[List[UUID]] = None
-    start: Optional[datetime] = None
-    end: Optional[datetime] = None
+    actors: list[UUID] | None = None
+    start: datetime | None = None
+    end: datetime | None = None
 
 
 class EmployeeTerminateInput(BaseModel):
-    from_: Optional[datetime] = Field(alias="from", default=None)
+    from_: datetime | None = Field(alias="from", default=None)
     to: datetime
     uuid: UUID
     vacate: bool = False
@@ -230,192 +229,192 @@ class EmployeeTerminateInput(BaseModel):
 
 class EmployeeUpdateInput(BaseModel):
     uuid: UUID
-    user_key: Optional[str] = None
-    nickname_given_name: Optional[str] = None
-    nickname_surname: Optional[str] = None
-    seniority: Optional[Any] = None
-    cpr_number: Optional[CPRNumber] = None
-    given_name: Optional[str] = None
-    surname: Optional[str] = None
+    user_key: str | None = None
+    nickname_given_name: str | None = None
+    nickname_surname: str | None = None
+    seniority: Any | None = None
+    cpr_number: CPRNumber | None = None
+    given_name: str | None = None
+    surname: str | None = None
     validity: "RAValidityInput"
 
 
 class EmployeesBoundAddressFilter(BaseModel):
     org_unit: Optional["OrganisationUnitFilter"] = None
-    org_units: Optional[List[UUID]] = None
+    org_units: list[UUID] | None = None
     employee: Optional["EmployeeFilter"] = None
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["AddressRegistrationFilter"] = None
     address_type: Optional["ClassFilter"] = None
-    address_types: Optional[List[UUID]] = None
-    address_type_user_keys: Optional[List[str]] = None
+    address_types: list[UUID] | None = None
+    address_type_user_keys: list[str] | None = None
     engagement: Optional["EngagementFilter"] = None
-    engagements: Optional[List[UUID]] = None
+    engagements: list[UUID] | None = None
     ituser: Optional["ITUserFilter"] = None
 
 
 class EmployeesBoundAssociationFilter(BaseModel):
     org_unit: Optional["OrganisationUnitFilter"] = None
-    org_units: Optional[List[UUID]] = None
+    org_units: list[UUID] | None = None
     employee: Optional["EmployeeFilter"] = None
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["AssociationRegistrationFilter"] = None
     association_type: Optional["ClassFilter"] = None
-    association_types: Optional[List[UUID]] = None
-    association_type_user_keys: Optional[List[str]] = None
-    it_association: Optional[bool] = None
+    association_types: list[UUID] | None = None
+    association_type_user_keys: list[str] | None = None
+    it_association: bool | None = None
 
 
 class EmployeesBoundEngagementFilter(BaseModel):
     org_unit: Optional["OrganisationUnitFilter"] = None
-    org_units: Optional[List[UUID]] = None
+    org_units: list[UUID] | None = None
     employee: Optional["EmployeeFilter"] = None
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["EngagementRegistrationFilter"] = None
     job_function: Optional["ClassFilter"] = None
 
 
 class EmployeesBoundITUserFilter(BaseModel):
     org_unit: Optional["OrganisationUnitFilter"] = None
-    org_units: Optional[List[UUID]] = None
+    org_units: list[UUID] | None = None
     employee: Optional["EmployeeFilter"] = None
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["ITUserRegistrationFilter"] = None
     itsystem: Optional["ITSystemFilter"] = None
-    itsystem_uuids: Optional[List[UUID]] = None
+    itsystem_uuids: list[UUID] | None = None
     engagement: Optional["EngagementFilter"] = None
 
 
 class EmployeesBoundLeaveFilter(BaseModel):
     org_unit: Optional["OrganisationUnitFilter"] = None
-    org_units: Optional[List[UUID]] = None
+    org_units: list[UUID] | None = None
     employee: Optional["EmployeeFilter"] = None
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["LeaveRegistrationFilter"] = None
 
 
 class EmployeesBoundManagerFilter(BaseModel):
     org_unit: Optional["OrganisationUnitFilter"] = None
-    org_units: Optional[List[UUID]] = None
+    org_units: list[UUID] | None = None
     employee: Optional["EmployeeFilter"] = None
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["ManagerRegistrationFilter"] = None
     responsibility: Optional["ClassFilter"] = None
 
 
 class EngagementCreateInput(BaseModel):
-    uuid: Optional[UUID] = None
-    user_key: Optional[str] = None
-    primary: Optional[UUID] = None
+    uuid: UUID | None = None
+    user_key: str | None = None
+    primary: UUID | None = None
     validity: "RAValidityInput"
-    extension_1: Optional[str] = None
-    extension_2: Optional[str] = None
-    extension_3: Optional[str] = None
-    extension_4: Optional[str] = None
-    extension_5: Optional[str] = None
-    extension_6: Optional[str] = None
-    extension_7: Optional[str] = None
-    extension_8: Optional[str] = None
-    extension_9: Optional[str] = None
-    extension_10: Optional[str] = None
-    employee: Optional[UUID] = None
-    person: Optional[UUID] = None
+    extension_1: str | None = None
+    extension_2: str | None = None
+    extension_3: str | None = None
+    extension_4: str | None = None
+    extension_5: str | None = None
+    extension_6: str | None = None
+    extension_7: str | None = None
+    extension_8: str | None = None
+    extension_9: str | None = None
+    extension_10: str | None = None
+    employee: UUID | None = None
+    person: UUID | None = None
     org_unit: UUID
     engagement_type: UUID
     job_function: UUID
 
 
 class EngagementFilter(BaseModel):
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     employee: Optional["EmployeeFilter"] = None
-    employees: Optional[List[UUID]] = None
+    employees: list[UUID] | None = None
     org_unit: Optional["OrganisationUnitFilter"] = None
-    org_units: Optional[List[UUID]] = None
+    org_units: list[UUID] | None = None
     registration: Optional["EngagementRegistrationFilter"] = None
     job_function: Optional["ClassFilter"] = None
 
 
 class EngagementRegistrationFilter(BaseModel):
-    actors: Optional[List[UUID]] = None
-    start: Optional[datetime] = None
-    end: Optional[datetime] = None
+    actors: list[UUID] | None = None
+    start: datetime | None = None
+    end: datetime | None = None
 
 
 class EngagementTerminateInput(BaseModel):
-    from_: Optional[datetime] = Field(alias="from", default=None)
+    from_: datetime | None = Field(alias="from", default=None)
     to: datetime
     uuid: UUID
 
 
 class EngagementUpdateInput(BaseModel):
     uuid: UUID
-    user_key: Optional[str] = None
-    primary: Optional[UUID] = None
+    user_key: str | None = None
+    primary: UUID | None = None
     validity: "RAValidityInput"
-    extension_1: Optional[str] = None
-    extension_2: Optional[str] = None
-    extension_3: Optional[str] = None
-    extension_4: Optional[str] = None
-    extension_5: Optional[str] = None
-    extension_6: Optional[str] = None
-    extension_7: Optional[str] = None
-    extension_8: Optional[str] = None
-    extension_9: Optional[str] = None
-    extension_10: Optional[str] = None
-    employee: Optional[UUID] = None
-    person: Optional[UUID] = None
-    org_unit: Optional[UUID] = None
-    engagement_type: Optional[UUID] = None
-    job_function: Optional[UUID] = None
+    extension_1: str | None = None
+    extension_2: str | None = None
+    extension_3: str | None = None
+    extension_4: str | None = None
+    extension_5: str | None = None
+    extension_6: str | None = None
+    extension_7: str | None = None
+    extension_8: str | None = None
+    extension_9: str | None = None
+    extension_10: str | None = None
+    employee: UUID | None = None
+    person: UUID | None = None
+    org_unit: UUID | None = None
+    engagement_type: UUID | None = None
+    job_function: UUID | None = None
 
 
 class FacetCreateInput(BaseModel):
-    uuid: Optional[UUID] = None
+    uuid: UUID | None = None
     user_key: str
     published: str = "Publiceret"
     validity: "ValidityInput"
 
 
 class FacetFilter(BaseModel):
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["FacetRegistrationFilter"] = None
     parent: Optional["FacetFilter"] = None
-    parents: Optional[List[UUID]] = None
-    parent_user_keys: Optional[List[str]] = None
+    parents: list[UUID] | None = None
+    parent_user_keys: list[str] | None = None
 
 
 class FacetRegistrationFilter(BaseModel):
-    actors: Optional[List[UUID]] = None
-    start: Optional[datetime] = None
-    end: Optional[datetime] = None
+    actors: list[UUID] | None = None
+    start: datetime | None = None
+    end: datetime | None = None
 
 
 class FacetTerminateInput(BaseModel):
-    from_: Optional[datetime] = Field(alias="from", default=None)
+    from_: datetime | None = Field(alias="from", default=None)
     to: datetime
     uuid: UUID
 
@@ -428,33 +427,33 @@ class FacetUpdateInput(BaseModel):
 
 
 class FacetsBoundClassFilter(BaseModel):
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["ClassRegistrationFilter"] = None
     facet: Optional["FacetFilter"] = None
-    facet_user_keys: Optional[List[str]] = None
+    facet_user_keys: list[str] | None = None
     parent: Optional["ClassFilter"] = None
-    parents: Optional[List[UUID]] = None
-    parent_user_keys: Optional[List[str]] = None
+    parents: list[UUID] | None = None
+    parent_user_keys: list[str] | None = None
     it_system: Optional["ITSystemFilter"] = None
-    scope: Optional[List[str]] = None
+    scope: list[str] | None = None
 
 
 class FileFilter(BaseModel):
     file_store: FileStore
-    file_names: Optional[List[str]] = None
+    file_names: list[str] | None = None
 
 
 class HealthFilter(BaseModel):
-    identifiers: Optional[List[str]] = None
+    identifiers: list[str] | None = None
 
 
 class ITAssociationCreateInput(BaseModel):
-    uuid: Optional[UUID] = None
-    user_key: Optional[str] = None
-    primary: Optional[UUID] = None
+    uuid: UUID | None = None
+    user_key: str | None = None
+    primary: UUID | None = None
     validity: "RAValidityInput"
     org_unit: UUID
     person: UUID
@@ -463,44 +462,44 @@ class ITAssociationCreateInput(BaseModel):
 
 
 class ITAssociationTerminateInput(BaseModel):
-    from_: Optional[datetime] = Field(alias="from", default=None)
+    from_: datetime | None = Field(alias="from", default=None)
     to: datetime
     uuid: UUID
 
 
 class ITAssociationUpdateInput(BaseModel):
     uuid: UUID
-    user_key: Optional[str] = None
-    primary: Optional[UUID] = None
+    user_key: str | None = None
+    primary: UUID | None = None
     validity: "RAValidityInput"
-    org_unit: Optional[UUID] = None
-    it_user: Optional[UUID] = None
-    job_function: Optional[UUID] = None
+    org_unit: UUID | None = None
+    it_user: UUID | None = None
+    job_function: UUID | None = None
 
 
 class ITSystemCreateInput(BaseModel):
-    uuid: Optional[UUID] = None
+    uuid: UUID | None = None
     user_key: str
     name: str
     validity: "RAOpenValidityInput"
 
 
 class ITSystemFilter(BaseModel):
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["ITSystemRegistrationFilter"] = None
 
 
 class ITSystemRegistrationFilter(BaseModel):
-    actors: Optional[List[UUID]] = None
-    start: Optional[datetime] = None
-    end: Optional[datetime] = None
+    actors: list[UUID] | None = None
+    start: datetime | None = None
+    end: datetime | None = None
 
 
 class ITSystemTerminateInput(BaseModel):
-    from_: Optional[datetime] = Field(alias="from", default=None)
+    from_: datetime | None = Field(alias="from", default=None)
     to: datetime
     uuid: UUID
 
@@ -513,126 +512,126 @@ class ITSystemUpdateInput(BaseModel):
 
 
 class ITUserCreateInput(BaseModel):
-    uuid: Optional[UUID] = None
-    primary: Optional[UUID] = None
-    person: Optional[UUID] = None
-    org_unit: Optional[UUID] = None
-    engagement: Optional[UUID] = None
+    uuid: UUID | None = None
+    primary: UUID | None = None
+    person: UUID | None = None
+    org_unit: UUID | None = None
+    engagement: UUID | None = None
     validity: "RAValidityInput"
     user_key: str
     itsystem: UUID
-    note: Optional[str] = None
+    note: str | None = None
 
 
 class ITUserFilter(BaseModel):
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     employee: Optional["EmployeeFilter"] = None
-    employees: Optional[List[UUID]] = None
+    employees: list[UUID] | None = None
     org_unit: Optional["OrganisationUnitFilter"] = None
-    org_units: Optional[List[UUID]] = None
+    org_units: list[UUID] | None = None
     registration: Optional["ITUserRegistrationFilter"] = None
     itsystem: Optional["ITSystemFilter"] = None
-    itsystem_uuids: Optional[List[UUID]] = None
+    itsystem_uuids: list[UUID] | None = None
     engagement: Optional["EngagementFilter"] = None
 
 
 class ITUserRegistrationFilter(BaseModel):
-    actors: Optional[List[UUID]] = None
-    start: Optional[datetime] = None
-    end: Optional[datetime] = None
+    actors: list[UUID] | None = None
+    start: datetime | None = None
+    end: datetime | None = None
 
 
 class ITUserTerminateInput(BaseModel):
-    from_: Optional[datetime] = Field(alias="from", default=None)
+    from_: datetime | None = Field(alias="from", default=None)
     to: datetime
     uuid: UUID
 
 
 class ITUserUpdateInput(BaseModel):
     uuid: UUID
-    primary: Optional[UUID] = None
-    person: Optional[UUID] = None
-    org_unit: Optional[UUID] = None
-    engagement: Optional[UUID] = None
+    primary: UUID | None = None
+    person: UUID | None = None
+    org_unit: UUID | None = None
+    engagement: UUID | None = None
     validity: "RAValidityInput"
-    user_key: Optional[str] = None
-    itsystem: Optional[UUID] = None
-    note: Optional[str] = None
+    user_key: str | None = None
+    itsystem: UUID | None = None
+    note: str | None = None
 
 
 class ItuserBoundAddressFilter(BaseModel):
     org_unit: Optional["OrganisationUnitFilter"] = None
-    org_units: Optional[List[UUID]] = None
+    org_units: list[UUID] | None = None
     employee: Optional["EmployeeFilter"] = None
-    employees: Optional[List[UUID]] = None
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    employees: list[UUID] | None = None
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["AddressRegistrationFilter"] = None
     address_type: Optional["ClassFilter"] = None
-    address_types: Optional[List[UUID]] = None
-    address_type_user_keys: Optional[List[str]] = None
+    address_types: list[UUID] | None = None
+    address_type_user_keys: list[str] | None = None
     engagement: Optional["EngagementFilter"] = None
-    engagements: Optional[List[UUID]] = None
+    engagements: list[UUID] | None = None
 
 
 class ItuserBoundRoleBindingFilter(BaseModel):
     org_unit: Optional["OrganisationUnitFilter"] = None
-    org_units: Optional[List[UUID]] = None
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    org_units: list[UUID] | None = None
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["RoleRegistrationFilter"] = None
 
 
 class KLECreateInput(BaseModel):
-    uuid: Optional[UUID] = None
-    user_key: Optional[str] = None
+    uuid: UUID | None = None
+    user_key: str | None = None
     org_unit: UUID
-    kle_aspects: List[UUID]
+    kle_aspects: list[UUID]
     kle_number: UUID
     validity: "RAValidityInput"
 
 
 class KLEFilter(BaseModel):
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     org_unit: Optional["OrganisationUnitFilter"] = None
-    org_units: Optional[List[UUID]] = None
+    org_units: list[UUID] | None = None
     registration: Optional["KLERegistrationFilter"] = None
 
 
 class KLERegistrationFilter(BaseModel):
-    actors: Optional[List[UUID]] = None
-    start: Optional[datetime] = None
-    end: Optional[datetime] = None
+    actors: list[UUID] | None = None
+    start: datetime | None = None
+    end: datetime | None = None
 
 
 class KLETerminateInput(BaseModel):
-    from_: Optional[datetime] = Field(alias="from", default=None)
+    from_: datetime | None = Field(alias="from", default=None)
     to: datetime
     uuid: UUID
 
 
 class KLEUpdateInput(BaseModel):
     uuid: UUID
-    user_key: Optional[str] = None
-    kle_number: Optional[UUID] = None
-    kle_aspects: Optional[List[UUID]] = None
-    org_unit: Optional[UUID] = None
+    user_key: str | None = None
+    kle_number: UUID | None = None
+    kle_aspects: list[UUID] | None = None
+    org_unit: UUID | None = None
     validity: "RAValidityInput"
 
 
 class LeaveCreateInput(BaseModel):
-    uuid: Optional[UUID] = None
-    user_key: Optional[str] = None
+    uuid: UUID | None = None
+    user_key: str | None = None
     person: UUID
     engagement: UUID
     leave_type: UUID
@@ -640,43 +639,43 @@ class LeaveCreateInput(BaseModel):
 
 
 class LeaveFilter(BaseModel):
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     employee: Optional["EmployeeFilter"] = None
-    employees: Optional[List[UUID]] = None
+    employees: list[UUID] | None = None
     org_unit: Optional["OrganisationUnitFilter"] = None
-    org_units: Optional[List[UUID]] = None
+    org_units: list[UUID] | None = None
     registration: Optional["LeaveRegistrationFilter"] = None
 
 
 class LeaveRegistrationFilter(BaseModel):
-    actors: Optional[List[UUID]] = None
-    start: Optional[datetime] = None
-    end: Optional[datetime] = None
+    actors: list[UUID] | None = None
+    start: datetime | None = None
+    end: datetime | None = None
 
 
 class LeaveTerminateInput(BaseModel):
-    from_: Optional[datetime] = Field(alias="from", default=None)
+    from_: datetime | None = Field(alias="from", default=None)
     to: datetime
     uuid: UUID
 
 
 class LeaveUpdateInput(BaseModel):
     uuid: UUID
-    user_key: Optional[str] = None
-    person: Optional[UUID] = None
-    engagement: Optional[UUID] = None
-    leave_type: Optional[UUID] = None
+    user_key: str | None = None
+    person: UUID | None = None
+    engagement: UUID | None = None
+    leave_type: UUID | None = None
     validity: "RAValidityInput"
 
 
 class ManagerCreateInput(BaseModel):
-    uuid: Optional[UUID] = None
-    user_key: Optional[str] = None
-    person: Optional[UUID] = None
-    responsibility: List[UUID]
+    uuid: UUID | None = None
+    user_key: str | None = None
+    person: UUID | None = None
+    responsibility: list[UUID]
     org_unit: UUID
     manager_level: UUID
     manager_type: UUID
@@ -684,26 +683,26 @@ class ManagerCreateInput(BaseModel):
 
 
 class ManagerFilter(BaseModel):
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     employee: Optional["EmployeeFilter"] = None
-    employees: Optional[List[UUID]] = None
+    employees: list[UUID] | None = None
     org_unit: Optional["OrganisationUnitFilter"] = None
-    org_units: Optional[List[UUID]] = None
+    org_units: list[UUID] | None = None
     registration: Optional["ManagerRegistrationFilter"] = None
     responsibility: Optional["ClassFilter"] = None
 
 
 class ManagerRegistrationFilter(BaseModel):
-    actors: Optional[List[UUID]] = None
-    start: Optional[datetime] = None
-    end: Optional[datetime] = None
+    actors: list[UUID] | None = None
+    start: datetime | None = None
+    end: datetime | None = None
 
 
 class ManagerTerminateInput(BaseModel):
-    from_: Optional[datetime] = Field(alias="from", default=None)
+    from_: datetime | None = Field(alias="from", default=None)
     to: datetime
     uuid: UUID
 
@@ -711,60 +710,60 @@ class ManagerTerminateInput(BaseModel):
 class ManagerUpdateInput(BaseModel):
     uuid: UUID
     validity: "RAValidityInput"
-    user_key: Optional[str] = None
-    person: Optional[UUID] = None
-    responsibility: Optional[List[UUID]] = None
-    org_unit: Optional[UUID] = None
-    manager_type: Optional[UUID] = None
-    manager_level: Optional[UUID] = None
+    user_key: str | None = None
+    person: UUID | None = None
+    responsibility: list[UUID] | None = None
+    org_unit: UUID | None = None
+    manager_type: UUID | None = None
+    manager_level: UUID | None = None
 
 
 class ModelsUuidsBoundRegistrationFilter(BaseModel):
-    actors: Optional[List[UUID]] = None
-    start: Optional[datetime] = None
-    end: Optional[datetime] = None
+    actors: list[UUID] | None = None
+    start: datetime | None = None
+    end: datetime | None = None
 
 
 class OrgUnitsboundaddressfilter(BaseModel):
     org_unit: Optional["OrganisationUnitFilter"] = None
     employee: Optional["EmployeeFilter"] = None
-    employees: Optional[List[UUID]] = None
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    employees: list[UUID] | None = None
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["AddressRegistrationFilter"] = None
     address_type: Optional["ClassFilter"] = None
-    address_types: Optional[List[UUID]] = None
-    address_type_user_keys: Optional[List[str]] = None
+    address_types: list[UUID] | None = None
+    address_type_user_keys: list[str] | None = None
     engagement: Optional["EngagementFilter"] = None
-    engagements: Optional[List[UUID]] = None
+    engagements: list[UUID] | None = None
     ituser: Optional["ITUserFilter"] = None
 
 
 class OrgUnitsboundassociationfilter(BaseModel):
     org_unit: Optional["OrganisationUnitFilter"] = None
     employee: Optional["EmployeeFilter"] = None
-    employees: Optional[List[UUID]] = None
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    employees: list[UUID] | None = None
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["AssociationRegistrationFilter"] = None
     association_type: Optional["ClassFilter"] = None
-    association_types: Optional[List[UUID]] = None
-    association_type_user_keys: Optional[List[str]] = None
-    it_association: Optional[bool] = None
+    association_types: list[UUID] | None = None
+    association_type_user_keys: list[str] | None = None
+    it_association: bool | None = None
 
 
 class OrgUnitsboundengagementfilter(BaseModel):
     org_unit: Optional["OrganisationUnitFilter"] = None
     employee: Optional["EmployeeFilter"] = None
-    employees: Optional[List[UUID]] = None
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    employees: list[UUID] | None = None
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["EngagementRegistrationFilter"] = None
     job_function: Optional["ClassFilter"] = None
 
@@ -772,85 +771,85 @@ class OrgUnitsboundengagementfilter(BaseModel):
 class OrgUnitsboundituserfilter(BaseModel):
     org_unit: Optional["OrganisationUnitFilter"] = None
     employee: Optional["EmployeeFilter"] = None
-    employees: Optional[List[UUID]] = None
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    employees: list[UUID] | None = None
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["ITUserRegistrationFilter"] = None
     itsystem: Optional["ITSystemFilter"] = None
-    itsystem_uuids: Optional[List[UUID]] = None
+    itsystem_uuids: list[UUID] | None = None
     engagement: Optional["EngagementFilter"] = None
 
 
 class OrgUnitsboundklefilter(BaseModel):
     org_unit: Optional["OrganisationUnitFilter"] = None
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["KLERegistrationFilter"] = None
 
 
 class OrgUnitsboundleavefilter(BaseModel):
     org_unit: Optional["OrganisationUnitFilter"] = None
     employee: Optional["EmployeeFilter"] = None
-    employees: Optional[List[UUID]] = None
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    employees: list[UUID] | None = None
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["LeaveRegistrationFilter"] = None
 
 
 class OrgUnitsboundrelatedunitfilter(BaseModel):
     org_unit: Optional["OrganisationUnitFilter"] = None
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
 
 
 class OrganisationCreate(BaseModel):
-    municipality_code: Optional[int]
+    municipality_code: int | None
 
 
 class OrganisationUnitCreateInput(BaseModel):
-    uuid: Optional[UUID]
+    uuid: UUID | None
     validity: "RAValidityInput"
     name: str
-    user_key: Optional[str]
-    parent: Optional[UUID]
+    user_key: str | None
+    parent: UUID | None
     org_unit_type: UUID
-    time_planning: Optional[UUID]
-    org_unit_level: Optional[UUID]
-    org_unit_hierarchy: Optional[UUID]
+    time_planning: UUID | None
+    org_unit_level: UUID | None
+    org_unit_hierarchy: UUID | None
 
 
 class OrganisationUnitFilter(BaseModel):
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["OrganisationUnitRegistrationFilter"] = None
-    query: Optional[str]
-    names: Optional[List[str]]
+    query: str | None
+    names: list[str] | None
     parent: Optional["OrganisationUnitFilter"]
-    parents: Optional[List[UUID]]
+    parents: list[UUID] | None
     hierarchy: Optional["ClassFilter"] = None
-    hierarchies: Optional[List[UUID]] = None
+    hierarchies: list[UUID] | None = None
     subtree: Optional["OrganisationUnitFilter"]
     engagement: Optional["EngagementFilter"] = None
 
 
 class OrganisationUnitRegistrationFilter(BaseModel):
-    actors: Optional[List[UUID]] = None
-    start: Optional[datetime] = None
-    end: Optional[datetime] = None
+    actors: list[UUID] | None = None
+    start: datetime | None = None
+    end: datetime | None = None
 
 
 class OrganisationUnitTerminateInput(BaseModel):
-    from_: Optional[datetime] = Field(alias="from", default=None)
+    from_: datetime | None = Field(alias="from", default=None)
     to: datetime
     uuid: UUID
 
@@ -858,264 +857,264 @@ class OrganisationUnitTerminateInput(BaseModel):
 class OrganisationUnitUpdateInput(BaseModel):
     uuid: UUID
     validity: "RAValidityInput"
-    name: Optional[str]
-    user_key: Optional[str]
-    parent: Optional[UUID]
-    org_unit_type: Optional[UUID]
-    org_unit_level: Optional[UUID]
-    org_unit_hierarchy: Optional[UUID]
-    time_planning: Optional[UUID]
+    name: str | None
+    user_key: str | None
+    parent: UUID | None
+    org_unit_type: UUID | None
+    org_unit_level: UUID | None
+    org_unit_hierarchy: UUID | None
+    time_planning: UUID | None
 
 
 class OwnerCreateInput(BaseModel):
-    uuid: Optional[UUID] = None
-    user_key: Optional[str] = None
-    org_unit: Optional[UUID] = None
-    person: Optional[UUID] = None
-    owner: Optional[UUID] = None
-    inference_priority: Optional[OwnerInferencePriority] = None
+    uuid: UUID | None = None
+    user_key: str | None = None
+    org_unit: UUID | None = None
+    person: UUID | None = None
+    owner: UUID | None = None
+    inference_priority: OwnerInferencePriority | None = None
     validity: "RAValidityInput"
 
 
 class OwnerFilter(BaseModel):
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     employee: Optional["EmployeeFilter"] = None
-    employees: Optional[List[UUID]] = None
+    employees: list[UUID] | None = None
     org_unit: Optional["OrganisationUnitFilter"] = None
-    org_units: Optional[List[UUID]] = None
+    org_units: list[UUID] | None = None
     owner: Optional["EmployeeFilter"] = None
 
 
 class OwnerTerminateInput(BaseModel):
-    from_: Optional[datetime] = Field(alias="from", default=None)
+    from_: datetime | None = Field(alias="from", default=None)
     to: datetime
     uuid: UUID
 
 
 class OwnerUpdateInput(BaseModel):
     uuid: UUID
-    user_key: Optional[str] = None
-    org_unit: Optional[UUID] = None
-    person: Optional[UUID] = None
-    owner: Optional[UUID] = None
-    inference_priority: Optional[OwnerInferencePriority] = None
+    user_key: str | None = None
+    org_unit: UUID | None = None
+    person: UUID | None = None
+    owner: UUID | None = None
+    inference_priority: OwnerInferencePriority | None = None
     validity: "RAValidityInput"
 
 
 class ParentsBoundClassFilter(BaseModel):
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["ClassRegistrationFilter"] = None
     facet: Optional["FacetFilter"] = None
-    facets: Optional[List[UUID]] = None
-    facet_user_keys: Optional[List[str]] = None
+    facets: list[UUID] | None = None
+    facet_user_keys: list[str] | None = None
     parent: Optional["ClassFilter"] = None
-    parent_user_keys: Optional[List[str]] = None
+    parent_user_keys: list[str] | None = None
     it_system: Optional["ITSystemFilter"] = None
-    scope: Optional[List[str]] = None
+    scope: list[str] | None = None
 
 
 class ParentsBoundFacetFilter(BaseModel):
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["FacetRegistrationFilter"] = None
     parent: Optional["FacetFilter"] = None
-    parent_user_keys: Optional[List[str]] = None
+    parent_user_keys: list[str] | None = None
 
 
 class ParentsBoundOrganisationUnitFilter(BaseModel):
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["OrganisationUnitRegistrationFilter"] = None
-    query: Optional[str]
-    names: Optional[List[str]]
+    query: str | None
+    names: list[str] | None
     parent: Optional["OrganisationUnitFilter"]
     hierarchy: Optional["ClassFilter"] = None
-    hierarchies: Optional[List[UUID]] = None
+    hierarchies: list[UUID] | None = None
     subtree: Optional["OrganisationUnitFilter"]
     engagement: Optional["EngagementFilter"] = None
 
 
 class RAOpenValidityInput(BaseModel):
-    from_: Optional[datetime] = Field(alias="from", default=None)
-    to: Optional[datetime] = None
+    from_: datetime | None = Field(alias="from", default=None)
+    to: datetime | None = None
 
 
 class RAValidityInput(BaseModel):
     from_: datetime = Field(alias="from")
-    to: Optional[datetime] = None
+    to: datetime | None = None
 
 
 class RegistrationFilter(BaseModel):
-    uuids: Optional[List[UUID]] = None
-    actors: Optional[List[UUID]] = None
-    models: Optional[List[str]] = None
-    start: Optional[datetime] = None
-    end: Optional[datetime] = None
+    uuids: list[UUID] | None = None
+    actors: list[UUID] | None = None
+    models: list[str] | None = None
+    start: datetime | None = None
+    end: datetime | None = None
 
 
 class RelatedUnitFilter(BaseModel):
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     org_unit: Optional["OrganisationUnitFilter"] = None
-    org_units: Optional[List[UUID]] = None
+    org_units: list[UUID] | None = None
 
 
 class RelatedUnitsUpdateInput(BaseModel):
-    uuid: Optional[UUID] = None
+    uuid: UUID | None = None
     origin: UUID
-    destination: Optional[List[UUID]] = None
+    destination: list[UUID] | None = None
     validity: "RAValidityInput"
 
 
 class RoleBindingCreateInput(BaseModel):
-    uuid: Optional[UUID] = None
-    user_key: Optional[str] = None
-    org_unit: Optional[UUID] = None
+    uuid: UUID | None = None
+    user_key: str | None = None
+    org_unit: UUID | None = None
     ituser: UUID
     role: UUID
     validity: "RAValidityInput"
 
 
 class RoleBindingFilter(BaseModel):
-    uuids: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    uuids: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     org_unit: Optional["OrganisationUnitFilter"] = None
-    org_units: Optional[List[UUID]] = None
+    org_units: list[UUID] | None = None
     registration: Optional["RoleRegistrationFilter"] = None
     ituser: Optional["ITUserFilter"] = None
 
 
 class RoleBindingTerminateInput(BaseModel):
-    from_: Optional[datetime] = Field(alias="from", default=None)
+    from_: datetime | None = Field(alias="from", default=None)
     to: datetime
     uuid: UUID
 
 
 class RoleBindingUpdateInput(BaseModel):
     uuid: UUID
-    user_key: Optional[str] = None
-    org_unit: Optional[UUID] = None
+    user_key: str | None = None
+    org_unit: UUID | None = None
     ituser: UUID
-    role: Optional[UUID] = None
+    role: UUID | None = None
     validity: "RAValidityInput"
 
 
 class RoleRegistrationFilter(BaseModel):
-    actors: Optional[List[UUID]] = None
-    start: Optional[datetime] = None
-    end: Optional[datetime] = None
+    actors: list[UUID] | None = None
+    start: datetime | None = None
+    end: datetime | None = None
 
 
 class UuidsBoundClassFilter(BaseModel):
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["ClassRegistrationFilter"] = None
     facet: Optional["FacetFilter"] = None
-    facets: Optional[List[UUID]] = None
-    facet_user_keys: Optional[List[str]] = None
+    facets: list[UUID] | None = None
+    facet_user_keys: list[str] | None = None
     parent: Optional["ClassFilter"] = None
-    parents: Optional[List[UUID]] = None
-    parent_user_keys: Optional[List[str]] = None
+    parents: list[UUID] | None = None
+    parent_user_keys: list[str] | None = None
     it_system: Optional["ITSystemFilter"] = None
-    scope: Optional[List[str]] = None
+    scope: list[str] | None = None
 
 
 class UuidsBoundEmployeeFilter(BaseModel):
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["EmployeeRegistrationFilter"] = None
-    query: Optional[str]
-    cpr_numbers: Optional[List[CPRNumber]] = None
+    query: str | None
+    cpr_numbers: list[CPRNumber] | None = None
 
 
 class UuidsBoundEngagementFilter(BaseModel):
     org_unit: Optional["OrganisationUnitFilter"] = None
-    org_units: Optional[List[UUID]] = None
+    org_units: list[UUID] | None = None
     employee: Optional["EmployeeFilter"] = None
-    employees: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    employees: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["EngagementRegistrationFilter"] = None
     job_function: Optional["ClassFilter"] = None
 
 
 class UuidsBoundFacetFilter(BaseModel):
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["FacetRegistrationFilter"] = None
     parent: Optional["FacetFilter"] = None
-    parents: Optional[List[UUID]] = None
-    parent_user_keys: Optional[List[str]] = None
+    parents: list[UUID] | None = None
+    parent_user_keys: list[str] | None = None
 
 
 class UuidsBoundITSystemFilter(BaseModel):
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["ITSystemRegistrationFilter"] = None
 
 
 class UuidsBoundITUserFilter(BaseModel):
     org_unit: Optional["OrganisationUnitFilter"] = None
-    org_units: Optional[List[UUID]] = None
+    org_units: list[UUID] | None = None
     employee: Optional["EmployeeFilter"] = None
-    employees: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    employees: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["ITUserRegistrationFilter"] = None
     itsystem: Optional["ITSystemFilter"] = None
-    itsystem_uuids: Optional[List[UUID]] = None
+    itsystem_uuids: list[UUID] | None = None
     engagement: Optional["EngagementFilter"] = None
 
 
 class UuidsBoundLeaveFilter(BaseModel):
     org_unit: Optional["OrganisationUnitFilter"] = None
-    org_units: Optional[List[UUID]] = None
+    org_units: list[UUID] | None = None
     employee: Optional["EmployeeFilter"] = None
-    employees: Optional[List[UUID]] = None
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    employees: list[UUID] | None = None
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["LeaveRegistrationFilter"] = None
 
 
 class UuidsBoundOrganisationUnitFilter(BaseModel):
-    user_keys: Optional[List[str]] = None
-    from_date: Optional[datetime]
-    to_date: Optional[datetime]
+    user_keys: list[str] | None = None
+    from_date: datetime | None
+    to_date: datetime | None
     registration: Optional["OrganisationUnitRegistrationFilter"] = None
-    query: Optional[str]
-    names: Optional[List[str]]
+    query: str | None
+    names: list[str] | None
     parent: Optional["OrganisationUnitFilter"]
-    parents: Optional[List[UUID]]
+    parents: list[UUID] | None
     hierarchy: Optional["ClassFilter"] = None
-    hierarchies: Optional[List[UUID]] = None
+    hierarchies: list[UUID] | None = None
     subtree: Optional["OrganisationUnitFilter"]
     engagement: Optional["EngagementFilter"] = None
 
 
 class ValidityInput(BaseModel):
-    from_: Optional[datetime] = Field(alias="from", default=None)
-    to: Optional[datetime] = None
+    from_: datetime | None = Field(alias="from", default=None)
+    to: datetime | None = None
 
 
 AddressCreateInput.update_forward_refs()

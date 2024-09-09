@@ -13,15 +13,15 @@ from mo_ldap_import_export.ldap_event_generator import datetime_to_ldap_timestam
     "datetime,expected",
     [
         (
-            datetime.datetime(2021, 1, 1, 10, 45, 20, 0, timezone.utc),
+            datetime.datetime(2021, 1, 1, 10, 45, 20, 0, datetime.UTC),
             "20210101104520.000000+0000",
         ),
         (
-            datetime.datetime(2021, 1, 1, 10, 45, 20, 2000, timezone.utc),
+            datetime.datetime(2021, 1, 1, 10, 45, 20, 2000, datetime.UTC),
             "20210101104520.002000+0000",
         ),
         (
-            datetime.datetime(2021, 1, 1, 10, 45, 20, 2100, timezone.utc),
+            datetime.datetime(2021, 1, 1, 10, 45, 20, 2100, datetime.UTC),
             "20210101104520.002100+0000",
         ),
         (
@@ -32,11 +32,11 @@ from mo_ldap_import_export.ldap_event_generator import datetime_to_ldap_timestam
         ),
         # Test sub 4 digit years
         (
-            datetime.datetime(1, 1, 1, tzinfo=timezone.utc),
+            datetime.datetime(1, 1, 1, tzinfo=datetime.UTC),
             "00010101000000.000000+0000",
         ),
         (
-            datetime.datetime(936, 7, 12, 12, 0, 0, tzinfo=timezone.utc),
+            datetime.datetime(936, 7, 12, 12, 0, 0, tzinfo=datetime.UTC),
             "09360712120000.000000+0000",
         ),
     ],

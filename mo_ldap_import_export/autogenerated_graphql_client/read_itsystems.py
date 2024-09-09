@@ -1,4 +1,3 @@
-from typing import List
 from typing import Optional
 from uuid import UUID
 
@@ -10,7 +9,7 @@ class ReadItsystems(BaseModel):
 
 
 class ReadItsystemsItsystems(BaseModel):
-    objects: List["ReadItsystemsItsystemsObjects"]
+    objects: list["ReadItsystemsItsystemsObjects"]
 
 
 class ReadItsystemsItsystemsObjects(BaseModel):

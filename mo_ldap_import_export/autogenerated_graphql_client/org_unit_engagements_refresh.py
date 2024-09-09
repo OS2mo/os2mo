@@ -1,4 +1,3 @@
-from typing import List
 from uuid import UUID
 
 from .base_model import BaseModel
@@ -9,7 +8,7 @@ class OrgUnitEngagementsRefresh(BaseModel):
 
 
 class OrgUnitEngagementsRefreshEngagementRefresh(BaseModel):
-    objects: List[UUID]
+    objects: list[UUID]
 
 
 OrgUnitEngagementsRefresh.update_forward_refs()

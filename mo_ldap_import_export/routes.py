@@ -3,14 +3,14 @@
 """HTTP Endpoints."""
 
 import re
+from collections.abc import AsyncIterator
+from collections.abc import Awaitable
+from collections.abc import Callable
 from contextlib import suppress
 from datetime import datetime
 from functools import partial
 from itertools import count
 from typing import Any
-from typing import AsyncIterator
-from typing import Awaitable
-from typing import Callable
 from typing import Literal
 from uuid import UUID
 from uuid import uuid4
