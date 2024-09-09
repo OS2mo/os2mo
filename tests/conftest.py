@@ -445,7 +445,7 @@ async def purge_ldap(ldap_connection: Connection) -> AsyncIterator[None]:
 
     dns = await find_all_dns()
     if dns:
-        warnings.warn(f"LDAP database not empty at testing start: {dns}")
+        warnings.warn(f"LDAP database not empty at testing start: {dns}", stacklevel=1)
 
     await delete_all_dns()
     yield

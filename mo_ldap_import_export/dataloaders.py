@@ -163,7 +163,7 @@ def extract_current_or_latest_validity(validities: list[T]) -> T | None:
                 assert end is not None
                 return start < now_utc and now_utc < end
             case _:  # pragma: no cover
-                assert False
+                raise AssertionError()
 
     # If any of the validities is valid today, return it
     current_validity = only(filter(is_current, validities))
@@ -291,7 +291,7 @@ class DataLoader:
         self,
         cpr_no: CPRNumber,
         json_key: str,
-        additional_attributes: list[str] = [],
+        additional_attributes: list[str] | None = None,
     ) -> list[LdapObject]:
         """
         Loads an ldap object which can be found using a cpr number lookup
@@ -300,10 +300,12 @@ class DataLoader:
             - 'Employee'
             - a MO address type name
         """
+        additional_attributes = additional_attributes or []
+
         try:
             validate_cpr(cpr_no)
-        except (ValueError, TypeError):
-            raise NoObjectsReturnedException(f"cpr_no '{cpr_no}' is invalid")
+        except (ValueError, TypeError) as error:
+            raise NoObjectsReturnedException(f"cpr_no '{cpr_no}' is invalid") from error
 
         if not self.cpr_field:
             raise NoObjectsReturnedException("cpr_field is not configured")
@@ -449,7 +451,7 @@ class DataLoader:
                 for dn in dns
             ]
         )
-        dn_map = dict(zip(dns, dn_responses))
+        dn_map = dict(zip(dns, dn_responses, strict=False))
 
         return {
             extract_ou_from_dn(dn): {

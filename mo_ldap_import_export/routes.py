@@ -101,7 +101,7 @@ async def load_ldap_objects(
     ldap_connection: Connection,
     converter: LdapConverter,
     json_key: str,
-    additional_attributes: list[str] = [],
+    additional_attributes: list[str] | None = None,
     search_base: str | None = None,
 ) -> list[LdapObject]:
     """
@@ -111,6 +111,8 @@ async def load_ldap_objects(
         - 'Employee'
         - a MO address type name
     """
+    additional_attributes = additional_attributes or []
+
     user_class = converter.find_ldap_object_class(json_key)
     attributes = converter.get_ldap_attributes(json_key) + additional_attributes
 

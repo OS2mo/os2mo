@@ -81,7 +81,10 @@ def existing_usernames_ldap(
     existing_usernames_ldap = [
         {"attributes": {"cn": cn, "sAMAccountName": sam, "userPrincipalName": up}}
         for cn, sam, up in zip(
-            existing_common_names, existing_usernames, existing_user_principal_names
+            existing_common_names,
+            existing_usernames,
+            existing_user_principal_names,
+            strict=False,
         )
     ]
     return existing_usernames_ldap

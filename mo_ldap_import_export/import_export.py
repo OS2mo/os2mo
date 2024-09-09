@@ -683,10 +683,10 @@ class SyncTool:
             # TODO: Restructure the code so it does not actually write
             await self.perform_export_checks(uuid, uuid)
             best_dn = await self.dataloader.make_mo_employee_dn(uuid)
-        except DNNotFound:
+        except DNNotFound as error:
             # If this occurs we were unable to generate a DN for the user
             logger.error("Unable to generate DN")
-            raise RequeueMessage("Unable to generate DN")
+            raise RequeueMessage("Unable to generate DN") from error
         return best_dn
 
     @with_exitstack
@@ -869,7 +869,7 @@ class SyncTool:
                 for converted_object in converted_objects
             ]
         else:  # pragma: no cover
-            assert False, f"Unknown mo_class: {mo_class}"
+            raise AssertionError(f"Unknown mo_class: {mo_class}")
 
         # Construct a map from value-key to list of matching objects
         values_in_mo = transpose_dict({a: getattr(a, value_key) for a in objects_in_mo})

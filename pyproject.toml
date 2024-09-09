@@ -109,10 +109,16 @@ DEP002 = [
 
 [tool.ruff.lint]
 extend-select = [
+    # flake8-bugbear
+    "B",
     # flake8-simplify
     "SIM",
     # isort
     "I"
+]
+ignore = [
+  # Allow function calls in arguments, like `Depends(...)`
+  "B008"
 ]
 
 [tool.ruff.lint.isort]

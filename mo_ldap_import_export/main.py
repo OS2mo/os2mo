@@ -80,9 +80,9 @@ async def handle_address(
     result = await graphql_client.read_address_relation_uuids(object_uuid)
     try:
         obj = one(result.objects)
-    except ValueError:
+    except ValueError as error:
         logger.warning("Unable to lookup address", uuid=object_uuid)
-        raise RejectMessage("Unable to lookup address")
+        raise RejectMessage("Unable to lookup address") from error
 
     if obj.current is None:
         logger.warning("Address not currently active", uuid=object_uuid)
@@ -136,9 +136,9 @@ async def handle_engagement(
     result = await graphql_client.read_engagement_employee_uuid(object_uuid)
     try:
         obj = one(result.objects)
-    except ValueError:
+    except ValueError as error:
         logger.warning("Unable to lookup engagement", uuid=object_uuid)
-        raise RejectMessage("Unable to lookup engagement")
+        raise RejectMessage("Unable to lookup engagement") from error
 
     if obj.current is None:
         logger.warning("Engagement not currently active", uuid=object_uuid)
@@ -177,9 +177,9 @@ async def handle_ituser(
     result = await graphql_client.read_ituser_employee_uuid(object_uuid)
     try:
         obj = one(result.objects)
-    except ValueError:
+    except ValueError as error:
         logger.warning("Unable to lookup ITUser", uuid=object_uuid)
-        raise RejectMessage("Unable to lookup ITUser")
+        raise RejectMessage("Unable to lookup ITUser") from error
 
     if obj.current is None:
         logger.warning("ITUser not currently active", uuid=object_uuid)
