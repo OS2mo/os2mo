@@ -109,6 +109,10 @@ DEP002 = [
 
 [tool.ruff.lint]
 extend-select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
     # pyupgrade
     "UP",
     # flake8-bugbear
@@ -120,7 +124,9 @@ extend-select = [
 ]
 ignore = [
   # Allow function calls in arguments, like `Depends(...)`
-  "B008"
+  "B008",
+  # Allow lines longer than 90 characters if ruff-format decides so
+  "E501"
 ]
 
 [tool.ruff.lint.isort]
