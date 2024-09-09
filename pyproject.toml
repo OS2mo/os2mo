@@ -108,7 +108,12 @@ DEP002 = [
 ]
 
 [tool.ruff.lint]
-extend-select = ["I"]
+extend-select = [
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I"
+]
 
 [tool.ruff.lint.isort]
 force-single-line = true

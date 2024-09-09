@@ -632,7 +632,7 @@ class SyncTool:
         if primary_engagement_uuid is None:
             return {}
 
-        if "Engagement" not in self.settings.conversion_mapping.ldap_to_mo.keys():
+        if "Engagement" not in self.settings.conversion_mapping.ldap_to_mo:
             return {}
 
         await self.perform_export_checks(uuid, primary_engagement_uuid)

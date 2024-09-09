@@ -199,8 +199,7 @@ def context(address_type_uuid: str) -> Context:
     }
 
     attribute_dict = {
-        a: {"single_value": dataloader.single_value[a]}
-        for a in dataloader.single_value.keys()
+        a: {"single_value": dataloader.single_value[a]} for a in dataloader.single_value
     }
 
     overview = {"user": {"attributes": attribute_dict}}
@@ -752,12 +751,11 @@ async def test_check_key_validity(converter: LdapConverter) -> None:
         return_value={
             "foo",
         },
+    ), pytest.raises(
+        IncorrectMapping,
+        match="{'bar'} are not valid keys. Accepted keys are {'foo'}",
     ):
-        with pytest.raises(
-            IncorrectMapping,
-            match="{'bar'} are not valid keys. Accepted keys are {'foo'}",
-        ):
-            await check_key_validity(converter.dataloader.graphql_client, mapping)
+        await check_key_validity(converter.dataloader.graphql_client, mapping)
 
 
 async def test_check_for_objectClass(converter: LdapConverter):
@@ -945,26 +943,24 @@ async def test_check_ldap_attributes_engagement_requires_single_value_fields(
     ), patch(
         "mo_ldap_import_export.converters.LdapConverter.find_ldap_object_class",
         return_value="user",
+    ), pytest.raises(
+        IncorrectMapping,
+        match="LDAP Attributes mapping to 'Engagement' contain one or more "
+        "multi-value attributes .*, which is not allowed",
     ):
-        # Assert
-        with pytest.raises(
-            IncorrectMapping,
-            match="LDAP Attributes mapping to 'Engagement' contain one or more "
-            "multi-value attributes .*, which is not allowed",
-        ):
-            dataloader.single_value = {
-                # *All* mapped AD fields must be multi-value to reach the relevant
-                # check.
-                "attr1": False,
-                "attr2": False,
-                "attr3": False,
-                "attr4": False,
-                "cpr_field": False,
-            }
-            converter.dataloader = dataloader
-            # Act
-            graphql_client = converter.dataloader.graphql_client
-            await converter.check_ldap_attributes(overview, graphql_client)
+        dataloader.single_value = {
+            # *All* mapped AD fields must be multi-value to reach the relevant
+            # check.
+            "attr1": False,
+            "attr2": False,
+            "attr3": False,
+            "attr4": False,
+            "cpr_field": False,
+        }
+        converter.dataloader = dataloader
+        # Act
+        graphql_client = converter.dataloader.graphql_client
+        await converter.check_ldap_attributes(overview, graphql_client)
 
 
 async def test_check_ldap_attributes_fields_to_check(converter: LdapConverter):
@@ -1630,12 +1626,11 @@ async def test_check_cpr_field_or_it_system(converter: LdapConverter):
     with patch(
         "mo_ldap_import_export.converters.find_ldap_it_system",
         return_value=None,
+    ), pytest.raises(
+        IncorrectMapping,
+        match="Neither a cpr-field or an ldap it-system could be found",
     ):
-        with pytest.raises(
-            IncorrectMapping,
-            match="Neither a cpr-field or an ldap it-system could be found",
-        ):
-            await converter.check_cpr_field_or_it_system()
+        await converter.check_cpr_field_or_it_system()
 
 
 async def test_get_current_engagement_attribute(converter: LdapConverter):
@@ -1670,7 +1665,7 @@ async def test_get_current_engagement_attribute(converter: LdapConverter):
     dataloader.load_mo_employee_engagement_dicts.return_value = [engagement1]
     converter.dataloader = dataloader
 
-    test_attributes = [a for a in engagement1.keys() if a != "user_key"]
+    test_attributes = [a for a in engagement1 if a != "user_key"]
 
     for attribute in test_attributes:
         assert (

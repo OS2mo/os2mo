@@ -290,7 +290,7 @@ def mock_ldap_response(ldap_attributes: dict, dn: DN) -> dict[str, Collection[st
     inner_dict = ldap_attributes
 
     for attribute in expected_attributes:
-        if attribute not in inner_dict.keys():
+        if attribute not in inner_dict:
             inner_dict[attribute] = None
 
     response = {"dn": dn, "type": "searchResEntry", "attributes": inner_dict}

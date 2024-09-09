@@ -603,7 +603,7 @@ class LdapConverter:
 
     def find_object_class(self, json_key, conversion):
         mapping = self.raw_mapping[conversion]
-        if json_key not in mapping.keys():
+        if json_key not in mapping:
             raise IncorrectMapping(f"{json_key} not found in {conversion} json dict")
         return mapping[json_key]["objectClass"]
 
@@ -670,7 +670,7 @@ class LdapConverter:
         return self.get_json_keys("mo_to_ldap")
 
     def get_required_attributes(self, mo_class):
-        if "required" in mo_class.schema().keys():
+        if "required" in mo_class.schema():
             return mo_class.schema()["required"]
         return []
 
@@ -806,13 +806,15 @@ class LdapConverter:
                         f"{matching_multi_value_attributes}"
                     )
 
-                if json_key == "Engagement":
-                    if len(matching_multi_value_attributes) > 0:
-                        raise IncorrectMapping(
-                            f"LDAP Attributes mapping to 'Engagement' contain one or "
-                            f"more multi-value attributes "
-                            f"{matching_multi_value_attributes}, which is not allowed"
-                        )
+                if (
+                    json_key == "Engagement"
+                    and len(matching_multi_value_attributes) > 0
+                ):
+                    raise IncorrectMapping(
+                        f"LDAP Attributes mapping to 'Engagement' contain one or "
+                        f"more multi-value attributes "
+                        f"{matching_multi_value_attributes}, which is not allowed"
+                    )
 
     def check_ldap_to_mo_references(self, overview):
         # https://ff1959.wordpress.com/2012/03/04/characters-that-are-permitted-in-

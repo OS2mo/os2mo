@@ -620,7 +620,7 @@ class DataLoader:
             new_superior=remove_cn_from_dn(new_dn),
         )
         logger.info("LDAP Result", result=result, new_dn=new_dn, old_dn=old_dn)
-        return True if result["description"] == "success" else False
+        return cast(bool, result["description"] == "success")
 
     async def modify_ldap_object(
         self,
@@ -727,9 +727,8 @@ class DataLoader:
             if syntax_decoded:
                 details_dict["field_type"] = syntax_decoded[2]
 
-            if example_value_dict:
-                if attribute in example_value_dict:
-                    details_dict["example_value"] = example_value_dict[attribute]
+            if example_value_dict and attribute in example_value_dict:
+                details_dict["example_value"] = example_value_dict[attribute]
 
             attribute_dict[attribute] = details_dict
 
