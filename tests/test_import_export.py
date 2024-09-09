@@ -1311,12 +1311,15 @@ async def test_import_jobtitlefromadtomo_objects(
 
     context["legacy_graphql_session"] = AsyncMock()
 
-    with patch(
-        "mo_ldap_import_export.import_export.SyncTool.format_converted_objects",
-        return_value=formatted_objects,
-    ), patch(
-        "mo_ldap_import_export.customer_specific.JobTitleFromADToMO.sync_to_mo",
-        return_value=job,
+    with (
+        patch(
+            "mo_ldap_import_export.import_export.SyncTool.format_converted_objects",
+            return_value=formatted_objects,
+        ),
+        patch(
+            "mo_ldap_import_export.customer_specific.JobTitleFromADToMO.sync_to_mo",
+            return_value=job,
+        ),
     ):
         await sync_tool.import_single_user(fake_dn)
         dataloader.create_or_edit_mo_objects.assert_called_once()
@@ -1393,10 +1396,13 @@ async def test_perform_import_checks_noop(sync_tool: SyncTool) -> None:
 
 @pytest.mark.usefixtures("fake_find_mo_employee_dn")
 async def test_holstebro_import_checks(sync_tool: SyncTool, fake_dn: DN) -> None:
-    with patch(
-        "mo_ldap_import_export.import_export.SyncTool.perform_import_checks",
-        return_value=False,
-    ), capture_logs() as cap_logs:
+    with (
+        patch(
+            "mo_ldap_import_export.import_export.SyncTool.perform_import_checks",
+            return_value=False,
+        ),
+        capture_logs() as cap_logs,
+    ):
         await sync_tool.import_single_user(fake_dn)
         assert "Import checks executed" in str(cap_logs)
 

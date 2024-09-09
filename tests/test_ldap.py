@@ -217,12 +217,12 @@ def test_configure_ldap_connection_timeout(
         time.sleep(2)
         return None
 
-    with patch(
-        "mo_ldap_import_export.ldap.get_client_strategy", return_value=MOCK_SYNC
-    ), patch("mo_ldap_import_export.ldap.Connection", connection_mock), patch(
-        "mo_ldap_import_export.ldap.construct_server", MagicMock()
-    ), patch("mo_ldap_import_export.ldap.ServerPool", MagicMock()), pytest.raises(
-        TimeOutException
+    with (
+        patch("mo_ldap_import_export.ldap.get_client_strategy", return_value=MOCK_SYNC),
+        patch("mo_ldap_import_export.ldap.Connection", connection_mock),
+        patch("mo_ldap_import_export.ldap.construct_server", MagicMock()),
+        patch("mo_ldap_import_export.ldap.ServerPool", MagicMock()),
+        pytest.raises(TimeOutException),
     ):
         configure_ldap_connection(settings)
 
@@ -238,10 +238,11 @@ def test_configure_ldap_connection_simple(
     def connection_mock(*args, **kwargs):
         raise ldap3.core.exceptions.LDAPBindError(reason)
 
-    with capture_logs() as cap_logs, patch(
-        "mo_ldap_import_export.ldap.get_client_strategy", return_value=MOCK_SYNC
-    ), patch("mo_ldap_import_export.ldap.Connection", connection_mock), pytest.raises(
-        ldap3.core.exceptions.LDAPBindError
+    with (
+        capture_logs() as cap_logs,
+        patch("mo_ldap_import_export.ldap.get_client_strategy", return_value=MOCK_SYNC),
+        patch("mo_ldap_import_export.ldap.Connection", connection_mock),
+        pytest.raises(ldap3.core.exceptions.LDAPBindError),
     ):
         configure_ldap_connection(settings)
 

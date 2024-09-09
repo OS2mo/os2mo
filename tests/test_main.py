@@ -335,12 +335,17 @@ def patch_modules(
         {"type": "test", "description": "success"},
     )
 
-    with patch(
-        "mo_ldap_import_export.main.configure_ldap_connection",
-        return_value=ldap_connection,
-    ), patch("mo_ldap_import_export.main.DataLoader", return_value=dataloader), patch(
-        "mo_ldap_import_export.routes.get_attribute_types", return_value={"foo": {}}
-    ), patch("fastramqpi.main.database", return_value=AsyncMock()):
+    with (
+        patch(
+            "mo_ldap_import_export.main.configure_ldap_connection",
+            return_value=ldap_connection,
+        ),
+        patch("mo_ldap_import_export.main.DataLoader", return_value=dataloader),
+        patch(
+            "mo_ldap_import_export.routes.get_attribute_types", return_value={"foo": {}}
+        ),
+        patch("fastramqpi.main.database", return_value=AsyncMock()),
+    ):
         yield
 
 
@@ -828,14 +833,17 @@ async def test_import_all_objects_from_LDAP_no_cpr_field(
 async def test_import_all_objects_from_LDAP_invalid_cpr(
     test_client: TestClient, dataloader: AsyncMock
 ) -> None:
-    with patch(
-        "mo_ldap_import_export.routes.load_ldap_objects",
-        return_value=[
-            LdapObject(
-                name="Tester", Department="QA", dn="someDN", EmployeeID="5001012002"
-            )
-        ],
-    ), capture_logs() as cap_logs:
+    with (
+        patch(
+            "mo_ldap_import_export.routes.load_ldap_objects",
+            return_value=[
+                LdapObject(
+                    name="Tester", Department="QA", dn="someDN", EmployeeID="5001012002"
+                )
+            ],
+        ),
+        capture_logs() as cap_logs,
+    ):
         response = test_client.get("/Import")
         assert response.status_code == 202
 
@@ -1019,10 +1027,15 @@ async def test_delete_non_existing_unique_ldap_uuids(
         for it_user in it_users
     ]
 
-    with patch(
-        "mo_ldap_import_export.routes.load_ldap_attribute_values", return_value=set()
-    ), patch(
-        "mo_ldap_import_export.routes.load_all_current_it_users", return_value=it_users
+    with (
+        patch(
+            "mo_ldap_import_export.routes.load_ldap_attribute_values",
+            return_value=set(),
+        ),
+        patch(
+            "mo_ldap_import_export.routes.load_all_current_it_users",
+            return_value=it_users,
+        ),
     ):
         response = test_client.post(
             "/fixup/delete_non_existing_unique_ldap_uuids?at=1990-01-01T00:00:00Z"
@@ -1046,14 +1059,18 @@ async def test_get_non_existing_objectGUIDs_from_MO(
     employee = Employee(givenname="Jim", surname="")
     dataloader.load_mo_employee.return_value = employee
 
-    with patch(
-        "mo_ldap_import_export.routes.load_ldap_attribute_values",
-        return_value={
-            it_users[0]["user_key"],
-            str(uuid4()),
-        },
-    ), patch(
-        "mo_ldap_import_export.routes.load_all_current_it_users", return_value=it_users
+    with (
+        patch(
+            "mo_ldap_import_export.routes.load_ldap_attribute_values",
+            return_value={
+                it_users[0]["user_key"],
+                str(uuid4()),
+            },
+        ),
+        patch(
+            "mo_ldap_import_export.routes.load_all_current_it_users",
+            return_value=it_users,
+        ),
     ):
         response = test_client.get("/Inspect/non_existing_unique_ldap_uuids")
     assert response.status_code == 202
