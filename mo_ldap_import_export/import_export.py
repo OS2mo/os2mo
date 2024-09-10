@@ -12,19 +12,19 @@ from functools import wraps
 from typing import Any
 from typing import Protocol
 from typing import TypeVar
+from typing import cast
 from uuid import UUID
 from uuid import uuid4
 
 import structlog
 from fastapi.encoders import jsonable_encoder
-from fastramqpi.ra_utils.transpose_dict import transpose_dict
 from fastramqpi.ramqp.depends import handle_exclusively_decorator
 from fastramqpi.ramqp.utils import RequeueMessage
 from ldap3 import Connection
 from more_itertools import all_equal
-from more_itertools import bucket
 from more_itertools import first
 from more_itertools import one
+from more_itertools import partition
 from more_itertools import quantify
 from ramodels.mo import MOBase
 from ramodels.mo.details.address import Address
@@ -54,6 +54,8 @@ from .ldap import apply_discriminator
 from .ldap import get_ldap_object
 from .ldap_classes import LdapObject
 from .types import EmployeeUUID
+from .types import OrgUnitUUID
+from .utils import bucketdict
 from .utils import extract_ou_from_dn
 from .utils import get_delete_flag
 
@@ -341,13 +343,9 @@ class SyncTool:
         ]
         addresses = [obj for obj in address_validities if obj is not None]
         # Group addresses by address-type
-        address_by_type = bucket(
+        address_map = bucketdict(
             addresses, key=lambda address: address.address_type.user_key
         )
-        address_map = {
-            address_type: list(address_by_type[address_type])
-            for address_type in address_by_type
-        }
         # TODO: Support deletion here, possibly by detecting address_types in our
         #       configuration, which are not in the address_map keys, i.e.
         #       mapped_address_types - address_map.keys()
@@ -450,13 +448,9 @@ class SyncTool:
         ]
         addresses = [obj for obj in address_validities if obj is not None]
         # Group addresses by address-type
-        address_by_type = bucket(
+        address_map = bucketdict(
             addresses, key=lambda address: address.address_type.user_key
         )
-        address_map = {
-            address_type: list(address_by_type[address_type])
-            for address_type in address_by_type
-        }
         # TODO: Support deletion here, possibly by detecting address_types in our
         #       configuration, which are not in the address_map keys, i.e.
         #       mapped_address_types - address_map.keys()
@@ -559,13 +553,7 @@ class SyncTool:
         ]
         itusers = [obj for obj in ituser_validities if obj is not None]
         # Group addresses by address-type
-        ituser_by_itsystem = bucket(
-            itusers, key=lambda ituser: ituser.itsystem.user_key
-        )
-        ituser_map = {
-            itsystem: list(ituser_by_itsystem[itsystem])
-            for itsystem in ituser_by_itsystem
-        }
+        ituser_map = bucketdict(itusers, key=lambda ituser: ituser.itsystem.user_key)
         # TODO: Support deletion here, possibly by detecting itsystems in our
         #       configuration, which are not in the ituser_map keys, i.e.
         #       mapped_itsystems - ituser_map.keys()
@@ -759,8 +747,8 @@ class SyncTool:
 
     async def format_converted_objects(
         self,
-        converted_objects,
-        json_key,
+        converted_objects: Sequence[MOBase],
+        json_key: str,
     ) -> list[tuple[MOBase, Verb]]:
         """
         for Address and Engagement objects:
@@ -773,10 +761,12 @@ class SyncTool:
             returns the input list of converted_objects
         """
         mo_class = self.converter.import_mo_object_class(json_key)
-        objects_in_mo: list[Any] = []
+        objects_in_mo: Sequence[MOBase] = []
 
         # Load addresses already in MO
         if issubclass(mo_class, Address):
+            converted_objects = cast(Sequence[Address], converted_objects)
+
             assert all_equal([obj.person for obj in converted_objects])
             person = first(converted_objects).person
 
@@ -793,7 +783,7 @@ class SyncTool:
                 )
             elif org_unit:
                 objects_in_mo = await self.dataloader.load_mo_org_unit_addresses(
-                    org_unit.uuid,
+                    OrgUnitUUID(org_unit.uuid),
                     address_type.uuid,
                 )
             else:
@@ -811,6 +801,8 @@ class SyncTool:
 
         # Load engagements already in MO
         elif issubclass(mo_class, Engagement):
+            converted_objects = cast(Sequence[Engagement], converted_objects)
+
             assert all_equal([obj.person for obj in converted_objects])
             person = first(converted_objects).person
 
@@ -851,8 +843,11 @@ class SyncTool:
                     ]
 
         elif issubclass(mo_class, ITUser):
+            converted_objects = cast(Sequence[ITUser], converted_objects)
+
             assert all_equal([obj.person for obj in converted_objects])
             person = first(converted_objects).person
+            assert person is not None
 
             assert all_equal([obj.itsystem for obj in converted_objects])
             itsystem = first(converted_objects).itsystem
@@ -863,6 +858,8 @@ class SyncTool:
 
             value_key = "user_key"
         elif issubclass(mo_class, Employee):
+            converted_objects = cast(Sequence[Employee], converted_objects)
+
             return [
                 (converted_object, Verb.CREATE)
                 for converted_object in converted_objects
@@ -871,60 +868,75 @@ class SyncTool:
             raise AssertionError(f"Unknown mo_class: {mo_class}")
 
         # Construct a map from value-key to list of matching objects
-        values_in_mo = transpose_dict({a: getattr(a, value_key) for a in objects_in_mo})
-        mo_attributes = set(self.converter.get_mo_attributes(json_key))
+        values_in_mo = bucketdict(objects_in_mo, lambda obj: getattr(obj, value_key))
+        values_converted = bucketdict(
+            converted_objects, lambda obj: getattr(obj, value_key)
+        )
 
-        # Set uuid if a matching one is found. so an object gets updated
-        # instead of duplicated
-        # TODO: Consider partitioning converted_objects before-hand
-        operations = []
-        for converted_object in converted_objects:
-            converted_object_value = getattr(converted_object, value_key)
+        # Only values in MO targeted by our converted values are relevant
+        values_in_mo = {
+            key: value for key, value in values_in_mo.items() if key in values_converted
+        }
 
-            values = values_in_mo.get(converted_object_value)
-            # Either None or empty list means no match
-            if not values:  # pragma: no cover
-                # No match means we are creating a new object
-                operations.append((converted_object, Verb.CREATE))
-                continue
-            # Multiple values means that it is ambiguous
-            if len(values) > 1:  # pragma: no cover
-                # Ambigious match means we do nothing
-                # TODO: Should this really throw a RequeueMessage?
-                logger.warning(
-                    "Could not determine MO object bijection, skipping",
-                    json_key=json_key,
-                    value_key=value_key,
-                    converted_object_value=converted_object_value,
-                )
-                continue
-            # Exactly 1 match found
-            logger.info(
-                "Found matching key",
+        # If we have more than one MO object for each converted, the match is ambigious.
+        # Ambigious matches mean no bijection and must be handled by human intervention.
+        ambigious_keys = {
+            key for key, values in values_in_mo.items() if values and len(values) > 1
+        }
+        for ambigious_key in ambigious_keys:
+            # TODO: Should this really throw a RequeueMessage?
+            logger.warning(
+                "Could not determine MO object bijection, skipping",
                 json_key=json_key,
-                value=getattr(converted_object, value_key),
+                value_key=value_key,
+                converted_object_value=ambigious_key,
             )
+        # Do not process ambigious objects
+        converted_objects = [
+            obj
+            for obj in converted_objects
+            if getattr(obj, value_key) not in ambigious_keys
+        ]
 
-            matching_object = one(values)
+        # Partition converted objects into creates and updates
+        creates, updates = partition(
+            # We have an update if there is no MO object in the bijection
+            lambda obj: getattr(obj, value_key) in values_in_mo,
+            converted_objects,
+        )
+
+        # Convert creates to operations
+        operations = [(converted_object, Verb.CREATE) for converted_object in creates]
+
+        # Convert updates to operations
+        mo_attributes = set(self.converter.get_mo_attributes(json_key))
+        for converted_object in updates:
+            converted_object_value = getattr(converted_object, value_key)
+            logger.info(
+                "Found matching key", json_key=json_key, value=converted_object_value
+            )
+            matching_object = one(values_in_mo[converted_object_value])
+
             mo_object_dict_to_upload = matching_object.dict()
-
             converted_mo_object_dict = converted_object.dict()
 
-            # TODO: We always used the matched UUID, even if we have one templated out?
-            #       Is this the desired behavior, if I template an UUID I would have
-            #       imagined that I would only ever touch the object with that UUID?
+            # Update the existing MO object with the converted values
+            # NOTE: UUID cannot be updated as it is used to decide what we update
+            # NOTE: objectClass is removed as it is an LDAP implemenation detail
+            # TODO: Why do we not update validity???
             mo_attributes = mo_attributes - {"validity", "uuid", "objectClass"}
             # Only copy over keys that exist in both sets
             mo_attributes = mo_attributes & converted_mo_object_dict.keys()
 
-            for key in mo_attributes:
-                logger.info(
-                    "Setting value on upload dict",
-                    key=key,
-                    value=converted_mo_object_dict[key],
-                )
-                mo_object_dict_to_upload[key] = converted_mo_object_dict[key]
-
+            update_values = {
+                key: converted_mo_object_dict[key] for key in mo_attributes
+            }
+            logger.info(
+                "Setting values on upload dict",
+                uuid=mo_object_dict_to_upload["uuid"],
+                values=update_values,
+            )
+            mo_object_dict_to_upload.update(update_values)
             converted_object_uuid_checked = mo_class(**mo_object_dict_to_upload)
 
             # TODO: Try to get this reactivated, see: 87683a2b

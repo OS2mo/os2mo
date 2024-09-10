@@ -746,14 +746,17 @@ async def test_check_key_validity(converter: LdapConverter) -> None:
         "ldap_to_mo": {"foo": {}, "bar": {}},
     }
 
-    with patch(
-        "mo_ldap_import_export.converters.get_accepted_json_keys",
-        return_value={
-            "foo",
-        },
-    ), pytest.raises(
-        IncorrectMapping,
-        match="{'bar'} are not valid keys. Accepted keys are {'foo'}",
+    with (
+        patch(
+            "mo_ldap_import_export.converters.get_accepted_json_keys",
+            return_value={
+                "foo",
+            },
+        ),
+        pytest.raises(
+            IncorrectMapping,
+            match="{'bar'} are not valid keys. Accepted keys are {'foo'}",
+        ),
     ):
         await check_key_validity(converter.dataloader.graphql_client, mapping)
 
@@ -827,15 +830,19 @@ async def test_check_ldap_attributes_single_value_fields(converter: LdapConverte
     converter.raw_mapping = mapping.copy()
     converter.mapping = mapping.copy()
 
-    with patch(
-        "mo_ldap_import_export.converters.find_cpr_field",
-        return_value="cpr_field",
-    ), patch(
-        "mo_ldap_import_export.converters.LdapConverter.check_attributes",
-        return_value=None,
-    ), patch(
-        "mo_ldap_import_export.converters.LdapConverter.find_ldap_object_class",
-        return_value="user",
+    with (
+        patch(
+            "mo_ldap_import_export.converters.find_cpr_field",
+            return_value="cpr_field",
+        ),
+        patch(
+            "mo_ldap_import_export.converters.LdapConverter.check_attributes",
+            return_value=None,
+        ),
+        patch(
+            "mo_ldap_import_export.converters.LdapConverter.find_ldap_object_class",
+            return_value="user",
+        ),
     ):
         with capture_logs() as cap_logs:
             dataloader.single_value = {
@@ -934,19 +941,24 @@ async def test_check_ldap_attributes_engagement_requires_single_value_fields(
     converter.raw_mapping = mapping.copy()
     converter.mapping = mapping.copy()
 
-    with patch(
-        "mo_ldap_import_export.converters.find_cpr_field",
-        return_value="cpr_field",
-    ), patch(
-        "mo_ldap_import_export.converters.LdapConverter.check_attributes",
-        return_value=None,
-    ), patch(
-        "mo_ldap_import_export.converters.LdapConverter.find_ldap_object_class",
-        return_value="user",
-    ), pytest.raises(
-        IncorrectMapping,
-        match="LDAP Attributes mapping to 'Engagement' contain one or more "
-        "multi-value attributes .*, which is not allowed",
+    with (
+        patch(
+            "mo_ldap_import_export.converters.find_cpr_field",
+            return_value="cpr_field",
+        ),
+        patch(
+            "mo_ldap_import_export.converters.LdapConverter.check_attributes",
+            return_value=None,
+        ),
+        patch(
+            "mo_ldap_import_export.converters.LdapConverter.find_ldap_object_class",
+            return_value="user",
+        ),
+        pytest.raises(
+            IncorrectMapping,
+            match="LDAP Attributes mapping to 'Engagement' contain one or more "
+            "multi-value attributes .*, which is not allowed",
+        ),
     ):
         dataloader.single_value = {
             # *All* mapped AD fields must be multi-value to reach the relevant
@@ -970,15 +982,19 @@ async def test_check_ldap_attributes_fields_to_check(converter: LdapConverter):
     }
     overview = converter.dataloader.load_ldap_overview()
 
-    with patch(
-        "mo_ldap_import_export.converters.find_cpr_field",
-        return_value="cpr_field",
-    ), patch(
-        "mo_ldap_import_export.converters.LdapConverter.check_attributes",
-        return_value=None,
-    ), patch(
-        "mo_ldap_import_export.converters.LdapConverter.find_ldap_object_class",
-        return_value="user",
+    with (
+        patch(
+            "mo_ldap_import_export.converters.find_cpr_field",
+            return_value="cpr_field",
+        ),
+        patch(
+            "mo_ldap_import_export.converters.LdapConverter.check_attributes",
+            return_value=None,
+        ),
+        patch(
+            "mo_ldap_import_export.converters.LdapConverter.find_ldap_object_class",
+            return_value="user",
+        ),
     ):
         dataloader.single_value = {
             "attr1": True,
@@ -1285,12 +1301,15 @@ async def test_check_ldap_to_mo_references(converter: LdapConverter):
         }
     }
 
-    with patch(
-        "mo_ldap_import_export.converters.LdapConverter.get_ldap_to_mo_json_keys",
-        return_value=["Employee"],
-    ), patch(
-        "mo_ldap_import_export.converters.LdapConverter.find_ldap_object_class",
-        return_value="user",
+    with (
+        patch(
+            "mo_ldap_import_export.converters.LdapConverter.get_ldap_to_mo_json_keys",
+            return_value=["Employee"],
+        ),
+        patch(
+            "mo_ldap_import_export.converters.LdapConverter.find_ldap_object_class",
+            return_value="user",
+        ),
     ):
         with pytest.raises(ExceptionGroup) as exc_info:
             overview = converter.dataloader.load_ldap_overview()
@@ -1623,12 +1642,15 @@ async def test_find_ldap_it_system(graphql_mock: GraphQLMocker) -> None:
 async def test_check_cpr_field_or_it_system(converter: LdapConverter):
     converter.cpr_field = None
 
-    with patch(
-        "mo_ldap_import_export.converters.find_ldap_it_system",
-        return_value=None,
-    ), pytest.raises(
-        IncorrectMapping,
-        match="Neither a cpr-field or an ldap it-system could be found",
+    with (
+        patch(
+            "mo_ldap_import_export.converters.find_ldap_it_system",
+            return_value=None,
+        ),
+        pytest.raises(
+            IncorrectMapping,
+            match="Neither a cpr-field or an ldap it-system could be found",
+        ),
     ):
         await converter.check_cpr_field_or_it_system()
 

@@ -611,15 +611,19 @@ async def test_get_overview(dataloader: DataLoader):
     schema_mock = MagicMock()
     schema_mock.object_classes = {"object1": "foo"}
 
-    with patch(
-        "mo_ldap_import_export.dataloaders.get_ldap_schema",
-        return_value=schema_mock,
-    ), patch(
-        "mo_ldap_import_export.dataloaders.get_ldap_attributes",
-        return_value=["attr1", "attr2"],
-    ), patch(
-        "mo_ldap_import_export.dataloaders.get_ldap_superiors",
-        return_value=["sup1", "sup2"],
+    with (
+        patch(
+            "mo_ldap_import_export.dataloaders.get_ldap_schema",
+            return_value=schema_mock,
+        ),
+        patch(
+            "mo_ldap_import_export.dataloaders.get_ldap_attributes",
+            return_value=["attr1", "attr2"],
+        ),
+        patch(
+            "mo_ldap_import_export.dataloaders.get_ldap_superiors",
+            return_value=["sup1", "sup2"],
+        ),
     ):
         output = dataloader.load_ldap_overview()
 
