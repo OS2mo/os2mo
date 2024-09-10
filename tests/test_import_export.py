@@ -653,8 +653,44 @@ async def test_format_converted_engagement_objects(
         from_date="2021-01-01",
     )
 
-    # We do not expect this one the be uploaded, because its user_key exists twice in MO
-    engagement3 = Engagement.from_simplified_fields(
+    engagement_in_mo = Engagement.from_simplified_fields(
+        org_unit_uuid=uuid4(),
+        person_uuid=employee_uuid,
+        job_function_uuid=uuid4(),
+        engagement_type_uuid=uuid4(),
+        user_key="123",
+        from_date="2021-01-01",
+    )
+
+    dataloader.load_mo_employee_engagements.return_value = [
+        engagement_in_mo,
+    ]
+
+    json_key = "Engagement"
+
+    converted_objects = [engagement1, engagement2]
+
+    operations = await sync_tool.format_converted_objects(
+        converted_objects,
+        json_key,
+    )
+    assert len(operations) == 2
+    formatted_objects = [obj for obj, _ in operations]
+    assert last(formatted_objects).uuid == engagement_in_mo.uuid
+    assert last(formatted_objects).user_key == engagement1.user_key
+    assert first(formatted_objects) == engagement2
+
+
+async def test_format_converted_engagement_duplicate(
+    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
+) -> None:
+    converter.get_mo_attributes.return_value = ["user_key", "job_function"]
+    converter.find_mo_object_class.return_value = "Engagement"
+    converter.import_mo_object_class.return_value = Engagement
+
+    employee_uuid = uuid4()
+
+    engagement = Engagement.from_simplified_fields(
         org_unit_uuid=uuid4(),
         person_uuid=employee_uuid,
         job_function_uuid=uuid4(),
@@ -668,20 +704,10 @@ async def test_format_converted_engagement_objects(
         person_uuid=employee_uuid,
         job_function_uuid=uuid4(),
         engagement_type_uuid=uuid4(),
-        user_key="123",
-        from_date="2021-01-01",
-    )
-
-    engagement2_in_mo = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
         user_key="duplicate_key",
         from_date="2021-01-01",
     )
-
-    engagement3_in_mo = Engagement.from_simplified_fields(
+    engagement2_in_mo = Engagement.from_simplified_fields(
         org_unit_uuid=uuid4(),
         person_uuid=employee_uuid,
         job_function_uuid=uuid4(),
@@ -693,23 +719,14 @@ async def test_format_converted_engagement_objects(
     dataloader.load_mo_employee_engagements.return_value = [
         engagement1_in_mo,
         engagement2_in_mo,
-        engagement3_in_mo,
     ]
 
     json_key = "Engagement"
 
-    converted_objects = [engagement1, engagement2, engagement3]
-
-    operations = await sync_tool.format_converted_objects(
-        converted_objects,
-        json_key,
-    )
-    assert len(operations) == 2
-    formatted_objects = [obj for obj, _ in operations]
-    assert engagement3 not in formatted_objects
-    assert last(formatted_objects).uuid == engagement1_in_mo.uuid
-    assert last(formatted_objects).user_key == engagement1.user_key
-    assert first(formatted_objects) == engagement2
+    converted_objects = [engagement]
+    with pytest.raises(RequeueMessage) as exc_info:
+        await sync_tool.format_converted_objects(converted_objects, json_key)
+    assert "Bad bijection: Multiple MO objects" in str(exc_info.value)
 
 
 async def test_format_converted_multiple_primary_engagements(
