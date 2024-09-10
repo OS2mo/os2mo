@@ -482,14 +482,14 @@ async def manager_resolver(
         strawberry.argument(
             description=dedent(
                 """\
-                    Whether to inherit owner roles or not.
+                    Whether to inherit managerial roles or not.
 
-                    If owner roles exist directly on this organisaion unit, the flag does nothing and these owner roles are returned.
-                    However if no owner roles exist directly, and this flag is:
+                    If managerial roles exist directly on this organisation unit, the flag does nothing and these managerial roles are returned.
+                    However if no managerial roles exist directly, and this flag is:
                     * Not set: An empty list is returned.
-                    * Is set: The result from calling `owners` with `inherit=True` on the parent of this organistion unit is returned.
+                    * Is set: The result from calling `managers` with `inherit=True` on the parent of this organistion unit is returned.
 
-                    Calling with `inherit=True` can help ensure that an owner is always found.
+                    Calling with `inherit=True` can help ensure that a manager is always found.
                     """
             )
         ),
