@@ -38,7 +38,6 @@ CONVERSION_MAPPING = {
             "address_type": "{{ dict(uuid=get_employee_address_type_uuid('PhoneEmployee')) }}",
             "person": "{{ dict(uuid=employee_uuid or NONE) }}",
             "visibility": "{{ dict(uuid=get_visibility_uuid('Public')) }}",
-            "validity": "{{ dict(from_date=now()|mo_datestring) }}",
         },
         "InternalPhoneEmployee": {
             "objectClass": "ramodels.mo.details.address.Address",
@@ -47,7 +46,6 @@ CONVERSION_MAPPING = {
             "address_type": "{{ dict(uuid=get_employee_address_type_uuid('PhoneEmployee')) }}",
             "person": "{{ dict(uuid=employee_uuid or NONE) }}",
             "visibility": "{{ dict(uuid=get_visibility_uuid('Intern')) }}",
-            "validity": "{{ dict(from_date=now()|mo_datestring) }}",
         },
     },
     "mo_to_ldap": {

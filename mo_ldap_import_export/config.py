@@ -238,6 +238,9 @@ class LDAP2MOMapping(MappingBaseModel):
             "terminate",
             "mapper",
         }
+        # Disallow validity until we introduce a consistent behavior in the future
+        if "validity" in detected_attributes:
+            raise ValueError("'validity' cannot be set on the ldap_to_mo mapping")
 
         check_attributes(detected_attributes, accepted_attributes)
 
