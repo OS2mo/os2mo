@@ -7,6 +7,7 @@ from collections import ChainMap
 from collections.abc import Iterator
 from collections.abc import MutableMapping
 from contextlib import suppress
+from datetime import UTC
 from datetime import datetime
 from functools import partial
 from itertools import compress
@@ -1260,6 +1261,13 @@ class LdapConverter:
             }
             mo_class = self.import_mo_object_class(json_key)
             required_attributes = set(self.get_required_attributes(mo_class))
+
+            # Load our validity default, if it is not set
+            missing_attributes = required_attributes - set(mo_dict.keys())
+            # TODO: Once validity has been removed from the config
+            #       Replace this 'if' with an assert instead
+            if "validity" in missing_attributes:
+                mo_dict["validity"] = {"from": datetime.now(UTC), "to": None}
 
             # If any required attributes are missing
             missing_attributes = required_attributes - set(mo_dict.keys())

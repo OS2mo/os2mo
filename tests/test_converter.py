@@ -11,10 +11,12 @@ from unittest.mock import MagicMock
 from unittest.mock import patch
 from uuid import UUID
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 
 import pytest
 from fastramqpi.context import Context
 from fastramqpi.ramqp.utils import RequeueMessage
+from freezegun import freeze_time
 from jinja2 import Environment
 from jinja2 import Undefined
 from more_itertools import one
@@ -2017,3 +2019,49 @@ async def test_create_facet_class_no_facet() -> None:
     with pytest.raises(NoObjectsReturnedException) as exc_info:
         await _create_facet_class(dataloader, "class_key", "facet_key")
     assert "Could not find facet with user_key = 'facet_key'" in str(exc_info.value)
+
+
+@freeze_time("2022-08-10")
+async def test_ldap_to_mo_default_validity(converter: LdapConverter) -> None:
+    del converter.raw_mapping["ldap_to_mo"]["Email"]["validity"]
+    await converter._init()
+
+    employee_uuid = uuid4()
+    result = await converter.from_ldap(
+        LdapObject(
+            dn="",
+            mail="foo@bar.dk",
+        ),
+        "Email",
+        employee_uuid=employee_uuid,
+    )
+    mail = one(result)
+    assert mail.value == "foo@bar.dk"
+    assert mail.person.uuid == employee_uuid
+    assert mail.validity.dict() == {
+        "from_date": datetime.datetime(2022, 8, 10, 0, 0, tzinfo=datetime.UTC),
+        "to_date": None,
+    }
+
+    # Add validity key to Email mapping
+    converter.raw_mapping["ldap_to_mo"]["Email"]["validity"] = (
+        "{{ dict(from_date=now()|mo_datestring) }}"
+    )
+    await converter._init()
+    result = await converter.from_ldap(
+        LdapObject(
+            dn="",
+            mail="foo@bar.dk",
+        ),
+        "Email",
+        employee_uuid=employee_uuid,
+    )
+    mail = one(result)
+    assert mail.value == "foo@bar.dk"
+    assert mail.person.uuid == employee_uuid
+    assert mail.validity.dict() == {
+        "from_date": datetime.datetime(
+            2022, 8, 10, 0, 0, tzinfo=ZoneInfo("Europe/Copenhagen")
+        ),
+        "to_date": None,
+    }
