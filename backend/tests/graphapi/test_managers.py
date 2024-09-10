@@ -137,6 +137,86 @@ def test_query_inherit(graphapi_post: GraphAPIPost):
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
+    "ignore, inherit, expected",
+    [
+        (True, False, []),
+        (True, True, "dacea340-cca1-44bd-b551-a5ac6e8bd489"),
+        (False, True, "05609702-977f-4869-9fb4-50ad74c6999a"),
+        (False, False, "05609702-977f-4869-9fb4-50ad74c6999a"),
+    ],
+)
+def test_query_ignore_self(graphapi_post: GraphAPIPost, ignore, inherit, expected):
+    """Test that we can query, using the `ignore_self`-flag."""
+
+    # Manager uuid for top level org_unit
+    random_uuid = "dacea340-cca1-44bd-b551-a5ac6e8bd489"
+
+    # Manager uuid for child: "05609702-977f-4869-9fb4-50ad74c6999a"
+
+    create_manager = graphapi_post(
+        """
+        mutation CreateManager($input: ManagerCreateInput!) {
+          manager_create(input: $input) {
+            uuid
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "uuid": random_uuid,
+                "person": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                "responsibility": ["4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"],
+                "org_unit": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "manager_level": "ca76a441-6226-404f-88a9-31e02e420e52",
+                "manager_type": "32547559-cfc1-4d97-94c6-70b192eff825",
+                "validity": {"from": "2021-01-01"},
+            }
+        },
+    )
+
+    assert create_manager.errors is None
+    assert create_manager.data is not None
+
+    # engagement uuid for manager in child org_unit
+    engagement_uuid = "d000591f-8705-4324-897a-075e3623f37b"
+
+    query = """
+        query Read($uuid: [UUID!],$ignore: Boolean!, $inherit: Boolean!) {
+            engagements(filter: { uuids: $uuid }) {
+                objects {
+                    current {
+                        managers(ignore_self: $ignore, inherit: $inherit) {
+                            uuid
+                        }
+                    }
+                }
+            }
+        }
+
+    """
+
+    response = graphapi_post(
+        query, variables={"uuid": engagement_uuid, "ignore": ignore, "inherit": inherit}
+    )
+
+    assert response.errors is None
+    assert response.data
+
+    if expected == []:
+        assert (
+            response.data["engagements"]["objects"][0]["current"]["managers"]
+            == expected
+        )
+    else:
+        assert (
+            response.data["engagements"]["objects"][0]["current"]["managers"][0]["uuid"]
+            == expected
+        )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+@pytest.mark.parametrize(
     "filter,expected",
     [
         ({}, 1),

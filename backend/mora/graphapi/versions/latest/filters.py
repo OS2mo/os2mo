@@ -458,7 +458,8 @@ class ManagerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         default=None,
         description=dedent(
             """\
-            # TODO: Document this.
+            Gets `root.employee_uuid` by default.
+            Is only used when the bool `ignore_self` from the `manager_resolver` is True
             """
         ),
     )
