@@ -28,6 +28,7 @@ nav:
         - integrations/ad.md
       - integrations/sql_export.md
       - integrations/emus.md
+      - integrations/fkk.md
       - integrations/os2sync.md
       - LOS / OPUS:
         - integrations/aarhus-los.md
