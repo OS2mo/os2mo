@@ -13,9 +13,11 @@ nav:
       - home/manual.md
       - home/landscape.md
   - Funktionalitet:
+      - features/auditlog.md
       - features/email-notifikationer.md
       - features/stillingsbetegnelser.md
       - features/indplacering-af-it-brugere.md
+      - features/insights.md
       - features/klassifikationer.md
       - features/kle.md
       - features/lederhaandtering.md
@@ -23,7 +25,6 @@ nav:
       - features/org-chart.md
       - features/org-sammenkobling.md
       - features/reports.md
-      - features/auditlog.md
   - Integrationer:
       - Active Directory:
         - integrations/ldap_ad_amqp_integration.md
