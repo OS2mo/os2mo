@@ -14,7 +14,7 @@ Dette dokument beskriver en række grundbegreber og \-logikker samt den funktion
 
 ### Organisation og Organisationsenhed
 
-En organisationer kan være en juridisk enhed med rettigheder og ansvar. Det kan oggså være en mere uformel enhed, der oprettes ad hoc i en agil projektorganisation. Eksempler på organisationer er således myndigheder (fx et ministerium, en styrelse, en region, en kommune), NGO'er og private virksomheder, men også MED-udvalg, (midlertidige) teams og universiteter.
+En organisationer kan være en juridisk enhed med rettigheder og ansvar. Det kan også være en mere uformel enhed, der oprettes ad hoc i en agil projektorganisation. Eksempler på organisationer er således myndigheder (fx et ministerium, en styrelse, en region, en kommune), NGO'er og private virksomheder, men også MED-udvalg, (midlertidige) teams og universiteter.
 
 En organisationsenhed er en del af en organisation og kan kun eksistere i forbindelse med denne. Eksempelvis kan et kontanthjælpskontor kun eksistere som en del af en kommune, og en it-afdeling eksisterer kun som en del af en virksomhed.
 
@@ -74,7 +74,7 @@ Herudover findes disse moduler:
 * [**Insights**](https://rammearkitektur.docs.magenta.dk/os2mo/features/insights.html), som giver muligheden for at man selv kan sammenstille MOs data og gemme dem i en csv-fil.
 * [**Klassifikationer**](https://rammearkitektur.docs.magenta.dk/os2mo/features/klassifikationer.html), som giver muligheden for at ændre eller oprette nye metadata, fx nye stillingsbetegnelser eller nye lederroller.
 * [**Organisationsdiagrammet**](https://rammearkitektur.docs.magenta.dk/os2mo/features/org-chart.html), som udstiller organisationen på intranettet eller internettet.
-* [**Organisationssammenkobling**](https://rammearkitektur.docs.magenta.dk/os2mo/features/Organisationssammenkobling.html). Det er muligt at skabe relationer mellem organisationsenheder vha. modulet *Organisationssammenkobling*, hvilket tillader en række automatikker mellem enheder der tilsvarer hinanden i to forskellige Organisationer, fx lønorganisationen og den administrative organisation.
+* [**Organisationssammenkobling**](https://rammearkitektur.docs.magenta.dk/os2mo/features/org-sammenkobling.html). Det er muligt at skabe relationer mellem organisationsenheder vha. modulet *Organisationssammenkobling*, hvilket tillader en række automatikker mellem enheder der tilsvarer hinanden i to forskellige Organisationer, fx lønorganisationen og den administrative organisation.
 * [**Rapporter**](https://rammearkitektur.docs.magenta.dk/os2mo/features/reports.html), som genererer og hver morgen udstiller friske rapporter indeholdende forskellige datasæt fra MO.
 
 ## Forsiden
@@ -97,8 +97,8 @@ MOs header ser således ud:
 Headeren består af følgende elementer, fra venstre til højre:
 
 1. **Ikon**, der fører tilbage til startsiden.
-2. **Links**, hvor links til MOs moduler kan tilføjes. Lige nu findes Organisationsdiagrammet, Insights, Klassifikation og Rapporter. Alle kan tilvejebringes på bestilling.
-3. [**Søgefunktion**](#søgefunktionen), som søger på medarbejdere eller organisationsenheder afhængigt af om slideren er til venstre eller højre.
+2. **Links**, hvor links til MOs moduler kan tilføjes. Lige nu findes Organisationsdiagrammet, Insights, Klassifikation og Rapporter. Alle kan tilvejebringes på bestilling. Organisationssammenkoblingsmodulet kommer med MO.
+3. [**Søgefunktion**](#sgefunktionen), som søger på medarbejdere eller organisationsenheder afhængigt af om slideren er til venstre eller højre.
 4. **Datovælger**, der kan spole frem eller tilbage i tid og loader organisationen som den kommer til at se ud i fremtiden / så ud på et givet tidspunkt i fortiden.
 5. **Log ind/ud**\-knap.
 
@@ -181,7 +181,7 @@ De rapporter, der eksisterer, er beskrevne [her](https://rammearkitektur.docs.ma
 
 Insights er et modul, som tillader brugerne selv at sammenstille data på kryds og tværs og downloade de filer, der genereres på denne baggrund.
 
-Du kan læse mere om [Insights her](https://rammearkitektur.docs.magenta.dk/os2mo/features/insights.html%20).
+Du kan læse mere om [Insights her](https://rammearkitektur.docs.magenta.dk/os2mo/features/insights.html).
 
 ### Organisationshierarki med mulighed for flere parallelle organisationer
 
@@ -279,7 +279,7 @@ Det er muligt at opmærke sine enheder med [KL's Emnesystematik (KLE)](http://ww
 
 KL's Emnesystematik er oprindeligt tænkt som en opgavetaksomnomi, der skal give et overblik over, hvem der udfører hvilke opgaver.
 
-Anvendelsen varierer, men hovedformålene er rettigheds- eller opgavestyring.
+Anvendelsen varierer, men hovedformålene er dataafgrænsning og/eller opgavestyring.
 
 Opmærkningerne af organisationen kan sendes videre til andre systemer, der har behov for dem  (fx [FK Organisation](https://digitaliseringskataloget.dk/l%C3%B8sninger/organisation), [organisationsdiagrammet](https://rammearkitektur.docs.magenta.dk/os2mo/features/org-chart.html) og/eller IdM-systemer).
 
@@ -333,7 +333,7 @@ Sammenkoblingerne kan benyttes til forskellige formål, fx til at flytte postadr
 
 Bemærk, at sammenkoblingerne kan datostyres.
 
-### Fanebalde, der kun eksisterer i medarbejderdelen af MO
+### Faneblade, der kun eksisterer i medarbejderdelen af MO
 
 #### Fanebladet Medarbejder
 
@@ -343,7 +343,7 @@ Under denne fane ses stamoplysninger på en person, nemlig navn, kaldenavn samt 
 
 * **Navnet** er altid personens CPR-navn.
 * **Kaldenavnet** benyttes især, hvis man ikke er interesseret i at korrespondancer indeholder personfølsomme oplysninger. Det kan fx være fordi man arbejder med udsatte børn og unge. Hvis et kaldenavn er sat, vil en integration til et andet system kunne konfigureres til at videreformidle dette og ikke CPR-navnet.
-* **Datoer**. Som udgangspunkt vil startdatoen vøre ens fødselsdato. Såfremt der ændfres i en stamoplysning \- fx at et kaldenavn angives, vil startdatoen ændres til at matche denne dato, og hvis man er interesseret i at se en persons fødselsdato, skal man klikke på Fortid:
+* **Datoer**. Som udgangspunkt vil startdatoen være ens fødselsdato. Såfremt der ændres i en stamoplysning - fx at et kaldenavn angives - vil startdatoen ændres til at matche denne dato, og hvis man er interesseret i at se en persons fødselsdato, skal man klikke på Fortid:
 
 ![image](../graphics/momanual/kaldenavnfortid.png)
 
@@ -413,7 +413,7 @@ For ansatte er de::
 4. Flyt mange engagementer
 5. Opsig medarbejder
 
-Fælles for arbejdsgangene er, at en startdato skal angives (slutdatoen er optionel). Startdatoen kan være fortidig, nutidig eller fremtidig. Generelt er det sådan, at en organisationsenhed eller en medarbejder ikke må eksistere uden for hhv. den tilhørende overenhedens eller enheds gyldighedsperiode.
+Fælles for arbejdsgangene er, at en startdato skal angives (slutdatoen er optionel). Startdatoen kan være fortidig, nutidig eller fremtidig. Generelt er det sådan, at en organisationsenhed eller en medarbejder ikke må eksistere uden for hhv. den tilhørende overenheds eller enhedens gyldighedsperiode.
 
 Oprettes en medarbejder med en fremtidig startdato, vil medarbejderen fremgå af ‘Fremtids’-tabben.
 
