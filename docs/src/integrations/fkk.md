@@ -4,7 +4,7 @@ title: FK Klassifikation
 
 ## Formål
 
-Integrationen mellem MO og [FK Klassifikation](https://digitaliseringskataloget.dk/l%C3%B8sninger/klassifikationhttps://digitaliseringskataloget.dk/l%C3%B8sninger/klassifikation) understøtter for øjeblikket hændelsesbaseret synkronisering af KLE-numre til MO.
+Integrationen mellem MO og [FK Klassifikation](https://digitaliseringskataloget.dk/l%C3%B8sninger/klassifikation) understøtter for øjeblikket hændelsesbaseret synkronisering af KLE-numre til MO.
 
 Formålet er indtil videre at kunne KLE-opmærke enheder i MO med både KLE-numre og deres aspekter. Se hvordan det gøres [her](https://rammearkitektur.docs.magenta.dk/os2mo/home/manual.html#fanebladet-kle-opmrkninger).
 

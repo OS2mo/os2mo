@@ -16,38 +16,39 @@ Et andet er et overblik over alle enheder, deres ansatte, de ansattes adresser o
 
 Når man er inde i Insights-modulet i MO, bliver man præsenteret med dette billede:
 
-1. Når en organisationsenhed er fremsøgt, vil de underliggende enheder også blive valgt.
-
 ![image](../graphics/insights/insightsforside.png)
 
-2. Herefter vælges hvilke andre data, man er interesseret i. Det sker ved valg af "Emne":
+Når en organisationsenhed er fremsøgt, vil de underliggende enheder også blive valgt.
 
-![image](../graphics/insights/insightsemne.png)
+1. Herefter vælges hvilke andre data, man er interesseret i. Det sker ved valg af "Emne":
 
-3. Herefter kan der tilføjes eller fjernes data under "Felter" fra det Emne, der er valgt:
+    ![image](../graphics/insights/insightsemne.png)
 
-![image](../graphics/insights/insightsfelter.png)
+2. Herefter kan der tilføjes eller fjernes data under "Felter" fra det Emne, der er valgt:
 
-4. Hvis man ønsker, at csv-filen skal indeholde flere Emner, trykkes der på "+"-knappen:
+    ![image](../graphics/insights/insightsfelter.png)
 
-![image](../graphics/insights/insightsplus.png)
+3. Hvis man ønsker, at csv-filen skal indeholde flere Emner, trykkes der på "+"-knappen:
+
+    ![image](../graphics/insights/insightsplus.png)
 
 hvorpå det bliver muligt at tilføje flere data (punkt 1-3 gentages). Ønsker man at fjerne et emne, trykkes der på "-"-knappen:
 
-![image](../graphics/insights/insightsminus.png)
+    ![image](../graphics/insights/insightsminus.png)
 
-5. Herefter trykkes "Søg", hvorpå genereringen af filen igangsættes. Hvor lang tid det tager at generere filen, afhænger af, hvor mange data der er valgt. Hvis man ønsker at fjerne data fra søgningen, trykkes "Ryd":
+4. Herefter trykkes "Søg", hvorpå genereringen af filen igangsættes. Hvor lang tid det tager at generere filen, afhænger af, hvor mange data der er valgt. Når knappen "Download som csv" bliver blå, betyder det, at filen er downloadet.
+Hvis man ønsker at fjerne data fra søgningen, trykkes "Ryd":
 
-![image](../graphics/insights/insightssoegogryd.png)
+    ![image](../graphics/insights/insightssoegogryd.png)
 
-6. Kald din fil, hvad du vil. Hvis feltet efterlades tomt, bliver den navngivet "insights":
+5. Kald din fil, hvad du vil. Hvis feltet efterlades tomt, bliver den navngivet "insights":
 
-![image](../graphics/insights/insightsfilnavn.png)
+    ![image](../graphics/insights/insightsfilnavn.png)
 
-7. Når "Download som csv"-knappen aktiveres (bliver blå), kan der trykkes på den, og csv-filen bliver hentet ned på din computer:
+6. Når "Download som csv"-knappen aktiveres (bliver blå), kan der trykkes på den, og csv-filen bliver hentet ned på din computer:
 
-![image](../graphics/insights/insightsdownload.png)
+    ![image](../graphics/insights/insightsdownload.png)
 
-En eksempelfil med oplysninger om engagementer i en én enhed med en enkelt række kan se sådan ud:
+En eksempelfil med oplysninger om engagementer i én enhed kan se sådan ud:
 
-![image](../graphics/insights/insightseksempelcsv.png)
+    ![image](../graphics/insights/insightseksempelcsv.png)
