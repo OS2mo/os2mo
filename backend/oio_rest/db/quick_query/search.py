@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
@@ -74,6 +75,18 @@ class InfiniteDatetime:
         return datetime.fromisoformat(self.value) < datetime.fromisoformat(other.value)
 
 
+@dataclass(frozen=True)
+class JoinTable:
+    name: str
+    alias: str | None = None
+
+    @property
+    def ref(self):
+        if self.alias is not None:
+            return self.alias
+        return self.name
+
+
 class SearchQueryBuilder:
     def __init__(
         self,
@@ -112,9 +125,8 @@ class SearchQueryBuilder:
 
         # core-containers
         self.__conditions: list[str] = []
-        self.__relations: list[Relation] = []
-        self.__relation_conditions: list[str] = []
-        self.__inner_join_tables: list[str] = []
+        self.__relation_conditions: dict[str, list[str]] = defaultdict(list)
+        self.__inner_join_tables: list[JoinTable] = []
 
         # eagerly create statement-parts
         self.__reg_table = f"{self.__class_name}_{REG}"
@@ -269,13 +281,14 @@ class SearchQueryBuilder:
         :return:
         """
         table_name = "_".join([self.__class_name, "attr", attr.type])
-        if table_name not in self.__inner_join_tables:
-            self.__inner_join_tables.append(table_name)
+        join_table = JoinTable(name=table_name)
+        if join_table not in self.__inner_join_tables:
+            self.__inner_join_tables.append(join_table)
 
         comparison = self.__postgres_comparison_from_typed_value(
             value=attr.value, type_=attr.value_type
         )
-        self.__conditions.append(f"{table_name}.{attr.key} {comparison}")
+        self.__conditions.append(f"{join_table.ref}.{attr.key} {comparison}")
 
     def add_state(self, state: State):
         """
@@ -286,9 +299,10 @@ class SearchQueryBuilder:
         :return:
         """
         table_name = "_".join([self.__class_name, "tils", state.key])
-        if table_name not in self.__inner_join_tables:
-            self.__inner_join_tables.append(table_name)
-        self.__conditions.append(f"{table_name}.{state.key} = '{state.value}'")
+        join_table = JoinTable(name=table_name)
+        if join_table not in self.__inner_join_tables:
+            self.__inner_join_tables.append(join_table)
+        self.__conditions.append(f"{join_table.ref}.{state.key} = '{state.value}'")
 
     def add_relation(self, relation: Relation):
         """
@@ -299,20 +313,21 @@ class SearchQueryBuilder:
         :return:
         """
         table_name = f"{self.__class_name}_{RELATION}"
-        if table_name not in self.__inner_join_tables:
-            self.__inner_join_tables.append(table_name)
+        table_alias = f"{table_name}_{relation.type}"
+        join_table = JoinTable(name=table_name, alias=table_alias)
+        if join_table not in self.__inner_join_tables:
+            self.__inner_join_tables.append(join_table)
         id_var_name = "rel_maal_uuid" if relation.id_is_uuid else "rel_maal_urn"
-        base_condition = f"""{table_name}.rel_type = '{relation.type}'
-         AND {table_name}.{id_var_name} = '{relation.id}'"""
+        base_condition = f"""{join_table.ref}.rel_type = '{relation.type}'
+         AND {join_table.ref}.{id_var_name} = '{relation.id}'"""
 
         if relation.object_type is not None:
-            obj_condition = f"{table_name}.objekt_type = '{relation.object_type}'"
+            obj_condition = f"{join_table.ref}.objekt_type = '{relation.object_type}'"
             condition = f"{base_condition} AND {obj_condition}"
         else:
             condition = base_condition
 
-        self.__relations.append(relation)
-        self.__relation_conditions.append("(" + condition + ")")
+        self.__relation_conditions[relation.type].append("(" + condition + ")")
 
     def __build_subquery(self):
         """
@@ -325,29 +340,20 @@ class SearchQueryBuilder:
         SELECT {self.__main_col} as {self.__id_col_name}
         FROM {self.__reg_table}"""
 
-        if self.__relation_conditions:  # overwrite if needed
-            select_from_stmt: str = f"""
-            SELECT {self.__main_col} as {self.__id_col_name},
-                COUNT(DISTINCT {self.__class_name}_{RELATION}.rel_type)
-                as {self.__count_col_name}
-            FROM {self.__reg_table}"""
-
         additional_conditions = []  # just to avoid altering state
         inner_join_stmt = ""
         if self.__inner_join_tables:  # add the tables needed
-            inner_join_stmt = " ".join(
-                [
-                    f"""INNER JOIN {table_name} ON
-                 {table_name}.{self.__class_name}_{REG}_id = {self.__reg_table}.id"""
-                    for table_name in self.__inner_join_tables
-                ]
+            joins = (
+                f"INNER JOIN {join_table.name} {join_table.ref} ON {join_table.ref}.{self.__class_name}_{REG}_id = {self.__reg_table}.id"
+                for join_table in self.__inner_join_tables
             )
+            inner_join_stmt = " ".join(joins)
 
             # add time-related conditions to EVERY table
-            for table_name in self.__inner_join_tables:
+            for join_table in self.__inner_join_tables:
                 additional_conditions.append(
                     self.__overlap_condition_from_range(
-                        fully_qualifying_var_name=f"({table_name}.{VIRKNING})."
+                        fully_qualifying_var_name=f"({join_table.ref}.{VIRKNING})."
                         f"timeperiod",
                         start=self.__virkning_fra,
                         end=self.__virkning_til,
@@ -367,57 +373,26 @@ class SearchQueryBuilder:
             used_conditions += additional_conditions
 
         if self.__relation_conditions:
-            conditions = " OR ".join(self.__relation_conditions)
-            relation_condition_str = f" ({conditions})"
-            used_conditions.append(relation_condition_str)
+            for conditions in self.__relation_conditions.values():
+                used_conditions.append(" (" + " OR ".join(conditions) + ")")
 
         where_stmt = "WHERE " + " AND ".join(used_conditions)
 
-        # add group by (all the ids)
-        non_relation_table = [self.__reg_table] + [
-            x for x in self.__inner_join_tables if not x.endswith(RELATION)
-        ]
-        groubp_by_cols = ", ".join(
-            [f"{table_name}.id" for table_name in non_relation_table]
-        )
-        groupby_stmt = f" GROUP BY {groubp_by_cols}"
-
-        return f"{select_from_stmt} {inner_join_stmt} {where_stmt} {groupby_stmt}"
+        return f"{select_from_stmt} {inner_join_stmt} {where_stmt}"
 
     def get_query(self) -> str:
         """
         Get a query reflecting the currently added constraints.
         Does not alter state of this object
 
-        FOR MAINTAINERS [how this query works]:
-            Relation conditions are special, as ONE relation spans MULTIPLE rows.
-            SO, we naively query, and filter our results with the following trick:
-            query all rows that match ANY relation condition. Then group by id, and
-             COUNT. If the count == number of relation conditions consider it a match!
-             If not, only some relation-parameters were matched, so discard.
-            Notably, if NO relation conditions are present, ANY result is valid.
-
         :return: a valid postgresql statement
         """
-
-        select_from_stmt = f"""SELECT DISTINCT sub.{self.__id_col_name}
-        FROM ({self.__build_subquery()}) AS sub"""
-
-        where_stmt = ""
-        if self.__relation_conditions:
-            # Need to condition on the *set* of relation types to support multiple
-            # conditions on the same relation OR'd together, since the sub-query counts
-            # DISTINCT rel_types.
-            distinct_relations = {r.type for r in self.__relations}
-            where_stmt = f"""
-            WHERE sub.{self.__count_col_name}={len(distinct_relations)}"""
-
+        select_from_stmt = self.__build_subquery()
         order_by_stmt = f"ORDER BY {self.__id_col_name}"
         limit_stmt = f"LIMIT {self.__limit}" if self.__limit is not None else ""
         offset_stmt = f"OFFSET {self.__offset}" if self.__offset is not None else ""
 
-        return f"""{select_from_stmt} {where_stmt}
-        {order_by_stmt} {limit_stmt} {offset_stmt};"""
+        return f"{select_from_stmt} {order_by_stmt} {limit_stmt} {offset_stmt};"
 
 
 def ensure_uuid(uuid: UUID | str) -> UUID:
