@@ -553,6 +553,132 @@ async def test_org_unit_subtree_filter(graphapi_post: GraphAPIPost) -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
+async def test_org_unit_ancestor_filter(graphapi_post: GraphAPIPost) -> None:
+    """Test ancestor filter on organisation units."""
+    # Ensure that the ancestor filter respects the date filtering by changing
+    # the parent of 'fil' to 'it_sup' in the future: 'skole-børn > it_sup > fil'.
+    root = "2874e1dc-85e6-4269-823a-e1125484dfd3"
+    skole_born = "dad7d0ad-c7a9-4a94-969d-464337e31fec"
+    it_sup = "fa2e23c9-860a-4c90-bcc6-2c0721869a25"
+    fil = "85715fc7-925d-401b-822d-467eb4b163b6"
+    response = graphapi_post(
+        """
+        mutation MoveOrgUnit($uuid: UUID!, $parent: UUID!) {
+          org_unit_update(
+            input: {
+                uuid: $uuid,
+                parent: $parent,
+                validity: {from: "2024-04-04"},
+            }
+          ) {
+            uuid
+          }
+        }
+        """,
+        {
+            "uuid": fil,
+            "parent": it_sup,
+        },
+    )
+    assert response.errors is None
+
+    ancestor_query = """
+        query AncestorQuery($from_date: DateTime, $to_date: DateTime) {
+          org_units(
+            filter: {
+              from_date: $from_date,
+              to_date: $to_date,
+              ancestor: {
+                user_keys: "skole-børn",
+                from_date: $from_date,
+                to_date: $to_date,
+              }
+            }
+          ) {
+            objects {
+              validities {
+                user_key
+                uuid
+                parent { uuid }
+              }
+            }
+          }
+        }
+    """
+    # Querying before the change should give us the original descendants
+    response = graphapi_post(
+        ancestor_query,
+        {
+            "from_date": "2023-03-03",
+            "to_date": "2023-03-04",
+        },
+    )
+    assert response.errors is None
+    assert response.data is not None
+    assert response.data["org_units"]["objects"] == [
+        {
+            "validities": [
+                {
+                    "user_key": "skole-børn",
+                    "uuid": skole_born,
+                    "parent": {"uuid": root},
+                }
+            ]
+        },
+        {
+            "validities": [
+                {
+                    "user_key": "it_sup",
+                    "uuid": it_sup,
+                    "parent": {"uuid": skole_born},
+                }
+            ]
+        },
+    ]
+
+    # Querying after the change should give us the new descendants
+    response = graphapi_post(
+        ancestor_query,
+        {
+            "from_date": "2025-05-05",
+            "to_date": "2025-05-06",
+        },
+    )
+    assert response.errors is None
+    assert response.data is not None
+    assert response.data["org_units"]["objects"] == [
+        {
+            "validities": [
+                {
+                    "user_key": "fil",
+                    "uuid": fil,
+                    "parent": {"uuid": it_sup},
+                }
+            ]
+        },
+        {
+            "validities": [
+                {
+                    "user_key": "skole-børn",
+                    "uuid": skole_born,
+                    "parent": {"uuid": root},
+                }
+            ]
+        },
+        {
+            "validities": [
+                {
+                    "user_key": "it_sup",
+                    "uuid": it_sup,
+                    "parent": {"uuid": skole_born},
+                }
+            ]
+        },
+    ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "test_data",
     [
