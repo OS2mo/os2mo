@@ -757,6 +757,47 @@ async def organisation_unit_resolver_query(
             )
         )
 
+    if filter.ancestor is not UNSET:
+        org_unit_filter = filter.ancestor or OrganisationUnitFilter()
+        base_query = await organisation_unit_resolver_query(
+            info=info,
+            filter=org_unit_filter,
+        )
+        base = (
+            select(
+                OrganisationEnhedRegistrering.organisationenhed_id,
+            )
+            .where(OrganisationEnhedRegistrering.organisationenhed_id.in_(base_query))
+            .cte("cte", recursive=True)
+        )
+        children = (
+            select(
+                OrganisationEnhedRegistrering.organisationenhed_id,
+            )
+            .join(
+                OrganisationEnhedRelation,
+            )
+            .where(
+                _registrering(),
+                _virkning(OrganisationEnhedRelation),
+            )
+            .join(
+                base,
+                and_(
+                    OrganisationEnhedRelation.rel_type
+                    == cast("overordnet", OrganisationEnhedRelationKode),
+                    OrganisationEnhedRelation.rel_maal_uuid
+                    == base.c.organisationenhed_id,
+                ),
+            )
+        )
+        descendants = base.union(children)
+        query = query.where(
+            OrganisationEnhedRegistrering.organisationenhed_id.in_(
+                select(descendants.c.organisationenhed_id)
+            )
+        )
+
     # Pagination. Must be done here since the generic_resolver (lora) does not support
     # filtering on UUIDs and limit/cursor at the same time.
     if limit is not None:
