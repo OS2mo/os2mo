@@ -520,13 +520,17 @@ async def manager_resolver(
     if result or not inherit:
         return result
 
-    org_unit = await organisation_unit_resolver(
-        info, OrganisationUnitFilter(uuids=filter.org_units)
+    org_units = await organisation_unit_resolver(
+        info, OrganisationUnitFilter(uuids=kwargs["tilknyttedeenheder"])
     )
-    if not org_unit:
+
+    print(org_units)
+    if not org_units:
         return []
-    org_unit_as_list = list(flatten(org_unit.values()))
-    filter.org_units = [org_unit_as_list[0].parent_uuid]
+    org_unit_as_list = list(flatten(org_units.values()))
+    filter.org_units = [org_unit.parent_uuid for org_unit in org_unit_as_list]
+    print("xxxxxxxxxxxxxxxx")
+    print(filter)
 
     return await manager_resolver(info, filter=filter, inherit=True)
 
