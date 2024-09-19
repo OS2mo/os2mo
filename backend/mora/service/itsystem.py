@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from fastapi import APIRouter
+from more_itertools import first
 from structlog import get_logger
 
 from . import handlers
@@ -48,6 +49,9 @@ class _ITUserGroupValidation(GroupValidation):
                 "employee_uuid": util.get_mapping_uuid(mo_object, mapping.PERSON),
                 "it_system_uuid": util.get_mapping_uuid(mo_object, mapping.ITSYSTEM),
                 "engagement_uuid": util.get_mapping_uuid(mo_object, mapping.ENGAGEMENT),
+                "engagement_uuids": tuple(
+                    util.checked_get(mo_object, mapping.ENGAGEMENTS, [], required=False)
+                ),
                 "it_user_username": mo_object.get(mapping.USER_KEY),
                 "is_primary": await get_mo_object_primary_value(mo_object),
             }
@@ -64,7 +68,13 @@ class _ITUserGroupValidation(GroupValidation):
 class ITUserUniqueGroupValidation(_ITUserGroupValidation):
     def validate(self) -> None:
         self.validate_unique_constraint(
-            ["employee_uuid", "it_system_uuid", "it_user_username", "engagement_uuid"],
+            [
+                "employee_uuid",
+                "it_system_uuid",
+                "it_user_username",
+                "engagement_uuid",
+                "engagement_uuids",
+            ],
             exceptions.ErrorCodes.V_DUPLICATED_IT_USER,
         )
 
@@ -149,7 +159,10 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                     employee_uuid=employee_uuid,
                     it_system_uuid=systemid,
                     it_user_username=bvn,
-                    engagement_uuid=engagement_uuids,
+                    engagement_uuid=first(engagement_uuids)
+                    if engagement_uuids
+                    else None,
+                    engagement_uuids=engagement_uuids,
                 )
             ).validate()
 
@@ -347,7 +360,10 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                     employee_uuid=employee_uuid,
                     it_system_uuid=systemid,
                     it_user_username=bvn,
-                    engagement_uuid=engagement_uuids,
+                    engagement_uuids=engagement_uuids,
+                    engagement_uuid=first(engagement_uuids)
+                    if engagement_uuids
+                    else None,
                 ),
             ).validate()
         payload = common.update_payload(
