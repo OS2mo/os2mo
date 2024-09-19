@@ -561,7 +561,7 @@ async def organisation_unit_resolver_query(
         root_org: UUID = (await info.context["org_loader"].load(0)).uuid
         if filter.parents is None or filter.parent is None:
             return [root_org]
-        if root_org in filter.parents:
+        if filter.parents is not UNSET and root_org in filter.parents:
             if filter.parents != [root_org]:
                 raise ValueError("Cannot filter root org unit with other org units")
             return [root_org]
