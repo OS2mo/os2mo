@@ -2648,8 +2648,7 @@ class ITUser:
             """\
             Engagement scoping of the account.
 
-            A person may have multiple IT accounts with each account being relevant for only a single engagement.
-            This field allows scoping IT accounts such that it is obvious which engagement has given which it-access.
+            A person may have multiple IT accounts with each account being relevant for any number of engagement.
             """
         )
         + list_to_optional_field_warning,

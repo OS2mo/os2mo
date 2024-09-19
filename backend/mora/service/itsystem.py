@@ -246,8 +246,9 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
         if (engagements := data.get(mapping.ENGAGEMENTS)) is not None:
-            # If an empty list is returned it is registered as a relation to a function with no uuid,
             if not engagements:
+                # If an empty list is returned it is registered as a relation to a function with no uuid
+                # This is how we "delete" a list of engagements
                 update_fields.append(
                     (mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": "", "urn": ""})
                 )
