@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
+from collections import defaultdict
 import re
 from collections.abc import Callable
 from datetime import datetime
@@ -11,9 +12,9 @@ from typing import Any
 from typing import cast as tcast
 from uuid import UUID
 
-from more_itertools import flatten
+from more_itertools import bucket, flatten
 from more_itertools import unique_everseen
-from pydantic import ValidationError
+from pydantic import ValidationError, parse_obj_as
 from sqlalchemy import and_
 from sqlalchemy import between
 from sqlalchemy import cast
@@ -856,7 +857,8 @@ async def organisation_unit_resolver(
         uuids,
     )
 
-    return await generic_resolver(
+    # TODO: use dataloader.load(_many) instead of generic_resolver
+    rs = await generic_resolver(
         OrganisationUnitRead,
         info=info,
         filter=BaseFilter(
@@ -865,6 +867,32 @@ async def organisation_unit_resolver(
             to_date=filter.to_date,
         ),
     )
+    # print(rs)
+    return rs
+
+
+async def organisation_unit_loader(keys: list[LoadKey]) -> list[list[OrganisationUnitRead]]:
+    # TODO: don't copy this from load_mo
+
+    async def get( uuids: list[UUID], start: datetime | UnsetType | None, end: datetime | UnsetType | None):
+        # TODO: get from sql
+        parsed_results: list[OrganisationUnitRead] = parse_obj_as(list[OrganisationUnitRead], results)
+        return parsed_results
+
+    # Group keys by start/end intervals to allowing batching request(s) to LoRa
+    interval_buckets = bucket(keys, key=lambda key: (key.start, key.end))
+    gets = [
+        get([key.uuid for key in interval_buckets[interval]], *interval)
+        for interval in interval_buckets
+    ]
+    results_lists = await asyncio.gather(*gets)
+
+    # Map results back to the original request keys to uphold the dataloader interface
+    loaded = defaultdict(list)
+    for results, interval in zip(results_lists, interval_buckets):
+        for result in results:
+            loaded[LoadKey(result.uuid, *interval)].append(result)
+    return [loaded[key] for key in keys]
 
 
 async def organisation_unit_has_children(

@@ -271,6 +271,7 @@ class Connector:
     def validity(self):
         return self.__validity
 
+    # TODO
     def is_range_relevant(self, start, end, effect):
         if self.validity == "present":
             return util.do_ranges_overlap(self.start, self.end, start, end)
@@ -644,6 +645,7 @@ class Scope(BaseScope):
         Returns an iterator of tuples (obj_id, obj) of all matches.
         """
         ret = await self.load(uuid=uuids)
+        # TODO
         return filter_registrations(response=ret, wantregs=False)
 
     async def paged_get(
@@ -768,6 +770,7 @@ class Scope(BaseScope):
                 return None
         return result.get("uuid", uuid)
 
+    # TODO
     async def get_effects(self, obj, relevant, also=None, **params):
         reg = (
             await self.get(obj, **params) if isinstance(obj, (str, uuid.UUID)) else obj

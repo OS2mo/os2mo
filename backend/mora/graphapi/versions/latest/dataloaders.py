@@ -160,6 +160,9 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
     return {
         "org_loader": DataLoader(load_fn=load_org),
         # Organisation Unit
+        # TODO: org_unit_loader in sql
+        # TODO: org_unit_getter is only used by generic_resolver -- can be deleted
+        "org_unit_loader": DataLoader(load_fn=load_mo),
         "org_unit_loader": DataLoader(
             load_fn=partial(load_mo, model=OrganisationUnitRead)
         ),
