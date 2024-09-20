@@ -491,7 +491,7 @@ class OrganisationUnitFilter(BaseFilter):
         default=UNSET,
         description=dedent(
             """\
-            Parent filter limiting which entries are returned.
+            Select organisation units whose parent matches the given filter.
 
             Set to `None` to find root units.
             """
@@ -548,13 +548,18 @@ class OrganisationUnitFilter(BaseFilter):
 
     subtree: OrganisationUnitFilter | None = strawberry.field(
         default=UNSET,
+        deprecation_reason="Renamed to 'descendant'",
+    )
+
+    descendant: OrganisationUnitFilter | None = strawberry.field(
+        default=UNSET,
         description=dedent(
             """\
-            Filter organisation units, returning all matches along with their ancestors.
+            Select organisation units which have a descendant matching the given filter.
 
-            Can be used to find organisation units together with the context of their organisational placement.
+            Note that every node is its own descendant as per [CLRS] 12.2-6.
 
-            For example, given the following tree:
+            Given the following tree:
             ```
             A
             ├── B
@@ -563,7 +568,7 @@ class OrganisationUnitFilter(BaseFilter):
             │   └── E
             └── F
             ```
-            the `subtree` filter behaves according to the following table:
+            the `descendant` filter behaves according to the following table:
 
             | Filter | Returned    |
             |--------|-------------|
@@ -573,7 +578,7 @@ class OrganisationUnitFilter(BaseFilter):
             |      D | A B C D     |
             |      E | A B E       |
             |      F | A F         |
-            """
+            """,
         ),
     )
 
@@ -581,11 +586,11 @@ class OrganisationUnitFilter(BaseFilter):
         default=UNSET,
         description=dedent(
             """\
-            Find organisation units which match the given filter, or which are organisationally placed under those units.
+            Select organisation units which have an ancestor matching the given filter.
 
-            Returns all matches along with their descendants (every node is its own ancestor as per [CLRS] 12.2-6).
+            Note that every node is its own ancestor as per [CLRS] 12.2-6.
 
-            For example, given the following tree:
+            Given the following tree:
             ```
             A
             ├── B

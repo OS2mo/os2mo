@@ -712,12 +712,14 @@ async def organisation_unit_resolver_query(
             )
         )
 
-    # Subtree
-    if filter.subtree is not UNSET:
-        # The subtree filter finds subtrees which has at least one org unit matching
-        # the given filter. In other words, find all the matching children leafs, and
-        # then recursively find their ancestors.
-        org_unit_filter = filter.subtree or OrganisationUnitFilter()
+    # Descendant
+    if filter.descendant is not UNSET or filter.subtree is not UNSET:
+        # Find all matching children and then recursively find their parents.
+        if filter.descendant is not UNSET and filter.subtree is not UNSET:
+            raise ValueError("Cannot use both `descendant` and `subtree` filter")
+        org_unit_filter = (
+            filter.descendant or filter.subtree or OrganisationUnitFilter()
+        )
         base_leafs = await organisation_unit_resolver_query(
             info=info,
             filter=org_unit_filter,
@@ -727,7 +729,7 @@ async def organisation_unit_resolver_query(
                 OrganisationEnhedRegistrering.organisationenhed_id,
             )
             .where(OrganisationEnhedRegistrering.organisationenhed_id.in_(base_leafs))
-            .cte("cte", recursive=True)
+            .cte("descendant_cte", recursive=True)
         )
         parents = (
             select(
@@ -757,7 +759,9 @@ async def organisation_unit_resolver_query(
             )
         )
 
+    # Ancestor
     if filter.ancestor is not UNSET:
+        # Find all matching parents and then recursively find their children.
         org_unit_filter = filter.ancestor or OrganisationUnitFilter()
         base_query = await organisation_unit_resolver_query(
             info=info,
@@ -768,7 +772,7 @@ async def organisation_unit_resolver_query(
                 OrganisationEnhedRegistrering.organisationenhed_id,
             )
             .where(OrganisationEnhedRegistrering.organisationenhed_id.in_(base_query))
-            .cte("cte", recursive=True)
+            .cte("ancestor_cte", recursive=True)
         )
         children = (
             select(
