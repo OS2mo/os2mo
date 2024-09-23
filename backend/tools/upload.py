@@ -12,7 +12,7 @@ import httpx
 @click.option("--force", is_flag=True)
 @click.argument("filename", type=click.Path(exists=True))
 def main(
-    keycloak_base_url,
+    keycloak_base_url: str,
     client_id: str,
     client_secret: str,
     mo_base_url: str,
