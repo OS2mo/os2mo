@@ -17,23 +17,41 @@ def _get_token(keycloak_base_url: str, client_id: str, client_secret: str) -> st
     return r.json()["access_token"]
 
 
-@click.command()
+@click.group()
 @click.option("--keycloak-base-url", default="http://localhost:8090/auth")
 @click.option("--client-id", default="dipex")
 @click.option("--client-secret", required=True)
 @click.option("--mo-base-url", default="http://localhost:5000")
-@click.option("--force", is_flag=True)
-@click.argument("filename", type=click.Path(exists=True))
-def main(
+@click.pass_context
+def cli(
+    ctx,
     keycloak_base_url: str,
     client_id: str,
     client_secret: str,
     mo_base_url: str,
+) -> None:
+    ctx.ensure_object(dict)
+    ctx.obj["keycloak_base_url"] = keycloak_base_url
+    ctx.obj["client_id"] = client_id
+    ctx.obj["client_secret"] = client_secret
+    ctx.obj["mo_base_url"] = mo_base_url
+
+
+@cli.command()
+@click.option("--force", is_flag=True)
+@click.argument("filename", type=click.Path(exists=True))
+@click.pass_context
+def upload(
+    ctx,
     force: bool,
     filename: click.Path,
 ) -> None:
     # Get token from Keycloak
-    token = _get_token(keycloak_base_url, client_id, client_secret)
+    token = _get_token(
+        ctx.obj["keycloak_base_url"],
+        ctx.obj["client_id"],
+        ctx.obj["client_secret"],
+    )
 
     # Upload file to MO
 
@@ -47,10 +65,13 @@ def main(
     with open(str(filename), "rb") as fp:
         files = {"file": fp}
         r = httpx.post(
-            f"{mo_base_url}/graphql/v22", headers=headers, data=data, files=files
+            f"{ctx.obj['mo_base_url']}/graphql/v22",
+            headers=headers,
+            data=data,
+            files=files,
         )
         print(r.status_code, r.text)
 
 
 if __name__ == "__main__":
-    main()
+    cli(obj={})
