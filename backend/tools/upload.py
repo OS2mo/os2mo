@@ -4,6 +4,19 @@ import click
 import httpx
 
 
+def _get_token(keycloak_base_url: str, client_id: str, client_secret: str) -> str:
+    token_url = f"{keycloak_base_url}/realms/mo/protocol/openid-connect/token"
+    payload = {
+        "grant_type": "client_credentials",
+        "client_id": client_id,
+        "client_secret": client_secret,
+    }
+
+    r = httpx.post(token_url, data=payload)
+    print(r.status_code, r.url)
+    return r.json()["access_token"]
+
+
 @click.command()
 @click.option("--keycloak-base-url", default="http://localhost:8090/auth")
 @click.option("--client-id", default="dipex")
@@ -20,17 +33,7 @@ def main(
     filename: click.Path,
 ) -> None:
     # Get token from Keycloak
-
-    token_url = f"{keycloak_base_url}/realms/mo/protocol/openid-connect/token"
-    payload = {
-        "grant_type": "client_credentials",
-        "client_id": client_id,
-        "client_secret": client_secret,
-    }
-
-    r = httpx.post(token_url, data=payload)
-    print(r.status_code, r.url)
-    token = r.json()["access_token"]
+    token = _get_token(keycloak_base_url, client_id, client_secret)
 
     # Upload file to MO
 
