@@ -146,64 +146,6 @@ def load_settings_overrides(
 
 
 @pytest.fixture(scope="module")
-def test_mo_address() -> Address:
-    test_mo_address = Address.from_simplified_fields(
-        "foo@bar.dk", uuid4(), "2021-01-01"
-    )
-    return test_mo_address
-
-
-@pytest.fixture(scope="module")
-def test_mo_objects() -> list:
-    return [
-        {
-            "uuid": uuid4(),
-            "service_type": "employee",
-            "payload": uuid4(),
-            "parent_uuid": uuid4(),
-            "object_type": "person",
-            "validity": {
-                "from": datetime.datetime.today().strftime("%Y-%m-%d"),
-                "to": None,
-            },
-        },
-        {
-            "uuid": uuid4(),
-            "service_type": "employee",
-            "payload": uuid4(),
-            "parent_uuid": uuid4(),
-            "object_type": "person",
-            "validity": {
-                "from": "2021-01-01",
-                "to": datetime.datetime.today().strftime("%Y-%m-%d"),
-            },
-        },
-        {
-            "uuid": uuid4(),
-            "service_type": "employee",
-            "payload": uuid4(),
-            "parent_uuid": uuid4(),
-            "object_type": "person",
-            "validity": {
-                "from": "2021-01-01",
-                "to": "2021-05-01",
-            },
-        },
-        {
-            "uuid": uuid4(),
-            "service_type": "employee",
-            "payload": uuid4(),
-            "parent_uuid": uuid4(),
-            "object_type": "person",
-            "validity": {
-                "from": datetime.datetime.today().strftime("%Y-%m-%d"),
-                "to": datetime.datetime.today().strftime("%Y-%m-%d"),
-            },
-        },
-    ]
-
-
-@pytest.fixture(scope="module")
 def dataloader(
     sync_dataloader: MagicMock, test_mo_address: Address, test_mo_objects: list
 ) -> Iterator[AsyncMock]:
@@ -269,12 +211,6 @@ def dataloader(
         ],
     ):
         yield dataloader
-
-
-@pytest.fixture(scope="module")
-def sync_dataloader() -> MagicMock:
-    dataloader = MagicMock()
-    return dataloader
 
 
 @pytest.fixture(scope="module")
