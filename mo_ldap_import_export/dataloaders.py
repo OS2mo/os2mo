@@ -161,7 +161,7 @@ def extract_current_or_latest_validity(validities: list[T]) -> T | None:
             case (start, end):
                 assert start is not None
                 assert end is not None
-                return start < now_utc and now_utc < end
+                return start < now_utc < end
             case _:  # pragma: no cover
                 raise AssertionError()
 
@@ -681,7 +681,6 @@ class DataLoader:
             value = getattr(object_to_modify, parameter_to_modify)
             value_to_modify: list[str] = [] if value is None else [value]
 
-            operation = None
             if delete:
                 operation = self.delete_ldap
             elif self.single_value[parameter_to_modify] or overwrite:

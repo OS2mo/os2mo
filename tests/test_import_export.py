@@ -53,17 +53,15 @@ def context(
     settings.discriminator_field = None
     ldap_connection = AsyncMock()
     context = Context(
-        {
-            "amqpsystem": AsyncMock(),
-            "user_context": {
-                "dataloader": dataloader,
-                "converter": converter,
-                "export_checks": export_checks,
-                "import_checks": import_checks,
-                "settings": settings,
-                "ldap_connection": ldap_connection,
-            },
-        }
+        amqpsystem=AsyncMock(),
+        user_context={
+            "dataloader": dataloader,
+            "converter": converter,
+            "export_checks": export_checks,
+            "import_checks": import_checks,
+            "settings": settings,
+            "ldap_connection": ldap_connection,
+        },
     )
     return context
 
