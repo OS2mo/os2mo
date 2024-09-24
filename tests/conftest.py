@@ -42,12 +42,6 @@ from mo_ldap_import_export.types import DN
 from tests.graphql_mocker import GraphQLMocker
 
 
-def pytest_configure(config):
-    config.addinivalue_line(
-        "markers", "envvar(mapping): set the specified environmental variables"
-    )
-
-
 def pytest_collection_modifyitems(items: list[Item]) -> None:
     """Automatically use convenient fixtures for tests marked with integration_test."""
 
