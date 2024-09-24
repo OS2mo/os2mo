@@ -3,7 +3,6 @@
 # pylint: disable=redefined-outer-name
 # pylint: disable=unused-argument
 # pylint: disable=protected-access
-import asyncio
 import datetime
 import os
 from collections.abc import Iterator
@@ -62,16 +61,7 @@ from mo_ldap_import_export.utils import get_delete_flag
 from tests.graphql_mocker import GraphQLMocker
 
 
-@pytest.fixture(scope="session")
-def event_loop():
-    """Overrides pytest default function scoped event loop"""
-    policy = asyncio.get_event_loop_policy()
-    loop = policy.new_event_loop()
-    yield loop
-    loop.close()
-
-
-@pytest.fixture(scope="module")
+@pytest.fixture
 def settings_overrides() -> Iterator[dict[str, str]]:
     """Fixture to construct dictionary of minimal overrides for valid settings.
 
@@ -121,7 +111,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
     yield overrides
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def load_settings_overrides(
     settings_overrides: dict[str, str],
 ) -> Iterator[dict[str, str]]:
@@ -145,7 +135,7 @@ def load_settings_overrides(
     yield settings_overrides
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def dataloader(
     sync_dataloader: MagicMock, test_mo_address: Address, test_mo_objects: list
 ) -> Iterator[AsyncMock]:
@@ -213,7 +203,7 @@ def dataloader(
         yield dataloader
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def converter() -> MagicMock:
     converter = MagicMock()
     converter.get_mo_to_ldap_json_keys.return_value = [
@@ -236,7 +226,7 @@ def converter() -> MagicMock:
     return converter
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def sync_tool() -> AsyncMock:
     return AsyncMock()
 
@@ -257,7 +247,7 @@ def context_dependency_injection(
     del app.dependency_overrides[get_context]
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def patch_modules(
     load_settings_overrides: dict[str, str],
     dataloader: AsyncMock,
@@ -285,12 +275,12 @@ def patch_modules(
         yield
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def fastramqpi(patch_modules: None) -> FastRAMQPI:
     return create_fastramqpi()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def app(fastramqpi: FastRAMQPI) -> Iterator[FastAPI]:
     """Fixture to construct a FastAPI application.
 
@@ -301,7 +291,7 @@ def app(fastramqpi: FastRAMQPI) -> Iterator[FastAPI]:
         yield create_app()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def test_client(app: FastAPI) -> Iterator[TestClient]:
     """Fixture to construct a FastAPI test-client.
 
@@ -314,7 +304,7 @@ def test_client(app: FastAPI) -> Iterator[TestClient]:
     yield TestClient(app)
 
 
-@pytest.fixture(autouse=True, scope="module")
+@pytest.fixture(autouse=True)
 def always_create_fastramqpi(patch_modules: None) -> None:
     """Test that we can construct our FastRAMQPI system."""
     fastramqpi = create_fastramqpi()
@@ -327,7 +317,7 @@ def test_create_app() -> None:
     assert isinstance(app, FastAPI)
 
 
-@pytest.fixture(autouse=True, scope="module")
+@pytest.fixture(autouse=True)
 async def always_initialize_sync_tool(
     fastramqpi: FastRAMQPI, sync_tool: AsyncMock
 ) -> None:
@@ -349,7 +339,7 @@ async def always_initialize_sync_tool(
             assert user_context.get("sync_tool") is not None
 
 
-@pytest.fixture(autouse=True, scope="module")
+@pytest.fixture(autouse=True)
 async def always_initialize_converter(
     fastramqpi: FastRAMQPI, converter: MagicMock
 ) -> None:
