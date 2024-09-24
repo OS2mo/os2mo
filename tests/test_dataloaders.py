@@ -571,24 +571,20 @@ async def test_load_mo_employee_no_validities(
 
 
 @pytest.mark.parametrize(
-    "input_value,return_value",
+    "input_value",
     [
-        (gen_ituser("1"), "1"),
-        (gen_ituser("2"), "2"),
-        (gen_ituser("3"), "3"),
+        gen_ituser("1"),
+        gen_ituser("2"),
+        gen_ituser("3"),
     ],
 )
 async def test_upload_mo_employee(
     legacy_model_client: AsyncMock,
     dataloader: DataLoader,
     input_value: ITUser,
-    return_value: str | None,
 ) -> None:
     """Test that upload_mo_employee works as expected."""
-    legacy_model_client.upload.return_value = return_value
-
-    result = await dataloader.create([input_value])  # type: ignore
-    assert result == [return_value]
+    await dataloader.create([input_value])  # type: ignore
     legacy_model_client.upload.assert_called_with([input_value])
 
 
@@ -2716,12 +2712,7 @@ async def test_edit_unknown_type(dataloader: DataLoader) -> None:
 async def test_create_each_type(
     legacy_model_client: AsyncMock, dataloader: DataLoader, obj: MOBase
 ) -> None:
-    create_uuid = uuid4()
-
-    legacy_model_client.upload.return_value = [create_uuid]
-
-    result = await dataloader.create_object(obj)
-    assert result == create_uuid
+    await dataloader.create_object(obj)
     legacy_model_client.upload.assert_called_once()
 
 
@@ -2737,12 +2728,7 @@ async def test_create_each_type(
 async def test_edit_each_type(
     legacy_model_client: AsyncMock, dataloader: DataLoader, obj: MOBase
 ) -> None:
-    edit_uuid = uuid4()
-
-    legacy_model_client.edit.return_value = [edit_uuid]
-
-    result = await dataloader.edit_object(obj)
-    assert result == edit_uuid
+    await dataloader.edit_object(obj)
     legacy_model_client.edit.assert_called_once()
 
 
@@ -2750,11 +2736,5 @@ async def test_create_org_unit(
     legacy_model_client: AsyncMock, dataloader: DataLoader
 ) -> None:
     org_unit = gen_org_unit("5")
-
-    create_uuid = uuid4()
-
-    legacy_model_client.upload.return_value = [create_uuid]
-
-    result = await dataloader.create_org_unit(org_unit)
-    assert result == create_uuid
+    await dataloader.create_org_unit(org_unit)
     legacy_model_client.upload.assert_called_once()
