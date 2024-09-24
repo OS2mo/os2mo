@@ -1382,7 +1382,9 @@ class DataLoader:
         output = [obj for obj in output if obj is not None]
         return cast(list[Engagement], output)
 
-    async def create_or_edit_mo_objects(self, objects: list[tuple[MOBase, Verb]]):
+    async def create_or_edit_mo_objects(
+        self, objects: list[tuple[MOBase, Verb]]
+    ) -> None:
         def fix_verb(obj: MOBase, verb: Verb) -> tuple[MOBase, Verb]:
             if hasattr(obj, "terminate_"):
                 return obj, Verb.TERMINATE
@@ -1399,127 +1401,112 @@ class DataLoader:
         edits = verb_groups[Verb.EDIT]
         terminates = verb_groups[Verb.TERMINATE]
 
-        create_results, edit_results, terminate_results = await asyncio.gather(
+        await asyncio.gather(
             self.create([obj for obj, _ in creates]),
             self.edit([obj for obj, _ in edits]),
             self.terminate([obj for obj, _ in terminates]),
         )
-        return cast(list[Any | None], create_results + edit_results + terminate_results)
 
-    async def create_employee(self, obj: Employee) -> Any:
+    async def create_employee(self, obj: Employee) -> None:
         model_client = self.legacy_model_client
-        result = cast(list[Any], await model_client.upload([obj]))
-        return one(result)
+        await model_client.upload([obj])
 
-    async def create_address(self, obj: Address) -> Any:
+    async def create_address(self, obj: Address) -> None:
         model_client = self.legacy_model_client
-        result = cast(list[Any], await model_client.upload([obj]))
-        return one(result)
+        await model_client.upload([obj])
 
-    async def create_engagement(self, obj: Engagement) -> Any:
+    async def create_engagement(self, obj: Engagement) -> None:
         model_client = self.legacy_model_client
-        result = cast(list[Any], await model_client.upload([obj]))
-        return one(result)
+        await model_client.upload([obj])
 
-    async def create_ituser(self, obj: ITUser) -> Any:
+    async def create_ituser(self, obj: ITUser) -> None:
         model_client = self.legacy_model_client
-        result = cast(list[Any], await model_client.upload([obj]))
-        return one(result)
+        await model_client.upload([obj])
 
-    async def create_org_unit(self, obj: OrganisationUnit) -> Any:
+    async def create_org_unit(self, obj: OrganisationUnit) -> None:
         model_client = self.legacy_model_client
-        result = cast(list[Any], await model_client.upload([obj]))
-        return one(result)
+        await model_client.upload([obj])
 
-    async def create_object(self, obj: MOBase) -> Any:
+    async def create_object(self, obj: MOBase) -> None:
         match obj.type_:  # type: ignore
             case "address":
                 assert isinstance(obj, Address)
-                return await self.create_address(obj)
+                await self.create_address(obj)
             case "employee":
                 assert isinstance(obj, Employee)
-                return await self.create_employee(obj)
+                await self.create_employee(obj)
             case "engagement":
                 assert isinstance(obj, Engagement)
-                return await self.create_engagement(obj)
+                await self.create_engagement(obj)
             case "it":
                 assert isinstance(obj, ITUser)
-                return await self.create_ituser(obj)
+                await self.create_ituser(obj)
             case other:
                 raise NotImplementedError(f"Unable to create type: {other}")
 
-    async def create(self, creates: list[MOBase]) -> list[Any]:
+    async def create(self, creates: list[MOBase]) -> None:
         tasks = [self.create_object(obj) for obj in creates]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         exceptions = cast(list[Exception], list(filter(is_exception, results)))
         if exceptions:
             raise ExceptionGroup("Exceptions during creation", exceptions)
-        return results
 
-    async def edit_employee(self, obj: Employee) -> Any:
+    async def edit_employee(self, obj: Employee) -> None:
         model_client = self.legacy_model_client
-        result = cast(list[Any], await model_client.edit([obj]))
-        return one(result)
+        await model_client.edit([obj])
 
-    async def edit_address(self, obj: Address) -> Any:
+    async def edit_address(self, obj: Address) -> None:
         model_client = self.legacy_model_client
-        result = cast(list[Any], await model_client.edit([obj]))
-        return one(result)
+        await model_client.edit([obj])
 
-    async def edit_engagement(self, obj: Engagement) -> Any:
+    async def edit_engagement(self, obj: Engagement) -> None:
         model_client = self.legacy_model_client
-        result = cast(list[Any], await model_client.edit([obj]))
-        return one(result)
+        await model_client.edit([obj])
 
-    async def edit_ituser(self, obj: ITUser) -> Any:
+    async def edit_ituser(self, obj: ITUser) -> None:
         model_client = self.legacy_model_client
-        result = cast(list[Any], await model_client.edit([obj]))
-        return one(result)
+        await model_client.edit([obj])
 
-    async def edit_object(self, obj: MOBase) -> Any:
+    async def edit_object(self, obj: MOBase) -> None:
         match obj.type_:  # type: ignore
             case "address":
                 assert isinstance(obj, Address)
-                return await self.edit_address(obj)
+                await self.edit_address(obj)
             case "employee":
                 assert isinstance(obj, Employee)
-                return await self.edit_employee(obj)
+                await self.edit_employee(obj)
             case "engagement":
                 assert isinstance(obj, Engagement)
-                return await self.edit_engagement(obj)
+                await self.edit_engagement(obj)
             case "it":
                 assert isinstance(obj, ITUser)
-                return await self.edit_ituser(obj)
+                await self.edit_ituser(obj)
             case other:
                 raise NotImplementedError(f"Unable to edit type: {other}")
 
-    async def edit(self, edits: list[MOBase]) -> list[Any]:
+    async def edit(self, edits: list[MOBase]) -> None:
         tasks = [self.edit_object(obj) for obj in edits]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         exceptions = cast(list[Exception], list(filter(is_exception, results)))
         if exceptions:
             raise ExceptionGroup("Exceptions during modification", exceptions)
-        return results
 
-    async def terminate_address(self, uuid: UUID, at: datetime) -> UUID:
-        result = await self.graphql_client.address_terminate(
+    async def terminate_address(self, uuid: UUID, at: datetime) -> None:
+        await self.graphql_client.address_terminate(
             AddressTerminateInput(uuid=uuid, to=at)
         )
-        return result.uuid
 
-    async def terminate_engagement(self, uuid: UUID, at: datetime) -> UUID:
-        result = await self.graphql_client.engagement_terminate(
+    async def terminate_engagement(self, uuid: UUID, at: datetime) -> None:
+        await self.graphql_client.engagement_terminate(
             EngagementTerminateInput(uuid=uuid, to=at)
         )
-        return result.uuid
 
-    async def terminate_ituser(self, uuid: UUID, at: datetime) -> UUID:
-        result = await self.graphql_client.ituser_terminate(
+    async def terminate_ituser(self, uuid: UUID, at: datetime) -> None:
+        await self.graphql_client.ituser_terminate(
             ITUserTerminateInput(uuid=uuid, to=at)
         )
-        return result.uuid
 
-    async def terminate_object(self, uuid: UUID, at: datetime, motype: str) -> UUID:
+    async def terminate_object(self, uuid: UUID, at: datetime, motype: str) -> None:
         """Terminate a detail.
 
         This method calls the appropriate `terminate_x` method to terminate the object.
@@ -1533,15 +1520,15 @@ class DataLoader:
 
         match motype:
             case "address":
-                return await self.terminate_address(uuid, at)
+                await self.terminate_address(uuid, at)
             case "engagement":
-                return await self.terminate_engagement(uuid, at)
+                await self.terminate_engagement(uuid, at)
             case "it":
-                return await self.terminate_ituser(uuid, at)
+                await self.terminate_ituser(uuid, at)
             case _:
                 raise NotImplementedError(f"Unable to terminate type: {motype}")
 
-    async def terminate(self, terminatees: list[Any]) -> list[UUID]:
+    async def terminate(self, terminatees: list[Any]) -> None:
         """Terminate a list of details.
 
         This method calls `terminate_object` for each objects in parallel.
@@ -1565,7 +1552,6 @@ class DataLoader:
         exceptions = cast(list[Exception], list(filter(is_exception, results)))
         if exceptions:
             raise ExceptionGroup("Exceptions during termination", exceptions)
-        return cast(list[UUID], results)
 
     async def create_mo_class(
         self,
