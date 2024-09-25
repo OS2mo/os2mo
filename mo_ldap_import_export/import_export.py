@@ -874,14 +874,20 @@ class SyncTool:
             "_injector_", None
         )
         if injector_template is not None:
-            mo_injector = {
-                obj: await injector_template.render_async({"obj": obj})
-                for obj in objects_in_mo
-            }
-            ldap_injector = {
-                obj: await injector_template.render_async({"obj": obj})
-                for obj in converted_objects
-            }
+            mo_values_task = asyncio.gather(
+                *[injector_template.render_async({"obj": obj}) for obj in objects_in_mo]
+            )
+            ldap_values_task = asyncio.gather(
+                *[
+                    injector_template.render_async({"obj": obj})
+                    for obj in converted_objects
+                ]
+            )
+            mo_values, ldap_values = await asyncio.gather(
+                mo_values_task, ldap_values_task
+            )
+            mo_injector = dict(zip(objects_in_mo, mo_values, strict=False))
+            ldap_injector = dict(zip(converted_objects, ldap_values, strict=False))
         else:
             # TODO: Refactor so this is handled using default templates instead
             mo_injector = {obj: getattr(obj, value_key) for obj in objects_in_mo}
