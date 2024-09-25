@@ -48,6 +48,7 @@ def pytest_collection_modifyitems(items: list[Item]) -> None:
         if item.get_closest_marker("integration_test"):
             # MUST prepend to replicate auto-use fixtures coming first
             item.fixturenames[:0] = [  # type: ignore[attr-defined]
+                "integration_test_environment_variables",  # Default mapping for integration tests
                 "purge_ldap",  # Ensure LDAP is cleaned between integration tests
             ]
 
@@ -136,6 +137,42 @@ def minimal_valid_environmental_variables(
 @pytest.fixture
 def minimal_valid_settings(minimal_valid_environmental_variables: None) -> Settings:
     return Settings()
+
+
+@pytest.fixture
+def integration_test_environment_variables(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Default mapping for integration tests.
+
+    Automatically used by tests marked 'integration_test' (see pytest_collection_modifyitems).
+    """
+    mapping = {
+        "ldap_to_mo": {
+            "Employee": {
+                "objectClass": "ramodels.mo.employee.Employee",
+                "_import_to_mo_": "false",
+                "uuid": "{{ employee_uuid or NONE }}",
+                "cpr_no": "{{ldap.employeeNumber|strip_non_digits or NONE}}",
+                "user_key": "{{ ldap.title }}",
+                "givenname": "{{ ldap.givenName }}",
+                "surname": "{{ ldap.sn }}",
+            }
+        },
+        "mo_to_ldap": {
+            "Employee": {
+                "objectClass": "inetOrgPerson",
+                "_export_to_ldap_": "true",
+                "employeeNumber": "{{mo_employee.cpr_no}}",
+                "title": "{{ mo_employee.user_key }}",
+                "givenName": "{{ mo_employee.givenname }}",
+                "sn": "{{ mo_employee.surname }}",
+            }
+        },
+        "username_generator": {
+            "objectClass": "UserNameGenerator",
+            "combinations_to_try": ["FFFX", "LLLX"],
+        },
+    }
+    monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
 
 
 @pytest.fixture

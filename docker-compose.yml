@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 services:
+  # NOTE: this service should be kept synchronised with the one in .gitlab-ci.yml!
   ldap:
     container_name: ldap
     image: osixia/openldap:1.5.0
@@ -10,7 +11,6 @@ services:
       LDAP_DOMAIN: "magenta.dk"
       LDAP_ADMIN_PASSWORD: "AdminPassword123"
       LDAP_CONFIG_PASSWORD: "ConfigPassword123"
-
       LDAP_LOG_LEVEL: 512
     volumes:
       - ./dev-environment/ldif/:/container/service/slapd/assets/config/bootstrap/ldif/custom/:ro
@@ -48,8 +48,9 @@ services:
       FASTRAMQPI__MO_URL: "http://mo:5000"
       FASTRAMQPI__CLIENT_ID: "dipex"
       FASTRAMQPI__CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
-      FASTRAMQPI__DAP: "true"
       TZ: "Europe/Copenhagen"
+      # DAP causes 'Address already in use' errors when running tests
+      FASTRAMQPI__DAP: "false"
 
       # Database
       FASTRAMQPI__DATABASE__USER: "fastramqpi"
@@ -69,7 +70,7 @@ services:
       LDAP_DIALECT: "Standard"
       LDAP_AUTH_METHOD: "simple"
 
-      JSON_LOGS: False
+      FASTRAMQPI__JSON_LOGS: False
 
       LISTEN_TO_CHANGES_IN_MO: True
       LISTEN_TO_CHANGES_IN_LDAP: True
