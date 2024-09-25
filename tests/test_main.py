@@ -738,8 +738,13 @@ async def test_import_all_objects_from_LDAP(
     ]
 
 
-@pytest.mark.usefixtures("context_dependency_injection")
-async def test_import_one_object_from_LDAP(test_client: TestClient) -> None:
+async def test_import_one_object_from_LDAP(
+    context_dependency_injection: Context, test_client: TestClient
+) -> None:
+    ldap_amqpsystem = create_autospec(AMQPSystem)
+    context = context_dependency_injection
+    context["user_context"]["ldap_amqpsystem"] = ldap_amqpsystem
+
     uuid = uuid4()
     response = test_client.get(f"/Import/{uuid}")
     assert response.status_code == 202
