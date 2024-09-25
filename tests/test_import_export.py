@@ -724,7 +724,7 @@ async def test_format_converted_engagement_duplicate(
     converted_objects = [engagement]
     with pytest.raises(RequeueMessage) as exc_info:
         await sync_tool.format_converted_objects(converted_objects, json_key)
-    assert "Bad bijection: Multiple MO objects" in str(exc_info.value)
+    assert "Bad injection: Multiple MO objects" in str(exc_info.value)
 
 
 async def test_format_converted_multiple_primary_engagements(

@@ -881,38 +881,38 @@ class SyncTool:
             key: value for key, value in values_in_mo.items() if key in values_converted
         }
 
-        # We need a bijection between MO objects and converted objects.
-        # Without a bijection we cannot maintain temporality of objects in MO.
+        # We need a injection between MO objects and converted objects.
+        # Without a injection we cannot maintain temporality of objects in MO.
 
         # If we have more than one MO object for each converted, the match is ambigious.
-        # Ambigious matches mean no bijection and must be handled by human intervention.
-        ambigious_exception = RequeueMessage("Bad bijection: Multiple MO objects")
+        # Ambigious matches mean no injection and must be handled by human intervention.
+        ambigious_exception = RequeueMessage("Bad injection: Multiple MO objects")
         value_in_mo = {
             key: only(value, too_long=ambigious_exception)
             for key, value in values_in_mo.items()
         }
 
-        # If we have more than one converted per value-key there cannot be a bijection.
+        # If we have more than one converted per value-key there cannot be a injection.
         # This probably means we have a misconfiguration of the integration.
         # Perhaps a bad discriminator between MO objects per converted object.
         bad_discriminator_exception = RequeueMessage(
-            "Bad bijection: Multiple converted"
+            "Bad injection: Multiple converted"
         )
         value_converted = {
             key: one(value, too_long=bad_discriminator_exception)
             for key, value in values_converted.items()
         }
 
-        # At this point we know a bijection exists from converted objects to MO objects
-        bijection = [
+        # At this point we know a injection exists from converted objects to MO objects
+        injection = [
             (value_converted[key], value_in_mo.get(key)) for key in value_converted
         ]
 
-        # Partition the bijection into creates and updates
+        # Partition the injection into creates and updates
         creates, updates = partition(
-            # We have an update if there is no MO object in the bijection
+            # We have an update if there is no MO object in the injection
             star(lambda converted, mo_object: mo_object is not None),
-            bijection,
+            injection,
         )
         updates = cast(Iterator[tuple[MOBase, MOBase]], updates)
 
