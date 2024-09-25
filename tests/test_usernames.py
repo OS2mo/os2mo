@@ -265,7 +265,7 @@ def test_create_username(username_generator: UserNameGenerator):
 
     # Simulate a case which fits none of the models (last name is too short)
     with pytest.raises(RuntimeError):
-        username = username_generator._create_username(["Nick", "Ja"], [])
+        username_generator._create_username(["Nick", "Ja"], [])
 
     # Simulate a case where a forbidden username is generated
     username = username_generator._create_username(

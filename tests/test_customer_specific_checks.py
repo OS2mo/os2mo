@@ -23,7 +23,7 @@ from tests.graphql_mocker import GraphQLMocker
 def context(dataloader: MagicMock) -> Context:
     user_context = {"dataloader": dataloader}
 
-    return Context({"user_context": user_context})
+    return Context(user_context=user_context)
 
 
 @pytest.fixture

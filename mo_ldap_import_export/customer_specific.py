@@ -19,7 +19,7 @@ class CustomerSpecific(MOBase, extra=Extra.allow):  # type: ignore
 
 class JobTitleFromADToMO(CustomerSpecific):
     user: PersonRef = Field(
-        description=("Reference to the employee of the created engagement object.")
+        description="Reference to the employee of the created engagement object."
     )
     job_function: JobFunction = Field(
         description=(

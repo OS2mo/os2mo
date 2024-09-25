@@ -152,7 +152,7 @@ class UserNameGenerator:
         }
         readable_combi = [char2pos[x] for x in combi]
         max_position = max((x for x in readable_combi if x is not None), default=-1)
-        return (readable_combi, max_position)
+        return readable_combi, max_position
 
     def _create_from_combi(self, name_parts: list[str], combi: str) -> str | None:
         """Create a username from a name and a combination.

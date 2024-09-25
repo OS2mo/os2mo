@@ -764,7 +764,7 @@ class SyncTool:
             returns the input list of converted_objects
         """
         mo_class = self.converter.import_mo_object_class(json_key)
-        objects_in_mo: Sequence[MOBase] = []
+        objects_in_mo: Sequence[MOBase]
 
         # Load addresses already in MO
         if issubclass(mo_class, Address):
