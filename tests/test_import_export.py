@@ -627,6 +627,8 @@ async def test_listen_to_changes_in_employees_no_dn(
 async def test_format_converted_engagement_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
+    converter.mapping = {"ldap_to_mo": {"Engagement": {"_injector_": None}}}
+
     converter.get_mo_attributes.return_value = ["user_key", "job_function"]
     converter.find_mo_object_class.return_value = "Engagement"
     converter.import_mo_object_class.return_value = Engagement
@@ -682,6 +684,8 @@ async def test_format_converted_engagement_objects(
 async def test_format_converted_engagement_duplicate(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
+    converter.mapping = {"ldap_to_mo": {"Engagement": {"_injector_": None}}}
+
     converter.get_mo_attributes.return_value = ["user_key", "job_function"]
     converter.find_mo_object_class.return_value = "Engagement"
     converter.import_mo_object_class.return_value = Engagement
@@ -789,6 +793,8 @@ async def test_format_converted_employee_objects(
 async def test_format_converted_employee_address_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
+    converter.mapping = {"ldap_to_mo": {"Address": {"_injector_": None}}}
+
     converter.get_mo_attributes.return_value = ["value", "address_type"]
     converter.find_mo_object_class.return_value = "Address"
     converter.import_mo_object_class.return_value = Address
@@ -827,6 +833,8 @@ async def test_format_converted_employee_address_objects(
 async def test_format_converted_org_unit_address_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
+    converter.mapping = {"ldap_to_mo": {"Address": {"_injector_": None}}}
+
     converter.get_mo_attributes.return_value = ["value", "address_type"]
     converter.find_mo_object_class.return_value = "Address"
     converter.import_mo_object_class.return_value = Address
@@ -865,6 +873,8 @@ async def test_format_converted_org_unit_address_objects(
 async def test_format_converted_org_unit_address_objects_identical_to_mo(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
+    converter.mapping = {"ldap_to_mo": {"Address": {"_injector_": None}}}
+
     converter.get_mo_attributes.return_value = ["value", "address_type"]
     converter.find_mo_object_class.return_value = "Address"
     converter.import_mo_object_class.return_value = Address
@@ -924,6 +934,8 @@ async def test_format_converted_address_objects_without_person_or_org_unit(
 async def test_format_converted_it_user_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
+    converter.mapping = {"ldap_to_mo": {"ITUser": {"_injector_": None}}}
+
     converter.get_mo_attributes.return_value = ["value", "address_type"]
     converter.find_mo_object_class.return_value = "ITUser"
     converter.import_mo_object_class.return_value = ITUser
@@ -965,6 +977,8 @@ async def test_format_converted_it_user_objects(
 async def test_format_converted_primary_engagement_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
+    converter.mapping = {"ldap_to_mo": {"Engagement": {"_injector_": None}}}
+
     employee_uuid = uuid4()
     primary_uuid = uuid4()
     engagement1_in_mo_uuid = uuid4()
@@ -1103,6 +1117,8 @@ async def test_import_single_object_forces_json_key_ordering(
 async def test_import_address_objects(
     context: Context, converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
+    converter.mapping = {"ldap_to_mo": {"Employee": {"_injector_": None}}}
+
     converter.find_mo_object_class.return_value = "ramodels.mo.details.address.Address"
     converter.import_mo_object_class.return_value = Address
     converter.get_mo_attributes.return_value = ["value", "uuid", "validity"]
@@ -1155,6 +1171,8 @@ async def test_import_address_objects(
 async def test_import_it_user_objects(
     context: Context, converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
+    converter.mapping = {"ldap_to_mo": {"Employee": {"_injector_": None}}}
+
     converter.find_mo_object_class.return_value = "ramodels.mo.details.address.ITUser"
     converter.import_mo_object_class.return_value = ITUser
     converter.get_mo_attributes.return_value = ["user_key", "validity"]

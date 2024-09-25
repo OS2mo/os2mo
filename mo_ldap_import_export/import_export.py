@@ -870,11 +870,26 @@ class SyncTool:
         else:  # pragma: no cover
             raise AssertionError(f"Unknown mo_class: {mo_class}")
 
-        # Construct a map from value-key to list of matching objects
-        values_in_mo = bucketdict(objects_in_mo, lambda obj: getattr(obj, value_key))
-        values_converted = bucketdict(
-            converted_objects, lambda obj: getattr(obj, value_key)
+        injector_template = self.converter.mapping["ldap_to_mo"][json_key].get(
+            "_injector_", None
         )
+        if injector_template is not None:
+            mo_injector = {
+                obj: await injector_template.render_async({"obj": obj})
+                for obj in objects_in_mo
+            }
+            ldap_injector = {
+                obj: await injector_template.render_async({"obj": obj})
+                for obj in converted_objects
+            }
+        else:
+            # TODO: Refactor so this is handled using default templates instead
+            mo_injector = {obj: getattr(obj, value_key) for obj in objects_in_mo}
+            ldap_injector = {obj: getattr(obj, value_key) for obj in converted_objects}
+
+        # Construct a map from value-key to list of matching objects
+        values_in_mo = bucketdict(objects_in_mo, mo_injector.get)
+        values_converted = bucketdict(converted_objects, ldap_injector.get)
 
         # Only values in MO targeted by our converted values are relevant
         values_in_mo = {
