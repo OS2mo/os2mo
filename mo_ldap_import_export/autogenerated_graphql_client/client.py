@@ -5,6 +5,8 @@ from uuid import UUID
 from ..types import CPRNumber
 from ._testing__itsystem_create import TestingItsystemCreate
 from ._testing__itsystem_create import TestingItsystemCreateItsystemCreate
+from ._testing_address_create import TestingAddressCreate
+from ._testing_address_create import TestingAddressCreateAddressCreate
 from ._testing_ituser_create import TestingItuserCreate
 from ._testing_ituser_create import TestingItuserCreateItuserCreate
 from ._testing_org_unit_create import TestingOrgUnitCreate
@@ -22,6 +24,7 @@ from .employee_refresh import EmployeeRefresh
 from .employee_refresh import EmployeeRefreshEmployeeRefresh
 from .engagement_terminate import EngagementTerminate
 from .engagement_terminate import EngagementTerminateEngagementTerminate
+from .input_types import AddressCreateInput
 from .input_types import AddressFilter
 from .input_types import AddressTerminateInput
 from .input_types import ClassCreateInput
@@ -202,6 +205,23 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingOrgUnitCreate.parse_obj(data).org_unit_create
+
+    async def _testing_address_create(
+        self, input: AddressCreateInput
+    ) -> TestingAddressCreateAddressCreate:
+        query = gql(
+            """
+            mutation __testing_address_create($input: AddressCreateInput!) {
+              address_create(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingAddressCreate.parse_obj(data).address_create
 
     async def read_facet_uuid(self, user_key: str) -> ReadFacetUuidFacets:
         query = gql(

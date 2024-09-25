@@ -27,6 +27,12 @@ mutation __testing_org_unit_create($input: OrganisationUnitCreateInput!) {
   }
 }
 
+mutation __testing_address_create($input: AddressCreateInput!) {
+  address_create(input: $input) {
+    uuid
+  }
+}
+
 # Normal queries
 
 query read_facet_uuid($user_key: String!) {
