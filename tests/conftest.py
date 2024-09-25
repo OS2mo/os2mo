@@ -16,7 +16,6 @@ from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
-import yaml
 from asgi_lifespan import LifespanManager
 from fastapi import FastAPI
 from fastramqpi.context import Context
@@ -295,20 +294,6 @@ def export_checks() -> AsyncMock:
 @pytest.fixture
 def import_checks() -> AsyncMock:
     return AsyncMock()
-
-
-def read_mapping(filename):
-    """
-    Read a json mapping file
-    """
-    file_path = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)),
-        "mo_ldap_import_export",
-        "mappings",
-        filename,
-    )
-    with open(file_path) as file:
-        return yaml.safe_load(file)
 
 
 @pytest.fixture
