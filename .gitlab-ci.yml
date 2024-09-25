@@ -88,7 +88,6 @@ Integration-test:
         LDAP_DOMAIN: "magenta.dk"
         LDAP_ADMIN_PASSWORD: "AdminPassword123"
         LDAP_CONFIG_PASSWORD: "ConfigPassword123"
-
         LDAP_LOG_LEVEL: 512
   variables:
     LDAP_CONTROLLERS: '[{"host": "ldap"}]'
@@ -109,35 +108,6 @@ Integration-test:
 
     DEFAULT_ORG_UNIT_TYPE: "Afdeling"
     DEFAULT_ORG_UNIT_LEVEL: "N1"
-
-    CONVERSION_MAPPING: >-
-      {
-          "ldap_to_mo": {
-              "Employee": {
-                  "objectClass": "ramodels.mo.employee.Employee",
-                  "_import_to_mo_": "false",
-                  "uuid": "{{ employee_uuid or NONE }}",
-                  "cpr_no": "{{ldap.employeeNumber|strip_non_digits or NONE}}",
-                  "user_key": "{{ ldap.title }}",
-                  "givenname": "{{ ldap.givenName }}",
-                  "surname": "{{ ldap.sn }}"
-              }
-          },
-          "mo_to_ldap": {
-              "Employee": {
-                  "objectClass": "inetOrgPerson",
-                  "_export_to_ldap_": "true",
-                  "employeeNumber": "{{mo_employee.cpr_no}}",
-                  "title": "{{ mo_employee.user_key }}",
-                  "givenName": "{{ mo_employee.givenname }}",
-                  "sn": "{{ mo_employee.surname }}"
-              }
-          },
-          "username_generator": {
-            "objectClass": "UserNameGenerator",
-            "combinations_to_try": ["FFFX", "LLLX"]
-          }
-      }
 
   rules:
     - <<: *if-merge-request

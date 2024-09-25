@@ -29,7 +29,11 @@ async def test_graphql_client(
     graphql_client: GraphQLClient,
 ) -> None:
     itsystems = await graphql_client.read_itsystems()
-    assert itsystems.objects == []
+    assert not any(
+        obj.current.user_key == "test"
+        for obj in itsystems.objects
+        if obj.current is not None
+    )
 
     result = await graphql_client._testing__itsystem_create(
         ITSystemCreateInput(
@@ -39,11 +43,14 @@ async def test_graphql_client(
     assert isinstance(result.uuid, UUID)
 
     itsystems = await graphql_client.read_itsystems()
-    itsystem = one(itsystems.objects)
+    itsystem = one(
+        obj
+        for obj in itsystems.objects
+        if obj.current is not None and obj.current.user_key == "test"
+    )
     current = itsystem.current
     assert current is not None
     assert current.uuid == result.uuid
-    assert current.user_key == "test"
 
 
 @pytest.mark.integration_test

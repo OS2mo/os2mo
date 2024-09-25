@@ -11,7 +11,6 @@ from datetime import datetime
 from functools import partial
 from itertools import count
 from typing import Any
-from typing import Literal
 from uuid import UUID
 from uuid import uuid4
 
@@ -252,18 +251,8 @@ async def get_non_existing_unique_ldap_uuids(
 def construct_router(user_context: UserContext) -> APIRouter:
     router = APIRouter()
 
-    dataloader: DataLoader = user_context["dataloader"]
-    ldap_connection = user_context["ldap_connection"]
     mapping = user_context["mapping"]
-
-    attribute_types = get_attribute_types(ldap_connection)
-    accepted_attributes = tuple(sorted(attribute_types.keys()))
-
-    overview = dataloader.load_ldap_overview()
-    ldap_classes = tuple(sorted(overview.keys()))
-
     default_ldap_class = mapping["mo_to_ldap"]["Employee"]["objectClass"]
-    accepted_json_keys = tuple(sorted(mapping["mo_to_ldap"].keys()))
 
     # Load all users from LDAP, and import them into MO
     @router.get("/Import", status_code=202, tags=["Import"])
@@ -364,7 +353,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
         settings: depends.Settings,
         ldap_connection: depends.Connection,
         converter: depends.LdapConverter,
-        json_key: Literal[accepted_json_keys],  # type: ignore
+        json_key: str,
     ) -> Any:
         result = await load_ldap_objects(settings, ldap_connection, converter, json_key)
         converted_results = []
@@ -384,7 +373,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
     async def load_object_from_LDAP(
         dataloader: depends.DataLoader,
         settings: depends.Settings,
-        json_key: Literal[accepted_json_keys],  # type: ignore
+        json_key: str,
         cpr: CPRNumber = Depends(valid_cpr),
     ) -> Any:
         results = await dataloader.load_ldap_cpr_object(
@@ -397,7 +386,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
     async def convert_object_from_LDAP(
         dataloader: depends.DataLoader,
         converter: depends.LdapConverter,
-        json_key: Literal[accepted_json_keys],  # type: ignore
+        json_key: str,
         response: Response,
         cpr: CPRNumber = Depends(valid_cpr),
     ) -> Any:
@@ -424,7 +413,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
         settings: depends.Settings,
         ldap_connection: depends.Connection,
         converter: depends.LdapConverter,
-        json_key: Literal[accepted_json_keys],  # type: ignore
+        json_key: str,
         entries_to_return: int = Query(ge=1),
     ) -> Any:
         result = await load_ldap_objects(
@@ -531,7 +520,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
     @router.post("/LDAP/{json_key}", tags=["LDAP"])
     async def post_object_to_LDAP(
         dataloader: depends.DataLoader,
-        json_key: Literal[accepted_json_keys],  # type: ignore
+        json_key: str,
         ldap_object: LdapObject,
     ) -> Any:
         await dataloader.modify_ldap_object(ldap_object, json_key)
@@ -540,7 +529,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
     @router.get("/Inspect/overview", status_code=202, tags=["LDAP"])
     async def load_overview_from_LDAP(
         dataloader: depends.DataLoader,
-        ldap_class: Literal[ldap_classes] = default_ldap_class,  # type: ignore
+        ldap_class: str = default_ldap_class,
     ) -> Any:
         ldap_overview = dataloader.load_ldap_overview()
         return ldap_overview[ldap_class]
@@ -558,7 +547,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
         settings: depends.Settings,
         ldap_connection: depends.Connection,
         dataloader: depends.DataLoader,
-        ldap_class: Literal[ldap_classes] = default_ldap_class,  # type: ignore
+        ldap_class: str = default_ldap_class,
     ) -> Any:
         ldap_overview = await load_ldap_populated_overview(
             settings, ldap_connection, dataloader, ldap_classes=[ldap_class]
@@ -569,7 +558,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
     @router.get("/Inspect/attribute/{attribute}", status_code=202, tags=["LDAP"])
     async def load_attribute_details_from_LDAP(
         ldap_connection: depends.Connection,
-        attribute: Literal[accepted_attributes],  # type: ignore
+        attribute: str,
     ) -> Any:
         # TODO: This is already available in the construct_router scope
         #       Should we just access that, or is the core issue that it is cached?
@@ -583,7 +572,7 @@ def construct_router(user_context: UserContext) -> APIRouter:
     async def load_unique_attribute_values_from_LDAP(
         settings: depends.Settings,
         ldap_connection: depends.Connection,
-        attribute: Literal[accepted_attributes],  # type: ignore
+        attribute: str,
         search_base: str | None = None,
     ) -> Any:
         return sorted(
