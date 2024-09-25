@@ -21,8 +21,8 @@ def _get_token(keycloak_base_url: str, client_id: str, client_secret: str) -> st
 
 
 @click.group()
-@click.option("--keycloak-base-url", default="http://localhost:8090/auth")
-@click.option("--client-id", default="dipex")
+@click.option("--keycloak-base-url", default="http://keycloak:8080/auth")
+@click.option("--client-id", default="developer")
 @click.option("--client-secret", required=True)
 @click.option("--mo-base-url", default="http://localhost:5000")
 @click.pass_context
