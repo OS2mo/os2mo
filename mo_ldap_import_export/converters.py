@@ -973,10 +973,10 @@ class LdapConverter:
         -----------
         >>> dn = "CN=Jim,OU=Technicians,OU=Users,OU=demo,OU=OS2MO,DC=ad,DC=addev"
         >>> org_unit_path_string_from_dn(dn,2)
-        >>> "Users/Technicians
+        >>> "Users/Technicians"
         >>>
         >>> org_unit_path_string_from_dn(dn,1)
-        >>> "demo/Users/Technicians
+        >>> "demo/Users/Technicians"
         """
         ou_decomposed = parse_dn(extract_ou_from_dn(dn))[::-1]
         sep = self.org_unit_path_string_separator
