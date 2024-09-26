@@ -30,7 +30,7 @@ services:
       AUTH_REALM: "mo"
     volumes:
       - type: bind
-        source: ./dev-environment/init.config.yaml
+        source: ./init.config.yaml
         target: /config/config.yml
         read_only: true
     restart: on-failure

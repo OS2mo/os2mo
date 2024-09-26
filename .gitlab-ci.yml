@@ -25,6 +25,8 @@ variables:
   POETRY_VERSION: "1.8"
   PRECOMMIT_USE_POETRY: "true"
 
+  OS2MO_INIT_CONFIG: "/builds/$CI_PROJECT_PATH/init.config.yaml"
+
 # Conditions
 #############
 # Global Conditions
@@ -59,7 +61,9 @@ include:
       pytest_addopts: "-m 'not integration_test'"
     rules:
       - <<: *if-merge-request
-  - local: .integration-test-meta.v1.yml
+  - project: rammearkitektur/os2mo
+    file:
+      - gitlab-ci-templates/integration-test-meta.v1.yml
 
 # Workflow
 ###########

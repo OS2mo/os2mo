@@ -1,0 +1,53 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+---
+# Extended from os2mo-init's config.default.yml
+root_organisation:
+  municipality_code: null
+
+facets:
+  org_unit_address_type:
+    PhoneUnit:
+      title: "Telefon"
+      scope: "PHONE"
+    EmailUnit:
+      title: "Email"
+      scope: "EMAIL"
+  employee_address_type:
+    PhoneEmployee:
+      title: "Telefon"
+      scope: "PHONE"
+    AdressePostEmployee:
+      title: "Postadresse"
+      scope: "DAR"
+    EmailEmployee:
+      title: "Email"
+      scope: "EMAIL"
+  leave_type:
+    Orlov:
+      title: "Orlov"
+      scope: "TEXT"
+  visibility:
+    Intern:
+      title: "Må vises internt"
+      scope: "INTERNAL"
+    Public:
+      title: "Må vises eksternt"
+      scope: "PUBLIC"
+    Secret:
+      title: "Hemmelig"
+      scope: "SECRET"
+  primary_type:
+    primary:
+      title: "Primær"
+      scope: "3000"
+    non-primary:
+      title: "Ikke-primær ansættelse"
+      scope: "0"
+    explicitly-primary:
+      title: "Manuelt primær ansættelse"
+      scope: "5000"
+
+it_systems:
+  ADUUID: "Active Directory UUID"
+  ADtitle: "Active Directory Title"
