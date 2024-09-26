@@ -409,6 +409,13 @@ class ITUserFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         ),
     )
 
+    external_ids: list[str] | None = strawberry.field(
+        default=None,
+        description=gen_filter_string(
+            "Only return IT users with this `external_id`", "external_id"
+        ),
+    )
+
 
 @strawberry.input(description="KLE filter.")
 class KLEFilter(BaseFilter, OrganisationUnitFiltered):

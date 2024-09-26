@@ -932,7 +932,7 @@ async def it_user_resolver(
 
     await registration_filter(info, filter)
 
-    kwargs = {}
+    kwargs: dict[str, Any] = {}
     if filter.employee is not None or filter.employees is not None:
         kwargs["tilknyttedebrugere"] = await get_employee_uuids(info, filter)
     if filter.org_units is not None or filter.org_unit is not None:
@@ -943,6 +943,11 @@ async def it_user_resolver(
         kwargs["tilknyttedefunktioner"] = await filter2uuids_func(
             engagement_resolver, info, filter.engagement
         )
+    if filter.external_ids is not None:
+        # Early return on empty external_id list
+        if not filter.external_ids:
+            return dict()
+        kwargs["udvidelse_1"] = to_similar(filter.external_ids)
 
     return await generic_resolver(
         ITUserRead,
