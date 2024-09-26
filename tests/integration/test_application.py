@@ -2,12 +2,16 @@
 # SPDX-License-Identifier: MPL-2.0
 """Integration tests."""
 
+import json
 from collections.abc import Awaitable
 from collections.abc import Callable
+from datetime import datetime
+from datetime import time
 from unittest.mock import ANY
 from unittest.mock import AsyncMock
 from uuid import UUID
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 
 import pytest
 from fastramqpi.context import Context
@@ -379,3 +383,229 @@ async def test_changed_since(test_client: AsyncClient, expected: list[str]) -> N
     )
     assert result.status_code == 200
     assert result.json() == expected
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "CONVERSION_MAPPING": json.dumps(
+            {
+                "ldap_to_mo": {
+                    "Employee": {
+                        "objectClass": "ramodels.mo.employee.Employee",
+                        "_import_to_mo_": "false",
+                        "uuid": "{{ employee_uuid or NONE }}",
+                        "cpr_no": "{{ldap.employeeNumber|strip_non_digits or NONE}}",
+                    },
+                    "PublicEmailAddress": {
+                        "objectClass": "ramodels.mo.details.address.Address",
+                        "_import_to_mo_": "true",
+                        "value": "{{ ldap.mail or NONE }}",
+                        "address_type": "{{ dict(uuid=get_employee_address_type_uuid('EmailEmployee')) }}",
+                        "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+                        "visibility": "{{ dict(uuid=get_visibility_uuid('Public')) }}",
+                        "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+                    },
+                },
+                "mo_to_ldap": {
+                    "Employee": {
+                        "objectClass": "inetOrgPerson",
+                        "_export_to_ldap_": "false",
+                        "employeeNumber": "{{mo_employee.cpr_no}}",
+                    },
+                    "PublicEmailAddress": {
+                        "objectClass": "inetOrgPerson",
+                        "_export_to_ldap_": "false",
+                        "mail": "{{ mo_employee_address.value }}",
+                    },
+                },
+                "username_generator": {
+                    "objectClass": "UserNameGenerator",
+                    "combinations_to_try": ["FFFX", "LLLX"],
+                },
+            }
+        ),
+    }
+)
+async def test_mismatched_json_key_and_address_type(
+    test_client: AsyncClient,
+    graphql_client: GraphQLClient,
+    ldap_person: list[str],
+    mo_person: UUID,
+) -> None:
+    """Test that json_key and address type does not need to match."""
+    person_uuid = mo_person
+    dn = combine_dn_strings(ldap_person)
+
+    # Get UUID of the newly created LDAP user
+    result = await test_client.get(f"/Inspect/dn2uuid/{dn}")
+    assert result.status_code == 200
+    ldap_user_uuid = UUID(result.json())
+
+    # Fetch data in MO
+    phone_employee_address_type_uuid = one(
+        (
+            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
+                "employee_address_type", "EmailEmployee"
+            )
+        ).objects
+    ).uuid
+    public_visibility_uuid = one(
+        (
+            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
+                "visibility", "Public"
+            )
+        ).objects
+    ).uuid
+
+    # Trigger synchronization, we expect the addresses to be updated with new values
+    content = str(ldap_user_uuid)
+    headers = {"Content-Type": "text/plain"}
+    result = await test_client.post("/ldap2mo/uuid", content=content, headers=headers)
+    assert result.status_code == 200
+
+    # Lookup the newly synchronization address
+    address = one(
+        (
+            await graphql_client.read_employee_addresses(
+                employee_uuid=person_uuid,
+                address_type_uuid=phone_employee_address_type_uuid,
+            )
+        ).objects
+    )
+    object_uuid = address.uuid
+    assert address.dict() == {
+        "uuid": object_uuid,
+        "validities": [
+            {
+                "address_type": {
+                    "user_key": "EmailEmployee",
+                    "uuid": phone_employee_address_type_uuid,
+                },
+                "employee_uuid": person_uuid,
+                "engagement_uuid": None,
+                "org_unit_uuid": None,
+                "person": [
+                    {
+                        "cpr_no": "2108613133",
+                    }
+                ],
+                "uuid": object_uuid,
+                "validity": {
+                    "from_": datetime.combine(
+                        datetime.today(), time(tzinfo=ZoneInfo("Europe/Copenhagen"))
+                    ),
+                    "to": None,
+                },
+                "value": "abk@ad.kolding.dk",
+                "value2": None,
+                "visibility_uuid": public_visibility_uuid,
+            }
+        ],
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "CONVERSION_MAPPING": json.dumps(
+            {
+                "ldap_to_mo": {
+                    "Employee": {
+                        "objectClass": "ramodels.mo.employee.Employee",
+                        "_import_to_mo_": "false",
+                        "uuid": "{{ employee_uuid or NONE }}",
+                        "cpr_no": "{{ldap.employeeNumber|strip_non_digits or NONE}}",
+                    },
+                    "EntryUUID": {
+                        "objectClass": "ramodels.mo.details.it_system.ITUser",
+                        "_import_to_mo_": "true",
+                        "user_key": "{{ ldap.entryUUID or NONE }}",
+                        "itsystem": "{{ dict(uuid=get_it_system_uuid('ADUUID')) }}",
+                        "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+                        "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+                    },
+                },
+                "mo_to_ldap": {
+                    "Employee": {
+                        "objectClass": "inetOrgPerson",
+                        "_export_to_ldap_": "false",
+                        "employeeNumber": "{{mo_employee.cpr_no}}",
+                    },
+                    "EntryUUID": {
+                        "objectClass": "inetOrgPerson",
+                        "_export_to_ldap_": "false",
+                        "entryUUID": "{{ mo_employee_it_user.user_key }}",
+                    },
+                },
+                "username_generator": {
+                    "objectClass": "UserNameGenerator",
+                    "combinations_to_try": ["FFFX", "LLLX"],
+                },
+            }
+        ),
+    }
+)
+async def test_mismatched_json_key_and_itsystem(
+    test_client: AsyncClient,
+    graphql_client: GraphQLClient,
+    ldap_person: list[str],
+    mo_person: UUID,
+) -> None:
+    """Test that json_key and itsystem does not need to match."""
+    person_uuid = mo_person
+    dn = combine_dn_strings(ldap_person)
+
+    # Get UUID of the newly created LDAP user
+    result = await test_client.get(f"/Inspect/dn2uuid/{dn}")
+    assert result.status_code == 200
+    ldap_user_uuid = UUID(result.json())
+
+    # Fetch data in MO
+    ldap_uuid_itsystem_uuid = one(
+        (await graphql_client.read_itsystem_uuid("ADUUID")).objects
+    ).uuid
+
+    # Trigger synchronization, we expect the addresses to be updated with new values
+    content = str(ldap_user_uuid)
+    headers = {"Content-Type": "text/plain"}
+    result = await test_client.post("/ldap2mo/uuid", content=content, headers=headers)
+    assert result.status_code == 200
+
+    # Lookup the newly synchronization address
+    ituser_uuids = [
+        x.uuid
+        for x in (
+            await graphql_client.read_ituser_by_employee_and_itsystem_uuid(
+                employee_uuid=person_uuid, itsystem_uuid=ldap_uuid_itsystem_uuid
+            )
+        ).objects
+    ]
+    ituser = one(
+        (
+            await graphql_client.read_itusers(
+                uuids=ituser_uuids,
+            )
+        ).objects
+    )
+
+    assert ituser.dict() == {
+        "validities": [
+            {
+                "employee_uuid": person_uuid,
+                "engagement_uuid": None,
+                "itsystem_uuid": ldap_uuid_itsystem_uuid,
+                "user_key": str(ldap_user_uuid),
+                "validity": {
+                    "from_": datetime.combine(
+                        datetime.today(), time(tzinfo=ZoneInfo("Europe/Copenhagen"))
+                    ),
+                    "to": None,
+                },
+            }
+        ],
+    }

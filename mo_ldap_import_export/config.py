@@ -291,27 +291,6 @@ class ConversionMapping(MappingBaseModel):
 
         return values
 
-    @root_validator(skip_on_failure=True)
-    def validate_address_types(cls, values: dict[str, Any]) -> dict[str, Any]:
-        """Ensure that address_type attributes are formatted properly."""
-        for key, ldap2mo in values["ldap_to_mo"].items():
-            object_class = ldap2mo.objectClass
-            match object_class:
-                case "ramodels.mo.details.address.Address":
-                    if hasattr(ldap2mo, "org_unit"):
-                        address_type_template = f"{{{{ dict(uuid=get_org_unit_address_type_uuid('{key}')) }}}}"
-                    else:
-                        address_type_template = f"{{{{ dict(uuid=get_employee_address_type_uuid('{key}')) }}}}"
-                    if ldap2mo.address_type != address_type_template:
-                        raise ValueError("Address not templating address type UUID")
-                case "ramodels.mo.details.it_system.ITUser":
-                    it_system_template = (
-                        f"{{{{ dict(uuid=get_it_system_uuid('{key}')) }}}}"
-                    )
-                    if ldap2mo.itsystem != it_system_template:
-                        raise ValueError("IT-System not templating it-system UUID")
-        return values
-
 
 class AuthBackendEnum(str, Enum):
     NTLM = "ntlm"
