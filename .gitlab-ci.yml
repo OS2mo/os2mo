@@ -25,6 +25,8 @@ variables:
   POETRY_VERSION: "1.8"
   PRECOMMIT_USE_POETRY: "true"
 
+  OS2MO_INIT_CONFIG: "/builds/$CI_PROJECT_PATH/init.config.yaml"
+
 # Conditions
 #############
 # Global Conditions
