@@ -539,8 +539,8 @@ async def test_it_user_external_id(graphapi_post: GraphAPIPost) -> None:
 
     # Check
     read_query = """
-      query Read($uuid: UUID!) {
-        itusers(filter: { uuids: [$uuid], from_date: null, to_date: null }) {
+      query Read($external_id: String!) {
+        itusers(filter: { external_ids: [$external_id], from_date: null, to_date: null }) {
           objects {
             validities(start: null, end: null) {
               user_key
@@ -554,8 +554,9 @@ async def test_it_user_external_id(graphapi_post: GraphAPIPost) -> None:
         }
       }
     """
-    r = graphapi_post(read_query, variables={"uuid": uuid})
+    r = graphapi_post(read_query, variables={"external_id": "foo"})
     assert r.errors is None
+    assert r.data is not None
     obj = one(r.data["itusers"]["objects"])
     assert obj["validities"] == [
         {
@@ -585,7 +586,7 @@ async def test_it_user_external_id(graphapi_post: GraphAPIPost) -> None:
     assert r.errors is None
 
     # Check
-    r = graphapi_post(read_query, variables={"uuid": uuid})
+    r = graphapi_post(read_query, variables={"external_id": "bar"})
     assert r.errors is None
     assert r.data is not None
     obj = one(r.data["itusers"]["objects"])
