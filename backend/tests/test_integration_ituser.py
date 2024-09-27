@@ -866,6 +866,9 @@ def test_update_ituser_engagements(graphapi_post: GraphAPIPost) -> None:
             engagements {
                 uuid
             }
+            engagement {
+                uuid
+            }
           }
         }
       }
@@ -919,13 +922,14 @@ def test_update_ituser_engagements(graphapi_post: GraphAPIPost) -> None:
     assert result == {
         "uuid": ituser_uuid,
         "engagements": engagements,
+        "engagement": [engagement1],
     }
     # update the ituser again to remove the link to one engagement
     response = graphapi_post(
         UPDATE_ITUSER,
         variables={
             "uuid": ituser_uuid,
-            "engagements": [engagement1_uuid],
+            "engagements": [engagement2_uuid],
         },
     )
     assert response.errors is None
@@ -936,7 +940,8 @@ def test_update_ituser_engagements(graphapi_post: GraphAPIPost) -> None:
 
     assert result == {
         "uuid": ituser_uuid,
-        "engagements": [engagement1],
+        "engagements": [engagement2],
+        "engagement": [engagement2],
     }
     # update the ituser again to remove the link to the final engagement
     response = graphapi_post(
@@ -952,10 +957,7 @@ def test_update_ituser_engagements(graphapi_post: GraphAPIPost) -> None:
     assert response.errors is None
     result = one(response.data["itusers"]["objects"])["current"]
 
-    assert result == {
-        "uuid": ituser_uuid,
-        "engagements": [],
-    }
+    assert result == {"uuid": ituser_uuid, "engagements": [], "engagement": None}
 
 
 @pytest.mark.integration_test
