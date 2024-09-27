@@ -25,8 +25,8 @@ from mora.graphapi.versions.latest.permissions import ALL_PERMISSIONS
 logger = get_logger()
 
 
-NO_AUTH_UUID = UUID(int=0)
-LEGACY_AUTH_UUID = UUID(int=1)
+NO_AUTH_UUID = UUID("00000000-0000-0000-0000-000000000000")
+LEGACY_AUTH_UUID = UUID("00000000-0000-0000-0000-000000000001")
 
 
 async def noauth() -> Token:
