@@ -159,16 +159,9 @@ async def test_endpoint_mo_uuid_to_ldap_dn(
     test_client: AsyncClient,
     graphql_client: GraphQLClient,
     ldap_person: list[str],
+    mo_person: UUID,
 ) -> None:
-    person_result = await graphql_client._testing_user_create(
-        input=EmployeeCreateInput(
-            given_name="Aage",
-            surname="Bach Klarskov",
-            cpr_number="2108613133",
-        )
-    )
-    person_uuid = person_result.uuid
-    result = await test_client.get(f"/Inspect/mo/uuid2dn/{person_uuid}")
+    result = await test_client.get(f"/Inspect/mo/uuid2dn/{mo_person}")
     assert result.status_code == 200
     dn = one(result.json())
     assert dn == combine_dn_strings(ldap_person)
