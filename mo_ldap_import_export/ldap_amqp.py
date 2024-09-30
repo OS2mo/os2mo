@@ -85,7 +85,7 @@ async def handle_uuid(
 
 
 def configure_ldap_amqpsystem(
-    fastramqpi: FastRAMQPI, settings: LDAPAMQPConnectionSettings, priority: int
+    fastramqpi: FastRAMQPI, settings: LDAPAMQPConnectionSettings
 ) -> AMQPSystem:
     logger.info("Initializing LDAP AMQP system")
     ldap_amqpsystem = AMQPSystem(
@@ -98,9 +98,6 @@ def configure_ldap_amqpsystem(
         ],
     )
     fastramqpi.add_context(ldap_amqpsystem=ldap_amqpsystem)
-    # Needs to run after SyncTool
-    # TODO: Implement a dependency graph?
-    fastramqpi.add_lifespan_manager(ldap_amqpsystem, priority)
     ldap_amqpsystem.router.registry.update(ldap_amqp_router.registry)
     ldap_amqpsystem.context = fastramqpi._context
     return ldap_amqpsystem

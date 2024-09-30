@@ -406,56 +406,6 @@ async def find_ldap_it_system(
     return found_itsystem
 
 
-async def get_accepted_json_keys(graphql_client: GraphQLClient) -> set[str]:
-    address_results = await graphql_client.read_class_user_keys(
-        ["employee_address_type", "org_unit_address_type"]
-    )
-    mo_address_type_user_keys = {
-        result.current.user_key for result in address_results.objects if result.current
-    }
-
-    mo_it_system_user_keys = await get_itsystem_user_keys(graphql_client)
-
-    return (
-        {"Employee", "Engagement", "Custom"}
-        | mo_address_type_user_keys
-        | mo_it_system_user_keys
-    )
-
-
-async def check_key_validity(
-    graphql_client: GraphQLClient, mapping: dict[str, Any]
-) -> None:
-    """Check if the configured keys are valid.
-
-    Args:
-        graphql_client: GraphQLClient to fetch classes and itsystems.
-        mapping: The raw mapping configuration.
-
-    Raises:
-        IncorrectMapping: Raised if any used key is invalid.
-    """
-    mo_to_ldap_json_keys = set(mapping["mo_to_ldap"].keys())
-    ldap_to_mo_json_keys = set(mapping["ldap_to_mo"].keys())
-
-    json_keys = mo_to_ldap_json_keys | ldap_to_mo_json_keys
-    accepted_json_keys = await get_accepted_json_keys(graphql_client)
-
-    logger.info(
-        "Checking key validity",
-        accepted_keys=accepted_json_keys,
-        detected_keys=json_keys,
-    )
-
-    unaccepted_keys = json_keys - accepted_json_keys
-    if unaccepted_keys:
-        raise IncorrectMapping(
-            f"{unaccepted_keys} are not valid keys. "
-            f"Accepted keys are {accepted_json_keys}"
-        )
-    logger.info("Keys OK")
-
-
 async def get_org_unit_uuid_from_path(
     graphql_client: GraphQLClient,
     org_unit_path: list[str],
@@ -870,9 +820,6 @@ class LdapConverter:
         logger.info("Checking json file")
 
         overview = self.dataloader.load_ldap_overview()
-
-        # Check to make sure that all keys are valid
-        await check_key_validity(self.dataloader.graphql_client, mapping)
 
         # check that the LDAP attributes match what is available in LDAP
         await self.check_ldap_attributes(overview, self.dataloader.graphql_client)

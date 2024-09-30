@@ -44,10 +44,8 @@ from mo_ldap_import_export.config import MO2LDAPMapping
 from mo_ldap_import_export.config import check_attributes
 from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.converters import _create_facet_class
-from mo_ldap_import_export.converters import check_key_validity
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
-from mo_ldap_import_export.converters import get_accepted_json_keys
 from mo_ldap_import_export.converters import get_current_engagement_attribute_uuid_dict
 from mo_ldap_import_export.converters import get_current_engagement_type_uuid_dict
 from mo_ldap_import_export.converters import get_current_org_unit_uuid_dict
@@ -641,17 +639,6 @@ def test_converter_check_attributes_dialect_specific(converter: LdapConverter) -
     converter.check_attributes(detected_attributes, accepted_attributes)
 
 
-async def test_get_accepted_json_keys(converter: LdapConverter) -> None:
-    output = await get_accepted_json_keys(converter.dataloader.graphql_client)
-    assert len(output) == 6
-    assert "Employee" in output
-    assert "Engagement" in output
-    assert "Custom" in output
-    assert "Email" in output
-    assert "Post" in output
-    assert "Active Directory" in output
-
-
 def test_minimum() -> None:
     assert minimum(1, None) == 1
     assert minimum(None, 1) == 1
@@ -740,27 +727,6 @@ async def test_cross_check_keys(
     converter.raw_mapping.update(overlay)
     with pytest.raises(ValidationError, match=expected):
         parse_obj_as(ConversionMapping, converter.raw_mapping)
-
-
-async def test_check_key_validity(converter: LdapConverter) -> None:
-    mapping: dict[str, Any] = {
-        "mo_to_ldap": {"foo": {}, "bar": {}},
-        "ldap_to_mo": {"foo": {}, "bar": {}},
-    }
-
-    with (
-        patch(
-            "mo_ldap_import_export.converters.get_accepted_json_keys",
-            return_value={
-                "foo",
-            },
-        ),
-        pytest.raises(
-            IncorrectMapping,
-            match="{'bar'} are not valid keys. Accepted keys are {'foo'}",
-        ),
-    ):
-        await check_key_validity(converter.dataloader.graphql_client, mapping)
 
 
 async def test_check_for_objectClass(converter: LdapConverter):
