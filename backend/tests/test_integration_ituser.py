@@ -996,17 +996,18 @@ def test_create_multiple_itusers_linked_to_engagement(
     }
     """
 
-    # Get one engagement
-    response = graphapi_post(GET_ENGAGEMENT, variables={"limit": 1})
+    # Get two engagements
+    response = graphapi_post(GET_ENGAGEMENT, variables={"limit": 2})
     assert response.errors is None
-    engagement = response.data["engagements"]["objects"][0]["current"]
-    engagement_uuid = engagement["uuid"]
-
+    engagement1 = response.data["engagements"]["objects"][0]["current"]
+    engagement1_uuid = engagement1["uuid"]
+    engagement2 = response.data["engagements"]["objects"][1]["current"]
+    engagement2_uuid = engagement2["uuid"]
     # Create two itusers with same engagements attached
     response = graphapi_post(
         CREATE_ITUSER,
         variables={
-            "engagements": [engagement_uuid],
+            "engagements": [engagement1_uuid, engagement2_uuid],
         },
     )
     assert response.errors is None
@@ -1015,7 +1016,7 @@ def test_create_multiple_itusers_linked_to_engagement(
     response = graphapi_post(
         CREATE_ITUSER,
         variables={
-            "engagements": [engagement_uuid],
+            "engagements": [engagement2_uuid, engagement1_uuid],
         },
     )
     assert response.errors is None
@@ -1025,12 +1026,22 @@ def test_create_multiple_itusers_linked_to_engagement(
     itusers.sort(key=lambda e: e["uuid"])
 
     # Verify that both engagements are connected when querying through IT user
-    response = graphapi_post(GET_ENGAGEMENT, variables={"uuid": [engagement_uuid]})
+    response = graphapi_post(GET_ENGAGEMENT, variables={"uuid": [engagement1_uuid]})
     assert response.errors is None
     result = one(response.data["engagements"]["objects"])["current"]
     result["itusers"].sort(key=lambda e: e["uuid"])
 
     assert result == {
-        "uuid": engagement_uuid,
+        "uuid": engagement1_uuid,
+        "itusers": itusers,
+    }
+    # Same for engagement_2
+    response = graphapi_post(GET_ENGAGEMENT, variables={"uuid": [engagement2_uuid]})
+    assert response.errors is None
+    result = one(response.data["engagements"]["objects"])["current"]
+    result["itusers"].sort(key=lambda e: e["uuid"])
+
+    assert result == {
+        "uuid": engagement2_uuid,
         "itusers": itusers,
     }
