@@ -5,8 +5,8 @@ import re
 import string
 from collections import ChainMap
 from collections.abc import MutableMapping
-from datetime import UTC
 from datetime import datetime
+from datetime import time
 from json.decoder import JSONDecodeError
 from typing import Any
 from typing import cast
@@ -639,7 +639,14 @@ class LdapConverter:
             # TODO: Once validity has been removed from the config
             #       Replace this 'if' with an assert instead
             if "validity" in missing_attributes:
-                mo_dict["validity"] = {"from": datetime.now(UTC), "to": None}
+                mo_dict["validity"] = {
+                    # TODO: We probably want to use datetime.now(UTC) here, and then
+                    #       pass that value all the way through the program till the
+                    #       GraphQL code that uploads it to MO, such that it is easier
+                    #       to clean up later when MO supports proper datetimes.
+                    "from": datetime.combine(datetime.today(), time()),
+                    "to": None,
+                }
 
             # If any required attributes are missing
             missing_attributes = required_attributes - set(mo_dict.keys())

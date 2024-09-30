@@ -227,6 +227,9 @@ class LDAP2MOMapping(MappingBaseModel):
             # it to {{ NONE }} in the json dict
             required_attributes.add("primary")
 
+        # Validity is no longer required, as we default to last midnight
+        required_attributes.discard("validity")
+
         missing_attributes = required_attributes - detected_attributes
         if missing_attributes:
             raise ValueError(
