@@ -498,6 +498,47 @@ async def load_mo_root_org_uuid(graphql_client: GraphQLClient) -> UUID:
     return result.uuid
 
 
+def org_unit_path_string_from_dn(
+    org_unit_path_string_separator: str, dn: DN, number_of_ous_to_ignore: int = 0
+) -> str:
+    """
+    Constructs an org-unit path string from a DN.
+
+    If number_of_ous_to_ignore is specified, ignores this many OUs in the path
+
+    Examples
+    -----------
+    >>> dn = "CN=Jim,OU=Technicians,OU=Users,OU=demo,OU=OS2MO,DC=ad,DC=addev"
+    >>> org_unit_path_string_from_dn(dn,2)
+    >>> "Users/Technicians"
+    >>>
+    >>> org_unit_path_string_from_dn(dn,1)
+    >>> "demo/Users/Technicians"
+    """
+    sep = org_unit_path_string_separator
+
+    ou_decomposed = parse_dn(extract_ou_from_dn(dn))[::-1]
+    org_unit_list = [ou[1] for ou in ou_decomposed]
+
+    if number_of_ous_to_ignore >= len(org_unit_list):
+        logger.info(
+            "DN cannot be mapped to org-unit-path",
+            dn=dn,
+            org_unit_list=org_unit_list,
+            number_of_ous_to_ignore=number_of_ous_to_ignore,
+        )
+        return ""
+    org_unit_path_string = sep.join(org_unit_list[number_of_ous_to_ignore:])
+
+    logger.info(
+        "Constructed org unit path string from dn",
+        dn=dn,
+        org_unit_path_string=org_unit_path_string,
+        number_of_ous_to_ignore=number_of_ous_to_ignore,
+    )
+    return org_unit_path_string
+
+
 class LdapConverter:
     def __init__(
         self, settings: Settings, raw_mapping: dict[str, Any], dataloader: DataLoader
@@ -907,43 +948,6 @@ class LdapConverter:
         """
         return [x.strip() for x in org_unit_path]
 
-    def org_unit_path_string_from_dn(self, dn, number_of_ous_to_ignore=0) -> str:
-        """
-        Constructs an org-unit path string from a DN.
-
-        If number_of_ous_to_ignore is specified, ignores this many OUs in the path
-
-        Examples
-        -----------
-        >>> dn = "CN=Jim,OU=Technicians,OU=Users,OU=demo,OU=OS2MO,DC=ad,DC=addev"
-        >>> org_unit_path_string_from_dn(dn,2)
-        >>> "Users/Technicians"
-        >>>
-        >>> org_unit_path_string_from_dn(dn,1)
-        >>> "demo/Users/Technicians"
-        """
-        ou_decomposed = parse_dn(extract_ou_from_dn(dn))[::-1]
-        sep = self.settings.org_unit_path_string_separator
-        org_unit_list = [ou[1] for ou in ou_decomposed]
-
-        if number_of_ous_to_ignore >= len(org_unit_list):
-            logger.info(
-                "DN cannot be mapped to org-unit-path",
-                dn=dn,
-                org_unit_list=org_unit_list,
-                number_of_ous_to_ignore=number_of_ous_to_ignore,
-            )
-            return ""
-        org_unit_path_string = sep.join(org_unit_list[number_of_ous_to_ignore:])
-
-        logger.info(
-            "Constructed org unit path string from dn",
-            dn=dn,
-            org_unit_path_string=org_unit_path_string,
-            number_of_ous_to_ignore=number_of_ous_to_ignore,
-        )
-        return org_unit_path_string
-
     async def get_or_create_org_unit_uuid(self, org_unit_path_string: str):
         logger.info(
             "Finding org-unit uuid",
@@ -990,7 +994,10 @@ class LdapConverter:
                 get_it_system_uuid, self.dataloader.graphql_client
             ),
             "get_or_create_org_unit_uuid": self.get_or_create_org_unit_uuid,
-            "org_unit_path_string_from_dn": self.org_unit_path_string_from_dn,
+            "org_unit_path_string_from_dn": partial(
+                org_unit_path_string_from_dn,
+                self.settings.org_unit_path_string_separator,
+            ),
             "get_job_function_uuid": partial(
                 get_job_function_uuid, self.dataloader.graphql_client
             ),

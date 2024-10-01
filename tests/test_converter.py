@@ -66,6 +66,7 @@ from mo_ldap_import_export.converters import make_dn_from_org_unit_path
 from mo_ldap_import_export.converters import minimum
 from mo_ldap_import_export.converters import nonejoin
 from mo_ldap_import_export.converters import nonejoin_orgs
+from mo_ldap_import_export.converters import org_unit_path_string_from_dn
 from mo_ldap_import_export.converters import remove_first_org
 from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import LdapObject
@@ -1775,19 +1776,19 @@ async def test_get_org_unit_uuid_from_path_no_match(
     assert filter == {"names": ["org4"], "parent": {"names": ["org1"], "parent": None}}
 
 
-def test_org_unit_path_string_from_dn(converter: LdapConverter):
+def test_org_unit_path_string_from_dn() -> None:
     dn = "CN=Angus,OU=Auchtertool,OU=Kingdom of Fife,OU=Scotland,DC=gh"
 
-    org_unit_path = converter.org_unit_path_string_from_dn(dn)
+    org_unit_path = org_unit_path_string_from_dn("\\", dn)
     assert org_unit_path == "Scotland\\Kingdom of Fife\\Auchtertool"
 
-    org_unit_path = converter.org_unit_path_string_from_dn(dn, 1)
+    org_unit_path = org_unit_path_string_from_dn("\\", dn, 1)
     assert org_unit_path == "Kingdom of Fife\\Auchtertool"
 
-    org_unit_path = converter.org_unit_path_string_from_dn(dn, 2)
+    org_unit_path = org_unit_path_string_from_dn("\\", dn, 2)
     assert org_unit_path == "Auchtertool"
 
-    org_unit_path = converter.org_unit_path_string_from_dn(dn, 3)
+    org_unit_path = org_unit_path_string_from_dn("\\", dn, 3)
     assert org_unit_path == ""
 
 
