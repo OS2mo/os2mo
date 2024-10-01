@@ -270,8 +270,12 @@ async def _generate_events(
 def datetime_to_ldap_timestamp(dt: datetime) -> str:
     assert dt.tzinfo is not None
     # The LDAP Generalized Time ABNF requires century+year to be 4 digits.
-    # However strftime %Y only returns a single digit (1) for year 1.
-    return dt.strftime("%Y").rjust(4, "0") + dt.strftime("%m%d%H%M%S.%f%z")
+    # However, strftime %Y only returns a single digit (1) for year 1.
+    # https://ldapwiki.com/wiki/Wiki.jsp?page=GeneralizedTime
+    # NOTE: modifyTimestamp in LDAP only has second-level precision, so we
+    # CANNOT include sub-second level precision in this timestamp, or we may
+    # miss objects modified in the same second as the search.
+    return dt.strftime("%Y").rjust(4, "0") + dt.strftime("%m%d%H%M%S%z")
 
 
 ldap_event_router = APIRouter(prefix="/ldap_event_generator")
