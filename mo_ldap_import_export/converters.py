@@ -76,11 +76,11 @@ def nonejoin_orgs(org_unit_path_string_separator: str, *args) -> str:
     return sep.join(items_to_join)
 
 
-def remove_first_org(settings: Settings, orgstr: str) -> str:
+def remove_first_org(org_unit_path_string_separator: str, orgstr: str) -> str:
     """
     Remove first org from orgstr
     """
-    sep = settings.org_unit_path_string_separator
+    sep = org_unit_path_string_separator
 
     _, *rest = orgstr.split(sep)
     return nonejoin_orgs(sep, *rest)
@@ -978,7 +978,9 @@ class LdapConverter:
             "nonejoin_orgs": partial(
                 nonejoin_orgs, self.settings.org_unit_path_string_separator
             ),
-            "remove_first_org": partial(remove_first_org, self.settings),
+            "remove_first_org": partial(
+                remove_first_org, self.settings.org_unit_path_string_separator
+            ),
             "get_employee_address_type_uuid": partial(
                 get_employee_address_type_uuid, self.dataloader.graphql_client
             ),

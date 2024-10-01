@@ -1807,10 +1807,7 @@ def test_make_dn_from_org_unit_path() -> None:
     ],
 )
 async def test_remove_first_org(orgstr: str, result: str) -> None:
-    settings = MagicMock()
-    settings.org_unit_path_string_separator = "\\"
-
-    assert remove_first_org(settings, orgstr) == result
+    assert remove_first_org("\\", orgstr) == result
 
 
 async def test_get_primary_engagement_dict(dataloader: AsyncMock) -> None:
