@@ -73,7 +73,7 @@ from mo_ldap_import_export.converters import org_unit_path_string_from_dn
 from mo_ldap_import_export.converters import remove_first_org
 from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import LdapObject
-from mo_ldap_import_export.environments import environment
+from mo_ldap_import_export.environments import construct_environment
 from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
@@ -479,6 +479,7 @@ async def test_find_cpr_field(converter: LdapConverter) -> None:
         await find_cpr_field(incorrect_mapping)
 
     # TODO: This configuration should probably be illegal, but it is allowed for now
+    environment = construct_environment(MagicMock(), MagicMock())
     converter._populate_mapping_with_templates({"mo_to_ldap": 1}, environment)
 
 
@@ -1580,6 +1581,7 @@ async def test_find_ldap_it_system(graphql_mock: GraphQLMocker) -> None:
     settings.ldap_unique_id_field = "objectGUID"
 
     template_str = "{{ ldap.objectGUID }}"
+    environment = construct_environment(MagicMock(), MagicMock())
     template = environment.from_string(template_str)
 
     route = graphql_mock.query("read_itsystems")

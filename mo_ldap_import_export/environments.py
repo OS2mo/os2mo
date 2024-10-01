@@ -3,7 +3,10 @@
 import string
 
 from jinja2 import Environment  # noqa: E402
-from jinja2 import Undefined  # noqa: E402
+from jinja2 import Undefined
+
+from .config import Settings
+from .dataloaders import DataLoader
 
 
 def filter_mo_datestring(datetime_object):
@@ -75,10 +78,18 @@ def bitwise_and(input: int, bitmask: int) -> int:
     return input & bitmask
 
 
-environment = Environment(undefined=Undefined, enable_async=True)
-environment.filters["bitwise_and"] = bitwise_and
-environment.filters["splitfirst"] = filter_splitfirst
-environment.filters["splitlast"] = filter_splitlast
-environment.filters["mo_datestring"] = filter_mo_datestring
-environment.filters["strip_non_digits"] = filter_strip_non_digits
-environment.filters["remove_curly_brackets"] = filter_remove_curly_brackets
+def construct_environment(settings: Settings, dataloader: DataLoader) -> Environment:
+    environment = Environment(undefined=Undefined, enable_async=True)
+
+    environment.filters["bitwise_and"] = bitwise_and
+    environment.filters["splitfirst"] = filter_splitfirst
+    environment.filters["splitlast"] = filter_splitlast
+    environment.filters["mo_datestring"] = filter_mo_datestring
+    environment.filters["strip_non_digits"] = filter_strip_non_digits
+    environment.filters["remove_curly_brackets"] = filter_remove_curly_brackets
+
+    from .converters import construct_globals_dict
+
+    environment.globals.update(construct_globals_dict(settings, dataloader))
+
+    return environment
