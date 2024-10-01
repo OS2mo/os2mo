@@ -652,10 +652,7 @@ def test_nonejoin() -> None:
 
 
 def test_nonejoin_orgs() -> None:
-    settings = MagicMock()
-    settings.org_unit_path_string_separator = "|"
-
-    output = nonejoin_orgs(settings, "", "org1 ", " org2", None, "")
+    output = nonejoin_orgs("|", "", "org1 ", " org2", None, "")
     assert output == "org1|org2"
 
 

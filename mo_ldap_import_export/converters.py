@@ -66,11 +66,11 @@ def nonejoin(*args) -> str:
     return ", ".join(items_to_join)
 
 
-def nonejoin_orgs(settings: Settings, *args) -> str:
+def nonejoin_orgs(org_unit_path_string_separator: str, *args) -> str:
     """
     Joins orgs together if they are not empty strings
     """
-    sep = settings.org_unit_path_string_separator
+    sep = org_unit_path_string_separator
 
     items_to_join = [a.strip() for a in args if a]
     return sep.join(items_to_join)
@@ -83,7 +83,7 @@ def remove_first_org(settings: Settings, orgstr: str) -> str:
     sep = settings.org_unit_path_string_separator
 
     _, *rest = orgstr.split(sep)
-    return nonejoin_orgs(settings, *rest)
+    return nonejoin_orgs(sep, *rest)
 
 
 async def _get_facet_class_uuid(
@@ -975,7 +975,9 @@ class LdapConverter:
             "now": datetime.utcnow,  # TODO: timezone-aware datetime
             "min": minimum,
             "nonejoin": nonejoin,
-            "nonejoin_orgs": partial(nonejoin_orgs, self.settings),
+            "nonejoin_orgs": partial(
+                nonejoin_orgs, self.settings.org_unit_path_string_separator
+            ),
             "remove_first_org": partial(remove_first_org, self.settings),
             "get_employee_address_type_uuid": partial(
                 get_employee_address_type_uuid, self.dataloader.graphql_client
