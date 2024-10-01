@@ -90,6 +90,14 @@ def minimum(a, b):
     return min(a, b)
 
 
+def nonejoin(*args) -> str:
+    """
+    Joins items together if they are not None or empty lists
+    """
+    items_to_join = [a for a in args if a]
+    return ", ".join(items_to_join)
+
+
 def construct_globals_dict(
     settings: Settings, dataloader: DataLoader
 ) -> dict[str, Any]:
@@ -114,7 +122,6 @@ def construct_globals_dict(
     from .converters import get_primary_type_uuid
     from .converters import get_visibility_uuid
     from .converters import make_dn_from_org_unit_path
-    from .converters import nonejoin
     from .converters import nonejoin_orgs
     from .converters import org_unit_path_string_from_dn
     from .converters import remove_first_org

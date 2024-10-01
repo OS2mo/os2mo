@@ -50,14 +50,6 @@ from .utils import is_list
 logger = structlog.stdlib.get_logger()
 
 
-def nonejoin(*args) -> str:
-    """
-    Joins items together if they are not None or empty lists
-    """
-    items_to_join = [a for a in args if a]
-    return ", ".join(items_to_join)
-
-
 def nonejoin_orgs(org_unit_path_string_separator: str, *args) -> str:
     """
     Joins orgs together if they are not empty strings
