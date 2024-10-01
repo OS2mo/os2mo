@@ -111,9 +111,13 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
         employee = util.checked_get(req, mapping.PERSON, {}, required=False)
         employee_uuid = util.get_uuid(employee, required=False)
-
+        engagement = util.checked_get(req, mapping.ENGAGEMENT, {}, required=False)
         engagements = util.checked_get(req, mapping.ENGAGEMENTS, [], required=False)
-
+        assert not (engagement and engagements)
+        # "engagement" is deprecated - use the list "engagements"
+        # Ensure backwards compatibility
+        if engagement and not engagements:
+            engagements = [engagement]
         engagement_uuids = tuple(eng["uuid"] for eng in engagements)
 
         associated_functions = [
@@ -258,7 +262,11 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                     },
                 )
             )
-        if (engagements := data.get(mapping.ENGAGEMENTS)) is not None:
+        if (engagements := data.get(mapping.ENGAGEMENTS)) is not None or data.get(
+            mapping.ENGAGEMENT
+        ):
+            if engagements is None:
+                engagements = [data.get(mapping.ENGAGEMENT)]
             if not engagements:
                 # If an empty list is returned it is registered as a relation to a function with no uuid
                 # This is how we "delete" a list of engagements
