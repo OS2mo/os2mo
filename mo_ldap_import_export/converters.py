@@ -50,16 +50,6 @@ from .utils import is_list
 logger = structlog.stdlib.get_logger()
 
 
-def nonejoin_orgs(org_unit_path_string_separator: str, *args) -> str:
-    """
-    Joins orgs together if they are not empty strings
-    """
-    sep = org_unit_path_string_separator
-
-    items_to_join = [a.strip() for a in args if a]
-    return sep.join(items_to_join)
-
-
 def remove_first_org(org_unit_path_string_separator: str, orgstr: str) -> str:
     """
     Remove first org from orgstr
@@ -67,6 +57,8 @@ def remove_first_org(org_unit_path_string_separator: str, orgstr: str) -> str:
     sep = org_unit_path_string_separator
 
     _, *rest = orgstr.split(sep)
+    from .environments import nonejoin_orgs
+
     return nonejoin_orgs(sep, *rest)
 
 
