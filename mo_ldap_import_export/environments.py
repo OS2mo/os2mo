@@ -82,6 +82,14 @@ def bitwise_and(input: int, bitmask: int) -> int:
     return input & bitmask
 
 
+def minimum(a, b):
+    if a is None:
+        return b
+    if b is None:
+        return a
+    return min(a, b)
+
+
 def construct_globals_dict(
     settings: Settings, dataloader: DataLoader
 ) -> dict[str, Any]:
@@ -106,7 +114,6 @@ def construct_globals_dict(
     from .converters import get_primary_type_uuid
     from .converters import get_visibility_uuid
     from .converters import make_dn_from_org_unit_path
-    from .converters import minimum
     from .converters import nonejoin
     from .converters import nonejoin_orgs
     from .converters import org_unit_path_string_from_dn

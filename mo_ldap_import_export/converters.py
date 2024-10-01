@@ -50,14 +50,6 @@ from .utils import is_list
 logger = structlog.stdlib.get_logger()
 
 
-def minimum(a, b):
-    if a is None:
-        return b
-    if b is None:
-        return a
-    return min(a, b)
-
-
 def nonejoin(*args) -> str:
     """
     Joins items together if they are not None or empty lists
