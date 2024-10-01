@@ -21,6 +21,7 @@ import pydantic
 import structlog
 from fastramqpi.ramqp.utils import RequeueMessage
 from jinja2 import Environment
+from jinja2 import Template
 from ldap3.utils.ciDict import CaseInsensitiveDict
 from ldap3.utils.dn import parse_dn
 from more_itertools import one
@@ -976,9 +977,7 @@ class LdapConverter:
         """
         return json.loads(text.replace("'", '"').replace("Undefined", "null"))
 
-    def _populate_mapping_with_templates(
-        self, mapping: dict[str, Any], environment: Environment
-    ) -> dict[str, Any]:
+    def string2template(self, template_string: str) -> Template:
         globals_dict = {
             "now": datetime.utcnow,  # TODO: timezone-aware datetime
             "min": minimum,
@@ -1058,12 +1057,16 @@ class LdapConverter:
             ),
             "get_employee_dict": partial(get_employee_dict, self.dataloader),
         }
+        template = environment.from_string(template_string)
+        template.globals.update(globals_dict)
+        return template
 
+    def _populate_mapping_with_templates(
+        self, mapping: dict[str, Any], environment: Environment
+    ) -> dict[str, Any]:
         def populate_value(value: str | dict[str, Any]) -> Any:
             if isinstance(value, str):
-                template = environment.from_string(value)
-                template.globals.update(globals_dict)
-                return template
+                return self.string2template(value)
             if isinstance(value, dict):
                 return self._populate_mapping_with_templates(value, environment)
             # TODO: Validate all types here in the future, for now accept whatever
