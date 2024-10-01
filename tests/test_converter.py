@@ -1795,12 +1795,9 @@ def test_org_unit_path_string_from_dn(converter: LdapConverter):
 
 
 def test_make_dn_from_org_unit_path() -> None:
-    settings = MagicMock()
-    settings.org_unit_path_string_separator = "|"
-
     org_unit_path = " foo|mucki |bar"
     dn = "CN=Angus,OU=replace_me,DC=GHU"
-    new_dn = make_dn_from_org_unit_path(settings, dn, org_unit_path)
+    new_dn = make_dn_from_org_unit_path("|", dn, org_unit_path)
     assert new_dn == "CN=Angus,OU=bar,OU=mucki,OU=foo,DC=GHU"
 
 

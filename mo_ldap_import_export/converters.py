@@ -153,7 +153,7 @@ async def get_it_system_uuid(
 
 
 def make_dn_from_org_unit_path(
-    settings: Settings, dn: str, org_unit_path_string: str
+    org_unit_path_string_separator: str, dn: str, org_unit_path_string: str
 ) -> str:
     """
     Makes a new DN based on an org-unit path string and a DN, where the org unit
@@ -166,7 +166,7 @@ def make_dn_from_org_unit_path(
     >>> new_dn
     >>> "CN=Earthworm Jim,OU=bar,OU=foo,DC=ad,DC=addev"
     """
-    sep = settings.org_unit_path_string_separator
+    sep = org_unit_path_string_separator
 
     org_units = org_unit_path_string.split(sep)[::-1]
     new_ou = ",".join([f"OU={org_unit.strip()}" for org_unit in org_units])
@@ -1013,7 +1013,7 @@ class LdapConverter:
                 get_org_unit_name_for_parent, self.dataloader.graphql_client
             ),
             "make_dn_from_org_unit_path": partial(
-                make_dn_from_org_unit_path, self.settings
+                make_dn_from_org_unit_path, self.settings.org_unit_path_string_separator
             ),
             "get_job_function_name": partial(
                 get_job_function_name, self.dataloader.graphql_client
