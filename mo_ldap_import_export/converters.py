@@ -639,6 +639,82 @@ async def get_or_create_org_unit_uuid(
     return str(await create_org_unit(dataloader, settings, org_unit_path))
 
 
+def construct_globals_dict(
+    settings: Settings, dataloader: DataLoader
+) -> dict[str, Any]:
+    return {
+        "now": datetime.utcnow,  # TODO: timezone-aware datetime
+        "min": minimum,
+        "nonejoin": nonejoin,
+        "nonejoin_orgs": partial(
+            nonejoin_orgs, settings.org_unit_path_string_separator
+        ),
+        "remove_first_org": partial(
+            remove_first_org, settings.org_unit_path_string_separator
+        ),
+        "get_employee_address_type_uuid": partial(
+            get_employee_address_type_uuid, dataloader.graphql_client
+        ),
+        "get_org_unit_address_type_uuid": partial(
+            get_org_unit_address_type_uuid, dataloader.graphql_client
+        ),
+        "get_it_system_uuid": partial(get_it_system_uuid, dataloader.graphql_client),
+        "get_or_create_org_unit_uuid": partial(
+            get_or_create_org_unit_uuid, dataloader, settings
+        ),
+        "org_unit_path_string_from_dn": partial(
+            org_unit_path_string_from_dn,
+            settings.org_unit_path_string_separator,
+        ),
+        "get_job_function_uuid": partial(
+            get_job_function_uuid, dataloader.graphql_client
+        ),
+        "get_visibility_uuid": partial(get_visibility_uuid, dataloader.graphql_client),
+        "get_primary_type_uuid": partial(
+            get_primary_type_uuid, dataloader.graphql_client
+        ),
+        "get_engagement_type_uuid": partial(
+            get_engagement_type_uuid, dataloader.graphql_client
+        ),
+        "get_engagement_type_name": partial(
+            get_engagement_type_name, dataloader.graphql_client
+        ),
+        "uuid4": uuid4,
+        "get_org_unit_path_string": partial(
+            get_org_unit_path_string,
+            dataloader.graphql_client,
+            settings.org_unit_path_string_separator,
+        ),
+        "get_org_unit_name_for_parent": partial(
+            get_org_unit_name_for_parent, dataloader.graphql_client
+        ),
+        "make_dn_from_org_unit_path": partial(
+            make_dn_from_org_unit_path, settings.org_unit_path_string_separator
+        ),
+        "get_job_function_name": partial(
+            get_job_function_name, dataloader.graphql_client
+        ),
+        "get_org_unit_name": partial(get_org_unit_name, dataloader.graphql_client),
+        "get_or_create_job_function_uuid": partial(
+            get_or_create_job_function_uuid, dataloader
+        ),
+        "get_or_create_engagement_type_uuid": partial(
+            get_or_create_engagement_type_uuid, dataloader
+        ),
+        "get_current_org_unit_uuid_dict": partial(
+            get_current_org_unit_uuid_dict, dataloader
+        ),
+        "get_current_engagement_type_uuid_dict": partial(
+            get_current_engagement_type_uuid_dict, dataloader
+        ),
+        "get_current_primary_uuid_dict": partial(
+            get_current_primary_uuid_dict, dataloader
+        ),
+        "get_primary_engagement_dict": partial(get_primary_engagement_dict, dataloader),
+        "get_employee_dict": partial(get_employee_dict, dataloader),
+    }
+
+
 class LdapConverter:
     def __init__(
         self, settings: Settings, raw_mapping: dict[str, Any], dataloader: DataLoader
@@ -977,89 +1053,8 @@ class LdapConverter:
         """
         return json.loads(text.replace("'", '"').replace("Undefined", "null"))
 
-    def construct_globals_dict(self) -> dict[str, Any]:
-        return {
-            "now": datetime.utcnow,  # TODO: timezone-aware datetime
-            "min": minimum,
-            "nonejoin": nonejoin,
-            "nonejoin_orgs": partial(
-                nonejoin_orgs, self.settings.org_unit_path_string_separator
-            ),
-            "remove_first_org": partial(
-                remove_first_org, self.settings.org_unit_path_string_separator
-            ),
-            "get_employee_address_type_uuid": partial(
-                get_employee_address_type_uuid, self.dataloader.graphql_client
-            ),
-            "get_org_unit_address_type_uuid": partial(
-                get_org_unit_address_type_uuid, self.dataloader.graphql_client
-            ),
-            "get_it_system_uuid": partial(
-                get_it_system_uuid, self.dataloader.graphql_client
-            ),
-            "get_or_create_org_unit_uuid": partial(
-                get_or_create_org_unit_uuid, self.dataloader, self.settings
-            ),
-            "org_unit_path_string_from_dn": partial(
-                org_unit_path_string_from_dn,
-                self.settings.org_unit_path_string_separator,
-            ),
-            "get_job_function_uuid": partial(
-                get_job_function_uuid, self.dataloader.graphql_client
-            ),
-            "get_visibility_uuid": partial(
-                get_visibility_uuid, self.dataloader.graphql_client
-            ),
-            "get_primary_type_uuid": partial(
-                get_primary_type_uuid, self.dataloader.graphql_client
-            ),
-            "get_engagement_type_uuid": partial(
-                get_engagement_type_uuid, self.dataloader.graphql_client
-            ),
-            "get_engagement_type_name": partial(
-                get_engagement_type_name, self.dataloader.graphql_client
-            ),
-            "uuid4": uuid4,
-            "get_org_unit_path_string": partial(
-                get_org_unit_path_string,
-                self.dataloader.graphql_client,
-                self.settings.org_unit_path_string_separator,
-            ),
-            "get_org_unit_name_for_parent": partial(
-                get_org_unit_name_for_parent, self.dataloader.graphql_client
-            ),
-            "make_dn_from_org_unit_path": partial(
-                make_dn_from_org_unit_path, self.settings.org_unit_path_string_separator
-            ),
-            "get_job_function_name": partial(
-                get_job_function_name, self.dataloader.graphql_client
-            ),
-            "get_org_unit_name": partial(
-                get_org_unit_name, self.dataloader.graphql_client
-            ),
-            "get_or_create_job_function_uuid": partial(
-                get_or_create_job_function_uuid, self.dataloader
-            ),
-            "get_or_create_engagement_type_uuid": partial(
-                get_or_create_engagement_type_uuid, self.dataloader
-            ),
-            "get_current_org_unit_uuid_dict": partial(
-                get_current_org_unit_uuid_dict, self.dataloader
-            ),
-            "get_current_engagement_type_uuid_dict": partial(
-                get_current_engagement_type_uuid_dict, self.dataloader
-            ),
-            "get_current_primary_uuid_dict": partial(
-                get_current_primary_uuid_dict, self.dataloader
-            ),
-            "get_primary_engagement_dict": partial(
-                get_primary_engagement_dict, self.dataloader
-            ),
-            "get_employee_dict": partial(get_employee_dict, self.dataloader),
-        }
-
     def string2template(self, template_string: str) -> Template:
-        globals_dict = self.construct_globals_dict()
+        globals_dict = construct_globals_dict(self.settings, self.dataloader)
         template = environment.from_string(template_string)
         template.globals.update(globals_dict)
         return template
