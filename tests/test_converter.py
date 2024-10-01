@@ -58,6 +58,7 @@ from mo_ldap_import_export.converters import get_it_system_uuid
 from mo_ldap_import_export.converters import get_job_function_name
 from mo_ldap_import_export.converters import get_or_create_engagement_type_uuid
 from mo_ldap_import_export.converters import get_or_create_job_function_uuid
+from mo_ldap_import_export.converters import get_or_create_org_unit_uuid
 from mo_ldap_import_export.converters import get_org_unit_address_type_uuid
 from mo_ldap_import_export.converters import get_org_unit_name
 from mo_ldap_import_export.converters import get_org_unit_uuid_from_path
@@ -1348,13 +1349,15 @@ async def test_get_or_create_org_unit_uuid_get(
     route = graphql_mock.query("read_org_unit_uuid")
     route.result = {"org_units": {"objects": [{"uuid": magenta_aps_uuid}]}}
 
+    dataloader = converter.dataloader
+    settings = converter.settings
     # Get an organization UUID
-    org_uuid = await converter.get_or_create_org_unit_uuid("Magenta Aps")
+    org_uuid = await get_or_create_org_unit_uuid(dataloader, settings, "Magenta Aps")
     assert org_uuid == str(magenta_aps_uuid)
 
     # Attempt to fetch empty string
     with pytest.raises(UUIDNotFoundException):
-        await converter.get_or_create_org_unit_uuid("")
+        await get_or_create_org_unit_uuid(dataloader, settings, "")
 
 
 async def test_get_or_create_org_unit_uuid_create(
@@ -1373,7 +1376,9 @@ async def test_get_or_create_org_unit_uuid_create(
     route3.result = {"org": {"uuid": uuid4()}}
 
     # Create a new organization and return its UUID
-    await converter.get_or_create_org_unit_uuid("ACME")
+    dataloader = converter.dataloader
+    settings = converter.settings
+    await get_or_create_org_unit_uuid(dataloader, settings, "ACME")
     converter.dataloader.create_org_unit.assert_awaited_once()  # type: ignore
 
 

@@ -621,6 +621,23 @@ async def create_org_unit(
     return uuid
 
 
+async def get_or_create_org_unit_uuid(
+    dataloader: DataLoader, settings: Settings, org_unit_path_string: str
+):
+    logger.info(
+        "Finding org-unit uuid",
+        org_unit_path_string=org_unit_path_string,
+    )
+
+    if not org_unit_path_string:
+        raise UUIDNotFoundException("Organization unit string is empty")
+
+    # Clean leading and trailing whitespace from org unit path string
+    org_unit_path = org_unit_path_string.split(settings.org_unit_path_string_separator)
+    org_unit_path = clean_org_unit_path_string(org_unit_path)
+    return str(await create_org_unit(dataloader, settings, org_unit_path))
+
+
 class LdapConverter:
     def __init__(
         self, settings: Settings, raw_mapping: dict[str, Any], dataloader: DataLoader
@@ -952,22 +969,6 @@ class LdapConverter:
 
         logger.info("Attributes OK")
 
-    async def get_or_create_org_unit_uuid(self, org_unit_path_string: str):
-        logger.info(
-            "Finding org-unit uuid",
-            org_unit_path_string=org_unit_path_string,
-        )
-
-        if not org_unit_path_string:
-            raise UUIDNotFoundException("Organization unit string is empty")
-
-        # Clean leading and trailing whitespace from org unit path string
-        org_unit_path = org_unit_path_string.split(
-            self.settings.org_unit_path_string_separator
-        )
-        org_unit_path = clean_org_unit_path_string(org_unit_path)
-        return str(await create_org_unit(self.dataloader, self.settings, org_unit_path))
-
     @staticmethod
     def str_to_dict(text):
         """
@@ -997,7 +998,9 @@ class LdapConverter:
             "get_it_system_uuid": partial(
                 get_it_system_uuid, self.dataloader.graphql_client
             ),
-            "get_or_create_org_unit_uuid": self.get_or_create_org_unit_uuid,
+            "get_or_create_org_unit_uuid": partial(
+                get_or_create_org_unit_uuid, self.dataloader, self.settings
+            ),
             "org_unit_path_string_from_dn": partial(
                 org_unit_path_string_from_dn,
                 self.settings.org_unit_path_string_separator,
