@@ -977,8 +977,8 @@ class LdapConverter:
         """
         return json.loads(text.replace("'", '"').replace("Undefined", "null"))
 
-    def string2template(self, template_string: str) -> Template:
-        globals_dict = {
+    def construct_globals_dict(self) -> dict[str, Any]:
+        return {
             "now": datetime.utcnow,  # TODO: timezone-aware datetime
             "min": minimum,
             "nonejoin": nonejoin,
@@ -1057,6 +1057,9 @@ class LdapConverter:
             ),
             "get_employee_dict": partial(get_employee_dict, self.dataloader),
         }
+
+    def string2template(self, template_string: str) -> Template:
+        globals_dict = self.construct_globals_dict()
         template = environment.from_string(template_string)
         template.globals.update(globals_dict)
         return template
