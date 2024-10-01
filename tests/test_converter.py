@@ -43,6 +43,7 @@ from mo_ldap_import_export.config import MO2LDAPMapping
 from mo_ldap_import_export.config import check_attributes
 from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.converters import _create_facet_class
+from mo_ldap_import_export.converters import clean_org_unit_path_string
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
 from mo_ldap_import_export.converters import get_current_engagement_attribute_uuid_dict
@@ -1371,9 +1372,9 @@ async def test_get_or_create_org_unit_uuid_create(
     converter.dataloader.create_org_unit.assert_awaited_once()  # type: ignore
 
 
-def test_clean_org_unit_path_string(converter: LdapConverter):
-    assert converter.clean_org_unit_path_string(["foo", "bar"]) == ["foo", "bar"]
-    assert converter.clean_org_unit_path_string([" foo", " bar ", "baz "]) == [
+def test_clean_org_unit_path_string() -> None:
+    assert clean_org_unit_path_string(["foo", "bar"]) == ["foo", "bar"]
+    assert clean_org_unit_path_string([" foo", " bar ", "baz "]) == [
         "foo",
         "bar",
         "baz",
