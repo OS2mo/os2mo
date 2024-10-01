@@ -44,6 +44,7 @@ from mo_ldap_import_export.config import check_attributes
 from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.converters import _create_facet_class
 from mo_ldap_import_export.converters import clean_org_unit_path_string
+from mo_ldap_import_export.converters import create_org_unit
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
 from mo_ldap_import_export.converters import get_current_engagement_attribute_uuid_dict
@@ -1297,7 +1298,9 @@ async def test_create_org_unit_already_exists(
     route = graphql_mock.query("read_org_unit_uuid")
     route.result = {"org_units": {"objects": [{"uuid": uuid4()}]}}
 
-    await converter.create_org_unit(["Magenta Aps", "Magenta Aarhus"])
+    dataloader = converter.dataloader
+    settings = converter.settings
+    await create_org_unit(dataloader, settings, ["Magenta Aps", "Magenta Aarhus"])
     converter.dataloader.create_org_unit.assert_not_called()  # type: ignore
 
 
@@ -1327,7 +1330,9 @@ async def test_create_org_unit_all_missing(
     route3 = graphql_mock.query("read_root_org_uuid")
     route3.result = {"org": {"uuid": uuid4()}}
 
-    await converter.create_org_unit(path)
+    dataloader = converter.dataloader
+    settings = converter.settings
+    await create_org_unit(dataloader, settings, path)
     num_calls = len(converter.dataloader.create_org_unit.mock_calls)  # type: ignore
     assert num_calls == expected
 

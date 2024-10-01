@@ -555,6 +555,72 @@ def clean_org_unit_path_string(org_unit_path: list[str]) -> list[str]:
     return [x.strip() for x in org_unit_path]
 
 
+async def create_org_unit(
+    dataloader: DataLoader, settings: Settings, org_unit_path: list[str]
+) -> UUID:
+    """Create the org-unit and any missing parents in org_unit_path.
+
+    The function works by recursively creating parents until an existing parent is
+    found or we arrive at the root org.
+
+    Args:
+        org_unit_path: The org-unit path to ensure exists.
+
+    Returns:
+        UUID of the newly created org-unit.
+    """
+    # If asked to create the root org, simply return it
+    if not org_unit_path:
+        return await load_mo_root_org_uuid(dataloader.graphql_client)
+
+    # If the org-unit path already exists, no need to create, simply return it
+    with suppress(UUIDNotFoundException):
+        return await get_org_unit_uuid_from_path(
+            dataloader.graphql_client, org_unit_path
+        )
+
+    # If we get here, the path did not already exist, so we need to create it
+    logger.info("Importing", path=org_unit_path)
+
+    # Figure out our name and our parent path
+    # Split the org-unit path into name and parent path
+    # The last element is the name with all the rest coming before being the parent
+    *parent_path, name = org_unit_path
+
+    # Get or create our parent uuid (recursively)
+    parent_uuid = await create_org_unit(dataloader, settings, parent_path)
+
+    default_org_unit_type_uuid = UUID(
+        await get_org_unit_type_uuid(
+            dataloader.graphql_client, settings.default_org_unit_type
+        )
+    )
+    default_org_unit_level_uuid = UUID(
+        await get_org_unit_level_uuid(
+            dataloader.graphql_client, settings.default_org_unit_level
+        )
+    )
+
+    uuid = uuid4()
+    org_unit = OrganisationUnit.from_simplified_fields(
+        org_unit_type_uuid=default_org_unit_type_uuid,
+        org_unit_level_uuid=default_org_unit_level_uuid,
+        # Note: 1902 seems to be the earliest accepted year by OS2mo
+        # We pick 1960 because MO's dummy data also starts all organizations
+        # in 1960...
+        # We just want a very early date here, to avoid that imported employee
+        # engagements start before the org-unit existed.
+        from_date="1960-01-01T00:00:00",
+        # Org-unit specific fields
+        user_key=str(uuid4()),
+        name=name,
+        parent_uuid=parent_uuid,
+        uuid=uuid,
+    )
+    await dataloader.create_org_unit(org_unit)
+    return uuid
+
+
 class LdapConverter:
     def __init__(
         self, settings: Settings, raw_mapping: dict[str, Any], dataloader: DataLoader
@@ -886,69 +952,6 @@ class LdapConverter:
 
         logger.info("Attributes OK")
 
-    async def create_org_unit(self, org_unit_path: list[str]) -> UUID:
-        """Create the org-unit and any missing parents in org_unit_path.
-
-        The function works by recursively creating parents until an existing parent is
-        found or we arrive at the root org.
-
-        Args:
-            org_unit_path: The org-unit path to ensure exists.
-
-        Returns:
-            UUID of the newly created org-unit.
-        """
-        # If asked to create the root org, simply return it
-        if not org_unit_path:
-            return await load_mo_root_org_uuid(self.dataloader.graphql_client)
-
-        # If the org-unit path already exists, no need to create, simply return it
-        with suppress(UUIDNotFoundException):
-            return await get_org_unit_uuid_from_path(
-                self.dataloader.graphql_client, org_unit_path
-            )
-
-        # If we get here, the path did not already exist, so we need to create it
-        logger.info("Importing", path=org_unit_path)
-
-        # Figure out our name and our parent path
-        # Split the org-unit path into name and parent path
-        # The last element is the name with all the rest coming before being the parent
-        *parent_path, name = org_unit_path
-
-        # Get or create our parent uuid (recursively)
-        parent_uuid = await self.create_org_unit(parent_path)
-
-        default_org_unit_type_uuid = UUID(
-            await get_org_unit_type_uuid(
-                self.dataloader.graphql_client, self.settings.default_org_unit_type
-            )
-        )
-        default_org_unit_level_uuid = UUID(
-            await get_org_unit_level_uuid(
-                self.dataloader.graphql_client, self.settings.default_org_unit_level
-            )
-        )
-
-        uuid = uuid4()
-        org_unit = OrganisationUnit.from_simplified_fields(
-            org_unit_type_uuid=default_org_unit_type_uuid,
-            org_unit_level_uuid=default_org_unit_level_uuid,
-            # Note: 1902 seems to be the earliest accepted year by OS2mo
-            # We pick 1960 because MO's dummy data also starts all organizations
-            # in 1960...
-            # We just want a very early date here, to avoid that imported employee
-            # engagements start before the org-unit existed.
-            from_date="1960-01-01T00:00:00",
-            # Org-unit specific fields
-            user_key=str(uuid4()),
-            name=name,
-            parent_uuid=parent_uuid,
-            uuid=uuid,
-        )
-        await self.dataloader.create_org_unit(org_unit)
-        return uuid
-
     async def get_or_create_org_unit_uuid(self, org_unit_path_string: str):
         logger.info(
             "Finding org-unit uuid",
@@ -963,7 +966,7 @@ class LdapConverter:
             self.settings.org_unit_path_string_separator
         )
         org_unit_path = clean_org_unit_path_string(org_unit_path)
-        return str(await self.create_org_unit(org_unit_path))
+        return str(await create_org_unit(self.dataloader, self.settings, org_unit_path))
 
     @staticmethod
     def str_to_dict(text):
