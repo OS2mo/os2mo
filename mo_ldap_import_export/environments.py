@@ -1,6 +1,10 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import string
+from datetime import datetime
+from functools import partial
+from typing import Any
+from uuid import uuid4
 
 from jinja2 import Environment  # noqa: E402
 from jinja2 import Undefined
@@ -78,6 +82,109 @@ def bitwise_and(input: int, bitmask: int) -> int:
     return input & bitmask
 
 
+def construct_globals_dict(
+    settings: Settings, dataloader: DataLoader
+) -> dict[str, Any]:
+    from .converters import get_current_engagement_type_uuid_dict
+    from .converters import get_current_org_unit_uuid_dict
+    from .converters import get_current_primary_uuid_dict
+    from .converters import get_employee_address_type_uuid
+    from .converters import get_employee_dict
+    from .converters import get_engagement_type_name
+    from .converters import get_engagement_type_uuid
+    from .converters import get_it_system_uuid
+    from .converters import get_job_function_name
+    from .converters import get_job_function_uuid
+    from .converters import get_or_create_engagement_type_uuid
+    from .converters import get_or_create_job_function_uuid
+    from .converters import get_or_create_org_unit_uuid
+    from .converters import get_org_unit_address_type_uuid
+    from .converters import get_org_unit_name
+    from .converters import get_org_unit_name_for_parent
+    from .converters import get_org_unit_path_string
+    from .converters import get_primary_engagement_dict
+    from .converters import get_primary_type_uuid
+    from .converters import get_visibility_uuid
+    from .converters import make_dn_from_org_unit_path
+    from .converters import minimum
+    from .converters import nonejoin
+    from .converters import nonejoin_orgs
+    from .converters import org_unit_path_string_from_dn
+    from .converters import remove_first_org
+
+    return {
+        "now": datetime.utcnow,  # TODO: timezone-aware datetime
+        "min": minimum,
+        "nonejoin": nonejoin,
+        "nonejoin_orgs": partial(
+            nonejoin_orgs, settings.org_unit_path_string_separator
+        ),
+        "remove_first_org": partial(
+            remove_first_org, settings.org_unit_path_string_separator
+        ),
+        "get_employee_address_type_uuid": partial(
+            get_employee_address_type_uuid, dataloader.graphql_client
+        ),
+        "get_org_unit_address_type_uuid": partial(
+            get_org_unit_address_type_uuid, dataloader.graphql_client
+        ),
+        "get_it_system_uuid": partial(get_it_system_uuid, dataloader.graphql_client),
+        "get_or_create_org_unit_uuid": partial(
+            get_or_create_org_unit_uuid, dataloader, settings
+        ),
+        "org_unit_path_string_from_dn": partial(
+            org_unit_path_string_from_dn,
+            settings.org_unit_path_string_separator,
+        ),
+        "get_job_function_uuid": partial(
+            get_job_function_uuid, dataloader.graphql_client
+        ),
+        "get_visibility_uuid": partial(get_visibility_uuid, dataloader.graphql_client),
+        "get_primary_type_uuid": partial(
+            get_primary_type_uuid, dataloader.graphql_client
+        ),
+        "get_engagement_type_uuid": partial(
+            get_engagement_type_uuid, dataloader.graphql_client
+        ),
+        "get_engagement_type_name": partial(
+            get_engagement_type_name, dataloader.graphql_client
+        ),
+        "uuid4": uuid4,
+        "get_org_unit_path_string": partial(
+            get_org_unit_path_string,
+            dataloader.graphql_client,
+            settings.org_unit_path_string_separator,
+        ),
+        "get_org_unit_name_for_parent": partial(
+            get_org_unit_name_for_parent, dataloader.graphql_client
+        ),
+        "make_dn_from_org_unit_path": partial(
+            make_dn_from_org_unit_path, settings.org_unit_path_string_separator
+        ),
+        "get_job_function_name": partial(
+            get_job_function_name, dataloader.graphql_client
+        ),
+        "get_org_unit_name": partial(get_org_unit_name, dataloader.graphql_client),
+        "get_or_create_job_function_uuid": partial(
+            get_or_create_job_function_uuid, dataloader
+        ),
+        "get_or_create_engagement_type_uuid": partial(
+            get_or_create_engagement_type_uuid, dataloader
+        ),
+        "get_current_org_unit_uuid_dict": partial(
+            get_current_org_unit_uuid_dict, dataloader
+        ),
+        "get_current_engagement_type_uuid_dict": partial(
+            get_current_engagement_type_uuid_dict, dataloader
+        ),
+        "get_current_primary_uuid_dict": partial(
+            get_current_primary_uuid_dict, dataloader
+        ),
+        "get_primary_engagement_dict": partial(get_primary_engagement_dict, dataloader),
+        "get_employee_dict": partial(get_employee_dict, dataloader),
+    }
+
+
 def construct_environment(settings: Settings, dataloader: DataLoader) -> Environment:
     environment = Environment(undefined=Undefined, enable_async=True)
 
@@ -87,8 +194,6 @@ def construct_environment(settings: Settings, dataloader: DataLoader) -> Environ
     environment.filters["mo_datestring"] = filter_mo_datestring
     environment.filters["strip_non_digits"] = filter_strip_non_digits
     environment.filters["remove_curly_brackets"] = filter_remove_curly_brackets
-
-    from .converters import construct_globals_dict
 
     environment.globals.update(construct_globals_dict(settings, dataloader))
 
