@@ -10,10 +10,12 @@ from more_itertools import one
 from mora import lora
 from tests.cases import assert_registrations_equal
 
+engagement_uuid = "d000591f-8705-4324-897a-075e3623f37b"
+
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
+@freezegun.freeze_time("2016-01-01", tz_offset=1)
 async def test_create_employee_itsystem(service_client: TestClient) -> None:
     # Check the POST request
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -47,9 +49,9 @@ async def test_create_employee_itsystem(service_client: TestClient) -> None:
                 "person": {
                     "uuid": userid,
                 },
-                "engagement": {"uuid": "b6c268d2-4671-4609-8441-6029077d8efc"},
+                "engagement": {"uuid": engagement_uuid},
                 "itsystem": {"uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"},
-                "validity": {"from": "2018-09-01", "to": None},
+                "validity": {"from": "2017-01-01", "to": None},
             },
         ],
     )
@@ -75,10 +77,31 @@ async def test_create_employee_itsystem(service_client: TestClient) -> None:
             },
             "org_unit": None,
             "person": {"uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"},
-            "engagement": None,
+            "engagement": {
+                "engagement_type": {"uuid": "06f95678-166a-455a-a2ab-121a8d92ea23"},
+                "extension_1": "test1",
+                "extension_10": None,
+                "extension_2": "test2",
+                "extension_3": None,
+                "extension_4": None,
+                "extension_5": None,
+                "extension_6": None,
+                "extension_7": None,
+                "extension_8": None,
+                "extension_9": "test9",
+                "fraction": None,
+                "is_primary": None,
+                "job_function": {"uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"},
+                "org_unit": {"uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "person": {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"},
+                "primary": None,
+                "user_key": "bvn",
+                "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                "validity": {"from": "2017-01-01", "to": None},
+            },
             "user_key": "goofy-moofy",
             "uuid": funcid,
-            "validity": {"from": "2018-09-01", "to": None},
+            "validity": {"from": "2017-01-01", "to": None},
             "primary": None,
         }
     ]
@@ -194,6 +217,7 @@ async def test_edit_itsystem(service_client: TestClient):
                         "from": "2017-06-22",
                         "to": "2018-06-01",
                     },
+                    "engagement": {"uuid": engagement_uuid},
                 },
             }
         ],
@@ -238,6 +262,18 @@ async def test_edit_itsystem(service_client: TestClient):
                         "to_included": False,
                     },
                 },
+            ],
+            "tilknyttedefunktioner": [
+                {
+                    "objekttype": "engagement",
+                    "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                    "virkning": {
+                        "from": "2017-06-22 " "00:00:00+02",
+                        "from_included": True,
+                        "to": "2018-06-02 " "00:00:00+02",
+                        "to_included": False,
+                    },
+                }
             ],
             "tilknyttedeitsystemer": [
                 {
