@@ -505,9 +505,6 @@ class LdapConverter:
         self.settings = settings
         self.raw_mapping = raw_mapping
         self.dataloader = dataloader
-        self.org_unit_path_string_separator: str = (
-            self.settings.org_unit_path_string_separator
-        )
 
     async def _init(self):
         mapping = delete_keys_from_dict(
@@ -926,7 +923,7 @@ class LdapConverter:
         >>> "demo/Users/Technicians"
         """
         ou_decomposed = parse_dn(extract_ou_from_dn(dn))[::-1]
-        sep = self.org_unit_path_string_separator
+        sep = self.settings.org_unit_path_string_separator
         org_unit_list = [ou[1] for ou in ou_decomposed]
 
         if number_of_ous_to_ignore >= len(org_unit_list):
@@ -957,7 +954,9 @@ class LdapConverter:
             raise UUIDNotFoundException("Organization unit string is empty")
 
         # Clean leading and trailing whitespace from org unit path string
-        org_unit_path = org_unit_path_string.split(self.org_unit_path_string_separator)
+        org_unit_path = org_unit_path_string.split(
+            self.settings.org_unit_path_string_separator
+        )
         org_unit_path = self.clean_org_unit_path_string(org_unit_path)
         return str(await self.create_org_unit(org_unit_path))
 
@@ -1011,7 +1010,7 @@ class LdapConverter:
             "get_org_unit_path_string": partial(
                 get_org_unit_path_string,
                 self.dataloader.graphql_client,
-                self.org_unit_path_string_separator,
+                self.settings.org_unit_path_string_separator,
             ),
             "get_org_unit_name_for_parent": partial(
                 get_org_unit_name_for_parent, self.dataloader.graphql_client
