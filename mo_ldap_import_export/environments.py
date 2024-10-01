@@ -108,6 +108,16 @@ def nonejoin_orgs(org_unit_path_string_separator: str, *args) -> str:
     return sep.join(items_to_join)
 
 
+def remove_first_org(org_unit_path_string_separator: str, orgstr: str) -> str:
+    """
+    Remove first org from orgstr
+    """
+    sep = org_unit_path_string_separator
+
+    _, *rest = orgstr.split(sep)
+    return nonejoin_orgs(sep, *rest)
+
+
 def construct_globals_dict(
     settings: Settings, dataloader: DataLoader
 ) -> dict[str, Any]:
@@ -133,7 +143,6 @@ def construct_globals_dict(
     from .converters import get_visibility_uuid
     from .converters import make_dn_from_org_unit_path
     from .converters import org_unit_path_string_from_dn
-    from .converters import remove_first_org
 
     return {
         "now": datetime.utcnow,  # TODO: timezone-aware datetime

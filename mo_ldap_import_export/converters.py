@@ -50,18 +50,6 @@ from .utils import is_list
 logger = structlog.stdlib.get_logger()
 
 
-def remove_first_org(org_unit_path_string_separator: str, orgstr: str) -> str:
-    """
-    Remove first org from orgstr
-    """
-    sep = org_unit_path_string_separator
-
-    _, *rest = orgstr.split(sep)
-    from .environments import nonejoin_orgs
-
-    return nonejoin_orgs(sep, *rest)
-
-
 async def _get_facet_class_uuid(
     graphql_client: GraphQLClient, class_user_key: str, facet_user_key: str
 ) -> str:
