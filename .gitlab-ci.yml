@@ -94,24 +94,13 @@ Integration-test:
         LDAP_CONFIG_PASSWORD: "ConfigPassword123"
         LDAP_LOG_LEVEL: 512
   variables:
+    FASTRAMQPI__JSON_LOGS: False
+    # LDAP: Connection
     LDAP_CONTROLLERS: '[{"host": "ldap"}]'
     LDAP_DOMAIN: "magenta.dk"
     LDAP_USER: "cn=admin,dc=magenta,dc=dk"
     LDAP_PASSWORD: "AdminPassword123"
-    LDAP_SEARCH_BASE: "dc=magenta,dc=dk"
-    LDAP_OUS_TO_SEARCH_IN: '["ou=os2mo,o=magenta"]'
-    LDAP_OUS_TO_WRITE_TO: '[""]'
-    LDAP_OU_FOR_NEW_USERS: "ou=os2mo,o=magenta"
-    LDAP_DIALECT: "Standard"
     LDAP_AUTH_METHOD: "simple"
-
-    FASTRAMQPI__JSON_LOGS: False
-
-    LISTEN_TO_CHANGES_IN_MO: True
-    LISTEN_TO_CHANGES_IN_LDAP: True
-
-    DEFAULT_ORG_UNIT_TYPE: "Afdeling"
-    DEFAULT_ORG_UNIT_LEVEL: "N1"
-
+    LDAP_DIALECT: "Standard"
   rules:
     - <<: *if-merge-request
