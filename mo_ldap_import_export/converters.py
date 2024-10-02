@@ -972,7 +972,7 @@ class LdapConverter:
         self, mapping: dict[str, Any], environment: Environment
     ) -> dict[str, Any]:
         globals_dict = {
-            "now": datetime.utcnow,
+            "now": datetime.utcnow,  # TODO: timezone-aware datetime
             "min": minimum,
             "nonejoin": nonejoin,
             "nonejoin_orgs": partial(nonejoin_orgs, self.settings),

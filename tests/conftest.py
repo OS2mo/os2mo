@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
-import datetime
 import json
 import os
 import warnings
@@ -9,6 +8,7 @@ from collections.abc import AsyncIterator
 from collections.abc import Awaitable
 from collections.abc import Callable
 from collections.abc import Iterator
+from datetime import datetime
 from typing import Any
 from typing import cast
 from unittest.mock import AsyncMock
@@ -145,6 +145,7 @@ def integration_test_environment_variables(monkeypatch: pytest.MonkeyPatch) -> N
 
     Automatically used by tests marked 'integration_test' (see pytest_collection_modifyitems).
     """
+    monkeypatch.setenv("POLL_TIME", "1")  # faster tests
     monkeypatch.setenv("LDAP_SEARCH_BASE", "dc=magenta,dc=dk")
     monkeypatch.setenv("LDAP_OUS_TO_SEARCH_IN", '["ou=os2mo,o=magenta"]')
     monkeypatch.setenv("LDAP_OUS_TO_WRITE_TO", '[""]')
@@ -201,7 +202,7 @@ def test_mo_objects() -> list:
             "parent_uuid": uuid4(),
             "object_type": "person",
             "validity": {
-                "from": datetime.datetime.today().strftime("%Y-%m-%d"),
+                "from": datetime.today().strftime("%Y-%m-%d"),
                 "to": None,
             },
         },
@@ -213,7 +214,7 @@ def test_mo_objects() -> list:
             "object_type": "person",
             "validity": {
                 "from": "2021-01-01",
-                "to": datetime.datetime.today().strftime("%Y-%m-%d"),
+                "to": datetime.today().strftime("%Y-%m-%d"),
             },
         },
         {
@@ -234,8 +235,8 @@ def test_mo_objects() -> list:
             "parent_uuid": uuid4(),
             "object_type": "person",
             "validity": {
-                "from": datetime.datetime.today().strftime("%Y-%m-%d"),
-                "to": datetime.datetime.today().strftime("%Y-%m-%d"),
+                "from": datetime.today().strftime("%Y-%m-%d"),
+                "to": datetime.today().strftime("%Y-%m-%d"),
             },
         },
     ]
