@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import json
 from functools import partial
 from typing import cast
 
@@ -177,3 +178,24 @@ def test_dialect_settings(monkeypatch: pytest.MonkeyPatch) -> None:
         settings = Settings()
         assert settings.ldap_dialect == "AD"
         assert settings.ldap_unique_id_field == "myCustomField"
+
+
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+def test_mapper_settings(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that mapper can be set as read as expected."""
+
+    settings = Settings()
+    assert settings.conversion_mapping.ldap_to_mo.keys() == {"Employee"}
+    employee = settings.conversion_mapping.ldap_to_mo["Employee"]
+    assert employee.mapper is None
+
+    mapping_template = "{{ value['user_key'] }}"
+    new_mapping = overlay(
+        settings.conversion_mapping.dict(exclude_unset=True, by_alias=True),
+        {"ldap_to_mo": {"Employee": {"_mapper_": mapping_template}}},
+    )
+    monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(new_mapping))
+    settings = Settings()
+    assert settings.conversion_mapping.ldap_to_mo.keys() == {"Employee"}
+    employee = settings.conversion_mapping.ldap_to_mo["Employee"]
+    assert employee.mapper == mapping_template

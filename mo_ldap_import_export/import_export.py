@@ -870,49 +870,68 @@ class SyncTool:
         else:  # pragma: no cover
             raise AssertionError(f"Unknown mo_class: {mo_class}")
 
-        # Construct a map from value-key to list of matching objects
-        values_in_mo = bucketdict(objects_in_mo, lambda obj: getattr(obj, value_key))
-        values_converted = bucketdict(
-            converted_objects, lambda obj: getattr(obj, value_key)
+        mapper_template = self.converter.mapping["ldap_to_mo"][json_key].get(
+            "_mapper_", None
         )
+        if mapper_template is not None:
+            mo_values_task = asyncio.gather(
+                *[mapper_template.render_async({"obj": obj}) for obj in objects_in_mo]
+            )
+            ldap_values_task = asyncio.gather(
+                *[
+                    mapper_template.render_async({"obj": obj})
+                    for obj in converted_objects
+                ]
+            )
+            mo_values, ldap_values = await asyncio.gather(
+                mo_values_task, ldap_values_task
+            )
+            mo_mapper = dict(zip(objects_in_mo, mo_values, strict=False))
+            ldap_mapper = dict(zip(converted_objects, ldap_values, strict=False))
+        else:
+            # TODO: Refactor so this is handled using default templates instead
+            mo_mapper = {obj: getattr(obj, value_key) for obj in objects_in_mo}
+            ldap_mapper = {obj: getattr(obj, value_key) for obj in converted_objects}
+
+        # Construct a map from value-key to list of matching objects
+        values_in_mo = bucketdict(objects_in_mo, mo_mapper.get)
+        values_converted = bucketdict(converted_objects, ldap_mapper.get)
 
         # Only values in MO targeted by our converted values are relevant
         values_in_mo = {
             key: value for key, value in values_in_mo.items() if key in values_converted
         }
 
-        # We need a bijection between MO objects and converted objects.
-        # Without a bijection we cannot maintain temporality of objects in MO.
+        # We need a mapping between MO objects and converted objects.
+        # Without a mapping we cannot maintain temporality of objects in MO.
 
         # If we have more than one MO object for each converted, the match is ambigious.
-        # Ambigious matches mean no bijection and must be handled by human intervention.
-        ambigious_exception = RequeueMessage("Bad bijection: Multiple MO objects")
+        # Ambigious matches mean no mapping and must be handled by human intervention.
+        ambigious_exception = RequeueMessage("Bad mapping: Multiple MO objects")
         value_in_mo = {
             key: only(value, too_long=ambigious_exception)
             for key, value in values_in_mo.items()
         }
 
-        # If we have more than one converted per value-key there cannot be a bijection.
+        # If we have more than one converted per value-key there cannot be a mapping.
         # This probably means we have a misconfiguration of the integration.
         # Perhaps a bad discriminator between MO objects per converted object.
-        bad_discriminator_exception = RequeueMessage(
-            "Bad bijection: Multiple converted"
-        )
+        bad_discriminator_exception = RequeueMessage("Bad mapping: Multiple converted")
         value_converted = {
             key: one(value, too_long=bad_discriminator_exception)
             for key, value in values_converted.items()
         }
 
-        # At this point we know a bijection exists from converted objects to MO objects
-        bijection = [
+        # At this point we know a mapping exists from converted objects to MO objects
+        mapping = [
             (value_converted[key], value_in_mo.get(key)) for key in value_converted
         ]
 
-        # Partition the bijection into creates and updates
+        # Partition the mapping into creates and updates
         creates, updates = partition(
-            # We have an update if there is no MO object in the bijection
+            # We have an update if there is no MO object in the mapping
             star(lambda converted, mo_object: mo_object is not None),
-            bijection,
+            mapping,
         )
         updates = cast(Iterator[tuple[MOBase, MOBase]], updates)
 

@@ -627,6 +627,9 @@ class LdapConverter:
             mo_dict = {
                 mo_field_name: await render_template(mo_field_name, template, context)
                 for mo_field_name, template in object_mapping.items()
+                # Remove the mapper key from the output, as it is not needed to create
+                # the objects themselves, rather only later for mapping of objects
+                if mo_field_name != "_mapper_"
             }
             mo_class = self.import_mo_object_class(json_key)
             required_attributes = set(self.get_required_attributes(mo_class))

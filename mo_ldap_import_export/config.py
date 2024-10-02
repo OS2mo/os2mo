@@ -133,6 +133,11 @@ class LDAP2MOMapping(MappingBaseModel):
     terminate: str | None = Field(
         alias="_terminate_", description="The date at which to terminate the object"
     )
+    mapper: str | None = Field(
+        None,
+        alias="_mapper_",
+        description="Jinja template for mapping between LDAP and MO objects",
+    )
 
     @validator("import_to_mo", pre=True)
     def lower_import_to_mo(cls, v: str) -> str:
@@ -211,6 +216,7 @@ class LDAP2MOMapping(MappingBaseModel):
             "objectClass",
             "import_to_mo",
             "terminate",
+            "mapper",
         }
 
         check_attributes(detected_attributes, accepted_attributes)

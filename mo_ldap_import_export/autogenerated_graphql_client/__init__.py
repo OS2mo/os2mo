@@ -1,5 +1,7 @@
 from ._testing__itsystem_create import TestingItsystemCreate
 from ._testing__itsystem_create import TestingItsystemCreateItsystemCreate
+from ._testing_address_create import TestingAddressCreate
+from ._testing_address_create import TestingAddressCreateAddressCreate
 from ._testing_ituser_create import TestingItuserCreate
 from ._testing_ituser_create import TestingItuserCreateItuserCreate
 from ._testing_org_unit_create import TestingOrgUnitCreate
@@ -615,6 +617,8 @@ __all__ = [
     "RoleRegistrationFilter",
     "SetJobTitle",
     "SetJobTitleEngagementUpdate",
+    "TestingAddressCreate",
+    "TestingAddressCreateAddressCreate",
     "TestingItsystemCreate",
     "TestingItsystemCreateItsystemCreate",
     "TestingItuserCreate",
