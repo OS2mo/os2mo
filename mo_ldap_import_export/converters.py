@@ -54,7 +54,6 @@ async def _get_facet_class_uuid(
     return str(one(result.objects, too_short=exception).uuid)
 
 
-get_primary_type_uuid = partial(_get_facet_class_uuid, facet_user_key="primary_type")
 get_engagement_type_uuid = partial(
     _get_facet_class_uuid, facet_user_key="engagement_type"
 )
