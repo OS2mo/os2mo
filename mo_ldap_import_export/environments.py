@@ -12,6 +12,7 @@ from uuid import uuid4
 import structlog
 from jinja2 import Environment  # noqa: E402
 from jinja2 import Undefined
+from ldap3.utils.dn import parse_dn
 from more_itertools import only
 from ramodels.mo.organisation_unit import OrganisationUnit
 
@@ -22,6 +23,8 @@ from .config import Settings
 from .converters import _get_facet_class_uuid
 from .dataloaders import DataLoader
 from .exceptions import UUIDNotFoundException
+from .types import DN
+from .utils import extract_ou_from_dn
 
 logger = structlog.stdlib.get_logger()
 
@@ -274,6 +277,47 @@ async def get_or_create_org_unit_uuid(
     return str(await create_org_unit(dataloader, settings, org_unit_path))
 
 
+def org_unit_path_string_from_dn(
+    org_unit_path_string_separator: str, dn: DN, number_of_ous_to_ignore: int = 0
+) -> str:
+    """
+    Constructs an org-unit path string from a DN.
+
+    If number_of_ous_to_ignore is specified, ignores this many OUs in the path
+
+    Examples
+    -----------
+    >>> dn = "CN=Jim,OU=Technicians,OU=Users,OU=demo,OU=OS2MO,DC=ad,DC=addev"
+    >>> org_unit_path_string_from_dn(dn,2)
+    >>> "Users/Technicians"
+    >>>
+    >>> org_unit_path_string_from_dn(dn,1)
+    >>> "demo/Users/Technicians"
+    """
+    sep = org_unit_path_string_separator
+
+    ou_decomposed = parse_dn(extract_ou_from_dn(dn))[::-1]
+    org_unit_list = [ou[1] for ou in ou_decomposed]
+
+    if number_of_ous_to_ignore >= len(org_unit_list):
+        logger.info(
+            "DN cannot be mapped to org-unit-path",
+            dn=dn,
+            org_unit_list=org_unit_list,
+            number_of_ous_to_ignore=number_of_ous_to_ignore,
+        )
+        return ""
+    org_unit_path_string = sep.join(org_unit_list[number_of_ous_to_ignore:])
+
+    logger.info(
+        "Constructed org unit path string from dn",
+        dn=dn,
+        org_unit_path_string=org_unit_path_string,
+        number_of_ous_to_ignore=number_of_ous_to_ignore,
+    )
+    return org_unit_path_string
+
+
 def construct_globals_dict(
     settings: Settings, dataloader: DataLoader
 ) -> dict[str, Any]:
@@ -294,7 +338,6 @@ def construct_globals_dict(
     from .converters import get_primary_type_uuid
     from .converters import get_visibility_uuid
     from .converters import make_dn_from_org_unit_path
-    from .converters import org_unit_path_string_from_dn
 
     return {
         "now": datetime.utcnow,  # TODO: timezone-aware datetime

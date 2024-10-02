@@ -60,7 +60,6 @@ from mo_ldap_import_export.converters import get_primary_engagement_dict
 from mo_ldap_import_export.converters import get_primary_type_uuid
 from mo_ldap_import_export.converters import get_visibility_uuid
 from mo_ldap_import_export.converters import make_dn_from_org_unit_path
-from mo_ldap_import_export.converters import org_unit_path_string_from_dn
 from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.environments import clean_org_unit_path_string
@@ -73,6 +72,7 @@ from mo_ldap_import_export.environments import get_org_unit_uuid_from_path
 from mo_ldap_import_export.environments import minimum
 from mo_ldap_import_export.environments import nonejoin
 from mo_ldap_import_export.environments import nonejoin_orgs
+from mo_ldap_import_export.environments import org_unit_path_string_from_dn
 from mo_ldap_import_export.environments import remove_first_org
 from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException

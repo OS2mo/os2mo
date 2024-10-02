@@ -22,7 +22,6 @@ from fastramqpi.ramqp.utils import RequeueMessage
 from jinja2 import Environment
 from jinja2 import Template
 from ldap3.utils.ciDict import CaseInsensitiveDict
-from ldap3.utils.dn import parse_dn
 from more_itertools import one
 from more_itertools import only
 from ramodels.mo import MOBase
@@ -37,7 +36,6 @@ from .ldap_classes import LdapObject
 from .types import DN
 from .utils import delete_keys_from_dict
 from .utils import exchange_ou_in_dn
-from .utils import extract_ou_from_dn
 from .utils import import_class
 from .utils import is_list
 
@@ -402,47 +400,6 @@ async def get_org_unit_name_for_parent(
     with suppress(IndexError):
         return names[layer]
     return None
-
-
-def org_unit_path_string_from_dn(
-    org_unit_path_string_separator: str, dn: DN, number_of_ous_to_ignore: int = 0
-) -> str:
-    """
-    Constructs an org-unit path string from a DN.
-
-    If number_of_ous_to_ignore is specified, ignores this many OUs in the path
-
-    Examples
-    -----------
-    >>> dn = "CN=Jim,OU=Technicians,OU=Users,OU=demo,OU=OS2MO,DC=ad,DC=addev"
-    >>> org_unit_path_string_from_dn(dn,2)
-    >>> "Users/Technicians"
-    >>>
-    >>> org_unit_path_string_from_dn(dn,1)
-    >>> "demo/Users/Technicians"
-    """
-    sep = org_unit_path_string_separator
-
-    ou_decomposed = parse_dn(extract_ou_from_dn(dn))[::-1]
-    org_unit_list = [ou[1] for ou in ou_decomposed]
-
-    if number_of_ous_to_ignore >= len(org_unit_list):
-        logger.info(
-            "DN cannot be mapped to org-unit-path",
-            dn=dn,
-            org_unit_list=org_unit_list,
-            number_of_ous_to_ignore=number_of_ous_to_ignore,
-        )
-        return ""
-    org_unit_path_string = sep.join(org_unit_list[number_of_ous_to_ignore:])
-
-    logger.info(
-        "Constructed org unit path string from dn",
-        dn=dn,
-        org_unit_path_string=org_unit_path_string,
-        number_of_ous_to_ignore=number_of_ous_to_ignore,
-    )
-    return org_unit_path_string
 
 
 class LdapConverter:
