@@ -34,7 +34,6 @@ from .exceptions import UUIDNotFoundException
 from .ldap_classes import LdapObject
 from .types import DN
 from .utils import delete_keys_from_dict
-from .utils import exchange_ou_in_dn
 from .utils import import_class
 from .utils import is_list
 
@@ -67,27 +66,6 @@ async def get_org_unit_name(graphql_client: GraphQLClient, uuid: UUID) -> str:
     if org_unit.current is None:
         raise NoObjectsReturnedException(f"org_unit not active, uuid: {uuid}")
     return org_unit.current.name
-
-
-def make_dn_from_org_unit_path(
-    org_unit_path_string_separator: str, dn: str, org_unit_path_string: str
-) -> str:
-    """
-    Makes a new DN based on an org-unit path string and a DN, where the org unit
-    structure is parsed as an OU structure in the DN.
-
-    Example
-    --------
-    >>> dn = "CN=Earthworm Jim,OU=OS2MO,DC=ad,DC=addev"
-    >>> new_dn = make_dn_from_org_unit_path(dn,"foo/bar")
-    >>> new_dn
-    >>> "CN=Earthworm Jim,OU=bar,OU=foo,DC=ad,DC=addev"
-    """
-    sep = org_unit_path_string_separator
-
-    org_units = org_unit_path_string.split(sep)[::-1]
-    new_ou = ",".join([f"OU={org_unit.strip()}" for org_unit in org_units])
-    return exchange_ou_in_dn(dn, new_ou)
 
 
 async def get_current_engagement_attribute_uuid_dict(

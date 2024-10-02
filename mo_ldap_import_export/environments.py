@@ -26,6 +26,7 @@ from .dataloaders import DataLoader
 from .exceptions import NoObjectsReturnedException
 from .exceptions import UUIDNotFoundException
 from .types import DN
+from .utils import exchange_ou_in_dn
 from .utils import extract_ou_from_dn
 
 logger = structlog.stdlib.get_logger()
@@ -396,6 +397,27 @@ async def get_org_unit_name_for_parent(
     return None
 
 
+def make_dn_from_org_unit_path(
+    org_unit_path_string_separator: str, dn: str, org_unit_path_string: str
+) -> str:
+    """
+    Makes a new DN based on an org-unit path string and a DN, where the org unit
+    structure is parsed as an OU structure in the DN.
+
+    Example
+    --------
+    >>> dn = "CN=Earthworm Jim,OU=OS2MO,DC=ad,DC=addev"
+    >>> new_dn = make_dn_from_org_unit_path(dn,"foo/bar")
+    >>> new_dn
+    >>> "CN=Earthworm Jim,OU=bar,OU=foo,DC=ad,DC=addev"
+    """
+    sep = org_unit_path_string_separator
+
+    org_units = org_unit_path_string.split(sep)[::-1]
+    new_ou = ",".join([f"OU={org_unit.strip()}" for org_unit in org_units])
+    return exchange_ou_in_dn(dn, new_ou)
+
+
 def construct_globals_dict(
     settings: Settings, dataloader: DataLoader
 ) -> dict[str, Any]:
@@ -408,7 +430,6 @@ def construct_globals_dict(
     from .converters import get_or_create_job_function_uuid
     from .converters import get_org_unit_name
     from .converters import get_primary_engagement_dict
-    from .converters import make_dn_from_org_unit_path
 
     return {
         "now": datetime.utcnow,  # TODO: timezone-aware datetime
