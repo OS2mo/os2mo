@@ -52,14 +52,6 @@ async def _get_facet_class_uuid(
     return str(one(result.objects, too_short=exception).uuid)
 
 
-async def get_job_function_name(graphql_client: GraphQLClient, uuid: UUID) -> str:
-    result = await graphql_client.read_class_name_by_class_uuid(uuid)
-    job_function = one(result.objects)
-    if job_function.current is None:
-        raise NoObjectsReturnedException(f"job_function not active, uuid: {uuid}")
-    return job_function.current.name
-
-
 async def get_org_unit_name(graphql_client: GraphQLClient, uuid: UUID) -> str:
     result = await graphql_client.read_org_unit_name(uuid)
     org_unit = one(result.objects)

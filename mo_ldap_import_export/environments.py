@@ -418,6 +418,14 @@ def make_dn_from_org_unit_path(
     return exchange_ou_in_dn(dn, new_ou)
 
 
+async def get_job_function_name(graphql_client: GraphQLClient, uuid: UUID) -> str:
+    result = await graphql_client.read_class_name_by_class_uuid(uuid)
+    job_function = one(result.objects)
+    if job_function.current is None:
+        raise NoObjectsReturnedException(f"job_function not active, uuid: {uuid}")
+    return job_function.current.name
+
+
 def construct_globals_dict(
     settings: Settings, dataloader: DataLoader
 ) -> dict[str, Any]:
@@ -425,7 +433,6 @@ def construct_globals_dict(
     from .converters import get_current_org_unit_uuid_dict
     from .converters import get_current_primary_uuid_dict
     from .converters import get_employee_dict
-    from .converters import get_job_function_name
     from .converters import get_or_create_engagement_type_uuid
     from .converters import get_or_create_job_function_uuid
     from .converters import get_org_unit_name
