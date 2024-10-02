@@ -42,8 +42,6 @@ services:
     build: .
     command: ["uvicorn", "--factory", "mo_ldap_import_export.main:create_app", "--host", "0.0.0.0", "--reload"]
     environment:
-      TZ: "Europe/Copenhagen"
-
       # FastRAMQPI
       FASTRAMQPI__JSON_LOGS: False
       # DAP causes 'Address already in use' errors when running tests
