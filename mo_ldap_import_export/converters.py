@@ -54,11 +54,6 @@ async def _get_facet_class_uuid(
     return str(one(result.objects, too_short=exception).uuid)
 
 
-get_engagement_type_uuid = partial(
-    _get_facet_class_uuid, facet_user_key="engagement_type"
-)
-
-
 async def get_engagement_type_name(graphql_client: GraphQLClient, uuid: UUID) -> str:
     result = await graphql_client.read_class_name_by_class_uuid(uuid)
     engagement_type = one(result.objects)
