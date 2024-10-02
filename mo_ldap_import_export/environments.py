@@ -509,10 +509,24 @@ get_current_engagement_type_uuid_dict = partial(
 )
 
 
+async def get_current_primary_uuid_dict(
+    dataloader: DataLoader, employee_uuid: UUID, engagement_user_key: str
+) -> dict | None:
+    """
+    Returns an existing 'primary' object formatted as a dict
+    """
+    primary_dict = await get_current_engagement_attribute_uuid_dict(
+        dataloader, employee_uuid, engagement_user_key, "primary_uuid"
+    )
+
+    if not primary_dict["uuid"]:
+        return None
+    return primary_dict
+
+
 def construct_globals_dict(
     settings: Settings, dataloader: DataLoader
 ) -> dict[str, Any]:
-    from .converters import get_current_primary_uuid_dict
     from .converters import get_employee_dict
     from .converters import get_primary_engagement_dict
 
