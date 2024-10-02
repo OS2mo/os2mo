@@ -148,30 +148,6 @@ async def get_employee_dict(dataloader: DataLoader, employee_uuid: UUID) -> dict
     return mo_employee.dict()
 
 
-async def _create_facet_class(
-    dataloader: DataLoader, class_user_key: str, facet_user_key: str
-) -> UUID:
-    """Creates a class under the specified facet in MO.
-
-    Args:
-        dataloader: Our dataloader instance
-        facet_user_key: User-key of the facet to create the class under.
-        class_user_key: The name/user-key to give the class.
-
-    Returns:
-        The uuid of the created class
-    """
-    logger.info("Creating MO class", facet_user_key=facet_user_key, name=class_user_key)
-    facet_uuid = await dataloader.load_mo_facet_uuid(facet_user_key)
-    if facet_uuid is None:
-        raise NoObjectsReturnedException(
-            f"Could not find facet with user_key = '{facet_user_key}'"
-        )
-    return await dataloader.create_mo_class(
-        name=class_user_key, user_key=class_user_key, facet_uuid=facet_uuid
-    )
-
-
 async def get_itsystem_user_keys(graphql_client: GraphQLClient) -> set[str]:
     result = await graphql_client.read_itsystems()
     return {obj.current.user_key for obj in result.objects if obj.current is not None}
