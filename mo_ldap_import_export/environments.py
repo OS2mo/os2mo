@@ -10,6 +10,7 @@ from jinja2 import Environment  # noqa: E402
 from jinja2 import Undefined
 
 from .config import Settings
+from .converters import _get_facet_class_uuid
 from .dataloaders import DataLoader
 
 
@@ -118,13 +119,17 @@ def remove_first_org(org_unit_path_string_separator: str, orgstr: str) -> str:
     return nonejoin_orgs(sep, *rest)
 
 
+get_employee_address_type_uuid = partial(
+    _get_facet_class_uuid, facet_user_key="employee_address_type"
+)
+
+
 def construct_globals_dict(
     settings: Settings, dataloader: DataLoader
 ) -> dict[str, Any]:
     from .converters import get_current_engagement_type_uuid_dict
     from .converters import get_current_org_unit_uuid_dict
     from .converters import get_current_primary_uuid_dict
-    from .converters import get_employee_address_type_uuid
     from .converters import get_employee_dict
     from .converters import get_engagement_type_name
     from .converters import get_engagement_type_uuid

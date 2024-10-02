@@ -51,7 +51,6 @@ from mo_ldap_import_export.converters import get_current_engagement_attribute_uu
 from mo_ldap_import_export.converters import get_current_engagement_type_uuid_dict
 from mo_ldap_import_export.converters import get_current_org_unit_uuid_dict
 from mo_ldap_import_export.converters import get_current_primary_uuid_dict
-from mo_ldap_import_export.converters import get_employee_address_type_uuid
 from mo_ldap_import_export.converters import get_employee_dict
 from mo_ldap_import_export.converters import get_engagement_type_name
 from mo_ldap_import_export.converters import get_it_system_uuid
@@ -70,6 +69,7 @@ from mo_ldap_import_export.converters import org_unit_path_string_from_dn
 from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.environments import construct_environment
+from mo_ldap_import_export.environments import get_employee_address_type_uuid
 from mo_ldap_import_export.environments import minimum
 from mo_ldap_import_export.environments import nonejoin
 from mo_ldap_import_export.environments import nonejoin_orgs
