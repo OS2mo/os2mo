@@ -9,6 +9,7 @@ from uuid import uuid4
 from jinja2 import Environment  # noqa: E402
 from jinja2 import Undefined
 
+from .client_helpers import get_it_system_uuid
 from .config import Settings
 from .converters import _get_facet_class_uuid
 from .dataloaders import DataLoader
@@ -136,7 +137,6 @@ def construct_globals_dict(
     from .converters import get_employee_dict
     from .converters import get_engagement_type_name
     from .converters import get_engagement_type_uuid
-    from .converters import get_it_system_uuid
     from .converters import get_job_function_name
     from .converters import get_job_function_uuid
     from .converters import get_or_create_engagement_type_uuid

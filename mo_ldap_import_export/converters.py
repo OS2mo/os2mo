@@ -100,16 +100,6 @@ async def get_org_unit_name(graphql_client: GraphQLClient, uuid: UUID) -> str:
     return org_unit.current.name
 
 
-async def get_it_system_uuid(
-    graphql_client: GraphQLClient, itsystem_user_key: str
-) -> str:
-    result = await graphql_client.read_itsystem_uuid(itsystem_user_key)
-    exception = UUIDNotFoundException(
-        f"itsystem not found, user_key: {itsystem_user_key}"
-    )
-    return str(one(result.objects, too_short=exception).uuid)
-
-
 def make_dn_from_org_unit_path(
     org_unit_path_string_separator: str, dn: str, org_unit_path_string: str
 ) -> str:

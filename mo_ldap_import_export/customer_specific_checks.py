@@ -4,7 +4,7 @@ from uuid import UUID
 
 import structlog
 
-from .converters import get_it_system_uuid
+from .client_helpers import get_it_system_uuid
 from .dataloaders import DataLoader
 from .exceptions import IgnoreChanges
 from .ldap import check_ou_in_list_of_ous
