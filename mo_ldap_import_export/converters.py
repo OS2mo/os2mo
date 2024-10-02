@@ -7,7 +7,6 @@ from collections import ChainMap
 from collections.abc import MutableMapping
 from datetime import UTC
 from datetime import datetime
-from itertools import compress
 from json.decoder import JSONDecodeError
 from typing import Any
 from typing import cast
@@ -36,18 +35,6 @@ from .utils import import_class
 from .utils import is_list
 
 logger = structlog.stdlib.get_logger()
-
-
-async def get_primary_engagement_dict(
-    dataloader: DataLoader, employee_uuid: UUID
-) -> dict:
-    engagements = await dataloader.load_mo_employee_engagement_dicts(employee_uuid)
-    # TODO: Make is_primary a GraphQL filter in MO and clean this up
-    is_primary_engagement = await dataloader.is_primaries(
-        [engagement["uuid"] for engagement in engagements]
-    )
-    primary_engagement = one(compress(engagements, is_primary_engagement))
-    return primary_engagement
 
 
 async def get_employee_dict(dataloader: DataLoader, employee_uuid: UUID) -> dict:

@@ -5,6 +5,7 @@ from collections.abc import Iterator
 from contextlib import suppress
 from datetime import datetime
 from functools import partial
+from itertools import compress
 from typing import Any
 from uuid import UUID
 from uuid import uuid4
@@ -578,11 +579,22 @@ async def get_current_primary_uuid_dict(
     return primary_dict
 
 
+async def get_primary_engagement_dict(
+    dataloader: DataLoader, employee_uuid: UUID
+) -> dict:
+    engagements = await dataloader.load_mo_employee_engagement_dicts(employee_uuid)
+    # TODO: Make is_primary a GraphQL filter in MO and clean this up
+    is_primary_engagement = await dataloader.is_primaries(
+        [engagement["uuid"] for engagement in engagements]
+    )
+    primary_engagement = one(compress(engagements, is_primary_engagement))
+    return primary_engagement
+
+
 def construct_globals_dict(
     settings: Settings, dataloader: DataLoader
 ) -> dict[str, Any]:
     from .converters import get_employee_dict
-    from .converters import get_primary_engagement_dict
 
     return {
         "now": datetime.utcnow,  # TODO: timezone-aware datetime
