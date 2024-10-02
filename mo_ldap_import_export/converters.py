@@ -94,9 +94,6 @@ async def get_current_engagement_attribute_uuid_dict(
     return {"uuid": engagement[attribute]}
 
 
-get_current_org_unit_uuid_dict = partial(
-    get_current_engagement_attribute_uuid_dict, attribute="org_unit_uuid"
-)
 get_current_engagement_type_uuid_dict = partial(
     get_current_engagement_attribute_uuid_dict, attribute="engagement_type_uuid"
 )
