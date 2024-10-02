@@ -3,6 +3,8 @@ from typing import Any
 from uuid import UUID
 
 from ..types import CPRNumber
+from ._testing__address_read import TestingAddressRead
+from ._testing__address_read import TestingAddressReadAddresses
 from ._testing__itsystem_create import TestingItsystemCreate
 from ._testing__itsystem_create import TestingItsystemCreateItsystemCreate
 from ._testing_address_create import TestingAddressCreate
@@ -138,6 +140,43 @@ def gql(q: str) -> str:
 
 
 class GraphQLClient(AsyncBaseClient):
+    async def _testing__address_read(
+        self, filter: AddressFilter | None | UnsetType = UNSET
+    ) -> TestingAddressReadAddresses:
+        query = gql(
+            """
+            query __testing__address_read($filter: AddressFilter) {
+              addresses(filter: $filter) {
+                objects {
+                  validities {
+                    uuid
+                    user_key
+                    address_type {
+                      user_key
+                    }
+                    value
+                    value2
+                    person {
+                      uuid
+                    }
+                    visibility {
+                      user_key
+                    }
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingAddressRead.parse_obj(data).addresses
+
     async def _testing_user_create(
         self, input: EmployeeCreateInput
     ) -> TestingUserCreateEmployeeCreate:
