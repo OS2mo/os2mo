@@ -40,18 +40,6 @@ from .utils import is_list
 logger = structlog.stdlib.get_logger()
 
 
-async def _get_facet_class_uuid(
-    graphql_client: GraphQLClient, class_user_key: str, facet_user_key: str
-) -> str:
-    result = await graphql_client.read_class_uuid_by_facet_and_class_user_key(
-        facet_user_key, class_user_key
-    )
-    exception = UUIDNotFoundException(
-        f"class not found, facet_user_key: {facet_user_key} class_user_key: {class_user_key}"
-    )
-    return str(one(result.objects, too_short=exception).uuid)
-
-
 async def get_current_engagement_attribute_uuid_dict(
     dataloader: DataLoader,
     employee_uuid: UUID,
