@@ -336,6 +336,18 @@ async def get_engagement_type_name(graphql_client: GraphQLClient, uuid: UUID) ->
     return engagement_type.current.name
 
 
+async def get_org_unit_path_string(
+    graphql_client: GraphQLClient, org_unit_path_string_separator: str, uuid: str | UUID
+) -> str:
+    uuid = uuid if isinstance(uuid, UUID) else UUID(uuid)
+    result = await graphql_client.read_org_unit_ancestor_names(uuid)
+    current = one(result.objects).current
+    assert current is not None
+    names = [x.name for x in reversed(current.ancestors)] + [current.name]
+    assert org_unit_path_string_separator not in names
+    return org_unit_path_string_separator.join(names)
+
+
 def construct_globals_dict(
     settings: Settings, dataloader: DataLoader
 ) -> dict[str, Any]:
@@ -348,7 +360,6 @@ def construct_globals_dict(
     from .converters import get_or_create_job_function_uuid
     from .converters import get_org_unit_name
     from .converters import get_org_unit_name_for_parent
-    from .converters import get_org_unit_path_string
     from .converters import get_primary_engagement_dict
     from .converters import make_dn_from_org_unit_path
 

@@ -324,18 +324,6 @@ async def find_ldap_it_system(
     return found_itsystem
 
 
-async def get_org_unit_path_string(
-    graphql_client: GraphQLClient, org_unit_path_string_separator: str, uuid: str | UUID
-) -> str:
-    uuid = uuid if isinstance(uuid, UUID) else UUID(uuid)
-    result = await graphql_client.read_org_unit_ancestor_names(uuid)
-    current = one(result.objects).current
-    assert current is not None
-    names = [x.name for x in reversed(current.ancestors)] + [current.name]
-    assert org_unit_path_string_separator not in names
-    return org_unit_path_string_separator.join(names)
-
-
 # TODO: Clean this up so it always just takes an UUID
 async def get_org_unit_name_for_parent(
     graphql_client: GraphQLClient, uuid: UUID | str, layer: int = 0
