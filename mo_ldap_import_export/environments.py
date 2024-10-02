@@ -122,6 +122,9 @@ def remove_first_org(org_unit_path_string_separator: str, orgstr: str) -> str:
 get_employee_address_type_uuid = partial(
     _get_facet_class_uuid, facet_user_key="employee_address_type"
 )
+get_org_unit_address_type_uuid = partial(
+    _get_facet_class_uuid, facet_user_key="org_unit_address_type"
+)
 
 
 def construct_globals_dict(
@@ -139,7 +142,6 @@ def construct_globals_dict(
     from .converters import get_or_create_engagement_type_uuid
     from .converters import get_or_create_job_function_uuid
     from .converters import get_or_create_org_unit_uuid
-    from .converters import get_org_unit_address_type_uuid
     from .converters import get_org_unit_name
     from .converters import get_org_unit_name_for_parent
     from .converters import get_org_unit_path_string

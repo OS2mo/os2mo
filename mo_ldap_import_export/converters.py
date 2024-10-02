@@ -71,9 +71,6 @@ get_org_unit_type_uuid = partial(_get_facet_class_uuid, facet_user_key="org_unit
 get_org_unit_level_uuid = partial(
     _get_facet_class_uuid, facet_user_key="org_unit_level"
 )
-get_org_unit_address_type_uuid = partial(
-    _get_facet_class_uuid, facet_user_key="org_unit_address_type"
-)
 get_job_function_uuid = partial(
     _get_facet_class_uuid, facet_user_key="engagement_job_function"
 )
