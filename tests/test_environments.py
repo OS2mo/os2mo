@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 # -*- coding: utf-8 -*-
 import datetime
+from unittest.mock import MagicMock
 
-from mo_ldap_import_export.environments import environment
+from mo_ldap_import_export.environments import construct_environment
 from mo_ldap_import_export.environments import filter_mo_datestring
 from mo_ldap_import_export.environments import filter_remove_curly_brackets
 from mo_ldap_import_export.environments import filter_splitfirst
@@ -63,6 +64,7 @@ def test_filter_remove_curly_brackets():
 
 
 def test_bitwise_and():
+    environment = construct_environment(MagicMock(), MagicMock())
     bitwise_template = environment.from_string("{{ input|int|bitwise_and(mask) }}")
 
     result = bitwise_template.render(input=0x01, mask=0x01)
