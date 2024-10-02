@@ -59,9 +59,6 @@ get_primary_type_uuid = partial(_get_facet_class_uuid, facet_user_key="primary_t
 get_engagement_type_uuid = partial(
     _get_facet_class_uuid, facet_user_key="engagement_type"
 )
-get_job_function_uuid = partial(
-    _get_facet_class_uuid, facet_user_key="engagement_job_function"
-)
 
 
 async def get_engagement_type_name(graphql_client: GraphQLClient, uuid: UUID) -> str:
