@@ -1994,7 +1994,7 @@ async def test_create_facet_class_no_facet() -> None:
     assert "Could not find facet with user_key = 'facet_key'" in str(exc_info.value)
 
 
-@freeze_time("2022-08-10")
+@freeze_time("2022-08-10T12:34:56")
 async def test_ldap_to_mo_default_validity(converter: LdapConverter) -> None:
     del converter.raw_mapping["ldap_to_mo"]["Email"]["validity"]
     await converter._init()
@@ -2012,7 +2012,7 @@ async def test_ldap_to_mo_default_validity(converter: LdapConverter) -> None:
     assert mail.value == "foo@bar.dk"
     assert mail.person.uuid == employee_uuid
     assert mail.validity.dict() == {
-        "from_date": datetime.datetime(2022, 8, 10, 0, 0, tzinfo=datetime.UTC),
+        "from_date": datetime.datetime(2022, 8, 10, 0, 0, tzinfo=MO_TZ),
         "to_date": None,
     }
 
