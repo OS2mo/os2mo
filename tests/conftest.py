@@ -145,6 +145,7 @@ def integration_test_environment_variables(monkeypatch: pytest.MonkeyPatch) -> N
 
     Automatically used by tests marked 'integration_test' (see pytest_collection_modifyitems).
     """
+    monkeypatch.setenv("POLL_TIME", "1")  # faster tests
     monkeypatch.setenv("LDAP_SEARCH_BASE", "dc=magenta,dc=dk")
     monkeypatch.setenv("LDAP_OUS_TO_SEARCH_IN", '["ou=os2mo,o=magenta"]')
     monkeypatch.setenv("LDAP_OUS_TO_WRITE_TO", '[""]')
