@@ -52,14 +52,6 @@ async def _get_facet_class_uuid(
     return str(one(result.objects, too_short=exception).uuid)
 
 
-async def get_org_unit_name(graphql_client: GraphQLClient, uuid: UUID) -> str:
-    result = await graphql_client.read_org_unit_name(uuid)
-    org_unit = one(result.objects)
-    if org_unit.current is None:
-        raise NoObjectsReturnedException(f"org_unit not active, uuid: {uuid}")
-    return org_unit.current.name
-
-
 async def get_current_engagement_attribute_uuid_dict(
     dataloader: DataLoader,
     employee_uuid: UUID,
