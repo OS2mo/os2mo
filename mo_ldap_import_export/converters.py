@@ -199,9 +199,6 @@ async def _get_or_create_facet_class(
 get_or_create_engagement_type_uuid = partial(
     _get_or_create_facet_class, facet_user_key="engagement_type"
 )
-get_or_create_job_function_uuid = partial(
-    _get_or_create_facet_class, facet_user_key="engagement_job_function"
-)
 
 
 async def get_itsystem_user_keys(graphql_client: GraphQLClient) -> set[str]:
