@@ -196,11 +196,6 @@ async def _get_or_create_facet_class(
         return str(uuid)
 
 
-get_or_create_engagement_type_uuid = partial(
-    _get_or_create_facet_class, facet_user_key="engagement_type"
-)
-
-
 async def get_itsystem_user_keys(graphql_client: GraphQLClient) -> set[str]:
     result = await graphql_client.read_itsystems()
     return {obj.current.user_key for obj in result.objects if obj.current is not None}

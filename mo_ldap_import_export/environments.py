@@ -438,6 +438,9 @@ async def get_org_unit_name(graphql_client: GraphQLClient, uuid: UUID) -> str:
 get_or_create_job_function_uuid = partial(
     _get_or_create_facet_class, facet_user_key="engagement_job_function"
 )
+get_or_create_engagement_type_uuid = partial(
+    _get_or_create_facet_class, facet_user_key="engagement_type"
+)
 
 
 def construct_globals_dict(
@@ -447,7 +450,6 @@ def construct_globals_dict(
     from .converters import get_current_org_unit_uuid_dict
     from .converters import get_current_primary_uuid_dict
     from .converters import get_employee_dict
-    from .converters import get_or_create_engagement_type_uuid
     from .converters import get_primary_engagement_dict
 
     return {
