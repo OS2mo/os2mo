@@ -7,7 +7,6 @@ from collections import ChainMap
 from collections.abc import MutableMapping
 from datetime import UTC
 from datetime import datetime
-from functools import partial
 from itertools import compress
 from json.decoder import JSONDecodeError
 from typing import Any
@@ -92,11 +91,6 @@ async def get_current_engagement_attribute_uuid_dict(
     )
     logger.info(f"Match found in engagement with uuid = {engagement['uuid']}")
     return {"uuid": engagement[attribute]}
-
-
-get_current_engagement_type_uuid_dict = partial(
-    get_current_engagement_attribute_uuid_dict, attribute="engagement_type_uuid"
-)
 
 
 async def get_current_primary_uuid_dict(

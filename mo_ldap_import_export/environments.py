@@ -504,12 +504,14 @@ get_or_create_engagement_type_uuid = partial(
 get_current_org_unit_uuid_dict = partial(
     get_current_engagement_attribute_uuid_dict, attribute="org_unit_uuid"
 )
+get_current_engagement_type_uuid_dict = partial(
+    get_current_engagement_attribute_uuid_dict, attribute="engagement_type_uuid"
+)
 
 
 def construct_globals_dict(
     settings: Settings, dataloader: DataLoader
 ) -> dict[str, Any]:
-    from .converters import get_current_engagement_type_uuid_dict
     from .converters import get_current_primary_uuid_dict
     from .converters import get_employee_dict
     from .converters import get_primary_engagement_dict
