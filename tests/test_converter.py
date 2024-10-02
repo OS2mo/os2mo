@@ -45,7 +45,6 @@ from mo_ldap_import_export.config import check_attributes
 from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
-from mo_ldap_import_export.converters import get_employee_dict
 from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.environments import _create_facet_class
@@ -59,6 +58,7 @@ from mo_ldap_import_export.environments import get_current_engagement_type_uuid_
 from mo_ldap_import_export.environments import get_current_org_unit_uuid_dict
 from mo_ldap_import_export.environments import get_current_primary_uuid_dict
 from mo_ldap_import_export.environments import get_employee_address_type_uuid
+from mo_ldap_import_export.environments import get_employee_dict
 from mo_ldap_import_export.environments import get_engagement_type_name
 from mo_ldap_import_export.environments import get_job_function_name
 from mo_ldap_import_export.environments import get_or_create_engagement_type_uuid

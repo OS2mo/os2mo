@@ -591,11 +591,16 @@ async def get_primary_engagement_dict(
     return primary_engagement
 
 
+async def get_employee_dict(dataloader: DataLoader, employee_uuid: UUID) -> dict:
+    mo_employee = await dataloader.load_mo_employee(employee_uuid)
+    if mo_employee is None:
+        raise NoObjectsReturnedException(f"Unable to lookup employee: {employee_uuid}")
+    return mo_employee.dict()
+
+
 def construct_globals_dict(
     settings: Settings, dataloader: DataLoader
 ) -> dict[str, Any]:
-    from .converters import get_employee_dict
-
     return {
         "now": datetime.utcnow,  # TODO: timezone-aware datetime
         "min": minimum,
