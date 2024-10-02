@@ -13,6 +13,7 @@ import structlog
 from jinja2 import Environment  # noqa: E402
 from jinja2 import Undefined
 from ldap3.utils.dn import parse_dn
+from more_itertools import one
 from more_itertools import only
 from ramodels.mo.organisation_unit import OrganisationUnit
 
@@ -22,6 +23,7 @@ from .client_helpers import get_it_system_uuid
 from .config import Settings
 from .converters import _get_facet_class_uuid
 from .dataloaders import DataLoader
+from .exceptions import NoObjectsReturnedException
 from .exceptions import UUIDNotFoundException
 from .types import DN
 from .utils import extract_ou_from_dn
@@ -326,6 +328,14 @@ def org_unit_path_string_from_dn(
     return org_unit_path_string
 
 
+async def get_engagement_type_name(graphql_client: GraphQLClient, uuid: UUID) -> str:
+    result = await graphql_client.read_class_name_by_class_uuid(uuid)
+    engagement_type = one(result.objects)
+    if engagement_type.current is None:
+        raise NoObjectsReturnedException(f"engagement_type not active, uuid: {uuid}")
+    return engagement_type.current.name
+
+
 def construct_globals_dict(
     settings: Settings, dataloader: DataLoader
 ) -> dict[str, Any]:
@@ -333,7 +343,6 @@ def construct_globals_dict(
     from .converters import get_current_org_unit_uuid_dict
     from .converters import get_current_primary_uuid_dict
     from .converters import get_employee_dict
-    from .converters import get_engagement_type_name
     from .converters import get_job_function_name
     from .converters import get_or_create_engagement_type_uuid
     from .converters import get_or_create_job_function_uuid
