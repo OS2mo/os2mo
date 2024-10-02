@@ -141,10 +141,18 @@ def minimal_valid_settings(minimal_valid_environmental_variables: None) -> Setti
 
 @pytest.fixture
 def integration_test_environment_variables(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Default mapping for integration tests.
+    """Default environment for integration tests.
 
     Automatically used by tests marked 'integration_test' (see pytest_collection_modifyitems).
     """
+    monkeypatch.setenv("LDAP_SEARCH_BASE", "dc=magenta,dc=dk")
+    monkeypatch.setenv("LDAP_OUS_TO_SEARCH_IN", '["ou=os2mo,o=magenta"]')
+    monkeypatch.setenv("LDAP_OUS_TO_WRITE_TO", '[""]')
+    monkeypatch.setenv("LDAP_OU_FOR_NEW_USERS", "ou=os2mo,o=magenta")
+    monkeypatch.setenv("LISTEN_TO_CHANGES_IN_MO", "True")
+    monkeypatch.setenv("LISTEN_TO_CHANGES_IN_LDAP", "True")
+    monkeypatch.setenv("DEFAULT_ORG_UNIT_TYPE", "Afdeling")
+    monkeypatch.setenv("DEFAULT_ORG_UNIT_LEVEL", "N1")
     mapping = {
         "ldap_to_mo": {
             "Employee": {

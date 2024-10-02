@@ -42,15 +42,17 @@ services:
     build: .
     command: ["uvicorn", "--factory", "mo_ldap_import_export.main:create_app", "--host", "0.0.0.0", "--reload"]
     environment:
+      # FastRAMQPI
+      FASTRAMQPI__JSON_LOGS: False
+      # DAP causes 'Address already in use' errors when running tests
+      FASTRAMQPI__DAP: "false"
+
       # MO
       FASTRAMQPI__AMQP__URL: "amqp://guest:guest@msg-broker"
       FASTRAMQPI__AUTH_SERVER: "http://keycloak:8080/auth"
       FASTRAMQPI__MO_URL: "http://mo:5000"
       FASTRAMQPI__CLIENT_ID: "dipex"
       FASTRAMQPI__CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
-      TZ: "Europe/Copenhagen"
-      # DAP causes 'Address already in use' errors when running tests
-      FASTRAMQPI__DAP: "false"
 
       # Database
       FASTRAMQPI__DATABASE__USER: "fastramqpi"
@@ -59,22 +61,22 @@ services:
       FASTRAMQPI__DATABASE__NAME: "fastramqpi"
 
       # LDAP
+      # Connection
       LDAP_CONTROLLERS: '[{"host": "ldap"}]'
       LDAP_DOMAIN: "magenta.dk"
       LDAP_USER: "cn=admin,dc=magenta,dc=dk"
       LDAP_PASSWORD: "AdminPassword123"
+      LDAP_AUTH_METHOD: "simple"
+      LDAP_DIALECT: "Standard"
+      # Synchronisation
+      # NOTE: these are NOT the settings used during integration tests! Those
+      # are defined in conftest.py.
       LDAP_SEARCH_BASE: "dc=magenta,dc=dk"
       LDAP_OUS_TO_SEARCH_IN: '["ou=os2mo,o=magenta"]'
       LDAP_OUS_TO_WRITE_TO: '[""]'
       LDAP_OU_FOR_NEW_USERS: "ou=os2mo,o=magenta"
-      LDAP_DIALECT: "Standard"
-      LDAP_AUTH_METHOD: "simple"
-
-      FASTRAMQPI__JSON_LOGS: False
-
       LISTEN_TO_CHANGES_IN_MO: True
       LISTEN_TO_CHANGES_IN_LDAP: True
-
       DEFAULT_ORG_UNIT_TYPE: "Afdeling"
       DEFAULT_ORG_UNIT_LEVEL: "N1"
 
