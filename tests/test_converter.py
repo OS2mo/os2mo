@@ -58,7 +58,6 @@ from mo_ldap_import_export.converters import get_or_create_job_function_uuid
 from mo_ldap_import_export.converters import get_org_unit_name
 from mo_ldap_import_export.converters import get_primary_engagement_dict
 from mo_ldap_import_export.converters import get_primary_type_uuid
-from mo_ldap_import_export.converters import get_visibility_uuid
 from mo_ldap_import_export.converters import make_dn_from_org_unit_path
 from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import LdapObject
@@ -69,6 +68,7 @@ from mo_ldap_import_export.environments import get_employee_address_type_uuid
 from mo_ldap_import_export.environments import get_or_create_org_unit_uuid
 from mo_ldap_import_export.environments import get_org_unit_address_type_uuid
 from mo_ldap_import_export.environments import get_org_unit_uuid_from_path
+from mo_ldap_import_export.environments import get_visibility_uuid
 from mo_ldap_import_export.environments import minimum
 from mo_ldap_import_export.environments import nonejoin
 from mo_ldap_import_export.environments import nonejoin_orgs

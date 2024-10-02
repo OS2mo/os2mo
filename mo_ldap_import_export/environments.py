@@ -147,6 +147,7 @@ get_org_unit_level_uuid = partial(
 get_job_function_uuid = partial(
     _get_facet_class_uuid, facet_user_key="engagement_job_function"
 )
+get_visibility_uuid = partial(_get_facet_class_uuid, facet_user_key="visibility")
 
 
 async def load_mo_root_org_uuid(graphql_client: GraphQLClient) -> UUID:
@@ -338,7 +339,6 @@ def construct_globals_dict(
     from .converters import get_org_unit_path_string
     from .converters import get_primary_engagement_dict
     from .converters import get_primary_type_uuid
-    from .converters import get_visibility_uuid
     from .converters import make_dn_from_org_unit_path
 
     return {
