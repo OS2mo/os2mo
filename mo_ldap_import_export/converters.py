@@ -172,30 +172,6 @@ async def _create_facet_class(
     )
 
 
-async def _get_or_create_facet_class(
-    dataloader: DataLoader,
-    class_user_key: str,
-    facet_user_key: str,
-    default: str | None = None,
-) -> str:
-    if not class_user_key:
-        if default is None:
-            raise UUIDNotFoundException("Cannot create class without user-key")
-        logger.info("class_user_key is empty, using provided default", default=default)
-        class_user_key = default
-    try:
-        return await _get_facet_class_uuid(
-            dataloader.graphql_client,
-            class_user_key=class_user_key,
-            facet_user_key=facet_user_key,
-        )
-    except UUIDNotFoundException:
-        uuid = await _create_facet_class(
-            dataloader, class_user_key=class_user_key, facet_user_key=facet_user_key
-        )
-        return str(uuid)
-
-
 async def get_itsystem_user_keys(graphql_client: GraphQLClient) -> set[str]:
     result = await graphql_client.read_itsystems()
     return {obj.current.user_key for obj in result.objects if obj.current is not None}
