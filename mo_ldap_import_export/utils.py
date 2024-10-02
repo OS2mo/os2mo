@@ -9,6 +9,7 @@ from functools import partial
 from functools import wraps
 from typing import Any
 from typing import TypeVar
+from zoneinfo import ZoneInfo
 
 import structlog
 from ldap3.utils.dn import parse_dn
@@ -27,6 +28,8 @@ logger = structlog.stdlib.get_logger()
 
 T = TypeVar("T")
 R = TypeVar("R")
+
+MO_TZ = ZoneInfo("Europe/Copenhagen")
 
 
 def import_class(name: str) -> type[MOBase]:
@@ -61,6 +64,8 @@ def delete_keys_from_dict(dict_del, lst_keys):
     return _delete_keys_from_dict(copy.deepcopy(dict_del), lst_keys)
 
 
+# TODO: this doesn't work in any possible definition of the word "work". Delete
+# as soon as we pass GraphQL objects around.
 def mo_datestring_to_utc(datestring: str | None) -> datetime | None:
     """
     Returns datetime object at UTC+0
@@ -219,6 +224,9 @@ def get_delete_flag(mo_object: dict[str, Any]) -> bool:
     Returns:
         Whether the object should be deleted or not.
     """
+    # TODO: use timezone-aware datetime for now. GraphQL objects are already
+    # timezone-aware, so we can delete all parsing logic from here when we rid
+    # ourselves of the ramodels infestation.
     now = datetime.utcnow()
     validity_to = mo_datestring_to_utc(mo_object["validity"]["to"])
     if validity_to and validity_to <= now:

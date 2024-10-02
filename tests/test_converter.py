@@ -11,7 +11,6 @@ from unittest.mock import MagicMock
 from unittest.mock import patch
 from uuid import UUID
 from uuid import uuid4
-from zoneinfo import ZoneInfo
 
 import pytest
 from fastramqpi.context import Context
@@ -74,6 +73,7 @@ from mo_ldap_import_export.environments import environment
 from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
+from mo_ldap_import_export.utils import MO_TZ
 from tests.graphql_mocker import GraphQLMocker
 
 
@@ -2026,8 +2026,6 @@ async def test_ldap_to_mo_default_validity(converter: LdapConverter) -> None:
     assert mail.value == "foo@bar.dk"
     assert mail.person.uuid == employee_uuid
     assert mail.validity.dict() == {
-        "from_date": datetime.datetime(
-            2022, 8, 10, 0, 0, tzinfo=ZoneInfo("Europe/Copenhagen")
-        ),
+        "from_date": datetime.datetime(2022, 8, 10, 0, 0, tzinfo=MO_TZ),
         "to_date": None,
     }

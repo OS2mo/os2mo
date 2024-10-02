@@ -14,6 +14,7 @@ def filter_mo_datestring(datetime_object):
     -------
     MO only accepts date objects dated at midnight.
     """
+    # TODO: should take timezone-aware datetime_object and convert using MO_TZ.
     if not datetime_object:
         return None
     return datetime_object.strftime("%Y-%m-%dT00:00:00")
