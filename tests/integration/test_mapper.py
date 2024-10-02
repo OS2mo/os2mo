@@ -100,10 +100,10 @@ CONVERSION_MAPPING = {
                             {
                                 "ldap_to_mo": {
                                     "PublicPhoneEmployee": {
-                                        "_injector_": "{{ obj.visibility }}"
+                                        "_mapper_": "{{ obj.visibility }}"
                                     },
                                     "InternalPhoneEmployee": {
-                                        "_injector_": "{{ obj.visibility }}"
+                                        "_mapper_": "{{ obj.visibility }}"
                                     },
                                 }
                             },
@@ -114,7 +114,7 @@ CONVERSION_MAPPING = {
         ),
     ],
 )
-async def test_injection(
+async def test_mapping(
     test_client: AsyncClient,
     graphql_client: GraphQLClient,
     ldap_connection: Connection,

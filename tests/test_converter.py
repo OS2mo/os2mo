@@ -2039,14 +2039,14 @@ async def test_ldap_to_mo_default_validity(converter: LdapConverter) -> None:
 
 
 @freeze_time("2022-08-10")
-async def test_ldap_to_mo_injector(converter: LdapConverter) -> None:
-    """Ensure that setting injector has no effect on construction objects.
+async def test_ldap_to_mo_mapper(converter: LdapConverter) -> None:
+    """Ensure that setting mapper has no effect on construction objects.
 
-    Injector is only used for creating an injection between objects later.
+    Injector is only used for creating an mapping between objects later.
     """
 
-    injector_template = "{{ value['user_key'] }}"
-    converter.raw_mapping["ldap_to_mo"]["Email"]["_injector_"] = injector_template
+    mapper_template = "{{ value['user_key'] }}"
+    converter.raw_mapping["ldap_to_mo"]["Email"]["_mapper_"] = mapper_template
     await converter._init()
 
     employee_uuid = uuid4()
