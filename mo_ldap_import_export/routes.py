@@ -516,15 +516,6 @@ def construct_router(user_context: UserContext) -> APIRouter:
                 formatted_result[entry.dn] = cpr
         return formatted_result
 
-    # Modify a person in LDAP
-    @router.post("/LDAP/{json_key}", tags=["LDAP"])
-    async def post_object_to_LDAP(
-        dataloader: depends.DataLoader,
-        json_key: str,
-        ldap_object: LdapObject,
-    ) -> Any:
-        await dataloader.modify_ldap_object(ldap_object, json_key)
-
     # Get LDAP overview
     @router.get("/Inspect/overview", status_code=202, tags=["LDAP"])
     async def load_overview_from_LDAP(
