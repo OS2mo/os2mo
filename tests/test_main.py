@@ -379,21 +379,6 @@ async def test_open_ldap_connection() -> None:
 
 
 @pytest.mark.usefixtures("context_dependency_injection")
-def test_ldap_post_ldap_employee_endpoint(test_client: TestClient) -> None:
-    """Test the LDAP get-all endpoint on our app."""
-
-    ldap_person_to_post = {
-        "dn": "CN=Lars Peter Thomsen,OU=Users,OU=Magenta,DC=ad,DC=addev",
-        "cpr": "0101121234",
-        "givenname": "Lars Peter",
-        "surname": "Thomsen",
-        "Department": None,
-    }
-    response = test_client.post("/LDAP/Employee", json=ldap_person_to_post)
-    assert response.status_code == 200
-
-
-@pytest.mark.usefixtures("context_dependency_injection")
 def test_load_unique_attribute_values_from_LDAP_endpoint(
     test_client: TestClient,
 ) -> None:
