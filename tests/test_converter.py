@@ -111,9 +111,6 @@ def context(address_type_uuid: str) -> Context:
                 "_import_to_mo_": "True",
                 "value": "{{ldap.mail}}",
                 "type": "{{'address'}}",
-                "validity": (
-                    "{{ dict(from_date = " "ldap.mail_validity_from|mo_datestring) }}"
-                ),
                 "address_type": (
                     "{{ dict(uuid=" "'f376deb8-4743-4ca6-a047-3241de8fe9d2') }}"
                 ),
@@ -124,7 +121,6 @@ def context(address_type_uuid: str) -> Context:
                 "_import_to_mo_": "True",
                 "user_key": "{{ ldap.msSFU30Name or NONE }}",
                 "itsystem": "{{ dict(uuid=get_it_system_uuid(ldap.itSystemName)) }}",
-                "validity": "{{ dict(from_date=now()|mo_datestring) }}",
                 "person": "{{ dict(uuid=employee_uuid or NONE) }}",
             },
         },
@@ -276,6 +272,7 @@ async def graphql_client(dataloader: AsyncMock) -> AsyncMock:
     return cast(AsyncMock, dataloader.graphql_client)
 
 
+@freeze_time("2019-01-01")
 async def test_ldap_to_mo(converter: LdapConverter) -> None:
     employee_uuid = uuid4()
     result = await converter.from_ldap(
@@ -290,7 +287,7 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
         "Employee",
         employee_uuid=employee_uuid,
     )
-    employee = result[0]
+    employee = one(result)
     assert employee.givenname == "Tester"
     assert employee.surname == "Testersen"
     assert employee.uuid == employee_uuid
@@ -299,7 +296,6 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
         LdapObject(
             dn="",
             mail="foo@bar.dk",
-            mail_validity_from=datetime.datetime(2019, 1, 1, 0, 10, 0),
         ),
         "Email",
         employee_uuid=employee_uuid,
@@ -317,7 +313,6 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
         LdapObject(
             dn="",
             mail=[],
-            mail_validity_from=datetime.datetime(2019, 1, 1, 0, 10, 0),
         ),
         "Email",
         employee_uuid=employee_uuid,
@@ -764,7 +759,6 @@ async def test_check_for_primary_specialcase():
                 "user_key": "val",
                 "engagement_type": "val",
                 "person": "val",
-                "validity": "val",
             },
         )
 
@@ -2128,7 +2122,6 @@ async def test_create_facet_class_no_facet() -> None:
 
 @freeze_time("2022-08-10T12:34:56")
 async def test_ldap_to_mo_default_validity(converter: LdapConverter) -> None:
-    del converter.raw_mapping["ldap_to_mo"]["Email"]["validity"]
     await converter._init()
 
     employee_uuid = uuid4()
@@ -2153,21 +2146,16 @@ async def test_ldap_to_mo_default_validity(converter: LdapConverter) -> None:
         "{{ dict(from_date=now()|mo_datestring) }}"
     )
     await converter._init()
-    result = await converter.from_ldap(
-        LdapObject(
-            dn="",
-            mail="foo@bar.dk",
-        ),
-        "Email",
-        employee_uuid=employee_uuid,
-    )
-    mail = one(result)
-    assert mail.value == "foo@bar.dk"
-    assert mail.person.uuid == employee_uuid
-    assert mail.validity.dict() == {
-        "from_date": datetime.datetime(2022, 8, 10, 0, 0, tzinfo=MO_TZ),
-        "to_date": None,
-    }
+    with pytest.raises(AssertionError) as exc_info:
+        await converter.from_ldap(
+            LdapObject(
+                dn="",
+                mail="foo@bar.dk",
+            ),
+            "Email",
+            employee_uuid=employee_uuid,
+        )
+    assert "validity disallowed in ldap2mo mappings" in str(exc_info.value)
 
 
 @freeze_time("2022-08-10")

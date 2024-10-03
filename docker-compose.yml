@@ -101,7 +101,6 @@ services:
                     "_import_to_mo_": "true",
                     "user_key": "{{ ldap.title }}",
                     "itsystem": "{{ dict(uuid=get_it_system_uuid('ADtitle')) }}",
-                    "validity": "{{ dict(from_date=now()|mo_datestring) }}",
                     "person": "{{ dict(uuid=employee_uuid or NONE) }}"
                 },
                 "ADUUID": {
@@ -110,7 +109,6 @@ services:
                     "_terminate_": "{{ now()|mo_datestring if ldap.title == \"WOW\" else NONE }}",
                     "user_key": "{{ ldap.entryUUID }}",
                     "itsystem": "{{ dict(uuid=get_it_system_uuid('ADUUID')) }}",
-                    "validity": "{{ dict(from_date=now()|mo_datestring) }}",
                     "person": "{{ dict(uuid=employee_uuid or NONE) }}"
                 }
             },

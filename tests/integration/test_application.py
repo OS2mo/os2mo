@@ -609,14 +609,6 @@ async def test_mismatched_json_key_and_itsystem(
                         "itsystem": "{{ dict(uuid=get_it_system_uuid('ADUUID')) }}",
                         "person": "{{ dict(uuid=employee_uuid or NONE) }}",
                     },
-                    "SetValidity": {
-                        "objectClass": "ramodels.mo.details.it_system.ITUser",
-                        "_import_to_mo_": "true",
-                        "user_key": "{{ ldap.mail or NONE }}",
-                        "itsystem": "{{ dict(uuid=get_it_system_uuid('ADUUID')) }}",
-                        "person": "{{ dict(uuid=employee_uuid or NONE) }}",
-                        "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-                    },
                 },
                 "mo_to_ldap": {
                     "Employee": {
@@ -628,11 +620,6 @@ async def test_mismatched_json_key_and_itsystem(
                         "objectClass": "inetOrgPerson",
                         "_export_to_ldap_": "false",
                         "entryUUID": "{{ mo_employee_it_user.user_key }}",
-                    },
-                    "SetValidity": {
-                        "objectClass": "inetOrgPerson",
-                        "_export_to_ldap_": "false",
-                        "mail": "{{ mo_employee_it_user.user_key }}",
                     },
                 },
                 "username_generator": {
@@ -678,31 +665,22 @@ async def test_default_validity(
             )
         ).objects
     ]
-    assert len(ituser_uuids) == 2
-    itusers = [
-        ituser.dict()
-        for ituser in (
-            await graphql_client.read_itusers(
-                uuids=ituser_uuids,
-            )
-        ).objects
-    ]
-    assert len(itusers) == 2
+    ituser_uuid = one(ituser_uuids)
+    ituser = one(
+        (await graphql_client.read_itusers(uuids=[ituser_uuid])).objects
+    ).dict()
 
-    assert itusers == [
-        {
-            "validities": [
-                {
-                    "employee_uuid": person_uuid,
-                    "engagement_uuid": None,
-                    "itsystem_uuid": ldap_uuid_itsystem_uuid,
-                    "user_key": ANY,
-                    "validity": {
-                        "from_": datetime.combine(datetime.today(), time(tzinfo=MO_TZ)),
-                        "to": None,
-                    },
-                }
-            ]
-        }
-        for _ in range(2)
-    ]
+    assert ituser == {
+        "validities": [
+            {
+                "employee_uuid": person_uuid,
+                "engagement_uuid": None,
+                "itsystem_uuid": ldap_uuid_itsystem_uuid,
+                "user_key": ANY,
+                "validity": {
+                    "from_": datetime.combine(datetime.today(), time(tzinfo=MO_TZ)),
+                    "to": None,
+                },
+            }
+        ]
+    }

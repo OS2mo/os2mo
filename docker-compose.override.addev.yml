@@ -38,7 +38,6 @@ services:
             "Engagement": {
               "objectClass": "ramodels.mo.details.engagement.Engagement",
               "_import_to_mo_": "true",
-              "validity": "{{ dict(from_date=now()|mo_datestring) }}",
               "person": "{{ dict(uuid=employee_uuid or NONE) }}",
               "user_key": "{{ get_primary_engagement_dict(employee_uuid).user_key }}",
               "engagement_type": "{{ dict(uuid=get_primary_engagement_dict(employee_uuid).engagement_type_uuid) }}",
@@ -54,7 +53,6 @@ services:
               "uuid": "{{ ldap.objectGUID|remove_curly_brackets }}",
               "user_key": "{{ ldap.sAMAccountName }}",
               "itsystem": "{{ dict(uuid=get_it_system_uuid('Active Directory')) }}",
-              "validity": "{{ dict(from_date=now()|mo_datestring) }}",
               "person": "{{ dict(uuid=employee_uuid or NONE) }}"
             }
           },

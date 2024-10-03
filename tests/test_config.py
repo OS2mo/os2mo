@@ -27,7 +27,6 @@ def address_mapping(minimal_mapping: dict) -> dict:
                     "objectClass": "ramodels.mo.details.address.Address",
                     "_import_to_mo_": "true",
                     "value": "{{ldap.mail or NONE}}",
-                    "validity": "{{ dict(from_date = now()|mo_datestring) }}",
                     "address_type": "{{ dict(uuid=get_employee_address_type_uuid('EmailEmployee')) }}",
                     "person": "{{ dict(uuid=employee_uuid or NONE) }}",
                 }

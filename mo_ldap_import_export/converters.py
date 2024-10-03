@@ -607,9 +607,10 @@ class LdapConverter:
 
             # Load our validity default, if it is not set
             missing_attributes = required_attributes - set(mo_dict.keys())
-            # TODO: Once validity has been removed from the config
-            #       Replace this 'if' with an assert instead
-            if "validity" in missing_attributes:
+            if "validity" in required_attributes:
+                assert (
+                    "validity" not in mo_dict
+                ), "validity disallowed in ldap2mo mappings"
                 mo_dict["validity"] = {
                     # TODO: We probably want to use datetime.now(UTC) here, and then
                     #       pass that value all the way through the program till the
