@@ -5,10 +5,13 @@
 # pylint: disable=protected-access
 import asyncio
 import datetime
+import json
+import os
 import re
 import time
 from collections.abc import Collection
 from collections.abc import Iterator
+from functools import partial
 from itertools import repeat
 from typing import Any
 from unittest.mock import AsyncMock
@@ -23,6 +26,8 @@ from fastramqpi.context import Context
 from freezegun import freeze_time
 from httpx import Response
 from ldap3.core.exceptions import LDAPInvalidValueError
+from mergedeep import Strategy  # type: ignore
+from mergedeep import merge
 from more_itertools import flatten
 from more_itertools import one
 from pydantic import BaseModel
@@ -81,6 +86,20 @@ from mo_ldap_import_export.routes import load_ldap_populated_overview
 from mo_ldap_import_export.types import CPRNumber
 from mo_ldap_import_export.types import OrgUnitUUID
 from tests.graphql_mocker import GraphQLMocker
+
+overlay = partial(merge, strategy=Strategy.TYPESAFE_ADDITIVE)
+
+
+def set_employee_export_to_ldap(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(
+        "CONVERSION_MAPPING",
+        json.dumps(
+            overlay(
+                json.loads(os.environ["CONVERSION_MAPPING"]),
+                {"mo_to_ldap": {"Employee": {"_export_to_ldap_": "true"}}},
+            )
+        ),
+    )
 
 
 def gen_ituser(user_key: str) -> ITUser:
@@ -175,11 +194,8 @@ def graphql_client() -> Iterator[AsyncMock]:
 
 
 @pytest.fixture
-def settings(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setenv(
-        "CONVERSION_MAPPING",
-        '{"ldap_to_mo": {}, "mo_to_ldap": {}, "username_generator": {}}',
-    )
+def settings(minimal_mapping: dict[str, Any], monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(minimal_mapping))
     monkeypatch.setenv("CLIENT_ID", "foo")
     monkeypatch.setenv("CLIENT_SECRET", "bar")
     monkeypatch.setenv("LDAP_CONTROLLERS", '[{"host": "0.0.0.0"}]')
@@ -343,7 +359,12 @@ async def test_modify_ldap_employee(
     ldap_connection: MagicMock,
     dataloader: DataLoader,
     ldap_attributes: dict,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    # Hack to override overly mocked settings setup
+    set_employee_export_to_ldap(monkeypatch)
+    dataloader.settings = Settings()
+
     employee = LdapObject(
         dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
         **ldap_attributes,
@@ -405,7 +426,7 @@ async def test_modify_ldap_employee(
         "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_cpr_object",
         return_value=employee,
     ):
-        output = await dataloader.modify_ldap_object(employee, "user")
+        output = await dataloader.modify_ldap_object(employee, "Employee")
 
     assert output == expected
 
@@ -415,7 +436,12 @@ async def test_append_data_to_ldap_object(
     dataloader: DataLoader,
     ldap_attributes: dict,
     cpr_field: str,
+    monkeypatch: pytest.MonkeyPatch,
 ):
+    # Hack to override overly mocked settings setup
+    set_employee_export_to_ldap(monkeypatch)
+    dataloader.settings = Settings()
+
     dataloader.ldap_connection.get_response.return_value = (
         [],
         {"type": "test", "description": "compareTrue"},
@@ -429,7 +455,7 @@ async def test_append_data_to_ldap_object(
 
     dataloader.single_value = {"postalAddress": False, cpr_field: True}
 
-    await dataloader.modify_ldap_object(address, "user")
+    await dataloader.modify_ldap_object(address, "Employee")
 
     changes = {"postalAddress": [("MODIFY_ADD", "foo")]}
     dn = address.dn
@@ -441,7 +467,12 @@ async def test_delete_data_from_ldap_object(
     dataloader: DataLoader,
     ldap_attributes: dict,
     cpr_field: str,
+    monkeypatch: pytest.MonkeyPatch,
 ):
+    # Hack to override overly mocked settings setup
+    set_employee_export_to_ldap(monkeypatch)
+    dataloader.settings = Settings()
+
     dataloader.ldap_connection.get_response.return_value = (
         [],
         {"type": "test", "description": "compareTrue"},
@@ -465,7 +496,7 @@ async def test_delete_data_from_ldap_object(
         }
     }
 
-    await dataloader.modify_ldap_object(address, "user", delete=True)
+    await dataloader.modify_ldap_object(address, "Employee", delete=True)
 
     changes = {"postalAddress": [("MODIFY_DELETE", "foo")]}
     dn = address.dn
@@ -476,7 +507,12 @@ async def test_upload_ldap_object_invalid_value(
     ldap_connection: MagicMock,
     dataloader: DataLoader,
     cpr_field: str,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    # Hack to override overly mocked settings setup
+    set_employee_export_to_ldap(monkeypatch)
+    dataloader.settings = Settings()
+
     dataloader.ldap_connection.get_response.return_value = (
         [],
         {"type": "test", "description": "compareFalse"},
@@ -491,7 +527,7 @@ async def test_upload_ldap_object_invalid_value(
     ldap_connection.modify.side_effect = LDAPInvalidValueError("Invalid value")
 
     with capture_logs() as cap_logs:
-        await dataloader.modify_ldap_object(ldap_object, "user")
+        await dataloader.modify_ldap_object(ldap_object, "Employee")
 
         warnings = [w for w in cap_logs if w["log_level"] == "warning"]
         last_warning_message = str(warnings[-1]["event"])
@@ -508,7 +544,7 @@ async def test_modify_ldap_object_but_export_equals_false(
     )
 
     with capture_logs() as cap_logs:
-        await dataloader.modify_ldap_object(ldap_object, "")
+        await dataloader.modify_ldap_object(ldap_object, "Employee")
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
         assert re.match(

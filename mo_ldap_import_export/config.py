@@ -9,8 +9,10 @@ from typing import Any
 from typing import Literal
 from typing import get_args
 
+import structlog
 from fastramqpi.config import Settings as FastRAMQPISettings
 from fastramqpi.ramqp.config import AMQPConnectionSettings
+from fastramqpi.ramqp.utils import RequeueMessage
 from pydantic import AnyHttpUrl
 from pydantic import BaseModel
 from pydantic import BaseSettings
@@ -24,6 +26,8 @@ from pydantic import validator
 from ramodels.mo.detail import Detail
 
 from .utils import import_class
+
+logger = structlog.stdlib.get_logger()
 
 
 def value_or_default(dicty: dict[str, Any], key: str, default: Any) -> None:
@@ -261,6 +265,23 @@ class MO2LDAPMapping(MappingBaseModel):
 
     objectClass: str
     export_to_ldap: Literal["true", "false", "pause"] = Field(alias="_export_to_ldap_")
+
+    def export_to_ldap_as_bool(self) -> bool:
+        """
+        Returns True, when we need to export this object. Otherwise False
+        """
+        export_flag = self.export_to_ldap.lower()
+
+        match export_flag:
+            case "true":
+                return True
+            case "false":
+                return False
+            case "pause":
+                logger.info("_export_to_ldap_ = 'pause'. Requeueing.")
+                raise RequeueMessage("Export paused, requeueing")
+            case _:  # pragma: no cover
+                raise AssertionError(f"Export flag = '{export_flag}' not recognized")
 
     @validator("export_to_ldap", pre=True)
     def lower_export_to_ldap(cls, v: str) -> str:

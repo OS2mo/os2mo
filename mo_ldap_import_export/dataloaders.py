@@ -644,7 +644,10 @@ class DataLoader:
         delete: bool
             Set to True to delete contents in LDAP, instead of creating/modifying them
         """
-        if not self.converter._export_to_ldap_(json_key):
+        print(self.settings.conversion_mapping)
+        if not self.settings.conversion_mapping.mo_to_ldap[
+            json_key
+        ].export_to_ldap_as_bool():
             logger.info("_export_to_ldap_ == False.", json_key=json_key)
             return []
         success = 0
