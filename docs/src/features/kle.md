@@ -61,7 +61,7 @@ Der er tale om en engangsopgave, så når regnearket er fyldt ud og læst ind, b
 
 ## Vedligeholde KLE-numre i MO
 
-Se [her](https://rammearkitektur.docs.magenta.dk/os2mo/drift-support/manual.html#fanebladet-kle-opmrkninger).
+Se [her](https://rammearkitektur.docs.magenta.dk/os2mo/home/manual.html#fanebladet-kle-opmrkninger).
 
 ## Eksportere KLE-numre fra MO
 
