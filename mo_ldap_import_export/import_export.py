@@ -763,7 +763,8 @@ class SyncTool:
         for all other objects:
             returns the input list of converted_objects
         """
-        mo_class = self.converter.import_mo_object_class(json_key)
+        # We can't infer the type from json_key because of Terminate objects
+        mo_class = one({type(o) for o in converted_objects})
         objects_in_mo: Sequence[MOBase]
 
         # Load addresses already in MO
@@ -945,7 +946,10 @@ class SyncTool:
         for converted_object, matching_object in updates:
             # Convert our objects to dicts
             mo_object_dict_to_upload = matching_object.dict()
-            converted_mo_object_dict = converted_object.dict()
+            # Need to by_alias=True to extract the terminate_ field as its alias,
+            # _terminate_. Only the *intersection* of attribute names from
+            # mo_object_dict_to_upload and converted_mo_object_dict are used.
+            converted_mo_object_dict = converted_object.dict(by_alias=True)
 
             # Update the existing MO object with the converted values
             # NOTE: UUID cannot be updated as it is used to decide what we update

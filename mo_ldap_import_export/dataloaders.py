@@ -1382,6 +1382,8 @@ class DataLoader:
     async def create_or_edit_mo_objects(
         self, objects: list[tuple[MOBase, Verb]]
     ) -> None:
+        # TODO: the TERMINATE verb should definitely be emitted directly in
+        # format_converted_objects instead.
         def fix_verb(obj: MOBase, verb: Verb) -> tuple[MOBase, Verb]:
             if hasattr(obj, "terminate_"):
                 return obj, Verb.TERMINATE

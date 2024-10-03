@@ -3,6 +3,32 @@
 
 # Testing queries
 
+query __testing__address_read($filter: AddressFilter) {
+  addresses(filter: $filter) {
+    objects {
+      validities {
+        uuid
+        user_key
+        address_type {
+          user_key
+        }
+        value
+        value2
+        person {
+          uuid
+        }
+        visibility {
+          user_key
+        }
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}
+
 mutation __testing_user_create($input: EmployeeCreateInput!) {
   employee_create(input: $input) {
     uuid

@@ -9,6 +9,7 @@ from collections.abc import Awaitable
 from collections.abc import Callable
 from collections.abc import Iterator
 from datetime import datetime
+from datetime import time
 from typing import Any
 from typing import cast
 from unittest.mock import AsyncMock
@@ -38,6 +39,7 @@ from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
 from mo_ldap_import_export.types import DN
+from mo_ldap_import_export.utils import MO_TZ
 from tests.graphql_mocker import GraphQLMocker
 
 
@@ -475,3 +477,10 @@ async def purge_ldap(ldap_connection: Connection) -> AsyncIterator[None]:
     await delete_all_dns()
     yield
     await delete_all_dns()
+
+
+@pytest.fixture
+async def mo_today() -> datetime:
+    """Today, in MO-time."""
+    now = datetime.now(tz=MO_TZ)
+    return datetime.combine(now, time.min, now.tzinfo)
