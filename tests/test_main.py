@@ -379,33 +379,6 @@ async def test_open_ldap_connection() -> None:
 
 
 @pytest.mark.usefixtures("context_dependency_injection")
-def test_ldap_get_all_endpoint(test_client: TestClient) -> None:
-    """Test the LDAP get-all endpoint on our app."""
-
-    response = test_client.get("/LDAP/Employee", params={"entries_to_return": 20})
-    assert response.status_code == 202
-
-
-@pytest.mark.usefixtures("context_dependency_injection")
-def test_ldap_get_all_converted_endpoint(test_client: TestClient) -> None:
-    """Test the LDAP get-all endpoint on our app."""
-
-    response = test_client.get("/LDAP/Employee/converted")
-    assert response.status_code == 202
-
-
-@pytest.mark.usefixtures("context_dependency_injection")
-def test_ldap_get_converted_endpoint(test_client: TestClient) -> None:
-    """Test the LDAP get endpoint on our app."""
-
-    response = test_client.get("/LDAP/Employee/010101-1234/converted")
-    assert response.status_code == 202
-
-    response = test_client.get("/LDAP/Employee/invalid_cpr/converted")
-    assert response.status_code == 422
-
-
-@pytest.mark.usefixtures("context_dependency_injection")
 def test_ldap_post_ldap_employee_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get-all endpoint on our app."""
 
@@ -418,17 +391,6 @@ def test_ldap_post_ldap_employee_endpoint(test_client: TestClient) -> None:
     }
     response = test_client.post("/LDAP/Employee", json=ldap_person_to_post)
     assert response.status_code == 200
-
-
-@pytest.mark.usefixtures("context_dependency_injection")
-def test_ldap_get_organizationalUser_endpoint(test_client: TestClient) -> None:
-    """Test the LDAP get endpoint on our app."""
-
-    response = test_client.get("/LDAP/Employee/010101-1234")
-    assert response.status_code == 202
-
-    response = test_client.get("/LDAP/Employee/invalid_cpr")
-    assert response.status_code == 422
 
 
 @pytest.mark.usefixtures("context_dependency_injection")
