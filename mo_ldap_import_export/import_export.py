@@ -1007,7 +1007,9 @@ class SyncTool:
             dns = await self.dataloader.find_mo_employee_dn(employee_uuid)
         else:  # We did not find an employee UUID
             # Check if we wish to create the employee or not
-            create_employee = self.converter._import_to_mo_("Employee", manual_import)
+            create_employee = self.settings.conversion_mapping.ldap_to_mo[
+                "Employee"
+            ].import_to_mo_as_bool(manual_import)
             if not create_employee:
                 # If we do not want to create the employee and it does not exist, there
                 # is no more to be done, as we cannot create dependent resources with no
@@ -1082,7 +1084,9 @@ class SyncTool:
         json_keys = [
             json_key
             for json_key in json_keys
-            if self.converter._import_to_mo_(json_key, manual_import)
+            if self.settings.conversion_mapping.ldap_to_mo[
+                json_key
+            ].import_to_mo_as_bool(manual_import)
         ]
         logger.info("Import to MO filtered", json_keys=json_keys)
 
