@@ -139,6 +139,22 @@ class LDAP2MOMapping(MappingBaseModel):
         description="Jinja template for mapping between LDAP and MO objects",
     )
 
+    def import_to_mo_as_bool(self, manual_import: bool = False) -> bool:
+        """
+        Returns True, when we need to import this object. Otherwise False
+        """
+        import_flag = self.import_to_mo.lower()
+
+        match import_flag:
+            case "true":
+                return True
+            case "manual_import_only":
+                return manual_import
+            case "false":
+                return False
+            case _:  # pragma: no cover
+                raise AssertionError(f"Import flag = '{import_flag}' not recognized")
+
     @validator("import_to_mo", pre=True)
     def lower_import_to_mo(cls, v: str) -> str:
         return v.lower()

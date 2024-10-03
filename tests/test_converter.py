@@ -4,6 +4,7 @@ import datetime
 import json
 import re
 import uuid
+from functools import partial
 from typing import Any
 from typing import cast
 from unittest.mock import AsyncMock
@@ -18,6 +19,8 @@ from fastramqpi.ramqp.utils import RequeueMessage
 from freezegun import freeze_time
 from jinja2 import Environment
 from jinja2 import Undefined
+from mergedeep import Strategy  # type: ignore
+from mergedeep import merge
 from more_itertools import one
 from pydantic import ValidationError
 from pydantic import parse_obj_as
@@ -41,6 +44,7 @@ from mo_ldap_import_export.client_helpers import get_it_system_uuid
 from mo_ldap_import_export.config import ConversionMapping
 from mo_ldap_import_export.config import LDAP2MOMapping
 from mo_ldap_import_export.config import MO2LDAPMapping
+from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.config import check_attributes
 from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.converters import find_cpr_field
@@ -81,6 +85,8 @@ from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
 from mo_ldap_import_export.utils import MO_TZ
 from tests.graphql_mocker import GraphQLMocker
+
+overlay = partial(merge, strategy=Strategy.TYPESAFE_ADDITIVE)
 
 
 @pytest.fixture
@@ -1481,7 +1487,86 @@ def test_check_uuid_refs_in_mo_objects(converter: LdapConverter):
         parse_obj_as(ConversionMapping, converter.raw_mapping)
 
 
-def test_import_to_mo_and_export_to_ldap_(converter: LdapConverter):
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+@pytest.mark.parametrize(
+    "import_to_mo,is_ok",
+    [
+        ("True", True),
+        ("False", True),
+        ("manual_import_only", True),
+        ("manual_import", False),
+        ("ldap_please_import", False),
+        ("car_license_expired", False),
+    ],
+)
+def test_import_to_mo_configuration(
+    minimal_mapping: dict[str, Any],
+    monkeypatch: pytest.MonkeyPatch,
+    import_to_mo: str,
+    is_ok: bool,
+) -> None:
+    monkeypatch.setenv(
+        "CONVERSION_MAPPING",
+        json.dumps(
+            overlay(
+                minimal_mapping,
+                {"ldap_to_mo": {"Employee": {"_import_to_mo_": import_to_mo}}},
+            )
+        ),
+    )
+    if is_ok:
+        Settings()
+    else:
+        with pytest.raises(ValidationError) as exc_info:
+            Settings()
+        expected_strings = [
+            "1 validation error for Settings",
+            "conversion_mapping -> ldap_to_mo -> Employee -> _import_to_mo",
+            "unexpected value; permitted: 'true', 'false', 'manual_import_only'",
+            f"given={import_to_mo}",
+        ]
+        for expected in expected_strings:
+            assert expected in str(exc_info.value)
+
+
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+@pytest.mark.parametrize(
+    "import_to_mo,manual_import,expected",
+    [
+        ("True", False, True),
+        ("True", True, True),
+        ("False", False, False),
+        ("False", True, False),
+        ("manual_import_only", False, False),
+        ("manual_import_only", True, True),
+    ],
+)
+def test_import_to_mo(
+    minimal_mapping: dict[str, Any],
+    monkeypatch: pytest.MonkeyPatch,
+    import_to_mo: str,
+    manual_import: bool,
+    expected: bool,
+) -> None:
+    monkeypatch.setenv(
+        "CONVERSION_MAPPING",
+        json.dumps(
+            overlay(
+                minimal_mapping,
+                {"ldap_to_mo": {"Employee": {"_import_to_mo_": import_to_mo}}},
+            )
+        ),
+    )
+
+    settings = Settings()
+    employee_mapping = settings.conversion_mapping.ldap_to_mo["Employee"]
+
+    assert (
+        employee_mapping.import_to_mo_as_bool(manual_import=manual_import) is expected
+    )
+
+
+def test_export_to_ldap(converter: LdapConverter):
     converter.raw_mapping = {
         "mo_to_ldap": {
             "Employee": {"_export_to_ldap_": "True"},
@@ -1496,15 +1581,6 @@ def test_import_to_mo_and_export_to_ldap_(converter: LdapConverter):
             "Mail": {"_import_to_mo_": "bad_flag"},
         },
     }
-
-    assert converter._import_to_mo_("Employee", manual_import=False) is False
-    assert converter._import_to_mo_("OrgUnit", manual_import=False) is True
-    assert converter._import_to_mo_("Address", manual_import=True) is True
-    assert converter._import_to_mo_("Address", manual_import=False) is False
-
-    with pytest.raises(IncorrectMapping):
-        converter._import_to_mo_("Mail", manual_import=False)
-
     assert converter._export_to_ldap_("Employee") is True
     assert converter._export_to_ldap_("OrgUnit") is False
 

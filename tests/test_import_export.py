@@ -26,6 +26,7 @@ from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 from structlog.testing import capture_logs
 
+from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.dataloaders import Verb
@@ -1053,10 +1054,12 @@ async def test_format_converted_primary_engagement_objects(
 
 
 async def test_import_single_object_no_employee_no_sync(
-    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
+    sync_tool: SyncTool, minimal_valid_settings: Settings
 ) -> None:
-    converter._import_to_mo_.return_value = False
-    dataloader.find_mo_employee_uuid.return_value = None
+    # Note that converter.settings and dataloader.settings are still mocked
+    sync_tool.settings = minimal_valid_settings
+    # Ignore typing since it is actually a mock
+    sync_tool.dataloader.find_mo_employee_uuid.return_value = None  # type: ignore
 
     with capture_logs() as cap_logs:
         await sync_tool.import_single_user("CN=foo")
@@ -1071,9 +1074,10 @@ async def test_import_single_object_no_employee_no_sync(
 
 @pytest.mark.usefixtures("fake_find_mo_employee_dn")
 async def test_import_single_object_from_LDAP_but_import_equals_false(
-    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
+    sync_tool: SyncTool, minimal_valid_settings: Settings
 ) -> None:
-    converter._import_to_mo_.return_value = False
+    # Note that converter.settings and dataloader.settings are still mocked
+    sync_tool.settings = minimal_valid_settings
 
     with capture_logs() as cap_logs:
         await sync_tool.import_single_user("CN=foo")
