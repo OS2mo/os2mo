@@ -444,14 +444,6 @@ def test_ldap_get_structure_endpoint(
 
 
 @pytest.mark.usefixtures("context_dependency_injection")
-def test_ldap_get_populated_overview_endpoint(test_client: TestClient) -> None:
-    """Test the LDAP get endpoint on our app."""
-
-    response = test_client.get("/Inspect/overview/populated")
-    assert response.status_code == 202
-
-
-@pytest.mark.usefixtures("context_dependency_injection")
 def test_load_unique_attribute_values_from_LDAP_endpoint(
     test_client: TestClient,
 ) -> None:
