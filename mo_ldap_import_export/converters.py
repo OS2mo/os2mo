@@ -15,7 +15,6 @@ from uuid import uuid4
 
 import pydantic
 import structlog
-from fastramqpi.ramqp.utils import RequeueMessage
 from jinja2 import Environment
 from jinja2 import Template
 from ldap3.utils.ciDict import CaseInsensitiveDict
@@ -143,18 +142,6 @@ class LdapConverter:
             self.dataloader.graphql_client, self.settings, self.mapping
         )
         await self.check_mapping(mapping)
-
-    def _export_to_ldap_(self, json_key):
-        """
-        Returns True, when we need to export this json key. Otherwise False
-        """
-        export_flag = self.raw_mapping["mo_to_ldap"][json_key][
-            "_export_to_ldap_"
-        ].lower()
-        if export_flag == "pause":
-            logger.info("_export_to_ldap_ = 'pause'. Requeueing.")
-            raise RequeueMessage()
-        return export_flag == "true"
 
     def find_object_class(self, json_key, conversion):
         mapping = self.raw_mapping[conversion]

@@ -1566,26 +1566,82 @@ def test_import_to_mo(
     )
 
 
-def test_export_to_ldap(converter: LdapConverter):
-    converter.raw_mapping = {
-        "mo_to_ldap": {
-            "Employee": {"_export_to_ldap_": "True"},
-            "OrgUnit": {"_export_to_ldap_": "False"},
-            "Address": {"_export_to_ldap_": "False"},
-            "Mail": {"_export_to_ldap_": "Pause"},
-        },
-        "ldap_to_mo": {
-            "Employee": {"_import_to_mo_": "False"},
-            "OrgUnit": {"_import_to_mo_": "True"},
-            "Address": {"_import_to_mo_": "manual_import_only"},
-            "Mail": {"_import_to_mo_": "bad_flag"},
-        },
-    }
-    assert converter._export_to_ldap_("Employee") is True
-    assert converter._export_to_ldap_("OrgUnit") is False
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+@pytest.mark.parametrize(
+    "export_to_ldap,is_ok",
+    [
+        ("True", True),
+        ("False", True),
+        ("pause", True),
+        ("halt", False),
+        ("ldap_please_export", False),
+        ("car_license_expired", False),
+    ],
+)
+def test_export_to_ldap_configuration(
+    minimal_mapping: dict[str, Any],
+    monkeypatch: pytest.MonkeyPatch,
+    export_to_ldap: str,
+    is_ok: bool,
+) -> None:
+    monkeypatch.setenv(
+        "CONVERSION_MAPPING",
+        json.dumps(
+            overlay(
+                minimal_mapping,
+                {"mo_to_ldap": {"Employee": {"_export_to_ldap_": export_to_ldap}}},
+            )
+        ),
+    )
+    if is_ok:
+        Settings()
+    else:
+        with pytest.raises(ValidationError) as exc_info:
+            Settings()
+        expected_strings = [
+            "1 validation error for Settings",
+            "conversion_mapping -> mo_to_ldap -> Employee -> _export_to_ldap",
+            "unexpected value; permitted: 'true', 'false', 'pause'",
+            f"given={export_to_ldap}",
+        ]
+        for expected in expected_strings:
+            assert expected in str(exc_info.value)
 
-    with pytest.raises(RequeueMessage):
-        converter._export_to_ldap_("Mail")
+
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+@pytest.mark.parametrize(
+    "export_to_ldap,expected",
+    [
+        ("True", True),
+        ("False", False),
+        ("pause", RequeueMessage),
+    ],
+)
+def test_export_to_ldap(
+    minimal_mapping: dict[str, Any],
+    monkeypatch: pytest.MonkeyPatch,
+    export_to_ldap: str,
+    expected: bool | type[Exception],
+) -> None:
+    monkeypatch.setenv(
+        "CONVERSION_MAPPING",
+        json.dumps(
+            overlay(
+                minimal_mapping,
+                {"mo_to_ldap": {"Employee": {"_export_to_ldap_": export_to_ldap}}},
+            )
+        ),
+    )
+
+    settings = Settings()
+    employee_mapping = settings.conversion_mapping.mo_to_ldap["Employee"]
+
+    if isinstance(expected, bool):
+        assert employee_mapping.export_to_ldap_as_bool() is expected
+    else:
+        with pytest.raises(expected) as exc_info:
+            employee_mapping.export_to_ldap_as_bool()
+        assert "Export paused, requeueing" in str(exc_info.value)
 
 
 @pytest.mark.parametrize(
