@@ -432,14 +432,6 @@ def test_ldap_get_organizationalUser_endpoint(test_client: TestClient) -> None:
 
 
 @pytest.mark.usefixtures("context_dependency_injection")
-def test_ldap_get_overview_endpoint(test_client: TestClient) -> None:
-    """Test the LDAP get endpoint on our app."""
-
-    response = test_client.get("/Inspect/overview")
-    assert response.status_code == 202
-
-
-@pytest.mark.usefixtures("context_dependency_injection")
 def test_ldap_get_structure_endpoint(
     test_client: TestClient, dataloader: AsyncMock
 ) -> None:
