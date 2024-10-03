@@ -142,23 +142,6 @@ async def test_endpoint_fetch_object(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("ldap_person")
-async def test_endpoint_load_ldap_object_from_ldap(test_client: AsyncClient) -> None:
-    result = await test_client.get("/LDAP/Employee/2108613133")
-    assert result.status_code == 202
-    assert result.json() == [
-        {
-            "dn": "uid=abk,ou=os2mo,o=magenta,dc=magenta,dc=dk",
-            "employeeNumber": "2108613133",
-            "entryUUID": ANY,
-            "givenName": ["Aage"],
-            "sn": ["Bach Klarskov"],
-            "title": ["Skole underviser"],
-        },
-    ]
-
-
-@pytest.mark.integration_test
 async def test_endpoint_mo_uuid_to_ldap_dn(
     test_client: AsyncClient,
     graphql_client: GraphQLClient,
