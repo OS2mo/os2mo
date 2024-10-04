@@ -69,6 +69,7 @@ from .ldap import object_search
 from .ldap import paged_search
 from .ldap import single_object_search
 from .ldap_classes import LdapObject
+from .moapi import MOAPI
 from .types import DN
 from .types import CPRNumber
 from .types import OrgUnitUUID
@@ -186,6 +187,10 @@ class DataLoader:
         ]
         self.create_mo_class_lock = asyncio.Lock()
         self.amqpsystem: MOAMQPSystem = amqpsystem
+
+    @property
+    def moapi(self) -> MOAPI:
+        return MOAPI(self.graphql_client)
 
     @property
     def graphql_client(self) -> GraphQLClient:
@@ -704,17 +709,6 @@ class DataLoader:
         result = await self.graphql_client.read_employee_uuid_by_cpr_number(cpr_number)
         return {employee.uuid for employee in result.objects}
 
-    async def find_mo_employee_uuid_via_ituser(self, dn: str) -> set[UUID]:
-        unique_uuid = await self.get_ldap_unique_ldap_uuid(dn)
-        result = await self.graphql_client.read_employee_uuid_by_ituser_user_key(
-            str(unique_uuid)
-        )
-        return {
-            ituser.current.employee_uuid
-            for ituser in result.objects
-            if ituser.current is not None and ituser.current.employee_uuid is not None
-        }
-
     async def find_mo_employee_uuid(self, dn: str) -> UUID | None:
         cpr_results = await self.find_mo_employee_uuid_via_cpr_number(dn)
         if len(cpr_results) == 1:
@@ -722,7 +716,8 @@ class DataLoader:
             logger.info("Found employee via CPR matching", dn=dn, uuid=uuid)
             return uuid
 
-        ituser_results = await self.find_mo_employee_uuid_via_ituser(dn)
+        unique_uuid = await self.get_ldap_unique_ldap_uuid(dn)
+        ituser_results = await self.moapi.find_mo_employee_uuid_via_ituser(unique_uuid)
         if len(ituser_results) == 1:
             uuid = one(ituser_results)
             logger.info("Found employee via ITUser matching", dn=dn, uuid=uuid)
