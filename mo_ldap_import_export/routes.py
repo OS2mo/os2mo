@@ -39,6 +39,7 @@ from .dataloaders import DataLoader
 from .exceptions import InvalidCPR
 from .ldap import get_attribute_types
 from .ldap import get_ldap_attributes
+from .ldap import get_ldap_object
 from .ldap import get_ldap_schema
 from .ldap import get_ldap_superiors
 from .ldap import make_ldap_object
@@ -370,16 +371,23 @@ def construct_router(settings: Settings) -> APIRouter:
 
     @router.get("/Inspect/dn/{dn}", status_code=200, tags=["LDAP"])
     async def ldap_fetch_object_by_dn(
-        dataloader: depends.DataLoader, dn: str, nest: bool = False
+        ldap_connection: depends.Connection, dn: str, nest: bool = False
     ) -> Any:
-        return encode_result(await dataloader.load_ldap_object(dn, ["*"], nest=nest))
+        return encode_result(
+            await get_ldap_object(ldap_connection, dn, ["*"], nest=nest)
+        )
 
     @router.get("/Inspect/uuid/{uuid}", status_code=200, tags=["LDAP"])
     async def ldap_fetch_object_by_uuid(
-        dataloader: depends.DataLoader, uuid: UUID, nest: bool = False
+        dataloader: depends.DataLoader,
+        ldap_connection: depends.Connection,
+        uuid: UUID,
+        nest: bool = False,
     ) -> Any:
         dn = await dataloader.get_ldap_dn(uuid)
-        return encode_result(await dataloader.load_ldap_object(dn, ["*"], nest=nest))
+        return encode_result(
+            await get_ldap_object(ldap_connection, dn, ["*"], nest=nest)
+        )
 
     @router.get("/Inspect/mo2ldap/{uuid}", status_code=200, tags=["LDAP"])
     async def mo2ldap_templating(sync_tool: depends.SyncTool, uuid: UUID) -> Any:

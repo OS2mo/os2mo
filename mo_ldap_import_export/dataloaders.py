@@ -270,16 +270,6 @@ class DataLoader:
                 f"'{attribute}' not found in 'mo_to_ldap' attributes"
             )
 
-    async def load_ldap_object(
-        self,
-        dn: DN,
-        attributes: list | None,
-        nest: bool = True,
-    ) -> LdapObject:  # pragma: no cover
-        # TODO: Actually eliminate this function by calling get_ldap_object directly.
-        #       Be warned though, doing so breaks ~25 tests because of bad mocking.
-        return await get_ldap_object(self.ldap_connection, dn, attributes, nest)
-
     async def load_ldap_cpr_object(
         self,
         cpr_no: CPRNumber,
@@ -698,7 +688,7 @@ class DataLoader:
         if self.cpr_field is None:
             return set()
 
-        ldap_object = await self.load_ldap_object(dn, [self.cpr_field])
+        ldap_object = await get_ldap_object(self.ldap_connection, dn, [self.cpr_field])
         # Try to get the cpr number from LDAP and use that.
         try:
             raw_cpr_no = getattr(ldap_object, self.cpr_field)
@@ -801,8 +791,8 @@ class DataLoader:
         Given a DN, find the unique_ldap_uuid
         """
         logger.info("Looking for LDAP object", dn=dn)
-        ldap_object = await self.load_ldap_object(
-            dn, [self.settings.ldap_unique_id_field]
+        ldap_object = await get_ldap_object(
+            self.ldap_connection, dn, [self.settings.ldap_unique_id_field]
         )
         uuid = getattr(ldap_object, self.settings.ldap_unique_id_field)
         if not uuid:
