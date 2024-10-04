@@ -361,9 +361,7 @@ class DataLoader:
 
     async def modify_ldap(
         self,
-        operation: Literal[
-            "MODIFY_ADD", "MODIFY_DELETE", "MODIFY_REPLACE", "MODIFY_INCREMENT"
-        ],
+        operation: Literal["MODIFY_DELETE", "MODIFY_REPLACE", "MODIFY_INCREMENT"],
         dn: str,
         attribute: str,
         value: list[str] | str,
@@ -413,7 +411,6 @@ class DataLoader:
         logger.info("LDAP Result", result=result, dn=dn)
         return result
 
-    add_ldap = partialmethod(modify_ldap, "MODIFY_ADD")
     delete_ldap = partialmethod(modify_ldap, "MODIFY_DELETE")
     replace_ldap = partialmethod(modify_ldap, "MODIFY_REPLACE")
 

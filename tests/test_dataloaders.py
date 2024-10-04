@@ -431,37 +431,6 @@ async def test_modify_ldap_employee(
     assert output == expected
 
 
-async def test_append_data_to_ldap_object(
-    ldap_connection: MagicMock,
-    dataloader: DataLoader,
-    ldap_attributes: dict,
-    cpr_field: str,
-    monkeypatch: pytest.MonkeyPatch,
-):
-    # Hack to override overly mocked settings setup
-    set_employee_export_to_ldap(monkeypatch)
-    dataloader.settings = Settings()
-
-    dataloader.ldap_connection.get_response.return_value = (
-        [],
-        {"type": "test", "description": "compareTrue"},
-    )
-
-    address = LdapObject(
-        dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
-        postalAddress="foo",
-        **{cpr_field: "123"},
-    )
-
-    dataloader.single_value = {"postalAddress": False, cpr_field: True}
-
-    await dataloader.modify_ldap_object(address, "Employee")
-
-    changes = {"postalAddress": [("MODIFY_ADD", "foo")]}
-    dn = address.dn
-    assert ldap_connection.modify.called_once_with(dn, changes)
-
-
 async def test_delete_data_from_ldap_object(
     ldap_connection: MagicMock,
     dataloader: DataLoader,
@@ -1537,7 +1506,7 @@ async def test_modify_ldap_ou_not_in_ous_to_write_to(
     dataloader.ou_in_ous_to_write_to.return_value = False
 
     assert (
-        await dataloader.modify_ldap("MODIFY_ADD", "CN=foo", "attribute", "value")
+        await dataloader.modify_ldap("MODIFY_REPLACE", "CN=foo", "attribute", "value")
         is None
     )  # type: ignore
 
