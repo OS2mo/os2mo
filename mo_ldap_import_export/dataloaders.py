@@ -751,50 +751,6 @@ class DataLoader:
         logger.info("No matching employee", dn=dn)
         return None
 
-    async def find_mo_engagement_uuid(self, dn: DN) -> None | UUID:
-        # Get Unique LDAP UUID from DN, then get engagement by looking for IT user with that
-        # Unique LDAP UUID in MO.
-
-        ldap_object = await self.load_ldap_object(
-            dn, [self.settings.ldap_unique_id_field]
-        )
-        raw_unique_uuid = getattr(ldap_object, self.settings.ldap_unique_id_field)
-        # NOTE: Not sure if this only necessary for the mocked server or not
-        if isinstance(raw_unique_uuid, list):  # pragma: no cover
-            raw_unique_uuid = one(raw_unique_uuid)
-        unique_uuid = str(UUID(raw_unique_uuid))
-
-        itsystem_uuid = await self.get_ldap_it_system_uuid()
-        if itsystem_uuid is None:
-            logger.info(
-                "Could not find engagement UUID for DN",
-                dn=dn,
-                unique_ldap_uuid=unique_uuid,
-                itsystem_uuid=itsystem_uuid,
-            )
-            return None
-
-        result = await self.graphql_client.read_engagement_uuid_by_ituser_user_key(
-            unique_uuid, UUID(itsystem_uuid)
-        )
-        engagement_uuids = {
-            ituser.current.engagement_uuid
-            for ituser in result.objects
-            if ituser.current is not None
-        }
-        engagement_uuid = only(engagement_uuids)
-        if engagement_uuid is None:
-            logger.info(
-                "Could not find engagement UUID for DN",
-                dn=dn,
-                unique_ldap_uuid=unique_uuid,
-                itsystem_uuid=itsystem_uuid,
-                engagement_uuid=engagement_uuid,
-            )
-            return None
-
-        return engagement_uuid
-
     async def get_ldap_it_system_uuid(self) -> str | None:
         """
         Return the IT system uuid belonging to the LDAP-it-system
@@ -989,6 +945,7 @@ class DataLoader:
         )
         return set()
 
+    # TODO: move to synctool
     async def make_mo_employee_dn(self, uuid: UUID) -> DN:
         employee = await self.load_mo_employee(uuid)
         if employee is None:
