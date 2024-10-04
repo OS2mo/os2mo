@@ -1266,33 +1266,6 @@ async def test_get_it_system_uuid(
     assert route.called
 
 
-async def test_check_ldap_to_mo_references(converter: LdapConverter):
-    converter.raw_mapping = {
-        "ldap_to_mo": {
-            "Employee": {"active": True, "name": "{{ ldap.nonExistingAttribute}}"}
-        }
-    }
-
-    with (
-        patch(
-            "mo_ldap_import_export.converters.LdapConverter.get_ldap_to_mo_json_keys",
-            return_value=["Employee"],
-        ),
-        patch(
-            "mo_ldap_import_export.converters.LdapConverter.find_ldap_object_class",
-            return_value="user",
-        ),
-    ):
-        with pytest.raises(ExceptionGroup) as exc_info:
-            overview = converter.dataloader.load_ldap_overview()
-            converter.check_ldap_to_mo_references(overview)
-        assert "check_attributes failed" in str(exc_info.value)
-
-        inner_exception = one(exc_info.value.exceptions)
-        assert isinstance(inner_exception, IncorrectMapping)
-        assert "Attribute 'nonExistingAttribute' not allowed." in str(inner_exception)
-
-
 async def test_create_org_unit_already_exists(
     graphql_mock: GraphQLMocker, converter: LdapConverter
 ) -> None:

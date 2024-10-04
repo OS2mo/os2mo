@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import json
 import re
-import string
 from collections import ChainMap
 from collections.abc import MutableMapping
 from datetime import datetime
@@ -141,7 +140,7 @@ class LdapConverter:
         self.ldap_it_system = await find_ldap_it_system(
             self.dataloader.graphql_client, self.settings, self.mapping
         )
-        await self.check_mapping(mapping)
+        await self.check_mapping()
 
     def find_object_class(self, json_key, conversion):
         mapping = self.raw_mapping[conversion]
@@ -363,31 +362,6 @@ class LdapConverter:
                         f"{matching_multi_value_attributes}, which is not allowed"
                     )
 
-    def check_ldap_to_mo_references(self, overview):
-        # https://ff1959.wordpress.com/2012/03/04/characters-that-are-permitted-in-
-        # attribute-names-descriptors/
-        # The only characters that are permitted in attribute names are ALPHA, DIGIT,
-        # and HYPHEN (‘-’). Underscores ‘_’ are not permitted.
-        valid_chars = string.ascii_letters + string.digits + "-"
-        invalid_chars = "".join([s for s in string.punctuation if s not in valid_chars])
-        invalid_chars_regex = rf"[{invalid_chars}\s]\s*"
-
-        raw_mapping = self.raw_mapping["ldap_to_mo"]
-        for json_key in self.get_ldap_to_mo_json_keys():
-            object_class = self.find_ldap_object_class(json_key)
-            accepted_attributes = sorted(
-                list(overview[object_class]["attributes"].keys()) + ["dn"]
-            )
-            for value in raw_mapping[json_key].values():
-                if not isinstance(value, str):
-                    continue
-                if "ldap." in value:
-                    ldap_refs = value.split("ldap.")[1:]
-
-                    for ldap_ref in ldap_refs:
-                        ldap_attribute = re.split(invalid_chars_regex, ldap_ref)[0]
-                        self.check_attributes([ldap_attribute], accepted_attributes)
-
     def check_cpr_field_or_it_system(self):
         """
         Check that we have either a cpr-field OR an it-system which maps to an LDAP DN
@@ -397,7 +371,7 @@ class LdapConverter:
                 "Neither a cpr-field or an ldap it-system could be found"
             )
 
-    async def check_mapping(self, mapping: dict[str, Any]) -> None:
+    async def check_mapping(self) -> None:
         """Check if the configured mapping is valid.
 
         Args:
@@ -413,9 +387,6 @@ class LdapConverter:
 
         # check that the LDAP attributes match what is available in LDAP
         await self.check_ldap_attributes(overview, self.dataloader.graphql_client)
-
-        # Check that fields referred to in ldap_to_mo actually exist in LDAP
-        self.check_ldap_to_mo_references(overview)
 
         # Check to see if there is an existing link between LDAP and MO
         self.check_cpr_field_or_it_system()
