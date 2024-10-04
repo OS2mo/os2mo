@@ -102,30 +102,6 @@ def get_required_attributes(mo_class) -> set[str]:
     return set(mo_class.schema()["required"])
 
 
-# TODO: How does this function correlate with the converter one
-def check_attributes(
-    detected_attributes: set[str], accepted_attributes: set[str]
-) -> None:
-    unacceptable_attributes = detected_attributes - accepted_attributes
-    # SAM Account Name is specifically allowed
-    # TODO: Why?
-    unacceptable_attributes.discard("sAMAccountName")
-    # All extensionAttributes and special attributes are allowed
-    # TODO: Why?
-    unacceptable_attributes = {
-        attribute
-        for attribute in unacceptable_attributes
-        if not attribute.startswith("extensionAttribute")
-        and not attribute.startswith("msDS-cloudExtensionAttribute")
-        and not attribute.startswith("__")
-    }
-    if unacceptable_attributes:
-        raise ValueError(
-            f"Attributes {unacceptable_attributes} are not allowed. "
-            f"The following attributes are allowed: {accepted_attributes}"
-        )
-
-
 class LDAP2MOMapping(MappingBaseModel):
     class Config:
         extra = Extra.allow
@@ -242,7 +218,12 @@ class LDAP2MOMapping(MappingBaseModel):
         if "validity" in detected_attributes:
             raise ValueError("'validity' cannot be set on the ldap_to_mo mapping")
 
-        check_attributes(detected_attributes, accepted_attributes)
+        superfluous_attributes = detected_attributes - accepted_attributes
+        if superfluous_attributes:
+            raise ValueError(
+                f"Attributes {superfluous_attributes} are not allowed. "
+                f"The following attributes are allowed: {accepted_attributes}"
+            )
 
         required_attributes = get_required_attributes(mo_class)
         if values["objectClass"] == "ramodels.mo.details.engagement.Engagement":

@@ -44,7 +44,6 @@ from mo_ldap_import_export.config import ConversionMapping
 from mo_ldap_import_export.config import LDAP2MOMapping
 from mo_ldap_import_export.config import MO2LDAPMapping
 from mo_ldap_import_export.config import Settings
-from mo_ldap_import_export.config import check_attributes
 from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
@@ -570,80 +569,6 @@ async def test_get_ldap_attributes_dn_removed(context: Context) -> None:
 def test_get_mo_attributes(converter: LdapConverter) -> None:
     attributes = set(converter.get_mo_attributes("Employee"))
     assert attributes == {"uuid", "cpr_no", "surname", "givenname"}
-
-
-def test_check_converter_attributes(converter: LdapConverter):
-    # One illegal attribute
-    detected_attributes = ["foo", "bar"]
-    accepted_attributes = ["bar"]
-
-    with pytest.raises(ExceptionGroup) as exc_info:
-        converter.check_attributes(detected_attributes, accepted_attributes)
-    assert "check_attributes failed" in str(exc_info.value)
-
-    inner_exception = one(exc_info.value.exceptions)
-    assert isinstance(inner_exception, IncorrectMapping)
-    assert "Attribute 'foo' not allowed." in str(inner_exception)
-
-    # Two illegal attributes
-    detected_attributes = ["foo", "bar", "baz"]
-
-    with pytest.raises(ExceptionGroup) as exc_info:
-        converter.check_attributes(detected_attributes, accepted_attributes)
-    assert "check_attributes failed" in str(exc_info.value)
-
-    exceptions = exc_info.value.exceptions
-    assert len(exceptions) == 2
-    assert isinstance(exceptions[0], IncorrectMapping)
-    assert isinstance(exceptions[1], IncorrectMapping)
-
-    # Legal attributes
-    detected_attributes = ["bar", "extensionAttribute14", "sAMAccountName"]
-    converter.check_attributes(detected_attributes, accepted_attributes)
-
-
-def test_check_attributes():
-    detected_attributes = {"foo", "bar"}
-    accepted_attributes = {"bar"}
-
-    with pytest.raises(ValueError):
-        check_attributes(detected_attributes, accepted_attributes)
-
-    detected_attributes = {"bar", "extensionAttribute14", "sAMAccountName"}
-    accepted_attributes = {"bar"}
-    check_attributes(detected_attributes, accepted_attributes)
-
-
-def test_converter_check_attributes_dialect_specific(converter: LdapConverter) -> None:
-    accepted_attributes: set[str] = set()
-
-    # Got entry UUID
-    detected_attributes = {"entryUUID"}
-
-    converter.settings.ldap_dialect = "Standard"  # type: ignore
-    converter.check_attributes(detected_attributes, accepted_attributes)
-
-    with pytest.raises(ExceptionGroup) as exc_info:
-        converter.settings.ldap_dialect = "AD"  # type: ignore
-        converter.check_attributes(detected_attributes, accepted_attributes)
-    assert "check_attributes failed" in str(exc_info.value)
-    exception = one(exc_info.value.exceptions)
-    assert isinstance(exception, IncorrectMapping)
-    assert "Attribute 'entryUUID' not allowed." in str(exception)
-
-    # Got sAMAccountName
-    detected_attributes = {"sAMAccountName"}
-
-    with pytest.raises(ExceptionGroup) as exc_info:
-        converter.settings.ldap_dialect = "Standard"  # type: ignore
-        converter.check_attributes(detected_attributes, accepted_attributes)
-    assert "check_attributes failed" in str(exc_info.value)
-    exception = one(exc_info.value.exceptions)
-    assert isinstance(exception, IncorrectMapping)
-    assert "Attribute 'sAMAccountName' not allowed." in str(exception)
-
-    converter.settings.ldap_dialect = "AD"  # type: ignore
-    converter.check_attributes(detected_attributes, accepted_attributes)
 
 
 def test_minimum() -> None:
