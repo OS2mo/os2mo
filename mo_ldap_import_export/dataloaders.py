@@ -190,7 +190,6 @@ class DataLoader:
             "legacy_model_client"
         ]
         self.attribute_types = get_attribute_types(self.ldap_connection)
-        self.single_value = {k: v.single_value for k, v in self.attribute_types.items()}
         self.create_mo_class_lock = asyncio.Lock()
         self.amqpsystem: MOAMQPSystem = amqpsystem
 
@@ -712,7 +711,6 @@ class DataLoader:
             # decoded syntax tuple structure: (oid, kind, name, docs)
             syntax_decoded = oid.decode_syntax(syntax)
             details_dict = {
-                "single_value": self.attribute_types[attribute].single_value,
                 "syntax": syntax,
             }
             if syntax_decoded:

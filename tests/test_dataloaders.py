@@ -264,8 +264,6 @@ def context(
 def get_attribute_types() -> dict:
     attr1_mock = MagicMock()
     attr2_mock = MagicMock()
-    attr1_mock.single_value = False
-    attr2_mock.single_value = True
     attr1_mock.syntax = "1.3.6.1.4.1.1466.115.121.1.7"  # Boolean
     attr2_mock.syntax = "1.3.6.1.4.1.1466.115.121.1.27"  # Integer
     return {
@@ -454,8 +452,6 @@ async def test_delete_data_from_ldap_object(
         **{cpr_field: "123"},
     )
 
-    dataloader.single_value = {"postalAddress": False, cpr_field: True}
-
     # Note: 'sharedValue' won't be deleted because it is shared with another ldap object
     converter = dataloader.user_context["converter"]
     converter.mapping = {
@@ -601,9 +597,6 @@ async def test_make_overview_entry(dataloader: DataLoader):
     assert list(entry["attributes"].keys()) == ["attr1", "attr2"]
     assert entry["superiors"] == superiors
 
-    assert entry["attributes"]["attr1"]["single_value"] is False
-    assert entry["attributes"]["attr2"]["single_value"] is True
-
     assert entry["attributes"]["attr1"]["field_type"] == "Boolean"
     assert entry["attributes"]["attr2"]["field_type"] == "Integer"
 
@@ -630,8 +623,6 @@ async def test_get_overview(dataloader: DataLoader):
 
     assert list(output["object1"]["attributes"].keys()) == ["attr1", "attr2"]
     assert output["object1"]["superiors"] == ["sup1", "sup2"]
-    assert output["object1"]["attributes"]["attr1"]["single_value"] is False
-    assert output["object1"]["attributes"]["attr2"]["single_value"] is True
 
     assert output["object1"]["attributes"]["attr1"]["field_type"] == "Boolean"
     assert output["object1"]["attributes"]["attr2"]["field_type"] == "Integer"
@@ -675,7 +666,6 @@ async def test_get_populated_overview(dataloader: DataLoader):
         ["attr1", "objectClass"]
     )
     assert output["user"]["superiors"] == ["sup1", "sup2"]
-    assert output["user"]["attributes"]["attr1"]["single_value"] is False
 
 
 @pytest.mark.parametrize(

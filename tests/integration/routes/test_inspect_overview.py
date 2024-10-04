@@ -30,7 +30,6 @@ async def test_inspect_overview(test_client: AsyncClient) -> None:
     # Check a single attribute has the details we expect
     assert result["attributes"]["carLicense"] == {
         "field_type": "Directory String",
-        "single_value": False,
         "syntax": "1.3.6.1.4.1.1466.115.121.1.15",
     }
 
@@ -61,6 +60,5 @@ async def test_inspect_overview_organizational_unit(test_client: AsyncClient) ->
     # Check a single attribute has the details we expect
     assert result["attributes"]["businessCategory"] == {
         "field_type": "Directory String",
-        "single_value": False,
         "syntax": "1.3.6.1.4.1.1466.115.121.1.15",
     }

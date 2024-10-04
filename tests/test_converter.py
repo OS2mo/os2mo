@@ -195,22 +195,7 @@ def context(
         },
     )
 
-    dataloader.single_value = {
-        "givenName": True,
-        "sn": True,
-        "displayName": True,
-        "name": True,
-        "dn": True,
-        "employeeID": True,
-        "postalAddress": False,
-        "mail": True,
-        "msSFU30Name": True,
-        "itSystemName": True,
-    }
-
-    attribute_dict = {
-        a: {"single_value": dataloader.single_value[a]} for a in dataloader.single_value
-    }
+    attribute_dict: dict[str, bool] = {}
 
     overview = {"user": {"attributes": attribute_dict}}
     dataloader.load_ldap_overview = MagicMock()
