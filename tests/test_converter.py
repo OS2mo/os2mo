@@ -46,7 +46,6 @@ from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
-from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.environments import _create_facet_class
 from mo_ldap_import_export.environments import clean_org_unit_path_string
@@ -335,25 +334,45 @@ async def test_ldap_to_mo_dict_error(converter: LdapConverter) -> None:
         )
 
 
-async def test_ldap_to_mo_dict_validation_error(converter: LdapConverter) -> None:
-    converter.import_mo_object_class = MagicMock()  # type: ignore
-    converter.import_mo_object_class.return_value = JobTitleFromADToMO
-
-    converter.mapping = converter._populate_mapping_with_templates(
-        {
-            "ldap_to_mo": {
-                "Custom": {
-                    "objectClass": "Custom.JobTitleFromADToMO",
-                    "_import_to_mo_": "true",
-                    "user": "{{ dict(uuid=(ldap.hkStsuuid)) }}",
-                    "job_function": f"{{ dict(uuid={uuid4()}) }}",
-                    "job_function_fallback": f"{{ dict(uuid={uuid4()}) }}",
-                    "uuid": "{{ employee_uuid or NONE }}",
-                }
-            }
+async def test_ldap_to_mo_dict_validation_error(
+    monkeypatch: pytest.MonkeyPatch, context: Context
+) -> None:
+    mapping = {
+        "ldap_to_mo": {
+            "Employee": {
+                "objectClass": "ramodels.mo.employee.Employee",
+                "_import_to_mo_": "True",
+                "cpr_no": "{{ldap.employeeID or None}}",
+                "uuid": "{{ employee_uuid or NONE }}",
+            },
+            "Custom": {
+                "objectClass": "Custom.JobTitleFromADToMO",
+                "_import_to_mo_": "true",
+                "user": "{{ dict(uuid=(ldap.hkStsuuid)) }}",
+                "job_function": f"{{ dict(uuid={uuid4()}) }}",
+                "job_function_fallback": f"{{ dict(uuid={uuid4()}) }}",
+                "uuid": "{{ employee_uuid or NONE }}",
+            },
         },
-        Environment(undefined=Undefined, enable_async=True),
-    )
+        "mo_to_ldap": {
+            "Employee": {
+                "objectClass": "user",
+                "_export_to_ldap_": "True",
+                "employeeID": "{{mo_employee.cpr_no or None}}",
+            },
+            "Custom": {
+                "objectClass": "user",
+                "_export_to_ldap_": "True",
+            },
+        },
+    }
+    monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
+    settings = Settings()
+    raw_mapping = settings.conversion_mapping.dict(exclude_unset=True, by_alias=True)
+    dataloader = context["user_context"]["dataloader"]
+
+    converter = LdapConverter(settings, raw_mapping, dataloader)
+    await converter._init()
 
     with capture_logs() as cap_logs:
         await converter.from_ldap(
