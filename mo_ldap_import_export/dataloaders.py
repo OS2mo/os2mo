@@ -628,7 +628,6 @@ class DataLoader:
         self,
         object_to_modify: LdapObject,
         json_key: str,
-        overwrite: bool = True,
         delete: bool = False,
     ) -> list[dict]:
         """
@@ -639,8 +638,6 @@ class DataLoader:
         json_key : str
             json key to upload. e.g. 'Employee' or 'Engagement' or another key present
             in the json dictionary.
-        overwrite: bool
-            Set to True to overwrite contents in LDAP
         delete: bool
             Set to True to delete contents in LDAP, instead of creating/modifying them
         """
@@ -683,13 +680,7 @@ class DataLoader:
             value = getattr(object_to_modify, parameter_to_modify)
             value_to_modify: list[str] = [] if value is None else [value]
 
-            if delete:
-                operation = self.delete_ldap
-            elif self.single_value[parameter_to_modify] or overwrite:
-                operation = self.replace_ldap
-            else:
-                operation = self.add_ldap
-
+            operation = self.delete_ldap if delete else self.replace_ldap
             try:
                 response = await operation(dn, parameter_to_modify, value_to_modify)
             except LDAPInvalidValueError:
