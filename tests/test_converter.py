@@ -1842,19 +1842,6 @@ async def test_get_current_primary_uuid(dataloader: AsyncMock) -> None:
     assert await get_current_primary_uuid_dict(dataloader, uuid4(), "foo") is None
 
 
-def test_clean_calls_to_get_current_method_from_template_string(
-    converter: LdapConverter,
-):
-    template = "{{ ldap.foo or get_current_org_unit_uuid(ldap.bar) or None"
-
-    cleaned_template = converter.clean_get_current_method_from_template_string(template)
-
-    assert "get_current_org_unit_uuid" not in cleaned_template
-    assert "ldap.bar" not in cleaned_template
-    assert "or None" in cleaned_template
-    assert "ldap.foo" in cleaned_template
-
-
 async def test_get_org_unit_uuid_from_path(graphql_mock: GraphQLMocker) -> None:
     org_unit_uuid = uuid4()
 
