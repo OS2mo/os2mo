@@ -24,7 +24,6 @@ from fastramqpi.ramqp.mo import MOAMQPSystem
 from ldap3 import BASE
 from ldap3 import Connection
 from ldap3.core.exceptions import LDAPInvalidValueError
-from ldap3.protocol import oid
 from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
 from more_itertools import bucket
@@ -58,7 +57,6 @@ from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
 from .exceptions import ReadOnlyException
 from .exceptions import UUIDNotFoundException
-from .ldap import get_attribute_types
 from .ldap import get_ldap_object
 from .ldap import is_uuid
 from .ldap import ldap_add
@@ -695,33 +693,6 @@ class DataLoader:
         )
 
         return results
-
-    def make_overview_entry(self, attributes, superiors, example_value_dict=None):
-        attribute_types = get_attribute_types(self.ldap_connection)
-        attribute_dict = {}
-        for attribute in attributes:
-            # skip unmapped types
-            if attribute not in attribute_types:
-                continue
-            syntax = attribute_types[attribute].syntax
-
-            # decoded syntax tuple structure: (oid, kind, name, docs)
-            syntax_decoded = oid.decode_syntax(syntax)
-            details_dict = {
-                "syntax": syntax,
-            }
-            if syntax_decoded:
-                details_dict["field_type"] = syntax_decoded[2]
-
-            if example_value_dict and attribute in example_value_dict:
-                details_dict["example_value"] = example_value_dict[attribute]
-
-            attribute_dict[attribute] = details_dict
-
-        return {
-            "superiors": superiors,
-            "attributes": attribute_dict,
-        }
 
     async def find_mo_employee_uuid_via_cpr_number(self, dn: str) -> set[UUID]:
         if self.cpr_field is None:

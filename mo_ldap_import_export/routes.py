@@ -24,6 +24,7 @@ from fastapi import status
 from fastapi.encoders import jsonable_encoder
 from fastramqpi.depends import UserContext
 from ldap3 import Connection
+from ldap3.protocol import oid
 from more_itertools import one
 from pydantic import ValidationError
 from pydantic import parse_obj_as
@@ -139,7 +140,6 @@ async def load_ldap_objects(
 async def load_ldap_populated_overview(
     settings: Settings,
     ldap_connection: Connection,
-    dataloader: DataLoader,
     ldap_classes=None,
 ) -> dict:
     """
@@ -148,7 +148,7 @@ async def load_ldap_populated_overview(
     nan_values: list[None | list] = [None, []]
 
     output = {}
-    overview = load_ldap_overview(ldap_connection, dataloader)
+    overview = load_ldap_overview(ldap_connection)
 
     if not ldap_classes:
         ldap_classes = overview.keys()
@@ -178,8 +178,8 @@ async def load_ldap_populated_overview(
 
         if len(populated_attributes) > 0:
             superiors = overview[ldap_class]["superiors"]
-            output[ldap_class] = dataloader.make_overview_entry(
-                populated_attributes, superiors, example_value_dict
+            output[ldap_class] = make_overview_entry(
+                ldap_connection, populated_attributes, superiors, example_value_dict
             )
 
     return output
@@ -251,7 +251,37 @@ async def get_non_existing_unique_ldap_uuids(
     ]
 
 
-def load_ldap_overview(ldap_connection: Connection, dataloader: DataLoader):
+def make_overview_entry(
+    ldap_connection: Connection, attributes, superiors, example_value_dict=None
+):
+    attribute_types = get_attribute_types(ldap_connection)
+    attribute_dict = {}
+    for attribute in attributes:
+        # skip unmapped types
+        if attribute not in attribute_types:
+            continue
+        syntax = attribute_types[attribute].syntax
+
+        # decoded syntax tuple structure: (oid, kind, name, docs)
+        syntax_decoded = oid.decode_syntax(syntax)
+        details_dict = {
+            "syntax": syntax,
+        }
+        if syntax_decoded:
+            details_dict["field_type"] = syntax_decoded[2]
+
+        if example_value_dict and attribute in example_value_dict:
+            details_dict["example_value"] = example_value_dict[attribute]
+
+        attribute_dict[attribute] = details_dict
+
+    return {
+        "superiors": superiors,
+        "attributes": attribute_dict,
+    }
+
+
+def load_ldap_overview(ldap_connection: Connection):
     schema = get_ldap_schema(ldap_connection)
 
     all_object_classes = sorted(list(schema.object_classes.keys()))
@@ -260,7 +290,9 @@ def load_ldap_overview(ldap_connection: Connection, dataloader: DataLoader):
     for ldap_class in all_object_classes:
         all_attributes = get_ldap_attributes(ldap_connection, ldap_class)
         superiors = get_ldap_superiors(ldap_connection, ldap_class)
-        output[ldap_class] = dataloader.make_overview_entry(all_attributes, superiors)
+        output[ldap_class] = make_overview_entry(
+            ldap_connection, all_attributes, superiors
+        )
 
     return output
 
@@ -537,10 +569,9 @@ def construct_router(user_context: UserContext) -> APIRouter:
     @router.get("/Inspect/overview", status_code=202, tags=["LDAP"])
     async def load_overview_from_LDAP(
         ldap_connection: depends.Connection,
-        dataloader: depends.DataLoader,
         ldap_class: str = default_ldap_class,
     ) -> Any:
-        ldap_overview = load_ldap_overview(ldap_connection, dataloader)
+        ldap_overview = load_ldap_overview(ldap_connection)
         return ldap_overview[ldap_class]
 
     # Get LDAP overview
@@ -555,11 +586,10 @@ def construct_router(user_context: UserContext) -> APIRouter:
     async def load_populated_overview_from_LDAP(
         settings: depends.Settings,
         ldap_connection: depends.Connection,
-        dataloader: depends.DataLoader,
         ldap_class: str = default_ldap_class,
     ) -> Any:
         ldap_overview = await load_ldap_populated_overview(
-            settings, ldap_connection, dataloader, ldap_classes=[ldap_class]
+            settings, ldap_connection, ldap_classes=[ldap_class]
         )
         return encode_result(ldap_overview.get(ldap_class))
 

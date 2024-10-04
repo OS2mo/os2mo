@@ -513,14 +513,7 @@ async def sync_tool_and_context(
         "amqpsystem": amqpsystem,
     }
     # Needs context, user_context, ldap_connection
-    with patch(
-        "mo_ldap_import_export.dataloaders.get_attribute_types",
-        return_value={
-            "objectClass": MagicMock(),
-            "employeeID": MagicMock(),
-        },
-    ):
-        dataloader = DataLoader(context, amqpsystem)
+    dataloader = DataLoader(context, amqpsystem)
     context["user_context"]["dataloader"] = dataloader
 
     # Needs context, user_context, settings, raw_mapping, dataloader
