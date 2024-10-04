@@ -439,8 +439,8 @@ def create_app(fastramqpi: FastRAMQPI | None = None, **kwargs: Any) -> FastAPI:
     assert fastramqpi is not None
 
     app = fastramqpi.get_app()
-    user_context = fastramqpi._context["user_context"]
-    app.include_router(construct_router(user_context))
+    settings = fastramqpi._context["user_context"]["settings"]
+    app.include_router(construct_router(settings))
     app.include_router(mo2ldap_router)
     app.include_router(ldap2mo_router)
     app.include_router(ldap_event_router)
