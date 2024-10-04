@@ -167,38 +167,6 @@ class LdapConverter:
     def get_mo_attributes(self, json_key):
         return list(self.mapping["ldap_to_mo"][json_key].keys())
 
-    def check_attributes(self, detected_attributes, accepted_attributes):
-        problematic_attributes = {
-            attribute
-            for attribute in detected_attributes
-            if (
-                attribute not in accepted_attributes
-                and not attribute.startswith("msDS-cloudExtensionAttribute")
-                and not attribute.startswith("extensionAttribute")
-                and not attribute.startswith("__")
-            )
-        }
-        match self.settings.ldap_dialect:
-            case "Standard":
-                problematic_attributes.discard("entryUUID")
-                problematic_attributes.discard("sn")
-            case "AD":
-                problematic_attributes.discard("sAMAccountName")
-            case _:  # pragma: no cover
-                raise AssertionError(
-                    f"Unknown LDAP dialect: {self.settings.ldap_dialect}"
-                )
-
-        exceptions = [
-            IncorrectMapping(f"Attribute '{attribute}' not allowed.")
-            for attribute in problematic_attributes
-        ]
-        if exceptions:
-            raise ExceptionGroup(
-                f"check_attributes failed, allowed attributes are {accepted_attributes}",
-                exceptions,
-            )
-
     def check_cpr_field_or_it_system(self):
         """
         Check that we have either a cpr-field OR an it-system which maps to an LDAP DN
