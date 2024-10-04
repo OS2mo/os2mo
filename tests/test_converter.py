@@ -91,12 +91,8 @@ def address_type_uuid() -> str:
 
 
 @pytest.fixture
-def context(
-    minimal_valid_environmental_variables: None,
-    monkeypatch: pytest.MonkeyPatch,
-    address_type_uuid: str,
-) -> Context:
-    mapping = {
+def converter_mapping() -> dict[str, Any]:
+    return {
         "ldap_to_mo": {
             "Employee": {
                 "objectClass": "ramodels.mo.employee.Employee",
@@ -147,7 +143,16 @@ def context(
             },
         },
     }
-    monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
+
+
+@pytest.fixture
+def context(
+    minimal_valid_environmental_variables: None,
+    monkeypatch: pytest.MonkeyPatch,
+    address_type_uuid: str,
+    converter_mapping: dict[str, Any],
+) -> Context:
+    monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(converter_mapping))
     monkeypatch.setenv("LDAP_DIALECT", "AD")
     monkeypatch.setenv("LDAP_SEARCH_BASE", "bar")
     monkeypatch.setenv("DEFAULT_ORG_UNIT_TYPE", "Afdeling")
@@ -226,7 +231,6 @@ def context(
 
     context: Context = {
         "user_context": {
-            "mapping": mapping,
             "settings": settings,
             "dataloader": dataloader,
             "username_generator": MagicMock(),
@@ -241,7 +245,6 @@ def context(
 async def converter(context: Context) -> LdapConverter:
     converter = LdapConverter(
         context["user_context"]["settings"],
-        context["user_context"]["mapping"],
         context["user_context"]["dataloader"],
     )
     await converter._init()
@@ -249,8 +252,8 @@ async def converter(context: Context) -> LdapConverter:
 
 
 @pytest.fixture
-async def dataloader(converter: LdapConverter) -> AsyncMock:
-    return cast(AsyncMock, converter.dataloader)
+async def dataloader(context: Context) -> AsyncMock:
+    return cast(AsyncMock, context["user_context"]["dataloader"])
 
 
 @pytest.fixture
@@ -368,10 +371,9 @@ async def test_ldap_to_mo_dict_validation_error(
     }
     monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
     settings = Settings()
-    raw_mapping = settings.conversion_mapping.dict(exclude_unset=True, by_alias=True)
     dataloader = context["user_context"]["dataloader"]
 
-    converter = LdapConverter(settings, raw_mapping, dataloader)
+    converter = LdapConverter(settings, dataloader)
     await converter._init()
 
     with capture_logs() as cap_logs:
@@ -403,42 +405,19 @@ async def test_mo_to_ldap(converter: LdapConverter) -> None:
         await converter.to_ldap(obj_dict, "Employee", "CN=foo")
 
 
-async def test_mapping_loader_failure(context: Context) -> None:
-    mappings: tuple[dict, dict, dict] = {}, {"ldap_to_mo": {}}, {"mo_to_ldap": {}}
+async def test_to_ldap_bad_json_key(converter: LdapConverter) -> None:
+    with pytest.raises(IncorrectMapping):
+        obj_dict = {"mo_employee": "foo"}
+        await converter.to_ldap(obj_dict, "__non_existing_key", "CN=foo")
+    assert "Missing '__non_existing_key' in mapping 'mo_to_ldap'"
 
-    for bad_mapping in mappings:
-        with pytest.raises(IncorrectMapping):
-            await LdapConverter(
-                context["user_context"]["settings"],
-                bad_mapping,
-                context["user_context"]["dataloader"],
-            )._init()
 
-        converter = LdapConverter(
-            context["user_context"]["settings"],
-            context["user_context"]["mapping"],
-            context["user_context"]["dataloader"],
+async def test_from_ldap_bad_json_key(converter: LdapConverter) -> None:
+    with pytest.raises(IncorrectMapping):
+        await converter.from_ldap(
+            LdapObject(dn="CN=foo"), "__non_existing_key", uuid4()
         )
-        await converter._init()
-        converter.mapping = bad_mapping
-        with pytest.raises(IncorrectMapping):
-            await converter.from_ldap(
-                LdapObject(
-                    dn="",
-                    name="",
-                    givenName="Tester",
-                    sn="Testersen",
-                    objectGUID="{" + str(uuid.uuid4()) + "}",
-                    employeeID="0101011234",
-                ),
-                "Employee",
-                employee_uuid=uuid4(),
-            )
-        with pytest.raises(IncorrectMapping):
-            obj_dict = {
-                "mo_employee": Employee(givenname="Tester", surname="Testersen")
-            }
-            await converter.to_ldap(obj_dict, "Employee", "CN=foo")
+    assert "Missing '__non_existing_key' in mapping 'ldap_to_mo'"
 
 
 async def test_find_cpr_field(converter: LdapConverter) -> None:
@@ -534,28 +513,32 @@ def test_find_ldap_object_class(converter: LdapConverter):
 
 
 def test_get_ldap_attributes(converter: LdapConverter, context: Context) -> None:
+    settings = Settings()
+
     attributes = set(converter.get_ldap_attributes("Employee"))
     all_attributes = set(
-        context["user_context"]["mapping"]["mo_to_ldap"]["Employee"].keys()
+        settings.conversion_mapping.mo_to_ldap["Employee"].dict().keys()
     )
-    assert all_attributes - attributes == {"objectClass", "_export_to_ldap_"}
+    assert all_attributes - attributes == {"objectClass", "export_to_ldap"}
 
 
-async def test_get_ldap_attributes_dn_removed(context: Context) -> None:
-    context["user_context"]["mapping"]["mo_to_ldap"]["Employee"]["dn"] = "fixed"
+async def test_get_ldap_attributes_dn_removed(
+    converter_mapping: dict[str, Any],
+    monkeypatch: pytest.MonkeyPatch,
+    dataloader: AsyncMock,
+) -> None:
+    mapping = overlay(converter_mapping, {"mo_to_ldap": {"Employee": {"dn": "fixed"}}})
+    monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
+    settings = Settings()
 
-    converter = LdapConverter(
-        context["user_context"]["settings"],
-        context["user_context"]["mapping"],
-        context["user_context"]["dataloader"],
-    )
+    converter = LdapConverter(settings, dataloader)
     await converter._init()
 
     attributes = set(converter.get_ldap_attributes("Employee"))
     all_attributes = set(
-        context["user_context"]["mapping"]["mo_to_ldap"]["Employee"].keys()
+        settings.conversion_mapping.mo_to_ldap["Employee"].dict().keys()
     )
-    assert all_attributes - attributes == {"objectClass", "_export_to_ldap_", "dn"}
+    assert all_attributes - attributes == {"objectClass", "export_to_ldap", "dn"}
 
 
 def test_get_mo_attributes(converter: LdapConverter) -> None:

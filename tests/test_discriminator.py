@@ -483,8 +483,6 @@ async def sync_tool_and_context(
         }
     )
 
-    mapping = settings.conversion_mapping.dict(exclude_unset=True, by_alias=True)
-
     route = graphql_mock.query("read_facet_classes")
     route.result = {"classes": {"objects": []}}
 
@@ -502,7 +500,6 @@ async def sync_tool_and_context(
         "user_context": {
             "ldap_connection": ldap_connection,
             "settings": settings,
-            "mapping": mapping,
             # TODO: This should be set by side-effect reference, no?
             "cpr_field": "employeeID",
             # TODO: This should be set by side-effect reference, no?
@@ -517,7 +514,7 @@ async def sync_tool_and_context(
     context["user_context"]["dataloader"] = dataloader
 
     # Needs context, user_context, settings, raw_mapping, dataloader
-    converter = LdapConverter(settings, mapping, dataloader)
+    converter = LdapConverter(settings, dataloader)
     await converter._init()
     context["user_context"]["converter"] = converter
 
@@ -926,15 +923,12 @@ async def test_get_existing_values(sync_tool: SyncTool, context: Context) -> Non
             "objectClass": "UserNameGenerator",
         },
     }
-    context["user_context"]["mapping"] = mapping
 
     user_context = context["user_context"]
     username_generator = UserNameGenerator(
         context,
         user_context["settings"],
-        parse_obj_as(
-            UsernameGeneratorConfig, user_context["mapping"]["username_generator"]
-        ),
+        parse_obj_as(UsernameGeneratorConfig, mapping["username_generator"]),
         user_context["dataloader"],
         user_context["ldap_connection"],
     )
@@ -957,15 +951,12 @@ async def test_get_existing_names(sync_tool: SyncTool, context: Context) -> None
             "objectClass": "UserNameGenerator",
         },
     }
-    context["user_context"]["mapping"] = mapping
 
     user_context = context["user_context"]
     username_generator = UserNameGenerator(
         context,
         user_context["settings"],
-        parse_obj_as(
-            UsernameGeneratorConfig, user_context["mapping"]["username_generator"]
-        ),
+        parse_obj_as(UsernameGeneratorConfig, mapping["username_generator"]),
         user_context["dataloader"],
         user_context["ldap_connection"],
     )
