@@ -23,6 +23,7 @@ from pydantic import SecretStr
 from pydantic import parse_obj_as
 from pydantic import root_validator
 from pydantic import validator
+from ramodels.mo import MOBase
 from ramodels.mo.detail import Detail
 
 from .utils import import_class
@@ -134,6 +135,9 @@ class LDAP2MOMapping(MappingBaseModel):
                 return False
             case _:  # pragma: no cover
                 raise AssertionError(f"Import flag = '{import_flag}' not recognized")
+
+    def as_mo_class(self) -> type[MOBase]:
+        return import_class(self.objectClass)
 
     @validator("import_to_mo", pre=True)
     def lower_import_to_mo(cls, v: str) -> str:

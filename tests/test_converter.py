@@ -92,7 +92,11 @@ def address_type_uuid() -> str:
 
 
 @pytest.fixture
-def context(address_type_uuid: str) -> Context:
+def context(
+    minimal_valid_environmental_variables: None,
+    monkeypatch: pytest.MonkeyPatch,
+    address_type_uuid: str,
+) -> Context:
     mapping = {
         "ldap_to_mo": {
             "Employee": {
@@ -144,13 +148,14 @@ def context(address_type_uuid: str) -> Context:
             },
         },
     }
+    monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
+    monkeypatch.setenv("LDAP_DIALECT", "AD")
+    monkeypatch.setenv("LDAP_SEARCH_BASE", "bar")
+    monkeypatch.setenv("DEFAULT_ORG_UNIT_TYPE", "Afdeling")
+    monkeypatch.setenv("DEFAULT_ORG_UNIT_LEVEL", "N1")
+    monkeypatch.setenv("ORG_UNIT_PATH_STRING_SEPARATOR", "\\")
 
-    settings_mock = MagicMock()
-    settings_mock.ldap_dialect = "AD"
-    settings_mock.ldap_search_base = "bar"
-    settings_mock.default_org_unit_type = "Afdeling"
-    settings_mock.default_org_unit_level = "N1"
-    settings_mock.org_unit_path_string_separator = "\\"
+    settings = Settings()
 
     dataloader = AsyncMock()
     uuid1 = address_type_uuid
@@ -238,7 +243,7 @@ def context(address_type_uuid: str) -> Context:
     context: Context = {
         "user_context": {
             "mapping": mapping,
-            "settings": settings_mock,
+            "settings": settings,
             "dataloader": dataloader,
             "username_generator": MagicMock(),
             "event_loop": MagicMock(),
@@ -519,25 +524,9 @@ async def test_template_lenience(context: Context, converter: LdapConverter) -> 
     )
 
 
-def test_find_object_class(converter: LdapConverter):
-    output = converter.find_object_class("Employee", "ldap_to_mo")
-    assert output == "ramodels.mo.employee.Employee"
-
-    output = converter.find_object_class("Employee", "mo_to_ldap")
-    assert output == "user"
-
-    with pytest.raises(IncorrectMapping):
-        converter.find_object_class("non_existing_json_key", "mo_to_ldap")
-
-
 def test_find_ldap_object_class(converter: LdapConverter):
     object_class = converter.find_ldap_object_class("Employee")
     assert object_class == "user"
-
-
-def test_find_mo_object_class(converter: LdapConverter):
-    object_class = converter.find_mo_object_class("Employee")
-    assert object_class == "ramodels.mo.employee.Employee"
 
 
 def test_get_ldap_attributes(converter: LdapConverter, context: Context) -> None:

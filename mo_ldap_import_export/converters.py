@@ -29,7 +29,6 @@ from .exceptions import IncorrectMapping
 from .ldap_classes import LdapObject
 from .types import DN
 from .utils import delete_keys_from_dict
-from .utils import import_class
 from .utils import is_list
 
 logger = structlog.stdlib.get_logger()
@@ -142,20 +141,11 @@ class LdapConverter:
         )
         await self.check_mapping()
 
-    def find_object_class(self, json_key, conversion):
-        mapping = self.raw_mapping[conversion]
-        if json_key not in mapping:
-            raise IncorrectMapping(f"{json_key} not found in {conversion} json dict")
-        return mapping[json_key]["objectClass"]
-
     def find_ldap_object_class(self, json_key):
-        return self.find_object_class(json_key, "mo_to_ldap")
-
-    def find_mo_object_class(self, json_key):
-        return self.find_object_class(json_key, "ldap_to_mo")
+        return self.settings.conversion_mapping.mo_to_ldap[json_key].objectClass
 
     def import_mo_object_class(self, json_key: str) -> type[MOBase]:
-        return import_class(self.find_mo_object_class(json_key))
+        return self.settings.conversion_mapping.ldap_to_mo[json_key].as_mo_class()
 
     def get_ldap_attributes(self, json_key, remove_dn=True):
         ldap_attributes = list(self.mapping["mo_to_ldap"][json_key].keys())
