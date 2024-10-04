@@ -743,7 +743,7 @@ class SyncTool:
         for json_key, (ldap_object, delete) in changes.items():
             ldap_object = await self.move_ldap_object(ldap_object, best_dn)
             await self.dataloader.modify_ldap_object(
-                ldap_object, json_key, delete=delete
+                ldap_object, json_key, overwrite=True, delete=delete
             )
 
         return all_changes
