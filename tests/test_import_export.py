@@ -18,8 +18,6 @@ from fastramqpi.ramqp.utils import RequeueMessage
 from httpx import HTTPStatusError
 from more_itertools import first
 from more_itertools import last
-from ramodels.mo._shared import JobFunction
-from ramodels.mo._shared import PersonRef
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
@@ -1098,11 +1096,12 @@ async def test_import_single_object_forces_json_key_ordering(
     # Arrange: inject a list of JSON keys that have the wrong order
     sync_tool.format_converted_objects = AsyncMock()  # type: ignore
     sync_tool.format_converted_objects.return_value = []
-    converter.get_ldap_to_mo_json_keys.return_value = [
-        "Address",
-        "Engagement",
+
+    sync_tool.settings.conversion_mapping.ldap_to_mo.keys.return_value = {  # type: ignore
         "Employee",
-    ]
+        "Engagement",
+        "Address",
+    }
     converter.from_ldap.return_value = [MagicMock()]  # list of (at least) one item
     # Act: run the method and collect logs
     with capture_logs() as cap_logs:
@@ -1310,7 +1309,6 @@ async def test_wait_for_import_to_finish(sync_tool: SyncTool):
 async def test_import_jobtitlefromadtomo_objects(
     context: Context,
     converter: MagicMock,
-    dataloader: AsyncMock,
     sync_tool: SyncTool,
     fake_dn: DN,
 ) -> None:
@@ -1319,20 +1317,13 @@ async def test_import_jobtitlefromadtomo_objects(
     )
     converter.import_mo_object_class.return_value = JobTitleFromADToMO
     converter.get_mo_attributes.return_value = ["user", "uuid", "job_function"]
-    converter.get_ldap_to_mo_json_keys.return_value = [
-        "Custom",
-    ]
+    sync_tool.settings.conversion_mapping.ldap_to_mo.keys.return_value = {  # type: ignore
+        "Custom"
+    }
 
-    user_uuid = uuid4()
-    job_function_uuid = uuid4()
-    eng_uuid = str(uuid4())
+    converted_object = AsyncMock()
 
-    converted_objects = [
-        JobTitleFromADToMO(
-            user=PersonRef(uuid=user_uuid),
-            job_function=JobFunction(uuid=job_function_uuid),
-        ),
-    ]
+    converted_objects = [converted_object]
 
     formatted_objects = [
         (converted_object, Verb.CREATE) for converted_object in converted_objects
@@ -1340,22 +1331,14 @@ async def test_import_jobtitlefromadtomo_objects(
 
     converter.from_ldap.return_value = converted_objects
 
-    job = [{"uuid_to_ignore": eng_uuid, "task": AsyncMock()()}]
-
     context["legacy_graphql_session"] = AsyncMock()
 
-    with (
-        patch(
-            "mo_ldap_import_export.import_export.SyncTool.format_converted_objects",
-            return_value=formatted_objects,
-        ),
-        patch(
-            "mo_ldap_import_export.customer_specific.JobTitleFromADToMO.sync_to_mo",
-            return_value=job,
-        ),
+    with patch(
+        "mo_ldap_import_export.import_export.SyncTool.format_converted_objects",
+        return_value=formatted_objects,
     ):
         await sync_tool.import_single_user(fake_dn)
-        dataloader.create_or_edit_mo_objects.assert_called_once()
+        converted_object.sync_to_mo.assert_called_once()
 
 
 async def test_move_ldap_object(sync_tool: SyncTool, dataloader: AsyncMock):

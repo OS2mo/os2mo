@@ -1075,7 +1075,7 @@ class SyncTool:
         # First import the Employee, then Engagement if present, then the rest.
         # We want this order so dependencies exist before their dependent objects
         # TODO: Maybe there should be a dependency graph in the future
-        detected_json_keys = set(self.converter.get_ldap_to_mo_json_keys())
+        detected_json_keys = set(self.settings.conversion_mapping.ldap_to_mo.keys())
         # We always want Employee in our json_keys
         detected_json_keys.add("Employee")
         priority_map = {"Employee": 1, "Engagement": 2}
@@ -1132,8 +1132,9 @@ class SyncTool:
             n=len(converted_objects),
             dn=dn,
         )
-
+        print(json_key)
         if json_key == "Custom":
+            print(converted_objects)
             await asyncio.gather(
                 *[
                     obj.sync_to_mo(self.dataloader.graphql_client)

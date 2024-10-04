@@ -198,16 +198,6 @@ class LdapConverter:
                 exceptions,
             )
 
-    def get_json_keys(self, conversion):
-        try:
-            return list(self.mapping[conversion].keys())
-        except KeyError as error:  # pragma: no cover
-            # NOTE: We are not testing this as we intend to remove it
-            raise IncorrectMapping(f"Missing key: '{conversion}'") from error
-
-    def get_ldap_to_mo_json_keys(self):
-        return self.get_json_keys("ldap_to_mo")
-
     def get_required_attributes(self, mo_class):
         if "required" in mo_class.schema():
             return mo_class.schema()["required"]
