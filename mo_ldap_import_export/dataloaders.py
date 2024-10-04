@@ -354,7 +354,7 @@ class DataLoader:
 
     async def modify_ldap(
         self,
-        operation: Literal["MODIFY_DELETE", "MODIFY_REPLACE", "MODIFY_INCREMENT"],
+        operation: Literal["MODIFY_DELETE", "MODIFY_REPLACE"],
         dn: str,
         attribute: str,
         value: list[str] | str,
