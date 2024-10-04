@@ -232,7 +232,7 @@ def sync_tool() -> AsyncMock:
 
 
 @pytest.fixture
-def context(
+def dataloader(
     ldap_connection: MagicMock,
     legacy_graphql_session: AsyncMock,
     legacy_model_client: AsyncMock,
@@ -242,8 +242,13 @@ def context(
     converter: MagicMock,
     sync_tool: AsyncMock,
     username_generator: MagicMock,
-) -> Context:
-    return {
+) -> DataLoader:
+    """Fixture to construct a dataloaders object using fixture mocks.
+
+    Yields:
+        Dataloaders with mocked clients.
+    """
+    context: Context = {
         "legacy_graphql_session": legacy_graphql_session,
         "legacy_model_client": legacy_model_client,
         "graphql_client": graphql_client,
@@ -257,15 +262,6 @@ def context(
             "ldap_it_system_user_key": "Active Directory",
         },
     }
-
-
-@pytest.fixture
-def dataloader(context: Context) -> DataLoader:
-    """Fixture to construct a dataloaders object using fixture mocks.
-
-    Yields:
-        Dataloaders with mocked clients.
-    """
     amqpsystem = AsyncMock()
     return DataLoader(context, amqpsystem)
 
