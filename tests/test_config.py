@@ -12,6 +12,7 @@ from pydantic import parse_obj_as
 from pydantic.env_settings import SettingsError
 
 from mo_ldap_import_export.config import ConversionMapping
+from mo_ldap_import_export.config import LDAP2MOMapping
 from mo_ldap_import_export.config import Settings
 
 overlay = partial(merge, strategy=Strategy.TYPESAFE_ADDITIVE)
@@ -219,3 +220,63 @@ def test_check_attributes(monkeypatch: pytest.MonkeyPatch) -> None:
     assert settings.conversion_mapping.ldap_to_mo.keys() == {"Employee"}
     employee = settings.conversion_mapping.ldap_to_mo["Employee"]
     assert employee.mapper == mapping_template
+
+
+@pytest.mark.parametrize(
+    "object_class",
+    (
+        "ramodels.mo.details.address.Address",
+        "ramodels.mo.details.engagement.Engagement",
+        "ramodels.mo.details.it_system.ITUser",
+        "ramodels.mo.employee.Employee",
+    ),
+)
+async def test_check_for_validity(object_class: str) -> None:
+    with pytest.raises(ValidationError) as exc_info:
+        parse_obj_as(
+            LDAP2MOMapping,
+            {
+                "objectClass": object_class,
+                "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+            },
+        )
+
+    assert "'validity' cannot be set on the ldap_to_mo mapping" in str(exc_info.value)
+
+
+@pytest.mark.parametrize(
+    "object_class",
+    (
+        "ramodels.mo.details.address.Address",
+        "ramodels.mo.details.engagement.Engagement",
+        "ramodels.mo.details.it_system.ITUser",
+        "ramodels.mo.employee.Employee",
+    ),
+)
+async def test_check_for_superfluous_attributes(object_class: str) -> None:
+    with pytest.raises(ValidationError) as exc_info:
+        parse_obj_as(
+            LDAP2MOMapping,
+            {"objectClass": object_class, "non_existing_attribute": "failure"},
+        )
+
+    assert "Attributes {'non_existing_attribute'} are not allowed" in str(
+        exc_info.value
+    )
+
+
+async def test_check_for_engagement_primary_specialcase():
+    with pytest.raises(ValidationError) as exc_info:
+        parse_obj_as(
+            LDAP2MOMapping,
+            {
+                "objectClass": "ramodels.mo.details.engagement.Engagement",
+                "org_unit": "val",
+                "job_function": "val",
+                "user_key": "val",
+                "engagement_type": "val",
+                "person": "val",
+            },
+        )
+
+    assert "Missing {'primary'} which are mandatory." in str(exc_info.value)
