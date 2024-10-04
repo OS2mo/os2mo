@@ -189,7 +189,6 @@ class DataLoader:
         self.legacy_model_client: LegacyModelClient = self.context[
             "legacy_model_client"
         ]
-        self.attribute_types = get_attribute_types(self.ldap_connection)
         self.create_mo_class_lock = asyncio.Lock()
         self.amqpsystem: MOAMQPSystem = amqpsystem
 
@@ -701,12 +700,13 @@ class DataLoader:
         return results
 
     def make_overview_entry(self, attributes, superiors, example_value_dict=None):
+        attribute_types = get_attribute_types(self.ldap_connection)
         attribute_dict = {}
         for attribute in attributes:
             # skip unmapped types
-            if attribute not in self.attribute_types:
+            if attribute not in attribute_types:
                 continue
-            syntax = self.attribute_types[attribute].syntax
+            syntax = attribute_types[attribute].syntax
 
             # decoded syntax tuple structure: (oid, kind, name, docs)
             syntax_decoded = oid.decode_syntax(syntax)
