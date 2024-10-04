@@ -30,7 +30,7 @@ Hierarkiet er altså: Klassifikation--\>Facet--\>Klasse. Læs mere om det [her](
 
 Når man er inde i Klassifikations-modulet i MO, bliver man præsenteret for dette billede:
 
-    ![image](../graphics/klassifikationerforside.png)
+![image](../graphics/klassifikationerforside.png)
 
 ### Oprettelse af klasser
 
