@@ -32,7 +32,7 @@ Når en organisationsenhed er fremsøgt, vil de underliggende enheder også bliv
 
     ![image](../graphics/insights/insightsplus.png)
 
-hvorpå det bliver muligt at tilføje flere data (punkt 1-3 gentages). Ønsker man at fjerne et emne, trykkes der på "-"-knappen:
+    hvorpå det bliver muligt at tilføje flere data (punkt 1-3 gentages). Ønsker man at fjerne et emne, trykkes der på "-"-knappen:
 
     ![image](../graphics/insights/insightsminus.png)
 
@@ -51,4 +51,4 @@ Hvis man ønsker at fjerne data fra søgningen, trykkes "Ryd":
 
 En eksempelfil med oplysninger om engagementer i én enhed kan se sådan ud:
 
-    ![image](../graphics/insights/insightseksempelcsv.png)
+![image](../graphics/insights/insightseksempelcsv.png)
