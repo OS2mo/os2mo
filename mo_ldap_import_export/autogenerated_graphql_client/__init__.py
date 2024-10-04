@@ -14,6 +14,10 @@ from ._testing__itsystem_create import TestingItsystemCreate
 from ._testing__itsystem_create import TestingItsystemCreateItsystemCreate
 from ._testing_address_create import TestingAddressCreate
 from ._testing_address_create import TestingAddressCreateAddressCreate
+from ._testing_address_terminate import TestingAddressTerminate
+from ._testing_address_terminate import TestingAddressTerminateAddressTerminate
+from ._testing_address_update import TestingAddressUpdate
+from ._testing_address_update import TestingAddressUpdateAddressUpdate
 from ._testing_ituser_create import TestingItuserCreate
 from ._testing_ituser_create import TestingItuserCreateItuserCreate
 from ._testing_org_unit_create import TestingOrgUnitCreate
@@ -639,6 +643,10 @@ __all__ = [
     "TestingAddressReadAddressesObjectsValiditiesPerson",
     "TestingAddressReadAddressesObjectsValiditiesValidity",
     "TestingAddressReadAddressesObjectsValiditiesVisibility",
+    "TestingAddressTerminate",
+    "TestingAddressTerminateAddressTerminate",
+    "TestingAddressUpdate",
+    "TestingAddressUpdateAddressUpdate",
     "TestingItsystemCreate",
     "TestingItsystemCreateItsystemCreate",
     "TestingItuserCreate",

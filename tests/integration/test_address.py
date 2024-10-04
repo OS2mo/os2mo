@@ -147,3 +147,138 @@ async def test_to_mo(
         "validity": {"from_": mo_today, "to": mo_today},
     }
     await assert_address(mo_address)
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "True",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "CONVERSION_MAPPING": json.dumps(
+            {
+                # TODO: why is this required?
+                "ldap_to_mo": {
+                    "Employee": {
+                        "objectClass": "ramodels.mo.employee.Employee",
+                        "_import_to_mo_": "false",
+                        "uuid": "{{ employee_uuid or NONE }}",
+                        "cpr_no": "{{ldap.employeeNumber}}",
+                    },
+                    "EmailEmployee": {
+                        "objectClass": "ramodels.mo.details.address.Address",
+                        "_import_to_mo_": "true",
+                        "_mapper_": "{{ obj.address_type }}",
+                        "value": "{{ ldap.mail }}",
+                        "address_type": "{{ dict(uuid=get_employee_address_type_uuid('EmailEmployee')) }}",
+                        "person": "{{ dict(uuid=employee_uuid ) }}",
+                        "visibility": "{{ dict(uuid=get_visibility_uuid('Public')) }}",
+                    },
+                },
+                "mo_to_ldap": {
+                    "Employee": {
+                        "objectClass": "inetOrgPerson",
+                        "_export_to_ldap_": "false",
+                        "employeeNumber": "{{mo_employee.cpr_no}}",
+                    },
+                    "EmailEmployee": {
+                        "objectClass": "inetOrgPerson",
+                        "_export_to_ldap_": "true",
+                        "mail": "{{ mo_employee_address.value }}",
+                    },
+                },
+                # TODO: why is this required?
+                "username_generator": {
+                    "objectClass": "UserNameGenerator",
+                    "combinations_to_try": ["FFFX", "LLLX"],
+                },
+            }
+        ),
+    }
+)
+async def test_to_ldap(
+    test_client: AsyncClient,
+    graphql_client: GraphQLClient,
+    mo_person: UUID,
+    ldap_connection: Connection,
+    ldap_org: list[str],
+    mo_today: datetime,
+) -> None:
+    cpr = "2108613133"
+
+    @retry()
+    async def assert_address(expected: list[str]) -> None:
+        response, _ = await ldap_search(
+            ldap_connection,
+            search_base=combine_dn_strings(ldap_org),
+            search_filter=f"(employeeNumber={cpr})",
+            attributes=["distinguishedName", "mail"],
+        )
+        assert one(response)["attributes"]["mail"] == expected
+
+    # LDAP: Init user
+    person_dn = combine_dn_strings(["uid=abk"] + ldap_org)
+    await ldap_add(
+        ldap_connection,
+        dn=person_dn,
+        object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
+        attributes={
+            "objectClass": ["top", "person", "organizationalPerson", "inetOrgPerson"],
+            "ou": "os2mo",
+            "cn": "Aage Bach Klarskov",
+            "sn": "Bach Klarskov",
+            "employeeNumber": cpr,
+        },
+    )
+    await assert_address([])
+
+    # MO: Create
+    address_type = one(
+        (
+            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
+                "employee_address_type", "EmailEmployee"
+            )
+        ).objects
+    ).uuid
+    visibility = one(
+        (
+            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
+                "visibility", "Public"
+            )
+        ).objects
+    ).uuid
+
+    mail = "create@example.com"
+    mo_address = await graphql_client._testing_address_create(
+        input=AddressCreateInput(
+            user_key="test address",
+            address_type=address_type,
+            value=mail,
+            person=mo_person,
+            visibility=visibility,
+            validity={"from": "2001-02-03T04:05:06Z"},
+        )
+    )
+    await assert_address([mail])
+
+    # MO: Edit
+    mail = "update@example.com"
+    await graphql_client._testing_address_update(
+        input=AddressUpdateInput(
+            uuid=mo_address.uuid,
+            value=mail,
+            validity={"from": "2011-12-13T14:15:16Z"},
+            # TODO: why is this required?
+            user_key="test address",
+            address_type=address_type,
+            person=mo_person,
+            visibility=visibility,
+        )
+    )
+    await assert_address([mail])
+
+    # MO: Terminate
+    await graphql_client._testing_address_terminate(
+        uuid=mo_address.uuid,
+        to=mo_today,
+    )
+    await assert_address([])

@@ -9,6 +9,10 @@ from ._testing__itsystem_create import TestingItsystemCreate
 from ._testing__itsystem_create import TestingItsystemCreateItsystemCreate
 from ._testing_address_create import TestingAddressCreate
 from ._testing_address_create import TestingAddressCreateAddressCreate
+from ._testing_address_terminate import TestingAddressTerminate
+from ._testing_address_terminate import TestingAddressTerminateAddressTerminate
+from ._testing_address_update import TestingAddressUpdate
+from ._testing_address_update import TestingAddressUpdateAddressUpdate
 from ._testing_ituser_create import TestingItuserCreate
 from ._testing_ituser_create import TestingItuserCreateItuserCreate
 from ._testing_org_unit_create import TestingOrgUnitCreate
@@ -29,6 +33,7 @@ from .engagement_terminate import EngagementTerminateEngagementTerminate
 from .input_types import AddressCreateInput
 from .input_types import AddressFilter
 from .input_types import AddressTerminateInput
+from .input_types import AddressUpdateInput
 from .input_types import ClassCreateInput
 from .input_types import EmployeeCreateInput
 from .input_types import EngagementFilter
@@ -261,6 +266,40 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingAddressCreate.parse_obj(data).address_create
+
+    async def _testing_address_update(
+        self, input: AddressUpdateInput
+    ) -> TestingAddressUpdateAddressUpdate:
+        query = gql(
+            """
+            mutation __testing_address_update($input: AddressUpdateInput!) {
+              address_update(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingAddressUpdate.parse_obj(data).address_update
+
+    async def _testing_address_terminate(
+        self, uuid: UUID, to: datetime
+    ) -> TestingAddressTerminateAddressTerminate:
+        query = gql(
+            """
+            mutation __testing_address_terminate($uuid: UUID!, $to: DateTime!) {
+              address_terminate(input: {uuid: $uuid, to: $to}) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"uuid": uuid, "to": to}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingAddressTerminate.parse_obj(data).address_terminate
 
     async def read_facet_uuid(self, user_key: str) -> ReadFacetUuidFacets:
         query = gql(
