@@ -68,6 +68,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "LDAP_USER": "foo",
         "LDAP_PASSWORD": "foo",
         "LDAP_SEARCH_BASE": "DC=ad,DC=addev",
+        "LDAP_CPR_ATTRIBUTE": "employeeID",
         "DEFAULT_ORG_UNIT_LEVEL": "foo",
         "DEFAULT_ORG_UNIT_TYPE": "foo",
         "FASTRAMQPI__AMQP__URL": "amqp://guest:guest@msg_broker:5672/",
@@ -150,6 +151,7 @@ def integration_test_environment_variables(monkeypatch: pytest.MonkeyPatch) -> N
     monkeypatch.setenv("LDAP_OUS_TO_SEARCH_IN", '["ou=os2mo,o=magenta"]')
     monkeypatch.setenv("LDAP_OUS_TO_WRITE_TO", '[""]')
     monkeypatch.setenv("LDAP_OU_FOR_NEW_USERS", "ou=os2mo,o=magenta")
+    monkeypatch.setenv("LDAP_CPR_ATTRIBUTE", "employeeNumber")
     monkeypatch.setenv("LISTEN_TO_CHANGES_IN_MO", "True")
     monkeypatch.setenv("LISTEN_TO_CHANGES_IN_LDAP", "True")
     monkeypatch.setenv("DEFAULT_ORG_UNIT_TYPE", "Afdeling")

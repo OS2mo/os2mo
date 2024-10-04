@@ -398,11 +398,7 @@ class Settings(BaseSettings):
         ..., description="Search base to utilize for all LDAP requests"
     )
     ldap_cpr_attribute: str | None = Field(
-        # Intentionally set to sentinal value during transition period,
-        # as 'None' is a legitimate value indicating that no such field exists,
-        # thus we cannot use to signal 'UNSET'.
-        # TODO: Change back to 'None' once the cpr_field fiddling is gone.
-        "__ldap_please_fiddle_with_templates",
+        None,
         description="The attribute (if any) that contains the CPR number in LDAP",
     )
     ldap_it_system: str | None = Field(
