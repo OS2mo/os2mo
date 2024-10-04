@@ -278,7 +278,7 @@ class DataLoader:
     ) -> LdapObject:  # pragma: no cover
         # TODO: Actually eliminate this function by calling get_ldap_object directly.
         #       Be warned though, doing so breaks ~25 tests because of bad mocking.
-        return await get_ldap_object(dn, self.ldap_connection, nest, attributes)
+        return await get_ldap_object(self.ldap_connection, dn, attributes, nest)
 
     async def load_ldap_cpr_object(
         self,
