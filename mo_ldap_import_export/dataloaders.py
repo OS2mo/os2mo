@@ -628,7 +628,7 @@ class DataLoader:
         self,
         object_to_modify: LdapObject,
         json_key: str,
-        overwrite: bool = False,
+        overwrite: bool = True,
         delete: bool = False,
     ) -> list[dict]:
         """
