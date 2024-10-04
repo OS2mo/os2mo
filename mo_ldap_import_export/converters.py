@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import json
-import re
 from collections import ChainMap
 from collections.abc import MutableMapping
 from datetime import datetime
@@ -217,13 +216,6 @@ class LdapConverter:
             return mo_class.schema()["required"]
         return []
 
-    @staticmethod
-    def clean_get_current_method_from_template_string(template_string):
-        """
-        Cleans all calls to the get_current_* methods from a template string
-        """
-        return re.sub(r"get_current[^)]*\)", "", template_string)
-
     async def check_ldap_attributes(
         self, overview, graphql_client: GraphQLClient
     ) -> None:
@@ -270,9 +262,7 @@ class LdapConverter:
                 fields_with_ldap_reference = []
                 for field in fields_to_check:
                     mo_field = field.split(".")[1]
-                    template = self.clean_get_current_method_from_template_string(
-                        self.raw_mapping["ldap_to_mo"][json_key][mo_field]
-                    )
+                    template = self.raw_mapping["ldap_to_mo"][json_key][mo_field]
                     if "ldap." in template:
                         fields_with_ldap_reference.append(field)
 
