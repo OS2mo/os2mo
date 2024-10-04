@@ -133,9 +133,12 @@ class LdapConverter:
         if self.settings.ldap_cpr_attribute == "__ldap_please_fiddle_with_templates":
             self.cpr_field = await find_cpr_field(mapping)
 
-        self.ldap_it_system = await find_ldap_it_system(
-            self.dataloader.graphql_client, self.settings, self.mapping
-        )
+        self.ldap_it_system = self.settings.ldap_it_system
+        # TODO: Remove this branch and 'find_ldap_it_system' when ldap_it_system gets set
+        if self.settings.ldap_it_system == "__ldap_please_fiddle_with_templates":
+            self.ldap_it_system = await find_ldap_it_system(
+                self.dataloader.graphql_client, self.settings, self.mapping
+            )
         await self.check_mapping()
 
     def find_ldap_object_class(self, json_key):
@@ -155,6 +158,7 @@ class LdapConverter:
         """
         Check that we have either a cpr-field OR an it-system which maps to an LDAP DN
         """
+        # TODO: Convert this to a pydantic validator once the template fiddling is gone
         if not self.cpr_field and not self.ldap_it_system:
             raise IncorrectMapping(
                 "Neither a cpr-field or an ldap it-system could be found"
