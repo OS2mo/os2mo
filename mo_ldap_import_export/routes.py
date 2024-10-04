@@ -140,7 +140,7 @@ async def load_ldap_objects(
 async def load_ldap_populated_overview(
     settings: Settings,
     ldap_connection: Connection,
-    ldap_classes=None,
+    ldap_classes: list[str],
 ) -> dict:
     """
     Like load_ldap_overview but only returns fields which actually contain data
@@ -149,9 +149,6 @@ async def load_ldap_populated_overview(
 
     output = {}
     overview = load_ldap_overview(ldap_connection)
-
-    if not ldap_classes:
-        ldap_classes = overview.keys()
 
     for ldap_class in ldap_classes:
         searchParameters = {
