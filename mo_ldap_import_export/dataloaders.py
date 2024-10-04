@@ -59,10 +59,7 @@ from .exceptions import NoObjectsReturnedException
 from .exceptions import ReadOnlyException
 from .exceptions import UUIDNotFoundException
 from .ldap import get_attribute_types
-from .ldap import get_ldap_attributes
 from .ldap import get_ldap_object
-from .ldap import get_ldap_schema
-from .ldap import get_ldap_superiors
 from .ldap import is_uuid
 from .ldap import ldap_add
 from .ldap import ldap_compare
@@ -725,19 +722,6 @@ class DataLoader:
             "superiors": superiors,
             "attributes": attribute_dict,
         }
-
-    def load_ldap_overview(self):
-        schema = get_ldap_schema(self.ldap_connection)
-
-        all_object_classes = sorted(list(schema.object_classes.keys()))
-
-        output = {}
-        for ldap_class in all_object_classes:
-            all_attributes = get_ldap_attributes(self.ldap_connection, ldap_class)
-            superiors = get_ldap_superiors(self.ldap_connection, ldap_class)
-            output[ldap_class] = self.make_overview_entry(all_attributes, superiors)
-
-        return output
 
     async def find_mo_employee_uuid_via_cpr_number(self, dn: str) -> set[UUID]:
         if self.cpr_field is None:

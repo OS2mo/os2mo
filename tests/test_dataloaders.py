@@ -161,20 +161,15 @@ def cpr_field() -> str:
 
 
 @pytest.fixture
-def ldap_connection(ldap_attributes: dict) -> Iterator[MagicMock]:
+def ldap_connection() -> Iterator[MagicMock]:
     """Fixture to construct a mock ldap_connection.
 
     Yields:
         A mock for ldap_connection.
     """
-
-    with patch(
-        "mo_ldap_import_export.dataloaders.get_ldap_attributes",
-        return_value=ldap_attributes.keys(),
-    ):
-        ldap_connection = MagicMock()
-        ldap_connection.compare.return_value = False
-        yield ldap_connection
+    ldap_connection = MagicMock()
+    ldap_connection.compare.return_value = False
+    yield ldap_connection
 
 
 @pytest.fixture

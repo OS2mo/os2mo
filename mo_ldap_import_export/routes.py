@@ -38,6 +38,9 @@ from .converters import LdapConverter
 from .dataloaders import DataLoader
 from .exceptions import InvalidCPR
 from .ldap import get_attribute_types
+from .ldap import get_ldap_attributes
+from .ldap import get_ldap_schema
+from .ldap import get_ldap_superiors
 from .ldap import make_ldap_object
 from .ldap import paged_search
 from .ldap_classes import LdapObject
@@ -145,7 +148,7 @@ async def load_ldap_populated_overview(
     nan_values: list[None | list] = [None, []]
 
     output = {}
-    overview = dataloader.load_ldap_overview()
+    overview = load_ldap_overview(ldap_connection, dataloader)
 
     if not ldap_classes:
         ldap_classes = overview.keys()
@@ -246,6 +249,20 @@ async def get_non_existing_unique_ldap_uuids(
         }
         for uuid in ituser_uuids_not_in_ldap
     ]
+
+
+def load_ldap_overview(ldap_connection: Connection, dataloader: DataLoader):
+    schema = get_ldap_schema(ldap_connection)
+
+    all_object_classes = sorted(list(schema.object_classes.keys()))
+
+    output = {}
+    for ldap_class in all_object_classes:
+        all_attributes = get_ldap_attributes(ldap_connection, ldap_class)
+        superiors = get_ldap_superiors(ldap_connection, ldap_class)
+        output[ldap_class] = dataloader.make_overview_entry(all_attributes, superiors)
+
+    return output
 
 
 def construct_router(user_context: UserContext) -> APIRouter:
@@ -519,10 +536,11 @@ def construct_router(user_context: UserContext) -> APIRouter:
     # Get LDAP overview
     @router.get("/Inspect/overview", status_code=202, tags=["LDAP"])
     async def load_overview_from_LDAP(
+        ldap_connection: depends.Connection,
         dataloader: depends.DataLoader,
         ldap_class: str = default_ldap_class,
     ) -> Any:
-        ldap_overview = dataloader.load_ldap_overview()
+        ldap_overview = load_ldap_overview(ldap_connection, dataloader)
         return ldap_overview[ldap_class]
 
     # Get LDAP overview

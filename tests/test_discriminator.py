@@ -521,10 +521,6 @@ async def sync_tool_and_context(
         },
     ):
         dataloader = DataLoader(context, amqpsystem)
-        dataloader.load_ldap_overview = MagicMock()  # type: ignore
-        dataloader.load_ldap_overview.return_value = {
-            "inetOrgPerson": {"attributes": {"employeeID": MagicMock()}}
-        }
     context["user_context"]["dataloader"] = dataloader
 
     # Needs context, user_context, settings, raw_mapping, dataloader
