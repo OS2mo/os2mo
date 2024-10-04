@@ -208,149 +208,10 @@ class LdapConverter:
     def get_ldap_to_mo_json_keys(self):
         return self.get_json_keys("ldap_to_mo")
 
-    def get_mo_to_ldap_json_keys(self):
-        return self.get_json_keys("mo_to_ldap")
-
     def get_required_attributes(self, mo_class):
         if "required" in mo_class.schema():
             return mo_class.schema()["required"]
         return []
-
-    async def check_ldap_attributes(
-        self, overview, graphql_client: GraphQLClient
-    ) -> None:
-        mo_to_ldap_json_keys = self.get_mo_to_ldap_json_keys()
-
-        address_results = await graphql_client.read_class_user_keys(
-            ["employee_address_type", "org_unit_address_type"]
-        )
-        mo_address_type_user_keys = {
-            result.current.user_key
-            for result in address_results.objects
-            if result.current
-        }
-        mo_it_system_user_keys = await get_itsystem_user_keys(
-            self.dataloader.graphql_client
-        )
-
-        for json_key in mo_to_ldap_json_keys:
-            logger.info("Checking mo_to_ldap JSON key", key=json_key)
-
-            object_class = self.find_ldap_object_class(json_key)
-
-            accepted_attributes = list(overview[object_class]["attributes"].keys())
-            detected_attributes = self.get_ldap_attributes(json_key, remove_dn=False)
-
-            self.check_attributes(detected_attributes, accepted_attributes + ["dn"])
-
-            detected_single_value_attributes = [
-                a
-                for a in detected_attributes
-                if a == "dn" or self.dataloader.single_value[a]
-            ]
-
-            # Check single value fields which map to MO address/it-user/... objects.
-            # We like fields which map to these MO objects to be multi-value fields,
-            # to avoid data being overwritten if two objects of the same type are
-            # added in MO
-            def filter_fields_to_check(fields_to_check, json_key):
-                """
-                A field only needs to be checked if we use information from LDAP in
-                the 'ldap_to_mo' mapping. If we do not, we also do not need to make
-                sure that we are writing information to LDAP for this field.
-                """
-                fields_with_ldap_reference = []
-                for field in fields_to_check:
-                    mo_field = field.split(".")[1]
-                    template = self.raw_mapping["ldap_to_mo"][json_key][mo_field]
-                    if "ldap." in template:
-                        fields_with_ldap_reference.append(field)
-
-                return fields_with_ldap_reference
-
-            fields_to_check = []
-            if json_key in mo_address_type_user_keys:
-                fields_to_check = filter_fields_to_check(
-                    ["mo_employee_address.value"], json_key
-                )
-            elif json_key in mo_it_system_user_keys:
-                fields_to_check = filter_fields_to_check(
-                    ["mo_employee_it_user.user_key"], json_key
-                )
-            elif json_key == "Engagement":
-                fields_to_check = filter_fields_to_check(
-                    [
-                        "mo_employee_engagement.user_key",
-                        "mo_employee_engagement.org_unit.uuid",
-                        "mo_employee_engagement.engagement_type.uuid",
-                        "mo_employee_engagement.job_function.uuid",
-                    ],
-                    json_key,
-                )
-
-            for attribute in detected_single_value_attributes:
-                template = self.raw_mapping["mo_to_ldap"][json_key][attribute]
-                for field_to_check in fields_to_check:
-                    if field_to_check in template:
-                        logger.warning(
-                            (
-                                "LDAP attribute cannot contain multiple values. "
-                                "Values in LDAP will be overwritten if multiple objects of the same type are added in MO."
-                            ),
-                            object_class=object_class,
-                            attribute=attribute,
-                            json_key=json_key,
-                        )
-
-            # Make sure that all attributes are single-value or multi-value. Not a mix.
-            if len(fields_to_check) > 1:
-                matching_attributes = []
-                for field_to_check in fields_to_check:
-                    for attribute in detected_attributes:
-                        template = self.raw_mapping["mo_to_ldap"][json_key][attribute]
-                        if field_to_check in template:
-                            matching_attributes.append(attribute)
-                            break
-
-                if len(matching_attributes) != len(fields_to_check):
-                    raise IncorrectMapping(
-                        "Could not find all attributes belonging to "
-                        f"{fields_to_check}. Only found the following "
-                        f"attributes: {matching_attributes}."
-                    )
-
-                matching_single_value_attributes = [
-                    a
-                    for a in matching_attributes
-                    if a in detected_single_value_attributes
-                ]
-                matching_multi_value_attributes = [
-                    a
-                    for a in matching_attributes
-                    if a not in detected_single_value_attributes
-                ]
-
-                if len(matching_single_value_attributes) not in [
-                    0,
-                    len(fields_to_check),
-                ]:
-                    raise IncorrectMapping(
-                        f"LDAP Attributes mapping to '{json_key}' are a mix "
-                        "of multi- and single-value. The following attributes are "
-                        f"single-value: {matching_single_value_attributes} "
-                        "while the following are multi-value attributes: "
-                        f"{matching_multi_value_attributes}"
-                    )
-
-                if (
-                    json_key == "Engagement"
-                    and len(matching_multi_value_attributes) > 0
-                ):
-                    raise IncorrectMapping(
-                        f"LDAP Attributes mapping to 'Engagement' contain one or "
-                        f"more multi-value attributes "
-                        f"{matching_multi_value_attributes}, which is not allowed"
-                    )
 
     def check_cpr_field_or_it_system(self):
         """
@@ -372,11 +233,6 @@ class LdapConverter:
         """
 
         logger.info("Checking json file")
-
-        overview = self.dataloader.load_ldap_overview()
-
-        # check that the LDAP attributes match what is available in LDAP
-        await self.check_ldap_attributes(overview, self.dataloader.graphql_client)
 
         # Check to see if there is an existing link between LDAP and MO
         self.check_cpr_field_or_it_system()
