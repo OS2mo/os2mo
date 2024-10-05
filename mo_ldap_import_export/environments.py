@@ -591,7 +591,7 @@ async def get_primary_engagement_dict(
 
 
 async def get_employee_dict(dataloader: DataLoader, employee_uuid: UUID) -> dict:
-    mo_employee = await dataloader.load_mo_employee(employee_uuid)
+    mo_employee = await dataloader.moapi.load_mo_employee(employee_uuid)
     if mo_employee is None:
         raise NoObjectsReturnedException(f"Unable to lookup employee: {employee_uuid}")
     return mo_employee.dict()

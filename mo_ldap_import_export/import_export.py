@@ -702,7 +702,7 @@ class SyncTool:
         exit_stack.enter_context(bound_contextvars(dn=best_dn))
 
         # Get MO employee
-        changed_employee = await self.dataloader.load_mo_employee(
+        changed_employee = await self.dataloader.moapi.load_mo_employee(
             uuid, current_objects_only=False
         )
         if changed_employee is None:

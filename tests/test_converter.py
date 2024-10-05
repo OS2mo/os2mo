@@ -1595,34 +1595,68 @@ async def test_get_primary_engagement_dict(dataloader: AsyncMock) -> None:
     assert "too few items in iterable (expected 1)" in str(exc_info.value)
 
 
-async def test_get_employee_dict_no_employee(dataloader: AsyncMock) -> None:
-    employee_uuid = uuid4()
+async def test_get_employee_dict_no_employee(
+    graphql_mock: GraphQLMocker, dataloader: AsyncMock
+) -> None:
+    graphql_client = GraphQLClient("http://example.com/graphql")
+    dataloader.graphql_client = graphql_client
+    dataloader.moapi = MOAPI(graphql_client)
 
-    dataloader.load_mo_employee.return_value = None
+    route = graphql_mock.query("read_employees")
+    route.result = {"employees": {"objects": []}}
+
+    employee_uuid = uuid4()
 
     with pytest.raises(NoObjectsReturnedException) as exc_info:
         await get_employee_dict(dataloader, employee_uuid)
     assert f"Unable to lookup employee: {employee_uuid}" in str(exc_info.value)
 
 
-async def test_get_employee_dict(dataloader: AsyncMock) -> None:
+async def test_get_employee_dict(
+    graphql_mock: GraphQLMocker, dataloader: AsyncMock
+) -> None:
+    graphql_client = GraphQLClient("http://example.com/graphql")
+    dataloader.graphql_client = graphql_client
+    dataloader.moapi = MOAPI(graphql_client)
+
     cpr_no = "1407711900"
     uuid = uuid4()
-    mo_employee = Employee(**{"cpr_no": cpr_no, "uuid": uuid})
 
-    dataloader.load_mo_employee.return_value = mo_employee
+    route = graphql_mock.query("read_employees")
+    route.result = {
+        "employees": {
+            "objects": [
+                {
+                    "validities": [
+                        {
+                            "uuid": uuid,
+                            "cpr_no": cpr_no,
+                            "givenname": "Hans",
+                            "surname": "Andersen",
+                            "nickname_givenname": None,
+                            "nickname_surname": None,
+                            "validity": {
+                                "from": None,
+                                "to": None,
+                            },
+                        }
+                    ]
+                }
+            ]
+        }
+    }
 
     result = await get_employee_dict(dataloader, uuid)
     assert result == {
         "details": None,
-        "givenname": None,
+        "givenname": "Hans",
         "name": None,
         "nickname": None,
         "nickname_givenname": None,
         "nickname_surname": None,
         "org": None,
         "seniority": None,
-        "surname": None,
+        "surname": "Andersen",
         "type_": "employee",
         "user_key": str(uuid),
         "uuid": uuid,

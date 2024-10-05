@@ -4,14 +4,12 @@
 
 import asyncio
 from contextlib import suppress
-from datetime import UTC
 from datetime import datetime
 from enum import Enum
 from enum import auto
 from functools import partialmethod
 from typing import Any
 from typing import Literal
-from typing import Protocol
 from typing import TypeVar
 from typing import cast
 from uuid import UUID
@@ -69,6 +67,7 @@ from .ldap import paged_search
 from .ldap import single_object_search
 from .ldap_classes import LdapObject
 from .moapi import MOAPI
+from .moapi import extract_current_or_latest_validity
 from .types import DN
 from .types import CPRNumber
 from .types import OrgUnitUUID
@@ -86,25 +85,6 @@ class Verb(Enum):
     CREATE = auto()
     EDIT = auto()
     TERMINATE = auto()
-
-
-class Validity(Protocol):
-    @property
-    def from_(self) -> datetime | None:  # pragma: no cover
-        ...
-
-    @property
-    def to(self) -> datetime | None:  # pragma: no cover
-        ...
-
-
-class ValidityModel(Protocol):
-    @property
-    def validity(self) -> Validity:  # pragma: no cover
-        ...
-
-
-T = TypeVar("T", bound=ValidityModel)
 
 
 AddressValidity = TypeVar("AddressValidity", bound=AddressValidityFields)
@@ -130,49 +110,6 @@ def graphql_address_to_ramodels_address(
         engagement_uuid=entry["engagement_uuid"],
     )
     return address
-
-
-def extract_current_or_latest_validity(validities: list[T]) -> T | None:
-    """
-    Check each validity in a list of validities and return the one which is either
-    valid today, or has the latest end-date
-    """
-    if len(validities) <= 1:
-        return only(validities)
-
-    def is_current(val: T) -> bool:
-        # Cannot use datetime.utcnow as it is not timezone aware
-        now_utc = datetime.now(UTC)
-
-        match (val.validity.from_, val.validity.to):
-            case (None, None):
-                return True
-            case (start, None):
-                assert start is not None
-                return start < now_utc
-            case (None, end):
-                assert end is not None
-                return now_utc < end
-            case (start, end):
-                assert start is not None
-                assert end is not None
-                return start < now_utc < end
-            case _:  # pragma: no cover
-                raise AssertionError()
-
-    # If any of the validities is valid today, return it
-    current_validity = only(filter(is_current, validities))
-    if current_validity:
-        return current_validity
-    # Otherwise return the latest
-    # TODO: Does this actually make sense? - Should we not return the one which is the
-    #       closest to now, rather than the one that is the furthest into the future?
-    # Cannot use datetime.max directly as it is not timezone aware
-    datetime_max_utc = datetime.max.replace(tzinfo=UTC)
-    latest_validity = max(
-        validities, key=lambda val: val.validity.to or datetime_max_utc
-    )
-    return latest_validity
 
 
 class DataLoader:
@@ -868,7 +805,7 @@ class DataLoader:
             A potentially empty set of DNs.
         """
         # If the employee has a cpr-no, try using that to find matchind DNs
-        employee = await self.load_mo_employee(uuid)
+        employee = await self.moapi.load_mo_employee(uuid)
         if employee is None:
             raise NoObjectsReturnedException(f"Unable to lookup employee: {uuid}")
         cpr_no = CPRNumber(employee.cpr_no) if employee.cpr_no else None
@@ -931,7 +868,7 @@ class DataLoader:
 
     # TODO: move to synctool
     async def make_mo_employee_dn(self, uuid: UUID) -> DN:
-        employee = await self.load_mo_employee(uuid)
+        employee = await self.moapi.load_mo_employee(uuid)
         if employee is None:
             raise NoObjectsReturnedException(f"Unable to lookup employee: {uuid}")
         cpr_no = CPRNumber(employee.cpr_no) if employee.cpr_no else None
@@ -1006,21 +943,6 @@ class DataLoader:
             self.amqpsystem.exchange_name, [employee.uuid]
         )
         return dn
-
-    async def load_mo_employee(
-        self, uuid: UUID, current_objects_only=True
-    ) -> Employee | None:
-        start = end = UNSET if current_objects_only else None
-        results = await self.graphql_client.read_employees([uuid], start, end)
-        result = only(results.objects)
-        if result is None:
-            return None
-        result_entry = extract_current_or_latest_validity(result.validities)
-        if result_entry is None:
-            return None
-        entry = jsonable_encoder(result_entry)
-        entry.pop("validity")
-        return Employee(**entry)
 
     async def load_mo_class_uuid(self, user_key: str) -> UUID | None:
         """Find the UUID of a class by user-key.
