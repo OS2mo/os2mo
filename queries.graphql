@@ -59,6 +59,18 @@ mutation __testing_address_create($input: AddressCreateInput!) {
   }
 }
 
+mutation __testing_address_update($input: AddressUpdateInput!) {
+  address_update(input: $input) {
+    uuid
+  }
+}
+
+mutation __testing_address_terminate($uuid: UUID!, $to: DateTime!) {
+  address_terminate(input: { uuid: $uuid, to: $to }) {
+    uuid
+  }
+}
+
 # Normal queries
 
 query read_facet_uuid($user_key: String!) {

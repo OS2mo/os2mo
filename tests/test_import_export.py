@@ -218,7 +218,7 @@ async def test_listen_to_changes_in_employees_org_unit_address(
     assert read_engagements_is_primary_route.called
     assert route.called
     dataloader.modify_ldap_object.assert_called_with(
-        converted_ldap_object, address_type_user_key, delete=False
+        converted_ldap_object, address_type_user_key, overwrite=True, delete=False
     )
     dataloader.modify_ldap_object.reset_mock()
 
@@ -340,7 +340,7 @@ async def test_listen_to_changes_in_employees_address(
     await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert route.called
     dataloader.modify_ldap_object.assert_called_with(
-        converted_ldap_object, address_type_user_key, delete=False
+        converted_ldap_object, address_type_user_key, overwrite=True, delete=False
     )
 
     # Test expected behavior when reading multiple addresses of the same type
@@ -448,7 +448,7 @@ async def test_listen_to_changes_in_employees_ituser(
     await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert route.called
     dataloader.modify_ldap_object.assert_called_with(
-        converted_ldap_object, it_system_type_name, delete=False
+        converted_ldap_object, it_system_type_name, overwrite=True, delete=False
     )
 
     # Test expected behavior when reading multiple addresses of the same type
@@ -584,7 +584,7 @@ async def test_listen_to_changes_in_employees_engagement(
     assert route1.called
     assert route2.called
     dataloader.modify_ldap_object.assert_called_with(
-        converted_ldap_object, "Engagement", delete=False
+        converted_ldap_object, "Engagement", overwrite=True, delete=False
     )
 
     # Test expected behavior when unable to read any engagements
