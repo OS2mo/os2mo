@@ -12,7 +12,6 @@ from more_itertools import one
 from more_itertools import split_when
 from ramodels.mo.employee import Employee
 
-from .client_helpers import get_it_system_uuid
 from .config import Settings
 from .config import UsernameGeneratorConfig
 from .dataloaders import DataLoader
@@ -406,9 +405,7 @@ class AlleroedUserNameGenerator(UserNameGenerator):
         # That MO generates a user, which is deleted from AD some years later. In that
         # Case we should never generate the username of the deleted user.
         # Ref: https://redmine.magenta-aps.dk/issues/57043
-        itsystem_uuid = await get_it_system_uuid(
-            self.dataloader.graphql_client, "ADSAMA"
-        )
+        itsystem_uuid = await self.dataloader.moapi.get_it_system_uuid("ADSAMA")
         result = await self.dataloader.graphql_client.read_all_ituser_user_keys_by_itsystem_uuid(
             UUID(itsystem_uuid)
         )

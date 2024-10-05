@@ -14,6 +14,7 @@ from ramodels.mo import Employee
 
 from mo_ldap_import_export.config import UsernameGeneratorConfig
 from mo_ldap_import_export.depends import GraphQLClient
+from mo_ldap_import_export.moapi import MOAPI
 from mo_ldap_import_export.usernames import AlleroedUserNameGenerator
 from mo_ldap_import_export.usernames import UserNameGenerator
 from tests.graphql_mocker import GraphQLMocker
@@ -439,6 +440,7 @@ async def test_alleroed_dn_generator(
     route2.result = {"itsystems": {"objects": [{"uuid": itsystem_uuid}]}}
 
     alleroed_username_generator.dataloader.graphql_client = graphql_client  # type: ignore
+    alleroed_username_generator.dataloader.moapi = MOAPI(graphql_client)  # type: ignore
 
     employee = Employee(givenname="Patrick", surname="Bateman")
     dn = await alleroed_username_generator.generate_dn(employee)
