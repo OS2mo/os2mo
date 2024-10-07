@@ -113,13 +113,13 @@ class LdapConverter:
     def __init__(self, settings: Settings, dataloader: DataLoader) -> None:
         self.settings = settings
         self.dataloader = dataloader
-        self.raw_mapping = self.settings.conversion_mapping.dict(
-            exclude_unset=True, by_alias=True
-        )
 
     async def _init(self):
+        raw_mapping = self.settings.conversion_mapping.dict(
+            exclude_unset=True, by_alias=True
+        )
         mapping = delete_keys_from_dict(
-            self.raw_mapping,
+            raw_mapping,
             ["objectClass", "_import_to_mo_", "_export_to_ldap_"],
         )
 
