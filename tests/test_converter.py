@@ -6,6 +6,7 @@ import uuid
 from functools import partial
 from typing import Any
 from typing import cast
+from unittest.mock import ANY
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from uuid import UUID
@@ -407,15 +408,37 @@ async def test_from_ldap_bad_json_key(converter: LdapConverter) -> None:
     assert "Missing '__non_existing_key' in mapping 'ldap_to_mo'"
 
 
-async def test_template_lenience(context: Context, converter: LdapConverter) -> None:
+@pytest.mark.parametrize(
+    "ldap_values,expected",
+    (
+        # Base case
+        ({}, {}),
+        # Single overrides
+        ({"cpr": "0101700000"}, {"cpr_no": "0101700000"}),
+        ({"givenName": "Hans"}, {"givenname": "Hans"}),
+        ({"sn": "Petersen"}, {"surname": "Petersen"}),
+        # Empty values -> no keys
+        ({"cpr": ""}, {}),
+        ({"givenName": ""}, {"givenname": None}),
+        ({"sn": ""}, {"surname": None}),
+    ),
+)
+async def test_template_strictness(
+    monkeypatch: pytest.MonkeyPatch,
+    converter: LdapConverter,
+    ldap_values: dict[str, str],
+    expected: dict[str, str],
+) -> None:
     mapping = {
         "ldap_to_mo": {
             "Employee": {
                 "objectClass": "ramodels.mo.employee.Employee",
                 "_import_to_mo_": "True",
                 "_ldap_attributes_": ["givenName", "sn"],
-                "givenname": "{{ldap.givenName}}",
-                "surname": "{{ldap.sn}}",
+                "user_key": "{{ ldap.dn }}",
+                "givenname": "{{ ldap.get('givenName', 'givenname') }}",
+                "surname": "{{ ldap.sn if 'sn' in ldap else 'surname' }}",
+                "cpr_no": "{{ ldap.get('cpr') }}",
                 "uuid": "{{ employee_uuid }}",
             }
         },
@@ -423,25 +446,35 @@ async def test_template_lenience(context: Context, converter: LdapConverter) -> 
             "Employee": {
                 "objectClass": "user",
                 "_export_to_ldap_": "True",
-                "givenName": "{{mo_employee.givenname}}",
-                "sn": "{{mo_employee.surname}}",
-                "displayName": "{{mo_employee.surname}}, {{mo_employee.givenname}}",
-                "name": "{{mo_employee.givenname}} {{mo_employee.surname}}",
-                "dn": "",
-                "employeeID": "{{mo_employee.cpr_no or None}}",
+                "cpr": "{{ mo_employee.cpr_no }}",
+                "givenName": "{{ mo_employee.givenname }}",
+                "sn": "{{ mo_employee.surname }}",
+                "dn": "{{ mo_employee.user_key }}",
             }
         },
     }
-
-    context["user_context"]["mapping"] = mapping
-    await converter.from_ldap(
-        LdapObject(
-            dn="",
-            cpr="1234567890",
-        ),
+    monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
+    converter.settings = Settings()
+    await converter._init()
+    result = await converter.from_ldap(
+        LdapObject(dn="CN=foo", **ldap_values),
         "Employee",
         employee_uuid=uuid4(),
     )
+    employee = one(result)
+    expected_employee = {
+        "uuid": ANY,
+        "user_key": "CN=foo",
+        "givenname": "givenname",
+        "surname": "surname",
+    }
+    for key, value in expected.items():
+        if value is None:
+            del expected_employee[key]
+        else:
+            expected_employee[key] = value
+
+    assert employee.dict(exclude_unset=True) == expected_employee
 
 
 def test_find_ldap_object_class(converter: LdapConverter):
