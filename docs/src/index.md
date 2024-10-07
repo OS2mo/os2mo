@@ -1,5 +1,5 @@
 ---
-title: 'MO | Menneske & Organisation'
+title: 'MO | Medarbejder & Organisation'
 ---
 
 MO er et it-system til organisations- og identitetsstyring.
