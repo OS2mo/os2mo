@@ -1029,11 +1029,13 @@ class SyncTool:
             # However we may be able to find other accounts using the CPR number on the
             # event triggered account, by searching for the CPR number in all of LDAP.
             # Note however, that this will only succeed if there is a CPR number field.
-            if self.converter.cpr_field:
+            if self.settings.ldap_cpr_attribute:
                 ldap_obj = await get_ldap_object(
-                    self.ldap_connection, dn, attributes=[self.converter.cpr_field]
+                    self.ldap_connection,
+                    dn,
+                    attributes=[self.settings.ldap_cpr_attribute],
                 )
-                cpr_no = getattr(ldap_obj, self.converter.cpr_field)
+                cpr_no = getattr(ldap_obj, self.settings.ldap_cpr_attribute)
                 # Only attempt to load accounts if we have a CPR number to do so with
                 # and only if the CPR number is not the commonly used test CPR number
                 if cpr_no and cpr_no != "0000000000":

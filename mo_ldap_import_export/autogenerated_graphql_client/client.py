@@ -121,8 +121,6 @@ from .read_is_primary_engagements import ReadIsPrimaryEngagements
 from .read_is_primary_engagements import ReadIsPrimaryEngagementsEngagements
 from .read_itsystem_uuid import ReadItsystemUuid
 from .read_itsystem_uuid import ReadItsystemUuidItsystems
-from .read_itsystems import ReadItsystems
-from .read_itsystems import ReadItsystemsItsystems
 from .read_ituser_by_employee_and_itsystem_uuid import (
     ReadItuserByEmployeeAndItsystemUuid,
 )
@@ -1048,26 +1046,6 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadAddresses.parse_obj(data).addresses
-
-    async def read_itsystems(self) -> ReadItsystemsItsystems:
-        query = gql(
-            """
-            query read_itsystems {
-              itsystems {
-                objects {
-                  current {
-                    uuid
-                    user_key
-                  }
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadItsystems.parse_obj(data).itsystems
 
     async def read_class_user_keys(
         self, facet_user_keys: list[str]

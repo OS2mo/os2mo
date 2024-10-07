@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import json
 from functools import partial
+from typing import Any
 from typing import cast
 
 import pytest
@@ -280,3 +281,32 @@ async def test_check_for_engagement_primary_specialcase():
         )
 
     assert "Missing {'primary'} which are mandatory." in str(exc_info.value)
+
+
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+@pytest.mark.parametrize(
+    "overrides, expected",
+    (
+        ({}, "'LDAP_CPR_ATTRIBUTE' and 'LDAP_IT_SYSTEM' cannot both be 'None'"),
+        ({"LDAP_CPR_ATTRIBUTE": "EmployeeID"}, None),
+        ({"LDAP_IT_SYSTEM": "ADUUID"}, None),
+        ({"LDAP_CPR_ATTRIBUTE": "EmployeeID", "LDAP_IT_SYSTEM": "ADUUID"}, None),
+    ),
+)
+async def test_correlation_configuration(
+    monkeypatch: pytest.MonkeyPatch,
+    overrides: dict[str, Any],
+    expected: str | None,
+) -> None:
+    monkeypatch.delenv("LDAP_CPR_ATTRIBUTE", raising=False)
+    monkeypatch.delenv("LDAP_IT_SYSTEM", raising=False)
+
+    for key, value in overrides.items():
+        monkeypatch.setenv(key, value)
+
+    if expected is None:
+        Settings()
+    else:
+        with pytest.raises(ValidationError) as exc_info:
+            Settings()
+        assert expected in str(exc_info.value)

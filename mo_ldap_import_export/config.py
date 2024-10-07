@@ -397,18 +397,24 @@ class Settings(BaseSettings):
     ldap_search_base: str = Field(
         ..., description="Search base to utilize for all LDAP requests"
     )
+
     ldap_cpr_attribute: str | None = Field(
         None,
         description="The attribute (if any) that contains the CPR number in LDAP",
     )
     ldap_it_system: str | None = Field(
-        # Intentionally set to sentinal value during transition period,
-        # as 'None' is a legitimate value indicating that no such itsystem exists,
-        # thus we cannot use to signal 'UNSET'.
-        # TODO: Change back to 'None' once the cpr_field fiddling is gone.
-        "__ldap_please_fiddle_with_templates",
+        None,
         description="The user-key (if any) of the ADGUID IT-system in MO",
     )
+
+    @root_validator
+    def check_ldap_correlation_key(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if values["ldap_cpr_attribute"] is None and values["ldap_it_system"] is None:
+            raise ValueError(
+                "'LDAP_CPR_ATTRIBUTE' and 'LDAP_IT_SYSTEM' cannot both be 'None'. "
+                "Atleast one must be set to allow for MO<-->LDAP correlation."
+            )
+        return values
 
     ldap_ous_to_search_in: list[str] = Field(
         [""],

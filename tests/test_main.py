@@ -93,6 +93,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "LDAP_USER": "foo",
         "LDAP_PASSWORD": "foo",
         "LDAP_SEARCH_BASE": "DC=ad,DC=addev",
+        "LDAP_CPR_ATTRIBUTE": "EmployeeID",
         "DEFAULT_ORG_UNIT_LEVEL": "foo",
         "DEFAULT_ORG_UNIT_TYPE": "foo",
         "LDAP_OUS_TO_SEARCH_IN": '["OU=bar"]',
@@ -185,7 +186,6 @@ def dataloader(
     dataloader.load_ldap_attribute_values = sync_dataloader
     dataloader.modify_ldap_object.return_value = [{"description": "success"}]
     dataloader.get_ldap_unique_ldap_uuid = AsyncMock()
-    dataloader.get_ldap_it_system_uuid = AsyncMock()
     dataloader.supported_object_types = ["address", "person"]
     with patch(
         "mo_ldap_import_export.routes.load_ldap_objects",
@@ -206,8 +206,6 @@ def converter() -> MagicMock:
         "Address",
         "EmailEmployee",
     ]
-    converter.cpr_field = "EmployeeID"
-    converter.ldap_it_system = "ADGUID"
     converter._import_to_mo_ = MagicMock()
     converter._import_to_mo_.return_value = True
 
@@ -340,8 +338,6 @@ async def always_initialize_converter(
 ) -> None:
     user_context = fastramqpi.get_context()["user_context"]
     assert user_context.get("converter") is None
-    assert user_context.get("ldap_it_system_user_key") is None
-    assert user_context.get("cpr_field") is None
 
     with patch("mo_ldap_import_export.main.LdapConverter", return_value=converter):
         async with initialize_converters(
@@ -350,8 +346,6 @@ async def always_initialize_converter(
             user_context["dataloader"],
         ):
             assert user_context.get("converter") is not None
-            assert user_context.get("ldap_it_system_user_key") == "ADGUID"
-            assert user_context.get("cpr_field") == "EmployeeID"
 
 
 async def test_open_ldap_connection() -> None:

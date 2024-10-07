@@ -1232,9 +1232,11 @@ async def test_import_it_user_objects(
 
 
 async def test_import_single_object_from_LDAP_non_existing_employee(
-    context: Context, converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
+    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
     dn = "CN=foo"
+
+    sync_tool.settings.ldap_cpr_attribute = "EmployeeID"  # type: ignore
 
     sync_tool.format_converted_objects = AsyncMock()  # type: ignore
     sync_tool.format_converted_objects.return_value = []

@@ -428,17 +428,6 @@ query read_addresses($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime)
   }
 }
 
-query read_itsystems {
-  itsystems {
-    objects {
-      current {
-        uuid
-        user_key
-      }
-    }
-  }
-}
-
 query read_class_user_keys($facet_user_keys: [String!]!) {
   classes(filter: {facet: {user_keys: $facet_user_keys}}) {
     objects {

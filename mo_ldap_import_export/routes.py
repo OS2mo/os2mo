@@ -310,7 +310,7 @@ def construct_router(settings: Settings) -> APIRouter:
         cpr_indexed_entries_only: bool = True,
         search_base: str | None = None,
     ) -> Any:
-        cpr_field = converter.cpr_field
+        cpr_field = settings.ldap_cpr_attribute
 
         if cpr_indexed_entries_only and not cpr_field:
             raise CPRFieldNotFound("cpr_field is not configured")
@@ -517,9 +517,8 @@ def construct_router(settings: Settings) -> APIRouter:
     async def get_duplicate_cpr_numbers_from_LDAP(
         settings: depends.Settings,
         ldap_connection: depends.Connection,
-        converter: depends.LdapConverter,
     ) -> Any:
-        cpr_field = converter.cpr_field
+        cpr_field = settings.ldap_cpr_attribute
         if not cpr_field:
             raise CPRFieldNotFound("cpr_field is not configured")
 
@@ -552,7 +551,7 @@ def construct_router(settings: Settings) -> APIRouter:
         ldap_connection: depends.Connection,
         converter: depends.LdapConverter,
     ) -> Any:
-        cpr_field = converter.cpr_field
+        cpr_field = settings.ldap_cpr_attribute
         if not cpr_field:
             raise CPRFieldNotFound("cpr_field is not configured")
 
