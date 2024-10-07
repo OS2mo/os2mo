@@ -3,8 +3,6 @@
 import json
 from collections import ChainMap
 from collections.abc import MutableMapping
-from datetime import datetime
-from datetime import time
 from json.decoder import JSONDecodeError
 from typing import Any
 from typing import cast
@@ -30,6 +28,7 @@ from .ldap_classes import LdapObject
 from .types import DN
 from .utils import delete_keys_from_dict
 from .utils import is_list
+from .utils import mo_today
 
 logger = structlog.stdlib.get_logger()
 
@@ -367,17 +366,12 @@ class LdapConverter:
             required_attributes = get_required_attributes(mo_class)
 
             # Load our validity default, if it is not set
-            missing_attributes = required_attributes - set(mo_dict.keys())
             if "validity" in required_attributes:
                 assert (
                     "validity" not in mo_dict
                 ), "validity disallowed in ldap2mo mappings"
                 mo_dict["validity"] = {
-                    # TODO: We probably want to use datetime.now(UTC) here, and then
-                    #       pass that value all the way through the program till the
-                    #       GraphQL code that uploads it to MO, such that it is easier
-                    #       to clean up later when MO supports proper datetimes.
-                    "from": datetime.combine(datetime.today(), time()),
+                    "from": mo_today(),
                     "to": None,
                 }
 
