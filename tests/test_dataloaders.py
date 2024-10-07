@@ -2256,54 +2256,6 @@ async def test_move_ldap_object(dataloader: DataLoader):
     assert "LDAP connection is read-only" in str(exc.value)
 
 
-async def test_find_mo_engagement_uuid(
-    dataloader: DataLoader, graphql_mock: GraphQLMocker
-) -> None:
-    """Check that `find_mo_engagement_uuid` returns the expected engagement UUID, by
-    looking at any previously created "ADGUID" `ITUser` objects in MO for the given
-    employee.
-    """
-
-    # Arrange
-    object_guid: UUID = uuid4()
-    engagement_uuid: UUID = uuid4()
-    itsystem_uuid: UUID = uuid4()
-    mock_ldap_object: LdapObject = LdapObject(
-        dn="CN=foo", objectGUID=f"{{{object_guid}}}"
-    )
-
-    dataloader.get_ldap_it_system_uuid = AsyncMock()  # type: ignore
-    dataloader.get_ldap_it_system_uuid.return_value = None
-    with patch.object(dataloader, "load_ldap_object", return_value=mock_ldap_object):
-        # Act
-        empty = await dataloader.find_mo_engagement_uuid("CN=foo")
-        # Assert
-        assert empty is None
-
-    dataloader.get_ldap_it_system_uuid.return_value = str(itsystem_uuid)
-
-    route = graphql_mock.query("read_engagement_uuid_by_ituser_user_key")
-    route.result = {
-        "itusers": {"objects": [{"current": {"engagement_uuid": engagement_uuid}}]}
-    }
-    with patch.object(dataloader, "load_ldap_object", return_value=mock_ldap_object):
-        # Act
-        actual_engagement_uuid = await dataloader.find_mo_engagement_uuid("CN=foo")
-        # Assert
-        assert actual_engagement_uuid == engagement_uuid
-    assert route.called
-
-    # Test behavior if MO has no IT users for the given employee
-    route.reset()
-    route.result = {"itusers": {"objects": []}}
-    with patch.object(dataloader, "load_ldap_object", return_value=mock_ldap_object):
-        # Act
-        empty = await dataloader.find_mo_engagement_uuid("CN=foo")
-        # Assert
-        assert empty is None
-    assert route.called
-
-
 async def test_create_or_edit_mo_objects_empty(
     dataloader: DataLoader,
     legacy_model_client: AsyncMock,
