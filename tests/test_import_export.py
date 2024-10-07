@@ -93,7 +93,7 @@ async def test_listen_to_changes_in_employee_no_employee(
     employee_uuid = uuid4()
 
     dataloader.find_mo_employee_dn.return_value = {"CN=foo"}
-    dataloader.load_mo_employee.return_value = None
+    dataloader.moapi.load_mo_employee.return_value = None
 
     # Simulate a created employee
     with pytest.raises(RequeueMessage) as exc_info:
@@ -123,7 +123,7 @@ async def test_listen_to_changes_in_employees_person(
 
     # Simulate a created employee
     await sync_tool.listen_to_changes_in_employees(employee_uuid)
-    assert dataloader.load_mo_employee.called
+    assert dataloader.moapi.load_mo_employee.called
     assert converter.to_ldap.called
     assert dataloader.modify_ldap_object.called
     dataloader.modify_ldap_object.assert_called_with(

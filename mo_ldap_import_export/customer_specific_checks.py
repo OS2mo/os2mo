@@ -4,7 +4,6 @@ from uuid import UUID
 
 import structlog
 
-from .client_helpers import get_it_system_uuid
 from .dataloaders import DataLoader
 from .exceptions import IgnoreChanges
 from .ldap import check_ou_in_list_of_ous
@@ -25,8 +24,8 @@ class ExportChecks:
         if not it_system_user_key:
             return
 
-        it_system_uuid = await get_it_system_uuid(
-            self.dataloader.graphql_client, it_system_user_key
+        it_system_uuid = await self.dataloader.moapi.get_it_system_uuid(
+            it_system_user_key
         )
         it_users = await self.dataloader.load_mo_employee_it_users(
             employee_uuid, UUID(it_system_uuid)

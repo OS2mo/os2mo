@@ -509,7 +509,7 @@ async def test_load_mo_employee(
     employee.pop("validity")
     expected_result = Employee(**employee)
 
-    output = await dataloader.load_mo_employee(uuid)
+    output = await dataloader.moapi.load_mo_employee(uuid)
     assert output == expected_result
     assert route.called
 
@@ -522,7 +522,7 @@ async def test_load_mo_employee_no_objects(
     route = graphql_mock.query("read_employees")
     route.result = {"employees": {"objects": []}}
 
-    result = await dataloader.load_mo_employee(uuid)
+    result = await dataloader.moapi.load_mo_employee(uuid)
     assert result is None
     assert route.called
 
@@ -535,7 +535,7 @@ async def test_load_mo_employee_no_validities(
     route = graphql_mock.query("read_employees")
     route.result = {"employees": {"objects": [{"validities": []}]}}
 
-    result = await dataloader.load_mo_employee(uuid)
+    result = await dataloader.moapi.load_mo_employee(uuid)
     assert result is None
     assert route.called
 
@@ -844,7 +844,7 @@ async def test_load_mo_employee_not_found(
 
     uuid = uuid4()
 
-    result = await dataloader.load_mo_employee(uuid)
+    result = await dataloader.moapi.load_mo_employee(uuid)
     assert result is None
 
 
@@ -1451,15 +1451,35 @@ async def test_make_mo_employee_dn_no_user(
     assert route.called
 
 
-async def test_make_mo_employee_dn_no_correlation(dataloader: MagicMock) -> None:
+async def test_make_mo_employee_dn_no_correlation(
+    graphql_mock: GraphQLMocker, dataloader: MagicMock
+) -> None:
     employee_uuid = uuid4()
+    cpr_no = None
 
-    employee_object = MagicMock()
-    employee_object.cpr_no = None
-    employee_object.uuid = employee_uuid
-
-    dataloader.load_mo_employee = AsyncMock()
-    dataloader.load_mo_employee.return_value = employee_object
+    route = graphql_mock.query("read_employees")
+    route.result = {
+        "employees": {
+            "objects": [
+                {
+                    "validities": [
+                        {
+                            "uuid": employee_uuid,
+                            "cpr_no": cpr_no,
+                            "givenname": "Hans",
+                            "surname": "Andersen",
+                            "nickname_givenname": None,
+                            "nickname_surname": None,
+                            "validity": {
+                                "from": None,
+                                "to": None,
+                            },
+                        }
+                    ]
+                }
+            ]
+        }
+    }
 
     dataloader.get_ldap_it_system_uuid = AsyncMock()
     dataloader.get_ldap_it_system_uuid.return_value = None
@@ -1469,15 +1489,39 @@ async def test_make_mo_employee_dn_no_correlation(dataloader: MagicMock) -> None
     assert "Unable to generate DN, no correlation key available" in str(exc_info.value)
 
 
-async def test_make_mo_employee_dn_no_itsystem(dataloader: MagicMock) -> None:
+async def test_make_mo_employee_dn_no_itsystem(
+    dataloader: MagicMock,
+    graphql_mock: GraphQLMocker,
+) -> None:
     employee_uuid = uuid4()
+    cpr_no = "0101700000"
 
-    employee_object = MagicMock()
-    employee_object.cpr_no = "0101700000"
-    employee_object.uuid = employee_uuid
+    route1 = graphql_mock.query("read_employees")
+    route1.result = {
+        "employees": {
+            "objects": [
+                {
+                    "validities": [
+                        {
+                            "uuid": employee_uuid,
+                            "cpr_no": cpr_no,
+                            "givenname": "Hans",
+                            "surname": "Andersen",
+                            "nickname_givenname": None,
+                            "nickname_surname": None,
+                            "validity": {
+                                "from": None,
+                                "to": None,
+                            },
+                        }
+                    ]
+                }
+            ]
+        }
+    }
 
-    dataloader.load_mo_employee = AsyncMock()
-    dataloader.load_mo_employee.return_value = employee_object
+    route2 = graphql_mock.query("employee_refresh")
+    route2.result = {"employee_refresh": {"objects": [employee_uuid]}}
 
     dataloader.get_ldap_it_system_uuid = AsyncMock()
     dataloader.get_ldap_it_system_uuid.return_value = None
@@ -1500,20 +1544,41 @@ async def test_make_mo_employee_dn_no_itsystem(dataloader: MagicMock) -> None:
     dataloader.sync_tool.import_single_user.assert_called_once_with(
         dn, manual_import=True
     )
-    dataloader.graphql_client.employee_refresh.assert_called_once_with(
-        amqp_exchange_name, [employee_uuid]
-    )
 
 
-async def test_make_mo_employee_dn_no_cpr(dataloader: MagicMock) -> None:
+async def test_make_mo_employee_dn_no_cpr(
+    dataloader: MagicMock,
+    graphql_mock: GraphQLMocker,
+) -> None:
     employee_uuid = uuid4()
+    cpr_no = None
 
-    employee_object = MagicMock()
-    employee_object.cpr_no = None
-    employee_object.uuid = employee_uuid
+    route1 = graphql_mock.query("read_employees")
+    route1.result = {
+        "employees": {
+            "objects": [
+                {
+                    "validities": [
+                        {
+                            "uuid": employee_uuid,
+                            "cpr_no": cpr_no,
+                            "givenname": "Hans",
+                            "surname": "Andersen",
+                            "nickname_givenname": None,
+                            "nickname_surname": None,
+                            "validity": {
+                                "from": None,
+                                "to": None,
+                            },
+                        }
+                    ]
+                }
+            ]
+        }
+    }
 
-    dataloader.load_mo_employee = AsyncMock()
-    dataloader.load_mo_employee.return_value = employee_object
+    route2 = graphql_mock.query("employee_refresh")
+    route2.result = {"employee_refresh": {"objects": [employee_uuid]}}
 
     itsystem_uuid = uuid4()
     dataloader.get_ldap_it_system_uuid = AsyncMock()
@@ -1547,9 +1612,6 @@ async def test_make_mo_employee_dn_no_cpr(dataloader: MagicMock) -> None:
     dataloader.create_ituser.assert_called_once()
     dataloader.sync_tool.import_single_user.assert_called_once_with(
         dn, manual_import=True
-    )
-    dataloader.graphql_client.employee_refresh.assert_called_once_with(
-        amqp_exchange_name, [employee_uuid]
     )
 
 
