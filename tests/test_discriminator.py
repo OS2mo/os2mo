@@ -240,7 +240,7 @@ async def test_get_ldap_object(
     expected: dict[str, Any],
 ) -> None:
     """Test that get_ldap_object can read specific attributes on our default user."""
-    result = await get_ldap_object(ldap_dn, ldap_connection, attributes=attributes)
+    result = await get_ldap_object(ldap_connection, ldap_dn, attributes=attributes)
     assert result.dn == ldap_dn
     assert result.__dict__ == {"dn": "CN=foo,o=example"} | expected
 
@@ -906,7 +906,9 @@ async def test_apply_discriminator_template(
     )
     ldap_connection = AsyncMock()
 
-    async def get_ldap_object(dn: DN, *args: Any, **kwargs: Any) -> LdapObject:
+    async def get_ldap_object(
+        ldap_connection: Connection, dn: DN, *args: Any, **kwargs: Any
+    ) -> LdapObject:
         return parse_obj_as(LdapObject, {"dn": dn, **dn_map[dn]})
 
     with patch("mo_ldap_import_export.ldap.get_ldap_object", wraps=get_ldap_object):

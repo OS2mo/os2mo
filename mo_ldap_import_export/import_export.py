@@ -1031,7 +1031,7 @@ class SyncTool:
             # Note however, that this will only succeed if there is a CPR number field.
             if self.converter.cpr_field:
                 ldap_obj = await get_ldap_object(
-                    dn, self.ldap_connection, attributes=[self.converter.cpr_field]
+                    self.ldap_connection, dn, attributes=[self.converter.cpr_field]
                 )
                 cpr_no = getattr(ldap_obj, self.converter.cpr_field)
                 # Only attempt to load accounts if we have a CPR number to do so with

@@ -375,7 +375,7 @@ async def apply_discriminator(
     try:
         attributes = [discriminator_field]
         ldap_objects = await asyncio.gather(
-            *[get_ldap_object(dn, ldap_connection, attributes=attributes) for dn in dns]
+            *[get_ldap_object(ldap_connection, dn, attributes=attributes) for dn in dns]
         )
     except NoObjectsReturnedException as exc:
         # There could be multiple reasons why our DNs cannot be read.
@@ -667,10 +667,10 @@ def is_dn(value):
 
 
 async def get_ldap_object(
-    dn: DN,
     ldap_connection: Connection,
-    nest: bool = True,
+    dn: DN,
     attributes: list | None = None,
+    nest: bool = True,
 ) -> LdapObject:
     """Gets a ldap object based on its DN.
 
@@ -721,7 +721,7 @@ async def make_ldap_object(
 
         if nest:
             logger.info("Loading nested ldap object", dn=dn)
-            return await get_ldap_object(dn, ldap_connection, nest=False)
+            return await get_ldap_object(ldap_connection, dn, nest=False)
         raise Exception("Already running in nested loop")  # pragma: no cover
 
     def is_other_dn(value):
