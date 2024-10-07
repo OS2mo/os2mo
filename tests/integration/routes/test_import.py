@@ -1,0 +1,123 @@
+# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+from collections.abc import Awaitable
+from collections.abc import Callable
+from urllib.parse import quote_plus
+from uuid import UUID
+
+import pytest
+from httpx import AsyncClient
+from ldap3 import Connection
+from structlog.testing import capture_logs
+
+from mo_ldap_import_export.ldap import ldap_add
+from mo_ldap_import_export.utils import combine_dn_strings
+
+
+@pytest.fixture
+async def add_ldap_person(
+    ldap_connection: Connection, ldap_org: list[str]
+) -> Callable[[str], Awaitable[list[str]]]:
+    async def adder(identifier: str, cpr_number: str = "2108613133") -> list[str]:
+        person_dn = ["uid=" + identifier] + ldap_org
+        await ldap_add(
+            ldap_connection,
+            combine_dn_strings(person_dn),
+            object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
+            attributes={
+                "objectClass": [
+                    "top",
+                    "person",
+                    "organizationalPerson",
+                    "inetOrgPerson",
+                ],
+                "uid": identifier,
+                "cn": "cn",
+                "givenName": "givenName",
+                "sn": "sn",
+                "ou": "os2mo",
+                "mail": identifier + "@ad.kolding.dk",
+                "userPassword": "{SSHA}j3lBh1Seqe4rqF1+NuWmjhvtAni1JC5A",
+                "employeeNumber": cpr_number,
+                "title": "title",
+            },
+        )
+        return person_dn
+
+    return adder
+
+
+@pytest.fixture
+async def add_ldap_persons(
+    test_client: AsyncClient,
+    add_ldap_person: Callable[[str], Awaitable[list[str]]],
+) -> Callable[[int], Awaitable[set[UUID]]]:
+    async def adder(num_accounts: int) -> set[UUID]:
+        uuids = set()
+        for x in range(num_accounts):
+            dn = combine_dn_strings(await add_ldap_person(str(x)))
+            response = await test_client.get("/Inspect/dn2uuid/" + quote_plus(dn))
+            assert response.status_code == 200
+            uuid = response.json()
+            uuids.add(uuid)
+        return uuids
+
+    return adder
+
+
+@pytest.mark.integration_test
+@pytest.mark.parametrize("num_accounts", (0, 1, 5))
+async def test_import(
+    test_client: AsyncClient,
+    add_ldap_persons: Callable[[int], Awaitable[set[UUID]]],
+    num_accounts: int,
+) -> None:
+    uuids = await add_ldap_persons(num_accounts)
+
+    response = await test_client.get("/Import")
+    assert response.status_code == 202
+
+    result = response.json()
+    assert set(result) == uuids
+
+
+@pytest.mark.integration_test
+async def test_import_only_first_20(
+    test_client: AsyncClient,
+    add_ldap_persons: Callable[[int], Awaitable[set[UUID]]],
+) -> None:
+    uuids = await add_ldap_persons(22)
+
+    response = await test_client.get(
+        "/Import", params={"test_on_first_20_entries": True}
+    )
+    assert response.status_code == 202
+
+    result = response.json()
+    triggered_uuids = set(result)
+    assert len(triggered_uuids) == 20
+    assert len(uuids) == 22
+    assert uuids.issuperset(triggered_uuids)
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar({"LDAP_CPR_ATTRIBUTE": "", "LDAP_IT_SYSTEM": "ADUUID"})
+async def test_import_cpr_indexed_but_no_cpr_index(test_client: AsyncClient) -> None:
+    response = await test_client.get("/Import")
+    assert response.status_code == 404
+    result = response.json()
+    assert result == {"detail": "cpr_field is not configured"}
+
+
+@pytest.mark.integration_test
+async def test_import_bad_cpr_number(test_client: AsyncClient, add_ldap_person) -> None:
+    await add_ldap_person("abk", "5001012002")
+
+    with capture_logs() as cap_logs:
+        response = await test_client.get("/Import")
+        assert response.status_code == 202
+        result = response.json()
+        assert result == []
+
+    messages = [w for w in cap_logs if w["log_level"] == "info"]
+    assert "Invalid CPR Number found" in str(messages)

@@ -350,6 +350,8 @@ def construct_router(settings: Settings) -> APIRouter:
         ]
         await publish_uuids(ldap_amqpsystem, uuids)
 
+        return uuids
+
     # Load a single user from LDAP, and import him/her/hir into MO
     @router.get("/Import/{unique_ldap_uuid}", status_code=202, tags=["Import"])
     async def import_single_user_from_LDAP(
