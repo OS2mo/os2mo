@@ -300,8 +300,6 @@ async def initialize_converters(
     logger.info("Initializing converters")
     converter = LdapConverter(settings, dataloader)
     await converter._init()
-    fastramqpi.add_context(cpr_field=converter.cpr_field)
-    fastramqpi.add_context(ldap_it_system_user_key=converter.ldap_it_system)
     fastramqpi.add_context(converter=converter)
     yield
 

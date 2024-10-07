@@ -333,10 +333,6 @@ from .read_is_primary_engagements import (
 from .read_itsystem_uuid import ReadItsystemUuid
 from .read_itsystem_uuid import ReadItsystemUuidItsystems
 from .read_itsystem_uuid import ReadItsystemUuidItsystemsObjects
-from .read_itsystems import ReadItsystems
-from .read_itsystems import ReadItsystemsItsystems
-from .read_itsystems import ReadItsystemsItsystemsObjects
-from .read_itsystems import ReadItsystemsItsystemsObjectsCurrent
 from .read_ituser_by_employee_and_itsystem_uuid import (
     ReadItuserByEmployeeAndItsystemUuid,
 )
@@ -600,10 +596,6 @@ __all__ = [
     "ReadItsystemUuid",
     "ReadItsystemUuidItsystems",
     "ReadItsystemUuidItsystemsObjects",
-    "ReadItsystems",
-    "ReadItsystemsItsystems",
-    "ReadItsystemsItsystemsObjects",
-    "ReadItsystemsItsystemsObjectsCurrent",
     "ReadItuserByEmployeeAndItsystemUuid",
     "ReadItuserByEmployeeAndItsystemUuidItusers",
     "ReadItuserByEmployeeAndItsystemUuidItusersObjects",

@@ -500,10 +500,6 @@ async def sync_tool_and_context(
         "user_context": {
             "ldap_connection": ldap_connection,
             "settings": settings,
-            # TODO: This should be set by side-effect reference, no?
-            "cpr_field": "employeeID",
-            # TODO: This should be set by side-effect reference, no?
-            "ldap_it_system_user_key": None,
         },
         "graphql_client": graphql_client,
         "legacy_model_client": AsyncMock(),

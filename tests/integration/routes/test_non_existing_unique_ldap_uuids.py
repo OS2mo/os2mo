@@ -60,6 +60,7 @@ async def itsystem_uuid(graphql_client: GraphQLClient) -> UUID:
 @pytest.mark.integration_test
 @pytest.mark.envvar(
     {
+        "LDAP_IT_SYSTEM": "ADUUID",
         "LISTEN_TO_CHANGES_IN_LDAP": "False",
         "LISTEN_TO_CHANGES_IN_MO": "False",
         "CONVERSION_MAPPING": json.dumps(conversion_mapping_with_aduuid_itsystem),

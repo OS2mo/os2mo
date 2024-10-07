@@ -197,6 +197,7 @@ def settings(minimal_mapping: dict[str, Any], monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("LDAP_USER", "foo")
     monkeypatch.setenv("LDAP_PASSWORD", "bar")
     monkeypatch.setenv("LDAP_SEARCH_BASE", "DC=ad,DC=addev")
+    monkeypatch.setenv("LDAP_CPR_ATTRIBUTE", "employeeID")
     monkeypatch.setenv("DEFAULT_ORG_UNIT_LEVEL", "foo")
     monkeypatch.setenv("DEFAULT_ORG_UNIT_TYPE", "foo")
     monkeypatch.setenv("LDAP_OUS_TO_WRITE_TO", '[""]')
@@ -233,7 +234,6 @@ def dataloader(
     legacy_model_client: AsyncMock,
     graphql_client: AsyncMock,
     settings: Settings,
-    cpr_field: str,
     converter: MagicMock,
     sync_tool: AsyncMock,
     username_generator: MagicMock,
@@ -250,11 +250,9 @@ def dataloader(
         "user_context": {
             "settings": settings,
             "ldap_connection": ldap_connection,
-            "cpr_field": cpr_field,
             "converter": converter,
             "sync_tool": sync_tool,
             "username_generator": username_generator,
-            "ldap_it_system_user_key": "Active Directory",
         },
     }
     amqpsystem = AsyncMock()
@@ -282,7 +280,10 @@ def mock_ldap_response(ldap_attributes: dict, dn: DN) -> dict[str, Collection[st
 
 
 async def test_load_ldap_cpr_object(
-    ldap_connection: MagicMock, dataloader: DataLoader, ldap_attributes: dict
+    ldap_connection: MagicMock,
+    dataloader: DataLoader,
+    ldap_attributes: dict,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # Mock data
     dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
@@ -302,7 +303,9 @@ async def test_load_ldap_cpr_object(
         await dataloader.load_ldap_cpr_object("__invalid__", "Employee")  # type: ignore
 
     with pytest.raises(NoObjectsReturnedException):
-        dataloader.user_context["cpr_field"] = None
+        monkeypatch.delenv("LDAP_CPR_ATTRIBUTE")
+        monkeypatch.setenv("LDAP_IT_SYSTEM", "ADUUID")
+        dataloader.settings = Settings()
         await dataloader.load_ldap_cpr_object(CPRNumber("0101012002"), "Employee")
 
 
@@ -732,7 +735,6 @@ def mock_read_employee_uuid_by_ituser(
 
 async def test_find_mo_employee_uuid_by_cpr_number(dataloader: DataLoader):
     uuid = uuid4()
-    dataloader.user_context["cpr_field"] = "employeeID"
 
     with patch(
         "mo_ldap_import_export.dataloaders.get_ldap_object",
@@ -748,7 +750,6 @@ async def test_find_mo_employee_uuid_by_cpr_number(dataloader: DataLoader):
 
 async def test_find_mo_employee_uuid_by_ituser(dataloader: DataLoader):
     uuid = uuid4()
-    dataloader.user_context["cpr_field"] = "employeeID"
 
     with patch(
         "mo_ldap_import_export.dataloaders.get_ldap_object",
@@ -760,10 +761,15 @@ async def test_find_mo_employee_uuid_by_ituser(dataloader: DataLoader):
         assert output == uuid
 
 
-async def test_find_mo_employee_uuid_fallback_ituser(dataloader: DataLoader):
+async def test_find_mo_employee_uuid_fallback_ituser(
+    dataloader: DataLoader, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("LDAP_CPR_ATTRIBUTE")
+    monkeypatch.setenv("LDAP_IT_SYSTEM", "ADUUID")
+    dataloader.settings = Settings()
+
     uuid1 = uuid4()
     uuid2 = uuid4()
-    dataloader.user_context["cpr_field"] = None
 
     with patch(
         "mo_ldap_import_export.dataloaders.get_ldap_object",
@@ -822,7 +828,6 @@ async def test_find_mo_employee_uuid_ituser_multiple_matches(dataloader: DataLoa
 async def test_find_mo_employee_uuid_multiple_matches(dataloader: DataLoader):
     uuid1 = uuid4()
     uuid2 = uuid4()
-    dataloader.user_context["cpr_field"] = "employeeID"
 
     with patch(
         "mo_ldap_import_export.dataloaders.get_ldap_object",
@@ -1391,6 +1396,7 @@ async def test_modify_ldap_ou_not_in_ous_to_write_to(
     )  # type: ignore
 
 
+@pytest.mark.envvar({"LDAP_IT_SYSTEM": "ADUUID"})
 async def test_get_ldap_it_system_uuid(
     graphql_mock: GraphQLMocker,
     dataloader: DataLoader,

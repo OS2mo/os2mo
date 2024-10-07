@@ -82,6 +82,7 @@ def settings(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("LDAP_USER", "foo")
     monkeypatch.setenv("LDAP_PASSWORD", "bar")
     monkeypatch.setenv("LDAP_SEARCH_BASE", "DC=ad,DC=addev")
+    monkeypatch.setenv("LDAP_CPR_ATTRIBUTE", "employeeNumber")
     monkeypatch.setenv("DEFAULT_ORG_UNIT_LEVEL", "foo")
     monkeypatch.setenv("DEFAULT_ORG_UNIT_TYPE", "foo")
     monkeypatch.setenv("FASTRAMQPI__AMQP__URL", "amqp://guest:guest@msg_broker:5672/")
@@ -155,6 +156,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "LDAP_USER": "foo",
         "LDAP_PASSWORD": "foo",
         "LDAP_SEARCH_BASE": "DC=ad,DC=addev",
+        "LDAP_CPR_ATTRIBUTE": "employeeNumber",
         "DEFAULT_ORG_UNIT_LEVEL": "foo",
         "DEFAULT_ORG_UNIT_TYPE": "foo",
         "FASTRAMQPI__AMQP__URL": "amqp://guest:guest@msg_broker:5672/",

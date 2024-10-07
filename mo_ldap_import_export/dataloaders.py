@@ -151,14 +151,6 @@ class DataLoader:
         return cast(UserNameGenerator, self.user_context["username_generator"])
 
     @property
-    def cpr_field(self):
-        return self.user_context["cpr_field"]
-
-    @property
-    def ldap_it_system_user_key(self):
-        return self.user_context["ldap_it_system_user_key"]
-
-    @property
     def mo_to_ldap_attributes(self):
         """
         Returns a list of all LDAP attribute names which are synchronized to LDAP.
@@ -231,7 +223,7 @@ class DataLoader:
         except (ValueError, TypeError) as error:
             raise NoObjectsReturnedException(f"cpr_no '{cpr_no}' is invalid") from error
 
-        if not self.cpr_field:
+        if not self.settings.ldap_cpr_attribute:
             raise NoObjectsReturnedException("cpr_field is not configured")
 
         search_base = self.settings.ldap_search_base
@@ -245,7 +237,7 @@ class DataLoader:
         )
 
         object_class_filter = f"objectclass={object_class}"
-        cpr_filter = f"{self.cpr_field}={cpr_no}"
+        cpr_filter = f"{self.settings.ldap_cpr_attribute}={cpr_no}"
 
         searchParameters = {
             "search_base": search_bases,
@@ -626,13 +618,15 @@ class DataLoader:
         return results
 
     async def find_mo_employee_uuid_via_cpr_number(self, dn: str) -> set[UUID]:
-        if self.cpr_field is None:
+        if self.settings.ldap_cpr_attribute is None:
             return set()
 
-        ldap_object = await get_ldap_object(self.ldap_connection, dn, [self.cpr_field])
+        ldap_object = await get_ldap_object(
+            self.ldap_connection, dn, [self.settings.ldap_cpr_attribute]
+        )
         # Try to get the cpr number from LDAP and use that.
         try:
-            raw_cpr_no = getattr(ldap_object, self.cpr_field)
+            raw_cpr_no = getattr(ldap_object, self.settings.ldap_cpr_attribute)
             # NOTE: Not sure if this only necessary for the mocked server or not
             if isinstance(raw_cpr_no, list):
                 raw_cpr_no = one(raw_cpr_no)
@@ -677,15 +671,15 @@ class DataLoader:
         Return the IT system uuid belonging to the LDAP-it-system
         Return None if the LDAP-it-system is not found.
         """
-        if self.ldap_it_system_user_key is None:
+        if self.settings.ldap_it_system is None:
             return None
 
         try:
-            return await self.moapi.get_it_system_uuid(self.ldap_it_system_user_key)
+            return await self.moapi.get_it_system_uuid(self.settings.ldap_it_system)
         except UUIDNotFoundException:
             logger.info(
                 "UUID Not found",
-                suggestion=f"Does the '{self.ldap_it_system_user_key}' it-system exist?",
+                suggestion=f"Does the '{self.settings.ldap_it_system}' it-system exist?",
             )
             return None
 
