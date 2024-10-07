@@ -711,35 +711,6 @@ async def test_get_delete_flag(dataloader: AsyncMock):
     assert flag is False
 
 
-@pytest.mark.usefixtures("context_dependency_injection")
-def test_get_invalid_cpr_numbers_from_LDAP_endpoint(
-    test_client: TestClient,
-    dataloader: AsyncMock,
-):
-    valid_object = LdapObject(dn="foo", EmployeeID="0101011234")
-    invalid_object = LdapObject(dn="bar", EmployeeID="ja")
-
-    with patch(
-        "mo_ldap_import_export.routes.load_ldap_objects",
-        return_value=[valid_object, invalid_object],
-    ):
-        response = test_client.get("/Inspect/invalid_cpr_numbers")
-    assert response.status_code == 202
-    result = response.json()
-    assert "bar" in result
-    assert result["bar"] == "ja"
-
-
-@pytest.mark.usefixtures("context_dependency_injection")
-def test_get_invalid_cpr_numbers_from_LDAP_endpoint_no_cpr_field(
-    test_client: TestClient, converter: MagicMock
-):
-    converter.cpr_field = None
-    response = test_client.get("/Inspect/invalid_cpr_numbers")
-    assert response.status_code == 404
-    converter.cpr_field = "EmployeeID"
-
-
 def test_wraps():
     """
     Test that the decorated listen_to_changes function keeps its name
@@ -749,34 +720,3 @@ def test_wraps():
     assert process_ituser.__name__ == "process_ituser"
     assert process_person.__name__ == "process_person"
     assert process_org_unit.__name__ == "process_org_unit"
-
-
-@pytest.mark.usefixtures("context_dependency_injection")
-def test_get_duplicate_cpr_numbers_from_LDAP_endpoint_no_cpr_field(
-    test_client: TestClient, converter: MagicMock
-):
-    converter.cpr_field = None
-    response = test_client.get("/Inspect/duplicate_cpr_numbers")
-    assert response.status_code == 404
-    converter.cpr_field = "EmployeeID"
-
-
-@pytest.mark.usefixtures("context_dependency_injection")
-def test_get_duplicate_cpr_numbers_from_LDAP_endpoint(
-    test_client: TestClient,
-):
-    searchResponse = [
-        {"dn": "foo", "attributes": {"EmployeeID": "12"}},
-        {"dn": "mucki", "attributes": {"EmployeeID": "123"}},
-        {"dn": "bar", "attributes": {"EmployeeID": "123"}},
-    ]
-
-    with patch(
-        "mo_ldap_import_export.routes.paged_search", return_value=searchResponse
-    ):
-        response = test_client.get("/Inspect/duplicate_cpr_numbers")
-        assert response.status_code == 202
-        result = response.json()
-        assert "123" in result
-        assert "mucki" in result["123"]
-        assert "bar" in result["123"]

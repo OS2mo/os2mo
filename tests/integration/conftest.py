@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Awaitable
+from collections.abc import Callable
 from uuid import UUID
 
 import pytest
@@ -33,6 +35,42 @@ async def ldap_org(ldap_connection: Connection, ldap_suffix: list[str]) -> list[
         attributes={"objectClass": ["top", "organizationalUnit"], "ou": "os2mo"},
     )
     return ou_dn
+
+
+AddLdapPerson = Callable[[str, str], Awaitable[list[str]]]
+
+
+@pytest.fixture
+async def add_ldap_person(
+    ldap_connection: Connection, ldap_org: list[str]
+) -> AddLdapPerson:
+    async def adder(identifier: str, cpr_number: str) -> list[str]:
+        person_dn = ["uid=" + identifier] + ldap_org
+        await ldap_add(
+            ldap_connection,
+            combine_dn_strings(person_dn),
+            object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
+            attributes={
+                "objectClass": [
+                    "top",
+                    "person",
+                    "organizationalPerson",
+                    "inetOrgPerson",
+                ],
+                "uid": identifier,
+                "cn": "cn",
+                "givenName": "givenName",
+                "sn": "sn",
+                "ou": "os2mo",
+                "mail": identifier + "@ad.kolding.dk",
+                "userPassword": "{SSHA}j3lBh1Seqe4rqF1+NuWmjhvtAni1JC5A",
+                "employeeNumber": cpr_number,
+                "title": "title",
+            },
+        )
+        return person_dn
+
+    return adder
 
 
 @pytest.fixture
