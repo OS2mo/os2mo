@@ -128,7 +128,10 @@ class LdapConverter:
         environment = construct_environment(self.settings, self.dataloader)
         self.mapping = self._populate_mapping_with_templates(mapping, environment)
 
-        self.cpr_field = await find_cpr_field(mapping)
+        self.cpr_field = self.settings.ldap_cpr_attribute
+        # TODO: Remove this branch and 'find_cpr_field' when ldap_cpr_attribute gets set
+        if self.settings.ldap_cpr_attribute == "__ldap_please_fiddle_with_templates":
+            self.cpr_field = await find_cpr_field(mapping)
 
         self.ldap_it_system = await find_ldap_it_system(
             self.dataloader.graphql_client, self.settings, self.mapping
