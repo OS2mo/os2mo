@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import json
-from datetime import datetime
 from unittest.mock import ANY
 from uuid import UUID
 
@@ -20,6 +19,7 @@ from mo_ldap_import_export.ldap import ldap_add
 from mo_ldap_import_export.ldap import ldap_modify
 from mo_ldap_import_export.ldap import ldap_search
 from mo_ldap_import_export.utils import combine_dn_strings
+from mo_ldap_import_export.utils import mo_today
 
 
 @pytest.mark.integration_test
@@ -77,7 +77,6 @@ async def test_to_mo(
     mo_person: UUID,
     ldap_connection: Connection,
     ldap_org: list[str],
-    mo_today: datetime,
 ) -> None:
     @retry()
     async def assert_address(expected: dict) -> None:
@@ -116,7 +115,7 @@ async def test_to_mo(
         "value2": None,
         "person": [{"uuid": mo_person}],
         "visibility": {"user_key": "Public"},
-        "validity": {"from_": mo_today, "to": None},
+        "validity": {"from_": mo_today(), "to": None},
     }
     await assert_address(mo_address)
 
@@ -145,7 +144,7 @@ async def test_to_mo(
     )
     mo_address = {
         **mo_address,
-        "validity": {"from_": mo_today, "to": mo_today},
+        "validity": {"from_": mo_today(), "to": mo_today()},
     }
     await assert_address(mo_address)
 
@@ -202,7 +201,6 @@ async def test_to_ldap(
     mo_person: UUID,
     ldap_connection: Connection,
     ldap_org: list[str],
-    mo_today: datetime,
 ) -> None:
     cpr = "2108613133"
 
@@ -280,6 +278,6 @@ async def test_to_ldap(
     # MO: Terminate
     await graphql_client._testing_address_terminate(
         uuid=mo_address.uuid,
-        to=mo_today,
+        to=mo_today(),
     )
     await assert_address([])

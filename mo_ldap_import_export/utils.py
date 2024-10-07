@@ -5,6 +5,7 @@ import re
 from collections.abc import Callable
 from collections.abc import Iterable
 from datetime import datetime
+from datetime import time
 from functools import partial
 from functools import wraps
 from typing import Any
@@ -30,6 +31,12 @@ T = TypeVar("T")
 R = TypeVar("R")
 
 MO_TZ = ZoneInfo("Europe/Copenhagen")
+
+
+def mo_today() -> datetime:
+    """MO does not support datetimes with a time, haha."""
+    now = datetime.now(tz=MO_TZ)
+    return datetime.combine(now, time.min, now.tzinfo)
 
 
 def import_class(name: str) -> type[MOBase]:
