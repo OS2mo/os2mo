@@ -24,7 +24,6 @@ from fastramqpi.ramqp.mo import MOAMQPSystem
 from ldap3 import BASE
 from ldap3 import Connection
 from ldap3.core.exceptions import LDAPInvalidValueError
-from ldap3.protocol import oid
 from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
 from more_itertools import bucket
@@ -58,11 +57,7 @@ from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
 from .exceptions import ReadOnlyException
 from .exceptions import UUIDNotFoundException
-from .ldap import get_attribute_types
-from .ldap import get_ldap_attributes
 from .ldap import get_ldap_object
-from .ldap import get_ldap_schema
-from .ldap import get_ldap_superiors
 from .ldap import is_uuid
 from .ldap import ldap_add
 from .ldap import ldap_compare
@@ -189,7 +184,6 @@ class DataLoader:
         self.legacy_model_client: LegacyModelClient = self.context[
             "legacy_model_client"
         ]
-        self.attribute_types = get_attribute_types(self.ldap_connection)
         self.create_mo_class_lock = asyncio.Lock()
         self.amqpsystem: MOAMQPSystem = amqpsystem
 
@@ -699,45 +693,6 @@ class DataLoader:
         )
 
         return results
-
-    def make_overview_entry(self, attributes, superiors, example_value_dict=None):
-        attribute_dict = {}
-        for attribute in attributes:
-            # skip unmapped types
-            if attribute not in self.attribute_types:
-                continue
-            syntax = self.attribute_types[attribute].syntax
-
-            # decoded syntax tuple structure: (oid, kind, name, docs)
-            syntax_decoded = oid.decode_syntax(syntax)
-            details_dict = {
-                "syntax": syntax,
-            }
-            if syntax_decoded:
-                details_dict["field_type"] = syntax_decoded[2]
-
-            if example_value_dict and attribute in example_value_dict:
-                details_dict["example_value"] = example_value_dict[attribute]
-
-            attribute_dict[attribute] = details_dict
-
-        return {
-            "superiors": superiors,
-            "attributes": attribute_dict,
-        }
-
-    def load_ldap_overview(self):
-        schema = get_ldap_schema(self.ldap_connection)
-
-        all_object_classes = sorted(list(schema.object_classes.keys()))
-
-        output = {}
-        for ldap_class in all_object_classes:
-            all_attributes = get_ldap_attributes(self.ldap_connection, ldap_class)
-            superiors = get_ldap_superiors(self.ldap_connection, ldap_class)
-            output[ldap_class] = self.make_overview_entry(all_attributes, superiors)
-
-        return output
 
     async def find_mo_employee_uuid_via_cpr_number(self, dn: str) -> set[UUID]:
         if self.cpr_field is None:
