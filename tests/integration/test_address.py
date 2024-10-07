@@ -166,7 +166,7 @@ async def test_to_mo(
                     },
                     "EmailEmployee": {
                         "objectClass": "ramodels.mo.details.address.Address",
-                        "_import_to_mo_": "true",
+                        "_import_to_mo_": "false",
                         "_mapper_": "{{ obj.address_type }}",
                         "value": "{{ ldap.mail }}",
                         "address_type": "{{ dict(uuid=get_employee_address_type_uuid('EmailEmployee')) }}",
