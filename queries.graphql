@@ -29,6 +29,27 @@ query __testing__address_read($filter: AddressFilter) {
   }
 }
 
+query __testing__ituser_read($filter: ITUserFilter) {
+  itusers(filter: $filter) {
+    objects {
+      validities {
+        uuid
+        user_key
+        itsystem {
+          user_key
+        }
+        person {
+          uuid
+        }
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}
+
 mutation __testing_user_create($input: EmployeeCreateInput!) {
   employee_create(input: $input) {
     uuid
@@ -37,6 +58,18 @@ mutation __testing_user_create($input: EmployeeCreateInput!) {
 
 mutation __testing_ituser_create($input: ITUserCreateInput!) {
   ituser_create(input: $input) {
+    uuid
+  }
+}
+
+mutation __testing_ituser_update($input: ITUserUpdateInput!) {
+  ituser_update(input: $input) {
+    uuid
+  }
+}
+
+mutation __testing_ituser_terminate($uuid: UUID!, $to: DateTime!) {
+  ituser_terminate(input: { uuid: $uuid, to: $to }) {
     uuid
   }
 }

@@ -7,6 +7,8 @@ from ._testing__address_read import TestingAddressRead
 from ._testing__address_read import TestingAddressReadAddresses
 from ._testing__itsystem_create import TestingItsystemCreate
 from ._testing__itsystem_create import TestingItsystemCreateItsystemCreate
+from ._testing__ituser_read import TestingItuserRead
+from ._testing__ituser_read import TestingItuserReadItusers
 from ._testing_address_create import TestingAddressCreate
 from ._testing_address_create import TestingAddressCreateAddressCreate
 from ._testing_address_terminate import TestingAddressTerminate
@@ -15,6 +17,10 @@ from ._testing_address_update import TestingAddressUpdate
 from ._testing_address_update import TestingAddressUpdateAddressUpdate
 from ._testing_ituser_create import TestingItuserCreate
 from ._testing_ituser_create import TestingItuserCreateItuserCreate
+from ._testing_ituser_terminate import TestingItuserTerminate
+from ._testing_ituser_terminate import TestingItuserTerminateItuserTerminate
+from ._testing_ituser_update import TestingItuserUpdate
+from ._testing_ituser_update import TestingItuserUpdateItuserUpdate
 from ._testing_org_unit_create import TestingOrgUnitCreate
 from ._testing_org_unit_create import TestingOrgUnitCreateOrgUnitCreate
 from ._testing_user_create import TestingUserCreate
@@ -42,6 +48,7 @@ from .input_types import ITSystemCreateInput
 from .input_types import ITUserCreateInput
 from .input_types import ITUserFilter
 from .input_types import ITUserTerminateInput
+from .input_types import ITUserUpdateInput
 from .input_types import OrganisationUnitCreateInput
 from .input_types import OrganisationUnitFilter
 from .ituser_terminate import ItuserTerminate
@@ -182,6 +189,38 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return TestingAddressRead.parse_obj(data).addresses
 
+    async def _testing__ituser_read(
+        self, filter: ITUserFilter | None | UnsetType = UNSET
+    ) -> TestingItuserReadItusers:
+        query = gql(
+            """
+            query __testing__ituser_read($filter: ITUserFilter) {
+              itusers(filter: $filter) {
+                objects {
+                  validities {
+                    uuid
+                    user_key
+                    itsystem {
+                      user_key
+                    }
+                    person {
+                      uuid
+                    }
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingItuserRead.parse_obj(data).itusers
+
     async def _testing_user_create(
         self, input: EmployeeCreateInput
     ) -> TestingUserCreateEmployeeCreate:
@@ -215,6 +254,40 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingItuserCreate.parse_obj(data).ituser_create
+
+    async def _testing_ituser_update(
+        self, input: ITUserUpdateInput
+    ) -> TestingItuserUpdateItuserUpdate:
+        query = gql(
+            """
+            mutation __testing_ituser_update($input: ITUserUpdateInput!) {
+              ituser_update(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingItuserUpdate.parse_obj(data).ituser_update
+
+    async def _testing_ituser_terminate(
+        self, uuid: UUID, to: datetime
+    ) -> TestingItuserTerminateItuserTerminate:
+        query = gql(
+            """
+            mutation __testing_ituser_terminate($uuid: UUID!, $to: DateTime!) {
+              ituser_terminate(input: {uuid: $uuid, to: $to}) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"uuid": uuid, "to": to}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingItuserTerminate.parse_obj(data).ituser_terminate
 
     async def _testing__itsystem_create(
         self, input: ITSystemCreateInput
