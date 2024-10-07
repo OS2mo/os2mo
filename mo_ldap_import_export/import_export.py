@@ -732,9 +732,6 @@ class SyncTool:
         await self.dataloader.modify_ldap_object(
             ldap_employee,
             "Employee",
-            # Overwrite because all employee fields are unique.
-            # One person cannot have multiple names.
-            overwrite=True,
             # We do not generally terminate people in MO
             delete=False,
         )
@@ -743,7 +740,7 @@ class SyncTool:
         for json_key, (ldap_object, delete) in changes.items():
             ldap_object = await self.move_ldap_object(ldap_object, best_dn)
             await self.dataloader.modify_ldap_object(
-                ldap_object, json_key, overwrite=True, delete=delete
+                ldap_object, json_key, delete=delete
             )
 
         return all_changes

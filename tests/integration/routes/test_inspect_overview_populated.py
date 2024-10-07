@@ -36,7 +36,6 @@ async def test_inspect_overview_populated(test_client: AsyncClient) -> None:
     # Check a single attribute has the details we expect
     assert result["attributes"]["title"] == {
         "example_value": ["Skole underviser"],
-        "single_value": False,
         "syntax": None,
     }
 
@@ -64,6 +63,5 @@ async def test_inspect_overview_populated_organizational_unit(
     # Check a single attribute has the details we expect
     assert result["attributes"]["ou"] == {
         "example_value": ["os2mo"],
-        "single_value": False,
         "syntax": None,
     }
