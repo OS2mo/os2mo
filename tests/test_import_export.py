@@ -1104,7 +1104,10 @@ async def test_import_single_object_forces_json_key_ordering(
     }
     converter.from_ldap.return_value = [MagicMock()]  # list of (at least) one item
     # Act: run the method and collect logs
-    with capture_logs() as cap_logs:
+    with (
+        capture_logs() as cap_logs,
+        patch("mo_ldap_import_export.import_export.get_ldap_object"),
+    ):
         await sync_tool.import_single_user("CN=foo")
         # Assert: verify that we process JSON keys in the expected order, regardless of
         # the original ordering.
@@ -1147,9 +1150,12 @@ async def test_import_address_objects(
 
     converter.from_ldap.return_value = converted_objects
 
-    with patch(
-        "mo_ldap_import_export.import_export.SyncTool.format_converted_objects",
-        return_value=formatted_objects,
+    with (
+        patch(
+            "mo_ldap_import_export.import_export.SyncTool.format_converted_objects",
+            return_value=formatted_objects,
+        ),
+        patch("mo_ldap_import_export.import_export.get_ldap_object"),
     ):
         await sync_tool.import_single_user("CN=foo")
         dataloader.create_or_edit_mo_objects.assert_called_with(formatted_objects)
@@ -1165,7 +1171,10 @@ async def test_import_address_objects(
         "invalid phone number", request=MagicMock(), response=MagicMock()
     )
     dataloader.create_address.side_effect = exception
-    with pytest.raises(ExceptionGroup) as exc_info:
+    with (
+        pytest.raises(ExceptionGroup) as exc_info,
+        patch("mo_ldap_import_export.import_export.get_ldap_object"),
+    ):
         await sync_tool.import_single_user("CN=foo")
     assert exc_info.value.exceptions == (exception, exception)
 
@@ -1205,7 +1214,8 @@ async def test_import_it_user_objects(
 
     dataloader.load_mo_employee_it_users.return_value = it_users_in_mo
 
-    await sync_tool.import_single_user("CN=foo")
+    with patch("mo_ldap_import_export.import_export.get_ldap_object"):
+        await sync_tool.import_single_user("CN=foo")
 
     expected = [
         (converted_objects[1].user_key, converted_objects[1].uuid, Verb.CREATE),
@@ -1333,9 +1343,12 @@ async def test_import_jobtitlefromadtomo_objects(
 
     context["legacy_graphql_session"] = AsyncMock()
 
-    with patch(
-        "mo_ldap_import_export.import_export.SyncTool.format_converted_objects",
-        return_value=formatted_objects,
+    with (
+        patch(
+            "mo_ldap_import_export.import_export.SyncTool.format_converted_objects",
+            return_value=formatted_objects,
+        ),
+        patch("mo_ldap_import_export.import_export.get_ldap_object"),
     ):
         await sync_tool.import_single_user(fake_dn)
         converted_object.sync_to_mo.assert_called_once()
@@ -1429,7 +1442,10 @@ async def test_import_single_user_entity(sync_tool: SyncTool) -> None:
     json_key = "Engagement"
     dn = "CN=foo"
     employee_uuid = uuid4()
-    with capture_logs() as cap_logs:
+    with (
+        capture_logs() as cap_logs,
+        patch("mo_ldap_import_export.import_export.get_ldap_object"),
+    ):
         await sync_tool.import_single_user_entity(json_key, dn, employee_uuid)
 
         assert "No converted objects" in str(cap_logs)

@@ -1105,8 +1105,8 @@ class SyncTool:
         self, json_key: str, dn: str, employee_uuid: UUID
     ) -> None:
         logger.info("Loading object", dn=dn, json_key=json_key)
-        loaded_object = await self.dataloader.load_ldap_object(
-            dn, self.converter.get_ldap_attributes(json_key)
+        loaded_object = await get_ldap_object(
+            self.ldap_connection, dn, self.converter.get_ldap_attributes(json_key)
         )
         logger.info(
             "Loaded object",
