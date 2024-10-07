@@ -352,7 +352,6 @@ async def always_initialize_converter(
         async with initialize_converters(
             fastramqpi,
             user_context["settings"],
-            user_context["mapping"],
             user_context["dataloader"],
         ):
             assert user_context.get("converter") is not None

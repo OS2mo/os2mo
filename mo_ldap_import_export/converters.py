@@ -50,11 +50,7 @@ async def find_cpr_field(mapping: dict[str, Any]) -> str | None:
         The CPR field if found, otherwise None
     """
     try:
-        mo_to_ldap = mapping["mo_to_ldap"]
-    except KeyError as error:
-        raise IncorrectMapping("Missing 'mo_to_ldap' in mapping") from error
-    try:
-        employee_mapping = mo_to_ldap["Employee"]
+        employee_mapping = mapping["mo_to_ldap"]["Employee"]
     except KeyError as error:
         raise IncorrectMapping("Missing 'Employee' in mapping 'mo_to_ldap'") from error
 
@@ -114,12 +110,12 @@ async def find_ldap_it_system(
 
 
 class LdapConverter:
-    def __init__(
-        self, settings: Settings, raw_mapping: dict[str, Any], dataloader: DataLoader
-    ) -> None:
+    def __init__(self, settings: Settings, dataloader: DataLoader) -> None:
         self.settings = settings
-        self.raw_mapping = raw_mapping
         self.dataloader = dataloader
+        self.raw_mapping = self.settings.conversion_mapping.dict(
+            exclude_unset=True, by_alias=True
+        )
 
     async def _init(self):
         mapping = delete_keys_from_dict(
@@ -238,11 +234,7 @@ class LdapConverter:
         # Globals
         mo_template_dict = ChainMap({"dn": dn}, mo_object_dict)
         try:
-            mapping = self.mapping["mo_to_ldap"]
-        except KeyError as error:
-            raise IncorrectMapping("Missing mapping 'mo_to_ldap'") from error
-        try:
-            object_mapping = mapping[json_key]
+            object_mapping = self.mapping["mo_to_ldap"][json_key]
         except KeyError as error:
             raise IncorrectMapping(
                 f"Missing '{json_key}' in mapping 'mo_to_ldap'"
@@ -318,11 +310,7 @@ class LdapConverter:
                 "employee_uuid": str(employee_uuid),
             }
             try:
-                mapping = self.mapping["ldap_to_mo"]
-            except KeyError as error:
-                raise IncorrectMapping("Missing mapping 'ldap_to_mo'") from error
-            try:
-                object_mapping = mapping[json_key]
+                object_mapping = self.mapping["ldap_to_mo"][json_key]
             except KeyError as error:
                 raise IncorrectMapping(
                     f"Missing '{json_key}' in mapping 'ldap_to_mo'"

@@ -295,11 +295,10 @@ async def initialize_sync_tool(
 async def initialize_converters(
     fastramqpi: FastRAMQPI,
     settings: Settings,
-    raw_mapping: dict[str, Any],
     dataloader: DataLoader,
 ) -> AsyncIterator[None]:
     logger.info("Initializing converters")
-    converter = LdapConverter(settings, raw_mapping, dataloader)
+    converter = LdapConverter(settings, dataloader)
     await converter._init()
     fastramqpi.add_context(cpr_field=converter.cpr_field)
     fastramqpi.add_context(ldap_it_system_user_key=converter.ldap_it_system)
@@ -366,18 +365,13 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
         1100,
     )
 
-    logger.info("Loading mapping file")
-    mapping = settings.conversion_mapping.dict(exclude_unset=True, by_alias=True)
-    fastramqpi.add_context(mapping=mapping)
-
     logger.info("Initializing dataloader")
     dataloader = DataLoader(fastramqpi.get_context(), amqpsystem)
     fastramqpi.add_context(dataloader=dataloader)
 
-    userNameGeneratorClass_string = mapping["username_generator"]["objectClass"]
     logger.info("Initializing username generator")
     username_generator_class = get_username_generator_class(
-        userNameGeneratorClass_string
+        settings.conversion_mapping.username_generator.objectClass
     )
     username_generator = username_generator_class(
         fastramqpi.get_context(),
@@ -389,7 +383,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     fastramqpi.add_context(username_generator=username_generator)
 
     fastramqpi.add_lifespan_manager(
-        initialize_converters(fastramqpi, settings, mapping, dataloader), 1250
+        initialize_converters(fastramqpi, settings, dataloader), 1250
     )
 
     logger.info("Initializing Import/Export checks")
