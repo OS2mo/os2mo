@@ -12,6 +12,13 @@ from ._testing__address_read import (
 )
 from ._testing__itsystem_create import TestingItsystemCreate
 from ._testing__itsystem_create import TestingItsystemCreateItsystemCreate
+from ._testing__ituser_read import TestingItuserRead
+from ._testing__ituser_read import TestingItuserReadItusers
+from ._testing__ituser_read import TestingItuserReadItusersObjects
+from ._testing__ituser_read import TestingItuserReadItusersObjectsValidities
+from ._testing__ituser_read import TestingItuserReadItusersObjectsValiditiesItsystem
+from ._testing__ituser_read import TestingItuserReadItusersObjectsValiditiesPerson
+from ._testing__ituser_read import TestingItuserReadItusersObjectsValiditiesValidity
 from ._testing_address_create import TestingAddressCreate
 from ._testing_address_create import TestingAddressCreateAddressCreate
 from ._testing_address_terminate import TestingAddressTerminate
@@ -20,6 +27,10 @@ from ._testing_address_update import TestingAddressUpdate
 from ._testing_address_update import TestingAddressUpdateAddressUpdate
 from ._testing_ituser_create import TestingItuserCreate
 from ._testing_ituser_create import TestingItuserCreateItuserCreate
+from ._testing_ituser_terminate import TestingItuserTerminate
+from ._testing_ituser_terminate import TestingItuserTerminateItuserTerminate
+from ._testing_ituser_update import TestingItuserUpdate
+from ._testing_ituser_update import TestingItuserUpdateItuserUpdate
 from ._testing_org_unit_create import TestingOrgUnitCreate
 from ._testing_org_unit_create import TestingOrgUnitCreateOrgUnitCreate
 from ._testing_user_create import TestingUserCreate
@@ -651,6 +662,17 @@ __all__ = [
     "TestingItsystemCreateItsystemCreate",
     "TestingItuserCreate",
     "TestingItuserCreateItuserCreate",
+    "TestingItuserRead",
+    "TestingItuserReadItusers",
+    "TestingItuserReadItusersObjects",
+    "TestingItuserReadItusersObjectsValidities",
+    "TestingItuserReadItusersObjectsValiditiesItsystem",
+    "TestingItuserReadItusersObjectsValiditiesPerson",
+    "TestingItuserReadItusersObjectsValiditiesValidity",
+    "TestingItuserTerminate",
+    "TestingItuserTerminateItuserTerminate",
+    "TestingItuserUpdate",
+    "TestingItuserUpdateItuserUpdate",
     "TestingOrgUnitCreate",
     "TestingOrgUnitCreateOrgUnitCreate",
     "TestingUserCreate",

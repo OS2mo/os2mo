@@ -681,9 +681,7 @@ class DataLoader:
             return None
 
         try:
-            return await MOAPI(self.graphql_client).get_it_system_uuid(
-                self.ldap_it_system_user_key
-            )
+            return await self.moapi.get_it_system_uuid(self.ldap_it_system_user_key)
         except UUIDNotFoundException:
             logger.info(
                 "UUID Not found",
