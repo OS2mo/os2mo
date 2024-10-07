@@ -37,6 +37,7 @@ from mo_ldap_import_export.ldap import ldap_search
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
+from mo_ldap_import_export.moapi import MOAPI
 from mo_ldap_import_export.types import DN
 from tests.graphql_mocker import GraphQLMocker
 
@@ -381,6 +382,12 @@ async def test_client(lifespan_app: FastAPI) -> AsyncIterator[AsyncClient]:
 async def graphql_client(context: Context) -> GraphQLClient:
     """Authenticated GraphQL codegen client for OS2mo."""
     return cast(GraphQLClient, context["graphql_client"])
+
+
+@pytest.fixture
+async def mo_api(graphql_client: GraphQLClient) -> MOAPI:
+    """MO API GraphQL wrapper."""
+    return MOAPI(graphql_client)
 
 
 @pytest.fixture
