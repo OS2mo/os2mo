@@ -405,6 +405,14 @@ class Settings(BaseSettings):
         "__ldap_please_fiddle_with_templates",
         description="The attribute (if any) that contains the CPR number in LDAP",
     )
+    ldap_it_system: str | None = Field(
+        # Intentionally set to sentinal value during transition period,
+        # as 'None' is a legitimate value indicating that no such itsystem exists,
+        # thus we cannot use to signal 'UNSET'.
+        # TODO: Change back to 'None' once the cpr_field fiddling is gone.
+        "__ldap_please_fiddle_with_templates",
+        description="The user-key (if any) of the ADGUID IT-system in MO",
+    )
 
     ldap_ous_to_search_in: list[str] = Field(
         [""],
