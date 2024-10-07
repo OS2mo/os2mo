@@ -7,55 +7,21 @@ from uuid import UUID
 
 import pytest
 from httpx import AsyncClient
-from ldap3 import Connection
 from structlog.testing import capture_logs
 
-from mo_ldap_import_export.ldap import ldap_add
 from mo_ldap_import_export.utils import combine_dn_strings
-
-
-@pytest.fixture
-async def add_ldap_person(
-    ldap_connection: Connection, ldap_org: list[str]
-) -> Callable[[str], Awaitable[list[str]]]:
-    async def adder(identifier: str, cpr_number: str = "2108613133") -> list[str]:
-        person_dn = ["uid=" + identifier] + ldap_org
-        await ldap_add(
-            ldap_connection,
-            combine_dn_strings(person_dn),
-            object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
-            attributes={
-                "objectClass": [
-                    "top",
-                    "person",
-                    "organizationalPerson",
-                    "inetOrgPerson",
-                ],
-                "uid": identifier,
-                "cn": "cn",
-                "givenName": "givenName",
-                "sn": "sn",
-                "ou": "os2mo",
-                "mail": identifier + "@ad.kolding.dk",
-                "userPassword": "{SSHA}j3lBh1Seqe4rqF1+NuWmjhvtAni1JC5A",
-                "employeeNumber": cpr_number,
-                "title": "title",
-            },
-        )
-        return person_dn
-
-    return adder
+from tests.integration.conftest import AddLdapPerson
 
 
 @pytest.fixture
 async def add_ldap_persons(
     test_client: AsyncClient,
-    add_ldap_person: Callable[[str], Awaitable[list[str]]],
+    add_ldap_person: AddLdapPerson,
 ) -> Callable[[int], Awaitable[set[UUID]]]:
     async def adder(num_accounts: int) -> set[UUID]:
         uuids = set()
         for x in range(num_accounts):
-            dn = combine_dn_strings(await add_ldap_person(str(x)))
+            dn = combine_dn_strings(await add_ldap_person(str(x), "2108613133"))
             response = await test_client.get("/Inspect/dn2uuid/" + quote_plus(dn))
             assert response.status_code == 200
             uuid = response.json()
