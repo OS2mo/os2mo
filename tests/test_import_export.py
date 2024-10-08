@@ -1367,7 +1367,7 @@ async def test_move_ldap_object(sync_tool: SyncTool, dataloader: AsyncMock):
     ldap_object = await sync_tool.move_ldap_object(LdapObject(dn=new_dn), old_dn)
 
     # Which means we need to create OU=Dundee
-    dataloader.create_ou.assert_called_once_with("OU=Dundee")
+    dataloader.ldapapi.create_ou.assert_called_once_with("OU=Dundee")
 
     # Them move Angus
     dataloader.move_ldap_object.assert_called_once_with(old_dn, new_dn)

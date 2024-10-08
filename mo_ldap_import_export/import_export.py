@@ -277,7 +277,7 @@ class SyncTool:
         )
 
         # Create the new OU (dataloader.create_ou checks if it exists)
-        await self.dataloader.create_ou(new_ou)
+        await self.dataloader.ldapapi.create_ou(new_ou)
 
         # Move the object to the proper OU
         move_successful = await self.dataloader.move_ldap_object(old_dn, new_dn)
