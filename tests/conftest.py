@@ -384,9 +384,9 @@ async def graphql_client(context: Context) -> GraphQLClient:
 
 
 @pytest.fixture
-async def mo_api(graphql_client: GraphQLClient) -> MOAPI:
+async def mo_api(settings: Settings, graphql_client: GraphQLClient) -> MOAPI:
     """MO API GraphQL wrapper."""
-    return MOAPI(graphql_client)
+    return MOAPI(settings, graphql_client)
 
 
 @pytest.fixture

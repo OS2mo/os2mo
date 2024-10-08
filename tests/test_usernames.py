@@ -12,6 +12,7 @@ from pydantic import ValidationError
 from pydantic import parse_obj_as
 from ramodels.mo import Employee
 
+from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.config import UsernameGeneratorConfig
 from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.moapi import MOAPI
@@ -426,6 +427,7 @@ def test_alleroed_username_generator(
 
 
 async def test_alleroed_dn_generator(
+    settings: Settings,
     alleroed_username_generator: AlleroedUserNameGenerator,
     graphql_mock: GraphQLMocker,
 ) -> None:
@@ -440,7 +442,7 @@ async def test_alleroed_dn_generator(
     route2.result = {"itsystems": {"objects": [{"uuid": itsystem_uuid}]}}
 
     alleroed_username_generator.dataloader.graphql_client = graphql_client  # type: ignore
-    alleroed_username_generator.dataloader.moapi = MOAPI(graphql_client)  # type: ignore
+    alleroed_username_generator.dataloader.moapi = MOAPI(settings, graphql_client)  # type: ignore
 
     employee = Employee(givenname="Patrick", surname="Bateman")
     dn = await alleroed_username_generator.generate_dn(employee)

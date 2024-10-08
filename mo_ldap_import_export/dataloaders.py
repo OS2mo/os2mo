@@ -46,7 +46,6 @@ from .exceptions import AttributeNotFound
 from .exceptions import DNNotFound
 from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
-from .exceptions import UUIDNotFoundException
 from .ldap import is_uuid
 from .ldap import make_ldap_object
 from .ldap import object_search
@@ -110,7 +109,7 @@ class DataLoader:
 
     @property
     def moapi(self) -> MOAPI:
-        return MOAPI(self.graphql_client)
+        return MOAPI(self.settings, self.graphql_client)
 
     @property
     def graphql_client(self) -> GraphQLClient:
@@ -355,23 +354,6 @@ class DataLoader:
         logger.info("No matching employee", dn=dn)
         return None
 
-    async def get_ldap_it_system_uuid(self) -> str | None:
-        """
-        Return the IT system uuid belonging to the LDAP-it-system
-        Return None if the LDAP-it-system is not found.
-        """
-        if self.settings.ldap_it_system is None:
-            return None
-
-        try:
-            return await self.moapi.get_it_system_uuid(self.settings.ldap_it_system)
-        except UUIDNotFoundException:
-            logger.info(
-                "UUID Not found",
-                suggestion=f"Does the '{self.settings.ldap_it_system}' it-system exist?",
-            )
-            return None
-
     def extract_unique_ldap_uuids(self, it_users: list[ITUser]) -> set[UUID]:
         """
         Extracts unique ldap uuids from a list of it-users
@@ -403,7 +385,7 @@ class DataLoader:
         # TODO: How do we know if the ITUser is up-to-date with the newest DNs in AD?
 
         # The ITSystem only exists if configured to do so
-        raw_it_system_uuid = await self.get_ldap_it_system_uuid()
+        raw_it_system_uuid = await self.moapi.get_ldap_it_system_uuid()
         # If it does not exist, we cannot fetch users for it
         if raw_it_system_uuid is None:
             return set()
@@ -503,7 +485,7 @@ class DataLoader:
         cpr_no = CPRNumber(employee.cpr_no) if employee.cpr_no else None
 
         # Check if we even dare create a DN
-        raw_it_system_uuid = await self.get_ldap_it_system_uuid()
+        raw_it_system_uuid = await self.moapi.get_ldap_it_system_uuid()
         if raw_it_system_uuid is None and cpr_no is None:
             logger.warning(
                 "Could not or generate a DN for employee (cannot correlate)",
