@@ -1357,19 +1357,19 @@ async def test_modify_ldap(
 
     # Validate that empty lists are allowed
     setup_mock()
-    await dataloader.modify_ldap("MODIFY_REPLACE", dn, "parameter_to_modify", [])
+    await dataloader.ldapapi.modify_ldap("MODIFY_REPLACE", dn, "parameter_to_modify", [])
     ldap_connection.compare.assert_called_with(dn, "parameter_to_modify", "")
 
     # Simulate case where a value exists
     with capture_logs() as cap_logs:
         setup_mock(True)
-        await dataloader.modify_ldap("MODIFY_REPLACE", dn, "parameter_to_modify", [])
+        await dataloader.ldapapi.modify_ldap("MODIFY_REPLACE", dn, "parameter_to_modify", [])
         messages = [w["event"] for w in cap_logs]
         assert messages == ["Attribute value already exists"]
 
     # DELETE statments should still be executed, even if a value exists
     setup_mock()
-    response = await dataloader.modify_ldap(
+    response = await dataloader.ldapapi.modify_ldap(
         "MODIFY_DELETE", dn, "parameter_to_modify", "foo"
     )
     assert response == {"description": "success", "type": "test"}
@@ -1378,7 +1378,7 @@ async def test_modify_ldap(
     dataloader.settings = Settings()
     with pytest.raises(ReadOnlyException) as exc:
         setup_mock()
-        await dataloader.modify_ldap("MODIFY_REPLACE", dn, "parameter_to_modify", [])
+        await dataloader.ldapapi.modify_ldap("MODIFY_REPLACE", dn, "parameter_to_modify", [])
     assert "LDAP connection is read-only" in str(exc.value)
 
 
@@ -1391,7 +1391,7 @@ async def test_modify_ldap_ou_not_in_ous_to_write_to(
     dataloader.ldapapi.ou_in_ous_to_write_to.return_value = False
 
     assert (
-        await dataloader.modify_ldap("MODIFY_REPLACE", "CN=foo", "attribute", "value")
+        await dataloader.ldapapi.modify_ldap("MODIFY_REPLACE", "CN=foo", "attribute", "value")
         is None
     )  # type: ignore
 
