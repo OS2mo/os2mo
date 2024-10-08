@@ -4,6 +4,7 @@ import asyncio
 from functools import partialmethod
 from typing import Any
 from typing import Literal
+from typing import cast
 from uuid import UUID
 
 import structlog
@@ -20,12 +21,15 @@ from .ldap import ldap_add
 from .ldap import ldap_compare
 from .ldap import ldap_delete
 from .ldap import ldap_modify
+from .ldap import ldap_modify_dn
 from .ldap import object_search
 from .ldap import paged_search
 from .ldap import single_object_search
 from .types import DN
 from .utils import combine_dn_strings
+from .utils import extract_cn_from_dn
 from .utils import extract_ou_from_dn
+from .utils import remove_cn_from_dn
 
 logger = structlog.stdlib.get_logger()
 
@@ -309,3 +313,41 @@ class LDAPAPI:
                 dn = combine_dn_strings([ou_to_delete, self.settings.ldap_search_base])
                 _, result = await ldap_delete(self.ldap_connection, dn)
                 logger.info("LDAP Result", result=result, dn=dn)
+
+    async def move_ldap_object(self, old_dn: str, new_dn: str) -> bool:
+        """
+        Moves an LDAP object from one DN to another. Returns True if the move was
+        successful.
+        """
+        # TODO: Remove this when ldap3s read-only flag works
+        if self.settings.ldap_read_only:
+            logger.info(
+                "LDAP connection is read-only",
+                operation="move_ldap_object",
+                old_dn=old_dn,
+                new_dn=new_dn,
+            )
+            raise ReadOnlyException("LDAP connection is read-only")
+
+        if not self.settings.add_objects_to_ldap:
+            logger.info(
+                "Adding LDAP objects is disabled",
+                operation="move_ldap_object",
+                old_dn=old_dn,
+                new_dn=new_dn,
+            )
+            raise ReadOnlyException("Adding LDAP objects is disabled")
+
+        if not self.ou_in_ous_to_write_to(new_dn):
+            return False
+
+        logger.info("Moving entry", old_dn=old_dn, new_dn=new_dn)
+
+        _, result = await ldap_modify_dn(
+            self.ldap_connection,
+            old_dn,
+            extract_cn_from_dn(new_dn),
+            new_superior=remove_cn_from_dn(new_dn),
+        )
+        logger.info("LDAP Result", result=result, new_dn=new_dn, old_dn=old_dn)
+        return cast(bool, result["description"] == "success")

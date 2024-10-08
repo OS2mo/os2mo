@@ -2316,39 +2316,41 @@ async def test_delete_ou(settings: Settings, ldap_connection: MagicMock) -> None
     assert "LDAP connection is read-only" in str(exc.value)
 
 
-async def test_move_ldap_object(dataloader: DataLoader):
-    dataloader.ldapapi.ou_in_ous_to_write_to = MagicMock()  # type: ignore
-    dataloader.ldapapi.ou_in_ous_to_write_to.return_value = True
+async def test_move_ldap_object(settings: Settings, ldap_connection: MagicMock) -> None:
+    ldapapi = LDAPAPI(settings, ldap_connection)
+
+    ldapapi.ou_in_ous_to_write_to = MagicMock()  # type: ignore
+    ldapapi.ou_in_ous_to_write_to.return_value = True
     settings_mock = MagicMock()
-    dataloader.settings = settings_mock  # type: ignore
-    dataloader.settings.ldap_read_only = False
-    dataloader.ldap_connection.get_response.return_value = (
+    ldapapi.settings = settings_mock  # type: ignore
+    ldapapi.settings.ldap_read_only = False
+    ldap_connection.get_response.return_value = (
         [],
         {"description": "success"},
     )
 
-    success = await dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
+    success = await ldapapi.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
 
-    dataloader.ldap_connection.modify_dn.assert_called_once_with(  # type: ignore
+    ldap_connection.modify_dn.assert_called_once_with(  # type: ignore
         "CN=foo,OU=old_ou", "CN=foo", new_superior="OU=new_ou"
     )
     assert success is True
 
-    dataloader.ldapapi.ou_in_ous_to_write_to.return_value = False
-    success = await dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
+    ldapapi.ou_in_ous_to_write_to.return_value = False
+    success = await ldapapi.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
     assert success is False
 
-    dataloader.ldapapi.ou_in_ous_to_write_to.return_value = True
-    dataloader.settings.add_objects_to_ldap = False
+    ldapapi.ou_in_ous_to_write_to.return_value = True
+    ldapapi.settings.add_objects_to_ldap = False
 
     with pytest.raises(ReadOnlyException) as exc:
-        await dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
+        await ldapapi.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
     assert "Adding LDAP objects is disabled" in str(exc.value)
 
-    dataloader.settings.add_objects_to_ldap = True
-    dataloader.settings.ldap_read_only = True
+    ldapapi.settings.add_objects_to_ldap = True
+    ldapapi.settings.ldap_read_only = True
     with pytest.raises(ReadOnlyException) as exc:
-        await dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
+        await ldapapi.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
     assert "LDAP connection is read-only" in str(exc.value)
 
 
