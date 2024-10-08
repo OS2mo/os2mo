@@ -71,7 +71,8 @@ class Validity(RAOpenValidity):
                 )
 
             exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
-                key="Validity must have a 'from' date",
+                message="Validity must have a 'from' date",
+                key="from",
                 validity={
                     "from": self.from_date.isoformat() if self.from_date else None,
                     "to": self.to_date.isoformat() if self.to_date else None,

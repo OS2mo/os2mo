@@ -112,7 +112,8 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
             return common._create_virkning(util.get_valid_to(request), "infinity")
         else:
             exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
-                key="Validity must be set with either 'to' or both 'from' " "and 'to'",
+                message="Validity must be set with either 'to' or both 'from' "
+                "and 'to'",
                 obj=request,
             )
 

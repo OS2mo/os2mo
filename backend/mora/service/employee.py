@@ -78,7 +78,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         if (not name) and (not givenname) and (not surname):
             raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
-                name="Missing name or givenname or surname"
+                message="Missing name or givenname or surname"
             )
 
         nickname_givenname, nickname_surname = self._handle_nickname(req)
