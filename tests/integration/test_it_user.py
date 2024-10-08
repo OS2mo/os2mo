@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import json
+from typing import Any
 from unittest.mock import ANY
 from uuid import UUID
 
@@ -205,14 +206,14 @@ async def test_to_ldap(
     cpr = "2108613133"
 
     @retry()
-    async def assert_it_user(expected: list[str]) -> None:
+    async def assert_it_user(expected: dict[str, Any]) -> None:
         response, _ = await ldap_search(
             ldap_connection,
             search_base=combine_dn_strings(ldap_org),
             search_filter=f"(employeeNumber={cpr})",
-            attributes=["distinguishedName", "title"],
+            attributes=["title"],
         )
-        assert one(response)["attributes"]["title"] == expected
+        assert one(response)["attributes"] == expected
 
     # LDAP: Init user
     person_dn = combine_dn_strings(["uid=abk"] + ldap_org)
@@ -228,7 +229,7 @@ async def test_to_ldap(
             "employeeNumber": cpr,
         },
     )
-    await assert_it_user([])
+    await assert_it_user({"title": []})
 
     # MO: Create
     it_system_uuid = UUID(await mo_api.get_it_system_uuid("ADtitle"))
@@ -241,7 +242,7 @@ async def test_to_ldap(
             validity={"from": "2001-02-03T04:05:06Z"},
         )
     )
-    await assert_it_user([title])
+    await assert_it_user({"title": [title]})
 
     # MO: Edit
     title = "update"
@@ -255,11 +256,11 @@ async def test_to_ldap(
             person=mo_person,
         )
     )
-    await assert_it_user([title])
+    await assert_it_user({"title": [title]})
 
     # MO: Terminate
     await graphql_client._testing_ituser_terminate(
         uuid=mo_it_user.uuid,
         to=mo_today(),
     )
-    await assert_it_user([])
+    await assert_it_user({"title": []})
