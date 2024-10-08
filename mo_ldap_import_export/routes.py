@@ -365,7 +365,7 @@ def construct_router(settings: Settings) -> APIRouter:
 
     @router.get("/Inspect/dn2uuid/{dn}", status_code=200, tags=["LDAP"])
     async def ldap_dn2uuid(dataloader: depends.DataLoader, dn: str) -> UUID:
-        return await dataloader.get_ldap_unique_ldap_uuid(dn)
+        return await dataloader.ldapapi.get_ldap_unique_ldap_uuid(dn)
 
     @router.get("/Inspect/uuid2dn/{uuid}", status_code=200, tags=["LDAP"])
     async def ldap_uuid2dn(dataloader: depends.DataLoader, uuid: UUID) -> str:

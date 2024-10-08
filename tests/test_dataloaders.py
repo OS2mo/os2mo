@@ -738,10 +738,17 @@ def mock_read_employee_uuid_by_ituser(
 async def test_find_mo_employee_uuid_by_cpr_number(dataloader: DataLoader):
     uuid = uuid4()
 
-    with patch(
-        "mo_ldap_import_export.dataloaders.get_ldap_object",
-        return_value=LdapObject(
-            dn="CN=foo", employeeID="0101011221", objectGUID=str(uuid4())
+    ldap_object = LdapObject(
+        dn="CN=foo", employeeID="0101011221", objectGUID=str(uuid4())
+    )
+
+    with (
+        patch(
+            "mo_ldap_import_export.dataloaders.get_ldap_object",
+            return_value=ldap_object,
+        ),
+        patch(
+            "mo_ldap_import_export.ldapapi.get_ldap_object", return_value=ldap_object
         ),
     ):
         mock_read_employee_uuid_by_cpr_number(dataloader, [uuid])
@@ -753,9 +760,15 @@ async def test_find_mo_employee_uuid_by_cpr_number(dataloader: DataLoader):
 async def test_find_mo_employee_uuid_by_ituser(dataloader: DataLoader):
     uuid = uuid4()
 
-    with patch(
-        "mo_ldap_import_export.dataloaders.get_ldap_object",
-        return_value=LdapObject(dn="CN=foo", employeeID="Ja", objectGUID=str(uuid4())),
+    ldap_object = LdapObject(dn="CN=foo", employeeID="Ja", objectGUID=str(uuid4()))
+    with (
+        patch(
+            "mo_ldap_import_export.dataloaders.get_ldap_object",
+            return_value=ldap_object,
+        ),
+        patch(
+            "mo_ldap_import_export.ldapapi.get_ldap_object", return_value=ldap_object
+        ),
     ):
         mock_read_employee_uuid_by_cpr_number(dataloader, [])
         mock_read_employee_uuid_by_ituser(dataloader, [uuid])
@@ -774,7 +787,7 @@ async def test_find_mo_employee_uuid_fallback_ituser(
     uuid2 = uuid4()
 
     with patch(
-        "mo_ldap_import_export.dataloaders.get_ldap_object",
+        "mo_ldap_import_export.ldapapi.get_ldap_object",
         return_value=LdapObject(
             dn="CN=foo", employeeID="0101011221", objectGUID=str(uuid4())
         ),
@@ -787,10 +800,16 @@ async def test_find_mo_employee_uuid_fallback_ituser(
 
 
 async def test_find_mo_employee_uuid_not_found(dataloader: DataLoader):
-    with patch(
-        "mo_ldap_import_export.dataloaders.get_ldap_object",
-        return_value=LdapObject(
-            dn="CN=foo", employeeID="0101011221", objectGUID=str(uuid4())
+    ldap_object = LdapObject(
+        dn="CN=foo", employeeID="0101011221", objectGUID=str(uuid4())
+    )
+    with (
+        patch(
+            "mo_ldap_import_export.dataloaders.get_ldap_object",
+            return_value=ldap_object,
+        ),
+        patch(
+            "mo_ldap_import_export.ldapapi.get_ldap_object", return_value=ldap_object
         ),
     ):
         mock_read_employee_uuid_by_cpr_number(dataloader, [])
@@ -802,10 +821,16 @@ async def test_find_mo_employee_uuid_not_found(dataloader: DataLoader):
 async def test_find_mo_employee_uuid_cpr_number_multiple_matches(
     dataloader: DataLoader,
 ):
-    with patch(
-        "mo_ldap_import_export.dataloaders.get_ldap_object",
-        return_value=LdapObject(
-            dn="CN=foo", employeeID="0101011221", objectGUID=str(uuid4())
+    ldap_object = LdapObject(
+        dn="CN=foo", employeeID="0101011221", objectGUID=str(uuid4())
+    )
+    with (
+        patch(
+            "mo_ldap_import_export.dataloaders.get_ldap_object",
+            return_value=ldap_object,
+        ),
+        patch(
+            "mo_ldap_import_export.ldapapi.get_ldap_object", return_value=ldap_object
         ),
     ):
         mock_read_employee_uuid_by_cpr_number(dataloader, [uuid4(), uuid4()])
@@ -815,10 +840,16 @@ async def test_find_mo_employee_uuid_cpr_number_multiple_matches(
 
 
 async def test_find_mo_employee_uuid_ituser_multiple_matches(dataloader: DataLoader):
-    with patch(
-        "mo_ldap_import_export.dataloaders.get_ldap_object",
-        return_value=LdapObject(
-            dn="CN=foo", employeeID="0101011221", objectGUID=str(uuid4())
+    ldap_object = LdapObject(
+        dn="CN=foo", employeeID="0101011221", objectGUID=str(uuid4())
+    )
+    with (
+        patch(
+            "mo_ldap_import_export.dataloaders.get_ldap_object",
+            return_value=ldap_object,
+        ),
+        patch(
+            "mo_ldap_import_export.ldapapi.get_ldap_object", return_value=ldap_object
         ),
     ):
         mock_read_employee_uuid_by_cpr_number(dataloader, [])
@@ -831,10 +862,16 @@ async def test_find_mo_employee_uuid_multiple_matches(dataloader: DataLoader):
     uuid1 = uuid4()
     uuid2 = uuid4()
 
-    with patch(
-        "mo_ldap_import_export.dataloaders.get_ldap_object",
-        return_value=LdapObject(
-            dn="CN=foo", employeeID="0101011221", objectGUID=str(uuid4())
+    ldap_object = LdapObject(
+        dn="CN=foo", employeeID="0101011221", objectGUID=str(uuid4())
+    )
+    with (
+        patch(
+            "mo_ldap_import_export.dataloaders.get_ldap_object",
+            return_value=ldap_object,
+        ),
+        patch(
+            "mo_ldap_import_export.ldapapi.get_ldap_object", return_value=ldap_object
         ),
     ):
         # We never actually check ituser, due to early return
@@ -1607,8 +1644,8 @@ async def test_make_mo_employee_dn_no_cpr(
     dataloader.user_context["username_generator"] = username_generator
 
     ldap_uuid = uuid4()
-    dataloader.get_ldap_unique_ldap_uuid = AsyncMock()
-    dataloader.get_ldap_unique_ldap_uuid.return_value = ldap_uuid
+    dataloader.ldapapi.get_ldap_unique_ldap_uuid = AsyncMock()
+    dataloader.ldapapi.get_ldap_unique_ldap_uuid.return_value = ldap_uuid
 
     amqp_exchange_name = "amqp_exchange_name"
     dataloader.amqpsystem.exchange_name = amqp_exchange_name
@@ -1717,21 +1754,21 @@ async def test_get_ldap_unique_ldap_uuid(dataloader: DataLoader) -> None:
     uuid = uuid4()
     ldap_object = LdapObject(dn="foo", objectGUID=str(uuid))
     with patch(
-        "mo_ldap_import_export.dataloaders.get_ldap_object", return_value=ldap_object
+        "mo_ldap_import_export.ldapapi.get_ldap_object", return_value=ldap_object
     ):
-        assert await dataloader.get_ldap_unique_ldap_uuid("") == uuid
+        assert await dataloader.ldapapi.get_ldap_unique_ldap_uuid("") == uuid
 
 
 async def test_get_ldap_unique_ldap_uuid_no_objectguid(dataloader: DataLoader) -> None:
     ldap_object = LdapObject(dn="foo", objectGUID=[])
     with (
         patch(
-            "mo_ldap_import_export.dataloaders.get_ldap_object",
+            "mo_ldap_import_export.ldapapi.get_ldap_object",
             return_value=ldap_object,
         ),
         pytest.raises(NoObjectsReturnedException),
     ):
-        await dataloader.get_ldap_unique_ldap_uuid("")
+        await dataloader.ldapapi.get_ldap_unique_ldap_uuid("")
 
 
 async def test_load_ldap_attribute_values(dataloader: DataLoader):
