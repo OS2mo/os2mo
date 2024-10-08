@@ -1,23 +1,23 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from .exceptions import ReadOnlyException
+from functools import partialmethod
+from typing import Literal
 from uuid import UUID
 
 import structlog
 from ldap3 import BASE
 from ldap3 import Connection
 from ldap3.utils.dn import safe_dn
-
 from more_itertools import only
-from typing import Literal
-from functools import partialmethod
+
 from .config import Settings
+from .exceptions import InvalidChangeDict
+from .exceptions import ReadOnlyException
+from .ldap import ldap_compare
+from .ldap import ldap_modify
 from .ldap import single_object_search
 from .types import DN
 from .utils import extract_ou_from_dn
-from .exceptions import InvalidChangeDict
-from .ldap import ldap_compare
-from .ldap import ldap_modify
 
 logger = structlog.stdlib.get_logger()
 
