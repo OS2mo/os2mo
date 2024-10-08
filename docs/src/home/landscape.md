@@ -2,4 +2,4 @@
 title: Systemlandskab
 ---
 
-![image](../graphics/OS2mo_systemlandskab.svg)
+![image](../graphics/MO_systemlandskab.svg)
