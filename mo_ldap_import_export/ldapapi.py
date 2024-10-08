@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 from functools import partialmethod
+from typing import Any
 from typing import Literal
 from uuid import UUID
 
@@ -14,6 +15,7 @@ from more_itertools import only
 from .config import Settings
 from .exceptions import InvalidChangeDict
 from .exceptions import ReadOnlyException
+from .ldap import ldap_add
 from .ldap import ldap_compare
 from .ldap import ldap_modify
 from .ldap import object_search
@@ -176,3 +178,54 @@ class LDAPAPI:
             }
             for dn in dns
         }
+
+    async def add_ldap_object(self, dn: str, attributes: dict[str, Any] | None = None):
+        """
+        Adds a new object to LDAP
+
+        Parameters
+        ---------------
+        attributes : dict
+            dictionary with attributes to populate in LDAP, when creating the user.
+            See https://ldap3.readthedocs.io/en/latest/add.html for more information
+
+        """
+        # TODO: Remove this when ldap3s read-only flag works
+        if self.settings.ldap_read_only:
+            logger.info(
+                "LDAP connection is read-only",
+                operation="add_ldap_object",
+                dn=dn,
+                attributes=attributes,
+            )
+            raise ReadOnlyException("LDAP connection is read-only")
+
+        if not self.settings.add_objects_to_ldap:
+            logger.info(
+                "Adding LDAP objects is disabled",
+                operation="add_ldap_object",
+                dn=dn,
+                attributes=attributes,
+            )
+            raise ReadOnlyException("Adding LDAP objects is disabled")
+
+        if not self.ou_in_ous_to_write_to(dn):
+            logger.info(
+                "Not allowed to write to the specified OU",
+                operation="add_ldap_object",
+                dn=dn,
+                attributes=attributes,
+            )
+            raise ReadOnlyException("Not allowed to write to the specified OU")
+
+        logger.info("Adding user to LDAP", dn=dn, attributes=attributes)
+        employee_object_class = self.settings.conversion_mapping.mo_to_ldap[
+            "Employee"
+        ].objectClass
+        _, result = await ldap_add(
+            self.ldap_connection,
+            dn,
+            employee_object_class,
+            attributes=attributes,
+        )
+        logger.info("LDAP Result", result=result, dn=dn)
