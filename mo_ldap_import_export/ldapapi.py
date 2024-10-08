@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
+from contextlib import suppress
 from functools import partialmethod
 from typing import Any
 from typing import Literal
@@ -12,7 +13,9 @@ from ldap3 import BASE
 from ldap3 import Connection
 from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
+from more_itertools import one
 from more_itertools import only
+from ramodels.mo._shared import validate_cpr
 
 from .config import Settings
 from .exceptions import InvalidChangeDict
@@ -28,6 +31,7 @@ from .ldap import object_search
 from .ldap import paged_search
 from .ldap import single_object_search
 from .types import DN
+from .types import CPRNumber
 from .utils import combine_dn_strings
 from .utils import extract_cn_from_dn
 from .utils import extract_ou_from_dn
@@ -381,3 +385,21 @@ class LDAPAPI:
         if exceptions:
             raise ExceptionGroup("Exceptions during UUID2DN translation", exceptions)
         return cast(set[DN], set(results))
+
+    async def dn2cpr(self, dn: DN) -> CPRNumber | None:
+        if self.settings.ldap_cpr_attribute is None:
+            return None
+
+        ldap_object = await get_ldap_object(
+            self.ldap_connection, dn, [self.settings.ldap_cpr_attribute]
+        )
+        # Try to get the cpr number from LDAP and use that.
+        with suppress(ValueError):
+            raw_cpr_no = getattr(ldap_object, self.settings.ldap_cpr_attribute)
+            # NOTE: Not sure if this only necessary for the mocked server or not
+            if isinstance(raw_cpr_no, list):
+                raw_cpr_no = one(raw_cpr_no)
+            cpr_no = validate_cpr(str(raw_cpr_no))
+            assert cpr_no is not None
+            return CPRNumber(cpr_no)
+        return None

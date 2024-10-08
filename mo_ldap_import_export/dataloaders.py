@@ -47,7 +47,6 @@ from .exceptions import DNNotFound
 from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
 from .exceptions import UUIDNotFoundException
-from .ldap import get_ldap_object
 from .ldap import is_uuid
 from .ldap import make_ldap_object
 from .ldap import object_search
@@ -322,22 +321,8 @@ class DataLoader:
         return results
 
     async def find_mo_employee_uuid_via_cpr_number(self, dn: str) -> set[UUID]:
-        if self.settings.ldap_cpr_attribute is None:
-            return set()
-
-        ldap_object = await get_ldap_object(
-            self.ldap_connection, dn, [self.settings.ldap_cpr_attribute]
-        )
-        # Try to get the cpr number from LDAP and use that.
-        try:
-            raw_cpr_no = getattr(ldap_object, self.settings.ldap_cpr_attribute)
-            # NOTE: Not sure if this only necessary for the mocked server or not
-            if isinstance(raw_cpr_no, list):
-                raw_cpr_no = one(raw_cpr_no)
-            cpr_no = validate_cpr(str(raw_cpr_no))
-            assert cpr_no is not None
-            cpr_number = CPRNumber(cpr_no)
-        except ValueError:
+        cpr_number = await self.ldapapi.dn2cpr(dn)
+        if cpr_number is None:
             return set()
 
         result = await self.graphql_client.read_employee_uuid_by_cpr_number(cpr_number)
