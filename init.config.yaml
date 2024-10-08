@@ -37,6 +37,18 @@ facets:
     Secret:
       title: "Hemmelig"
       scope: "SECRET"
+  engagement_job_function:
+    Jurist:
+      title: "Jurist"
+      scope: "TEXT"
+  org_unit_type:
+    Afdeling:
+      title: "Afdeling"
+      scope: "TEXT"
+  engagement_type:
+    Ansat:
+      title: "Ansat"
+      scope: "TEXT"
   primary_type:
     primary:
       title: "Primær"

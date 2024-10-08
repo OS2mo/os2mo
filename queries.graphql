@@ -29,6 +29,37 @@ query __testing__address_read($filter: AddressFilter) {
   }
 }
 
+query __testing__engagement_read($filter: EngagementFilter) {
+  engagements(filter: $filter) {
+    objects {
+      validities {
+        uuid
+        user_key
+        person {
+          uuid
+        }
+        org_unit {
+          uuid
+        }
+        engagement_type {
+          user_key
+        }
+        job_function {
+          user_key
+        }
+        primary {
+          user_key
+        }
+        extension_1
+        validity {
+          from
+          to
+        }
+      }
+    }
+  }
+}
+
 query __testing__ituser_read($filter: ITUserFilter) {
   itusers(filter: $filter) {
     objects {
@@ -55,6 +86,25 @@ mutation __testing_user_create($input: EmployeeCreateInput!) {
     uuid
   }
 }
+
+mutation __testing_engagement_create($input: EngagementCreateInput!) {
+  engagement_create(input: $input) {
+    uuid
+  }
+}
+
+mutation __testing_engagement_update($input: EngagementUpdateInput!) {
+  engagement_update(input: $input) {
+    uuid
+  }
+}
+
+mutation __testing_engagement_terminate($uuid: UUID!, $to: DateTime!) {
+  engagement_terminate(input: { uuid: $uuid, to: $to }) {
+    uuid
+  }
+}
+
 
 mutation __testing_ituser_create($input: ITUserCreateInput!) {
   ituser_create(input: $input) {

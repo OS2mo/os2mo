@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import json
+from typing import Any
 from unittest.mock import ANY
 from uuid import UUID
 
@@ -205,14 +206,14 @@ async def test_to_ldap(
     cpr = "2108613133"
 
     @retry()
-    async def assert_address(expected: list[str]) -> None:
+    async def assert_address(expected: dict[str, Any]) -> None:
         response, _ = await ldap_search(
             ldap_connection,
             search_base=combine_dn_strings(ldap_org),
             search_filter=f"(employeeNumber={cpr})",
-            attributes=["distinguishedName", "mail"],
+            attributes=["mail"],
         )
-        assert one(response)["attributes"]["mail"] == expected
+        assert one(response)["attributes"] == expected
 
     # LDAP: Init user
     person_dn = combine_dn_strings(["uid=abk"] + ldap_org)
@@ -228,7 +229,7 @@ async def test_to_ldap(
             "employeeNumber": cpr,
         },
     )
-    await assert_address([])
+    await assert_address({"mail": []})
 
     # MO: Create
     address_type = one(
@@ -257,7 +258,7 @@ async def test_to_ldap(
             validity={"from": "2001-02-03T04:05:06Z"},
         )
     )
-    await assert_address([mail])
+    await assert_address({"mail": [mail]})
 
     # MO: Edit
     mail = "update@example.com"
@@ -273,11 +274,11 @@ async def test_to_ldap(
             visibility=visibility,
         )
     )
-    await assert_address([mail])
+    await assert_address({"mail": [mail]})
 
     # MO: Terminate
     await graphql_client._testing_address_terminate(
         uuid=mo_address.uuid,
         to=mo_today(),
     )
-    await assert_address([])
+    await assert_address({"mail": []})
