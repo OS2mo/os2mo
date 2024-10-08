@@ -251,6 +251,23 @@ class Mutation:
         return uuid2response(await create_address(input.to_pydantic()), AddressRead)  # type: ignore
 
     @strawberry.mutation(
+        description="Creates a list of address.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("address"),
+        ],
+    )
+    async def addresses_create(
+        self, input: list[AddressCreateInput]
+    ) -> list[Response[Address]]:
+        created_addresses = []
+        for address in input:
+            result = uuid2response(await create_address(address.to_pydantic()), AddressRead)  # type: ignore
+            created_addresses.append(result)
+
+        return created_addresses
+
+    @strawberry.mutation(
         description="Updates an address.",
         permission_classes=[
             IsAuthenticatedPermission,
@@ -546,6 +563,23 @@ class Mutation:
         )
 
     @strawberry.mutation(
+        description="Creates a list of engagements.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("engagement"),
+        ],
+    )
+    async def engagements_create(
+        self, input: list[EngagementCreateInput]
+    ) -> list[Response[Engagement]]:
+        created_engagements = []
+        for engagement in input:
+            result = uuid2response(await create_engagement(engagement.to_pydantic()), EngagementRead)  # type: ignore
+            created_engagements.append(result)
+
+        return created_engagements
+
+    @strawberry.mutation(
         description="Updates an engagement.",
         permission_classes=[
             IsAuthenticatedPermission,
@@ -822,6 +856,25 @@ class Mutation:
         return uuid2response(await create_ituser(input.to_pydantic()), ITUserRead)
 
     @strawberry.mutation(
+        description="Creates a list of itusers.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("ituser"),
+        ],
+    )
+    async def itusers_create(
+        self, input: list[ITUserCreateInput]
+    ) -> list[Response[ITUser]]:
+        created_itusers = []
+        for ituser in input:
+            result = uuid2response(
+                await create_ituser(ituser.to_pydantic()), ITUserRead
+            )
+            created_itusers.append(result)
+
+        return created_itusers
+
+    @strawberry.mutation(
         description="Updates an IT-User.",
         permission_classes=[
             IsAuthenticatedPermission,
@@ -1005,6 +1058,25 @@ class Mutation:
     )
     async def manager_create(self, input: ManagerCreateInput) -> Response[Manager]:
         return uuid2response(await create_manager(input.to_pydantic()), ManagerRead)
+
+    @strawberry.mutation(
+        description="Creates a list of managers.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("manager"),
+        ],
+    )
+    async def managers_create(
+        self, input: list[ManagerCreateInput]
+    ) -> list[Response[Manager]]:
+        created_managers = []
+        for manager in input:
+            result = uuid2response(
+                await create_manager(manager.to_pydantic()), ManagerRead
+            )
+            created_managers.append(result)
+
+        return created_managers
 
     @strawberry.mutation(
         description="Updates a manager relation.",
