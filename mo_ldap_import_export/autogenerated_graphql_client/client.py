@@ -5,6 +5,8 @@ from uuid import UUID
 from ..types import CPRNumber
 from ._testing__address_read import TestingAddressRead
 from ._testing__address_read import TestingAddressReadAddresses
+from ._testing__engagement_read import TestingEngagementRead
+from ._testing__engagement_read import TestingEngagementReadEngagements
 from ._testing__itsystem_create import TestingItsystemCreate
 from ._testing__itsystem_create import TestingItsystemCreateItsystemCreate
 from ._testing__ituser_read import TestingItuserRead
@@ -15,6 +17,12 @@ from ._testing_address_terminate import TestingAddressTerminate
 from ._testing_address_terminate import TestingAddressTerminateAddressTerminate
 from ._testing_address_update import TestingAddressUpdate
 from ._testing_address_update import TestingAddressUpdateAddressUpdate
+from ._testing_engagement_create import TestingEngagementCreate
+from ._testing_engagement_create import TestingEngagementCreateEngagementCreate
+from ._testing_engagement_terminate import TestingEngagementTerminate
+from ._testing_engagement_terminate import TestingEngagementTerminateEngagementTerminate
+from ._testing_engagement_update import TestingEngagementUpdate
+from ._testing_engagement_update import TestingEngagementUpdateEngagementUpdate
 from ._testing_ituser_create import TestingItuserCreate
 from ._testing_ituser_create import TestingItuserCreateItuserCreate
 from ._testing_ituser_terminate import TestingItuserTerminate
@@ -42,8 +50,10 @@ from .input_types import AddressTerminateInput
 from .input_types import AddressUpdateInput
 from .input_types import ClassCreateInput
 from .input_types import EmployeeCreateInput
+from .input_types import EngagementCreateInput
 from .input_types import EngagementFilter
 from .input_types import EngagementTerminateInput
+from .input_types import EngagementUpdateInput
 from .input_types import ITSystemCreateInput
 from .input_types import ITUserCreateInput
 from .input_types import ITUserFilter
@@ -187,6 +197,48 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return TestingAddressRead.parse_obj(data).addresses
 
+    async def _testing__engagement_read(
+        self, filter: EngagementFilter | None | UnsetType = UNSET
+    ) -> TestingEngagementReadEngagements:
+        query = gql(
+            """
+            query __testing__engagement_read($filter: EngagementFilter) {
+              engagements(filter: $filter) {
+                objects {
+                  validities {
+                    uuid
+                    user_key
+                    person {
+                      uuid
+                    }
+                    org_unit {
+                      uuid
+                    }
+                    engagement_type {
+                      user_key
+                    }
+                    job_function {
+                      user_key
+                    }
+                    primary {
+                      user_key
+                    }
+                    extension_1
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingEngagementRead.parse_obj(data).engagements
+
     async def _testing__ituser_read(
         self, filter: ITUserFilter | None | UnsetType = UNSET
     ) -> TestingItuserReadItusers:
@@ -235,6 +287,57 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingUserCreate.parse_obj(data).employee_create
+
+    async def _testing_engagement_create(
+        self, input: EngagementCreateInput
+    ) -> TestingEngagementCreateEngagementCreate:
+        query = gql(
+            """
+            mutation __testing_engagement_create($input: EngagementCreateInput!) {
+              engagement_create(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingEngagementCreate.parse_obj(data).engagement_create
+
+    async def _testing_engagement_update(
+        self, input: EngagementUpdateInput
+    ) -> TestingEngagementUpdateEngagementUpdate:
+        query = gql(
+            """
+            mutation __testing_engagement_update($input: EngagementUpdateInput!) {
+              engagement_update(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingEngagementUpdate.parse_obj(data).engagement_update
+
+    async def _testing_engagement_terminate(
+        self, uuid: UUID, to: datetime
+    ) -> TestingEngagementTerminateEngagementTerminate:
+        query = gql(
+            """
+            mutation __testing_engagement_terminate($uuid: UUID!, $to: DateTime!) {
+              engagement_terminate(input: {uuid: $uuid, to: $to}) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"uuid": uuid, "to": to}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingEngagementTerminate.parse_obj(data).engagement_terminate
 
     async def _testing_ituser_create(
         self, input: ITUserCreateInput
