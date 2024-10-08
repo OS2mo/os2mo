@@ -1373,7 +1373,7 @@ async def test_move_ldap_object(sync_tool: SyncTool, dataloader: AsyncMock):
     dataloader.move_ldap_object.assert_called_once_with(old_dn, new_dn)
 
     # And delete OU=Auchtertool, which is now empty
-    dataloader.delete_ou.assert_called_once_with("OU=Auchtertool")
+    dataloader.ldapapi.delete_ou.assert_called_once_with("OU=Auchtertool")
 
     assert ldap_object.dn == new_dn
 

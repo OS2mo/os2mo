@@ -284,7 +284,7 @@ class SyncTool:
 
         if move_successful:
             # Delete the old OU (dataloader.delete_ou checks if it is empty)
-            await self.dataloader.delete_ou(old_ou)
+            await self.dataloader.ldapapi.delete_ou(old_ou)
         else:
             ldap_object.dn = old_dn
 
