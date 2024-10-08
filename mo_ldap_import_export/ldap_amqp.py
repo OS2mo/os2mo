@@ -70,7 +70,7 @@ async def handle_uuid(
 
     logger.info("Received LDAP AMQP event", uuid=uuid)
     try:
-        dn = await dataloader.get_ldap_dn(uuid)
+        dn = await dataloader.ldapapi.get_ldap_dn(uuid)
     except NoObjectsReturnedException as exc:
         logger.exception("LDAP UUID could not be found", uuid=uuid)
         raise RejectMessage("LDAP UUID could not be found") from exc

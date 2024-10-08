@@ -19,7 +19,6 @@ from fastapi.encoders import jsonable_encoder
 from fastramqpi.context import Context
 from fastramqpi.raclients.modelclient.mo import ModelClient as LegacyModelClient
 from fastramqpi.ramqp.mo import MOAMQPSystem
-from ldap3 import BASE
 from ldap3 import Connection
 from ldap3.core.exceptions import LDAPInvalidValueError
 from ldap3.utils.dn import safe_dn
@@ -64,8 +63,8 @@ from .ldap import ldap_modify_dn
 from .ldap import make_ldap_object
 from .ldap import object_search
 from .ldap import paged_search
-from .ldap import single_object_search
 from .ldap_classes import LdapObject
+from .ldapapi import LDAPAPI
 from .moapi import MOAPI
 from .moapi import extract_current_or_latest_validity
 from .types import DN
@@ -118,6 +117,7 @@ class DataLoader:
         self.user_context = context["user_context"]
         self.ldap_connection: Connection = self.user_context["ldap_connection"]
         self.settings: Settings = self.user_context["settings"]
+        self.ldapapi = LDAPAPI(self.settings, self.ldap_connection)
         self.legacy_model_client: LegacyModelClient = self.context[
             "legacy_model_client"
         ]
@@ -683,32 +683,6 @@ class DataLoader:
             )
             return None
 
-    async def get_ldap_dn(self, unique_ldap_uuid: UUID) -> DN:
-        """
-        Given an unique_ldap_uuid, find the DistinguishedName
-        """
-        logger.info("Looking for LDAP object", unique_ldap_uuid=unique_ldap_uuid)
-        searchParameters = {
-            "search_base": self.settings.ldap_search_base,
-            "search_filter": f"(&(objectclass=*)({self.settings.ldap_unique_id_field}={unique_ldap_uuid}))",
-            "attributes": [],
-        }
-
-        # Special-case for AD
-        if self.settings.ldap_unique_id_field == "objectGUID":
-            searchParameters = {
-                "search_base": f"<GUID={unique_ldap_uuid}>",
-                "search_filter": "(objectclass=*)",
-                "attributes": [],
-                "search_scope": BASE,
-            }
-
-        search_result = await single_object_search(
-            searchParameters, self.ldap_connection
-        )
-        dn: str = search_result["dn"]
-        return dn
-
     async def get_ldap_unique_ldap_uuid(self, dn: str) -> UUID:
         """
         Given a DN, find the unique_ldap_uuid
@@ -747,7 +721,8 @@ class DataLoader:
     async def convert_ldap_uuids_to_dns(self, ldap_uuids: set[UUID]) -> set[DN]:
         # TODO: DataLoader / bulk here instead of this
         results = await asyncio.gather(
-            *[self.get_ldap_dn(uuid) for uuid in ldap_uuids], return_exceptions=True
+            *[self.ldapapi.get_ldap_dn(uuid) for uuid in ldap_uuids],
+            return_exceptions=True,
         )
         exceptions = cast(list[Exception], list(filter(is_exception, results)))
         if exceptions:

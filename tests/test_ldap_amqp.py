@@ -21,11 +21,11 @@ async def test_process_uuid() -> None:
     uuid = uuid4()
     dn = str(uuid4())
 
-    dataloader.get_ldap_dn.return_value = dn
+    dataloader.ldapapi.get_ldap_dn.return_value = dn
 
     await process_uuid(ldap_amqpsystem, sync_tool, dataloader, uuid)
 
-    dataloader.get_ldap_dn.assert_called_once_with(uuid)
+    dataloader.ldapapi.get_ldap_dn.assert_called_once_with(uuid)
     sync_tool.import_single_user.assert_called_once_with(dn)
 
 
@@ -35,7 +35,7 @@ async def test_process_uuid_missing_uuid() -> None:
     sync_tool = AsyncMock()
     dataloader = AsyncMock()
 
-    dataloader.get_ldap_dn.side_effect = NoObjectsReturnedException("BOOM")
+    dataloader.ldapapi.get_ldap_dn.side_effect = NoObjectsReturnedException("BOOM")
 
     uuid = uuid4()
 
@@ -43,7 +43,7 @@ async def test_process_uuid_missing_uuid() -> None:
         await process_uuid(ldap_amqpsystem, sync_tool, dataloader, uuid)
     assert "LDAP UUID could not be found" in str(exc_info.value)
 
-    dataloader.get_ldap_dn.assert_called_once_with(uuid)
+    dataloader.ldapapi.get_ldap_dn.assert_called_once_with(uuid)
 
 
 async def test_process_uuid_bad_sync() -> None:
@@ -55,7 +55,7 @@ async def test_process_uuid_bad_sync() -> None:
     uuid = uuid4()
     dn = str(uuid4())
 
-    dataloader.get_ldap_dn.return_value = dn
+    dataloader.ldapapi.get_ldap_dn.return_value = dn
     sync_tool.import_single_user.side_effect = ValueError("BOOM")
 
     with capture_logs() as cap_logs:
@@ -63,6 +63,6 @@ async def test_process_uuid_bad_sync() -> None:
             await process_uuid(ldap_amqpsystem, sync_tool, dataloader, uuid)
         assert "Unable to synchronize DN to MO" in [x["event"] for x in cap_logs]
 
-    dataloader.get_ldap_dn.assert_called_once_with(uuid)
+    dataloader.ldapapi.get_ldap_dn.assert_called_once_with(uuid)
     sync_tool.import_single_user.assert_called_once_with(dn)
     ldap_amqpsystem.publish_message.assert_called_once_with("uuid", uuid)

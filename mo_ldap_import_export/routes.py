@@ -360,7 +360,7 @@ def construct_router(settings: Settings) -> APIRouter:
         dataloader: depends.DataLoader,
     ) -> Any:
         # Check that we can find the UUID
-        await dataloader.get_ldap_dn(unique_ldap_uuid)
+        await dataloader.ldapapi.get_ldap_dn(unique_ldap_uuid)
         await publish_uuids(ldap_amqpsystem, [unique_ldap_uuid])
 
     @router.get("/Inspect/dn2uuid/{dn}", status_code=200, tags=["LDAP"])
@@ -369,7 +369,7 @@ def construct_router(settings: Settings) -> APIRouter:
 
     @router.get("/Inspect/uuid2dn/{uuid}", status_code=200, tags=["LDAP"])
     async def ldap_uuid2dn(dataloader: depends.DataLoader, uuid: UUID) -> str:
-        return await dataloader.get_ldap_dn(uuid)
+        return await dataloader.ldapapi.get_ldap_dn(uuid)
 
     @router.get("/Inspect/dn/{dn}", status_code=200, tags=["LDAP"])
     async def ldap_fetch_object_by_dn(
@@ -386,7 +386,7 @@ def construct_router(settings: Settings) -> APIRouter:
         uuid: UUID,
         nest: bool = False,
     ) -> Any:
-        dn = await dataloader.get_ldap_dn(uuid)
+        dn = await dataloader.ldapapi.get_ldap_dn(uuid)
         return encode_result(
             await get_ldap_object(ldap_connection, dn, ["*"], nest=nest)
         )
