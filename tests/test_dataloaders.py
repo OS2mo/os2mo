@@ -2221,7 +2221,7 @@ def test_decompose_ou_string(dataloader: DataLoader):
 async def test_create_ou(dataloader: DataLoader) -> None:
     dataloader.ldap_connection.get_response.return_value = [], {"type": "test"}
 
-    dataloader.load_ldap_OUs = AsyncMock()  # type: ignore
+    dataloader.ldapapi.load_ldap_OUs = AsyncMock()  # type: ignore
     dataloader.ldapapi.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     dataloader.ldapapi.ou_in_ous_to_write_to.return_value = True
 
@@ -2230,7 +2230,7 @@ async def test_create_ou(dataloader: DataLoader) -> None:
     dataloader.settings = settings_mock  # type: ignore
     dataloader.settings.ldap_read_only = False
 
-    dataloader.load_ldap_OUs.return_value = {
+    dataloader.ldapapi.load_ldap_OUs.return_value = {
         "OU=mucki,OU=bar": {"empty": False},
         "OU=bar": {"empty": False},
     }
@@ -2263,7 +2263,7 @@ async def test_create_ou(dataloader: DataLoader) -> None:
 async def test_delete_ou(dataloader: DataLoader) -> None:
     dataloader.ldap_connection.get_response.return_value = [], {"type": "test"}
 
-    dataloader.load_ldap_OUs = AsyncMock()  # type: ignore
+    dataloader.ldapapi.load_ldap_OUs = AsyncMock()  # type: ignore
     dataloader.ldapapi.ou_in_ous_to_write_to = MagicMock()  # type: ignore
     dataloader.ldapapi.ou_in_ous_to_write_to.return_value = True
 
@@ -2272,7 +2272,7 @@ async def test_delete_ou(dataloader: DataLoader) -> None:
     dataloader.settings = settings_mock  # type: ignore
     dataloader.settings.ldap_read_only = False
 
-    dataloader.load_ldap_OUs.return_value = {
+    dataloader.ldapapi.load_ldap_OUs.return_value = {
         "OU=foo,OU=mucki,OU=bar": {"empty": True},
         "OU=mucki,OU=bar": {"empty": False},
         "OU=bar": {"empty": False},
