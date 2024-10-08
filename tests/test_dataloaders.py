@@ -80,6 +80,7 @@ from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import ReadOnlyException
 from mo_ldap_import_export.ldapapi import LDAPAPI
+from mo_ldap_import_export.ldapapi import decompose_ou_string
 from mo_ldap_import_export.routes import load_all_current_it_users
 from mo_ldap_import_export.routes import load_ldap_attribute_values
 from mo_ldap_import_export.routes import load_ldap_objects
@@ -2211,14 +2212,14 @@ async def test_load_mo_root_org_uuid(graphql_mock: GraphQLMocker) -> None:
     assert await load_mo_root_org_uuid(graphql_client) == root_org_uuid
 
 
-def test_decompose_ou_string(dataloader: DataLoader):
+def test_decompose_ou_string() -> None:
     ou = "OU=foo,OU=mucki,OU=bar"
-    output = dataloader.decompose_ou_string(ou)
-
-    assert len(output) == 3
-    assert output[0] == "OU=foo,OU=mucki,OU=bar"
-    assert output[1] == "OU=mucki,OU=bar"
-    assert output[2] == "OU=bar"
+    output = decompose_ou_string(ou)
+    assert output == [
+        "OU=foo,OU=mucki,OU=bar",
+        "OU=mucki,OU=bar",
+        "OU=bar",
+    ]
 
 
 async def test_create_ou(dataloader: DataLoader) -> None:

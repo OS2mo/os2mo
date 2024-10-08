@@ -19,7 +19,6 @@ from fastramqpi.raclients.modelclient.mo import ModelClient as LegacyModelClient
 from fastramqpi.ramqp.mo import MOAMQPSystem
 from ldap3 import Connection
 from ldap3.core.exceptions import LDAPInvalidValueError
-from ldap3.utils.dn import to_dn
 from more_itertools import bucket
 from more_itertools import one
 from more_itertools import only
@@ -58,6 +57,7 @@ from .ldap import make_ldap_object
 from .ldap import object_search
 from .ldap_classes import LdapObject
 from .ldapapi import LDAPAPI
+from .ldapapi import decompose_ou_string
 from .moapi import MOAPI
 from .moapi import extract_current_or_latest_validity
 from .types import DN
@@ -246,26 +246,6 @@ class DataLoader:
         logger.info("Found LDAP(s) object", dns=dns)
         return ldap_objects
 
-    @staticmethod
-    def decompose_ou_string(ou: str) -> list[str]:
-        """
-        Decomposes an OU string and returns a list of OUs where the first one is the
-        given OU string, and the last one if the highest parent OU
-
-        Example
-        -----------
-        >>> ou = 'OU=foo,OU=bar'
-        >>> decompose_ou_string(ou)
-        >>> ['OU=foo,OU=bar', 'OU=bar']
-        """
-
-        ou_parts = to_dn(ou)
-        output = []
-        for i in range(len(ou_parts)):
-            output.append(combine_dn_strings(ou_parts[i:]))
-
-        return output
-
     async def create_ou(self, ou: str) -> None:
         """
         Creates an OU. If the parent OU does not exist, creates that one first
@@ -286,7 +266,7 @@ class DataLoader:
         ou_dict = await self.ldapapi.load_ldap_OUs()
 
         # Create OUs top-down (unless they already exist)
-        for ou_to_create in self.decompose_ou_string(ou)[::-1]:
+        for ou_to_create in decompose_ou_string(ou)[::-1]:
             if ou_to_create not in ou_dict:
                 logger.info("Creating OU", ou_to_create=ou_to_create)
                 dn = combine_dn_strings([ou_to_create, self.settings.ldap_search_base])
@@ -311,7 +291,7 @@ class DataLoader:
         if not self.ldapapi.ou_in_ous_to_write_to(ou):
             return
 
-        for ou_to_delete in self.decompose_ou_string(ou):
+        for ou_to_delete in decompose_ou_string(ou):
             # TODO: Search for specific OUs as needed instead of reading all of LDAP?
             ou_dict = await self.ldapapi.load_ldap_OUs()
             if (

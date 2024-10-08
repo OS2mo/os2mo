@@ -10,6 +10,7 @@ import structlog
 from ldap3 import BASE
 from ldap3 import Connection
 from ldap3.utils.dn import safe_dn
+from ldap3.utils.dn import to_dn
 from more_itertools import only
 
 from .config import Settings
@@ -22,9 +23,30 @@ from .ldap import object_search
 from .ldap import paged_search
 from .ldap import single_object_search
 from .types import DN
+from .utils import combine_dn_strings
 from .utils import extract_ou_from_dn
 
 logger = structlog.stdlib.get_logger()
+
+
+def decompose_ou_string(ou: str) -> list[str]:
+    """
+    Decomposes an OU string and returns a list of OUs where the first one is the
+    given OU string, and the last one if the highest parent OU
+
+    Example
+    -----------
+    >>> ou = 'OU=foo,OU=bar'
+    >>> decompose_ou_string(ou)
+    >>> ['OU=foo,OU=bar', 'OU=bar']
+    """
+
+    ou_parts = to_dn(ou)
+    output = []
+    for i in range(len(ou_parts)):
+        output.append(combine_dn_strings(ou_parts[i:]))
+
+    return output
 
 
 class LDAPAPI:
