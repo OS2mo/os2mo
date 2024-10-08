@@ -17,6 +17,7 @@ from more_itertools import one
 from ..conftest import GraphAPIPost
 from .utils import fetch_class_uuids
 from .utils import fetch_employee_validity
+from .utils import fetch_org_unit_validity
 from mora.graphapi.gmodels.mo import Validity as RAValidity
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.models import ManagerCreate
@@ -288,6 +289,73 @@ async def test_create_manager_integration_test(
             datetime.fromisoformat(obj["validity"]["to"]).date()
             == test_data.validity.to_date.date()
         )
+
+
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay in this instance
+        HealthCheck.function_scoped_fixture,
+    ],
+)
+@given(data=st.data())
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_create_multiple_managers_integration_test(
+    data, graphapi_post: GraphAPIPost, org_uuids, employee_uuids
+) -> None:
+    """Test that multiple managers can be created using the list mutator."""
+
+    org_uuid = data.draw(st.sampled_from(org_uuids))
+    org_from, org_to = fetch_org_unit_validity(graphapi_post, org_uuid)
+
+    test_data_validity_start = data.draw(
+        st.datetimes(min_value=org_from, max_value=org_to or datetime.max)
+    )
+    if org_to:
+        test_data_validity_end_strat = st.datetimes(
+            min_value=test_data_validity_start, max_value=org_to
+        )
+    else:
+        test_data_validity_end_strat = st.none() | st.datetimes(
+            min_value=test_data_validity_start,
+        )
+
+    manager_type_uuids = fetch_class_uuids(graphapi_post, "manager_type")
+    manager_level_uuids = fetch_class_uuids(graphapi_post, "manager_level")
+    responsibility_uuids = fetch_class_uuids(graphapi_post, "responsibility")
+
+    test_data = data.draw(
+        st.lists(
+            st.builds(
+                ManagerCreate,
+                org_unit=st.just(org_uuid),
+                person=st.sampled_from(employee_uuids),
+                manager_type=st.sampled_from(manager_type_uuids),
+                manager_level=st.sampled_from(manager_level_uuids),
+                responsibility=st.just(responsibility_uuids),
+                validity=st.builds(
+                    RAValidity,
+                    from_date=st.just(test_data_validity_start),
+                    to_date=test_data_validity_end_strat,
+                ),
+            ),
+        )
+    )
+
+    CREATE_MANAGERS_QUERY = """
+        mutation CreateManagers($input: [ManagerCreateInput!]!) {
+            managers_create(input: $input) {
+                uuid
+            }
+        }
+    """
+
+    response = graphapi_post(
+        CREATE_MANAGERS_QUERY, {"input": jsonable_encoder(test_data)}
+    )
+    assert response.errors is None
+    uuids = [manager["uuid"] for manager in response.data["managers_create"]]
+    assert len(uuids) == len(test_data)
 
 
 @pytest.mark.integration_test

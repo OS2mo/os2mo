@@ -115,6 +115,8 @@ async def test_create_ituser_employee_integration_test(
     itsystem_uuids,
     employee_uuids,
 ) -> None:
+    """Test that multiple itusers can be created using the list mutator."""
+
     monkeypatch.setattr(
         "mora.service.validation.models.GroupValidation.validate_unique_constraint",
         AsyncMock(return_value=None),
@@ -335,6 +337,79 @@ async def test_create_ituser_org_unit_integration_test(
                 datetime.fromisoformat(obj["validity"]["to"]).date()
                 == test_data.validity.to_date.date()
             )
+
+
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay in this instance
+        HealthCheck.function_scoped_fixture,
+    ],
+)
+@given(data=st.data())
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_create_multiple_itusers_employee_integration_test(
+    data: DataObject,
+    monkeypatch: MonkeyPatch,
+    graphapi_post: GraphAPIPost,
+    itsystem_uuids,
+    employee_uuids,
+) -> None:
+    monkeypatch.setattr(
+        "mora.service.validation.models.GroupValidation.validate_unique_constraint",
+        AsyncMock(return_value=None),
+    )
+    employee_uuid = data.draw(st.sampled_from(employee_uuids))
+    employee_from, employee_to = fetch_employee_validity(graphapi_post, employee_uuid)
+
+    test_data_validity_start = data.draw(
+        st.datetimes(min_value=employee_from, max_value=employee_to or datetime.max)
+    )
+
+    if employee_to:
+        test_data_validity_end_strat = st.datetimes(
+            min_value=test_data_validity_start, max_value=employee_to
+        )
+    else:
+        test_data_validity_end_strat = st.none() | st.datetimes(
+            min_value=test_data_validity_start,
+        )
+
+    test_data = data.draw(
+        st.lists(
+            st.builds(
+                ITUserCreate,
+                uuid=st.none() | st.uuids(),
+                user_key=st.text(
+                    alphabet=st.characters(whitelist_categories=("L",)), min_size=1
+                ),
+                itsystem=st.sampled_from(itsystem_uuids),
+                person=st.just(employee_uuid),
+                org_unit=st.none(),
+                engagement=st.uuids() | st.none(),
+                validity=st.builds(
+                    RAValidity,
+                    from_date=st.just(test_data_validity_start),
+                    to_date=test_data_validity_end_strat,
+                ),
+            )
+        )
+    )
+
+    CREATE_ITUSERS_QUERY = """
+        mutation CreateITUsers($input: [ITUserCreateInput!]!) {
+            itusers_create(input: $input) {
+                uuid
+            }
+        }
+    """
+
+    response = graphapi_post(
+        CREATE_ITUSERS_QUERY, {"input": jsonable_encoder(test_data)}
+    )
+    assert response.errors is None
+    uuids = [ituser["uuid"] for ituser in response.data["itusers_create"]]
+    assert len(uuids) == len(test_data)
 
 
 @given(test_data=...)

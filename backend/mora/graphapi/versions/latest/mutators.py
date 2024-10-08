@@ -262,7 +262,7 @@ class Mutation:
     ) -> list[Response[Address]]:
         created_addresses = []
         for address in input:
-            result = uuid2response(await create_address(address.to_pydantic()), AddressRead)  # type: ignore
+            result = await Mutation.address_create(self, address)  # type: ignore
             created_addresses.append(result)
 
         return created_addresses
@@ -574,7 +574,7 @@ class Mutation:
     ) -> list[Response[Engagement]]:
         created_engagements = []
         for engagement in input:
-            result = uuid2response(await create_engagement(engagement.to_pydantic()), EngagementRead)  # type: ignore
+            result = await Mutation.engagement_create(self, engagement)
             created_engagements.append(result)
 
         return created_engagements
@@ -867,9 +867,7 @@ class Mutation:
     ) -> list[Response[ITUser]]:
         created_itusers = []
         for ituser in input:
-            result = uuid2response(
-                await create_ituser(ituser.to_pydantic()), ITUserRead
-            )
+            result = await Mutation.ituser_create(self, ituser)
             created_itusers.append(result)
 
         return created_itusers
@@ -1071,9 +1069,7 @@ class Mutation:
     ) -> list[Response[Manager]]:
         created_managers = []
         for manager in input:
-            result = uuid2response(
-                await create_manager(manager.to_pydantic()), ManagerRead
-            )
+            result = await Mutation.manager_create(self, manager)
             created_managers.append(result)
 
         return created_managers

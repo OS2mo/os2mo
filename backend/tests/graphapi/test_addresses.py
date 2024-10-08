@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import datetime
+from datetime import datetime as dt
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -309,6 +310,67 @@ async def test_create_mutator(create_address: AsyncMock, data):
     }
 
     create_address.assert_called_with(test_data)
+
+
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay in this instance
+        HealthCheck.function_scoped_fixture,
+    ],
+)
+@given(data=st.data())
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_create_multiple_addresses_integration_test(
+    data, graphapi_post: GraphAPIPost, org_uuids, employee_uuids
+) -> None:
+    """Test that multiple addresses can be created using the list mutator."""
+
+    org_uuid = data.draw(st.sampled_from(org_uuids))
+    org_from, org_to = fetch_org_unit_validity(graphapi_post, org_uuid)
+
+    test_data_validity_start = data.draw(
+        st.datetimes(min_value=org_from, max_value=org_to or dt.max)
+    )
+    if org_to:
+        test_data_validity_end_strat = st.datetimes(
+            min_value=test_data_validity_start, max_value=org_to
+        )
+    else:
+        test_data_validity_end_strat = st.none() | st.datetimes(
+            min_value=test_data_validity_start,
+        )
+
+    test_data = data.draw(
+        st.lists(
+            st.builds(
+                AddressCreate,
+                person=st.sampled_from(employee_uuids),
+                address_type=st.just(addr_type_user_email),
+                value=st.emails(),
+                validity=st.builds(
+                    RAValidity,
+                    from_date=st.just(test_data_validity_start),
+                    to_date=test_data_validity_end_strat,
+                ),
+            ),
+        )
+    )
+
+    CREATE_ADDRESSES_QUERY = """
+        mutation CreateAddress($input: [AddressCreateInput!]!) {
+            addresses_create(input: $input) {
+                uuid
+            }
+        }
+    """
+
+    response = graphapi_post(
+        CREATE_ADDRESSES_QUERY, {"input": jsonable_encoder(test_data)}
+    )
+    assert response.errors is None
+    uuids = [address["uuid"] for address in response.data["addresses_create"]]
+    assert len(uuids) == len(test_data)
 
 
 @pytest.mark.parametrize(

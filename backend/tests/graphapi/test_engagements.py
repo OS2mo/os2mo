@@ -351,7 +351,7 @@ async def test_create_engagement(
 async def test_create_engagement_integration_test(
     data, graphapi_post: GraphAPIPost, org_uuids, employee_uuids
 ) -> None:
-    """Test that engagements can be created in LoRa via GraphQL."""
+    """Test that multiple engagements can be created using the list mutator."""
 
     org_uuid = data.draw(st.sampled_from(org_uuids))
     org_from, org_to = fetch_org_unit_validity(graphapi_post, org_uuid)
