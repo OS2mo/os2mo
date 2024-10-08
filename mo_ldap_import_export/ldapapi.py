@@ -31,6 +31,7 @@ from .types import DN
 from .utils import combine_dn_strings
 from .utils import extract_cn_from_dn
 from .utils import extract_ou_from_dn
+from .utils import is_exception
 from .utils import remove_cn_from_dn
 
 logger = structlog.stdlib.get_logger()
@@ -369,3 +370,14 @@ class LDAPAPI:
                 f"Object has no {self.settings.ldap_unique_id_field}"
             )
         return UUID(uuid)
+
+    async def convert_ldap_uuids_to_dns(self, ldap_uuids: set[UUID]) -> set[DN]:
+        # TODO: DataLoader / bulk here instead of this
+        results = await asyncio.gather(
+            *[self.get_ldap_dn(uuid) for uuid in ldap_uuids],
+            return_exceptions=True,
+        )
+        exceptions = cast(list[Exception], list(filter(is_exception, results)))
+        if exceptions:
+            raise ExceptionGroup("Exceptions during UUID2DN translation", exceptions)
+        return cast(set[DN], set(results))
