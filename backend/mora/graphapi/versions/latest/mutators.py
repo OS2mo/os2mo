@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
 import logging
 from textwrap import dedent
 from typing import Annotated
@@ -260,11 +261,9 @@ class Mutation:
     async def addresses_create(
         self, input: list[AddressCreateInput]
     ) -> list[Response[Address]]:
-        created_addresses = []
-        for address in input:
-            result = await Mutation.address_create(self, address)  # type: ignore
-            created_addresses.append(result)
-
+        created_addresses = await asyncio.gather(
+            *[Mutation.address_create(self, address) for address in input]
+        )
         return created_addresses
 
     @strawberry.mutation(
@@ -572,11 +571,9 @@ class Mutation:
     async def engagements_create(
         self, input: list[EngagementCreateInput]
     ) -> list[Response[Engagement]]:
-        created_engagements = []
-        for engagement in input:
-            result = await Mutation.engagement_create(self, engagement)
-            created_engagements.append(result)
-
+        created_engagements = await asyncio.gather(
+            *[Mutation.engagement_create(self, engagement) for engagement in input]
+        )
         return created_engagements
 
     @strawberry.mutation(
@@ -865,11 +862,9 @@ class Mutation:
     async def itusers_create(
         self, input: list[ITUserCreateInput]
     ) -> list[Response[ITUser]]:
-        created_itusers = []
-        for ituser in input:
-            result = await Mutation.ituser_create(self, ituser)
-            created_itusers.append(result)
-
+        created_itusers = await asyncio.gather(
+            *[Mutation.ituser_create(self, ituser) for ituser in input]
+        )
         return created_itusers
 
     @strawberry.mutation(
@@ -1067,11 +1062,9 @@ class Mutation:
     async def managers_create(
         self, input: list[ManagerCreateInput]
     ) -> list[Response[Manager]]:
-        created_managers = []
-        for manager in input:
-            result = await Mutation.manager_create(self, manager)
-            created_managers.append(result)
-
+        created_managers = await asyncio.gather(
+            *[Mutation.manager_create(self, manager) for manager in input]
+        )
         return created_managers
 
     @strawberry.mutation(
