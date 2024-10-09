@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
 from functools import partialmethod
 from typing import Literal
 from uuid import UUID
@@ -15,6 +16,8 @@ from .exceptions import InvalidChangeDict
 from .exceptions import ReadOnlyException
 from .ldap import ldap_compare
 from .ldap import ldap_modify
+from .ldap import object_search
+from .ldap import paged_search
 from .ldap import single_object_search
 from .types import DN
 from .utils import extract_ou_from_dn
@@ -129,3 +132,47 @@ class LDAPAPI:
 
     delete_ldap = partialmethod(modify_ldap, "MODIFY_DELETE")
     replace_ldap = partialmethod(modify_ldap, "MODIFY_REPLACE")
+
+    async def load_ldap_OUs(self, search_base: str | None = None) -> dict:
+        """
+        Returns a dictionary where the keys are OU strings and the items are dicts
+        which contain information about the OU
+        """
+        searchParameters: dict = {
+            "search_filter": "(objectclass=OrganizationalUnit)",
+            "attributes": [],
+        }
+
+        responses = await paged_search(
+            self.settings,
+            self.ldap_connection,
+            searchParameters,
+            search_base=search_base,
+            mute=True,
+        )
+        dns = [r["dn"] for r in responses]
+
+        user_object_class = self.settings.ldap_user_objectclass
+        dn_responses = await asyncio.gather(
+            *[
+                object_search(
+                    {
+                        "search_base": dn,
+                        "search_filter": f"(objectclass={user_object_class})",
+                        "attributes": [],
+                        "size_limit": 1,
+                    },
+                    self.ldap_connection,
+                )
+                for dn in dns
+            ]
+        )
+        dn_map = dict(zip(dns, dn_responses, strict=False))
+
+        return {
+            extract_ou_from_dn(dn): {
+                "empty": len(dn_map[dn]) == 0,
+                "dn": dn,
+            }
+            for dn in dns
+        }

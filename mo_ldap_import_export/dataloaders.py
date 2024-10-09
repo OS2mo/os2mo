@@ -56,7 +56,6 @@ from .ldap import ldap_delete
 from .ldap import ldap_modify_dn
 from .ldap import make_ldap_object
 from .ldap import object_search
-from .ldap import paged_search
 from .ldap_classes import LdapObject
 from .ldapapi import LDAPAPI
 from .moapi import MOAPI
@@ -66,7 +65,6 @@ from .types import CPRNumber
 from .types import OrgUnitUUID
 from .utils import combine_dn_strings
 from .utils import extract_cn_from_dn
-from .utils import extract_ou_from_dn
 from .utils import is_exception
 from .utils import remove_cn_from_dn
 from .utils import star
@@ -248,50 +246,6 @@ class DataLoader:
         logger.info("Found LDAP(s) object", dns=dns)
         return ldap_objects
 
-    async def load_ldap_OUs(self, search_base: str | None = None) -> dict:
-        """
-        Returns a dictionary where the keys are OU strings and the items are dicts
-        which contain information about the OU
-        """
-        searchParameters: dict = {
-            "search_filter": "(objectclass=OrganizationalUnit)",
-            "attributes": [],
-        }
-
-        responses = await paged_search(
-            self.settings,
-            self.ldap_connection,
-            searchParameters,
-            search_base=search_base,
-            mute=True,
-        )
-        dns = [r["dn"] for r in responses]
-
-        user_object_class = self.settings.ldap_user_objectclass
-        dn_responses = await asyncio.gather(
-            *[
-                object_search(
-                    {
-                        "search_base": dn,
-                        "search_filter": f"(objectclass={user_object_class})",
-                        "attributes": [],
-                        "size_limit": 1,
-                    },
-                    self.ldap_connection,
-                )
-                for dn in dns
-            ]
-        )
-        dn_map = dict(zip(dns, dn_responses, strict=False))
-
-        return {
-            extract_ou_from_dn(dn): {
-                "empty": len(dn_map[dn]) == 0,
-                "dn": dn,
-            }
-            for dn in dns
-        }
-
     async def add_ldap_object(self, dn: str, attributes: dict[str, Any] | None = None):
         """
         Adds a new object to LDAP
@@ -377,7 +331,7 @@ class DataLoader:
             return
 
         # TODO: Search for specific OUs as needed instead of reading all of LDAP?
-        ou_dict = await self.load_ldap_OUs()
+        ou_dict = await self.ldapapi.load_ldap_OUs()
 
         # Create OUs top-down (unless they already exist)
         for ou_to_create in self.decompose_ou_string(ou)[::-1]:
@@ -407,7 +361,7 @@ class DataLoader:
 
         for ou_to_delete in self.decompose_ou_string(ou):
             # TODO: Search for specific OUs as needed instead of reading all of LDAP?
-            ou_dict = await self.load_ldap_OUs()
+            ou_dict = await self.ldapapi.load_ldap_OUs()
             if (
                 ou_dict.get(ou_to_delete, {}).get("empty", False)
                 and ou_to_delete != self.settings.ldap_ou_for_new_users

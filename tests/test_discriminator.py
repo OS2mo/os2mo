@@ -1003,7 +1003,7 @@ async def test_load_ldap_OUs(
     )
 
     dataloader: DataLoader = context["user_context"]["dataloader"]
-    output = await dataloader.load_ldap_OUs(ldap_container_dn)
+    output = await dataloader.ldapapi.load_ldap_OUs(ldap_container_dn)
 
     ou1 = extract_ou_from_dn(group_dn1)
     ou2 = extract_ou_from_dn(group_dn2)
