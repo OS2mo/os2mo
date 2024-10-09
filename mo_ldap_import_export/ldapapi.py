@@ -18,6 +18,7 @@ from .exceptions import InvalidChangeDict
 from .exceptions import ReadOnlyException
 from .ldap import ldap_add
 from .ldap import ldap_compare
+from .ldap import ldap_delete
 from .ldap import ldap_modify
 from .ldap import object_search
 from .ldap import paged_search
@@ -279,4 +280,32 @@ class LDAPAPI:
                 _, result = await ldap_add(
                     self.ldap_connection, dn, "OrganizationalUnit"
                 )
+                logger.info("LDAP Result", result=result, dn=dn)
+
+    async def delete_ou(self, ou: str) -> None:
+        """
+        Deletes an OU. If the parent OU is empty after deleting, also deletes that one
+
+        Notes
+        --------
+        Only deletes OUs which are empty
+        """
+        # TODO: Remove this when ldap3s read-only flag works
+        if self.settings.ldap_read_only:
+            logger.info("LDAP connection is read-only", operation="delete_ou", ou=ou)
+            raise ReadOnlyException("LDAP connection is read-only")
+
+        if not self.ou_in_ous_to_write_to(ou):
+            return
+
+        for ou_to_delete in decompose_ou_string(ou):
+            # TODO: Search for specific OUs as needed instead of reading all of LDAP?
+            ou_dict = await self.load_ldap_OUs()
+            if (
+                ou_dict.get(ou_to_delete, {}).get("empty", False)
+                and ou_to_delete != self.settings.ldap_ou_for_new_users
+            ):
+                logger.info("Deleting OU", ou_to_delete=ou_to_delete)
+                dn = combine_dn_strings([ou_to_delete, self.settings.ldap_search_base])
+                _, result = await ldap_delete(self.ldap_connection, dn)
                 logger.info("LDAP Result", result=result, dn=dn)
