@@ -214,7 +214,7 @@ async def load_all_current_it_users(
 async def get_non_existing_unique_ldap_uuids(
     settings: Settings, ldap_connection: Connection, dataloader: DataLoader
 ) -> list[dict[str, Any]]:
-    it_system_uuid = await dataloader.get_ldap_it_system_uuid()
+    it_system_uuid = await dataloader.moapi.get_ldap_it_system_uuid()
     if not it_system_uuid:
         raise ObjectGUIDITSystemNotFound("Could not find it_system_uuid")
 

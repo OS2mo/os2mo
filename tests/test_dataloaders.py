@@ -1417,12 +1417,12 @@ async def test_get_ldap_it_system_uuid(
     route = graphql_mock.query("read_itsystem_uuid")
     route.result = {"itsystems": {"objects": [{"uuid": uuid}]}}
 
-    assert await dataloader.get_ldap_it_system_uuid() == str(uuid)
+    assert await dataloader.moapi.get_ldap_it_system_uuid() == str(uuid)
     assert route.called
 
     route.reset()
     route.result = {"itsystems": {"objects": []}}
-    assert await dataloader.get_ldap_it_system_uuid() is None
+    assert await dataloader.moapi.get_ldap_it_system_uuid() is None
     assert route.called
 
 
@@ -1469,14 +1469,15 @@ async def test_make_mo_employee_dn_no_user(
     assert route.called
 
 
+@pytest.mark.envvar({"LDAP_IT_SYSTEM": "ADUUID"})
 async def test_make_mo_employee_dn_no_correlation(
     graphql_mock: GraphQLMocker, dataloader: MagicMock
 ) -> None:
     employee_uuid = uuid4()
     cpr_no = None
 
-    route = graphql_mock.query("read_employees")
-    route.result = {
+    route1 = graphql_mock.query("read_employees")
+    route1.result = {
         "employees": {
             "objects": [
                 {
@@ -1499,8 +1500,8 @@ async def test_make_mo_employee_dn_no_correlation(
         }
     }
 
-    dataloader.get_ldap_it_system_uuid = AsyncMock()
-    dataloader.get_ldap_it_system_uuid.return_value = None
+    route2 = graphql_mock.query("read_itsystem_uuid")
+    route2.result = {"itsystems": {"objects": []}}
 
     with pytest.raises(DNNotFound) as exc_info:
         await dataloader.make_mo_employee_dn(employee_uuid)
@@ -1541,8 +1542,8 @@ async def test_make_mo_employee_dn_no_itsystem(
     route2 = graphql_mock.query("employee_refresh")
     route2.result = {"employee_refresh": {"objects": [employee_uuid]}}
 
-    dataloader.get_ldap_it_system_uuid = AsyncMock()
-    dataloader.get_ldap_it_system_uuid.return_value = None
+    route3 = graphql_mock.query("read_itsystem_uuid")
+    route3.result = {"itsystems": {"objects": []}}
 
     dn = "CN=foo"
     username_generator = AsyncMock()
@@ -1564,6 +1565,7 @@ async def test_make_mo_employee_dn_no_itsystem(
     )
 
 
+@pytest.mark.envvar({"LDAP_IT_SYSTEM": "ADUUID"})
 async def test_make_mo_employee_dn_no_cpr(
     dataloader: MagicMock,
     graphql_mock: GraphQLMocker,
@@ -1599,8 +1601,8 @@ async def test_make_mo_employee_dn_no_cpr(
     route2.result = {"employee_refresh": {"objects": [employee_uuid]}}
 
     itsystem_uuid = uuid4()
-    dataloader.get_ldap_it_system_uuid = AsyncMock()
-    dataloader.get_ldap_it_system_uuid.return_value = str(itsystem_uuid)
+    route3 = graphql_mock.query("read_itsystem_uuid")
+    route3.result = {"itsystems": {"objects": [{"uuid": itsystem_uuid}]}}
 
     dn = "CN=foo"
     username_generator = AsyncMock()
@@ -2517,18 +2519,21 @@ async def test_find_mo_employee_dn_by_cpr_number(
         dataloader.load_ldap_cpr_object.assert_called_once_with(cpr_number, "Employee")
 
 
+@pytest.mark.envvar({"LDAP_IT_SYSTEM": "ADUUID"})
 async def test_find_mo_employee_dn_by_itsystem_no_itsystem(
     dataloader: DataLoader,
+    graphql_mock: GraphQLMocker,
 ) -> None:
     employee_uuid = uuid4()
 
-    dataloader.get_ldap_it_system_uuid = AsyncMock()  # type: ignore
-    dataloader.get_ldap_it_system_uuid.return_value = None
+    route = graphql_mock.query("read_itsystem_uuid")
+    route.result = {"itsystems": {"objects": []}}
 
     result = await dataloader.find_mo_employee_dn_by_itsystem(employee_uuid)
     assert result == set()
 
 
+@pytest.mark.envvar({"LDAP_IT_SYSTEM": "ADUUID"})
 async def test_find_mo_employee_dn_by_itsystem_no_match(
     dataloader: DataLoader,
     graphql_mock: GraphQLMocker,
@@ -2536,16 +2541,17 @@ async def test_find_mo_employee_dn_by_itsystem_no_match(
     employee_uuid = uuid4()
     itsystem_uuid = uuid4()
 
-    dataloader.get_ldap_it_system_uuid = AsyncMock()  # type: ignore
-    dataloader.get_ldap_it_system_uuid.return_value = str(itsystem_uuid)
+    route1 = graphql_mock.query("read_itsystem_uuid")
+    route1.result = {"itsystems": {"objects": [{"uuid": itsystem_uuid}]}}
 
-    route1 = graphql_mock.query("read_ituser_by_employee_and_itsystem_uuid")
-    route1.result = {"itusers": {"objects": []}}
+    route2 = graphql_mock.query("read_ituser_by_employee_and_itsystem_uuid")
+    route2.result = {"itusers": {"objects": []}}
 
     result = await dataloader.find_mo_employee_dn_by_itsystem(employee_uuid)
     assert result == set()
 
 
+@pytest.mark.envvar({"LDAP_IT_SYSTEM": "ADUUID"})
 async def test_find_mo_employee_dn_by_itsystem(
     dataloader: DataLoader,
     graphql_mock: GraphQLMocker,
@@ -2554,14 +2560,14 @@ async def test_find_mo_employee_dn_by_itsystem(
     itsystem_uuid = uuid4()
     ituser_uuid = uuid4()
 
-    dataloader.get_ldap_it_system_uuid = AsyncMock()  # type: ignore
-    dataloader.get_ldap_it_system_uuid.return_value = str(itsystem_uuid)
+    route1 = graphql_mock.query("read_itsystem_uuid")
+    route1.result = {"itsystems": {"objects": [{"uuid": itsystem_uuid}]}}
 
-    route1 = graphql_mock.query("read_ituser_by_employee_and_itsystem_uuid")
-    route1.result = {"itusers": {"objects": [{"uuid": ituser_uuid}]}}
+    route2 = graphql_mock.query("read_ituser_by_employee_and_itsystem_uuid")
+    route2.result = {"itusers": {"objects": [{"uuid": ituser_uuid}]}}
 
-    route2 = graphql_mock.query("read_itusers")
-    route2.result = {
+    route3 = graphql_mock.query("read_itusers")
+    route3.result = {
         "itusers": {
             "objects": [
                 {
