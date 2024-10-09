@@ -1387,8 +1387,8 @@ async def test_modify_ldap_ou_not_in_ous_to_write_to(
     sync_tool: AsyncMock,
     ldap_connection: MagicMock,
 ):
-    dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
-    dataloader.ou_in_ous_to_write_to.return_value = False
+    dataloader.ldapapi.ou_in_ous_to_write_to = MagicMock()  # type: ignore
+    dataloader.ldapapi.ou_in_ous_to_write_to.return_value = False
 
     assert (
         await dataloader.modify_ldap("MODIFY_REPLACE", "CN=foo", "attribute", "value")
@@ -1855,8 +1855,8 @@ async def test_add_ldap_object(dataloader: DataLoader) -> None:
 
     dataloader.ldap_connection.reset_mock()  # type: ignore
     dataloader.settings.add_objects_to_ldap = True
-    dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
-    dataloader.ou_in_ous_to_write_to.return_value = False
+    dataloader.ldapapi.ou_in_ous_to_write_to = MagicMock()  # type: ignore
+    dataloader.ldapapi.ou_in_ous_to_write_to.return_value = False
 
     with pytest.raises(ReadOnlyException) as exc:
         await dataloader.add_ldap_object("CN=foo")
@@ -1915,20 +1915,26 @@ async def test_load_mo_employee_engagement_dicts(
 def test_ou_in_ous_to_write_to(dataloader: DataLoader):
     settings_mock = MagicMock()
     settings_mock.ldap_ous_to_write_to = ["OU=foo", "OU=mucki,OU=bar"]
-    dataloader.settings = settings_mock
+    dataloader.ldapapi.settings = settings_mock
 
-    assert dataloader.ou_in_ous_to_write_to("CN=Tobias,OU=foo,DC=k") is True
-    assert dataloader.ou_in_ous_to_write_to("CN=Tobias,OU=bar,DC=k") is False
-    assert dataloader.ou_in_ous_to_write_to("CN=Tobias,OU=mucki,OU=bar,DC=k") is True
-    assert dataloader.ou_in_ous_to_write_to("CN=Tobias,DC=k") is False
+    assert dataloader.ldapapi.ou_in_ous_to_write_to("CN=Tobias,OU=foo,DC=k") is True
+    assert dataloader.ldapapi.ou_in_ous_to_write_to("CN=Tobias,OU=bar,DC=k") is False
+    assert (
+        dataloader.ldapapi.ou_in_ous_to_write_to("CN=Tobias,OU=mucki,OU=bar,DC=k")
+        is True
+    )
+    assert dataloader.ldapapi.ou_in_ous_to_write_to("CN=Tobias,DC=k") is False
 
     settings_mock.ldap_ous_to_write_to = [""]
-    dataloader.settings = settings_mock
+    dataloader.ldapapi.settings = settings_mock
 
-    assert dataloader.ou_in_ous_to_write_to("CN=Tobias,OU=foo,DC=k") is True
-    assert dataloader.ou_in_ous_to_write_to("CN=Tobias,OU=bar,DC=k") is True
-    assert dataloader.ou_in_ous_to_write_to("CN=Tobias,OU=mucki,OU=bar,DC=k") is True
-    assert dataloader.ou_in_ous_to_write_to("CN=Tobias,DC=k") is True
+    assert dataloader.ldapapi.ou_in_ous_to_write_to("CN=Tobias,OU=foo,DC=k") is True
+    assert dataloader.ldapapi.ou_in_ous_to_write_to("CN=Tobias,OU=bar,DC=k") is True
+    assert (
+        dataloader.ldapapi.ou_in_ous_to_write_to("CN=Tobias,OU=mucki,OU=bar,DC=k")
+        is True
+    )
+    assert dataloader.ldapapi.ou_in_ous_to_write_to("CN=Tobias,DC=k") is True
 
 
 async def test_load_all_current_it_users_no_paged(
@@ -2208,8 +2214,8 @@ async def test_create_ou(dataloader: DataLoader) -> None:
     dataloader.ldap_connection.get_response.return_value = [], {"type": "test"}
 
     dataloader.load_ldap_OUs = AsyncMock()  # type: ignore
-    dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
-    dataloader.ou_in_ous_to_write_to.return_value = True
+    dataloader.ldapapi.ou_in_ous_to_write_to = MagicMock()  # type: ignore
+    dataloader.ldapapi.ou_in_ous_to_write_to.return_value = True
 
     settings_mock = MagicMock()
     settings_mock.ldap_search_base = "DC=Magenta"
@@ -2235,7 +2241,7 @@ async def test_create_ou(dataloader: DataLoader) -> None:
 
     dataloader.ldap_connection.reset_mock()  # type: ignore
     dataloader.settings.add_objects_to_ldap = True
-    dataloader.ou_in_ous_to_write_to.return_value = False
+    dataloader.ldapapi.ou_in_ous_to_write_to.return_value = False
 
     await dataloader.create_ou(ou)
     dataloader.ldap_connection.add.assert_not_called()  # type: ignore
@@ -2250,8 +2256,8 @@ async def test_delete_ou(dataloader: DataLoader) -> None:
     dataloader.ldap_connection.get_response.return_value = [], {"type": "test"}
 
     dataloader.load_ldap_OUs = AsyncMock()  # type: ignore
-    dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
-    dataloader.ou_in_ous_to_write_to.return_value = True
+    dataloader.ldapapi.ou_in_ous_to_write_to = MagicMock()  # type: ignore
+    dataloader.ldapapi.ou_in_ous_to_write_to.return_value = True
 
     settings_mock = MagicMock()
     settings_mock.ldap_search_base = "DC=Magenta"
@@ -2272,19 +2278,19 @@ async def test_delete_ou(dataloader: DataLoader) -> None:
 
     dataloader.ldap_connection.reset_mock()  # type: ignore
     dataloader.settings.add_objects_to_ldap = True
-    dataloader.ou_in_ous_to_write_to.return_value = False
+    dataloader.ldapapi.ou_in_ous_to_write_to.return_value = False
 
     await dataloader.delete_ou(ou)
     dataloader.ldap_connection.delete.assert_not_called()  # type: ignore
 
     # Test that we do not remove the ou-for-new-users
-    dataloader.ou_in_ous_to_write_to.return_value = True
+    dataloader.ldapapi.ou_in_ous_to_write_to.return_value = True
     settings_mock.ldap_ou_for_new_users = ou
     await dataloader.delete_ou(ou)
     dataloader.ldap_connection.delete.assert_not_called()  # type: ignore
 
     # Test that we do not try to remove an OU which is not in the ou-dict
-    dataloader.ou_in_ous_to_write_to.return_value = False
+    dataloader.ldapapi.ou_in_ous_to_write_to.return_value = False
     await dataloader.delete_ou("OU=non_existing_OU")
     dataloader.ldap_connection.delete.assert_not_called()  # type: ignore
 
@@ -2295,8 +2301,8 @@ async def test_delete_ou(dataloader: DataLoader) -> None:
 
 
 async def test_move_ldap_object(dataloader: DataLoader):
-    dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
-    dataloader.ou_in_ous_to_write_to.return_value = True
+    dataloader.ldapapi.ou_in_ous_to_write_to = MagicMock()  # type: ignore
+    dataloader.ldapapi.ou_in_ous_to_write_to.return_value = True
     settings_mock = MagicMock()
     dataloader.settings = settings_mock  # type: ignore
     dataloader.settings.ldap_read_only = False
@@ -2312,11 +2318,11 @@ async def test_move_ldap_object(dataloader: DataLoader):
     )
     assert success is True
 
-    dataloader.ou_in_ous_to_write_to.return_value = False
+    dataloader.ldapapi.ou_in_ous_to_write_to.return_value = False
     success = await dataloader.move_ldap_object("CN=foo,OU=old_ou", "CN=foo,OU=new_ou")
     assert success is False
 
-    dataloader.ou_in_ous_to_write_to.return_value = True
+    dataloader.ldapapi.ou_in_ous_to_write_to.return_value = True
     dataloader.settings.add_objects_to_ldap = False
 
     with pytest.raises(ReadOnlyException) as exc:

@@ -21,7 +21,6 @@ from fastramqpi.raclients.modelclient.mo import ModelClient as LegacyModelClient
 from fastramqpi.ramqp.mo import MOAMQPSystem
 from ldap3 import Connection
 from ldap3.core.exceptions import LDAPInvalidValueError
-from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
 from more_itertools import bucket
 from more_itertools import one
@@ -254,27 +253,6 @@ class DataLoader:
         logger.info("Found LDAP(s) object", dns=dns)
         return ldap_objects
 
-    def ou_in_ous_to_write_to(self, dn: str) -> bool:
-        """
-        Determine if an OU is among those to which we are allowed to write.
-        """
-        if "" in self.settings.ldap_ous_to_write_to:
-            # Empty string means that it is allowed to write to all OUs
-            return True
-
-        ou = extract_ou_from_dn(dn)
-        ous_to_write_to = [safe_dn(ou) for ou in self.settings.ldap_ous_to_write_to]
-        for ou_to_write_to in ous_to_write_to:
-            if ou.endswith(ou_to_write_to):
-                # If an OU ends with one of the OUs-to-write-to, it's OK.
-                # For example, if we are only allowed to write to "OU=foo",
-                # Then we are also allowed to write to "OU=bar,OU=foo", which is a
-                # sub-OU inside "OU=foo"
-                return True
-
-        logger.info("OU not in OUs to write", ou=ou, ous_to_write_to=ous_to_write_to)
-        return False
-
     async def modify_ldap(
         self,
         operation: Literal["MODIFY_DELETE", "MODIFY_REPLACE"],
@@ -296,7 +274,7 @@ class DataLoader:
             raise ReadOnlyException("LDAP connection is read-only")
 
         # Checks
-        if not self.ou_in_ous_to_write_to(dn):
+        if not self.ldapapi.ou_in_ous_to_write_to(dn):
             return None
 
         if isinstance(value, list):
@@ -404,7 +382,7 @@ class DataLoader:
             )
             raise ReadOnlyException("Adding LDAP objects is disabled")
 
-        if not self.ou_in_ous_to_write_to(dn):
+        if not self.ldapapi.ou_in_ous_to_write_to(dn):
             logger.info(
                 "Not allowed to write to the specified OU",
                 operation="add_ldap_object",
@@ -455,7 +433,7 @@ class DataLoader:
             logger.info("Adding LDAP objects is disabled", operation="create_ou", ou=ou)
             raise ReadOnlyException("Adding LDAP objects is disabled")
 
-        if not self.ou_in_ous_to_write_to(ou):
+        if not self.ldapapi.ou_in_ous_to_write_to(ou):
             return
 
         # TODO: Search for specific OUs as needed instead of reading all of LDAP?
@@ -484,7 +462,7 @@ class DataLoader:
             logger.info("LDAP connection is read-only", operation="delete_ou", ou=ou)
             raise ReadOnlyException("LDAP connection is read-only")
 
-        if not self.ou_in_ous_to_write_to(ou):
+        if not self.ldapapi.ou_in_ous_to_write_to(ou):
             return
 
         for ou_to_delete in self.decompose_ou_string(ou):
@@ -523,7 +501,7 @@ class DataLoader:
             )
             raise ReadOnlyException("Adding LDAP objects is disabled")
 
-        if not self.ou_in_ous_to_write_to(new_dn):
+        if not self.ldapapi.ou_in_ous_to_write_to(new_dn):
             return False
 
         logger.info("Moving entry", old_dn=old_dn, new_dn=new_dn)
