@@ -1490,14 +1490,14 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
     """
     GET_ADDRESS = """
     query GetAddress($uuid: [UUID!]) {
-      addresses(filter: {uuids: $uuid}) {
+      addresses(filter: { uuids: $uuid }) {
         objects {
           current {
             uuid
             user_key
             ituser {
-                uuid
-                user_key
+              uuid
+              user_key
             }
           }
         }
@@ -1507,7 +1507,14 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
     CREATE_ADDRESS = """
     mutation CreateAddress($user_key: String!, $ituser: UUID!) {
       address_create(
-        input: {validity: {from: "2019-01-01"}, value: "b1f1817d-5f02-4331-b8b3-97330a5d3197", address_type: "4e337d8e-1fd2-4449-8110-e0c8a22958ed", ituser: $ituser, user_key: $user_key, employee: "6ee24785-ee9a-4502-81c2-7697009c9053"}
+        input: {
+          validity: { from: "2019-01-01" }
+          value: "b1f1817d-5f02-4331-b8b3-97330a5d3197"
+          address_type: "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+          ituser: $ituser
+          user_key: $user_key
+          employee: "6ee24785-ee9a-4502-81c2-7697009c9053"
+        }
       ) {
         uuid
       }
@@ -1516,7 +1523,13 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
     EDIT_ADDRESS_USER_KEY = """
     mutation EditAddress($uuid: UUID!, $user_key: String!) {
       address_update(
-        input: {uuid: $uuid, validity: {from: "2021-05-05"}, value: "b1f1817d-5f02-4331-b8b3-97330a5d3197", user_key: $user_key, address_type: "4e337d8e-1fd2-4449-8110-e0c8a22958ed"}
+        input: {
+          uuid: $uuid
+          validity: { from: "2021-05-05" }
+          value: "b1f1817d-5f02-4331-b8b3-97330a5d3197"
+          user_key: $user_key
+          address_type: "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+        }
       ) {
         uuid
       }
@@ -1525,7 +1538,13 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
     EDIT_ADDRESS_ITUSER = """
     mutation EditAddress($uuid: UUID!, $ituser: UUID!) {
       address_update(
-        input: {uuid: $uuid, validity: {from: "2021-05-05"}, value: "b1f1817d-5f02-4331-b8b3-97330a5d3197", ituser: $ituser, address_type: "4e337d8e-1fd2-4449-8110-e0c8a22958ed"}
+        input: {
+          uuid: $uuid
+          validity: { from: "2021-05-05" }
+          value: "b1f1817d-5f02-4331-b8b3-97330a5d3197"
+          ituser: $ituser
+          address_type: "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+        }
       ) {
         uuid
       }
