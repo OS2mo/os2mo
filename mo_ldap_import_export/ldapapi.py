@@ -136,6 +136,11 @@ class LDAPAPI:
 
         # Checks
         if not self.ou_in_ous_to_write_to(dn):
+            logger.info(
+                "Not allowed to write to the specified OU",
+                operation="modify_ldap",
+                dn=dn,
+            )
             return None
 
         if isinstance(value, list):
@@ -278,6 +283,11 @@ class LDAPAPI:
             raise ReadOnlyException("Adding LDAP objects is disabled")
 
         if not self.ou_in_ous_to_write_to(ou):
+            logger.info(
+                "Not allowed to write to the specified OU",
+                operation="create_ou",
+                ou=ou,
+            )
             return
 
         # TODO: Search for specific OUs as needed instead of reading all of LDAP?
@@ -307,6 +317,11 @@ class LDAPAPI:
             raise ReadOnlyException("LDAP connection is read-only")
 
         if not self.ou_in_ous_to_write_to(ou):
+            logger.info(
+                "Not allowed to write to the specified OU",
+                operation="delete_ou",
+                ou=ou,
+            )
             return
 
         for ou_to_delete in decompose_ou_string(ou):
@@ -346,6 +361,12 @@ class LDAPAPI:
             raise ReadOnlyException("Adding LDAP objects is disabled")
 
         if not self.ou_in_ous_to_write_to(new_dn):
+            logger.info(
+                "Not allowed to write to the specified OU",
+                operation="move_ldap_object",
+                old_dn=old_dn,
+                new_dn=new_dn,
+            )
             return False
 
         logger.info("Moving entry", old_dn=old_dn, new_dn=new_dn)
