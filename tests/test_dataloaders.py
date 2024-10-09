@@ -2222,45 +2222,47 @@ def test_decompose_ou_string() -> None:
     ]
 
 
-async def test_create_ou(dataloader: DataLoader) -> None:
-    dataloader.ldap_connection.get_response.return_value = [], {"type": "test"}
+async def test_create_ou(settings: Settings, ldap_connection: MagicMock) -> None:
+    ldapapi = LDAPAPI(settings, ldap_connection)
 
-    dataloader.ldapapi.load_ldap_OUs = AsyncMock()  # type: ignore
-    dataloader.ldapapi.ou_in_ous_to_write_to = MagicMock()  # type: ignore
-    dataloader.ldapapi.ou_in_ous_to_write_to.return_value = True
+    ldap_connection.get_response.return_value = [], {"type": "test"}
+
+    ldapapi.load_ldap_OUs = AsyncMock()  # type: ignore
+    ldapapi.ou_in_ous_to_write_to = MagicMock()  # type: ignore
+    ldapapi.ou_in_ous_to_write_to.return_value = True
 
     settings_mock = MagicMock()
     settings_mock.ldap_search_base = "DC=Magenta"
-    dataloader.settings = settings_mock  # type: ignore
-    dataloader.settings.ldap_read_only = False
+    ldapapi.settings = settings_mock  # type: ignore
+    ldapapi.settings.ldap_read_only = False
 
-    dataloader.ldapapi.load_ldap_OUs.return_value = {
+    ldapapi.load_ldap_OUs.return_value = {
         "OU=mucki,OU=bar": {"empty": False},
         "OU=bar": {"empty": False},
     }
 
     ou = "OU=foo,OU=mucki,OU=bar"
-    await dataloader.create_ou(ou)
-    dataloader.ldap_connection.add.assert_called_once_with(  # type: ignore
+    await ldapapi.create_ou(ou)
+    ldap_connection.add.assert_called_once_with(  # type: ignore
         "OU=foo,OU=mucki,OU=bar,DC=Magenta", "OrganizationalUnit", None
     )
 
-    dataloader.settings.add_objects_to_ldap = False
+    ldapapi.settings.add_objects_to_ldap = False
 
     with pytest.raises(ReadOnlyException) as exc:
-        await dataloader.create_ou(ou)
+        await ldapapi.create_ou(ou)
     assert "Adding LDAP objects is disabled" in str(exc.value)
 
-    dataloader.ldap_connection.reset_mock()  # type: ignore
-    dataloader.settings.add_objects_to_ldap = True
-    dataloader.ldapapi.ou_in_ous_to_write_to.return_value = False
+    ldap_connection.reset_mock()  # type: ignore
+    ldapapi.settings.add_objects_to_ldap = True
+    ldapapi.ou_in_ous_to_write_to.return_value = False
 
-    await dataloader.create_ou(ou)
-    dataloader.ldap_connection.add.assert_not_called()  # type: ignore
+    await ldapapi.create_ou(ou)
+    ldap_connection.add.assert_not_called()  # type: ignore
 
-    dataloader.settings.ldap_read_only = True
+    ldapapi.settings.ldap_read_only = True
     with pytest.raises(ReadOnlyException) as exc:
-        await dataloader.create_ou(ou)
+        await ldapapi.create_ou(ou)
     assert "LDAP connection is read-only" in str(exc.value)
 
 

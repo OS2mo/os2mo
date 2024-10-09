@@ -50,7 +50,6 @@ from .exceptions import ReadOnlyException
 from .exceptions import UUIDNotFoundException
 from .ldap import get_ldap_object
 from .ldap import is_uuid
-from .ldap import ldap_add
 from .ldap import ldap_delete
 from .ldap import ldap_modify_dn
 from .ldap import make_ldap_object
@@ -245,35 +244,6 @@ class DataLoader:
         dns = [obj.dn for obj in ldap_objects]
         logger.info("Found LDAP(s) object", dns=dns)
         return ldap_objects
-
-    async def create_ou(self, ou: str) -> None:
-        """
-        Creates an OU. If the parent OU does not exist, creates that one first
-        """
-        # TODO: Remove this when ldap3s read-only flag works
-        if self.settings.ldap_read_only:
-            logger.info("LDAP connection is read-only", operation="create_ou", ou=ou)
-            raise ReadOnlyException("LDAP connection is read-only")
-
-        if not self.settings.add_objects_to_ldap:
-            logger.info("Adding LDAP objects is disabled", operation="create_ou", ou=ou)
-            raise ReadOnlyException("Adding LDAP objects is disabled")
-
-        if not self.ldapapi.ou_in_ous_to_write_to(ou):
-            return
-
-        # TODO: Search for specific OUs as needed instead of reading all of LDAP?
-        ou_dict = await self.ldapapi.load_ldap_OUs()
-
-        # Create OUs top-down (unless they already exist)
-        for ou_to_create in decompose_ou_string(ou)[::-1]:
-            if ou_to_create not in ou_dict:
-                logger.info("Creating OU", ou_to_create=ou_to_create)
-                dn = combine_dn_strings([ou_to_create, self.settings.ldap_search_base])
-                _, result = await ldap_add(
-                    self.ldap_connection, dn, "OrganizationalUnit"
-                )
-                logger.info("LDAP Result", result=result, dn=dn)
 
     async def delete_ou(self, ou: str) -> None:
         """
