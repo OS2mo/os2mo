@@ -16,7 +16,9 @@ from more_itertools import only
 
 from .config import Settings
 from .exceptions import InvalidChangeDict
+from .exceptions import NoObjectsReturnedException
 from .exceptions import ReadOnlyException
+from .ldap import get_ldap_object
 from .ldap import ldap_add
 from .ldap import ldap_compare
 from .ldap import ldap_delete
@@ -351,3 +353,19 @@ class LDAPAPI:
         )
         logger.info("LDAP Result", result=result, new_dn=new_dn, old_dn=old_dn)
         return cast(bool, result["description"] == "success")
+
+    async def get_ldap_unique_ldap_uuid(self, dn: str) -> UUID:
+        """
+        Given a DN, find the unique_ldap_uuid
+        """
+        logger.info("Looking for LDAP object", dn=dn)
+        ldap_object = await get_ldap_object(
+            self.ldap_connection, dn, [self.settings.ldap_unique_id_field]
+        )
+        uuid = getattr(ldap_object, self.settings.ldap_unique_id_field)
+        if not uuid:
+            # Some computer-account objects has no samaccountname
+            raise NoObjectsReturnedException(
+                f"Object has no {self.settings.ldap_unique_id_field}"
+            )
+        return UUID(uuid)

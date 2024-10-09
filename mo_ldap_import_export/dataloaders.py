@@ -350,7 +350,7 @@ class DataLoader:
             logger.info("Found employee via CPR matching", dn=dn, uuid=uuid)
             return uuid
 
-        unique_uuid = await self.get_ldap_unique_ldap_uuid(dn)
+        unique_uuid = await self.ldapapi.get_ldap_unique_ldap_uuid(dn)
         ituser_results = await self.moapi.find_mo_employee_uuid_via_ituser(unique_uuid)
         if len(ituser_results) == 1:
             uuid = one(ituser_results)
@@ -386,22 +386,6 @@ class DataLoader:
                 suggestion=f"Does the '{self.settings.ldap_it_system}' it-system exist?",
             )
             return None
-
-    async def get_ldap_unique_ldap_uuid(self, dn: str) -> UUID:
-        """
-        Given a DN, find the unique_ldap_uuid
-        """
-        logger.info("Looking for LDAP object", dn=dn)
-        ldap_object = await get_ldap_object(
-            self.ldap_connection, dn, [self.settings.ldap_unique_id_field]
-        )
-        uuid = getattr(ldap_object, self.settings.ldap_unique_id_field)
-        if not uuid:
-            # Some computer-account objects has no samaccountname
-            raise NoObjectsReturnedException(
-                f"Object has no {self.settings.ldap_unique_id_field}"
-            )
-        return UUID(uuid)
 
     def extract_unique_ldap_uuids(self, it_users: list[ITUser]) -> set[UUID]:
         """
@@ -587,7 +571,7 @@ class DataLoader:
             )
             # Get its unique ldap uuid
             # TODO: Get rid of this code and operate on EntityUUIDs thoughout
-            unique_uuid = await self.get_ldap_unique_ldap_uuid(dn)
+            unique_uuid = await self.ldapapi.get_ldap_unique_ldap_uuid(dn)
             logger.info(
                 "LDAP UUID found for DN",
                 employee_uuid=uuid,
