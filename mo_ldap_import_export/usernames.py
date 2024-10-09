@@ -372,7 +372,7 @@ class UserNameGenerator:
         other_attributes = {}
         if self.settings.ldap_dialect == "AD":
             other_attributes = {"sAMAccountName": username}
-        await self.dataloader.add_ldap_object(
+        await self.dataloader.ldapapi.add_ldap_object(
             dn, employee_attributes | other_attributes
         )
         return dn
@@ -438,7 +438,7 @@ class AlleroedUserNameGenerator(UserNameGenerator):
             "userPrincipalName": f"{username}@alleroed.dk",
         }
 
-        await self.dataloader.add_ldap_object(
+        await self.dataloader.ldapapi.add_ldap_object(
             dn,
             employee_attributes | other_attributes,
         )

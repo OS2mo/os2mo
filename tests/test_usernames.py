@@ -24,7 +24,7 @@ from tests.graphql_mocker import GraphQLMocker
 def dataloader() -> MagicMock:
     mock = MagicMock()
     mock.load_all_it_users = AsyncMock()
-    mock.add_ldap_object = AsyncMock()
+    mock.ldapapi.add_ldap_object = AsyncMock()
     return mock
 
 
