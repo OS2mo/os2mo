@@ -1495,6 +1495,9 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
           current {
             uuid
             user_key
+            engagement {
+              uuid
+            }
             ituser {
               uuid
               user_key
@@ -1504,13 +1507,29 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
       }
     }
     """
+    CREATE_ENGAGEMENT = """
+    mutation CreateEngagement {
+      engagement_create(
+        input: {
+          validity: { from: "2019-01-01" }
+          person: "236e0a78-11a0-4ed9-8545-6286bb8611c7"
+          org_unit: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+          engagement_type: "06f95678-166a-455a-a2ab-121a8d92ea23"
+          job_function: "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
+        }
+      ) {
+        uuid
+      }
+    }
+    """
     CREATE_ADDRESS = """
-    mutation CreateAddress($user_key: String!, $ituser: UUID!) {
+    mutation CreateAddress($user_key: String!, $engagement: UUID!, $ituser: UUID!) {
       address_create(
         input: {
           validity: { from: "2019-01-01" }
           value: "b1f1817d-5f02-4331-b8b3-97330a5d3197"
           address_type: "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+          engagement: $engagement,
           ituser: $ituser
           user_key: $user_key
           employee: "6ee24785-ee9a-4502-81c2-7697009c9053"
@@ -1536,12 +1555,13 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
     }
     """
     EDIT_ADDRESS_ITUSER = """
-    mutation EditAddress($uuid: UUID!, $ituser: UUID!) {
+    mutation EditAddress($uuid: UUID!, $engagement: UUID!, $ituser: UUID!) {
       address_update(
         input: {
           uuid: $uuid
           validity: { from: "2021-05-05" }
           value: "b1f1817d-5f02-4331-b8b3-97330a5d3197"
+          engagement: $engagement,
           ituser: $ituser
           address_type: "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
         }
@@ -1563,11 +1583,20 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
     ituser1_uuid = ituser1["uuid"]
     ituser2_uuid = ituser2["uuid"]
 
+    # Addresses are associated with engagements and it-users using the same field
+    # (tilknyttedefunktioner). We associate the created address with both object types
+    # to ensure that we separate them properly.
+    response = graphapi_post(CREATE_ENGAGEMENT)
+    assert response.errors is None
+    engagement_uuid = response.data["engagement_create"]["uuid"]
+    engagement = {"uuid": engagement_uuid}
+
     # Create address
     response = graphapi_post(
         CREATE_ADDRESS,
         variables={
             "user_key": initial_user_key,
+            "engagement": engagement_uuid,
             "ituser": ituser1_uuid,
         },
     )
@@ -1586,6 +1615,7 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
     assert one(response.data["addresses"]["objects"])["current"] == {
         "uuid": address_uuid,
         "user_key": initial_user_key,
+        "engagement": [engagement],
         "ituser": [ituser1],
     }
 
@@ -1610,6 +1640,7 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
     assert one(response.data["addresses"]["objects"])["current"] == {
         "uuid": address_uuid,
         "user_key": edited_user_key,
+        "engagement": [engagement],
         "ituser": [ituser1],
     }
 
@@ -1618,6 +1649,7 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
         EDIT_ADDRESS_ITUSER,
         variables={
             "uuid": address_uuid,
+            "engagement": engagement_uuid,
             "ituser": ituser2_uuid,
         },
     )
@@ -1634,6 +1666,7 @@ def test_address_ituser(graphapi_post: GraphAPIPost) -> None:
     assert one(response.data["addresses"]["objects"])["current"] == {
         "uuid": address_uuid,
         "user_key": edited_user_key,
+        "engagement": [engagement],
         "ituser": [ituser2],
     }
 

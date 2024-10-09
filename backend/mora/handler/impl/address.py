@@ -29,7 +29,7 @@ class AddressReader(reading.OrgFunkReadingHandler):
         person_uuid = mapping.USER_FIELD.get_uuid(effect)
         org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         address_type_uuid = mapping.ADDRESS_TYPE_FIELD.get_uuid(effect)
-        engagement_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
+        engagement_uuid = mapping.ENGAGEMENT_FIELD.get_uuid(effect)
         visibility_uuid = mapping.VISIBILITY_FIELD.get_uuid(effect)
 
         scope = mapping.ADDRESSES_FIELD(effect)[0].get("objekttype")
@@ -43,7 +43,7 @@ class AddressReader(reading.OrgFunkReadingHandler):
 
         # Return early if flat model is desired
         if is_graphql():
-            it_user_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
+            it_user_uuid = mapping.IT_USER_FIELD.get_uuid(effect)
 
             return {
                 **base_obj,
