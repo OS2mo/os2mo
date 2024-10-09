@@ -1668,23 +1668,26 @@ async def test_convert_ldap_uuids_to_dns(
     ldap_dns: list[str],
     expected: set[str],
 ) -> None:
-    dataloader.get_ldap_dn = AsyncMock()  # type: ignore
-    dataloader.get_ldap_dn.side_effect = ldap_dns
+    dataloader.ldapapi.get_ldap_dn = AsyncMock()  # type: ignore
+    dataloader.ldapapi.get_ldap_dn.side_effect = ldap_dns
 
     dns = await dataloader.convert_ldap_uuids_to_dns({uuid4() for _ in ldap_dns})
     assert dns == expected
 
 
 async def test_convert_ldap_uuids_to_dns_exception(dataloader: DataLoader) -> None:
-    dataloader.get_ldap_dn = AsyncMock()  # type: ignore
-    dataloader.get_ldap_dn.side_effect = ["CN=foo", ValueError("BOOM")]
+    dataloader.ldapapi.get_ldap_dn = AsyncMock()  # type: ignore
+    dataloader.ldapapi.get_ldap_dn.side_effect = ["CN=foo", ValueError("BOOM")]
 
     with pytest.raises(ExceptionGroup) as exc_info:
         await dataloader.convert_ldap_uuids_to_dns({uuid4(), uuid4()})
     assert "Exceptions during UUID2DN translation" in str(exc_info.value)
     assert len(exc_info.value.exceptions) == 1
 
-    dataloader.get_ldap_dn.side_effect = [ValueError("BANG"), ValueError("BOOM")]
+    dataloader.ldapapi.get_ldap_dn.side_effect = [
+        ValueError("BANG"),
+        ValueError("BOOM"),
+    ]
 
     with pytest.raises(ExceptionGroup) as exc_info:
         await dataloader.convert_ldap_uuids_to_dns({uuid4(), uuid4()})
@@ -1694,10 +1697,10 @@ async def test_convert_ldap_uuids_to_dns_exception(dataloader: DataLoader) -> No
 
 async def test_get_ldap_dn(dataloader: DataLoader):
     with patch(
-        "mo_ldap_import_export.dataloaders.single_object_search",
+        "mo_ldap_import_export.ldapapi.single_object_search",
         return_value={"dn": "CN=foo"},
     ):
-        assert await dataloader.get_ldap_dn(uuid4()) == "CN=foo"
+        assert await dataloader.ldapapi.get_ldap_dn(uuid4()) == "CN=foo"
 
 
 async def test_get_ldap_unique_ldap_uuid(dataloader: DataLoader) -> None:
@@ -2549,13 +2552,13 @@ async def test_find_mo_employee_dn_by_itsystem(
     }
 
     dn = "CN=foo"
-    dataloader.get_ldap_dn = AsyncMock()  # type: ignore
-    dataloader.get_ldap_dn.return_value = dn
+    dataloader.ldapapi.get_ldap_dn = AsyncMock()  # type: ignore
+    dataloader.ldapapi.get_ldap_dn.return_value = dn
 
     result = await dataloader.find_mo_employee_dn_by_itsystem(employee_uuid)
     assert result == {dn}
 
-    dataloader.get_ldap_dn.assert_called_once_with(ituser_uuid)
+    dataloader.ldapapi.get_ldap_dn.assert_called_once_with(ituser_uuid)
 
 
 async def test_create_exceptions(
