@@ -406,17 +406,6 @@ class DataLoader:
         # TODO: Check for duplicates?
         return set(map(UUID, uuids))
 
-    async def convert_ldap_uuids_to_dns(self, ldap_uuids: set[UUID]) -> set[DN]:
-        # TODO: DataLoader / bulk here instead of this
-        results = await asyncio.gather(
-            *[self.ldapapi.get_ldap_dn(uuid) for uuid in ldap_uuids],
-            return_exceptions=True,
-        )
-        exceptions = cast(list[Exception], list(filter(is_exception, results)))
-        if exceptions:
-            raise ExceptionGroup("Exceptions during UUID2DN translation", exceptions)
-        return cast(set[DN], set(results))
-
     async def find_mo_employee_dn_by_itsystem(self, uuid: UUID) -> set[DN]:
         """Tries to find the LDAP DNs belonging to a MO employee via ITUsers.
 
@@ -437,7 +426,7 @@ class DataLoader:
         it_system_uuid = UUID(raw_it_system_uuid)
         it_users = await self.load_mo_employee_it_users(uuid, it_system_uuid)
         ldap_uuids = self.extract_unique_ldap_uuids(it_users)
-        dns = await self.convert_ldap_uuids_to_dns(ldap_uuids)
+        dns = await self.ldapapi.convert_ldap_uuids_to_dns(ldap_uuids)
         # No DNs, no problem
         if not dns:
             return set()

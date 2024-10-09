@@ -1718,7 +1718,9 @@ async def test_convert_ldap_uuids_to_dns(
     dataloader.ldapapi.get_ldap_dn = AsyncMock()  # type: ignore
     dataloader.ldapapi.get_ldap_dn.side_effect = ldap_dns
 
-    dns = await dataloader.convert_ldap_uuids_to_dns({uuid4() for _ in ldap_dns})
+    dns = await dataloader.ldapapi.convert_ldap_uuids_to_dns(
+        {uuid4() for _ in ldap_dns}
+    )
     assert dns == expected
 
 
@@ -1727,7 +1729,7 @@ async def test_convert_ldap_uuids_to_dns_exception(dataloader: DataLoader) -> No
     dataloader.ldapapi.get_ldap_dn.side_effect = ["CN=foo", ValueError("BOOM")]
 
     with pytest.raises(ExceptionGroup) as exc_info:
-        await dataloader.convert_ldap_uuids_to_dns({uuid4(), uuid4()})
+        await dataloader.ldapapi.convert_ldap_uuids_to_dns({uuid4(), uuid4()})
     assert "Exceptions during UUID2DN translation" in str(exc_info.value)
     assert len(exc_info.value.exceptions) == 1
 
@@ -1737,7 +1739,7 @@ async def test_convert_ldap_uuids_to_dns_exception(dataloader: DataLoader) -> No
     ]
 
     with pytest.raises(ExceptionGroup) as exc_info:
-        await dataloader.convert_ldap_uuids_to_dns({uuid4(), uuid4()})
+        await dataloader.ldapapi.convert_ldap_uuids_to_dns({uuid4(), uuid4()})
     assert "Exceptions during UUID2DN translation" in str(exc_info.value)
     assert len(exc_info.value.exceptions) == 2
 
