@@ -1370,7 +1370,7 @@ async def test_move_ldap_object(sync_tool: SyncTool, dataloader: AsyncMock):
     dataloader.ldapapi.create_ou.assert_called_once_with("OU=Dundee")
 
     # Them move Angus
-    dataloader.move_ldap_object.assert_called_once_with(old_dn, new_dn)
+    dataloader.ldapapi.move_ldap_object.assert_called_once_with(old_dn, new_dn)
 
     # And delete OU=Auchtertool, which is now empty
     dataloader.ldapapi.delete_ou.assert_called_once_with("OU=Auchtertool")
@@ -1379,7 +1379,7 @@ async def test_move_ldap_object(sync_tool: SyncTool, dataloader: AsyncMock):
 
 
 async def test_move_ldap_object_move_failed(sync_tool: SyncTool, dataloader: AsyncMock):
-    dataloader.move_ldap_object.return_value = False
+    dataloader.ldapapi.move_ldap_object.return_value = False
 
     old_dn = "CN=Angus,OU=Auchtertool"
     new_dn = "CN=Angus,OU=Dundee"
@@ -1389,7 +1389,7 @@ async def test_move_ldap_object_move_failed(sync_tool: SyncTool, dataloader: Asy
 
     # The move was not successful so we fall back to the old DN
     assert ldap_object.dn == old_dn
-    dataloader.delete_ou.assert_not_called()
+    dataloader.ldapapi.delete_ou.assert_not_called()
 
 
 async def test_move_ldap_object_nothing_to_move(
