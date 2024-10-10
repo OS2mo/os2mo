@@ -35,12 +35,14 @@ from mo_ldap_import_export.utils import mo_today
                     "Employee": {
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
+                        "_ldap_attributes_": ["employeeNumber"],
                         "uuid": "{{ employee_uuid or NONE }}",  # TODO: why is this required?
                         "cpr_no": "{{ldap.employeeNumber}}",
                     },
                     "ADtitle": {
                         "objectClass": "ramodels.mo.details.it_system.ITUser",
                         "_import_to_mo_": "true",
+                        "_ldap_attributes_": ["carLicense", "title"],
                         "_mapper_": "{{ obj.itsystem }}",
                         # carLicense is arbitrarily chosen as an enabled/disabled marker
                         "_terminate_": "{{ now()|mo_datestring if ldap.carLicense == 'EXPIRED' else NONE}}",
@@ -54,15 +56,7 @@ from mo_ldap_import_export.utils import mo_today
                     "Employee": {
                         "objectClass": "inetOrgPerson",
                         "_export_to_ldap_": "false",
-                        "employeeNumber": "{{mo_employee.cpr_no}}",
-                    },
-                    "ADtitle": {
-                        "objectClass": "inetOrgPerson",
-                        "_export_to_ldap_": "false",
-                        "title": "{{ mo_employee_it_user.user_key }}",
-                        "employeeNumber": "{{ mo_employee.cpr_no }}",
-                        "carLicense": "unused but required",
-                    },
+                    }
                 },
                 # TODO: why is this required?
                 "username_generator": {
@@ -160,12 +154,14 @@ async def test_to_mo(
                     "Employee": {
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
+                        "_ldap_attributes_": ["employeeNumber"],
                         "uuid": "{{ employee_uuid or NONE }}",
                         "cpr_no": "{{ldap.employeeNumber}}",
                     },
                     "ADtitle": {
                         "objectClass": "ramodels.mo.details.it_system.ITUser",
                         "_import_to_mo_": "false",
+                        "_ldap_attributes_": ["title"],
                         "_mapper_": "{{ obj.itsystem }}",
                         "user_key": "{{ ldap.title }}",
                         "person": "{{ dict(uuid=employee_uuid ) }}",

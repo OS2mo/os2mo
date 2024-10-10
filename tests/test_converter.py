@@ -89,6 +89,7 @@ def converter_mapping() -> dict[str, Any]:
             "Employee": {
                 "objectClass": "ramodels.mo.employee.Employee",
                 "_import_to_mo_": "True",
+                "_ldap_attributes_": ["givenName", "sn", "employeeID"],
                 "givenname": "{{ldap.givenName}}",
                 "surname": "{{ldap.sn}}",
                 "cpr_no": "{{ldap.employeeID or None}}",
@@ -97,16 +98,18 @@ def converter_mapping() -> dict[str, Any]:
             "Email": {
                 "objectClass": "ramodels.mo.details.address.Address",
                 "_import_to_mo_": "True",
+                "_ldap_attributes_": ["mail"],
                 "value": "{{ldap.mail}}",
                 "type": "{{'address'}}",
                 "address_type": (
-                    "{{ dict(uuid=" "'f376deb8-4743-4ca6-a047-3241de8fe9d2') }}"
+                    "{{ dict(uuid='f376deb8-4743-4ca6-a047-3241de8fe9d2') }}"
                 ),
                 "person": "{{ dict(uuid=employee_uuid or NONE) }}",
             },
             "Active Directory": {
                 "objectClass": "ramodels.mo.details.it_system.ITUser",
                 "_import_to_mo_": "True",
+                "_ldap_attributes_": ["msSFU30Name"],
                 "user_key": "{{ ldap.msSFU30Name or NONE }}",
                 "itsystem": "{{ dict(uuid=get_it_system_uuid(ldap.itSystemName)) }}",
                 "person": "{{ dict(uuid=employee_uuid or NONE) }}",
@@ -329,12 +332,14 @@ async def test_ldap_to_mo_dict_validation_error(
             "Employee": {
                 "objectClass": "ramodels.mo.employee.Employee",
                 "_import_to_mo_": "True",
+                "_ldap_attributes_": ["employeeID"],
                 "cpr_no": "{{ldap.employeeID or None}}",
                 "uuid": "{{ employee_uuid or NONE }}",
             },
             "Custom": {
                 "objectClass": "Custom.JobTitleFromADToMO",
                 "_import_to_mo_": "true",
+                "_ldap_attributes_": ["hkStsuuid"],
                 "user": "{{ dict(uuid=(ldap.hkStsuuid)) }}",
                 "job_function": f"{{ dict(uuid={uuid4()}) }}",
                 "job_function_fallback": f"{{ dict(uuid={uuid4()}) }}",
@@ -410,6 +415,7 @@ async def test_template_lenience(context: Context, converter: LdapConverter) -> 
             "Employee": {
                 "objectClass": "ramodels.mo.employee.Employee",
                 "_import_to_mo_": "True",
+                "_ldap_attributes_": ["givenName", "sn"],
                 "givenname": "{{ldap.givenName}}",
                 "surname": "{{ldap.sn}}",
                 "uuid": "{{ employee_uuid }}",
@@ -445,14 +451,15 @@ def test_find_ldap_object_class(converter: LdapConverter):
     assert object_class == "user"
 
 
-def test_get_ldap_attributes(converter: LdapConverter, context: Context) -> None:
+def test_get_ldap_attributes(converter: LdapConverter) -> None:
     settings = Settings()
 
-    attributes = set(converter.get_ldap_attributes("Employee"))
-    all_attributes = set(
-        settings.conversion_mapping.mo_to_ldap["Employee"].dict().keys()
-    )
-    assert all_attributes - attributes == {"objectClass", "export_to_ldap"}
+    converter_attributes = set(converter.get_ldap_attributes("Employee"))
+    raw_settings_attributes = settings.conversion_mapping.ldap_to_mo[
+        "Employee"
+    ].ldap_attributes
+    assert raw_settings_attributes is not None
+    assert converter_attributes == set(raw_settings_attributes)
 
 
 async def test_get_ldap_attributes_dn_removed(
@@ -460,18 +467,32 @@ async def test_get_ldap_attributes_dn_removed(
     monkeypatch: pytest.MonkeyPatch,
     dataloader: AsyncMock,
 ) -> None:
-    mapping = overlay(converter_mapping, {"mo_to_ldap": {"Employee": {"dn": "fixed"}}})
+    mapping = overlay(
+        converter_mapping,
+        {
+            "ldap_to_mo": {
+                "Employee": {
+                    "ldap_attributes": (
+                        converter_mapping["ldap_to_mo"]["Employee"]["_ldap_attributes_"]
+                        + ["dn"]
+                    )
+                }
+            }
+        },
+    )
     monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
+
     settings = Settings()
 
     converter = LdapConverter(settings, dataloader)
     await converter._init()
 
-    attributes = set(converter.get_ldap_attributes("Employee"))
-    all_attributes = set(
-        settings.conversion_mapping.mo_to_ldap["Employee"].dict().keys()
-    )
-    assert all_attributes - attributes == {"objectClass", "export_to_ldap", "dn"}
+    converter_attributes = set(converter.get_ldap_attributes("Employee"))
+    raw_settings_attributes = settings.conversion_mapping.ldap_to_mo[
+        "Employee"
+    ].ldap_attributes
+    assert raw_settings_attributes is not None
+    assert converter_attributes == set(raw_settings_attributes) - {"dn"}
 
 
 def test_get_mo_attributes(converter: LdapConverter) -> None:
@@ -529,6 +550,7 @@ def test_get_number_of_entries(
 
 EMPLOYEE_OBJ = {
     "objectClass": "ramodels.mo.employee.Employee",
+    "_ldap_attributes_": [],
     "uuid": "{{ employee_uuid }}",
 }
 
@@ -872,6 +894,7 @@ def test_check_uuid_refs_in_mo_objects(converter_mapping: dict[str, Any]) -> Non
     address_obj = {
         "objectClass": "ramodels.mo.details.address.Address",
         "_import_to_mo_": "true",
+        "_ldap_attributes_": [],
         "value": "val",
         "validity": "val",
         "address_type": "val",
