@@ -7,7 +7,6 @@ import asyncio
 import datetime
 import json
 import os
-import re
 import time
 from collections.abc import Collection
 from collections.abc import Iterator
@@ -355,7 +354,7 @@ async def test_delete_data_from_ldap_object(
         }
     }
 
-    await dataloader.modify_ldap_object(address, "Employee", delete=True)
+    await dataloader.modify_ldap_object(address, delete=True)
 
     changes = {"postalAddress": [("MODIFY_DELETE", "foo")]}
     dn = address.dn
@@ -386,30 +385,11 @@ async def test_upload_ldap_object_invalid_value(
     ldap_connection.modify.side_effect = LDAPInvalidValueError("Invalid value")
 
     with capture_logs() as cap_logs:
-        await dataloader.modify_ldap_object(ldap_object, "Employee")
+        await dataloader.modify_ldap_object(ldap_object)
 
         warnings = [w for w in cap_logs if w["log_level"] == "warning"]
         last_warning_message = str(warnings[-1]["event"])
         assert last_warning_message == "LDAPInvalidValueError exception"
-
-
-async def test_modify_ldap_object_but_export_equals_false(
-    dataloader: DataLoader, converter: MagicMock
-):
-    converter._export_to_ldap_.return_value = False
-    ldap_object = LdapObject(
-        dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
-        postalAddress="foo",
-    )
-
-    with capture_logs() as cap_logs:
-        await dataloader.modify_ldap_object(ldap_object, "Employee")
-
-        messages = [w for w in cap_logs if w["log_level"] == "info"]
-        assert re.match(
-            ".*_export_to_ldap_ == False",
-            str(messages[-1]["event"]),
-        )
 
 
 async def test_load_mo_employee(

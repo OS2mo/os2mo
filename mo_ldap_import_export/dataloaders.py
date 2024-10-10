@@ -240,7 +240,6 @@ class DataLoader:
     async def modify_ldap_object(
         self,
         object_to_modify: LdapObject,
-        json_key: str,
         delete: bool = False,
     ) -> list[dict]:
         """
@@ -248,17 +247,9 @@ class DataLoader:
         -------------
         object_to_modify : LDAPObject
             object to upload to LDAP
-        json_key : str
-            json key to upload. e.g. 'Employee' or 'Engagement' or another key present
-            in the json dictionary.
         delete: bool
             Set to True to delete contents in LDAP, instead of creating/modifying them
         """
-        if not self.settings.conversion_mapping.mo_to_ldap[
-            json_key
-        ].export_to_ldap_as_bool():
-            logger.info("_export_to_ldap_ == False.", json_key=json_key)
-            return []
         success = 0
         failed = 0
 
