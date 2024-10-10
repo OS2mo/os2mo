@@ -12,7 +12,6 @@ import structlog
 from ldap3 import BASE
 from ldap3 import Connection
 from ldap3.utils.dn import safe_dn
-from ldap3.utils.dn import to_dn
 from more_itertools import one
 from more_itertools import only
 from ramodels.mo._shared import validate_cpr
@@ -24,41 +23,14 @@ from .exceptions import ReadOnlyException
 from .ldap import get_ldap_object
 from .ldap import ldap_add
 from .ldap import ldap_compare
-from .ldap import ldap_delete
 from .ldap import ldap_modify
-from .ldap import ldap_modify_dn
-from .ldap import object_search
-from .ldap import paged_search
 from .ldap import single_object_search
 from .types import DN
 from .types import CPRNumber
-from .utils import combine_dn_strings
-from .utils import extract_cn_from_dn
 from .utils import extract_ou_from_dn
 from .utils import is_exception
-from .utils import remove_cn_from_dn
 
 logger = structlog.stdlib.get_logger()
-
-
-def decompose_ou_string(ou: str) -> list[str]:
-    """
-    Decomposes an OU string and returns a list of OUs where the first one is the
-    given OU string, and the last one if the highest parent OU
-
-    Example
-    -----------
-    >>> ou = 'OU=foo,OU=bar'
-    >>> decompose_ou_string(ou)
-    >>> ['OU=foo,OU=bar', 'OU=bar']
-    """
-
-    ou_parts = to_dn(ou)
-    output = []
-    for i in range(len(ou_parts)):
-        output.append(combine_dn_strings(ou_parts[i:]))
-
-    return output
 
 
 class LDAPAPI:
@@ -174,50 +146,6 @@ class LDAPAPI:
     delete_ldap = partialmethod(modify_ldap, "MODIFY_DELETE")
     replace_ldap = partialmethod(modify_ldap, "MODIFY_REPLACE")
 
-    async def load_ldap_OUs(self, search_base: str | None = None) -> dict:
-        """
-        Returns a dictionary where the keys are OU strings and the items are dicts
-        which contain information about the OU
-        """
-        searchParameters: dict = {
-            "search_filter": "(objectclass=OrganizationalUnit)",
-            "attributes": [],
-        }
-
-        responses = await paged_search(
-            self.settings,
-            self.ldap_connection,
-            searchParameters,
-            search_base=search_base,
-            mute=True,
-        )
-        dns = [r["dn"] for r in responses]
-
-        user_object_class = self.settings.ldap_user_objectclass
-        dn_responses = await asyncio.gather(
-            *[
-                object_search(
-                    {
-                        "search_base": dn,
-                        "search_filter": f"(objectclass={user_object_class})",
-                        "attributes": [],
-                        "size_limit": 1,
-                    },
-                    self.ldap_connection,
-                )
-                for dn in dns
-            ]
-        )
-        dn_map = dict(zip(dns, dn_responses, strict=False))
-
-        return {
-            extract_ou_from_dn(dn): {
-                "empty": len(dn_map[dn]) == 0,
-                "dn": dn,
-            }
-            for dn in dns
-        }
-
     async def add_ldap_object(self, dn: str, attributes: dict[str, Any] | None = None):
         """
         Adds a new object to LDAP
@@ -268,117 +196,6 @@ class LDAPAPI:
             attributes=attributes,
         )
         logger.info("LDAP Result", result=result, dn=dn)
-
-    async def create_ou(self, ou: str) -> None:
-        """
-        Creates an OU. If the parent OU does not exist, creates that one first
-        """
-        # TODO: Remove this when ldap3s read-only flag works
-        if self.settings.ldap_read_only:
-            logger.info("LDAP connection is read-only", operation="create_ou", ou=ou)
-            raise ReadOnlyException("LDAP connection is read-only")
-
-        if not self.settings.add_objects_to_ldap:
-            logger.info("Adding LDAP objects is disabled", operation="create_ou", ou=ou)
-            raise ReadOnlyException("Adding LDAP objects is disabled")
-
-        if not self.ou_in_ous_to_write_to(ou):
-            logger.info(
-                "Not allowed to write to the specified OU",
-                operation="create_ou",
-                ou=ou,
-            )
-            return
-
-        # TODO: Search for specific OUs as needed instead of reading all of LDAP?
-        ou_dict = await self.load_ldap_OUs()
-
-        # Create OUs top-down (unless they already exist)
-        for ou_to_create in decompose_ou_string(ou)[::-1]:
-            if ou_to_create not in ou_dict:
-                logger.info("Creating OU", ou_to_create=ou_to_create)
-                dn = combine_dn_strings([ou_to_create, self.settings.ldap_search_base])
-                _, result = await ldap_add(
-                    self.ldap_connection, dn, "OrganizationalUnit"
-                )
-                logger.info("LDAP Result", result=result, dn=dn)
-
-    async def delete_ou(self, ou: str) -> None:
-        """
-        Deletes an OU. If the parent OU is empty after deleting, also deletes that one
-
-        Notes
-        --------
-        Only deletes OUs which are empty
-        """
-        # TODO: Remove this when ldap3s read-only flag works
-        if self.settings.ldap_read_only:
-            logger.info("LDAP connection is read-only", operation="delete_ou", ou=ou)
-            raise ReadOnlyException("LDAP connection is read-only")
-
-        if not self.ou_in_ous_to_write_to(ou):
-            logger.info(
-                "Not allowed to write to the specified OU",
-                operation="delete_ou",
-                ou=ou,
-            )
-            return
-
-        for ou_to_delete in decompose_ou_string(ou):
-            # TODO: Search for specific OUs as needed instead of reading all of LDAP?
-            ou_dict = await self.load_ldap_OUs()
-            if (
-                ou_dict.get(ou_to_delete, {}).get("empty", False)
-                and ou_to_delete != self.settings.ldap_ou_for_new_users
-            ):
-                logger.info("Deleting OU", ou_to_delete=ou_to_delete)
-                dn = combine_dn_strings([ou_to_delete, self.settings.ldap_search_base])
-                _, result = await ldap_delete(self.ldap_connection, dn)
-                logger.info("LDAP Result", result=result, dn=dn)
-
-    async def move_ldap_object(self, old_dn: str, new_dn: str) -> bool:
-        """
-        Moves an LDAP object from one DN to another. Returns True if the move was
-        successful.
-        """
-        # TODO: Remove this when ldap3s read-only flag works
-        if self.settings.ldap_read_only:
-            logger.info(
-                "LDAP connection is read-only",
-                operation="move_ldap_object",
-                old_dn=old_dn,
-                new_dn=new_dn,
-            )
-            raise ReadOnlyException("LDAP connection is read-only")
-
-        if not self.settings.add_objects_to_ldap:
-            logger.info(
-                "Adding LDAP objects is disabled",
-                operation="move_ldap_object",
-                old_dn=old_dn,
-                new_dn=new_dn,
-            )
-            raise ReadOnlyException("Adding LDAP objects is disabled")
-
-        if not self.ou_in_ous_to_write_to(new_dn):
-            logger.info(
-                "Not allowed to write to the specified OU",
-                operation="move_ldap_object",
-                old_dn=old_dn,
-                new_dn=new_dn,
-            )
-            return False
-
-        logger.info("Moving entry", old_dn=old_dn, new_dn=new_dn)
-
-        _, result = await ldap_modify_dn(
-            self.ldap_connection,
-            old_dn,
-            extract_cn_from_dn(new_dn),
-            new_superior=remove_cn_from_dn(new_dn),
-        )
-        logger.info("LDAP Result", result=result, new_dn=new_dn, old_dn=old_dn)
-        return cast(bool, result["description"] == "success")
 
     async def get_ldap_unique_ldap_uuid(self, dn: str) -> UUID:
         """

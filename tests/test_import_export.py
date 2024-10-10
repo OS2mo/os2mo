@@ -1356,58 +1356,6 @@ async def test_import_jobtitlefromadtomo_objects(
         converted_object.sync_to_mo.assert_called_once()
 
 
-async def test_move_ldap_object(sync_tool: SyncTool, dataloader: AsyncMock):
-    dataloader.move_ldap_object.return_value = True
-
-    # user_context = {"dataloader": dataloader}
-    old_dn = "CN=Angus,OU=Auchtertool"
-    new_dn = "CN=Angus,OU=Dundee"
-
-    # Attempt to move Angus from OU=Auchtertool to OU=Dundee
-    ldap_object = await sync_tool.move_ldap_object(LdapObject(dn=new_dn), old_dn)
-
-    # Which means we need to create OU=Dundee
-    dataloader.ldapapi.create_ou.assert_called_once_with("OU=Dundee")
-
-    # Them move Angus
-    dataloader.ldapapi.move_ldap_object.assert_called_once_with(old_dn, new_dn)
-
-    # And delete OU=Auchtertool, which is now empty
-    dataloader.ldapapi.delete_ou.assert_called_once_with("OU=Auchtertool")
-
-    assert ldap_object.dn == new_dn
-
-
-async def test_move_ldap_object_move_failed(sync_tool: SyncTool, dataloader: AsyncMock):
-    dataloader.ldapapi.move_ldap_object.return_value = False
-
-    old_dn = "CN=Angus,OU=Auchtertool"
-    new_dn = "CN=Angus,OU=Dundee"
-
-    # Attempt to move Angus from OU=Auchtertool to OU=Dundee
-    ldap_object = await sync_tool.move_ldap_object(LdapObject(dn=new_dn), old_dn)
-
-    # The move was not successful so we fall back to the old DN
-    assert ldap_object.dn == old_dn
-    dataloader.ldapapi.delete_ou.assert_not_called()
-
-
-async def test_move_ldap_object_nothing_to_move(
-    sync_tool: SyncTool, dataloader: AsyncMock
-):
-    old_dn = "CN=Angus,OU=Dundee"
-    new_dn = "CN=Angus,OU=Dundee"
-
-    # The new DN is equal to the old DN. We expect nothing to happen.
-    ldap_object = await sync_tool.move_ldap_object(LdapObject(dn=new_dn), old_dn)
-
-    dataloader.create_ou.assert_not_called()
-    dataloader.move_ldap_object.assert_not_called()
-    dataloader.delete_ou.assert_not_called()
-    assert ldap_object.dn == new_dn
-    assert ldap_object.dn == old_dn
-
-
 async def test_publish_engagements_for_org_unit(dataloader: AsyncMock) -> None:
     amqpsystem = AsyncMock()
     amqpsystem.exchange_name = "my-unique-exchange-name"

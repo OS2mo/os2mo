@@ -126,31 +126,7 @@ def extract_part_from_dn(dn: str, index_string: str) -> str:
     return partial_dn
 
 
-def remove_part_from_dn(dn: str, index_string: str) -> str:
-    """
-    Remove a part from an LDAP DN string
-
-    Examples
-    -------------
-    >>> remove_part_from_dn("CN=Tobias,OU=mucki,OU=bar,DC=k","OU")
-    >>> "CN=Tobias,DC=k"
-    """
-    dn_parts = to_dn(dn)
-    parts = []
-    for dn_part in dn_parts:
-        dn_decomposed = parse_dn(dn_part)[0]
-        if dn_decomposed[0].lower() != index_string.lower():
-            parts.append(dn_part)
-
-    if not parts:
-        return ""
-    partial_dn: str = safe_dn(",".join(parts))
-    return partial_dn
-
-
 extract_ou_from_dn = partial(extract_part_from_dn, index_string="OU")
-extract_cn_from_dn = partial(extract_part_from_dn, index_string="CN")
-remove_cn_from_dn = partial(remove_part_from_dn, index_string="CN")
 
 
 def exchange_ou_in_dn(dn: str, new_ou: str) -> str:

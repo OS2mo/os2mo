@@ -35,6 +35,7 @@ from mo_ldap_import_export.ldap import get_ldap_object
 from mo_ldap_import_export.ldap import ldap_compare
 from mo_ldap_import_export.ldap import wait_for_message_id
 from mo_ldap_import_export.ldap_classes import LdapObject
+from mo_ldap_import_export.routes import load_ldap_OUs
 from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.usernames import UserNameGenerator
 from mo_ldap_import_export.utils import extract_ou_from_dn
@@ -1002,8 +1003,8 @@ async def test_load_ldap_OUs(
         },
     )
 
-    dataloader: DataLoader = context["user_context"]["dataloader"]
-    output = await dataloader.ldapapi.load_ldap_OUs(ldap_container_dn)
+    settings = context["user_context"]["settings"]
+    output = await load_ldap_OUs(settings, ldap_connection, ldap_container_dn)
 
     ou1 = extract_ou_from_dn(group_dn1)
     ou2 = extract_ou_from_dn(group_dn2)
