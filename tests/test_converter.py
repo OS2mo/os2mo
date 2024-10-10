@@ -531,37 +531,6 @@ EMPLOYEE_OBJ = {
     "objectClass": "ramodels.mo.employee.Employee",
     "uuid": "{{ employee_uuid }}",
 }
-MO_OBJ = {**EMPLOYEE_OBJ, "_export_to_ldap_": "true"}
-LDAP_OBJ = {**EMPLOYEE_OBJ, "_import_to_mo_": "true"}
-
-
-@pytest.mark.parametrize(
-    "overlay,expected",
-    [
-        (
-            {
-                "ldap_to_mo": {"foo": LDAP_OBJ, "bar": LDAP_OBJ},
-                "mo_to_ldap": {"bar": MO_OBJ},
-            },
-            "Missing keys in 'mo_to_ldap'",
-        ),
-        (
-            {
-                "ldap_to_mo": {"foo": LDAP_OBJ},
-                "mo_to_ldap": {"foo": MO_OBJ, "bar": MO_OBJ},
-            },
-            "Missing keys in 'ldap_to_mo'",
-        ),
-    ],
-)
-async def test_cross_check_keys(
-    converter_mapping: dict[str, Any],
-    overlay: dict[str, Any],
-    expected: str,
-) -> None:
-    converter_mapping.update(overlay)
-    with pytest.raises(ValidationError, match=expected):
-        parse_obj_as(ConversionMapping, converter_mapping)
 
 
 @pytest.mark.parametrize("class_name", ["foo", "bar"])

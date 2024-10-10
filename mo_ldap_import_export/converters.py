@@ -38,7 +38,7 @@ class LdapConverter:
         )
         mapping = delete_keys_from_dict(
             raw_mapping,
-            ["objectClass", "_import_to_mo_", "_export_to_ldap_"],
+            ["objectClass", "_import_to_mo_", "_export_to_ldap_", "_ldap_attributes_"],
         )
 
         from .environments import construct_environment
@@ -49,12 +49,19 @@ class LdapConverter:
     def find_ldap_object_class(self, json_key):
         return self.settings.conversion_mapping.mo_to_ldap[json_key].objectClass
 
-    def get_ldap_attributes(self, json_key, remove_dn=True):
-        ldap_attributes = list(self.mapping["mo_to_ldap"][json_key].keys())
-        if "dn" in ldap_attributes and remove_dn:
+    def get_ldap_attributes(self, json_key, remove_dn=True) -> list[str]:
+        # TODO: Convert to returning a set
+        ldap_attributes = self.settings.conversion_mapping.ldap_to_mo[
+            json_key
+        ].ldap_attributes
+        # TODO: Remove this line once every sets ldap_attributes
+        if ldap_attributes is None:
+            ldap_attributes = set(self.mapping["mo_to_ldap"][json_key].keys())
+
+        if remove_dn:
             # "dn" is the key which all LDAP objects have, not an attribute.
-            ldap_attributes.remove("dn")
-        return ldap_attributes
+            ldap_attributes.discard("dn")
+        return list(ldap_attributes)
 
     def get_mo_attributes(self, json_key):
         return list(self.mapping["ldap_to_mo"][json_key].keys())

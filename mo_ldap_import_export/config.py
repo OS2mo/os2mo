@@ -119,6 +119,12 @@ class LDAP2MOMapping(MappingBaseModel):
         alias="_mapper_",
         description="Jinja template for mapping between LDAP and MO objects",
     )
+    # TODO: Make required once everyone sets it
+    ldap_attributes: set[str] | None = Field(
+        None,
+        alias="_ldap_attributes_",
+        description="The attributes to fetch for LDAP, aka attributes available on the ldap object in templates",
+    )
 
     def import_to_mo_as_bool(self, manual_import: bool = False) -> bool:
         """
@@ -217,6 +223,7 @@ class LDAP2MOMapping(MappingBaseModel):
             "import_to_mo",
             "terminate",
             "mapper",
+            "ldap_attributes",
         }
         # Disallow validity until we introduce a consistent behavior in the future
         if "validity" in detected_attributes:
@@ -305,25 +312,6 @@ class ConversionMapping(MappingBaseModel):
     username_generator: UsernameGeneratorConfig = Field(
         default_factory=UsernameGeneratorConfig
     )
-
-    @root_validator(skip_on_failure=True)
-    def validate_cross_keys(cls, values: dict[str, Any]) -> dict[str, Any]:
-        # Check that all mo_to_ldap keys are also in ldap_to_mo
-        # Check that all ldap_to_mo keys are also in mo_to_ldap
-        mo_to_ldap_user_keys = set(values["mo_to_ldap"].keys())
-        ldap_to_mo_user_keys = set(values["ldap_to_mo"].keys())
-
-        # Check that all mo_to_ldap keys are also in ldap_to_mo
-        missing_ldap_to_mo = mo_to_ldap_user_keys - ldap_to_mo_user_keys
-        if missing_ldap_to_mo:
-            raise ValueError(f"Missing keys in 'ldap_to_mo': {missing_ldap_to_mo}")
-
-        # Check that all ldap_to_mo keys are also in mo_to_ldap
-        missing_mo_to_ldap = ldap_to_mo_user_keys - mo_to_ldap_user_keys
-        if missing_mo_to_ldap:
-            raise ValueError(f"Missing keys in 'mo_to_ldap': {missing_mo_to_ldap}")
-
-        return values
 
 
 class AuthBackendEnum(str, Enum):
