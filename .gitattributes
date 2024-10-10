@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+
+# Git on Windows automatically converts line endings to CRLF on checkout.
+# Files in dev-environment need to be mounted as-is to work properly in the Linux container.
+# Force proper line endings for these files, even on Windows.
+# https://docs.github.com/en/get-started/getting-started-with-git/configuring-git-to-handle-line-endings?platform=linux#per-repository-settings
+# https://git-scm.com/docs/gitattributes
+backend/** text eol=lf
+dev-environment/** text eol=lf
