@@ -455,11 +455,10 @@ def test_get_ldap_attributes(converter: LdapConverter) -> None:
     settings = Settings()
 
     converter_attributes = set(converter.get_ldap_attributes("Employee"))
-    raw_settings_attributes = settings.conversion_mapping.ldap_to_mo[
-        "Employee"
-    ].ldap_attributes
-    assert raw_settings_attributes is not None
-    assert converter_attributes == set(raw_settings_attributes)
+    settings_attributes = set(
+        settings.conversion_mapping.ldap_to_mo["Employee"].ldap_attributes
+    )
+    assert converter_attributes == settings_attributes
 
 
 async def test_get_ldap_attributes_dn_removed(
@@ -488,11 +487,10 @@ async def test_get_ldap_attributes_dn_removed(
     await converter._init()
 
     converter_attributes = set(converter.get_ldap_attributes("Employee"))
-    raw_settings_attributes = settings.conversion_mapping.ldap_to_mo[
-        "Employee"
-    ].ldap_attributes
-    assert raw_settings_attributes is not None
-    assert converter_attributes == set(raw_settings_attributes) - {"dn"}
+    settings_attributes = set(
+        settings.conversion_mapping.ldap_to_mo["Employee"].ldap_attributes
+    )
+    assert converter_attributes == settings_attributes - {"dn"}
 
 
 def test_get_mo_attributes(converter: LdapConverter) -> None:
