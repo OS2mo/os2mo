@@ -227,31 +227,6 @@ async def wait_for_message_id(
     return await loop.run_in_executor(None, ldap_connection.get_response, message_id)
 
 
-async def ldap_compare(ldap_connection, dn, attribute, value) -> bool:
-    message_id = ldap_connection.compare(dn, attribute, value)
-    _, result = await wait_for_message_id(ldap_connection, message_id)
-    match result["description"]:
-        case "compareTrue":
-            return True
-        case "compareFalse":
-            return False
-        # False is returned even if the entry is not found in the LDAP server.
-        # NOTE: This behavior is consistent with the old synchronous behavior.
-        case []:
-            return False
-        case "noSuchAttribute":
-            return False
-        # Unknown description, this is unexpected
-        case description:
-            logger.warning(
-                "Unknown comparison result",
-                attribute=attribute,
-                value=value,
-                description=description,
-            )
-            raise ValueError("Unknown comparison result")
-
-
 async def ldap_modify(ldap_connection, dn, changes) -> tuple[dict, dict]:
     message_id = ldap_connection.modify(dn, changes)
     response, result = await wait_for_message_id(ldap_connection, message_id)
