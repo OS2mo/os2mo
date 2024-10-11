@@ -720,30 +720,31 @@ class SyncTool:
         itusers = await self.mo_ituser_to_ldap(uuid, best_dn, mo_object_dict)
         engagements = await self.mo_engagement_to_ldap(uuid, best_dn, mo_object_dict)
 
-        changes = {**person_addresses, **org_unit_addresses, **itusers, **engagements}
-        all_changes = {"Employee": (ldap_employee, False), **changes}
+        changes = {
+            "Employee": (
+                ldap_employee,
+                # We do not generally terminate people in MO
+                False,
+            ),
+            **person_addresses,
+            **org_unit_addresses,
+            **itusers,
+            **engagements,
+        }
 
         # If dry-running we do not want to makes changes in LDAP
-        if dry_run:
-            return all_changes
+        if not dry_run:
+            for json_key, (ldap_object, delete) in changes.items():
+                # TODO: Does this moving even make sense?
+                #       What if an object already exists where we are trying to move?
+                #       If we move it, all other edits will fail.
+                #       Does anyone actually depend on this behavior?
+                ldap_object = await self.move_ldap_object(ldap_object, best_dn)
+                await self.dataloader.modify_ldap_object(
+                    ldap_object, json_key, delete=delete
+                )
 
-        # Upload person to LDAP
-        ldap_employee = await self.move_ldap_object(ldap_employee, best_dn)
-        await self.dataloader.modify_ldap_object(
-            ldap_employee,
-            "Employee",
-            # We do not generally terminate people in MO
-            delete=False,
-        )
-
-        # Upload changes
-        for json_key, (ldap_object, delete) in changes.items():
-            ldap_object = await self.move_ldap_object(ldap_object, best_dn)
-            await self.dataloader.modify_ldap_object(
-                ldap_object, json_key, delete=delete
-            )
-
-        return all_changes
+        return changes
 
     async def format_converted_objects(
         self,
