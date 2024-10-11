@@ -109,16 +109,12 @@ async def test_mapping(
     graphql_client: GraphQLClient,
     ldap_connection: Connection,
     ldap_person: list[str],
+    ldap_person_uuid: UUID,
     mo_person: UUID,
     values: set[str],
 ) -> None:
     person_uuid = mo_person
     dn = combine_dn_strings(ldap_person)
-
-    # Get UUID of the newly created LDAP user
-    result = await test_client.get(f"/Inspect/dn2uuid/{dn}")
-    assert result.status_code == 200
-    ldap_user_uuid = UUID(result.json())
 
     # Fetch data in MO
     phone_employee_address_type_uuid = one(
@@ -182,7 +178,7 @@ async def test_mapping(
         )
 
     # Trigger synchronization, we expect the addresses to be updated with new values
-    content = str(ldap_user_uuid)
+    content = str(ldap_person_uuid)
     headers = {"Content-Type": "text/plain"}
     result = await test_client.post("/ldap2mo/uuid", content=content, headers=headers)
     assert result.status_code == 200
