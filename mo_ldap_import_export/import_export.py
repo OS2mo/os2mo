@@ -684,15 +684,26 @@ class SyncTool:
             **itusers,
             **engagements,
         }
+        # Remove non-export entries
+        # TODO: Do not even spend time templating these out in the first place
+        # TODO: Why are they even defined if we do not use them?
+        export_changes = {
+            json_key: value
+            for json_key, value in changes.items()
+            if self.settings.conversion_mapping.mo_to_ldap[
+                json_key
+            ].export_to_ldap_as_bool()
+        }
+        no_export_changes = changes.keys() - export_changes.keys()
+        for json_key in no_export_changes:
+            logger.info("_export_to_ldap_ == False.", json_key=json_key)
 
         # If dry-running we do not want to makes changes in LDAP
         if not dry_run:
-            for json_key, (ldap_object, delete) in changes.items():
+            for ldap_object, delete in export_changes.values():
                 # Moving objects is not supported
                 assert ldap_object.dn == best_dn
-                await self.dataloader.modify_ldap_object(
-                    ldap_object, json_key, delete=delete
-                )
+                await self.dataloader.modify_ldap_object(ldap_object, delete=delete)
 
         return changes
 
