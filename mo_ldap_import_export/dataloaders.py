@@ -144,10 +144,7 @@ class DataLoader:
         delete: bool
             Set to True to delete contents in LDAP, instead of creating/modifying them
         """
-        parameters_to_modify = list(object_to_modify.dict().keys())
-
         logger.info("Uploading object", object_to_modify=object_to_modify)
-        parameters_to_modify = [p for p in parameters_to_modify if p != "dn"]
         dn = object_to_modify.dn
 
         # TODO: Remove this when ldap3s read-only flag works
@@ -168,21 +165,24 @@ class DataLoader:
             )
             return None
 
+        changes = {}
+
+        parameters_to_modify = list(object_to_modify.dict().keys())
+        parameters_to_modify = [p for p in parameters_to_modify if p != "dn"]
         for parameter_to_modify in parameters_to_modify:
             value = getattr(object_to_modify, parameter_to_modify)
             value_to_modify: list[str] = [] if value is None else [value]
             if delete:
                 value_to_modify = []
+            changes[parameter_to_modify] = [(MODIFY_REPLACE, value_to_modify)]
 
-            try:
-                # Modify LDAP
-                changes = {parameter_to_modify: [(MODIFY_REPLACE, value_to_modify)]}
-                logger.info("Uploading the changes", changes=changes, dn=dn)
-                _, result = await ldap_modify(self.ldap_connection, dn, changes)
-                logger.info("LDAP Result", result=result, dn=dn)
-            except LDAPInvalidValueError:
-                logger.warning("LDAPInvalidValueError exception", exc_info=True)
-                continue
+        try:
+            # Modify LDAP
+            logger.info("Uploading the changes", changes=changes, dn=dn)
+            _, result = await ldap_modify(self.ldap_connection, dn, changes)
+            logger.info("LDAP Result", result=result, dn=dn)
+        except LDAPInvalidValueError:
+            logger.warning("LDAPInvalidValueError exception", exc_info=True)
 
     async def find_mo_employee_uuid_via_cpr_number(self, dn: str) -> set[UUID]:
         cpr_number = await self.ldapapi.dn2cpr(dn)
