@@ -120,7 +120,7 @@ class LDAP2MOMapping(MappingBaseModel):
         description="Jinja template for mapping between LDAP and MO objects",
     )
     # TODO: Make required once everyone sets it
-    ldap_attributes: set[str] | None = Field(
+    ldap_attributes: list[str] | None = Field(
         None,
         alias="_ldap_attributes_",
         description="The attributes to fetch for LDAP, aka attributes available on the ldap object in templates",

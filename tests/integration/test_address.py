@@ -34,12 +34,14 @@ from mo_ldap_import_export.utils import mo_today
                     "Employee": {
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
+                        "_ldap_attributes_": ["employeeNumber"],
                         "uuid": "{{ employee_uuid or NONE }}",  # TODO: why is this required?
                         "cpr_no": "{{ldap.employeeNumber}}",
                     },
                     "EmailEmployee": {
                         "objectClass": "ramodels.mo.details.address.Address",
                         "_import_to_mo_": "true",
+                        "_ldap_attributes_": ["carLicense", "mail"],
                         "_mapper_": "{{ obj.address_type }}",
                         # carLicense is arbitrarily chosen as an enabled/disabled marker
                         "_terminate_": "{{ now()|mo_datestring if ldap.carLicense == 'EXPIRED' else NONE}}",
@@ -54,14 +56,7 @@ from mo_ldap_import_export.utils import mo_today
                     "Employee": {
                         "objectClass": "inetOrgPerson",
                         "_export_to_ldap_": "false",
-                        "employeeNumber": "{{mo_employee.cpr_no}}",
-                    },
-                    "EmailEmployee": {
-                        "objectClass": "inetOrgPerson",
-                        "_export_to_ldap_": "false",
-                        "mail": "{{ mo_employee_address.value }}",
-                        "carLicense": "unused but required",
-                    },
+                    }
                 },
                 # TODO: why is this required?
                 "username_generator": {
@@ -162,12 +157,14 @@ async def test_to_mo(
                     "Employee": {
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
+                        "_ldap_attributes_": ["employeeNumber"],
                         "uuid": "{{ employee_uuid or NONE }}",
                         "cpr_no": "{{ldap.employeeNumber}}",
                     },
                     "EmailEmployee": {
                         "objectClass": "ramodels.mo.details.address.Address",
                         "_import_to_mo_": "false",
+                        "_ldap_attributes_": ["mail"],
                         "_mapper_": "{{ obj.address_type }}",
                         "value": "{{ ldap.mail }}",
                         "address_type": "{{ dict(uuid=get_employee_address_type_uuid('EmailEmployee')) }}",
@@ -179,7 +176,6 @@ async def test_to_mo(
                     "Employee": {
                         "objectClass": "inetOrgPerson",
                         "_export_to_ldap_": "false",
-                        "employeeNumber": "{{mo_employee.cpr_no}}",
                     },
                     "EmailEmployee": {
                         "objectClass": "inetOrgPerson",

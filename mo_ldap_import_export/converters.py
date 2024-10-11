@@ -51,12 +51,13 @@ class LdapConverter:
 
     def get_ldap_attributes(self, json_key, remove_dn=True) -> list[str]:
         # TODO: Convert to returning a set
-        ldap_attributes = self.settings.conversion_mapping.ldap_to_mo[
+        raw_ldap_attributes = self.settings.conversion_mapping.ldap_to_mo[
             json_key
         ].ldap_attributes
         # TODO: Remove this line once every sets ldap_attributes
-        if ldap_attributes is None:
-            ldap_attributes = set(self.mapping["mo_to_ldap"][json_key].keys())
+        if raw_ldap_attributes is None:  # pragma: no cover
+            raw_ldap_attributes = self.mapping["mo_to_ldap"][json_key].keys()
+        ldap_attributes = set(raw_ldap_attributes)
 
         if remove_dn:
             # "dn" is the key which all LDAP objects have, not an attribute.

@@ -111,6 +111,7 @@ def minimal_mapping() -> dict[str, Any]:
             "Employee": {
                 "objectClass": "ramodels.mo.employee.Employee",
                 "_import_to_mo_": "false",
+                "_ldap_attributes_": ["employeeID"],
                 "cpr_no": "{{ldap.employeeID or None}}",
                 "uuid": "{{ employee_uuid or NONE }}",
             }
@@ -162,6 +163,7 @@ def integration_test_environment_variables(monkeypatch: pytest.MonkeyPatch) -> N
             "Employee": {
                 "objectClass": "ramodels.mo.employee.Employee",
                 "_import_to_mo_": "false",
+                "_ldap_attributes_": ["employeeNumber", "title", "givenName", "sn"],
                 "uuid": "{{ employee_uuid or NONE }}",
                 "cpr_no": "{{ldap.employeeNumber|strip_non_digits or NONE}}",
                 "user_key": "{{ ldap.title }}",

@@ -379,12 +379,14 @@ async def test_changed_since(test_client: AsyncClient, expected: list[str]) -> N
                     "Employee": {
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
+                        "_ldap_attributes_": ["employeeNumber"],
                         "uuid": "{{ employee_uuid or NONE }}",
                         "cpr_no": "{{ldap.employeeNumber|strip_non_digits or NONE}}",
                     },
                     "PublicEmailAddress": {
                         "objectClass": "ramodels.mo.details.address.Address",
                         "_import_to_mo_": "true",
+                        "_ldap_attributes_": ["mail"],
                         "value": "{{ ldap.mail or NONE }}",
                         "address_type": "{{ dict(uuid=get_employee_address_type_uuid('EmailEmployee')) }}",
                         "person": "{{ dict(uuid=employee_uuid or NONE) }}",
@@ -395,12 +397,6 @@ async def test_changed_since(test_client: AsyncClient, expected: list[str]) -> N
                     "Employee": {
                         "objectClass": "inetOrgPerson",
                         "_export_to_ldap_": "false",
-                        "employeeNumber": "{{mo_employee.cpr_no}}",
-                    },
-                    "PublicEmailAddress": {
-                        "objectClass": "inetOrgPerson",
-                        "_export_to_ldap_": "false",
-                        "mail": "{{ mo_employee_address.value }}",
                     },
                 },
                 "username_generator": {
@@ -498,12 +494,14 @@ async def test_mismatched_json_key_and_address_type(
                     "Employee": {
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
+                        "_ldap_attributes_": ["employeeNumber"],
                         "uuid": "{{ employee_uuid or NONE }}",
                         "cpr_no": "{{ldap.employeeNumber|strip_non_digits or NONE}}",
                     },
                     "EntryUUID": {
                         "objectClass": "ramodels.mo.details.it_system.ITUser",
                         "_import_to_mo_": "true",
+                        "_ldap_attributes_": ["entryUUID"],
                         "user_key": "{{ ldap.entryUUID or NONE }}",
                         "itsystem": "{{ dict(uuid=get_it_system_uuid('ADUUID')) }}",
                         "person": "{{ dict(uuid=employee_uuid or NONE) }}",
@@ -513,12 +511,6 @@ async def test_mismatched_json_key_and_address_type(
                     "Employee": {
                         "objectClass": "inetOrgPerson",
                         "_export_to_ldap_": "false",
-                        "employeeNumber": "{{mo_employee.cpr_no}}",
-                    },
-                    "EntryUUID": {
-                        "objectClass": "inetOrgPerson",
-                        "_export_to_ldap_": "false",
-                        "entryUUID": "{{ mo_employee_it_user.user_key }}",
                     },
                 },
                 "username_generator": {
@@ -599,12 +591,14 @@ async def test_mismatched_json_key_and_itsystem(
                     "Employee": {
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
+                        "_ldap_attributes_": ["employeeNumber"],
                         "uuid": "{{ employee_uuid or NONE }}",
                         "cpr_no": "{{ldap.employeeNumber|strip_non_digits or NONE}}",
                     },
                     "DefaultValidity": {
                         "objectClass": "ramodels.mo.details.it_system.ITUser",
                         "_import_to_mo_": "true",
+                        "_ldap_attributes_": ["entryUUID"],
                         "user_key": "{{ ldap.entryUUID or NONE }}",
                         "itsystem": "{{ dict(uuid=get_it_system_uuid('ADUUID')) }}",
                         "person": "{{ dict(uuid=employee_uuid or NONE) }}",
@@ -614,13 +608,7 @@ async def test_mismatched_json_key_and_itsystem(
                     "Employee": {
                         "objectClass": "inetOrgPerson",
                         "_export_to_ldap_": "false",
-                        "employeeNumber": "{{mo_employee.cpr_no}}",
-                    },
-                    "DefaultValidity": {
-                        "objectClass": "inetOrgPerson",
-                        "_export_to_ldap_": "false",
-                        "entryUUID": "{{ mo_employee_it_user.user_key }}",
-                    },
+                    }
                 },
                 "username_generator": {
                     "objectClass": "UserNameGenerator",

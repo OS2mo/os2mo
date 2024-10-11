@@ -132,6 +132,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
             "Employee": {
                 "objectClass": "ramodels.mo.employee.Employee",
                 "_import_to_mo_": "false",
+                "_ldap_attributes_": [],
                 "uuid": "{{ employee_uuid or NONE }}",
             }
         },
