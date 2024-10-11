@@ -35,6 +35,7 @@ from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.ldap import ldap_delete
 from mo_ldap_import_export.ldap import ldap_search
 from mo_ldap_import_export.ldap_classes import LdapObject
+from mo_ldap_import_export.ldapapi import LDAPAPI
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
 from mo_ldap_import_export.moapi import MOAPI
@@ -389,6 +390,12 @@ async def graphql_client(context: Context) -> GraphQLClient:
 async def mo_api(settings: Settings, graphql_client: GraphQLClient) -> MOAPI:
     """MO API GraphQL wrapper."""
     return MOAPI(settings, graphql_client)
+
+
+@pytest.fixture
+async def ldap_api(ldap_connection: Connection) -> LDAPAPI:
+    """LDAP API."""
+    return LDAPAPI(Settings(), ldap_connection)
 
 
 @pytest.fixture
