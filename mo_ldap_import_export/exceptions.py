@@ -56,11 +56,6 @@ class IgnoreChanges(HTTPException):
         super().__init__(status_code=451, detail=message)
 
 
-class InvalidChangeDict(HTTPException):
-    def __init__(self, message):
-        super().__init__(status_code=422, detail=message)
-
-
 class InvalidCPR(HTTPException):
     def __init__(self, message):
         super().__init__(status_code=422, detail=message)

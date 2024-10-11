@@ -392,6 +392,41 @@ async def test_upload_ldap_object_invalid_value(
         assert last_warning_message == "LDAPInvalidValueError exception"
 
 
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+async def test_modify_ldap_object_read_only(
+    dataloader: DataLoader,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("LDAP_READ_ONLY", "True")
+    dataloader.settings = Settings()
+
+    with pytest.raises(ReadOnlyException) as exc_info:
+        await dataloader.modify_ldap_object(MagicMock(), False)
+    assert "LDAP connection is read-only" in str(exc_info.value)
+
+
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+async def test_modify_ldap_object_invalid_ou(
+    dataloader: DataLoader,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("LDAP_OUS_TO_WRITE_TO", '["OU=non-existent"]')
+    settings = Settings()
+
+    dataloader.settings = settings
+    dataloader.ldapapi = LDAPAPI(settings, dataloader.ldap_connection)
+
+    ldap_object = LdapObject(dn="UID=abk,OU=os2mo,O=magenta,DC=magenta,DC=dk")
+    with capture_logs() as cap_logs:
+        await dataloader.modify_ldap_object(ldap_object, False)
+    messages = [w["event"] for w in cap_logs]
+    assert messages == [
+        "Uploading object",
+        "OU not in OUs to write",
+        "Not allowed to write to the specified OU",
+    ]
+
+
 async def test_load_mo_employee(
     dataloader: DataLoader, graphql_mock: GraphQLMocker
 ) -> None:
@@ -1216,64 +1251,6 @@ async def test_is_primaries(
     assert primary == expected
 
     assert is_primary_engagements_route.called
-
-
-async def test_modify_ldap(
-    dataloader: DataLoader,
-    sync_tool: AsyncMock,
-    ldap_connection: MagicMock,
-    monkeypatch: pytest.MonkeyPatch,
-):
-    def setup_mock(compares: bool = False):
-        result = "compareTrue" if compares else "compareFalse"
-        ldap_connection.get_response.return_value = (
-            [],
-            {"type": "test", "description": result},
-        )
-
-        def set_new_result(*args, **kwargs):
-            ldap_connection.get_response.return_value = (
-                [],
-                {"type": "test", "description": "success"},
-            )
-
-        ldap_connection.modify.side_effect = set_new_result
-
-    dn = "CN=foo"
-
-    # Validate that empty lists are allowed
-    setup_mock()
-    await dataloader.ldapapi.modify_ldap(dn, "parameter_to_modify", [])
-
-    # Simulate case where a value exists
-    with capture_logs() as cap_logs:
-        setup_mock(True)
-        await dataloader.ldapapi.modify_ldap(dn, "parameter_to_modify", [])
-        messages = [w["event"] for w in cap_logs]
-        assert messages == ["Uploading the changes", "LDAP Result"]
-
-    # DELETE statments should still be executed, even if a value exists
-    setup_mock()
-    response = await dataloader.ldapapi.modify_ldap(dn, "parameter_to_modify", "foo")
-    assert response == {"description": "success", "type": "test"}
-
-    monkeypatch.setenv("LDAP_READ_ONLY", "true")
-    dataloader.ldapapi.settings = Settings()
-    with pytest.raises(ReadOnlyException) as exc:
-        setup_mock()
-        await dataloader.ldapapi.modify_ldap(dn, "parameter_to_modify", [])
-    assert "LDAP connection is read-only" in str(exc.value)
-
-
-async def test_modify_ldap_ou_not_in_ous_to_write_to(
-    dataloader: DataLoader,
-    sync_tool: AsyncMock,
-    ldap_connection: MagicMock,
-):
-    dataloader.ldapapi.ou_in_ous_to_write_to = MagicMock()  # type: ignore
-    dataloader.ldapapi.ou_in_ous_to_write_to.return_value = False
-
-    assert await dataloader.ldapapi.modify_ldap("CN=foo", "attribute", "value") is None  # type: ignore
 
 
 @pytest.mark.envvar({"LDAP_IT_SYSTEM": "ADUUID"})

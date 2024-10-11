@@ -17,6 +17,7 @@ from fastapi.encoders import jsonable_encoder
 from fastramqpi.context import Context
 from fastramqpi.raclients.modelclient.mo import ModelClient as LegacyModelClient
 from fastramqpi.ramqp.mo import MOAMQPSystem
+from ldap3 import MODIFY_REPLACE
 from ldap3 import Connection
 from ldap3.core.exceptions import LDAPInvalidValueError
 from more_itertools import bucket
@@ -44,7 +45,9 @@ from .config import Settings
 from .exceptions import DNNotFound
 from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
+from .exceptions import ReadOnlyException
 from .ldap import is_uuid
+from .ldap import ldap_modify
 from .ldap_classes import LdapObject
 from .ldapapi import LDAPAPI
 from .moapi import MOAPI
@@ -147,6 +150,24 @@ class DataLoader:
         parameters_to_modify = [p for p in parameters_to_modify if p != "dn"]
         dn = object_to_modify.dn
 
+        # TODO: Remove this when ldap3s read-only flag works
+        if self.settings.ldap_read_only:
+            logger.info(
+                "LDAP connection is read-only",
+                operation="modify_ldap",
+                dn=dn,
+            )
+            raise ReadOnlyException("LDAP connection is read-only")
+
+        # Checks
+        if not self.ldapapi.ou_in_ous_to_write_to(dn):
+            logger.info(
+                "Not allowed to write to the specified OU",
+                operation="modify_ldap",
+                dn=dn,
+            )
+            return None
+
         for parameter_to_modify in parameters_to_modify:
             value = getattr(object_to_modify, parameter_to_modify)
             value_to_modify: list[str] = [] if value is None else [value]
@@ -154,7 +175,11 @@ class DataLoader:
                 value_to_modify = []
 
             try:
-                await self.ldapapi.modify_ldap(dn, parameter_to_modify, value_to_modify)
+                # Modify LDAP
+                changes = {parameter_to_modify: [(MODIFY_REPLACE, value_to_modify)]}
+                logger.info("Uploading the changes", changes=changes, dn=dn)
+                _, result = await ldap_modify(self.ldap_connection, dn, changes)
+                logger.info("LDAP Result", result=result, dn=dn)
             except LDAPInvalidValueError:
                 logger.warning("LDAPInvalidValueError exception", exc_info=True)
                 continue
