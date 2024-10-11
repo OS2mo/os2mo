@@ -1,13 +1,14 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
+from unittest.mock import AsyncMock
+from uuid import UUID
+
 import pytest
 from fastapi import FastAPI
 from fastramqpi.depends import from_user_context
 from httpx import AsyncClient
 from structlog.testing import capture_logs
-from unittest.mock import AsyncMock
-from uuid import UUID
 
 
 @pytest.mark.integration_test

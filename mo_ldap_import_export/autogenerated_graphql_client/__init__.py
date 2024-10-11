@@ -10,6 +10,10 @@ from ._testing__address_read import TestingAddressReadAddressesObjectsValidities
 from ._testing__address_read import (
     TestingAddressReadAddressesObjectsValiditiesVisibility,
 )
+from ._testing__employee_read import TestingEmployeeRead
+from ._testing__employee_read import TestingEmployeeReadEmployees
+from ._testing__employee_read import TestingEmployeeReadEmployeesObjects
+from ._testing__employee_read import TestingEmployeeReadEmployeesObjectsValidities
 from ._testing__engagement_read import TestingEngagementRead
 from ._testing__engagement_read import TestingEngagementReadEngagements
 from ._testing__engagement_read import TestingEngagementReadEngagementsObjects
@@ -63,6 +67,8 @@ from ._testing_org_unit_create import TestingOrgUnitCreate
 from ._testing_org_unit_create import TestingOrgUnitCreateOrgUnitCreate
 from ._testing_user_create import TestingUserCreate
 from ._testing_user_create import TestingUserCreateEmployeeCreate
+from ._testing_user_update import TestingUserUpdate
+from ._testing_user_update import TestingUserUpdateEmployeeUpdate
 from .address_terminate import AddressTerminate
 from .address_terminate import AddressTerminateAddressTerminate
 from .async_base_client import AsyncBaseClient
@@ -678,6 +684,10 @@ __all__ = [
     "TestingAddressTerminateAddressTerminate",
     "TestingAddressUpdate",
     "TestingAddressUpdateAddressUpdate",
+    "TestingEmployeeRead",
+    "TestingEmployeeReadEmployees",
+    "TestingEmployeeReadEmployeesObjects",
+    "TestingEmployeeReadEmployeesObjectsValidities",
     "TestingEngagementCreate",
     "TestingEngagementCreateEngagementCreate",
     "TestingEngagementRead",
@@ -713,6 +723,8 @@ __all__ = [
     "TestingOrgUnitCreateOrgUnitCreate",
     "TestingUserCreate",
     "TestingUserCreateEmployeeCreate",
+    "TestingUserUpdate",
+    "TestingUserUpdateEmployeeUpdate",
     "UuidsBoundClassFilter",
     "UuidsBoundEmployeeFilter",
     "UuidsBoundEngagementFilter",
