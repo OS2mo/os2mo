@@ -165,7 +165,7 @@ class DataLoader:
             )
             return None
 
-        changes = {}
+        requested_changes = {}
 
         parameters_to_modify = list(object_to_modify.dict().keys())
         parameters_to_modify = [p for p in parameters_to_modify if p != "dn"]
@@ -174,11 +174,16 @@ class DataLoader:
             value_to_modify: list[str] = [] if value is None else [value]
             if delete:
                 value_to_modify = []
-            changes[parameter_to_modify] = [(MODIFY_REPLACE, value_to_modify)]
+            requested_changes[parameter_to_modify] = value_to_modify
 
+        # Transform key-value changes to LDAP format
+        changes = {
+            attribute: [(MODIFY_REPLACE, value)]
+            for attribute, value in requested_changes.items()
+        }
         try:
             # Modify LDAP
-            logger.info("Uploading the changes", changes=changes, dn=dn)
+            logger.info("Uploading the changes", changes=requested_changes, dn=dn)
             _, result = await ldap_modify(self.ldap_connection, dn, changes)
             logger.info("LDAP Result", result=result, dn=dn)
         except LDAPInvalidValueError:
