@@ -25,11 +25,6 @@ class NoObjectsReturnedException(HTTPException):
         super().__init__(status_code=500, detail=message)
 
 
-class AttributeNotFound(HTTPException):
-    def __init__(self, message):
-        super().__init__(status_code=404, detail=message)
-
-
 class IncorrectMapping(HTTPException):
     """Raised when the integration is improperly configured."""
 
