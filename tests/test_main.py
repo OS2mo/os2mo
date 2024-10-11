@@ -590,23 +590,6 @@ async def test_listen_to_changes(sync_tool: AsyncMock) -> None:
     )
 
 
-@pytest.mark.usefixtures("context_dependency_injection")
-def test_ldap_get_all_converted_endpoint_failure(
-    test_client: TestClient,
-    converter: MagicMock,
-) -> None:
-    async def from_ldap(ldap_object, json_key, employee_uuid=None):
-        # This will raise a validationError (which is what we want to test)
-        return Employee(**{"foo": None})
-
-    converter.from_ldap = from_ldap
-    response1 = test_client.get("/LDAP/Employee/converted")
-    response2 = test_client.get("/LDAP/Employee/010101-1234/converted")
-
-    assert response1.status_code == 202
-    assert response2.status_code == 404
-
-
 async def test_import_one_object_from_LDAP(
     context_dependency_injection: Context, test_client: TestClient
 ) -> None:

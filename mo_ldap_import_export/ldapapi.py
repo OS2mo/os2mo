@@ -22,9 +22,13 @@ from .exceptions import ReadOnlyException
 from .ldap import get_ldap_object
 from .ldap import ldap_add
 from .ldap import ldap_modify
+from .ldap import make_ldap_object
+from .ldap import object_search
 from .ldap import single_object_search
+from .ldap_classes import LdapObject
 from .types import DN
 from .types import CPRNumber
+from .utils import combine_dn_strings
 from .utils import extract_ou_from_dn
 from .utils import is_exception
 
@@ -223,3 +227,38 @@ class LDAPAPI:
             assert cpr_no is not None
             return CPRNumber(cpr_no)
         return None
+
+    async def cpr2dns(self, cpr_no: CPRNumber) -> set[DN]:
+        try:
+            validate_cpr(cpr_no)
+        except (ValueError, TypeError) as error:
+            raise NoObjectsReturnedException(f"cpr_no '{cpr_no}' is invalid") from error
+
+        if not self.settings.ldap_cpr_attribute:
+            raise NoObjectsReturnedException("cpr_field is not configured")
+
+        search_base = self.settings.ldap_search_base
+        ous_to_search_in = self.settings.ldap_ous_to_search_in
+        search_bases = [
+            combine_dn_strings([ou, search_base]) for ou in ous_to_search_in
+        ]
+        object_class = self.settings.conversion_mapping.mo_to_ldap[
+            "Employee"
+        ].objectClass
+
+        object_class_filter = f"objectclass={object_class}"
+        cpr_filter = f"{self.settings.ldap_cpr_attribute}={cpr_no}"
+
+        searchParameters = {
+            "search_base": search_bases,
+            "search_filter": f"(&({object_class_filter})({cpr_filter}))",
+            "attributes": [],
+        }
+        search_results = await object_search(searchParameters, self.ldap_connection)
+        ldap_objects: list[LdapObject] = [
+            await make_ldap_object(search_result, self.ldap_connection)
+            for search_result in search_results
+        ]
+        dns = {obj.dn for obj in ldap_objects}
+        logger.info("Found LDAP(s) object", dns=dns)
+        return set(dns)
