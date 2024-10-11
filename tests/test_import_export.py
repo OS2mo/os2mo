@@ -114,7 +114,7 @@ async def test_listen_to_changes_in_employees_person(
     sync_tool.mo_ituser_to_ldap = no_changes_async_mock  # type: ignore
     sync_tool.mo_engagement_to_ldap = no_changes_async_mock  # type: ignore
 
-    converted_ldap_object = LdapObject(dn="CN=foo")
+    converted_ldap_object = LdapObject(dn="CN=foo", givenName="newname")
     converter.to_ldap.return_value = converted_ldap_object
 
     employee_uuid = uuid4()
@@ -127,7 +127,7 @@ async def test_listen_to_changes_in_employees_person(
     assert converter.to_ldap.called
     assert dataloader.modify_ldap_object.called
     dataloader.modify_ldap_object.assert_called_with(
-        converted_ldap_object, delete=False
+        "CN=foo", {"givenName": ["newname"]}
     )
 
 
@@ -142,7 +142,9 @@ async def test_listen_to_changes_in_employees_org_unit_address(
     no_changes_async_mock = AsyncMock()
     no_changes_async_mock.return_value = {}
     sync_tool.mo_person_to_ldap = AsyncMock()  # type: ignore
-    sync_tool.mo_person_to_ldap.return_value = LdapObject(dn="CN=foo")
+    sync_tool.mo_person_to_ldap.return_value = LdapObject(
+        dn="CN=foo", givenName="newname"
+    )
     sync_tool.mo_address_to_ldap = no_changes_async_mock  # type: ignore
     sync_tool.mo_ituser_to_ldap = no_changes_async_mock  # type: ignore
     sync_tool.mo_engagement_to_ldap = no_changes_async_mock  # type: ignore
@@ -218,7 +220,7 @@ async def test_listen_to_changes_in_employees_org_unit_address(
     assert read_engagements_is_primary_route.called
     assert route.called
     dataloader.modify_ldap_object.assert_called_with(
-        converted_ldap_object, delete=False
+        "CN=foo", {"givenName": ["newname"]}
     )
     dataloader.modify_ldap_object.reset_mock()
 
@@ -227,7 +229,7 @@ async def test_listen_to_changes_in_employees_org_unit_address(
     await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert read_engagements_is_primary_route.called
     dataloader.modify_ldap_object.assert_called_once_with(
-        LdapObject(dn="CN=foo"), delete=False
+        "CN=foo", {"givenName": ["newname"]}
     )
 
     read_engagements_is_primary_route.result = read_engagements_is_primary_result
@@ -285,7 +287,9 @@ async def test_listen_to_changes_in_employees_address(
     no_changes_async_mock = AsyncMock()
     no_changes_async_mock.return_value = {}
     sync_tool.mo_person_to_ldap = AsyncMock()  # type: ignore
-    sync_tool.mo_person_to_ldap.return_value = LdapObject(dn="CN=foo")
+    sync_tool.mo_person_to_ldap.return_value = LdapObject(
+        dn="CN=foo", givenName="newname"
+    )
     sync_tool.mo_org_unit_address_to_ldap = no_changes_async_mock  # type: ignore
     sync_tool.mo_ituser_to_ldap = no_changes_async_mock  # type: ignore
     sync_tool.mo_engagement_to_ldap = no_changes_async_mock  # type: ignore
@@ -340,7 +344,7 @@ async def test_listen_to_changes_in_employees_address(
     await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert route.called
     dataloader.modify_ldap_object.assert_called_with(
-        converted_ldap_object, delete=False
+        "CN=foo", {"givenName": ["newname"]}
     )
 
     # Test expected behavior when reading multiple addresses of the same type
@@ -395,7 +399,9 @@ async def test_listen_to_changes_in_employees_ituser(
     no_changes_async_mock = AsyncMock()
     no_changes_async_mock.return_value = {}
     sync_tool.mo_person_to_ldap = AsyncMock()  # type: ignore
-    sync_tool.mo_person_to_ldap.return_value = LdapObject(dn="CN=foo")
+    sync_tool.mo_person_to_ldap.return_value = LdapObject(
+        dn="CN=foo", givenName="newname"
+    )
     sync_tool.mo_address_to_ldap = no_changes_async_mock  # type: ignore
     sync_tool.mo_org_unit_address_to_ldap = no_changes_async_mock  # type: ignore
     sync_tool.mo_engagement_to_ldap = no_changes_async_mock  # type: ignore
@@ -448,7 +454,7 @@ async def test_listen_to_changes_in_employees_ituser(
     await sync_tool.listen_to_changes_in_employees(employee_uuid)
     assert route.called
     dataloader.modify_ldap_object.assert_called_with(
-        converted_ldap_object, delete=False
+        "CN=foo", {"givenName": ["newname"]}
     )
 
     # Test expected behavior when reading multiple addresses of the same type
@@ -503,7 +509,9 @@ async def test_listen_to_changes_in_employees_engagement(
     no_changes_async_mock = AsyncMock()
     no_changes_async_mock.return_value = {}
     sync_tool.mo_person_to_ldap = AsyncMock()  # type: ignore
-    sync_tool.mo_person_to_ldap.return_value = LdapObject(dn="CN=foo")
+    sync_tool.mo_person_to_ldap.return_value = LdapObject(
+        dn="CN=foo", givenName="newname"
+    )
     sync_tool.mo_address_to_ldap = no_changes_async_mock  # type: ignore
     sync_tool.mo_org_unit_address_to_ldap = no_changes_async_mock  # type: ignore
     sync_tool.mo_ituser_to_ldap = no_changes_async_mock  # type: ignore
@@ -584,7 +592,7 @@ async def test_listen_to_changes_in_employees_engagement(
     assert route1.called
     assert route2.called
     dataloader.modify_ldap_object.assert_called_with(
-        converted_ldap_object, delete=False
+        "CN=foo", {"givenName": ["newname"]}
     )
 
     # Test expected behavior when unable to read any engagements
