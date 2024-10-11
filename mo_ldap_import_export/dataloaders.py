@@ -132,7 +132,7 @@ class DataLoader:
         self,
         object_to_modify: LdapObject,
         delete: bool = False,
-    ) -> list[dict]:
+    ) -> None:
         """
         Parameters
         -------------
@@ -141,15 +141,11 @@ class DataLoader:
         delete: bool
             Set to True to delete contents in LDAP, instead of creating/modifying them
         """
-        success = 0
-        failed = 0
-
         parameters_to_modify = list(object_to_modify.dict().keys())
 
         logger.info("Uploading object", object_to_modify=object_to_modify)
         parameters_to_modify = [p for p in parameters_to_modify if p != "dn"]
         dn = object_to_modify.dn
-        results = []
 
         for parameter_to_modify in parameters_to_modify:
             value = getattr(object_to_modify, parameter_to_modify)
@@ -158,29 +154,10 @@ class DataLoader:
                 value_to_modify = []
 
             try:
-                response = await self.ldapapi.modify_ldap(
-                    dn, parameter_to_modify, value_to_modify
-                )
+                await self.ldapapi.modify_ldap(dn, parameter_to_modify, value_to_modify)
             except LDAPInvalidValueError:
                 logger.warning("LDAPInvalidValueError exception", exc_info=True)
-                failed += 1
                 continue
-
-            if response and response["description"] == "success":
-                success += 1
-            elif response:
-                failed += 1
-
-            if response:
-                results.append(response)
-
-        logger.info(
-            "Succeeded/failed MODIFY_* operations",
-            success=success,
-            failed=failed,
-        )
-
-        return results
 
     async def find_mo_employee_uuid_via_cpr_number(self, dn: str) -> set[UUID]:
         cpr_number = await self.ldapapi.dn2cpr(dn)
