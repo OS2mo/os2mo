@@ -136,16 +136,19 @@ async def test_to_mo(
                         "uuid": "{{ employee_uuid or NONE }}",
                     },
                 },
-                "mo_to_ldap": {
-                    "Employee": {
-                        "_export_to_ldap_": "true",
-                        "employeeNumber": "{{ mo_employee.cpr_no }}",
-                        "carLicense": "{{ mo_employee.uuid }}",
-                        "sn": "{{ mo_employee.surname }}",
-                        "givenName": "{{ mo_employee.givenname }}",
-                        "displayName": "{{ mo_employee.nickname_givenname }} {{ mo_employee.nickname_surname }}",
-                    },
-                },
+                "mo2ldap": """
+                    {% set mo_employee = load_mo_employee(uuid, current_objects_only=False) %}
+                    {{
+                        {
+                            "employeeNumber": mo_employee.cpr_no,
+                            "carLicense": mo_employee.uuid|string,
+                            "sn": mo_employee.surname,
+                            "givenName": mo_employee.givenname,
+                            "displayName": mo_employee.nickname_givenname + " " + mo_employee.nickname_surname
+                        }|tojson
+                    }}
+                """,
+                "mo_to_ldap": {},
                 # TODO: why is this required?
                 "username_generator": {
                     "objectClass": "UserNameGenerator",

@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
+import json
 from collections import ChainMap
 from collections.abc import Awaitable
 from collections.abc import Callable
@@ -620,6 +621,18 @@ class SyncTool:
             raise RequeueMessage("Unable to generate DN") from error
         return best_dn
 
+    async def render_ldap2mo(self, uuid: EmployeeUUID, dn: DN) -> dict[str, list[Any]]:
+        await self.perform_export_checks(uuid, uuid)
+
+        mo2ldap_template = self.settings.conversion_mapping.mo2ldap
+        assert mo2ldap_template is not None
+        template = self.converter.environment.from_string(mo2ldap_template)
+        result = await template.render_async({"uuid": uuid, "dn": dn})
+        parsed = json.loads(result)
+        assert isinstance(parsed, dict)
+        assert all(isinstance(key, str) for key in parsed)
+        return parsed
+
     @with_exitstack
     async def listen_to_changes_in_employees(
         self,
@@ -642,64 +655,75 @@ class SyncTool:
 
         exit_stack.enter_context(bound_contextvars(dn=best_dn))
 
-        # Get MO employee
-        changed_employee = await self.dataloader.moapi.load_mo_employee(
-            uuid, current_objects_only=False
-        )
-        if changed_employee is None:
-            logger.error("Unable to load mo employee")
-            raise RequeueMessage("Unable to load mo object")
-        logger.info("Found Employee in MO", changed_employee=changed_employee)
+        mo2ldap_template = self.settings.conversion_mapping.mo2ldap
+        if mo2ldap_template:
+            ldap_changes = await self.render_ldap2mo(uuid, best_dn)
+        else:
+            # TODO: Remove this when everyone uses the new template
 
-        mo_object_dict: dict[str, Any] = {"mo_employee": changed_employee}
+            # Get MO employee
+            changed_employee = await self.dataloader.moapi.load_mo_employee(
+                uuid, current_objects_only=False
+            )
+            if changed_employee is None:
+                logger.error("Unable to load mo employee")
+                raise RequeueMessage("Unable to load mo object")
+            logger.info("Found Employee in MO", changed_employee=changed_employee)
 
-        ldap_employee = await self.mo_person_to_ldap(uuid, best_dn, mo_object_dict)
-        person_addresses = await self.mo_address_to_ldap(uuid, best_dn, mo_object_dict)
-        org_unit_addresses = await self.mo_org_unit_address_to_ldap(
-            uuid, best_dn, mo_object_dict
-        )
-        itusers = await self.mo_ituser_to_ldap(uuid, best_dn, mo_object_dict)
-        engagements = await self.mo_engagement_to_ldap(uuid, best_dn, mo_object_dict)
+            mo_object_dict: dict[str, Any] = {"mo_employee": changed_employee}
 
-        changes = {
-            "Employee": (
-                ldap_employee,
-                # We do not generally terminate people in MO
-                False,
-            ),
-            **person_addresses,
-            **org_unit_addresses,
-            **itusers,
-            **engagements,
-        }
-        # Moving objects is not supported
-        for ldap_object, _ in changes.values():
-            assert ldap_object.dn == best_dn
+            ldap_employee = await self.mo_person_to_ldap(uuid, best_dn, mo_object_dict)
+            person_addresses = await self.mo_address_to_ldap(
+                uuid, best_dn, mo_object_dict
+            )
+            org_unit_addresses = await self.mo_org_unit_address_to_ldap(
+                uuid, best_dn, mo_object_dict
+            )
+            itusers = await self.mo_ituser_to_ldap(uuid, best_dn, mo_object_dict)
+            engagements = await self.mo_engagement_to_ldap(
+                uuid, best_dn, mo_object_dict
+            )
 
-        # Remove non-export entries
-        # TODO: Do not even spend time templating these out in the first place
-        # TODO: Why are they even defined if we do not use them?
-        export_changes = {
-            json_key: value
-            for json_key, value in changes.items()
-            if self.settings.conversion_mapping.mo_to_ldap[
-                json_key
-            ].export_to_ldap_as_bool()
-        }
-        no_export_changes = changes.keys() - export_changes.keys()
-        for json_key in no_export_changes:
-            logger.info("_export_to_ldap_ == False.", json_key=json_key)
+            changes = {
+                "Employee": (
+                    ldap_employee,
+                    # We do not generally terminate people in MO
+                    False,
+                ),
+                **person_addresses,
+                **org_unit_addresses,
+                **itusers,
+                **engagements,
+            }
+            # Moving objects is not supported
+            for ldap_object, _ in changes.values():
+                assert ldap_object.dn == best_dn
 
-        # Keys are unique across all mappers by pydantic validation
-        ldap_changes: dict[str, Any] = {
-            # NOTE: Replacing with an empty list works like deleting
-            key: [] if (delete or value is None) else [value]
-            for ldap_object, delete in export_changes.values()
-            for key, value in ldap_object.dict().items()
-        }
-        # Cannot template 'dn' out
-        # TODO: Move this to settings validator
-        ldap_changes.pop("dn", None)
+            # Remove non-export entries
+            # TODO: Do not even spend time templating these out in the first place
+            # TODO: Why are they even defined if we do not use them?
+            export_changes = {
+                json_key: value
+                for json_key, value in changes.items()
+                if self.settings.conversion_mapping.mo_to_ldap[
+                    json_key
+                ].export_to_ldap_as_bool()
+            }
+            no_export_changes = changes.keys() - export_changes.keys()
+            for json_key in no_export_changes:
+                logger.info("_export_to_ldap_ == False.", json_key=json_key)
+
+            # Keys are unique across all mappers by pydantic validation
+            ldap_changes = {
+                # NOTE: Replacing with an empty list works like deleting
+                key: [] if (delete or value is None) else [value]
+                for ldap_object, delete in export_changes.values()
+                for key, value in ldap_object.dict().items()
+            }
+
+            # Cannot template 'dn' out
+            # TODO: Move this to settings validator
+            ldap_changes.pop("dn", None)
 
         # If dry-running we do not want to makes changes in LDAP
         if dry_run:

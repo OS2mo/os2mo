@@ -31,6 +31,9 @@ class LdapConverter:
     def __init__(self, settings: Settings, dataloader: DataLoader) -> None:
         self.settings = settings
         self.dataloader = dataloader
+        from .environments import construct_environment
+
+        self.environment = construct_environment(self.settings, self.dataloader)
 
     async def _init(self):
         raw_mapping = self.settings.conversion_mapping.dict(
@@ -41,10 +44,7 @@ class LdapConverter:
             ["objectClass", "_import_to_mo_", "_export_to_ldap_", "_ldap_attributes_"],
         )
 
-        from .environments import construct_environment
-
-        environment = construct_environment(self.settings, self.dataloader)
-        self.mapping = self._populate_mapping_with_templates(mapping, environment)
+        self.mapping = self._populate_mapping_with_templates(mapping, self.environment)
 
     def get_ldap_attributes(self, json_key, remove_dn=True) -> list[str]:
         ldap_attributes = set(
