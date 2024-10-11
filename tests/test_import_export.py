@@ -1253,7 +1253,7 @@ async def test_import_single_object_from_LDAP_non_existing_employee(
         {"type": "test"},
     )
     sync_tool.ldap_connection = ldap_connection
-    sync_tool.dataloader.load_ldap_cpr_object.return_value = [LdapObject(dn=dn)]  # type: ignore
+    sync_tool.dataloader.ldapapi.cpr2dns.return_value = {dn}  # type: ignore
 
     dataloader.find_mo_employee_uuid.return_value = None
     await sync_tool.import_single_user(dn)

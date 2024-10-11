@@ -79,6 +79,7 @@ from mo_ldap_import_export.exceptions import ReadOnlyException
 from mo_ldap_import_export.ldapapi import LDAPAPI
 from mo_ldap_import_export.routes import load_all_current_it_users
 from mo_ldap_import_export.routes import load_ldap_attribute_values
+from mo_ldap_import_export.routes import load_ldap_cpr_object
 from mo_ldap_import_export.routes import load_ldap_objects
 from mo_ldap_import_export.types import CPRNumber
 from mo_ldap_import_export.types import OrgUnitUUID
@@ -292,18 +293,18 @@ async def test_load_ldap_cpr_object(
     )
 
     output = one(
-        await dataloader.load_ldap_cpr_object(CPRNumber("0101012002"), "Employee")
+        await load_ldap_cpr_object(dataloader, CPRNumber("0101012002"), "Employee")
     )
     assert output == expected_result
 
     with pytest.raises(NoObjectsReturnedException):
-        await dataloader.load_ldap_cpr_object("__invalid__", "Employee")  # type: ignore
+        await load_ldap_cpr_object(dataloader, "__invalid__", "Employee")  # type: ignore
 
     with pytest.raises(NoObjectsReturnedException):
         monkeypatch.delenv("LDAP_CPR_ATTRIBUTE")
         monkeypatch.setenv("LDAP_IT_SYSTEM", "ADUUID")
         dataloader.settings = Settings()
-        await dataloader.load_ldap_cpr_object(CPRNumber("0101012002"), "Employee")
+        await load_ldap_cpr_object(dataloader, CPRNumber("0101012002"), "Employee")
 
 
 async def test_load_ldap_objects(
@@ -2251,16 +2252,14 @@ async def test_find_mo_employee_dn_by_cpr_number(
     route = graphql_mock.query("read_employees")
     route.result = {"employees": {"objects": [{"validities": [employee]}]}}
 
-    dataloader.load_ldap_cpr_object = AsyncMock()  # type: ignore
-    dataloader.load_ldap_cpr_object.return_value = [
-        parse_obj_as(LdapObject, {"dn": dn}) for dn in (dns or [])
-    ]
+    dataloader.ldapapi.cpr2dns = AsyncMock()  # type: ignore
+    dataloader.ldapapi.cpr2dns.return_value = {dn for dn in (dns or [])}
 
     result = await dataloader.find_mo_employee_dn_by_cpr_number(employee_uuid)
     assert result == expected
 
     if dns is not None:
-        dataloader.load_ldap_cpr_object.assert_called_once_with(cpr_number, "Employee")
+        dataloader.ldapapi.cpr2dns.assert_called_once_with(cpr_number)
 
 
 @pytest.mark.envvar({"LDAP_IT_SYSTEM": "ADUUID"})

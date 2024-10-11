@@ -1001,10 +1001,7 @@ class SyncTool:
                 # Only attempt to load accounts if we have a CPR number to do so with
                 # and only if the CPR number is not the commonly used test CPR number
                 if cpr_no and cpr_no != "0000000000":
-                    ldap_objs = await self.dataloader.load_ldap_cpr_object(
-                        cpr_no, "Employee"
-                    )
-                    dns = {obj.dn for obj in ldap_objs}
+                    dns = await self.dataloader.ldapapi.cpr2dns(cpr_no)
 
         # At this point 'employee_uuid' is an UUID that may or may not be in MO
         # At this point 'dns' is a list of LDAP account DNs

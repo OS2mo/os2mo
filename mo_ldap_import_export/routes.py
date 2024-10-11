@@ -38,6 +38,7 @@ from .config import Settings
 from .converters import LdapConverter
 from .dataloaders import DataLoader
 from .exceptions import InvalidCPR
+from .exceptions import NoObjectsReturnedException
 from .ldap import get_attribute_types
 from .ldap import get_ldap_attributes
 from .ldap import get_ldap_object
@@ -51,6 +52,7 @@ from .ldap_emit import publish_uuids
 from .processors import _hide_cpr as hide_cpr
 from .types import DN
 from .types import CPRNumber
+from .utils import combine_dn_strings
 from .utils import extract_ou_from_dn
 
 logger = structlog.stdlib.get_logger()
@@ -344,6 +346,56 @@ async def load_ldap_OUs(
     }
 
 
+async def load_ldap_cpr_object(
+    dataloader: DataLoader,
+    cpr_no: CPRNumber,
+    json_key: str,
+    additional_attributes: list[str] | None = None,
+) -> list[LdapObject]:
+    """
+    Loads an ldap object which can be found using a cpr number lookup
+
+    Accepted json_keys are:
+        - 'Employee'
+        - a MO address type name
+    """
+    additional_attributes = additional_attributes or []
+
+    try:
+        validate_cpr(cpr_no)
+    except (ValueError, TypeError) as error:
+        raise NoObjectsReturnedException(f"cpr_no '{cpr_no}' is invalid") from error
+
+    if not dataloader.settings.ldap_cpr_attribute:
+        raise NoObjectsReturnedException("cpr_field is not configured")
+
+    search_base = dataloader.settings.ldap_search_base
+    ous_to_search_in = dataloader.settings.ldap_ous_to_search_in
+    search_bases = [combine_dn_strings([ou, search_base]) for ou in ous_to_search_in]
+    object_class = dataloader.converter.find_ldap_object_class(json_key)
+    attributes = (
+        dataloader.converter.get_ldap_attributes(json_key) + additional_attributes
+    )
+
+    object_class_filter = f"objectclass={object_class}"
+    cpr_filter = f"{dataloader.settings.ldap_cpr_attribute}={cpr_no}"
+
+    searchParameters = {
+        "search_base": search_bases,
+        "search_filter": f"(&({object_class_filter})({cpr_filter}))",
+        "attributes": list(set(attributes)),
+    }
+    search_results = await object_search(searchParameters, dataloader.ldap_connection)
+    # TODO: Asyncio gather this
+    ldap_objects: list[LdapObject] = [
+        await make_ldap_object(search_result, dataloader.ldap_connection)
+        for search_result in search_results
+    ]
+    dns = [obj.dn for obj in ldap_objects]
+    logger.info("Found LDAP(s) object", dns=dns)
+    return ldap_objects
+
+
 def construct_router(settings: Settings) -> APIRouter:
     router = APIRouter()
 
@@ -466,7 +518,7 @@ def construct_router(settings: Settings) -> APIRouter:
                 converted_results.extend(
                     await converter.from_ldap(r, json_key, employee_uuid=uuid4())
                 )
-            except ValidationError:
+            except ValidationError:  # pragma: no cover
                 logger.exception(
                     "Cannot convert LDAP object to MO", ldap_object=r, json_key=json_key
                 )
@@ -480,8 +532,8 @@ def construct_router(settings: Settings) -> APIRouter:
         json_key: str,
         cpr: CPRNumber = Depends(valid_cpr),
     ) -> Any:
-        results = await dataloader.load_ldap_cpr_object(
-            cpr, json_key, [settings.ldap_unique_id_field]
+        results = await load_ldap_cpr_object(
+            dataloader, cpr, json_key, [settings.ldap_unique_id_field]
         )
         return [encode_result(result) for result in results]
 
@@ -494,13 +546,13 @@ def construct_router(settings: Settings) -> APIRouter:
         response: Response,
         cpr: CPRNumber = Depends(valid_cpr),
     ) -> Any:
-        results = await dataloader.load_ldap_cpr_object(cpr, json_key)
+        results = await load_ldap_cpr_object(dataloader, cpr, json_key)
         try:
             return [
                 await converter.from_ldap(result, json_key, employee_uuid=uuid4())
                 for result in results
             ]
-        except ValidationError:
+        except ValidationError:  # pragma: no cover
             logger.exception(
                 "Cannot convert LDAP object to to MO",
                 ldap_objects=results,

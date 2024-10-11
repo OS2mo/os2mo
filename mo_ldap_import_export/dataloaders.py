@@ -24,7 +24,6 @@ from more_itertools import one
 from more_itertools import only
 from more_itertools import partition
 from ramodels.mo import MOBase
-from ramodels.mo._shared import validate_cpr
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
@@ -47,8 +46,6 @@ from .exceptions import DNNotFound
 from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
 from .ldap import is_uuid
-from .ldap import make_ldap_object
-from .ldap import object_search
 from .ldap_classes import LdapObject
 from .ldapapi import LDAPAPI
 from .moapi import MOAPI
@@ -56,7 +53,6 @@ from .moapi import extract_current_or_latest_validity
 from .types import DN
 from .types import CPRNumber
 from .types import OrgUnitUUID
-from .utils import combine_dn_strings
 from .utils import is_exception
 from .utils import star
 
@@ -185,57 +181,6 @@ class DataLoader:
             raise AttributeNotFound(
                 f"'{attribute}' not found in 'mo_to_ldap' attributes"
             )
-
-    async def load_ldap_cpr_object(
-        self,
-        cpr_no: CPRNumber,
-        json_key: str,
-        additional_attributes: list[str] | None = None,
-    ) -> list[LdapObject]:
-        """
-        Loads an ldap object which can be found using a cpr number lookup
-
-        Accepted json_keys are:
-            - 'Employee'
-            - a MO address type name
-        """
-        additional_attributes = additional_attributes or []
-
-        try:
-            validate_cpr(cpr_no)
-        except (ValueError, TypeError) as error:
-            raise NoObjectsReturnedException(f"cpr_no '{cpr_no}' is invalid") from error
-
-        if not self.settings.ldap_cpr_attribute:
-            raise NoObjectsReturnedException("cpr_field is not configured")
-
-        search_base = self.settings.ldap_search_base
-        ous_to_search_in = self.settings.ldap_ous_to_search_in
-        search_bases = [
-            combine_dn_strings([ou, search_base]) for ou in ous_to_search_in
-        ]
-        object_class = self.converter.find_ldap_object_class(json_key)
-        attributes = (
-            self.converter.get_ldap_attributes(json_key) + additional_attributes
-        )
-
-        object_class_filter = f"objectclass={object_class}"
-        cpr_filter = f"{self.settings.ldap_cpr_attribute}={cpr_no}"
-
-        searchParameters = {
-            "search_base": search_bases,
-            "search_filter": f"(&({object_class_filter})({cpr_filter}))",
-            "attributes": list(set(attributes)),
-        }
-        search_results = await object_search(searchParameters, self.ldap_connection)
-        # TODO: Asyncio gather this
-        ldap_objects: list[LdapObject] = [
-            await make_ldap_object(search_result, self.ldap_connection)
-            for search_result in search_results
-        ]
-        dns = [obj.dn for obj in ldap_objects]
-        logger.info("Found LDAP(s) object", dns=dns)
-        return ldap_objects
 
     async def modify_ldap_object(
         self,
@@ -422,9 +367,7 @@ class DataLoader:
         )
         dns = set()
         with suppress(NoObjectsReturnedException):
-            dns = {
-                obj.dn for obj in await self.load_ldap_cpr_object(cpr_no, "Employee")
-            }
+            dns = await self.ldapapi.cpr2dns(cpr_no)
         if not dns:
             return set()
         logger.info(
