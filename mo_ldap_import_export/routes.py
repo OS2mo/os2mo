@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 """HTTP Endpoints."""
 
+import asyncio
 import re
 from collections.abc import AsyncIterator
 from collections.abc import Awaitable
@@ -43,12 +44,14 @@ from .ldap import get_ldap_object
 from .ldap import get_ldap_schema
 from .ldap import get_ldap_superiors
 from .ldap import make_ldap_object
+from .ldap import object_search
 from .ldap import paged_search
 from .ldap_classes import LdapObject
 from .ldap_emit import publish_uuids
 from .processors import _hide_cpr as hide_cpr
 from .types import DN
 from .types import CPRNumber
+from .utils import extract_ou_from_dn
 
 logger = structlog.stdlib.get_logger()
 
@@ -292,6 +295,53 @@ def load_ldap_overview(ldap_connection: Connection):
         )
 
     return output
+
+
+async def load_ldap_OUs(
+    settings: Settings, ldap_connection: Connection, search_base: str | None = None
+) -> dict:
+    """
+    Returns a dictionary where the keys are OU strings and the items are dicts
+    which contain information about the OU
+    """
+    searchParameters: dict = {
+        "search_filter": "(objectclass=OrganizationalUnit)",
+        "attributes": [],
+    }
+
+    responses = await paged_search(
+        settings,
+        ldap_connection,
+        searchParameters,
+        search_base=search_base,
+        mute=True,
+    )
+    dns = [r["dn"] for r in responses]
+
+    user_object_class = settings.ldap_user_objectclass
+    dn_responses = await asyncio.gather(
+        *[
+            object_search(
+                {
+                    "search_base": dn,
+                    "search_filter": f"(objectclass={user_object_class})",
+                    "attributes": [],
+                    "size_limit": 1,
+                },
+                ldap_connection,
+            )
+            for dn in dns
+        ]
+    )
+    dn_map = dict(zip(dns, dn_responses, strict=False))
+
+    return {
+        extract_ou_from_dn(dn): {
+            "empty": len(dn_map[dn]) == 0,
+            "dn": dn,
+        }
+        for dn in dns
+    }
 
 
 def construct_router(settings: Settings) -> APIRouter:
@@ -581,9 +631,11 @@ def construct_router(settings: Settings) -> APIRouter:
     # Get LDAP overview
     @router.get("/Inspect/structure", status_code=202, tags=["LDAP"])
     async def load_structure_from_LDAP(
-        dataloader: depends.DataLoader, search_base: str | None = None
+        settings: depends.Settings,
+        ldap_connection: depends.Connection,
+        search_base: str | None = None,
     ) -> Any:
-        return await dataloader.ldapapi.load_ldap_OUs(search_base=search_base)
+        return await load_ldap_OUs(settings, ldap_connection, search_base=search_base)
 
     # Get populated LDAP overview
     @router.get("/Inspect/overview/populated", status_code=202, tags=["LDAP"])

@@ -8,11 +8,9 @@ from ldap3.core.exceptions import LDAPInvalidDnError
 from mo_ldap_import_export.utils import combine_dn_strings
 from mo_ldap_import_export.utils import delete_keys_from_dict
 from mo_ldap_import_export.utils import exchange_ou_in_dn
-from mo_ldap_import_export.utils import extract_cn_from_dn
 from mo_ldap_import_export.utils import extract_ou_from_dn
 from mo_ldap_import_export.utils import import_class
 from mo_ldap_import_export.utils import mo_datestring_to_utc
-from mo_ldap_import_export.utils import remove_cn_from_dn
 from mo_ldap_import_export.utils import remove_vowels
 
 
@@ -82,13 +80,6 @@ def test_extract_ou_from_dn() -> None:
         extract_ou_from_dn("")
 
 
-def test_remove_cn_from_dn() -> None:
-    assert remove_cn_from_dn("CN=Nick,OU=foo,DC=bar") == "OU=foo,DC=bar"
-    assert remove_cn_from_dn("CN=Nick,CN=Janssen,OU=foo,DC=bar") == "OU=foo,DC=bar"
-    assert remove_cn_from_dn("OU=foo,DC=bar") == "OU=foo,DC=bar"
-    assert remove_cn_from_dn("CN=Nick") == ""
-
-
 def test_exchange_ou_in_dn() -> None:
     assert (
         exchange_ou_in_dn("CN=Tobias,OU=foo,DC=Q", "OU=bar") == "CN=Tobias,OU=bar,DC=Q"
@@ -107,11 +98,4 @@ def test_exchange_ou_in_dn() -> None:
     )
     assert (
         exchange_ou_in_dn("CN=Tobias,OU=bar,DC=Q", "OU=bar") == "CN=Tobias,OU=bar,DC=Q"
-    )
-
-
-def test_extract_cn_from_dn() -> None:
-    assert extract_cn_from_dn("CN=Nick,OU=foo,DC=bar") == "CN=Nick"
-    assert (
-        extract_cn_from_dn("CN=Nick,CN=Janssen,OU=foo,DC=bar") == "CN=Nick,CN=Janssen"
     )
