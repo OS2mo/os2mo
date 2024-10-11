@@ -32,9 +32,6 @@ logger = structlog.stdlib.get_logger()
 ldap_amqp_router = Router()
 ldap2mo_router = APIRouter(prefix="/ldap2mo")
 
-# Try errors again after a short period of time
-delay_on_error = 10
-
 PayloadUUID = Annotated[UUID, Depends(get_payload_as_type(UUID))]
 
 
@@ -92,7 +89,7 @@ def configure_ldap_amqpsystem(
         settings=settings,
         router=ldap_amqp_router,
         dependencies=[
-            Depends(rate_limit(delay_on_error)),
+            Depends(rate_limit(10)),
             Depends(logger_bound_message_id),
             Depends(request_id),
         ],
