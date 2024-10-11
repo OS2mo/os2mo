@@ -34,9 +34,8 @@ from mo_ldap_import_export.utils import mo_today
                     "Employee": {
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
-                        "_ldap_attributes_": ["employeeNumber"],
+                        "_ldap_attributes_": [],
                         "uuid": "{{ employee_uuid or NONE }}",  # TODO: why is this required?
-                        "cpr_no": "{{ldap.employeeNumber}}",
                     },
                     "EmailEmployee": {
                         "objectClass": "ramodels.mo.details.address.Address",
@@ -157,19 +156,19 @@ async def test_to_mo(
                     "Employee": {
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
-                        "_ldap_attributes_": ["employeeNumber"],
+                        "_ldap_attributes_": [],
                         "uuid": "{{ employee_uuid or NONE }}",
-                        "cpr_no": "{{ldap.employeeNumber}}",
                     },
+                    # This is required for mo_address_to_ldap
+                    # 'EmailEmployee' (key) is assumed to be an address-type in MO
                     "EmailEmployee": {
                         "objectClass": "ramodels.mo.details.address.Address",
                         "_import_to_mo_": "false",
-                        "_ldap_attributes_": ["mail"],
-                        "_mapper_": "{{ obj.address_type }}",
-                        "value": "{{ ldap.mail }}",
-                        "address_type": "{{ dict(uuid=get_employee_address_type_uuid('EmailEmployee')) }}",
-                        "person": "{{ dict(uuid=employee_uuid ) }}",
-                        "visibility": "{{ dict(uuid=get_visibility_uuid('Public')) }}",
+                        "_ldap_attributes_": [],
+                        "value": "unused",
+                        "address_type": "unused",
+                        "person": "dict(uuid=",  # Validator required this in the value
+                        "visibility": "unused",
                     },
                 },
                 "mo_to_ldap": {

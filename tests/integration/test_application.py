@@ -376,9 +376,8 @@ async def test_changed_since(test_client: AsyncClient, expected: list[str]) -> N
                     "Employee": {
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
-                        "_ldap_attributes_": ["employeeNumber"],
+                        "_ldap_attributes_": [],
                         "uuid": "{{ employee_uuid or NONE }}",
-                        "cpr_no": "{{ldap.employeeNumber|strip_non_digits or NONE}}",
                     },
                     "PublicEmailAddress": {
                         "objectClass": "ramodels.mo.details.address.Address",
@@ -485,9 +484,8 @@ async def test_mismatched_json_key_and_address_type(
                     "Employee": {
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
-                        "_ldap_attributes_": ["employeeNumber"],
+                        "_ldap_attributes_": [],
                         "uuid": "{{ employee_uuid or NONE }}",
-                        "cpr_no": "{{ldap.employeeNumber|strip_non_digits or NONE}}",
                     },
                     "EntryUUID": {
                         "objectClass": "ramodels.mo.details.it_system.ITUser",
@@ -576,9 +574,8 @@ async def test_mismatched_json_key_and_itsystem(
                     "Employee": {
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
-                        "_ldap_attributes_": ["employeeNumber"],
+                        "_ldap_attributes_": [],
                         "uuid": "{{ employee_uuid or NONE }}",
-                        "cpr_no": "{{ldap.employeeNumber|strip_non_digits or NONE}}",
                     },
                     "DefaultValidity": {
                         "objectClass": "ramodels.mo.details.it_system.ITUser",

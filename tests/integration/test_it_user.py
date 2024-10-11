@@ -35,9 +35,8 @@ from mo_ldap_import_export.utils import mo_today
                     "Employee": {
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
-                        "_ldap_attributes_": ["employeeNumber"],
+                        "_ldap_attributes_": [],
                         "uuid": "{{ employee_uuid or NONE }}",  # TODO: why is this required?
-                        "cpr_no": "{{ldap.employeeNumber}}",
                     },
                     "ADtitle": {
                         "objectClass": "ramodels.mo.details.it_system.ITUser",
@@ -154,18 +153,18 @@ async def test_to_mo(
                     "Employee": {
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
-                        "_ldap_attributes_": ["employeeNumber"],
+                        "_ldap_attributes_": [],
                         "uuid": "{{ employee_uuid or NONE }}",
-                        "cpr_no": "{{ldap.employeeNumber}}",
                     },
+                    # This is required for mo_ituser_to_ldap
+                    # 'ADtitle' (key) is assumed to be an itsystem in MO
                     "ADtitle": {
                         "objectClass": "ramodels.mo.details.it_system.ITUser",
                         "_import_to_mo_": "false",
-                        "_ldap_attributes_": ["title"],
-                        "_mapper_": "{{ obj.itsystem }}",
-                        "user_key": "{{ ldap.title }}",
-                        "person": "{{ dict(uuid=employee_uuid ) }}",
-                        "itsystem": "{{ dict(uuid=get_it_system_uuid('ADtitle')) }}",
+                        "_ldap_attributes_": [],
+                        "user_key": "unused",
+                        "person": "dict(uuid=",  # Validator required this in the value
+                        "itsystem": "unused",
                     },
                 },
                 "mo_to_ldap": {
