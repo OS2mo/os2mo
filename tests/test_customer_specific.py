@@ -25,7 +25,7 @@ def context(
     dataloader: AsyncMock,
     converter: MagicMock,
     export_checks: AsyncMock,
-    settings: MagicMock,
+    settings_mock: MagicMock,
 ) -> Context:
     context = Context(
         amqpsystem=AsyncMock(),
@@ -33,7 +33,7 @@ def context(
             "dataloader": dataloader,
             "converter": converter,
             "export_checks": export_checks,
-            "settings": settings,
+            "settings": settings_mock,
         },
     )
     return context
