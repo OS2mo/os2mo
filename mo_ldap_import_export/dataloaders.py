@@ -292,12 +292,13 @@ class DataLoader:
         for parameter_to_modify in parameters_to_modify:
             value = getattr(object_to_modify, parameter_to_modify)
             value_to_modify: list[str] = [] if value is None else [value]
+            if delete:
+                value_to_modify = []
 
-            operation = (
-                self.ldapapi.delete_ldap if delete else self.ldapapi.replace_ldap
-            )
             try:
-                response = await operation(dn, parameter_to_modify, value_to_modify)
+                response = await self.ldapapi.modify_ldap(
+                    dn, parameter_to_modify, value_to_modify
+                )
             except LDAPInvalidValueError:
                 logger.warning("LDAPInvalidValueError exception", exc_info=True)
                 failed += 1

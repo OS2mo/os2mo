@@ -5,7 +5,6 @@ from collections.abc import Iterable
 from typing import Any
 from unittest.mock import ANY
 from unittest.mock import AsyncMock
-from unittest.mock import MagicMock
 from unittest.mock import patch
 from uuid import uuid4
 
@@ -32,7 +31,6 @@ from mo_ldap_import_export.ldap import apply_discriminator
 from mo_ldap_import_export.ldap import configure_ldap_connection
 from mo_ldap_import_export.ldap import construct_server_pool
 from mo_ldap_import_export.ldap import get_ldap_object
-from mo_ldap_import_export.ldap import ldap_compare
 from mo_ldap_import_export.ldap import wait_for_message_id
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.routes import load_ldap_OUs
@@ -814,39 +812,6 @@ async def test_listen_to_changes_in_employees(
         ]
         + log_lines
     )
-
-
-@pytest.mark.parametrize(
-    "attribute,value,expected",
-    [
-        ("sn", "__never_gonna_match__", False),
-        ("sn", "foo_sn", True),
-        ("__never_gonna_match__", "__never_gonna_match__", False),
-        ("__never_gonna_match__", "foo_sn", False),
-    ],
-)
-async def test_ldap_compare(
-    ldap_connection: Connection, ldap_dn: DN, attribute: str, value: str, expected: bool
-) -> None:
-    """Test that we can read our default user."""
-    result = await ldap_compare(ldap_connection, ldap_dn, attribute, value)
-    assert result == expected
-
-
-async def test_ldap_compare_mock():
-    ldap_connection = MagicMock()
-    ldap_connection.get_response.return_value = [], {"description": []}
-
-    result = await ldap_compare(ldap_connection, "dn", "attribute", "value")
-    assert result is False
-
-    ldap_connection.get_response.return_value = (
-        [],
-        {"description": "__never_gonna_match__"},
-    )
-    with pytest.raises(ValueError) as exc_info:
-        await ldap_compare(ldap_connection, "dn", "attribute", "value")
-    assert "Unknown comparison result" in str(exc_info.value)
 
 
 @pytest.mark.parametrize(

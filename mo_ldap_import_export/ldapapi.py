@@ -2,14 +2,13 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 from contextlib import suppress
-from functools import partialmethod
 from typing import Any
-from typing import Literal
 from typing import cast
 from uuid import UUID
 
 import structlog
 from ldap3 import BASE
+from ldap3 import MODIFY_REPLACE
 from ldap3 import Connection
 from ldap3.utils.dn import safe_dn
 from more_itertools import one
@@ -22,7 +21,6 @@ from .exceptions import NoObjectsReturnedException
 from .exceptions import ReadOnlyException
 from .ldap import get_ldap_object
 from .ldap import ldap_add
-from .ldap import ldap_compare
 from .ldap import ldap_modify
 from .ldap import single_object_search
 from .types import DN
@@ -88,7 +86,6 @@ class LDAPAPI:
 
     async def modify_ldap(
         self,
-        operation: Literal["MODIFY_DELETE", "MODIFY_REPLACE"],
         dn: str,
         attribute: str,
         value: list[str] | str,
@@ -118,33 +115,18 @@ class LDAPAPI:
         if isinstance(value, list):
             value = only(
                 value,
-                default="",
+                default=[],
                 too_long=InvalidChangeDict(
                     "Exactly one value can be changed at a time"
                 ),
             )
 
-        # Compare to LDAP
-        value_exists = await ldap_compare(self.ldap_connection, dn, attribute, value)
-
-        # If the value is already as expected, and we are not deleting, we are done
-        if value_exists and "DELETE" not in operation:
-            logger.info(
-                "Attribute value already exists",
-                attribute=attribute,
-                value_to_modify=value,
-            )
-            return None
-
         # Modify LDAP
-        changes = {attribute: [(operation, value)]}
+        changes = {attribute: [(MODIFY_REPLACE, value)]}
         logger.info("Uploading the changes", changes=changes, dn=dn)
         _, result = await ldap_modify(self.ldap_connection, dn, changes)
         logger.info("LDAP Result", result=result, dn=dn)
         return result
-
-    delete_ldap = partialmethod(modify_ldap, "MODIFY_DELETE")
-    replace_ldap = partialmethod(modify_ldap, "MODIFY_REPLACE")
 
     async def add_ldap_object(self, dn: str, attributes: dict[str, Any] | None = None):
         """
