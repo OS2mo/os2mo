@@ -197,7 +197,6 @@ async def test_to_mo(
                         "objectClass": "inetOrgPerson",
                         "_export_to_ldap_": "true",
                         "title": "{{ mo_employee_engagement.user_key }}",
-                        "employeeNumber": "{{ mo_employee.cpr_no }}",
                         "departmentNumber": "{{ mo_employee_engagement.org_unit.uuid }}",
                     },
                 },

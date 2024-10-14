@@ -172,14 +172,11 @@ async def test_to_mo(
                     "Employee": {
                         "objectClass": "inetOrgPerson",
                         "_export_to_ldap_": "false",
-                        "employeeNumber": "{{mo_employee.cpr_no}}",
                     },
                     "ADtitle": {
                         "objectClass": "inetOrgPerson",
                         "_export_to_ldap_": "true",
                         "title": "{{ mo_employee_it_user.user_key }}",
-                        "employeeNumber": "{{ mo_employee.cpr_no }}",
-                        "carLicense": "unused but required",
                     },
                 },
                 # TODO: why is this required?

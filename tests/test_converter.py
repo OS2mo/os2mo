@@ -128,13 +128,11 @@ def converter_mapping() -> dict[str, Any]:
             "Email": {
                 "objectClass": "user",
                 "_export_to_ldap_": "True",
-                "employeeID": "{{mo_employee.cpr_no or None}}",
             },
             "Active Directory": {
                 "objectClass": "user",
                 "_export_to_ldap_": "True",
                 "msSFU30Name": "{{mo_employee_it_user.user_key}}",
-                "employeeID": "{{mo_employee.cpr_no}}",
             },
         },
     }
