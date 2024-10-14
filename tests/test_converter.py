@@ -768,7 +768,7 @@ async def test_get_org_unit_name(
 
 @pytest.mark.parametrize("it_system_user_key", ["AD", "Plone"])
 async def test_get_it_system_uuid(
-    settings: Settings, graphql_mock: GraphQLMocker, it_system_user_key: str
+    settings_mock: Settings, graphql_mock: GraphQLMocker, it_system_user_key: str
 ) -> None:
     graphql_client = GraphQLClient("http://example.com/graphql")
 
@@ -776,7 +776,7 @@ async def test_get_it_system_uuid(
     route = graphql_mock.query("read_itsystem_uuid")
     route.result = {"itsystems": {"objects": [{"uuid": it_system_uuid}]}}
 
-    assert await MOAPI(settings, graphql_client).get_it_system_uuid(
+    assert await MOAPI(settings_mock, graphql_client).get_it_system_uuid(
         it_system_user_key
     ) == str(it_system_uuid)
     assert route.called
@@ -784,7 +784,9 @@ async def test_get_it_system_uuid(
     route.reset()
     route.result = {"itsystems": {"objects": []}}
     with pytest.raises(UUIDNotFoundException) as exc_info:
-        await MOAPI(settings, graphql_client).get_it_system_uuid(it_system_user_key)
+        await MOAPI(settings_mock, graphql_client).get_it_system_uuid(
+            it_system_user_key
+        )
     assert f"itsystem not found, user_key: {it_system_user_key}" in str(exc_info.value)
     assert route.called
 
@@ -1462,11 +1464,11 @@ async def test_get_primary_engagement_dict(dataloader: AsyncMock) -> None:
 
 
 async def test_get_employee_dict_no_employee(
-    settings: Settings, graphql_mock: GraphQLMocker, dataloader: AsyncMock
+    settings_mock: Settings, graphql_mock: GraphQLMocker, dataloader: AsyncMock
 ) -> None:
     graphql_client = GraphQLClient("http://example.com/graphql")
     dataloader.graphql_client = graphql_client
-    dataloader.moapi = MOAPI(settings, graphql_client)
+    dataloader.moapi = MOAPI(settings_mock, graphql_client)
 
     route = graphql_mock.query("read_employees")
     route.result = {"employees": {"objects": []}}
@@ -1479,11 +1481,11 @@ async def test_get_employee_dict_no_employee(
 
 
 async def test_get_employee_dict(
-    settings: Settings, graphql_mock: GraphQLMocker, dataloader: AsyncMock
+    settings_mock: Settings, graphql_mock: GraphQLMocker, dataloader: AsyncMock
 ) -> None:
     graphql_client = GraphQLClient("http://example.com/graphql")
     dataloader.graphql_client = graphql_client
-    dataloader.moapi = MOAPI(settings, graphql_client)
+    dataloader.moapi = MOAPI(settings_mock, graphql_client)
 
     cpr_no = "1407711900"
     uuid = uuid4()

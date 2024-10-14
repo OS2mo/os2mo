@@ -111,6 +111,7 @@ async def test_endpoint_dn2uuid_and_uuid2dn(
 async def test_endpoint_fetch_object(
     test_client: AsyncClient,
     ldap_person: list[str],
+    ldap_person_uuid: UUID,
 ) -> None:
     dn = combine_dn_strings(ldap_person)
 
@@ -132,11 +133,7 @@ async def test_endpoint_fetch_object(
     assert result.status_code == 200
     assert result.json() == expected
 
-    result = await test_client.get(f"/Inspect/dn2uuid/{dn}")
-    assert result.status_code == 200
-    entry_uuid = UUID(result.json())
-
-    result = await test_client.get(f"/Inspect/uuid/{entry_uuid}")
+    result = await test_client.get(f"/Inspect/uuid/{ldap_person_uuid}")
     assert result.status_code == 200
     assert result.json() == expected
 
@@ -410,17 +407,11 @@ async def test_changed_since(test_client: AsyncClient, expected: list[str]) -> N
 async def test_mismatched_json_key_and_address_type(
     test_client: AsyncClient,
     graphql_client: GraphQLClient,
-    ldap_person: list[str],
+    ldap_person_uuid: UUID,
     mo_person: UUID,
 ) -> None:
     """Test that json_key and address type does not need to match."""
     person_uuid = mo_person
-    dn = combine_dn_strings(ldap_person)
-
-    # Get UUID of the newly created LDAP user
-    result = await test_client.get(f"/Inspect/dn2uuid/{dn}")
-    assert result.status_code == 200
-    ldap_user_uuid = UUID(result.json())
 
     # Fetch data in MO
     phone_employee_address_type_uuid = one(
@@ -439,7 +430,7 @@ async def test_mismatched_json_key_and_address_type(
     ).uuid
 
     # Trigger synchronization, we expect the addresses to be updated with new values
-    content = str(ldap_user_uuid)
+    content = str(ldap_person_uuid)
     headers = {"Content-Type": "text/plain"}
     result = await test_client.post("/ldap2mo/uuid", content=content, headers=headers)
     assert result.status_code == 200
@@ -524,17 +515,11 @@ async def test_mismatched_json_key_and_address_type(
 async def test_mismatched_json_key_and_itsystem(
     test_client: AsyncClient,
     graphql_client: GraphQLClient,
-    ldap_person: list[str],
+    ldap_person_uuid: UUID,
     mo_person: UUID,
 ) -> None:
     """Test that json_key and itsystem does not need to match."""
     person_uuid = mo_person
-    dn = combine_dn_strings(ldap_person)
-
-    # Get UUID of the newly created LDAP user
-    result = await test_client.get(f"/Inspect/dn2uuid/{dn}")
-    assert result.status_code == 200
-    ldap_user_uuid = UUID(result.json())
 
     # Fetch data in MO
     ldap_uuid_itsystem_uuid = one(
@@ -542,7 +527,7 @@ async def test_mismatched_json_key_and_itsystem(
     ).uuid
 
     # Trigger synchronization, we expect the addresses to be updated with new values
-    content = str(ldap_user_uuid)
+    content = str(ldap_person_uuid)
     headers = {"Content-Type": "text/plain"}
     result = await test_client.post("/ldap2mo/uuid", content=content, headers=headers)
     assert result.status_code == 200
@@ -570,7 +555,7 @@ async def test_mismatched_json_key_and_itsystem(
                 "employee_uuid": person_uuid,
                 "engagement_uuid": None,
                 "itsystem_uuid": ldap_uuid_itsystem_uuid,
-                "user_key": str(ldap_user_uuid),
+                "user_key": str(ldap_person_uuid),
                 "validity": {
                     "from_": datetime.combine(datetime.today(), time(tzinfo=MO_TZ)),
                     "to": None,
@@ -621,17 +606,11 @@ async def test_mismatched_json_key_and_itsystem(
 async def test_default_validity(
     test_client: AsyncClient,
     graphql_client: GraphQLClient,
-    ldap_person: list[str],
+    ldap_person_uuid: UUID,
     mo_person: UUID,
 ) -> None:
     """Test that json_key and itsystem does not need to match."""
     person_uuid = mo_person
-    dn = combine_dn_strings(ldap_person)
-
-    # Get UUID of the newly created LDAP user
-    result = await test_client.get(f"/Inspect/dn2uuid/{dn}")
-    assert result.status_code == 200
-    ldap_user_uuid = UUID(result.json())
 
     # Fetch data in MO
     ldap_uuid_itsystem_uuid = one(
@@ -639,7 +618,7 @@ async def test_default_validity(
     ).uuid
 
     # Trigger synchronization, we expect the addresses to be updated with new values
-    content = str(ldap_user_uuid)
+    content = str(ldap_person_uuid)
     headers = {"Content-Type": "text/plain"}
     result = await test_client.post("/ldap2mo/uuid", content=content, headers=headers)
     assert result.status_code == 200

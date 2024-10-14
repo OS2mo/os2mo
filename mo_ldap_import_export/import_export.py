@@ -823,6 +823,10 @@ class SyncTool:
         elif issubclass(mo_class, Employee):
             converted_objects = cast(Sequence[Employee], converted_objects)
 
+            # TODO: Editing employees IS supported, but we are exploiting a bug in the
+            # GraphQL API which allows us to update employees using the create mutator,
+            # which infers validity implicitly through the CPR number, rather than
+            # having to specify it explicitly in the update mutator 👍
             return [
                 (converted_object, Verb.CREATE)
                 for converted_object in converted_objects

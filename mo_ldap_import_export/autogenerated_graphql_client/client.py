@@ -5,6 +5,8 @@ from uuid import UUID
 from ..types import CPRNumber
 from ._testing__address_read import TestingAddressRead
 from ._testing__address_read import TestingAddressReadAddresses
+from ._testing__employee_read import TestingEmployeeRead
+from ._testing__employee_read import TestingEmployeeReadEmployees
 from ._testing__engagement_read import TestingEngagementRead
 from ._testing__engagement_read import TestingEngagementReadEngagements
 from ._testing__itsystem_create import TestingItsystemCreate
@@ -33,6 +35,8 @@ from ._testing_org_unit_create import TestingOrgUnitCreate
 from ._testing_org_unit_create import TestingOrgUnitCreateOrgUnitCreate
 from ._testing_user_create import TestingUserCreate
 from ._testing_user_create import TestingUserCreateEmployeeCreate
+from ._testing_user_update import TestingUserUpdate
+from ._testing_user_update import TestingUserUpdateEmployeeUpdate
 from .address_terminate import AddressTerminate
 from .address_terminate import AddressTerminateAddressTerminate
 from .async_base_client import AsyncBaseClient
@@ -50,6 +54,8 @@ from .input_types import AddressTerminateInput
 from .input_types import AddressUpdateInput
 from .input_types import ClassCreateInput
 from .input_types import EmployeeCreateInput
+from .input_types import EmployeeFilter
+from .input_types import EmployeeUpdateInput
 from .input_types import EngagementCreateInput
 from .input_types import EngagementFilter
 from .input_types import EngagementTerminateInput
@@ -239,6 +245,33 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return TestingEngagementRead.parse_obj(data).engagements
 
+    async def _testing__employee_read(
+        self, filter: EmployeeFilter | None | UnsetType = UNSET
+    ) -> TestingEmployeeReadEmployees:
+        query = gql(
+            """
+            query __testing__employee_read($filter: EmployeeFilter) {
+              employees(filter: $filter) {
+                objects {
+                  validities {
+                    uuid
+                    user_key
+                    cpr_number
+                    given_name
+                    surname
+                    nickname_given_name
+                    nickname_surname
+                  }
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingEmployeeRead.parse_obj(data).employees
+
     async def _testing__ituser_read(
         self, filter: ITUserFilter | None | UnsetType = UNSET
     ) -> TestingItuserReadItusers:
@@ -287,6 +320,23 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return TestingUserCreate.parse_obj(data).employee_create
+
+    async def _testing_user_update(
+        self, input: EmployeeUpdateInput
+    ) -> TestingUserUpdateEmployeeUpdate:
+        query = gql(
+            """
+            mutation __testing_user_update($input: EmployeeUpdateInput!) {
+              employee_update(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return TestingUserUpdate.parse_obj(data).employee_update
 
     async def _testing_engagement_create(
         self, input: EngagementCreateInput

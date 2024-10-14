@@ -47,9 +47,9 @@ def context(
     converter: MagicMock,
     export_checks: AsyncMock,
     import_checks: AsyncMock,
-    settings: MagicMock,
+    settings_mock: MagicMock,
 ) -> Context:
-    settings.discriminator_field = None
+    settings_mock.discriminator_field = None
     ldap_connection = AsyncMock()
     context = Context(
         amqpsystem=AsyncMock(),
@@ -58,7 +58,7 @@ def context(
             "converter": converter,
             "export_checks": export_checks,
             "import_checks": import_checks,
-            "settings": settings,
+            "settings": settings_mock,
             "ldap_connection": ldap_connection,
         },
     )

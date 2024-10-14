@@ -18,12 +18,14 @@ from fastramqpi.ramqp.utils import RejectMessage
 from .config import LDAPAMQPConnectionSettings
 from .depends import DataLoader
 from .depends import LDAPAMQPSystem
+from .depends import LdapConverter
 from .depends import SyncTool
 from .depends import logger_bound_message_id
 from .depends import request_id
 from .exceptions import NoObjectsReturnedException
 from .exceptions import amqp_reject_on_failure
 from .exceptions import http_reject_on_failure
+from .ldap import get_ldap_object
 from .ldap_emit import publish_uuids
 
 logger = structlog.stdlib.get_logger()
@@ -31,9 +33,6 @@ logger = structlog.stdlib.get_logger()
 
 ldap_amqp_router = Router()
 ldap2mo_router = APIRouter(prefix="/ldap2mo")
-
-# Try errors again after a short period of time
-delay_on_error = 10
 
 PayloadUUID = Annotated[UUID, Depends(get_payload_as_type(UUID))]
 
@@ -44,9 +43,10 @@ async def http_process_uuid(
     ldap_amqpsystem: LDAPAMQPSystem,
     sync_tool: SyncTool,
     dataloader: DataLoader,
+    converter: LdapConverter,
     uuid: Annotated[UUID, Body()],
 ) -> None:
-    await handle_uuid(ldap_amqpsystem, sync_tool, dataloader, uuid)
+    await handle_uuid(ldap_amqpsystem, sync_tool, dataloader, converter, uuid)
 
 
 @ldap_amqp_router.register("uuid")
@@ -55,15 +55,17 @@ async def process_uuid(
     ldap_amqpsystem: LDAPAMQPSystem,
     sync_tool: SyncTool,
     dataloader: DataLoader,
+    converter: LdapConverter,
     uuid: PayloadUUID,
 ) -> None:
-    await handle_uuid(ldap_amqpsystem, sync_tool, dataloader, uuid)
+    await handle_uuid(ldap_amqpsystem, sync_tool, dataloader, converter, uuid)
 
 
 async def handle_uuid(
     ldap_amqpsystem: LDAPAMQPSystem,
     sync_tool: SyncTool,
     dataloader: DataLoader,
+    converter: LdapConverter,
     uuid: UUID,
 ) -> None:
     # TODO: Sync from MO to LDAP to overwrite bad manual changes
@@ -74,6 +76,19 @@ async def handle_uuid(
     except NoObjectsReturnedException as exc:
         logger.exception("LDAP UUID could not be found", uuid=uuid)
         raise RejectMessage("LDAP UUID could not be found") from exc
+
+    # Ignore changes to non-employee objects
+    ldap_object = await get_ldap_object(
+        dataloader.ldapapi.ldap_connection, dn, attributes=["objectClass"]
+    )
+    ldap_object_classes = ldap_object.objectClass  # type: ignore[attr-defined]
+    employee_object_class = converter.find_ldap_object_class("Employee")
+    if employee_object_class not in ldap_object_classes:
+        logger.info(
+            "Ignoring change: not Employee objectClass",
+            ldap_object_classes=ldap_object_classes,
+        )
+        return
 
     try:
         await sync_tool.import_single_user(dn)
@@ -92,7 +107,7 @@ def configure_ldap_amqpsystem(
         settings=settings,
         router=ldap_amqp_router,
         dependencies=[
-            Depends(rate_limit(delay_on_error)),
+            Depends(rate_limit(10)),
             Depends(logger_bound_message_id),
             Depends(request_id),
         ],

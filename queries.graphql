@@ -60,6 +60,22 @@ query __testing__engagement_read($filter: EngagementFilter) {
   }
 }
 
+query __testing__employee_read($filter: EmployeeFilter) {
+  employees(filter: $filter) {
+    objects {
+      validities {
+        uuid
+        user_key
+        cpr_number
+        given_name
+        surname
+        nickname_given_name
+        nickname_surname
+      }
+    }
+  }
+}
+
 query __testing__ituser_read($filter: ITUserFilter) {
   itusers(filter: $filter) {
     objects {
@@ -83,6 +99,12 @@ query __testing__ituser_read($filter: ITUserFilter) {
 
 mutation __testing_user_create($input: EmployeeCreateInput!) {
   employee_create(input: $input) {
+    uuid
+  }
+}
+
+mutation __testing_user_update($input: EmployeeUpdateInput!) {
+  employee_update(input: $input) {
     uuid
   }
 }

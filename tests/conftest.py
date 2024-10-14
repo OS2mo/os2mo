@@ -35,6 +35,7 @@ from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.ldap import ldap_delete
 from mo_ldap_import_export.ldap import ldap_search
 from mo_ldap_import_export.ldap_classes import LdapObject
+from mo_ldap_import_export.ldapapi import LDAPAPI
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
 from mo_ldap_import_export.moapi import MOAPI
@@ -43,7 +44,7 @@ from tests.graphql_mocker import GraphQLMocker
 
 
 def pytest_collection_modifyitems(items: list[Item]) -> None:
-    """Automatically use convenient fixtures for tests marked with integration_test."""
+    """Fake `autouse` fixtures for tests marked with integration_test."""
 
     for item in items:
         if item.get_closest_marker("integration_test"):
@@ -327,7 +328,7 @@ def converter() -> MagicMock:
 
 
 @pytest.fixture
-def settings() -> MagicMock:
+def settings_mock() -> MagicMock:
     return MagicMock()
 
 
@@ -386,9 +387,15 @@ async def graphql_client(context: Context) -> GraphQLClient:
 
 
 @pytest.fixture
-async def mo_api(settings: Settings, graphql_client: GraphQLClient) -> MOAPI:
+async def mo_api(settings_mock: Settings, graphql_client: GraphQLClient) -> MOAPI:
     """MO API GraphQL wrapper."""
-    return MOAPI(settings, graphql_client)
+    return MOAPI(settings_mock, graphql_client)
+
+
+@pytest.fixture
+async def ldap_api(ldap_connection: Connection) -> LDAPAPI:
+    """LDAP API."""
+    return LDAPAPI(Settings(), ldap_connection)
 
 
 @pytest.fixture
