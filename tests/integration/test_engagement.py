@@ -35,9 +35,8 @@ from mo_ldap_import_export.utils import mo_today
                     "Employee": {
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
-                        "_ldap_attributes_": ["employeeNumber"],
+                        "_ldap_attributes_": [],
                         "uuid": "{{ employee_uuid or NONE }}",  # TODO: why is this required?
-                        "cpr_no": "{{ldap.employeeNumber}}",
                     },
                     "Engagement": {
                         "objectClass": "ramodels.mo.details.engagement.Engagement",
@@ -169,22 +168,20 @@ async def test_to_mo(
                     "Employee": {
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
-                        "_ldap_attributes_": ["employeeNumber"],
+                        "_ldap_attributes_": [],
                         "uuid": "{{ employee_uuid or NONE }}",
-                        "cpr_no": "{{ldap.employeeNumber}}",
                     },
+                    # This is required for mo_engagement_to_ldap
                     "Engagement": {
                         "objectClass": "ramodels.mo.details.engagement.Engagement",
                         "_import_to_mo_": "false",
-                        "_ldap_attributes_": ["title", "departmentNumber"],
-                        "_mapper_": "{{ obj.departmentNumber }}",
-                        "user_key": "{{ ldap.title }}",
-                        "person": "{{ dict(uuid=employee_uuid ) }}",
-                        "org_unit": "{{ dict(uuid=ldap.departmentNumber ) }}",
-                        "engagement_type": "{{ dict(uuid=get_engagement_type_uuid('Ansat')) }}",
-                        "job_function": "{{ dict(uuid=get_job_function_uuid('Jurist')) }}",
-                        "primary": "{{ dict(uuid=get_primary_type_uuid('primary')) }}",
-                        "extension_1": "{{ ldap.title }}",
+                        "_ldap_attributes_": [],
+                        "user_key": "unused",
+                        "person": "dict(uuid=",  # Validator required this in the value
+                        "org_unit": "unused",
+                        "engagement_type": "unused",
+                        "job_function": "unused",
+                        "primary": "unused",
                     },
                 },
                 "mo_to_ldap": {

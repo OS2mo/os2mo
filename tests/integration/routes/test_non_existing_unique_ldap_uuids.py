@@ -21,9 +21,8 @@ conversion_mapping_with_aduuid_itsystem = {
         "Employee": {
             "objectClass": "ramodels.mo.employee.Employee",
             "_import_to_mo_": "false",
-            "_ldap_attributes_": ["employeeNumber"],
+            "_ldap_attributes_": [],
             "uuid": "{{ employee_uuid or NONE }}",
-            "cpr_no": "{{ldap.employeeNumber|strip_non_digits or NONE}}",
         },
         "ADUUID": {
             "objectClass": "ramodels.mo.details.it_system.ITUser",
