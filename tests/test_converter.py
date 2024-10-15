@@ -118,7 +118,6 @@ def converter_mapping() -> dict[str, Any]:
         },
         "mo_to_ldap": {
             "Employee": {
-                "objectClass": "user",
                 "_export_to_ldap_": "True",
                 "givenName": "{{mo_employee.givenname}}",
                 "sn": "{{mo_employee.surname}}",
@@ -127,11 +126,9 @@ def converter_mapping() -> dict[str, Any]:
                 "employeeID": "{{mo_employee.cpr_no or None}}",
             },
             "Email": {
-                "objectClass": "user",
                 "_export_to_ldap_": "True",
             },
             "Active Directory": {
-                "objectClass": "user",
                 "_export_to_ldap_": "True",
                 "msSFU30Name": "{{mo_employee_it_user.user_key}}",
             },
@@ -347,12 +344,10 @@ async def test_ldap_to_mo_dict_validation_error(
         },
         "mo_to_ldap": {
             "Employee": {
-                "objectClass": "user",
                 "_export_to_ldap_": "True",
                 "employeeID": "{{mo_employee.cpr_no or None}}",
             },
             "Custom": {
-                "objectClass": "user",
                 "_export_to_ldap_": "True",
             },
         },
@@ -444,7 +439,6 @@ async def test_template_strictness(
         },
         "mo_to_ldap": {
             "Employee": {
-                "objectClass": "user",
                 "_export_to_ldap_": "True",
                 "cpr": "{{ mo_employee.cpr_no }}",
                 "givenName": "{{ mo_employee.givenname }}",
@@ -479,7 +473,7 @@ async def test_template_strictness(
 
 def test_find_ldap_object_class(converter: LdapConverter):
     object_class = converter.find_ldap_object_class("Employee")
-    assert object_class == "user"
+    assert object_class == "inetOrgPerson"
 
 
 def test_get_ldap_attributes(converter: LdapConverter) -> None:
@@ -1170,7 +1164,7 @@ def test_export_to_ldap(
         (
             {
                 "mo_to_ldap": {
-                    "Employee": {**EMPLOYEE_OBJ, "_export_to_ldap_": "t"},
+                    "Employee": {"_export_to_ldap_": "t"},
                 },
                 "ldap_to_mo": {
                     "Employee": {**EMPLOYEE_OBJ, "_import_to_mo_": "f"},
@@ -1181,7 +1175,7 @@ def test_export_to_ldap(
         (
             {
                 "mo_to_ldap": {
-                    "Employee": {**EMPLOYEE_OBJ, "_export_to_ldap_": "true"},
+                    "Employee": {"_export_to_ldap_": "true"},
                 },
                 "ldap_to_mo": {
                     "Employee": EMPLOYEE_OBJ,
@@ -1192,7 +1186,7 @@ def test_export_to_ldap(
         (
             {
                 "mo_to_ldap": {
-                    "Employee": EMPLOYEE_OBJ,
+                    "Employee": {},
                 },
                 "ldap_to_mo": {
                     "Employee": {**EMPLOYEE_OBJ, "_import_to_mo_": "true"},
@@ -1203,7 +1197,7 @@ def test_export_to_ldap(
         (
             {
                 "mo_to_ldap": {
-                    "Employee": {**EMPLOYEE_OBJ, "_export_to_ldap_": "True"},
+                    "Employee": {"_export_to_ldap_": "True"},
                 },
                 "ldap_to_mo": {
                     "Employee": {**EMPLOYEE_OBJ, "_import_to_mo_": "True"},

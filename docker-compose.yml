@@ -75,6 +75,7 @@ services:
       LDAP_OUS_TO_SEARCH_IN: '["ou=os2mo,o=magenta"]'
       LDAP_OUS_TO_WRITE_TO: '[""]'
       LDAP_OU_FOR_NEW_USERS: "ou=os2mo,o=magenta"
+      LDAP_OBJECT_CLASS: "inetOrgPerson"
       LISTEN_TO_CHANGES_IN_MO: True
       LISTEN_TO_CHANGES_IN_LDAP: True
       DEFAULT_ORG_UNIT_TYPE: "Afdeling"
@@ -114,7 +115,6 @@ services:
             },
             "mo_to_ldap": {
                 "Employee": {
-                    "objectClass": "inetOrgPerson",
                     "_export_to_ldap_": "true",
                     "employeeNumber": "{{mo_employee.cpr_no}}",
                     "title": "{{ mo_employee.user_key }}",
@@ -122,13 +122,11 @@ services:
                     "sn": "{{ mo_employee.surname }}"
                 },
                 "ADtitle": {
-                    "objectClass": "inetOrgPerson",
                     "_export_to_ldap_": "false",
                     "title": "{{ mo_employee_it_user.user_key }}",
                     "employeeNumber": "{{ mo_employee.cpr_no }}"
                 },
                 "ADUUID": {
-                    "objectClass": "inetOrgPerson",
                     "_export_to_ldap_": "false",
                     "title": "{{ NONE }}",
                     "entryUUID": "{{ mo_employee_it_user.user_key }}",

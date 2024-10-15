@@ -10,6 +10,7 @@ services:
       LDAP_OUS_TO_WRITE_TO: '["OU=Users,OU=ldap-tests,OU=OS2MO"]'
       LDAP_OU_FOR_NEW_USERS: "OU=Users,OU=ldap-tests,OU=OS2MO"
       LDAP_DIALECT: "AD"
+      LDAP_OBJECT_CLASS: "user"
 
       LDAP_AUTH_METHOD: "simple"
 
@@ -58,19 +59,16 @@ services:
           },
           "mo_to_ldap": {
             "Employee": {
-              "objectClass": "user",
               "_export_to_ldap_": "true",
               "employeeID": "{{ mo_employee.cpr_no }}",
               "sn": "{{ mo_employee.nickname_surname or mo_employee.surname}}",
               "displayName": "{{mo_employee.nickname_givenname or mo_employee.givenname}} {{mo_employee.nickname_surname or mo_employee.surname}}"
             },
             "Engagement": {
-              "objectClass": "user",
               "_export_to_ldap_": "true",
               "title": "{{ mo_employee_engagement.user_key }}"
             },
             "Active Directory": {
-              "objectClass": "user",
               "_export_to_ldap_": "true",
               "objectGUID": "{{ mo_employee_it_user.uuid  }}",
               "sAMAccountName": "{{ mo_employee_it_user.user_key }}"

@@ -12,6 +12,7 @@ from datetime import datetime
 from functools import partial
 from itertools import count
 from typing import Any
+from typing import cast
 from uuid import UUID
 from uuid import uuid4
 
@@ -399,7 +400,16 @@ async def load_ldap_cpr_object(
 def construct_router(settings: Settings) -> APIRouter:
     router = APIRouter()
 
-    default_ldap_class = settings.conversion_mapping.mo_to_ldap["Employee"].objectClass
+    # TODO: Clean this up when settings.ldap_object_class is required
+    settings_default_ldap_class = settings.ldap_object_class
+    old_default_ldap_class = settings.conversion_mapping.mo_to_ldap[
+        "Employee"
+    ].objectClass
+    # One of these must be set
+    assert settings_default_ldap_class is not None or old_default_ldap_class is not None
+    default_ldap_class: str = cast(
+        str, settings_default_ldap_class or old_default_ldap_class
+    )
 
     # Load all users from LDAP, and import them into MO
     @router.get("/Import", status_code=202, tags=["Import"])

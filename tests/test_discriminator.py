@@ -513,6 +513,15 @@ async def sync_tool_and_context(
     await converter._init()
     context["user_context"]["converter"] = converter
 
+    username_generator = UserNameGenerator(
+        context,
+        settings,
+        settings.conversion_mapping.username_generator,
+        dataloader,
+        ldap_connection,
+    )
+    context["user_context"]["username_generator"] = username_generator
+
     export_checks = ExportChecks(dataloader)
     import_checks = ImportChecks()
 
@@ -885,7 +894,7 @@ async def test_apply_discriminator_template(
 
 async def test_get_existing_values(sync_tool: SyncTool, context: Context) -> None:
     mapping = {
-        "mo_to_ldap": {"Employee": {"objectClass": "user"}},
+        "mo_to_ldap": {"Employee": {}},
         "username_generator": {
             "objectClass": "UserNameGenerator",
         },
@@ -913,7 +922,7 @@ async def test_get_existing_names(sync_tool: SyncTool, context: Context) -> None
     context["user_context"]["settings"] = settings
 
     mapping = {
-        "mo_to_ldap": {"Employee": {"objectClass": "user"}},
+        "mo_to_ldap": {"Employee": {}},
         "username_generator": {
             "objectClass": "UserNameGenerator",
         },

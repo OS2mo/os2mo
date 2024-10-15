@@ -124,9 +124,20 @@ class LDAPAPI:
             raise ReadOnlyException("Not allowed to write to the specified OU")
 
         logger.info("Adding user to LDAP", dn=dn, attributes=attributes)
-        employee_object_class = self.settings.conversion_mapping.mo_to_ldap[
+        # TODO: Clean this up when settings.ldap_object_class is required
+        settings_default_ldap_class = self.settings.ldap_object_class
+        old_default_ldap_class = self.settings.conversion_mapping.mo_to_ldap[
             "Employee"
         ].objectClass
+        # One of these must be set
+        assert (
+            settings_default_ldap_class is not None
+            or old_default_ldap_class is not None
+        )
+        employee_object_class: str = cast(
+            str, settings_default_ldap_class or old_default_ldap_class
+        )
+
         _, result = await ldap_add(
             self.ldap_connection,
             dn,
@@ -194,9 +205,20 @@ class LDAPAPI:
         search_bases = [
             combine_dn_strings([ou, search_base]) for ou in ous_to_search_in
         ]
-        object_class = self.settings.conversion_mapping.mo_to_ldap[
+
+        # TODO: Clean this up when settings.ldap_object_class is required
+        settings_default_ldap_class = self.settings.ldap_object_class
+        old_default_ldap_class = self.settings.conversion_mapping.mo_to_ldap[
             "Employee"
         ].objectClass
+        # One of these must be set
+        assert (
+            settings_default_ldap_class is not None
+            or old_default_ldap_class is not None
+        )
+        object_class: str = cast(
+            str, settings_default_ldap_class or old_default_ldap_class
+        )
 
         object_class_filter = f"objectclass={object_class}"
         cpr_filter = f"{self.settings.ldap_cpr_attribute}={cpr_no}"

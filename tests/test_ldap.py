@@ -82,6 +82,7 @@ def settings(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("LDAP_USER", "foo")
     monkeypatch.setenv("LDAP_PASSWORD", "bar")
     monkeypatch.setenv("LDAP_SEARCH_BASE", "DC=ad,DC=addev")
+    monkeypatch.setenv("LDAP_OBJECT_CLASS", "inetOrgPerson")
     monkeypatch.setenv("LDAP_CPR_ATTRIBUTE", "employeeNumber")
     monkeypatch.setenv("DEFAULT_ORG_UNIT_LEVEL", "foo")
     monkeypatch.setenv("DEFAULT_ORG_UNIT_TYPE", "foo")
@@ -138,7 +139,6 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         },
         "mo_to_ldap": {
             "Employee": {
-                "objectClass": "inetOrgPerson",
                 "_export_to_ldap_": "false",
             }
         },
@@ -157,6 +157,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "LDAP_USER": "foo",
         "LDAP_PASSWORD": "foo",
         "LDAP_SEARCH_BASE": "DC=ad,DC=addev",
+        "LDAP_OBJECT_CLASS": "inetOrgPerson",
         "LDAP_CPR_ATTRIBUTE": "employeeNumber",
         "DEFAULT_ORG_UNIT_LEVEL": "foo",
         "DEFAULT_ORG_UNIT_TYPE": "foo",

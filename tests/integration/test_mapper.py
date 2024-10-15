@@ -52,7 +52,6 @@ CONVERSION_MAPPING = {
     },
     "mo_to_ldap": {
         "Employee": {
-            "objectClass": "inetOrgPerson",
             "_export_to_ldap_": "false",
         },
     },

@@ -46,7 +46,6 @@ from mo_ldap_import_export.utils import combine_dn_strings
                 # TODO: why is this required?
                 "mo_to_ldap": {
                     "Employee": {
-                        "objectClass": "inetOrgPerson",
                         "_export_to_ldap_": "false",
                     },
                 },
@@ -139,7 +138,6 @@ async def test_to_mo(
                 },
                 "mo_to_ldap": {
                     "Employee": {
-                        "objectClass": "inetOrgPerson",
                         "_export_to_ldap_": "true",
                         "employeeNumber": "{{ mo_employee.cpr_no }}",
                         "carLicense": "{{ mo_employee.uuid }}",

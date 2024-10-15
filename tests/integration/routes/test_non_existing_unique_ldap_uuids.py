@@ -35,7 +35,6 @@ conversion_mapping_with_aduuid_itsystem = {
     },
     "mo_to_ldap": {
         "Employee": {
-            "objectClass": "inetOrgPerson",
             "_export_to_ldap_": "false",
         }
     },

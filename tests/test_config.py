@@ -37,7 +37,6 @@ def address_mapping(minimal_mapping: dict) -> dict:
             },
             "mo_to_ldap": {
                 "EmailEmployee": {
-                    "objectClass": "user",
                     "_export_to_ldap_": "true",
                     "mail": "{{mo_employee_address.value}}",
                 }
@@ -323,12 +322,10 @@ async def test_correlation_configuration(
         (
             {
                 "Employee": {
-                    "objectClass": "inetOrgPerson",
                     "_export_to_ldap_": "false",
                     "employeeID": "{{mo_employee.cpr_no or None}}",
                 },
                 "EmailEmployee": {
-                    "objectClass": "user",
                     "_export_to_ldap_": "true",
                     "mail": "hardcoded@example.com",
                 },
@@ -339,12 +336,10 @@ async def test_correlation_configuration(
         (
             {
                 "Employee": {
-                    "objectClass": "inetOrgPerson",
                     "_export_to_ldap_": "false",
                     "employeeID": "{{mo_employee.cpr_no or None}}",
                 },
                 "EmailEmployee": {
-                    "objectClass": "user",
                     "_export_to_ldap_": "true",
                     # This field exists on Employee in the minimal mapping
                     "employeeID": "conflict",
@@ -356,19 +351,16 @@ async def test_correlation_configuration(
         (
             {
                 "Employee": {
-                    "objectClass": "inetOrgPerson",
                     "_export_to_ldap_": "false",
                     "employeeID": "{{mo_employee.cpr_no or None}}",
                 },
                 "EmailEmployee": {
-                    "objectClass": "user",
                     "_export_to_ldap_": "true",
                     "mail": "conflict",
                     "conflict": "conflict",
                     "no_conflict": "ok",
                 },
                 "EmailOrgunit": {
-                    "objectClass": "user",
                     "_export_to_ldap_": "true",
                     "mail": "conflict",
                     "conflict": "conflict",
@@ -381,17 +373,14 @@ async def test_correlation_configuration(
         (
             {
                 "Employee": {
-                    "objectClass": "inetOrgPerson",
                     "_export_to_ldap_": "false",
                     "employeeID": "{{mo_employee.cpr_no or None}}",
                 },
                 "EmailEmployee": {
-                    "objectClass": "user",
                     "_export_to_ldap_": "true",
                     "employeeID": "conflict",
                 },
                 "EmailOrgunit": {
-                    "objectClass": "user",
                     "_export_to_ldap_": "true",
                     "employeeID": "conflict",
                 },

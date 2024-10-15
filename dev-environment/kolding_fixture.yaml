@@ -22,16 +22,13 @@ ldap_to_mo:
     person: '{{ dict(uuid=employee_uuid or NONE) }}'
 mo_to_ldap:
   Employee:
-    objectClass: inetOrgPerson
     _export_to_ldap_: "false"
     employeeNumber: '{{ mo_employee.cpr_no }}'
   ADtitle:
-    objectClass: inetOrgPerson
     _export_to_ldap_: "false"
     title: '{{ mo_employee_it_user.user_key }}'
     employeeNumber: '{{ mo_employee.cpr_no }}'
   ADUUID:
-    objectClass: inetOrgPerson
     _export_to_ldap_: "false"
     entryUUID: '{{ mo_employee_it_user.user_key }}'
     employeeNumber: '{{ mo_employee.cpr_no }}'

@@ -385,7 +385,6 @@ async def test_changed_since(test_client: AsyncClient, expected: list[str]) -> N
                 },
                 "mo_to_ldap": {
                     "Employee": {
-                        "objectClass": "inetOrgPerson",
                         "_export_to_ldap_": "false",
                     },
                 },
@@ -492,7 +491,6 @@ async def test_mismatched_json_key_and_address_type(
                 },
                 "mo_to_ldap": {
                     "Employee": {
-                        "objectClass": "inetOrgPerson",
                         "_export_to_ldap_": "false",
                     },
                 },
@@ -582,7 +580,6 @@ async def test_mismatched_json_key_and_itsystem(
                 },
                 "mo_to_ldap": {
                     "Employee": {
-                        "objectClass": "inetOrgPerson",
                         "_export_to_ldap_": "false",
                     }
                 },
