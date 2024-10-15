@@ -36,7 +36,7 @@ from mo_ldap_import_export.utils import mo_today
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": [],
-                        "uuid": "{{ employee_uuid or NONE }}",  # TODO: why is this required?
+                        "uuid": "{{ employee_uuid or '' }}",  # TODO: why is this required?
                     },
                     "Engagement": {
                         "objectClass": "ramodels.mo.details.engagement.Engagement",
@@ -46,9 +46,9 @@ from mo_ldap_import_export.utils import mo_today
                             "title",
                             "departmentNumber",
                         ],
-                        "_mapper_": "{{ obj.departmentNumber }}",
+                        "_mapper_": "{{ obj.org_unit }}",
                         # carLicense is arbitrarily chosen as an enabled/disabled marker
-                        "_terminate_": "{{ now()|mo_datestring if ldap.carLicense == 'EXPIRED' else NONE}}",
+                        "_terminate_": "{{ now()|mo_datestring if ldap.carLicense == 'EXPIRED' else '' }}",
                         "user_key": "{{ ldap.title }}",
                         "person": "{{ dict(uuid=employee_uuid ) }}",
                         "org_unit": "{{ dict(uuid=ldap.departmentNumber ) }}",
@@ -169,7 +169,7 @@ async def test_to_mo(
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": [],
-                        "uuid": "{{ employee_uuid or NONE }}",
+                        "uuid": "{{ employee_uuid or '' }}",
                     },
                     # This is required for mo_engagement_to_ldap
                     "Engagement": {

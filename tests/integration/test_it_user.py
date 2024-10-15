@@ -36,7 +36,7 @@ from mo_ldap_import_export.utils import mo_today
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": [],
-                        "uuid": "{{ employee_uuid or NONE }}",  # TODO: why is this required?
+                        "uuid": "{{ employee_uuid or '' }}",  # TODO: why is this required?
                     },
                     "ADtitle": {
                         "objectClass": "ramodels.mo.details.it_system.ITUser",
@@ -44,7 +44,7 @@ from mo_ldap_import_export.utils import mo_today
                         "_ldap_attributes_": ["carLicense", "title"],
                         "_mapper_": "{{ obj.itsystem }}",
                         # carLicense is arbitrarily chosen as an enabled/disabled marker
-                        "_terminate_": "{{ now()|mo_datestring if ldap.carLicense == 'EXPIRED' else NONE}}",
+                        "_terminate_": "{{ now()|mo_datestring if ldap.carLicense == 'EXPIRED' else ''}}",
                         "user_key": "{{ ldap.title }}",
                         "person": "{{ dict(uuid=employee_uuid ) }}",
                         "itsystem": "{{ dict(uuid=get_it_system_uuid('ADtitle')) }}",
@@ -154,7 +154,7 @@ async def test_to_mo(
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": [],
-                        "uuid": "{{ employee_uuid or NONE }}",
+                        "uuid": "{{ employee_uuid or '' }}",
                     },
                     # This is required for mo_ituser_to_ldap
                     # 'ADtitle' (key) is assumed to be an itsystem in MO

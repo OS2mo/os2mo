@@ -35,7 +35,7 @@ from mo_ldap_import_export.utils import mo_today
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": [],
-                        "uuid": "{{ employee_uuid or NONE }}",  # TODO: why is this required?
+                        "uuid": "{{ employee_uuid or '' }}",
                     },
                     "EmailEmployee": {
                         "objectClass": "ramodels.mo.details.address.Address",
@@ -43,7 +43,7 @@ from mo_ldap_import_export.utils import mo_today
                         "_ldap_attributes_": ["carLicense", "mail"],
                         "_mapper_": "{{ obj.address_type }}",
                         # carLicense is arbitrarily chosen as an enabled/disabled marker
-                        "_terminate_": "{{ now()|mo_datestring if ldap.carLicense == 'EXPIRED' else NONE}}",
+                        "_terminate_": "{{ now()|mo_datestring if ldap.carLicense == 'EXPIRED' else '' }}",
                         "value": "{{ ldap.mail }}",
                         "address_type": "{{ dict(uuid=get_employee_address_type_uuid('EmailEmployee')) }}",
                         "person": "{{ dict(uuid=employee_uuid ) }}",
@@ -157,7 +157,7 @@ async def test_to_mo(
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": [],
-                        "uuid": "{{ employee_uuid or NONE }}",
+                        "uuid": "{{ employee_uuid or '' }}",
                     },
                     # This is required for mo_address_to_ldap
                     # 'EmailEmployee' (key) is assumed to be an address-type in MO
