@@ -259,8 +259,6 @@ class MO2LDAPMapping(MappingBaseModel):
     class Config:
         extra = Extra.allow
 
-    # TODO: Remove this once set on all prod environments
-    objectClass: str | None = None
     export_to_ldap: Literal["true", "false", "pause"] = Field(alias="_export_to_ldap_")
 
     def export_to_ldap_as_bool(self) -> bool:
@@ -401,38 +399,9 @@ class Settings(BaseSettings):
         ..., description="Search base to utilize for all LDAP requests"
     )
 
-    ldap_object_class: str | None = Field(
-        None, description="The LDAP object class that contains the CPR number"
+    ldap_object_class: str = Field(
+        ..., description="The LDAP object class that contains the CPR number"
     )
-
-    # TODO: Remove this when ldap_object_class is required
-    @root_validator
-    def check_ldap_object_class(
-        cls, values: dict[str, Any]
-    ) -> dict[str, Any]:  # pragma: no cover
-        # Skip this check, if conversion_mapping did not parse correctly
-        if "conversion_mapping" not in values:
-            return values
-
-        mo_to_ldap = values["conversion_mapping"].mo_to_ldap
-        for mapping in mo_to_ldap.values():
-            match values["ldap_object_class"], mapping.objectClass:
-                # If neither global, nor mapping is set, it is an error
-                case None, None:
-                    raise ValueError(
-                        "Either global 'ldap_object_class' or mapping objectClass must be set."
-                    )
-                case None, _:
-                    pass
-                case _, None:
-                    pass
-                # If both global and mapping is set, it is an error
-                case _, _:
-                    raise ValueError(
-                        "Global 'ldap_object_class' and mapping objectClass cannot both be set."
-                    )
-        return values
-
     ldap_cpr_attribute: str | None = Field(
         None,
         description="The attribute (if any) that contains the CPR number in LDAP",

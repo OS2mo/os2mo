@@ -417,18 +417,6 @@ class SyncTool:
         #       and deletes directly.
         result_map = {}
         for address_type, addresses in address_map.items():
-            # TODO: Not entirely sure why this is an invariant, it is merely retained
-            # TODO: Check this statically, as it does not depend on data at all
-            #       Potentially during settings parsing?
-            ldap_object_class = self.converter.find_ldap_object_class(address_type)
-            employee_object_class = self.converter.find_ldap_object_class("Employee")
-            if ldap_object_class != employee_object_class:  # pragma: no cover
-                logger.warning(
-                    "Mapping organization unit addresses "
-                    "to non-employee objects is not supported"
-                )
-                continue
-
             # At most one address of each type should exist, as we only map one
             # If more exists, our program either sucks or someone else did it
             # TODO: In the future we want to panic in this case with RequeueMessage

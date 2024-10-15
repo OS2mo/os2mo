@@ -46,11 +46,6 @@ class LdapConverter:
         environment = construct_environment(self.settings, self.dataloader)
         self.mapping = self._populate_mapping_with_templates(mapping, environment)
 
-    def find_ldap_object_class(self, json_key):  # pragma: no cover
-        if self.settings.ldap_object_class is not None:
-            return self.settings.ldap_object_class
-        return self.settings.conversion_mapping.mo_to_ldap[json_key].objectClass
-
     def get_ldap_attributes(self, json_key, remove_dn=True) -> list[str]:
         ldap_attributes = set(
             self.settings.conversion_mapping.ldap_to_mo[json_key].ldap_attributes

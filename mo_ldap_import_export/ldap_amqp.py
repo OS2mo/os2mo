@@ -82,7 +82,7 @@ async def handle_uuid(
         dataloader.ldapapi.ldap_connection, dn, attributes=["objectClass"]
     )
     ldap_object_classes = ldap_object.objectClass  # type: ignore[attr-defined]
-    employee_object_class = converter.find_ldap_object_class("Employee")
+    employee_object_class = converter.settings.ldap_object_class
     if employee_object_class not in ldap_object_classes:
         logger.info(
             "Ignoring change: not Employee objectClass",

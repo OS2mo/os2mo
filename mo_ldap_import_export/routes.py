@@ -12,7 +12,6 @@ from datetime import datetime
 from functools import partial
 from itertools import count
 from typing import Any
-from typing import cast
 from uuid import UUID
 from uuid import uuid4
 
@@ -122,7 +121,7 @@ async def load_ldap_objects(
     """
     additional_attributes = additional_attributes or []
 
-    user_class = converter.find_ldap_object_class(json_key)
+    user_class = settings.ldap_object_class
     attributes = converter.get_ldap_attributes(json_key) + additional_attributes
 
     searchParameters = {
@@ -373,7 +372,7 @@ async def load_ldap_cpr_object(
     search_base = dataloader.settings.ldap_search_base
     ous_to_search_in = dataloader.settings.ldap_ous_to_search_in
     search_bases = [combine_dn_strings([ou, search_base]) for ou in ous_to_search_in]
-    object_class = dataloader.converter.find_ldap_object_class(json_key)
+    object_class = dataloader.converter.settings.ldap_object_class
     attributes = (
         dataloader.converter.get_ldap_attributes(json_key) + additional_attributes
     )
@@ -400,16 +399,7 @@ async def load_ldap_cpr_object(
 def construct_router(settings: Settings) -> APIRouter:
     router = APIRouter()
 
-    # TODO: Clean this up when settings.ldap_object_class is required
-    settings_default_ldap_class = settings.ldap_object_class
-    old_default_ldap_class = settings.conversion_mapping.mo_to_ldap[
-        "Employee"
-    ].objectClass
-    # One of these must be set
-    assert settings_default_ldap_class is not None or old_default_ldap_class is not None
-    default_ldap_class: str = cast(
-        str, settings_default_ldap_class or old_default_ldap_class
-    )
+    default_ldap_class = settings.ldap_object_class
 
     # Load all users from LDAP, and import them into MO
     @router.get("/Import", status_code=202, tags=["Import"])
