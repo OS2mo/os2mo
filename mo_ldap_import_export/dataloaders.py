@@ -165,16 +165,11 @@ class DataLoader:
             )
             return None
 
-        requested_changes = {}
-
-        parameters_to_modify = list(object_to_modify.dict().keys())
-        parameters_to_modify = [p for p in parameters_to_modify if p != "dn"]
-        for parameter_to_modify in parameters_to_modify:
-            value = getattr(object_to_modify, parameter_to_modify)
-            value_to_modify: list[str] = [] if value is None else [value]
-            if delete:
-                value_to_modify = []
-            requested_changes[parameter_to_modify] = value_to_modify
+        requested_changes = {
+            key: [] if (delete or value is None) else [value]
+            for key, value in object_to_modify.dict().items()
+        }
+        requested_changes.pop("dn", None)
 
         # Transform key-value changes to LDAP format
         changes = {
