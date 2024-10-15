@@ -684,6 +684,10 @@ class SyncTool:
             **itusers,
             **engagements,
         }
+        # Moving objects is not supported
+        for ldap_object, _ in changes.values():
+            assert ldap_object.dn == best_dn
+
         # Remove non-export entries
         # TODO: Do not even spend time templating these out in the first place
         # TODO: Why are they even defined if we do not use them?
@@ -701,8 +705,6 @@ class SyncTool:
         # If dry-running we do not want to makes changes in LDAP
         if not dry_run:
             for ldap_object, delete in export_changes.values():
-                # Moving objects is not supported
-                assert ldap_object.dn == best_dn
                 await self.dataloader.modify_ldap_object(ldap_object, delete=delete)
 
         return changes

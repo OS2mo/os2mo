@@ -17,6 +17,7 @@ from fastapi.encoders import jsonable_encoder
 from fastramqpi.context import Context
 from fastramqpi.raclients.modelclient.mo import ModelClient as LegacyModelClient
 from fastramqpi.ramqp.mo import MOAMQPSystem
+from ldap3 import MODIFY_REPLACE
 from ldap3 import Connection
 from ldap3.core.exceptions import LDAPInvalidValueError
 from more_itertools import bucket
@@ -44,7 +45,9 @@ from .config import Settings
 from .exceptions import DNNotFound
 from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
+from .exceptions import ReadOnlyException
 from .ldap import is_uuid
+from .ldap import ldap_modify
 from .ldap_classes import LdapObject
 from .ldapapi import LDAPAPI
 from .moapi import MOAPI
@@ -132,7 +135,7 @@ class DataLoader:
         self,
         object_to_modify: LdapObject,
         delete: bool = False,
-    ) -> list[dict]:
+    ) -> None:
         """
         Parameters
         -------------
@@ -141,46 +144,45 @@ class DataLoader:
         delete: bool
             Set to True to delete contents in LDAP, instead of creating/modifying them
         """
-        success = 0
-        failed = 0
-
-        parameters_to_modify = list(object_to_modify.dict().keys())
-
         logger.info("Uploading object", object_to_modify=object_to_modify)
-        parameters_to_modify = [p for p in parameters_to_modify if p != "dn"]
         dn = object_to_modify.dn
-        results = []
 
-        for parameter_to_modify in parameters_to_modify:
-            value = getattr(object_to_modify, parameter_to_modify)
-            value_to_modify: list[str] = [] if value is None else [value]
-            if delete:
-                value_to_modify = []
+        # TODO: Remove this when ldap3s read-only flag works
+        if self.settings.ldap_read_only:
+            logger.info(
+                "LDAP connection is read-only",
+                operation="modify_ldap",
+                dn=dn,
+            )
+            raise ReadOnlyException("LDAP connection is read-only")
 
-            try:
-                response = await self.ldapapi.modify_ldap(
-                    dn, parameter_to_modify, value_to_modify
-                )
-            except LDAPInvalidValueError:
-                logger.warning("LDAPInvalidValueError exception", exc_info=True)
-                failed += 1
-                continue
+        # Checks
+        if not self.ldapapi.ou_in_ous_to_write_to(dn):
+            logger.info(
+                "Not allowed to write to the specified OU",
+                operation="modify_ldap",
+                dn=dn,
+            )
+            return None
 
-            if response and response["description"] == "success":
-                success += 1
-            elif response:
-                failed += 1
+        requested_changes = {
+            key: [] if (delete or value is None) else [value]
+            for key, value in object_to_modify.dict().items()
+        }
+        requested_changes.pop("dn", None)
 
-            if response:
-                results.append(response)
-
-        logger.info(
-            "Succeeded/failed MODIFY_* operations",
-            success=success,
-            failed=failed,
-        )
-
-        return results
+        # Transform key-value changes to LDAP format
+        changes = {
+            attribute: [(MODIFY_REPLACE, value)]
+            for attribute, value in requested_changes.items()
+        }
+        try:
+            # Modify LDAP
+            logger.info("Uploading the changes", changes=requested_changes, dn=dn)
+            _, result = await ldap_modify(self.ldap_connection, dn, changes)
+            logger.info("LDAP Result", result=result, dn=dn)
+        except LDAPInvalidValueError:
+            logger.warning("LDAPInvalidValueError exception", exc_info=True)
 
     async def find_mo_employee_uuid_via_cpr_number(self, dn: str) -> set[UUID]:
         cpr_number = await self.ldapapi.dn2cpr(dn)
