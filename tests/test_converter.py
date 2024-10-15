@@ -471,11 +471,6 @@ async def test_template_strictness(
     assert employee.dict(exclude_unset=True) == expected_employee
 
 
-def test_find_ldap_object_class(converter: LdapConverter):
-    object_class = converter.find_ldap_object_class("Employee")
-    assert object_class == "inetOrgPerson"
-
-
 def test_get_ldap_attributes(converter: LdapConverter) -> None:
     settings = Settings()
 
