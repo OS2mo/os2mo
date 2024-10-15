@@ -29,6 +29,7 @@ from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.dataloaders import Verb
 from mo_ldap_import_export.depends import GraphQLClient
+from mo_ldap_import_export.environments import construct_environment
 from mo_ldap_import_export.exceptions import DNNotFound
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.import_export import SyncTool
@@ -87,6 +88,8 @@ async def test_listen_to_changes_in_employee_no_employee(
     sync_tool: SyncTool,
     converter: MagicMock,
 ) -> None:
+    sync_tool.settings.conversion_mapping.mo2ldap = None  # type: ignore
+
     converted_ldap_object = LdapObject(dn="CN=foo")
     converter.to_ldap.return_value = converted_ldap_object
 
@@ -106,6 +109,8 @@ async def test_listen_to_changes_in_employees_person(
     sync_tool: SyncTool,
     converter: MagicMock,
 ) -> None:
+    sync_tool.settings.conversion_mapping.mo2ldap = None  # type: ignore
+
     # Ignore all changes, but person changes
     no_changes_async_mock = AsyncMock()
     no_changes_async_mock.return_value = {}
@@ -138,6 +143,8 @@ async def test_listen_to_changes_in_employees_org_unit_address(
     converter: MagicMock,
     graphql_mock: GraphQLMocker,
 ) -> None:
+    sync_tool.settings.conversion_mapping.mo2ldap = None  # type: ignore
+
     # Ignore all changes, but address changes
     no_changes_async_mock = AsyncMock()
     no_changes_async_mock.return_value = {}
@@ -283,6 +290,8 @@ async def test_listen_to_changes_in_employees_address(
     converter: MagicMock,
     graphql_mock: GraphQLMocker,
 ) -> None:
+    sync_tool.settings.conversion_mapping.mo2ldap = None  # type: ignore
+
     # Ignore all changes, but address changes
     no_changes_async_mock = AsyncMock()
     no_changes_async_mock.return_value = {}
@@ -395,6 +404,8 @@ async def test_listen_to_changes_in_employees_ituser(
     converter: MagicMock,
     graphql_mock: GraphQLMocker,
 ) -> None:
+    sync_tool.settings.conversion_mapping.mo2ldap = None  # type: ignore
+
     # Ignore all changes, but ituser changes
     no_changes_async_mock = AsyncMock()
     no_changes_async_mock.return_value = {}
@@ -505,6 +516,8 @@ async def test_listen_to_changes_in_employees_engagement(
     converter: MagicMock,
     graphql_mock: GraphQLMocker,
 ) -> None:
+    sync_tool.settings.conversion_mapping.mo2ldap = None  # type: ignore
+
     # Ignore all changes, but engagement changes
     no_changes_async_mock = AsyncMock()
     no_changes_async_mock.return_value = {}
@@ -1667,3 +1680,63 @@ async def test_find_best_dn(sync_tool: SyncTool) -> None:
     uuid = EmployeeUUID(uuid4())
     result = await sync_tool._find_best_dn(uuid)
     assert result == dn
+
+
+@pytest.mark.parametrize(
+    "template, expected",
+    (
+        # No result call, gives decode error
+        ("", "Expecting value"),
+        # Empty dict in result call, works as expected
+        ("{{ {} }}", {}),
+        # Empty dict in result call, works as expected
+        ("{{ dict() }}", {}),
+        # Empty dict in result call with tojson, works as expected
+        ("{{ dict()|tojson }}", {}),
+        # Actual dict in result call, but single quotes, gives decode error
+        ("{{ {'a': 'b'} }}", "Expecting property name enclosed in double quotes"),
+        # Actual dict in result call, with double quotes, works as expected
+        ('{{ {"a": "b"} }}', "Expecting property name enclosed in double quotes"),
+        # Actual dict in result call, but single quotes with tojson, works as expected
+        ("{{ {'a': 'b'}|tojson }}", {"a": "b"}),
+        # Multiple result calls, give value error
+        (
+            '{{ {"a": "b"} }} {{ {"c": "d"} }}',
+            "Expecting property name enclosed in double quotes",
+        ),
+        # Templates can use context
+        ('{{ {"a": dn} }}', "Expecting property name enclosed in double quotes"),
+        ('{{ {"a": dn}|tojson }}', {"a": "CN=foo"}),
+        ('{{ {"b": uuid} }}', "Expecting property name enclosed in double quotes"),
+        ("{{ {'b': uuid}|tojson }}", "Object of type UUID is not JSON serializable"),
+        (
+            "{{ {'b': uuid|string}|tojson }}",
+            {"b": "fa15edad-da1e-c0de-babe-c1a551f1ab1e"},
+        ),
+        # Templates can use set operations
+        ("{% set a = 'hej' %} {{ {'a': a}|tojson }}", {"a": "hej"}),
+        # Templates can filters
+        ("{% set a = 'hej123'|strip_non_digits %} {{ {'a': a}|tojson }}", {"a": "123"}),
+        # Templates can globals
+        ("{% set a = min(1, 2) %} {{ {'a': a}|tojson }}", {"a": 1}),
+        ("{% set a = nonejoin('a', 'b') %} {{ {'a': a}|tojson }}", {"a": "a, b"}),
+        # Generating raw json outside of tojson
+        ('{"key": "value"}', {"key": "value"}),
+        ('{"key": "{{ dn }}"}', {"key": "CN=foo"}),
+    ),
+)
+async def test_render_ldap2mo(
+    sync_tool: SyncTool, template: str, expected: dict | str
+) -> None:
+    sync_tool.settings.conversion_mapping.mo2ldap = template  # type: ignore
+    sync_tool.converter.environment = construct_environment(
+        sync_tool.settings, sync_tool.dataloader
+    )
+    uuid = EmployeeUUID(UUID("fa15edad-da1e-c0de-babe-c1a551f1ab1e"))
+    if isinstance(expected, str):
+        with pytest.raises(Exception) as exc_info:
+            await sync_tool.render_ldap2mo(uuid, "CN=foo")
+        assert expected in str(exc_info.value)
+    else:
+        result = await sync_tool.render_ldap2mo(uuid, "CN=foo")
+        assert result == expected

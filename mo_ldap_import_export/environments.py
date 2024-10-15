@@ -670,6 +670,7 @@ def construct_globals_dict(
         ),
         "get_primary_engagement_dict": partial(get_primary_engagement_dict, dataloader),
         "get_employee_dict": partial(get_employee_dict, dataloader),
+        "load_mo_employee": dataloader.moapi.load_mo_employee,
     }
 
 

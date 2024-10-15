@@ -42,6 +42,7 @@ class UserNameGenerator:
         self.user_context = context["user_context"]
 
         self.settings = settings
+        # TODO: Eliminate dataloader dependency
         self.dataloader = dataloader
         self.ldap_connection = ldap_connection
 
@@ -301,13 +302,16 @@ class UserNameGenerator:
         raise RuntimeError("Failed to create common name")
 
     async def _get_employee_ldap_attributes(self, employee: Employee, dn: str):
-        employee_ldap = await self.converter.to_ldap(
-            {"mo_employee": employee}, "Employee", dn
-        )
-        attributes = employee_ldap.dict()
-        attributes.pop("dn")
-
-        return attributes
+        if self.settings.conversion_mapping.mo2ldap:
+            return await self.dataloader.sync_tool.render_ldap2mo(employee.uuid, dn)
+        else:
+            # TODO: Remove this when everyone uses the new template
+            employee_ldap = await self.converter.to_ldap(
+                {"mo_employee": employee}, "Employee", dn
+            )
+            attributes = employee_ldap.dict()
+            attributes.pop("dn")
+            return attributes
 
     async def _get_existing_names(self):
         match self.settings.ldap_dialect:
