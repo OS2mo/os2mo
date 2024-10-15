@@ -143,7 +143,6 @@ async def test_to_mo(
                         "_export_to_ldap_": "true",
                         "employeeNumber": "{{ mo_employee.cpr_no }}",
                         "carLicense": "{{ mo_employee.uuid }}",
-                        "cn": "{{ mo_employee.givenname }} {{ mo_employee.surname }}",
                         "sn": "{{ mo_employee.surname }}",
                         "givenName": "{{ mo_employee.givenname }}",
                         "displayName": "{{ mo_employee.nickname_givenname }} {{ mo_employee.nickname_surname }}",
@@ -177,7 +176,6 @@ async def test_to_ldap(
             attributes=[
                 "employeeNumber",
                 "carLicense",
-                "cn",
                 "sn",
                 "givenName",
                 "displayName",
@@ -202,7 +200,6 @@ async def test_to_ldap(
         {
             "employeeNumber": "2108613133",
             "carLicense": [str(mo_employee.uuid)],
-            "cn": ["create Mustermann"],
             "sn": ["Mustermann"],
             "givenName": ["create"],
             "displayName": "Max Erika",
@@ -227,7 +224,6 @@ async def test_to_ldap(
         {
             "employeeNumber": "2108613133",
             "carLicense": [str(mo_employee.uuid)],
-            "cn": ["create Mustermann"],  # not changed in ldap
             "sn": ["Musterfrau"],
             "givenName": ["update"],
             "displayName": "Manu Muster",
