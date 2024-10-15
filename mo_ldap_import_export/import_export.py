@@ -638,7 +638,7 @@ class SyncTool:
         uuid: EmployeeUUID,
         exit_stack: ExitStack,
         dry_run: bool = False,
-    ) -> dict[str, tuple[LdapObject, bool]]:
+    ) -> dict[str, list[Any]]:
         """Synchronize employee data from MO to LDAP.
 
         Args:
@@ -702,12 +702,29 @@ class SyncTool:
         for json_key in no_export_changes:
             logger.info("_export_to_ldap_ == False.", json_key=json_key)
 
-        # If dry-running we do not want to makes changes in LDAP
-        if not dry_run:
-            for ldap_object, delete in export_changes.values():
-                await self.dataloader.modify_ldap_object(ldap_object, delete=delete)
+        # Keys are unique across all mappers by pydantic validation
+        ldap_changes: dict[str, Any] = {
+            # NOTE: Replacing with an empty list works like deleting
+            key: [] if (delete or value is None) else [value]
+            for ldap_object, delete in export_changes.values()
+            for key, value in ldap_object.dict().items()
+        }
+        # Cannot template 'dn' out
+        # TODO: Move this to settings validator
+        ldap_changes.pop("dn", None)
 
-        return changes
+        # If dry-running we do not want to makes changes in LDAP
+        if dry_run:
+            logger.info("Not writing to LDAP due to dry-running", dn=best_dn)
+            return ldap_changes
+
+        if not ldap_changes:
+            logger.info("Not writing to LDAP as changeset is empty", dn=best_dn)
+            return {}
+
+        await self.dataloader.modify_ldap_object(best_dn, ldap_changes)
+
+        return ldap_changes
 
     async def format_converted_objects(
         self,
