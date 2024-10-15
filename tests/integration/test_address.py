@@ -53,7 +53,6 @@ from mo_ldap_import_export.utils import mo_today
                 # TODO: why is this required?
                 "mo_to_ldap": {
                     "Employee": {
-                        "objectClass": "inetOrgPerson",
                         "_export_to_ldap_": "false",
                     }
                 },
@@ -173,11 +172,9 @@ async def test_to_mo(
                 },
                 "mo_to_ldap": {
                     "Employee": {
-                        "objectClass": "inetOrgPerson",
                         "_export_to_ldap_": "false",
                     },
                     "EmailEmployee": {
-                        "objectClass": "inetOrgPerson",
                         "_export_to_ldap_": "true",
                         "mail": "{{ mo_employee_address.value }}",
                     },

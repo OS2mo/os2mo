@@ -74,7 +74,6 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         },
         "mo_to_ldap": {
             "Employee": {
-                "objectClass": "inetOrgPerson",
                 "_export_to_ldap_": "false",
             }
         },
@@ -94,6 +93,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "LDAP_USER": "foo",
         "LDAP_PASSWORD": "foo",
         "LDAP_SEARCH_BASE": "DC=ad,DC=addev",
+        "LDAP_OBJECT_CLASS": "inetOrgPerson",
         "LDAP_CPR_ATTRIBUTE": "EmployeeID",
         "DEFAULT_ORG_UNIT_LEVEL": "foo",
         "DEFAULT_ORG_UNIT_TYPE": "foo",

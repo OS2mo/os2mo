@@ -194,6 +194,7 @@ def settings(minimal_mapping: dict[str, Any], monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("LDAP_USER", "foo")
     monkeypatch.setenv("LDAP_PASSWORD", "bar")
     monkeypatch.setenv("LDAP_SEARCH_BASE", "DC=ad,DC=addev")
+    monkeypatch.setenv("LDAP_OBJECT_CLASS", "inetOrgPerson")
     monkeypatch.setenv("LDAP_CPR_ATTRIBUTE", "employeeID")
     monkeypatch.setenv("DEFAULT_ORG_UNIT_LEVEL", "foo")
     monkeypatch.setenv("DEFAULT_ORG_UNIT_TYPE", "foo")
