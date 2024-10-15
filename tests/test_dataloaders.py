@@ -71,7 +71,6 @@ from mo_ldap_import_export.dataloaders import extract_current_or_latest_validity
 from mo_ldap_import_export.environments import get_or_create_engagement_type_uuid
 from mo_ldap_import_export.environments import get_or_create_job_function_uuid
 from mo_ldap_import_export.environments import load_mo_root_org_uuid
-from mo_ldap_import_export.exceptions import AttributeNotFound
 from mo_ldap_import_export.exceptions import DNNotFound
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
@@ -1217,24 +1216,6 @@ async def test_is_primaries(
     assert primary == expected
 
     assert is_primary_engagements_route.called
-
-
-async def test_shared_attribute(dataloader: DataLoader):
-    converter = MagicMock()
-    converter.mapping = {
-        "mo_to_ldap": {
-            "Employee": {"cpr_no": None, "name": None},
-            "Address": {"cpr_no": None, "value": None},
-        }
-    }
-    dataloader.user_context["converter"] = converter
-
-    assert dataloader.shared_attribute("cpr_no") is True
-    assert dataloader.shared_attribute("name") is False
-    assert dataloader.shared_attribute("value") is False
-
-    with pytest.raises(AttributeNotFound):
-        dataloader.shared_attribute("non_existing_attribute")
 
 
 async def test_modify_ldap(
