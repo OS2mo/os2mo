@@ -384,12 +384,9 @@ async def test_upload_ldap_object_invalid_value(
 
     ldap_connection.modify.side_effect = LDAPInvalidValueError("Invalid value")
 
-    with capture_logs() as cap_logs:
+    with pytest.raises(LDAPInvalidValueError) as exc_info:
         await dataloader.modify_ldap_object(ldap_object)
-
-        warnings = [w for w in cap_logs if w["log_level"] == "warning"]
-        last_warning_message = str(warnings[-1]["event"])
-        assert last_warning_message == "LDAPInvalidValueError exception"
+    assert "Invalid value" in str(exc_info.value)
 
 
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")

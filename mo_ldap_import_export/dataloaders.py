@@ -181,8 +181,9 @@ class DataLoader:
             logger.info("Uploading the changes", changes=requested_changes, dn=dn)
             _, result = await ldap_modify(self.ldap_connection, dn, changes)
             logger.info("LDAP Result", result=result, dn=dn)
-        except LDAPInvalidValueError:
-            logger.warning("LDAPInvalidValueError exception", exc_info=True)
+        except LDAPInvalidValueError as exc:
+            logger.exception("LDAP modify failed", dn=dn, changes=requested_changes)
+            raise exc
 
     async def find_mo_employee_uuid_via_cpr_number(self, dn: str) -> set[UUID]:
         cpr_number = await self.ldapapi.dn2cpr(dn)
