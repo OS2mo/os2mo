@@ -501,7 +501,6 @@ async def sync_tool_and_context(
             "settings": settings,
         },
         "graphql_client": graphql_client,
-        "legacy_model_client": AsyncMock(),
         "amqpsystem": amqpsystem,
     }
     # Needs context, user_context, ldap_connection

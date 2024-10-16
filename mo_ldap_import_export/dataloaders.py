@@ -15,7 +15,6 @@ from uuid import UUID
 import structlog
 from fastapi.encoders import jsonable_encoder
 from fastramqpi.context import Context
-from fastramqpi.raclients.modelclient.mo import ModelClient as LegacyModelClient
 from fastramqpi.ramqp.mo import MOAMQPSystem
 from ldap3 import MODIFY_REPLACE
 from ldap3 import Connection
@@ -107,9 +106,6 @@ class DataLoader:
         self.ldap_connection: Connection = self.user_context["ldap_connection"]
         self.settings: Settings = self.user_context["settings"]
         self.ldapapi = LDAPAPI(self.settings, self.ldap_connection)
-        self.legacy_model_client: LegacyModelClient = self.context[
-            "legacy_model_client"
-        ]
         self.create_mo_class_lock = asyncio.Lock()
         self.amqpsystem: MOAMQPSystem = amqpsystem
 

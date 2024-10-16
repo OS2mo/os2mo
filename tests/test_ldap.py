@@ -65,11 +65,6 @@ def gql_client() -> Iterator[AsyncMock]:
 
 
 @pytest.fixture
-def model_client() -> Iterator[AsyncMock]:
-    yield AsyncMock()
-
-
-@pytest.fixture
 def settings(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv(
         "CONVERSION_MAPPING",
@@ -106,7 +101,6 @@ def ldap_connection() -> Iterator[MagicMock]:
 def context(
     ldap_connection: MagicMock,
     gql_client: AsyncMock,
-    model_client: AsyncMock,
     settings: Settings,
     cpr_field: str,
 ) -> Context:
@@ -115,7 +109,6 @@ def context(
             "settings": settings,
             "ldap_connection": ldap_connection,
             "gql_client": gql_client,
-            "model_client": model_client,
             "cpr_field": cpr_field,
         },
     }

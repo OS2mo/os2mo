@@ -128,11 +128,6 @@ def legacy_graphql_session() -> Iterator[AsyncMock]:
 
 
 @pytest.fixture
-def legacy_model_client() -> Iterator[AsyncMock]:
-    yield AsyncMock()
-
-
-@pytest.fixture
 def graphql_client() -> Iterator[AsyncMock]:
     yield AsyncMock()
 
@@ -182,7 +177,6 @@ def sync_tool() -> AsyncMock:
 def dataloader(
     ldap_connection: MagicMock,
     legacy_graphql_session: AsyncMock,
-    legacy_model_client: AsyncMock,
     graphql_client: AsyncMock,
     settings: Settings,
     converter: MagicMock,
@@ -196,7 +190,6 @@ def dataloader(
     """
     context: Context = {
         "legacy_graphql_session": legacy_graphql_session,
-        "legacy_model_client": legacy_model_client,
         "graphql_client": graphql_client,
         "user_context": {
             "settings": settings,
@@ -2050,7 +2043,6 @@ async def test_terminate_unknown_type(dataloader: DataLoader) -> None:
 
 async def test_terminate_fix_verb(
     dataloader: DataLoader,
-    legacy_model_client: AsyncMock,
 ) -> None:
     """Test that our hacky code makes terminates Verb.TERMINATE."""
     terminate = MagicMock()
@@ -2062,8 +2054,6 @@ async def test_terminate_fix_verb(
     objs = [(terminate, Verb.EDIT)]
 
     await dataloader.create_or_edit_mo_objects(objs)  # type: ignore
-    legacy_model_client.create.assert_not_called()
-    legacy_model_client.edit.assert_not_called()
     dataloader.graphql_client.address_terminate.assert_called_once()  # type: ignore
 
 
