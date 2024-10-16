@@ -127,15 +127,7 @@ async def test_to_mo(
         "LISTEN_TO_CHANGES_IN_LDAP": "False",
         "CONVERSION_MAPPING": json.dumps(
             {
-                # TODO: why is this required?
-                "ldap_to_mo": {
-                    "Employee": {
-                        "objectClass": "ramodels.mo.employee.Employee",
-                        "_import_to_mo_": "false",
-                        "_ldap_attributes_": [],
-                        "uuid": "{{ employee_uuid or NONE }}",
-                    },
-                },
+                "ldap_to_mo": {},
                 "mo2ldap": """
                     {% set mo_employee = load_mo_employee(uuid, current_objects_only=False) %}
                     {{

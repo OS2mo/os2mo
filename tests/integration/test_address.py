@@ -151,35 +151,16 @@ async def test_to_mo(
         "LISTEN_TO_CHANGES_IN_LDAP": "False",
         "CONVERSION_MAPPING": json.dumps(
             {
-                # TODO: why is this required?
-                "ldap_to_mo": {
-                    "Employee": {
-                        "objectClass": "ramodels.mo.employee.Employee",
-                        "_import_to_mo_": "false",
-                        "_ldap_attributes_": [],
-                        "uuid": "{{ employee_uuid or '' }}",
-                    },
-                    # This is required for mo_address_to_ldap
-                    # 'EmailEmployee' (key) is assumed to be an address-type in MO
-                    "EmailEmployee": {
-                        "objectClass": "ramodels.mo.details.address.Address",
-                        "_import_to_mo_": "false",
-                        "_ldap_attributes_": [],
-                        "value": "unused",
-                        "address_type": "unused",
-                        "person": "dict(uuid=",  # Validator required this in the value
-                        "visibility": "unused",
-                    },
-                },
-                "mo_to_ldap": {
-                    "Employee": {
-                        "_export_to_ldap_": "false",
-                    },
-                    "EmailEmployee": {
-                        "_export_to_ldap_": "true",
-                        "mail": "{{ mo_employee_address.value }}",
-                    },
-                },
+                "ldap_to_mo": {},
+                "mo2ldap": """
+                {% set mo_employee_address = load_mo_address(uuid, "EmailEmployee") %}
+                {{
+                    {
+                        "mail": mo_employee_address.value if mo_employee_address else [],
+                    }|tojson
+                }}
+                """,
+                "mo_to_ldap": {},
                 # TODO: why is this required?
                 "username_generator": {
                     "objectClass": "UserNameGenerator",
@@ -195,6 +176,8 @@ async def test_to_ldap(
     mo_person: UUID,
     ldap_connection: Connection,
     ldap_org: list[str],
+    email_employee: UUID,
+    public: UUID,
 ) -> None:
     cpr = "2108613133"
 
@@ -225,29 +208,14 @@ async def test_to_ldap(
     await assert_address({"mail": []})
 
     # MO: Create
-    address_type = one(
-        (
-            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
-                "employee_address_type", "EmailEmployee"
-            )
-        ).objects
-    ).uuid
-    visibility = one(
-        (
-            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
-                "visibility", "Public"
-            )
-        ).objects
-    ).uuid
-
     mail = "create@example.com"
     mo_address = await graphql_client.address_create(
         input=AddressCreateInput(
             user_key="test address",
-            address_type=address_type,
+            address_type=email_employee,
             value=mail,
             person=mo_person,
-            visibility=visibility,
+            visibility=public,
             validity={"from": "2001-02-03T04:05:06Z"},
         )
     )
@@ -262,9 +230,9 @@ async def test_to_ldap(
             validity={"from": "2011-12-13T14:15:16Z"},
             # TODO: why is this required?
             user_key="test address",
-            address_type=address_type,
+            address_type=email_employee,
             person=mo_person,
-            visibility=visibility,
+            visibility=public,
         )
     )
     await assert_address({"mail": [mail]})
