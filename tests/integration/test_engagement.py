@@ -163,38 +163,17 @@ async def test_to_mo(
         "LISTEN_TO_CHANGES_IN_LDAP": "False",
         "CONVERSION_MAPPING": json.dumps(
             {
-                # TODO: why is this required?
-                "ldap_to_mo": {
-                    "Employee": {
-                        "objectClass": "ramodels.mo.employee.Employee",
-                        "_import_to_mo_": "false",
-                        "_ldap_attributes_": [],
-                        "uuid": "{{ employee_uuid or '' }}",
-                    },
-                    # This is required for mo_engagement_to_ldap
-                    "Engagement": {
-                        "objectClass": "ramodels.mo.details.engagement.Engagement",
-                        "_import_to_mo_": "false",
-                        "_ldap_attributes_": [],
-                        "user_key": "unused",
-                        "person": "dict(uuid=",  # Validator required this in the value
-                        "org_unit": "unused",
-                        "engagement_type": "unused",
-                        "job_function": "unused",
-                        "primary": "unused",
-                    },
-                },
-                "mo_to_ldap": {
-                    "Employee": {
-                        "_export_to_ldap_": "false",
-                        "employeeNumber": "{{mo_employee.cpr_no}}",
-                    },
-                    "Engagement": {
-                        "_export_to_ldap_": "true",
-                        "title": "{{ mo_employee_engagement.user_key }}",
-                        "departmentNumber": "{{ mo_employee_engagement.org_unit.uuid }}",
-                    },
-                },
+                "ldap_to_mo": {},
+                "mo2ldap": """
+                {% set mo_employee_engagement = load_mo_primary_engagement(uuid) %}
+                {{
+                    {
+                        "title": mo_employee_engagement.user_key if mo_employee_engagement else [],
+                        "departmentNumber": mo_employee_engagement.org_unit.uuid | string if mo_employee_engagement else []
+                    }|tojson
+                }}
+                """,
+                "mo_to_ldap": {},
                 # TODO: why is this required?
                 "username_generator": {
                     "objectClass": "UserNameGenerator",
