@@ -179,7 +179,7 @@ mutation ituser_terminate($input: ITUserTerminateInput!) {
 }
 
 query read_facet_uuid($user_key: String!) {
-  facets(filter: {user_keys: [$user_key]}) {
+  facets(filter: { user_keys: [$user_key] }) {
     objects {
       uuid
     }
@@ -193,7 +193,7 @@ mutation class_create($input: ClassCreateInput!) {
 }
 
 query read_class_uuid($user_key: String!) {
-  classes(filter: {user_keys: [$user_key]}) {
+  classes(filter: { user_keys: [$user_key] }) {
     objects {
       uuid
     }
@@ -207,7 +207,7 @@ query read_root_org_uuid {
 }
 
 query read_employees_with_engagement_to_org_unit($org_unit_uuid: UUID!) {
-  engagements(filter: {org_unit: {uuids: [$org_unit_uuid]}}) {
+  engagements(filter: { org_unit: { uuids: [$org_unit_uuid] } }) {
     objects {
       current {
         employee_uuid
@@ -216,8 +216,14 @@ query read_employees_with_engagement_to_org_unit($org_unit_uuid: UUID!) {
   }
 }
 
-query read_engagements($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
-  engagements(filter: {uuids: $uuids, from_date: $from_date, to_date: $to_date}) {
+query read_engagements(
+  $uuids: [UUID!]!
+  $from_date: DateTime
+  $to_date: DateTime
+) {
+  engagements(
+    filter: { uuids: $uuids, from_date: $from_date, to_date: $to_date }
+  ) {
     objects {
       validities {
         user_key
@@ -247,7 +253,7 @@ query read_engagements($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTim
 }
 
 query read_engagements_by_employee_uuid($employee_uuid: UUID!) {
-  engagements(filter: {employee: {uuids: [$employee_uuid]}}) {
+  engagements(filter: { employee: { uuids: [$employee_uuid] } }) {
     objects {
       current {
         uuid
@@ -260,7 +266,9 @@ query read_engagements_by_employee_uuid($employee_uuid: UUID!) {
   }
 }
 
-query read_engagements_by_engagements_filter($engagements_filter: EngagementFilter!) {
+query read_engagements_by_engagements_filter(
+  $engagements_filter: EngagementFilter!
+) {
   engagements(filter: $engagements_filter) {
     objects {
       current {
@@ -275,29 +283,39 @@ query read_engagements_by_engagements_filter($engagements_filter: EngagementFilt
   }
 }
 
-mutation set_job_title($uuid: UUID!,
-                     $from: DateTime!,
-                     $to: DateTime,
-                     $job_function: UUID) {
+mutation set_job_title(
+  $uuid: UUID!
+  $from: DateTime!
+  $to: DateTime
+  $job_function: UUID
+) {
   engagement_update(
-    input: {uuid: $uuid,
-            validity: {from: $from, to: $to},
-            job_function: $job_function}
+    input: {
+      uuid: $uuid
+      validity: { from: $from, to: $to }
+      job_function: $job_function
+    }
   ) {
     uuid
   }
 }
 
 query read_employee_uuid_by_cpr_number($cpr_number: CPR!) {
-  employees(filter: {cpr_numbers: [$cpr_number]}) {
+  employees(filter: { cpr_numbers: [$cpr_number] }) {
     objects {
       uuid
     }
   }
 }
 
-query read_employees($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
-  employees(filter: {from_date: $from_date, to_date: $to_date, uuids: $uuids}) {
+query read_employees(
+  $uuids: [UUID!]!
+  $from_date: DateTime
+  $to_date: DateTime
+) {
+  employees(
+    filter: { from_date: $from_date, to_date: $to_date, uuids: $uuids }
+  ) {
     objects {
       validities {
         uuid
@@ -316,7 +334,7 @@ query read_employees($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime)
 }
 
 query read_itusers($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
-  itusers(filter: {from_date: $from_date, to_date: $to_date, uuids: $uuids}) {
+  itusers(filter: { from_date: $from_date, to_date: $to_date, uuids: $uuids }) {
     objects {
       validities {
         user_key
@@ -333,7 +351,7 @@ query read_itusers($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
 }
 
 query read_employee_uuid_by_ituser_user_key($user_key: String!) {
-  itusers(filter: {user_keys: [$user_key]}) {
+  itusers(filter: { user_keys: [$user_key] }) {
     objects {
       current {
         employee_uuid
@@ -342,12 +360,12 @@ query read_employee_uuid_by_ituser_user_key($user_key: String!) {
   }
 }
 
-query read_engagement_uuid_by_ituser_user_key($user_key: String!, $itsystem_uuid: UUID!) {
+query read_engagement_uuid_by_ituser_user_key(
+  $user_key: String!
+  $itsystem_uuid: UUID!
+) {
   itusers(
-    filter: {
-      user_keys: [$user_key],
-      itsystem: {uuids: [$itsystem_uuid]}
-    }
+    filter: { user_keys: [$user_key], itsystem: { uuids: [$itsystem_uuid] } }
   ) {
     objects {
       current {
@@ -357,11 +375,14 @@ query read_engagement_uuid_by_ituser_user_key($user_key: String!, $itsystem_uuid
   }
 }
 
-query read_ituser_by_employee_and_itsystem_uuid($employee_uuid: UUID!, $itsystem_uuid: UUID!) {
+query read_ituser_by_employee_and_itsystem_uuid(
+  $employee_uuid: UUID!
+  $itsystem_uuid: UUID!
+) {
   itusers(
     filter: {
-      employee: {uuids: [$employee_uuid]},
-      itsystem: {uuids: [$itsystem_uuid]}
+      employee: { uuids: [$employee_uuid] }
+      itsystem: { uuids: [$itsystem_uuid] }
     }
   ) {
     objects {
@@ -371,7 +392,7 @@ query read_ituser_by_employee_and_itsystem_uuid($employee_uuid: UUID!, $itsystem
 }
 
 query read_is_primary_engagements($uuids: [UUID!]!) {
-  engagements(filter: {uuids: $uuids}) {
+  engagements(filter: { uuids: $uuids }) {
     objects {
       current {
         is_primary
@@ -381,11 +402,14 @@ query read_is_primary_engagements($uuids: [UUID!]!) {
   }
 }
 
-query read_employee_addresses($employee_uuid: UUID!, $address_type_uuid: UUID!) {
+query read_employee_addresses(
+  $employee_uuid: UUID!
+  $address_type_uuid: UUID!
+) {
   addresses(
     filter: {
-      address_type: {uuids: [$address_type_uuid]},
-      employee: {uuids: [$employee_uuid]}
+      address_type: { uuids: [$address_type_uuid] }
+      employee: { uuids: [$employee_uuid] }
     }
   ) {
     objects {
@@ -397,11 +421,14 @@ query read_employee_addresses($employee_uuid: UUID!, $address_type_uuid: UUID!) 
   }
 }
 
-query read_org_unit_addresses($org_unit_uuid: UUID!, $address_type_uuid: UUID!) {
+query read_org_unit_addresses(
+  $org_unit_uuid: UUID!
+  $address_type_uuid: UUID!
+) {
   addresses(
     filter: {
-      address_type: {uuids: [$address_type_uuid]},
-      org_unit: {uuids: [$org_unit_uuid]}
+      address_type: { uuids: [$address_type_uuid] }
+      org_unit: { uuids: [$org_unit_uuid] }
     }
   ) {
     objects {
@@ -414,12 +441,12 @@ query read_org_unit_addresses($org_unit_uuid: UUID!, $address_type_uuid: UUID!) 
 }
 
 query read_class_uuid_by_facet_and_class_user_key(
-  $facet_user_key: String!,
+  $facet_user_key: String!
   $class_user_key: String!
 ) {
   classes(
     filter: {
-      facet: {user_keys: [$facet_user_key]},
+      facet: { user_keys: [$facet_user_key] }
       user_keys: [$class_user_key]
     }
   ) {
@@ -430,7 +457,7 @@ query read_class_uuid_by_facet_and_class_user_key(
 }
 
 query read_class_name_by_class_uuid($class_uuid: UUID!) {
-  classes(filter: {uuids: [$class_uuid]}) {
+  classes(filter: { uuids: [$class_uuid] }) {
     objects {
       current {
         name
@@ -439,14 +466,20 @@ query read_class_name_by_class_uuid($class_uuid: UUID!) {
   }
 }
 
-mutation org_unit_engagements_refresh($exchange: String!, $org_unit_uuid: UUID!) {
-  engagement_refresh(exchange: $exchange, filter: {org_unit: {uuids: [$org_unit_uuid]}}) {
+mutation org_unit_engagements_refresh(
+  $exchange: String!
+  $org_unit_uuid: UUID!
+) {
+  engagement_refresh(
+    exchange: $exchange
+    filter: { org_unit: { uuids: [$org_unit_uuid] } }
+  ) {
     objects
   }
 }
 
 mutation employee_refresh($exchange: String!, $uuids: [UUID!]!) {
-  employee_refresh(exchange: $exchange, filter: {uuids: $uuids}) {
+  employee_refresh(exchange: $exchange, filter: { uuids: $uuids }) {
     objects
   }
 }
@@ -472,8 +505,14 @@ fragment address_validity_fields on Address {
   }
 }
 
-query read_addresses($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime) {
-  addresses(filter: {uuids: $uuids, from_date: $from_date, to_date: $to_date}) {
+query read_addresses(
+  $uuids: [UUID!]!
+  $from_date: DateTime
+  $to_date: DateTime
+) {
+  addresses(
+    filter: { uuids: $uuids, from_date: $from_date, to_date: $to_date }
+  ) {
     objects {
       validities {
         ...address_validity_fields
@@ -483,7 +522,7 @@ query read_addresses($uuids: [UUID!]!, $from_date: DateTime, $to_date: DateTime)
 }
 
 query read_class_user_keys($facet_user_keys: [String!]!) {
-  classes(filter: {facet: {user_keys: $facet_user_keys}}) {
+  classes(filter: { facet: { user_keys: $facet_user_keys } }) {
     objects {
       current {
         user_key
@@ -492,12 +531,12 @@ query read_class_user_keys($facet_user_keys: [String!]!) {
   }
 }
 
-query read_all_itusers($filter: ITUserFilter!, $cursor: Cursor = null, $limit: int = 100) {
-  itusers(
-    limit: $limit,
-    cursor: $cursor,
-    filter: $filter
-  ) {
+query read_all_itusers(
+  $filter: ITUserFilter!
+  $cursor: Cursor = null
+  $limit: int = 100
+) {
+  itusers(limit: $limit, cursor: $cursor, filter: $filter) {
     objects {
       validities {
         itsystem_uuid
@@ -562,9 +601,7 @@ query read_engagements_is_primary($filter: EngagementFilter!) {
 }
 
 query read_ituser_employee_uuid($ituser_uuid: UUID!) {
-  itusers(
-    filter: {uuids: [$ituser_uuid]}
-  ) {
+  itusers(filter: { uuids: [$ituser_uuid] }) {
     objects {
       current {
         employee_uuid
@@ -574,9 +611,7 @@ query read_ituser_employee_uuid($ituser_uuid: UUID!) {
 }
 
 query read_engagement_employee_uuid($engagement_uuid: UUID!) {
-  engagements(
-    filter: {uuids: [$engagement_uuid]}
-  ) {
+  engagements(filter: { uuids: [$engagement_uuid] }) {
     objects {
       current {
         employee_uuid
@@ -586,9 +621,7 @@ query read_engagement_employee_uuid($engagement_uuid: UUID!) {
 }
 
 query read_address_relation_uuids($address_uuid: UUID!) {
-  addresses(
-    filter: {uuids: [$address_uuid]}
-  ) {
+  addresses(filter: { uuids: [$address_uuid] }) {
     objects {
       current {
         employee_uuid
@@ -599,7 +632,7 @@ query read_address_relation_uuids($address_uuid: UUID!) {
 }
 
 query read_all_ituser_user_keys_by_itsystem_uuid($itsystem_uuid: UUID!) {
-  itusers(filter: {itsystem: {uuids: [$itsystem_uuid]}}) {
+  itusers(filter: { itsystem: { uuids: [$itsystem_uuid] } }) {
     objects {
       validities {
         user_key
@@ -609,9 +642,7 @@ query read_all_ituser_user_keys_by_itsystem_uuid($itsystem_uuid: UUID!) {
 }
 
 query read_org_unit_name($org_unit_uuid: UUID!) {
-  org_units(
-    filter: {uuids: [$org_unit_uuid]}
-  ) {
+  org_units(filter: { uuids: [$org_unit_uuid] }) {
     objects {
       current {
         name
@@ -621,9 +652,7 @@ query read_org_unit_name($org_unit_uuid: UUID!) {
 }
 
 query read_itsystem_uuid($user_key: String!) {
-  itsystems(
-    filter: {user_keys: [$user_key]}
-  ) {
+  itsystems(filter: { user_keys: [$user_key] }) {
     objects {
       uuid
     }
