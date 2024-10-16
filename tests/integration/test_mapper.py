@@ -110,40 +110,20 @@ async def test_mapping(
     ldap_person_uuid: UUID,
     mo_person: UUID,
     values: set[str],
+    phone_employee: UUID,
+    public: UUID,
+    intern: UUID,
 ) -> None:
     person_uuid = mo_person
     dn = combine_dn_strings(ldap_person)
-
-    # Fetch data in MO
-    phone_employee_address_type_uuid = one(
-        (
-            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
-                "employee_address_type", "PhoneEmployee"
-            )
-        ).objects
-    ).uuid
-    public_visibility_uuid = one(
-        (
-            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
-                "visibility", "Public"
-            )
-        ).objects
-    ).uuid
-    internal_visibility_uuid = one(
-        (
-            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
-                "visibility", "Intern"
-            )
-        ).objects
-    ).uuid
 
     await graphql_client.address_create(
         input=AddressCreateInput(
             value="12345678",
             user_key="external_employee_phone",
             person=person_uuid,
-            visibility=public_visibility_uuid,
-            address_type=phone_employee_address_type_uuid,
+            visibility=public,
+            address_type=phone_employee,
             validity={"from": "1980-01-01T00:00:00Z"},
         )
     )
@@ -152,8 +132,8 @@ async def test_mapping(
             value="87654321",
             user_key="internal_employee_phone",
             person=person_uuid,
-            visibility=internal_visibility_uuid,
-            address_type=phone_employee_address_type_uuid,
+            visibility=intern,
+            address_type=phone_employee,
             validity={"from": "1980-01-01T00:00:00Z"},
         )
     )
@@ -162,7 +142,7 @@ async def test_mapping(
     addresses = (
         await graphql_client.read_employee_addresses(
             employee_uuid=person_uuid,
-            address_type_uuid=phone_employee_address_type_uuid,
+            address_type_uuid=phone_employee,
         )
     ).objects
     address_values = {one(address.validities).value for address in addresses}
@@ -185,7 +165,7 @@ async def test_mapping(
     addresses = (
         await graphql_client.read_employee_addresses(
             employee_uuid=person_uuid,
-            address_type_uuid=phone_employee_address_type_uuid,
+            address_type_uuid=phone_employee,
         )
     ).objects
     address_values = {one(address.validities).value for address in addresses}

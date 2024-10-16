@@ -191,6 +191,9 @@ async def test_to_ldap(
     mo_org_unit: UUID,
     ldap_connection: Connection,
     ldap_org: list[str],
+    ansat: UUID,
+    jurist: UUID,
+    primary: UUID,
 ) -> None:
     cpr = "2108613133"
 
@@ -221,28 +224,6 @@ async def test_to_ldap(
     await assert_engagement({"title": [], "departmentNumber": []})
 
     # MO: Create
-    ansat = one(
-        (
-            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
-                "engagement_type", "Ansat"
-            )
-        ).objects
-    ).uuid
-    jurist = one(
-        (
-            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
-                "engagement_job_function", "Jurist"
-            )
-        ).objects
-    ).uuid
-    primary = one(
-        (
-            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
-                "primary_type", "primary"
-            )
-        ).objects
-    ).uuid
-
     title = "create"
     mo_engagement = await graphql_client.engagement_create(
         input=EngagementCreateInput(

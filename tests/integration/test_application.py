@@ -401,25 +401,10 @@ async def test_mismatched_json_key_and_address_type(
     graphql_client: GraphQLClient,
     ldap_person_uuid: UUID,
     mo_person: UUID,
+    email_employee: UUID,
+    public: UUID,
 ) -> None:
     """Test that json_key and address type does not need to match."""
-    person_uuid = mo_person
-
-    # Fetch data in MO
-    phone_employee_address_type_uuid = one(
-        (
-            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
-                "employee_address_type", "EmailEmployee"
-            )
-        ).objects
-    ).uuid
-    public_visibility_uuid = one(
-        (
-            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
-                "visibility", "Public"
-            )
-        ).objects
-    ).uuid
 
     # Trigger synchronization, we expect the addresses to be updated with new values
     content = str(ldap_person_uuid)
@@ -431,8 +416,8 @@ async def test_mismatched_json_key_and_address_type(
     address = one(
         (
             await graphql_client.read_employee_addresses(
-                employee_uuid=person_uuid,
-                address_type_uuid=phone_employee_address_type_uuid,
+                employee_uuid=mo_person,
+                address_type_uuid=email_employee,
             )
         ).objects
     )
@@ -443,9 +428,9 @@ async def test_mismatched_json_key_and_address_type(
             {
                 "address_type": {
                     "user_key": "EmailEmployee",
-                    "uuid": phone_employee_address_type_uuid,
+                    "uuid": email_employee,
                 },
-                "employee_uuid": person_uuid,
+                "employee_uuid": mo_person,
                 "engagement_uuid": None,
                 "org_unit_uuid": None,
                 "person": [
@@ -460,7 +445,7 @@ async def test_mismatched_json_key_and_address_type(
                 },
                 "value": "abk@ad.kolding.dk",
                 "value2": None,
-                "visibility_uuid": public_visibility_uuid,
+                "visibility_uuid": public,
             }
         ],
     }

@@ -176,6 +176,8 @@ async def test_to_ldap(
     mo_person: UUID,
     ldap_connection: Connection,
     ldap_org: list[str],
+    email_employee: UUID,
+    public: UUID,
 ) -> None:
     cpr = "2108613133"
 
@@ -206,29 +208,14 @@ async def test_to_ldap(
     await assert_address({"mail": []})
 
     # MO: Create
-    address_type = one(
-        (
-            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
-                "employee_address_type", "EmailEmployee"
-            )
-        ).objects
-    ).uuid
-    visibility = one(
-        (
-            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
-                "visibility", "Public"
-            )
-        ).objects
-    ).uuid
-
     mail = "create@example.com"
     mo_address = await graphql_client.address_create(
         input=AddressCreateInput(
             user_key="test address",
-            address_type=address_type,
+            address_type=email_employee,
             value=mail,
             person=mo_person,
-            visibility=visibility,
+            visibility=public,
             validity={"from": "2001-02-03T04:05:06Z"},
         )
     )
@@ -243,9 +230,9 @@ async def test_to_ldap(
             validity={"from": "2011-12-13T14:15:16Z"},
             # TODO: why is this required?
             user_key="test address",
-            address_type=address_type,
+            address_type=email_employee,
             person=mo_person,
-            visibility=visibility,
+            visibility=public,
         )
     )
     await assert_address({"mail": [mail]})
