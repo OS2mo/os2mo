@@ -738,7 +738,7 @@ class DataLoader:
         tasks = [self.edit_object(obj) for obj in edits]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         exceptions = cast(list[Exception], list(filter(is_exception, results)))
-        if exceptions:
+        if exceptions:  # pragma: no cover
             raise ExceptionGroup("Exceptions during modification", exceptions)
 
     async def terminate_address(self, uuid: UUID, at: datetime) -> None:
