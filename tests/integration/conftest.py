@@ -109,7 +109,7 @@ async def ldap_person_uuid(ldap_person: list[str], ldap_api: LDAPAPI) -> UUID:
 
 @pytest.fixture
 async def mo_person(graphql_client: GraphQLClient) -> UUID:
-    r = await graphql_client._testing_user_create(
+    r = await graphql_client.user_create(
         input=EmployeeCreateInput(
             given_name="Aage",
             surname="Bach Klarskov",

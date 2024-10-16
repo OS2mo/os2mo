@@ -69,7 +69,7 @@ async def test_non_existing_unique_ldap_uuids(
     num_itusers: int,
 ) -> None:
     # Create an ITUser in MO with an ADUUID of an existing LDAP user
-    await graphql_client._testing_ituser_create(
+    await graphql_client.ituser_create(
         ITUserCreateInput(
             person=mo_person,
             user_key=str(ldap_person_uuid),
@@ -83,7 +83,7 @@ async def test_non_existing_unique_ldap_uuids(
     for _ in range(num_itusers):
         aduuid = uuid4()
         ituser_uuid = (
-            await graphql_client._testing_ituser_create(
+            await graphql_client.ituser_create(
                 ITUserCreateInput(
                     person=mo_person,
                     user_key=str(aduuid),

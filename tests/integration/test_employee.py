@@ -187,7 +187,7 @@ async def test_to_ldap(
         assert employee["attributes"] == expected
 
     # MO: Create
-    mo_employee = await graphql_client._testing_user_create(
+    mo_employee = await graphql_client.user_create(
         input=EmployeeCreateInput(
             cpr_number=cpr,
             given_name="create",
@@ -208,7 +208,7 @@ async def test_to_ldap(
     )
 
     # MO: Edit
-    await graphql_client._testing_user_update(
+    await graphql_client.user_update(
         input=EmployeeUpdateInput(
             uuid=mo_employee.uuid,
             given_name="update",

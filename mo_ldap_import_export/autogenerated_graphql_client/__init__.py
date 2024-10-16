@@ -45,32 +45,14 @@ from ._testing__ituser_read import TestingItuserReadItusersObjectsValidities
 from ._testing__ituser_read import TestingItuserReadItusersObjectsValiditiesItsystem
 from ._testing__ituser_read import TestingItuserReadItusersObjectsValiditiesPerson
 from ._testing__ituser_read import TestingItuserReadItusersObjectsValiditiesValidity
-from ._testing_address_create import TestingAddressCreate
-from ._testing_address_create import TestingAddressCreateAddressCreate
-from ._testing_address_terminate import TestingAddressTerminate
-from ._testing_address_terminate import TestingAddressTerminateAddressTerminate
-from ._testing_address_update import TestingAddressUpdate
-from ._testing_address_update import TestingAddressUpdateAddressUpdate
-from ._testing_engagement_create import TestingEngagementCreate
-from ._testing_engagement_create import TestingEngagementCreateEngagementCreate
-from ._testing_engagement_terminate import TestingEngagementTerminate
-from ._testing_engagement_terminate import TestingEngagementTerminateEngagementTerminate
-from ._testing_engagement_update import TestingEngagementUpdate
-from ._testing_engagement_update import TestingEngagementUpdateEngagementUpdate
-from ._testing_ituser_create import TestingItuserCreate
-from ._testing_ituser_create import TestingItuserCreateItuserCreate
-from ._testing_ituser_terminate import TestingItuserTerminate
-from ._testing_ituser_terminate import TestingItuserTerminateItuserTerminate
-from ._testing_ituser_update import TestingItuserUpdate
-from ._testing_ituser_update import TestingItuserUpdateItuserUpdate
 from ._testing_org_unit_create import TestingOrgUnitCreate
 from ._testing_org_unit_create import TestingOrgUnitCreateOrgUnitCreate
-from ._testing_user_create import TestingUserCreate
-from ._testing_user_create import TestingUserCreateEmployeeCreate
-from ._testing_user_update import TestingUserUpdate
-from ._testing_user_update import TestingUserUpdateEmployeeUpdate
+from .address_create import AddressCreate
+from .address_create import AddressCreateAddressCreate
 from .address_terminate import AddressTerminate
 from .address_terminate import AddressTerminateAddressTerminate
+from .address_update import AddressUpdate
+from .address_update import AddressUpdateAddressUpdate
 from .async_base_client import AsyncBaseClient
 from .base_model import BaseModel
 from .class_create import ClassCreate
@@ -78,8 +60,12 @@ from .class_create import ClassCreateClassCreate
 from .client import GraphQLClient
 from .employee_refresh import EmployeeRefresh
 from .employee_refresh import EmployeeRefreshEmployeeRefresh
+from .engagement_create import EngagementCreate
+from .engagement_create import EngagementCreateEngagementCreate
 from .engagement_terminate import EngagementTerminate
 from .engagement_terminate import EngagementTerminateEngagementTerminate
+from .engagement_update import EngagementUpdate
+from .engagement_update import EngagementUpdateEngagementUpdate
 from .enums import AuditLogModel
 from .enums import FileStore
 from .enums import OwnerInferencePriority
@@ -203,8 +189,12 @@ from .input_types import UuidsBoundITUserFilter
 from .input_types import UuidsBoundLeaveFilter
 from .input_types import UuidsBoundOrganisationUnitFilter
 from .input_types import ValidityInput
+from .ituser_create import ItuserCreate
+from .ituser_create import ItuserCreateItuserCreate
 from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
+from .ituser_update import ItuserUpdate
+from .ituser_update import ItuserUpdateItuserUpdate
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefresh
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefreshEngagementRefresh
 from .read_address_relation_uuids import ReadAddressRelationUuids
@@ -407,14 +397,22 @@ from .read_root_org_uuid import ReadRootOrgUuid
 from .read_root_org_uuid import ReadRootOrgUuidOrg
 from .set_job_title import SetJobTitle
 from .set_job_title import SetJobTitleEngagementUpdate
+from .user_create import UserCreate
+from .user_create import UserCreateEmployeeCreate
+from .user_update import UserUpdate
+from .user_update import UserUpdateEmployeeUpdate
 
 __all__ = [
+    "AddressCreate",
+    "AddressCreateAddressCreate",
     "AddressCreateInput",
     "AddressFilter",
     "AddressRegistrationFilter",
     "AddressTerminate",
     "AddressTerminateAddressTerminate",
     "AddressTerminateInput",
+    "AddressUpdate",
+    "AddressUpdateAddressUpdate",
     "AddressUpdateInput",
     "AddressValidityFields",
     "AddressValidityFieldsAddressType",
@@ -450,12 +448,16 @@ __all__ = [
     "EmployeesBoundITUserFilter",
     "EmployeesBoundLeaveFilter",
     "EmployeesBoundManagerFilter",
+    "EngagementCreate",
+    "EngagementCreateEngagementCreate",
     "EngagementCreateInput",
     "EngagementFilter",
     "EngagementRegistrationFilter",
     "EngagementTerminate",
     "EngagementTerminateEngagementTerminate",
     "EngagementTerminateInput",
+    "EngagementUpdate",
+    "EngagementUpdateEngagementUpdate",
     "EngagementUpdateInput",
     "FacetCreateInput",
     "FacetFilter",
@@ -487,8 +489,12 @@ __all__ = [
     "ITUserUpdateInput",
     "ItuserBoundAddressFilter",
     "ItuserBoundRoleBindingFilter",
+    "ItuserCreate",
+    "ItuserCreateItuserCreate",
     "ItuserTerminate",
     "ItuserTerminateItuserTerminate",
+    "ItuserUpdate",
+    "ItuserUpdateItuserUpdate",
     "KLECreateInput",
     "KLEFilter",
     "KLERegistrationFilter",
@@ -670,8 +676,6 @@ __all__ = [
     "RoleRegistrationFilter",
     "SetJobTitle",
     "SetJobTitleEngagementUpdate",
-    "TestingAddressCreate",
-    "TestingAddressCreateAddressCreate",
     "TestingAddressRead",
     "TestingAddressReadAddresses",
     "TestingAddressReadAddressesObjects",
@@ -680,16 +684,10 @@ __all__ = [
     "TestingAddressReadAddressesObjectsValiditiesPerson",
     "TestingAddressReadAddressesObjectsValiditiesValidity",
     "TestingAddressReadAddressesObjectsValiditiesVisibility",
-    "TestingAddressTerminate",
-    "TestingAddressTerminateAddressTerminate",
-    "TestingAddressUpdate",
-    "TestingAddressUpdateAddressUpdate",
     "TestingEmployeeRead",
     "TestingEmployeeReadEmployees",
     "TestingEmployeeReadEmployeesObjects",
     "TestingEmployeeReadEmployeesObjectsValidities",
-    "TestingEngagementCreate",
-    "TestingEngagementCreateEngagementCreate",
     "TestingEngagementRead",
     "TestingEngagementReadEngagements",
     "TestingEngagementReadEngagementsObjects",
@@ -700,14 +698,8 @@ __all__ = [
     "TestingEngagementReadEngagementsObjectsValiditiesPerson",
     "TestingEngagementReadEngagementsObjectsValiditiesPrimary",
     "TestingEngagementReadEngagementsObjectsValiditiesValidity",
-    "TestingEngagementTerminate",
-    "TestingEngagementTerminateEngagementTerminate",
-    "TestingEngagementUpdate",
-    "TestingEngagementUpdateEngagementUpdate",
     "TestingItsystemCreate",
     "TestingItsystemCreateItsystemCreate",
-    "TestingItuserCreate",
-    "TestingItuserCreateItuserCreate",
     "TestingItuserRead",
     "TestingItuserReadItusers",
     "TestingItuserReadItusersObjects",
@@ -715,16 +707,12 @@ __all__ = [
     "TestingItuserReadItusersObjectsValiditiesItsystem",
     "TestingItuserReadItusersObjectsValiditiesPerson",
     "TestingItuserReadItusersObjectsValiditiesValidity",
-    "TestingItuserTerminate",
-    "TestingItuserTerminateItuserTerminate",
-    "TestingItuserUpdate",
-    "TestingItuserUpdateItuserUpdate",
     "TestingOrgUnitCreate",
     "TestingOrgUnitCreateOrgUnitCreate",
-    "TestingUserCreate",
-    "TestingUserCreateEmployeeCreate",
-    "TestingUserUpdate",
-    "TestingUserUpdateEmployeeUpdate",
+    "UserCreate",
+    "UserCreateEmployeeCreate",
+    "UserUpdate",
+    "UserUpdateEmployeeUpdate",
     "UuidsBoundClassFilter",
     "UuidsBoundEmployeeFilter",
     "UuidsBoundEngagementFilter",
