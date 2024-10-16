@@ -43,12 +43,7 @@ from mo_ldap_import_export.utils import combine_dn_strings
                         "nickname_surname": "bar",
                     },
                 },
-                # TODO: why is this required?
-                "mo_to_ldap": {
-                    "Employee": {
-                        "_export_to_ldap_": "false",
-                    },
-                },
+                "mo_to_ldap": {},
                 # TODO: why is this required?
                 "username_generator": {
                     "objectClass": "UserNameGenerator",

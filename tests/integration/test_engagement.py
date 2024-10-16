@@ -60,12 +60,7 @@ from mo_ldap_import_export.utils import mo_today
                         "extension_1": "{{ ldap.title }}",
                     },
                 },
-                # TODO: why is this required?
-                "mo_to_ldap": {
-                    "Employee": {
-                        "_export_to_ldap_": "false",
-                    }
-                },
+                "mo_to_ldap": {},
                 # TODO: why is this required?
                 "username_generator": {
                     "objectClass": "UserNameGenerator",
@@ -186,12 +181,7 @@ async def test_to_mo(
                         "primary": "{{ dict(uuid=get_primary_type_uuid('primary')) }}",
                     },
                 },
-                # TODO: why is this required?
-                "mo_to_ldap": {
-                    "Employee": {
-                        "_export_to_ldap_": "false",
-                    }
-                },
+                "mo_to_ldap": {},
                 # TODO: why is this required?
                 "username_generator": {
                     "objectClass": "UserNameGenerator",

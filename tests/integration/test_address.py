@@ -51,12 +51,7 @@ from mo_ldap_import_export.utils import mo_today
                         "visibility": "{{ dict(uuid=get_visibility_uuid('Public')) }}",
                     },
                 },
-                # TODO: why is this required?
-                "mo_to_ldap": {
-                    "Employee": {
-                        "_export_to_ldap_": "false",
-                    }
-                },
+                "mo_to_ldap": {},
                 # TODO: why is this required?
                 "username_generator": {
                     "objectClass": "UserNameGenerator",
