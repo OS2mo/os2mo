@@ -45,6 +45,10 @@ facets:
     Afdeling:
       title: "Afdeling"
       scope: "TEXT"
+  org_unit_level:
+    N1:
+      title: "N1"
+      scope: "TEXT"
   engagement_type:
     Ansat:
       title: "Ansat"
