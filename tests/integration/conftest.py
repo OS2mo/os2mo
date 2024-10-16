@@ -138,3 +138,58 @@ async def mo_org_unit(graphql_client: GraphQLClient) -> UUID:
         )
     )
     return r.uuid
+
+
+@pytest.fixture
+async def ansat(graphql_client: GraphQLClient) -> UUID:
+    return one(
+        (
+            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
+                "engagement_type", "Ansat"
+            )
+        ).objects
+    ).uuid
+
+
+@pytest.fixture
+async def jurist(graphql_client: GraphQLClient) -> UUID:
+    return one(
+        (
+            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
+                "engagement_job_function", "Jurist"
+            )
+        ).objects
+    ).uuid
+
+
+@pytest.fixture
+async def primary(graphql_client: GraphQLClient) -> UUID:
+    return one(
+        (
+            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
+                "primary_type", "primary"
+            )
+        ).objects
+    ).uuid
+
+
+@pytest.fixture
+async def email_unit(graphql_client: GraphQLClient) -> UUID:
+    return one(
+        (
+            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
+                "org_unit_address_type", "EmailUnit"
+            )
+        ).objects
+    ).uuid
+
+
+@pytest.fixture
+async def public(graphql_client: GraphQLClient) -> UUID:
+    return one(
+        (
+            await graphql_client.read_class_uuid_by_facet_and_class_user_key(
+                "visibility", "Public"
+            )
+        ).objects
+    ).uuid
