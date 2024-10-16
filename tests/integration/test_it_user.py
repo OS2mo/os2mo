@@ -148,34 +148,16 @@ async def test_to_mo(
         "LISTEN_TO_CHANGES_IN_LDAP": "False",
         "CONVERSION_MAPPING": json.dumps(
             {
-                # TODO: why is this required?
-                "ldap_to_mo": {
-                    "Employee": {
-                        "objectClass": "ramodels.mo.employee.Employee",
-                        "_import_to_mo_": "false",
-                        "_ldap_attributes_": [],
-                        "uuid": "{{ employee_uuid or '' }}",
-                    },
-                    # This is required for mo_ituser_to_ldap
-                    # 'ADtitle' (key) is assumed to be an itsystem in MO
-                    "ADtitle": {
-                        "objectClass": "ramodels.mo.details.it_system.ITUser",
-                        "_import_to_mo_": "false",
-                        "_ldap_attributes_": [],
-                        "user_key": "unused",
-                        "person": "dict(uuid=",  # Validator required this in the value
-                        "itsystem": "unused",
-                    },
-                },
-                "mo_to_ldap": {
-                    "Employee": {
-                        "_export_to_ldap_": "false",
-                    },
-                    "ADtitle": {
-                        "_export_to_ldap_": "true",
-                        "title": "{{ mo_employee_it_user.user_key }}",
-                    },
-                },
+                "ldap_to_mo": {},
+                "mo2ldap": """
+                {% set mo_employee_it_user = load_mo_it_user(uuid, "ADtitle") %}
+                {{
+                    {
+                        "title": mo_employee_it_user.user_key if mo_employee_it_user else [],
+                    }|tojson
+                }}
+                """,
+                "mo_to_ldap": {},
                 # TODO: why is this required?
                 "username_generator": {
                     "objectClass": "UserNameGenerator",
