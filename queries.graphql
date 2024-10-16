@@ -97,55 +97,6 @@ query __testing__ituser_read($filter: ITUserFilter) {
   }
 }
 
-mutation __testing_user_create($input: EmployeeCreateInput!) {
-  employee_create(input: $input) {
-    uuid
-  }
-}
-
-mutation __testing_user_update($input: EmployeeUpdateInput!) {
-  employee_update(input: $input) {
-    uuid
-  }
-}
-
-mutation __testing_engagement_create($input: EngagementCreateInput!) {
-  engagement_create(input: $input) {
-    uuid
-  }
-}
-
-mutation __testing_engagement_update($input: EngagementUpdateInput!) {
-  engagement_update(input: $input) {
-    uuid
-  }
-}
-
-mutation __testing_engagement_terminate($uuid: UUID!, $to: DateTime!) {
-  engagement_terminate(input: { uuid: $uuid, to: $to }) {
-    uuid
-  }
-}
-
-
-mutation __testing_ituser_create($input: ITUserCreateInput!) {
-  ituser_create(input: $input) {
-    uuid
-  }
-}
-
-mutation __testing_ituser_update($input: ITUserUpdateInput!) {
-  ituser_update(input: $input) {
-    uuid
-  }
-}
-
-mutation __testing_ituser_terminate($uuid: UUID!, $to: DateTime!) {
-  ituser_terminate(input: { uuid: $uuid, to: $to }) {
-    uuid
-  }
-}
-
 mutation __testing__itsystem_create($input: ITSystemCreateInput!) {
   itsystem_create(input: $input) {
     uuid
@@ -158,25 +109,74 @@ mutation __testing_org_unit_create($input: OrganisationUnitCreateInput!) {
   }
 }
 
-mutation __testing_address_create($input: AddressCreateInput!) {
+
+# Normal queries
+
+mutation address_create($input: AddressCreateInput!) {
   address_create(input: $input) {
     uuid
   }
 }
 
-mutation __testing_address_update($input: AddressUpdateInput!) {
+mutation address_update($input: AddressUpdateInput!) {
   address_update(input: $input) {
     uuid
   }
 }
 
-mutation __testing_address_terminate($uuid: UUID!, $to: DateTime!) {
-  address_terminate(input: { uuid: $uuid, to: $to }) {
+mutation address_terminate($input: AddressTerminateInput!) {
+  address_terminate(input: $input) {
     uuid
   }
 }
 
-# Normal queries
+mutation user_create($input: EmployeeCreateInput!) {
+  employee_create(input: $input) {
+    uuid
+  }
+}
+
+mutation user_update($input: EmployeeUpdateInput!) {
+  employee_update(input: $input) {
+    uuid
+  }
+}
+
+mutation engagement_create($input: EngagementCreateInput!) {
+  engagement_create(input: $input) {
+    uuid
+  }
+}
+
+mutation engagement_update($input: EngagementUpdateInput!) {
+  engagement_update(input: $input) {
+    uuid
+  }
+}
+
+mutation engagement_terminate($input: EngagementTerminateInput!) {
+  engagement_terminate(input: $input) {
+    uuid
+  }
+}
+
+mutation ituser_create($input: ITUserCreateInput!) {
+  ituser_create(input: $input) {
+    uuid
+  }
+}
+
+mutation ituser_update($input: ITUserUpdateInput!) {
+  ituser_update(input: $input) {
+    uuid
+  }
+}
+
+mutation ituser_terminate($input: ITUserTerminateInput!) {
+  ituser_terminate(input: $input) {
+    uuid
+  }
+}
 
 query read_facet_uuid($user_key: String!) {
   facets(filter: {user_keys: [$user_key]}) {
@@ -202,24 +202,6 @@ query read_class_uuid($user_key: String!) {
 
 query read_root_org_uuid {
   org {
-    uuid
-  }
-}
-
-mutation address_terminate($input: AddressTerminateInput!) {
-  address_terminate(input: $input) {
-    uuid
-  }
-}
-
-mutation engagement_terminate($input: EngagementTerminateInput!) {
-  engagement_terminate(input: $input) {
-    uuid
-  }
-}
-
-mutation ituser_terminate($input: ITUserTerminateInput!) {
-  ituser_terminate(input: $input) {
     uuid
   }
 }

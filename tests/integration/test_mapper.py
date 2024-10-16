@@ -137,7 +137,7 @@ async def test_mapping(
         ).objects
     ).uuid
 
-    await graphql_client._testing_address_create(
+    await graphql_client.address_create(
         input=AddressCreateInput(
             value="12345678",
             user_key="external_employee_phone",
@@ -147,7 +147,7 @@ async def test_mapping(
             validity={"from": "1980-01-01T00:00:00Z"},
         )
     )
-    await graphql_client._testing_address_create(
+    await graphql_client.address_create(
         input=AddressCreateInput(
             value="87654321",
             user_key="internal_employee_phone",

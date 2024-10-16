@@ -13,32 +13,14 @@ from ._testing__itsystem_create import TestingItsystemCreate
 from ._testing__itsystem_create import TestingItsystemCreateItsystemCreate
 from ._testing__ituser_read import TestingItuserRead
 from ._testing__ituser_read import TestingItuserReadItusers
-from ._testing_address_create import TestingAddressCreate
-from ._testing_address_create import TestingAddressCreateAddressCreate
-from ._testing_address_terminate import TestingAddressTerminate
-from ._testing_address_terminate import TestingAddressTerminateAddressTerminate
-from ._testing_address_update import TestingAddressUpdate
-from ._testing_address_update import TestingAddressUpdateAddressUpdate
-from ._testing_engagement_create import TestingEngagementCreate
-from ._testing_engagement_create import TestingEngagementCreateEngagementCreate
-from ._testing_engagement_terminate import TestingEngagementTerminate
-from ._testing_engagement_terminate import TestingEngagementTerminateEngagementTerminate
-from ._testing_engagement_update import TestingEngagementUpdate
-from ._testing_engagement_update import TestingEngagementUpdateEngagementUpdate
-from ._testing_ituser_create import TestingItuserCreate
-from ._testing_ituser_create import TestingItuserCreateItuserCreate
-from ._testing_ituser_terminate import TestingItuserTerminate
-from ._testing_ituser_terminate import TestingItuserTerminateItuserTerminate
-from ._testing_ituser_update import TestingItuserUpdate
-from ._testing_ituser_update import TestingItuserUpdateItuserUpdate
 from ._testing_org_unit_create import TestingOrgUnitCreate
 from ._testing_org_unit_create import TestingOrgUnitCreateOrgUnitCreate
-from ._testing_user_create import TestingUserCreate
-from ._testing_user_create import TestingUserCreateEmployeeCreate
-from ._testing_user_update import TestingUserUpdate
-from ._testing_user_update import TestingUserUpdateEmployeeUpdate
+from .address_create import AddressCreate
+from .address_create import AddressCreateAddressCreate
 from .address_terminate import AddressTerminate
 from .address_terminate import AddressTerminateAddressTerminate
+from .address_update import AddressUpdate
+from .address_update import AddressUpdateAddressUpdate
 from .async_base_client import AsyncBaseClient
 from .base_model import UNSET
 from .base_model import UnsetType
@@ -46,8 +28,12 @@ from .class_create import ClassCreate
 from .class_create import ClassCreateClassCreate
 from .employee_refresh import EmployeeRefresh
 from .employee_refresh import EmployeeRefreshEmployeeRefresh
+from .engagement_create import EngagementCreate
+from .engagement_create import EngagementCreateEngagementCreate
 from .engagement_terminate import EngagementTerminate
 from .engagement_terminate import EngagementTerminateEngagementTerminate
+from .engagement_update import EngagementUpdate
+from .engagement_update import EngagementUpdateEngagementUpdate
 from .input_types import AddressCreateInput
 from .input_types import AddressFilter
 from .input_types import AddressTerminateInput
@@ -67,8 +53,12 @@ from .input_types import ITUserTerminateInput
 from .input_types import ITUserUpdateInput
 from .input_types import OrganisationUnitCreateInput
 from .input_types import OrganisationUnitFilter
+from .ituser_create import ItuserCreate
+from .ituser_create import ItuserCreateItuserCreate
 from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
+from .ituser_update import ItuserUpdate
+from .ituser_update import ItuserUpdateItuserUpdate
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefresh
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefreshEngagementRefresh
 from .read_address_relation_uuids import ReadAddressRelationUuids
@@ -159,6 +149,10 @@ from .read_root_org_uuid import ReadRootOrgUuid
 from .read_root_org_uuid import ReadRootOrgUuidOrg
 from .set_job_title import SetJobTitle
 from .set_job_title import SetJobTitleEngagementUpdate
+from .user_create import UserCreate
+from .user_create import UserCreateEmployeeCreate
+from .user_update import UserUpdate
+from .user_update import UserUpdateEmployeeUpdate
 
 
 def gql(q: str) -> str:
@@ -304,142 +298,6 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return TestingItuserRead.parse_obj(data).itusers
 
-    async def _testing_user_create(
-        self, input: EmployeeCreateInput
-    ) -> TestingUserCreateEmployeeCreate:
-        query = gql(
-            """
-            mutation __testing_user_create($input: EmployeeCreateInput!) {
-              employee_create(input: $input) {
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"input": input}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return TestingUserCreate.parse_obj(data).employee_create
-
-    async def _testing_user_update(
-        self, input: EmployeeUpdateInput
-    ) -> TestingUserUpdateEmployeeUpdate:
-        query = gql(
-            """
-            mutation __testing_user_update($input: EmployeeUpdateInput!) {
-              employee_update(input: $input) {
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"input": input}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return TestingUserUpdate.parse_obj(data).employee_update
-
-    async def _testing_engagement_create(
-        self, input: EngagementCreateInput
-    ) -> TestingEngagementCreateEngagementCreate:
-        query = gql(
-            """
-            mutation __testing_engagement_create($input: EngagementCreateInput!) {
-              engagement_create(input: $input) {
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"input": input}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return TestingEngagementCreate.parse_obj(data).engagement_create
-
-    async def _testing_engagement_update(
-        self, input: EngagementUpdateInput
-    ) -> TestingEngagementUpdateEngagementUpdate:
-        query = gql(
-            """
-            mutation __testing_engagement_update($input: EngagementUpdateInput!) {
-              engagement_update(input: $input) {
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"input": input}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return TestingEngagementUpdate.parse_obj(data).engagement_update
-
-    async def _testing_engagement_terminate(
-        self, uuid: UUID, to: datetime
-    ) -> TestingEngagementTerminateEngagementTerminate:
-        query = gql(
-            """
-            mutation __testing_engagement_terminate($uuid: UUID!, $to: DateTime!) {
-              engagement_terminate(input: {uuid: $uuid, to: $to}) {
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"uuid": uuid, "to": to}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return TestingEngagementTerminate.parse_obj(data).engagement_terminate
-
-    async def _testing_ituser_create(
-        self, input: ITUserCreateInput
-    ) -> TestingItuserCreateItuserCreate:
-        query = gql(
-            """
-            mutation __testing_ituser_create($input: ITUserCreateInput!) {
-              ituser_create(input: $input) {
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"input": input}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return TestingItuserCreate.parse_obj(data).ituser_create
-
-    async def _testing_ituser_update(
-        self, input: ITUserUpdateInput
-    ) -> TestingItuserUpdateItuserUpdate:
-        query = gql(
-            """
-            mutation __testing_ituser_update($input: ITUserUpdateInput!) {
-              ituser_update(input: $input) {
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"input": input}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return TestingItuserUpdate.parse_obj(data).ituser_update
-
-    async def _testing_ituser_terminate(
-        self, uuid: UUID, to: datetime
-    ) -> TestingItuserTerminateItuserTerminate:
-        query = gql(
-            """
-            mutation __testing_ituser_terminate($uuid: UUID!, $to: DateTime!) {
-              ituser_terminate(input: {uuid: $uuid, to: $to}) {
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"uuid": uuid, "to": to}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return TestingItuserTerminate.parse_obj(data).ituser_terminate
-
     async def _testing__itsystem_create(
         self, input: ITSystemCreateInput
     ) -> TestingItsystemCreateItsystemCreate:
@@ -474,12 +332,12 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return TestingOrgUnitCreate.parse_obj(data).org_unit_create
 
-    async def _testing_address_create(
+    async def address_create(
         self, input: AddressCreateInput
-    ) -> TestingAddressCreateAddressCreate:
+    ) -> AddressCreateAddressCreate:
         query = gql(
             """
-            mutation __testing_address_create($input: AddressCreateInput!) {
+            mutation address_create($input: AddressCreateInput!) {
               address_create(input: $input) {
                 uuid
               }
@@ -489,14 +347,14 @@ class GraphQLClient(AsyncBaseClient):
         variables: dict[str, object] = {"input": input}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
-        return TestingAddressCreate.parse_obj(data).address_create
+        return AddressCreate.parse_obj(data).address_create
 
-    async def _testing_address_update(
+    async def address_update(
         self, input: AddressUpdateInput
-    ) -> TestingAddressUpdateAddressUpdate:
+    ) -> AddressUpdateAddressUpdate:
         query = gql(
             """
-            mutation __testing_address_update($input: AddressUpdateInput!) {
+            mutation address_update($input: AddressUpdateInput!) {
               address_update(input: $input) {
                 uuid
               }
@@ -506,24 +364,152 @@ class GraphQLClient(AsyncBaseClient):
         variables: dict[str, object] = {"input": input}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
-        return TestingAddressUpdate.parse_obj(data).address_update
+        return AddressUpdate.parse_obj(data).address_update
 
-    async def _testing_address_terminate(
-        self, uuid: UUID, to: datetime
-    ) -> TestingAddressTerminateAddressTerminate:
+    async def address_terminate(
+        self, input: AddressTerminateInput
+    ) -> AddressTerminateAddressTerminate:
         query = gql(
             """
-            mutation __testing_address_terminate($uuid: UUID!, $to: DateTime!) {
-              address_terminate(input: {uuid: $uuid, to: $to}) {
+            mutation address_terminate($input: AddressTerminateInput!) {
+              address_terminate(input: $input) {
                 uuid
               }
             }
             """
         )
-        variables: dict[str, object] = {"uuid": uuid, "to": to}
+        variables: dict[str, object] = {"input": input}
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
-        return TestingAddressTerminate.parse_obj(data).address_terminate
+        return AddressTerminate.parse_obj(data).address_terminate
+
+    async def user_create(self, input: EmployeeCreateInput) -> UserCreateEmployeeCreate:
+        query = gql(
+            """
+            mutation user_create($input: EmployeeCreateInput!) {
+              employee_create(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return UserCreate.parse_obj(data).employee_create
+
+    async def user_update(self, input: EmployeeUpdateInput) -> UserUpdateEmployeeUpdate:
+        query = gql(
+            """
+            mutation user_update($input: EmployeeUpdateInput!) {
+              employee_update(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return UserUpdate.parse_obj(data).employee_update
+
+    async def engagement_create(
+        self, input: EngagementCreateInput
+    ) -> EngagementCreateEngagementCreate:
+        query = gql(
+            """
+            mutation engagement_create($input: EngagementCreateInput!) {
+              engagement_create(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return EngagementCreate.parse_obj(data).engagement_create
+
+    async def engagement_update(
+        self, input: EngagementUpdateInput
+    ) -> EngagementUpdateEngagementUpdate:
+        query = gql(
+            """
+            mutation engagement_update($input: EngagementUpdateInput!) {
+              engagement_update(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return EngagementUpdate.parse_obj(data).engagement_update
+
+    async def engagement_terminate(
+        self, input: EngagementTerminateInput
+    ) -> EngagementTerminateEngagementTerminate:
+        query = gql(
+            """
+            mutation engagement_terminate($input: EngagementTerminateInput!) {
+              engagement_terminate(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return EngagementTerminate.parse_obj(data).engagement_terminate
+
+    async def ituser_create(self, input: ITUserCreateInput) -> ItuserCreateItuserCreate:
+        query = gql(
+            """
+            mutation ituser_create($input: ITUserCreateInput!) {
+              ituser_create(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ItuserCreate.parse_obj(data).ituser_create
+
+    async def ituser_update(self, input: ITUserUpdateInput) -> ItuserUpdateItuserUpdate:
+        query = gql(
+            """
+            mutation ituser_update($input: ITUserUpdateInput!) {
+              ituser_update(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ItuserUpdate.parse_obj(data).ituser_update
+
+    async def ituser_terminate(
+        self, input: ITUserTerminateInput
+    ) -> ItuserTerminateItuserTerminate:
+        query = gql(
+            """
+            mutation ituser_terminate($input: ITUserTerminateInput!) {
+              ituser_terminate(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ItuserTerminate.parse_obj(data).ituser_terminate
 
     async def read_facet_uuid(self, user_key: str) -> ReadFacetUuidFacets:
         query = gql(
@@ -588,57 +574,6 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadRootOrgUuid.parse_obj(data).org
-
-    async def address_terminate(
-        self, input: AddressTerminateInput
-    ) -> AddressTerminateAddressTerminate:
-        query = gql(
-            """
-            mutation address_terminate($input: AddressTerminateInput!) {
-              address_terminate(input: $input) {
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"input": input}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return AddressTerminate.parse_obj(data).address_terminate
-
-    async def engagement_terminate(
-        self, input: EngagementTerminateInput
-    ) -> EngagementTerminateEngagementTerminate:
-        query = gql(
-            """
-            mutation engagement_terminate($input: EngagementTerminateInput!) {
-              engagement_terminate(input: $input) {
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"input": input}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return EngagementTerminate.parse_obj(data).engagement_terminate
-
-    async def ituser_terminate(
-        self, input: ITUserTerminateInput
-    ) -> ItuserTerminateItuserTerminate:
-        query = gql(
-            """
-            mutation ituser_terminate($input: ITUserTerminateInput!) {
-              ituser_terminate(input: $input) {
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"input": input}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ItuserTerminate.parse_obj(data).ituser_terminate
 
     async def read_employees_with_engagement_to_org_unit(
         self, org_unit_uuid: UUID
