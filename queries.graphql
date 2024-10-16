@@ -103,12 +103,6 @@ mutation __testing__itsystem_create($input: ITSystemCreateInput!) {
   }
 }
 
-mutation __testing_org_unit_create($input: OrganisationUnitCreateInput!) {
-  org_unit_create(input: $input) {
-    uuid
-  }
-}
-
 
 # Normal queries
 
@@ -202,6 +196,12 @@ query read_class_uuid($user_key: String!) {
 
 query read_root_org_uuid {
   org {
+    uuid
+  }
+}
+
+mutation org_unit_create($input: OrganisationUnitCreateInput!) {
+  org_unit_create(input: $input) {
     uuid
   }
 }

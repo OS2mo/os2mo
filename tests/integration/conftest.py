@@ -128,7 +128,7 @@ async def mo_org_unit(graphql_client: GraphQLClient) -> UUID:
             )
         ).objects
     )
-    r = await graphql_client._testing_org_unit_create(
+    r = await graphql_client.org_unit_create(
         input=OrganisationUnitCreateInput(
             user_key="os2mo",
             name="os2mo",

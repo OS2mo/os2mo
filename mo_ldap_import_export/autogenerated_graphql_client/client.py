@@ -13,8 +13,6 @@ from ._testing__itsystem_create import TestingItsystemCreate
 from ._testing__itsystem_create import TestingItsystemCreateItsystemCreate
 from ._testing__ituser_read import TestingItuserRead
 from ._testing__ituser_read import TestingItuserReadItusers
-from ._testing_org_unit_create import TestingOrgUnitCreate
-from ._testing_org_unit_create import TestingOrgUnitCreateOrgUnitCreate
 from .address_create import AddressCreate
 from .address_create import AddressCreateAddressCreate
 from .address_terminate import AddressTerminate
@@ -59,6 +57,8 @@ from .ituser_terminate import ItuserTerminate
 from .ituser_terminate import ItuserTerminateItuserTerminate
 from .ituser_update import ItuserUpdate
 from .ituser_update import ItuserUpdateItuserUpdate
+from .org_unit_create import OrgUnitCreate
+from .org_unit_create import OrgUnitCreateOrgUnitCreate
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefresh
 from .org_unit_engagements_refresh import OrgUnitEngagementsRefreshEngagementRefresh
 from .read_address_relation_uuids import ReadAddressRelationUuids
@@ -315,23 +315,6 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return TestingItsystemCreate.parse_obj(data).itsystem_create
 
-    async def _testing_org_unit_create(
-        self, input: OrganisationUnitCreateInput
-    ) -> TestingOrgUnitCreateOrgUnitCreate:
-        query = gql(
-            """
-            mutation __testing_org_unit_create($input: OrganisationUnitCreateInput!) {
-              org_unit_create(input: $input) {
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"input": input}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return TestingOrgUnitCreate.parse_obj(data).org_unit_create
-
     async def address_create(
         self, input: AddressCreateInput
     ) -> AddressCreateAddressCreate:
@@ -574,6 +557,23 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadRootOrgUuid.parse_obj(data).org
+
+    async def org_unit_create(
+        self, input: OrganisationUnitCreateInput
+    ) -> OrgUnitCreateOrgUnitCreate:
+        query = gql(
+            """
+            mutation org_unit_create($input: OrganisationUnitCreateInput!) {
+              org_unit_create(input: $input) {
+                uuid
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"input": input}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return OrgUnitCreate.parse_obj(data).org_unit_create
 
     async def read_employees_with_engagement_to_org_unit(
         self, org_unit_uuid: UUID

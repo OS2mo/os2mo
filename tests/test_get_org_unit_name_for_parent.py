@@ -21,7 +21,7 @@ async def test_integration_get_org_unit_name_for_parent(
     org_unit_type = uuid4()
 
     municipality_name = "Municipality"
-    municipality = await graphql_client._testing_org_unit_create(
+    municipality = await graphql_client.org_unit_create(
         parse_obj_as(
             OrganisationUnitCreateInput,
             {
@@ -32,7 +32,7 @@ async def test_integration_get_org_unit_name_for_parent(
         )
     )
     childcare_name = "Childcare"
-    childcare = await graphql_client._testing_org_unit_create(
+    childcare = await graphql_client.org_unit_create(
         parse_obj_as(
             OrganisationUnitCreateInput,
             {
@@ -44,7 +44,7 @@ async def test_integration_get_org_unit_name_for_parent(
         )
     )
     daycares_name = "Daycares"
-    daycares = await graphql_client._testing_org_unit_create(
+    daycares = await graphql_client.org_unit_create(
         parse_obj_as(
             OrganisationUnitCreateInput,
             {
@@ -56,7 +56,7 @@ async def test_integration_get_org_unit_name_for_parent(
         )
     )
     windmill_name = "Windmill Daycare"
-    windmill = await graphql_client._testing_org_unit_create(
+    windmill = await graphql_client.org_unit_create(
         parse_obj_as(
             OrganisationUnitCreateInput,
             {

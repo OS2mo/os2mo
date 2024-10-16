@@ -20,7 +20,7 @@ async def test_integration_get_org_unit_path_string(
 ) -> None:
     org_unit_type = uuid4()
 
-    municipality = await graphql_client._testing_org_unit_create(
+    municipality = await graphql_client.org_unit_create(
         parse_obj_as(
             OrganisationUnitCreateInput,
             {
@@ -30,7 +30,7 @@ async def test_integration_get_org_unit_path_string(
             },
         )
     )
-    childcare = await graphql_client._testing_org_unit_create(
+    childcare = await graphql_client.org_unit_create(
         parse_obj_as(
             OrganisationUnitCreateInput,
             {
@@ -41,7 +41,7 @@ async def test_integration_get_org_unit_path_string(
             },
         )
     )
-    daycares = await graphql_client._testing_org_unit_create(
+    daycares = await graphql_client.org_unit_create(
         parse_obj_as(
             OrganisationUnitCreateInput,
             {
@@ -52,7 +52,7 @@ async def test_integration_get_org_unit_path_string(
             },
         )
     )
-    windmill = await graphql_client._testing_org_unit_create(
+    windmill = await graphql_client.org_unit_create(
         parse_obj_as(
             OrganisationUnitCreateInput,
             {
