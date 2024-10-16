@@ -151,35 +151,16 @@ async def test_to_mo(
         "LISTEN_TO_CHANGES_IN_LDAP": "False",
         "CONVERSION_MAPPING": json.dumps(
             {
-                # TODO: why is this required?
-                "ldap_to_mo": {
-                    "Employee": {
-                        "objectClass": "ramodels.mo.employee.Employee",
-                        "_import_to_mo_": "false",
-                        "_ldap_attributes_": [],
-                        "uuid": "{{ employee_uuid or '' }}",
-                    },
-                    # This is required for mo_address_to_ldap
-                    # 'EmailEmployee' (key) is assumed to be an address-type in MO
-                    "EmailEmployee": {
-                        "objectClass": "ramodels.mo.details.address.Address",
-                        "_import_to_mo_": "false",
-                        "_ldap_attributes_": [],
-                        "value": "unused",
-                        "address_type": "unused",
-                        "person": "dict(uuid=",  # Validator required this in the value
-                        "visibility": "unused",
-                    },
-                },
-                "mo_to_ldap": {
-                    "Employee": {
-                        "_export_to_ldap_": "false",
-                    },
-                    "EmailEmployee": {
-                        "_export_to_ldap_": "true",
-                        "mail": "{{ mo_employee_address.value }}",
-                    },
-                },
+                "ldap_to_mo": {},
+                "mo2ldap": """
+                {% set mo_employee_address = load_mo_address(uuid, "EmailEmployee") %}
+                {{
+                    {
+                        "mail": mo_employee_address.value if mo_employee_address else [],
+                    }|tojson
+                }}
+                """,
+                "mo_to_ldap": {},
                 # TODO: why is this required?
                 "username_generator": {
                     "objectClass": "UserNameGenerator",
