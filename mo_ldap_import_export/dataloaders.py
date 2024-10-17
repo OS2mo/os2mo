@@ -787,7 +787,7 @@ class DataLoader:
         tasks = [self.create_object(obj) for obj in creates]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         exceptions = cast(list[Exception], list(filter(is_exception, results)))
-        if exceptions:
+        if exceptions:  # pragma: no cover
             raise ExceptionGroup("Exceptions during creation", exceptions)
 
     async def edit_employee(self, obj: Employee) -> None:  # pragma: no cover
