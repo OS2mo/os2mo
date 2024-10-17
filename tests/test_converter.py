@@ -1011,7 +1011,6 @@ def test_check_uuid_refs_in_mo_objects(converter_mapping: dict[str, Any]) -> Non
     ],
 )
 def test_import_to_mo_configuration(
-    minimal_mapping: dict[str, Any],
     monkeypatch: pytest.MonkeyPatch,
     import_to_mo: str,
     is_ok: bool,
@@ -1019,10 +1018,17 @@ def test_import_to_mo_configuration(
     monkeypatch.setenv(
         "CONVERSION_MAPPING",
         json.dumps(
-            overlay(
-                minimal_mapping,
-                {"ldap_to_mo": {"Employee": {"_import_to_mo_": import_to_mo}}},
-            )
+            {
+                "ldap_to_mo": {
+                    "Employee": {
+                        "objectClass": "ramodels.mo.employee.Employee",
+                        "_import_to_mo_": import_to_mo,
+                        "_ldap_attributes_": [],
+                        "uuid": "{{ employee_uuid or NONE }}",
+                    }
+                },
+                "username_generator": {"objectClass": "UserNameGenerator"},
+            }
         ),
     )
     if is_ok:
@@ -1053,7 +1059,6 @@ def test_import_to_mo_configuration(
     ],
 )
 def test_import_to_mo(
-    minimal_mapping: dict[str, Any],
     monkeypatch: pytest.MonkeyPatch,
     import_to_mo: str,
     manual_import: bool,
@@ -1062,10 +1067,17 @@ def test_import_to_mo(
     monkeypatch.setenv(
         "CONVERSION_MAPPING",
         json.dumps(
-            overlay(
-                minimal_mapping,
-                {"ldap_to_mo": {"Employee": {"_import_to_mo_": import_to_mo}}},
-            )
+            {
+                "ldap_to_mo": {
+                    "Employee": {
+                        "objectClass": "ramodels.mo.employee.Employee",
+                        "_import_to_mo_": import_to_mo,
+                        "_ldap_attributes_": [],
+                        "uuid": "{{ employee_uuid or NONE }}",
+                    }
+                },
+                "username_generator": {"objectClass": "UserNameGenerator"},
+            }
         ),
     )
 

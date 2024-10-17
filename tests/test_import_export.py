@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
+import json
 import time
 from functools import partial
 from itertools import combinations
@@ -1072,11 +1073,30 @@ async def test_format_converted_primary_engagement_objects(
         await sync_tool.format_converted_objects(converted_objects, json_key)
 
 
+@pytest.mark.usefixtures("minimal_valid_settings")
 async def test_import_single_object_no_employee_no_sync(
-    sync_tool: SyncTool, minimal_valid_settings: Settings
+    sync_tool: SyncTool, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    monkeypatch.setenv(
+        "CONVERSION_MAPPING",
+        json.dumps(
+            {
+                "ldap_to_mo": {
+                    "Employee": {
+                        "objectClass": "ramodels.mo.employee.Employee",
+                        "_import_to_mo_": "false",
+                        "_ldap_attributes_": ["employeeID"],
+                        "cpr_no": "{{ldap.employeeID or None}}",
+                        "uuid": "{{ employee_uuid or NONE }}",
+                    }
+                },
+                "username_generator": {"objectClass": "UserNameGenerator"},
+            }
+        ),
+    )
+
     # Note that converter.settings and dataloader.settings are still mocked
-    sync_tool.settings = minimal_valid_settings
+    sync_tool.settings = Settings()
     # Ignore typing since it is actually a mock
     sync_tool.dataloader.find_mo_employee_uuid.return_value = None  # type: ignore
 
@@ -1091,12 +1111,30 @@ async def test_import_single_object_no_employee_no_sync(
     ]
 
 
-@pytest.mark.usefixtures("fake_find_mo_employee_dn")
+@pytest.mark.usefixtures("fake_find_mo_employee_dn", "minimal_valid_settings")
 async def test_import_single_object_from_LDAP_but_import_equals_false(
-    sync_tool: SyncTool, minimal_valid_settings: Settings
+    sync_tool: SyncTool, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    monkeypatch.setenv(
+        "CONVERSION_MAPPING",
+        json.dumps(
+            {
+                "ldap_to_mo": {
+                    "Employee": {
+                        "objectClass": "ramodels.mo.employee.Employee",
+                        "_import_to_mo_": "false",
+                        "_ldap_attributes_": ["employeeID"],
+                        "cpr_no": "{{ldap.employeeID or None}}",
+                        "uuid": "{{ employee_uuid or NONE }}",
+                    }
+                },
+                "username_generator": {"objectClass": "UserNameGenerator"},
+            }
+        ),
+    )
+
     # Note that converter.settings and dataloader.settings are still mocked
-    sync_tool.settings = minimal_valid_settings
+    sync_tool.settings = Settings()
 
     with capture_logs() as cap_logs:
         await sync_tool.import_single_user("CN=foo")

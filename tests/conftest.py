@@ -109,21 +109,6 @@ def load_settings_overrides(
 @pytest.fixture
 def minimal_mapping() -> dict[str, Any]:
     return {
-        "ldap_to_mo": {
-            "Employee": {
-                "objectClass": "ramodels.mo.employee.Employee",
-                "_import_to_mo_": "false",
-                "_ldap_attributes_": ["employeeID"],
-                "cpr_no": "{{ldap.employeeID or None}}",
-                "uuid": "{{ employee_uuid or NONE }}",
-            }
-        },
-        "mo_to_ldap": {
-            "Employee": {
-                "_export_to_ldap_": "false",
-                "employeeID": "{{mo_employee.cpr_no or None}}",
-            }
-        },
         "username_generator": {"objectClass": "UserNameGenerator"},
     }
 

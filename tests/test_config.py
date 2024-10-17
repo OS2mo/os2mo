@@ -63,7 +63,16 @@ def test_cannot_terminate_employee(minimal_mapping: dict) -> None:
     invalid_mapping = overlay(
         minimal_mapping,
         {
-            "ldap_to_mo": {"Employee": {"_terminate_": "whatever"}},
+            "ldap_to_mo": {
+                "Employee": {
+                    "objectClass": "ramodels.mo.employee.Employee",
+                    "_import_to_mo_": "false",
+                    "_ldap_attributes_": ["employeeID"],
+                    "_terminate_": "whatever",
+                    "cpr_no": "{{ldap.employeeID or None}}",
+                    "uuid": "{{ employee_uuid or NONE }}",
+                }
+            }
         },
     )
     with pytest.raises(ValidationError) as exc_info:
@@ -184,6 +193,23 @@ def test_dialect_settings(monkeypatch: pytest.MonkeyPatch) -> None:
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
 def test_mapper_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test that mapper can be set as read as expected."""
+    monkeypatch.setenv(
+        "CONVERSION_MAPPING",
+        json.dumps(
+            {
+                "ldap_to_mo": {
+                    "Employee": {
+                        "objectClass": "ramodels.mo.employee.Employee",
+                        "_import_to_mo_": "false",
+                        "_ldap_attributes_": ["employeeID"],
+                        "cpr_no": "{{ldap.employeeID or None}}",
+                        "uuid": "{{ employee_uuid or NONE }}",
+                    }
+                },
+                "username_generator": {"objectClass": "UserNameGenerator"},
+            }
+        ),
+    )
 
     settings = Settings()
     assert settings.conversion_mapping.ldap_to_mo is not None
@@ -207,6 +233,23 @@ def test_mapper_settings(monkeypatch: pytest.MonkeyPatch) -> None:
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
 def test_check_attributes(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test that mapper can be set as read as expected."""
+    monkeypatch.setenv(
+        "CONVERSION_MAPPING",
+        json.dumps(
+            {
+                "ldap_to_mo": {
+                    "Employee": {
+                        "objectClass": "ramodels.mo.employee.Employee",
+                        "_import_to_mo_": "false",
+                        "_ldap_attributes_": ["employeeID"],
+                        "cpr_no": "{{ldap.employeeID or None}}",
+                        "uuid": "{{ employee_uuid or NONE }}",
+                    }
+                },
+                "username_generator": {"objectClass": "UserNameGenerator"},
+            }
+        ),
+    )
 
     settings = Settings()
     assert settings.conversion_mapping.ldap_to_mo is not None
