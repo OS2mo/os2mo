@@ -1323,6 +1323,21 @@ class Mutation:
         )
 
     @strawberry.mutation(
+        description="Creates a list of rolebindings.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("rolebinding"),
+        ],
+    )
+    async def rolebindings_create(
+        self, input: list[RoleBindingCreateInput]
+    ) -> list[Response[RoleBinding]]:
+        created_rolebindings = await asyncio.gather(
+            *[Mutation.rolebinding_create(self, rolebinding) for rolebinding in input]
+        )
+        return created_rolebindings
+
+    @strawberry.mutation(
         description="Update a rolebinding.",
         permission_classes=[
             IsAuthenticatedPermission,
