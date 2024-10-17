@@ -1008,11 +1008,15 @@ class SyncTool:
             # If we found an employee UUID, we want to use that to find all DNs
             dns = await self.dataloader.find_mo_employee_dn(employee_uuid)
         else:  # We did not find an employee UUID
+            ldap_to_mo = self.settings.conversion_mapping.ldap_to_mo
             # Check if we wish to create the employee or not
-            assert self.settings.conversion_mapping.ldap_to_mo is not None
-            create_employee = self.settings.conversion_mapping.ldap_to_mo[
-                "Employee"
-            ].import_to_mo_as_bool(manual_import)
+            create_employee = False
+            if (
+                ldap_to_mo
+                and "Employee" in ldap_to_mo
+                and ldap_to_mo["Employee"].import_to_mo_as_bool(manual_import)
+            ):
+                create_employee = True
             if not create_employee:
                 # If we do not want to create the employee and it does not exist, there
                 # is no more to be done, as we cannot create dependent resources with no
@@ -1076,29 +1080,33 @@ class SyncTool:
 
         # First import the Employee, then Engagement if present, then the rest.
         # We want this order so dependencies exist before their dependent objects
-        # TODO: Maybe there should be a dependency graph in the future
-        assert self.settings.conversion_mapping.ldap_to_mo is not None
-        detected_json_keys = set(self.settings.conversion_mapping.ldap_to_mo.keys())
-        # We always want Employee in our json_keys
-        detected_json_keys.add("Employee")
-        priority_map = {"Employee": 1, "Engagement": 2}
-        json_keys = sorted(detected_json_keys, key=lambda x: priority_map.get(x, 3))
+        if self.settings.conversion_mapping.ldap_to_mo is None:
+            return
 
-        json_keys = [
+        json_keys = set(self.settings.conversion_mapping.ldap_to_mo.keys())
+        json_keys = {
             json_key
             for json_key in json_keys
             if self.settings.conversion_mapping.ldap_to_mo[
                 json_key
             ].import_to_mo_as_bool(manual_import)
-        ]
+        }
         logger.info("Import to MO filtered", json_keys=json_keys)
 
-        json_keys = [
+        json_keys = {
             json_key
             for json_key in json_keys
             if await self.perform_import_checks(dn, json_key)
-        ]
+        }
         logger.info("Import checks executed", json_keys=json_keys)
+
+        if "Employee" in json_keys:
+            await self.import_single_user_entity("Employee", dn, employee_uuid)
+            json_keys.discard("Employee")
+
+        if "Engagement" in json_keys:
+            await self.import_single_user_entity("Engagement", dn, employee_uuid)
+            json_keys.discard("Engagement")
 
         await asyncio.gather(
             *[
