@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import json
 from collections.abc import AsyncIterator
 from collections.abc import Iterable
 from typing import Any
@@ -48,7 +49,33 @@ async def graphql_client() -> AsyncIterator[GraphQLClient]:
 
 
 @pytest.fixture
-def settings(minimal_valid_environmental_variables: None) -> Settings:
+def settings(
+    minimal_valid_environmental_variables: None, monkeypatch: pytest.MonkeyPatch
+) -> Settings:
+    monkeypatch.setenv(
+        "CONVERSION_MAPPING",
+        json.dumps(
+            {
+                "ldap_to_mo": {
+                    "Employee": {
+                        "objectClass": "ramodels.mo.employee.Employee",
+                        "_import_to_mo_": "false",
+                        "_ldap_attributes_": ["employeeID"],
+                        "cpr_no": "{{ldap.employeeID or None}}",
+                        "uuid": "{{ employee_uuid or NONE }}",
+                    }
+                },
+                "mo_to_ldap": {
+                    "Employee": {
+                        "_export_to_ldap_": "false",
+                        "employeeID": "{{mo_employee.cpr_no or None}}",
+                    }
+                },
+                "username_generator": {"objectClass": "UserNameGenerator"},
+            }
+        ),
+    )
+
     return Settings()
 
 
@@ -606,6 +633,24 @@ async def context(sync_tool_and_context: tuple[SyncTool, Context]) -> Context:
             ),
         ),
     ],
+)
+@pytest.mark.envvar(
+    {
+        "CONVERSION_MAPPING": json.dumps(
+            {
+                "ldap_to_mo": {
+                    "Employee": {
+                        "objectClass": "ramodels.mo.employee.Employee",
+                        "_import_to_mo_": "false",
+                        "_ldap_attributes_": ["employeeID"],
+                        "cpr_no": "{{ldap.employeeID or None}}",
+                        "uuid": "{{ employee_uuid or NONE }}",
+                    }
+                },
+                "username_generator": {"objectClass": "UserNameGenerator"},
+            }
+        )
+    }
 )
 async def test_import_single_user_apply_discriminator(
     ldap_connection: Connection,

@@ -47,6 +47,7 @@ class LdapConverter:
         self.mapping = self._populate_mapping_with_templates(mapping, self.environment)
 
     def get_ldap_attributes(self, json_key, remove_dn=True) -> list[str]:
+        assert self.settings.conversion_mapping.ldap_to_mo is not None
         ldap_attributes = set(
             self.settings.conversion_mapping.ldap_to_mo[json_key].ldap_attributes
         )
@@ -230,6 +231,7 @@ class LdapConverter:
                 # the objects themselves, rather only later for mapping of objects
                 if mo_field_name != "_mapper_"
             }
+            assert self.settings.conversion_mapping.ldap_to_mo is not None
             mo_class = self.settings.conversion_mapping.ldap_to_mo[
                 json_key
             ].as_mo_class()

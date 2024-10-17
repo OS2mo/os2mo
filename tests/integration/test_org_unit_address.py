@@ -31,7 +31,6 @@ from mo_ldap_import_export.utils import mo_today
         "LISTEN_TO_CHANGES_IN_LDAP": "False",
         "CONVERSION_MAPPING": json.dumps(
             {
-                "ldap_to_mo": {},
                 "mo2ldap": """
                 {% set mo_org_unit_address = load_mo_org_unit_address(uuid, "EmailUnit") %}
                 {{
@@ -40,7 +39,6 @@ from mo_ldap_import_export.utils import mo_today
                     }|tojson
                 }}
                 """,
-                "mo_to_ldap": {},
                 # TODO: why is this required?
                 "username_generator": {
                     "objectClass": "UserNameGenerator",

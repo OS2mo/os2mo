@@ -50,11 +50,6 @@ CONVERSION_MAPPING = {
             "visibility": "{{ dict(uuid=get_visibility_uuid('Intern')) }}",
         },
     },
-    "mo_to_ldap": {
-        "Employee": {
-            "_export_to_ldap_": "false",
-        },
-    },
     "username_generator": {
         "objectClass": "UserNameGenerator",
         "combinations_to_try": ["FFFX", "LLLX"],

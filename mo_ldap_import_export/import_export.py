@@ -278,6 +278,7 @@ class SyncTool:
         """
 
         # When mapping addresses, the key is the user-key of the address type
+        assert self.settings.conversion_mapping.ldap_to_mo is not None
         mapped_address_types = {
             key
             for key, mapping in self.settings.conversion_mapping.ldap_to_mo.items()
@@ -380,6 +381,7 @@ class SyncTool:
             return {}
 
         # When mapping addresses, the key is the user-key of the address type
+        assert self.settings.conversion_mapping.ldap_to_mo is not None
         mapped_address_types = {
             key
             for key, mapping in self.settings.conversion_mapping.ldap_to_mo.items()
@@ -477,6 +479,7 @@ class SyncTool:
             mo_object_dict: Template context for mapping templates.
         """
         # When mapping itusers, the key is the user-key of the itsystem
+        assert self.settings.conversion_mapping.ldap_to_mo is not None
         mapped_itsystems = {
             key
             for key, mapping in self.settings.conversion_mapping.ldap_to_mo.items()
@@ -564,6 +567,7 @@ class SyncTool:
         if primary_engagement_uuid is None:
             return {}
 
+        assert self.settings.conversion_mapping.ldap_to_mo is not None
         if "Engagement" not in self.settings.conversion_mapping.ldap_to_mo:
             return {}
 
@@ -702,6 +706,7 @@ class SyncTool:
             # Remove non-export entries
             # TODO: Do not even spend time templating these out in the first place
             # TODO: Why are they even defined if we do not use them?
+            assert self.settings.conversion_mapping.mo_to_ldap is not None
             export_changes = {
                 json_key: value
                 for json_key, value in changes.items()
@@ -1004,6 +1009,7 @@ class SyncTool:
             dns = await self.dataloader.find_mo_employee_dn(employee_uuid)
         else:  # We did not find an employee UUID
             # Check if we wish to create the employee or not
+            assert self.settings.conversion_mapping.ldap_to_mo is not None
             create_employee = self.settings.conversion_mapping.ldap_to_mo[
                 "Employee"
             ].import_to_mo_as_bool(manual_import)
@@ -1071,6 +1077,7 @@ class SyncTool:
         # First import the Employee, then Engagement if present, then the rest.
         # We want this order so dependencies exist before their dependent objects
         # TODO: Maybe there should be a dependency graph in the future
+        assert self.settings.conversion_mapping.ldap_to_mo is not None
         detected_json_keys = set(self.settings.conversion_mapping.ldap_to_mo.keys())
         # We always want Employee in our json_keys
         detected_json_keys.add("Employee")

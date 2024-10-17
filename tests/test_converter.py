@@ -473,6 +473,7 @@ async def test_template_strictness(
 
 def test_get_ldap_attributes(converter: LdapConverter) -> None:
     settings = Settings()
+    assert settings.conversion_mapping.ldap_to_mo is not None
 
     converter_attributes = set(converter.get_ldap_attributes("Employee"))
     settings_attributes = set(
@@ -502,6 +503,7 @@ async def test_get_ldap_attributes_dn_removed(
     monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
 
     settings = Settings()
+    assert settings.conversion_mapping.ldap_to_mo is not None
 
     converter = LdapConverter(settings, dataloader)
     await converter._init()
@@ -1009,7 +1011,6 @@ def test_check_uuid_refs_in_mo_objects(converter_mapping: dict[str, Any]) -> Non
     ],
 )
 def test_import_to_mo_configuration(
-    minimal_mapping: dict[str, Any],
     monkeypatch: pytest.MonkeyPatch,
     import_to_mo: str,
     is_ok: bool,
@@ -1017,10 +1018,17 @@ def test_import_to_mo_configuration(
     monkeypatch.setenv(
         "CONVERSION_MAPPING",
         json.dumps(
-            overlay(
-                minimal_mapping,
-                {"ldap_to_mo": {"Employee": {"_import_to_mo_": import_to_mo}}},
-            )
+            {
+                "ldap_to_mo": {
+                    "Employee": {
+                        "objectClass": "ramodels.mo.employee.Employee",
+                        "_import_to_mo_": import_to_mo,
+                        "_ldap_attributes_": [],
+                        "uuid": "{{ employee_uuid or NONE }}",
+                    }
+                },
+                "username_generator": {"objectClass": "UserNameGenerator"},
+            }
         ),
     )
     if is_ok:
@@ -1051,7 +1059,6 @@ def test_import_to_mo_configuration(
     ],
 )
 def test_import_to_mo(
-    minimal_mapping: dict[str, Any],
     monkeypatch: pytest.MonkeyPatch,
     import_to_mo: str,
     manual_import: bool,
@@ -1060,14 +1067,22 @@ def test_import_to_mo(
     monkeypatch.setenv(
         "CONVERSION_MAPPING",
         json.dumps(
-            overlay(
-                minimal_mapping,
-                {"ldap_to_mo": {"Employee": {"_import_to_mo_": import_to_mo}}},
-            )
+            {
+                "ldap_to_mo": {
+                    "Employee": {
+                        "objectClass": "ramodels.mo.employee.Employee",
+                        "_import_to_mo_": import_to_mo,
+                        "_ldap_attributes_": [],
+                        "uuid": "{{ employee_uuid or NONE }}",
+                    }
+                },
+                "username_generator": {"objectClass": "UserNameGenerator"},
+            }
         ),
     )
 
     settings = Settings()
+    assert settings.conversion_mapping.ldap_to_mo is not None
     employee_mapping = settings.conversion_mapping.ldap_to_mo["Employee"]
 
     assert (
@@ -1143,6 +1158,7 @@ def test_export_to_ldap(
     )
 
     settings = Settings()
+    assert settings.conversion_mapping.mo_to_ldap is not None
     employee_mapping = settings.conversion_mapping.mo_to_ldap["Employee"]
 
     if isinstance(expected, bool):
