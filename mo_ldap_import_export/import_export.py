@@ -854,10 +854,13 @@ class SyncTool:
         elif issubclass(mo_class, Employee):
             converted_objects = cast(Sequence[Employee], converted_objects)
 
-            # TODO: Editing employees IS supported, but we are exploiting a bug in the
-            # GraphQL API which allows us to update employees using the create mutator,
-            # which infers validity implicitly through the CPR number, rather than
-            # having to specify it explicitly in the update mutator 👍
+            # GraphQL employee_create actually updates if the employee already exists,
+            # using validity from the CPR-number like with creates. We need to use this
+            # undocumented feature of the GraphQL API to avoid calculating the validity
+            # manually based on the CPR-number, since we are not passed an explicit
+            # validity through the legacy ramodels employee object.
+            # TODO: don't short-circuit when we receive an employee object with proper
+            # validity.
             return [
                 (converted_object, Verb.CREATE)
                 for converted_object in converted_objects
