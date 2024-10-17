@@ -473,6 +473,7 @@ async def test_template_strictness(
 
 def test_get_ldap_attributes(converter: LdapConverter) -> None:
     settings = Settings()
+    assert settings.conversion_mapping.ldap_to_mo is not None
 
     converter_attributes = set(converter.get_ldap_attributes("Employee"))
     settings_attributes = set(
@@ -502,6 +503,7 @@ async def test_get_ldap_attributes_dn_removed(
     monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
 
     settings = Settings()
+    assert settings.conversion_mapping.ldap_to_mo is not None
 
     converter = LdapConverter(settings, dataloader)
     await converter._init()
@@ -1068,6 +1070,7 @@ def test_import_to_mo(
     )
 
     settings = Settings()
+    assert settings.conversion_mapping.ldap_to_mo is not None
     employee_mapping = settings.conversion_mapping.ldap_to_mo["Employee"]
 
     assert (
@@ -1143,6 +1146,7 @@ def test_export_to_ldap(
     )
 
     settings = Settings()
+    assert settings.conversion_mapping.mo_to_ldap is not None
     employee_mapping = settings.conversion_mapping.mo_to_ldap["Employee"]
 
     if isinstance(expected, bool):

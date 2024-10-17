@@ -60,7 +60,6 @@ from mo_ldap_import_export.utils import mo_today
                         "extension_1": "{{ ldap.title }}",
                     },
                 },
-                "mo_to_ldap": {},
                 # TODO: why is this required?
                 "username_generator": {
                     "objectClass": "UserNameGenerator",
@@ -181,7 +180,6 @@ async def test_to_mo(
                         "primary": "{{ dict(uuid=get_primary_type_uuid('primary')) }}",
                     },
                 },
-                "mo_to_ldap": {},
                 # TODO: why is this required?
                 "username_generator": {
                     "objectClass": "UserNameGenerator",
@@ -252,7 +250,6 @@ async def test_create_org_unit(
         "LISTEN_TO_CHANGES_IN_LDAP": "False",
         "CONVERSION_MAPPING": json.dumps(
             {
-                "ldap_to_mo": {},
                 "mo2ldap": """
                 {% set mo_employee_engagement = load_mo_primary_engagement(uuid) %}
                 {{
@@ -262,7 +259,6 @@ async def test_create_org_unit(
                     }|tojson
                 }}
                 """,
-                "mo_to_ldap": {},
                 # TODO: why is this required?
                 "username_generator": {
                     "objectClass": "UserNameGenerator",

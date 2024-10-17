@@ -51,7 +51,6 @@ from mo_ldap_import_export.utils import mo_today
                         "visibility": "{{ dict(uuid=get_visibility_uuid('Public')) }}",
                     },
                 },
-                "mo_to_ldap": {},
                 # TODO: why is this required?
                 "username_generator": {
                     "objectClass": "UserNameGenerator",
@@ -146,7 +145,6 @@ async def test_to_mo(
         "LISTEN_TO_CHANGES_IN_LDAP": "False",
         "CONVERSION_MAPPING": json.dumps(
             {
-                "ldap_to_mo": {},
                 "mo2ldap": """
                 {% set mo_employee_address = load_mo_address(uuid, "EmailEmployee") %}
                 {{
@@ -155,7 +153,6 @@ async def test_to_mo(
                     }|tojson
                 }}
                 """,
-                "mo_to_ldap": {},
                 # TODO: why is this required?
                 "username_generator": {
                     "objectClass": "UserNameGenerator",

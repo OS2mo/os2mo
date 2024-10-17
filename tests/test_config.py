@@ -186,6 +186,7 @@ def test_mapper_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test that mapper can be set as read as expected."""
 
     settings = Settings()
+    assert settings.conversion_mapping.ldap_to_mo is not None
     assert settings.conversion_mapping.ldap_to_mo.keys() == {"Employee"}
     employee = settings.conversion_mapping.ldap_to_mo["Employee"]
     assert employee.mapper is None
@@ -197,6 +198,7 @@ def test_mapper_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(new_mapping))
     settings = Settings()
+    assert settings.conversion_mapping.ldap_to_mo is not None
     assert settings.conversion_mapping.ldap_to_mo.keys() == {"Employee"}
     employee = settings.conversion_mapping.ldap_to_mo["Employee"]
     assert employee.mapper == mapping_template
@@ -207,6 +209,7 @@ def test_check_attributes(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test that mapper can be set as read as expected."""
 
     settings = Settings()
+    assert settings.conversion_mapping.ldap_to_mo is not None
     assert settings.conversion_mapping.ldap_to_mo.keys() == {"Employee"}
     employee = settings.conversion_mapping.ldap_to_mo["Employee"]
     assert employee.mapper is None
@@ -218,6 +221,7 @@ def test_check_attributes(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(new_mapping))
     settings = Settings()
+    assert settings.conversion_mapping.ldap_to_mo is not None
     assert settings.conversion_mapping.ldap_to_mo.keys() == {"Employee"}
     employee = settings.conversion_mapping.ldap_to_mo["Employee"]
     assert employee.mapper == mapping_template
@@ -415,3 +419,9 @@ async def test_check_for_conflicts(
             Settings()
         for exp in expected:
             assert exp in str(exc_info.value)
+
+
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+async def test_check_for_conflicts_none() -> None:
+    settings = Settings()
+    assert settings.conversion_mapping.ldap_to_mo is None
