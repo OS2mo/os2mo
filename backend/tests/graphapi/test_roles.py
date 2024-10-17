@@ -61,7 +61,7 @@ async def test_create_role_mutation_unit_test(
     defined pydantic model."""
 
     mutation = """
-        mutation CreateRolebiding($input: RoleBindingCreateInput!) {
+        mutation CreateRolebinding($input: RoleBindingCreateInput!) {
             rolebinding_create(input: $input) {
                 uuid
             }
@@ -183,6 +183,75 @@ async def test_create_rolebinding_integration_test(
             datetime.fromisoformat(obj["validity"]["to"]).date()
             == test_data.validity.to_date.date()
         )
+
+
+@settings(
+    suppress_health_check=[
+        # Running multiple tests on the same database is okay in this instance
+        HealthCheck.function_scoped_fixture,
+    ],
+)
+@given(data=st.data())
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_create_multiple_rolebindings_integration_test(
+    data, graphapi_post: GraphAPIPost, ituser_uuids, org_uuids
+) -> None:
+    """Test that multiple rolebindings can be created using the list mutator."""
+
+    # This must be done as to not receive validation errors of the employee upon
+    # creating the employee conflicting the dates.
+    org_uuid = data.draw(st.sampled_from(org_uuids))
+    org_from, org_to = fetch_org_unit_validity(graphapi_post, org_uuid)
+
+    ituser_uuid = data.draw(st.sampled_from(ituser_uuids))
+
+    test_data_validity_start = data.draw(
+        st.datetimes(min_value=org_from, max_value=org_to or datetime.max)
+    )
+    if org_to:
+        test_data_validity_end_strat = st.datetimes(
+            min_value=test_data_validity_start, max_value=org_to
+        )
+    else:
+        test_data_validity_end_strat = st.none() | st.datetimes(
+            min_value=test_data_validity_start,
+        )
+
+    role_type = fetch_class_uuids(graphapi_post, "role")
+
+    test_data = data.draw(
+        st.lists(
+            st.builds(
+                RoleBindingCreate,
+                uuid=st.uuids() | st.none(),
+                ituser=st.just(ituser_uuid),
+                role=st.sampled_from(role_type),
+                org_unit=st.just(org_uuid),
+                validity=st.builds(
+                    RAValidity,
+                    from_date=st.just(test_data_validity_start),
+                    to_date=test_data_validity_end_strat,
+                ),
+            )
+        )
+    )
+
+    CREATE_ROLEBINDINGS_QUERY = """
+        mutation CreateRolebindings($input: [RoleBindingCreateInput!]!) {
+            rolebindings_create(input: $input) {
+                uuid
+            }
+        }
+    """
+    response = graphapi_post(
+        CREATE_ROLEBINDINGS_QUERY, {"input": jsonable_encoder(test_data)}
+    )
+    assert response.errors is None
+    uuids = [
+        rolebinding["uuid"] for rolebinding in response.data["rolebindings_create"]
+    ]
+    assert len(uuids) == len(test_data)
 
 
 @given(test_data=...)
