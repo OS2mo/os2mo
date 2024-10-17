@@ -50,7 +50,8 @@ async def graphql_client() -> AsyncIterator[GraphQLClient]:
 
 @pytest.fixture
 def settings(
-    minimal_valid_environmental_variables: None, monkeypatch: pytest.MonkeyPatch
+    minimal_valid_environmental_variables: None,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> Settings:
     monkeypatch.setenv(
         "CONVERSION_MAPPING",
@@ -65,12 +66,9 @@ def settings(
                         "uuid": "{{ employee_uuid or NONE }}",
                     }
                 },
-                "mo_to_ldap": {
-                    "Employee": {
-                        "_export_to_ldap_": "false",
-                        "employeeID": "{{mo_employee.cpr_no or None}}",
-                    }
-                },
+                "mo2ldap": """
+                {}
+                """,
                 "username_generator": {"objectClass": "UserNameGenerator"},
             }
         ),
@@ -731,8 +729,6 @@ async def test_import_single_user_apply_discriminator(
         pytest.param(
             False,
             [
-                "Found Employee in MO",
-                "_export_to_ldap_ == False.",
                 "Not writing to LDAP as changeset is empty",
             ],
             marks=pytest.mark.envvar({}),
@@ -759,8 +755,6 @@ async def test_import_single_user_apply_discriminator(
             [
                 "Found DN",
                 "Found DN",
-                "Found Employee in MO",
-                "_export_to_ldap_ == False.",
                 "Not writing to LDAP as changeset is empty",
             ],
             marks=pytest.mark.envvar(
@@ -777,8 +771,6 @@ async def test_import_single_user_apply_discriminator(
             [
                 "Found DN",
                 "Found DN",
-                "Found Employee in MO",
-                "_export_to_ldap_ == False.",
                 "Not writing to LDAP as changeset is empty",
             ],
             marks=pytest.mark.envvar(

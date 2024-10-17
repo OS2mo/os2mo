@@ -68,7 +68,7 @@ def gql_client() -> Iterator[AsyncMock]:
 def settings(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv(
         "CONVERSION_MAPPING",
-        '{"ldap_to_mo": {}, "mo_to_ldap": {}, "username_generator": {}}',
+        '{"ldap_to_mo": {}, "username_generator": {}}',
     )
     monkeypatch.setenv("CLIENT_ID", "foo")
     monkeypatch.setenv("CLIENT_SECRET", "bar")
@@ -128,11 +128,6 @@ def settings_overrides() -> Iterator[dict[str, str]]:
                 "_import_to_mo_": "false",
                 "_ldap_attributes_": [],
                 "uuid": "{{ employee_uuid or NONE }}",
-            }
-        },
-        "mo_to_ldap": {
-            "Employee": {
-                "_export_to_ldap_": "false",
             }
         },
         "username_generator": {"objectClass": "UserNameGenerator"},

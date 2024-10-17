@@ -118,6 +118,7 @@ class LdapConverter:
 
         # Globals
         mo_template_dict = ChainMap({"dn": dn}, mo_object_dict)
+
         try:
             object_mapping = self.mapping["mo_to_ldap"][json_key]
         except KeyError as error:

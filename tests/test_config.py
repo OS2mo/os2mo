@@ -34,13 +34,7 @@ def address_mapping(minimal_mapping: dict) -> dict:
                     "address_type": "{{ dict(uuid=get_employee_address_type_uuid('EmailEmployee')) }}",
                     "person": "{{ dict(uuid=employee_uuid or NONE) }}",
                 }
-            },
-            "mo_to_ldap": {
-                "EmailEmployee": {
-                    "_export_to_ldap_": "true",
-                    "mail": "{{mo_employee_address.value}}",
-                }
-            },
+            }
         },
     )
     return cast(dict, new_mapping)
