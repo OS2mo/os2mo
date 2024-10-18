@@ -876,7 +876,7 @@ async def test_load_mo_org_unit_addresses(
     }
 
     org_unit_uuid = uuid4()
-    result = await dataloader.load_mo_org_unit_addresses(
+    result = await dataloader.moapi.load_mo_org_unit_addresses(
         OrgUnitUUID(org_unit_uuid), address_type_uuid
     )
     assert result == [
@@ -901,7 +901,7 @@ async def test_load_mo_org_unit_addresses_not_found(
 
     employee_uuid = uuid4()
     address_type_uuid = uuid4()
-    result = await dataloader.load_mo_org_unit_addresses(
+    result = await dataloader.moapi.load_mo_org_unit_addresses(
         OrgUnitUUID(employee_uuid), address_type_uuid
     )
     assert result == []
@@ -922,7 +922,7 @@ async def test_load_mo_org_unit_addresses_no_validity(
     employee_uuid = uuid4()
     address_type_uuid = uuid4()
     with capture_logs() as cap_logs:
-        result = await dataloader.load_mo_org_unit_addresses(
+        result = await dataloader.moapi.load_mo_org_unit_addresses(
             OrgUnitUUID(employee_uuid), address_type_uuid
         )
         assert result == []
