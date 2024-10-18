@@ -385,7 +385,7 @@ class SyncTool:
             assert all_equal([obj.person for obj in converted_objects])
             person = first(converted_objects).person
 
-            objects_in_mo = await self.dataloader.load_mo_employee_engagements(
+            objects_in_mo = await self.dataloader.moapi.load_mo_employee_engagements(
                 person.uuid
             )
             value_key = "user_key"
