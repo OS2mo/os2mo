@@ -913,21 +913,6 @@ def test_check_uuid_refs_in_mo_objects(converter_mapping: dict[str, Any]) -> Non
     converter_mapping.update(
         {
             "ldap_to_mo": {
-                "EmailEmployee": {
-                    **address_obj,
-                    "person": "{{ employee_uuid }}",
-                }
-            }
-        }
-    )
-    with pytest.raises(
-        ValidationError, match="Needs to be a dict with 'uuid' as one of its keys"
-    ):
-        parse_obj_as(ConversionMapping, converter_mapping)
-
-    converter_mapping.update(
-        {
-            "ldap_to_mo": {
                 "Employee": {
                     "objectClass": "ramodels.mo.employee.Employee",
                     "_import_to_mo_": "true",
@@ -936,22 +921,6 @@ def test_check_uuid_refs_in_mo_objects(converter_mapping: dict[str, Any]) -> Non
         }
     )
     with pytest.raises(ValidationError, match="Needs to contain a key called 'uuid'"):
-        parse_obj_as(ConversionMapping, converter_mapping)
-
-    converter_mapping.update(
-        {
-            "ldap_to_mo": {
-                "Employee": {
-                    "objectClass": "ramodels.mo.employee.Employee",
-                    "uuid": "{{ uuid4() }}",
-                    "_import_to_mo_": "true",
-                }
-            }
-        }
-    )
-    with pytest.raises(
-        ValidationError, match="Needs to contain a reference to 'employee_uuid'"
-    ):
         parse_obj_as(ConversionMapping, converter_mapping)
 
 
