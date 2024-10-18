@@ -261,7 +261,7 @@ async def test_delete_data_from_ldap_object(
     dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
     changes = {"postalAddress": [("MODIFY_DELETE", "foo")]}
 
-    await dataloader.modify_ldap_object(dn, changes)
+    await dataloader.ldapapi.modify_ldap_object(dn, changes)
     assert ldap_connection.modify.called_once_with(dn, changes)
 
 
@@ -279,7 +279,7 @@ async def test_upload_ldap_object_invalid_value(
     ldap_connection.modify.side_effect = LDAPInvalidValueError("Invalid value")
 
     with pytest.raises(LDAPInvalidValueError) as exc_info:
-        await dataloader.modify_ldap_object(dn, {})
+        await dataloader.ldapapi.modify_ldap_object(dn, {})
     assert "Invalid value" in str(exc_info.value)
 
 
@@ -289,10 +289,10 @@ async def test_modify_ldap_object_read_only(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("LDAP_READ_ONLY", "True")
-    dataloader.settings = Settings()
+    dataloader.ldapapi.settings = Settings()
 
     with pytest.raises(ReadOnlyException) as exc_info:
-        await dataloader.modify_ldap_object("CN=Foo", {})
+        await dataloader.ldapapi.modify_ldap_object("CN=Foo", {})
     assert "LDAP connection is read-only" in str(exc_info.value)
 
 
@@ -309,7 +309,7 @@ async def test_modify_ldap_object_invalid_ou(
 
     dn = "UID=abk,OU=os2mo,O=magenta,DC=magenta,DC=dk"
     with capture_logs() as cap_logs:
-        await dataloader.modify_ldap_object(dn, {})
+        await dataloader.ldapapi.modify_ldap_object(dn, {})
     messages = [w["event"] for w in cap_logs]
     assert messages == [
         "Uploading object",
