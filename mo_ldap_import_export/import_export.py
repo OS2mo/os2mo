@@ -431,7 +431,7 @@ class SyncTool:
             assert all_equal([obj.itsystem for obj in converted_objects])
             itsystem = first(converted_objects).itsystem
 
-            objects_in_mo = await self.dataloader.load_mo_employee_it_users(
+            objects_in_mo = await self.dataloader.moapi.load_mo_employee_it_users(
                 person.uuid, itsystem.uuid
             )
 

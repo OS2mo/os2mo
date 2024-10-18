@@ -27,7 +27,7 @@ class ExportChecks:
         it_system_uuid = await self.dataloader.moapi.get_it_system_uuid(
             it_system_user_key
         )
-        it_users = await self.dataloader.load_mo_employee_it_users(
+        it_users = await self.dataloader.moapi.load_mo_employee_it_users(
             employee_uuid, UUID(it_system_uuid)
         )
 

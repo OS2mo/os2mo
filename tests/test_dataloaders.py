@@ -814,7 +814,9 @@ async def test_load_mo_employee_it_users(
 
     employee_uuid = uuid4()
     it_system_uuid = uuid4()
-    result = await dataloader.load_mo_employee_it_users(employee_uuid, it_system_uuid)
+    result = await dataloader.moapi.load_mo_employee_it_users(
+        employee_uuid, it_system_uuid
+    )
     assert one(result).dict() == {
         "user_key": user_key,
         "person": {"uuid": person_uuid},
@@ -841,7 +843,9 @@ async def test_load_mo_employee_it_users_not_found(
 
     employee_uuid = uuid4()
     it_system_uuid = uuid4()
-    result = await dataloader.load_mo_employee_it_users(employee_uuid, it_system_uuid)
+    result = await dataloader.moapi.load_mo_employee_it_users(
+        employee_uuid, it_system_uuid
+    )
     assert result == []
 
     assert route.called
