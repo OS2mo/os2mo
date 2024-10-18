@@ -660,76 +660,10 @@ class SyncTool:
         exit_stack.enter_context(bound_contextvars(dn=best_dn))
 
         mo2ldap_template = self.settings.conversion_mapping.mo2ldap
-        if mo2ldap_template:
-            ldap_changes = await self.render_ldap2mo(uuid, best_dn)
-        else:
-            # TODO: Remove this when everyone uses the new template
-            if not self.settings.conversion_mapping.mo_to_ldap:  # pragma: no cover
-                return {}
+        if not mo2ldap_template:
+            return {}
 
-            # Get MO employee
-            changed_employee = await self.dataloader.moapi.load_mo_employee(
-                uuid, current_objects_only=False
-            )
-            if changed_employee is None:
-                logger.error("Unable to load mo employee")
-                raise RequeueMessage("Unable to load mo object")
-            logger.info("Found Employee in MO", changed_employee=changed_employee)
-
-            mo_object_dict: dict[str, Any] = {"mo_employee": changed_employee}
-
-            ldap_employee = await self.mo_person_to_ldap(uuid, best_dn, mo_object_dict)
-            person_addresses = await self.mo_address_to_ldap(
-                uuid, best_dn, mo_object_dict
-            )
-            org_unit_addresses = await self.mo_org_unit_address_to_ldap(
-                uuid, best_dn, mo_object_dict
-            )
-            itusers = await self.mo_ituser_to_ldap(uuid, best_dn, mo_object_dict)
-            engagements = await self.mo_engagement_to_ldap(
-                uuid, best_dn, mo_object_dict
-            )
-
-            changes = {
-                "Employee": (
-                    ldap_employee,
-                    # We do not generally terminate people in MO
-                    False,
-                ),
-                **person_addresses,
-                **org_unit_addresses,
-                **itusers,
-                **engagements,
-            }
-            # Moving objects is not supported
-            for ldap_object, _ in changes.values():
-                assert ldap_object.dn == best_dn
-
-            # Remove non-export entries
-            # TODO: Do not even spend time templating these out in the first place
-            # TODO: Why are they even defined if we do not use them?
-            export_changes = {
-                json_key: value
-                for json_key, value in changes.items()
-                if self.settings.conversion_mapping.mo_to_ldap[
-                    json_key
-                ].export_to_ldap_as_bool()
-            }
-            no_export_changes = changes.keys() - export_changes.keys()
-            for json_key in no_export_changes:  # pragma: no cover
-                logger.info("_export_to_ldap_ == False.", json_key=json_key)
-
-            # Keys are unique across all mappers by pydantic validation
-            ldap_changes = {
-                # NOTE: Replacing with an empty list works like deleting
-                key: [] if (delete or value is None) else [value]
-                for ldap_object, delete in export_changes.values()
-                for key, value in ldap_object.dict().items()
-            }
-
-            # Cannot template 'dn' out
-            # TODO: Move this to settings validator
-            ldap_changes.pop("dn", None)
+        ldap_changes = await self.render_ldap2mo(uuid, best_dn)
 
         # If dry-running we do not want to makes changes in LDAP
         if dry_run:

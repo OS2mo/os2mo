@@ -13,8 +13,6 @@ import structlog
 from fastramqpi.config import Settings as FastRAMQPISettings
 from fastramqpi.ramqp.config import AMQPConnectionSettings
 from fastramqpi.ramqp.utils import RequeueMessage
-from more_itertools import duplicates_everseen
-from more_itertools import flatten
 from pydantic import AnyHttpUrl
 from pydantic import BaseModel
 from pydantic import BaseSettings
@@ -308,24 +306,10 @@ class UsernameGeneratorConfig(MappingBaseModel):
 
 class ConversionMapping(MappingBaseModel):
     ldap_to_mo: dict[str, LDAP2MOMapping] | None = None
-    mo_to_ldap: dict[str, MO2LDAPMapping] | None = None
     mo2ldap: str | None = Field(None, description="MO to LDAP mapping template")
     username_generator: UsernameGeneratorConfig = Field(
         default_factory=UsernameGeneratorConfig
     )
-
-    @validator("mo_to_ldap")
-    def check_for_conflicts(
-        cls, v: dict[str, MO2LDAPMapping]
-    ) -> dict[str, MO2LDAPMapping]:
-        """Check that no mo_to_ldap mappings map the same fields."""
-        mappings = [mapping.dict().keys() for mapping in v.values()]
-        conflicts = set(duplicates_everseen(flatten(mappings)))
-        # Allow multiple configs to have these keys as they are required for each
-        conflicts -= {"objectClass", "export_to_ldap"}
-        if conflicts:
-            raise ValueError(f"Conflicting fields in 'mo_to_ldap' mapping: {conflicts}")
-        return v
 
 
 class AuthBackendEnum(str, Enum):
