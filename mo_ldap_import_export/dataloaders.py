@@ -326,33 +326,6 @@ class DataLoader:
 
         return dn
 
-    async def load_mo_employee_addresses(
-        self, employee_uuid: UUID, address_type_uuid: UUID
-    ) -> list[Address]:
-        """
-        Loads all current addresses of a specific type for an employee
-        """
-        result = await self.graphql_client.read_employee_addresses(
-            employee_uuid, address_type_uuid
-        )
-        output = {
-            obj.uuid: graphql_address_to_ramodels_address(obj.validities)
-            for obj in result.objects
-        }
-        # If no active validities, pretend we did not get the object at all
-        no_validity, validity = partition(
-            star(lambda _, address: address), output.items()
-        )
-        no_validity_uuids = [
-            uuid for uuid, address in output.items() if address is None
-        ]
-        no_validity_uuids = [uuid for uuid, _ in no_validity]
-        if no_validity_uuids:
-            logger.warning(
-                "Unable to lookup employee addresses", uuids=no_validity_uuids
-            )
-        return cast(list[Address], [obj for _, obj in validity])
-
     async def load_mo_org_unit_addresses(
         self, org_unit_uuid: OrgUnitUUID, address_type_uuid: UUID
     ) -> list[Address]:
