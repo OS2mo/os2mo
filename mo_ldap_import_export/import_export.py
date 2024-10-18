@@ -298,16 +298,16 @@ class SyncTool:
         exit_stack.enter_context(bound_contextvars(uuid=str(uuid)))
         logger.info("Registered change in an employee")
 
+        mo2ldap_template = self.settings.conversion_mapping.mo2ldap
+        if not mo2ldap_template:
+            logger.info("listen_to_changes_in_employees called without mapping")
+            return {}
+
         best_dn = await self._find_best_dn(uuid, dry_run=dry_run)
         if best_dn is None:
             return {}
 
         exit_stack.enter_context(bound_contextvars(dn=best_dn))
-
-        mo2ldap_template = self.settings.conversion_mapping.mo2ldap
-        if not mo2ldap_template:
-            return {}
-
         ldap_changes = await self.render_ldap2mo(uuid, best_dn)
 
         # If dry-running we do not want to makes changes in LDAP

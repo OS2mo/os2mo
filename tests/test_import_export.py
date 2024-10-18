@@ -1093,3 +1093,17 @@ async def test_render_ldap2mo(
     else:
         result = await sync_tool.render_ldap2mo(uuid, "CN=foo")
         assert result == expected
+
+
+async def test_noop_listen_to_changes(sync_tool: SyncTool) -> None:
+    sync_tool.settings.conversion_mapping.mo2ldap = None  # type: ignore
+
+    with capture_logs() as cap_logs:
+        result = await sync_tool.listen_to_changes_in_employees(uuid4())
+    assert result == {}
+
+    messages = [w["event"] for w in cap_logs]
+    assert messages == [
+        "Registered change in an employee",
+        "listen_to_changes_in_employees called without mapping",
+    ]
