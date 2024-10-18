@@ -38,7 +38,7 @@ class LdapConverter:
         )
         mapping = delete_keys_from_dict(
             raw_mapping,
-            ["objectClass", "_import_to_mo_", "_export_to_ldap_", "_ldap_attributes_"],
+            ["objectClass", "_import_to_mo_", "_ldap_attributes_"],
         )
 
         self.mapping = self._populate_mapping_with_templates(mapping, self.environment)

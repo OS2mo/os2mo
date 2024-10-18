@@ -115,19 +115,16 @@ services:
             },
             "mo_to_ldap": {
                 "Employee": {
-                    "_export_to_ldap_": "true",
                     "employeeNumber": "{{mo_employee.cpr_no}}",
                     "title": "{{ mo_employee.user_key }}",
                     "givenName": "{{ mo_employee.givenname }}",
                     "sn": "{{ mo_employee.surname }}"
                 },
                 "ADtitle": {
-                    "_export_to_ldap_": "false",
                     "title": "{{ mo_employee_it_user.user_key }}",
                     "employeeNumber": "{{ mo_employee.cpr_no }}"
                 },
                 "ADUUID": {
-                    "_export_to_ldap_": "false",
                     "title": "{{ NONE }}",
                     "entryUUID": "{{ mo_employee_it_user.user_key }}",
                     "employeeNumber": "{{ mo_employee.cpr_no }}"
