@@ -43,10 +43,10 @@ from .customer_specific_checks import ImportChecks
 from .dataloaders import DN
 from .dataloaders import DataLoader
 from .dataloaders import Verb
-from .dataloaders import extract_current_or_latest_validity
 from .exceptions import DNNotFound
 from .ldap import apply_discriminator
 from .ldap import get_ldap_object
+from .moapi import extract_current_or_latest_validity
 from .types import EmployeeUUID
 from .types import OrgUnitUUID
 from .utils import bucketdict

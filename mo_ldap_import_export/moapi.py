@@ -11,6 +11,7 @@ from fastapi.encoders import jsonable_encoder
 from more_itertools import one
 from more_itertools import only
 from ramodels.mo.details.address import Address
+from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 
@@ -262,3 +263,40 @@ class MOAPI:
             if obj.current is not None
         }
         return [result_map.get(uuid, False) for uuid in engagements]
+
+    async def load_mo_engagement(
+        self,
+        uuid: UUID,
+        current_objects_only: bool = True,
+    ) -> Engagement | None:
+        start = end = UNSET if current_objects_only else None
+        results = await self.graphql_client.read_engagements([uuid], start, end)
+        result = only(results.objects)
+        if result is None:
+            return None
+        result_entry = extract_current_or_latest_validity(result.validities)
+        if result_entry is None:
+            return None
+        entry = jsonable_encoder(result_entry)
+        engagement = Engagement.from_simplified_fields(
+            org_unit_uuid=entry["org_unit_uuid"],
+            person_uuid=entry["employee_uuid"],
+            job_function_uuid=entry["job_function_uuid"],
+            engagement_type_uuid=entry["engagement_type_uuid"],
+            user_key=entry["user_key"],
+            from_date=entry["validity"]["from"],
+            to_date=entry["validity"]["to"],
+            uuid=uuid,
+            primary_uuid=entry["primary_uuid"],
+            extension_1=entry["extension_1"],
+            extension_2=entry["extension_2"],
+            extension_3=entry["extension_3"],
+            extension_4=entry["extension_4"],
+            extension_5=entry["extension_5"],
+            extension_6=entry["extension_6"],
+            extension_7=entry["extension_7"],
+            extension_8=entry["extension_8"],
+            extension_9=entry["extension_9"],
+            extension_10=entry["extension_10"],
+        )
+        return engagement

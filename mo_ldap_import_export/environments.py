@@ -625,7 +625,7 @@ async def load_primary_engagement(
         )
         return None
 
-    fetched_engagement = await dataloader.load_mo_engagement(
+    fetched_engagement = await dataloader.moapi.load_mo_engagement(
         primary_engagement_uuid, current_objects_only=False
     )
     if fetched_engagement is None:  # pragma: no cover
