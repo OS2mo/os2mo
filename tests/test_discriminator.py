@@ -835,15 +835,6 @@ async def test_listen_to_changes_in_employees(
         }
     }
 
-    no_changes_async_mock = AsyncMock()
-    no_changes_async_mock.return_value = {}
-
-    # Ignore all changes, but person changes
-    sync_tool.mo_address_to_ldap = no_changes_async_mock  # type: ignore
-    sync_tool.mo_org_unit_address_to_ldap = no_changes_async_mock  # type: ignore
-    sync_tool.mo_ituser_to_ldap = no_changes_async_mock  # type: ignore
-    sync_tool.mo_engagement_to_ldap = no_changes_async_mock  # type: ignore
-
     with capture_logs() as cap_logs:
         await sync_tool.listen_to_changes_in_employees(employee_uuid)
     events = [x["event"] for x in cap_logs if x["log_level"] != "debug"]
