@@ -19,6 +19,7 @@ from fastramqpi.ramqp.depends import handle_exclusively_decorator
 from fastramqpi.ramqp.utils import RequeueMessage
 from ldap3 import Connection
 from more_itertools import all_equal
+from more_itertools import duplicates_everseen
 from more_itertools import first
 from more_itertools import one
 from more_itertools import only
@@ -280,7 +281,8 @@ class SyncTool:
 
             # If we have duplicate user_keys, remove those which are the same as the
             # primary engagement's user_key
-            if len(set(user_keys)) < len(user_keys):
+            duplicate_user_keys = duplicates_everseen(user_keys)
+            if any(duplicate_user_keys):
                 primaries = await self.dataloader.moapi.is_primaries(
                     [o.uuid for o in objects_in_mo]
                 )
