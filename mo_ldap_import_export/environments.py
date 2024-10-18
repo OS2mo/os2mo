@@ -665,7 +665,7 @@ async def load_it_user(
             itsystem_user_key=itsystem_user_key,
         )
         raise RequeueMessage("No active validities on it-user")
-    fetched_ituser = await dataloader.load_mo_it_user(
+    fetched_ituser = await dataloader.moapi.load_mo_it_user(
         validity.uuid, current_objects_only=False
     )
     if fetched_ituser is None:  # pragma: no cover
