@@ -372,7 +372,6 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
         settings.conversion_mapping.username_generator.objectClass
     )
     username_generator = username_generator_class(
-        fastramqpi.get_context(),
         settings,
         settings.conversion_mapping.username_generator,
         dataloader,

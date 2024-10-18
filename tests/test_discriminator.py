@@ -538,7 +538,6 @@ async def sync_tool_and_context(
     context["user_context"]["converter"] = converter
 
     username_generator = UserNameGenerator(
-        context,
         settings,
         settings.conversion_mapping.username_generator,
         dataloader,
@@ -835,15 +834,6 @@ async def test_listen_to_changes_in_employees(
         }
     }
 
-    no_changes_async_mock = AsyncMock()
-    no_changes_async_mock.return_value = {}
-
-    # Ignore all changes, but person changes
-    sync_tool.mo_address_to_ldap = no_changes_async_mock  # type: ignore
-    sync_tool.mo_org_unit_address_to_ldap = no_changes_async_mock  # type: ignore
-    sync_tool.mo_ituser_to_ldap = no_changes_async_mock  # type: ignore
-    sync_tool.mo_engagement_to_ldap = no_changes_async_mock  # type: ignore
-
     with capture_logs() as cap_logs:
         await sync_tool.listen_to_changes_in_employees(employee_uuid)
     events = [x["event"] for x in cap_logs if x["log_level"] != "debug"]
@@ -930,7 +920,6 @@ async def test_apply_discriminator_template(
 
 async def test_get_existing_values(sync_tool: SyncTool, context: Context) -> None:
     mapping = {
-        "mo_to_ldap": {"Employee": {}},
         "username_generator": {
             "objectClass": "UserNameGenerator",
         },
@@ -938,7 +927,6 @@ async def test_get_existing_values(sync_tool: SyncTool, context: Context) -> Non
 
     user_context = context["user_context"]
     username_generator = UserNameGenerator(
-        context,
         user_context["settings"],
         parse_obj_as(UsernameGeneratorConfig, mapping["username_generator"]),
         user_context["dataloader"],
@@ -966,7 +954,6 @@ async def test_get_existing_names(sync_tool: SyncTool, context: Context) -> None
 
     user_context = context["user_context"]
     username_generator = UserNameGenerator(
-        context,
         user_context["settings"],
         parse_obj_as(UsernameGeneratorConfig, mapping["username_generator"]),
         user_context["dataloader"],

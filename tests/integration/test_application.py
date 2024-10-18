@@ -172,10 +172,10 @@ async def test_endpoint_mo2ldap_templating(
     result = await test_client.get(f"/Inspect/mo2ldap/{person_uuid}")
     assert result.status_code == 200
     assert result.json() == {
-        "employeeNumber": [cpr_number],
-        "givenName": [given_name],
-        "sn": [surname],
-        "title": [str(person_uuid)],
+        "employeeNumber": cpr_number,
+        "givenName": given_name,
+        "sn": surname,
+        "title": str(person_uuid),
     }
 
 
@@ -383,11 +383,6 @@ async def test_changed_since(test_client: AsyncClient, expected: list[str]) -> N
                         "visibility": "{{ dict(uuid=get_visibility_uuid('Public')) }}",
                     },
                 },
-                "mo_to_ldap": {
-                    "Employee": {
-                        "_export_to_ldap_": "false",
-                    },
-                },
                 "username_generator": {
                     "objectClass": "UserNameGenerator",
                     "combinations_to_try": ["FFFX", "LLLX"],
@@ -474,11 +469,6 @@ async def test_mismatched_json_key_and_address_type(
                         "person": "{{ dict(uuid=employee_uuid or NONE) }}",
                     },
                 },
-                "mo_to_ldap": {
-                    "Employee": {
-                        "_export_to_ldap_": "false",
-                    },
-                },
                 "username_generator": {
                     "objectClass": "UserNameGenerator",
                     "combinations_to_try": ["FFFX", "LLLX"],
@@ -562,11 +552,6 @@ async def test_mismatched_json_key_and_itsystem(
                         "itsystem": "{{ dict(uuid=get_it_system_uuid('ADUUID')) }}",
                         "person": "{{ dict(uuid=employee_uuid or NONE) }}",
                     },
-                },
-                "mo_to_ldap": {
-                    "Employee": {
-                        "_export_to_ldap_": "false",
-                    }
                 },
                 "username_generator": {
                     "objectClass": "UserNameGenerator",

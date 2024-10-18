@@ -197,15 +197,9 @@ def dataloader(
 @pytest.fixture
 def converter() -> MagicMock:
     converter = MagicMock()
-    converter.get_mo_to_ldap_json_keys.return_value = [
-        "Employee",
-        "Address",
-        "EmailEmployee",
-    ]
     converter._import_to_mo_ = MagicMock()
     converter._import_to_mo_.return_value = True
 
-    converter.to_ldap = AsyncMock()
     converter.from_ldap = AsyncMock()
     converter.from_ldap.return_value = Employee(name="Angus")
 

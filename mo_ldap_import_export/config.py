@@ -12,9 +12,6 @@ from typing import get_args
 import structlog
 from fastramqpi.config import Settings as FastRAMQPISettings
 from fastramqpi.ramqp.config import AMQPConnectionSettings
-from fastramqpi.ramqp.utils import RequeueMessage
-from more_itertools import duplicates_everseen
-from more_itertools import flatten
 from pydantic import AnyHttpUrl
 from pydantic import BaseModel
 from pydantic import BaseSettings
@@ -255,34 +252,6 @@ class LDAP2MOMapping(MappingBaseModel):
         return values
 
 
-class MO2LDAPMapping(MappingBaseModel):
-    class Config:
-        extra = Extra.allow
-
-    export_to_ldap: Literal["true", "false", "pause"] = Field(alias="_export_to_ldap_")
-
-    def export_to_ldap_as_bool(self) -> bool:
-        """
-        Returns True, when we need to export this object. Otherwise False
-        """
-        export_flag = self.export_to_ldap.lower()
-
-        match export_flag:
-            case "true":
-                return True
-            case "false":
-                return False
-            case "pause":
-                logger.info("_export_to_ldap_ = 'pause'. Requeueing.")
-                raise RequeueMessage("Export paused, requeueing")
-            case _:  # pragma: no cover
-                raise AssertionError(f"Export flag = '{export_flag}' not recognized")
-
-    @validator("export_to_ldap", pre=True)
-    def lower_export_to_ldap(cls, v: str) -> str:
-        return v.lower()
-
-
 class UsernameGeneratorConfig(MappingBaseModel):
     objectClass: str = "UserNameGenerator"
     char_replacement: dict[str, str] = {}
@@ -308,24 +277,10 @@ class UsernameGeneratorConfig(MappingBaseModel):
 
 class ConversionMapping(MappingBaseModel):
     ldap_to_mo: dict[str, LDAP2MOMapping] | None = None
-    mo_to_ldap: dict[str, MO2LDAPMapping] | None = None
     mo2ldap: str | None = Field(None, description="MO to LDAP mapping template")
     username_generator: UsernameGeneratorConfig = Field(
         default_factory=UsernameGeneratorConfig
     )
-
-    @validator("mo_to_ldap")
-    def check_for_conflicts(
-        cls, v: dict[str, MO2LDAPMapping]
-    ) -> dict[str, MO2LDAPMapping]:
-        """Check that no mo_to_ldap mappings map the same fields."""
-        mappings = [mapping.dict().keys() for mapping in v.values()]
-        conflicts = set(duplicates_everseen(flatten(mappings)))
-        # Allow multiple configs to have these keys as they are required for each
-        conflicts -= {"objectClass", "export_to_ldap"}
-        if conflicts:
-            raise ValueError(f"Conflicting fields in 'mo_to_ldap' mapping: {conflicts}")
-        return v
 
 
 class AuthBackendEnum(str, Enum):

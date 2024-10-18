@@ -33,11 +33,6 @@ conversion_mapping_with_aduuid_itsystem = {
             "person": "{{ dict(uuid=employee_uuid or NONE) }}",
         },
     },
-    "mo_to_ldap": {
-        "Employee": {
-            "_export_to_ldap_": "false",
-        }
-    },
     "username_generator": {
         "objectClass": "UserNameGenerator",
         "combinations_to_try": ["FFFX", "LLLX"],

@@ -2,11 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 import re
 from collections.abc import Iterator
-from typing import cast
 from uuid import UUID
 
 import structlog
-from fastramqpi.context import Context
 from ldap3 import Connection
 from more_itertools import one
 from more_itertools import split_when
@@ -32,15 +30,11 @@ class UserNameGenerator:
 
     def __init__(
         self,
-        context: Context,
         settings: Settings,
         username_generator_config: UsernameGeneratorConfig,
         dataloader: DataLoader,
         ldap_connection: Connection,
     ) -> None:
-        # Reference needed for deferred lookup of converter in context
-        self.user_context = context["user_context"]
-
         self.settings = settings
         # TODO: Eliminate dataloader dependency
         self.dataloader = dataloader
@@ -50,12 +44,6 @@ class UserNameGenerator:
         self.forbidden_usernames = username_generator_config.forbidden_usernames
         self.combinations = username_generator_config.combinations_to_try
         logger.info("Found forbidden usernames", count=len(self.forbidden_usernames))
-
-    @property
-    def converter(self):
-        from .converters import LdapConverter
-
-        return cast(LdapConverter, self.user_context["converter"])
 
     async def get_existing_values(self, attributes: list[str]):
         searchParameters = {
@@ -302,16 +290,9 @@ class UserNameGenerator:
         raise RuntimeError("Failed to create common name")
 
     async def _get_employee_ldap_attributes(self, employee: Employee, dn: str):
-        if self.settings.conversion_mapping.mo2ldap:
-            return await self.dataloader.sync_tool.render_ldap2mo(employee.uuid, dn)
-        else:
-            # TODO: Remove this when everyone uses the new template
-            employee_ldap = await self.converter.to_ldap(
-                {"mo_employee": employee}, "Employee", dn
-            )
-            attributes = employee_ldap.dict()
-            attributes.pop("dn")
-            return attributes
+        if not self.settings.conversion_mapping.mo2ldap:  # pragma: no cover
+            raise AssertionError("MO2LDAP template must be set to create LDAP users")
+        return await self.dataloader.sync_tool.render_ldap2mo(employee.uuid, dn)
 
     async def _get_existing_names(self):
         match self.settings.ldap_dialect:

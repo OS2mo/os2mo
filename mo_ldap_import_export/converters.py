@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import json
-from collections import ChainMap
-from collections.abc import MutableMapping
 from json.decoder import JSONDecodeError
 from typing import Any
 from uuid import UUID
@@ -19,7 +17,6 @@ from .config import get_required_attributes
 from .dataloaders import DataLoader
 from .exceptions import IncorrectMapping
 from .ldap_classes import LdapObject
-from .types import DN
 from .utils import delete_keys_from_dict
 from .utils import is_list
 from .utils import mo_today
@@ -83,59 +80,6 @@ class LdapConverter:
             return value
 
         return {key: populate_value(value) for key, value in mapping.items()}
-
-    async def to_ldap(
-        self, mo_object_dict: MutableMapping[str, Any], json_key: str, dn: DN
-    ) -> LdapObject:
-        """
-        Args:
-            mo_object_dict:
-                Template context for mapping templates.
-
-                Example:
-                    ```
-                        {
-                            'mo_employee': Employee,
-                            'mo_address': Address
-                        }
-                    ```
-
-                Where `Employee` and `Address` are imported from ramodels.
-
-                Must always have 'mo_employee'.
-
-            json_key:
-                Key to look for in the mapping dict.
-
-                Examples:
-                    - Employee
-                    - mail_address_attributes
-
-            dn: DN of the LDAP account to synchronize to.
-        """
-        ldap_object = {}
-        assert "mo_employee" in mo_object_dict
-
-        # Globals
-        mo_template_dict = ChainMap({"dn": dn}, mo_object_dict)
-
-        try:
-            object_mapping = self.mapping["mo_to_ldap"][json_key]
-        except KeyError as error:
-            raise IncorrectMapping(
-                f"Missing '{json_key}' in mapping 'mo_to_ldap'"
-            ) from error
-
-        # TODO: Test what happens with exceptions here
-        for ldap_field_name, template in object_mapping.items():
-            rendered_item = await template.render_async(mo_template_dict)
-            if rendered_item:
-                ldap_object[ldap_field_name] = rendered_item
-
-        if "dn" not in ldap_object:
-            ldap_object["dn"] = dn
-
-        return LdapObject(**ldap_object)
 
     def get_number_of_entries(self, ldap_object: LdapObject) -> int:
         """Returns the maximum cardinality of data fields within an LdapObject.
