@@ -552,7 +552,7 @@ async def get_current_engagement_attribute_uuid_dict(
         f"user_key = '{engagement_user_key}' "
         f"and employee_uuid = '{employee_uuid}'"
     )
-    engagement_dicts = await dataloader.load_mo_employee_engagement_dicts(
+    engagement_dicts = await dataloader.moapi.load_mo_employee_engagement_dicts(
         employee_uuid, engagement_user_key
     )
 
@@ -597,7 +597,9 @@ async def get_current_primary_uuid_dict(
 async def get_primary_engagement_dict(
     dataloader: DataLoader, employee_uuid: UUID
 ) -> dict:
-    engagements = await dataloader.load_mo_employee_engagement_dicts(employee_uuid)
+    engagements = await dataloader.moapi.load_mo_employee_engagement_dicts(
+        employee_uuid
+    )
     # TODO: Make is_primary a GraphQL filter in MO and clean this up
     is_primary_engagement = await dataloader.moapi.is_primaries(
         [engagement["uuid"] for engagement in engagements]
