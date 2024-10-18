@@ -102,7 +102,6 @@ def username_generator(
     ):
         user_context = context["user_context"]
         yield UserNameGenerator(
-            context,
             user_context["settings"],
             parse_obj_as(
                 UsernameGeneratorConfig, user_context["mapping"]["username_generator"]
@@ -206,7 +205,6 @@ def alleroed_username_generator(
     ):
         user_context = context["user_context"]
         yield AlleroedUserNameGenerator(
-            context,
             user_context["settings"],
             parse_obj_as(
                 UsernameGeneratorConfig, user_context["mapping"]["username_generator"]

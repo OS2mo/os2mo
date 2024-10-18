@@ -538,7 +538,6 @@ async def sync_tool_and_context(
     context["user_context"]["converter"] = converter
 
     username_generator = UserNameGenerator(
-        context,
         settings,
         settings.conversion_mapping.username_generator,
         dataloader,
@@ -929,7 +928,6 @@ async def test_get_existing_values(sync_tool: SyncTool, context: Context) -> Non
 
     user_context = context["user_context"]
     username_generator = UserNameGenerator(
-        context,
         user_context["settings"],
         parse_obj_as(UsernameGeneratorConfig, mapping["username_generator"]),
         user_context["dataloader"],
@@ -957,7 +955,6 @@ async def test_get_existing_names(sync_tool: SyncTool, context: Context) -> None
 
     user_context = context["user_context"]
     username_generator = UserNameGenerator(
-        context,
         user_context["settings"],
         parse_obj_as(UsernameGeneratorConfig, mapping["username_generator"]),
         user_context["dataloader"],
