@@ -100,7 +100,7 @@ class SyncTool:
 
         return handle_exclusively_decorator(dn_extractor)(func)
 
-    async def perform_export_checks(self, employee_uuid: UUID, object_uuid: UUID):
+    async def perform_export_checks(self, employee_uuid: UUID) -> None:
         """
         Perform a number of customer-specific checks. Raising IgnoreChanges() if a
         check fails
@@ -149,7 +149,7 @@ class SyncTool:
         try:
             # This call actually writes in LDAP, so make sure that is okay
             # TODO: Restructure the code so it does not actually write
-            await self.perform_export_checks(uuid, uuid)
+            await self.perform_export_checks(uuid)
             best_dn = await self.dataloader.make_mo_employee_dn(uuid)
         except DNNotFound as error:
             # If this occurs we were unable to generate a DN for the user
@@ -158,7 +158,7 @@ class SyncTool:
         return best_dn
 
     async def render_ldap2mo(self, uuid: EmployeeUUID, dn: DN) -> dict[str, list[Any]]:
-        await self.perform_export_checks(uuid, uuid)
+        await self.perform_export_checks(uuid)
 
         mo2ldap_template = self.settings.conversion_mapping.mo2ldap
         assert mo2ldap_template is not None
