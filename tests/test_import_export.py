@@ -1107,3 +1107,17 @@ async def test_noop_listen_to_changes(sync_tool: SyncTool) -> None:
         "Registered change in an employee",
         "listen_to_changes_in_employees called without mapping",
     ]
+
+
+async def test_noop_import_single_user(sync_tool: SyncTool) -> None:
+    sync_tool.settings.conversion_mapping.ldap_to_mo = None  # type: ignore
+
+    with capture_logs() as cap_logs:
+        await sync_tool.import_single_user(uuid4())
+
+    messages = [w["event"] for w in cap_logs]
+    assert messages == [
+        "Generating DN",
+        "Importing user",
+        "import_single_user called without mapping",
+    ]
