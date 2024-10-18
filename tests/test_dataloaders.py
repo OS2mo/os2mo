@@ -1146,7 +1146,7 @@ async def test_is_primaries(
     is_primary_engagements_route = graphql_mock.query("read_is_primary_engagements")
     is_primary_engagements_route.result = {"engagements": {"objects": results}}
 
-    primary = await dataloader.is_primaries(list(map(UUID, engagement_uuids)))
+    primary = await dataloader.moapi.is_primaries(list(map(UUID, engagement_uuids)))
     assert primary == expected
 
     assert is_primary_engagements_route.called

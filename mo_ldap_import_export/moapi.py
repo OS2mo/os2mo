@@ -249,3 +249,16 @@ class MOAPI:
         if result is None:
             return None
         return graphql_address_to_ramodels_address(result.validities)
+
+    # TODO: Offer this via a dataloader, and change calls to use that
+    async def is_primaries(self, engagements: list[UUID]) -> list[bool]:
+        engagements_set = set(engagements)
+        result = await self.graphql_client.read_is_primary_engagements(
+            list(engagements_set)
+        )
+        result_map = {
+            obj.current.uuid: obj.current.is_primary
+            for obj in result.objects
+            if obj.current is not None
+        }
+        return [result_map.get(uuid, False) for uuid in engagements]

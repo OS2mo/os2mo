@@ -599,7 +599,7 @@ async def get_primary_engagement_dict(
 ) -> dict:
     engagements = await dataloader.load_mo_employee_engagement_dicts(employee_uuid)
     # TODO: Make is_primary a GraphQL filter in MO and clean this up
-    is_primary_engagement = await dataloader.is_primaries(
+    is_primary_engagement = await dataloader.moapi.is_primaries(
         [engagement["uuid"] for engagement in engagements]
     )
     primary_engagement = one(compress(engagements, is_primary_engagement))
