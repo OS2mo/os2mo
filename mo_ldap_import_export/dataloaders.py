@@ -353,9 +353,6 @@ class DataLoader:
             )
             await self.create_ituser(it_user)
 
-        await self.graphql_client.employee_refresh(
-            self.amqpsystem.exchange_name, [employee.uuid]
-        )
         return dn
 
     async def load_mo_facet_uuid(self, user_key: str) -> UUID | None:
