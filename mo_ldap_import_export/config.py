@@ -12,7 +12,6 @@ from typing import get_args
 import structlog
 from fastramqpi.config import Settings as FastRAMQPISettings
 from fastramqpi.ramqp.config import AMQPConnectionSettings
-from fastramqpi.ramqp.utils import RequeueMessage
 from pydantic import AnyHttpUrl
 from pydantic import BaseModel
 from pydantic import BaseSettings

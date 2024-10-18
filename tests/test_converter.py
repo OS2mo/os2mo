@@ -361,13 +361,6 @@ async def test_ldap_to_mo_dict_validation_error(
         assert "Exception during object parsing" in str(info_messages)
 
 
-async def test_to_ldap_bad_json_key(converter: LdapConverter) -> None:
-    with pytest.raises(IncorrectMapping):
-        obj_dict = {"mo_employee": "foo"}
-        await converter.to_ldap(obj_dict, "__non_existing_key", "CN=foo")
-    assert "Missing '__non_existing_key' in mapping 'mo_to_ldap'"
-
-
 async def test_from_ldap_bad_json_key(converter: LdapConverter) -> None:
     with pytest.raises(IncorrectMapping):
         await converter.from_ldap(

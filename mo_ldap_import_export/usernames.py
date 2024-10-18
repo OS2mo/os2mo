@@ -302,16 +302,9 @@ class UserNameGenerator:
         raise RuntimeError("Failed to create common name")
 
     async def _get_employee_ldap_attributes(self, employee: Employee, dn: str):
-        if self.settings.conversion_mapping.mo2ldap:
-            return await self.dataloader.sync_tool.render_ldap2mo(employee.uuid, dn)
-        else:
-            # TODO: Remove this when everyone uses the new template
-            employee_ldap = await self.converter.to_ldap(
-                {"mo_employee": employee}, "Employee", dn
-            )
-            attributes = employee_ldap.dict()
-            attributes.pop("dn")
-            return attributes
+        if not self.settings.conversion_mapping.mo2ldap:
+            raise ValueError("MO2LDAP template must be set to create LDAP users")
+        return await self.dataloader.sync_tool.render_ldap2mo(employee.uuid, dn)
 
     async def _get_existing_names(self):
         match self.settings.ldap_dialect:

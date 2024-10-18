@@ -332,7 +332,11 @@ def test_create_common_name(username_generator: UserNameGenerator):
 
 
 async def test_generate_dn(username_generator: UserNameGenerator):
-    username_generator.settings.conversion_mapping.mo2ldap = None  # type: ignore
+    render_ldap2mo = AsyncMock()
+    render_ldap2mo.return_value = {}  # type: ignore
+
+    username_generator.dataloader.sync_tool.render_ldap2mo = render_ldap2mo
+    username_generator.settings.conversion_mapping.mo2ldap = """{}"""  # type: ignore
 
     employee = Employee(givenname="Patrick", surname="Bateman")
     dn = await username_generator.generate_dn(employee)
@@ -433,7 +437,11 @@ async def test_alleroed_dn_generator(
     alleroed_username_generator: AlleroedUserNameGenerator,
     graphql_mock: GraphQLMocker,
 ) -> None:
-    alleroed_username_generator.settings.conversion_mapping.mo2ldap = None  # type: ignore
+    render_ldap2mo = AsyncMock()
+    render_ldap2mo.return_value = {}  # type: ignore
+
+    alleroed_username_generator.dataloader.sync_tool.render_ldap2mo = render_ldap2mo
+    alleroed_username_generator.settings.conversion_mapping.mo2ldap = """{}"""  # type: ignore
 
     graphql_client = GraphQLClient("http://example.com/graphql")
 
