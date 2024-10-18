@@ -253,34 +253,6 @@ class LDAP2MOMapping(MappingBaseModel):
         return values
 
 
-class MO2LDAPMapping(MappingBaseModel):
-    class Config:
-        extra = Extra.allow
-
-    export_to_ldap: Literal["true", "false", "pause"] = Field(alias="_export_to_ldap_")
-
-    def export_to_ldap_as_bool(self) -> bool:
-        """
-        Returns True, when we need to export this object. Otherwise False
-        """
-        export_flag = self.export_to_ldap.lower()
-
-        match export_flag:
-            case "true":
-                return True
-            case "false":
-                return False
-            case "pause":
-                logger.info("_export_to_ldap_ = 'pause'. Requeueing.")
-                raise RequeueMessage("Export paused, requeueing")
-            case _:  # pragma: no cover
-                raise AssertionError(f"Export flag = '{export_flag}' not recognized")
-
-    @validator("export_to_ldap", pre=True)
-    def lower_export_to_ldap(cls, v: str) -> str:
-        return v.lower()
-
-
 class UsernameGeneratorConfig(MappingBaseModel):
     objectClass: str = "UserNameGenerator"
     char_replacement: dict[str, str] = {}
