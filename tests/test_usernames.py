@@ -32,7 +32,6 @@ def dataloader() -> MagicMock:
 @pytest.fixture
 def context(dataloader: MagicMock, converter: MagicMock) -> Context:
     mapping = {
-        "mo_to_ldap": {"Employee": {}},
         "username_generator": {
             "objectClass": "UserNameGenerator",
             "char_replacement": {"ø": "oe", "æ": "ae", "å": "aa"},

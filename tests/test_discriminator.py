@@ -920,7 +920,6 @@ async def test_apply_discriminator_template(
 
 async def test_get_existing_values(sync_tool: SyncTool, context: Context) -> None:
     mapping = {
-        "mo_to_ldap": {"Employee": {}},
         "username_generator": {
             "objectClass": "UserNameGenerator",
         },
