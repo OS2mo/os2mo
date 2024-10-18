@@ -72,11 +72,6 @@ def settings_overrides() -> Iterator[dict[str, str]]:
                 "uuid": "{{ employee_uuid or NONE }}",
             }
         },
-        "mo_to_ldap": {
-            "Employee": {
-                "_export_to_ldap_": "false",
-            }
-        },
         "username_generator": {"objectClass": "UserNameGenerator"},
     }
     conversion_mapping = parse_obj_as(ConversionMapping, conversion_mapping_dict)

@@ -6,11 +6,9 @@
 import asyncio
 import datetime
 import json
-import os
 import time
 from collections.abc import Collection
 from collections.abc import Iterator
-from functools import partial
 from typing import Any
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
@@ -24,8 +22,6 @@ from fastramqpi.context import Context
 from freezegun import freeze_time
 from httpx import Response
 from ldap3.core.exceptions import LDAPInvalidValueError
-from mergedeep import Strategy  # type: ignore
-from mergedeep import merge
 from more_itertools import one
 from pydantic import BaseModel
 from pydantic import Field
@@ -80,20 +76,6 @@ from mo_ldap_import_export.routes import load_ldap_objects
 from mo_ldap_import_export.types import CPRNumber
 from mo_ldap_import_export.types import OrgUnitUUID
 from tests.graphql_mocker import GraphQLMocker
-
-overlay = partial(merge, strategy=Strategy.TYPESAFE_ADDITIVE)
-
-
-def set_employee_export_to_ldap(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv(
-        "CONVERSION_MAPPING",
-        json.dumps(
-            overlay(
-                json.loads(os.environ["CONVERSION_MAPPING"]),
-                {"mo_to_ldap": {"Employee": {"_export_to_ldap_": "true"}}},
-            )
-        ),
-    )
 
 
 @pytest.fixture()
@@ -272,50 +254,23 @@ async def test_load_ldap_objects(
 async def test_delete_data_from_ldap_object(
     ldap_connection: MagicMock,
     dataloader: DataLoader,
-    ldap_attributes: dict,
-    cpr_field: str,
-    monkeypatch: pytest.MonkeyPatch,
-):
-    # Hack to override overly mocked settings setup
-    set_employee_export_to_ldap(monkeypatch)
-    dataloader.settings = Settings()
-
+) -> None:
     dataloader.ldap_connection.get_response.return_value = (
         [],
         {"type": "test", "description": "compareTrue"},
     )
 
-    address = LdapObject(
-        dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
-        postalAddress="foo",
-        sharedValue="bar",
-        **{cpr_field: "123"},
-    )
-
-    # Note: 'sharedValue' won't be deleted because it is shared with another ldap object
-    converter = dataloader.user_context["converter"]
-    converter.mapping = {
-        "mo_to_ldap": {
-            "Employee": {cpr_field: None, "sharedValue": None},
-            "Address": {cpr_field: None, "sharedValue": None, "postalAddress": None},
-        }
-    }
+    dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
     changes = {"postalAddress": [("MODIFY_DELETE", "foo")]}
 
-    await dataloader.modify_ldap_object(address.dn, changes)
-    assert ldap_connection.modify.called_once_with(address.dn, changes)
+    await dataloader.modify_ldap_object(dn, changes)
+    assert ldap_connection.modify.called_once_with(dn, changes)
 
 
 async def test_upload_ldap_object_invalid_value(
     ldap_connection: MagicMock,
     dataloader: DataLoader,
-    cpr_field: str,
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # Hack to override overly mocked settings setup
-    set_employee_export_to_ldap(monkeypatch)
-    dataloader.settings = Settings()
-
     dataloader.ldap_connection.get_response.return_value = (
         [],
         {"type": "test", "description": "compareFalse"},

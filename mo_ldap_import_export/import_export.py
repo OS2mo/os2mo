@@ -664,6 +664,8 @@ class SyncTool:
             ldap_changes = await self.render_ldap2mo(uuid, best_dn)
         else:
             # TODO: Remove this when everyone uses the new template
+            if not self.settings.conversion_mapping.mo_to_ldap:  # pragma: no cover
+                return {}
 
             # Get MO employee
             changed_employee = await self.dataloader.moapi.load_mo_employee(
@@ -706,7 +708,6 @@ class SyncTool:
             # Remove non-export entries
             # TODO: Do not even spend time templating these out in the first place
             # TODO: Why are they even defined if we do not use them?
-            assert self.settings.conversion_mapping.mo_to_ldap is not None
             export_changes = {
                 json_key: value
                 for json_key, value in changes.items()
@@ -715,7 +716,7 @@ class SyncTool:
                 ].export_to_ldap_as_bool()
             }
             no_export_changes = changes.keys() - export_changes.keys()
-            for json_key in no_export_changes:
+            for json_key in no_export_changes:  # pragma: no cover
                 logger.info("_export_to_ldap_ == False.", json_key=json_key)
 
             # Keys are unique across all mappers by pydantic validation

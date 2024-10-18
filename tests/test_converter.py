@@ -116,23 +116,20 @@ def converter_mapping() -> dict[str, Any]:
                 "person": "{{ dict(uuid=employee_uuid or NONE) }}",
             },
         },
-        "mo_to_ldap": {
-            "Employee": {
-                "_export_to_ldap_": "True",
-                "givenName": "{{mo_employee.givenname}}",
-                "sn": "{{mo_employee.surname}}",
-                "displayName": "{{mo_employee.surname}}, {{mo_employee.givenname}}",
-                "name": "{{mo_employee.givenname}} {{mo_employee.surname}}",
-                "employeeID": "{{mo_employee.cpr_no or None}}",
-            },
-            "Email": {
-                "_export_to_ldap_": "True",
-            },
-            "Active Directory": {
-                "_export_to_ldap_": "True",
-                "msSFU30Name": "{{mo_employee_it_user.user_key}}",
-            },
-        },
+        "mo2ldap": """
+            {% set mo_employee = load_mo_employee(uuid, current_objects_only=False) %}
+            {% set mo_employee_it_user = load_mo_it_user(uuid, "Active Directory") %}
+            {{
+                {
+                    "givenName": mo_employee.givenname,
+                    "sn": mo_employee.surname,
+                    "displayName": mo_employee.surname + ", " + mo_employee.givenname,
+                    "name": mo_employee.givenname + " " + mo_employee.surname,
+                    "employeeID": mo_employee.cpr_no or "",
+                    "msSFU30Name": mo_employee_it_user.user_key if mo_employee_it_user else [],
+                }|tojson
+            }}
+        """,
     }
 
 
@@ -341,16 +338,7 @@ async def test_ldap_to_mo_dict_validation_error(
                 "job_function_fallback": f"{{ dict(uuid={uuid4()}) }}",
                 "uuid": "{{ employee_uuid or NONE }}",
             },
-        },
-        "mo_to_ldap": {
-            "Employee": {
-                "_export_to_ldap_": "True",
-                "employeeID": "{{mo_employee.cpr_no or None}}",
-            },
-            "Custom": {
-                "_export_to_ldap_": "True",
-            },
-        },
+        }
     }
     monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
     settings = Settings()
@@ -375,7 +363,38 @@ async def test_ldap_to_mo_dict_validation_error(
         assert "Exception during object parsing" in str(info_messages)
 
 
-async def test_mo_to_ldap(converter: LdapConverter) -> None:
+async def test_mo_to_ldap(
+    converter: LdapConverter,
+    converter_mapping: dict[str, Any],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    mapping = overlay(
+        converter_mapping,
+        {
+            "mo_to_ldap": {
+                "Employee": {
+                    "_export_to_ldap_": "True",
+                    "givenName": "{{mo_employee.givenname}}",
+                    "sn": "{{mo_employee.surname}}",
+                    "displayName": "{{mo_employee.surname}}, {{mo_employee.givenname}}",
+                    "name": "{{mo_employee.givenname}} {{mo_employee.surname}}",
+                    "employeeID": "{{mo_employee.cpr_no or None}}",
+                },
+                "Email": {
+                    "_export_to_ldap_": "True",
+                },
+                "Active Directory": {
+                    "_export_to_ldap_": "True",
+                    "msSFU30Name": "{{mo_employee_it_user.user_key}}",
+                },
+            }
+        },
+    )
+    monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
+
+    converter.settings = Settings()
+    await converter._init()
+
     obj_dict: dict = {"mo_employee": Employee(givenname="Tester", surname="Testersen")}
     ldap_object: Any = await converter.to_ldap(obj_dict, "Employee", "CN=foo")
     assert ldap_object.givenName == "Tester"
@@ -436,16 +455,7 @@ async def test_template_strictness(
                 "cpr_no": "{{ ldap.get('cpr') }}",
                 "uuid": "{{ employee_uuid }}",
             }
-        },
-        "mo_to_ldap": {
-            "Employee": {
-                "_export_to_ldap_": "True",
-                "cpr": "{{ mo_employee.cpr_no }}",
-                "givenName": "{{ mo_employee.givenname }}",
-                "sn": "{{ mo_employee.surname }}",
-                "dn": "{{ mo_employee.user_key }}",
-            }
-        },
+        }
     }
     monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
     converter.settings = Settings()
