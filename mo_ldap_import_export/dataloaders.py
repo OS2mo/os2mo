@@ -353,13 +353,6 @@ class DataLoader:
             )
             await self.create_ituser(it_user)
 
-        # TODO: What is this purpose of this import, if we just created the DN,
-        #       the data should already be up-to-date, no?
-        #       It seems weird to synchronize back and forth immediately, but maybe it
-        #       is just because the create by generate_dn does not in fact create it
-        #       correctly?
-        # TODO: Publish this message on the LDAP AMQP exchange
-        await self.sync_tool.import_single_user(dn, manual_import=True)
         await self.graphql_client.employee_refresh(
             self.amqpsystem.exchange_name, [employee.uuid]
         )
