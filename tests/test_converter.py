@@ -1437,7 +1437,7 @@ async def test_ldap_to_mo_termination(
 
 async def test_create_facet_class_no_facet() -> None:
     dataloader = AsyncMock()
-    dataloader.load_mo_facet_uuid.return_value = None
+    dataloader.moapi.load_mo_facet_uuid.return_value = None
     with pytest.raises(NoObjectsReturnedException) as exc_info:
         await _create_facet_class(dataloader, "class_key", "facet_key")
     assert "Could not find facet with user_key = 'facet_key'" in str(exc_info.value)
