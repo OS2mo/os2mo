@@ -534,7 +534,6 @@ async def sync_tool_and_context(
 
     # Needs context, user_context, settings, raw_mapping, dataloader
     converter = LdapConverter(settings, dataloader)
-    await converter._init()
     context["user_context"]["converter"] = converter
 
     username_generator = UserNameGenerator(

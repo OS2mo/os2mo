@@ -32,7 +32,6 @@ class LdapConverter:
 
         self.environment = construct_environment(self.settings, self.dataloader)
 
-    async def _init(self):
         raw_mapping = self.settings.conversion_mapping.dict(
             exclude_unset=True, by_alias=True
         )
