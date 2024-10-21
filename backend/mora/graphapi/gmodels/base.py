@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import re
 import zoneinfo
+from datetime import date
 from datetime import datetime
 from typing import Any
 
@@ -94,4 +95,9 @@ def tz_isodate(dt: Any) -> datetime:
             raise ISOParseError(dt)
 
     iso_dt = iso_dt if iso_dt.tzinfo else iso_dt.replace(tzinfo=DEFAULT_TZ)
+    # '0001-01-01' will be converted to '0001-12-31 23:09:40+00 BC' because LoRa is set
+    # to the Europe/Copenhagen timezone in postgres. '0001-12-31 23:09:40+00 BC' is not
+    # a valid ISO timestamp, and thus fails to be read back out.
+    if iso_dt.date() <= date(1, 1, 1):
+        raise ValueError("Please do not use the date 0001-01-01")
     return iso_dt
