@@ -63,17 +63,27 @@ a token, please read the [Authentication documentation](../iam/auth.md).
 
 The OS2mo GraphQL interface is versioned to handle future breaking changes,
 without actually breaking any integration code. New versions are added as
-needed and old versions are removed as they become obsolete by unutilization.
+needed and old versions are removed as they become obsolete.
 
 New integrations should always use the newest version of the interface
 available, and old integrations should continuously be updated to the newer
 versions as they are introduced, by following the [Migration Guide](migration.md).
 
-There is no way to get the *newest version* of the GraphQL interface, this is
-by-design to avoid integrations being broken automatically once a new version
-is introduced, as such all integrations should be hardcoding the GraphQL version
-that they are utilizing and should update this hardcoded URL as they upgrade to
-a newer version following the migration guide.
+The `/graphql` endpoint redirects the browser to the GraphiQL interface for the
+newest version, e.g. for local development: <http://localhost:5000/graphql>.
+GraphiQL has a built-in documentation explorer which can be accessed by
+ctrl-clicking most fields.
+
+There is no way to use the newest version of the GraphQL interface
+programmatically, e.g. from integrations. This is by design to avoid
+integrations being broken automatically once a new version is introduced, as
+such, all integrations should be hardcoding the GraphQL version that they are
+utilising and should update this hardcoded URL as they upgrade to a newer
+version following the migration guide.
+
+The GraphQL schema for each version is available at
+`/graphql/vXX/schema.graphql` in regular GraphQL Schema Definition Language
+(SDL).
 
 
 ## Pagination

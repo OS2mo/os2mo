@@ -51,7 +51,7 @@ WORKDIR /app/
 
 # Copy and install backend code.
 COPY LICENSE .
-COPY README.rst .
+COPY README.md .
 COPY docker ./docker
 COPY backend ./backend
 
