@@ -404,7 +404,7 @@ class AlleroedUserNameGenerator(UserNameGenerator):
         name = givenname.split(" ")[:4] + [surname]
 
         common_name = self._create_common_name(name, existing_common_names)
-        logger.info("Generated CommonName for {givenname} {surname}: '{common_name}'")
+        logger.info(f"Generated CommonName for {givenname} {surname}: '{common_name}'")
 
         username = self.generate_username(
             name, existing_usernames + existing_usernames_in_mo

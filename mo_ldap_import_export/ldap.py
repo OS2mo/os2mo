@@ -230,7 +230,8 @@ async def wait_for_message_id(
 async def ldap_modify(ldap_connection, dn, changes) -> tuple[dict, dict]:
     message_id = ldap_connection.modify(dn, changes)
     response, result = await wait_for_message_id(ldap_connection, message_id)
-    # TODO: Verify that result["description"] is success?
+    # TODO: this does not currently raise exceptions on errors due to
+    # `raise_exceptions=False` on the ldap connection.
     return response, result
 
 
@@ -239,21 +240,24 @@ async def ldap_add(
 ) -> tuple[dict, dict]:
     message_id = ldap_connection.add(dn, object_class, attributes)
     response, result = await wait_for_message_id(ldap_connection, message_id)
-    # TODO: Verify that result["description"] is success?
+    # TODO: this does not currently raise exceptions on errors due to
+    # `raise_exceptions=False` on the ldap connection.
     return response, result
 
 
 async def ldap_delete(ldap_connection, dn) -> tuple[dict, dict]:
     message_id = ldap_connection.delete(dn)
     response, result = await wait_for_message_id(ldap_connection, message_id)
-    # TODO: Verify that result["description"] is success?
+    # TODO: this does not currently raise exceptions on errors due to
+    # `raise_exceptions=False` on the ldap connection.
     return response, result
 
 
 async def ldap_search(ldap_connection, **kwargs) -> tuple[list[dict[str, Any]], dict]:
     message_id = ldap_connection.search(**kwargs)
     response, result = await wait_for_message_id(ldap_connection, message_id)
-    # TODO: Verify that result["description"] is success?
+    # TODO: this does not currently raise exceptions on errors due to
+    # `raise_exceptions=False` on the ldap connection.
     return response, result
 
 
