@@ -672,6 +672,100 @@ async def test_update_engagement_integration_test(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
+async def test_update_multiple_engagements_integration_test(
+    graphapi_post: GraphAPIPost,
+) -> None:
+    CREATE_ENGAGEMENTS = """
+    mutation CreateEngagements {
+      engagements_create(
+        input: [{
+          validity: { from: "2019-01-01" }
+          person: "236e0a78-11a0-4ed9-8545-6286bb8611c7"
+          org_unit: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+          engagement_type: "06f95678-166a-455a-a2ab-121a8d92ea23"
+          job_function: "07cea156-1aaf-4c89-bf1b-8e721f704e22"
+        },{
+          validity: { from: "2019-01-01" }
+          person: "4a53c06b-c1b5-417c-8c2e-bed526d34dbb"
+          org_unit: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+          engagement_type: "06f95678-166a-455a-a2ab-121a8d92ea23"
+          job_function: "07cea156-1aaf-4c89-bf1b-8e721f704e22"
+        }]
+      ) {
+        uuid
+      }
+    }
+    """
+
+    response = graphapi_post(CREATE_ENGAGEMENTS)
+    assert response.errors is None
+
+    UPDATE_ENGAGEMENTS = """
+    mutation UpdateEngagements($input: [EngagementUpdateInput!]!) {
+      engagements_update(
+        input: $input
+      ) {
+        uuid
+      }
+    }
+    """
+
+    update_input = [
+        {
+            "uuid": response.data["engagements_create"][0]["uuid"],
+            "person": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+            "org_unit": "5942ce50-2be8-476f-914b-6769a888a7c8",
+            "job_function": "f42dd694-f1fd-42a6-8a97-38777b73adc4",
+            "validity": {"from": "2019-02-01T00:00:00+01:00"},
+        },
+        {
+            "uuid": response.data["engagements_create"][1]["uuid"],
+            "person": "4a53c06b-c1b5-417c-8c2e-bed526d34dbb",
+            "org_unit": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+            "job_function": "890d4ff0-b453-4900-b79b-dbb461eda3ee",
+            "validity": {"from": "2019-02-01T00:00:00+01:00"},
+        },
+    ]
+
+    update_response = graphapi_post(UPDATE_ENGAGEMENTS, {"input": update_input})
+    assert update_response.errors is None
+
+    VERIFY_QUERY = """
+    query VerifyQuery($uuids: [UUID!]!) {
+      engagements(filter: {uuids: $uuids}){
+        objects {
+          current {
+            uuid
+            person: employee_uuid
+            org_unit: org_unit_uuid
+            job_function: job_function_uuid
+            validity {
+              from
+            }
+          }
+        }
+      }
+    }
+    """
+
+    verify_response = graphapi_post(
+        VERIFY_QUERY,
+        {
+            "uuids": [
+                engagement["uuid"]
+                for engagement in update_response.data["engagements_update"]
+            ]
+        },
+    )
+
+    assert [
+        engagement["current"]
+        for engagement in verify_response.data["engagements"]["objects"]
+    ] == update_input
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
     "update_input, expected_extension_field",
     [
