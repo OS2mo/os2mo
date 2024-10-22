@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import time
+from datetime import date
 from datetime import datetime
 from datetime import timedelta
 from uuid import uuid4
@@ -229,6 +230,8 @@ def test_read_registration_dates_filter(graphapi_post) -> None:
     assert r2_end is None
 
     ms = timedelta(milliseconds=1)
+    min = date(year=1, month=1, day=2)  # why day=2? see commit 746d6535
+    max = date(year=9999, month=12, day=31)
 
     # |--a--|
     #       |--b--|
@@ -239,18 +242,18 @@ def test_read_registration_dates_filter(graphapi_post) -> None:
     # Filter contains all
     assert registrations(None, None) == [r1, r2]
     # Filter is before all (a)
-    assert registrations(datetime.min, r1_start - ms) == []
+    assert registrations(min, r1_start - ms) == []
     assert registrations(None, r1_start - ms) == []
     # Filter start is before all, end is within first (b)
-    assert registrations(datetime.min, r1_start + ms) == [r1]
+    assert registrations(min, r1_start + ms) == [r1]
     assert registrations(None, r1_start + ms) == [r1]
     # Filter is contained within first (c)
     assert registrations(r1_start + ms, r1_end - ms) == [r1]
     # Filter start is within first, end is after all (d)
-    assert registrations(r1_end - ms, datetime.max) == [r1, r2]
+    assert registrations(r1_end - ms, max) == [r1, r2]
     assert registrations(r1_end - ms, None) == [r1, r2]
     # Filter start is after first, end is after all (e)
-    assert registrations(r1_end + ms, datetime.max) == [r2]
+    assert registrations(r1_end + ms, max) == [r2]
     assert registrations(r1_end + ms, None) == [r2]
     # TODO: tests on boundary-values are difficult to do as long as now() is handled
     # by LoRa templates and cannot be injected.
