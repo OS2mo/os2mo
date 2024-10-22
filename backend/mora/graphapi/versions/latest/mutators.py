@@ -591,6 +591,32 @@ class Mutation:
         )
 
     @strawberry.mutation(
+        description=dedent(
+            """\
+            Updates a list of engagements.
+
+            Note: If any of the updates in the transaction is a noop, the whole
+            transaction will fail with the error:
+            `(psycopg.errors.InFailedSqlTransaction) current transaction is aborted,
+            commands ignored until end of transaction block`
+
+            https://redmine.magenta.dk/issues/60573
+            """
+        ),
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_update_permission("engagement"),
+        ],
+    )
+    async def engagements_update(
+        self, input: list[EngagementUpdateInput]
+    ) -> list[Response[Engagement]]:
+        updated_engagements = await asyncio.gather(
+            *[Mutation.engagement_update(self, engagement) for engagement in input]
+        )
+        return updated_engagements
+
+    @strawberry.mutation(
         description="Terminates an engagement.",
         permission_classes=[
             IsAuthenticatedPermission,
