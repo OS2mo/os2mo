@@ -57,7 +57,6 @@ from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.dataloaders import DN
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.dataloaders import Verb
-from mo_ldap_import_export.dataloaders import extract_current_or_latest_validity
 from mo_ldap_import_export.environments import get_or_create_engagement_type_uuid
 from mo_ldap_import_export.environments import get_or_create_job_function_uuid
 from mo_ldap_import_export.environments import load_mo_root_org_uuid
@@ -67,6 +66,7 @@ from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import ReadOnlyException
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.ldapapi import LDAPAPI
+from mo_ldap_import_export.moapi import extract_current_or_latest_validity
 from mo_ldap_import_export.routes import load_all_current_it_users
 from mo_ldap_import_export.routes import load_ldap_attribute_values
 from mo_ldap_import_export.routes import load_ldap_cpr_object
@@ -730,7 +730,7 @@ async def test_load_mo_engagement(
         }
     }
 
-    output = await dataloader.load_mo_engagement(uuid4())
+    output = await dataloader.moapi.load_mo_engagement(uuid4())
     assert output is not None
     assert output.user_key == "foo"
     assert output.validity.from_date.strftime("%Y-%m-%d") == "2021-01-01"
@@ -755,7 +755,7 @@ async def test_load_mo_engagement_not_found(
     route = graphql_mock.query("read_engagements")
     route.result = {"engagements": {"objects": objects}}
 
-    result = await dataloader.load_mo_engagement(uuid4())
+    result = await dataloader.moapi.load_mo_engagement(uuid4())
     assert result is None
 
     assert route.called
@@ -942,8 +942,8 @@ async def test_load_mo_employee_engagements(
 ) -> None:
     uuid1 = uuid4()
 
-    route = graphql_mock.query("read_engagements_by_employee_uuid")
-    route.result = {
+    route1 = graphql_mock.query("read_engagements_by_employee_uuid")
+    route1.result = {
         "engagements": {
             "objects": [
                 {
@@ -956,14 +956,45 @@ async def test_load_mo_employee_engagements(
         }
     }
 
-    load_mo_engagement = AsyncMock()
-    dataloader.load_mo_engagement = load_mo_engagement  # type: ignore
+    user_key = "test"
+    job_function_uuid = uuid4()
+    org_unit_uuid = uuid4()
+    engagement_type_uuid = uuid4()
+    person_uuid = uuid4()
+    route2 = graphql_mock.query("read_engagements")
+    route2.result = {
+        "engagements": {
+            "objects": [
+                {
+                    "validities": [
+                        {
+                            "user_key": user_key,
+                            "job_function_uuid": job_function_uuid,
+                            "org_unit_uuid": org_unit_uuid,
+                            "engagement_type_uuid": engagement_type_uuid,
+                            "employee_uuid": person_uuid,
+                            "validity": {"from": "2020-01-01T00:00:00Z"},
+                        }
+                    ]
+                }
+            ]
+        }
+    }
 
-    employee_uuid = uuid4()
-    await dataloader.load_mo_employee_engagements(employee_uuid)
+    result = await dataloader.load_mo_employee_engagements(person_uuid)
+    assert one(result).dict(exclude_none=True) == {
+        "engagement_type": {"uuid": engagement_type_uuid},
+        "job_function": {"uuid": job_function_uuid},
+        "org_unit": {"uuid": org_unit_uuid},
+        "person": {"uuid": person_uuid},
+        "type_": "engagement",
+        "user_key": user_key,
+        "uuid": ANY,
+        "validity": {"from_date": datetime.datetime(2020, 1, 1, tzinfo=datetime.UTC)},
+    }
 
-    load_mo_engagement.assert_called_once_with(uuid1)
-    assert route.called
+    assert route1.called
+    assert route2.called
 
 
 @pytest.mark.parametrize(
