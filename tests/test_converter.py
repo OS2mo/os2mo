@@ -225,7 +225,6 @@ async def converter(context: Context) -> LdapConverter:
         context["user_context"]["settings"],
         context["user_context"]["dataloader"],
     )
-    await converter._init()
     return converter
 
 
@@ -343,7 +342,6 @@ async def test_ldap_to_mo_dict_validation_error(
     dataloader = context["user_context"]["dataloader"]
 
     converter = LdapConverter(settings, dataloader)
-    await converter._init()
 
     with capture_logs() as cap_logs:
         await converter.from_ldap(
@@ -405,8 +403,7 @@ async def test_template_strictness(
         }
     }
     monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
-    converter.settings = Settings()
-    await converter._init()
+    converter = LdapConverter(Settings(), converter.dataloader)
     result = await converter.from_ldap(
         LdapObject(dn="CN=foo", **ldap_values),
         "Employee",
@@ -463,7 +460,6 @@ async def test_get_ldap_attributes_dn_removed(
     assert settings.conversion_mapping.ldap_to_mo is not None
 
     converter = LdapConverter(settings, dataloader)
-    await converter._init()
 
     converter_attributes = set(converter.get_ldap_attributes("Employee"))
     settings_attributes = set(
@@ -1400,7 +1396,6 @@ async def test_ldap_to_mo_termination(
 ) -> None:
     settings = Settings()
     converter = LdapConverter(settings, dataloader)
-    await converter._init()
 
     employee_uuid = uuid4()
     result = await converter.from_ldap(
@@ -1424,7 +1419,6 @@ async def test_ldap_to_mo_termination(
     monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(converter_mapping))
     settings = Settings()
     converter = LdapConverter(settings, dataloader)
-    await converter._init()
 
     result = await converter.from_ldap(
         LdapObject(
@@ -1485,7 +1479,6 @@ async def test_ldap_to_mo_mapper(
     monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(converter_mapping))
     settings = Settings()
     converter = LdapConverter(settings, dataloader)
-    await converter._init()
 
     employee_uuid = uuid4()
     result = await converter.from_ldap(

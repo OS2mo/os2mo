@@ -299,7 +299,6 @@ async def initialize_converters(
 ) -> AsyncIterator[None]:
     logger.info("Initializing converters")
     converter = LdapConverter(settings, dataloader)
-    await converter._init()
     fastramqpi.add_context(converter=converter)
     yield
 
