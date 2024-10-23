@@ -197,18 +197,10 @@ class LDAP2MOMapping(MappingBaseModel):
                 )
 
             # TODO: What if both are required?
-            uuid_key = "person" if "person" in values else "org_unit"
-            # And the corresponding item needs to be a dict with an uuid key
-            if "dict(uuid=" not in values[uuid_key].replace(" ", ""):
-                raise ValueError("Needs to be a dict with 'uuid' as one of its keys")
-        # Otherwise: We are dealing with the org_unit/person itself.
-        else:
+        else:  # Otherwise: We are dealing with the org_unit/person itself.
             # A field called 'uuid' needs to be present
             if "uuid" not in values:
                 raise ValueError("Needs to contain a key called 'uuid'")
-            # And it needs to contain a reference to the employee_uuid global
-            if "employee_uuid" not in values["uuid"]:
-                raise ValueError("Needs to contain a reference to 'employee_uuid'")
         return values
 
     @root_validator
