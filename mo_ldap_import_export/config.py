@@ -22,8 +22,9 @@ from pydantic import SecretStr
 from pydantic import parse_obj_as
 from pydantic import root_validator
 from pydantic import validator
-from ramodels.mo import MOBase
 from ramodels.mo.detail import Detail
+
+from mo_ldap_import_export.models import MOBase
 
 from .utils import import_class
 

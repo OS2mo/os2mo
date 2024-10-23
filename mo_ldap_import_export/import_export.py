@@ -25,13 +25,13 @@ from more_itertools import one
 from more_itertools import only
 from more_itertools import partition
 from more_itertools import quantify
-from ramodels.mo import MOBase
 from structlog.contextvars import bound_contextvars
 
 from mo_ldap_import_export.models import Address
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.models import Engagement
 from mo_ldap_import_export.models import ITUser
+from mo_ldap_import_export.models import MOBase
 
 from .config import Settings
 from .converters import LdapConverter

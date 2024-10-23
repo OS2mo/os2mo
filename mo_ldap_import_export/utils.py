@@ -17,12 +17,12 @@ from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
 from more_itertools import bucket
-from ramodels.mo._shared import MOBase
 
 from mo_ldap_import_export.models import Address
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.models import Engagement
 from mo_ldap_import_export.models import ITUser
+from mo_ldap_import_export.models import MOBase
 
 from .customer_specific import JobTitleFromADToMO
 

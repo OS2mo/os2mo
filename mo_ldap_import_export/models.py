@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from ramodels.mo import MOBase as RAMOBase
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details.address import Address as RAAddress
 from ramodels.mo.details.engagement import Engagement as RAEngagement
@@ -12,21 +13,25 @@ class Validity(RAValidity):
     pass
 
 
-class Address(RAAddress):
+class MOBase(RAMOBase):
     pass
 
 
-class Employee(RAEmployee):
+class Address(RAAddress, MOBase):
     pass
 
 
-class Engagement(RAEngagement):
+class Employee(RAEmployee, MOBase):
     pass
 
 
-class ITUser(RAITUser):
+class Engagement(RAEngagement, MOBase):
     pass
 
 
-class OrganisationUnit(RAOrganisationUnit):
+class ITUser(RAITUser, MOBase):
+    pass
+
+
+class OrganisationUnit(RAOrganisationUnit, MOBase):
     pass

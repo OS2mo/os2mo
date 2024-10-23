@@ -141,6 +141,11 @@ async def test_format_converted_engagement_objects(
         from_date="2021-01-01",
     )
 
+    # from_simplified_fields() has bad type annotation
+    assert isinstance(engagement1, Engagement)
+    assert isinstance(engagement2, Engagement)
+    assert isinstance(engagement_in_mo, Engagement)
+
     dataloader.moapi.load_mo_employee_engagements.return_value = [
         engagement_in_mo,
     ]
@@ -197,6 +202,11 @@ async def test_format_converted_engagement_duplicate(
         from_date="2021-01-01",
     )
 
+    # from_simplified_fields() has bad type annotation
+    assert isinstance(engagement, Engagement)
+    assert isinstance(engagement1_in_mo, Engagement)
+    assert isinstance(engagement2_in_mo, Engagement)
+
     dataloader.moapi.load_mo_employee_engagements.return_value = [
         engagement1_in_mo,
         engagement2_in_mo,
@@ -234,6 +244,10 @@ async def test_format_converted_multiple_primary_engagements(
         user_key="123",
         from_date="2021-01-01",
     )
+
+    # from_simplified_fields() has bad type annotation
+    assert isinstance(engagement1, Engagement)
+    assert isinstance(engagement2, Engagement)
 
     dataloader.moapi.load_mo_employee_engagements.return_value = [
         engagement1,
@@ -294,6 +308,11 @@ async def test_format_converted_employee_address_objects(
         "foo", address_type_uuid, "2021-01-01", person_uuid=person_uuid
     )
 
+    # from_simplified_fields() has bad type annotation
+    assert isinstance(address1, Address)
+    assert isinstance(address2, Address)
+    assert isinstance(address1_in_mo, Address)
+
     converted_objects = [address1, address2]
 
     dataloader.moapi.load_mo_employee_addresses.return_value = [address1_in_mo]
@@ -335,6 +354,11 @@ async def test_format_converted_org_unit_address_objects(
     address1_in_mo = Address.from_simplified_fields(
         "foo", address_type_uuid, "2021-01-01", org_unit_uuid=org_unit_uuid
     )
+
+    # from_simplified_fields() has bad type annotation
+    assert isinstance(address1, Address)
+    assert isinstance(address2, Address)
+    assert isinstance(address1_in_mo, Address)
 
     converted_objects = [address1, address2]
 
@@ -379,6 +403,11 @@ async def test_format_converted_org_unit_address_objects_identical_to_mo(
         "foo", address_type_uuid, "2021-01-01", org_unit_uuid=org_unit_uuid
     )
 
+    # from_simplified_fields() has bad type annotation
+    assert isinstance(address1, Address)
+    assert isinstance(address2, Address)
+    assert isinstance(address1_in_mo, Address)
+
     converted_objects = [address1, address2]
 
     dataloader.moapi.load_mo_org_unit_addresses.return_value = [address1_in_mo]
@@ -407,6 +436,10 @@ async def test_format_converted_address_objects_without_person_or_org_unit(
     address1 = Address.from_simplified_fields("foo", address_type_uuid, "2021-01-01")
     address2 = Address.from_simplified_fields("bar", address_type_uuid, "2021-01-01")
 
+    # from_simplified_fields() has bad type annotation
+    assert isinstance(address1, Address)
+    assert isinstance(address2, Address)
+
     converted_objects = [address1, address2]
 
     formatted_objects = await sync_tool.format_converted_objects(
@@ -434,14 +467,19 @@ async def test_format_converted_it_user_objects(
 
     person_uuid = uuid4()
     it_system_uuid = uuid4()
-    converted_objects = [
-        ITUser.from_simplified_fields(
-            "Username1", it_system_uuid, "2021-01-01", person_uuid=person_uuid
-        ),
-        ITUser.from_simplified_fields(
-            "Username2", it_system_uuid, "2021-01-01", person_uuid=person_uuid
-        ),
-    ]
+
+    it_user1 = ITUser.from_simplified_fields(
+        "Username1", it_system_uuid, "2021-01-01", person_uuid=person_uuid
+    )
+    it_user2 = ITUser.from_simplified_fields(
+        "Username2", it_system_uuid, "2021-01-01", person_uuid=person_uuid
+    )
+
+    # from_simplified_fields() has bad type annotation
+    assert isinstance(it_user1, ITUser)
+    assert isinstance(it_user2, ITUser)
+
+    converted_objects = [it_user1, it_user2]
 
     formatted_objects = await sync_tool.format_converted_objects(
         converted_objects,
@@ -513,6 +551,11 @@ async def test_format_converted_primary_engagement_objects(
         primary_uuid=None,
         uuid=engagement2_in_mo_uuid,
     )
+
+    # from_simplified_fields() has bad type annotation
+    assert isinstance(engagement1, Engagement)
+    assert isinstance(engagement1_in_mo, Engagement)
+    assert isinstance(engagement2_in_mo, Engagement)
 
     dataloader.moapi.load_mo_employee_engagements.return_value = [
         engagement1_in_mo,
