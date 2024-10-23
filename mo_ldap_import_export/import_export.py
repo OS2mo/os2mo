@@ -361,7 +361,7 @@ class SyncTool:
                     address_type.uuid,
                 )
             elif org_unit:
-                objects_in_mo = await self.dataloader.load_mo_org_unit_addresses(
+                objects_in_mo = await self.dataloader.moapi.load_mo_org_unit_addresses(
                     OrgUnitUUID(org_unit.uuid),
                     address_type.uuid,
                 )

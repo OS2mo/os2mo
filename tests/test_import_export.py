@@ -335,7 +335,7 @@ async def test_format_converted_org_unit_address_objects(
 
     converted_objects = [address1, address2]
 
-    dataloader.load_mo_org_unit_addresses.return_value = [address1_in_mo]
+    dataloader.moapi.load_mo_org_unit_addresses.return_value = [address1_in_mo]
 
     formatted_objects = await sync_tool.format_converted_objects(
         converted_objects,
@@ -346,7 +346,9 @@ async def test_format_converted_org_unit_address_objects(
     assert formatted_objects[1][0].value == "foo"  # type: ignore
 
     # Simulate that a matching org unit for this address does not exist
-    dataloader.load_mo_org_unit_addresses.side_effect = NoObjectsReturnedException("f")
+    dataloader.moapi.load_mo_org_unit_addresses.side_effect = (
+        NoObjectsReturnedException("f")
+    )
     with pytest.raises(NoObjectsReturnedException):
         await sync_tool.format_converted_objects(converted_objects, "Address")
 
@@ -376,7 +378,7 @@ async def test_format_converted_org_unit_address_objects_identical_to_mo(
 
     converted_objects = [address1, address2]
 
-    dataloader.load_mo_org_unit_addresses.return_value = [address1_in_mo]
+    dataloader.moapi.load_mo_org_unit_addresses.return_value = [address1_in_mo]
 
     operations = await sync_tool.format_converted_objects(
         converted_objects,
