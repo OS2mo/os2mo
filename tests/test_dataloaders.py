@@ -1510,14 +1510,14 @@ async def test_create_mo_class(dataloader: DataLoader):
 async def test_create_mo_job_function(
     dataloader: DataLoader, graphql_mock: GraphQLMocker
 ) -> None:
-    route = graphql_mock.query("read_class_uuid_by_facet_and_class_user_key")
-    route.result = {"classes": {"objects": []}}
+    route1 = graphql_mock.query("read_class_uuid_by_facet_and_class_user_key")
+    route1.result = {"classes": {"objects": []}}
 
     uuid1 = uuid4()
-    uuid2 = uuid4()
+    route2 = graphql_mock.query("read_facet_uuid")
+    route2.result = {"facets": {"objects": [{"uuid": uuid1}]}}
 
-    dataloader.load_mo_facet_uuid = AsyncMock()  # type: ignore
-    dataloader.load_mo_facet_uuid.return_value = uuid1
+    uuid2 = uuid4()
 
     dataloader.create_mo_class = AsyncMock()  # type: ignore
     dataloader.create_mo_class.return_value = uuid2
@@ -1537,7 +1537,7 @@ async def test_load_mo_facet_uuid(dataloader: DataLoader, graphql_mock: GraphQLM
 
     route = graphql_mock.query("read_facet_uuid")
     route.result = {"facets": {"objects": [{"uuid": uuid}]}}
-    assert await dataloader.load_mo_facet_uuid("") == uuid
+    assert await dataloader.moapi.load_mo_facet_uuid("") == uuid
     assert route.called
 
 
@@ -1554,7 +1554,7 @@ async def test_load_mo_facet_uuid_multiple_facets(
         }
     }
     with pytest.raises(MultipleObjectsReturnedException):
-        await dataloader.load_mo_facet_uuid("")
+        await dataloader.moapi.load_mo_facet_uuid("")
     assert route.called
 
 
@@ -1562,7 +1562,7 @@ async def test_load_mo_facet_uuid_no_result(dataloader: DataLoader):
     dataloader.graphql_client.read_facet_uuid.return_value = parse_obj_as(  # type: ignore
         ReadFacetUuidFacets, {"objects": []}
     )
-    result = await dataloader.load_mo_facet_uuid("")
+    result = await dataloader.moapi.load_mo_facet_uuid("")
     assert result is None
 
 

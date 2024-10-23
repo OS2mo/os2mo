@@ -158,3 +158,25 @@ class MOAPI:
         if klass is None:
             return None
         return klass.uuid
+
+    async def load_mo_facet_uuid(self, user_key: str) -> UUID | None:
+        """Find the UUID of a facet by user-key.
+
+        Args:
+            user_key: The user-key to lookup.
+
+        Raises:
+            MultipleObjectsReturnedException:
+                If multiple facets share the same user-key.
+
+        Returns:
+            The uuid of the facet or None if not found.
+        """
+        result = await self.graphql_client.read_facet_uuid(user_key)
+        too_long = MultipleObjectsReturnedException(
+            f"Found multiple facets with user_key = '{user_key}': {result}"
+        )
+        facet = only(result.objects, too_long=too_long)
+        if facet is None:
+            return None
+        return facet.uuid
