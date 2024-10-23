@@ -18,7 +18,6 @@ from fastramqpi.context import Context
 from fastramqpi.ramqp.utils import RequeueMessage
 from more_itertools import first
 from more_itertools import last
-from ramodels.mo.details.it_system import ITUser
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.config import Settings
@@ -34,6 +33,7 @@ from mo_ldap_import_export.moapi import get_primary_engagement
 from mo_ldap_import_export.models import Address
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.models import Engagement
+from mo_ldap_import_export.models import ITUser
 from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.types import EmployeeUUID
 from mo_ldap_import_export.types import OrgUnitUUID
