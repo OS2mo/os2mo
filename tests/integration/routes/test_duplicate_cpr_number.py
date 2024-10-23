@@ -24,7 +24,7 @@ async def test_import_duplicate_cpr_number(
     assert response.status_code == 202
     result = response.json()
     assert result == {
-        (cpr[:-4] + "xxxx"): [
+        cpr: [
             combine_dn_strings([f"uid={first_dn}"] + ldap_org),
             combine_dn_strings([f"uid={second_dn}"] + ldap_org),
         ]

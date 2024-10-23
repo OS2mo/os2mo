@@ -41,7 +41,6 @@ from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
 from .exceptions import TimeOutException
 from .ldap_classes import LdapObject
-from .processors import _hide_cpr as hide_cpr
 from .types import DN
 from .types import RDN
 from .utils import combine_dn_strings
@@ -626,10 +625,10 @@ async def single_object_search(
     search_entries = await object_search(searchParameters, ldap_connection)
 
     too_long_exception = MultipleObjectsReturnedException(
-        hide_cpr(f"Found multiple entries for {searchParameters}: {search_entries}")
+        f"Found multiple entries for {searchParameters}: {search_entries}"
     )
     too_short_exception = NoObjectsReturnedException(
-        hide_cpr(f"Found no entries for {searchParameters}")
+        f"Found no entries for {searchParameters}"
     )
     return one(
         search_entries, too_short=too_short_exception, too_long=too_long_exception

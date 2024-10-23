@@ -49,7 +49,6 @@ from .ldap import object_search
 from .ldap import paged_search
 from .ldap_classes import LdapObject
 from .ldap_emit import publish_uuids
-from .processors import _hide_cpr as hide_cpr
 from .types import DN
 from .types import CPRNumber
 from .utils import combine_dn_strings
@@ -640,7 +639,7 @@ def construct_router(settings: Settings) -> APIRouter:
 
         for cpr in set(cpr_values):
             if cpr_values.count(cpr) > 1:
-                output[hide_cpr(cpr)] = [
+                output[cpr] = [
                     r["dn"] for r in responses if r["attributes"][cpr_field] == cpr
                 ]
 

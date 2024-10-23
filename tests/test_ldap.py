@@ -529,11 +529,11 @@ async def test_single_object_search(ldap_connection: MagicMock, context: Context
         "search_filter": "CPR=010101-1234",
     }
 
-    with pytest.raises(MultipleObjectsReturnedException, match="010101-xxxx"):
+    with pytest.raises(MultipleObjectsReturnedException, match="010101-1234"):
         ldap_connection.get_response.return_value = [search_entry] * 2, result
         await single_object_search(search_parameters, ldap_connection)
 
-    with pytest.raises(NoObjectsReturnedException, match="010101-xxxx"):
+    with pytest.raises(NoObjectsReturnedException, match="010101-1234"):
         ldap_connection.get_response.return_value = [search_entry] * 0, result
         await single_object_search(search_parameters, ldap_connection)
 
