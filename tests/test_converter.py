@@ -1270,29 +1270,29 @@ async def test_get_primary_engagement_dict(dataloader: AsyncMock) -> None:
     ]
     # One primary
     # -----------
-    dataloader.is_primaries.return_value = [True, False, False]
+    dataloader.moapi.is_primaries.return_value = [True, False, False]
     result = await get_primary_engagement_dict(dataloader, employee_uuid)
     assert result["user_key"] == "foo"
 
-    dataloader.is_primaries.return_value = [False, True, False]
+    dataloader.moapi.is_primaries.return_value = [False, True, False]
     result = await get_primary_engagement_dict(dataloader, employee_uuid)
     assert result["user_key"] == "bar"
 
-    dataloader.is_primaries.return_value = [False, False, True]
+    dataloader.moapi.is_primaries.return_value = [False, False, True]
     result = await get_primary_engagement_dict(dataloader, employee_uuid)
     assert result["user_key"] == "baz"
 
     # Two primaries
     # -------------
     with pytest.raises(ValueError) as exc_info:
-        dataloader.is_primaries.return_value = [False, True, True]
+        dataloader.moapi.is_primaries.return_value = [False, True, True]
         await get_primary_engagement_dict(dataloader, employee_uuid)
     assert "Expected exactly one item in iterable" in str(exc_info.value)
 
     # No primary
     # ----------
     with pytest.raises(ValueError) as exc_info:
-        dataloader.is_primaries.return_value = [False, False, False]
+        dataloader.moapi.is_primaries.return_value = [False, False, False]
         await get_primary_engagement_dict(dataloader, employee_uuid)
     assert "too few items in iterable (expected 1)" in str(exc_info.value)
 
@@ -1301,13 +1301,13 @@ async def test_get_primary_engagement_dict(dataloader: AsyncMock) -> None:
     dataloader.load_mo_employee_engagement_dicts.return_value = [engagement3]
     # One primary
     # -----------
-    dataloader.is_primaries.return_value = [True]
+    dataloader.moapi.is_primaries.return_value = [True]
     result = await get_primary_engagement_dict(dataloader, employee_uuid)
     assert result["user_key"] == "baz"
 
     # No primary
     with pytest.raises(ValueError) as exc_info:
-        dataloader.is_primaries.return_value = [False]
+        dataloader.moapi.is_primaries.return_value = [False]
         await get_primary_engagement_dict(dataloader, employee_uuid)
     assert "too few items in iterable (expected 1)" in str(exc_info.value)
 
@@ -1315,7 +1315,7 @@ async def test_get_primary_engagement_dict(dataloader: AsyncMock) -> None:
     # -------------
     with pytest.raises(ValueError) as exc_info:
         dataloader.load_mo_employee_engagement_dicts.return_value = []
-        dataloader.is_primaries.return_value = []
+        dataloader.moapi.is_primaries.return_value = []
         await get_primary_engagement_dict(dataloader, employee_uuid)
     assert "too few items in iterable (expected 1)" in str(exc_info.value)
 

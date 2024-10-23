@@ -394,7 +394,7 @@ class SyncTool:
             # If we have duplicate user_keys, remove those which are the same as the
             # primary engagement's user_key
             if len(set(user_keys)) < len(user_keys):
-                primaries = await self.dataloader.is_primaries(
+                primaries = await self.dataloader.moapi.is_primaries(
                     [o.uuid for o in objects_in_mo]
                 )
                 num_primaries = quantify(primaries)

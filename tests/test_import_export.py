@@ -237,7 +237,7 @@ async def test_format_converted_multiple_primary_engagements(
 
     dataloader.load_mo_employee_engagements.return_value = [engagement1, engagement2]
 
-    dataloader.is_primaries.return_value = [True, True]
+    dataloader.moapi.is_primaries.return_value = [True, True]
 
     converted_objects = [engagement1, engagement2]
 
@@ -470,7 +470,7 @@ async def test_format_converted_primary_engagement_objects(
     async def is_primaries(uuids):
         return [uuid == engagement1_in_mo_uuid for uuid in uuids]
 
-    dataloader.is_primaries = is_primaries
+    dataloader.moapi.is_primaries = is_primaries
 
     engagement1 = Engagement.from_simplified_fields(
         org_unit_uuid=uuid4(),
