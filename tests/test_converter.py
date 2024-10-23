@@ -1083,7 +1083,7 @@ async def test_get_current_engagement_attribute(converter: LdapConverter):
     }
 
     dataloader = AsyncMock()
-    dataloader.load_mo_employee_engagement_dicts.return_value = [engagement1]
+    dataloader.moapi.load_mo_employee_engagement_dicts.return_value = [engagement1]
     converter.dataloader = dataloader
 
     test_attributes = [a for a in engagement1 if a != "user_key"]
@@ -1097,14 +1097,14 @@ async def test_get_current_engagement_attribute(converter: LdapConverter):
 
     # Try for an employee without matching engagements
     with pytest.raises(UUIDNotFoundException):
-        dataloader.load_mo_employee_engagement_dicts.return_value = []
+        dataloader.moapi.load_mo_employee_engagement_dicts.return_value = []
         await get_current_engagement_attribute_uuid_dict(
             dataloader, uuid4(), "mucki", attribute
         )
 
     # Try to find a duplicate engagement
     with pytest.raises(UUIDNotFoundException):
-        dataloader.load_mo_employee_engagement_dicts.return_value = [
+        dataloader.moapi.load_mo_employee_engagement_dicts.return_value = [
             engagement2,
             engagement3,
         ]
@@ -1122,7 +1122,7 @@ async def test_get_current_engagement_attribute(converter: LdapConverter):
 async def test_get_current_org_unit_uuid(dataloader: AsyncMock) -> None:
     uuid = str(uuid4())
 
-    dataloader.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
+    dataloader.moapi.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
         {"uuid": uuid4(), "org_unit_uuid": uuid}
     ]
 
@@ -1134,7 +1134,7 @@ async def test_get_current_org_unit_uuid(dataloader: AsyncMock) -> None:
 async def test_get_current_engagement_type_uuid(dataloader: AsyncMock) -> None:
     uuid = str(uuid4())
 
-    dataloader.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
+    dataloader.moapi.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
         {"uuid": uuid4(), "engagement_type_uuid": uuid}
     ]
 
@@ -1146,7 +1146,7 @@ async def test_get_current_engagement_type_uuid(dataloader: AsyncMock) -> None:
 async def test_get_current_primary_uuid(dataloader: AsyncMock) -> None:
     uuid = str(uuid4())
 
-    dataloader.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
+    dataloader.moapi.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
         {"uuid": uuid4(), "primary_uuid": uuid}
     ]
 
@@ -1154,7 +1154,7 @@ async def test_get_current_primary_uuid(dataloader: AsyncMock) -> None:
         "uuid"
     ] == uuid  # type: ignore
 
-    dataloader.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
+    dataloader.moapi.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
         {"uuid": uuid4(), "primary_uuid": None}
     ]
 
@@ -1263,7 +1263,7 @@ async def test_get_primary_engagement_dict(dataloader: AsyncMock) -> None:
 
     # 3 engagements
     # -------------
-    dataloader.load_mo_employee_engagement_dicts.return_value = [
+    dataloader.moapi.load_mo_employee_engagement_dicts.return_value = [
         engagement1,
         engagement2,
         engagement3,
@@ -1298,7 +1298,7 @@ async def test_get_primary_engagement_dict(dataloader: AsyncMock) -> None:
 
     # 1 engagement
     # ------------
-    dataloader.load_mo_employee_engagement_dicts.return_value = [engagement3]
+    dataloader.moapi.load_mo_employee_engagement_dicts.return_value = [engagement3]
     # One primary
     # -----------
     dataloader.moapi.is_primaries.return_value = [True]
@@ -1314,7 +1314,7 @@ async def test_get_primary_engagement_dict(dataloader: AsyncMock) -> None:
     # 0 engagements
     # -------------
     with pytest.raises(ValueError) as exc_info:
-        dataloader.load_mo_employee_engagement_dicts.return_value = []
+        dataloader.moapi.load_mo_employee_engagement_dicts.return_value = []
         dataloader.moapi.is_primaries.return_value = []
         await get_primary_engagement_dict(dataloader, employee_uuid)
     assert "too few items in iterable (expected 1)" in str(exc_info.value)
