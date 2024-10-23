@@ -18,9 +18,9 @@ from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
 from more_itertools import bucket
 from ramodels.mo._shared import MOBase
-from ramodels.mo.details.address import Address
 from ramodels.mo.details.it_system import ITUser
 
+from mo_ldap_import_export.models import Address
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.models import Engagement
 

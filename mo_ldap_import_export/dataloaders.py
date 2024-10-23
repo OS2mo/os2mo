@@ -19,10 +19,10 @@ from more_itertools import bucket
 from more_itertools import one
 from more_itertools import partition
 from ramodels.mo import MOBase
-from ramodels.mo.details.address import Address
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.organisation_unit import OrganisationUnit
 
+from mo_ldap_import_export.models import Address
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.models import Engagement
 
