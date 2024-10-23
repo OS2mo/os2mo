@@ -985,7 +985,7 @@ async def test_load_mo_employee_engagements(
         }
     }
 
-    result = await dataloader.load_mo_employee_engagements(person_uuid)
+    result = await dataloader.moapi.load_mo_employee_engagements(person_uuid)
     assert one(result).dict(exclude_none=True) == {
         "engagement_type": {"uuid": engagement_type_uuid},
         "job_function": {"uuid": job_function_uuid},

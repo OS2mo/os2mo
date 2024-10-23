@@ -399,3 +399,22 @@ class MOAPI:
             if engagement.current
         ]
         return output
+
+    async def load_mo_employee_engagements(
+        self, employee_uuid: UUID
+    ) -> list[Engagement]:
+        """
+        Load all current engagements linked to an employee
+        """
+        result = await self.graphql_client.read_engagements_by_employee_uuid(
+            employee_uuid
+        )
+        engagement_uuids = [
+            engagement.current.uuid
+            for engagement in result.objects
+            if engagement.current is not None
+        ]
+        output = await asyncio.gather(*map(self.load_mo_engagement, engagement_uuids))
+        # If no active validities, pretend we did not get the object at all
+        output = [obj for obj in output if obj is not None]
+        return cast(list[Engagement], output)

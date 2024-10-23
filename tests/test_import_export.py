@@ -141,7 +141,7 @@ async def test_format_converted_engagement_objects(
         from_date="2021-01-01",
     )
 
-    dataloader.load_mo_employee_engagements.return_value = [
+    dataloader.moapi.load_mo_employee_engagements.return_value = [
         engagement_in_mo,
     ]
 
@@ -197,7 +197,7 @@ async def test_format_converted_engagement_duplicate(
         from_date="2021-01-01",
     )
 
-    dataloader.load_mo_employee_engagements.return_value = [
+    dataloader.moapi.load_mo_employee_engagements.return_value = [
         engagement1_in_mo,
         engagement2_in_mo,
     ]
@@ -235,7 +235,10 @@ async def test_format_converted_multiple_primary_engagements(
         from_date="2021-01-01",
     )
 
-    dataloader.load_mo_employee_engagements.return_value = [engagement1, engagement2]
+    dataloader.moapi.load_mo_employee_engagements.return_value = [
+        engagement1,
+        engagement2,
+    ]
 
     dataloader.moapi.is_primaries.return_value = [True, True]
 
@@ -511,7 +514,7 @@ async def test_format_converted_primary_engagement_objects(
         uuid=engagement2_in_mo_uuid,
     )
 
-    dataloader.load_mo_employee_engagements.return_value = [
+    dataloader.moapi.load_mo_employee_engagements.return_value = [
         engagement1_in_mo,
         engagement2_in_mo,
     ]
@@ -530,8 +533,8 @@ async def test_format_converted_primary_engagement_objects(
     assert formatted_objects[0][0].user_key == "123"
 
     # Simulate that a matching employee for this engagement does not exist
-    dataloader.load_mo_employee_engagements.side_effect = NoObjectsReturnedException(
-        "f"
+    dataloader.moapi.load_mo_employee_engagements.side_effect = (
+        NoObjectsReturnedException("f")
     )
     with pytest.raises(NoObjectsReturnedException):
         await sync_tool.format_converted_objects(converted_objects, json_key)
