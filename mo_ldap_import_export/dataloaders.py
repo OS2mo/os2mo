@@ -172,7 +172,7 @@ class DataLoader:
             return set()
 
         it_system_uuid = UUID(raw_it_system_uuid)
-        it_users = await self.load_mo_employee_it_users(uuid, it_system_uuid)
+        it_users = await self.moapi.load_mo_employee_it_users(uuid, it_system_uuid)
         ldap_uuids = self.extract_unique_ldap_uuids(it_users)
         dns = await self.ldapapi.convert_ldap_uuids_to_dns(ldap_uuids)
         # No DNs, no problem
@@ -323,23 +323,6 @@ class DataLoader:
             await self.create_ituser(it_user)
 
         return dn
-
-    async def load_mo_employee_it_users(
-        self,
-        employee_uuid: UUID,
-        it_system_uuid: UUID,
-    ) -> list[ITUser]:
-        """
-        Load all current it users of a specific type linked to an employee
-        """
-        result = await self.graphql_client.read_ituser_by_employee_and_itsystem_uuid(
-            employee_uuid, it_system_uuid
-        )
-        ituser_uuids = [ituser.uuid for ituser in result.objects]
-        output = await asyncio.gather(*map(self.moapi.load_mo_it_user, ituser_uuids))
-        # If no active validities, pretend we did not get the object at all
-        output = [obj for obj in output if obj is not None]
-        return cast(list[ITUser], output)
 
     async def load_mo_employee_engagement_dicts(
         self,

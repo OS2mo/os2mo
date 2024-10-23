@@ -427,7 +427,7 @@ async def test_format_converted_it_user_objects(
         "Username1", uuid4(), "2021-01-01", person_uuid=uuid4()
     )
 
-    dataloader.load_mo_employee_it_users.return_value = [it_user_in_mo]
+    dataloader.moapi.load_mo_employee_it_users.return_value = [it_user_in_mo]
 
     person_uuid = uuid4()
     it_system_uuid = uuid4()
@@ -452,7 +452,9 @@ async def test_format_converted_it_user_objects(
     assert len(formatted_objects) == 2  # was 1
 
     # Simulate that a matching employee for this it user does not exist
-    dataloader.load_mo_employee_it_users.side_effect = NoObjectsReturnedException("f")
+    dataloader.moapi.load_mo_employee_it_users.side_effect = NoObjectsReturnedException(
+        "f"
+    )
     with pytest.raises(NoObjectsReturnedException):
         await sync_tool.format_converted_objects(converted_objects, "ITUser")
 

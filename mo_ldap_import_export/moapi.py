@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
 from datetime import UTC
 from datetime import datetime
 from typing import Protocol
@@ -356,3 +357,20 @@ class MOAPI:
                 "Unable to lookup org-unit addresses", uuids=no_validity_uuids
             )
         return cast(list[Address], [obj for _, obj in validity])
+
+    async def load_mo_employee_it_users(
+        self,
+        employee_uuid: UUID,
+        it_system_uuid: UUID,
+    ) -> list[ITUser]:
+        """
+        Load all current it users of a specific type linked to an employee
+        """
+        result = await self.graphql_client.read_ituser_by_employee_and_itsystem_uuid(
+            employee_uuid, it_system_uuid
+        )
+        ituser_uuids = [ituser.uuid for ituser in result.objects]
+        output = await asyncio.gather(*map(self.load_mo_it_user, ituser_uuids))
+        # If no active validities, pretend we did not get the object at all
+        output = [obj for obj in output if obj is not None]
+        return cast(list[ITUser], output)
