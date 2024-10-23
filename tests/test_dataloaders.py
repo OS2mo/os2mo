@@ -27,7 +27,6 @@ from more_itertools import one
 from pydantic import BaseModel
 from pydantic import Field
 from pydantic import parse_obj_as
-from ramodels.mo._shared import Validity
 from ramodels.mo.details.address import AddressType
 from structlog.testing import capture_logs
 
@@ -67,6 +66,7 @@ from mo_ldap_import_export.moapi import extract_current_or_latest_validity
 from mo_ldap_import_export.models import Address
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.models import ITUser
+from mo_ldap_import_export.models import Validity
 from mo_ldap_import_export.routes import load_all_current_it_users
 from mo_ldap_import_export.routes import load_ldap_attribute_values
 from mo_ldap_import_export.routes import load_ldap_cpr_object
