@@ -29,8 +29,9 @@ from ramodels.mo import MOBase
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
-from ramodels.mo.employee import Employee
 from structlog.contextvars import bound_contextvars
+
+from mo_ldap_import_export.models import Employee
 
 from .config import Settings
 from .converters import LdapConverter

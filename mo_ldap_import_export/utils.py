@@ -21,7 +21,8 @@ from ramodels.mo._shared import MOBase
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
-from ramodels.mo.employee import Employee
+
+from mo_ldap_import_export.models import Employee
 
 from .customer_specific import JobTitleFromADToMO
 
@@ -42,6 +43,7 @@ def mo_today() -> datetime:
 def import_class(name: str) -> type[MOBase]:
     import_map: dict[str, type[MOBase]] = {
         "Custom.JobTitleFromADToMO": JobTitleFromADToMO,
+        # TODO: these have nothing to do with ramodels anymore
         "ramodels.mo.details.address.Address": Address,
         "ramodels.mo.details.engagement.Engagement": Engagement,
         "ramodels.mo.details.it_system.ITUser": ITUser,

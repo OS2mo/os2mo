@@ -71,7 +71,7 @@ def test_cannot_terminate_employee(minimal_mapping: dict) -> None:
     with pytest.raises(ValidationError) as exc_info:
         parse_obj_as(ConversionMapping, invalid_mapping)
     assert (
-        "Termination not supported for <class 'ramodels.mo.employee.Employee'>"
+        "Termination not supported for <class 'mo_ldap_import_export.models.Employee'>"
         in str(exc_info.value)
     )
 

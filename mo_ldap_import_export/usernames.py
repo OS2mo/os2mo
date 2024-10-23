@@ -8,7 +8,8 @@ import structlog
 from ldap3 import Connection
 from more_itertools import one
 from more_itertools import split_when
-from ramodels.mo.employee import Employee
+
+from mo_ldap_import_export.models import Employee
 
 from .config import Settings
 from .config import UsernameGeneratorConfig

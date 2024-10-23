@@ -21,7 +21,6 @@ from more_itertools import last
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
-from ramodels.mo.employee import Employee
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.config import Settings
@@ -34,6 +33,7 @@ from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.import_export import SyncTool
 from mo_ldap_import_export.main import handle_org_unit
 from mo_ldap_import_export.moapi import get_primary_engagement
+from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.types import EmployeeUUID
 from mo_ldap_import_export.types import OrgUnitUUID

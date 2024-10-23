@@ -10,12 +10,12 @@ import pytest
 from fastramqpi.context import Context
 from pydantic import ValidationError
 from pydantic import parse_obj_as
-from ramodels.mo import Employee
 
 from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.config import UsernameGeneratorConfig
 from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.moapi import MOAPI
+from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.usernames import AlleroedUserNameGenerator
 from mo_ldap_import_export.usernames import UserNameGenerator
 from tests.graphql_mocker import GraphQLMocker
