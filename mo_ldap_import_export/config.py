@@ -7,7 +7,6 @@ from contextlib import suppress
 from enum import Enum
 from typing import Any
 from typing import Literal
-from typing import get_args
 
 import structlog
 from fastramqpi.config import Settings as FastRAMQPISettings
@@ -22,10 +21,10 @@ from pydantic import SecretStr
 from pydantic import parse_obj_as
 from pydantic import root_validator
 from pydantic import validator
-from ramodels.mo.detail import Detail
 
 from mo_ldap_import_export.models import MOBase
 
+from .models import Employee
 from .utils import import_class
 
 logger = structlog.stdlib.get_logger()
@@ -149,24 +148,16 @@ class LDAP2MOMapping(MappingBaseModel):
         return v.lower()
 
     @root_validator
-    def check_terminate_only_set_on_valid_type(
+    def check_terminate_not_set_on_employee(
         cls, values: dict[str, Any]
     ) -> dict[str, Any]:
-        """Ensure that terminate is only set on things we can terminate."""
+        """Ensure that terminate is not set on employee, which you cannot terminate."""
         if not values["terminate"]:
             return values
 
-        # model_type is a name like 'address', 'engagement' or 'it'
         mo_class = import_class(values["objectClass"])
-        model_type = mo_class.__fields__["type_"].default
-
-        # The detail type contains a literal with valid details that can be terminated
-        # To extract the strings given in the literal we use get_args
-        detail_type = Detail.__fields__["type"].type_
-        terminatable_model_types = get_args(detail_type)
-
-        if model_type not in terminatable_model_types:
-            raise ValueError(f"Termination not supported for {mo_class}")
+        if mo_class is Employee:
+            raise ValueError("Termination not supported for employee")
 
         return values
 

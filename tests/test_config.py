@@ -70,10 +70,7 @@ def test_cannot_terminate_employee(minimal_mapping: dict) -> None:
     )
     with pytest.raises(ValidationError) as exc_info:
         parse_obj_as(ConversionMapping, invalid_mapping)
-    assert (
-        "Termination not supported for <class 'mo_ldap_import_export.models.Employee'>"
-        in str(exc_info.value)
-    )
+    assert "Termination not supported for employee" in str(exc_info.value)
 
 
 def test_can_terminate_address(address_mapping: dict) -> None:
