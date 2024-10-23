@@ -355,28 +355,6 @@ class DataLoader:
 
         return dn
 
-    async def load_mo_it_user(
-        self, uuid: UUID, current_objects_only=True
-    ) -> ITUser | None:
-        start = end = UNSET if current_objects_only else None
-        results = await self.graphql_client.read_itusers([uuid], start, end)
-        result = only(results.objects)
-        if result is None:
-            return None
-        result_entry = extract_current_or_latest_validity(result.validities)
-        if result_entry is None:
-            return None
-        entry = jsonable_encoder(result_entry)
-        return ITUser.from_simplified_fields(
-            user_key=entry["user_key"],
-            itsystem_uuid=entry["itsystem_uuid"],
-            from_date=entry["validity"]["from"],
-            uuid=uuid,
-            to_date=entry["validity"]["to"],
-            person_uuid=entry["employee_uuid"],
-            engagement_uuid=entry["engagement_uuid"],
-        )
-
     async def load_mo_address(
         self, uuid: UUID, current_objects_only: bool = True
     ) -> Address | None:
@@ -509,7 +487,7 @@ class DataLoader:
             employee_uuid, it_system_uuid
         )
         ituser_uuids = [ituser.uuid for ituser in result.objects]
-        output = await asyncio.gather(*map(self.load_mo_it_user, ituser_uuids))
+        output = await asyncio.gather(*map(self.moapi.load_mo_it_user, ituser_uuids))
         # If no active validities, pretend we did not get the object at all
         output = [obj for obj in output if obj is not None]
         return cast(list[ITUser], output)

@@ -10,6 +10,7 @@ import time
 from collections.abc import Collection
 from collections.abc import Iterator
 from typing import Any
+from unittest.mock import ANY
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -690,7 +691,7 @@ async def test_load_mo_it_user(
         }
     }
 
-    output = await dataloader.load_mo_it_user(uuid4())
+    output = await dataloader.moapi.load_mo_it_user(uuid4())
     assert output is not None
     assert output.user_key == "foo"
     assert output.itsystem.uuid == uuid2
@@ -782,7 +783,7 @@ async def test_load_mo_it_user_not_found(
     route = graphql_mock.query("read_itusers")
     route.result = {"itusers": {"objects": objects}}
 
-    result = await dataloader.load_mo_it_user(uuid4())
+    result = await dataloader.moapi.load_mo_it_user(uuid4())
     assert result is None
 
     assert route.called
@@ -793,18 +794,50 @@ async def test_load_mo_employee_it_users(
 ) -> None:
     ituser_uuid = uuid4()
 
-    route = graphql_mock.query("read_ituser_by_employee_and_itsystem_uuid")
-    route.result = {"itusers": {"objects": [{"uuid": ituser_uuid}]}}
+    route1 = graphql_mock.query("read_ituser_by_employee_and_itsystem_uuid")
+    route1.result = {"itusers": {"objects": [{"uuid": ituser_uuid}]}}
 
-    load_mo_it_user = AsyncMock()
-    dataloader.load_mo_it_user = load_mo_it_user  # type: ignore
+    user_key = "test"
+    itsystem_uuid = uuid4()
+    person_uuid = uuid4()
+    route2 = graphql_mock.query("read_itusers")
+    route2.result = {
+        "itusers": {
+            "objects": [
+                {
+                    "validities": [
+                        {
+                            "user_key": user_key,
+                            "validity": {"from": "1970-01-01T00:00:00Z", "to": None},
+                            "employee_uuid": person_uuid,
+                            "itsystem_uuid": itsystem_uuid,
+                            "engagement_uuid": None,
+                        }
+                    ]
+                }
+            ]
+        }
+    }
 
     employee_uuid = uuid4()
     it_system_uuid = uuid4()
-    await dataloader.load_mo_employee_it_users(employee_uuid, it_system_uuid)
+    result = await dataloader.load_mo_employee_it_users(employee_uuid, it_system_uuid)
+    assert one(result).dict() == {
+        "user_key": user_key,
+        "person": {"uuid": person_uuid},
+        "itsystem": {"uuid": itsystem_uuid},
+        "engagement": None,
+        "org_unit": None,
+        "type_": "it",
+        "uuid": ANY,
+        "validity": {
+            "from_date": datetime.datetime(1970, 1, 1, tzinfo=datetime.UTC),
+            "to_date": None,
+        },
+    }
 
-    assert route.called
-    load_mo_it_user.assert_called_once_with(ituser_uuid)
+    assert route1.called
+    assert route2.called
 
 
 async def test_load_mo_employee_it_users_not_found(
