@@ -705,7 +705,7 @@ async def load_address(
             address_type_user_key=address_type_user_key,
         )
         raise RequeueMessage("No active validities on employee address")
-    fetched_address = await dataloader.load_mo_address(
+    fetched_address = await dataloader.moapi.load_mo_address(
         validity.uuid, current_objects_only=False
     )
     if fetched_address is None:  # pragma: no cover
@@ -757,7 +757,7 @@ async def load_org_unit_address(
             address_type_user_key=address_type_user_key,
         )
         raise RequeueMessage("No active validities on org-unit address")
-    fetched_address = await dataloader.load_mo_address(
+    fetched_address = await dataloader.moapi.load_mo_address(
         validity.uuid, current_objects_only=False
     )
     if fetched_address is None:  # pragma: no cover
