@@ -356,7 +356,7 @@ class SyncTool:
             address_type = first(converted_objects).address_type
 
             if person:
-                objects_in_mo = await self.dataloader.load_mo_employee_addresses(
+                objects_in_mo = await self.dataloader.moapi.load_mo_employee_addresses(
                     person.uuid,
                     address_type.uuid,
                 )
