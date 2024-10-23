@@ -582,6 +582,10 @@ class SyncTool:
 
         logger.info("Importing user")
 
+        if not self.settings.conversion_mapping.ldap_to_mo:
+            logger.info("import_single_user called without mapping")
+            return
+
         # Get the employee's UUID (if they exists)
         employee_uuid = await self.dataloader.find_mo_employee_uuid(dn)
         if employee_uuid:
@@ -658,11 +662,6 @@ class SyncTool:
         dn = best_dn
         exit_stack.enter_context(bound_contextvars(dn=dn))
 
-        # First import the Employee, then Engagement if present, then the rest.
-        # We want this order so dependencies exist before their dependent objects
-        if self.settings.conversion_mapping.ldap_to_mo is None:
-            return
-
         json_keys = set(self.settings.conversion_mapping.ldap_to_mo.keys())
         json_keys = {
             json_key
@@ -680,6 +679,8 @@ class SyncTool:
         }
         logger.info("Import checks executed", json_keys=json_keys)
 
+        # First import the Employee, then Engagement if present, then the rest.
+        # We want this order so dependencies exist before their dependent objects
         if "Employee" in json_keys:
             await self.import_single_user_entity("Employee", dn, employee_uuid)
             json_keys.discard("Employee")

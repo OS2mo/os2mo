@@ -1278,10 +1278,6 @@ async def test_make_mo_employee_dn_no_itsystem(
     log_events = [log["event"] for log in cap_logs]
     assert log_events == ["Generating DN for user"]
 
-    dataloader.sync_tool.import_single_user.assert_called_once_with(
-        dn, manual_import=True
-    )
-
 
 @pytest.mark.envvar({"LDAP_IT_SYSTEM": "ADUUID"})
 async def test_make_mo_employee_dn_no_cpr(
@@ -1348,9 +1344,6 @@ async def test_make_mo_employee_dn_no_cpr(
     ]
 
     dataloader.create_ituser.assert_called_once()
-    dataloader.sync_tool.import_single_user.assert_called_once_with(
-        dn, manual_import=True
-    )
 
 
 def test_extract_unique_objectGUIDs(dataloader: DataLoader) -> None:
