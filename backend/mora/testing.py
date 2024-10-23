@@ -5,8 +5,10 @@ from contextlib import AbstractAsyncContextManager
 from contextlib import asynccontextmanager
 
 from fastapi import APIRouter
+from psycopg.errors import UndefinedTable
 from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.ext.asyncio import AsyncConnection
 from starlette.requests import Request
 from starlette.status import HTTP_204_NO_CONTENT
@@ -42,7 +44,11 @@ async def emit(request: Request, amqp_system: depends.AMQPSystem) -> None:
             async with db._get_sessionmaker(request)() as session, session.begin():
                 await amqp._emit_events(session, amqp_system)
             return
-        except OperationalError as e:
+        except (OperationalError, ProgrammingError) as e:
+            if isinstance(e, ProgrammingError) and not isinstance(
+                e.orig, UndefinedTable
+            ):
+                raise
             # The database is unavailable while being snapshot or restored. Retry until
             # we succeed.
             logger.warning("Error emitting AMQP events", error=e)
@@ -147,7 +153,7 @@ async def snapshot(session: depends.Session) -> None:
     Snapshot the database.
     """
     logger.warning("Snapshotting database")
-    async with (superuser_connection(lora_get_settings()) as superuser):
+    async with superuser_connection(lora_get_settings()) as superuser:
         await copy_database(
             superuser,
             source=_get_current_database(session),
@@ -161,7 +167,7 @@ async def restore(session: depends.Session) -> None:
     Restore database snapshot.
     """
     logger.warning("Restoring database")
-    async with (superuser_connection(lora_get_settings()) as superuser):
+    async with superuser_connection(lora_get_settings()) as superuser:
         await copy_database(
             superuser,
             source=_get_snapshot_database(session),
