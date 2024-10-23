@@ -5,6 +5,7 @@ from ramodels.mo.details.address import Address as RAAddress
 from ramodels.mo.details.engagement import Engagement as RAEngagement
 from ramodels.mo.details.it_system import ITUser as RAITUser
 from ramodels.mo.employee import Employee as RAEmployee
+from ramodels.mo.organisation_unit import OrganisationUnit as RAOrganisationUnit
 
 
 class Validity(RAValidity):
@@ -24,4 +25,8 @@ class Engagement(RAEngagement):
 
 
 class ITUser(RAITUser):
+    pass
+
+
+class OrganisationUnit(RAOrganisationUnit):
     pass
