@@ -27,11 +27,11 @@ from more_itertools import partition
 from more_itertools import quantify
 from ramodels.mo import MOBase
 from ramodels.mo.details.address import Address
-from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
 from structlog.contextvars import bound_contextvars
 
 from mo_ldap_import_export.models import Employee
+from mo_ldap_import_export.models import Engagement
 
 from .config import Settings
 from .converters import LdapConverter
