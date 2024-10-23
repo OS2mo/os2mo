@@ -156,7 +156,6 @@ jinja2 templates, to be used for extracting values. For example:
   "mo_to_ldap": {
     "Employee": {
       "objectClass": "user",
-      "_export_to_ldap_": "true",
       "employeeID": "{{mo_employee.cpr_no}}"
     }
   }
@@ -185,9 +184,6 @@ last space and using the first part of the result. Note also the `uuid` field, w
 must be present to map the employee to the proper object in OS2mo. In this case, the
 uuid attribute links to a [global](#filters-and-globals) variable called `employee_uuid`.
 
-Note that you can also choose not to export this information to LDAP, by setting
-`_export_to_ldap_` equal to `false`. Similarly, you can choose not to import any information
-into OS2mo by setting `_import_to_mo_` equal to `false`
 
 #### Address conversion
 
@@ -205,7 +201,6 @@ An example of an address conversion dict is as follows:
   "mo_to_ldap": {
     "EmailEmployee": {
       "objectClass": "user",
-      "_export_to_ldap_": "true",
       "mail": "{{mo_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}"
     }
@@ -267,7 +262,6 @@ engaged at the organizational unit. This can be set up as follows:
   "mo_to_ldap": {
     "LocationUnit": {
       "objectClass": "user",
-      "_export_to_ldap_": "true",
       "postalAddress": "{{mo_org_unit_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}",
       "division": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
@@ -312,7 +306,6 @@ user conversion dict is as follows:
   "mo_to_ldap": {
     "Active Directory": {
       "objectClass": "user",
-      "_export_to_ldap_": "true",
       "msSFU30Name" : "{{mo_it_user.user_key}}",
       "employeeID": "{{mo_employee.cpr_no}}"
     }
@@ -350,7 +343,6 @@ an engagement conversion dict is as follows:
   "mo_to_ldap": {
     "Engagement" : {
       "objectClass": "user",
-      "_export_to_ldap_": "true",
       "employeeID": "{{mo_employee.cpr_no}}",
       "department": "{{NONE}}",
       "company": "{{NONE}}",
@@ -484,7 +476,6 @@ This can be configured in the file mapping as follows:
   "mo_to_ldap": {
     "Active Directory": {
       "objectClass": "user",
-      "_export_to_ldap_": "true",
       "distinguishedName" : "{{mo_employee_it_user.user_key}}",
     },
   }
@@ -528,7 +519,6 @@ This required an employee to be configured as follows in the mapping file:
   "mo_to_ldap": {
     "Employee": {
       "objectClass": "user",
-      "_export_to_ldap_": "true",
       "employeeID": "{{mo_employee.cpr_no}}",
       [...]
     },
