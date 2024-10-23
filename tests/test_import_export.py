@@ -32,8 +32,8 @@ from mo_ldap_import_export.environments import construct_environment
 from mo_ldap_import_export.exceptions import DNNotFound
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.import_export import SyncTool
-from mo_ldap_import_export.import_export import get_primary_engagement
 from mo_ldap_import_export.main import handle_org_unit
+from mo_ldap_import_export.moapi import get_primary_engagement
 from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.types import EmployeeUUID
 from mo_ldap_import_export.types import OrgUnitUUID
