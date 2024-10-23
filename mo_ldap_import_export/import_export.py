@@ -319,7 +319,7 @@ class SyncTool:
             logger.info("Not writing to LDAP as changeset is empty", dn=best_dn)
             return {}
 
-        await self.dataloader.modify_ldap_object(best_dn, ldap_changes)
+        await self.dataloader.ldapapi.modify_ldap_object(best_dn, ldap_changes)
 
         return ldap_changes
 

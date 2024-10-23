@@ -8,7 +8,9 @@ from uuid import UUID
 
 import structlog
 from ldap3 import BASE
+from ldap3 import MODIFY_REPLACE
 from ldap3 import Connection
+from ldap3.core.exceptions import LDAPInvalidValueError
 from ldap3.utils.dn import safe_dn
 from more_itertools import one
 from ramodels.mo._shared import validate_cpr
@@ -18,6 +20,7 @@ from .exceptions import NoObjectsReturnedException
 from .exceptions import ReadOnlyException
 from .ldap import get_ldap_object
 from .ldap import ldap_add
+from .ldap import ldap_modify
 from .ldap import make_ldap_object
 from .ldap import object_search
 from .ldap import single_object_search
@@ -210,3 +213,50 @@ class LDAPAPI:
         dns = {obj.dn for obj in ldap_objects}
         logger.info("Found LDAP(s) object", dns=dns)
         return set(dns)
+
+    async def modify_ldap_object(
+        self,
+        dn: DN,
+        requested_changes: dict[str, list],
+    ) -> None:
+        """
+        Parameters
+        -------------
+        object_to_modify : LDAPObject
+            object to upload to LDAP
+        delete: bool
+            Set to True to delete contents in LDAP, instead of creating/modifying them
+        """
+        logger.info("Uploading object", dn=dn, requested_changes=requested_changes)
+
+        # TODO: Remove this when ldap3s read-only flag works
+        if self.settings.ldap_read_only:
+            logger.info(
+                "LDAP connection is read-only",
+                operation="modify_ldap",
+                dn=dn,
+            )
+            raise ReadOnlyException("LDAP connection is read-only")
+
+        # Checks
+        if not self.ou_in_ous_to_write_to(dn):
+            logger.info(
+                "Not allowed to write to the specified OU",
+                operation="modify_ldap",
+                dn=dn,
+            )
+            return None
+
+        # Transform key-value changes to LDAP format
+        changes = {
+            attribute: [(MODIFY_REPLACE, value)]
+            for attribute, value in requested_changes.items()
+        }
+        try:
+            # Modify LDAP
+            logger.info("Uploading the changes", changes=requested_changes, dn=dn)
+            _, result = await ldap_modify(self.ldap_connection, dn, changes)
+            logger.info("LDAP Result", result=result, dn=dn)
+        except LDAPInvalidValueError as exc:
+            logger.exception("LDAP modify failed", dn=dn, changes=requested_changes)
+            raise exc
