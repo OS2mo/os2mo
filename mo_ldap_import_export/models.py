@@ -46,12 +46,7 @@ class OrganisationUnit(RAOrganisationUnit, MOBase):
     pass
 
 
-class CustomerSpecific(MOBase, extra=Extra.allow):  # type: ignore
-    async def sync_to_mo(self, graphql_client: GraphQLClient) -> None:
-        pass
-
-
-class JobTitleFromADToMO(CustomerSpecific):
+class JobTitleFromADToMO(MOBase):
     user: PersonRef = Field(
         description="Reference to the employee of the created engagement object."
     )
@@ -82,3 +77,6 @@ class JobTitleFromADToMO(CustomerSpecific):
                 for obj in engagements
             ]
         )
+
+    class Config:
+        extra = Extra.allow
