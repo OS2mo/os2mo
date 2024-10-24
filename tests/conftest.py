@@ -163,7 +163,7 @@ def integration_test_environment_variables(monkeypatch: pytest.MonkeyPatch) -> N
             {{
                 {
                     "employeeNumber": mo_employee.cpr_no,
-                    "title": mo_employee.user_key,
+                    "title": mo_employee.uuid|string,
                     "givenName": mo_employee.givenname,
                     "sn": mo_employee.surname,
                 }|tojson
@@ -243,7 +243,7 @@ def dataloader(
     test_ldap_object = LdapObject(
         name="Tester", Department="QA", dn="someDN", EmployeeID="0101012002"
     )
-    test_mo_employee = Employee(cpr_no="1212121234")
+    test_mo_employee = Employee(cpr_no="1212121234", givenname="Foo", surname="Bar")
 
     test_mo_it_user = ITUser.from_simplified_fields("foo", uuid4(), "2021-01-01")
 

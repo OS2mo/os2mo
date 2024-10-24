@@ -334,6 +334,8 @@ class UserNameGenerator:
         return existing_usernames, existing_common_names
 
     def generate_person_name(self, employee: Employee) -> list[str]:
+        assert employee.givenname is not None
+        assert employee.surname is not None
         givenname = employee.givenname
         surname = employee.surname
         name = givenname.split(" ")[:4] + [surname]

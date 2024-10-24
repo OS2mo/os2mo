@@ -155,7 +155,7 @@ def dataloader(
         EmployeeID="0101012003",
         objectGUID=objectGUID3,
     )
-    test_mo_employee = Employee(cpr_no="1212121234")
+    test_mo_employee = Employee(cpr_no="1212121234", givenname="Foo", surname="Bar")
 
     test_mo_it_user = ITUser.from_simplified_fields("foo", uuid4(), "2021-01-01")
 
@@ -201,7 +201,7 @@ def converter() -> MagicMock:
     converter._import_to_mo_.return_value = True
 
     converter.from_ldap = AsyncMock()
-    converter.from_ldap.return_value = Employee(name="Angus")
+    converter.from_ldap.return_value = Employee(givenname="Angus", surname="Angusson")
 
     converter.load_info_dicts = AsyncMock()
     converter._init = AsyncMock()

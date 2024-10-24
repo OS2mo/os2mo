@@ -1369,17 +1369,12 @@ async def test_get_employee_dict(
 
     result = await get_employee_dict(dataloader, uuid)
     assert result == {
-        "details": None,
         "givenname": "Hans",
-        "name": None,
-        "nickname": None,
         "nickname_givenname": None,
         "nickname_surname": None,
-        "org": None,
         "seniority": None,
         "surname": "Andersen",
-        "type_": "employee",
-        "user_key": str(uuid),
+        "user_key": "-",
         "uuid": uuid,
         "cpr_no": cpr_no,
     }

@@ -273,8 +273,8 @@ async def test_format_converted_employee_objects(
 ):
     converter.import_mo_object_class.return_value = Employee
 
-    employee1 = Employee(cpr_no="1212121234")
-    employee2 = Employee(cpr_no="1212121235")
+    employee1 = Employee(cpr_no="1212121234", givenname="Foo1", surname="Bar1")
+    employee2 = Employee(cpr_no="1212121235", givenname="Foo2", surname="Bar2")
 
     converted_objects = [employee1, employee2]
 

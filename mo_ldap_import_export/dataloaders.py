@@ -352,10 +352,6 @@ class DataLoader:
         )
 
     async def create_employee(self, obj: Employee) -> None:
-        assert obj.name is None
-        assert obj.org is None
-        assert obj.nickname is None
-        assert obj.details is None
         await self.graphql_client.user_create(
             input=EmployeeCreateInput(
                 uuid=obj.uuid,
