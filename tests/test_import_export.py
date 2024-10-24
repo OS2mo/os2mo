@@ -21,7 +21,6 @@ from more_itertools import last
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.config import Settings
-from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import Verb
 from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.environments import construct_environment
@@ -34,6 +33,7 @@ from mo_ldap_import_export.models import Address
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.models import Engagement
 from mo_ldap_import_export.models import ITUser
+from mo_ldap_import_export.models import JobTitleFromADToMO
 from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.types import EmployeeUUID
 from mo_ldap_import_export.types import OrgUnitUUID

@@ -24,7 +24,7 @@ from mo_ldap_import_export.models import Engagement
 from mo_ldap_import_export.models import ITUser
 from mo_ldap_import_export.models import MOBase
 
-from .customer_specific import JobTitleFromADToMO
+from .models import JobTitleFromADToMO
 
 logger = structlog.stdlib.get_logger()
 
