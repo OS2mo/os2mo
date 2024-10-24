@@ -300,15 +300,15 @@ async def test_modify_ldap_object_invalid_ou(
 async def test_load_mo_employee(
     dataloader: DataLoader, graphql_mock: GraphQLMocker
 ) -> None:
-    cpr_no = "1407711900"
+    cpr_number = "1407711900"
     uuid = uuid4()
 
     employee = {
         "uuid": uuid,
-        "cpr_no": cpr_no,
-        "givenname": "first_name",
+        "cpr_number": cpr_number,
+        "given_name": "first_name",
         "surname": "last_name",
-        "nickname_givenname": None,
+        "nickname_given_name": None,
         "nickname_surname": None,
         "validity": {"to": None},
     }
@@ -1026,7 +1026,7 @@ async def test_make_mo_employee_dn_no_correlation(
     graphql_mock: GraphQLMocker, dataloader: MagicMock
 ) -> None:
     employee_uuid = uuid4()
-    cpr_no = None
+    cpr_number = None
 
     route1 = graphql_mock.query("read_employees")
     route1.result = {
@@ -1036,10 +1036,10 @@ async def test_make_mo_employee_dn_no_correlation(
                     "validities": [
                         {
                             "uuid": employee_uuid,
-                            "cpr_no": cpr_no,
-                            "givenname": "Hans",
+                            "cpr_number": cpr_number,
+                            "given_name": "Hans",
                             "surname": "Andersen",
-                            "nickname_givenname": None,
+                            "nickname_given_name": None,
                             "nickname_surname": None,
                             "validity": {
                                 "from": None,
@@ -1065,7 +1065,7 @@ async def test_make_mo_employee_dn_no_itsystem(
     graphql_mock: GraphQLMocker,
 ) -> None:
     employee_uuid = uuid4()
-    cpr_no = "0101700000"
+    cpr_number = "0101700000"
 
     route1 = graphql_mock.query("read_employees")
     route1.result = {
@@ -1075,10 +1075,10 @@ async def test_make_mo_employee_dn_no_itsystem(
                     "validities": [
                         {
                             "uuid": employee_uuid,
-                            "cpr_no": cpr_no,
-                            "givenname": "Hans",
+                            "cpr_number": cpr_number,
+                            "given_name": "Hans",
                             "surname": "Andersen",
-                            "nickname_givenname": None,
+                            "nickname_given_name": None,
                             "nickname_surname": None,
                             "validity": {
                                 "from": None,
@@ -1119,7 +1119,7 @@ async def test_make_mo_employee_dn_no_cpr(
     graphql_mock: GraphQLMocker,
 ) -> None:
     employee_uuid = uuid4()
-    cpr_no = None
+    cpr_number = None
 
     route1 = graphql_mock.query("read_employees")
     route1.result = {
@@ -1129,10 +1129,10 @@ async def test_make_mo_employee_dn_no_cpr(
                     "validities": [
                         {
                             "uuid": employee_uuid,
-                            "cpr_no": cpr_no,
-                            "givenname": "Hans",
+                            "cpr_number": cpr_number,
+                            "given_name": "Hans",
                             "surname": "Andersen",
-                            "nickname_givenname": None,
+                            "nickname_given_name": None,
                             "nickname_surname": None,
                             "validity": {
                                 "from": None,
@@ -1813,10 +1813,10 @@ async def test_find_mo_employee_dn_by_cpr_number(
     employee_uuid = uuid4()
     employee = {
         "uuid": employee_uuid,
-        "cpr_no": cpr_number,
-        "givenname": "first_name",
+        "cpr_number": cpr_number,
+        "given_name": "first_name",
         "surname": "last_name",
-        "nickname_givenname": None,
+        "nickname_given_name": None,
         "nickname_surname": None,
         "validity": {"to": None},
     }

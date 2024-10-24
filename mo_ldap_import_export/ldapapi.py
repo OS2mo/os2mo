@@ -175,20 +175,22 @@ class LDAPAPI:
         )
         # Try to get the cpr number from LDAP and use that.
         with suppress(ValueError):
-            raw_cpr_no = getattr(ldap_object, self.settings.ldap_cpr_attribute)
+            raw_cpr_number = getattr(ldap_object, self.settings.ldap_cpr_attribute)
             # NOTE: Not sure if this only necessary for the mocked server or not
-            if isinstance(raw_cpr_no, list):
-                raw_cpr_no = one(raw_cpr_no)
-            cpr_no = validate_cpr(str(raw_cpr_no))
-            assert cpr_no is not None
-            return CPRNumber(cpr_no)
+            if isinstance(raw_cpr_number, list):
+                raw_cpr_number = one(raw_cpr_number)
+            cpr_number = validate_cpr(str(raw_cpr_number))
+            assert cpr_number is not None
+            return CPRNumber(cpr_number)
         return None
 
-    async def cpr2dns(self, cpr_no: CPRNumber) -> set[DN]:
+    async def cpr2dns(self, cpr_number: CPRNumber) -> set[DN]:
         try:
-            validate_cpr(cpr_no)
+            validate_cpr(cpr_number)
         except (ValueError, TypeError) as error:
-            raise NoObjectsReturnedException(f"cpr_no '{cpr_no}' is invalid") from error
+            raise NoObjectsReturnedException(
+                f"cpr_number '{cpr_number}' is invalid"
+            ) from error
 
         if not self.settings.ldap_cpr_attribute:
             raise NoObjectsReturnedException("cpr_field is not configured")
@@ -201,7 +203,7 @@ class LDAPAPI:
 
         object_class = self.settings.ldap_object_class
         object_class_filter = f"objectclass={object_class}"
-        cpr_filter = f"{self.settings.ldap_cpr_attribute}={cpr_no}"
+        cpr_filter = f"{self.settings.ldap_cpr_attribute}={cpr_number}"
 
         searchParameters = {
             "search_base": search_bases,

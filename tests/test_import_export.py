@@ -273,8 +273,8 @@ async def test_format_converted_employee_objects(
 ):
     converter.import_mo_object_class.return_value = Employee
 
-    employee1 = Employee(cpr_no="1212121234", givenname="Foo1", surname="Bar1")
-    employee2 = Employee(cpr_no="1212121235", givenname="Foo2", surname="Bar2")
+    employee1 = Employee(cpr_number="1212121234", given_name="Foo1", surname="Bar1")
+    employee2 = Employee(cpr_number="1212121235", given_name="Foo2", surname="Bar2")
 
     converted_objects = [employee1, employee2]
 
@@ -610,7 +610,7 @@ async def test_import_single_object_no_employee_no_sync(
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": ["employeeID"],
-                        "cpr_no": "{{ldap.employeeID or None}}",
+                        "cpr_number": "{{ldap.employeeID or None}}",
                         "uuid": "{{ employee_uuid or NONE }}",
                     }
                 },
@@ -648,7 +648,7 @@ async def test_import_single_object_from_LDAP_but_import_equals_false(
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": ["employeeID"],
-                        "cpr_no": "{{ldap.employeeID or None}}",
+                        "cpr_number": "{{ldap.employeeID or None}}",
                         "uuid": "{{ employee_uuid or NONE }}",
                     }
                 },

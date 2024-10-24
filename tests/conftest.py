@@ -152,9 +152,9 @@ def integration_test_environment_variables(monkeypatch: pytest.MonkeyPatch) -> N
                 "_import_to_mo_": "false",
                 "_ldap_attributes_": ["employeeNumber", "title", "givenName", "sn"],
                 "uuid": "{{ employee_uuid or NONE }}",
-                "cpr_no": "{{ldap.employeeNumber|strip_non_digits or NONE}}",
+                "cpr_number": "{{ldap.employeeNumber|strip_non_digits or NONE}}",
                 "user_key": "{{ ldap.title }}",
-                "givenname": "{{ ldap.givenName }}",
+                "given_name": "{{ ldap.givenName }}",
                 "surname": "{{ ldap.sn }}",
             }
         },
@@ -162,9 +162,9 @@ def integration_test_environment_variables(monkeypatch: pytest.MonkeyPatch) -> N
             {% set mo_employee = load_mo_employee(uuid, current_objects_only=False) %}
             {{
                 {
-                    "employeeNumber": mo_employee.cpr_no,
+                    "employeeNumber": mo_employee.cpr_number,
                     "title": mo_employee.uuid|string,
-                    "givenName": mo_employee.givenname,
+                    "givenName": mo_employee.given_name,
                     "sn": mo_employee.surname,
                 }|tojson
             }}
@@ -243,7 +243,9 @@ def dataloader(
     test_ldap_object = LdapObject(
         name="Tester", Department="QA", dn="someDN", EmployeeID="0101012002"
     )
-    test_mo_employee = Employee(cpr_no="1212121234", givenname="Foo", surname="Bar")
+    test_mo_employee = Employee(
+        cpr_number="1212121234", given_name="Foo", surname="Bar"
+    )
 
     test_mo_it_user = ITUser.from_simplified_fields("foo", uuid4(), "2021-01-01")
 

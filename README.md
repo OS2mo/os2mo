@@ -156,12 +156,12 @@ jinja2 templates, to be used for extracting values. For example:
   "mo_to_ldap": {
     "Employee": {
       "objectClass": "user",
-      "employeeID": "{{mo_employee.cpr_no}}"
+      "employeeID": "{{mo_employee.cpr_number}}"
     }
   }
   [...]
 ```
-Here, `employeeID` in the resulting LDAP object will be set to the `cpr_no` value from
+Here, `employeeID` in the resulting LDAP object will be set to the `cpr_number` value from
 the OS2mo object. The `mo_employee` object will be added to the template context by adding
 to the `mo_object_dict` in `mo_import_export.main.listen_to_changes_in_employees`.
 
@@ -172,13 +172,13 @@ More advanced template strings may be constructed, such as:
     "Employee": {
       "objectClass": "user",
       "_import_to_mo_": "true",
-      "givenname": "{{ldap.givenName or ldap.name|splitlast|first}}",
+      "given_name": "{{ldap.givenName or ldap.name|splitlast|first}}",
       "uuid": "{{ employee_uuid or NONE }}"
     }
   }
   [...]
 ```
-Here, the OS2mo object's `givenname` attribute will be set to the givenName attribute from
+Here, the OS2mo object's `given_name` attribute will be set to the givenName attribute from
 LDAP, if it exists, or if it does not, to the name attribute modified to be split by the
 last space and using the first part of the result. Note also the `uuid` field, which
 must be present to map the employee to the proper object in OS2mo. In this case, the
@@ -202,7 +202,7 @@ An example of an address conversion dict is as follows:
     "EmailEmployee": {
       "objectClass": "user",
       "mail": "{{mo_address.value}}",
-      "employeeID": "{{mo_employee.cpr_no}}"
+      "employeeID": "{{mo_employee.cpr_number}}"
     }
   }
   [...]
@@ -263,7 +263,7 @@ engaged at the organizational unit. This can be set up as follows:
     "LocationUnit": {
       "objectClass": "user",
       "postalAddress": "{{mo_org_unit_address.value}}",
-      "employeeID": "{{mo_employee.cpr_no}}",
+      "employeeID": "{{mo_employee.cpr_number}}",
       "division": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
     }
   }
@@ -307,7 +307,7 @@ user conversion dict is as follows:
     "Active Directory": {
       "objectClass": "user",
       "msSFU30Name" : "{{mo_it_user.user_key}}",
-      "employeeID": "{{mo_employee.cpr_no}}"
+      "employeeID": "{{mo_employee.cpr_number}}"
     }
   }
   [...]
@@ -343,7 +343,7 @@ an engagement conversion dict is as follows:
   "mo_to_ldap": {
     "Engagement" : {
       "objectClass": "user",
-      "employeeID": "{{mo_employee.cpr_no}}",
+      "employeeID": "{{mo_employee.cpr_number}}",
       "department": "{{NONE}}",
       "company": "{{NONE}}",
       "departmentNumber": "{{mo_engagement.user_key}}",
@@ -519,7 +519,7 @@ This required an employee to be configured as follows in the mapping file:
   "mo_to_ldap": {
     "Employee": {
       "objectClass": "user",
-      "employeeID": "{{mo_employee.cpr_no}}",
+      "employeeID": "{{mo_employee.cpr_number}}",
       [...]
     },
   }
@@ -534,7 +534,7 @@ And the other way around:
     "Employee": {
       "objectClass": "ramodels.mo.employee.Employee",
       "_import_to_mo_": "true",
-      "cpr_no": "{{ldap.employeeID|strip_non_digits}}",
+      "cpr_number": "{{ldap.employeeID|strip_non_digits}}",
       "uuid": "{{ employee_uuid or NONE }}"
       [...]
     },
@@ -542,7 +542,7 @@ And the other way around:
   [...]
 ```
 
-Note that the OS2mo `employee.cpr_no` attribute is mapped both in the `ldap_to_mo` and
+Note that the OS2mo `employee.cpr_number` attribute is mapped both in the `ldap_to_mo` and
 the `mo_to_ldap` mapping. This will cause the application to understand that it can
 attempt a cpr-number lookup to find a matching object in LDAP/MO when required.
 
@@ -558,13 +558,13 @@ In addition to the [Jinja2's builtin filters][jinja2_filters],
 the following filters are available:
 
 * `splitfirst`: Splits a string at the first space, returning two elements
-  This is convenient for splitting a name into a givenName and a surname
+  This is convenient for splitting a name into a given name and a surname
   and works for names with no spaces (surname will then be empty). Takes a single
   separator argument which defaults to a whitespace. For example, you can write:
   `"streetAddress": "{{mo_org_unit_address.value|splitlast(',')|first|trim}}"`
 * `splitlast`: Splits a string at the last space, returning two elements
-  This is convenient for splitting a name into a givenName and a surname
-  and works for names with no spaces (givenname will then be empty). Takes a single
+  This is convenient for splitting a name into a given name and a surname
+  and works for names with no spaces (given name will then be empty). Takes a single
   separator argument which defaults to a whitespace.
 * `mo_datestring`: Accepts a datetime object and formats it as a string.
 * `strip_non_digits`: Removes all but digits from a string.

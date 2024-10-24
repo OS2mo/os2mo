@@ -18,7 +18,7 @@ async def test_cpr2dns_invalid_cpr() -> None:
 
     with pytest.raises(NoObjectsReturnedException) as exc_info:
         await ldapapi.cpr2dns(CPRNumber("pywrong"))
-    assert "cpr_no 'pywrong' is invalid" in str(exc_info.value)
+    assert "cpr_number 'pywrong' is invalid" in str(exc_info.value)
 
 
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")

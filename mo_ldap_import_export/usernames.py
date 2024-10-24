@@ -276,9 +276,9 @@ class UserNameGenerator:
             # Remove one middlename
             num_middlenames -= 1
             # Try to make a name with the selected number of middlenames
-            givenname, *middlenames, surname = name
+            given_name, *middlenames, surname = name
             middlenames = middlenames[:num_middlenames]
-            common_name = " ".join([givenname] + middlenames + [surname])
+            common_name = " ".join([given_name] + middlenames + [surname])
 
         # Cut off the name (leave place for the permutation counter)
         common_name = common_name[:60]
@@ -334,11 +334,11 @@ class UserNameGenerator:
         return existing_usernames, existing_common_names
 
     def generate_person_name(self, employee: Employee) -> list[str]:
-        assert employee.givenname is not None
+        assert employee.given_name is not None
         assert employee.surname is not None
-        givenname = employee.givenname
+        given_name = employee.given_name
         surname = employee.surname
-        name = givenname.split(" ")[:4] + [surname]
+        name = given_name.split(" ")[:4] + [surname]
         return name
 
     async def generate_username(self, employee: Employee) -> str:

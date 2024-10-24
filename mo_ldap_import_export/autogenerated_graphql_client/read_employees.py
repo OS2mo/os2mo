@@ -21,10 +21,10 @@ class ReadEmployeesEmployeesObjects(BaseModel):
 
 class ReadEmployeesEmployeesObjectsValidities(BaseModel):
     uuid: UUID
-    cpr_no: CPRNumber | None
-    givenname: str
+    cpr_number: CPRNumber | None
+    given_name: str
     surname: str
-    nickname_givenname: str | None
+    nickname_given_name: str | None
     nickname_surname: str | None
     validity: "ReadEmployeesEmployeesObjectsValiditiesValidity"
 

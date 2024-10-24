@@ -198,9 +198,9 @@ class DataLoader:
         employee = await self.moapi.load_mo_employee(uuid)
         if employee is None:
             raise NoObjectsReturnedException(f"Unable to lookup employee: {uuid}")
-        cpr_no = CPRNumber(employee.cpr_no) if employee.cpr_no else None
+        cpr_number = CPRNumber(employee.cpr_number) if employee.cpr_number else None
         # No CPR, no problem
-        if not cpr_no:
+        if not cpr_number:
             return set()
 
         logger.info(
@@ -209,7 +209,7 @@ class DataLoader:
         )
         dns = set()
         with suppress(NoObjectsReturnedException):
-            dns = await self.ldapapi.cpr2dns(cpr_no)
+            dns = await self.ldapapi.cpr2dns(cpr_number)
         if not dns:
             return set()
         logger.info(
@@ -259,11 +259,11 @@ class DataLoader:
         employee = await self.moapi.load_mo_employee(uuid)
         if employee is None:
             raise NoObjectsReturnedException(f"Unable to lookup employee: {uuid}")
-        cpr_no = CPRNumber(employee.cpr_no) if employee.cpr_no else None
+        cpr_number = CPRNumber(employee.cpr_number) if employee.cpr_number else None
 
         # Check if we even dare create a DN
         raw_it_system_uuid = await self.moapi.get_ldap_it_system_uuid()
-        if raw_it_system_uuid is None and cpr_no is None:
+        if raw_it_system_uuid is None and cpr_number is None:
             logger.warning(
                 "Could not or generate a DN for employee (cannot correlate)",
                 employee_uuid=uuid,
@@ -281,7 +281,7 @@ class DataLoader:
         #       Additionally it turns out that it does not only create the DN in LDAP
         #       rather it uploads the entire employee object to LDAP.
         #
-        # TODO: Does this upload actively require a cpr_no on the employee?
+        # TODO: Does this upload actively require a cpr_number on the employee?
         #       If we do not have the CPR number nor the ITSystem, we would be leaking
         #       the DN we generate, so maybe we should guard for this, the old code seemed
         #       to do so, maybe we should simply not upload anything in that case.
@@ -356,11 +356,11 @@ class DataLoader:
             input=EmployeeCreateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,
-                given_name=obj.givenname,
+                given_name=obj.given_name,
                 surname=obj.surname,
                 seniority=obj.seniority,
-                cpr_number=obj.cpr_no,
-                nickname_given_name=obj.nickname_givenname,
+                cpr_number=obj.cpr_number,
+                nickname_given_name=obj.nickname_given_name,
                 nickname_surname=obj.nickname_surname,
             ),
         )

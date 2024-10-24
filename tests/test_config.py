@@ -62,7 +62,7 @@ def test_cannot_terminate_employee(minimal_mapping: dict) -> None:
                     "_import_to_mo_": "false",
                     "_ldap_attributes_": ["employeeID"],
                     "_terminate_": "whatever",
-                    "cpr_no": "{{ldap.employeeID or None}}",
+                    "cpr_number": "{{ldap.employeeID or None}}",
                     "uuid": "{{ employee_uuid or NONE }}",
                 }
             }
@@ -192,7 +192,7 @@ def test_mapper_settings(monkeypatch: pytest.MonkeyPatch) -> None:
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": ["employeeID"],
-                        "cpr_no": "{{ldap.employeeID or None}}",
+                        "cpr_number": "{{ldap.employeeID or None}}",
                         "uuid": "{{ employee_uuid or NONE }}",
                     }
                 },
@@ -232,7 +232,7 @@ def test_check_attributes(monkeypatch: pytest.MonkeyPatch) -> None:
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": ["employeeID"],
-                        "cpr_no": "{{ldap.employeeID or None}}",
+                        "cpr_number": "{{ldap.employeeID or None}}",
                         "uuid": "{{ employee_uuid or NONE }}",
                     }
                 },

@@ -89,9 +89,9 @@ def converter_mapping() -> dict[str, Any]:
                 "objectClass": "ramodels.mo.employee.Employee",
                 "_import_to_mo_": "True",
                 "_ldap_attributes_": ["givenName", "sn", "employeeID"],
-                "givenname": "{{ldap.givenName}}",
+                "given_name": "{{ldap.givenName}}",
                 "surname": "{{ldap.sn}}",
-                "cpr_no": "{{ldap.employeeID or None}}",
+                "cpr_number": "{{ldap.employeeID or None}}",
                 "uuid": "{{ employee_uuid or NONE }}",
             },
             "Email": {
@@ -116,11 +116,11 @@ def converter_mapping() -> dict[str, Any]:
             {% set mo_employee_it_user = load_mo_it_user(uuid, "Active Directory") %}
             {{
                 {
-                    "givenName": mo_employee.givenname,
+                    "givenName": mo_employee.given_name,
                     "sn": mo_employee.surname,
-                    "displayName": mo_employee.surname + ", " + mo_employee.givenname,
-                    "name": mo_employee.givenname + " " + mo_employee.surname,
-                    "employeeID": mo_employee.cpr_no or "",
+                    "displayName": mo_employee.surname + ", " + mo_employee.given_name,
+                    "name": mo_employee.given_name + " " + mo_employee.surname,
+                    "employeeID": mo_employee.cpr_number or "",
                     "msSFU30Name": mo_employee_it_user.user_key if mo_employee_it_user else [],
                 }|tojson
             }}
@@ -251,7 +251,7 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
         employee_uuid=employee_uuid,
     )
     employee = one(result)
-    assert employee.givenname == "Tester"
+    assert employee.given_name == "Tester"
     assert employee.surname == "Testersen"
     assert employee.uuid == employee_uuid
 
@@ -320,7 +320,7 @@ async def test_ldap_to_mo_dict_validation_error(
                 "objectClass": "ramodels.mo.employee.Employee",
                 "_import_to_mo_": "True",
                 "_ldap_attributes_": ["employeeID"],
-                "cpr_no": "{{ldap.employeeID or None}}",
+                "cpr_number": "{{ldap.employeeID or None}}",
                 "uuid": "{{ employee_uuid or NONE }}",
             },
             "Custom": {
@@ -369,12 +369,12 @@ async def test_from_ldap_bad_json_key(converter: LdapConverter) -> None:
         # Base case
         ({}, {}),
         # Single overrides
-        ({"cpr": "0101700000"}, {"cpr_no": "0101700000"}),
-        ({"givenName": "Hans"}, {"givenname": "Hans"}),
+        ({"cpr": "0101700000"}, {"cpr_number": "0101700000"}),
+        ({"givenName": "Hans"}, {"given_name": "Hans"}),
         ({"sn": "Petersen"}, {"surname": "Petersen"}),
         # Empty values -> no keys
         ({"cpr": ""}, {}),
-        ({"givenName": ""}, {"givenname": None}),
+        ({"givenName": ""}, {"given_name": None}),
         ({"sn": ""}, {"surname": None}),
     ),
 )
@@ -391,9 +391,9 @@ async def test_template_strictness(
                 "_import_to_mo_": "True",
                 "_ldap_attributes_": ["givenName", "sn"],
                 "user_key": "{{ ldap.dn }}",
-                "givenname": "{{ ldap.get('givenName', 'givenname') }}",
+                "given_name": "{{ ldap.get('givenName', 'given_name') }}",
                 "surname": "{{ ldap.sn if 'sn' in ldap else 'surname' }}",
-                "cpr_no": "{{ ldap.get('cpr') }}",
+                "cpr_number": "{{ ldap.get('cpr') }}",
                 "uuid": "{{ employee_uuid }}",
             }
         }
@@ -409,7 +409,7 @@ async def test_template_strictness(
     expected_employee = {
         "uuid": ANY,
         "user_key": "CN=foo",
-        "givenname": "givenname",
+        "given_name": "given_name",
         "surname": "surname",
     }
     for key, value in expected.items():
@@ -466,7 +466,7 @@ async def test_get_ldap_attributes_dn_removed(
 
 def test_get_mo_attributes(converter: LdapConverter) -> None:
     attributes = set(converter.get_mo_attributes("Employee"))
-    assert attributes == {"uuid", "cpr_no", "surname", "givenname"}
+    assert attributes == {"uuid", "cpr_number", "surname", "given_name"}
 
 
 def test_minimum() -> None:
@@ -1340,7 +1340,7 @@ async def test_get_employee_dict(
     dataloader.graphql_client = graphql_client
     dataloader.moapi = MOAPI(settings_mock, graphql_client)
 
-    cpr_no = "1407711900"
+    cpr_number = "1407711900"
     uuid = uuid4()
 
     route = graphql_mock.query("read_employees")
@@ -1351,10 +1351,10 @@ async def test_get_employee_dict(
                     "validities": [
                         {
                             "uuid": uuid,
-                            "cpr_no": cpr_no,
-                            "givenname": "Hans",
+                            "cpr_number": cpr_number,
+                            "given_name": "Hans",
                             "surname": "Andersen",
-                            "nickname_givenname": None,
+                            "nickname_given_name": None,
                             "nickname_surname": None,
                             "validity": {
                                 "from": None,
@@ -1369,14 +1369,14 @@ async def test_get_employee_dict(
 
     result = await get_employee_dict(dataloader, uuid)
     assert result == {
-        "givenname": "Hans",
-        "nickname_givenname": None,
+        "given_name": "Hans",
+        "nickname_given_name": None,
         "nickname_surname": None,
         "seniority": None,
         "surname": "Andersen",
         "user_key": "-",
         "uuid": uuid,
-        "cpr_no": cpr_no,
+        "cpr_number": cpr_number,
     }
 
 

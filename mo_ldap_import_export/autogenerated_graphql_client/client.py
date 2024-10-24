@@ -755,10 +755,10 @@ class GraphQLClient(AsyncBaseClient):
                 objects {
                   validities {
                     uuid
-                    cpr_no
-                    givenname
+                    cpr_number
+                    given_name
                     surname
-                    nickname_givenname
+                    nickname_given_name
                     nickname_surname
                     validity {
                       to
@@ -932,7 +932,7 @@ class GraphQLClient(AsyncBaseClient):
               org_unit_uuid
               engagement_uuid
               person: employee {
-                cpr_no
+                cpr_number
               }
               validity {
                 from
@@ -980,7 +980,7 @@ class GraphQLClient(AsyncBaseClient):
               org_unit_uuid
               engagement_uuid
               person: employee {
-                cpr_no
+                cpr_number
               }
               validity {
                 from
@@ -1113,7 +1113,7 @@ class GraphQLClient(AsyncBaseClient):
               org_unit_uuid
               engagement_uuid
               person: employee {
-                cpr_no
+                cpr_number
               }
               validity {
                 from

@@ -62,7 +62,7 @@ def settings(
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": ["employeeID"],
-                        "cpr_no": "{{ldap.employeeID or None}}",
+                        "cpr_number": "{{ldap.employeeID or None}}",
                         "uuid": "{{ employee_uuid or NONE }}",
                     }
                 },
@@ -639,7 +639,7 @@ async def context(sync_tool_and_context: tuple[SyncTool, Context]) -> Context:
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": ["employeeID"],
-                        "cpr_no": "{{ldap.employeeID or None}}",
+                        "cpr_number": "{{ldap.employeeID or None}}",
                         "uuid": "{{ employee_uuid or NONE }}",
                     }
                 },
@@ -687,10 +687,10 @@ async def test_import_single_user_apply_discriminator(
                     "validities": [
                         {
                             "uuid": employee_uuid,
-                            "cpr_no": "0101700001",
-                            "givenname": "Chen",
+                            "cpr_number": "0101700001",
+                            "given_name": "Chen",
                             "surname": "Stormstout",
-                            "nickname_givenname": "Chen",
+                            "nickname_given_name": "Chen",
                             "nickname_surname": "Brewmaster",
                             "validity": {"from": "1970-01-01T00:00:00", "to": None},
                         }
@@ -820,10 +820,10 @@ async def test_listen_to_changes_in_employees(
                     "validities": [
                         {
                             "uuid": employee_uuid,
-                            "cpr_no": "0101700001",
-                            "givenname": "Chen",
+                            "cpr_number": "0101700001",
+                            "given_name": "Chen",
                             "surname": "Stormstout",
-                            "nickname_givenname": "Chen",
+                            "nickname_given_name": "Chen",
                             "nickname_surname": "Brewmaster",
                             "validity": {"from": "1970-01-01T00:00:00", "to": None},
                         }

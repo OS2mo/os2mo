@@ -430,7 +430,7 @@ async def test_mismatched_json_key_and_address_type(
                 "org_unit_uuid": None,
                 "person": [
                     {
-                        "cpr_no": "2108613133",
+                        "cpr_number": "2108613133",
                     }
                 ],
                 "uuid": object_uuid,

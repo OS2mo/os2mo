@@ -90,11 +90,11 @@ services:
                     "objectClass": "ramodels.mo.employee.Employee",
                     "_import_to_mo_": "false",
                     "uuid": "{{ employee_uuid or NONE }}",
-                    "nickname_givenname": "{{ get_employee_dict(employee_uuid).nickname_givenname }}",
+                    "nickname_given_name": "{{ get_employee_dict(employee_uuid).nickname_given_name }}",
                     "nickname_surname": "{{ get_employee_dict(employee_uuid).nickname_surname }}",
-                    "cpr_no": "{{ldap.employeeNumber|strip_non_digits or NONE}}",
+                    "cpr_number": "{{ldap.employeeNumber|strip_non_digits or NONE}}",
                     "user_key": "{{ ldap.title }}",
-                    "givenname": "{{ ldap.givenName }}",
+                    "given_name": "{{ ldap.givenName }}",
                     "surname": "{{ ldap.sn }}"
                 },
                 "ADtitle": {
@@ -115,19 +115,19 @@ services:
             },
             "mo_to_ldap": {
                 "Employee": {
-                    "employeeNumber": "{{mo_employee.cpr_no}}",
+                    "employeeNumber": "{{mo_employee.cpr_number}}",
                     "title": "{{ mo_employee.user_key }}",
-                    "givenName": "{{ mo_employee.givenname }}",
+                    "givenName": "{{ mo_employee.given_name }}",
                     "sn": "{{ mo_employee.surname }}"
                 },
                 "ADtitle": {
                     "title": "{{ mo_employee_it_user.user_key }}",
-                    "employeeNumber": "{{ mo_employee.cpr_no }}"
+                    "employeeNumber": "{{ mo_employee.cpr_number }}"
                 },
                 "ADUUID": {
                     "title": "{{ NONE }}",
                     "entryUUID": "{{ mo_employee_it_user.user_key }}",
-                    "employeeNumber": "{{ mo_employee.cpr_no }}"
+                    "employeeNumber": "{{ mo_employee.cpr_number }}"
                 }
             },
             "username_generator": {

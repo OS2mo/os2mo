@@ -28,11 +28,11 @@ services:
             "Employee": {
               "objectClass": "ramodels.mo.employee.Employee",
               "_import_to_mo_": "true",
-              "cpr_no": "{{ ldap.employeeID|strip_non_digits or NONE }}",
+              "cpr_number": "{{ ldap.employeeID|strip_non_digits or NONE }}",
               "uuid": "{{ employee_uuid or NONE }}",
-              "givenname": "{{ get_employee_dict(employee_uuid).givenname }}",
+              "given_name": "{{ get_employee_dict(employee_uuid).given_name }}",
               "surname": "{{ get_employee_dict(employee_uuid).surname }}",
-              "nickname_givenname": "{{ get_employee_dict(employee_uuid).nickname_givenname }}",
+              "nickname_given_name": "{{ get_employee_dict(employee_uuid).nickname_given_name }}",
               "nickname_surname": "{{ get_employee_dict(employee_uuid).nickname_surname }}",
               "user_key": "{{ ldap.initials }}"
             },
@@ -59,9 +59,9 @@ services:
           },
           "mo_to_ldap": {
             "Employee": {
-              "employeeID": "{{ mo_employee.cpr_no }}",
+              "employeeID": "{{ mo_employee.cpr_number }}",
               "sn": "{{ mo_employee.nickname_surname or mo_employee.surname}}",
-              "displayName": "{{mo_employee.nickname_givenname or mo_employee.givenname}} {{mo_employee.nickname_surname or mo_employee.surname}}"
+              "displayName": "{{mo_employee.nickname_given_name or mo_employee.given_name}} {{mo_employee.nickname_surname or mo_employee.surname}}"
             },
             "Engagement": {
               "title": "{{ mo_employee_engagement.user_key }}"

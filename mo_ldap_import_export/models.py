@@ -54,13 +54,11 @@ class Employee(StrictBaseModel):
     uuid: UUID = Field(default_factory=uuid4)
     user_key: str = "-"
 
-    givenname: (
-        str | None
-    )  # TODO: given_name, TODO: don't allow none (grandfathered-in from ramodels)
+    given_name: str | None  # TODO: don't allow none (grandfathered-in from ramodels)
     surname: str | None  # TODO: don't allow none (grandfathered-in from ramodels)
-    cpr_no: str | None = Field(regex=r"^\d{10}$")  # TODO: cpr_number
+    cpr_number: str | None = Field(regex=r"^\d{10}$")
     seniority: datetime | None
-    nickname_givenname: str | None  # TODO: nickname_given_name
+    nickname_given_name: str | None
     nickname_surname: str | None
 
 

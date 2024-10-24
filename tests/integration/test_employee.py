@@ -34,12 +34,12 @@ from mo_ldap_import_export.utils import combine_dn_strings
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "true",
                         "_ldap_attributes_": ["employeeNumber", "givenName", "sn"],
-                        "_mapper_": "{{ obj.cpr_no }}",
+                        "_mapper_": "{{ obj.cpr_number }}",
                         "uuid": "{{ employee_uuid or NONE }}",  # TODO: why is this required?
-                        "cpr_no": "{{ ldap.employeeNumber }}",
-                        "givenname": "{{ ldap.givenName }}",
+                        "cpr_number": "{{ ldap.employeeNumber }}",
+                        "given_name": "{{ ldap.givenName }}",
                         "surname": "{{ ldap.sn }}",
-                        "nickname_givenname": "foo",
+                        "nickname_given_name": "foo",
                         "nickname_surname": "bar",
                     },
                 },
@@ -125,13 +125,13 @@ async def test_to_mo(
                     {% set mo_employee = load_mo_employee(uuid, current_objects_only=False) %}
                     {{
                         {
-                            "employeeNumber": mo_employee.cpr_no,
+                            "employeeNumber": mo_employee.cpr_number,
                             "carLicense": mo_employee.uuid|string,
                             "uid": mo_employee.cpr_no,
-                            "cn": mo_employee.givenname + " " + mo_employee.surname,
+                            "cn": mo_employee.given_name + " " + mo_employee.surname,
                             "sn": mo_employee.surname,
-                            "givenName": mo_employee.givenname,
-                            "displayName": mo_employee.nickname_givenname + " " + mo_employee.nickname_surname
+                            "givenName": mo_employee.given_name,
+                            "displayName": mo_employee.nickname_given_name + " " + mo_employee.nickname_surname
                         }|tojson
                     }}
                 """,
@@ -237,7 +237,7 @@ async def test_to_ldap(
                         {
                             "employeeNumber": mo_employee.cpr_no,
                             "uid": mo_employee.cpr_no,
-                            "cn": mo_employee.givenname + " " + mo_employee.surname,
+                            "cn": mo_employee.given_name + " " + mo_employee.surname,
                             "sn": mo_employee.surname,
                         }|tojson
                     }}
