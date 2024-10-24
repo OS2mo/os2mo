@@ -74,14 +74,13 @@ async def test_load_org_unit_address(
     result = await load_org_unit_address(dataloader, mo_person, "EmailUnit")
     assert result is not None
     assert result.dict(exclude_none=True) == {
-        "visibility": {"uuid": public},
-        "address_type": {"uuid": email_unit},
-        "org_unit": {"uuid": mo_org_unit},
-        "type_": "address",
+        "visibility": public,
+        "address_type": email_unit,
+        "org_unit": mo_org_unit,
         "user_key": ANY,  # TODO: Why is this not "test_address"??
         "value": mail,
         "uuid": ANY,
-        "validity": {"from_date": datetime(2001, 2, 3, 0, 0, tzinfo=MO_TZ)},
+        "validity": {"start": datetime(2001, 2, 3, 0, 0, tzinfo=MO_TZ)},
     }
 
 

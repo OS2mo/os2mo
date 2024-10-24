@@ -179,12 +179,11 @@ def integration_test_environment_variables(monkeypatch: pytest.MonkeyPatch) -> N
 
 @pytest.fixture
 def test_mo_address() -> Address:
-    test_mo_address = Address.from_simplified_fields(
-        "foo@bar.dk", uuid4(), "2021-01-01"
+    return Address(
+        value="foo@bar.dk",
+        address_type=uuid4(),
+        validity={"start": "2021-01-01T00:00:00"},
     )
-    # from_simplified_fields() has bad type annotation
-    assert isinstance(test_mo_address, Address)
-    return test_mo_address
 
 
 @pytest.fixture

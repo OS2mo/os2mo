@@ -110,24 +110,20 @@ def graphql_address_to_ramodels_address(
     validities: list[AddressValidity],
 ) -> Address | None:
     result_entry = extract_current_or_latest_validity(validities)
-    if result_entry is None:
+    if result_entry is None:  # pragma: no cover
         return None
     entry = jsonable_encoder(result_entry)
-    address = Address.from_simplified_fields(
-        value=entry["value"],
-        address_type_uuid=entry["address_type"]["uuid"],
-        from_date=entry["validity"]["from"],
+    return Address(
         uuid=entry["uuid"],
-        to_date=entry["validity"]["to"],
+        value=entry["value"],
         value2=entry["value2"],
-        person_uuid=entry["employee_uuid"],
-        visibility_uuid=entry["visibility_uuid"],
-        org_unit_uuid=entry["org_unit_uuid"],
-        engagement_uuid=entry["engagement_uuid"],
+        address_type=entry["address_type"]["uuid"],
+        person=entry["employee_uuid"],
+        org_unit=entry["org_unit_uuid"],
+        engagement=entry["engagement_uuid"],
+        visibility=entry["visibility_uuid"],
+        validity=entry["validity"],
     )
-    # from_simplified_fields() has bad type annotation
-    assert isinstance(address, Address)
-    return address
 
 
 Tc = TypeVar("Tc", covariant=True)
@@ -378,7 +374,7 @@ class MOAPI:
         start = end = UNSET if current_objects_only else None
         results = await self.graphql_client.read_addresses([uuid], start, end)
         result = only(results.objects)
-        if result is None:
+        if result is None:  # pragma: no cover
             return None
         return graphql_address_to_ramodels_address(result.validities)
 
@@ -451,11 +447,8 @@ class MOAPI:
         no_validity, validity = partition(
             star(lambda _, address: address), output.items()
         )
-        no_validity_uuids = [
-            uuid for uuid, address in output.items() if address is None
-        ]
         no_validity_uuids = [uuid for uuid, _ in no_validity]
-        if no_validity_uuids:
+        if no_validity_uuids:  # pragma: no cover
             logger.warning(
                 "Unable to lookup employee addresses", uuids=no_validity_uuids
             )

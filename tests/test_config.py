@@ -30,8 +30,8 @@ def address_mapping(minimal_mapping: dict) -> dict:
                     "_import_to_mo_": "true",
                     "_ldap_attributes_": ["mail"],
                     "value": "{{ldap.mail or NONE}}",
-                    "address_type": "{{ dict(uuid=get_employee_address_type_uuid('EmailEmployee')) }}",
-                    "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+                    "address_type": "{{ get_employee_address_type_uuid('EmailEmployee') }}",
+                    "person": "{{ employee_uuid or NONE }}",
                 }
             }
         },

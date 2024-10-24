@@ -250,13 +250,13 @@ class SyncTool:
 
             if person:
                 objects_in_mo = await self.dataloader.moapi.load_mo_employee_addresses(
-                    person.uuid,
-                    address_type.uuid,
+                    person,
+                    address_type,
                 )
             elif org_unit:
                 objects_in_mo = await self.dataloader.moapi.load_mo_org_unit_addresses(
-                    OrgUnitUUID(org_unit.uuid),
-                    address_type.uuid,
+                    OrgUnitUUID(org_unit),
+                    address_type,
                 )
             else:
                 logger.info(

@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
+from datetime import datetime
 from uuid import UUID
 from uuid import uuid4
 
@@ -9,7 +10,6 @@ from pydantic import Extra
 from pydantic import Field
 from ramodels.mo import MOBase as RAMOBase
 from ramodels.mo import Validity as RAValidity
-from ramodels.mo.details.address import Address as RAAddress
 from ramodels.mo.details.engagement import Engagement as RAEngagement
 from ramodels.mo.details.it_system import ITUser as RAITUser
 from ramodels.mo.employee import Employee as RAEmployee
@@ -32,8 +32,23 @@ class Validity(RAValidity):
     pass
 
 
-class Address(RAAddress, RAMOBase):
-    pass
+class NewValidity(StrictBaseModel):
+    start: datetime = Field(alias="from")
+    end: datetime | None = Field(alias="to")
+
+
+class Address(StrictBaseModel):
+    uuid: UUID = Field(default_factory=uuid4)
+    user_key: str = "-"
+
+    value: str
+    value2: str | None
+    address_type: UUID
+    person: UUID | None
+    org_unit: UUID | None
+    engagement: UUID | None
+    visibility: UUID | None
+    validity: NewValidity
 
 
 class Employee(RAEmployee, RAMOBase):

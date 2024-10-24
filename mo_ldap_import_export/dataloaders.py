@@ -373,19 +373,18 @@ class DataLoader:
         assert obj.person is not None
         assert obj.org_unit is None
         assert obj.value2 is None
-        assert obj.org is None
         await self.graphql_client.address_create(
             input=AddressCreateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,
                 value=obj.value,
-                address_type=obj.address_type.uuid,
-                person=obj.person.uuid,
-                engagement=obj.engagement.uuid if obj.engagement is not None else None,
-                visibility=obj.visibility.uuid if obj.visibility is not None else None,
+                address_type=obj.address_type,
+                person=obj.person,
+                engagement=obj.engagement,
+                visibility=obj.visibility,
                 validity=RAValidityInput(
-                    from_=obj.validity.from_date,
-                    to=obj.validity.to_date,
+                    from_=obj.validity.start,
+                    to=obj.validity.end,
                 ),
             ),
         )
@@ -482,19 +481,18 @@ class DataLoader:
         assert obj.person is not None
         assert obj.org_unit is None
         assert obj.value2 is None
-        assert obj.org is None
         await self.graphql_client.address_update(
             input=AddressUpdateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,
                 value=obj.value,
-                address_type=obj.address_type.uuid,
-                person=obj.person.uuid,
-                engagement=obj.engagement.uuid if obj.engagement is not None else None,
-                visibility=obj.visibility.uuid if obj.visibility is not None else None,
+                address_type=obj.address_type,
+                person=obj.person,
+                engagement=obj.engagement,
+                visibility=obj.visibility,
                 validity=RAValidityInput(
-                    from_=obj.validity.from_date,
-                    to=obj.validity.to_date,
+                    from_=obj.validity.start,
+                    to=obj.validity.end,
                 ),
             ),
         )

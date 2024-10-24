@@ -99,11 +99,8 @@ def converter_mapping() -> dict[str, Any]:
                 "_import_to_mo_": "True",
                 "_ldap_attributes_": ["mail"],
                 "value": "{{ldap.mail}}",
-                "type": "{{'address'}}",
-                "address_type": (
-                    "{{ dict(uuid='f376deb8-4743-4ca6-a047-3241de8fe9d2') }}"
-                ),
-                "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+                "address_type": "{{ 'f376deb8-4743-4ca6-a047-3241de8fe9d2' }}",
+                "person": "{{ employee_uuid or NONE }}",
             },
             "Active Directory": {
                 "objectClass": "ramodels.mo.details.it_system.ITUser",
@@ -269,11 +266,11 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
     mail = result[0]
 
     assert mail.value == "foo@bar.dk"
-    assert mail.person.uuid == employee_uuid
-    from_date = mail.validity.dict()["from_date"].replace(tzinfo=None)
+    assert mail.person == employee_uuid
+    start = mail.validity.dict()["start"].replace(tzinfo=None)
 
     # Note: Date is always at midnight in MO
-    assert from_date == datetime.datetime(2019, 1, 1, 0, 0, 0)
+    assert start == datetime.datetime(2019, 1, 1, 0, 0, 0)
 
     mail = await converter.from_ldap(
         LdapObject(
@@ -893,8 +890,8 @@ def test_check_uuid_refs_in_mo_objects(converter_mapping: dict[str, Any]) -> Non
             "ldap_to_mo": {
                 "EmailEmployee": {
                     **address_obj,
-                    "person": "{{ dict(uuid=employee_uuid or NONE) }}",
-                    "org_unit": "{{ dict(uuid=employee_uuid or NONE) }}",
+                    "person": "{{ employee_uuid or NONE }}",
+                    "org_unit": "{{ employee_uuid or NONE }}",
                 }
             }
         }
@@ -1409,7 +1406,7 @@ async def test_ldap_to_mo_termination(
     mail = one(result)
     assert not hasattr(mail, "terminate_")
     assert mail.value == "foo@bar.dk"
-    assert mail.person.uuid == employee_uuid
+    assert mail.person == employee_uuid
 
     # Add _terminate_ key to Email mapping
     converter_mapping["ldap_to_mo"]["Email"]["_terminate_"] = (
@@ -1431,7 +1428,7 @@ async def test_ldap_to_mo_termination(
     mail = one(result)
     assert hasattr(mail, "terminate_")
     assert mail.value == "foo@bar.dk"
-    assert mail.person.uuid == employee_uuid
+    assert mail.person == employee_uuid
 
 
 async def test_create_facet_class_no_facet() -> None:
@@ -1455,10 +1452,10 @@ async def test_ldap_to_mo_default_validity(converter: LdapConverter) -> None:
     )
     mail = one(result)
     assert mail.value == "foo@bar.dk"
-    assert mail.person.uuid == employee_uuid
+    assert mail.person == employee_uuid
     assert mail.validity.dict() == {
-        "from_date": datetime.datetime(2022, 8, 10, 0, 0, tzinfo=MO_TZ),
-        "to_date": None,
+        "start": datetime.datetime(2022, 8, 10, 0, 0, tzinfo=MO_TZ),
+        "end": None,
     }
 
 
@@ -1491,4 +1488,4 @@ async def test_ldap_to_mo_mapper(
     )
     mail = one(result)
     assert mail.value == "foo@bar.dk"
-    assert mail.person.uuid == employee_uuid
+    assert mail.person == employee_uuid

@@ -295,23 +295,26 @@ async def test_format_converted_employee_address_objects(
     converter.find_mo_object_class.return_value = "Address"
     converter.import_mo_object_class.return_value = Address
 
-    person_uuid = uuid4()
-    address_type_uuid = uuid4()
-    address1 = Address.from_simplified_fields(
-        "foo", address_type_uuid, "2021-01-01", person_uuid=person_uuid
+    person = uuid4()
+    address_type = uuid4()
+    address1 = Address(
+        value="foo",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+        person=person,
     )
-    address2 = Address.from_simplified_fields(
-        "bar", address_type_uuid, "2021-01-01", person_uuid=person_uuid
+    address2 = Address(
+        value="bar",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+        person=person,
     )
-
-    address1_in_mo = Address.from_simplified_fields(
-        "foo", address_type_uuid, "2021-01-01", person_uuid=person_uuid
+    address1_in_mo = Address(
+        value="foo",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+        person=person,
     )
-
-    # from_simplified_fields() has bad type annotation
-    assert isinstance(address1, Address)
-    assert isinstance(address2, Address)
-    assert isinstance(address1_in_mo, Address)
 
     converted_objects = [address1, address2]
 
@@ -342,23 +345,26 @@ async def test_format_converted_org_unit_address_objects(
     converter.find_mo_object_class.return_value = "Address"
     converter.import_mo_object_class.return_value = Address
 
-    org_unit_uuid = uuid4()
-    address_type_uuid = uuid4()
-    address1 = Address.from_simplified_fields(
-        "foo", address_type_uuid, "2021-01-01", org_unit_uuid=org_unit_uuid
+    org_unit = uuid4()
+    address_type = uuid4()
+    address1 = Address(
+        value="foo",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+        org_unit=org_unit,
     )
-    address2 = Address.from_simplified_fields(
-        "bar", address_type_uuid, "2021-01-01", org_unit_uuid=org_unit_uuid
+    address2 = Address(
+        value="bar",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+        org_unit=org_unit,
     )
-
-    address1_in_mo = Address.from_simplified_fields(
-        "foo", address_type_uuid, "2021-01-01", org_unit_uuid=org_unit_uuid
+    address1_in_mo = Address(
+        value="foo",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+        org_unit=org_unit,
     )
-
-    # from_simplified_fields() has bad type annotation
-    assert isinstance(address1, Address)
-    assert isinstance(address2, Address)
-    assert isinstance(address1_in_mo, Address)
 
     converted_objects = [address1, address2]
 
@@ -389,24 +395,28 @@ async def test_format_converted_org_unit_address_objects_identical_to_mo(
     converter.find_mo_object_class.return_value = "Address"
     converter.import_mo_object_class.return_value = Address
 
-    org_unit_uuid = uuid4()
-    address_type_uuid = uuid4()
-    address1 = Address.from_simplified_fields(
-        "foo", address_type_uuid, "2021-01-01", org_unit_uuid=org_unit_uuid
+    org_unit = uuid4()
+    address_type = uuid4()
+    address1 = Address(
+        value="foo",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+        org_unit=org_unit,
     )
-    address2 = Address.from_simplified_fields(
-        "bar", address_type_uuid, "2021-01-01", org_unit_uuid=org_unit_uuid
+    address2 = Address(
+        value="bar",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+        org_unit=org_unit,
     )
 
     # This one is identical to the one which we are trying to upload
-    address1_in_mo = Address.from_simplified_fields(
-        "foo", address_type_uuid, "2021-01-01", org_unit_uuid=org_unit_uuid
+    address1_in_mo = Address(
+        value="foo",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+        org_unit=org_unit,
     )
-
-    # from_simplified_fields() has bad type annotation
-    assert isinstance(address1, Address)
-    assert isinstance(address2, Address)
-    assert isinstance(address1_in_mo, Address)
 
     converted_objects = [address1, address2]
 
@@ -432,13 +442,17 @@ async def test_format_converted_address_objects_without_person_or_org_unit(
 
     # These addresses have neither an org unit uuid or person uuid. we cannot convert
     # them
-    address_type_uuid = uuid4()
-    address1 = Address.from_simplified_fields("foo", address_type_uuid, "2021-01-01")
-    address2 = Address.from_simplified_fields("bar", address_type_uuid, "2021-01-01")
-
-    # from_simplified_fields() has bad type annotation
-    assert isinstance(address1, Address)
-    assert isinstance(address2, Address)
+    address_type = uuid4()
+    address1 = Address(
+        value="foo",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+    )
+    address2 = Address(
+        value="bar",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+    )
 
     converted_objects = [address1, address2]
 

@@ -46,9 +46,9 @@ from mo_ldap_import_export.utils import mo_today
                         # carLicense is arbitrarily chosen as an enabled/disabled marker
                         "_terminate_": "{{ now()|mo_datestring if ldap.carLicense == 'EXPIRED' else '' }}",
                         "value": "{{ ldap.mail }}",
-                        "address_type": "{{ dict(uuid=get_employee_address_type_uuid('EmailEmployee')) }}",
-                        "person": "{{ dict(uuid=employee_uuid ) }}",
-                        "visibility": "{{ dict(uuid=get_visibility_uuid('Public')) }}",
+                        "address_type": "{{ get_employee_address_type_uuid('EmailEmployee') }}",
+                        "person": "{{ employee_uuid }}",
+                        "visibility": "{{ get_visibility_uuid('Public') }}",
                     },
                 },
                 # TODO: why is this required?

@@ -110,7 +110,7 @@ class LdapConverter:
         ldap_object: LdapObject,
         json_key: str,
         employee_uuid: UUID,
-    ) -> Any:
+    ) -> Any:  # TODO: -> list[MOBase]
         """
         uuid : UUID
             Uuid of the employee whom this object belongs to. If None: Generates a new
