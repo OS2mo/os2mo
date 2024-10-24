@@ -44,6 +44,7 @@ from .types import EmployeeUUID
 from .utils import exchange_ou_in_dn
 from .utils import extract_ou_from_dn
 from .utils import get_delete_flag
+from .utils import mo_today
 
 logger = structlog.stdlib.get_logger()
 
@@ -689,11 +690,11 @@ async def create_mo_it_user(
     it_system_uuid = UUID(await dataloader.moapi.get_it_system_uuid(itsystem_user_key))
 
     # Make a new it-user
-    it_user = ITUser.from_simplified_fields(
+    it_user = ITUser(
         user_key=user_key,
-        itsystem_uuid=it_system_uuid,
-        from_date=datetime.today().strftime("%Y-%m-%d"),
-        person_uuid=employee_uuid,
+        itsystem=it_system_uuid,
+        person=employee_uuid,
+        validity={"start": mo_today()},
     )
     await dataloader.create_ituser(it_user)
     return await load_it_user(dataloader, employee_uuid, itsystem_user_key)

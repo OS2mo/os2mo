@@ -340,23 +340,20 @@ class MOAPI:
         start = end = UNSET if current_objects_only else None
         results = await self.graphql_client.read_itusers([uuid], start, end)
         result = only(results.objects)
-        if result is None:
+        if result is None:  # pragma: no cover
             return None
         result_entry = extract_current_or_latest_validity(result.validities)
-        if result_entry is None:
+        if result_entry is None:  # pragma: no cover
             return None
         entry = jsonable_encoder(result_entry)
-        it_user = ITUser.from_simplified_fields(
-            user_key=entry["user_key"],
-            itsystem_uuid=entry["itsystem_uuid"],
-            from_date=entry["validity"]["from"],
+        it_user = ITUser(
             uuid=uuid,
-            to_date=entry["validity"]["to"],
-            person_uuid=entry["employee_uuid"],
-            engagement_uuid=entry["engagement_uuid"],
+            user_key=entry["user_key"],
+            itsystem=entry["itsystem_uuid"],
+            person=entry["employee_uuid"],
+            engagement=entry["engagement_uuid"],
+            validity=entry["validity"],
         )
-        # from_simplified_fields() has bad type annotation
-        assert isinstance(it_user, ITUser)
         return it_user
 
     async def load_mo_address(

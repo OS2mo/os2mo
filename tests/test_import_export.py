@@ -459,8 +459,11 @@ async def test_format_converted_it_user_objects(
     converter.find_mo_object_class.return_value = "ITUser"
     converter.import_mo_object_class.return_value = ITUser
 
-    it_user_in_mo = ITUser.from_simplified_fields(
-        "Username1", uuid4(), "2021-01-01", person_uuid=uuid4()
+    it_user_in_mo = ITUser(
+        user_key="Username1",
+        itsystem=uuid4(),
+        person=uuid4(),
+        validity={"start": "2021-01-01T00:00:00"},
     )
 
     dataloader.moapi.load_mo_employee_it_users.return_value = [it_user_in_mo]
@@ -468,16 +471,18 @@ async def test_format_converted_it_user_objects(
     person_uuid = uuid4()
     it_system_uuid = uuid4()
 
-    it_user1 = ITUser.from_simplified_fields(
-        "Username1", it_system_uuid, "2021-01-01", person_uuid=person_uuid
+    it_user1 = ITUser(
+        user_key="Username1",
+        itsystem=it_system_uuid,
+        person=person_uuid,
+        validity={"start": "2021-01-01T00:00:00"},
     )
-    it_user2 = ITUser.from_simplified_fields(
-        "Username2", it_system_uuid, "2021-01-01", person_uuid=person_uuid
+    it_user2 = ITUser(
+        user_key="Username2",
+        itsystem=it_system_uuid,
+        person=person_uuid,
+        validity={"start": "2021-01-01T00:00:00"},
     )
-
-    # from_simplified_fields() has bad type annotation
-    assert isinstance(it_user1, ITUser)
-    assert isinstance(it_user2, ITUser)
 
     converted_objects = [it_user1, it_user2]
 

@@ -12,14 +12,14 @@ ldap_to_mo:
     objectClass: ramodels.mo.details.it_system.ITUser
     _import_to_mo_: "true"
     user_key: '{{ ldap.title }}'
-    itsystem: '{{ dict(uuid=get_it_system_uuid(''ADtitle'')) }}'
-    person: '{{ dict(uuid=employee_uuid or NONE) }}'
+    itsystem: '{{ get_it_system_uuid(''ADtitle'') }}'
+    person: '{{ employee_uuid or NONE }}'
   ADUUID:
     objectClass: ramodels.mo.details.it_system.ITUser
     _import_to_mo_: "true"
     user_key: '{{ ldap.entryUUID }}'
-    itsystem: '{{ dict(uuid=get_it_system_uuid(''ADUUID'')) }}'
-    person: '{{ dict(uuid=employee_uuid or NONE) }}'
+    itsystem: '{{ get_it_system_uuid(''ADUUID'') }}'
+    person: '{{ employee_uuid or NONE }}'
 mo_to_ldap:
   Employee:
     employeeNumber: '{{ mo_employee.cpr_number }}'

@@ -107,8 +107,8 @@ def converter_mapping() -> dict[str, Any]:
                 "_import_to_mo_": "True",
                 "_ldap_attributes_": ["msSFU30Name"],
                 "user_key": "{{ ldap.msSFU30Name or NONE }}",
-                "itsystem": "{{ dict(uuid=get_it_system_uuid(ldap.itSystemName)) }}",
-                "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+                "itsystem": "{{ get_it_system_uuid(ldap.itSystemName) }}",
+                "person": "{{ employee_uuid or NONE }}",
             },
         },
         "mo2ldap": """

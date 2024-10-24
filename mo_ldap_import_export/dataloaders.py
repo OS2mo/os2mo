@@ -51,6 +51,7 @@ from .moapi import MOAPI
 from .types import DN
 from .types import CPRNumber
 from .utils import is_exception
+from .utils import mo_today
 from .utils import star
 
 logger = structlog.stdlib.get_logger()
@@ -312,14 +313,12 @@ class DataLoader:
                 ldap_uuid=unique_uuid,
             )
             # Make a new it-user
-            it_user = ITUser.from_simplified_fields(
-                str(unique_uuid),
-                UUID(raw_it_system_uuid),
-                datetime.today().strftime("%Y-%m-%d"),
-                person_uuid=uuid,
+            it_user = ITUser(
+                user_key=str(unique_uuid),
+                itsystem=UUID(raw_it_system_uuid),
+                person=uuid,
+                validity={"start": mo_today()},
             )
-            # from_simplified_fields() has bad type annotation
-            assert isinstance(it_user, ITUser)
             await self.create_ituser(it_user)
 
         return dn
@@ -417,13 +416,13 @@ class DataLoader:
             input=ITUserCreateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,
-                itsystem=obj.itsystem.uuid,
-                person=obj.person.uuid if obj.person is not None else None,
-                org_unit=obj.org_unit.uuid if obj.org_unit is not None else None,
-                engagement=obj.engagement.uuid if obj.engagement is not None else None,
+                itsystem=obj.itsystem,
+                person=obj.person,
+                org_unit=obj.org_unit,
+                engagement=obj.engagement,
                 validity=RAValidityInput(
-                    from_=obj.validity.from_date,
-                    to=obj.validity.to_date,
+                    from_=obj.validity.start,
+                    to=obj.validity.end,
                 ),
             )
         )
@@ -525,13 +524,13 @@ class DataLoader:
             input=ITUserUpdateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,
-                itsystem=obj.itsystem.uuid,
-                person=obj.person.uuid if obj.person is not None else None,
-                org_unit=obj.org_unit.uuid if obj.org_unit is not None else None,
-                engagement=obj.engagement.uuid if obj.engagement is not None else None,
+                itsystem=obj.itsystem,
+                person=obj.person,
+                org_unit=obj.org_unit,
+                engagement=obj.engagement,
                 validity=RAValidityInput(
-                    from_=obj.validity.from_date,
-                    to=obj.validity.to_date,
+                    from_=obj.validity.start,
+                    to=obj.validity.end,
                 ),
             )
         )

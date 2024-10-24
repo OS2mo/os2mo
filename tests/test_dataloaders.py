@@ -10,7 +10,6 @@ import time
 from collections.abc import Collection
 from collections.abc import Iterator
 from typing import Any
-from unittest.mock import ANY
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -494,42 +493,6 @@ async def test_load_mo_employee_not_found(
     assert result is None
 
 
-async def test_load_mo_it_user(
-    dataloader: DataLoader, graphql_mock: GraphQLMocker
-) -> None:
-    uuid1 = uuid4()
-    uuid2 = uuid4()
-
-    route = graphql_mock.query("read_itusers")
-    route.result = {
-        "itusers": {
-            "objects": [
-                {
-                    "validities": [
-                        {
-                            "user_key": "foo",
-                            "validity": {"from": "2021-01-01T00:00:00", "to": None},
-                            "employee_uuid": uuid1,
-                            "itsystem_uuid": uuid2,
-                            "engagement_uuid": uuid1,
-                        }
-                    ]
-                }
-            ]
-        }
-    }
-
-    output = await dataloader.moapi.load_mo_it_user(uuid4())
-    assert output is not None
-    assert output.user_key == "foo"
-    assert output.itsystem.uuid == uuid2
-    assert output.person.uuid == uuid1  # type: ignore
-    assert output.engagement.uuid == uuid1  # type: ignore
-    assert output.validity.from_date.strftime("%Y-%m-%d") == "2021-01-01"
-
-    assert route.called
-
-
 async def test_load_mo_engagement(
     dataloader: DataLoader, graphql_mock: GraphQLMocker
 ) -> None:
@@ -620,96 +583,6 @@ async def test_load_mo_org_unit_addresses_no_validity(
             "uuids": [address_uuid],
         }
     ]
-
-    assert route.called
-
-
-@pytest.mark.parametrize(
-    "objects",
-    [
-        # No objects returned
-        [],
-        # Object returned, but no validities
-        [{"validities": []}],
-    ],
-)
-async def test_load_mo_it_user_not_found(
-    dataloader: DataLoader, graphql_mock: GraphQLMocker, objects: list[dict]
-) -> None:
-    route = graphql_mock.query("read_itusers")
-    route.result = {"itusers": {"objects": objects}}
-
-    result = await dataloader.moapi.load_mo_it_user(uuid4())
-    assert result is None
-
-    assert route.called
-
-
-async def test_load_mo_employee_it_users(
-    dataloader: DataLoader, graphql_mock: GraphQLMocker
-) -> None:
-    ituser_uuid = uuid4()
-
-    route1 = graphql_mock.query("read_ituser_by_employee_and_itsystem_uuid")
-    route1.result = {"itusers": {"objects": [{"uuid": ituser_uuid}]}}
-
-    user_key = "test"
-    itsystem_uuid = uuid4()
-    person_uuid = uuid4()
-    route2 = graphql_mock.query("read_itusers")
-    route2.result = {
-        "itusers": {
-            "objects": [
-                {
-                    "validities": [
-                        {
-                            "user_key": user_key,
-                            "validity": {"from": "1970-01-01T00:00:00Z", "to": None},
-                            "employee_uuid": person_uuid,
-                            "itsystem_uuid": itsystem_uuid,
-                            "engagement_uuid": None,
-                        }
-                    ]
-                }
-            ]
-        }
-    }
-
-    employee_uuid = uuid4()
-    it_system_uuid = uuid4()
-    result = await dataloader.moapi.load_mo_employee_it_users(
-        employee_uuid, it_system_uuid
-    )
-    assert one(result).dict() == {
-        "user_key": user_key,
-        "person": {"uuid": person_uuid},
-        "itsystem": {"uuid": itsystem_uuid},
-        "engagement": None,
-        "org_unit": None,
-        "type_": "it",
-        "uuid": ANY,
-        "validity": {
-            "from_date": datetime.datetime(1970, 1, 1, tzinfo=datetime.UTC),
-            "to_date": None,
-        },
-    }
-
-    assert route1.called
-    assert route2.called
-
-
-async def test_load_mo_employee_it_users_not_found(
-    dataloader: DataLoader, graphql_mock: GraphQLMocker
-) -> None:
-    route = graphql_mock.query("read_ituser_by_employee_and_itsystem_uuid")
-    route.result = {"itusers": {"objects": []}}
-
-    employee_uuid = uuid4()
-    it_system_uuid = uuid4()
-    result = await dataloader.moapi.load_mo_employee_it_users(
-        employee_uuid, it_system_uuid
-    )
-    assert result == []
 
     assert route.called
 
@@ -1121,35 +994,30 @@ async def test_make_mo_employee_dn_no_cpr(
 
 
 def test_extract_unique_objectGUIDs(dataloader: DataLoader) -> None:
-    ad_it_user_1 = ITUser.from_simplified_fields(
-        str(uuid4()),
-        uuid4(),
-        datetime.datetime.today().strftime("%Y-%m-%d"),
-        person_uuid=uuid4(),
+    ad_it_user_1 = ITUser(
+        user_key=str(uuid4()),
+        itsystem=uuid4(),
+        person=uuid4(),
+        validity={"start": datetime.datetime.today()},
     )
-    ad_it_user_2 = ITUser.from_simplified_fields(
-        str(uuid4()),
-        uuid4(),
-        datetime.datetime.today().strftime("%Y-%m-%d"),
-        person_uuid=uuid4(),
+    ad_it_user_2 = ITUser(
+        user_key=str(uuid4()),
+        itsystem=uuid4(),
+        person=uuid4(),
+        validity={"start": datetime.datetime.today()},
     )
-    # from_simplified_fields() has bad type annotation
-    assert isinstance(ad_it_user_1, ITUser)
-    assert isinstance(ad_it_user_2, ITUser)
 
     objectGUIDs = dataloader.extract_unique_ldap_uuids([ad_it_user_1, ad_it_user_2])
     assert UUID(ad_it_user_1.user_key) in objectGUIDs
     assert UUID(ad_it_user_2.user_key) in objectGUIDs
     assert len(objectGUIDs) == 2
 
-    ad_it_user_3 = ITUser.from_simplified_fields(
-        "not_an_uuid",
-        uuid4(),
-        datetime.datetime.today().strftime("%Y-%m-%d"),
-        person_uuid=uuid4(),
+    ad_it_user_3 = ITUser(
+        user_key="not_an_uuid",
+        itsystem=uuid4(),
+        person=uuid4(),
+        validity={"start": datetime.datetime.today()},
     )
-    # from_simplified_fields() has bad type annotation
-    assert isinstance(ad_it_user_3, ITUser)
     with pytest.raises(ExceptionGroup) as exc_info:
         dataloader.extract_unique_ldap_uuids([ad_it_user_1, ad_it_user_2, ad_it_user_3])
     exception = one(exc_info.value.exceptions)

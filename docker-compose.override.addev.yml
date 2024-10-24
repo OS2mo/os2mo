@@ -53,8 +53,8 @@ services:
               "_import_to_mo_": "true",
               "uuid": "{{ ldap.objectGUID|remove_curly_brackets }}",
               "user_key": "{{ ldap.sAMAccountName }}",
-              "itsystem": "{{ dict(uuid=get_it_system_uuid('Active Directory')) }}",
-              "person": "{{ dict(uuid=employee_uuid or NONE) }}"
+              "itsystem": "{{ get_it_system_uuid('Active Directory') }}",
+              "person": "{{ employee_uuid or NONE }}"
             }
           },
           "mo_to_ldap": {

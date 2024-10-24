@@ -326,7 +326,7 @@ class SyncTool:
             itsystem = first(converted_objects).itsystem
 
             objects_in_mo = await self.dataloader.moapi.load_mo_employee_it_users(
-                person.uuid, itsystem.uuid
+                person, itsystem
             )
 
             value_key = "user_key"

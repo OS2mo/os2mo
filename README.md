@@ -322,9 +322,9 @@ And the other way around:
       "objectClass": "ramodels.mo.details.it_system.ITUser",
       "_import_to_mo_": "true",
       "user_key": "{{ ldap.msSFU30Name or None }}",
-      "itsystem": "{{ dict(uuid=get_it_system_uuid('Active Directory')) }}",
+      "itsystem": "{{ get_it_system_uuid('Active Directory') }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
+      "person": "{{ employee_uuid or NONE }}"
     }
   }
   [...]
@@ -491,9 +491,9 @@ And the other way around:
       "objectClass": "ramodels.mo.details.it_system.ITUser",
       "_import_to_mo_": "true",
       "user_key": "{{ ldap.distinguishedName }}",
-      "itsystem": "{{ dict(uuid=get_it_system_uuid('Active Directory')) }}",
+      "itsystem": "{{ get_it_system_uuid('Active Directory') }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
+      "person": "{{ employee_uuid or NONE }}"
     }
   }
   [...]

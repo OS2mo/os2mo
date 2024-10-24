@@ -465,8 +465,8 @@ async def test_mismatched_json_key_and_address_type(
                         "_import_to_mo_": "true",
                         "_ldap_attributes_": ["entryUUID"],
                         "user_key": "{{ ldap.entryUUID or NONE }}",
-                        "itsystem": "{{ dict(uuid=get_it_system_uuid('ADUUID')) }}",
-                        "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+                        "itsystem": "{{ get_it_system_uuid('ADUUID') }}",
+                        "person": "{{ employee_uuid or NONE }}",
                     },
                 },
                 "username_generator": {
@@ -549,8 +549,8 @@ async def test_mismatched_json_key_and_itsystem(
                         "_import_to_mo_": "true",
                         "_ldap_attributes_": ["entryUUID"],
                         "user_key": "{{ ldap.entryUUID or NONE }}",
-                        "itsystem": "{{ dict(uuid=get_it_system_uuid('ADUUID')) }}",
-                        "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+                        "itsystem": "{{ get_it_system_uuid('ADUUID') }}",
+                        "person": "{{ employee_uuid or NONE }}",
                     },
                 },
                 "username_generator": {

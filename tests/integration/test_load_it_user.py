@@ -47,12 +47,11 @@ async def test_load_it_user(
     result = await load_it_user(dataloader, mo_person, "ADtitle")
     assert result is not None
     assert result.dict(exclude_none=True) == {
-        "itsystem": {"uuid": it_system_uuid},
-        "person": {"uuid": mo_person},
-        "type_": "it",
+        "itsystem": it_system_uuid,
+        "person": mo_person,
         "user_key": title,
         "uuid": ANY,
-        "validity": {"from_date": datetime(2001, 2, 3, 0, 0, tzinfo=MO_TZ)},
+        "validity": {"start": datetime(2001, 2, 3, 0, 0, tzinfo=MO_TZ)},
     }
 
 

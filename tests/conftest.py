@@ -247,7 +247,11 @@ def dataloader(
         cpr_number="1212121234", given_name="Foo", surname="Bar"
     )
 
-    test_mo_it_user = ITUser.from_simplified_fields("foo", uuid4(), "2021-01-01")
+    test_mo_it_user = ITUser(
+        user_key="foo",
+        itsystem=uuid4(),
+        validity={"start": "2021-01-01T00:00:00"},
+    )
 
     load_ldap_cpr_object = AsyncMock()
     load_ldap_cpr_object.return_value = test_ldap_object
