@@ -2,7 +2,10 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 from typing import Literal
+from uuid import UUID
+from uuid import uuid4
 
+from pydantic import BaseModel
 from pydantic import Extra
 from pydantic import Field
 from ramodels.mo import MOBase as RAMOBase
@@ -22,31 +25,30 @@ class Validity(RAValidity):
     pass
 
 
-class MOBase(RAMOBase):
+class Address(RAAddress, RAMOBase):
     pass
 
 
-class Address(RAAddress, MOBase):
+class Employee(RAEmployee, RAMOBase):
     pass
 
 
-class Employee(RAEmployee, MOBase):
+class Engagement(RAEngagement, RAMOBase):
     pass
 
 
-class Engagement(RAEngagement, MOBase):
+class ITUser(RAITUser, RAMOBase):
     pass
 
 
-class ITUser(RAITUser, MOBase):
+class OrganisationUnit(RAOrganisationUnit, RAMOBase):
     pass
 
 
-class OrganisationUnit(RAOrganisationUnit, MOBase):
-    pass
+class JobTitleFromADToMO(BaseModel):
+    uuid: UUID = Field(default_factory=uuid4)
+    user_key: str | None  # unused
 
-
-class JobTitleFromADToMO(MOBase):
     user: PersonRef = Field(
         description="Reference to the employee of the created engagement object."
     )
@@ -80,3 +82,8 @@ class JobTitleFromADToMO(MOBase):
 
     class Config:
         extra = Extra.allow
+
+
+MOBase = (
+    Address | Employee | Engagement | ITUser | OrganisationUnit | JobTitleFromADToMO
+)
