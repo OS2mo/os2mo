@@ -330,9 +330,8 @@ async def test_ldap_to_mo_dict_validation_error(
                 "objectClass": "Custom.JobTitleFromADToMO",
                 "_import_to_mo_": "true",
                 "_ldap_attributes_": ["hkStsuuid"],
-                "user": "{{ dict(uuid=(ldap.hkStsuuid)) }}",
-                "job_function": f"{{ dict(uuid={uuid4()}) }}",
-                "job_function_fallback": f"{{ dict(uuid={uuid4()}) }}",
+                "user": "{{ ldap.hkStsuuid }}",
+                "job_function": f"{{ {uuid4()} }}",
                 "uuid": "{{ employee_uuid or NONE }}",
             },
         }

@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
-from typing import Literal
 from uuid import UUID
 from uuid import uuid4
 
@@ -10,8 +9,6 @@ from pydantic import Extra
 from pydantic import Field
 from ramodels.mo import MOBase as RAMOBase
 from ramodels.mo import Validity as RAValidity
-from ramodels.mo._shared import JobFunction
-from ramodels.mo._shared import PersonRef
 from ramodels.mo.details.address import Address as RAAddress
 from ramodels.mo.details.engagement import Engagement as RAEngagement
 from ramodels.mo.details.it_system import ITUser as RAITUser
@@ -59,24 +56,11 @@ class JobTitleFromADToMO(StrictBaseModel):
     uuid: UUID = Field(default_factory=uuid4)
     user_key: str | None  # unused
 
-    user: PersonRef = Field(
-        description="Reference to the employee of the created engagement object."
-    )
-    job_function: JobFunction = Field(
-        description=(
-            "Reference to the job function class for the created engagement object."
-        ),
-    )
-    # TODO: Delete once no configurations use it anymore
-    job_function_fallback: JobFunction | None = Field(
-        description="Noop left for backwards compatibility", default=None
-    )
-    type_: Literal["jobtitlefromadtomo"] = Field(
-        "jobtitlefromadtomo", alias="type", description="The object type."
-    )
+    user: UUID
+    job_function: UUID
 
     async def sync_to_mo(self, graphql_client: GraphQLClient) -> None:
-        result = await graphql_client.read_engagements_by_employee_uuid(self.user.uuid)
+        result = await graphql_client.read_engagements_by_employee_uuid(self.user)
         engagements = [x.current for x in result.objects if x.current is not None]
         await asyncio.gather(
             *[
@@ -84,7 +68,7 @@ class JobTitleFromADToMO(StrictBaseModel):
                     uuid=obj.uuid,
                     from_=obj.validity.from_,
                     to=obj.validity.to,
-                    job_function=self.job_function.uuid,
+                    job_function=self.job_function,
                 )
                 for obj in engagements
             ]
