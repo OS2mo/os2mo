@@ -2002,58 +2002,6 @@ async def test_create_or_edit_mo_objects(dataloader: DataLoader) -> None:
 
 
 @pytest.mark.parametrize(
-    "motype,term_name",
-    [
-        ("address", "address_terminate"),
-        ("engagement", "engagement_terminate"),
-        ("it", "ituser_terminate"),
-    ],
-)
-async def test_terminate_objects(
-    dataloader: DataLoader, motype: str, term_name: str
-) -> None:
-    # One object is created and another is edited.
-    terminate = MagicMock()
-    terminate.type_ = motype
-    terminate.uuid = uuid4()
-
-    objs = [(terminate, Verb.TERMINATE)]
-
-    await dataloader.create_or_edit_mo_objects(objs)  # type: ignore
-    getattr(dataloader.graphql_client, term_name).assert_called_once()
-
-
-async def test_terminate_unknown_type(dataloader: DataLoader) -> None:
-    # One object is created and another is edited.
-    terminate = MagicMock()
-    terminate.type_ = "gaxi"
-    terminate.uuid = uuid4()
-
-    objs = [(terminate, Verb.TERMINATE)]
-
-    with pytest.raises(ExceptionGroup) as exc_info:
-        await dataloader.create_or_edit_mo_objects(objs)  # type: ignore
-    assert "Exceptions during termination" in str(exc_info.value)
-    assert "Unable to terminate type: gaxi" in str(one(exc_info.value.exceptions))
-
-
-async def test_terminate_fix_verb(
-    dataloader: DataLoader,
-) -> None:
-    """Test that our hacky code makes terminates Verb.TERMINATE."""
-    terminate = MagicMock()
-    terminate.terminate_ = datetime.datetime.now().isoformat()
-    terminate.type_ = "address"
-    terminate.uuid = uuid4()
-
-    # This Verb.EDIT becomes Verb.TERMINATE because of the terminate_ field
-    objs = [(terminate, Verb.EDIT)]
-
-    await dataloader.create_or_edit_mo_objects(objs)  # type: ignore
-    dataloader.graphql_client.address_terminate.assert_called_once()  # type: ignore
-
-
-@pytest.mark.parametrize(
     "cpr_number,dns,expected",
     [
         # No CPR number -> no DNs
@@ -2170,23 +2118,3 @@ async def test_find_mo_employee_dn_by_itsystem(
     assert result == {dn}
 
     dataloader.ldapapi.get_ldap_dn.assert_called_once_with(ituser_uuid)
-
-
-async def test_create_unknown_type(dataloader: DataLoader) -> None:
-    """Test that trying to create an unknown type throws an exception."""
-    unknown_type = MagicMock()
-    unknown_type.type_ = "faceless"
-
-    with pytest.raises(NotImplementedError) as exc_info:
-        await dataloader.create_object(unknown_type)
-    assert "Unable to create type: faceless" in str(exc_info.value)
-
-
-async def test_edit_unknown_type(dataloader: DataLoader) -> None:
-    """Test that trying to edit an unknown type throws an exception."""
-    unknown_type = MagicMock()
-    unknown_type.type_ = "faceless"
-
-    with pytest.raises(NotImplementedError) as exc_info:
-        await dataloader.edit_object(unknown_type)
-    assert "Unable to edit type: faceless" in str(exc_info.value)

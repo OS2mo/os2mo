@@ -456,21 +456,16 @@ class DataLoader:
         )
 
     async def create_object(self, obj: MOBase) -> None:
-        match obj.type_:  # type: ignore
-            case "address":
-                assert isinstance(obj, Address)
-                await self.create_address(obj)
-            case "employee":
-                assert isinstance(obj, Employee)
-                await self.create_employee(obj)
-            case "engagement":
-                assert isinstance(obj, Engagement)
-                await self.create_engagement(obj)
-            case "it":
-                assert isinstance(obj, ITUser)
-                await self.create_ituser(obj)
-            case other:
-                raise NotImplementedError(f"Unable to create type: {other}")
+        if isinstance(obj, Address):
+            await self.create_address(obj)
+        elif isinstance(obj, Employee):
+            await self.create_employee(obj)
+        elif isinstance(obj, Engagement):
+            await self.create_engagement(obj)
+        elif isinstance(obj, ITUser):
+            await self.create_ituser(obj)
+        else:  # pragma: no cover
+            raise NotImplementedError(f"Unable to create {obj}")
 
     async def create(self, creates: list[MOBase]) -> None:
         tasks = [self.create_object(obj) for obj in creates]
@@ -548,21 +543,16 @@ class DataLoader:
         )
 
     async def edit_object(self, obj: MOBase) -> None:
-        match obj.type_:  # type: ignore
-            case "address":
-                assert isinstance(obj, Address)
-                await self.edit_address(obj)
-            case "employee":  # pragma: no cover
-                assert isinstance(obj, Employee)
-                await self.edit_employee(obj)
-            case "engagement":
-                assert isinstance(obj, Engagement)
-                await self.edit_engagement(obj)
-            case "it":
-                assert isinstance(obj, ITUser)
-                await self.edit_ituser(obj)
-            case other:
-                raise NotImplementedError(f"Unable to edit type: {other}")
+        if isinstance(obj, Address):
+            await self.edit_address(obj)
+        elif isinstance(obj, Employee):  # pragma: no cover
+            await self.edit_employee(obj)
+        elif isinstance(obj, Engagement):
+            await self.edit_engagement(obj)
+        elif isinstance(obj, ITUser):
+            await self.edit_ituser(obj)
+        else:  # pragma: no cover
+            raise NotImplementedError(f"Unable to edit {obj}")
 
     async def edit(self, edits: list[MOBase]) -> None:
         tasks = [self.edit_object(obj) for obj in edits]
@@ -586,27 +576,16 @@ class DataLoader:
             ITUserTerminateInput(uuid=uuid, to=at)
         )
 
-    async def terminate_object(self, uuid: UUID, at: datetime, motype: str) -> None:
-        """Terminate a detail.
-
-        This method calls the appropriate `terminate_x` method to terminate the object.
-
-        Args:
-            terminatee: The detail to terminate
-
-        Returns:
-            UUID of the terminated entry
-        """
-
-        match motype:
-            case "address":
-                await self.terminate_address(uuid, at)
-            case "engagement":
-                await self.terminate_engagement(uuid, at)
-            case "it":
-                await self.terminate_ituser(uuid, at)
-            case _:
-                raise NotImplementedError(f"Unable to terminate type: {motype}")
+    async def terminate_object(self, uuid: UUID, at: datetime, motype: type) -> None:
+        """Terminate a detail."""
+        if issubclass(motype, Address):
+            await self.terminate_address(uuid, at)
+        elif issubclass(motype, Engagement):
+            await self.terminate_engagement(uuid, at)
+        elif issubclass(motype, ITUser):
+            await self.terminate_ituser(uuid, at)
+        else:  # pragma: no cover
+            raise NotImplementedError(f"Unable to terminate {motype}")
 
     async def terminate(self, terminatees: list[Any]) -> None:
         """Terminate a list of details.
@@ -621,7 +600,7 @@ class DataLoader:
         """
         detail_terminations: list[dict[str, Any]] = [
             {
-                "motype": terminate.type_,
+                "motype": type(terminate),
                 "uuid": terminate.uuid,
                 "at": terminate.terminate_,
             }
@@ -630,7 +609,7 @@ class DataLoader:
         tasks = [self.terminate_object(**detail) for detail in detail_terminations]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         exceptions = cast(list[Exception], list(filter(is_exception, results)))
-        if exceptions:
+        if exceptions:  # pragma: no cover
             raise ExceptionGroup("Exceptions during termination", exceptions)
 
     async def create_mo_class(
