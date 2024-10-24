@@ -531,7 +531,7 @@ async def test_load_mo_engagement(
     output = await dataloader.moapi.load_mo_engagement(uuid4())
     assert output is not None
     assert output.user_key == "foo"
-    assert output.validity.start.strftime("%Y-%m-%d") == "2021-01-01"
+    assert output.validity.start.date() == datetime.date(2021, 1, 1)
     assert output.extension_1 == "extra info"
     assert output.extension_2 == "more extra info"
 

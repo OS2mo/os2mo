@@ -8,7 +8,6 @@ from collections.abc import AsyncIterator
 from collections.abc import Awaitable
 from collections.abc import Callable
 from collections.abc import Iterator
-from datetime import datetime
 from typing import Any
 from typing import cast
 from unittest.mock import AsyncMock
@@ -40,6 +39,7 @@ from mo_ldap_import_export.models import Address
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.models import ITUser
 from mo_ldap_import_export.types import DN
+from mo_ldap_import_export.utils import mo_today
 from tests.graphql_mocker import GraphQLMocker
 
 
@@ -196,7 +196,7 @@ def test_mo_objects() -> list:
             "parent_uuid": uuid4(),
             "object_type": "person",
             "validity": {
-                "from": datetime.today().strftime("%Y-%m-%d"),
+                "from": mo_today().isoformat(),
                 "to": None,
             },
         },
@@ -208,7 +208,7 @@ def test_mo_objects() -> list:
             "object_type": "person",
             "validity": {
                 "from": "2021-01-01",
-                "to": datetime.today().strftime("%Y-%m-%d"),
+                "to": mo_today().isoformat(),
             },
         },
         {
@@ -229,8 +229,8 @@ def test_mo_objects() -> list:
             "parent_uuid": uuid4(),
             "object_type": "person",
             "validity": {
-                "from": datetime.today().strftime("%Y-%m-%d"),
-                "to": datetime.today().strftime("%Y-%m-%d"),
+                "from": mo_today().isoformat(),
+                "to": mo_today().isoformat(),
             },
         },
     ]

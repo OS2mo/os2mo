@@ -53,6 +53,7 @@ from mo_ldap_import_export.models import ITUser
 from mo_ldap_import_export.usernames import UserNameGenerator
 from mo_ldap_import_export.usernames import get_username_generator_class
 from mo_ldap_import_export.utils import get_delete_flag
+from mo_ldap_import_export.utils import mo_today
 from tests.graphql_mocker import GraphQLMocker
 
 
@@ -666,18 +667,14 @@ async def test_reject_on_failure():
 
 async def test_get_delete_flag(dataloader: AsyncMock):
     # When there are matching objects in MO, but the to-date is today, delete
-    mo_object = {"validity": {"to": datetime.datetime.today().strftime("%Y-%m-%d")}}
+    mo_object = {"validity": {"to": mo_today().isoformat()}}
 
     flag = get_delete_flag(mo_object)
     assert flag is True
 
     # When there are matching objects in MO, but the to-date is tomorrow, do not delete
     mo_object = {
-        "validity": {
-            "to": (datetime.datetime.today() + datetime.timedelta(1)).strftime(
-                "%Y-%m-%d"
-            )
-        }
+        "validity": {"to": (mo_today() + datetime.timedelta(days=1)).isoformat()}
     }
 
     flag = get_delete_flag(mo_object)
