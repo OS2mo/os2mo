@@ -390,11 +390,11 @@ class DataLoader:
             input=EngagementCreateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,
-                org_unit=obj.org_unit.uuid,
-                person=obj.person.uuid,
-                job_function=obj.job_function.uuid,
-                engagement_type=obj.engagement_type.uuid,
-                primary=obj.primary.uuid if obj.primary is not None else None,
+                org_unit=obj.org_unit,
+                person=obj.person,
+                job_function=obj.job_function,
+                engagement_type=obj.engagement_type,
+                primary=obj.primary,
                 extension_1=obj.extension_1,
                 extension_2=obj.extension_2,
                 extension_3=obj.extension_3,
@@ -406,8 +406,8 @@ class DataLoader:
                 extension_9=obj.extension_9,
                 extension_10=obj.extension_10,
                 validity=RAValidityInput(
-                    from_=obj.validity.from_date,
-                    to=obj.validity.to_date,
+                    from_=obj.validity.start,
+                    to=obj.validity.end,
                 ),
             )
         )
@@ -498,11 +498,11 @@ class DataLoader:
             input=EngagementUpdateInput(
                 uuid=obj.uuid,
                 user_key=obj.user_key,
-                org_unit=obj.org_unit.uuid,
-                person=obj.person.uuid,
-                job_function=obj.job_function.uuid,
-                engagement_type=obj.engagement_type.uuid,
-                primary=obj.primary.uuid if obj.primary is not None else None,
+                org_unit=obj.org_unit,
+                person=obj.person,
+                job_function=obj.job_function,
+                engagement_type=obj.engagement_type,
+                primary=obj.primary,
                 extension_1=obj.extension_1,
                 extension_2=obj.extension_2,
                 extension_3=obj.extension_3,
@@ -514,8 +514,8 @@ class DataLoader:
                 extension_9=obj.extension_9,
                 extension_10=obj.extension_10,
                 validity=RAValidityInput(
-                    from_=obj.validity.from_date,
-                    to=obj.validity.to_date,
+                    from_=obj.validity.start,
+                    to=obj.validity.end,
                 ),
             )
         )

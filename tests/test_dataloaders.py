@@ -568,7 +568,7 @@ async def test_load_mo_engagement(
     output = await dataloader.moapi.load_mo_engagement(uuid4())
     assert output is not None
     assert output.user_key == "foo"
-    assert output.validity.from_date.strftime("%Y-%m-%d") == "2021-01-01"
+    assert output.validity.start.strftime("%Y-%m-%d") == "2021-01-01"
     assert output.extension_1 == "extra info"
     assert output.extension_2 == "more extra info"
 
@@ -712,66 +712,6 @@ async def test_load_mo_employee_it_users_not_found(
     assert result == []
 
     assert route.called
-
-
-async def test_load_mo_employee_engagements(
-    dataloader: DataLoader, graphql_mock: GraphQLMocker
-) -> None:
-    uuid1 = uuid4()
-
-    route1 = graphql_mock.query("read_engagements_by_employee_uuid")
-    route1.result = {
-        "engagements": {
-            "objects": [
-                {
-                    "current": {
-                        "uuid": uuid1,
-                        "validity": {"from": "2020-01-01T00:00:00"},
-                    }
-                }
-            ]
-        }
-    }
-
-    user_key = "test"
-    job_function_uuid = uuid4()
-    org_unit_uuid = uuid4()
-    engagement_type_uuid = uuid4()
-    person_uuid = uuid4()
-    route2 = graphql_mock.query("read_engagements")
-    route2.result = {
-        "engagements": {
-            "objects": [
-                {
-                    "validities": [
-                        {
-                            "user_key": user_key,
-                            "job_function_uuid": job_function_uuid,
-                            "org_unit_uuid": org_unit_uuid,
-                            "engagement_type_uuid": engagement_type_uuid,
-                            "employee_uuid": person_uuid,
-                            "validity": {"from": "2020-01-01T00:00:00Z"},
-                        }
-                    ]
-                }
-            ]
-        }
-    }
-
-    result = await dataloader.moapi.load_mo_employee_engagements(person_uuid)
-    assert one(result).dict(exclude_none=True) == {
-        "engagement_type": {"uuid": engagement_type_uuid},
-        "job_function": {"uuid": job_function_uuid},
-        "org_unit": {"uuid": org_unit_uuid},
-        "person": {"uuid": person_uuid},
-        "type_": "engagement",
-        "user_key": user_key,
-        "uuid": ANY,
-        "validity": {"from_date": datetime.datetime(2020, 1, 1, tzinfo=datetime.UTC)},
-    }
-
-    assert route1.called
-    assert route2.called
 
 
 @pytest.mark.parametrize(

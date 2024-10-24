@@ -10,7 +10,6 @@ from pydantic import Extra
 from pydantic import Field
 from ramodels.mo import MOBase as RAMOBase
 from ramodels.mo import Validity as RAValidity
-from ramodels.mo.details.engagement import Engagement as RAEngagement
 from ramodels.mo.details.it_system import ITUser as RAITUser
 from ramodels.mo.organisation_unit import OrganisationUnit as RAOrganisationUnit
 
@@ -62,8 +61,26 @@ class Employee(StrictBaseModel):
     nickname_surname: str | None
 
 
-class Engagement(RAEngagement, RAMOBase):
-    pass
+class Engagement(StrictBaseModel):
+    uuid: UUID = Field(default_factory=uuid4)
+    user_key: str = "-"
+
+    org_unit: UUID
+    person: UUID
+    job_function: UUID
+    engagement_type: UUID
+    primary: UUID | None
+    extension_1: str | None
+    extension_2: str | None
+    extension_3: str | None
+    extension_4: str | None
+    extension_5: str | None
+    extension_6: str | None
+    extension_7: str | None
+    extension_8: str | None
+    extension_9: str | None
+    extension_10: str | None
+    validity: NewValidity
 
 
 class ITUser(RAITUser, RAMOBase):

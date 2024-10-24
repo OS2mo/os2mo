@@ -415,7 +415,7 @@ around, based on its organizational path. For example:
   "mo_to_ldap": {
     "Engagement" : {
       [...]
-      "dn": "{{make_dn_from_org_unit_path(dn, nonejoin_orgs('OS2MO', 'demo', get_org_unit_path_string(mo_employee_engagement.org_unit.uuid)))}}",
+      "dn": "{{make_dn_from_org_unit_path(dn, nonejoin_orgs('OS2MO', 'demo', get_org_unit_path_string(mo_employee_engagement.org_unit)))}}",
       [...]
     }
   }

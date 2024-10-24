@@ -405,16 +405,14 @@ class MOAPI:
         if result_entry is None:
             return None
         entry = jsonable_encoder(result_entry)
-        engagement = Engagement.from_simplified_fields(
-            org_unit_uuid=entry["org_unit_uuid"],
-            person_uuid=entry["employee_uuid"],
-            job_function_uuid=entry["job_function_uuid"],
-            engagement_type_uuid=entry["engagement_type_uuid"],
-            user_key=entry["user_key"],
-            from_date=entry["validity"]["from"],
-            to_date=entry["validity"]["to"],
+        return Engagement(
             uuid=uuid,
-            primary_uuid=entry["primary_uuid"],
+            user_key=entry["user_key"],
+            org_unit=entry["org_unit_uuid"],
+            person=entry["employee_uuid"],
+            job_function=entry["job_function_uuid"],
+            engagement_type=entry["engagement_type_uuid"],
+            primary=entry["primary_uuid"],
             extension_1=entry["extension_1"],
             extension_2=entry["extension_2"],
             extension_3=entry["extension_3"],
@@ -425,10 +423,8 @@ class MOAPI:
             extension_8=entry["extension_8"],
             extension_9=entry["extension_9"],
             extension_10=entry["extension_10"],
+            validity=entry["validity"],
         )
-        # from_simplified_fields() has bad type annotation
-        assert isinstance(engagement, Engagement)
-        return engagement
 
     async def load_mo_employee_addresses(
         self, employee_uuid: UUID, address_type_uuid: UUID

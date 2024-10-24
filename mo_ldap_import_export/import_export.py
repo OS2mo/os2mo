@@ -279,7 +279,7 @@ class SyncTool:
             person = first(converted_objects).person
 
             objects_in_mo = await self.dataloader.moapi.load_mo_employee_engagements(
-                person.uuid
+                person
             )
             value_key = "user_key"
             user_keys = [o.user_key for o in objects_in_mo]

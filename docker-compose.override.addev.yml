@@ -39,12 +39,12 @@ services:
             "Engagement": {
               "objectClass": "ramodels.mo.details.engagement.Engagement",
               "_import_to_mo_": "true",
-              "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+              "person": "{{ employee_uuid or NONE }}",
               "user_key": "{{ get_primary_engagement_dict(employee_uuid).user_key }}",
-              "engagement_type": "{{ dict(uuid=get_primary_engagement_dict(employee_uuid).engagement_type_uuid) }}",
-              "org_unit": "{{ dict(uuid=get_primary_engagement_dict(employee_uuid).org_unit_uuid) }}",
-              "job_function": "{{ dict(uuid=get_primary_engagement_dict(employee_uuid).job_function_uuid) }}",
-              "primary": "{{ dict(uuid=get_primary_engagement_dict(employee_uuid).primary_uuid) }}",
+              "engagement_type": "{{ get_primary_engagement_dict(employee_uuid).engagement_type_uuid }}",
+              "org_unit": "{{ get_primary_engagement_dict(employee_uuid).org_unit_uuid }}",
+              "job_function": "{{ get_primary_engagement_dict(employee_uuid).job_function_uuid }}",
+              "primary": "{{ get_primary_engagement_dict(employee_uuid).primary_uuid }}",
               "uuid": "{{ get_primary_engagement_dict(employee_uuid).uuid }}",
               "extension_2": "{{ ldap.title }}"
             },

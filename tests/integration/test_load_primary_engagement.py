@@ -53,16 +53,15 @@ async def test_load_primary_engagement(
     result = await load_primary_engagement(dataloader, mo_person)
     assert result is not None
     assert result.dict(exclude_none=True) == {
-        "engagement_type": {"uuid": ansat},
+        "engagement_type": ansat,
         "extension_1": title,
-        "job_function": {"uuid": jurist},
-        "org_unit": {"uuid": mo_org_unit},
-        "person": {"uuid": mo_person},
-        "primary": {"uuid": primary},
-        "type_": "engagement",
+        "job_function": jurist,
+        "org_unit": mo_org_unit,
+        "person": mo_person,
+        "primary": primary,
         "user_key": title,
         "uuid": ANY,
-        "validity": {"from_date": datetime(2001, 2, 3, 0, 0, tzinfo=MO_TZ)},
+        "validity": {"start": datetime(2001, 2, 3, 0, 0, tzinfo=MO_TZ)},
     }
 
 

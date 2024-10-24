@@ -114,37 +114,32 @@ async def test_format_converted_engagement_objects(
 
     employee_uuid = uuid4()
 
-    engagement1 = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
+    engagement1 = Engagement(
+        org_unit=uuid4(),
+        person=employee_uuid,
+        job_function=uuid4(),
+        engagement_type=uuid4(),
         user_key="123",
-        from_date="2020-01-01",
+        validity={"start": "2021-01-01T00:00:00"},
     )
 
-    engagement2 = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
+    engagement2 = Engagement(
+        org_unit=uuid4(),
+        person=employee_uuid,
+        job_function=uuid4(),
+        engagement_type=uuid4(),
         user_key="foo",
-        from_date="2021-01-01",
+        validity={"start": "2021-01-01T00:00:00"},
     )
 
-    engagement_in_mo = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
+    engagement_in_mo = Engagement(
+        org_unit=uuid4(),
+        person=employee_uuid,
+        job_function=uuid4(),
+        engagement_type=uuid4(),
         user_key="123",
-        from_date="2021-01-01",
+        validity={"start": "2021-01-01T00:00:00"},
     )
-
-    # from_simplified_fields() has bad type annotation
-    assert isinstance(engagement1, Engagement)
-    assert isinstance(engagement2, Engagement)
-    assert isinstance(engagement_in_mo, Engagement)
 
     dataloader.moapi.load_mo_employee_engagements.return_value = [
         engagement_in_mo,
@@ -176,36 +171,31 @@ async def test_format_converted_engagement_duplicate(
 
     employee_uuid = uuid4()
 
-    engagement = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
+    engagement = Engagement(
+        org_unit=uuid4(),
+        person=employee_uuid,
+        job_function=uuid4(),
+        engagement_type=uuid4(),
         user_key="duplicate_key",
-        from_date="2021-01-01",
+        validity={"start": "2021-01-01T00:00:00"},
     )
 
-    engagement1_in_mo = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
+    engagement1_in_mo = Engagement(
+        org_unit=uuid4(),
+        person=employee_uuid,
+        job_function=uuid4(),
+        engagement_type=uuid4(),
         user_key="duplicate_key",
-        from_date="2021-01-01",
+        validity={"start": "2021-01-01T00:00:00"},
     )
-    engagement2_in_mo = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
+    engagement2_in_mo = Engagement(
+        org_unit=uuid4(),
+        person=employee_uuid,
+        job_function=uuid4(),
+        engagement_type=uuid4(),
         user_key="duplicate_key",
-        from_date="2021-01-01",
+        validity={"start": "2021-01-01T00:00:00"},
     )
-
-    # from_simplified_fields() has bad type annotation
-    assert isinstance(engagement, Engagement)
-    assert isinstance(engagement1_in_mo, Engagement)
-    assert isinstance(engagement2_in_mo, Engagement)
 
     dataloader.moapi.load_mo_employee_engagements.return_value = [
         engagement1_in_mo,
@@ -227,27 +217,23 @@ async def test_format_converted_multiple_primary_engagements(
 
     employee_uuid = uuid4()
 
-    engagement1 = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
+    engagement1 = Engagement(
+        org_unit=uuid4(),
+        person=employee_uuid,
+        job_function=uuid4(),
+        engagement_type=uuid4(),
         user_key="123",
-        from_date="2020-01-01",
+        validity={"start": "2020-01-01T00:00:00"},
     )
 
-    engagement2 = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
+    engagement2 = Engagement(
+        org_unit=uuid4(),
+        person=employee_uuid,
+        job_function=uuid4(),
+        engagement_type=uuid4(),
         user_key="123",
-        from_date="2021-01-01",
+        validity={"start": "2020-01-01T00:00:00"},
     )
-
-    # from_simplified_fields() has bad type annotation
-    assert isinstance(engagement1, Engagement)
-    assert isinstance(engagement2, Engagement)
 
     dataloader.moapi.load_mo_employee_engagements.return_value = [
         engagement1,
@@ -533,43 +519,38 @@ async def test_format_converted_primary_engagement_objects(
 
     dataloader.moapi.is_primaries = is_primaries
 
-    engagement1 = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
+    engagement1 = Engagement(
+        org_unit=uuid4(),
+        person=employee_uuid,
+        job_function=uuid4(),
+        engagement_type=uuid4(),
         user_key="123",
-        from_date="2020-01-01",
+        validity={"start": "2020-01-01T00:00:00"},
     )
 
-    engagement1_in_mo = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
+    engagement1_in_mo = Engagement(
+        org_unit=uuid4(),
+        person=employee_uuid,
+        job_function=uuid4(),
+        engagement_type=uuid4(),
         user_key="123",
-        from_date="2021-01-01",
-        primary_uuid=primary_uuid,
+        validity={"start": "2021-01-01T00:00:00"},
+        primary=primary_uuid,
         uuid=engagement1_in_mo_uuid,
     )
 
     # Engagement with the same user key. We should not update this one because it is
     # not primary.
-    engagement2_in_mo = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
+    engagement2_in_mo = Engagement(
+        org_unit=uuid4(),
+        person=employee_uuid,
+        job_function=uuid4(),
+        engagement_type=uuid4(),
         user_key="123",
-        from_date="2021-01-01",
-        primary_uuid=None,
+        validity={"start": "2021-01-01T00:00:00"},
+        primary=None,
         uuid=engagement2_in_mo_uuid,
     )
-
-    # from_simplified_fields() has bad type annotation
-    assert isinstance(engagement1, Engagement)
-    assert isinstance(engagement1_in_mo, Engagement)
-    assert isinstance(engagement2_in_mo, Engagement)
 
     dataloader.moapi.load_mo_employee_engagements.return_value = [
         engagement1_in_mo,
@@ -586,7 +567,7 @@ async def test_format_converted_primary_engagement_objects(
     )
 
     assert len(formatted_objects) == 1
-    assert formatted_objects[0][0].primary.uuid is not None  # type: ignore
+    assert formatted_objects[0][0].primary is not None  # type: ignore
     assert formatted_objects[0][0].user_key == "123"
 
     # Simulate that a matching employee for this engagement does not exist

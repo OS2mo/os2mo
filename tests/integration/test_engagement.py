@@ -52,11 +52,11 @@ from mo_ldap_import_export.utils import mo_today
                         # carLicense is arbitrarily chosen as an enabled/disabled marker
                         "_terminate_": "{{ now()|mo_datestring if ldap.carLicense == 'EXPIRED' else '' }}",
                         "user_key": "{{ ldap.title }}",
-                        "person": "{{ dict(uuid=employee_uuid ) }}",
-                        "org_unit": "{{ dict(uuid=ldap.departmentNumber ) }}",
-                        "engagement_type": "{{ dict(uuid=get_engagement_type_uuid('Ansat')) }}",
-                        "job_function": "{{ dict(uuid=get_job_function_uuid('Jurist')) }}",
-                        "primary": "{{ dict(uuid=get_primary_type_uuid('primary')) }}",
+                        "person": "{{ employee_uuid }}",
+                        "org_unit": "{{ ldap.departmentNumber }}",
+                        "engagement_type": "{{ get_engagement_type_uuid('Ansat') }}",
+                        "job_function": "{{ get_job_function_uuid('Jurist') }}",
+                        "primary": "{{ get_primary_type_uuid('primary') }}",
                         "extension_1": "{{ ldap.title }}",
                     },
                 },
@@ -173,11 +173,11 @@ async def test_to_mo(
                         ],
                         "_mapper_": "{{ obj.org_unit }}",
                         "user_key": "my key",
-                        "person": "{{ dict(uuid=employee_uuid ) }}",
-                        "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.departmentNumber)) }}",
-                        "engagement_type": "{{ dict(uuid=get_engagement_type_uuid('Ansat')) }}",
-                        "job_function": "{{ dict(uuid=get_job_function_uuid('Jurist')) }}",
-                        "primary": "{{ dict(uuid=get_primary_type_uuid('primary')) }}",
+                        "person": "{{ employee_uuid }}",
+                        "org_unit": "{{ get_or_create_org_unit_uuid(ldap.departmentNumber) }}",
+                        "engagement_type": "{{ get_engagement_type_uuid('Ansat') }}",
+                        "job_function": "{{ get_job_function_uuid('Jurist') }}",
+                        "primary": "{{ get_primary_type_uuid('primary') }}",
                     },
                 },
                 # TODO: why is this required?
@@ -255,7 +255,7 @@ async def test_create_org_unit(
                 {{
                     {
                         "title": mo_employee_engagement.user_key if mo_employee_engagement else [],
-                        "departmentNumber": mo_employee_engagement.org_unit.uuid | string if mo_employee_engagement else []
+                        "departmentNumber": mo_employee_engagement.org_unit | string if mo_employee_engagement else []
                     }|tojson
                 }}
                 """,
