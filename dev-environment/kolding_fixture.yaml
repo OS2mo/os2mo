@@ -21,7 +21,7 @@ ldap_to_mo:
     objectClass: ramodels.mo.details.it_system.ITUser
     _import_to_mo_: "true"
     _ldap_attributes_: ["title", "entryUUID"]
-    _terminate_: '{{ now()|mo_datestring if ldap.title == "WOW" else NONE }}'
+    _terminate_: '{{ now()|mo_datestring if ldap.title == "WOW" else '''' }}'
     user_key: '{{ ldap.entryUUID }}'
     itsystem: '{{ get_it_system_uuid(''ADUUID'') }}'
     person: '{{ employee_uuid or '''' }}'

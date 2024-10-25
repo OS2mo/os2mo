@@ -122,7 +122,7 @@ services:
                 "title",
                 "entryUUID"
               ],
-              "_terminate_": "{{ now()|mo_datestring if ldap.title == \"WOW\" else NONE }}",
+              "_terminate_": "{{ now()|mo_datestring if ldap.title == \"WOW\" else '' }}",
               "user_key": "{{ ldap.entryUUID }}",
               "itsystem": "{{ get_it_system_uuid('ADUUID') }}",
               "person": "{{ employee_uuid or '' }}"
