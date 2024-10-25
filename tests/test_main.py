@@ -70,7 +70,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
                 "objectClass": "ramodels.mo.employee.Employee",
                 "_import_to_mo_": "false",
                 "_ldap_attributes_": [],
-                "uuid": "{{ employee_uuid or NONE }}",
+                "uuid": "{{ employee_uuid or '' }}",
             }
         },
         "username_generator": {"objectClass": "UserNameGenerator"},

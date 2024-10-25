@@ -597,7 +597,7 @@ async def test_import_single_object_no_employee_no_sync(
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": ["employeeID"],
                         "cpr_number": "{{ldap.employeeID or None}}",
-                        "uuid": "{{ employee_uuid or NONE }}",
+                        "uuid": "{{ employee_uuid or '' }}",
                     }
                 },
                 "username_generator": {"objectClass": "UserNameGenerator"},
@@ -635,7 +635,7 @@ async def test_import_single_object_from_LDAP_but_import_equals_false(
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": ["employeeID"],
                         "cpr_number": "{{ldap.employeeID or None}}",
-                        "uuid": "{{ employee_uuid or NONE }}",
+                        "uuid": "{{ employee_uuid or '' }}",
                     }
                 },
                 "username_generator": {"objectClass": "UserNameGenerator"},

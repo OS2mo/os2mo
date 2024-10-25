@@ -3,10 +3,10 @@ ldap_to_mo:
     objectClass: ramodels.mo.employee.Employee
     _import_to_mo_: "false"
     _ldap_attributes_: ["employeeNumber" , "title" , "givenName" , "sn"]
-    uuid: '{{ employee_uuid or NONE }}'
+    uuid: '{{ employee_uuid or '''' }}'
     nickname_given_name: '{{ get_employee_dict(employee_uuid).nickname_given_name }}'
     nickname_surname: '{{ get_employee_dict(employee_uuid).nickname_surname }}'
-    cpr_number: '{{ldap.employeeNumber|strip_non_digits or NONE}}'
+    cpr_number: '{{ldap.employeeNumber|strip_non_digits or ''''}}'
     user_key: '{{ ldap.title }}'
     given_name: '{{ ldap.givenName }}'
     surname: '{{ ldap.sn }}'
@@ -16,7 +16,7 @@ ldap_to_mo:
     _ldap_attributes_: ["title"]
     user_key: '{{ ldap.title }}'
     itsystem: '{{ get_it_system_uuid(''ADtitle'') }}'
-    person: '{{ employee_uuid or NONE }}'
+    person: '{{ employee_uuid or '''' }}'
   ADUUID:
     objectClass: ramodels.mo.details.it_system.ITUser
     _import_to_mo_: "true"
@@ -24,7 +24,7 @@ ldap_to_mo:
     _terminate_: '{{ now()|mo_datestring if ldap.title == "WOW" else NONE }}'
     user_key: '{{ ldap.entryUUID }}'
     itsystem: '{{ get_it_system_uuid(''ADUUID'') }}'
-    person: '{{ employee_uuid or NONE }}'
+    person: '{{ employee_uuid or '''' }}'
 mo2ldap: |
   {% set mo_employee = load_mo_employee(uuid, current_objects_only=False) %}
   {% set mo_employee_it_user = load_mo_it_user(uuid, "ADUUID") %}

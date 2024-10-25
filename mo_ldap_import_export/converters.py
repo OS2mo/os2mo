@@ -152,7 +152,7 @@ class LdapConverter:
                 # - {{ldap.mail or None}} renders as "None"
                 # - {{ldap.mail}} renders as "[]" if ldap.mail is empty
                 #
-                # Mapping with {{ldap.mail or NONE}} solves both, but let's check
+                # Mapping with {{ldap.mail or ''}} solves both, but let's check
                 # for "none" or "[]" strings anyway to be more robust.
                 if value.lower() == "none" or value == "[]":
                     value = ""

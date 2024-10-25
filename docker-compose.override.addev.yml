@@ -31,8 +31,8 @@ services:
               "objectClass": "ramodels.mo.employee.Employee",
               "_import_to_mo_": "true",
               "_ldap_attributes_": ["employeeID", "initials"],
-              "cpr_number": "{{ ldap.employeeID|strip_non_digits or NONE }}",
-              "uuid": "{{ employee_uuid or NONE }}",
+              "cpr_number": "{{ ldap.employeeID|strip_non_digits or '' }}",
+              "uuid": "{{ employee_uuid or '' }}",
               "given_name": "{{ get_employee_dict(employee_uuid).given_name }}",
               "surname": "{{ get_employee_dict(employee_uuid).surname }}",
               "nickname_given_name": "{{ get_employee_dict(employee_uuid).nickname_given_name }}",
@@ -43,7 +43,7 @@ services:
               "objectClass": "ramodels.mo.details.engagement.Engagement",
               "_import_to_mo_": "true",
               "_ldap_attributes_": ["title"],
-              "person": "{{ employee_uuid or NONE }}",
+              "person": "{{ employee_uuid or '' }}",
               "user_key": "{{ get_primary_engagement_dict(employee_uuid).user_key }}",
               "engagement_type": "{{ get_primary_engagement_dict(employee_uuid).engagement_type_uuid }}",
               "org_unit": "{{ get_primary_engagement_dict(employee_uuid).org_unit_uuid }}",
@@ -59,7 +59,7 @@ services:
               "uuid": "{{ ldap.objectGUID|remove_curly_brackets }}",
               "user_key": "{{ ldap.sAMAccountName }}",
               "itsystem": "{{ get_it_system_uuid('Active Directory') }}",
-              "person": "{{ employee_uuid or NONE }}"
+              "person": "{{ employee_uuid or '' }}"
             }
           },
           "mo_to_ldap": {

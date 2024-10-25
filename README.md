@@ -173,7 +173,7 @@ More advanced template strings may be constructed, such as:
       "objectClass": "user",
       "_import_to_mo_": "true",
       "given_name": "{{ldap.givenName or ldap.name|splitlast|first}}",
-      "uuid": "{{ employee_uuid or NONE }}"
+      "uuid": "{{ employee_uuid or '' }}"
     }
   }
   [...]
@@ -226,7 +226,7 @@ Converting the other way around can be done as follows:
       "type": "address",
       "validity": "{{ dict(from_date = ldap.mail_validity_from or now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('EmailEmployee')) }}",
-      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
+      "person": "{{ dict(uuid=employee_uuid or '') }}"
     },
   }
   [...]
@@ -278,7 +278,7 @@ And the other way around:
     "LocationUnit": {
       "objectClass": "ramodels.mo.details.address.Address",
       "_import_to_mo_": "true",
-      "value": "{{ ldap.postalAddress or NONE }}",
+      "value": "{{ ldap.postalAddress or '' }}",
       "type": "address",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_org_unit_address_type_uuid('LocationUnit')) }}",
@@ -324,7 +324,7 @@ And the other way around:
       "user_key": "{{ ldap.msSFU30Name or None }}",
       "itsystem": "{{ get_it_system_uuid('Active Directory') }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "person": "{{ employee_uuid or NONE }}"
+      "person": "{{ employee_uuid or '' }}"
     }
   }
   [...]
@@ -376,7 +376,7 @@ Converting the other way around can be done like this:
       "engagement_type": "{{ dict(uuid=get_engagement_type_uuid(ldap.employeeType)) }}",
       "user_key": "{{ ldap.departmentNumber or uuid4() }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+      "person": "{{ dict(uuid=employee_uuid or '') }}",
       "primary": "{{ dict(uuid=get_primary_type_uuid('primary')) }}"
     }
   }
@@ -493,7 +493,7 @@ And the other way around:
       "user_key": "{{ ldap.distinguishedName }}",
       "itsystem": "{{ get_it_system_uuid('Active Directory') }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "person": "{{ employee_uuid or NONE }}"
+      "person": "{{ employee_uuid or '' }}"
     }
   }
   [...]
@@ -535,7 +535,7 @@ And the other way around:
       "objectClass": "ramodels.mo.employee.Employee",
       "_import_to_mo_": "true",
       "cpr_number": "{{ldap.employeeID|strip_non_digits}}",
-      "uuid": "{{ employee_uuid or NONE }}"
+      "uuid": "{{ employee_uuid or '' }}"
       [...]
     },
   }

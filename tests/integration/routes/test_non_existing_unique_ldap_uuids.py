@@ -22,7 +22,7 @@ conversion_mapping_with_aduuid_itsystem = {
             "objectClass": "ramodels.mo.employee.Employee",
             "_import_to_mo_": "false",
             "_ldap_attributes_": [],
-            "uuid": "{{ employee_uuid or NONE }}",
+            "uuid": "{{ employee_uuid or '' }}",
         },
         "ADUUID": {
             "objectClass": "ramodels.mo.details.it_system.ITUser",
@@ -30,7 +30,7 @@ conversion_mapping_with_aduuid_itsystem = {
             "_ldap_attributes_": ["entryUUID"],
             "user_key": "{{ ldap.entryUUID }}",
             "itsystem": "{{ get_it_system_uuid('ADUUID') }}",
-            "person": "{{ employee_uuid or NONE }}",
+            "person": "{{ employee_uuid or '' }}",
         },
     },
     "username_generator": {

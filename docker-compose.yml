@@ -97,10 +97,10 @@ services:
                 "givenName",
                 "sn"
               ],
-              "uuid": "{{ employee_uuid or NONE }}",
+              "uuid": "{{ employee_uuid or '' }}",
               "nickname_given_name": "{{ get_employee_dict(employee_uuid).nickname_given_name }}",
               "nickname_surname": "{{ get_employee_dict(employee_uuid).nickname_surname }}",
-              "cpr_number": "{{ldap.employeeNumber|strip_non_digits or NONE}}",
+              "cpr_number": "{{ldap.employeeNumber|strip_non_digits or ''}}",
               "user_key": "{{ ldap.title }}",
               "given_name": "{{ ldap.givenName }}",
               "surname": "{{ ldap.sn }}"
@@ -113,7 +113,7 @@ services:
               ],
               "user_key": "{{ ldap.title }}",
               "itsystem": "{{ get_it_system_uuid('ADtitle') }}",
-              "person": "{{ employee_uuid or NONE }}"
+              "person": "{{ employee_uuid or '' }}"
             },
             "ADUUID": {
               "objectClass": "ramodels.mo.details.it_system.ITUser",
@@ -125,7 +125,7 @@ services:
               "_terminate_": "{{ now()|mo_datestring if ldap.title == \"WOW\" else NONE }}",
               "user_key": "{{ ldap.entryUUID }}",
               "itsystem": "{{ get_it_system_uuid('ADUUID') }}",
-              "person": "{{ employee_uuid or NONE }}"
+              "person": "{{ employee_uuid or '' }}"
             }
           },
           "mo2ldap": "{% set mo_employee = load_mo_employee(uuid, current_objects_only=False) %}\n{% set mo_employee_it_user = load_mo_it_user(uuid, \"ADUUID\") %}\n\n{{\n  {\n    \"employeeNumber\": mo_employee.cpr_number,\n    \"title\": mo_employee.user_key,\n    \"givenName\": mo_employee.given_name,\n    \"sn\": mo_employee.surname,\n    \"entryUUID\": mo_employee_it_user.user_key,\n  }|tojson\n}}\n",

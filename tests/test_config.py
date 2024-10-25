@@ -29,9 +29,9 @@ def address_mapping(minimal_mapping: dict) -> dict:
                     "objectClass": "ramodels.mo.details.address.Address",
                     "_import_to_mo_": "true",
                     "_ldap_attributes_": ["mail"],
-                    "value": "{{ldap.mail or NONE}}",
+                    "value": "{{ldap.mail or ''}}",
                     "address_type": "{{ get_employee_address_type_uuid('EmailEmployee') }}",
-                    "person": "{{ employee_uuid or NONE }}",
+                    "person": "{{ employee_uuid or '' }}",
                 }
             }
         },
@@ -63,7 +63,7 @@ def test_cannot_terminate_employee(minimal_mapping: dict) -> None:
                     "_ldap_attributes_": ["employeeID"],
                     "_terminate_": "whatever",
                     "cpr_number": "{{ldap.employeeID or None}}",
-                    "uuid": "{{ employee_uuid or NONE }}",
+                    "uuid": "{{ employee_uuid or '' }}",
                 }
             }
         },
@@ -193,7 +193,7 @@ def test_mapper_settings(monkeypatch: pytest.MonkeyPatch) -> None:
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": ["employeeID"],
                         "cpr_number": "{{ldap.employeeID or None}}",
-                        "uuid": "{{ employee_uuid or NONE }}",
+                        "uuid": "{{ employee_uuid or '' }}",
                     }
                 },
                 "username_generator": {"objectClass": "UserNameGenerator"},
@@ -233,7 +233,7 @@ def test_check_attributes(monkeypatch: pytest.MonkeyPatch) -> None:
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": ["employeeID"],
                         "cpr_number": "{{ldap.employeeID or None}}",
-                        "uuid": "{{ employee_uuid or NONE }}",
+                        "uuid": "{{ employee_uuid or '' }}",
                     }
                 },
                 "username_generator": {"objectClass": "UserNameGenerator"},

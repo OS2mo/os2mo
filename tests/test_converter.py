@@ -92,7 +92,7 @@ def converter_mapping() -> dict[str, Any]:
                 "given_name": "{{ldap.givenName}}",
                 "surname": "{{ldap.sn}}",
                 "cpr_number": "{{ldap.employeeID or None}}",
-                "uuid": "{{ employee_uuid or NONE }}",
+                "uuid": "{{ employee_uuid or '' }}",
             },
             "Email": {
                 "objectClass": "ramodels.mo.details.address.Address",
@@ -100,15 +100,15 @@ def converter_mapping() -> dict[str, Any]:
                 "_ldap_attributes_": ["mail"],
                 "value": "{{ldap.mail}}",
                 "address_type": "{{ 'f376deb8-4743-4ca6-a047-3241de8fe9d2' }}",
-                "person": "{{ employee_uuid or NONE }}",
+                "person": "{{ employee_uuid or '' }}",
             },
             "Active Directory": {
                 "objectClass": "ramodels.mo.details.it_system.ITUser",
                 "_import_to_mo_": "True",
                 "_ldap_attributes_": ["msSFU30Name"],
-                "user_key": "{{ ldap.msSFU30Name or NONE }}",
+                "user_key": "{{ ldap.msSFU30Name or '' }}",
                 "itsystem": "{{ get_it_system_uuid(ldap.itSystemName) }}",
-                "person": "{{ employee_uuid or NONE }}",
+                "person": "{{ employee_uuid or '' }}",
             },
         },
         "mo2ldap": """
@@ -290,9 +290,9 @@ async def test_ldap_to_mo_dict_error(converter: LdapConverter) -> None:
             "ldap_to_mo": {
                 "Active Directory": {
                     "objectClass": "ramodels.mo.details.it_system.ITUser",
-                    "user_key": "{{ ldap.msSFU30Name or NONE }}",
+                    "user_key": "{{ ldap.msSFU30Name or '' }}",
                     "itsystem": "{ 'hep': 'hey }",  # provokes json error in str_to_dict
-                    "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+                    "person": "{{ dict(uuid=employee_uuid or '') }}",
                 }
             }
         },
@@ -321,7 +321,7 @@ async def test_ldap_to_mo_dict_validation_error(
                 "_import_to_mo_": "True",
                 "_ldap_attributes_": ["employeeID"],
                 "cpr_number": "{{ldap.employeeID or None}}",
-                "uuid": "{{ employee_uuid or NONE }}",
+                "uuid": "{{ employee_uuid or '' }}",
             },
             "Custom": {
                 "objectClass": "Custom.JobTitleFromADToMO",
@@ -329,7 +329,7 @@ async def test_ldap_to_mo_dict_validation_error(
                 "_ldap_attributes_": ["hkStsuuid"],
                 "user": "{{ ldap.hkStsuuid }}",
                 "job_function": f"{{ {uuid4()} }}",
-                "uuid": "{{ employee_uuid or NONE }}",
+                "uuid": "{{ employee_uuid or '' }}",
             },
         }
     }
@@ -890,8 +890,8 @@ def test_check_uuid_refs_in_mo_objects(converter_mapping: dict[str, Any]) -> Non
             "ldap_to_mo": {
                 "EmailEmployee": {
                     **address_obj,
-                    "person": "{{ employee_uuid or NONE }}",
-                    "org_unit": "{{ employee_uuid or NONE }}",
+                    "person": "{{ employee_uuid or '' }}",
+                    "org_unit": "{{ employee_uuid or '' }}",
                 }
             }
         }
@@ -942,7 +942,7 @@ def test_import_to_mo_configuration(
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": import_to_mo,
                         "_ldap_attributes_": [],
-                        "uuid": "{{ employee_uuid or NONE }}",
+                        "uuid": "{{ employee_uuid or '' }}",
                     }
                 },
                 "username_generator": {"objectClass": "UserNameGenerator"},
@@ -991,7 +991,7 @@ def test_import_to_mo(
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": import_to_mo,
                         "_ldap_attributes_": [],
-                        "uuid": "{{ employee_uuid or NONE }}",
+                        "uuid": "{{ employee_uuid or '' }}",
                     }
                 },
                 "username_generator": {"objectClass": "UserNameGenerator"},
