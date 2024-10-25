@@ -11,6 +11,8 @@ services:
       LDAP_OU_FOR_NEW_USERS: "OU=Users,OU=ldap-tests,OU=OS2MO"
       LDAP_DIALECT: "AD"
       LDAP_OBJECT_CLASS: "user"
+      LDAP_CPR_ATTRIBUTE: "employeeID"
+      LDAP_IT_SYSTEM: "Active Directory"
 
       LDAP_AUTH_METHOD: "simple"
 
