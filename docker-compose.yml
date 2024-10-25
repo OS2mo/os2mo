@@ -83,8 +83,8 @@ services:
       LDAP_CPR_ATTRIBUTE: "employeeNumber"
       LDAP_IT_SYSTEM: "ADUUID"
 
-      # Produced using: yq -o=json kolding_fixture.yaml
-      # Followed by escaping the single quotes within templates
+      # Produced using yq-go: `yq --output-format=json kolding_fixture.yaml`
+      # !!!!!!!!!!!!!!!!!!!! DO NOT EDIT BY HAND !!!!!!!!!!!!!!!!!!!!
       CONVERSION_MAPPING: >-
         {
             "ldap_to_mo": {
