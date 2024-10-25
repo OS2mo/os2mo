@@ -25,19 +25,19 @@ ldap_to_mo:
     user_key: '{{ ldap.entryUUID }}'
     itsystem: '{{ get_it_system_uuid(''ADUUID'') }}'
     person: '{{ employee_uuid or NONE }}'
-mo_to_ldap:
-  Employee:
-    employeeNumber: '{{mo_employee.cpr_number}}'
-    title: '{{ mo_employee.user_key }}'
-    givenName: '{{ mo_employee.given_name }}'
-    sn: '{{ mo_employee.surname }}'
-  ADtitle:
-    title: '{{ mo_employee_it_user.user_key }}'
-    employeeNumber: '{{ mo_employee.cpr_number }}'
-  ADUUID:
-    title: '{{ NONE }}'
-    entryUUID: '{{ mo_employee_it_user.user_key }}'
-    employeeNumber: '{{ mo_employee.cpr_number }}'
+mo2ldap: |
+  {% set mo_employee = load_mo_employee(uuid, current_objects_only=False) %}
+  {% set mo_employee_it_user = load_mo_it_user(uuid, "ADUUID") %}
+
+  {{
+    {
+      "employeeNumber": mo_employee.cpr_number,
+      "title": mo_employee.user_key,
+      "givenName": mo_employee.given_name,
+      "sn": mo_employee.surname,
+      "entryUUID": mo_employee_it_user.user_key,
+    }|tojson
+  }}
 username_generator:
   objectClass: UserNameGenerator
   combinations_to_try: ["FFFX", "LLLX"]
