@@ -301,7 +301,7 @@ class UserNameGenerator:
             case "AD":
                 login_fields = ["sAMAccountName", "userPrincipalName"]
             case _:  # pragma: no cover
-                assert AssertionError("Unknown LDAP dialect")
+                raise AssertionError("Unknown LDAP dialect")
 
         # TODO: Consider if it is better to fetch all names or candidate names
         existing_values = await self.get_existing_values(["cn"] + login_fields)
