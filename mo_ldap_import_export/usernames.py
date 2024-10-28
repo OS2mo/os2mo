@@ -332,6 +332,12 @@ class UserNameGenerator:
         existing_common_names = await self._get_existing_common_names()
         return existing_usernames, existing_common_names
 
+    def generate_person_name(self, employee: Employee) -> list[str]:
+        givenname = employee.givenname
+        surname = employee.surname
+        name = givenname.split(" ")[:4] + [surname]
+        return name
+
     async def generate_dn(self, employee: Employee) -> str:
         """
         Generates a LDAP DN (Distinguished Name) based on information from a MO Employee
@@ -341,23 +347,19 @@ class UserNameGenerator:
         """
         existing_usernames, existing_common_names = await self._get_existing_names()
 
-        givenname = employee.givenname
-        surname = employee.surname
-        name = givenname.split(" ")[:4] + [surname]
+        name = self.generate_person_name(employee)
 
         username = self._create_username(name, existing_usernames)
         logger.info(
             "Generated username based on name",
-            givenname=givenname,
-            surname=surname,
+            name=name,
             username=username,
         )
 
         common_name = self._create_common_name(name, existing_common_names)
         logger.info(
             "Generated CommonName based on name",
-            givenname=givenname,
-            surname=surname,
+            name=name,
             common_name=common_name,
         )
 
@@ -408,20 +410,21 @@ class AlleroedUserNameGenerator(UserNameGenerator):
             {validity.user_key for obj in result.objects for validity in obj.validities}
         )
 
-        givenname = employee.givenname.strip()
-        surname = employee.surname
-        name = givenname.split(" ")[:4] + [surname]
+        name = self.generate_person_name(employee)
 
         common_name = self._create_common_name(name, existing_common_names)
-        logger.info(f"Generated CommonName for {givenname} {surname}: '{common_name}'")
+        logger.info(
+            "Generated CommonName based on name",
+            name=name,
+            common_name=common_name,
+        )
 
         username = self.generate_username(
             name, existing_usernames + existing_usernames_in_mo
         )
         logger.info(
             "Generated username based on name",
-            givenname=givenname,
-            surname=surname,
+            name=name,
             username=username,
         )
 
