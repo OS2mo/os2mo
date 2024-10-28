@@ -294,7 +294,13 @@ class UserNameGenerator:
             raise AssertionError("MO2LDAP template must be set to create LDAP users")
         return await self.dataloader.sync_tool.render_ldap2mo(employee.uuid, dn)
 
-    async def _get_existing_names(self):
+    async def _get_existing_common_names(self):
+        # TODO: Consider if it is better to fetch all names or candidate names
+        existing_values = await self.get_existing_values(["cn"])
+        existing_common_names = existing_values["cn"]
+        return existing_common_names
+
+    async def _get_existing_usernames(self):
         match self.settings.ldap_dialect:
             case "Standard":
                 login_fields = ["distinguishedName"]
@@ -304,7 +310,7 @@ class UserNameGenerator:
                 raise AssertionError("Unknown LDAP dialect")
 
         # TODO: Consider if it is better to fetch all names or candidate names
-        existing_values = await self.get_existing_values(["cn"] + login_fields)
+        existing_values = await self.get_existing_values(login_fields)
 
         match self.settings.ldap_dialect:
             case "Standard":
@@ -319,8 +325,11 @@ class UserNameGenerator:
             case _:  # pragma: no cover
                 raise AssertionError("Unknown LDAP dialect")
 
-        existing_common_names = existing_values["cn"]
+        return existing_usernames
 
+    async def _get_existing_names(self):
+        existing_usernames = await self._get_existing_usernames()
+        existing_common_names = await self._get_existing_common_names()
         return existing_usernames, existing_common_names
 
     async def generate_dn(self, employee: Employee) -> str:
