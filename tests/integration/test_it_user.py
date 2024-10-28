@@ -344,3 +344,96 @@ async def test_to_ldap_create_it_user_if_non_existent(
 
     await assert_it_user({"title": [title]})
     await assert_mo_itusers(["update"])
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "CONVERSION_MAPPING": json.dumps(
+            {
+                "mo2ldap": """
+                {% set mo_employee_it_user = load_mo_it_user(uuid, "ADtitle") %}
+                {% if mo_employee_it_user is none %}
+                    {% set username = generate_username(uuid) %}
+                {% else %}
+                    {% set username = mo_employee_it_user.user_key %}
+                {% endif %}
+
+                {{
+                    {
+                        "title": username
+                    }|tojson
+                }}
+                """,
+                # TODO: why is this required?
+                "username_generator": {
+                    "objectClass": "UserNameGenerator",
+                    "combinations_to_try": ["FFFX", "LLLX"],
+                },
+            }
+        ),
+    }
+)
+async def test_to_ldap_generate_username(
+    test_client: AsyncClient,
+    graphql_client: GraphQLClient,
+    mo_api: MOAPI,
+    mo_person: UUID,
+    ldap_connection: Connection,
+    ldap_org: list[str],
+) -> None:
+    cpr = "2108613133"
+
+    async def assert_it_user(expected: dict[str, Any]) -> None:
+        response, _ = await ldap_search(
+            ldap_connection,
+            search_base=combine_dn_strings(ldap_org),
+            search_filter=f"(employeeNumber={cpr})",
+            attributes=["title"],
+        )
+        assert one(response)["attributes"] == expected
+
+    async def trigger_sync() -> None:
+        content = str(mo_person)
+        headers = {"Content-Type": "text/plain"}
+        result = await test_client.post(
+            "/mo2ldap/person", content=content, headers=headers
+        )
+        assert result.status_code == 200
+
+    # LDAP: Init user
+    person_dn = combine_dn_strings(["uid=abk"] + ldap_org)
+    await ldap_add(
+        ldap_connection,
+        dn=person_dn,
+        object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
+        attributes={
+            "objectClass": ["top", "person", "organizationalPerson", "inetOrgPerson"],
+            "ou": "os2mo",
+            "cn": "Aage Bach Klarskov",
+            "sn": "Bach Klarskov",
+            "employeeNumber": cpr,
+        },
+    )
+    await assert_it_user({"title": []})
+
+    await trigger_sync()
+
+    await assert_it_user({"title": ["aag2"]})
+
+    # MO: Create
+    it_system_uuid = UUID(await mo_api.get_it_system_uuid("ADtitle"))
+    title = "create"
+    await graphql_client.ituser_create(
+        input=ITUserCreateInput(
+            user_key=title,
+            itsystem=it_system_uuid,
+            person=mo_person,
+            validity={"from": "2001-02-03T04:05:06Z"},
+        )
+    )
+    await trigger_sync()
+
+    await assert_it_user({"title": [title]})

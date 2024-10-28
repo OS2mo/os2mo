@@ -7,6 +7,7 @@ from datetime import datetime
 from functools import partial
 from itertools import compress
 from typing import Any
+from typing import cast
 from uuid import UUID
 from uuid import uuid4
 
@@ -788,6 +789,16 @@ async def load_org_unit_address(
     return fetched_address
 
 
+async def generate_username(
+    dataloader: DataLoader,
+    employee_uuid: UUID,
+) -> str:
+    employee = await dataloader.moapi.load_mo_employee(employee_uuid)
+    if employee is None:  # pragma: no cover
+        raise NoObjectsReturnedException(f"Unable to lookup employee: {employee_uuid}")
+    return cast(str, await dataloader.username_generator.generate_username(employee))
+
+
 def construct_globals_dict(
     settings: Settings, dataloader: DataLoader
 ) -> dict[str, Any]:
@@ -869,6 +880,7 @@ def construct_globals_dict(
         "load_mo_address": partial(load_address, dataloader),
         "load_mo_org_unit_address": partial(load_org_unit_address, dataloader),
         "create_mo_it_user": partial(create_mo_it_user, dataloader),
+        "generate_username": partial(generate_username, dataloader),
     }
 
 
