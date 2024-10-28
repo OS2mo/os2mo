@@ -680,6 +680,22 @@ async def load_it_user(
     return fetched_ituser
 
 
+async def create_mo_it_user(
+    dataloader: DataLoader, employee_uuid: UUID, itsystem_user_key: str, user_key: str
+) -> ITUser | None:
+    it_system_uuid = UUID(await dataloader.moapi.get_it_system_uuid(itsystem_user_key))
+
+    # Make a new it-user
+    it_user = ITUser.from_simplified_fields(
+        user_key=user_key,
+        itsystem_uuid=it_system_uuid,
+        from_date=datetime.today().strftime("%Y-%m-%d"),
+        person_uuid=employee_uuid,
+    )
+    await dataloader.create_ituser(it_user)
+    return await load_it_user(dataloader, employee_uuid, itsystem_user_key)
+
+
 async def load_address(
     dataloader: DataLoader, employee_uuid: UUID, address_type_user_key: str
 ) -> Address | None:
@@ -852,6 +868,7 @@ def construct_globals_dict(
         "load_mo_it_user": partial(load_it_user, dataloader),
         "load_mo_address": partial(load_address, dataloader),
         "load_mo_org_unit_address": partial(load_org_unit_address, dataloader),
+        "create_mo_it_user": partial(create_mo_it_user, dataloader),
     }
 
 
