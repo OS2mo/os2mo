@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Iterator
 from unittest.mock import AsyncMock
@@ -10,12 +10,12 @@ import pytest
 from fastramqpi.context import Context
 from pydantic import ValidationError
 from pydantic import parse_obj_as
-from ramodels.mo import Employee
 
 from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.config import UsernameGeneratorConfig
 from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.moapi import MOAPI
+from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.usernames import AlleroedUserNameGenerator
 from mo_ldap_import_export.usernames import UserNameGenerator
 from tests.graphql_mocker import GraphQLMocker
@@ -336,7 +336,7 @@ async def test_generate_dn(username_generator: UserNameGenerator):
     username_generator.dataloader.sync_tool.render_ldap2mo = render_ldap2mo
     username_generator.settings.conversion_mapping.mo2ldap = """{}"""  # type: ignore
 
-    employee = Employee(givenname="Patrick", surname="Bateman")
+    employee = Employee(given_name="Patrick", surname="Bateman")
     dn = await username_generator.generate_dn(employee)
     assert dn == "CN=Patrick Bateman,DC=bar"
 
@@ -426,8 +426,8 @@ async def test_alleroed_username_generator(
         ["Dorthe", "Baun"],
     ]:
         *firstnames, surname = name
-        givenname = " ".join(firstnames)
-        employee = Employee(givenname=givenname, surname=surname)  # type: ignore
+        given_name = " ".join(firstnames)
+        employee = Employee(given_name=given_name, surname=surname)
 
         alleroed_username_generator._get_existing_usernames = AsyncMock()  # type: ignore
         alleroed_username_generator._get_existing_usernames.return_value = (
@@ -462,7 +462,7 @@ async def test_alleroed_dn_generator(
     alleroed_username_generator.dataloader.graphql_client = graphql_client  # type: ignore
     alleroed_username_generator.dataloader.moapi = MOAPI(settings_mock, graphql_client)  # type: ignore
 
-    employee = Employee(givenname="Patrick", surname="Bateman")  # type: ignore
+    employee = Employee(given_name="Patrick", surname="Bateman")
     dn = await alleroed_username_generator.generate_dn(employee)
     assert dn == "CN=Patrick Bateman,DC=bar"
 
@@ -471,7 +471,7 @@ async def test_alleroed_dn_generator(
 
 
 @pytest.mark.parametrize(
-    "givenname,surname,forbidden,expected",
+    "given_name,surname,forbidden,expected",
     [
         ("Anders", "Broon", [], "abrn"),
         ("Anders", "Broon", ["abrn"], "anbr"),
@@ -481,7 +481,7 @@ async def test_alleroed_dn_generator(
 )
 async def test_alleroed_username_generator_forbidden_names_from_files(
     alleroed_username_generator: AlleroedUserNameGenerator,
-    givenname: str,
+    given_name: str,
     surname: str,
     forbidden: list[str],
     expected: str,
@@ -492,6 +492,6 @@ async def test_alleroed_username_generator_forbidden_names_from_files(
     # Now clean the list of forbidden usernames and try again
     alleroed_username_generator.forbidden_usernames = forbidden
 
-    employee = Employee(givenname=givenname, surname=surname)  # type: ignore
+    employee = Employee(given_name=given_name, surname=surname)
     username = await alleroed_username_generator.generate_username(employee)
     assert username == expected

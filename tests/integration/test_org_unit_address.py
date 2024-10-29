@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import json
 from typing import Any
@@ -48,7 +48,7 @@ from mo_ldap_import_export.utils import mo_today
         ),
     }
 )
-@pytest.mark.usefixture("test_client")
+@pytest.mark.usefixtures("test_client")
 async def test_to_ldap(
     graphql_client: GraphQLClient,
     mo_person: UUID,

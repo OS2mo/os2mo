@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import datetime
@@ -127,7 +127,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
                 "objectClass": "ramodels.mo.employee.Employee",
                 "_import_to_mo_": "false",
                 "_ldap_attributes_": [],
-                "uuid": "{{ employee_uuid or NONE }}",
+                "uuid": "{{ employee_uuid or '' }}",
             }
         },
         "username_generator": {"objectClass": "UserNameGenerator"},
@@ -529,11 +529,11 @@ async def test_single_object_search(ldap_connection: MagicMock, context: Context
         "search_filter": "CPR=010101-1234",
     }
 
-    with pytest.raises(MultipleObjectsReturnedException, match="010101-xxxx"):
+    with pytest.raises(MultipleObjectsReturnedException, match="010101-1234"):
         ldap_connection.get_response.return_value = [search_entry] * 2, result
         await single_object_search(search_parameters, ldap_connection)
 
-    with pytest.raises(NoObjectsReturnedException, match="010101-xxxx"):
+    with pytest.raises(NoObjectsReturnedException, match="010101-1234"):
         ldap_connection.get_response.return_value = [search_entry] * 0, result
         await single_object_search(search_parameters, ldap_connection)
 

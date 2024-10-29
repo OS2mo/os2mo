@@ -319,10 +319,10 @@ query read_employees(
     objects {
       validities {
         uuid
-        cpr_no
-        givenname
+        cpr_number
+        given_name
         surname
-        nickname_givenname
+        nickname_given_name
         nickname_surname
         validity {
           to
@@ -493,7 +493,7 @@ fragment address_validity_fields on Address {
   org_unit_uuid
   engagement_uuid
   person: employee {
-    cpr_no
+    cpr_number
   }
   validity {
     from

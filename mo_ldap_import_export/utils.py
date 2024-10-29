@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import copy
 import re
@@ -17,13 +17,14 @@ from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
 from more_itertools import bucket
-from ramodels.mo._shared import MOBase
-from ramodels.mo.details.address import Address
-from ramodels.mo.details.engagement import Engagement
-from ramodels.mo.details.it_system import ITUser
-from ramodels.mo.employee import Employee
 
-from .customer_specific import JobTitleFromADToMO
+from mo_ldap_import_export.models import Address
+from mo_ldap_import_export.models import Employee
+from mo_ldap_import_export.models import Engagement
+from mo_ldap_import_export.models import ITUser
+from mo_ldap_import_export.models import MOBase
+
+from .models import JobTitleFromADToMO
 
 logger = structlog.stdlib.get_logger()
 
@@ -42,6 +43,7 @@ def mo_today() -> datetime:
 def import_class(name: str) -> type[MOBase]:
     import_map: dict[str, type[MOBase]] = {
         "Custom.JobTitleFromADToMO": JobTitleFromADToMO,
+        # TODO: these have nothing to do with ramodels anymore
         "ramodels.mo.details.address.Address": Address,
         "ramodels.mo.details.engagement.Engagement": Engagement,
         "ramodels.mo.details.it_system.ITUser": ITUser,

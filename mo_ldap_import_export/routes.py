@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """HTTP Endpoints."""
 
@@ -49,7 +49,6 @@ from .ldap import object_search
 from .ldap import paged_search
 from .ldap_classes import LdapObject
 from .ldap_emit import publish_uuids
-from .processors import _hide_cpr as hide_cpr
 from .types import DN
 from .types import CPRNumber
 from .utils import combine_dn_strings
@@ -348,7 +347,7 @@ async def load_ldap_OUs(
 
 async def load_ldap_cpr_object(
     dataloader: DataLoader,
-    cpr_no: CPRNumber,
+    cpr_number: CPRNumber,
     json_key: str,
     additional_attributes: list[str] | None = None,
 ) -> list[LdapObject]:
@@ -362,9 +361,11 @@ async def load_ldap_cpr_object(
     additional_attributes = additional_attributes or []
 
     try:
-        validate_cpr(cpr_no)
+        validate_cpr(cpr_number)
     except (ValueError, TypeError) as error:
-        raise NoObjectsReturnedException(f"cpr_no '{cpr_no}' is invalid") from error
+        raise NoObjectsReturnedException(
+            f"cpr_number '{cpr_number}' is invalid"
+        ) from error
 
     if not dataloader.settings.ldap_cpr_attribute:
         raise NoObjectsReturnedException("cpr_field is not configured")
@@ -378,7 +379,7 @@ async def load_ldap_cpr_object(
     )
 
     object_class_filter = f"objectclass={object_class}"
-    cpr_filter = f"{dataloader.settings.ldap_cpr_attribute}={cpr_no}"
+    cpr_filter = f"{dataloader.settings.ldap_cpr_attribute}={cpr_number}"
 
     searchParameters = {
         "search_base": search_bases,
@@ -437,9 +438,9 @@ def construct_router(settings: Settings) -> APIRouter:
 
         def has_valid_cpr_number(ldap_object: LdapObject) -> bool:
             assert cpr_field is not None
-            cpr_no = CPRNumber(getattr(ldap_object, cpr_field))
+            cpr_number = CPRNumber(getattr(ldap_object, cpr_field))
             with suppress(ValueError, TypeError):
-                validate_cpr(cpr_no)
+                validate_cpr(cpr_number)
                 return True
             logger.info("Invalid CPR Number found", dn=ldap_object.dn)
             return False
@@ -640,7 +641,7 @@ def construct_router(settings: Settings) -> APIRouter:
 
         for cpr in set(cpr_values):
             if cpr_values.count(cpr) > 1:
-                output[hide_cpr(cpr)] = [
+                output[cpr] = [
                     r["dn"] for r in responses if r["attributes"][cpr_field] == cpr
                 ]
 

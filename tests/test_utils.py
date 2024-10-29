@@ -1,6 +1,7 @@
-# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 # -*- coding: utf-8 -*-
+import datetime
 
 import pytest
 from ldap3.core.exceptions import LDAPInvalidDnError
@@ -44,15 +45,15 @@ async def test_delete_keys_from_dict() -> None:
 async def test_mo_datestring_to_utc() -> None:
     date = mo_datestring_to_utc("2023-02-27T00:00:00+01:00")
     assert date is not None
-    assert date.strftime("%Y-%m-%d") == "2023-02-27"
+    assert date.date() == datetime.date(2023, 2, 27)
 
     date = mo_datestring_to_utc("2023-02-27T00:00:00-03:00")
     assert date is not None
-    assert date.strftime("%Y-%m-%d") == "2023-02-27"
+    assert date.date() == datetime.date(2023, 2, 27)
 
     date = mo_datestring_to_utc("2023-02-27T01:02:03-03:00")
     assert date is not None
-    assert date.strftime("%Y-%m-%d %H:%M:%S") == "2023-02-27 01:02:03"
+    assert date == datetime.datetime(2023, 2, 27, 1, 2, 3)
 
     date = mo_datestring_to_utc(None)
     assert date is None

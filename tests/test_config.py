@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import json
 from functools import partial
@@ -29,9 +29,9 @@ def address_mapping(minimal_mapping: dict) -> dict:
                     "objectClass": "ramodels.mo.details.address.Address",
                     "_import_to_mo_": "true",
                     "_ldap_attributes_": ["mail"],
-                    "value": "{{ldap.mail or NONE}}",
-                    "address_type": "{{ dict(uuid=get_employee_address_type_uuid('EmailEmployee')) }}",
-                    "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+                    "value": "{{ldap.mail or ''}}",
+                    "address_type": "{{ get_employee_address_type_uuid('EmailEmployee') }}",
+                    "person": "{{ employee_uuid or '' }}",
                 }
             }
         },
@@ -62,18 +62,15 @@ def test_cannot_terminate_employee(minimal_mapping: dict) -> None:
                     "_import_to_mo_": "false",
                     "_ldap_attributes_": ["employeeID"],
                     "_terminate_": "whatever",
-                    "cpr_no": "{{ldap.employeeID or None}}",
-                    "uuid": "{{ employee_uuid or NONE }}",
+                    "cpr_number": "{{ldap.employeeID or None}}",
+                    "uuid": "{{ employee_uuid or '' }}",
                 }
             }
         },
     )
     with pytest.raises(ValidationError) as exc_info:
         parse_obj_as(ConversionMapping, invalid_mapping)
-    assert (
-        "Termination not supported for <class 'ramodels.mo.employee.Employee'>"
-        in str(exc_info.value)
-    )
+    assert "Termination not supported for employee" in str(exc_info.value)
 
 
 def test_can_terminate_address(address_mapping: dict) -> None:
@@ -195,8 +192,8 @@ def test_mapper_settings(monkeypatch: pytest.MonkeyPatch) -> None:
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": ["employeeID"],
-                        "cpr_no": "{{ldap.employeeID or None}}",
-                        "uuid": "{{ employee_uuid or NONE }}",
+                        "cpr_number": "{{ldap.employeeID or None}}",
+                        "uuid": "{{ employee_uuid or '' }}",
                     }
                 },
                 "username_generator": {"objectClass": "UserNameGenerator"},
@@ -235,8 +232,8 @@ def test_check_attributes(monkeypatch: pytest.MonkeyPatch) -> None:
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": ["employeeID"],
-                        "cpr_no": "{{ldap.employeeID or None}}",
-                        "uuid": "{{ employee_uuid or NONE }}",
+                        "cpr_number": "{{ldap.employeeID or None}}",
+                        "uuid": "{{ employee_uuid or '' }}",
                     }
                 },
                 "username_generator": {"objectClass": "UserNameGenerator"},

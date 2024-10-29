@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import datetime
 import json
@@ -89,29 +89,26 @@ def converter_mapping() -> dict[str, Any]:
                 "objectClass": "ramodels.mo.employee.Employee",
                 "_import_to_mo_": "True",
                 "_ldap_attributes_": ["givenName", "sn", "employeeID"],
-                "givenname": "{{ldap.givenName}}",
+                "given_name": "{{ldap.givenName}}",
                 "surname": "{{ldap.sn}}",
-                "cpr_no": "{{ldap.employeeID or None}}",
-                "uuid": "{{ employee_uuid or NONE }}",
+                "cpr_number": "{{ldap.employeeID or None}}",
+                "uuid": "{{ employee_uuid or '' }}",
             },
             "Email": {
                 "objectClass": "ramodels.mo.details.address.Address",
                 "_import_to_mo_": "True",
                 "_ldap_attributes_": ["mail"],
                 "value": "{{ldap.mail}}",
-                "type": "{{'address'}}",
-                "address_type": (
-                    "{{ dict(uuid='f376deb8-4743-4ca6-a047-3241de8fe9d2') }}"
-                ),
-                "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+                "address_type": "{{ 'f376deb8-4743-4ca6-a047-3241de8fe9d2' }}",
+                "person": "{{ employee_uuid or '' }}",
             },
             "Active Directory": {
                 "objectClass": "ramodels.mo.details.it_system.ITUser",
                 "_import_to_mo_": "True",
                 "_ldap_attributes_": ["msSFU30Name"],
-                "user_key": "{{ ldap.msSFU30Name or NONE }}",
-                "itsystem": "{{ dict(uuid=get_it_system_uuid(ldap.itSystemName)) }}",
-                "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+                "user_key": "{{ ldap.msSFU30Name or '' }}",
+                "itsystem": "{{ get_it_system_uuid(ldap.itSystemName) }}",
+                "person": "{{ employee_uuid or '' }}",
             },
         },
         "mo2ldap": """
@@ -119,11 +116,11 @@ def converter_mapping() -> dict[str, Any]:
             {% set mo_employee_it_user = load_mo_it_user(uuid, "Active Directory") %}
             {{
                 {
-                    "givenName": mo_employee.givenname,
+                    "givenName": mo_employee.given_name,
                     "sn": mo_employee.surname,
-                    "displayName": mo_employee.surname + ", " + mo_employee.givenname,
-                    "name": mo_employee.givenname + " " + mo_employee.surname,
-                    "employeeID": mo_employee.cpr_no or "",
+                    "displayName": mo_employee.surname + ", " + mo_employee.given_name,
+                    "name": mo_employee.given_name + " " + mo_employee.surname,
+                    "employeeID": mo_employee.cpr_number or "",
                     "msSFU30Name": mo_employee_it_user.user_key if mo_employee_it_user else [],
                 }|tojson
             }}
@@ -254,7 +251,7 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
         employee_uuid=employee_uuid,
     )
     employee = one(result)
-    assert employee.givenname == "Tester"
+    assert employee.given_name == "Tester"
     assert employee.surname == "Testersen"
     assert employee.uuid == employee_uuid
 
@@ -269,11 +266,11 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
     mail = result[0]
 
     assert mail.value == "foo@bar.dk"
-    assert mail.person.uuid == employee_uuid
-    from_date = mail.validity.dict()["from_date"].replace(tzinfo=None)
+    assert mail.person == employee_uuid
+    start = mail.validity.dict()["start"].replace(tzinfo=None)
 
     # Note: Date is always at midnight in MO
-    assert from_date == datetime.datetime(2019, 1, 1, 0, 0, 0)
+    assert start == datetime.datetime(2019, 1, 1, 0, 0, 0)
 
     mail = await converter.from_ldap(
         LdapObject(
@@ -293,9 +290,9 @@ async def test_ldap_to_mo_dict_error(converter: LdapConverter) -> None:
             "ldap_to_mo": {
                 "Active Directory": {
                     "objectClass": "ramodels.mo.details.it_system.ITUser",
-                    "user_key": "{{ ldap.msSFU30Name or NONE }}",
+                    "user_key": "{{ ldap.msSFU30Name or '' }}",
                     "itsystem": "{ 'hep': 'hey }",  # provokes json error in str_to_dict
-                    "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+                    "person": "{{ dict(uuid=employee_uuid or '') }}",
                 }
             }
         },
@@ -323,17 +320,16 @@ async def test_ldap_to_mo_dict_validation_error(
                 "objectClass": "ramodels.mo.employee.Employee",
                 "_import_to_mo_": "True",
                 "_ldap_attributes_": ["employeeID"],
-                "cpr_no": "{{ldap.employeeID or None}}",
-                "uuid": "{{ employee_uuid or NONE }}",
+                "cpr_number": "{{ldap.employeeID or None}}",
+                "uuid": "{{ employee_uuid or '' }}",
             },
             "Custom": {
                 "objectClass": "Custom.JobTitleFromADToMO",
                 "_import_to_mo_": "true",
                 "_ldap_attributes_": ["hkStsuuid"],
-                "user": "{{ dict(uuid=(ldap.hkStsuuid)) }}",
-                "job_function": f"{{ dict(uuid={uuid4()}) }}",
-                "job_function_fallback": f"{{ dict(uuid={uuid4()}) }}",
-                "uuid": "{{ employee_uuid or NONE }}",
+                "user": "{{ ldap.hkStsuuid }}",
+                "job_function": f"{{ {uuid4()} }}",
+                "uuid": "{{ employee_uuid or '' }}",
             },
         }
     }
@@ -373,12 +369,12 @@ async def test_from_ldap_bad_json_key(converter: LdapConverter) -> None:
         # Base case
         ({}, {}),
         # Single overrides
-        ({"cpr": "0101700000"}, {"cpr_no": "0101700000"}),
-        ({"givenName": "Hans"}, {"givenname": "Hans"}),
+        ({"cpr": "0101700000"}, {"cpr_number": "0101700000"}),
+        ({"givenName": "Hans"}, {"given_name": "Hans"}),
         ({"sn": "Petersen"}, {"surname": "Petersen"}),
         # Empty values -> no keys
         ({"cpr": ""}, {}),
-        ({"givenName": ""}, {"givenname": None}),
+        ({"givenName": ""}, {"given_name": None}),
         ({"sn": ""}, {"surname": None}),
     ),
 )
@@ -395,9 +391,9 @@ async def test_template_strictness(
                 "_import_to_mo_": "True",
                 "_ldap_attributes_": ["givenName", "sn"],
                 "user_key": "{{ ldap.dn }}",
-                "givenname": "{{ ldap.get('givenName', 'givenname') }}",
+                "given_name": "{{ ldap.get('givenName', 'given_name') }}",
                 "surname": "{{ ldap.sn if 'sn' in ldap else 'surname' }}",
-                "cpr_no": "{{ ldap.get('cpr') }}",
+                "cpr_number": "{{ ldap.get('cpr') }}",
                 "uuid": "{{ employee_uuid }}",
             }
         }
@@ -413,7 +409,7 @@ async def test_template_strictness(
     expected_employee = {
         "uuid": ANY,
         "user_key": "CN=foo",
-        "givenname": "givenname",
+        "given_name": "given_name",
         "surname": "surname",
     }
     for key, value in expected.items():
@@ -470,7 +466,7 @@ async def test_get_ldap_attributes_dn_removed(
 
 def test_get_mo_attributes(converter: LdapConverter) -> None:
     attributes = set(converter.get_mo_attributes("Employee"))
-    assert attributes == {"uuid", "cpr_no", "surname", "givenname"}
+    assert attributes == {"uuid", "cpr_number", "surname", "given_name"}
 
 
 def test_minimum() -> None:
@@ -894,8 +890,8 @@ def test_check_uuid_refs_in_mo_objects(converter_mapping: dict[str, Any]) -> Non
             "ldap_to_mo": {
                 "EmailEmployee": {
                     **address_obj,
-                    "person": "{{ dict(uuid=employee_uuid or NONE) }}",
-                    "org_unit": "{{ dict(uuid=employee_uuid or NONE) }}",
+                    "person": "{{ employee_uuid or '' }}",
+                    "org_unit": "{{ employee_uuid or '' }}",
                 }
             }
         }
@@ -946,7 +942,7 @@ def test_import_to_mo_configuration(
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": import_to_mo,
                         "_ldap_attributes_": [],
-                        "uuid": "{{ employee_uuid or NONE }}",
+                        "uuid": "{{ employee_uuid or '' }}",
                     }
                 },
                 "username_generator": {"objectClass": "UserNameGenerator"},
@@ -995,7 +991,7 @@ def test_import_to_mo(
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": import_to_mo,
                         "_ldap_attributes_": [],
-                        "uuid": "{{ employee_uuid or NONE }}",
+                        "uuid": "{{ employee_uuid or '' }}",
                     }
                 },
                 "username_generator": {"objectClass": "UserNameGenerator"},
@@ -1344,7 +1340,7 @@ async def test_get_employee_dict(
     dataloader.graphql_client = graphql_client
     dataloader.moapi = MOAPI(settings_mock, graphql_client)
 
-    cpr_no = "1407711900"
+    cpr_number = "1407711900"
     uuid = uuid4()
 
     route = graphql_mock.query("read_employees")
@@ -1355,10 +1351,10 @@ async def test_get_employee_dict(
                     "validities": [
                         {
                             "uuid": uuid,
-                            "cpr_no": cpr_no,
-                            "givenname": "Hans",
+                            "cpr_number": cpr_number,
+                            "given_name": "Hans",
                             "surname": "Andersen",
-                            "nickname_givenname": None,
+                            "nickname_given_name": None,
                             "nickname_surname": None,
                             "validity": {
                                 "from": None,
@@ -1373,19 +1369,14 @@ async def test_get_employee_dict(
 
     result = await get_employee_dict(dataloader, uuid)
     assert result == {
-        "details": None,
-        "givenname": "Hans",
-        "name": None,
-        "nickname": None,
-        "nickname_givenname": None,
+        "given_name": "Hans",
+        "nickname_given_name": None,
         "nickname_surname": None,
-        "org": None,
         "seniority": None,
         "surname": "Andersen",
-        "type_": "employee",
         "user_key": str(uuid),
         "uuid": uuid,
-        "cpr_no": cpr_no,
+        "cpr_number": cpr_number,
     }
 
 
@@ -1410,7 +1401,7 @@ async def test_ldap_to_mo_termination(
     mail = one(result)
     assert not hasattr(mail, "terminate_")
     assert mail.value == "foo@bar.dk"
-    assert mail.person.uuid == employee_uuid
+    assert mail.person == employee_uuid
 
     # Add _terminate_ key to Email mapping
     converter_mapping["ldap_to_mo"]["Email"]["_terminate_"] = (
@@ -1432,7 +1423,7 @@ async def test_ldap_to_mo_termination(
     mail = one(result)
     assert hasattr(mail, "terminate_")
     assert mail.value == "foo@bar.dk"
-    assert mail.person.uuid == employee_uuid
+    assert mail.person == employee_uuid
 
 
 async def test_create_facet_class_no_facet() -> None:
@@ -1456,10 +1447,10 @@ async def test_ldap_to_mo_default_validity(converter: LdapConverter) -> None:
     )
     mail = one(result)
     assert mail.value == "foo@bar.dk"
-    assert mail.person.uuid == employee_uuid
+    assert mail.person == employee_uuid
     assert mail.validity.dict() == {
-        "from_date": datetime.datetime(2022, 8, 10, 0, 0, tzinfo=MO_TZ),
-        "to_date": None,
+        "start": datetime.datetime(2022, 8, 10, 0, 0, tzinfo=MO_TZ),
+        "end": None,
     }
 
 
@@ -1492,4 +1483,4 @@ async def test_ldap_to_mo_mapper(
     )
     mail = one(result)
     assert mail.value == "foo@bar.dk"
-    assert mail.person.uuid == employee_uuid
+    assert mail.person == employee_uuid

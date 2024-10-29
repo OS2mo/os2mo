@@ -21,7 +21,7 @@ class AddressValidityFields(BaseModel):
 
 
 class AddressValidityFieldsPerson(BaseModel):
-    cpr_no: CPRNumber | None
+    cpr_number: CPRNumber | None
 
 
 class AddressValidityFieldsValidity(BaseModel):

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import json
 from uuid import UUID
@@ -22,15 +22,15 @@ conversion_mapping_with_aduuid_itsystem = {
             "objectClass": "ramodels.mo.employee.Employee",
             "_import_to_mo_": "false",
             "_ldap_attributes_": [],
-            "uuid": "{{ employee_uuid or NONE }}",
+            "uuid": "{{ employee_uuid or '' }}",
         },
         "ADUUID": {
             "objectClass": "ramodels.mo.details.it_system.ITUser",
             "_import_to_mo_": "true",
             "_ldap_attributes_": ["entryUUID"],
             "user_key": "{{ ldap.entryUUID }}",
-            "itsystem": "{{ dict(uuid=get_it_system_uuid('ADUUID')) }}",
-            "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+            "itsystem": "{{ get_it_system_uuid('ADUUID') }}",
+            "person": "{{ employee_uuid or '' }}",
         },
     },
     "username_generator": {

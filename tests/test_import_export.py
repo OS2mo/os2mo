@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import json
@@ -18,14 +18,9 @@ from fastramqpi.context import Context
 from fastramqpi.ramqp.utils import RequeueMessage
 from more_itertools import first
 from more_itertools import last
-from ramodels.mo.details.address import Address
-from ramodels.mo.details.engagement import Engagement
-from ramodels.mo.details.it_system import ITUser
-from ramodels.mo.employee import Employee
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.config import Settings
-from mo_ldap_import_export.customer_specific import JobTitleFromADToMO
 from mo_ldap_import_export.dataloaders import Verb
 from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.environments import construct_environment
@@ -34,6 +29,11 @@ from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.import_export import SyncTool
 from mo_ldap_import_export.main import handle_org_unit
 from mo_ldap_import_export.moapi import get_primary_engagement
+from mo_ldap_import_export.models import Address
+from mo_ldap_import_export.models import Employee
+from mo_ldap_import_export.models import Engagement
+from mo_ldap_import_export.models import ITUser
+from mo_ldap_import_export.models import JobTitleFromADToMO
 from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.types import EmployeeUUID
 from mo_ldap_import_export.types import OrgUnitUUID
@@ -114,31 +114,31 @@ async def test_format_converted_engagement_objects(
 
     employee_uuid = uuid4()
 
-    engagement1 = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
+    engagement1 = Engagement(
+        org_unit=uuid4(),
+        person=employee_uuid,
+        job_function=uuid4(),
+        engagement_type=uuid4(),
         user_key="123",
-        from_date="2020-01-01",
+        validity={"start": "2021-01-01T00:00:00"},
     )
 
-    engagement2 = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
+    engagement2 = Engagement(
+        org_unit=uuid4(),
+        person=employee_uuid,
+        job_function=uuid4(),
+        engagement_type=uuid4(),
         user_key="foo",
-        from_date="2021-01-01",
+        validity={"start": "2021-01-01T00:00:00"},
     )
 
-    engagement_in_mo = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
+    engagement_in_mo = Engagement(
+        org_unit=uuid4(),
+        person=employee_uuid,
+        job_function=uuid4(),
+        engagement_type=uuid4(),
         user_key="123",
-        from_date="2021-01-01",
+        validity={"start": "2021-01-01T00:00:00"},
     )
 
     dataloader.moapi.load_mo_employee_engagements.return_value = [
@@ -171,30 +171,30 @@ async def test_format_converted_engagement_duplicate(
 
     employee_uuid = uuid4()
 
-    engagement = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
+    engagement = Engagement(
+        org_unit=uuid4(),
+        person=employee_uuid,
+        job_function=uuid4(),
+        engagement_type=uuid4(),
         user_key="duplicate_key",
-        from_date="2021-01-01",
+        validity={"start": "2021-01-01T00:00:00"},
     )
 
-    engagement1_in_mo = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
+    engagement1_in_mo = Engagement(
+        org_unit=uuid4(),
+        person=employee_uuid,
+        job_function=uuid4(),
+        engagement_type=uuid4(),
         user_key="duplicate_key",
-        from_date="2021-01-01",
+        validity={"start": "2021-01-01T00:00:00"},
     )
-    engagement2_in_mo = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
+    engagement2_in_mo = Engagement(
+        org_unit=uuid4(),
+        person=employee_uuid,
+        job_function=uuid4(),
+        engagement_type=uuid4(),
         user_key="duplicate_key",
-        from_date="2021-01-01",
+        validity={"start": "2021-01-01T00:00:00"},
     )
 
     dataloader.moapi.load_mo_employee_engagements.return_value = [
@@ -217,22 +217,22 @@ async def test_format_converted_multiple_primary_engagements(
 
     employee_uuid = uuid4()
 
-    engagement1 = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
+    engagement1 = Engagement(
+        org_unit=uuid4(),
+        person=employee_uuid,
+        job_function=uuid4(),
+        engagement_type=uuid4(),
         user_key="123",
-        from_date="2020-01-01",
+        validity={"start": "2020-01-01T00:00:00"},
     )
 
-    engagement2 = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
+    engagement2 = Engagement(
+        org_unit=uuid4(),
+        person=employee_uuid,
+        job_function=uuid4(),
+        engagement_type=uuid4(),
         user_key="123",
-        from_date="2021-01-01",
+        validity={"start": "2020-01-01T00:00:00"},
     )
 
     dataloader.moapi.load_mo_employee_engagements.return_value = [
@@ -259,8 +259,8 @@ async def test_format_converted_employee_objects(
 ):
     converter.import_mo_object_class.return_value = Employee
 
-    employee1 = Employee(cpr_no="1212121234")
-    employee2 = Employee(cpr_no="1212121235")
+    employee1 = Employee(cpr_number="1212121234", given_name="Foo1", surname="Bar1")
+    employee2 = Employee(cpr_number="1212121235", given_name="Foo2", surname="Bar2")
 
     converted_objects = [employee1, employee2]
 
@@ -281,17 +281,25 @@ async def test_format_converted_employee_address_objects(
     converter.find_mo_object_class.return_value = "Address"
     converter.import_mo_object_class.return_value = Address
 
-    person_uuid = uuid4()
-    address_type_uuid = uuid4()
-    address1 = Address.from_simplified_fields(
-        "foo", address_type_uuid, "2021-01-01", person_uuid=person_uuid
+    person = uuid4()
+    address_type = uuid4()
+    address1 = Address(
+        value="foo",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+        person=person,
     )
-    address2 = Address.from_simplified_fields(
-        "bar", address_type_uuid, "2021-01-01", person_uuid=person_uuid
+    address2 = Address(
+        value="bar",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+        person=person,
     )
-
-    address1_in_mo = Address.from_simplified_fields(
-        "foo", address_type_uuid, "2021-01-01", person_uuid=person_uuid
+    address1_in_mo = Address(
+        value="foo",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+        person=person,
     )
 
     converted_objects = [address1, address2]
@@ -323,17 +331,25 @@ async def test_format_converted_org_unit_address_objects(
     converter.find_mo_object_class.return_value = "Address"
     converter.import_mo_object_class.return_value = Address
 
-    org_unit_uuid = uuid4()
-    address_type_uuid = uuid4()
-    address1 = Address.from_simplified_fields(
-        "foo", address_type_uuid, "2021-01-01", org_unit_uuid=org_unit_uuid
+    org_unit = uuid4()
+    address_type = uuid4()
+    address1 = Address(
+        value="foo",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+        org_unit=org_unit,
     )
-    address2 = Address.from_simplified_fields(
-        "bar", address_type_uuid, "2021-01-01", org_unit_uuid=org_unit_uuid
+    address2 = Address(
+        value="bar",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+        org_unit=org_unit,
     )
-
-    address1_in_mo = Address.from_simplified_fields(
-        "foo", address_type_uuid, "2021-01-01", org_unit_uuid=org_unit_uuid
+    address1_in_mo = Address(
+        value="foo",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+        org_unit=org_unit,
     )
 
     converted_objects = [address1, address2]
@@ -365,18 +381,27 @@ async def test_format_converted_org_unit_address_objects_identical_to_mo(
     converter.find_mo_object_class.return_value = "Address"
     converter.import_mo_object_class.return_value = Address
 
-    org_unit_uuid = uuid4()
-    address_type_uuid = uuid4()
-    address1 = Address.from_simplified_fields(
-        "foo", address_type_uuid, "2021-01-01", org_unit_uuid=org_unit_uuid
+    org_unit = uuid4()
+    address_type = uuid4()
+    address1 = Address(
+        value="foo",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+        org_unit=org_unit,
     )
-    address2 = Address.from_simplified_fields(
-        "bar", address_type_uuid, "2021-01-01", org_unit_uuid=org_unit_uuid
+    address2 = Address(
+        value="bar",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+        org_unit=org_unit,
     )
 
     # This one is identical to the one which we are trying to upload
-    address1_in_mo = Address.from_simplified_fields(
-        "foo", address_type_uuid, "2021-01-01", org_unit_uuid=org_unit_uuid
+    address1_in_mo = Address(
+        value="foo",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+        org_unit=org_unit,
     )
 
     converted_objects = [address1, address2]
@@ -403,9 +428,17 @@ async def test_format_converted_address_objects_without_person_or_org_unit(
 
     # These addresses have neither an org unit uuid or person uuid. we cannot convert
     # them
-    address_type_uuid = uuid4()
-    address1 = Address.from_simplified_fields("foo", address_type_uuid, "2021-01-01")
-    address2 = Address.from_simplified_fields("bar", address_type_uuid, "2021-01-01")
+    address_type = uuid4()
+    address1 = Address(
+        value="foo",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+    )
+    address2 = Address(
+        value="bar",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+    )
 
     converted_objects = [address1, address2]
 
@@ -426,22 +459,32 @@ async def test_format_converted_it_user_objects(
     converter.find_mo_object_class.return_value = "ITUser"
     converter.import_mo_object_class.return_value = ITUser
 
-    it_user_in_mo = ITUser.from_simplified_fields(
-        "Username1", uuid4(), "2021-01-01", person_uuid=uuid4()
+    it_user_in_mo = ITUser(
+        user_key="Username1",
+        itsystem=uuid4(),
+        person=uuid4(),
+        validity={"start": "2021-01-01T00:00:00"},
     )
 
     dataloader.moapi.load_mo_employee_it_users.return_value = [it_user_in_mo]
 
     person_uuid = uuid4()
     it_system_uuid = uuid4()
-    converted_objects = [
-        ITUser.from_simplified_fields(
-            "Username1", it_system_uuid, "2021-01-01", person_uuid=person_uuid
-        ),
-        ITUser.from_simplified_fields(
-            "Username2", it_system_uuid, "2021-01-01", person_uuid=person_uuid
-        ),
-    ]
+
+    it_user1 = ITUser(
+        user_key="Username1",
+        itsystem=it_system_uuid,
+        person=person_uuid,
+        validity={"start": "2021-01-01T00:00:00"},
+    )
+    it_user2 = ITUser(
+        user_key="Username2",
+        itsystem=it_system_uuid,
+        person=person_uuid,
+        validity={"start": "2021-01-01T00:00:00"},
+    )
+
+    converted_objects = [it_user1, it_user2]
 
     formatted_objects = await sync_tool.format_converted_objects(
         converted_objects,
@@ -481,36 +524,36 @@ async def test_format_converted_primary_engagement_objects(
 
     dataloader.moapi.is_primaries = is_primaries
 
-    engagement1 = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
+    engagement1 = Engagement(
+        org_unit=uuid4(),
+        person=employee_uuid,
+        job_function=uuid4(),
+        engagement_type=uuid4(),
         user_key="123",
-        from_date="2020-01-01",
+        validity={"start": "2020-01-01T00:00:00"},
     )
 
-    engagement1_in_mo = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
+    engagement1_in_mo = Engagement(
+        org_unit=uuid4(),
+        person=employee_uuid,
+        job_function=uuid4(),
+        engagement_type=uuid4(),
         user_key="123",
-        from_date="2021-01-01",
-        primary_uuid=primary_uuid,
+        validity={"start": "2021-01-01T00:00:00"},
+        primary=primary_uuid,
         uuid=engagement1_in_mo_uuid,
     )
 
     # Engagement with the same user key. We should not update this one because it is
     # not primary.
-    engagement2_in_mo = Engagement.from_simplified_fields(
-        org_unit_uuid=uuid4(),
-        person_uuid=employee_uuid,
-        job_function_uuid=uuid4(),
-        engagement_type_uuid=uuid4(),
+    engagement2_in_mo = Engagement(
+        org_unit=uuid4(),
+        person=employee_uuid,
+        job_function=uuid4(),
+        engagement_type=uuid4(),
         user_key="123",
-        from_date="2021-01-01",
-        primary_uuid=None,
+        validity={"start": "2021-01-01T00:00:00"},
+        primary=None,
         uuid=engagement2_in_mo_uuid,
     )
 
@@ -529,7 +572,7 @@ async def test_format_converted_primary_engagement_objects(
     )
 
     assert len(formatted_objects) == 1
-    assert formatted_objects[0][0].primary.uuid is not None  # type: ignore
+    assert formatted_objects[0][0].primary is not None  # type: ignore
     assert formatted_objects[0][0].user_key == "123"
 
     # Simulate that a matching employee for this engagement does not exist
@@ -553,8 +596,8 @@ async def test_import_single_object_no_employee_no_sync(
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": ["employeeID"],
-                        "cpr_no": "{{ldap.employeeID or None}}",
-                        "uuid": "{{ employee_uuid or NONE }}",
+                        "cpr_number": "{{ldap.employeeID or None}}",
+                        "uuid": "{{ employee_uuid or '' }}",
                     }
                 },
                 "username_generator": {"objectClass": "UserNameGenerator"},
@@ -591,8 +634,8 @@ async def test_import_single_object_from_LDAP_but_import_equals_false(
                         "objectClass": "ramodels.mo.employee.Employee",
                         "_import_to_mo_": "false",
                         "_ldap_attributes_": ["employeeID"],
-                        "cpr_no": "{{ldap.employeeID or None}}",
-                        "uuid": "{{ employee_uuid or NONE }}",
+                        "cpr_number": "{{ldap.employeeID or None}}",
+                        "uuid": "{{ employee_uuid or '' }}",
                     }
                 },
                 "username_generator": {"objectClass": "UserNameGenerator"},

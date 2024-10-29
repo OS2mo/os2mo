@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import json
@@ -25,12 +25,13 @@ from more_itertools import one
 from more_itertools import only
 from more_itertools import partition
 from more_itertools import quantify
-from ramodels.mo import MOBase
-from ramodels.mo.details.address import Address
-from ramodels.mo.details.engagement import Engagement
-from ramodels.mo.details.it_system import ITUser
-from ramodels.mo.employee import Employee
 from structlog.contextvars import bound_contextvars
+
+from mo_ldap_import_export.models import Address
+from mo_ldap_import_export.models import Employee
+from mo_ldap_import_export.models import Engagement
+from mo_ldap_import_export.models import ITUser
+from mo_ldap_import_export.models import MOBase
 
 from .config import Settings
 from .converters import LdapConverter
@@ -249,13 +250,13 @@ class SyncTool:
 
             if person:
                 objects_in_mo = await self.dataloader.moapi.load_mo_employee_addresses(
-                    person.uuid,
-                    address_type.uuid,
+                    person,
+                    address_type,
                 )
             elif org_unit:
                 objects_in_mo = await self.dataloader.moapi.load_mo_org_unit_addresses(
-                    OrgUnitUUID(org_unit.uuid),
-                    address_type.uuid,
+                    OrgUnitUUID(org_unit),
+                    address_type,
                 )
             else:
                 logger.info(
@@ -278,7 +279,7 @@ class SyncTool:
             person = first(converted_objects).person
 
             objects_in_mo = await self.dataloader.moapi.load_mo_employee_engagements(
-                person.uuid
+                person
             )
             value_key = "user_key"
             user_keys = [o.user_key for o in objects_in_mo]
@@ -325,7 +326,7 @@ class SyncTool:
             itsystem = first(converted_objects).itsystem
 
             objects_in_mo = await self.dataloader.moapi.load_mo_employee_it_users(
-                person.uuid, itsystem.uuid
+                person, itsystem
             )
 
             value_key = "user_key"
@@ -522,11 +523,11 @@ class SyncTool:
                     dn,
                     attributes=[self.settings.ldap_cpr_attribute],
                 )
-                cpr_no = getattr(ldap_obj, self.settings.ldap_cpr_attribute)
+                cpr_number = getattr(ldap_obj, self.settings.ldap_cpr_attribute)
                 # Only attempt to load accounts if we have a CPR number to do so with
                 # and only if the CPR number is not the commonly used test CPR number
-                if cpr_no and cpr_no != "0000000000":
-                    dns = await self.dataloader.ldapapi.cpr2dns(cpr_no)
+                if cpr_number and cpr_number != "0000000000":
+                    dns = await self.dataloader.ldapapi.cpr2dns(cpr_number)
 
         # At this point 'employee_uuid' is an UUID that may or may not be in MO
         # At this point 'dns' is a list of LDAP account DNs

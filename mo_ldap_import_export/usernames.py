@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import re
 from collections.abc import Iterator
@@ -8,7 +8,8 @@ import structlog
 from ldap3 import Connection
 from more_itertools import one
 from more_itertools import split_when
-from ramodels.mo.employee import Employee
+
+from mo_ldap_import_export.models import Employee
 
 from .config import Settings
 from .config import UsernameGeneratorConfig
@@ -275,9 +276,9 @@ class UserNameGenerator:
             # Remove one middlename
             num_middlenames -= 1
             # Try to make a name with the selected number of middlenames
-            givenname, *middlenames, surname = name
+            given_name, *middlenames, surname = name
             middlenames = middlenames[:num_middlenames]
-            common_name = " ".join([givenname] + middlenames + [surname])
+            common_name = " ".join([given_name] + middlenames + [surname])
 
         # Cut off the name (leave place for the permutation counter)
         common_name = common_name[:60]
@@ -333,9 +334,11 @@ class UserNameGenerator:
         return existing_usernames, existing_common_names
 
     def generate_person_name(self, employee: Employee) -> list[str]:
-        givenname = employee.givenname
+        assert employee.given_name is not None
+        assert employee.surname is not None
+        given_name = employee.given_name
         surname = employee.surname
-        name = givenname.split(" ")[:4] + [surname]
+        name = given_name.split(" ")[:4] + [surname]
         return name
 
     async def generate_username(self, employee: Employee) -> str:

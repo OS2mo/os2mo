@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import json
 from typing import Any
@@ -50,8 +50,8 @@ from mo_ldap_import_export.utils import mo_today
                         # carLicense is arbitrarily chosen as an enabled/disabled marker
                         "_terminate_": "{{ now()|mo_datestring if ldap.carLicense == 'EXPIRED' else ''}}",
                         "user_key": "{{ ldap.title }}",
-                        "person": "{{ dict(uuid=employee_uuid ) }}",
-                        "itsystem": "{{ dict(uuid=get_it_system_uuid('ADtitle')) }}",
+                        "person": "{{ employee_uuid }}",
+                        "itsystem": "{{ get_it_system_uuid('ADtitle') }}",
                     },
                 },
                 # TODO: why is this required?

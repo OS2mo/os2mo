@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Integration tests."""
 
@@ -29,25 +29,25 @@ CONVERSION_MAPPING = {
             "objectClass": "ramodels.mo.employee.Employee",
             "_import_to_mo_": "false",
             "_ldap_attributes_": [],
-            "uuid": "{{ employee_uuid or NONE }}",
+            "uuid": "{{ employee_uuid or '' }}",
         },
         "PublicPhoneEmployee": {
             "objectClass": "ramodels.mo.details.address.Address",
             "_import_to_mo_": "true",
             "_ldap_attributes_": ["mobile"],
-            "value": "{{ ldap.mobile or NONE }}",
-            "address_type": "{{ dict(uuid=get_employee_address_type_uuid('PhoneEmployee')) }}",
-            "person": "{{ dict(uuid=employee_uuid or NONE) }}",
-            "visibility": "{{ dict(uuid=get_visibility_uuid('Public')) }}",
+            "value": "{{ ldap.mobile or '' }}",
+            "address_type": "{{ get_employee_address_type_uuid('PhoneEmployee') }}",
+            "person": "{{ employee_uuid or '' }}",
+            "visibility": "{{ get_visibility_uuid('Public') }}",
         },
         "InternalPhoneEmployee": {
             "objectClass": "ramodels.mo.details.address.Address",
             "_import_to_mo_": "true",
             "_ldap_attributes_": ["pager"],
-            "value": "{{ ldap.pager or NONE }}",
-            "address_type": "{{ dict(uuid=get_employee_address_type_uuid('PhoneEmployee')) }}",
-            "person": "{{ dict(uuid=employee_uuid or NONE) }}",
-            "visibility": "{{ dict(uuid=get_visibility_uuid('Intern')) }}",
+            "value": "{{ ldap.pager or '' }}",
+            "address_type": "{{ get_employee_address_type_uuid('PhoneEmployee') }}",
+            "person": "{{ employee_uuid or '' }}",
+            "visibility": "{{ get_visibility_uuid('Intern') }}",
         },
     },
     "username_generator": {

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import json
 from json.decoder import JSONDecodeError
@@ -110,7 +110,7 @@ class LdapConverter:
         ldap_object: LdapObject,
         json_key: str,
         employee_uuid: UUID,
-    ) -> Any:
+    ) -> Any:  # TODO: -> list[MOBase]
         """
         uuid : UUID
             Uuid of the employee whom this object belongs to. If None: Generates a new
@@ -152,7 +152,7 @@ class LdapConverter:
                 # - {{ldap.mail or None}} renders as "None"
                 # - {{ldap.mail}} renders as "[]" if ldap.mail is empty
                 #
-                # Mapping with {{ldap.mail or NONE}} solves both, but let's check
+                # Mapping with {{ldap.mail or ''}} solves both, but let's check
                 # for "none" or "[]" strings anyway to be more robust.
                 if value.lower() == "none" or value == "[]":
                     value = ""
