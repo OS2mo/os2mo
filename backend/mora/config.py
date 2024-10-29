@@ -94,7 +94,7 @@ class Settings(BaseSettings):
     # When graphql_rbac is disabled, it is in fact still enabled for graphql mutators.
     # This is due to a hotfix for a security security vulnerability in the orgviewer.
     # This hotfix will be removed again later, once the security issues has been fixed.
-    graphql_rbac: bool = False
+    graphql_rbac: bool = True
 
     # TODO (#55042): Backwards-compatible fix for !1594. Remove when Aarhus is
     # migrated to Azure.
