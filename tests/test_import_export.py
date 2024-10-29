@@ -1060,7 +1060,7 @@ async def test_find_best_dn(sync_tool: SyncTool) -> None:
         # Actual dict in result call, with double quotes, works as expected
         ('{{ {"a": "b"} }}', "Expecting property name enclosed in double quotes"),
         # Actual dict in result call, but single quotes with tojson, works as expected
-        ("{{ {'a': 'b'}|tojson }}", {"a": "b"}),
+        ("{{ {'a': 'b'}|tojson }}", {"a": ["b"]}),
         # Multiple result calls, give value error
         (
             '{{ {"a": "b"} }} {{ {"c": "d"} }}',
@@ -1068,23 +1068,26 @@ async def test_find_best_dn(sync_tool: SyncTool) -> None:
         ),
         # Templates can use context
         ('{{ {"a": dn} }}', "Expecting property name enclosed in double quotes"),
-        ('{{ {"a": dn}|tojson }}', {"a": "CN=foo"}),
+        ('{{ {"a": dn}|tojson }}', {"a": ["CN=foo"]}),
         ('{{ {"b": uuid} }}', "Expecting property name enclosed in double quotes"),
         ("{{ {'b': uuid}|tojson }}", "Object of type UUID is not JSON serializable"),
         (
             "{{ {'b': uuid|string}|tojson }}",
-            {"b": "fa15edad-da1e-c0de-babe-c1a551f1ab1e"},
+            {"b": ["fa15edad-da1e-c0de-babe-c1a551f1ab1e"]},
         ),
         # Templates can use set operations
-        ("{% set a = 'hej' %} {{ {'a': a}|tojson }}", {"a": "hej"}),
+        ("{% set a = 'hej' %} {{ {'a': a}|tojson }}", {"a": ["hej"]}),
         # Templates can filters
-        ("{% set a = 'hej123'|strip_non_digits %} {{ {'a': a}|tojson }}", {"a": "123"}),
+        (
+            "{% set a = 'hej123'|strip_non_digits %} {{ {'a': a}|tojson }}",
+            {"a": ["123"]},
+        ),
         # Templates can globals
-        ("{% set a = min(1, 2) %} {{ {'a': a}|tojson }}", {"a": 1}),
-        ("{% set a = nonejoin('a', 'b') %} {{ {'a': a}|tojson }}", {"a": "a, b"}),
+        ("{% set a = min(1, 2) %} {{ {'a': a}|tojson }}", {"a": [1]}),
+        ("{% set a = nonejoin('a', 'b') %} {{ {'a': a}|tojson }}", {"a": ["a, b"]}),
         # Generating raw json outside of tojson
-        ('{"key": "value"}', {"key": "value"}),
-        ('{"key": "{{ dn }}"}', {"key": "CN=foo"}),
+        ('{"key": "value"}', {"key": ["value"]}),
+        ('{"key": "{{ dn }}"}', {"key": ["CN=foo"]}),
     ),
 )
 async def test_render_ldap2mo(

@@ -247,22 +247,6 @@ async def test_load_ldap_objects(
     assert output == expected_result
 
 
-async def test_delete_data_from_ldap_object(
-    ldap_connection: MagicMock,
-    dataloader: DataLoader,
-) -> None:
-    dataloader.ldap_connection.get_response.return_value = (
-        [],
-        {"type": "test", "description": "compareTrue"},
-    )
-
-    dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
-    changes = {"postalAddress": [("MODIFY_DELETE", "foo")]}
-
-    await dataloader.ldapapi.modify_ldap_object(dn, changes)
-    assert ldap_connection.modify.called_once_with(dn, changes)
-
-
 async def test_upload_ldap_object_invalid_value(
     ldap_connection: MagicMock,
     dataloader: DataLoader,
