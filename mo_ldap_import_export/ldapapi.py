@@ -11,6 +11,8 @@ from ldap3 import BASE
 from ldap3 import MODIFY_REPLACE
 from ldap3 import Connection
 from ldap3.core.exceptions import LDAPInvalidValueError
+from ldap3.utils.dn import escape_rdn
+from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from more_itertools import one
 from ramodels.mo._shared import validate_cpr
@@ -21,6 +23,7 @@ from .exceptions import ReadOnlyException
 from .ldap import get_ldap_object
 from .ldap import ldap_add
 from .ldap import ldap_modify
+from .ldap import ldap_modify_dn
 from .ldap import make_ldap_object
 from .ldap import object_search
 from .ldap import single_object_search
@@ -247,16 +250,53 @@ class LDAPAPI:
             )
             return None
 
+        # The fields of the DN cannot be changed using LDAP's modify(), but
+        # must instead be changed using modify_dn().
+        modify_dn_attributes = {
+            attribute for attribute, value, seperator in parse_dn(dn)
+        }
+
+        # MODIFY-LDAP
         # Transform key-value changes to LDAP format
-        changes = {
-            attribute: [(MODIFY_REPLACE, value)]
-            for attribute, value in requested_changes.items()
+        modify_changes = {
+            attribute: [(MODIFY_REPLACE, values)]
+            for attribute, values in requested_changes.items()
+            if attribute not in modify_dn_attributes
         }
         try:
             # Modify LDAP
             logger.info("Uploading the changes", changes=requested_changes, dn=dn)
-            _, result = await ldap_modify(self.ldap_connection, dn, changes)
+            _, result = await ldap_modify(self.ldap_connection, dn, modify_changes)
             logger.info("LDAP Result", result=result, dn=dn)
         except LDAPInvalidValueError as exc:
             logger.exception("LDAP modify failed", dn=dn, changes=requested_changes)
             raise exc
+
+        # MODIFY-DN
+        ldap_uuid = await self.get_ldap_unique_ldap_uuid(dn)
+        requested_dn_changes = {
+            attribute: values
+            for attribute, values in requested_changes.items()
+            if attribute in modify_dn_attributes
+        }
+        for attribute, values in requested_dn_changes.items():
+            # The user's DN is changed by our modifications, but its UUID does not
+            current_dn = await self.get_ldap_dn(ldap_uuid)
+            try:
+                # Modify LDAP-DN
+                logger.info(
+                    "Changing object DN",
+                    current_dn=current_dn,
+                    attribute=attribute,
+                    value=values,
+                )
+                rdn = f"{attribute}={escape_rdn(one(values))}"
+                _, result = await ldap_modify_dn(self.ldap_connection, current_dn, rdn)
+                logger.info("LDAP Result", result=result, current_dn=current_dn)
+            except LDAPInvalidValueError as exc:  # pragma: no cover
+                logger.exception(
+                    "LDAP modify-dn failed",
+                    current_dn=current_dn,
+                    changes=requested_changes,
+                )
+                raise exc

@@ -127,6 +127,8 @@ async def test_to_mo(
                         {
                             "employeeNumber": mo_employee.cpr_no,
                             "carLicense": mo_employee.uuid|string,
+                            "uid": mo_employee.cpr_no,
+                            "cn": mo_employee.givenname + " " + mo_employee.surname,
                             "sn": mo_employee.surname,
                             "givenName": mo_employee.givenname,
                             "displayName": mo_employee.nickname_givenname + " " + mo_employee.nickname_surname
@@ -161,6 +163,8 @@ async def test_to_ldap(
             attributes=[
                 "employeeNumber",
                 "carLicense",
+                "uid",
+                "cn",
                 "sn",
                 "givenName",
                 "displayName",
@@ -185,6 +189,8 @@ async def test_to_ldap(
         {
             "employeeNumber": "2108613133",
             "carLicense": [str(mo_employee.uuid)],
+            "uid": ["2108613133"],
+            "cn": ["create Mustermann"],
             "sn": ["Mustermann"],
             "givenName": ["create"],
             "displayName": "Max Erika",
@@ -205,12 +211,114 @@ async def test_to_ldap(
         )
     )
     await assert_employee(
-        "cn=create Mustermann,ou=os2mo,o=magenta,dc=magenta,dc=dk",
+        "cn=update Musterfrau,ou=os2mo,o=magenta,dc=magenta,dc=dk",
         {
             "employeeNumber": "2108613133",
             "carLicense": [str(mo_employee.uuid)],
+            "uid": ["2108613133"],
+            "cn": ["update Musterfrau"],
             "sn": ["Musterfrau"],
             "givenName": ["update"],
             "displayName": "Manu Muster",
         },
     )
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "True",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "CONVERSION_MAPPING": json.dumps(
+            {
+                "mo2ldap": """
+                    {% set mo_employee = load_mo_employee(uuid, current_objects_only=False) %}
+                    {{
+                        {
+                            "employeeNumber": mo_employee.cpr_no,
+                            "uid": mo_employee.cpr_no,
+                            "cn": mo_employee.givenname + " " + mo_employee.surname,
+                            "sn": mo_employee.surname,
+                        }|tojson
+                    }}
+                """,
+                # TODO: why is this required?
+                "username_generator": {
+                    "objectClass": "UserNameGenerator",
+                    "combinations_to_try": ["FFFX", "LLLX"],
+                },
+            }
+        ),
+    }
+)
+@pytest.mark.parametrize(
+    "rdn,expected",
+    [
+        ("uid=abk", "uid=2108613133"),
+        ("cn=Aage Bach Klarskov", "cn=create Mustermann"),
+    ],
+)
+async def test_edit_existing_in_ldap(
+    test_client: AsyncClient,
+    graphql_client: GraphQLClient,
+    mo_api: MOAPI,
+    mo_org_unit: UUID,
+    ldap_connection: Connection,
+    ldap_org: list[str],
+    rdn: str,
+    expected: str,
+) -> None:
+    cpr = "2108613133"
+
+    # Existing LDAP person has uid as part of the DN, but the mapping does not.
+    person_dn = combine_dn_strings([rdn] + ldap_org)
+
+    # LDAP: Create
+    await ldap_add(
+        ldap_connection,
+        dn=person_dn,
+        object_class=["top", "person", "organizationalPerson", "inetOrgPerson"],
+        attributes={
+            "objectClass": ["top", "person", "organizationalPerson", "inetOrgPerson"],
+            "ou": "os2mo",
+            "cn": "Aage Bach Klarskov",
+            "sn": "Bach Klarskov",
+            "employeeNumber": cpr,
+        },
+    )
+
+    # MO: Create
+    await graphql_client.user_create(
+        input=EmployeeCreateInput(
+            cpr_number=cpr,
+            given_name="create",
+            surname="Mustermann",
+            nickname_given_name="Max",
+            nickname_surname="Erika",
+        )
+    )
+
+    @retry()
+    async def assert_employee() -> None:
+        response, _ = await ldap_search(
+            ldap_connection,
+            search_base=combine_dn_strings(ldap_org),
+            search_filter=f"(employeeNumber={cpr})",
+            attributes=[
+                "employeeNumber",
+                "uid",
+                "cn",
+                "sn",
+            ],
+        )
+        employee = one(response)
+        expected_dn = combine_dn_strings([expected] + ldap_org)
+        assert employee["dn"] == expected_dn
+        assert employee["attributes"] == {
+            "employeeNumber": "2108613133",
+            "uid": ["2108613133"],
+            "cn": ["create Mustermann"],
+            "sn": ["Mustermann"],
+        }
+
+    await assert_employee()

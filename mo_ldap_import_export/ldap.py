@@ -43,6 +43,7 @@ from .exceptions import TimeOutException
 from .ldap_classes import LdapObject
 from .processors import _hide_cpr as hide_cpr
 from .types import DN
+from .types import RDN
 from .utils import combine_dn_strings
 from .utils import ensure_list
 from .utils import is_list
@@ -227,7 +228,9 @@ async def wait_for_message_id(
     return await loop.run_in_executor(None, ldap_connection.get_response, message_id)
 
 
-async def ldap_modify(ldap_connection, dn, changes) -> tuple[dict, dict]:
+async def ldap_modify(
+    ldap_connection: Connection, dn: DN, changes: dict
+) -> tuple[dict, dict]:
     message_id = ldap_connection.modify(dn, changes)
     response, result = await wait_for_message_id(ldap_connection, message_id)
     # TODO: this does not currently raise exceptions on errors due to
@@ -235,8 +238,18 @@ async def ldap_modify(ldap_connection, dn, changes) -> tuple[dict, dict]:
     return response, result
 
 
+async def ldap_modify_dn(
+    ldap_connection: Connection, dn: DN, relative_dn: RDN
+) -> tuple[dict, dict]:
+    message_id = ldap_connection.modify_dn(dn, relative_dn)
+    response, result = await wait_for_message_id(ldap_connection, message_id)
+    # TODO: this does not currently raise exceptions on errors due to
+    # `raise_exceptions=False` on the ldap connection.
+    return response, result
+
+
 async def ldap_add(
-    ldap_connection, dn, object_class, attributes=None
+    ldap_connection: Connection, dn: DN, object_class, attributes=None
 ) -> tuple[dict, dict]:
     message_id = ldap_connection.add(dn, object_class, attributes)
     response, result = await wait_for_message_id(ldap_connection, message_id)
@@ -245,7 +258,7 @@ async def ldap_add(
     return response, result
 
 
-async def ldap_delete(ldap_connection, dn) -> tuple[dict, dict]:
+async def ldap_delete(ldap_connection: Connection, dn: DN) -> tuple[dict, dict]:
     message_id = ldap_connection.delete(dn)
     response, result = await wait_for_message_id(ldap_connection, message_id)
     # TODO: this does not currently raise exceptions on errors due to
@@ -253,7 +266,9 @@ async def ldap_delete(ldap_connection, dn) -> tuple[dict, dict]:
     return response, result
 
 
-async def ldap_search(ldap_connection, **kwargs) -> tuple[list[dict[str, Any]], dict]:
+async def ldap_search(
+    ldap_connection: Connection, **kwargs
+) -> tuple[list[dict[str, Any]], dict]:
     message_id = ldap_connection.search(**kwargs)
     response, result = await wait_for_message_id(ldap_connection, message_id)
     # TODO: this does not currently raise exceptions on errors due to

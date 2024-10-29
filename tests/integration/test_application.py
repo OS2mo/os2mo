@@ -172,10 +172,10 @@ async def test_endpoint_mo2ldap_templating(
     result = await test_client.get(f"/Inspect/mo2ldap/{person_uuid}")
     assert result.status_code == 200
     assert result.json() == {
-        "employeeNumber": cpr_number,
-        "givenName": given_name,
-        "sn": surname,
-        "title": str(person_uuid),
+        "employeeNumber": [cpr_number],
+        "givenName": [given_name],
+        "sn": [surname],
+        "title": [str(person_uuid)],
     }
 
 

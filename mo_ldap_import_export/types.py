@@ -12,3 +12,4 @@ OrgUnitUUID = NewType("OrgUnitUUID", UUID)
 EmployeeUUID = NewType("EmployeeUUID", UUID)
 # TODO: Convert this to a NewType
 DN: TypeAlias = str
+RDN: TypeAlias = str

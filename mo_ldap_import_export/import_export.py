@@ -45,6 +45,7 @@ from .ldap import get_ldap_object
 from .types import EmployeeUUID
 from .types import OrgUnitUUID
 from .utils import bucketdict
+from .utils import ensure_list
 from .utils import star
 
 logger = structlog.stdlib.get_logger()
@@ -168,7 +169,10 @@ class SyncTool:
         parsed = json.loads(result)
         assert isinstance(parsed, dict)
         assert all(isinstance(key, str) for key in parsed)
-        return parsed
+        # TODO: force users to configure as list instead of implicitly
+        # converting (very confusing).
+        # assert all(isinstance(value, list) for value in parsed.values())
+        return {key: ensure_list(value) for key, value in parsed.items()}
 
     @with_exitstack
     async def listen_to_changes_in_employees(
