@@ -1374,7 +1374,7 @@ async def test_get_employee_dict(
         "nickname_surname": None,
         "seniority": None,
         "surname": "Andersen",
-        "user_key": "-",
+        "user_key": str(uuid),
         "uuid": uuid,
         "cpr_number": cpr_number,
     }

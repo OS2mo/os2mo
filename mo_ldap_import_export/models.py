@@ -2,12 +2,14 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 from uuid import uuid4
 
 from pydantic import BaseModel
 from pydantic import Extra
 from pydantic import Field
+from pydantic import validator
 from ramodels.mo import MOBase as RAMOBase
 from ramodels.mo.organisation_unit import OrganisationUnit as RAOrganisationUnit
 
@@ -31,7 +33,7 @@ class Validity(StrictBaseModel):
 
 class Address(StrictBaseModel):
     uuid: UUID = Field(default_factory=uuid4)
-    user_key: str = "-"
+    user_key: str = None  # type: ignore[assignment]
 
     value: str
     value2: str | None
@@ -42,10 +44,17 @@ class Address(StrictBaseModel):
     visibility: UUID | None
     validity: Validity
 
+    @validator("user_key", pre=True, always=True)
+    def set_user_key(cls, user_key: Any | None, values: dict) -> str:
+        # TODO: don't default to useless user-key (grandfathered-in from ramodels)
+        if user_key or isinstance(user_key, str):
+            return user_key
+        return str(values["uuid"])
+
 
 class Employee(StrictBaseModel):
     uuid: UUID = Field(default_factory=uuid4)
-    user_key: str = "-"
+    user_key: str = None  # type: ignore[assignment]
 
     given_name: str | None  # TODO: don't allow none (grandfathered-in from ramodels)
     surname: str | None  # TODO: don't allow none (grandfathered-in from ramodels)
@@ -54,10 +63,17 @@ class Employee(StrictBaseModel):
     nickname_given_name: str | None
     nickname_surname: str | None
 
+    @validator("user_key", pre=True, always=True)
+    def set_user_key(cls, user_key: Any | None, values: dict) -> str:
+        # TODO: don't default to useless user-key (grandfathered-in from ramodels)
+        if user_key or isinstance(user_key, str):
+            return user_key
+        return str(values["uuid"])
+
 
 class Engagement(StrictBaseModel):
     uuid: UUID = Field(default_factory=uuid4)
-    user_key: str = "-"
+    user_key: str
 
     org_unit: UUID
     person: UUID
@@ -79,7 +95,7 @@ class Engagement(StrictBaseModel):
 
 class ITUser(StrictBaseModel):
     uuid: UUID = Field(default_factory=uuid4)
-    user_key: str = "-"
+    user_key: str
 
     itsystem: UUID
     person: UUID | None
