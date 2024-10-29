@@ -127,7 +127,7 @@ async def test_to_mo(
                         {
                             "employeeNumber": mo_employee.cpr_number,
                             "carLicense": mo_employee.uuid|string,
-                            "uid": mo_employee.cpr_no,
+                            "uid": mo_employee.cpr_number,
                             "cn": mo_employee.given_name + " " + mo_employee.surname,
                             "sn": mo_employee.surname,
                             "givenName": mo_employee.given_name,
@@ -235,8 +235,8 @@ async def test_to_ldap(
                     {% set mo_employee = load_mo_employee(uuid, current_objects_only=False) %}
                     {{
                         {
-                            "employeeNumber": mo_employee.cpr_no,
-                            "uid": mo_employee.cpr_no,
+                            "employeeNumber": mo_employee.cpr_number,
+                            "uid": mo_employee.cpr_number,
                             "cn": mo_employee.given_name + " " + mo_employee.surname,
                             "sn": mo_employee.surname,
                         }|tojson
