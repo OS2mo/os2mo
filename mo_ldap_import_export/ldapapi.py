@@ -251,9 +251,11 @@ class LDAPAPI:
             return None
 
         # The fields of the DN cannot be changed using LDAP's modify(), but
-        # must instead be changed using modify_dn().
+        # must instead be changed using modify_dn(). We normalise casing since
+        # Microsoft AD is case-insensitive, so attributes written do not
+        # necessarily match attributes read as part of the DN.
         modify_dn_attributes = {
-            attribute for attribute, value, seperator in parse_dn(dn)
+            attribute.casefold() for attribute, value, seperator in parse_dn(dn)
         }
 
         # MODIFY-LDAP
@@ -261,7 +263,7 @@ class LDAPAPI:
         modify_changes = {
             attribute: [(MODIFY_REPLACE, values)]
             for attribute, values in requested_changes.items()
-            if attribute not in modify_dn_attributes
+            if attribute.casefold() not in modify_dn_attributes
         }
         try:
             # Modify LDAP
@@ -277,7 +279,7 @@ class LDAPAPI:
         requested_dn_changes = {
             attribute: values
             for attribute, values in requested_changes.items()
-            if attribute in modify_dn_attributes
+            if attribute.casefold() in modify_dn_attributes
         }
         for attribute, values in requested_dn_changes.items():
             # The user's DN is changed by our modifications, but its UUID does not
