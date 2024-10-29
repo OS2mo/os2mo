@@ -16,6 +16,9 @@ from fastapi.encoders import jsonable_encoder
 from fastramqpi.ramqp.utils import RequeueMessage
 from jinja2 import Environment
 from jinja2 import StrictUndefined
+from jinja2 import TemplateRuntimeError
+from jinja2 import UndefinedError
+from jinja2.utils import missing
 from ldap3.utils.dn import parse_dn
 from more_itertools import one
 from more_itertools import only
@@ -887,12 +890,27 @@ def construct_globals_dict(
     }
 
 
+class NeverUndefined(StrictUndefined):
+    """https://github.com/pallets/jinja/issues/1923."""
+
+    def __init__(
+        self,
+        hint: str | None = None,
+        obj: Any = missing,
+        name: str | None = None,
+        exc: type[TemplateRuntimeError] = UndefinedError,
+    ) -> None:
+        raise Exception(
+            f"Undefined variable '{name}' with object {obj} (hint: {hint})"
+        ) from exc
+
+
 def construct_environment(settings: Settings, dataloader: DataLoader) -> Environment:
     # We intentionally use 'StrictUndefined' here so undefined accesses yield exceptions
     # instead of silently coercing to falsy values as is the case with 'Undefined'
     # See: https://jinja.palletsprojects.com/en/3.1.x/api/#undefined-types
     # For more details.
-    environment = Environment(undefined=StrictUndefined, enable_async=True)
+    environment = Environment(undefined=NeverUndefined, enable_async=True)
 
     environment.filters["bitwise_and"] = bitwise_and
     environment.filters["splitfirst"] = filter_splitfirst
