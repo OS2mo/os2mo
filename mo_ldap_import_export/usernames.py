@@ -356,7 +356,7 @@ class UserNameGenerator:
 
         Also adds an object to LDAP with this DN
         """
-        username = self.generate_username(employee)
+        username = await self.generate_username(employee)
 
         name = self.generate_person_name(employee)
         existing_common_names = await self._get_existing_common_names()
