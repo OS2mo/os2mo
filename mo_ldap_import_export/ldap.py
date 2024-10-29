@@ -43,6 +43,7 @@ from .exceptions import TimeOutException
 from .ldap_classes import LdapObject
 from .processors import _hide_cpr as hide_cpr
 from .types import DN
+from .types import RDN
 from .utils import combine_dn_strings
 from .utils import ensure_list
 from .utils import is_list
@@ -231,6 +232,16 @@ async def ldap_modify(
     ldap_connection: Connection, dn: DN, changes: dict
 ) -> tuple[dict, dict]:
     message_id = ldap_connection.modify(dn, changes)
+    response, result = await wait_for_message_id(ldap_connection, message_id)
+    # TODO: this does not currently raise exceptions on errors due to
+    # `raise_exceptions=False` on the ldap connection.
+    return response, result
+
+
+async def ldap_modify_dn(
+    ldap_connection: Connection, dn: DN, relative_dn: RDN
+) -> tuple[dict, dict]:
+    message_id = ldap_connection.modify_dn(dn, relative_dn)
     response, result = await wait_for_message_id(ldap_connection, message_id)
     # TODO: this does not currently raise exceptions on errors due to
     # `raise_exceptions=False` on the ldap connection.
