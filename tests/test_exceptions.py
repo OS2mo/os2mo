@@ -16,7 +16,7 @@ from mo_ldap_import_export.exceptions import http_reject_on_failure
     [
         (RejectMessage("Rejected"), 451, "Rejected"),
         (RequeueMessage("Requeue"), 409, "Requeue"),
-        (TransportQueryError("Connection refused"), 409, "Connection refused"),
+        (TransportQueryError("Connection refused"), 500, "Connection refused"),
         (ValueError("BOOM"), 500, "BOOM"),
     ],
 )

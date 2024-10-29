@@ -86,13 +86,13 @@ def amqp_reject_on_failure(
     async def modified_func(*args: Params.args, **kwargs: Params.kwargs) -> ReturnType:
         try:
             return await func(*args, **kwargs)
-        except RejectMessage as e:  # In case we explicitly reject the message: Abort
+        except RejectMessage as e:
+            # In case we explicitly reject the message: Abort
             logger.info(str(e))
             raise
-        except (
-            RequeueMessage
-        ) as e:  # In case we explicitly requeued the message: Requeue
-            logger.warning(str(e))
+        except RequeueMessage as e:
+            # In case we explicitly requeued the message: Requeue
+            logger.info(str(e))
             raise
         except (
             # Misconfiguration
@@ -103,7 +103,7 @@ def amqp_reject_on_failure(
             TransportQueryError,
             NoObjectsReturnedException,  # In case an object is deleted halfway: Abort
         ) as e:
-            logger.warning(str(e))
+            logger.exception("Exception during AMQP processing")
             raise RequeueMessage() from e
         except (
             # This is raised if the import/export checks reject a message
@@ -134,23 +134,24 @@ def http_reject_on_failure(
     async def modified_func(*args: Params.args, **kwargs: Params.kwargs) -> ReturnType:
         try:
             return await func(*args, **kwargs)
-        except RejectMessage as e:  # In case we explicitly reject the message: Abort
+        except RejectMessage as e:
+            # In case we explicitly reject the message: Abort
             logger.info(str(e))
             raise HTTPException(status_code=451, detail=str(e)) from e
-        except (
+        except RequeueMessage as e:
             # In case we explicitly requeued the message: Requeue
-            RequeueMessage,
+            logger.info(str(e))
+            raise HTTPException(status_code=409, detail=str(e)) from e
+        except TransportQueryError as e:
             # Temporary downtime
             # This is raised when a GraphQL query is invalid or has temporary downtime
-            TransportQueryError,
-        ) as e:
-            logger.warning(str(e))
-            raise HTTPException(status_code=409, detail=str(e)) from e
-        except HTTPException as e:
-            logger.info(str(e))
+            logger.exception("Exception during HTTP processing")
+            raise HTTPException(status_code=500, detail=str(e)) from e
+        except HTTPException:
+            logger.exception("Exception during HTTP processing")
             raise
         except Exception as e:
-            logger.warning(str(e))
+            logger.exception("Exception during HTTP processing")
             raise HTTPException(status_code=500, detail=str(e)) from e
 
     # TODO: Why is this necessary?

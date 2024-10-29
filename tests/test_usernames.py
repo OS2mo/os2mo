@@ -26,6 +26,7 @@ def dataloader() -> MagicMock:
     mock = MagicMock()
     mock.load_all_it_users = AsyncMock()
     mock.ldapapi.add_ldap_object = AsyncMock()
+    mock.moapi = AsyncMock()
     return mock
 
 
@@ -366,9 +367,9 @@ def test_check_combinations_to_try():
         parse_obj_as(UsernameGeneratorConfig, config)
 
 
-def test_alleroed_username_generator(
+async def test_alleroed_username_generator(
     alleroed_username_generator: AlleroedUserNameGenerator,
-):
+) -> None:
     alleroed_username_generator.forbidden_usernames = []
     existing_names: list[str] = []
     expected_usernames = iter(
@@ -424,7 +425,15 @@ def test_alleroed_username_generator(
         ["Bruce", ""],
         ["Dorthe", "Baun"],
     ]:
-        username = alleroed_username_generator.generate_username(name, existing_names)
+        *firstnames, surname = name
+        givenname = " ".join(firstnames)
+        employee = Employee(givenname=givenname, surname=surname)  # type: ignore
+
+        alleroed_username_generator._get_existing_usernames = AsyncMock()  # type: ignore
+        alleroed_username_generator._get_existing_usernames.return_value = (
+            existing_names
+        )
+        username = await alleroed_username_generator.generate_username(employee)
         assert username == next(expected_usernames)
         existing_names.append(username)
 
@@ -453,7 +462,7 @@ async def test_alleroed_dn_generator(
     alleroed_username_generator.dataloader.graphql_client = graphql_client  # type: ignore
     alleroed_username_generator.dataloader.moapi = MOAPI(settings_mock, graphql_client)  # type: ignore
 
-    employee = Employee(givenname="Patrick", surname="Bateman")
+    employee = Employee(givenname="Patrick", surname="Bateman")  # type: ignore
     dn = await alleroed_username_generator.generate_dn(employee)
     assert dn == "CN=Patrick Bateman,DC=bar"
 
@@ -461,25 +470,28 @@ async def test_alleroed_dn_generator(
     assert route2.called
 
 
-def test_alleroed_username_generator_forbidden_names_from_files(
+@pytest.mark.parametrize(
+    "givenname,surname,forbidden,expected",
+    [
+        ("Anders", "Broon", [], "abrn"),
+        ("Anders", "Broon", ["abrn"], "anbr"),
+        ("Anders", "Nolus", [], "anls"),
+        ("Anders", "Nolus", ["anls"], "annl"),
+    ],
+)
+async def test_alleroed_username_generator_forbidden_names_from_files(
     alleroed_username_generator: AlleroedUserNameGenerator,
-):
-    # Try to generate a name that is forbidden
-    name = ["Anders", "Broon"]
-    username = alleroed_username_generator.generate_username(name, [])
-    assert username != "abrn"
-
-    name = ["Anders", "Nolus"]
-    username = alleroed_username_generator.generate_username(name, [])
-    assert username != "anls"
+    givenname: str,
+    surname: str,
+    forbidden: list[str],
+    expected: str,
+) -> None:
+    alleroed_username_generator._get_existing_usernames = AsyncMock()  # type: ignore
+    alleroed_username_generator._get_existing_usernames.return_value = []
 
     # Now clean the list of forbidden usernames and try again
-    alleroed_username_generator.forbidden_usernames = []
+    alleroed_username_generator.forbidden_usernames = forbidden
 
-    name = ["Anders", "Broon"]
-    username = alleroed_username_generator.generate_username(name, [])
-    assert username == "abrn"
-
-    name = ["Anders", "Nolus"]
-    username = alleroed_username_generator.generate_username(name, [])
-    assert username == "anls"
+    employee = Employee(givenname=givenname, surname=surname)  # type: ignore
+    username = await alleroed_username_generator.generate_username(employee)
+    assert username == expected
