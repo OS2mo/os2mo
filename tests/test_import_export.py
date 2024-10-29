@@ -1131,6 +1131,11 @@ async def test_find_best_dn(sync_tool: SyncTool) -> None:
         # Generating raw json outside of tojson
         ('{"key": "value"}', {"key": ["value"]}),
         ('{"key": "{{ dn }}"}', {"key": ["CN=foo"]}),
+        # Accessing undefined variable
+        (
+            '{"key": "{{ foobar }}"}',
+            "Undefined variable 'foobar' with object missing (hint: None)",
+        ),
     ),
 )
 async def test_render_ldap2mo(
