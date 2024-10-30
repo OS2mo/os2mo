@@ -24,6 +24,7 @@ from fastapi import Body
 from fastramqpi.context import Context
 from fastramqpi.ramqp import AMQPSystem
 from ldap3 import Connection
+from ldap3.core.exceptions import LDAPNoSuchObjectResult
 from sqlalchemy import TIMESTAMP
 from sqlalchemy import Text
 from sqlalchemy import select
@@ -165,7 +166,10 @@ async def _poll(
         "attributes": [ldap_unique_id_field],
     }
 
-    response, _ = await ldap_search(ldap_connection, **search_parameters)
+    try:
+        response, _ = await ldap_search(ldap_connection, **search_parameters)
+    except LDAPNoSuchObjectResult:
+        return set()
 
     # Filter to only keep search results
     responses = ldapresponse2entries(response)

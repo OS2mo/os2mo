@@ -11,6 +11,7 @@ from ldap3 import BASE
 from ldap3 import MODIFY_REPLACE
 from ldap3 import Connection
 from ldap3.core.exceptions import LDAPInvalidValueError
+from ldap3.core.exceptions import LDAPNoSuchObjectResult
 from ldap3.utils.dn import escape_rdn
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
@@ -223,7 +224,10 @@ class LDAPAPI:
             "search_filter": f"(&({object_class_filter})({cpr_filter}))",
             "attributes": [],
         }
-        search_results = await object_search(searchParameters, self.ldap_connection)
+        try:
+            search_results = await object_search(searchParameters, self.ldap_connection)
+        except LDAPNoSuchObjectResult:
+            return set()
         ldap_objects: list[LdapObject] = [
             await make_ldap_object(search_result, self.ldap_connection)
             for search_result in search_results
