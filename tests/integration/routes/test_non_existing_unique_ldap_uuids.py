@@ -123,6 +123,7 @@ async def test_non_existing_unique_ldap_uuids(
     {
         "LISTEN_TO_CHANGES_IN_LDAP": "False",
         "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LDAP_IT_SYSTEM": "",
     }
 )
 async def test_non_existing_unique_ldap_uuids_no_itsystem(
