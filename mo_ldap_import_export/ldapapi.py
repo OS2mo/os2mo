@@ -90,7 +90,7 @@ class LDAPAPI:
         dn: str = search_result["dn"]
         return dn
 
-    async def add_ldap_object(self, dn: str, attributes: dict[str, Any] | None = None):
+    async def add_ldap_object(self, dn: str, attributes: dict[str, Any]) -> None:
         """
         Adds a new object to LDAP
 
@@ -128,6 +128,19 @@ class LDAPAPI:
                 attributes=attributes,
             )
             raise ReadOnlyException("Not allowed to write to the specified OU")
+
+        dn_attributes = {
+            attribute.casefold() for attribute, value, seperator in parse_dn(dn)
+        }
+        attributes = {
+            k: v
+            for k, v in attributes.items()
+            # Attributes which are part of the DN should not be set in
+            # `attributes` as well. Furthermore, whereas empty lists are used
+            # to clear attributes during edit, they are not allowed on
+            # creation, since attributes are, by default, created as empty.
+            if k.casefold() not in dn_attributes and v != []
+        }
 
         logger.info("Adding user to LDAP", dn=dn, attributes=attributes)
         employee_object_class = self.settings.ldap_object_class
