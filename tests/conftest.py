@@ -467,10 +467,14 @@ async def purge_ldap(ldap_connection: Connection) -> AsyncIterator[None]:
         # Keep deleting dns until none are left
         dns = await find_all_dns()
         while dns:
-            # This will attempt to delete as many DNs as possible
-            # However due to dependencies some deletes may fail
+            # This will attempt to delete as many DNs as possible However due
+            # to dependencies some deletes may fail, which is why we
+            # return_exceptions and ignore them.
             # TODO: Intelligently decide what to delete at each iteration?
-            await asyncio.gather(*[ldap_delete(ldap_connection, dn) for dn in dns])
+            await asyncio.gather(
+                *[ldap_delete(ldap_connection, dn) for dn in dns],
+                return_exceptions=True,
+            )
 
             # If we did not manage to delete anything, we are stuck
             # Perhaps there are cyclic dependencies at play?

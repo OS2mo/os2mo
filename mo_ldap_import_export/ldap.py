@@ -28,6 +28,7 @@ from ldap3 import ServerPool
 from ldap3 import Tls
 from ldap3 import set_config_parameter
 from ldap3.core.exceptions import LDAPInvalidDnError
+from ldap3.core.exceptions import LDAPNoSuchObjectResult
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from more_itertools import always_iterable
@@ -128,8 +129,7 @@ def configure_ldap_connection(settings: Settings) -> Connection:
         "client_strategy": client_strategy,
         "password": settings.ldap_password.get_secret_value(),
         "auto_bind": True,
-        # TODO: Raise exceptions whenever a query does not run OK
-        # "raise_exceptions": True,
+        "raise_exceptions": True,
         # Configure non-blocking IO, with maximum time to wait for each reply
         "receive_timeout": settings.ldap_receive_timeout,
         # NOTE: It appears that this flag does not in fact work
@@ -232,8 +232,6 @@ async def ldap_modify(
 ) -> tuple[dict, dict]:
     message_id = ldap_connection.modify(dn, changes)
     response, result = await wait_for_message_id(ldap_connection, message_id)
-    # TODO: this does not currently raise exceptions on errors due to
-    # `raise_exceptions=False` on the ldap connection.
     return response, result
 
 
@@ -242,8 +240,6 @@ async def ldap_modify_dn(
 ) -> tuple[dict, dict]:
     message_id = ldap_connection.modify_dn(dn, relative_dn)
     response, result = await wait_for_message_id(ldap_connection, message_id)
-    # TODO: this does not currently raise exceptions on errors due to
-    # `raise_exceptions=False` on the ldap connection.
     return response, result
 
 
@@ -252,16 +248,12 @@ async def ldap_add(
 ) -> tuple[dict, dict]:
     message_id = ldap_connection.add(dn, object_class, attributes)
     response, result = await wait_for_message_id(ldap_connection, message_id)
-    # TODO: this does not currently raise exceptions on errors due to
-    # `raise_exceptions=False` on the ldap connection.
     return response, result
 
 
 async def ldap_delete(ldap_connection: Connection, dn: DN) -> tuple[dict, dict]:
     message_id = ldap_connection.delete(dn)
     response, result = await wait_for_message_id(ldap_connection, message_id)
-    # TODO: this does not currently raise exceptions on errors due to
-    # `raise_exceptions=False` on the ldap connection.
     return response, result
 
 
@@ -270,8 +262,6 @@ async def ldap_search(
 ) -> tuple[list[dict[str, Any]], dict]:
     message_id = ldap_connection.search(**kwargs)
     response, result = await wait_for_message_id(ldap_connection, message_id)
-    # TODO: this does not currently raise exceptions on errors due to
-    # `raise_exceptions=False` on the ldap connection.
     return response, result
 
 
@@ -452,7 +442,7 @@ async def _paged_search(
     searchParameters: dict,
     search_base: str,
     mute: bool,
-) -> list:
+) -> list[dict[str, Any]]:
     # TODO: Consider using upstream paged_search_generator instead of this?
     # TODO: Eliminate mute argument? - Should be logger configuration?
     # TODO: Find max. paged_size number from LDAP rather than hard-code it?
@@ -470,12 +460,15 @@ async def _paged_search(
 
     # Max 10_000 pages to avoid eternal loops
     # TODO: Why would we get eternal loops?
-    responses = []
+    responses: list[dict[str, Any]] = []
     for page in range(0, 10_000):
         if not mute:
             logger.info("Searching page", page=page)
         # TODO: Fetch multiple pages in parallel using asyncio.gather?
-        response, result = await ldap_search(ldap_connection, **searchParameters)
+        try:
+            response, result = await ldap_search(ldap_connection, **searchParameters)
+        except LDAPNoSuchObjectResult:
+            return responses
 
         if result["description"] == "operationsError":
             # TODO: Should this be an exception?
@@ -622,16 +615,20 @@ async def single_object_search(
     Returns:
         The found object.
     """
-    search_entries = await object_search(searchParameters, ldap_connection)
-
+    no_results_exception = NoObjectsReturnedException(
+        f"Found no entries for {searchParameters}"
+    )
+    try:
+        search_entries = await object_search(searchParameters, ldap_connection)
+    except LDAPNoSuchObjectResult as e:
+        raise no_results_exception from e
     too_long_exception = MultipleObjectsReturnedException(
         f"Found multiple entries for {searchParameters}: {search_entries}"
     )
-    too_short_exception = NoObjectsReturnedException(
-        f"Found no entries for {searchParameters}"
-    )
     return one(
-        search_entries, too_short=too_short_exception, too_long=too_long_exception
+        search_entries,
+        too_short=no_results_exception,
+        too_long=too_long_exception,
     )
 
 
