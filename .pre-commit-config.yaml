@@ -62,6 +62,11 @@ repos:
       - id: end-of-file-fixer
         exclude: "docs/src/graphics/.*"
       - id: trailing-whitespace
+      - id: mixed-line-ending
+        args: ["--fix", "lf"]
+      - id: fix-byte-order-marker
+      - id: check-merge-conflict
+
 
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v2.37.1
