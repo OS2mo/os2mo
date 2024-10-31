@@ -426,7 +426,12 @@ async def apply_discriminator(
             if template.render(dn=dn, value=dn_value).strip() == "True"
         }
         if dns_passing_template:
-            return one(dns_passing_template)
+            return one(
+                dns_passing_template,
+                too_long=MultipleObjectsReturnedException(
+                    f"Ambiguous account result from apply discriminator {dns_passing_template=}"
+                ),
+            )
 
     return None
 
