@@ -66,6 +66,10 @@ class DNNotFound(HTTPException):
         super().__init__(status_code=404, detail=message)
 
 
+class SkipObject(Exception):
+    """Exception raised if the ldap_to_mo object should be skipped."""
+
+
 Params = ParamSpec("Params")
 ReturnType = TypeVar("ReturnType")
 
