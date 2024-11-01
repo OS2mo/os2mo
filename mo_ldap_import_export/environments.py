@@ -125,16 +125,6 @@ def bitwise_and(input: int, bitmask: int) -> int:
     return input & bitmask
 
 
-def nonejoin_orgs(org_unit_path_string_separator: str, *args) -> str:
-    """
-    Joins orgs together if they are not empty strings
-    """
-    sep = org_unit_path_string_separator
-
-    items_to_join = [a.strip() for a in args if a]
-    return sep.join(items_to_join)
-
-
 async def _get_facet_class_uuid(
     graphql_client: GraphQLClient, class_user_key: str, facet_user_key: str
 ) -> str:
@@ -787,9 +777,6 @@ def construct_globals_dict(
 ) -> dict[str, Any]:
     return {
         "now": datetime.utcnow,  # TODO: timezone-aware datetime
-        "nonejoin_orgs": partial(
-            nonejoin_orgs, settings.org_unit_path_string_separator
-        ),
         "get_employee_address_type_uuid": partial(
             get_employee_address_type_uuid, dataloader.graphql_client
         ),
