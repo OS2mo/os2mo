@@ -371,13 +371,6 @@ get_or_create_job_function_uuid = partial(
 )
 
 
-async def get_employee_dict(dataloader: DataLoader, employee_uuid: UUID) -> dict:
-    mo_employee = await dataloader.moapi.load_mo_employee(employee_uuid)
-    if mo_employee is None:
-        raise NoObjectsReturnedException(f"Unable to lookup employee: {employee_uuid}")
-    return mo_employee.dict()
-
-
 async def load_primary_engagement(
     dataloader: DataLoader, employee_uuid: UUID
 ) -> Engagement | None:
@@ -585,7 +578,6 @@ def construct_globals_dict(
         "get_or_create_job_function_uuid": partial(
             get_or_create_job_function_uuid, dataloader
         ),
-        "get_employee_dict": partial(get_employee_dict, dataloader),
         # These names are intentionally bad, but consistent with the old code names
         # TODO: Rename these functions once the old template system is gone
         "load_mo_employee": dataloader.moapi.load_mo_employee,

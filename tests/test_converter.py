@@ -33,7 +33,6 @@ from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.environments import _create_facet_class
 from mo_ldap_import_export.environments import create_org_unit
 from mo_ldap_import_export.environments import get_employee_address_type_uuid
-from mo_ldap_import_export.environments import get_employee_dict
 from mo_ldap_import_export.environments import get_job_function_name
 from mo_ldap_import_export.environments import get_or_create_job_function_uuid
 from mo_ldap_import_export.environments import get_org_unit_name
@@ -899,70 +898,6 @@ async def test_get_org_unit_uuid_from_path_no_match(
     call_content = json.loads(one(route.calls).request.content)
     filter = call_content["variables"]["filter"]
     assert filter == {"names": ["org4"], "parent": {"names": ["org1"], "parent": None}}
-
-
-async def test_get_employee_dict_no_employee(
-    settings_mock: Settings, graphql_mock: GraphQLMocker, dataloader: AsyncMock
-) -> None:
-    graphql_client = GraphQLClient("http://example.com/graphql")
-    dataloader.graphql_client = graphql_client
-    dataloader.moapi = MOAPI(settings_mock, graphql_client)
-
-    route = graphql_mock.query("read_employees")
-    route.result = {"employees": {"objects": []}}
-
-    employee_uuid = uuid4()
-
-    with pytest.raises(NoObjectsReturnedException) as exc_info:
-        await get_employee_dict(dataloader, employee_uuid)
-    assert f"Unable to lookup employee: {employee_uuid}" in str(exc_info.value)
-
-
-async def test_get_employee_dict(
-    settings_mock: Settings, graphql_mock: GraphQLMocker, dataloader: AsyncMock
-) -> None:
-    graphql_client = GraphQLClient("http://example.com/graphql")
-    dataloader.graphql_client = graphql_client
-    dataloader.moapi = MOAPI(settings_mock, graphql_client)
-
-    cpr_number = "1407711900"
-    uuid = uuid4()
-
-    route = graphql_mock.query("read_employees")
-    route.result = {
-        "employees": {
-            "objects": [
-                {
-                    "validities": [
-                        {
-                            "uuid": uuid,
-                            "cpr_number": cpr_number,
-                            "given_name": "Hans",
-                            "surname": "Andersen",
-                            "nickname_given_name": None,
-                            "nickname_surname": None,
-                            "validity": {
-                                "from": None,
-                                "to": None,
-                            },
-                        }
-                    ]
-                }
-            ]
-        }
-    }
-
-    result = await get_employee_dict(dataloader, uuid)
-    assert result == {
-        "given_name": "Hans",
-        "nickname_given_name": None,
-        "nickname_surname": None,
-        "seniority": None,
-        "surname": "Andersen",
-        "user_key": str(uuid),
-        "uuid": uuid,
-        "cpr_number": cpr_number,
-    }
 
 
 async def test_ldap_to_mo_termination(
