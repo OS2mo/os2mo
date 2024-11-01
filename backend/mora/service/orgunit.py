@@ -228,7 +228,8 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
                         and util.get_effect_to(a) > from_date
                     ),
                     mapping.ORG_UNIT_EGENSKABER_FIELD(lora_dict),
-                )
+                ),
+                default={},
             ).copy()
 
         try:
