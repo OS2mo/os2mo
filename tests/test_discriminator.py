@@ -516,9 +516,6 @@ async def sync_tool_and_context(
     route = graphql_mock.query("read_org_units")
     route.result = {"org_units": {"objects": []}}
 
-    route = graphql_mock.query("read_class_user_keys")
-    route.result = {"classes": {"objects": []}}
-
     amqpsystem = AsyncMock()
     context: Context = {
         "user_context": {

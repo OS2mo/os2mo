@@ -75,8 +75,6 @@ from .read_all_itusers import ReadAllItusers
 from .read_all_itusers import ReadAllItusersItusers
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuid
 from .read_class_name_by_class_uuid import ReadClassNameByClassUuidClasses
-from .read_class_user_keys import ReadClassUserKeys
-from .read_class_user_keys import ReadClassUserKeysClasses
 from .read_class_uuid import ReadClassUuid
 from .read_class_uuid import ReadClassUuidClasses
 from .read_class_uuid_by_facet_and_class_user_key import (
@@ -103,10 +101,6 @@ from .read_employees_with_engagement_to_org_unit import (
 )
 from .read_engagement_employee_uuid import ReadEngagementEmployeeUuid
 from .read_engagement_employee_uuid import ReadEngagementEmployeeUuidEngagements
-from .read_engagement_uuid_by_ituser_user_key import ReadEngagementUuidByItuserUserKey
-from .read_engagement_uuid_by_ituser_user_key import (
-    ReadEngagementUuidByItuserUserKeyItusers,
-)
 from .read_engagements import ReadEngagements
 from .read_engagements import ReadEngagementsEngagements
 from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuid
@@ -835,30 +829,6 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return ReadEmployeeUuidByItuserUserKey.parse_obj(data).itusers
 
-    async def read_engagement_uuid_by_ituser_user_key(
-        self, user_key: str, itsystem_uuid: UUID
-    ) -> ReadEngagementUuidByItuserUserKeyItusers:
-        query = gql(
-            """
-            query read_engagement_uuid_by_ituser_user_key($user_key: String!, $itsystem_uuid: UUID!) {
-              itusers(filter: {user_keys: [$user_key], itsystem: {uuids: [$itsystem_uuid]}}) {
-                objects {
-                  current {
-                    engagement_uuid
-                  }
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {
-            "user_key": user_key,
-            "itsystem_uuid": itsystem_uuid,
-        }
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadEngagementUuidByItuserUserKey.parse_obj(data).itusers
-
     async def read_ituser_by_employee_and_itsystem_uuid(
         self, employee_uuid: UUID, itsystem_uuid: UUID
     ) -> ReadItuserByEmployeeAndItsystemUuidItusers:
@@ -1134,27 +1104,6 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadAddresses.parse_obj(data).addresses
-
-    async def read_class_user_keys(
-        self, facet_user_keys: list[str]
-    ) -> ReadClassUserKeysClasses:
-        query = gql(
-            """
-            query read_class_user_keys($facet_user_keys: [String!]!) {
-              classes(filter: {facet: {user_keys: $facet_user_keys}}) {
-                objects {
-                  current {
-                    user_key
-                  }
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"facet_user_keys": facet_user_keys}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadClassUserKeys.parse_obj(data).classes
 
     async def read_all_itusers(
         self,
