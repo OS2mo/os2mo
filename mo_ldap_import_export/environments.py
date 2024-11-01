@@ -141,9 +141,6 @@ get_org_unit_type_uuid = partial(_get_facet_class_uuid, facet_user_key="org_unit
 get_org_unit_level_uuid = partial(
     _get_facet_class_uuid, facet_user_key="org_unit_level"
 )
-get_job_function_uuid = partial(
-    _get_facet_class_uuid, facet_user_key="engagement_job_function"
-)
 get_visibility_uuid = partial(_get_facet_class_uuid, facet_user_key="visibility")
 get_primary_type_uuid = partial(_get_facet_class_uuid, facet_user_key="primary_type")
 get_engagement_type_uuid = partial(
@@ -701,9 +698,6 @@ def construct_globals_dict(
             get_employee_address_type_uuid, dataloader.graphql_client
         ),
         "get_it_system_uuid": partial(dataloader.moapi.get_it_system_uuid),
-        "get_job_function_uuid": partial(
-            get_job_function_uuid, dataloader.graphql_client
-        ),
         "get_visibility_uuid": partial(get_visibility_uuid, dataloader.graphql_client),
         "get_primary_type_uuid": partial(
             get_primary_type_uuid, dataloader.graphql_client
