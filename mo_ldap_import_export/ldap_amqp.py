@@ -46,7 +46,14 @@ async def http_process_uuid(
     converter: LdapConverter,
     uuid: Annotated[UUID, Body()],
 ) -> None:
-    await handle_uuid(ldap_amqpsystem, sync_tool, dataloader, converter, uuid)
+    await handle_uuid(
+        ldap_amqpsystem,
+        sync_tool,
+        dataloader,
+        converter,
+        uuid,
+        republish_on_failure=False,
+    )
 
 
 @ldap_amqp_router.register("uuid")
@@ -58,7 +65,14 @@ async def process_uuid(
     converter: LdapConverter,
     uuid: PayloadUUID,
 ) -> None:
-    await handle_uuid(ldap_amqpsystem, sync_tool, dataloader, converter, uuid)
+    await handle_uuid(
+        ldap_amqpsystem,
+        sync_tool,
+        dataloader,
+        converter,
+        uuid,
+        republish_on_failure=True,
+    )
 
 
 async def handle_uuid(
@@ -67,6 +81,7 @@ async def handle_uuid(
     dataloader: DataLoader,
     converter: LdapConverter,
     uuid: UUID,
+    republish_on_failure: bool,
 ) -> None:
     # TODO: Sync from MO to LDAP to overwrite bad manual changes
 
@@ -92,11 +107,14 @@ async def handle_uuid(
 
     try:
         await sync_tool.import_single_user(dn)
-    except Exception:
+    except Exception:  # pragma: no cover
         logger.exception("Unable to synchronize DN to MO", dn=dn, uuid=uuid)
         # NOTE: This is a hack to cycle messages because quorum queues do not work
-        await asyncio.sleep(30)
-        await publish_uuids(ldap_amqpsystem, [uuid])
+        if republish_on_failure:
+            await asyncio.sleep(30)
+            await publish_uuids(ldap_amqpsystem, [uuid])
+        else:
+            raise
 
 
 def configure_ldap_amqpsystem(

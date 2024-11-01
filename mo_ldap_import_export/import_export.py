@@ -41,6 +41,7 @@ from .dataloaders import DN
 from .dataloaders import DataLoader
 from .dataloaders import Verb
 from .exceptions import DNNotFound
+from .exceptions import SkipObject
 from .ldap import apply_discriminator
 from .ldap import get_ldap_object
 from .types import EmployeeUUID
@@ -382,18 +383,22 @@ class SyncTool:
         # We need a mapping between MO objects and converted objects.
         # Without a mapping we cannot maintain temporality of objects in MO.
 
-        # If we have more than one MO object for each converted, the match is ambigious.
-        # Ambigious matches mean no mapping and must be handled by human intervention.
-        ambigious_exception = RequeueMessage("Bad mapping: Multiple MO objects")
+        # If we have more than one MO object for each converted, the match is ambiguous.
+        # Ambiguous matches mean no mapping and must be handled by human intervention.
+        ambiguous_exception = RequeueMessage(
+            f"Bad mapping: Multiple MO objects for {json_key}"
+        )
         value_in_mo = {
-            key: only(value, too_long=ambigious_exception)
+            key: only(value, too_long=ambiguous_exception)
             for key, value in values_in_mo.items()
         }
 
         # If we have more than one converted per value-key there cannot be a mapping.
         # This probably means we have a misconfiguration of the integration.
         # Perhaps a bad discriminator between MO objects per converted object.
-        bad_discriminator_exception = RequeueMessage("Bad mapping: Multiple converted")
+        bad_discriminator_exception = RequeueMessage(
+            f"Bad mapping: Multiple converted for {json_key}"
+        )
         value_converted = {
             key: one(value, too_long=bad_discriminator_exception)
             for key, value in values_converted.items()
@@ -604,11 +609,16 @@ class SyncTool:
             loaded_object=loaded_object,
         )
 
-        converted_objects = await self.converter.from_ldap(
-            loaded_object,
-            json_key,
-            employee_uuid=employee_uuid,
-        )
+        try:
+            converted_objects = await self.converter.from_ldap(
+                loaded_object,
+                json_key,
+                employee_uuid=employee_uuid,
+            )
+        except SkipObject:
+            logger.info("Skipping object", dn=dn)
+            return
+
         if not converted_objects:
             logger.info("No converted objects", dn=dn)
             return

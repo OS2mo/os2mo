@@ -16,6 +16,7 @@ from ldap3.utils.dn import escape_rdn
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from more_itertools import one
+from more_itertools import partition
 from ramodels.mo._shared import validate_cpr
 
 from .config import Settings
@@ -175,10 +176,21 @@ class LDAPAPI:
             *[self.get_ldap_dn(uuid) for uuid in ldap_uuids],
             return_exceptions=True,
         )
-        exceptions = cast(list[Exception], list(filter(is_exception, results)))
-        if exceptions:
-            raise ExceptionGroup("Exceptions during UUID2DN translation", exceptions)
-        return cast(set[DN], set(results))
+        dns, exceptions = partition(is_exception, results)
+        other_exceptions, not_found_exceptions = partition(
+            lambda e: isinstance(e, NoObjectsReturnedException), exceptions
+        )
+        if not_found_exceptions_list := list(not_found_exceptions):
+            logger.warning(
+                "Unable to convert LDAP UUIDs to DNs",
+                not_found=not_found_exceptions_list,
+            )
+        if other_exceptions_list := list(other_exceptions):
+            raise ExceptionGroup(
+                "Exceptions during UUID2DN translation",
+                cast(list[Exception], other_exceptions_list),
+            )
+        return cast(set[DN], set(dns))
 
     async def dn2cpr(self, dn: DN) -> CPRNumber | None:
         if self.settings.ldap_cpr_attribute is None:
