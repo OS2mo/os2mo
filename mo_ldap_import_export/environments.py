@@ -244,14 +244,6 @@ async def create_org_unit(
     return uuid
 
 
-async def get_engagement_type_name(graphql_client: GraphQLClient, uuid: UUID) -> str:
-    result = await graphql_client.read_class_name_by_class_uuid(uuid)
-    engagement_type = one(result.objects)
-    if engagement_type.current is None:
-        raise NoObjectsReturnedException(f"engagement_type not active, uuid: {uuid}")
-    return engagement_type.current.name
-
-
 async def get_org_unit_path_string(
     graphql_client: GraphQLClient, org_unit_path_string_separator: str, uuid: str | UUID
 ) -> str:
@@ -695,9 +687,6 @@ def construct_globals_dict(
         ),
         "get_it_system_uuid": partial(dataloader.moapi.get_it_system_uuid),
         "get_visibility_uuid": partial(get_visibility_uuid, dataloader.graphql_client),
-        "get_engagement_type_name": partial(
-            get_engagement_type_name, dataloader.graphql_client
-        ),
         "uuid4": uuid4,
         "get_org_unit_path_string": partial(
             get_org_unit_path_string,
