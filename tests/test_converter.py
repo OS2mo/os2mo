@@ -36,7 +36,6 @@ from mo_ldap_import_export.environments import (
     get_current_engagement_attribute_uuid_dict,
 )
 from mo_ldap_import_export.environments import get_current_engagement_type_uuid_dict
-from mo_ldap_import_export.environments import get_current_org_unit_uuid_dict
 from mo_ldap_import_export.environments import get_current_primary_uuid_dict
 from mo_ldap_import_export.environments import get_employee_address_type_uuid
 from mo_ldap_import_export.environments import get_employee_dict
@@ -936,18 +935,6 @@ async def test_get_current_engagement_attribute(converter: LdapConverter):
         await get_current_engagement_attribute_uuid_dict(
             dataloader, uuid4(), "mucki", "user_key"
         )
-
-
-async def test_get_current_org_unit_uuid(dataloader: AsyncMock) -> None:
-    uuid = str(uuid4())
-
-    dataloader.moapi.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
-        {"uuid": uuid4(), "org_unit_uuid": uuid}
-    ]
-
-    assert (await get_current_org_unit_uuid_dict(dataloader, uuid4(), "foo"))[
-        "uuid"
-    ] == uuid
 
 
 async def test_get_current_engagement_type_uuid(dataloader: AsyncMock) -> None:

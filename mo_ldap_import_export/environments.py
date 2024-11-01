@@ -426,9 +426,6 @@ async def get_current_engagement_attribute_uuid_dict(
     return {"uuid": engagement[attribute]}
 
 
-get_current_org_unit_uuid_dict = partial(
-    get_current_engagement_attribute_uuid_dict, attribute="org_unit_uuid"
-)
 get_current_engagement_type_uuid_dict = partial(
     get_current_engagement_attribute_uuid_dict, attribute="engagement_type_uuid"
 )
@@ -676,9 +673,6 @@ def construct_globals_dict(
         "get_org_unit_name": partial(get_org_unit_name, dataloader.graphql_client),
         "get_or_create_job_function_uuid": partial(
             get_or_create_job_function_uuid, dataloader
-        ),
-        "get_current_org_unit_uuid_dict": partial(
-            get_current_org_unit_uuid_dict, dataloader
         ),
         "get_current_engagement_type_uuid_dict": partial(
             get_current_engagement_type_uuid_dict, dataloader
