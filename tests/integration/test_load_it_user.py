@@ -56,6 +56,12 @@ async def test_load_it_user(
 
 
 @pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+    }
+)
 @pytest.mark.usefixtures("test_client")
 async def test_load_it_user_deleted(
     graphql_client: GraphQLClient,
