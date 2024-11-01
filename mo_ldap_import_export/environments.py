@@ -142,9 +142,6 @@ get_org_unit_level_uuid = partial(
     _get_facet_class_uuid, facet_user_key="org_unit_level"
 )
 get_visibility_uuid = partial(_get_facet_class_uuid, facet_user_key="visibility")
-get_engagement_type_uuid = partial(
-    _get_facet_class_uuid, facet_user_key="engagement_type"
-)
 
 
 async def load_mo_root_org_uuid(graphql_client: GraphQLClient) -> UUID:
@@ -698,9 +695,6 @@ def construct_globals_dict(
         ),
         "get_it_system_uuid": partial(dataloader.moapi.get_it_system_uuid),
         "get_visibility_uuid": partial(get_visibility_uuid, dataloader.graphql_client),
-        "get_engagement_type_uuid": partial(
-            get_engagement_type_uuid, dataloader.graphql_client
-        ),
         "get_engagement_type_name": partial(
             get_engagement_type_name, dataloader.graphql_client
         ),
