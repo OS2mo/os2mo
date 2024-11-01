@@ -186,22 +186,6 @@ async def get_org_unit_uuid_from_path(
     return obj.uuid
 
 
-def clean_org_unit_path_string(org_unit_path: list[str]) -> list[str]:
-    """Cleans leading and trailing whitespace from org units names.
-
-    Example:
-        ```python
-        org_unit_path = ["foo ", " bar", " baz "]
-        clean_org_unit_path_string(org_unit_path)
-        # Returns ["foo", "bar", "baz"]
-        ```
-
-    Args:
-        org_unit_path: A list of org-unit names.
-    """
-    return [x.strip() for x in org_unit_path]
-
-
 async def create_org_unit(
     dataloader: DataLoader, settings: Settings, org_unit_path: list[str]
 ) -> UUID:
@@ -268,23 +252,6 @@ async def create_org_unit(
     assert isinstance(org_unit, OrganisationUnit)
     await dataloader.create_org_unit(org_unit)
     return uuid
-
-
-async def get_or_create_org_unit_uuid(
-    dataloader: DataLoader, settings: Settings, org_unit_path_string: str
-):
-    logger.info(
-        "Finding org-unit uuid",
-        org_unit_path_string=org_unit_path_string,
-    )
-
-    if not org_unit_path_string:
-        raise UUIDNotFoundException("Organization unit string is empty")
-
-    # Clean leading and trailing whitespace from org unit path string
-    org_unit_path = org_unit_path_string.split(settings.org_unit_path_string_separator)
-    org_unit_path = clean_org_unit_path_string(org_unit_path)
-    return str(await create_org_unit(dataloader, settings, org_unit_path))
 
 
 def org_unit_path_string_from_dn(
@@ -778,9 +745,6 @@ def construct_globals_dict(
             get_employee_address_type_uuid, dataloader.graphql_client
         ),
         "get_it_system_uuid": partial(dataloader.moapi.get_it_system_uuid),
-        "get_or_create_org_unit_uuid": partial(
-            get_or_create_org_unit_uuid, dataloader, settings
-        ),
         "org_unit_path_string_from_dn": partial(
             org_unit_path_string_from_dn,
             settings.org_unit_path_string_separator,

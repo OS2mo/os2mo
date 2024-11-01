@@ -9,7 +9,6 @@ from typing import cast
 from unittest.mock import ANY
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
-from uuid import UUID
 from uuid import uuid4
 
 import pytest
@@ -35,7 +34,6 @@ from mo_ldap_import_export.config import ConversionMapping
 from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.environments import _create_facet_class
-from mo_ldap_import_export.environments import clean_org_unit_path_string
 from mo_ldap_import_export.environments import create_org_unit
 from mo_ldap_import_export.environments import (
     get_current_engagement_attribute_uuid_dict,
@@ -49,7 +47,6 @@ from mo_ldap_import_export.environments import get_engagement_type_name
 from mo_ldap_import_export.environments import get_job_function_name
 from mo_ldap_import_export.environments import get_or_create_engagement_type_uuid
 from mo_ldap_import_export.environments import get_or_create_job_function_uuid
-from mo_ldap_import_export.environments import get_or_create_org_unit_uuid
 from mo_ldap_import_export.environments import get_org_unit_name
 from mo_ldap_import_export.environments import get_org_unit_uuid_from_path
 from mo_ldap_import_export.environments import get_primary_engagement_dict
@@ -757,59 +754,6 @@ async def test_create_org_unit_all_missing(
     await create_org_unit(dataloader, settings, path)
     num_calls = len(converter.dataloader.create_org_unit.mock_calls)  # type: ignore
     assert num_calls == expected
-
-
-async def test_get_or_create_org_unit_uuid_get(
-    graphql_mock: GraphQLMocker, converter: LdapConverter
-) -> None:
-    graphql_client = GraphQLClient("http://example.com/graphql")
-    converter.dataloader.graphql_client = graphql_client  # type: ignore
-
-    magenta_aps_uuid = UUID("4d183b26-38a8-4c63-95cc-19d7c2c6ebe1")
-
-    route = graphql_mock.query("read_org_unit_uuid")
-    route.result = {"org_units": {"objects": [{"uuid": magenta_aps_uuid}]}}
-
-    dataloader = converter.dataloader
-    settings = converter.settings
-    # Get an organization UUID
-    org_uuid = await get_or_create_org_unit_uuid(dataloader, settings, "Magenta Aps")
-    assert org_uuid == str(magenta_aps_uuid)
-
-    # Attempt to fetch empty string
-    with pytest.raises(UUIDNotFoundException):
-        await get_or_create_org_unit_uuid(dataloader, settings, "")
-
-
-async def test_get_or_create_org_unit_uuid_create(
-    graphql_mock: GraphQLMocker, converter: LdapConverter
-) -> None:
-    graphql_client = GraphQLClient("http://example.com/graphql")
-    converter.dataloader.graphql_client = graphql_client  # type: ignore
-
-    route1 = graphql_mock.query("read_org_unit_uuid")
-    route1.result = {"org_units": {"objects": []}}
-
-    route2 = graphql_mock.query("read_class_uuid_by_facet_and_class_user_key")
-    route2.result = {"classes": {"objects": [{"uuid": uuid4()}]}}
-
-    route3 = graphql_mock.query("read_root_org_uuid")
-    route3.result = {"org": {"uuid": uuid4()}}
-
-    # Create a new organization and return its UUID
-    dataloader = converter.dataloader
-    settings = converter.settings
-    await get_or_create_org_unit_uuid(dataloader, settings, "ACME")
-    converter.dataloader.create_org_unit.assert_awaited_once()  # type: ignore
-
-
-def test_clean_org_unit_path_string() -> None:
-    assert clean_org_unit_path_string(["foo", "bar"]) == ["foo", "bar"]
-    assert clean_org_unit_path_string([" foo", " bar ", "baz "]) == [
-        "foo",
-        "bar",
-        "baz",
-    ]
 
 
 def test_check_uuid_refs_in_mo_objects(converter_mapping: dict[str, Any]) -> None:
