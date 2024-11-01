@@ -50,7 +50,6 @@ from .input_types import ITUserFilter
 from .input_types import ITUserTerminateInput
 from .input_types import ITUserUpdateInput
 from .input_types import OrganisationUnitCreateInput
-from .input_types import OrganisationUnitFilter
 from .ituser_create import ItuserCreate
 from .ituser_create import ItuserCreateItuserCreate
 from .ituser_terminate import ItuserTerminate
@@ -133,10 +132,6 @@ from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNames
 from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNamesOrgUnits
 from .read_org_unit_name import ReadOrgUnitName
 from .read_org_unit_name import ReadOrgUnitNameOrgUnits
-from .read_org_unit_uuid import ReadOrgUnitUuid
-from .read_org_unit_uuid import ReadOrgUnitUuidOrgUnits
-from .read_root_org_uuid import ReadRootOrgUuid
-from .read_root_org_uuid import ReadRootOrgUuidOrg
 from .set_job_title import SetJobTitle
 from .set_job_title import SetJobTitleEngagementUpdate
 from .user_create import UserCreate
@@ -532,21 +527,6 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadClassUuid.parse_obj(data).classes
-
-    async def read_root_org_uuid(self) -> ReadRootOrgUuidOrg:
-        query = gql(
-            """
-            query read_root_org_uuid {
-              org {
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadRootOrgUuid.parse_obj(data).org
 
     async def org_unit_create(
         self, input: OrganisationUnitCreateInput
@@ -1311,25 +1291,6 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadItsystemUuid.parse_obj(data).itsystems
-
-    async def read_org_unit_uuid(
-        self, filter: OrganisationUnitFilter
-    ) -> ReadOrgUnitUuidOrgUnits:
-        query = gql(
-            """
-            query read_org_unit_uuid($filter: OrganisationUnitFilter!) {
-              org_units(filter: $filter) {
-                objects {
-                  uuid
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"filter": filter}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadOrgUnitUuid.parse_obj(data).org_units
 
     async def read_org_unit_ancestor_names(
         self, uuid: UUID

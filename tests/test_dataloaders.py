@@ -52,7 +52,6 @@ from mo_ldap_import_export.dataloaders import DN
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.dataloaders import Verb
 from mo_ldap_import_export.environments import get_or_create_job_function_uuid
-from mo_ldap_import_export.environments import load_mo_root_org_uuid
 from mo_ldap_import_export.exceptions import DNNotFound
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
@@ -1515,16 +1514,6 @@ def test_extract_latest_object(
 def test_extract_latest_object_empty() -> None:
     result = extract_current_or_latest_validity([])
     assert result is None
-
-
-async def test_load_mo_root_org_uuid(graphql_mock: GraphQLMocker) -> None:
-    graphql_client = GraphQLClient("http://example.com/graphql")
-    root_org_uuid = uuid4()
-
-    route = graphql_mock.query("read_root_org_uuid")
-    route.result = {"org": {"uuid": root_org_uuid}}
-
-    assert await load_mo_root_org_uuid(graphql_client) == root_org_uuid
 
 
 async def test_create_or_edit_mo_objects(dataloader: DataLoader) -> None:
