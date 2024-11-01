@@ -328,15 +328,24 @@ class DataLoader:
     ) -> None:
         # TODO: the TERMINATE verb should definitely be emitted directly in
         # format_converted_objects instead.
-        def fix_verb(obj: MOBase, verb: Verb) -> tuple[MOBase, Verb]:
+        def fix_verb(obj: MOBase, verb: Verb) -> tuple[MOBase, Verb] | None:
             if hasattr(obj, "terminate_"):
+                # Objects to create do not exist, and have a randomly generated
+                # UUID, so obviously cannot be terminated and will result in
+                # hard-to-understand errors.
+                if verb is Verb.CREATE:
+                    return None
                 return obj, Verb.TERMINATE
             return obj, verb
 
         # HACK to set termination verb, should be set within format_converted_objects instead,
         # but doing so requires restructuring the entire flow of the integration, which is a major
         # task best saved for later.
-        objects = [fix_verb(obj, verb) for obj, verb in objects]
+        objects = [
+            new_obj
+            for obj, verb in objects
+            if (new_obj := fix_verb(obj, verb)) is not None
+        ]
 
         # Split objects into groups
         verb_groups = bucket(objects, key=star(lambda _, verb: verb))

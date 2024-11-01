@@ -141,6 +141,59 @@ async def test_to_mo(
 @pytest.mark.integration_test
 @pytest.mark.envvar(
     {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "True",
+        "CONVERSION_MAPPING": json.dumps(
+            {
+                "ldap_to_mo": {
+                    "Employee": {
+                        "objectClass": "ramodels.mo.employee.Employee",
+                        "_import_to_mo_": "false",
+                        "_ldap_attributes_": [],
+                        "uuid": "{{ employee_uuid or '' }}",
+                    },
+                    "EmailEmployee": {
+                        "objectClass": "ramodels.mo.details.address.Address",
+                        "_import_to_mo_": "true",
+                        "_ldap_attributes_": ["mail"],
+                        "_terminate_": "{{ now()|mo_datestring }}",
+                        "value": "{{ ldap.mail }}",
+                        "address_type": "{{ get_employee_address_type_uuid('EmailEmployee') }}",
+                        "person": "{{ employee_uuid }}",
+                        "visibility": "{{ get_visibility_uuid('Public') }}",
+                    },
+                },
+                # TODO: why is this required?
+                "username_generator": {
+                    "objectClass": "UserNameGenerator",
+                    "combinations_to_try": ["FFFX", "LLLX"],
+                },
+            }
+        ),
+    }
+)
+async def test_terminate_on_create(
+    test_client: AsyncClient,
+    graphql_client: GraphQLClient,
+    mo_person: UUID,
+    ldap_person_uuid: UUID,
+) -> None:
+    content = str(ldap_person_uuid)
+    headers = {"Content-Type": "text/plain"}
+    result = await test_client.post("/ldap2mo/uuid", content=content, headers=headers)
+    assert result.status_code == 200
+
+    addresses = await graphql_client._testing__address_read(
+        filter=AddressFilter(
+            employee=EmployeeFilter(uuids=[mo_person]),
+        ),
+    )
+    assert not addresses.objects
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
         "LISTEN_TO_CHANGES_IN_MO": "True",
         "LISTEN_TO_CHANGES_IN_LDAP": "False",
         "CONVERSION_MAPPING": json.dumps(
