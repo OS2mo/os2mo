@@ -50,7 +50,6 @@ from mo_ldap_import_export.environments import get_job_function_name
 from mo_ldap_import_export.environments import get_or_create_engagement_type_uuid
 from mo_ldap_import_export.environments import get_or_create_job_function_uuid
 from mo_ldap_import_export.environments import get_or_create_org_unit_uuid
-from mo_ldap_import_export.environments import get_org_unit_address_type_uuid
 from mo_ldap_import_export.environments import get_org_unit_name
 from mo_ldap_import_export.environments import get_org_unit_uuid_from_path
 from mo_ldap_import_export.environments import get_primary_engagement_dict
@@ -512,20 +511,6 @@ async def test_get_visibility_uuid(graphql_client: AsyncMock, class_name: str) -
         ("visibility", class_name)
     ] = class_uuid
     assert await get_visibility_uuid(graphql_client, class_name) == class_uuid
-
-
-@pytest.mark.parametrize("class_name", ["EAN", "EmailUnit"])
-async def test_get_org_unit_address_type_uuid(
-    graphql_client: AsyncMock, class_name: str
-) -> None:
-    class_uuid = str(uuid4())
-
-    graphql_client.read_class_uuid_by_facet_and_class_user_key.map[
-        ("org_unit_address_type", class_name)
-    ] = class_uuid
-    assert (
-        await get_org_unit_address_type_uuid(graphql_client, class_name) == class_uuid
-    )
 
 
 async def test_get_job_function_uuid(

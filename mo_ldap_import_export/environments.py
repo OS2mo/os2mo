@@ -140,9 +140,6 @@ async def _get_facet_class_uuid(
 get_employee_address_type_uuid = partial(
     _get_facet_class_uuid, facet_user_key="employee_address_type"
 )
-get_org_unit_address_type_uuid = partial(
-    _get_facet_class_uuid, facet_user_key="org_unit_address_type"
-)
 get_org_unit_type_uuid = partial(_get_facet_class_uuid, facet_user_key="org_unit_type")
 get_org_unit_level_uuid = partial(
     _get_facet_class_uuid, facet_user_key="org_unit_level"
@@ -779,9 +776,6 @@ def construct_globals_dict(
         "now": datetime.utcnow,  # TODO: timezone-aware datetime
         "get_employee_address_type_uuid": partial(
             get_employee_address_type_uuid, dataloader.graphql_client
-        ),
-        "get_org_unit_address_type_uuid": partial(
-            get_org_unit_address_type_uuid, dataloader.graphql_client
         ),
         "get_it_system_uuid": partial(dataloader.moapi.get_it_system_uuid),
         "get_or_create_org_unit_uuid": partial(
