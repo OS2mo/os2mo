@@ -20,7 +20,6 @@ from jinja2 import StrictUndefined
 from jinja2 import TemplateRuntimeError
 from jinja2 import UndefinedError
 from jinja2.utils import missing
-from ldap3.utils.dn import parse_dn
 from more_itertools import flatten
 from more_itertools import one
 from more_itertools import only
@@ -45,10 +44,8 @@ from .dataloaders import DataLoader
 from .exceptions import NoObjectsReturnedException
 from .exceptions import SkipObject
 from .exceptions import UUIDNotFoundException
-from .types import DN
 from .types import EmployeeUUID
 from .utils import exchange_ou_in_dn
-from .utils import extract_ou_from_dn
 from .utils import get_delete_flag
 from .utils import mo_today
 
@@ -252,47 +249,6 @@ async def create_org_unit(
     assert isinstance(org_unit, OrganisationUnit)
     await dataloader.create_org_unit(org_unit)
     return uuid
-
-
-def org_unit_path_string_from_dn(
-    org_unit_path_string_separator: str, dn: DN, number_of_ous_to_ignore: int = 0
-) -> str:
-    """
-    Constructs an org-unit path string from a DN.
-
-    If number_of_ous_to_ignore is specified, ignores this many OUs in the path
-
-    Examples
-    -----------
-    >>> dn = "CN=Jim,OU=Technicians,OU=Users,OU=demo,OU=OS2MO,DC=ad,DC=addev"
-    >>> org_unit_path_string_from_dn(dn,2)
-    >>> "Users/Technicians"
-    >>>
-    >>> org_unit_path_string_from_dn(dn,1)
-    >>> "demo/Users/Technicians"
-    """
-    sep = org_unit_path_string_separator
-
-    ou_decomposed = parse_dn(extract_ou_from_dn(dn))[::-1]
-    org_unit_list = [ou[1] for ou in ou_decomposed]
-
-    if number_of_ous_to_ignore >= len(org_unit_list):
-        logger.info(
-            "DN cannot be mapped to org-unit-path",
-            dn=dn,
-            org_unit_list=org_unit_list,
-            number_of_ous_to_ignore=number_of_ous_to_ignore,
-        )
-        return ""
-    org_unit_path_string = sep.join(org_unit_list[number_of_ous_to_ignore:])
-
-    logger.info(
-        "Constructed org unit path string from dn",
-        dn=dn,
-        org_unit_path_string=org_unit_path_string,
-        number_of_ous_to_ignore=number_of_ous_to_ignore,
-    )
-    return org_unit_path_string
 
 
 async def get_engagement_type_name(graphql_client: GraphQLClient, uuid: UUID) -> str:
@@ -745,10 +701,6 @@ def construct_globals_dict(
             get_employee_address_type_uuid, dataloader.graphql_client
         ),
         "get_it_system_uuid": partial(dataloader.moapi.get_it_system_uuid),
-        "org_unit_path_string_from_dn": partial(
-            org_unit_path_string_from_dn,
-            settings.org_unit_path_string_separator,
-        ),
         "get_job_function_uuid": partial(
             get_job_function_uuid, dataloader.graphql_client
         ),

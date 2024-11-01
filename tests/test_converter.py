@@ -53,7 +53,6 @@ from mo_ldap_import_export.environments import get_primary_engagement_dict
 from mo_ldap_import_export.environments import get_primary_type_uuid
 from mo_ldap_import_export.environments import get_visibility_uuid
 from mo_ldap_import_export.environments import make_dn_from_org_unit_path
-from mo_ldap_import_export.environments import org_unit_path_string_from_dn
 from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
@@ -1085,22 +1084,6 @@ async def test_get_org_unit_uuid_from_path_no_match(
     call_content = json.loads(one(route.calls).request.content)
     filter = call_content["variables"]["filter"]
     assert filter == {"names": ["org4"], "parent": {"names": ["org1"], "parent": None}}
-
-
-def test_org_unit_path_string_from_dn() -> None:
-    dn = "CN=Angus,OU=Auchtertool,OU=Kingdom of Fife,OU=Scotland,DC=gh"
-
-    org_unit_path = org_unit_path_string_from_dn("\\", dn)
-    assert org_unit_path == "Scotland\\Kingdom of Fife\\Auchtertool"
-
-    org_unit_path = org_unit_path_string_from_dn("\\", dn, 1)
-    assert org_unit_path == "Kingdom of Fife\\Auchtertool"
-
-    org_unit_path = org_unit_path_string_from_dn("\\", dn, 2)
-    assert org_unit_path == "Auchtertool"
-
-    org_unit_path = org_unit_path_string_from_dn("\\", dn, 3)
-    assert org_unit_path == ""
 
 
 def test_make_dn_from_org_unit_path() -> None:
