@@ -135,16 +135,6 @@ def nonejoin_orgs(org_unit_path_string_separator: str, *args) -> str:
     return sep.join(items_to_join)
 
 
-def remove_first_org(org_unit_path_string_separator: str, orgstr: str) -> str:
-    """
-    Remove first org from orgstr
-    """
-    sep = org_unit_path_string_separator
-
-    _, *rest = orgstr.split(sep)
-    return nonejoin_orgs(sep, *rest)
-
-
 async def _get_facet_class_uuid(
     graphql_client: GraphQLClient, class_user_key: str, facet_user_key: str
 ) -> str:
@@ -799,9 +789,6 @@ def construct_globals_dict(
         "now": datetime.utcnow,  # TODO: timezone-aware datetime
         "nonejoin_orgs": partial(
             nonejoin_orgs, settings.org_unit_path_string_separator
-        ),
-        "remove_first_org": partial(
-            remove_first_org, settings.org_unit_path_string_separator
         ),
         "get_employee_address_type_uuid": partial(
             get_employee_address_type_uuid, dataloader.graphql_client

@@ -59,7 +59,6 @@ from mo_ldap_import_export.environments import get_visibility_uuid
 from mo_ldap_import_export.environments import make_dn_from_org_unit_path
 from mo_ldap_import_export.environments import nonejoin_orgs
 from mo_ldap_import_export.environments import org_unit_path_string_from_dn
-from mo_ldap_import_export.environments import remove_first_org
 from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
@@ -1186,18 +1185,6 @@ def test_make_dn_from_org_unit_path() -> None:
     dn = "CN=Angus,OU=replace_me,DC=GHU"
     new_dn = make_dn_from_org_unit_path("|", dn, org_unit_path)
     assert new_dn == "CN=Angus,OU=bar,OU=mucki,OU=foo,DC=GHU"
-
-
-@pytest.mark.parametrize(
-    "orgstr,result",
-    [
-        ("", ""),
-        ("a\\b", "b"),
-        ("a\\b\\c", "b\\c"),
-    ],
-)
-async def test_remove_first_org(orgstr: str, result: str) -> None:
-    assert remove_first_org("\\", orgstr) == result
 
 
 async def test_get_primary_engagement_dict(dataloader: AsyncMock) -> None:
