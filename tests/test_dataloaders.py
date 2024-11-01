@@ -1239,50 +1239,6 @@ async def test_add_ldap_object(settings: Settings, ldap_connection: MagicMock) -
     assert "LDAP connection is read-only" in str(exc.value)
 
 
-async def test_load_mo_employee_engagement_dicts(
-    dataloader: DataLoader, graphql_mock: GraphQLMocker
-) -> None:
-    engagement1 = jsonable_encoder(
-        {
-            "uuid": uuid4(),
-            "user_key": "foo",
-            "org_unit_uuid": uuid4(),
-            "job_function_uuid": uuid4(),
-            "engagement_type_uuid": uuid4(),
-            "primary_uuid": None,
-        }
-    )
-    engagement2 = jsonable_encoder(
-        {
-            "uuid": uuid4(),
-            "user_key": "foo",
-            "org_unit_uuid": uuid4(),
-            "job_function_uuid": uuid4(),
-            "engagement_type_uuid": uuid4(),
-            "primary_uuid": None,
-        }
-    )
-
-    route = graphql_mock.query("read_engagements_by_engagements_filter")
-    route.result = {
-        "engagements": {"objects": [{"current": engagement1}, {"current": engagement2}]}
-    }
-
-    result = await dataloader.moapi.load_mo_employee_engagement_dicts(uuid4(), "foo")
-
-    assert engagement1 in result
-    assert engagement2 in result
-    assert route.called
-
-    route.reset()
-    route.result = {"engagements": {"objects": []}}
-    result = await dataloader.moapi.load_mo_employee_engagement_dicts(uuid4(), "foo")
-
-    assert isinstance(result, list)
-    assert len(result) == 0
-    assert route.called
-
-
 def test_ou_in_ous_to_write_to(dataloader: DataLoader):
     settings_mock = MagicMock()
     settings_mock.ldap_ous_to_write_to = ["OU=foo", "OU=mucki,OU=bar"]

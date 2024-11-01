@@ -105,10 +105,6 @@ from .read_engagements import ReadEngagements
 from .read_engagements import ReadEngagementsEngagements
 from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuid
 from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuidEngagements
-from .read_engagements_by_engagements_filter import ReadEngagementsByEngagementsFilter
-from .read_engagements_by_engagements_filter import (
-    ReadEngagementsByEngagementsFilterEngagements,
-)
 from .read_engagements_is_primary import ReadEngagementsIsPrimary
 from .read_engagements_is_primary import ReadEngagementsIsPrimaryEngagements
 from .read_facet_uuid import ReadFacetUuid
@@ -662,32 +658,6 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEngagementsByEmployeeUuid.parse_obj(data).engagements
-
-    async def read_engagements_by_engagements_filter(
-        self, engagements_filter: EngagementFilter
-    ) -> ReadEngagementsByEngagementsFilterEngagements:
-        query = gql(
-            """
-            query read_engagements_by_engagements_filter($engagements_filter: EngagementFilter!) {
-              engagements(filter: $engagements_filter) {
-                objects {
-                  current {
-                    uuid
-                    user_key
-                    org_unit_uuid
-                    job_function_uuid
-                    engagement_type_uuid
-                    primary_uuid
-                  }
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"engagements_filter": engagements_filter}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadEngagementsByEngagementsFilter.parse_obj(data).engagements
 
     async def set_job_title(
         self,

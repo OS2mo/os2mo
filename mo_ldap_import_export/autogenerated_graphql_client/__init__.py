@@ -296,16 +296,6 @@ from .read_engagements_by_employee_uuid import (
 from .read_engagements_by_employee_uuid import (
     ReadEngagementsByEmployeeUuidEngagementsObjectsCurrentValidity,
 )
-from .read_engagements_by_engagements_filter import ReadEngagementsByEngagementsFilter
-from .read_engagements_by_engagements_filter import (
-    ReadEngagementsByEngagementsFilterEngagements,
-)
-from .read_engagements_by_engagements_filter import (
-    ReadEngagementsByEngagementsFilterEngagementsObjects,
-)
-from .read_engagements_by_engagements_filter import (
-    ReadEngagementsByEngagementsFilterEngagementsObjectsCurrent,
-)
 from .read_engagements_is_primary import ReadEngagementsIsPrimary
 from .read_engagements_is_primary import ReadEngagementsIsPrimaryEngagements
 from .read_engagements_is_primary import ReadEngagementsIsPrimaryEngagementsObjects
@@ -581,10 +571,6 @@ __all__ = [
     "ReadEngagementsByEmployeeUuidEngagementsObjects",
     "ReadEngagementsByEmployeeUuidEngagementsObjectsCurrent",
     "ReadEngagementsByEmployeeUuidEngagementsObjectsCurrentValidity",
-    "ReadEngagementsByEngagementsFilter",
-    "ReadEngagementsByEngagementsFilterEngagements",
-    "ReadEngagementsByEngagementsFilterEngagementsObjects",
-    "ReadEngagementsByEngagementsFilterEngagementsObjectsCurrent",
     "ReadEngagementsEngagements",
     "ReadEngagementsEngagementsObjects",
     "ReadEngagementsEngagementsObjectsValidities",

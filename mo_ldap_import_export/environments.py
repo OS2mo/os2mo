@@ -5,7 +5,6 @@ from collections.abc import Iterator
 from contextlib import suppress
 from datetime import datetime
 from functools import partial
-from itertools import compress
 from typing import Any
 from typing import TypeVar
 from typing import cast
@@ -372,20 +371,6 @@ get_or_create_job_function_uuid = partial(
 )
 
 
-async def get_primary_engagement_dict(
-    dataloader: DataLoader, employee_uuid: UUID
-) -> dict:
-    engagements = await dataloader.moapi.load_mo_employee_engagement_dicts(
-        employee_uuid
-    )
-    # TODO: Make is_primary a GraphQL filter in MO and clean this up
-    is_primary_engagement = await dataloader.moapi.is_primaries(
-        [engagement["uuid"] for engagement in engagements]
-    )
-    primary_engagement = one(compress(engagements, is_primary_engagement))
-    return primary_engagement
-
-
 async def get_employee_dict(dataloader: DataLoader, employee_uuid: UUID) -> dict:
     mo_employee = await dataloader.moapi.load_mo_employee(employee_uuid)
     if mo_employee is None:
@@ -600,7 +585,6 @@ def construct_globals_dict(
         "get_or_create_job_function_uuid": partial(
             get_or_create_job_function_uuid, dataloader
         ),
-        "get_primary_engagement_dict": partial(get_primary_engagement_dict, dataloader),
         "get_employee_dict": partial(get_employee_dict, dataloader),
         # These names are intentionally bad, but consistent with the old code names
         # TODO: Rename these functions once the old template system is gone

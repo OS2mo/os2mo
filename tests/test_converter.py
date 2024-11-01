@@ -38,7 +38,6 @@ from mo_ldap_import_export.environments import get_job_function_name
 from mo_ldap_import_export.environments import get_or_create_job_function_uuid
 from mo_ldap_import_export.environments import get_org_unit_name
 from mo_ldap_import_export.environments import get_org_unit_uuid_from_path
-from mo_ldap_import_export.environments import get_primary_engagement_dict
 from mo_ldap_import_export.environments import get_visibility_uuid
 from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
@@ -900,95 +899,6 @@ async def test_get_org_unit_uuid_from_path_no_match(
     call_content = json.loads(one(route.calls).request.content)
     filter = call_content["variables"]["filter"]
     assert filter == {"names": ["org4"], "parent": {"names": ["org1"], "parent": None}}
-
-
-async def test_get_primary_engagement_dict(dataloader: AsyncMock) -> None:
-    engagement1 = {
-        "uuid": str(uuid4()),
-        "user_key": "foo",
-        "org_unit_uuid": str(uuid4()),
-        "job_function_uuid": str(uuid4()),
-        "engagement_type_uuid": str(uuid4()),
-        "primary_uuid": str(uuid4()),
-    }
-
-    engagement2 = {
-        "uuid": str(uuid4()),
-        "user_key": "bar",
-        "org_unit_uuid": str(uuid4()),
-        "job_function_uuid": str(uuid4()),
-        "engagement_type_uuid": str(uuid4()),
-        "primary_uuid": None,
-    }
-
-    engagement3 = {
-        "uuid": str(uuid4()),
-        "user_key": "baz",
-        "org_unit_uuid": str(uuid4()),
-        "job_function_uuid": str(uuid4()),
-        "engagement_type_uuid": str(uuid4()),
-        "primary_uuid": None,
-    }
-
-    employee_uuid = uuid4()
-
-    # 3 engagements
-    # -------------
-    dataloader.moapi.load_mo_employee_engagement_dicts.return_value = [
-        engagement1,
-        engagement2,
-        engagement3,
-    ]
-    # One primary
-    # -----------
-    dataloader.moapi.is_primaries.return_value = [True, False, False]
-    result = await get_primary_engagement_dict(dataloader, employee_uuid)
-    assert result["user_key"] == "foo"
-
-    dataloader.moapi.is_primaries.return_value = [False, True, False]
-    result = await get_primary_engagement_dict(dataloader, employee_uuid)
-    assert result["user_key"] == "bar"
-
-    dataloader.moapi.is_primaries.return_value = [False, False, True]
-    result = await get_primary_engagement_dict(dataloader, employee_uuid)
-    assert result["user_key"] == "baz"
-
-    # Two primaries
-    # -------------
-    with pytest.raises(ValueError) as exc_info:
-        dataloader.moapi.is_primaries.return_value = [False, True, True]
-        await get_primary_engagement_dict(dataloader, employee_uuid)
-    assert "Expected exactly one item in iterable" in str(exc_info.value)
-
-    # No primary
-    # ----------
-    with pytest.raises(ValueError) as exc_info:
-        dataloader.moapi.is_primaries.return_value = [False, False, False]
-        await get_primary_engagement_dict(dataloader, employee_uuid)
-    assert "too few items in iterable (expected 1)" in str(exc_info.value)
-
-    # 1 engagement
-    # ------------
-    dataloader.moapi.load_mo_employee_engagement_dicts.return_value = [engagement3]
-    # One primary
-    # -----------
-    dataloader.moapi.is_primaries.return_value = [True]
-    result = await get_primary_engagement_dict(dataloader, employee_uuid)
-    assert result["user_key"] == "baz"
-
-    # No primary
-    with pytest.raises(ValueError) as exc_info:
-        dataloader.moapi.is_primaries.return_value = [False]
-        await get_primary_engagement_dict(dataloader, employee_uuid)
-    assert "too few items in iterable (expected 1)" in str(exc_info.value)
-
-    # 0 engagements
-    # -------------
-    with pytest.raises(ValueError) as exc_info:
-        dataloader.moapi.load_mo_employee_engagement_dicts.return_value = []
-        dataloader.moapi.is_primaries.return_value = []
-        await get_primary_engagement_dict(dataloader, employee_uuid)
-    assert "too few items in iterable (expected 1)" in str(exc_info.value)
 
 
 async def test_get_employee_dict_no_employee(

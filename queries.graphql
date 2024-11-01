@@ -266,23 +266,6 @@ query read_engagements_by_employee_uuid($employee_uuid: UUID!) {
   }
 }
 
-query read_engagements_by_engagements_filter(
-  $engagements_filter: EngagementFilter!
-) {
-  engagements(filter: $engagements_filter) {
-    objects {
-      current {
-        uuid
-        user_key
-        org_unit_uuid
-        job_function_uuid
-        engagement_type_uuid
-        primary_uuid
-      }
-    }
-  }
-}
-
 mutation set_job_title(
   $uuid: UUID!
   $from: DateTime!
