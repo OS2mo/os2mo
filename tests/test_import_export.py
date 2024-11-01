@@ -16,6 +16,7 @@ from uuid import uuid4
 import pytest
 from fastramqpi.context import Context
 from fastramqpi.ramqp.utils import RequeueMessage
+from freezegun import freeze_time
 from more_itertools import first
 from more_itertools import last
 from structlog.testing import capture_logs
@@ -1105,6 +1106,7 @@ async def test_find_best_dn_no_create(sync_tool: SyncTool) -> None:
     ]
 
 
+@freeze_time("2022-08-10T12:34:56")
 @pytest.mark.parametrize(
     "template, expected",
     (
@@ -1143,9 +1145,11 @@ async def test_find_best_dn_no_create(sync_tool: SyncTool) -> None:
             "{% set a = 'hej123'|strip_non_digits %} {{ {'a': a}|tojson }}",
             {"a": ["123"]},
         ),
-        # Templates can globals
-        ("{% set a = min(1, 2) %} {{ {'a': a}|tojson }}", {"a": [1]}),
-        ("{% set a = nonejoin('a', 'b') %} {{ {'a': a}|tojson }}", {"a": ["a, b"]}),
+        # Templates can use globals (and filters)
+        (
+            "{% set a = now()|mo_datestring %} {{ {'a': a}|tojson }}",
+            {"a": ["2022-08-10T00:00:00"]},
+        ),
         # Generating raw json outside of tojson
         ('{"key": "value"}', {"key": ["value"]}),
         ('{"key": "{{ dn }}"}', {"key": ["CN=foo"]}),

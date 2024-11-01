@@ -125,14 +125,6 @@ def bitwise_and(input: int, bitmask: int) -> int:
     return input & bitmask
 
 
-def minimum(a, b):
-    if a is None:
-        return b
-    if b is None:
-        return a
-    return min(a, b)
-
-
 def nonejoin(*args) -> str:
     """
     Joins items together if they are not None or empty lists
@@ -813,7 +805,6 @@ def construct_globals_dict(
 ) -> dict[str, Any]:
     return {
         "now": datetime.utcnow,  # TODO: timezone-aware datetime
-        "min": minimum,
         "nonejoin": nonejoin,
         "nonejoin_orgs": partial(
             nonejoin_orgs, settings.org_unit_path_string_separator

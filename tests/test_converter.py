@@ -57,7 +57,6 @@ from mo_ldap_import_export.environments import get_primary_engagement_dict
 from mo_ldap_import_export.environments import get_primary_type_uuid
 from mo_ldap_import_export.environments import get_visibility_uuid
 from mo_ldap_import_export.environments import make_dn_from_org_unit_path
-from mo_ldap_import_export.environments import minimum
 from mo_ldap_import_export.environments import nonejoin
 from mo_ldap_import_export.environments import nonejoin_orgs
 from mo_ldap_import_export.environments import org_unit_path_string_from_dn
@@ -454,13 +453,6 @@ async def test_get_ldap_attributes_dn_removed(
 def test_get_mo_attributes(converter: LdapConverter) -> None:
     attributes = set(converter.get_mo_attributes("Employee"))
     assert attributes == {"uuid", "cpr_number", "surname", "given_name"}
-
-
-def test_minimum() -> None:
-    assert minimum(1, None) == 1
-    assert minimum(None, 1) == 1
-    assert minimum(9, 10) == 9
-    assert minimum(10, 9) == 9
 
 
 def test_nonejoin() -> None:
