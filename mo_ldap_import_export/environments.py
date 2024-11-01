@@ -687,7 +687,6 @@ def construct_globals_dict(
         ),
         "get_it_system_uuid": partial(dataloader.moapi.get_it_system_uuid),
         "get_visibility_uuid": partial(get_visibility_uuid, dataloader.graphql_client),
-        "uuid4": uuid4,
         "get_org_unit_path_string": partial(
             get_org_unit_path_string,
             dataloader.graphql_client,
