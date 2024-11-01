@@ -45,7 +45,6 @@ from .exceptions import NoObjectsReturnedException
 from .exceptions import SkipObject
 from .exceptions import UUIDNotFoundException
 from .types import EmployeeUUID
-from .utils import exchange_ou_in_dn
 from .utils import get_delete_flag
 from .utils import mo_today
 
@@ -302,27 +301,6 @@ async def get_org_unit_name_for_parent(
     with suppress(IndexError):
         return names[layer]
     return None
-
-
-def make_dn_from_org_unit_path(
-    org_unit_path_string_separator: str, dn: str, org_unit_path_string: str
-) -> str:
-    """
-    Makes a new DN based on an org-unit path string and a DN, where the org unit
-    structure is parsed as an OU structure in the DN.
-
-    Example
-    --------
-    >>> dn = "CN=Earthworm Jim,OU=OS2MO,DC=ad,DC=addev"
-    >>> new_dn = make_dn_from_org_unit_path(dn,"foo/bar")
-    >>> new_dn
-    >>> "CN=Earthworm Jim,OU=bar,OU=foo,DC=ad,DC=addev"
-    """
-    sep = org_unit_path_string_separator
-
-    org_units = org_unit_path_string.split(sep)[::-1]
-    new_ou = ",".join([f"OU={org_unit.strip()}" for org_unit in org_units])
-    return exchange_ou_in_dn(dn, new_ou)
 
 
 async def get_job_function_name(graphql_client: GraphQLClient, uuid: UUID) -> str:
@@ -694,9 +672,6 @@ def construct_globals_dict(
         ),
         "get_org_unit_name_for_parent": partial(
             get_org_unit_name_for_parent, dataloader.graphql_client
-        ),
-        "make_dn_from_org_unit_path": partial(
-            make_dn_from_org_unit_path, settings.org_unit_path_string_separator
         ),
         "get_job_function_name": partial(
             get_job_function_name, dataloader.graphql_client

@@ -131,35 +131,6 @@ def extract_part_from_dn(dn: str, index_string: str) -> str:
 extract_ou_from_dn = partial(extract_part_from_dn, index_string="OU")
 
 
-def exchange_ou_in_dn(dn: str, new_ou: str) -> str:
-    """
-    Exchange the OU in a dn with another one
-
-    Examples
-    ------------
-    >>> dn = "CN=Johnny,OU=foo,DC=Magenta"
-    >>> new_ou = "OU=bar"
-    >>> exchange_ou_in_dn(dn, new_ou)
-    >>> 'CN=Johnny,OU=bar,DC=Magenta'
-    """
-
-    dn_parts = to_dn(dn)
-    new_dn_parts = []
-    new_ou_added = False
-
-    for dn_part in dn_parts:
-        dn_part_decomposed = parse_dn(dn_part)[0]
-
-        if dn_part_decomposed[0].lower() == "ou":
-            if not new_ou_added:
-                new_dn_parts.append(new_ou)
-                new_ou_added = True
-        else:
-            new_dn_parts.append(dn_part)
-
-    return combine_dn_strings(new_dn_parts)
-
-
 def is_list(x: Any | list[Any]) -> bool:
     """Decide whether the provided argument is a list.
 

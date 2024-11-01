@@ -47,7 +47,6 @@ from mo_ldap_import_export.environments import get_org_unit_name
 from mo_ldap_import_export.environments import get_org_unit_uuid_from_path
 from mo_ldap_import_export.environments import get_primary_engagement_dict
 from mo_ldap_import_export.environments import get_visibility_uuid
-from mo_ldap_import_export.environments import make_dn_from_org_unit_path
 from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
@@ -1043,13 +1042,6 @@ async def test_get_org_unit_uuid_from_path_no_match(
     call_content = json.loads(one(route.calls).request.content)
     filter = call_content["variables"]["filter"]
     assert filter == {"names": ["org4"], "parent": {"names": ["org1"], "parent": None}}
-
-
-def test_make_dn_from_org_unit_path() -> None:
-    org_unit_path = " foo|mucki |bar"
-    dn = "CN=Angus,OU=replace_me,DC=GHU"
-    new_dn = make_dn_from_org_unit_path("|", dn, org_unit_path)
-    assert new_dn == "CN=Angus,OU=bar,OU=mucki,OU=foo,DC=GHU"
 
 
 async def test_get_primary_engagement_dict(dataloader: AsyncMock) -> None:

@@ -8,7 +8,6 @@ from ldap3.core.exceptions import LDAPInvalidDnError
 
 from mo_ldap_import_export.utils import combine_dn_strings
 from mo_ldap_import_export.utils import delete_keys_from_dict
-from mo_ldap_import_export.utils import exchange_ou_in_dn
 from mo_ldap_import_export.utils import extract_ou_from_dn
 from mo_ldap_import_export.utils import import_class
 from mo_ldap_import_export.utils import mo_datestring_to_utc
@@ -79,24 +78,3 @@ def test_extract_ou_from_dn() -> None:
 
     with pytest.raises(LDAPInvalidDnError):
         extract_ou_from_dn("")
-
-
-def test_exchange_ou_in_dn() -> None:
-    assert (
-        exchange_ou_in_dn("CN=Tobias,OU=foo,DC=Q", "OU=bar") == "CN=Tobias,OU=bar,DC=Q"
-    )
-    assert (
-        exchange_ou_in_dn("CN=Tobias,OU=foo,DC=Q", "OU=mucki,OU=bar")
-        == "CN=Tobias,OU=mucki,OU=bar,DC=Q"
-    )
-    assert (
-        exchange_ou_in_dn("CN=Tobias,OU=foo,OU=oof,DC=Q", "OU=mucki")
-        == "CN=Tobias,OU=mucki,DC=Q"
-    )
-    assert (
-        exchange_ou_in_dn("CN=Tobias,OU=foo,OU=oof", "OU=mucki,OU=bar")
-        == "CN=Tobias,OU=mucki,OU=bar"
-    )
-    assert (
-        exchange_ou_in_dn("CN=Tobias,OU=bar,DC=Q", "OU=bar") == "CN=Tobias,OU=bar,DC=Q"
-    )
