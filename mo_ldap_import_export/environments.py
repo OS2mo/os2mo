@@ -125,14 +125,6 @@ def bitwise_and(input: int, bitmask: int) -> int:
     return input & bitmask
 
 
-def nonejoin(*args) -> str:
-    """
-    Joins items together if they are not None or empty lists
-    """
-    items_to_join = [a for a in args if a]
-    return ", ".join(items_to_join)
-
-
 def nonejoin_orgs(org_unit_path_string_separator: str, *args) -> str:
     """
     Joins orgs together if they are not empty strings
@@ -805,7 +797,6 @@ def construct_globals_dict(
 ) -> dict[str, Any]:
     return {
         "now": datetime.utcnow,  # TODO: timezone-aware datetime
-        "nonejoin": nonejoin,
         "nonejoin_orgs": partial(
             nonejoin_orgs, settings.org_unit_path_string_separator
         ),
