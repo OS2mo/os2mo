@@ -32,10 +32,6 @@ from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.environments import _create_facet_class
 from mo_ldap_import_export.environments import create_org_unit
-from mo_ldap_import_export.environments import (
-    get_current_engagement_attribute_uuid_dict,
-)
-from mo_ldap_import_export.environments import get_current_primary_uuid_dict
 from mo_ldap_import_export.environments import get_employee_address_type_uuid
 from mo_ldap_import_export.environments import get_employee_dict
 from mo_ldap_import_export.environments import get_job_function_name
@@ -869,89 +865,6 @@ def test_check_import_and_export_flags(
             parse_obj_as(ConversionMapping, converter_mapping)
     else:
         parse_obj_as(ConversionMapping, converter_mapping)
-
-
-async def test_get_current_engagement_attribute(converter: LdapConverter):
-    engagement1 = {
-        "uuid": str(uuid4()),
-        "user_key": "foo",
-        "org_unit_uuid": str(uuid4()),
-        "job_function_uuid": str(uuid4()),
-        "engagement_type_uuid": str(uuid4()),
-        "primary_uuid": str(uuid4()),
-    }
-
-    engagement2 = {
-        "uuid": str(uuid4()),
-        "user_key": "duplicate_user_key",
-        "org_unit_uuid": str(uuid4()),
-        "job_function_uuid": str(uuid4()),
-        "engagement_type_uuid": str(uuid4()),
-        "primary_uuid": None,
-    }
-
-    engagement3 = {
-        "uuid": str(uuid4()),
-        "user_key": "duplicate_user_key",
-        "org_unit_uuid": str(uuid4()),
-        "job_function_uuid": str(uuid4()),
-        "engagement_type_uuid": str(uuid4()),
-        "primary_uuid": None,
-    }
-
-    dataloader = AsyncMock()
-    dataloader.moapi.load_mo_employee_engagement_dicts.return_value = [engagement1]
-    converter.dataloader = dataloader
-
-    test_attributes = [a for a in engagement1 if a != "user_key"]
-
-    for attribute in test_attributes:
-        assert (
-            await get_current_engagement_attribute_uuid_dict(
-                dataloader, uuid4(), "foo", attribute
-            )
-        )["uuid"] == engagement1[attribute]
-
-    # Try for an employee without matching engagements
-    with pytest.raises(UUIDNotFoundException):
-        dataloader.moapi.load_mo_employee_engagement_dicts.return_value = []
-        await get_current_engagement_attribute_uuid_dict(
-            dataloader, uuid4(), "mucki", attribute
-        )
-
-    # Try to find a duplicate engagement
-    with pytest.raises(UUIDNotFoundException):
-        dataloader.moapi.load_mo_employee_engagement_dicts.return_value = [
-            engagement2,
-            engagement3,
-        ]
-        await get_current_engagement_attribute_uuid_dict(
-            dataloader, uuid4(), "duplicate_user_key", attribute
-        )
-
-    # Try with faulty input
-    with pytest.raises(ValueError, match="attribute must be an uuid-string"):
-        await get_current_engagement_attribute_uuid_dict(
-            dataloader, uuid4(), "mucki", "user_key"
-        )
-
-
-async def test_get_current_primary_uuid(dataloader: AsyncMock) -> None:
-    uuid = str(uuid4())
-
-    dataloader.moapi.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
-        {"uuid": uuid4(), "primary_uuid": uuid}
-    ]
-
-    assert (await get_current_primary_uuid_dict(dataloader, uuid4(), "foo"))[
-        "uuid"
-    ] == uuid  # type: ignore
-
-    dataloader.moapi.load_mo_employee_engagement_dicts.return_value = [  # type: ignore
-        {"uuid": uuid4(), "primary_uuid": None}
-    ]
-
-    assert await get_current_primary_uuid_dict(dataloader, uuid4(), "foo") is None
 
 
 async def test_get_org_unit_uuid_from_path(graphql_mock: GraphQLMocker) -> None:

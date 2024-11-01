@@ -372,75 +372,6 @@ get_or_create_job_function_uuid = partial(
 )
 
 
-async def get_current_engagement_attribute_uuid_dict(
-    dataloader: DataLoader,
-    employee_uuid: UUID,
-    engagement_user_key: str,
-    attribute: str,
-) -> dict[str, str]:
-    """
-    Returns an uuid-dictionary with the uuid matching the desired attribute
-
-    Args:
-        attribute: Attribute to look up.
-            For example:
-                - org_unit_uuid
-                - engagement_type_uuid
-                - primary_uuid
-        employee_uuid: UUID of the employee
-        engagement_user_key: user_key of the engagement
-
-    Note:
-        This method requests all engagements for employee with uuid = employee_uuid
-        and then filters out all engagements which do not match engagement_user_key.
-        If there is exactly one engagement left after this, the uuid of the requested
-        attribute is returned.
-    """
-
-    if "uuid" not in attribute:
-        raise ValueError(
-            "attribute must be an uuid-string. For example 'job_function_uuid'"
-        )
-
-    logger.info(
-        f"Looking for '{attribute}' in existing engagement with "
-        f"user_key = '{engagement_user_key}' "
-        f"and employee_uuid = '{employee_uuid}'"
-    )
-    engagement_dicts = await dataloader.moapi.load_mo_employee_engagement_dicts(
-        employee_uuid, engagement_user_key
-    )
-
-    too_short_exception = UUIDNotFoundException(
-        f"Employee with uuid = {employee_uuid} has no engagements "
-        f"with user_key = '{engagement_user_key}'"
-    )
-    too_long_exception = UUIDNotFoundException(
-        f"Employee with uuid = {employee_uuid} has multiple engagements "
-        f"with user_key = '{engagement_user_key}'"
-    )
-    engagement = one(
-        engagement_dicts, too_short=too_short_exception, too_long=too_long_exception
-    )
-    logger.info(f"Match found in engagement with uuid = {engagement['uuid']}")
-    return {"uuid": engagement[attribute]}
-
-
-async def get_current_primary_uuid_dict(
-    dataloader: DataLoader, employee_uuid: UUID, engagement_user_key: str
-) -> dict | None:
-    """
-    Returns an existing 'primary' object formatted as a dict
-    """
-    primary_dict = await get_current_engagement_attribute_uuid_dict(
-        dataloader, employee_uuid, engagement_user_key, "primary_uuid"
-    )
-
-    if not primary_dict["uuid"]:
-        return None
-    return primary_dict
-
-
 async def get_primary_engagement_dict(
     dataloader: DataLoader, employee_uuid: UUID
 ) -> dict:
@@ -668,9 +599,6 @@ def construct_globals_dict(
         "get_org_unit_name": partial(get_org_unit_name, dataloader.graphql_client),
         "get_or_create_job_function_uuid": partial(
             get_or_create_job_function_uuid, dataloader
-        ),
-        "get_current_primary_uuid_dict": partial(
-            get_current_primary_uuid_dict, dataloader
         ),
         "get_primary_engagement_dict": partial(get_primary_engagement_dict, dataloader),
         "get_employee_dict": partial(get_employee_dict, dataloader),
