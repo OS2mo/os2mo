@@ -370,9 +370,6 @@ async def _get_or_create_facet_class(
 get_or_create_job_function_uuid = partial(
     _get_or_create_facet_class, facet_user_key="engagement_job_function"
 )
-get_or_create_engagement_type_uuid = partial(
-    _get_or_create_facet_class, facet_user_key="engagement_type"
-)
 
 
 async def get_current_engagement_attribute_uuid_dict(
@@ -679,9 +676,6 @@ def construct_globals_dict(
         "get_org_unit_name": partial(get_org_unit_name, dataloader.graphql_client),
         "get_or_create_job_function_uuid": partial(
             get_or_create_job_function_uuid, dataloader
-        ),
-        "get_or_create_engagement_type_uuid": partial(
-            get_or_create_engagement_type_uuid, dataloader
         ),
         "get_current_org_unit_uuid_dict": partial(
             get_current_org_unit_uuid_dict, dataloader

@@ -41,7 +41,6 @@ from mo_ldap_import_export.environments import get_current_primary_uuid_dict
 from mo_ldap_import_export.environments import get_employee_address_type_uuid
 from mo_ldap_import_export.environments import get_employee_dict
 from mo_ldap_import_export.environments import get_job_function_name
-from mo_ldap_import_export.environments import get_or_create_engagement_type_uuid
 from mo_ldap_import_export.environments import get_or_create_job_function_uuid
 from mo_ldap_import_export.environments import get_org_unit_name
 from mo_ldap_import_export.environments import get_org_unit_uuid_from_path
@@ -568,34 +567,6 @@ async def test_get_job_function_uuid_default_kwarg_does_not_override(
 
     # Assert
     assert result == uuid
-
-
-@pytest.mark.parametrize("class_name", ["Ansat", "Vikar"])
-async def test_get_engagement_type_uuid(dataloader: AsyncMock, class_name: str) -> None:
-    class_uuid = str(uuid4())
-
-    dataloader.graphql_client.read_class_uuid_by_facet_and_class_user_key.map[
-        ("engagement_type", class_name)
-    ] = class_uuid
-    assert (
-        await get_or_create_engagement_type_uuid(dataloader, class_name) == class_uuid
-    )
-
-
-async def test_get_engagement_type_non_existing_uuid(dataloader: AsyncMock) -> None:
-    uuid = uuid4()
-
-    dataloader.create_mo_class.return_value = uuid
-
-    assert await get_or_create_engagement_type_uuid(
-        dataloader, "non-existing_engagement_type"
-    ) == str(uuid)
-
-    with pytest.raises(UUIDNotFoundException):
-        await get_or_create_engagement_type_uuid(dataloader, "")
-
-    with pytest.raises(UUIDNotFoundException):
-        await get_or_create_engagement_type_uuid(dataloader, [])  # type: ignore
 
 
 @pytest.mark.parametrize("class_name", ["Major", "Secretary"])

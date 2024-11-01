@@ -51,7 +51,6 @@ from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.dataloaders import DN
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.dataloaders import Verb
-from mo_ldap_import_export.environments import get_or_create_engagement_type_uuid
 from mo_ldap_import_export.environments import get_or_create_job_function_uuid
 from mo_ldap_import_export.environments import load_mo_root_org_uuid
 from mo_ldap_import_export.exceptions import DNNotFound
@@ -1170,13 +1169,9 @@ async def test_create_mo_job_function(
     dataloader.create_mo_class.return_value = uuid2
 
     assert await get_or_create_job_function_uuid(dataloader, "foo") == str(uuid2)
-    assert await get_or_create_engagement_type_uuid(dataloader, "bar") == str(uuid2)
 
     kwargs = dataloader.create_mo_class.call_args_list[0].kwargs
     assert kwargs == {"name": "foo", "user_key": "foo", "facet_uuid": uuid1}
-
-    kwargs = dataloader.create_mo_class.call_args_list[1].kwargs
-    assert kwargs == {"name": "bar", "user_key": "bar", "facet_uuid": uuid1}
 
 
 async def test_load_mo_facet_uuid(dataloader: DataLoader, graphql_mock: GraphQLMocker):
