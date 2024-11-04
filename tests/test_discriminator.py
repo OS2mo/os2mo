@@ -21,7 +21,6 @@ from pydantic import parse_obj_as
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.config import Settings
-from mo_ldap_import_export.config import UsernameGeneratorConfig
 from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.customer_specific_checks import ExportChecks
 from mo_ldap_import_export.customer_specific_checks import ImportChecks
@@ -535,7 +534,6 @@ async def sync_tool_and_context(
 
     username_generator = UserNameGenerator(
         settings,
-        settings.conversion_mapping.username_generator,
         dataloader,
         ldap_connection,
     )
@@ -915,16 +913,9 @@ async def test_apply_discriminator_template(
 
 
 async def test_get_existing_values(sync_tool: SyncTool, context: Context) -> None:
-    mapping = {
-        "username_generator": {
-            "objectClass": "UserNameGenerator",
-        },
-    }
-
     user_context = context["user_context"]
     username_generator = UserNameGenerator(
         user_context["settings"],
-        parse_obj_as(UsernameGeneratorConfig, mapping["username_generator"]),
         user_context["dataloader"],
         user_context["ldap_connection"],
     )
@@ -941,17 +932,9 @@ async def test_get_existing_names(sync_tool: SyncTool, context: Context) -> None
     settings = settings.copy(update={"ldap_dialect": "Standard"})
     context["user_context"]["settings"] = settings
 
-    mapping = {
-        "mo_to_ldap": {"Employee": {}},
-        "username_generator": {
-            "objectClass": "UserNameGenerator",
-        },
-    }
-
     user_context = context["user_context"]
     username_generator = UserNameGenerator(
         user_context["settings"],
-        parse_obj_as(UsernameGeneratorConfig, mapping["username_generator"]),
         user_context["dataloader"],
         user_context["ldap_connection"],
     )
