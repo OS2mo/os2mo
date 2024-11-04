@@ -292,21 +292,6 @@ def get_ldap_superiors(ldap_connection: Connection, root_ldap_object: str) -> li
     return superiors
 
 
-def get_ldap_attributes(ldap_connection: Connection, root_ldap_object: str):
-    """
-    ldap_connection : ldap connection object
-    ldap_object : ldap class to fetch attributes for. for example "organizationalPerson"
-    """
-
-    all_attributes = []
-    superiors = get_ldap_superiors(ldap_connection, root_ldap_object)
-
-    for ldap_object in [root_ldap_object] + superiors:
-        object_schema = get_ldap_object_schema(ldap_connection, ldap_object)
-        all_attributes += object_schema.may_contain
-    return all_attributes
-
-
 async def apply_discriminator(
     settings: Settings, ldap_connection: Connection, dns: set[DN]
 ) -> DN | None:
