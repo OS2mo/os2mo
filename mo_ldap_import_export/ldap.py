@@ -264,18 +264,6 @@ async def ldap_search(
     return response, result
 
 
-def get_ldap_schema(ldap_connection: Connection):
-    # On OpenLDAP this returns a ldap3.protocol.rfc4512.SchemaInfo
-    schema = ldap_connection.server.schema
-    # NOTE: The schema seems sometimes be unbound here if we use the REUSABLE async
-    #       strategy. I think it is because the connections are lazy in that case, and
-    #       as such the schema is only fetched on the first operation.
-    #       In this case we would probably have to asynchronously fetch the schema info,
-    #       but the documentation provides slim to no information on how to do so.
-    assert schema is not None
-    return schema
-
-
 async def apply_discriminator(
     settings: Settings, ldap_connection: Connection, dns: set[DN]
 ) -> DN | None:

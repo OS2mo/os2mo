@@ -41,7 +41,6 @@ from .dataloaders import DataLoader
 from .exceptions import InvalidCPR
 from .exceptions import NoObjectsReturnedException
 from .ldap import get_ldap_object
-from .ldap import get_ldap_schema
 from .ldap import make_ldap_object
 from .ldap import object_search
 from .ldap import paged_search
@@ -53,6 +52,18 @@ from .utils import combine_dn_strings
 from .utils import extract_ou_from_dn
 
 logger = structlog.stdlib.get_logger()
+
+
+def get_ldap_schema(ldap_connection: Connection):
+    # On OpenLDAP this returns a ldap3.protocol.rfc4512.SchemaInfo
+    schema = ldap_connection.server.schema
+    # NOTE: The schema seems sometimes be unbound here if we use the REUSABLE async
+    #       strategy. I think it is because the connections are lazy in that case, and
+    #       as such the schema is only fetched on the first operation.
+    #       In this case we would probably have to asynchronously fetch the schema info,
+    #       but the documentation provides slim to no information on how to do so.
+    assert schema is not None
+    return schema
 
 
 def get_attribute_types(ldap_connection: Connection):
