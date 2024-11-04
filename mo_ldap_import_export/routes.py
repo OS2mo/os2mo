@@ -25,6 +25,7 @@ from fastapi import status
 from fastapi.encoders import jsonable_encoder
 from ldap3 import Connection
 from ldap3.protocol import oid
+from more_itertools import always_iterable
 from more_itertools import one
 from pydantic import ValidationError
 from pydantic import parse_obj_as
@@ -43,7 +44,6 @@ from .ldap import get_attribute_types
 from .ldap import get_ldap_object
 from .ldap import get_ldap_object_schema
 from .ldap import get_ldap_schema
-from .ldap import get_ldap_superiors
 from .ldap import make_ldap_object
 from .ldap import object_search
 from .ldap import paged_search
@@ -55,6 +55,16 @@ from .utils import combine_dn_strings
 from .utils import extract_ou_from_dn
 
 logger = structlog.stdlib.get_logger()
+
+
+def get_ldap_superiors(ldap_connection: Connection, root_ldap_object: str) -> list:
+    object_schema = get_ldap_object_schema(ldap_connection, root_ldap_object)
+    ldap_objects = list(always_iterable(object_schema.superior))
+    superiors = []
+    for ldap_object in ldap_objects:
+        superiors.append(ldap_object)
+        superiors.extend(get_ldap_superiors(ldap_connection, ldap_object))
+    return superiors
 
 
 def get_ldap_attributes(ldap_connection: Connection, root_ldap_object: str):

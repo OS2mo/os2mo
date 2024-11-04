@@ -31,7 +31,6 @@ from ldap3.core.exceptions import LDAPInvalidDnError
 from ldap3.core.exceptions import LDAPNoSuchObjectResult
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
-from more_itertools import always_iterable
 from more_itertools import one
 from more_itertools import only
 
@@ -280,16 +279,6 @@ def get_ldap_schema(ldap_connection: Connection):
 def get_ldap_object_schema(ldap_connection: Connection, ldap_object: str):
     schema = get_ldap_schema(ldap_connection)
     return schema.object_classes[ldap_object]
-
-
-def get_ldap_superiors(ldap_connection: Connection, root_ldap_object: str) -> list:
-    object_schema = get_ldap_object_schema(ldap_connection, root_ldap_object)
-    ldap_objects = list(always_iterable(object_schema.superior))
-    superiors = []
-    for ldap_object in ldap_objects:
-        superiors.append(ldap_object)
-        superiors.extend(get_ldap_superiors(ldap_connection, ldap_object))
-    return superiors
 
 
 async def apply_discriminator(
