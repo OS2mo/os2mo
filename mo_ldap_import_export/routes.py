@@ -42,7 +42,6 @@ from .exceptions import InvalidCPR
 from .exceptions import NoObjectsReturnedException
 from .ldap import get_attribute_types
 from .ldap import get_ldap_object
-from .ldap import get_ldap_object_schema
 from .ldap import get_ldap_schema
 from .ldap import make_ldap_object
 from .ldap import object_search
@@ -55,6 +54,11 @@ from .utils import combine_dn_strings
 from .utils import extract_ou_from_dn
 
 logger = structlog.stdlib.get_logger()
+
+
+def get_ldap_object_schema(ldap_connection: Connection, ldap_object: str):
+    schema = get_ldap_schema(ldap_connection)
+    return schema.object_classes[ldap_object]
 
 
 def get_ldap_superiors(ldap_connection: Connection, root_ldap_object: str) -> list:

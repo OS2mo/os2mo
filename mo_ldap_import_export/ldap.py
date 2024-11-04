@@ -276,11 +276,6 @@ def get_ldap_schema(ldap_connection: Connection):
     return schema
 
 
-def get_ldap_object_schema(ldap_connection: Connection, ldap_object: str):
-    schema = get_ldap_schema(ldap_connection)
-    return schema.object_classes[ldap_object]
-
-
 async def apply_discriminator(
     settings: Settings, ldap_connection: Connection, dns: set[DN]
 ) -> DN | None:
