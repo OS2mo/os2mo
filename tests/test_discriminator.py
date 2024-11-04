@@ -939,8 +939,8 @@ async def test_get_existing_names(sync_tool: SyncTool, context: Context) -> None
         user_context["ldap_connection"],
     )
 
-    result = await username_generator._get_existing_names()
-    assert result == ([], ["foo"])
+    result = await username_generator._get_existing_common_names()
+    assert result == ["foo"]
 
 
 async def test_load_ldap_OUs(
