@@ -40,7 +40,6 @@ from .converters import LdapConverter
 from .dataloaders import DataLoader
 from .exceptions import InvalidCPR
 from .exceptions import NoObjectsReturnedException
-from .ldap import get_attribute_types
 from .ldap import get_ldap_object
 from .ldap import get_ldap_schema
 from .ldap import make_ldap_object
@@ -54,6 +53,16 @@ from .utils import combine_dn_strings
 from .utils import extract_ou_from_dn
 
 logger = structlog.stdlib.get_logger()
+
+
+def get_attribute_types(ldap_connection: Connection):
+    """
+    Returns a dictionary with attribute type information for all attributes in LDAP
+    """
+    # On OpenLDAP this returns a ldap3.utils.ciDict.CaseInsensitiveWithAliasDict
+    # Mapping from str to ldap3.protocol.rfc4512.AttributeTypeInfo
+    schema = get_ldap_schema(ldap_connection)
+    return schema.attribute_types
 
 
 def get_ldap_object_schema(ldap_connection: Connection, ldap_object: str):
