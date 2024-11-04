@@ -347,3 +347,40 @@ async def test_correlation_configuration(
         with pytest.raises(ValidationError) as exc_info:
             Settings()
         assert expected in str(exc_info.value)
+
+
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+@pytest.mark.parametrize(
+    "jinja_template, invalid",
+    (
+        # Valid templates
+        ("", False),
+        ("hardcoded", False),
+        ("{{ foo == 42 }}", False),
+        ("{# comment #}", False),
+        ("{% if foo %} {{ foo == 42 }} {% else %} hardcoded {% endif %}", False),
+        ("{% set foo=42 %} {{ foo == 42 }}", False),
+        ("{{ func().__code__ }}", False),
+        ("{{ x.__class__.__init__.__globals__['Settings']().ldap_password }}", False),
+        # Invalid templates'
+        # Missing % in if
+        ("{% if } hardcoded {% endif %}", True),
+        # Missing condition in if
+        ("{% if %} {{ foo == 42 }} {% endif %}", True),
+        # Missing endif
+        ("{% if foo %} {{ foo == 42 }}", True),
+        # Invalid markers for comment
+        ("{% comment %}", True),
+    ),
+)
+async def test_mo2ldap_jinja_validator(
+    monkeypatch: pytest.MonkeyPatch, jinja_template: str, invalid: bool
+) -> None:
+    monkeypatch.setenv("CONVERSION_MAPPING__MO2LDAP", jinja_template)
+
+    if not invalid:
+        Settings()
+    else:
+        with pytest.raises(ValidationError) as exc_info:
+            Settings()
+        assert "Unable to parse mo2ldap template" in str(exc_info.value)
