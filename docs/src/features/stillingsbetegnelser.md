@@ -20,7 +20,7 @@ Stillingsbetegnelserne fra AD'et vil blive importeret til MOs database ud fra de
 
 ## Eksport af stillingsbetegnelser til aftagersystemer
 
-Integrationerne til de offentlige aftagersystemerne konfigureres således at de følsomme stillingsbetegnelser fra AD'et ikke bliver eksporteret - i stedet vil lønsystemets stillingsbetegnelse blive eksporteret.
+Integrationerne til de offentlige aftagersystemerne konfigureres således at stillingsbetegnelsen fra AD altid anvendes, hvis den findes. Når den ikke findes, anvendes stillingsbetegnelsen fra lønsystemet, hvis den ikke er følsom.
 
 På den måde findes alle oplysninger i MO, men i de aftagersystemerne er de følsomme oplysninger fjernet.
 
