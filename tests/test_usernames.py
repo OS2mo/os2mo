@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import json
 from collections.abc import Iterator
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
@@ -31,7 +32,12 @@ def dataloader() -> MagicMock:
 
 
 @pytest.fixture
-def context(dataloader: MagicMock, converter: MagicMock) -> Context:
+def context(
+    minimal_valid_environmental_variables: None,
+    monkeypatch: pytest.MonkeyPatch,
+    dataloader: MagicMock,
+    converter: MagicMock,
+) -> Context:
     mapping = {
         "username_generator": {
             "objectClass": "UserNameGenerator",
@@ -40,18 +46,17 @@ def context(dataloader: MagicMock, converter: MagicMock) -> Context:
             "combinations_to_try": ["F123L", "F12LL", "F1LLL", "FLLLL", "FLLLLX"],
         },
     }
-
-    settings_mock = MagicMock()
-    settings_mock.ldap_search_base = "DC=bar"
-    settings_mock.ldap_dialect = "AD"
-    settings_mock.ldap_ou_for_new_users = ""
+    monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(mapping))
+    monkeypatch.setenv("LDAP_SEARCH_BASE", "DC=bar")
+    monkeypatch.setenv("LDAP_DIALECT", "AD")
+    monkeypatch.setenv("LDAP_OU_FOR_NEW_USERS", "")
 
     ldap_connection = AsyncMock()
 
     context: Context = {
         "user_context": {
             "mapping": mapping,
-            "settings": settings_mock,
+            "settings": Settings(),
             "dataloader": dataloader,
             "converter": converter,
             "ldap_connection": ldap_connection,
@@ -94,7 +99,9 @@ def existing_usernames_ldap(
 
 @pytest.fixture
 def username_generator(
-    context: Context, existing_usernames_ldap: list
+    minimal_valid_environmental_variables: None,
+    context: Context,
+    existing_usernames_ldap: list,
 ) -> Iterator[UserNameGenerator]:
     with patch(
         "mo_ldap_import_export.usernames.paged_search",
@@ -102,10 +109,7 @@ def username_generator(
     ):
         user_context = context["user_context"]
         yield UserNameGenerator(
-            user_context["settings"],
-            parse_obj_as(
-                UsernameGeneratorConfig, user_context["mapping"]["username_generator"]
-            ),
+            Settings(),
             user_context["dataloader"],
             user_context["ldap_connection"],
         )
@@ -113,10 +117,12 @@ def username_generator(
 
 @pytest.fixture
 def alleroed_username_generator(
-    context: Context, existing_usernames_ldap: list
+    minimal_valid_environmental_variables: None,
+    monkeypatch: pytest.MonkeyPatch,
+    context: Context,
+    existing_usernames_ldap: list,
 ) -> Iterator[AlleroedUserNameGenerator]:
-    context["user_context"]["mapping"] = {}
-    context["user_context"]["mapping"]["username_generator"] = {
+    username_generator_config = {
         "objectClass": "AlleroedUserNameGenerator",
         "char_replacement": {},
         # Note: We need some 'X's in this list. to account for potential duplicates
@@ -198,6 +204,11 @@ def alleroed_username_generator(
         ],
         "forbidden_usernames": ["abrn", "anls"],
     }
+    monkeypatch.setenv(
+        "CONVERSION_MAPPING",
+        json.dumps({"username_generator": username_generator_config}),
+    )
+    monkeypatch.setenv("LDAP_SEARCH_BASE", "DC=bar")
 
     with patch(
         "mo_ldap_import_export.usernames.paged_search",
@@ -205,10 +216,7 @@ def alleroed_username_generator(
     ):
         user_context = context["user_context"]
         yield AlleroedUserNameGenerator(
-            user_context["settings"],
-            parse_obj_as(
-                UsernameGeneratorConfig, user_context["mapping"]["username_generator"]
-            ),
+            Settings(),
             user_context["dataloader"],
             user_context["ldap_connection"],
         )
@@ -329,12 +337,16 @@ def test_create_common_name(username_generator: UserNameGenerator):
     assert common_name == ("Nick" + " " + "Johnson" * 40)[:60]
 
 
-async def test_generate_dn(username_generator: UserNameGenerator):
+async def test_generate_dn(
+    monkeypatch: pytest.MonkeyPatch, username_generator: UserNameGenerator
+) -> None:
+    monkeypatch.setenv("CONVERSION_MAPPING__MO2LDAP", "{}")
+    username_generator.settings = Settings()
+
     render_ldap2mo = AsyncMock()
     render_ldap2mo.return_value = {}  # type: ignore
 
     username_generator.dataloader.sync_tool.render_ldap2mo = render_ldap2mo
-    username_generator.settings.conversion_mapping.mo2ldap = """{}"""  # type: ignore
 
     employee = Employee(given_name="Patrick", surname="Bateman")
     dn = await username_generator.generate_dn(employee)
@@ -439,15 +451,17 @@ async def test_alleroed_username_generator(
 
 
 async def test_alleroed_dn_generator(
-    settings_mock: Settings,
+    monkeypatch: pytest.MonkeyPatch,
     alleroed_username_generator: AlleroedUserNameGenerator,
     graphql_mock: GraphQLMocker,
 ) -> None:
+    monkeypatch.setenv("CONVERSION_MAPPING__MO2LDAP", "{}")
+    alleroed_username_generator.settings = Settings()
+
     render_ldap2mo = AsyncMock()
     render_ldap2mo.return_value = {}  # type: ignore
 
     alleroed_username_generator.dataloader.sync_tool.render_ldap2mo = render_ldap2mo
-    alleroed_username_generator.settings.conversion_mapping.mo2ldap = """{}"""  # type: ignore
 
     graphql_client = GraphQLClient("http://example.com/graphql")
 
@@ -460,7 +474,7 @@ async def test_alleroed_dn_generator(
     route2.result = {"itsystems": {"objects": [{"uuid": itsystem_uuid}]}}
 
     alleroed_username_generator.dataloader.graphql_client = graphql_client  # type: ignore
-    alleroed_username_generator.dataloader.moapi = MOAPI(settings_mock, graphql_client)  # type: ignore
+    alleroed_username_generator.dataloader.moapi = MOAPI(Settings(), graphql_client)  # type: ignore
 
     employee = Employee(given_name="Patrick", surname="Bateman")
     dn = await alleroed_username_generator.generate_dn(employee)

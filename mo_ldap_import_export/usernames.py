@@ -12,7 +12,6 @@ from more_itertools import split_when
 from mo_ldap_import_export.models import Employee
 
 from .config import Settings
-from .config import UsernameGeneratorConfig
 from .dataloaders import DataLoader
 from .ldap import paged_search
 from .utils import combine_dn_strings
@@ -32,7 +31,6 @@ class UserNameGenerator:
     def __init__(
         self,
         settings: Settings,
-        username_generator_config: UsernameGeneratorConfig,
         dataloader: DataLoader,
         ldap_connection: Connection,
     ) -> None:
@@ -41,9 +39,15 @@ class UserNameGenerator:
         self.dataloader = dataloader
         self.ldap_connection = ldap_connection
 
-        self.char_replacement = username_generator_config.char_replacement
-        self.forbidden_usernames = username_generator_config.forbidden_usernames
-        self.combinations = username_generator_config.combinations_to_try
+        self.char_replacement = (
+            settings.conversion_mapping.username_generator.char_replacement
+        )
+        self.forbidden_usernames = (
+            settings.conversion_mapping.username_generator.forbidden_usernames
+        )
+        self.combinations = (
+            settings.conversion_mapping.username_generator.combinations_to_try
+        )
         logger.info("Found forbidden usernames", count=len(self.forbidden_usernames))
 
     async def get_existing_values(self, attributes: list[str]):
