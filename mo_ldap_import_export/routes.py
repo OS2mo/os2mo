@@ -25,6 +25,7 @@ from fastapi import status
 from fastapi.encoders import jsonable_encoder
 from ldap3 import Connection
 from ldap3.protocol import oid
+from more_itertools import always_iterable
 from more_itertools import one
 from pydantic import ValidationError
 from pydantic import parse_obj_as
@@ -39,11 +40,7 @@ from .converters import LdapConverter
 from .dataloaders import DataLoader
 from .exceptions import InvalidCPR
 from .exceptions import NoObjectsReturnedException
-from .ldap import get_attribute_types
-from .ldap import get_ldap_attributes
 from .ldap import get_ldap_object
-from .ldap import get_ldap_schema
-from .ldap import get_ldap_superiors
 from .ldap import make_ldap_object
 from .ldap import object_search
 from .ldap import paged_search
@@ -55,6 +52,58 @@ from .utils import combine_dn_strings
 from .utils import extract_ou_from_dn
 
 logger = structlog.stdlib.get_logger()
+
+
+def get_ldap_schema(ldap_connection: Connection):
+    # On OpenLDAP this returns a ldap3.protocol.rfc4512.SchemaInfo
+    schema = ldap_connection.server.schema
+    # NOTE: The schema seems sometimes be unbound here if we use the REUSABLE async
+    #       strategy. I think it is because the connections are lazy in that case, and
+    #       as such the schema is only fetched on the first operation.
+    #       In this case we would probably have to asynchronously fetch the schema info,
+    #       but the documentation provides slim to no information on how to do so.
+    assert schema is not None
+    return schema
+
+
+def get_attribute_types(ldap_connection: Connection):
+    """
+    Returns a dictionary with attribute type information for all attributes in LDAP
+    """
+    # On OpenLDAP this returns a ldap3.utils.ciDict.CaseInsensitiveWithAliasDict
+    # Mapping from str to ldap3.protocol.rfc4512.AttributeTypeInfo
+    schema = get_ldap_schema(ldap_connection)
+    return schema.attribute_types
+
+
+def get_ldap_object_schema(ldap_connection: Connection, ldap_object: str):
+    schema = get_ldap_schema(ldap_connection)
+    return schema.object_classes[ldap_object]
+
+
+def get_ldap_superiors(ldap_connection: Connection, root_ldap_object: str) -> list:
+    object_schema = get_ldap_object_schema(ldap_connection, root_ldap_object)
+    ldap_objects = list(always_iterable(object_schema.superior))
+    superiors = []
+    for ldap_object in ldap_objects:
+        superiors.append(ldap_object)
+        superiors.extend(get_ldap_superiors(ldap_connection, ldap_object))
+    return superiors
+
+
+def get_ldap_attributes(ldap_connection: Connection, root_ldap_object: str):
+    """
+    ldap_connection : ldap connection object
+    ldap_object : ldap class to fetch attributes for. for example "organizationalPerson"
+    """
+
+    all_attributes = []
+    superiors = get_ldap_superiors(ldap_connection, root_ldap_object)
+
+    for ldap_object in [root_ldap_object] + superiors:
+        object_schema = get_ldap_object_schema(ldap_connection, ldap_object)
+        all_attributes += object_schema.may_contain
+    return all_attributes
 
 
 async def valid_cpr(cpr: str) -> CPRNumber:

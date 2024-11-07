@@ -32,9 +32,7 @@ from mo_ldap_import_export.exceptions import TimeOutException
 from mo_ldap_import_export.ldap import check_ou_in_list_of_ous
 from mo_ldap_import_export.ldap import configure_ldap_connection
 from mo_ldap_import_export.ldap import construct_server
-from mo_ldap_import_export.ldap import get_attribute_types
 from mo_ldap_import_export.ldap import get_client_strategy
-from mo_ldap_import_export.ldap import get_ldap_attributes
 from mo_ldap_import_export.ldap import is_dn
 from mo_ldap_import_export.ldap import is_uuid
 from mo_ldap_import_export.ldap import ldap_healthcheck
@@ -45,6 +43,8 @@ from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.ldap_event_generator import LDAPEventGenerator
 from mo_ldap_import_export.ldap_event_generator import _poll
 from mo_ldap_import_export.ldap_event_generator import setup_poller
+from mo_ldap_import_export.routes import get_attribute_types
+from mo_ldap_import_export.routes import get_ldap_attributes
 
 from .test_dataloaders import mock_ldap_response
 

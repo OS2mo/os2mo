@@ -31,7 +31,6 @@ from ldap3.core.exceptions import LDAPInvalidDnError
 from ldap3.core.exceptions import LDAPNoSuchObjectResult
 from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
-from more_itertools import always_iterable
 from more_itertools import one
 from more_itertools import only
 
@@ -263,48 +262,6 @@ async def ldap_search(
     message_id = ldap_connection.search(**kwargs)
     response, result = await wait_for_message_id(ldap_connection, message_id)
     return response, result
-
-
-def get_ldap_schema(ldap_connection: Connection):
-    # On OpenLDAP this returns a ldap3.protocol.rfc4512.SchemaInfo
-    schema = ldap_connection.server.schema
-    # NOTE: The schema seems sometimes be unbound here if we use the REUSABLE async
-    #       strategy. I think it is because the connections are lazy in that case, and
-    #       as such the schema is only fetched on the first operation.
-    #       In this case we would probably have to asynchronously fetch the schema info,
-    #       but the documentation provides slim to no information on how to do so.
-    assert schema is not None
-    return schema
-
-
-def get_ldap_object_schema(ldap_connection: Connection, ldap_object: str):
-    schema = get_ldap_schema(ldap_connection)
-    return schema.object_classes[ldap_object]
-
-
-def get_ldap_superiors(ldap_connection: Connection, root_ldap_object: str) -> list:
-    object_schema = get_ldap_object_schema(ldap_connection, root_ldap_object)
-    ldap_objects = list(always_iterable(object_schema.superior))
-    superiors = []
-    for ldap_object in ldap_objects:
-        superiors.append(ldap_object)
-        superiors.extend(get_ldap_superiors(ldap_connection, ldap_object))
-    return superiors
-
-
-def get_ldap_attributes(ldap_connection: Connection, root_ldap_object: str):
-    """
-    ldap_connection : ldap connection object
-    ldap_object : ldap class to fetch attributes for. for example "organizationalPerson"
-    """
-
-    all_attributes = []
-    superiors = get_ldap_superiors(ldap_connection, root_ldap_object)
-
-    for ldap_object in [root_ldap_object] + superiors:
-        object_schema = get_ldap_object_schema(ldap_connection, ldap_object)
-        all_attributes += object_schema.may_contain
-    return all_attributes
 
 
 async def apply_discriminator(
@@ -732,16 +689,6 @@ async def make_ldap_object(
             ldap_dict[attribute] = value
 
     return LdapObject(**ldap_dict)
-
-
-def get_attribute_types(ldap_connection: Connection):
-    """
-    Returns a dictionary with attribute type information for all attributes in LDAP
-    """
-    # On OpenLDAP this returns a ldap3.utils.ciDict.CaseInsensitiveWithAliasDict
-    # Mapping from str to ldap3.protocol.rfc4512.AttributeTypeInfo
-    schema = get_ldap_schema(ldap_connection)
-    return schema.attribute_types
 
 
 def is_uuid(entity: Any) -> bool:
