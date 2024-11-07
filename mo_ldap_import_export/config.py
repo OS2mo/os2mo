@@ -11,6 +11,8 @@ from typing import Literal
 import structlog
 from fastramqpi.config import Settings as FastRAMQPISettings
 from fastramqpi.ramqp.config import AMQPConnectionSettings
+from jinja2 import Environment
+from jinja2 import TemplateSyntaxError
 from pydantic import AnyHttpUrl
 from pydantic import BaseModel
 from pydantic import BaseSettings
@@ -265,6 +267,16 @@ class ConversionMapping(MappingBaseModel):
     username_generator: UsernameGeneratorConfig = Field(
         default_factory=UsernameGeneratorConfig
     )
+
+    @validator("mo2ldap")
+    def check_mo2ldap_is_valid_jinja(cls, v: str) -> str:
+        # Validate that the jinja template can be parsed correctly
+        try:
+            env = Environment()
+            env.parse(v)
+        except TemplateSyntaxError as e:
+            raise ValueError("Unable to parse mo2ldap template") from e
+        return v
 
 
 class AuthBackendEnum(str, Enum):
