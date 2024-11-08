@@ -68,21 +68,6 @@ def filter_strip_non_digits(input_string):
     return "".join(c for c in input_string if c in string.digits)
 
 
-def filter_splitlast(text, separator=" "):
-    """
-    Splits a string at the last space, returning two elements
-    This is convenient for splitting a name into a givenName and a surname
-    and works for names with no spaces (givenname will then be empty)
-    """
-    if text is not None:
-        text = str(text)
-        if text != "":
-            text = str(text)
-            s = text.split(separator)
-            return [separator.join(s[:-1]), s[-1]]
-    return ["", ""]
-
-
 def filter_remove_curly_brackets(text: str) -> str:
     # TODO: Should this remove everything or just a single set?
     return text.replace("{", "").replace("}", "")
@@ -493,7 +478,6 @@ def construct_environment(settings: Settings, dataloader: DataLoader) -> Environ
     environment = Environment(undefined=NeverUndefined, enable_async=True)
 
     environment.filters["bitwise_and"] = bitwise_and
-    environment.filters["splitlast"] = filter_splitlast
     environment.filters["mo_datestring"] = filter_mo_datestring
     environment.filters["strip_non_digits"] = filter_strip_non_digits
     environment.filters["remove_curly_brackets"] = filter_remove_curly_brackets
