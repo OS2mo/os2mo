@@ -337,15 +337,21 @@ async def get_entities_graphql(
                     yield EntityType.ORG_UNIT, parent
             return
 
-        # Terminate detail
-        # There isn't enough information available in terminate payloads to determine
-        # ownership, so we must fetch the related object from the database. To be
-        # honest, this should be the general strategy anyway - why do we trust user
-        # input?
-        if permission_type == "terminate":
+        # You can only be owner of an employee/person, org-unit or org-functions in MO.
+        # Persons and org-units are handled directly through their UUID above,
+        # but for org-functions we need to fetch the current data from the database.
+        if permission_type in ("update", "terminate"):
             org_function = await _get_org_function(getattr(input, "uuid"))
+
             if org_unit_uuid := ASSOCIATED_ORG_UNITS_FIELD.get_uuid(org_function):
                 yield EntityType.ORG_UNIT, UUID(org_unit_uuid)
+                # Extract the UUID from the input
+                new_org_unit_uuid = getattr(input, "org_unit", None)
+                # If the org_unit from the input, is not the same as the one on the object
+                # check if user has permissions in the 'new' org_unit
+                if new_org_unit_uuid is not None and org_unit_uuid != new_org_unit_uuid:
+                    yield EntityType.ORG_UNIT, new_org_unit_uuid
+                return
             elif employee_uuid := USER_FIELD.get_uuid(org_function):
                 yield EntityType.EMPLOYEE, UUID(employee_uuid)
             return
