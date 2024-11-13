@@ -12,9 +12,9 @@ from fastramqpi.context import Context
 from pydantic import ValidationError
 from pydantic import parse_obj_as
 
-from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.config import UsernameGeneratorConfig
 from mo_ldap_import_export.depends import GraphQLClient
+from mo_ldap_import_export.depends import Settings
 from mo_ldap_import_export.moapi import MOAPI
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.usernames import AlleroedUserNameGenerator
@@ -453,7 +453,6 @@ async def test_alleroed_username_generator(
 async def test_alleroed_dn_generator(
     monkeypatch: pytest.MonkeyPatch,
     alleroed_username_generator: AlleroedUserNameGenerator,
-    graphql_mock: GraphQLMocker,
 ) -> None:
     monkeypatch.setenv("CONVERSION_MAPPING__MO2LDAP", "{}")
     alleroed_username_generator.settings = Settings()
@@ -463,25 +462,9 @@ async def test_alleroed_dn_generator(
 
     alleroed_username_generator.dataloader.sync_tool.render_ldap2mo = render_ldap2mo
 
-    graphql_client = GraphQLClient("http://example.com/graphql")
-
-    itsystem_uuid = uuid4()
-
-    route1 = graphql_mock.query("read_all_ituser_user_keys_by_itsystem_uuid")
-    route1.result = {"itusers": {"objects": []}}
-
-    route2 = graphql_mock.query("read_itsystem_uuid")
-    route2.result = {"itsystems": {"objects": [{"uuid": itsystem_uuid}]}}
-
-    alleroed_username_generator.dataloader.graphql_client = graphql_client  # type: ignore
-    alleroed_username_generator.dataloader.moapi = MOAPI(Settings(), graphql_client)  # type: ignore
-
     employee = Employee(given_name="Patrick", surname="Bateman")
     dn = await alleroed_username_generator.generate_dn(employee)
     assert dn == "CN=Patrick Bateman,DC=bar"
-
-    assert route1.called
-    assert route2.called
 
 
 @pytest.mark.parametrize(
@@ -495,13 +478,30 @@ async def test_alleroed_dn_generator(
 )
 async def test_alleroed_username_generator_forbidden_names_from_files(
     alleroed_username_generator: AlleroedUserNameGenerator,
+    graphql_mock: GraphQLMocker,
+    settings_mock: Settings,
     given_name: str,
     surname: str,
     forbidden: list[str],
     expected: str,
 ) -> None:
-    alleroed_username_generator._get_existing_usernames = AsyncMock()  # type: ignore
-    alleroed_username_generator._get_existing_usernames.return_value = []
+    graphql_client = GraphQLClient("http://example.com/graphql")
+    alleroed_username_generator.dataloader.graphql_client = graphql_client  # type: ignore
+    alleroed_username_generator.dataloader.moapi = MOAPI(settings_mock, graphql_client)  # type: ignore
+
+    adsama_it_system = uuid4()
+
+    route1 = graphql_mock.query("read_itsystem_uuid")
+    route1.result = {"itsystems": {"objects": [{"uuid": adsama_it_system}]}}
+
+    route2 = graphql_mock.query("read_all_ituser_user_keys_by_itsystem_uuid")
+    route2.result = {
+        "itusers": {
+            "objects": [
+                {"validities": [{"user_key": username}]} for username in forbidden
+            ]
+        }
+    }
 
     # Now clean the list of forbidden usernames and try again
     alleroed_username_generator.forbidden_usernames = forbidden
@@ -509,3 +509,6 @@ async def test_alleroed_username_generator_forbidden_names_from_files(
     employee = Employee(given_name=given_name, surname=surname)
     username = await alleroed_username_generator.generate_username(employee)
     assert username == expected
+
+    assert route1.called
+    assert route2.called

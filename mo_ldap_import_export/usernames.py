@@ -332,11 +332,6 @@ class UserNameGenerator:
 
         return existing_usernames
 
-    async def _get_existing_names(self):
-        existing_usernames = await self._get_existing_usernames()
-        existing_common_names = await self._get_existing_common_names()
-        return existing_usernames, existing_common_names
-
     def generate_person_name(self, employee: Employee) -> list[str]:
         assert employee.given_name is not None
         assert employee.surname is not None
@@ -363,8 +358,6 @@ class UserNameGenerator:
 
         Also adds an object to LDAP with this DN
         """
-        username = await self.generate_username(employee)
-
         name = self.generate_person_name(employee)
         existing_common_names = await self._get_existing_common_names()
         common_name = self._create_common_name(name, existing_common_names)
@@ -376,12 +369,7 @@ class UserNameGenerator:
 
         dn = self._make_dn(common_name)
         employee_attributes = await self._get_employee_ldap_attributes(employee, dn)
-        other_attributes = {}
-        if self.settings.ldap_dialect == "AD":
-            other_attributes = {"sAMAccountName": username}
-        await self.dataloader.ldapapi.add_ldap_object(
-            dn, employee_attributes | other_attributes
-        )
+        await self.dataloader.ldapapi.add_ldap_object(dn, employee_attributes)
         return dn
 
 
@@ -431,8 +419,6 @@ class AlleroedUserNameGenerator(UserNameGenerator):
         """
         assert self.settings.ldap_dialect == "AD"
 
-        username = await self.generate_username(employee)
-
         name = self.generate_person_name(employee)
         existing_common_names = await self._get_existing_common_names()
         common_name = self._create_common_name(name, existing_common_names)
@@ -444,13 +430,7 @@ class AlleroedUserNameGenerator(UserNameGenerator):
 
         dn = self._make_dn(common_name)
         employee_attributes = await self._get_employee_ldap_attributes(employee, dn)
-        other_attributes = {
-            "sAMAccountName": username,
-            "userPrincipalName": f"{username}@alleroed.dk",
-        }
-        await self.dataloader.ldapapi.add_ldap_object(
-            dn, employee_attributes | other_attributes
-        )
+        await self.dataloader.ldapapi.add_ldap_object(dn, employee_attributes)
         return dn
 
 
