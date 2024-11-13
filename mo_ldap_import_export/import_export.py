@@ -149,6 +149,13 @@ class SyncTool:
         if dry_run:
             return "CN=Dry run,DC=example,DC=com"
 
+        if not self.settings.add_objects_to_ldap:
+            logger.info(
+                "Aborting synchronization, as no LDAP account was found and we are not configured to create",
+                uuid=uuid,
+            )
+            return None
+
         # If we did not find DNs, we want to make one
         try:
             # This call actually writes in LDAP, so make sure that is okay
