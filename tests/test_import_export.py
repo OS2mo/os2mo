@@ -1087,6 +1087,24 @@ async def test_find_best_dn(sync_tool: SyncTool) -> None:
     assert result == dn
 
 
+async def test_find_best_dn_no_create(sync_tool: SyncTool) -> None:
+    sync_tool.dataloader.find_mo_employee_dn.return_value = set()  # type: ignore
+    sync_tool.settings.add_objects_to_ldap = False  # type: ignore
+
+    uuid = EmployeeUUID(uuid4())
+    with capture_logs() as cap_logs:
+        result = await sync_tool._find_best_dn(uuid)
+    assert result is None
+
+    assert cap_logs == [
+        {
+            "event": "Aborting synchronization, as no LDAP account was found and we are not configured to create",
+            "log_level": "info",
+            "uuid": uuid,
+        },
+    ]
+
+
 @pytest.mark.parametrize(
     "template, expected",
     (
