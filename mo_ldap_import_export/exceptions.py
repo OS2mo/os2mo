@@ -116,6 +116,9 @@ def amqp_reject_on_failure(
         ) as e:
             logger.info(str(e))
             raise RejectMessage() from e
+        except Exception as e:
+            logger.exception("Exception during AMQP processing")
+            raise RequeueMessage() from e
 
     # TODO: Why is this necessary?
     modified_func.__wrapped__ = func  # type: ignore
