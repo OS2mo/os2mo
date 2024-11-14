@@ -69,6 +69,7 @@ class ErrorCodes(Enum):
         400,
         "Date range exceeds validity range of associated org unit.",
     )
+    V_VALIDITIES_DO_NOT_OVERLAP = (400, "Validities of org unis do not overlap")
     V_DATE_OUTSIDE_EMPL_RANGE = (
         400,
         "Date range exceeds validity range of associated employee.",

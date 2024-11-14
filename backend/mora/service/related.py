@@ -123,17 +123,24 @@ async def map_org_units(origin: UUID, req: dict = Body(...)):
             org_unit_uuid=sorted(wanted_units - units.keys()),
         )
 
-    good = {
-        unitid
+    units_start = max(
+        util.get_effect_from(state)
         for unitid, unit in units.items()
         for state in util.get_states(unit)
-        if util.get_effect_to(state) == util.POSITIVE_INFINITY
-        and state["gyldighed"] == "Aktiv"
-    }
-
-    if wanted_units - good:
-        exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE(
-            org_unit_uuid=sorted(wanted_units - good),
+        if state["gyldighed"] == "Aktiv"
+    )
+    units_end = min(
+        util.get_effect_to(state)
+        for unitid, unit in units.items()
+        for state in util.get_states(unit)
+        if state["gyldighed"] == "Aktiv"
+    )
+    if units_end < units_start or from_date < units_start or to_date > units_end:
+        exceptions.ErrorCodes.V_VALIDITIES_DO_NOT_OVERLAP(
+            origin=origin,
+            destinations=destinations,
+            from_date=from_date,
+            to_date=to_date,
         )
 
     (orgid,) = mapping.BELONGS_TO_FIELD.get_uuids(units[origin])
