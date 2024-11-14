@@ -5,10 +5,12 @@
 
 from contextlib import suppress
 from enum import Enum
+from pathlib import Path
 from typing import Any
 from typing import Literal
 
 import structlog
+import yaml
 from fastramqpi.config import Settings as FastRAMQPISettings
 from fastramqpi.ramqp.config import AMQPConnectionSettings
 from jinja2 import Environment
@@ -284,6 +286,19 @@ class AuthBackendEnum(str, Enum):
     SIMPLE = "simple"
 
 
+def yaml_config_settings_source(
+    settings: BaseSettings,
+) -> dict[str, Any]:  # pragma: no cover
+    # https://docs.pydantic.dev/1.10/usage/settings/#adding-sources
+    encoding = settings.__config__.env_file_encoding
+    try:
+        text = Path("/var/run/config.yaml").read_text(encoding)
+    except FileNotFoundError:
+        return {}
+    config: dict[str, Any] = yaml.load(text, yaml.SafeLoader)
+    return {k.lower(): v for k, v in config.items()}
+
+
 class Settings(BaseSettings):
     class Config:
         frozen = True
@@ -291,6 +306,20 @@ class Settings(BaseSettings):
 
         env_file = "/var/run/.env"
         env_file_encoding = "utf-8"
+
+        @classmethod
+        def customise_sources(
+            cls,
+            init_settings,
+            env_settings,
+            file_secret_settings,
+        ):
+            return (
+                init_settings,
+                yaml_config_settings_source,
+                env_settings,
+                file_secret_settings,
+            )
 
     conversion_mapping: ConversionMapping = Field(
         description="Conversion mapping between LDAP and OS2mo",

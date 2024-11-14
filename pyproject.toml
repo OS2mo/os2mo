@@ -12,6 +12,7 @@ python = "^3.11"
 structlog = "^24"
 fastramqpi = "^10"
 pydantic = {version = "^1", extras = ["dotenv"]}
+pyyaml = "^6"
 gql = "^3"
 more-itertools = "^9"
 uvicorn = "^0.32"
