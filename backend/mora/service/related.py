@@ -105,6 +105,8 @@ async def map_org_units(origin: UUID, req: dict = Body(...)):
     origin = str(origin)
 
     from_date = util.get_valid_from(req)
+    to_date = util.get_valid_to(req)
+
     c = lora.Connector(effective_date=from_date)
     destinations = set(util.checked_get(req, "destination", [], required=True))
     if origin in destinations:
@@ -156,11 +158,16 @@ async def map_org_units(origin: UUID, req: dict = Body(...)):
         if unitid not in destinations
     }
 
+    if edits and to_date == util.POSITIVE_INFINITY:
+        exceptions.ErrorCodes.E_RELATED_UNITS_EDIT_WITH_TO_DATE(
+            origin=origin, to_date=to_date, destinations=destinations
+        )
+
     creations = [
         common.create_organisationsfunktion_payload(
             mapping.RELATED_UNIT_KEY,
             from_date,
-            util.POSITIVE_INFINITY,
+            to_date,
             "{} <-> {}".format(
                 mapping.ORG_UNIT_EGENSKABER_FIELD(units[origin])[0][
                     "brugervendtnoegle"

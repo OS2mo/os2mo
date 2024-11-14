@@ -122,6 +122,10 @@ class ErrorCodes(Enum):
     E_SIZE_MUST_BE_POSITIVE = 400, "Size must be positive."
     E_TOO_MANY_RESULTS = 400, "Amount of results exceeds limit."
     E_RELATED_TO_SELF = 400, "Orgunit cannot be related to itself."
+    E_RELATED_UNITS_EDIT_WITH_TO_DATE = (
+        400,
+        "Related units edit ops are not allow with to_date set",
+    )
 
     # Misc
     E_INCONSISTENT_SETTINGS = 400, "Inconsistent global settings."
