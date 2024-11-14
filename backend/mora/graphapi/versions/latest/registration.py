@@ -268,8 +268,8 @@ async def registration_resolver(
     if filter.start is not None or filter.end is not None:
         start, end = get_sqlalchemy_date_interval(filter.start, filter.end)
         query = query.where(
-            column("start") <= end,
-            column("end") > start,
+            column("start") >= start,
+            column("end") <= end,
         )
 
     # Pagination
