@@ -5,10 +5,13 @@ from datetime import date
 from datetime import datetime
 from datetime import timedelta
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 
 import pytest
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
+
+DEFAULT_TIMEZONE = ZoneInfo("Europe/Copenhagen")
 
 
 @pytest.mark.integration_test
@@ -152,7 +155,7 @@ async def test_read_top_level_registration(graphapi_post) -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
-def test_read_registration_dates_filter(graphapi_post) -> None:
+def test_read_registration_dates_filter_with_uuid(graphapi_post) -> None:
     """Registration dates filter integration-test."""
     # Create first registration
     response = graphapi_post(
@@ -257,3 +260,78 @@ def test_read_registration_dates_filter(graphapi_post) -> None:
     assert registrations(r1_end + ms, None) == [r2]
     # TODO: tests on boundary-values are difficult to do as long as now() is handled
     # by LoRa templates and cannot be injected.
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+def test_read_registration_only_dates_filter(graphapi_post) -> None:
+    """Registration dates filter integration-test."""
+    start_of_test = datetime.now(tz=DEFAULT_TIMEZONE)
+    response = graphapi_post(
+        """
+        mutation CreateEmployee {
+          employee_create(input: {given_name: "Foo", surname: "Bar"}) {
+            uuid
+          }
+        }
+        """
+    )
+    assert response.errors is None
+    employee_uuid = response.data["employee_create"]["uuid"]
+
+    # Create second registration
+    time.sleep(0.010)  # meh, but can't freezegun database's now()
+    response = graphapi_post(
+        """
+        mutation UpdateEmployee($uuid: UUID!) {
+          employee_update(
+            input: {
+              uuid: $uuid,
+              given_name: "Foobar",
+              validity: {from: "2020-01-01"}
+            }
+          ) {
+            uuid
+          }
+        }
+        """,
+        {"uuid": employee_uuid},
+    )
+    assert response.errors is None
+
+    def registrations(start, end):
+        query = """
+            query ReadRegistrations(
+              $start: DateTime,
+              $end: DateTime
+            ) {
+              registrations(
+                filter: {
+                  start: $start,
+                  end: $end
+                }
+              ) {
+                objects {
+                  start
+                  end
+                }
+              }
+            }
+        """
+        response = graphapi_post(
+            query,
+            jsonable_encoder(
+                {
+                    "start": start,
+                    "end": end,
+                }
+            ),
+        )
+        assert response.errors is None
+        return response.data["registrations"]["objects"]
+
+    all_registrations = registrations(None, None)
+    assert len(all_registrations) > 2
+    new_registrations = registrations(start_of_test, None)
+
+    assert len(new_registrations) == 2
