@@ -82,64 +82,9 @@ services:
       DEFAULT_ORG_UNIT_LEVEL: "N1"
       LDAP_CPR_ATTRIBUTE: "employeeNumber"
       LDAP_IT_SYSTEM: "ADUUID"
-
-      # Produced using yq-go: `yq --output-format=json kolding_fixture.yaml`
-      # !!!!!!!!!!!!!!!!!!!! DO NOT EDIT BY HAND !!!!!!!!!!!!!!!!!!!!
-      CONVERSION_MAPPING: >-
-        {
-          "ldap_to_mo": {
-            "Employee": {
-              "objectClass": "ramodels.mo.employee.Employee",
-              "_import_to_mo_": "false",
-              "_ldap_attributes_": [
-                "employeeNumber",
-                "title",
-                "givenName",
-                "sn"
-              ],
-              "uuid": "{{ employee_uuid or '' }}",
-              "nickname_given_name": "{{ get_employee_dict(employee_uuid).nickname_given_name }}",
-              "nickname_surname": "{{ get_employee_dict(employee_uuid).nickname_surname }}",
-              "cpr_number": "{{ldap.employeeNumber|strip_non_digits or ''}}",
-              "user_key": "{{ ldap.title }}",
-              "given_name": "{{ ldap.givenName }}",
-              "surname": "{{ ldap.sn }}"
-            },
-            "ADtitle": {
-              "objectClass": "ramodels.mo.details.it_system.ITUser",
-              "_import_to_mo_": "true",
-              "_ldap_attributes_": [
-                "title"
-              ],
-              "user_key": "{{ ldap.title }}",
-              "itsystem": "{{ get_it_system_uuid('ADtitle') }}",
-              "person": "{{ employee_uuid or '' }}"
-            },
-            "ADUUID": {
-              "objectClass": "ramodels.mo.details.it_system.ITUser",
-              "_import_to_mo_": "true",
-              "_ldap_attributes_": [
-                "title",
-                "entryUUID"
-              ],
-              "_terminate_": "{{ now()|mo_datestring if ldap.title == \"WOW\" else '' }}",
-              "user_key": "{{ ldap.entryUUID }}",
-              "itsystem": "{{ get_it_system_uuid('ADUUID') }}",
-              "person": "{{ employee_uuid or '' }}"
-            }
-          },
-          "mo2ldap": "{% set mo_employee = load_mo_employee(uuid, current_objects_only=False) %}\n{% set mo_employee_it_user = load_mo_it_user(uuid, \"ADUUID\") %}\n\n{{\n  {\n    \"employeeNumber\": mo_employee.cpr_number,\n    \"title\": mo_employee.user_key,\n    \"givenName\": mo_employee.given_name,\n    \"sn\": mo_employee.surname,\n    \"entryUUID\": mo_employee_it_user.user_key,\n  }|tojson\n}}\n",
-          "username_generator": {
-            "objectClass": "UserNameGenerator",
-            "combinations_to_try": [
-              "FFFX",
-              "LLLX"
-            ]
-          }
-        }
-
     volumes:
       - ./mo_ldap_import_export/:/app/mo_ldap_import_export:ro
+      - ./dev-environment/kolding_fixture.yaml:/var/run/config.yaml:ro
       - ./tests/:/app/tests/:ro
     networks:
       - default
