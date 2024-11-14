@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import json
+from datetime import datetime
 from typing import Any
 from unittest.mock import ANY
 from uuid import UUID
@@ -22,6 +23,7 @@ from mo_ldap_import_export.ldap import ldap_add
 from mo_ldap_import_export.ldap import ldap_modify
 from mo_ldap_import_export.ldap import ldap_search
 from mo_ldap_import_export.moapi import MOAPI
+from mo_ldap_import_export.utils import MO_TZ
 from mo_ldap_import_export.utils import combine_dn_strings
 from mo_ldap_import_export.utils import mo_today
 
@@ -54,9 +56,9 @@ from mo_ldap_import_export.utils import mo_today
                         "user_key": "{{ ldap.title }}",
                         "person": "{{ employee_uuid }}",
                         "org_unit": "{{ ldap.departmentNumber }}",
-                        "engagement_type": "{{ get_engagement_type_uuid('Ansat') }}",
-                        "job_function": "{{ get_job_function_uuid('Jurist') }}",
-                        "primary": "{{ get_primary_type_uuid('primary') }}",
+                        "engagement_type": "{{ load_mo_primary_engagement(employee_uuid).engagement_type }}",
+                        "job_function": "{{ load_mo_primary_engagement(employee_uuid).job_function }}",
+                        "primary": "{{ load_mo_primary_engagement(employee_uuid).primary }}",
                         "extension_1": "{{ ldap.title }}",
                     },
                 },
@@ -76,6 +78,9 @@ async def test_to_mo(
     mo_org_unit: UUID,
     ldap_connection: Connection,
     ldap_org: list[str],
+    ansat: UUID,
+    jurist: UUID,
+    primary: UUID,
 ) -> None:
     @retry()
     async def assert_engagement(expected: dict) -> None:
@@ -89,6 +94,31 @@ async def test_to_mo(
         assert validities.dict() == expected
 
     person_dn = combine_dn_strings(["uid=abk"] + ldap_org)
+
+    # Create a MO engagement
+    await graphql_client.engagement_create(
+        input=EngagementCreateInput(
+            user_key="existing",
+            person=mo_person,
+            org_unit=mo_org_unit,
+            engagement_type=ansat,
+            job_function=jurist,
+            primary=primary,
+            validity={"from": "2001-02-03T04:05:06Z"},
+        )
+    )
+    mo_engagement = {
+        "uuid": ANY,
+        "user_key": "existing",
+        "person": [{"uuid": mo_person}],
+        "org_unit": [{"uuid": mo_org_unit}],
+        "engagement_type": {"user_key": "Ansat"},
+        "job_function": {"user_key": "Jurist"},
+        "primary": {"user_key": "primary"},
+        "extension_1": None,
+        "validity": {"from_": datetime(2001, 2, 3, 0, 0, tzinfo=MO_TZ), "to": None},
+    }
+    await assert_engagement(mo_engagement)
 
     # LDAP: Create
     title = "create"
@@ -108,15 +138,9 @@ async def test_to_mo(
         },
     )
     mo_engagement = {
-        "uuid": ANY,
+        **mo_engagement,
         "user_key": title,
-        "person": [{"uuid": mo_person}],
-        "org_unit": [{"uuid": mo_org_unit}],
-        "engagement_type": {"user_key": "Ansat"},
-        "job_function": {"user_key": "Jurist"},
-        "primary": {"user_key": "primary"},
         "extension_1": title,
-        "validity": {"from_": mo_today(), "to": None},
     }
     await assert_engagement(mo_engagement)
 
@@ -146,7 +170,7 @@ async def test_to_mo(
     )
     mo_engagement = {
         **mo_engagement,
-        "validity": {"from_": mo_today(), "to": mo_today()},
+        "validity": {"from_": mo_engagement["validity"]["from_"], "to": mo_today()},
     }
     await assert_engagement(mo_engagement)
 

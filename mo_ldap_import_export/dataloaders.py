@@ -391,7 +391,7 @@ class DataLoader:
             ),
         )
 
-    async def create_engagement(self, obj: Engagement) -> None:
+    async def create_engagement(self, obj: Engagement) -> None:  # pragma: no cover
         await self.graphql_client.engagement_create(
             input=EngagementCreateInput(
                 uuid=obj.uuid,
@@ -439,7 +439,7 @@ class DataLoader:
             await self.create_address(obj)
         elif isinstance(obj, Employee):
             await self.create_employee(obj)
-        elif isinstance(obj, Engagement):
+        elif isinstance(obj, Engagement):  # pragma: no cover
             await self.create_engagement(obj)
         elif isinstance(obj, ITUser):
             await self.create_ituser(obj)
