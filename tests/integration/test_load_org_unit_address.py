@@ -211,7 +211,10 @@ async def test_load_org_unit_address_invalid_address_type(
     assert result is None
 
     events = [m["event"] for m in cap_logs]
-    assert events == ["Found primary engagement", "Could not find org-unit address"]
+    assert events == [
+        "Found primary engagement",
+        "No active validities on org-unit address",
+    ]
 
 
 @pytest.mark.integration_test
@@ -231,4 +234,7 @@ async def test_load_org_unit_address_no_address(
     assert result is None
 
     events = [m["event"] for m in cap_logs]
-    assert events == ["Found primary engagement", "Could not find org-unit address"]
+    assert events == [
+        "Found primary engagement",
+        "No active validities on org-unit address",
+    ]
