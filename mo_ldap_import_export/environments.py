@@ -21,6 +21,7 @@ from jinja2 import TemplateRuntimeError
 from jinja2 import UndefinedError
 from jinja2.utils import missing
 from ldap3.utils.dn import parse_dn
+from more_itertools import flatten
 from more_itertools import one
 from more_itertools import only
 
@@ -769,22 +770,15 @@ async def load_org_unit_address(
             to_date=None,
         )
     )
-    address = only(result.objects)
-    if address is None:
-        logger.info(
-            "Could not find org-unit address",
-            employee_uuid=employee_uuid,
-            address_type_user_key=address_type_user_key,
-        )
-        return None
-    validity = extract_current_or_latest_validity(address.validities)
-    if validity is None:  # pragma: no cover
+    validities = list(flatten(o.validities for o in result.objects))
+    validity = extract_current_or_latest_validity(validities)
+    if validity is None:
         logger.error(
             "No active validities on org-unit address",
             employee_uuid=employee_uuid,
             address_type_user_key=address_type_user_key,
         )
-        raise RequeueMessage("No active validities on org-unit address")
+        return None
     fetched_address = await dataloader.moapi.load_mo_address(
         validity.uuid, current_objects_only=False
     )
