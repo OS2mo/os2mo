@@ -14,6 +14,7 @@ from fastramqpi.ramqp.amqp import Router
 from fastramqpi.ramqp.depends import get_payload_as_type
 from fastramqpi.ramqp.depends import rate_limit
 from fastramqpi.ramqp.utils import RejectMessage
+from fastramqpi.ramqp.utils import RequeueMessage
 
 from .config import LDAPAMQPConnectionSettings
 from .depends import DataLoader
@@ -40,24 +41,15 @@ PayloadUUID = Annotated[UUID, Depends(get_payload_as_type(UUID))]
 @ldap2mo_router.post("/uuid")
 @http_reject_on_failure
 async def http_process_uuid(
-    ldap_amqpsystem: LDAPAMQPSystem,
     sync_tool: SyncTool,
     dataloader: DataLoader,
     converter: LdapConverter,
     uuid: Annotated[UUID, Body()],
 ) -> None:
-    await handle_uuid(
-        ldap_amqpsystem,
-        sync_tool,
-        dataloader,
-        converter,
-        uuid,
-        republish_on_failure=False,
-    )
+    await handle_uuid(sync_tool, dataloader, converter, uuid)
 
 
 @ldap_amqp_router.register("uuid")
-@amqp_reject_on_failure
 async def process_uuid(
     ldap_amqpsystem: LDAPAMQPSystem,
     sync_tool: SyncTool,
@@ -65,23 +57,21 @@ async def process_uuid(
     converter: LdapConverter,
     uuid: PayloadUUID,
 ) -> None:
-    await handle_uuid(
-        ldap_amqpsystem,
-        sync_tool,
-        dataloader,
-        converter,
-        uuid,
-        republish_on_failure=True,
-    )
+    try:
+        await amqp_reject_on_failure(handle_uuid)(
+            sync_tool, dataloader, converter, uuid
+        )
+    except RequeueMessage:  # pragma: no cover
+        # NOTE: This is a hack to cycle messages because quorum queues do not work
+        await asyncio.sleep(30)
+        await publish_uuids(ldap_amqpsystem, [uuid])
 
 
 async def handle_uuid(
-    ldap_amqpsystem: LDAPAMQPSystem,
     sync_tool: SyncTool,
     dataloader: DataLoader,
     converter: LdapConverter,
     uuid: UUID,
-    republish_on_failure: bool,
 ) -> None:
     # TODO: Sync from MO to LDAP to overwrite bad manual changes
 
@@ -105,16 +95,7 @@ async def handle_uuid(
         )
         return
 
-    try:
-        await sync_tool.import_single_user(dn)
-    except Exception:  # pragma: no cover
-        logger.exception("Unable to synchronize DN to MO", dn=dn, uuid=uuid)
-        # NOTE: This is a hack to cycle messages because quorum queues do not work
-        if republish_on_failure:
-            await asyncio.sleep(30)
-            await publish_uuids(ldap_amqpsystem, [uuid])
-        else:
-            raise
+    await sync_tool.import_single_user(dn)
 
 
 def configure_ldap_amqpsystem(
