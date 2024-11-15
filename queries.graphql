@@ -194,12 +194,6 @@ query read_class_uuid($user_key: String!) {
   }
 }
 
-query read_root_org_uuid {
-  org {
-    uuid
-  }
-}
-
 mutation org_unit_create($input: OrganisationUnitCreateInput!) {
   org_unit_create(input: $input) {
     uuid
@@ -261,23 +255,6 @@ query read_engagements_by_employee_uuid($employee_uuid: UUID!) {
           from
           to
         }
-      }
-    }
-  }
-}
-
-query read_engagements_by_engagements_filter(
-  $engagements_filter: EngagementFilter!
-) {
-  engagements(filter: $engagements_filter) {
-    objects {
-      current {
-        uuid
-        user_key
-        org_unit_uuid
-        job_function_uuid
-        engagement_type_uuid
-        primary_uuid
       }
     }
   }
@@ -628,14 +605,6 @@ query read_org_unit_name($org_unit_uuid: UUID!) {
 
 query read_itsystem_uuid($user_key: String!) {
   itsystems(filter: { user_keys: [$user_key] }) {
-    objects {
-      uuid
-    }
-  }
-}
-
-query read_org_unit_uuid($filter: OrganisationUnitFilter!) {
-  org_units(filter: $filter) {
     objects {
       uuid
     }

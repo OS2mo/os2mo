@@ -488,25 +488,6 @@ class MOAPI:
         output = [obj for obj in output if obj is not None]
         return cast(list[ITUser], output)
 
-    async def load_mo_employee_engagement_dicts(
-        self,
-        employee_uuid: UUID,
-        user_key: str | None = None,
-    ) -> list[dict]:
-        filter = EngagementFilter(employee=EmployeeFilter(uuids=[employee_uuid]))
-        if user_key is not None:
-            filter.user_keys = [user_key]
-
-        result = await self.graphql_client.read_engagements_by_engagements_filter(
-            filter
-        )
-        output = [
-            jsonable_encoder(engagement.current)
-            for engagement in result.objects
-            if engagement.current
-        ]
-        return output
-
     async def load_mo_employee_engagements(
         self, employee_uuid: UUID
     ) -> list[Engagement]:

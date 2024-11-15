@@ -50,7 +50,6 @@ from .input_types import ITUserFilter
 from .input_types import ITUserTerminateInput
 from .input_types import ITUserUpdateInput
 from .input_types import OrganisationUnitCreateInput
-from .input_types import OrganisationUnitFilter
 from .ituser_create import ItuserCreate
 from .ituser_create import ItuserCreateItuserCreate
 from .ituser_terminate import ItuserTerminate
@@ -105,10 +104,6 @@ from .read_engagements import ReadEngagements
 from .read_engagements import ReadEngagementsEngagements
 from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuid
 from .read_engagements_by_employee_uuid import ReadEngagementsByEmployeeUuidEngagements
-from .read_engagements_by_engagements_filter import ReadEngagementsByEngagementsFilter
-from .read_engagements_by_engagements_filter import (
-    ReadEngagementsByEngagementsFilterEngagements,
-)
 from .read_engagements_is_primary import ReadEngagementsIsPrimary
 from .read_engagements_is_primary import ReadEngagementsIsPrimaryEngagements
 from .read_facet_uuid import ReadFacetUuid
@@ -137,10 +132,6 @@ from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNames
 from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNamesOrgUnits
 from .read_org_unit_name import ReadOrgUnitName
 from .read_org_unit_name import ReadOrgUnitNameOrgUnits
-from .read_org_unit_uuid import ReadOrgUnitUuid
-from .read_org_unit_uuid import ReadOrgUnitUuidOrgUnits
-from .read_root_org_uuid import ReadRootOrgUuid
-from .read_root_org_uuid import ReadRootOrgUuidOrg
 from .set_job_title import SetJobTitle
 from .set_job_title import SetJobTitleEngagementUpdate
 from .user_create import UserCreate
@@ -537,21 +528,6 @@ class GraphQLClient(AsyncBaseClient):
         data = self.get_data(response)
         return ReadClassUuid.parse_obj(data).classes
 
-    async def read_root_org_uuid(self) -> ReadRootOrgUuidOrg:
-        query = gql(
-            """
-            query read_root_org_uuid {
-              org {
-                uuid
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadRootOrgUuid.parse_obj(data).org
-
     async def org_unit_create(
         self, input: OrganisationUnitCreateInput
     ) -> OrgUnitCreateOrgUnitCreate:
@@ -662,32 +638,6 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEngagementsByEmployeeUuid.parse_obj(data).engagements
-
-    async def read_engagements_by_engagements_filter(
-        self, engagements_filter: EngagementFilter
-    ) -> ReadEngagementsByEngagementsFilterEngagements:
-        query = gql(
-            """
-            query read_engagements_by_engagements_filter($engagements_filter: EngagementFilter!) {
-              engagements(filter: $engagements_filter) {
-                objects {
-                  current {
-                    uuid
-                    user_key
-                    org_unit_uuid
-                    job_function_uuid
-                    engagement_type_uuid
-                    primary_uuid
-                  }
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"engagements_filter": engagements_filter}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadEngagementsByEngagementsFilter.parse_obj(data).engagements
 
     async def set_job_title(
         self,
@@ -1341,25 +1291,6 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadItsystemUuid.parse_obj(data).itsystems
-
-    async def read_org_unit_uuid(
-        self, filter: OrganisationUnitFilter
-    ) -> ReadOrgUnitUuidOrgUnits:
-        query = gql(
-            """
-            query read_org_unit_uuid($filter: OrganisationUnitFilter!) {
-              org_units(filter: $filter) {
-                objects {
-                  uuid
-                }
-              }
-            }
-            """
-        )
-        variables: dict[str, object] = {"filter": filter}
-        response = await self.execute(query=query, variables=variables)
-        data = self.get_data(response)
-        return ReadOrgUnitUuid.parse_obj(data).org_units
 
     async def read_org_unit_ancestor_names(
         self, uuid: UUID

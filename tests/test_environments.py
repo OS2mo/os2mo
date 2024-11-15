@@ -7,40 +7,7 @@ from unittest.mock import MagicMock
 from mo_ldap_import_export.environments import construct_environment
 from mo_ldap_import_export.environments import filter_mo_datestring
 from mo_ldap_import_export.environments import filter_remove_curly_brackets
-from mo_ldap_import_export.environments import filter_splitfirst
-from mo_ldap_import_export.environments import filter_splitlast
 from mo_ldap_import_export.environments import filter_strip_non_digits
-
-
-def test_splitfirst() -> None:
-    assert filter_splitfirst("Test") == ["Test", ""]
-    assert filter_splitfirst("Test Testersen") == [
-        "Test",
-        "Testersen",
-    ]
-    assert filter_splitfirst("Test Testersen med test") == [
-        "Test",
-        "Testersen med test",
-    ]
-    assert filter_splitfirst("") == ["", ""]
-    assert filter_splitfirst("foo,bar,pub", separator=",") == [
-        "foo",
-        "bar,pub",
-    ]
-
-
-def test_splitlast() -> None:
-    assert filter_splitlast("Test") == ["", "Test"]
-    assert filter_splitlast("Test Testersen") == ["Test", "Testersen"]
-    assert filter_splitlast("Test Testersen med test") == [
-        "Test Testersen med",
-        "test",
-    ]
-    assert filter_splitlast("") == ["", ""]
-    assert filter_splitlast("foo,bar,pub", separator=",") == [
-        "foo,bar",
-        "pub",
-    ]
 
 
 def test_strip_non_digits() -> None:
