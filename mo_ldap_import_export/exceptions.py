@@ -116,6 +116,18 @@ def amqp_reject_on_failure(
         ) as e:
             logger.info(str(e))
             raise RejectMessage() from e
+        except Exception as e:
+            # This converts all unknown exceptions to RequeueMessage exceptions,
+            # as we wish to catch these to requeue the message to the back of the queue,
+            # instead of letting FastRAMQPI requeue it, which would be to the front of
+            # the queue, effectively blocking the integration from processing any
+            # messages until the troublesome message has been resolved.
+            # This is very much a hack to workaround shortcomings in RabbitMQ.
+            # In theory a workaround could have been made in FastRAMQPI, but we have
+            # decided against doing the workaround there as we would rather just replace
+            # AMQP with HTTP triggers instead of building workarounds atop workarounds.
+            logger.exception("Exception during AMQP processing")
+            raise RequeueMessage() from e
 
     # TODO: Why is this necessary?
     modified_func.__wrapped__ = func  # type: ignore

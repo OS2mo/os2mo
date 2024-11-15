@@ -629,40 +629,26 @@ async def test_load_faulty_username_generator() -> None:
     assert "No such username_generator" in str(exc_info.value)
 
 
-async def test_reject_on_failure():
-    async def incorrect_mapping_func():
-        raise IncorrectMapping("")
+@pytest.mark.parametrize(
+    "exception,expected",
+    [
+        (IncorrectMapping, RequeueMessage),
+        (TransportQueryError, RequeueMessage),
+        (NoObjectsReturnedException, RequeueMessage),
+        (RequeueMessage, RequeueMessage),
+        (IgnoreChanges, RejectMessage),
+        (ReadOnlyException, RejectMessage),
+        (Exception, RequeueMessage),
+    ],
+)
+async def test_reject_on_failure(
+    exception: type[Exception], expected: type[Exception]
+) -> None:
+    async def exception_func() -> None:
+        raise exception("")
 
-    async def transport_query_error_func():
-        raise TransportQueryError("")
-
-    async def no_objects_returned_func():
-        raise NoObjectsReturnedException("")
-
-    async def requeue_error_func():
-        raise RequeueMessage("")
-
-    async def ignore_changes_func():
-        raise IgnoreChanges("")
-
-    async def read_only_func():
-        raise ReadOnlyException("")
-
-    # These exceptions should result in RequeueMessage exceptions
-    for func in [
-        incorrect_mapping_func,
-        transport_query_error_func,
-        no_objects_returned_func,
-    ]:
-        with pytest.raises(RequeueMessage):
-            await amqp_reject_on_failure(func)()
-
-    with pytest.raises(RequeueMessage):
-        await amqp_reject_on_failure(requeue_error_func)()
-
-    for func in [ignore_changes_func, read_only_func]:
-        with pytest.raises(RejectMessage):
-            await amqp_reject_on_failure(func)()
+    with pytest.raises(expected):
+        await amqp_reject_on_failure(exception_func)()
 
 
 async def test_get_delete_flag(dataloader: AsyncMock):
