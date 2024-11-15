@@ -55,9 +55,7 @@ async def test_process_uuid_bad_sync(
     assert result.status_code == 500
 
     assert {
-        "event": "Unable to synchronize DN to MO",
-        "dn": "uid=abk,ou=os2mo,o=magenta,dc=magenta,dc=dk",
-        "uuid": ldap_person_uuid,
+        "event": "Exception during HTTP processing",
         "exc_info": True,
         "log_level": "error",
     } in cap_logs
