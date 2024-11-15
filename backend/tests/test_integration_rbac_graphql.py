@@ -15,6 +15,7 @@ from mora.mapping import OWNER
 
 from tests import util
 from tests.conftest import GraphAPIPost
+from tests.conftest import SetAuth
 
 # Users
 ANDERS_AND = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -91,7 +92,7 @@ def address_create_dar_input() -> dict[str, Any]:
     ],
 )
 def test_create_org_unit(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     org_unit_create_input: dict[str, Any],
     address_create_phone_input: dict[str, Any],
@@ -147,7 +148,7 @@ def test_create_org_unit(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 def test_success_when_creating_unit_as_owner_of_parent_unit(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     org_unit_create_input: dict[str, Any],
 ) -> None:
@@ -181,7 +182,7 @@ def test_success_when_creating_unit_as_owner_of_parent_unit(
     ],
 )
 def test_create_top_level_unit(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     org_unit_create_input: dict[str, Any],
     role: str,
@@ -228,7 +229,7 @@ def test_create_top_level_unit(
     ],
 )
 def test_rename_org_unit(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
@@ -269,7 +270,7 @@ def test_rename_org_unit(
 
 @pytest.fixture
 def org_unit_no_details_uuid(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     org_unit_create_input: dict[str, Any],
     org_unit_uuid_1: str,
@@ -307,7 +308,7 @@ def org_unit_no_details_uuid(
     ],
 )
 def test_terminate_org_unit(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     org_unit_no_details_uuid: str,
     role: str,
@@ -356,7 +357,7 @@ def test_terminate_org_unit(
     ],
 )
 def test_create_detail(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     org_unit_create_input: dict[str, Any],
     address_create_phone_input: dict[str, Any],
@@ -417,7 +418,7 @@ def test_create_detail(
     ],
 )
 def test_edit_detail(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
@@ -466,7 +467,7 @@ def test_edit_detail(
     ],
 )
 def test_rename_subunit(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     org_unit_uuid_2: str,
     role: str,
@@ -502,7 +503,7 @@ def test_rename_subunit(
 
 @pytest.fixture
 def org_unit_uuid_1(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     org_unit_create_input: dict[str, Any],
 ) -> str:
@@ -547,7 +548,7 @@ def org_unit_uuid_1(
 
 @pytest.fixture
 def org_unit_uuid_2(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     org_unit_create_input: dict[str, Any],
     org_unit_uuid_1: str,
@@ -591,7 +592,7 @@ def org_unit_uuid_2(
     ],
 )
 def test_owner_of_unit(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     org_unit_uuid_1: str,
     org_unit_uuid_2: str,
@@ -642,7 +643,7 @@ def test_owner_of_unit(
     ],
 )
 def test_related(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     origin: str,
     destinations: list[str],
@@ -701,7 +702,7 @@ def test_related(
     ],
 )
 def test_terminate_x_as_owner_of_unit(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     mutation: str,
 ) -> None:
@@ -725,7 +726,7 @@ def test_terminate_x_as_owner_of_unit(
     )
 )
 def test_ownership_through_it_system(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     token_uuid: str,
     success: bool,

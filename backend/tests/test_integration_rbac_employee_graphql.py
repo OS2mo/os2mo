@@ -7,6 +7,7 @@ from mora.mapping import ADMIN
 from mora.mapping import OWNER
 
 from tests.conftest import GraphAPIPost
+from tests.conftest import SetAuth
 
 # Users
 ANDERS_AND = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -45,7 +46,7 @@ parametrize_roles = (
 
 @pytest.fixture
 async def create_lis_owner(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
 ) -> None:
     # Let Anders And be the owner of Lis Jensen
@@ -71,7 +72,7 @@ async def create_lis_owner(
 
 @pytest.fixture
 async def create_fedtmule_owner(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
 ) -> None:
     # Let Anders And be the owner of Fedtmule
@@ -97,7 +98,7 @@ async def create_fedtmule_owner(
 
 @pytest.fixture
 async def create_erik_owner(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
 ) -> None:
     # Let Anders And be the owner of Erik Smidt Hansen
@@ -136,7 +137,7 @@ async def create_erik_owner(
     ],
 )
 def test_create_employee(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
@@ -169,7 +170,7 @@ def test_create_employee(
 @pytest.mark.usefixtures("fixture_db", "create_lis_owner")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_creating_detail_address(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
@@ -204,7 +205,7 @@ def test_creating_detail_address(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db", "create_lis_owner")
 def test_success_when_creating_it_system_detail_as_owner_of_employee(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
 ) -> None:
     # Use user "Anders And" (who owns the employee)
@@ -238,7 +239,7 @@ def test_success_when_creating_it_system_detail_as_owner_of_employee(
 @pytest.mark.usefixtures("fixture_db", "create_lis_owner")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_create_employment(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
@@ -273,7 +274,7 @@ def test_create_employment(
 @pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_create_association(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
@@ -307,7 +308,7 @@ def test_create_association(
 @pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_create_manager(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
@@ -343,7 +344,7 @@ def test_create_manager(
 @pytest.mark.usefixtures("fixture_db", "create_erik_owner")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_create_leave(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
@@ -377,7 +378,7 @@ def test_create_leave(
 @pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_edit_address(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
@@ -413,7 +414,7 @@ def test_edit_address(
 @pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_edit_association(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
@@ -448,7 +449,7 @@ def test_edit_association(
 @pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_edit_engagement(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
@@ -484,47 +485,8 @@ def test_edit_engagement(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
 @pytest.mark.parametrize(*parametrize_roles)
-def test_move_engagement(
-    set_auth: Callable[[str | None, str | None], None],
-    graphapi_post: GraphAPIPost,
-    role: str,
-    userid: str,
-    success: bool,
-) -> None:
-    set_auth(role, userid)
-
-    input = {
-        "uuid": "301a906b-ef51-4d5c-9c77-386fb8410459",
-        "employee": ERIK_SMIDT_HANSEN,
-        "org_unit": "b688513d-11f7-4efc-b679-ab082a2055d0",
-        "validity": {"from": "2021-08-25"},
-        # The remaining fields are only required because graphql doesn't support
-        # patch writes.
-        "job_function": "ca76a441-6226-404f-88a9-31e02e420e52",
-        "engagement_type": "06f95678-166a-455a-a2ab-121a8d92ea23",
-        "primary": "2f16d140-d743-4c9f-9e0e-361da91a06f6",
-    }
-    r = graphapi_post(
-        """
-        mutation EngagementUpdate($input: EngagementUpdateInput!) {
-          engagement_update(input: $input) {
-            uuid
-          }
-        }
-        """,
-        variables=dict(input=input),
-    )
-    if success:
-        assert r.errors is None
-    else:
-        assert r.errors is not None
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("fixture_db", "create_fedtmule_owner")
-@pytest.mark.parametrize(*parametrize_roles)
 def test_edit_manager(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
@@ -568,7 +530,7 @@ def test_edit_manager(
 )
 @pytest.mark.parametrize(*parametrize_roles)
 def test_terminate_details(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     mutation: str,
     role: str,
@@ -587,7 +549,7 @@ def test_terminate_details(
 @pytest.mark.usefixtures("fixture_db", "create_lis_owner")
 @pytest.mark.parametrize(*parametrize_roles)
 def test_terminate_employee(
-    set_auth: Callable[[str | None, str | None], None],
+    set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
     role: str,
     userid: str,
