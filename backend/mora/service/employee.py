@@ -173,7 +173,8 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         original = await c.bruger.get(uuid=userid)
         new_from, new_to = util.get_validities(data)
 
-        payload = {}
+        payload = {"note": "Rediger medarbejder"}
+
         if original_data:
             # We are performing an update
             old_from, old_to = util.get_validities(original_data)
