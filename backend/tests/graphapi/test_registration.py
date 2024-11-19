@@ -307,8 +307,8 @@ def test_read_registration_only_dates_filter(graphapi_post) -> None:
             ) {
               registrations(
                 filter: {
-                  start: $start,
-                  end: $end
+                  registration_start: $start,
+                  registration_end: $end
                 }
               ) {
                 objects {

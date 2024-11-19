@@ -680,6 +680,14 @@ class RegistrationFilter:
         default=None,
         description="Limit the elements returned by their ending validity.",
     )
+    registration_start: datetime | None = strawberry.field(
+        default=None,
+        description="Limit the elements returned by their registration date.",
+    )
+    registration_end: datetime | None = strawberry.field(
+        default=None,
+        description="Limit the elements returned by their registration date.",
+    )
 
 
 def mutable_default(value: Any) -> Any:
