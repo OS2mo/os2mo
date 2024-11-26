@@ -7,7 +7,6 @@ import re
 from collections.abc import AsyncIterator
 from collections.abc import Awaitable
 from collections.abc import Callable
-from contextlib import suppress
 from datetime import datetime
 from functools import partial
 from itertools import count
@@ -459,14 +458,8 @@ def construct_router(settings: Settings) -> APIRouter:
         ldap_amqpsystem: depends.LDAPAMQPSystem,
         converter: depends.LdapConverter,
         test_on_first_20_entries: bool = False,
-        cpr_indexed_entries_only: bool = True,
         search_base: str | None = None,
     ) -> Any:
-        cpr_field = settings.ldap_cpr_attribute
-
-        if cpr_indexed_entries_only and not cpr_field:
-            raise CPRFieldNotFound("cpr_field is not configured")
-
         additional_attributes = [settings.ldap_unique_id_field]
 
         all_ldap_objects = await load_ldap_objects(
@@ -481,21 +474,10 @@ def construct_router(settings: Settings) -> APIRouter:
         logger.info("Found entries in LDAP", count=number_of_entries)
 
         if test_on_first_20_entries:
+            # TODO: Actually only load the 20 first?
             # Only upload the first 20 entries
             logger.info("Slicing the first 20 entries")
             all_ldap_objects = all_ldap_objects[:20]
-
-        def has_valid_cpr_number(ldap_object: LdapObject) -> bool:
-            assert cpr_field is not None
-            cpr_number = CPRNumber(getattr(ldap_object, cpr_field))
-            with suppress(ValueError, TypeError):
-                validate_cpr(cpr_number)
-                return True
-            logger.info("Invalid CPR Number found", dn=ldap_object.dn)
-            return False
-
-        if cpr_indexed_entries_only:
-            all_ldap_objects = list(filter(has_valid_cpr_number, all_ldap_objects))
 
         uuids = [
             getattr(obj, settings.ldap_unique_id_field) for obj in all_ldap_objects
