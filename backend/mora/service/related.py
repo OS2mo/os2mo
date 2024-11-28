@@ -44,6 +44,8 @@ class RelatedUnitRequestHandler(handlers.OrgFunkRequestHandler):
 
 @router.post("/ou/{origin}/map")
 async def map_org_units(origin: UUID, req: dict = Body(...)):
+    print("#################")
+    print(req)
     """Mark the given organisational units as related.
 
     .. :quickref: Unit; Map
@@ -135,6 +137,10 @@ async def map_org_units(origin: UUID, req: dict = Body(...)):
         for state in util.get_states(unit)
         if state["gyldighed"] == "Aktiv"
     )
+    print(units_start)
+    print(units_end)
+    print(from_date)
+    print(to_date)
     if units_end < units_start or from_date < units_start or to_date > units_end:
         exceptions.ErrorCodes.V_VALIDITIES_DO_NOT_OVERLAP(
             origin=origin,
@@ -155,6 +161,7 @@ async def map_org_units(origin: UUID, req: dict = Body(...)):
         for unitid in mapping.ASSOCIATED_ORG_UNITS_FIELD.get_uuids(func)
         if unitid != origin
     }
+    print("preexisting", preexisting)
 
     edits = {
         funcid: common.inactivate_org_funktion_payload(
@@ -164,8 +171,10 @@ async def map_org_units(origin: UUID, req: dict = Body(...)):
         for unitid, funcid in preexisting.items()
         if unitid not in destinations
     }
+    print("edits", edits)
 
-    if edits and to_date == util.POSITIVE_INFINITY:
+    if edits and not to_date == util.POSITIVE_INFINITY:
+        print("Hurra")
         exceptions.ErrorCodes.E_RELATED_UNITS_EDIT_WITH_TO_DATE(
             origin=origin, to_date=to_date, destinations=destinations
         )

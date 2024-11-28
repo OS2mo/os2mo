@@ -38,6 +38,7 @@ def _extract_search_params(query_args: dict[Any | MoOrgFunk, Any]) -> dict[Any, 
 
 
 async def search_role_type(role_type: str, **kwargs: Any) -> list[dict[str, Any]]:
+    print(role_type)
     connector = get_connector()
     handler = get_handler_for_type(role_type)
     return await handler.get(

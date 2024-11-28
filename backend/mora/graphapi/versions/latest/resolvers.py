@@ -1093,6 +1093,8 @@ async def related_unit_resolver(
     if filter.org_units is not None or filter.org_unit is not None:
         kwargs["tilknyttedeenheder"] = await get_org_unit_uuids(info, filter)
 
+    print(filter)
+
     return await generic_resolver(
         RelatedUnitRead,
         info=info,
