@@ -198,7 +198,6 @@ async def test_load_address_no_address(context: Context, mo_person: UUID) -> Non
     assert events == ["Could not find employee address"]
 
 
-@pytest.mark.xfail(reason="reproducing a bug")
 @pytest.mark.integration_test
 @pytest.mark.envvar(
     {
