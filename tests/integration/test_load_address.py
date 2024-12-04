@@ -196,3 +196,45 @@ async def test_load_address_no_address(context: Context, mo_person: UUID) -> Non
 
     events = [m["event"] for m in cap_logs]
     assert events == ["Could not find employee address"]
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+    }
+)
+@pytest.mark.usefixtures("test_client")
+async def test_load_address_multiple_disjoint_matches(
+    graphql_client: GraphQLClient,
+    context: Context,
+    mo_person: UUID,
+    email_employee: UUID,
+    public: UUID,
+) -> None:
+    await graphql_client.address_create(
+        input=AddressCreateInput(
+            user_key="address1",
+            address_type=email_employee,
+            value="address1@example.com",
+            person=mo_person,
+            visibility=public,
+            validity={"from": "2001-02-03T04:05:06Z", "to": "2002-03-04T05:06:07Z"},
+        )
+    )
+    await graphql_client.address_create(
+        input=AddressCreateInput(
+            user_key="address2",
+            address_type=email_employee,
+            value="address2@example.com",
+            person=mo_person,
+            visibility=public,
+            validity={"from": "2003-04-05T06:07:08Z"},
+        )
+    )
+
+    dataloader = context["user_context"]["dataloader"]
+    result = await load_address(dataloader, mo_person, "EmailEmployee")
+    assert result is not None
+    assert result.value == "address2@example.com"

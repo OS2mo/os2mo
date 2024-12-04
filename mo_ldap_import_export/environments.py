@@ -22,6 +22,7 @@ from more_itertools import one
 from more_itertools import only
 
 from mo_ldap_import_export.moapi import extract_current_or_latest_validity
+from mo_ldap_import_export.moapi import flatten_validities
 from mo_ldap_import_export.moapi import get_primary_engagement
 from mo_ldap_import_export.models import Address
 from mo_ldap_import_export.models import Engagement
@@ -327,15 +328,16 @@ async def load_address(
             to_date=None,
         )
     )
-    address = only(result.objects)
-    if address is None:
+    if not result.objects:
         logger.info(
             "Could not find employee address",
             employee_uuid=employee_uuid,
             address_type_user_key=address_type_user_key,
         )
         return None
-    validity = extract_current_or_latest_validity(address.validities)
+    # Flatten all validities to a list
+    validities = list(flatten_validities(result))
+    validity = extract_current_or_latest_validity(validities)
     if validity is None:  # pragma: no cover
         logger.error(
             "No active validities on employee address",
