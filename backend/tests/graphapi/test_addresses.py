@@ -665,6 +665,8 @@ async def test_create_integration(data, graphapi_post: GraphAPIPost):
             },
             1,
         ),
+        # Visibility filter (public)
+        ({"visibility": {"uuids": ["f63ad763-0e53-4972-a6a9-63b42a0f8cb7"]}}, 0),
     ],
 )
 async def test_address_filters(graphapi_post: GraphAPIPost, filter, expected) -> None:

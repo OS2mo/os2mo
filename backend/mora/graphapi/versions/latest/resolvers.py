@@ -317,6 +317,11 @@ async def address_resolver(
         kwargs["organisatoriskfunktionstype"] = await _get_address_type_uuids(
             info, filter
         )
+    if filter.visibility is not None:
+        class_filter = filter.visibility or ClassFilter()
+        # rel_type "opgaver" with objekt_type "synlighed" in mox
+        # TODO: Support finding entries with visibility=None
+        kwargs["opgaver"] = await filter2uuids_func(class_resolver, info, class_filter)
 
     tilknyttedefunktioner = []
     if filter.engagements is not None or filter.engagement is not None:
