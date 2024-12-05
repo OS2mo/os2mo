@@ -1026,7 +1026,7 @@ pyyaml = "*"
 
 [[package]]
 name = "ramodels"
-version = "36.27.6"
+version = "36.27.7"
 description = "Pydantic data models for OS2mo"
 category = "main"
 optional = false
@@ -1328,7 +1328,7 @@ zstd = ["zstandard (>=0.18.0)"]
 
 [[package]]
 name = "uvicorn"
-version = "0.32.1"
+version = "0.32.0"
 description = "The lightning-fast ASGI server."
 category = "main"
 optional = false
@@ -1339,7 +1339,7 @@ click = ">=7.0"
 h11 = ">=0.8"
 
 [package.extras]
-standard = ["colorama (>=0.4)", "httptools (>=0.6.3)", "python-dotenv (>=0.13)", "pyyaml (>=5.1)", "uvloop (>=0.14.0,!=0.15.0,!=0.15.1)", "watchfiles (>=0.13)", "websockets (>=10.4)"]
+standard = ["colorama (>=0.4)", "httptools (>=0.5.0)", "python-dotenv (>=0.13)", "pyyaml (>=5.1)", "uvloop (>=0.14.0,!=0.15.0,!=0.15.1)", "watchfiles (>=0.13)", "websockets (>=10.4)"]
 
 [[package]]
 name = "virtualenv"
@@ -2590,8 +2590,8 @@ pyyaml-env-tag = [
     {file = "pyyaml_env_tag-0.1.tar.gz", hash = "sha256:70092675bda14fdec33b31ba77e7543de9ddc88f2e5b99160396572d11525bdb"},
 ]
 ramodels = [
-    {file = "ramodels-36.27.6-py3-none-any.whl", hash = "sha256:8f5f821cdd13089088e57c0748ca704afe9ce1657e9ca045997d9d67e25dbc43"},
-    {file = "ramodels-36.27.6.tar.gz", hash = "sha256:438d91cbab6b3f0be761c3e6c1efd94067a873da97d070b888f5e4475a1f26df"},
+    {file = "ramodels-36.27.7-py3-none-any.whl", hash = "sha256:110de12b917c1689e2938d6df590034c5f3e1f81149d2dd4fb11423dd9803128"},
+    {file = "ramodels-36.27.7.tar.gz", hash = "sha256:80e7357bc520ff653e0d0ea195a20313377e535893f315ae0757d289d200849f"},
 ]
 requests = [
     {file = "requests-2.32.3-py3-none-any.whl", hash = "sha256:70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6"},
@@ -2749,8 +2749,8 @@ urllib3 = [
     {file = "urllib3-2.2.3.tar.gz", hash = "sha256:e7d814a81dad81e6caf2ec9fdedb284ecc9c73076b62654547cc64ccdcae26e9"},
 ]
 uvicorn = [
-    {file = "uvicorn-0.32.1-py3-none-any.whl", hash = "sha256:82ad92fd58da0d12af7482ecdb5f2470a04c9c9a53ced65b9bbb4a205377602e"},
-    {file = "uvicorn-0.32.1.tar.gz", hash = "sha256:ee9519c246a72b1c084cea8d3b44ed6026e78a4a309cbedae9c37e4cb9fbb175"},
+    {file = "uvicorn-0.32.0-py3-none-any.whl", hash = "sha256:60b8f3a5ac027dcd31448f411ced12b5ef452c646f76f02f8cc3f25d8d26fd82"},
+    {file = "uvicorn-0.32.0.tar.gz", hash = "sha256:f78b36b143c16f54ccdb8190d0a26b5f1901fe5a3c777e1ab29f26391af8551e"},
 ]
 virtualenv = [
     {file = "virtualenv-20.27.1-py3-none-any.whl", hash = "sha256:f11f1b8a29525562925f745563bfd48b189450f61fb34c4f9cc79dd5aa32a1f4"},
