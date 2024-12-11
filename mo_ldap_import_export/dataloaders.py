@@ -48,6 +48,7 @@ from .ldapapi import LDAPAPI
 from .moapi import MOAPI
 from .types import DN
 from .types import CPRNumber
+from .types import EmployeeUUID
 from .utils import is_exception
 from .utils import mo_today
 from .utils import star
@@ -97,15 +98,15 @@ class DataLoader:
 
         return cast(UserNameGenerator, self.user_context["username_generator"])
 
-    async def find_mo_employee_uuid_via_cpr_number(self, dn: str) -> set[UUID]:
+    async def find_mo_employee_uuid_via_cpr_number(self, dn: str) -> set[EmployeeUUID]:
         cpr_number = await self.ldapapi.dn2cpr(dn)
         if cpr_number is None:
             return set()
 
         result = await self.graphql_client.read_employee_uuid_by_cpr_number(cpr_number)
-        return {employee.uuid for employee in result.objects}
+        return {EmployeeUUID(employee.uuid) for employee in result.objects}
 
-    async def find_mo_employee_uuid(self, dn: str) -> UUID | None:
+    async def find_mo_employee_uuid(self, dn: str) -> EmployeeUUID | None:
         cpr_results = await self.find_mo_employee_uuid_via_cpr_number(dn)
         if len(cpr_results) == 1:
             uuid = one(cpr_results)

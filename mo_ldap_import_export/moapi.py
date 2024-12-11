@@ -241,12 +241,14 @@ class MOAPI:
         self.settings = settings
         self.graphql_client = graphql_client
 
-    async def find_mo_employee_uuid_via_ituser(self, unique_uuid: UUID) -> set[UUID]:
+    async def find_mo_employee_uuid_via_ituser(
+        self, unique_uuid: UUID
+    ) -> set[EmployeeUUID]:
         result = await self.graphql_client.read_employee_uuid_by_ituser_user_key(
             str(unique_uuid)
         )
         return {
-            ituser.current.employee_uuid
+            EmployeeUUID(ituser.current.employee_uuid)
             for ituser in result.objects
             if ituser.current is not None and ituser.current.employee_uuid is not None
         }

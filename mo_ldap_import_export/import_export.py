@@ -516,7 +516,7 @@ class SyncTool:
             logger.info("Employee not found, but configured to create it")
 
             # As we wish to create an employee, we need to generate an UUID for it
-            employee_uuid = uuid4()
+            employee_uuid = EmployeeUUID(uuid4())
             logger.info(
                 "Employee not found in MO, generated UUID", employee_uuid=employee_uuid
             )
