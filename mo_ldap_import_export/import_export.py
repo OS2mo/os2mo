@@ -531,8 +531,7 @@ class SyncTool:
             # Note however, that this will only succeed if there is a CPR number field.
             cpr_number = await self.dataloader.ldapapi.dn2cpr(dn)
             # Only attempt to load accounts if we have a CPR number to do so with
-            # and only if the CPR number is not the commonly used test CPR number
-            if cpr_number and cpr_number != "0000000000":
+            if cpr_number:
                 dns = await self.dataloader.ldapapi.cpr2dns(cpr_number)
 
         # At this point 'employee_uuid' is an UUID that may or may not be in MO
