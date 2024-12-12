@@ -265,9 +265,9 @@ async def load_primary_engagement(
 
 
 async def load_it_user(
-    dataloader: DataLoader, employee_uuid: UUID, itsystem_user_key: str
+    moapi: MOAPI, employee_uuid: UUID, itsystem_user_key: str
 ) -> ITUser | None:
-    result = await dataloader.graphql_client.read_filtered_itusers(
+    result = await moapi.graphql_client.read_filtered_itusers(
         ITUserFilter(
             employee=EmployeeFilter(uuids=[employee_uuid]),
             itsystem=ITSystemFilter(user_keys=[itsystem_user_key]),
@@ -291,7 +291,7 @@ async def load_it_user(
             itsystem_user_key=itsystem_user_key,
         )
         raise RequeueMessage("No active validities on it-user")
-    fetched_ituser = await dataloader.moapi.load_mo_it_user(
+    fetched_ituser = await moapi.load_mo_it_user(
         validity.uuid, current_objects_only=False
     )
     if fetched_ituser is None:  # pragma: no cover
@@ -317,7 +317,7 @@ async def create_mo_it_user(
         validity={"start": mo_today()},
     )
     await dataloader.moapi.create_ituser(it_user)
-    return await load_it_user(dataloader, employee_uuid, itsystem_user_key)
+    return await load_it_user(dataloader.moapi, employee_uuid, itsystem_user_key)
 
 
 async def load_address(
@@ -451,7 +451,7 @@ def construct_globals_dict(
         # TODO: Rename these functions once the old template system is gone
         "load_mo_employee": moapi.load_mo_employee,
         "load_mo_primary_engagement": partial(load_primary_engagement, moapi),
-        "load_mo_it_user": partial(load_it_user, dataloader),
+        "load_mo_it_user": partial(load_it_user, moapi),
         "load_mo_address": partial(load_address, dataloader),
         "load_mo_org_unit_address": partial(load_org_unit_address, dataloader),
         "create_mo_it_user": partial(create_mo_it_user, dataloader),
