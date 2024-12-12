@@ -31,7 +31,6 @@ from .exceptions import NoObjectsReturnedException
 from .ldap import is_uuid
 from .ldapapi import LDAPAPI
 from .moapi import MOAPI
-from .models import Employee
 from .models import Engagement
 from .models import ITUser
 from .types import DN
@@ -301,10 +300,6 @@ class DataLoader:
             await self.moapi.create_ituser(it_user)
 
         return dn
-
-    async def edit_employee(self, obj: Employee) -> None:  # pragma: no cover
-        # TODO: see comment in import_export.py:format_converted_objects()
-        raise NotImplementedError("cannot edit employee using ramodels object")
 
     async def edit_engagement(self, obj: Engagement) -> None:
         await self.graphql_client.engagement_update(

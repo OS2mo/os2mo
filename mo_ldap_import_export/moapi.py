@@ -665,7 +665,7 @@ class MOAPI:
         if isinstance(obj, Address):
             await self.edit_address(obj)
         elif isinstance(obj, Employee):  # pragma: no cover
-            await dataloader.edit_employee(obj)
+            await self.edit_employee(obj)
         elif isinstance(obj, Engagement):
             await dataloader.edit_engagement(obj)
         elif isinstance(obj, ITUser):
@@ -692,6 +692,10 @@ class MOAPI:
                 ),
             ),
         )
+
+    async def edit_employee(self, obj: Employee) -> None:  # pragma: no cover
+        # TODO: see comment in import_export.py:format_converted_objects()
+        raise NotImplementedError("cannot edit employee using ramodels object")
 
     async def terminate(self, dataloader, terminatees: list[Any]) -> None:
         """Terminate a list of details.
