@@ -1518,6 +1518,8 @@ def test_extract_latest_object_empty() -> None:
 
 
 async def test_create_or_edit_mo_objects(dataloader: DataLoader) -> None:
+    moapi = dataloader.moapi
+
     # One object is created and another is edited.
     create = MagicMock()
     del create.terminate_
@@ -1529,14 +1531,14 @@ async def test_create_or_edit_mo_objects(dataloader: DataLoader) -> None:
 
     objs = [(create, Verb.CREATE), (edit, Verb.EDIT), (terminate, Verb.TERMINATE)]
 
-    dataloader.moapi.create = AsyncMock()  # type: ignore
-    dataloader.moapi.edit = AsyncMock()  # type: ignore
-    dataloader.moapi.terminate = AsyncMock()  # type: ignore
+    moapi.create = AsyncMock()  # type: ignore
+    moapi.edit = AsyncMock()  # type: ignore
+    moapi.terminate = AsyncMock()  # type: ignore
 
-    await dataloader.moapi.create_or_edit_mo_objects(dataloader, objs)  # type: ignore
-    dataloader.moapi.create.assert_called_once_with([create])
-    dataloader.moapi.edit.assert_called_once_with([edit])
-    dataloader.moapi.terminate.assert_called_once_with([terminate])
+    await moapi.create_or_edit_mo_objects(objs)  # type: ignore
+    moapi.create.assert_called_once_with([create])
+    moapi.edit.assert_called_once_with([edit])
+    moapi.terminate.assert_called_once_with([terminate])
 
 
 @pytest.mark.parametrize(
