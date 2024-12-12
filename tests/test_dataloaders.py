@@ -171,8 +171,7 @@ def dataloader(
             "username_generator": username_generator,
         },
     }
-    amqpsystem = AsyncMock()
-    return DataLoader(context, amqpsystem)
+    return DataLoader(context)
 
 
 @pytest.fixture
@@ -914,9 +913,6 @@ async def test_make_mo_employee_dn_no_itsystem(
 
     dataloader.user_context["username_generator"] = username_generator
 
-    amqp_exchange_name = "amqp_exchange_name"
-    dataloader.amqpsystem.exchange_name = amqp_exchange_name
-
     with capture_logs() as cap_logs:
         result = await dataloader.make_mo_employee_dn(employee_uuid)
         assert result == dn
@@ -976,9 +972,6 @@ async def test_make_mo_employee_dn_no_cpr(
     ldap_uuid = uuid4()
     dataloader.ldapapi.get_ldap_unique_ldap_uuid = AsyncMock()
     dataloader.ldapapi.get_ldap_unique_ldap_uuid.return_value = ldap_uuid
-
-    amqp_exchange_name = "amqp_exchange_name"
-    dataloader.amqpsystem.exchange_name = amqp_exchange_name
 
     with capture_logs() as cap_logs:
         result = await dataloader.make_mo_employee_dn(employee_uuid)

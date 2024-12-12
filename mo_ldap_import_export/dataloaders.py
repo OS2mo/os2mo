@@ -9,7 +9,6 @@ from uuid import UUID
 
 import structlog
 from fastramqpi.context import Context
-from fastramqpi.ramqp.mo import MOAMQPSystem
 from ldap3 import Connection
 from more_itertools import one
 from more_itertools import partition
@@ -34,14 +33,13 @@ logger = structlog.stdlib.get_logger()
 
 
 class DataLoader:
-    def __init__(self, context: Context, amqpsystem: MOAMQPSystem) -> None:
+    def __init__(self, context: Context) -> None:
         self.context = context
         self.user_context = context["user_context"]
         self.ldap_connection: Connection = self.user_context["ldap_connection"]
         self.settings: Settings = self.user_context["settings"]
         self.ldapapi = LDAPAPI(self.settings, self.ldap_connection)
         self.create_mo_class_lock = asyncio.Lock()
-        self.amqpsystem: MOAMQPSystem = amqpsystem
 
     @property
     def moapi(self) -> MOAPI:
