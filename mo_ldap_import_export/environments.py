@@ -321,9 +321,9 @@ async def create_mo_it_user(
 
 
 async def load_address(
-    dataloader: DataLoader, employee_uuid: UUID, address_type_user_key: str
+    moapi: MOAPI, employee_uuid: UUID, address_type_user_key: str
 ) -> Address | None:
-    result = await dataloader.graphql_client.read_filtered_addresses(
+    result = await moapi.graphql_client.read_filtered_addresses(
         AddressFilter(
             employee=EmployeeFilter(uuids=[employee_uuid]),
             address_type=ClassFilter(user_keys=[address_type_user_key]),
@@ -348,7 +348,7 @@ async def load_address(
             address_type_user_key=address_type_user_key,
         )
         raise RequeueMessage("No active validities on employee address")
-    fetched_address = await dataloader.moapi.load_mo_address(
+    fetched_address = await moapi.load_mo_address(
         validity.uuid, current_objects_only=False
     )
     if fetched_address is None:  # pragma: no cover
@@ -452,7 +452,7 @@ def construct_globals_dict(
         "load_mo_employee": moapi.load_mo_employee,
         "load_mo_primary_engagement": partial(load_primary_engagement, moapi),
         "load_mo_it_user": partial(load_it_user, moapi),
-        "load_mo_address": partial(load_address, dataloader),
+        "load_mo_address": partial(load_address, moapi),
         "load_mo_org_unit_address": partial(load_org_unit_address, dataloader),
         "create_mo_it_user": partial(create_mo_it_user, dataloader),
         "generate_username": partial(generate_username, dataloader),
