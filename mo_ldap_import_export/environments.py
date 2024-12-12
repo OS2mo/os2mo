@@ -21,6 +21,7 @@ from more_itertools import flatten
 from more_itertools import one
 from more_itertools import only
 
+from mo_ldap_import_export.moapi import MOAPI
 from mo_ldap_import_export.moapi import extract_current_or_latest_validity
 from mo_ldap_import_export.moapi import flatten_validities
 from mo_ldap_import_export.moapi import get_primary_engagement
@@ -184,7 +185,7 @@ async def get_org_unit_name(graphql_client: GraphQLClient, uuid: UUID) -> str:
 
 
 async def _create_facet_class(
-    dataloader: DataLoader, class_user_key: str, facet_user_key: str
+    moapi: MOAPI, class_user_key: str, facet_user_key: str
 ) -> UUID:
     """Creates a class under the specified facet in MO.
 
@@ -197,18 +198,18 @@ async def _create_facet_class(
         The uuid of the created class
     """
     logger.info("Creating MO class", facet_user_key=facet_user_key, name=class_user_key)
-    facet_uuid = await dataloader.moapi.load_mo_facet_uuid(facet_user_key)
+    facet_uuid = await moapi.load_mo_facet_uuid(facet_user_key)
     if facet_uuid is None:
         raise NoObjectsReturnedException(
             f"Could not find facet with user_key = '{facet_user_key}'"
         )
-    return await dataloader.moapi.create_mo_class(
+    return await moapi.create_mo_class(
         name=class_user_key, user_key=class_user_key, facet_uuid=facet_uuid
     )
 
 
 async def _get_or_create_facet_class(
-    dataloader: DataLoader,
+    moapi: MOAPI,
     class_user_key: str,
     facet_user_key: str,
     default: str | None = None,
@@ -220,13 +221,15 @@ async def _get_or_create_facet_class(
         class_user_key = default
     try:
         return await _get_facet_class_uuid(
-            dataloader.graphql_client,
+            moapi.graphql_client,
             class_user_key=class_user_key,
             facet_user_key=facet_user_key,
         )
     except UUIDNotFoundException:
         uuid = await _create_facet_class(
-            dataloader, class_user_key=class_user_key, facet_user_key=facet_user_key
+            moapi,
+            class_user_key=class_user_key,
+            facet_user_key=facet_user_key,
         )
         return str(uuid)
 
@@ -442,7 +445,7 @@ def construct_globals_dict(
         "get_job_function_name": partial(get_job_function_name, graphql_client),
         "get_org_unit_name": partial(get_org_unit_name, graphql_client),
         "get_or_create_job_function_uuid": partial(
-            get_or_create_job_function_uuid, dataloader
+            get_or_create_job_function_uuid, moapi
         ),
         # These names are intentionally bad, but consistent with the old code names
         # TODO: Rename these functions once the old template system is gone

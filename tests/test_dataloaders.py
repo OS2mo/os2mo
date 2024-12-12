@@ -57,6 +57,7 @@ from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import ReadOnlyException
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.ldapapi import LDAPAPI
+from mo_ldap_import_export.moapi import MOAPI
 from mo_ldap_import_export.moapi import Verb
 from mo_ldap_import_export.moapi import extract_current_or_latest_validity
 from mo_ldap_import_export.models import Employee
@@ -1151,6 +1152,8 @@ async def test_create_mo_class(dataloader: DataLoader):
 async def test_create_mo_job_function(
     dataloader: DataLoader, graphql_mock: GraphQLMocker
 ) -> None:
+    moapi = MOAPI(dataloader.settings, dataloader.graphql_client)
+
     route1 = graphql_mock.query("read_class_uuid_by_facet_and_class_user_key")
     route1.result = {"classes": {"objects": []}}
 
@@ -1160,12 +1163,12 @@ async def test_create_mo_job_function(
 
     uuid2 = uuid4()
 
-    dataloader.moapi.create_mo_class = AsyncMock()  # type: ignore
-    dataloader.moapi.create_mo_class.return_value = uuid2
+    moapi.create_mo_class = AsyncMock()  # type: ignore
+    moapi.create_mo_class.return_value = uuid2
 
-    assert await get_or_create_job_function_uuid(dataloader, "foo") == str(uuid2)
+    assert await get_or_create_job_function_uuid(moapi, "foo") == str(uuid2)
 
-    kwargs = dataloader.moapi.create_mo_class.call_args_list[0].kwargs
+    kwargs = moapi.create_mo_class.call_args_list[0].kwargs
     assert kwargs == {"name": "foo", "user_key": "foo", "facet_uuid": uuid1}
 
 
