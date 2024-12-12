@@ -422,13 +422,14 @@ def skip_if_none(obj: T | None) -> T:
 def construct_globals_dict(
     settings: Settings, dataloader: DataLoader
 ) -> dict[str, Any]:
-    graphql_client = dataloader.graphql_client
+    moapi = dataloader.moapi
+    graphql_client = moapi.graphql_client
     return {
         "now": datetime.utcnow,  # TODO: timezone-aware datetime
         "get_employee_address_type_uuid": partial(
             get_employee_address_type_uuid, graphql_client
         ),
-        "get_it_system_uuid": partial(dataloader.moapi.get_it_system_uuid),
+        "get_it_system_uuid": partial(moapi.get_it_system_uuid),
         "get_visibility_uuid": partial(get_visibility_uuid, graphql_client),
         "get_org_unit_path_string": partial(
             get_org_unit_path_string,
@@ -445,7 +446,7 @@ def construct_globals_dict(
         ),
         # These names are intentionally bad, but consistent with the old code names
         # TODO: Rename these functions once the old template system is gone
-        "load_mo_employee": dataloader.moapi.load_mo_employee,
+        "load_mo_employee": moapi.load_mo_employee,
         "load_mo_primary_engagement": partial(load_primary_engagement, dataloader),
         "load_mo_it_user": partial(load_it_user, dataloader),
         "load_mo_address": partial(load_address, dataloader),
