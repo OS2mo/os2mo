@@ -202,7 +202,7 @@ async def _create_facet_class(
         raise NoObjectsReturnedException(
             f"Could not find facet with user_key = '{facet_user_key}'"
         )
-    return await dataloader.create_mo_class(
+    return await dataloader.moapi.create_mo_class(
         name=class_user_key, user_key=class_user_key, facet_uuid=facet_uuid
     )
 

@@ -1127,11 +1127,13 @@ async def test_create_mo_class(dataloader: DataLoader):
 
     # Case1: The class does not exist yet
     dataloader.graphql_client.read_class_uuid.return_value = class_not_found_response  # type: ignore
-    assert await dataloader.create_mo_class("", "", uuid4()) == uuid
+    assert await dataloader.moapi.create_mo_class("", "", uuid4()) == uuid
 
     # Case2: The class already exists
     dataloader.graphql_client.read_class_uuid.return_value = class_exists_response  # type: ignore
-    assert await dataloader.create_mo_class("", "", uuid4()) == existing_class_uuid
+    assert (
+        await dataloader.moapi.create_mo_class("", "", uuid4()) == existing_class_uuid
+    )
 
     # Case3: We call the function twice and the first one needs to wait for the second
     dataloader.graphql_client.read_class_uuid.return_value = class_not_found_response  # type: ignore
@@ -1139,8 +1141,8 @@ async def test_create_mo_class(dataloader: DataLoader):
     # Because of the lock, only one instance can run at the time.
     t1 = time.time()
     await asyncio.gather(
-        dataloader.create_mo_class("n", "user_key", uuid4()),
-        dataloader.create_mo_class("n", "user_key", uuid4()),
+        dataloader.moapi.create_mo_class("n", "user_key", uuid4()),
+        dataloader.moapi.create_mo_class("n", "user_key", uuid4()),
     )
     t2 = time.time()
     assert (t2 - t1) > 0.2  # each task takes 0.1 second
@@ -1158,12 +1160,12 @@ async def test_create_mo_job_function(
 
     uuid2 = uuid4()
 
-    dataloader.create_mo_class = AsyncMock()  # type: ignore
-    dataloader.create_mo_class.return_value = uuid2
+    dataloader.moapi.create_mo_class = AsyncMock()  # type: ignore
+    dataloader.moapi.create_mo_class.return_value = uuid2
 
     assert await get_or_create_job_function_uuid(dataloader, "foo") == str(uuid2)
 
-    kwargs = dataloader.create_mo_class.call_args_list[0].kwargs
+    kwargs = dataloader.moapi.create_mo_class.call_args_list[0].kwargs
     assert kwargs == {"name": "foo", "user_key": "foo", "facet_uuid": uuid1}
 
 
