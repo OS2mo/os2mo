@@ -349,13 +349,11 @@ async def apply_discriminator(
     # have any of these disallowed values whatsoever.
     # NOTE: We assume that at most one such account exists.
     if settings.discriminator_function == "exclude":
-        return only(
-            {
-                dn
-                for dn, value in mapping.items()
-                if str(value) not in discriminator_values or value is None
-            }
-        )
+        discriminator_values = [
+            "{{ value|string not in "
+            + str(discriminator_values)
+            + " or value is none }}"
+        ]
 
     if settings.discriminator_function == "include":
         # If the discriminator_function is include, discriminator_values will be a
@@ -369,7 +367,7 @@ async def apply_discriminator(
             for dn_value in discriminator_values
         ]
 
-    assert settings.discriminator_function in ["include", "template"]
+    assert settings.discriminator_function in ["exclude", "include", "template"]
     # If the discriminator_function is template, discriminator values will be a
     # prioritized list of jinja templates (first meaning most important), and we will
     # want to find the best (most important) account.
