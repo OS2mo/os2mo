@@ -1530,12 +1530,12 @@ async def test_create_or_edit_mo_objects(dataloader: DataLoader) -> None:
 
     dataloader.moapi.create = AsyncMock()  # type: ignore
     dataloader.moapi.edit = AsyncMock()  # type: ignore
-    dataloader.terminate = AsyncMock()  # type: ignore
+    dataloader.moapi.terminate = AsyncMock()  # type: ignore
 
     await dataloader.moapi.create_or_edit_mo_objects(dataloader, objs)  # type: ignore
     dataloader.moapi.create.assert_called_once_with([create])
     dataloader.moapi.edit.assert_called_once_with([edit])
-    dataloader.terminate.assert_called_once_with([terminate])
+    dataloader.moapi.terminate.assert_called_once_with([terminate])
 
 
 @pytest.mark.parametrize(

@@ -5,7 +5,6 @@
 import asyncio
 from contextlib import suppress
 from datetime import datetime
-from typing import Any
 from typing import cast
 from uuid import UUID
 
@@ -45,7 +44,6 @@ from .models import MOBase
 from .types import DN
 from .types import CPRNumber
 from .types import EmployeeUUID
-from .utils import is_exception
 from .utils import mo_today
 
 logger = structlog.stdlib.get_logger()
@@ -504,31 +502,6 @@ class DataLoader:
             await self.terminate_ituser(uuid, at)
         else:  # pragma: no cover
             raise NotImplementedError(f"Unable to terminate {motype}")
-
-    async def terminate(self, terminatees: list[Any]) -> None:
-        """Terminate a list of details.
-
-        This method calls `terminate_object` for each objects in parallel.
-
-        Args:
-            terminatees: The list of details to terminate.
-
-        Returns:
-            UUIDs of the terminated entries
-        """
-        detail_terminations: list[dict[str, Any]] = [
-            {
-                "motype": type(terminate),
-                "uuid": terminate.uuid,
-                "at": terminate.terminate_,
-            }
-            for terminate in terminatees
-        ]
-        tasks = [self.terminate_object(**detail) for detail in detail_terminations]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-        exceptions = cast(list[Exception], list(filter(is_exception, results)))
-        if exceptions:  # pragma: no cover
-            raise ExceptionGroup("Exceptions during termination", exceptions)
 
     async def create_mo_class(
         self,

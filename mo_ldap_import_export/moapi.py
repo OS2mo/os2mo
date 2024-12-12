@@ -7,6 +7,7 @@ from datetime import UTC
 from datetime import datetime
 from enum import Enum
 from enum import auto
+from typing import Any
 from typing import Protocol
 from typing import TypeVar
 from typing import cast
@@ -548,7 +549,7 @@ class MOAPI:
         await asyncio.gather(
             self.create(dataloader, [obj for obj, _ in creates]),
             self.edit(dataloader, [obj for obj, _ in edits]),
-            dataloader.terminate([obj for obj, _ in terminates]),
+            self.terminate(dataloader, [obj for obj, _ in terminates]),
         )
 
     async def create(self, dataloader, creates: list[MOBase]) -> None:
@@ -564,3 +565,30 @@ class MOAPI:
         exceptions = cast(list[Exception], list(filter(is_exception, results)))
         if exceptions:  # pragma: no cover
             raise ExceptionGroup("Exceptions during modification", exceptions)
+
+    async def terminate(self, dataloader, terminatees: list[Any]) -> None:
+        """Terminate a list of details.
+
+        This method calls `terminate_object` for each objects in parallel.
+
+        Args:
+            terminatees: The list of details to terminate.
+
+        Returns:
+            UUIDs of the terminated entries
+        """
+        detail_terminations: list[dict[str, Any]] = [
+            {
+                "motype": type(terminate),
+                "uuid": terminate.uuid,
+                "at": terminate.terminate_,
+            }
+            for terminate in terminatees
+        ]
+        tasks = [
+            dataloader.terminate_object(**detail) for detail in detail_terminations
+        ]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        exceptions = cast(list[Exception], list(filter(is_exception, results)))
+        if exceptions:  # pragma: no cover
+            raise ExceptionGroup("Exceptions during termination", exceptions)
