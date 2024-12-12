@@ -27,12 +27,6 @@ from more_itertools import partition
 from more_itertools import quantify
 from structlog.contextvars import bound_contextvars
 
-from mo_ldap_import_export.models import Address
-from mo_ldap_import_export.models import Employee
-from mo_ldap_import_export.models import Engagement
-from mo_ldap_import_export.models import ITUser
-from mo_ldap_import_export.models import MOBase
-
 from .config import Settings
 from .converters import LdapConverter
 from .customer_specific_checks import ExportChecks
@@ -44,6 +38,11 @@ from .exceptions import DNNotFound
 from .exceptions import SkipObject
 from .ldap import apply_discriminator
 from .ldap import get_ldap_object
+from .models import Address
+from .models import Employee
+from .models import Engagement
+from .models import ITUser
+from .models import MOBase
 from .types import EmployeeUUID
 from .types import OrgUnitUUID
 from .utils import bucketdict

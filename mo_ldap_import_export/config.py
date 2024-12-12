@@ -26,9 +26,8 @@ from pydantic import parse_obj_as
 from pydantic import root_validator
 from pydantic import validator
 
-from mo_ldap_import_export.models import MOBase
-
 from .models import Employee
+from .models import MOBase
 from .utils import import_class
 
 logger = structlog.stdlib.get_logger()
