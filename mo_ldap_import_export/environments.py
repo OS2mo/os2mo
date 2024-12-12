@@ -305,9 +305,9 @@ async def load_it_user(
 
 
 async def create_mo_it_user(
-    dataloader: DataLoader, employee_uuid: UUID, itsystem_user_key: str, user_key: str
+    moapi: MOAPI, employee_uuid: UUID, itsystem_user_key: str, user_key: str
 ) -> ITUser | None:
-    it_system_uuid = UUID(await dataloader.moapi.get_it_system_uuid(itsystem_user_key))
+    it_system_uuid = UUID(await moapi.get_it_system_uuid(itsystem_user_key))
 
     # Make a new it-user
     it_user = ITUser(
@@ -316,8 +316,8 @@ async def create_mo_it_user(
         person=employee_uuid,
         validity={"start": mo_today()},
     )
-    await dataloader.moapi.create_ituser(it_user)
-    return await load_it_user(dataloader.moapi, employee_uuid, itsystem_user_key)
+    await moapi.create_ituser(it_user)
+    return await load_it_user(moapi, employee_uuid, itsystem_user_key)
 
 
 async def load_address(
@@ -454,7 +454,7 @@ def construct_globals_dict(
         "load_mo_it_user": partial(load_it_user, moapi),
         "load_mo_address": partial(load_address, moapi),
         "load_mo_org_unit_address": partial(load_org_unit_address, moapi),
-        "create_mo_it_user": partial(create_mo_it_user, dataloader),
+        "create_mo_it_user": partial(create_mo_it_user, moapi),
         "generate_username": partial(generate_username, dataloader),
         "skip_if_none": skip_if_none,
     }
