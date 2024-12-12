@@ -468,17 +468,6 @@ class DataLoader:
             ITUserTerminateInput(uuid=uuid, to=at)
         )
 
-    async def terminate_object(self, uuid: UUID, at: datetime, motype: type) -> None:
-        """Terminate a detail."""
-        if issubclass(motype, Address):
-            await self.terminate_address(uuid, at)
-        elif issubclass(motype, Engagement):
-            await self.terminate_engagement(uuid, at)
-        elif issubclass(motype, ITUser):
-            await self.terminate_ituser(uuid, at)
-        else:  # pragma: no cover
-            raise NotImplementedError(f"Unable to terminate {motype}")
-
     async def create_mo_class(
         self,
         name: str,

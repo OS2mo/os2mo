@@ -610,9 +610,23 @@ class MOAPI:
             for terminate in terminatees
         ]
         tasks = [
-            dataloader.terminate_object(**detail) for detail in detail_terminations
+            self.terminate_object(dataloader, **detail)
+            for detail in detail_terminations
         ]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         exceptions = cast(list[Exception], list(filter(is_exception, results)))
         if exceptions:  # pragma: no cover
             raise ExceptionGroup("Exceptions during termination", exceptions)
+
+    async def terminate_object(
+        self, dataloader, uuid: UUID, at: datetime, motype: type
+    ) -> None:
+        """Terminate a detail."""
+        if issubclass(motype, Address):
+            await dataloader.terminate_address(uuid, at)
+        elif issubclass(motype, Engagement):
+            await dataloader.terminate_engagement(uuid, at)
+        elif issubclass(motype, ITUser):
+            await dataloader.terminate_ituser(uuid, at)
+        else:  # pragma: no cover
+            raise NotImplementedError(f"Unable to terminate {motype}")
