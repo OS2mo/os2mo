@@ -18,13 +18,12 @@ from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
 from more_itertools import bucket
 
-from mo_ldap_import_export.models import Address
-from mo_ldap_import_export.models import Employee
-from mo_ldap_import_export.models import Engagement
-from mo_ldap_import_export.models import ITUser
-from mo_ldap_import_export.models import MOBase
-
+from .models import Address
+from .models import Employee
+from .models import Engagement
+from .models import ITUser
 from .models import JobTitleFromADToMO
+from .models import MOBase
 
 logger = structlog.stdlib.get_logger()
 

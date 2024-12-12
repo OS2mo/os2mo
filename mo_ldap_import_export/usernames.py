@@ -9,11 +9,10 @@ from ldap3 import Connection
 from more_itertools import one
 from more_itertools import split_when
 
-from mo_ldap_import_export.models import Employee
-
 from .config import Settings
 from .dataloaders import DataLoader
 from .ldap import paged_search
+from .models import Employee
 from .utils import combine_dn_strings
 from .utils import remove_vowels
 
