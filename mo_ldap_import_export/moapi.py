@@ -547,7 +547,7 @@ class MOAPI:
 
         await asyncio.gather(
             self.create(dataloader, [obj for obj, _ in creates]),
-            dataloader.edit([obj for obj, _ in edits]),
+            self.edit(dataloader, [obj for obj, _ in edits]),
             dataloader.terminate([obj for obj, _ in terminates]),
         )
 
@@ -557,3 +557,10 @@ class MOAPI:
         exceptions = cast(list[Exception], list(filter(is_exception, results)))
         if exceptions:  # pragma: no cover
             raise ExceptionGroup("Exceptions during creation", exceptions)
+
+    async def edit(self, dataloader, edits: list[MOBase]) -> None:
+        tasks = [dataloader.edit_object(obj) for obj in edits]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        exceptions = cast(list[Exception], list(filter(is_exception, results)))
+        if exceptions:  # pragma: no cover
+            raise ExceptionGroup("Exceptions during modification", exceptions)
