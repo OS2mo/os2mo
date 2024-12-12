@@ -240,10 +240,10 @@ get_or_create_job_function_uuid = partial(
 
 
 async def load_primary_engagement(
-    dataloader: DataLoader, employee_uuid: UUID
+    moapi: MOAPI, employee_uuid: UUID
 ) -> Engagement | None:
     primary_engagement_uuid = await get_primary_engagement(
-        dataloader.graphql_client, EmployeeUUID(employee_uuid)
+        moapi.graphql_client, EmployeeUUID(employee_uuid)
     )
     if primary_engagement_uuid is None:
         logger.info(
@@ -251,7 +251,7 @@ async def load_primary_engagement(
         )
         return None
 
-    fetched_engagement = await dataloader.moapi.load_mo_engagement(
+    fetched_engagement = await moapi.load_mo_engagement(
         primary_engagement_uuid, current_objects_only=False
     )
     if fetched_engagement is None:  # pragma: no cover
@@ -450,7 +450,7 @@ def construct_globals_dict(
         # These names are intentionally bad, but consistent with the old code names
         # TODO: Rename these functions once the old template system is gone
         "load_mo_employee": moapi.load_mo_employee,
-        "load_mo_primary_engagement": partial(load_primary_engagement, dataloader),
+        "load_mo_primary_engagement": partial(load_primary_engagement, moapi),
         "load_mo_it_user": partial(load_it_user, dataloader),
         "load_mo_address": partial(load_address, dataloader),
         "load_mo_org_unit_address": partial(load_org_unit_address, dataloader),
