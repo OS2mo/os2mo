@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
-from contextlib import suppress
 from typing import Any
 from typing import cast
 from uuid import UUID
@@ -17,7 +16,6 @@ from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from more_itertools import one
 from more_itertools import partition
-from ramodels.mo._shared import validate_cpr
 
 from .config import Settings
 from .exceptions import NoObjectsReturnedException
@@ -200,24 +198,16 @@ class LDAPAPI:
             self.ldap_connection, dn, [self.settings.ldap_cpr_attribute]
         )
         # Try to get the cpr number from LDAP and use that.
-        with suppress(ValueError):
-            raw_cpr_number = getattr(ldap_object, self.settings.ldap_cpr_attribute)
-            # NOTE: Not sure if this only necessary for the mocked server or not
-            if isinstance(raw_cpr_number, list):
-                raw_cpr_number = one(raw_cpr_number)
-            cpr_number = validate_cpr(str(raw_cpr_number))
-            assert cpr_number is not None
-            return CPRNumber(cpr_number)
-        return None
+        raw_cpr_number = getattr(ldap_object, self.settings.ldap_cpr_attribute)
+        assert raw_cpr_number is not None
+        # NOTE: Not sure if this only necessary for the mocked server or not
+        if isinstance(raw_cpr_number, list):
+            raw_cpr_number = one(raw_cpr_number)
+        assert raw_cpr_number is not None
+        cpr_number = str(raw_cpr_number)
+        return CPRNumber(cpr_number)
 
     async def cpr2dns(self, cpr_number: CPRNumber) -> set[DN]:
-        try:
-            validate_cpr(cpr_number)
-        except (ValueError, TypeError) as error:
-            raise NoObjectsReturnedException(
-                f"cpr_number '{cpr_number}' is invalid"
-            ) from error
-
         if not self.settings.ldap_cpr_attribute:
             raise NoObjectsReturnedException("cpr_field is not configured")
 
