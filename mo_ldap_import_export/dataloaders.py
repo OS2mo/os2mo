@@ -13,7 +13,6 @@ import structlog
 from fastramqpi.context import Context
 from fastramqpi.ramqp.mo import MOAMQPSystem
 from ldap3 import Connection
-from more_itertools import bucket
 from more_itertools import one
 from more_itertools import partition
 
@@ -38,7 +37,6 @@ from .exceptions import NoObjectsReturnedException
 from .ldap import is_uuid
 from .ldapapi import LDAPAPI
 from .moapi import MOAPI
-from .moapi import Verb
 from .models import Address
 from .models import Employee
 from .models import Engagement
@@ -49,7 +47,6 @@ from .types import CPRNumber
 from .types import EmployeeUUID
 from .utils import is_exception
 from .utils import mo_today
-from .utils import star
 
 logger = structlog.stdlib.get_logger()
 
@@ -313,42 +310,6 @@ class DataLoader:
             await self.create_ituser(it_user)
 
         return dn
-
-    async def create_or_edit_mo_objects(
-        self, objects: list[tuple[MOBase, Verb]]
-    ) -> None:
-        # TODO: the TERMINATE verb should definitely be emitted directly in
-        # format_converted_objects instead.
-        def fix_verb(obj: MOBase, verb: Verb) -> tuple[MOBase, Verb] | None:
-            if hasattr(obj, "terminate_"):
-                # Objects to create do not exist, and have a randomly generated
-                # UUID, so obviously cannot be terminated and will result in
-                # hard-to-understand errors.
-                if verb is Verb.CREATE:
-                    return None
-                return obj, Verb.TERMINATE
-            return obj, verb
-
-        # HACK to set termination verb, should be set within format_converted_objects instead,
-        # but doing so requires restructuring the entire flow of the integration, which is a major
-        # task best saved for later.
-        objects = [
-            new_obj
-            for obj, verb in objects
-            if (new_obj := fix_verb(obj, verb)) is not None
-        ]
-
-        # Split objects into groups
-        verb_groups = bucket(objects, key=star(lambda _, verb: verb))
-        creates = verb_groups[Verb.CREATE]
-        edits = verb_groups[Verb.EDIT]
-        terminates = verb_groups[Verb.TERMINATE]
-
-        await asyncio.gather(
-            self.create([obj for obj, _ in creates]),
-            self.edit([obj for obj, _ in edits]),
-            self.terminate([obj for obj, _ in terminates]),
-        )
 
     async def create_employee(self, obj: Employee) -> None:
         await self.graphql_client.user_create(

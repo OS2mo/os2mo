@@ -648,4 +648,6 @@ class SyncTool:
             converted_objects=converted_objects,
             dn=dn,
         )
-        await self.dataloader.create_or_edit_mo_objects(converted_objects)
+        await self.dataloader.moapi.create_or_edit_mo_objects(
+            self.dataloader, converted_objects
+        )

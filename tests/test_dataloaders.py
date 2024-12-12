@@ -1532,7 +1532,7 @@ async def test_create_or_edit_mo_objects(dataloader: DataLoader) -> None:
     dataloader.edit = AsyncMock()  # type: ignore
     dataloader.terminate = AsyncMock()  # type: ignore
 
-    await dataloader.create_or_edit_mo_objects(objs)  # type: ignore
+    await dataloader.moapi.create_or_edit_mo_objects(dataloader, objs)  # type: ignore
     dataloader.create.assert_called_once_with([create])
     dataloader.edit.assert_called_once_with([edit])
     dataloader.terminate.assert_called_once_with([terminate])

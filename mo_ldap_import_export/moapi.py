@@ -15,6 +15,7 @@ from uuid import UUID
 import structlog
 from fastapi.encoders import jsonable_encoder
 from fastramqpi.ramqp.utils import RequeueMessage
+from more_itertools import bucket
 from more_itertools import one
 from more_itertools import only
 from more_itertools import partition
@@ -31,6 +32,7 @@ from .models import Address
 from .models import Employee
 from .models import Engagement
 from .models import ITUser
+from .models import MOBase
 from .types import EmployeeUUID
 from .types import OrgUnitUUID
 from .utils import star
@@ -511,3 +513,39 @@ class MOAPI:
         # If no active validities, pretend we did not get the object at all
         output = [obj for obj in output if obj is not None]
         return cast(list[Engagement], output)
+
+    async def create_or_edit_mo_objects(
+        self, dataloader, objects: list[tuple[MOBase, Verb]]
+    ) -> None:
+        # TODO: the TERMINATE verb should definitely be emitted directly in
+        # format_converted_objects instead.
+        def fix_verb(obj: MOBase, verb: Verb) -> tuple[MOBase, Verb] | None:
+            if hasattr(obj, "terminate_"):
+                # Objects to create do not exist, and have a randomly generated
+                # UUID, so obviously cannot be terminated and will result in
+                # hard-to-understand errors.
+                if verb is Verb.CREATE:
+                    return None
+                return obj, Verb.TERMINATE
+            return obj, verb
+
+        # HACK to set termination verb, should be set within format_converted_objects instead,
+        # but doing so requires restructuring the entire flow of the integration, which is a major
+        # task best saved for later.
+        objects = [
+            new_obj
+            for obj, verb in objects
+            if (new_obj := fix_verb(obj, verb)) is not None
+        ]
+
+        # Split objects into groups
+        verb_groups = bucket(objects, key=star(lambda _, verb: verb))
+        creates = verb_groups[Verb.CREATE]
+        edits = verb_groups[Verb.EDIT]
+        terminates = verb_groups[Verb.TERMINATE]
+
+        await asyncio.gather(
+            dataloader.create([obj for obj, _ in creates]),
+            dataloader.edit([obj for obj, _ in edits]),
+            dataloader.terminate([obj for obj, _ in terminates]),
+        )
