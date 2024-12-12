@@ -963,6 +963,10 @@ async def test_make_mo_employee_dn_no_cpr(
     route3 = graphql_mock.query("read_itsystem_uuid")
     route3.result = {"itsystems": {"objects": [{"uuid": itsystem_uuid}]}}
 
+    result_uuid = uuid4()
+    route4 = graphql_mock.query("ituser_create")
+    route4.result = {"ituser_create": {"uuid": result_uuid}}
+
     dn = "CN=foo"
     username_generator = AsyncMock()
     username_generator.generate_dn.return_value = dn
@@ -976,8 +980,6 @@ async def test_make_mo_employee_dn_no_cpr(
     amqp_exchange_name = "amqp_exchange_name"
     dataloader.amqpsystem.exchange_name = amqp_exchange_name
 
-    dataloader.create_ituser = AsyncMock()
-
     with capture_logs() as cap_logs:
         result = await dataloader.make_mo_employee_dn(employee_uuid)
         assert result == dn
@@ -987,8 +989,7 @@ async def test_make_mo_employee_dn_no_cpr(
         "No ITUser found, creating one to correlate with DN",
         "LDAP UUID found for DN",
     ]
-
-    dataloader.create_ituser.assert_called_once()
+    assert route4.called
 
 
 def test_extract_unique_objectGUIDs(dataloader: DataLoader) -> None:

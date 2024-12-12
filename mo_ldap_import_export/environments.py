@@ -313,7 +313,7 @@ async def create_mo_it_user(
         person=employee_uuid,
         validity={"start": mo_today()},
     )
-    await dataloader.create_ituser(it_user)
+    await dataloader.moapi.create_ituser(it_user)
     return await load_it_user(dataloader, employee_uuid, itsystem_user_key)
 
 
