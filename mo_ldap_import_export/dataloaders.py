@@ -5,8 +5,6 @@
 import asyncio
 from contextlib import suppress
 from datetime import datetime
-from enum import Enum
-from enum import auto
 from typing import Any
 from typing import cast
 from uuid import UUID
@@ -40,6 +38,7 @@ from .exceptions import NoObjectsReturnedException
 from .ldap import is_uuid
 from .ldapapi import LDAPAPI
 from .moapi import MOAPI
+from .moapi import Verb
 from .models import Address
 from .models import Employee
 from .models import Engagement
@@ -53,12 +52,6 @@ from .utils import mo_today
 from .utils import star
 
 logger = structlog.stdlib.get_logger()
-
-
-class Verb(Enum):
-    CREATE = auto()
-    EDIT = auto()
-    TERMINATE = auto()
 
 
 class DataLoader:

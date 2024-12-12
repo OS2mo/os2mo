@@ -33,11 +33,11 @@ from .customer_specific_checks import ExportChecks
 from .customer_specific_checks import ImportChecks
 from .dataloaders import DN
 from .dataloaders import DataLoader
-from .dataloaders import Verb
 from .exceptions import DNNotFound
 from .exceptions import SkipObject
 from .ldap import apply_discriminator
 from .ldap import get_ldap_object
+from .moapi import Verb
 from .models import Address
 from .models import Employee
 from .models import Engagement

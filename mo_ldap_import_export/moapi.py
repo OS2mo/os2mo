@@ -5,6 +5,8 @@ from collections.abc import Generator
 from collections.abc import Sequence
 from datetime import UTC
 from datetime import datetime
+from enum import Enum
+from enum import auto
 from typing import Protocol
 from typing import TypeVar
 from typing import cast
@@ -34,6 +36,12 @@ from .types import OrgUnitUUID
 from .utils import star
 
 logger = structlog.stdlib.get_logger()
+
+
+class Verb(Enum):
+    CREATE = auto()
+    EDIT = auto()
+    TERMINATE = auto()
 
 
 class Validity(Protocol):
