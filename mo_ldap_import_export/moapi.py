@@ -572,11 +572,23 @@ class MOAPI:
             raise NotImplementedError(f"Unable to create {obj}")
 
     async def edit(self, dataloader, edits: list[MOBase]) -> None:
-        tasks = [dataloader.edit_object(obj) for obj in edits]
+        tasks = [self.edit_object(dataloader, obj) for obj in edits]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         exceptions = cast(list[Exception], list(filter(is_exception, results)))
         if exceptions:  # pragma: no cover
             raise ExceptionGroup("Exceptions during modification", exceptions)
+
+    async def edit_object(self, dataloader, obj: MOBase) -> None:
+        if isinstance(obj, Address):
+            await dataloader.edit_address(obj)
+        elif isinstance(obj, Employee):  # pragma: no cover
+            await dataloader.edit_employee(obj)
+        elif isinstance(obj, Engagement):
+            await dataloader.edit_engagement(obj)
+        elif isinstance(obj, ITUser):
+            await dataloader.edit_ituser(obj)
+        else:  # pragma: no cover
+            raise NotImplementedError(f"Unable to edit {obj}")
 
     async def terminate(self, dataloader, terminatees: list[Any]) -> None:
         """Terminate a list of details.

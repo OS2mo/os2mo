@@ -453,18 +453,6 @@ class DataLoader:
             )
         )
 
-    async def edit_object(self, obj: MOBase) -> None:
-        if isinstance(obj, Address):
-            await self.edit_address(obj)
-        elif isinstance(obj, Employee):  # pragma: no cover
-            await self.edit_employee(obj)
-        elif isinstance(obj, Engagement):
-            await self.edit_engagement(obj)
-        elif isinstance(obj, ITUser):
-            await self.edit_ituser(obj)
-        else:  # pragma: no cover
-            raise NotImplementedError(f"Unable to edit {obj}")
-
     async def terminate_address(self, uuid: UUID, at: datetime) -> None:
         await self.graphql_client.address_terminate(
             AddressTerminateInput(uuid=uuid, to=at)
