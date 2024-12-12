@@ -422,25 +422,24 @@ def skip_if_none(obj: T | None) -> T:
 def construct_globals_dict(
     settings: Settings, dataloader: DataLoader
 ) -> dict[str, Any]:
+    graphql_client = dataloader.graphql_client
     return {
         "now": datetime.utcnow,  # TODO: timezone-aware datetime
         "get_employee_address_type_uuid": partial(
-            get_employee_address_type_uuid, dataloader.graphql_client
+            get_employee_address_type_uuid, graphql_client
         ),
         "get_it_system_uuid": partial(dataloader.moapi.get_it_system_uuid),
-        "get_visibility_uuid": partial(get_visibility_uuid, dataloader.graphql_client),
+        "get_visibility_uuid": partial(get_visibility_uuid, graphql_client),
         "get_org_unit_path_string": partial(
             get_org_unit_path_string,
-            dataloader.graphql_client,
+            graphql_client,
             settings.org_unit_path_string_separator,
         ),
         "get_org_unit_name_for_parent": partial(
-            get_org_unit_name_for_parent, dataloader.graphql_client
+            get_org_unit_name_for_parent, graphql_client
         ),
-        "get_job_function_name": partial(
-            get_job_function_name, dataloader.graphql_client
-        ),
-        "get_org_unit_name": partial(get_org_unit_name, dataloader.graphql_client),
+        "get_job_function_name": partial(get_job_function_name, graphql_client),
+        "get_org_unit_name": partial(get_org_unit_name, graphql_client),
         "get_or_create_job_function_uuid": partial(
             get_or_create_job_function_uuid, dataloader
         ),
