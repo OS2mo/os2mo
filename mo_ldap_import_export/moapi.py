@@ -35,6 +35,7 @@ from .models import ITUser
 from .models import MOBase
 from .types import EmployeeUUID
 from .types import OrgUnitUUID
+from .utils import is_exception
 from .utils import star
 
 logger = structlog.stdlib.get_logger()
@@ -545,7 +546,14 @@ class MOAPI:
         terminates = verb_groups[Verb.TERMINATE]
 
         await asyncio.gather(
-            dataloader.create([obj for obj, _ in creates]),
+            self.create(dataloader, [obj for obj, _ in creates]),
             dataloader.edit([obj for obj, _ in edits]),
             dataloader.terminate([obj for obj, _ in terminates]),
         )
+
+    async def create(self, dataloader, creates: list[MOBase]) -> None:
+        tasks = [dataloader.create_object(obj) for obj in creates]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        exceptions = cast(list[Exception], list(filter(is_exception, results)))
+        if exceptions:  # pragma: no cover
+            raise ExceptionGroup("Exceptions during creation", exceptions)

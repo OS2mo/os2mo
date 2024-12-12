@@ -400,13 +400,6 @@ class DataLoader:
         else:  # pragma: no cover
             raise NotImplementedError(f"Unable to create {obj}")
 
-    async def create(self, creates: list[MOBase]) -> None:
-        tasks = [self.create_object(obj) for obj in creates]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-        exceptions = cast(list[Exception], list(filter(is_exception, results)))
-        if exceptions:  # pragma: no cover
-            raise ExceptionGroup("Exceptions during creation", exceptions)
-
     async def edit_employee(self, obj: Employee) -> None:  # pragma: no cover
         # TODO: see comment in import_export.py:format_converted_objects()
         raise NotImplementedError("cannot edit employee using ramodels object")
