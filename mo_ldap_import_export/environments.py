@@ -362,10 +362,10 @@ async def load_address(
 
 
 async def load_org_unit_address(
-    dataloader: DataLoader, employee_uuid: UUID, address_type_user_key: str
+    moapi: MOAPI, employee_uuid: UUID, address_type_user_key: str
 ) -> Address | None:
     primary_engagement_uuid = await get_primary_engagement(
-        dataloader.graphql_client, EmployeeUUID(employee_uuid)
+        moapi.graphql_client, EmployeeUUID(employee_uuid)
     )
     if primary_engagement_uuid is None:
         logger.info(
@@ -373,7 +373,7 @@ async def load_org_unit_address(
         )
         return None
 
-    result = await dataloader.graphql_client.read_filtered_addresses(
+    result = await moapi.graphql_client.read_filtered_addresses(
         AddressFilter(
             # TODO: Use primary engagement filter here
             org_unit=OrganisationUnitFilter(
@@ -393,7 +393,7 @@ async def load_org_unit_address(
             address_type_user_key=address_type_user_key,
         )
         return None
-    fetched_address = await dataloader.moapi.load_mo_address(
+    fetched_address = await moapi.load_mo_address(
         validity.uuid, current_objects_only=False
     )
     if fetched_address is None:  # pragma: no cover
@@ -453,7 +453,7 @@ def construct_globals_dict(
         "load_mo_primary_engagement": partial(load_primary_engagement, moapi),
         "load_mo_it_user": partial(load_it_user, moapi),
         "load_mo_address": partial(load_address, moapi),
-        "load_mo_org_unit_address": partial(load_org_unit_address, dataloader),
+        "load_mo_org_unit_address": partial(load_org_unit_address, moapi),
         "create_mo_it_user": partial(create_mo_it_user, dataloader),
         "generate_username": partial(generate_username, dataloader),
         "skip_if_none": skip_if_none,
