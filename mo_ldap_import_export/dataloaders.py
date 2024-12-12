@@ -386,18 +386,6 @@ class DataLoader:
             )
         )
 
-    async def create_object(self, obj: MOBase) -> None:
-        if isinstance(obj, Address):
-            await self.create_address(obj)
-        elif isinstance(obj, Employee):
-            await self.create_employee(obj)
-        elif isinstance(obj, Engagement):  # pragma: no cover
-            await self.create_engagement(obj)
-        elif isinstance(obj, ITUser):
-            await self.create_ituser(obj)
-        else:  # pragma: no cover
-            raise NotImplementedError(f"Unable to create {obj}")
-
     async def edit_employee(self, obj: Employee) -> None:  # pragma: no cover
         # TODO: see comment in import_export.py:format_converted_objects()
         raise NotImplementedError("cannot edit employee using ramodels object")

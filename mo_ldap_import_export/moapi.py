@@ -553,11 +553,23 @@ class MOAPI:
         )
 
     async def create(self, dataloader, creates: list[MOBase]) -> None:
-        tasks = [dataloader.create_object(obj) for obj in creates]
+        tasks = [self.create_object(dataloader, obj) for obj in creates]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         exceptions = cast(list[Exception], list(filter(is_exception, results)))
         if exceptions:  # pragma: no cover
             raise ExceptionGroup("Exceptions during creation", exceptions)
+
+    async def create_object(self, dataloader, obj: MOBase) -> None:
+        if isinstance(obj, Address):
+            await dataloader.create_address(obj)
+        elif isinstance(obj, Employee):
+            await dataloader.create_employee(obj)
+        elif isinstance(obj, Engagement):  # pragma: no cover
+            await dataloader.create_engagement(obj)
+        elif isinstance(obj, ITUser):
+            await dataloader.create_ituser(obj)
+        else:  # pragma: no cover
+            raise NotImplementedError(f"Unable to create {obj}")
 
     async def edit(self, dataloader, edits: list[MOBase]) -> None:
         tasks = [dataloader.edit_object(obj) for obj in edits]
