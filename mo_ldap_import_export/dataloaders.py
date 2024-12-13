@@ -39,11 +39,7 @@ class DataLoader:
         cpr_number = await self.ldapapi.dn2cpr(dn)
         if cpr_number is None:
             return set()
-
-        result = await self.moapi.graphql_client.read_employee_uuid_by_cpr_number(
-            cpr_number
-        )
-        return {EmployeeUUID(employee.uuid) for employee in result.objects}
+        return await self.moapi.cpr2uuids(cpr_number)
 
     async def find_mo_employee_uuid(self, dn: str) -> EmployeeUUID | None:
         cpr_results = await self.find_mo_employee_uuid_via_cpr_number(dn)
