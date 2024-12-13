@@ -515,17 +515,15 @@ async def sync_tool_and_context(
     route = graphql_mock.query("read_org_units")
     route.result = {"org_units": {"objects": []}}
 
-    amqpsystem = AsyncMock()
     context: Context = {
         "user_context": {
             "ldap_connection": ldap_connection,
             "settings": settings,
         },
         "graphql_client": graphql_client,
-        "amqpsystem": amqpsystem,
     }
     # Needs context, user_context, ldap_connection
-    dataloader = DataLoader(context, amqpsystem)
+    dataloader = DataLoader(context)
     context["user_context"]["dataloader"] = dataloader
 
     # Needs context, user_context, settings, raw_mapping, dataloader

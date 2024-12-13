@@ -363,7 +363,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     )
 
     logger.info("Initializing dataloader")
-    dataloader = DataLoader(fastramqpi.get_context(), amqpsystem)
+    dataloader = DataLoader(fastramqpi.get_context())
     fastramqpi.add_context(dataloader=dataloader)
 
     logger.info("Initializing username generator")
