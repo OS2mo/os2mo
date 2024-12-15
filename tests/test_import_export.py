@@ -1084,8 +1084,9 @@ async def test_find_best_dn(sync_tool: SyncTool) -> None:
     sync_tool.dataloader.make_mo_employee_dn.return_value = dn  # type: ignore
 
     uuid = EmployeeUUID(uuid4())
-    result = await sync_tool._find_best_dn(uuid)
+    result, create = await sync_tool._find_best_dn(uuid)
     assert result == dn
+    assert create is True
 
 
 async def test_find_best_dn_no_create(sync_tool: SyncTool) -> None:
@@ -1094,8 +1095,9 @@ async def test_find_best_dn_no_create(sync_tool: SyncTool) -> None:
 
     uuid = EmployeeUUID(uuid4())
     with capture_logs() as cap_logs:
-        result = await sync_tool._find_best_dn(uuid)
+        result, create = await sync_tool._find_best_dn(uuid)
     assert result is None
+    assert create is True
 
     assert cap_logs == [
         {

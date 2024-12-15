@@ -293,11 +293,6 @@ class UserNameGenerator:
 
         raise RuntimeError("Failed to create common name")
 
-    async def _get_employee_ldap_attributes(self, employee: Employee, dn: str):
-        if not self.settings.conversion_mapping.mo2ldap:  # pragma: no cover
-            raise AssertionError("MO2LDAP template must be set to create LDAP users")
-        return await self.dataloader.sync_tool.render_ldap2mo(employee.uuid, dn)
-
     async def _get_existing_common_names(self):
         # TODO: Consider if it is better to fetch all names or candidate names
         existing_values = await self.get_existing_values(["cn"])
@@ -354,8 +349,6 @@ class UserNameGenerator:
         """
         Generates a LDAP DN (Distinguished Name) based on information from a MO Employee
         object.
-
-        Also adds an object to LDAP with this DN
         """
         name = self.generate_person_name(employee)
         existing_common_names = await self._get_existing_common_names()
@@ -367,8 +360,6 @@ class UserNameGenerator:
         )
 
         dn = self._make_dn(common_name)
-        employee_attributes = await self._get_employee_ldap_attributes(employee, dn)
-        await self.dataloader.ldapapi.add_ldap_object(dn, employee_attributes)
         return dn
 
 
@@ -412,8 +403,6 @@ class AlleroedUserNameGenerator(UserNameGenerator):
         Generates a LDAP DN (Distinguished Name) based on information from a MO Employee
         object.
 
-        Also adds an object to LDAP with this DN
-
         Follows guidelines from https://redmine.magenta-aps.dk/issues/56080
         """
         assert self.settings.ldap_dialect == "AD"
@@ -428,8 +417,6 @@ class AlleroedUserNameGenerator(UserNameGenerator):
         )
 
         dn = self._make_dn(common_name)
-        employee_attributes = await self._get_employee_ldap_attributes(employee, dn)
-        await self.dataloader.ldapapi.add_ldap_object(dn, employee_attributes)
         return dn
 
 

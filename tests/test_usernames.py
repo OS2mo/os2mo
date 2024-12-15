@@ -343,11 +343,6 @@ async def test_generate_dn(
     monkeypatch.setenv("CONVERSION_MAPPING__MO2LDAP", "{}")
     username_generator.settings = Settings()
 
-    render_ldap2mo = AsyncMock()
-    render_ldap2mo.return_value = {}  # type: ignore
-
-    username_generator.dataloader.sync_tool.render_ldap2mo = render_ldap2mo
-
     employee = Employee(given_name="Patrick", surname="Bateman")
     dn = await username_generator.generate_dn(employee)
     assert dn == "CN=Patrick Bateman,DC=bar"
@@ -456,11 +451,6 @@ async def test_alleroed_dn_generator(
 ) -> None:
     monkeypatch.setenv("CONVERSION_MAPPING__MO2LDAP", "{}")
     alleroed_username_generator.settings = Settings()
-
-    render_ldap2mo = AsyncMock()
-    render_ldap2mo.return_value = {}  # type: ignore
-
-    alleroed_username_generator.dataloader.sync_tool.render_ldap2mo = render_ldap2mo
 
     employee = Employee(given_name="Patrick", surname="Bateman")
     dn = await alleroed_username_generator.generate_dn(employee)
