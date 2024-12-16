@@ -16,10 +16,10 @@ from fastramqpi.ramqp.depends import rate_limit
 from fastramqpi.ramqp.utils import RejectMessage
 from fastramqpi.ramqp.utils import RequeueMessage
 
-from .config import LDAPAMQPConnectionSettings
 from .depends import DataLoader
 from .depends import LDAPAMQPSystem
 from .depends import LdapConverter
+from .depends import Settings
 from .depends import SyncTool
 from .depends import logger_bound_message_id
 from .depends import request_id
@@ -98,12 +98,10 @@ async def handle_uuid(
     await sync_tool.import_single_user(dn)
 
 
-def configure_ldap_amqpsystem(
-    fastramqpi: FastRAMQPI, settings: LDAPAMQPConnectionSettings
-) -> AMQPSystem:
+def configure_ldap_amqpsystem(fastramqpi: FastRAMQPI, settings: Settings) -> AMQPSystem:
     logger.info("Initializing LDAP AMQP system")
     ldap_amqpsystem = AMQPSystem(
-        settings=settings,
+        settings=settings.ldap_amqp,
         router=ldap_amqp_router,
         dependencies=[
             Depends(rate_limit(10)),
@@ -112,6 +110,7 @@ def configure_ldap_amqpsystem(
         ],
     )
     fastramqpi.add_context(ldap_amqpsystem=ldap_amqpsystem)
-    ldap_amqpsystem.router.registry.update(ldap_amqp_router.registry)
+    if settings.listen_to_changes_in_ldap:
+        ldap_amqpsystem.router.registry.update(ldap_amqp_router.registry)
     ldap_amqpsystem.context = fastramqpi._context
     return ldap_amqpsystem
