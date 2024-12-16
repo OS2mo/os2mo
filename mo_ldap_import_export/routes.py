@@ -492,10 +492,11 @@ def construct_router(settings: Settings) -> APIRouter:
         ldap_amqpsystem: depends.LDAPAMQPSystem,
         unique_ldap_uuid: UUID,
         dataloader: depends.DataLoader,
-    ) -> Any:
+    ) -> UUID:
         # Check that we can find the UUID
         await dataloader.ldapapi.get_ldap_dn(unique_ldap_uuid)
         await publish_uuids(ldap_amqpsystem, [unique_ldap_uuid])
+        return unique_ldap_uuid
 
     @router.get("/Inspect/dn2uuid/{dn}", status_code=200, tags=["LDAP"])
     async def ldap_dn2uuid(dataloader: depends.DataLoader, dn: str) -> UUID:
