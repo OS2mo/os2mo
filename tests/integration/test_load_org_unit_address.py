@@ -71,7 +71,7 @@ async def test_load_org_unit_address(
     )
 
     dataloader = context["user_context"]["dataloader"]
-    result = await load_org_unit_address(dataloader, mo_person, "EmailUnit")
+    result = await load_org_unit_address(dataloader.moapi, mo_person, "EmailUnit")
     assert result is not None
     assert result.dict(exclude_none=True) == {
         "visibility": public,
@@ -114,7 +114,7 @@ async def test_load_org_unit_address_deleted(
 
     dataloader = context["user_context"]["dataloader"]
     with capture_logs() as cap_logs:
-        result = await load_org_unit_address(dataloader, mo_person, "EmailUnit")
+        result = await load_org_unit_address(dataloader.moapi, mo_person, "EmailUnit")
     assert result is None
 
     events = [m["event"] for m in cap_logs]
@@ -166,7 +166,7 @@ async def test_load_org_unit_address_multiple_matches(
 
     dataloader = context["user_context"]["dataloader"]
     with pytest.raises(ValueError) as exc_info:
-        await load_org_unit_address(dataloader, mo_person, "EmailUnit")
+        await load_org_unit_address(dataloader.moapi, mo_person, "EmailUnit")
     assert "Expected exactly one item in iterable" in str(exc_info.value)
 
 
@@ -182,7 +182,9 @@ async def test_load_org_unit_address_invalid_employee(context: Context) -> None:
     dataloader = context["user_context"]["dataloader"]
     employee_uuid = uuid4()
     with capture_logs() as cap_logs:
-        result = await load_org_unit_address(dataloader, employee_uuid, "EmailUnit")
+        result = await load_org_unit_address(
+            dataloader.moapi, employee_uuid, "EmailUnit"
+        )
     assert result is None
 
     events = [m["event"] for m in cap_logs]
@@ -206,7 +208,7 @@ async def test_load_org_unit_address_invalid_address_type(
     dataloader = context["user_context"]["dataloader"]
     with capture_logs() as cap_logs:
         result = await load_org_unit_address(
-            dataloader, mo_person, "non_existing_it_system"
+            dataloader.moapi, mo_person, "non_existing_it_system"
         )
     assert result is None
 
@@ -230,7 +232,7 @@ async def test_load_org_unit_address_no_address(
 ) -> None:
     dataloader = context["user_context"]["dataloader"]
     with capture_logs() as cap_logs:
-        result = await load_org_unit_address(dataloader, mo_person, "EmailUnit")
+        result = await load_org_unit_address(dataloader.moapi, mo_person, "EmailUnit")
     assert result is None
 
     events = [m["event"] for m in cap_logs]

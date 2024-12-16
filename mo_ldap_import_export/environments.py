@@ -21,6 +21,7 @@ from more_itertools import flatten
 from more_itertools import one
 from more_itertools import only
 
+from mo_ldap_import_export.moapi import MOAPI
 from mo_ldap_import_export.moapi import extract_current_or_latest_validity
 from mo_ldap_import_export.moapi import flatten_validities
 from mo_ldap_import_export.moapi import get_primary_engagement
@@ -184,7 +185,7 @@ async def get_org_unit_name(graphql_client: GraphQLClient, uuid: UUID) -> str:
 
 
 async def _create_facet_class(
-    dataloader: DataLoader, class_user_key: str, facet_user_key: str
+    moapi: MOAPI, class_user_key: str, facet_user_key: str
 ) -> UUID:
     """Creates a class under the specified facet in MO.
 
@@ -197,18 +198,18 @@ async def _create_facet_class(
         The uuid of the created class
     """
     logger.info("Creating MO class", facet_user_key=facet_user_key, name=class_user_key)
-    facet_uuid = await dataloader.moapi.load_mo_facet_uuid(facet_user_key)
+    facet_uuid = await moapi.load_mo_facet_uuid(facet_user_key)
     if facet_uuid is None:
         raise NoObjectsReturnedException(
             f"Could not find facet with user_key = '{facet_user_key}'"
         )
-    return await dataloader.moapi.create_mo_class(
+    return await moapi.create_mo_class(
         name=class_user_key, user_key=class_user_key, facet_uuid=facet_uuid
     )
 
 
 async def _get_or_create_facet_class(
-    dataloader: DataLoader,
+    moapi: MOAPI,
     class_user_key: str,
     facet_user_key: str,
     default: str | None = None,
@@ -220,13 +221,15 @@ async def _get_or_create_facet_class(
         class_user_key = default
     try:
         return await _get_facet_class_uuid(
-            dataloader.graphql_client,
+            moapi.graphql_client,
             class_user_key=class_user_key,
             facet_user_key=facet_user_key,
         )
     except UUIDNotFoundException:
         uuid = await _create_facet_class(
-            dataloader, class_user_key=class_user_key, facet_user_key=facet_user_key
+            moapi,
+            class_user_key=class_user_key,
+            facet_user_key=facet_user_key,
         )
         return str(uuid)
 
@@ -237,10 +240,10 @@ get_or_create_job_function_uuid = partial(
 
 
 async def load_primary_engagement(
-    dataloader: DataLoader, employee_uuid: UUID
+    moapi: MOAPI, employee_uuid: UUID
 ) -> Engagement | None:
     primary_engagement_uuid = await get_primary_engagement(
-        dataloader.graphql_client, EmployeeUUID(employee_uuid)
+        moapi.graphql_client, EmployeeUUID(employee_uuid)
     )
     if primary_engagement_uuid is None:
         logger.info(
@@ -248,7 +251,7 @@ async def load_primary_engagement(
         )
         return None
 
-    fetched_engagement = await dataloader.moapi.load_mo_engagement(
+    fetched_engagement = await moapi.load_mo_engagement(
         primary_engagement_uuid, current_objects_only=False
     )
     if fetched_engagement is None:  # pragma: no cover
@@ -262,9 +265,9 @@ async def load_primary_engagement(
 
 
 async def load_it_user(
-    dataloader: DataLoader, employee_uuid: UUID, itsystem_user_key: str
+    moapi: MOAPI, employee_uuid: UUID, itsystem_user_key: str
 ) -> ITUser | None:
-    result = await dataloader.graphql_client.read_filtered_itusers(
+    result = await moapi.graphql_client.read_filtered_itusers(
         ITUserFilter(
             employee=EmployeeFilter(uuids=[employee_uuid]),
             itsystem=ITSystemFilter(user_keys=[itsystem_user_key]),
@@ -288,7 +291,7 @@ async def load_it_user(
             itsystem_user_key=itsystem_user_key,
         )
         raise RequeueMessage("No active validities on it-user")
-    fetched_ituser = await dataloader.moapi.load_mo_it_user(
+    fetched_ituser = await moapi.load_mo_it_user(
         validity.uuid, current_objects_only=False
     )
     if fetched_ituser is None:  # pragma: no cover
@@ -302,9 +305,9 @@ async def load_it_user(
 
 
 async def create_mo_it_user(
-    dataloader: DataLoader, employee_uuid: UUID, itsystem_user_key: str, user_key: str
+    moapi: MOAPI, employee_uuid: UUID, itsystem_user_key: str, user_key: str
 ) -> ITUser | None:
-    it_system_uuid = UUID(await dataloader.moapi.get_it_system_uuid(itsystem_user_key))
+    it_system_uuid = UUID(await moapi.get_it_system_uuid(itsystem_user_key))
 
     # Make a new it-user
     it_user = ITUser(
@@ -313,14 +316,14 @@ async def create_mo_it_user(
         person=employee_uuid,
         validity={"start": mo_today()},
     )
-    await dataloader.moapi.create_ituser(it_user)
-    return await load_it_user(dataloader, employee_uuid, itsystem_user_key)
+    await moapi.create_ituser(it_user)
+    return await load_it_user(moapi, employee_uuid, itsystem_user_key)
 
 
 async def load_address(
-    dataloader: DataLoader, employee_uuid: UUID, address_type_user_key: str
+    moapi: MOAPI, employee_uuid: UUID, address_type_user_key: str
 ) -> Address | None:
-    result = await dataloader.graphql_client.read_filtered_addresses(
+    result = await moapi.graphql_client.read_filtered_addresses(
         AddressFilter(
             employee=EmployeeFilter(uuids=[employee_uuid]),
             address_type=ClassFilter(user_keys=[address_type_user_key]),
@@ -345,7 +348,7 @@ async def load_address(
             address_type_user_key=address_type_user_key,
         )
         raise RequeueMessage("No active validities on employee address")
-    fetched_address = await dataloader.moapi.load_mo_address(
+    fetched_address = await moapi.load_mo_address(
         validity.uuid, current_objects_only=False
     )
     if fetched_address is None:  # pragma: no cover
@@ -359,10 +362,10 @@ async def load_address(
 
 
 async def load_org_unit_address(
-    dataloader: DataLoader, employee_uuid: UUID, address_type_user_key: str
+    moapi: MOAPI, employee_uuid: UUID, address_type_user_key: str
 ) -> Address | None:
     primary_engagement_uuid = await get_primary_engagement(
-        dataloader.graphql_client, EmployeeUUID(employee_uuid)
+        moapi.graphql_client, EmployeeUUID(employee_uuid)
     )
     if primary_engagement_uuid is None:
         logger.info(
@@ -370,7 +373,7 @@ async def load_org_unit_address(
         )
         return None
 
-    result = await dataloader.graphql_client.read_filtered_addresses(
+    result = await moapi.graphql_client.read_filtered_addresses(
         AddressFilter(
             # TODO: Use primary engagement filter here
             org_unit=OrganisationUnitFilter(
@@ -390,7 +393,7 @@ async def load_org_unit_address(
             address_type_user_key=address_type_user_key,
         )
         return None
-    fetched_address = await dataloader.moapi.load_mo_address(
+    fetched_address = await moapi.load_mo_address(
         validity.uuid, current_objects_only=False
     )
     if fetched_address is None:  # pragma: no cover
@@ -422,36 +425,36 @@ def skip_if_none(obj: T | None) -> T:
 def construct_globals_dict(
     settings: Settings, dataloader: DataLoader
 ) -> dict[str, Any]:
+    moapi = dataloader.moapi
+    graphql_client = moapi.graphql_client
     return {
         "now": datetime.utcnow,  # TODO: timezone-aware datetime
         "get_employee_address_type_uuid": partial(
-            get_employee_address_type_uuid, dataloader.graphql_client
+            get_employee_address_type_uuid, graphql_client
         ),
-        "get_it_system_uuid": partial(dataloader.moapi.get_it_system_uuid),
-        "get_visibility_uuid": partial(get_visibility_uuid, dataloader.graphql_client),
+        "get_it_system_uuid": partial(moapi.get_it_system_uuid),
+        "get_visibility_uuid": partial(get_visibility_uuid, graphql_client),
         "get_org_unit_path_string": partial(
             get_org_unit_path_string,
-            dataloader.graphql_client,
+            graphql_client,
             settings.org_unit_path_string_separator,
         ),
         "get_org_unit_name_for_parent": partial(
-            get_org_unit_name_for_parent, dataloader.graphql_client
+            get_org_unit_name_for_parent, graphql_client
         ),
-        "get_job_function_name": partial(
-            get_job_function_name, dataloader.graphql_client
-        ),
-        "get_org_unit_name": partial(get_org_unit_name, dataloader.graphql_client),
+        "get_job_function_name": partial(get_job_function_name, graphql_client),
+        "get_org_unit_name": partial(get_org_unit_name, graphql_client),
         "get_or_create_job_function_uuid": partial(
-            get_or_create_job_function_uuid, dataloader
+            get_or_create_job_function_uuid, moapi
         ),
         # These names are intentionally bad, but consistent with the old code names
         # TODO: Rename these functions once the old template system is gone
-        "load_mo_employee": dataloader.moapi.load_mo_employee,
-        "load_mo_primary_engagement": partial(load_primary_engagement, dataloader),
-        "load_mo_it_user": partial(load_it_user, dataloader),
-        "load_mo_address": partial(load_address, dataloader),
-        "load_mo_org_unit_address": partial(load_org_unit_address, dataloader),
-        "create_mo_it_user": partial(create_mo_it_user, dataloader),
+        "load_mo_employee": moapi.load_mo_employee,
+        "load_mo_primary_engagement": partial(load_primary_engagement, moapi),
+        "load_mo_it_user": partial(load_it_user, moapi),
+        "load_mo_address": partial(load_address, moapi),
+        "load_mo_org_unit_address": partial(load_org_unit_address, moapi),
+        "create_mo_it_user": partial(create_mo_it_user, moapi),
         "generate_username": partial(generate_username, dataloader),
         "skip_if_none": skip_if_none,
     }

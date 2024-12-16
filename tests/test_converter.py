@@ -496,45 +496,45 @@ async def test_get_job_function_uuid(
     graphql_mock: GraphQLMocker, dataloader: AsyncMock
 ) -> None:
     graphql_client = GraphQLClient("http://example.com/graphql")
-    dataloader.graphql_client = graphql_client
+    moapi = MOAPI(dataloader.settings, graphql_client)
 
     route = graphql_mock.query("read_class_uuid_by_facet_and_class_user_key")
 
     uuid1 = str(uuid4())
     route.result = {"classes": {"objects": [{"uuid": uuid1}]}}
-    assert await get_or_create_job_function_uuid(dataloader, "Major") == uuid1
+    assert await get_or_create_job_function_uuid(moapi, "Major") == uuid1
     assert route.called
     route.reset()
 
     uuid2 = str(uuid4())
     route.result = {"classes": {"objects": [{"uuid": uuid2}]}}
-    assert await get_or_create_job_function_uuid(dataloader, "Secretary") == uuid2
+    assert await get_or_create_job_function_uuid(moapi, "Secretary") == uuid2
     assert route.called
     route.reset()
 
     new_uuid = uuid4()
-    dataloader = AsyncMock()
-    dataloader.moapi.create_mo_class.return_value = new_uuid
+    moapi = AsyncMock()
+    moapi.create_mo_class.return_value = new_uuid
 
-    result = await get_or_create_job_function_uuid(dataloader, "non-existing_job")
+    result = await get_or_create_job_function_uuid(moapi, "non-existing_job")
     assert result == str(new_uuid)
 
     with pytest.raises(UUIDNotFoundException):
-        await get_or_create_job_function_uuid(dataloader, "")
+        await get_or_create_job_function_uuid(moapi, "")
 
     with pytest.raises(UUIDNotFoundException):
-        await get_or_create_job_function_uuid(dataloader, [])  # type: ignore
+        await get_or_create_job_function_uuid(moapi, [])  # type: ignore
 
 
 async def test_get_job_function_uuid_default_kwarg(dataloader: AsyncMock) -> None:
     """Test that a provided `default` is used if the value of `job_function` is falsy."""
     # Arrange: mock the UUID of a newly created job function
     uuid_for_new_job_function = str(uuid4())
-    dataloader = AsyncMock()
-    dataloader.moapi.create_mo_class.return_value = uuid_for_new_job_function
+    moapi = AsyncMock()
+    moapi.create_mo_class.return_value = uuid_for_new_job_function
 
     # Act
-    result = await get_or_create_job_function_uuid(dataloader, "", default="Default")
+    result = await get_or_create_job_function_uuid(moapi, "", default="Default")
 
     # Assert
     assert result == uuid_for_new_job_function
@@ -547,12 +547,12 @@ async def test_get_job_function_uuid_default_kwarg_does_not_override(
     truthy."""
     # Arrange
     uuid = str(uuid4())
-    dataloader = AsyncMock()
-    dataloader.moapi.create_mo_class.return_value = uuid
+    moapi = AsyncMock()
+    moapi.create_mo_class.return_value = uuid
 
     # Act
     result = await get_or_create_job_function_uuid(
-        dataloader, "Something", default="Default"
+        moapi, "Something", default="Default"
     )
 
     # Assert
@@ -865,7 +865,7 @@ async def test_create_facet_class_no_facet() -> None:
     dataloader = AsyncMock()
     dataloader.moapi.load_mo_facet_uuid.return_value = None
     with pytest.raises(NoObjectsReturnedException) as exc_info:
-        await _create_facet_class(dataloader, "class_key", "facet_key")
+        await _create_facet_class(dataloader.moapi, "class_key", "facet_key")
     assert "Could not find facet with user_key = 'facet_key'" in str(exc_info.value)
 
 
