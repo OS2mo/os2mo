@@ -208,20 +208,20 @@ class SyncTool:
             return {}
 
         exit_stack.enter_context(bound_contextvars(dn=best_dn))
-        ldap_changes = await self.render_ldap2mo(uuid, best_dn)
+        ldap_desired_state = await self.render_ldap2mo(uuid, best_dn)
 
         # If dry-running we do not want to makes changes in LDAP
         if dry_run:
             logger.info("Not writing to LDAP due to dry-running", dn=best_dn)
-            return ldap_changes
+            return ldap_desired_state
 
-        if not ldap_changes:
+        if not ldap_desired_state:
             logger.info("Not writing to LDAP as changeset is empty", dn=best_dn)
             return {}
 
-        await self.dataloader.ldapapi.modify_ldap_object(best_dn, ldap_changes)
+        await self.dataloader.ldapapi.modify_ldap_object(best_dn, ldap_desired_state)
 
-        return ldap_changes
+        return ldap_desired_state
 
     async def format_converted_objects(
         self,
