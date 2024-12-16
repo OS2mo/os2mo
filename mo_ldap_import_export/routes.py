@@ -395,6 +395,7 @@ async def load_ldap_OUs(
 
 async def load_ldap_cpr_object(
     dataloader: DataLoader,
+    converter: LdapConverter,
     cpr_number: CPRNumber,
     json_key: str,
     additional_attributes: list[str] | None = None,
@@ -421,10 +422,8 @@ async def load_ldap_cpr_object(
     search_base = dataloader.settings.ldap_search_base
     ous_to_search_in = dataloader.settings.ldap_ous_to_search_in
     search_bases = [combine_dn_strings([ou, search_base]) for ou in ous_to_search_in]
-    object_class = dataloader.converter.settings.ldap_object_class
-    attributes = (
-        dataloader.converter.get_ldap_attributes(json_key) + additional_attributes
-    )
+    object_class = converter.settings.ldap_object_class
+    attributes = converter.get_ldap_attributes(json_key) + additional_attributes
 
     object_class_filter = f"objectclass={object_class}"
     cpr_filter = f"{dataloader.settings.ldap_cpr_attribute}={cpr_number}"
@@ -561,12 +560,13 @@ def construct_router(settings: Settings) -> APIRouter:
     @router.get("/LDAP/{json_key}/{cpr}", status_code=202, tags=["LDAP"])
     async def load_object_from_LDAP(
         dataloader: depends.DataLoader,
+        converter: depends.LdapConverter,
         settings: depends.Settings,
         json_key: str,
         cpr: CPRNumber = Depends(valid_cpr),
     ) -> Any:
         results = await load_ldap_cpr_object(
-            dataloader, cpr, json_key, [settings.ldap_unique_id_field]
+            dataloader, converter, cpr, json_key, [settings.ldap_unique_id_field]
         )
         return [encode_result(result) for result in results]
 
@@ -579,7 +579,7 @@ def construct_router(settings: Settings) -> APIRouter:
         response: Response,
         cpr: CPRNumber = Depends(valid_cpr),
     ) -> Any:
-        results = await load_ldap_cpr_object(dataloader, cpr, json_key)
+        results = await load_ldap_cpr_object(dataloader, converter, cpr, json_key)
         try:
             return [
                 await converter.from_ldap(result, json_key, employee_uuid=uuid4())

@@ -55,12 +55,6 @@ class DataLoader:
         return cast(SyncTool, self.user_context["sync_tool"])
 
     @property
-    def converter(self):
-        from .converters import LdapConverter
-
-        return cast(LdapConverter, self.user_context["converter"])
-
-    @property
     def username_generator(self):
         from .usernames import UserNameGenerator
 
