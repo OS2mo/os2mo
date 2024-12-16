@@ -13,6 +13,7 @@ from mo_ldap_import_export.customer_specific_checks import ExportChecks
 from mo_ldap_import_export.customer_specific_checks import ImportChecks
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.depends import GraphQLClient
+from mo_ldap_import_export.depends import Settings
 from mo_ldap_import_export.exceptions import IgnoreChanges
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
 from tests.graphql_mocker import GraphQLMocker
@@ -69,10 +70,13 @@ async def test_check_holstebro_ou_is_externals_error2(import_checks: ImportCheck
     assert result is False
 
 
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
 async def test_check_it_user(graphql_mock: GraphQLMocker) -> None:
     graphql_client = GraphQLClient("http://example.com/graphql")
     context: dict[str, Any] = defaultdict(MagicMock)
     context["graphql_client"] = graphql_client
+    context["user_context"] = defaultdict(MagicMock)
+    context["user_context"]["settings"] = Settings()
 
     dataloader = DataLoader(context)  # type: ignore
     export_checks = ExportChecks(dataloader)

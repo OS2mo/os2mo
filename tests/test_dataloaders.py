@@ -170,10 +170,11 @@ def dataloader(
             "ldap_connection": ldap_connection,
             "converter": converter,
             "sync_tool": sync_tool,
-            "username_generator": username_generator,
         },
     }
-    return DataLoader(context)
+    dataloader = DataLoader(context)
+    dataloader.username_generator = username_generator
+    return dataloader
 
 
 @pytest.fixture
@@ -919,8 +920,7 @@ async def test_make_mo_employee_dn_no_itsystem(
     dn = "CN=foo"
     username_generator = AsyncMock()
     username_generator.generate_dn.return_value = dn
-
-    dataloader.user_context["username_generator"] = username_generator
+    dataloader.username_generator = username_generator
 
     with capture_logs() as cap_logs:
         result = await dataloader.make_mo_employee_dn(employee_uuid)
@@ -975,8 +975,7 @@ async def test_make_mo_employee_dn_no_cpr(
     dn = "CN=foo"
     username_generator = AsyncMock()
     username_generator.generate_dn.return_value = dn
-
-    dataloader.user_context["username_generator"] = username_generator
+    dataloader.username_generator = username_generator
 
     ldap_uuid = uuid4()
     dataloader.ldapapi.get_ldap_unique_ldap_uuid = AsyncMock()

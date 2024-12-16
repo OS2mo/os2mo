@@ -39,6 +39,18 @@ class DataLoader:
         self.settings: Settings = self.user_context["settings"]
         self.ldapapi = LDAPAPI(self.settings, self.ldap_connection)
 
+        from .usernames import get_username_generator_class
+
+        logger.info("Initializing username generator")
+        username_generator_class = get_username_generator_class(
+            self.settings.conversion_mapping.username_generator.objectClass
+        )
+        self.username_generator = username_generator_class(
+            self.settings,
+            self,
+            self.ldap_connection,
+        )
+
     # TODO: Construct this in main.py and pass it into dataloader
     @cached_property
     def moapi(self) -> MOAPI:
@@ -53,12 +65,6 @@ class DataLoader:
         from .import_export import SyncTool
 
         return cast(SyncTool, self.user_context["sync_tool"])
-
-    @property
-    def username_generator(self):
-        from .usernames import UserNameGenerator
-
-        return cast(UserNameGenerator, self.user_context["username_generator"])
 
     async def find_mo_employee_uuid_via_cpr_number(self, dn: str) -> set[EmployeeUUID]:
         cpr_number = await self.ldapapi.dn2cpr(dn)
