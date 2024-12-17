@@ -19,7 +19,6 @@ from jinja2 import UndefinedError
 from jinja2.utils import missing
 from more_itertools import flatten
 from more_itertools import one
-from more_itertools import only
 
 from mo_ldap_import_export.moapi import MOAPI
 from mo_ldap_import_export.moapi import extract_current_or_latest_validity
@@ -275,15 +274,16 @@ async def load_it_user(
             to_date=None,
         )
     )
-    ituser = only(result.objects)
-    if ituser is None:
+    if not result.objects:
         logger.info(
             "Could not find it-user",
             employee_uuid=employee_uuid,
             itsystem_user_key=itsystem_user_key,
         )
         return None
-    validity = extract_current_or_latest_validity(ituser.validities)
+    # Flatten all validities to a list
+    validities = list(flatten_validities(result))
+    validity = extract_current_or_latest_validity(validities)
     if validity is None:  # pragma: no cover
         logger.error(
             "No active validities on it-user",

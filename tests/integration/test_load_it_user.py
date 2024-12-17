@@ -186,7 +186,6 @@ async def test_load_it_user_no_it_user(context: Context, mo_person: UUID) -> Non
     assert events == ["Could not find it-user"]
 
 
-@pytest.mark.xfail(reason="reproducing a bug")
 @pytest.mark.integration_test
 @pytest.mark.envvar(
     {
