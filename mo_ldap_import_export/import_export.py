@@ -126,7 +126,7 @@ class SyncTool:
 
     async def _find_best_dn(
         self, uuid: EmployeeUUID, dry_run: bool = False
-    ) -> DN | None:
+    ) -> tuple[DN | None, bool]:
         dns = await self.dataloader.find_mo_employee_dn(uuid)
         # If we found DNs, we want to synchronize to the best of them
         if dns:
@@ -136,24 +136,24 @@ class SyncTool:
             )
             # If no good LDAP account was found, we do not want to synchronize at all
             if best_dn:
-                return best_dn
+                return best_dn, False
             logger.warning(
                 "Aborting synchronization, as no good LDAP account was found",
                 dns=dns,
                 uuid=uuid,
             )
-            return None
+            return None, False
 
         # If dry-running we do not want to generate real DNs in LDAP
         if dry_run:
-            return "CN=Dry run,DC=example,DC=com"
+            return "CN=Dry run,DC=example,DC=com", True
 
         if not self.settings.add_objects_to_ldap:
             logger.info(
                 "Aborting synchronization, as no LDAP account was found and we are not configured to create",
                 uuid=uuid,
             )
-            return None
+            return None, True
 
         # If we did not find DNs, we want to make one
         try:
@@ -165,7 +165,7 @@ class SyncTool:
             # If this occurs we were unable to generate a DN for the user
             logger.error("Unable to generate DN")
             raise RequeueMessage("Unable to generate DN") from error
-        return best_dn
+        return best_dn, True
 
     async def render_ldap2mo(self, uuid: EmployeeUUID, dn: DN) -> dict[str, list[Any]]:
         await self.perform_export_checks(uuid)
@@ -203,25 +203,30 @@ class SyncTool:
             logger.info("listen_to_changes_in_employees called without mapping")
             return {}
 
-        best_dn = await self._find_best_dn(uuid, dry_run=dry_run)
+        best_dn, create = await self._find_best_dn(uuid, dry_run=dry_run)
         if best_dn is None:
             return {}
 
         exit_stack.enter_context(bound_contextvars(dn=best_dn))
-        ldap_changes = await self.render_ldap2mo(uuid, best_dn)
+        ldap_desired_state = await self.render_ldap2mo(uuid, best_dn)
 
         # If dry-running we do not want to makes changes in LDAP
         if dry_run:
             logger.info("Not writing to LDAP due to dry-running", dn=best_dn)
-            return ldap_changes
+            return ldap_desired_state
 
-        if not ldap_changes:
+        if not ldap_desired_state:
             logger.info("Not writing to LDAP as changeset is empty", dn=best_dn)
             return {}
 
-        await self.dataloader.ldapapi.modify_ldap_object(best_dn, ldap_changes)
+        if create:
+            await self.dataloader.ldapapi.add_ldap_object(best_dn, ldap_desired_state)
+        else:
+            await self.dataloader.ldapapi.modify_ldap_object(
+                best_dn, ldap_desired_state
+            )
 
-        return ldap_changes
+        return ldap_desired_state
 
     async def format_converted_objects(
         self,

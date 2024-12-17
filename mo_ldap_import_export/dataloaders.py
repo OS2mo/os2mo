@@ -60,12 +60,6 @@ class DataLoader:
     def graphql_client(self) -> GraphQLClient:
         return cast(GraphQLClient, self.context["graphql_client"])
 
-    @property
-    def sync_tool(self):
-        from .import_export import SyncTool
-
-        return cast(SyncTool, self.user_context["sync_tool"])
-
     async def find_mo_employee_uuid_via_cpr_number(self, dn: str) -> set[EmployeeUUID]:
         cpr_number = await self.ldapapi.dn2cpr(dn)
         if cpr_number is None:
