@@ -397,13 +397,12 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
         1350,
     )
 
-    ldap_amqpsystem = configure_ldap_amqpsystem(fastramqpi, settings.ldap_amqp)
+    logger.info("Initializing LDAP listener")
+    ldap_amqpsystem = configure_ldap_amqpsystem(fastramqpi, settings)
+    # Needs to run after SyncTool
+    # TODO: Implement a dependency graph?
+    fastramqpi.add_lifespan_manager(ldap_amqpsystem, 2000)
     if settings.listen_to_changes_in_ldap:
-        logger.info("Initializing LDAP listener")
-        # Needs to run after SyncTool
-        # TODO: Implement a dependency graph?
-        fastramqpi.add_lifespan_manager(ldap_amqpsystem, 2000)
-
         logger.info("Initializing LDAP event generator")
         sessionmaker = fastramqpi.get_context()["sessionmaker"]
         ldap_event_generator = LDAPEventGenerator(

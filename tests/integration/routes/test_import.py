@@ -4,9 +4,11 @@ from collections.abc import Awaitable
 from collections.abc import Callable
 from urllib.parse import quote_plus
 from uuid import UUID
+from uuid import uuid4
 
 import pytest
 from httpx import AsyncClient
+from more_itertools import one
 
 from mo_ldap_import_export.utils import combine_dn_strings
 from tests.integration.conftest import AddLdapPerson
@@ -63,3 +65,35 @@ async def test_import_only_first_20(
     assert len(triggered_uuids) == 20
     assert len(uuids) == 22
     assert uuids.issuperset(triggered_uuids)
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {"LISTEN_TO_CHANGES_IN_MO": "False", "LISTEN_TO_CHANGES_IN_LDAP": "False"}
+)
+async def test_import_single(
+    test_client: AsyncClient,
+    add_ldap_persons: Callable[[int], Awaitable[set[UUID]]],
+) -> None:
+    uuids = await add_ldap_persons(1)
+    uuid = one(uuids)
+
+    response = await test_client.get(f"/Import/{uuid}")
+    assert response.status_code == 202
+
+    result = response.json()
+    assert result == str(uuid)
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {"LISTEN_TO_CHANGES_IN_MO": "False", "LISTEN_TO_CHANGES_IN_LDAP": "False"}
+)
+async def test_import_single_invalid_uuid(test_client: AsyncClient) -> None:
+    uuid = uuid4()
+
+    response = await test_client.get(f"/Import/{uuid}")
+    assert response.status_code == 500
+
+    result = response.json()
+    assert "Found no entries" in result["detail"]
