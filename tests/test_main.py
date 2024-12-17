@@ -363,24 +363,6 @@ async def test_open_ldap_connection() -> None:
     assert state == [1, 2]
 
 
-@pytest.mark.usefixtures("context_dependency_injection")
-def test_load_unique_attribute_values_from_LDAP_endpoint(
-    test_client: TestClient,
-) -> None:
-    """Test the LDAP get endpoint on our app."""
-
-    response = test_client.get("/Inspect/attribute/values/foo")
-    assert response.status_code == 202
-
-
-@pytest.mark.usefixtures("context_dependency_injection")
-def test_ldap_get_attribute_details_endpoint(test_client: TestClient) -> None:
-    """Test the LDAP get endpoint on our app."""
-
-    response = test_client.get("/Inspect/attribute/foo")
-    assert response.status_code == 202
-
-
 async def test_listen_to_ituser(graphql_mock: GraphQLMocker) -> None:
     amqpsystem = create_autospec(AMQPSystem)
     amqpsystem.exchange_name = "wow"
