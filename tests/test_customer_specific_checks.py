@@ -83,9 +83,13 @@ async def test_check_it_user(graphql_mock: GraphQLMocker) -> None:
     context["user_context"]["settings"] = settings
 
     ldap_connection = AsyncMock()
+    username_generator = AsyncMock()
 
     dataloader = DataLoader(
-        settings, MOAPI(settings, graphql_client), LDAPAPI(settings, ldap_connection)
+        settings,
+        MOAPI(settings, graphql_client),
+        LDAPAPI(settings, ldap_connection),
+        username_generator,
     )  # type: ignore
     export_checks = ExportChecks(dataloader)
 

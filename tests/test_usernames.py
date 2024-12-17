@@ -110,7 +110,7 @@ def username_generator(
         user_context = context["user_context"]
         yield UserNameGenerator(
             Settings(),
-            user_context["dataloader"],
+            user_context["dataloader"].moapi,
             user_context["ldap_connection"],
         )
 
@@ -476,7 +476,7 @@ async def test_alleroed_username_generator_forbidden_names_from_files(
     expected: str,
 ) -> None:
     graphql_client = GraphQLClient("http://example.com/graphql")
-    alleroed_username_generator.dataloader.moapi = MOAPI(settings_mock, graphql_client)  # type: ignore
+    alleroed_username_generator.moapi = MOAPI(settings_mock, graphql_client)  # type: ignore
 
     adsama_it_system = uuid4()
 

@@ -27,22 +27,13 @@ logger = structlog.stdlib.get_logger()
 
 
 class DataLoader:
-    def __init__(self, settings: Settings, moapi: MOAPI, ldapapi: LDAPAPI) -> None:
+    def __init__(
+        self, settings: Settings, moapi: MOAPI, ldapapi: LDAPAPI, username_generator
+    ) -> None:
         self.settings = settings
         self.ldapapi = ldapapi
         self.moapi = moapi
-
-        from .usernames import get_username_generator_class
-
-        logger.info("Initializing username generator")
-        username_generator_class = get_username_generator_class(
-            self.settings.conversion_mapping.username_generator.objectClass
-        )
-        self.username_generator = username_generator_class(
-            self.settings,
-            self,
-            self.ldapapi.ldap_connection,
-        )
+        self.username_generator = username_generator
 
     async def find_mo_employee_uuid_via_cpr_number(self, dn: str) -> set[EmployeeUUID]:
         cpr_number = await self.ldapapi.dn2cpr(dn)
