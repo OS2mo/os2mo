@@ -33,6 +33,7 @@ from mo_ldap_import_export.ldap import construct_server_pool
 from mo_ldap_import_export.ldap import get_ldap_object
 from mo_ldap_import_export.ldap import wait_for_message_id
 from mo_ldap_import_export.ldap_classes import LdapObject
+from mo_ldap_import_export.moapi import MOAPI
 from mo_ldap_import_export.routes import load_ldap_OUs
 from mo_ldap_import_export.types import DN
 from mo_ldap_import_export.usernames import UserNameGenerator
@@ -523,7 +524,7 @@ async def sync_tool_and_context(
         "graphql_client": graphql_client,
     }
     # Needs context, user_context, ldap_connection
-    dataloader = DataLoader(context)
+    dataloader = DataLoader(context, MOAPI(settings, graphql_client))
     context["user_context"]["dataloader"] = dataloader
 
     # Needs context, user_context, settings, raw_mapping, dataloader

@@ -4,7 +4,6 @@
 
 import asyncio
 from contextlib import suppress
-from functools import cached_property
 from typing import cast
 from uuid import UUID
 
@@ -32,12 +31,13 @@ logger = structlog.stdlib.get_logger()
 
 
 class DataLoader:
-    def __init__(self, context: Context) -> None:
+    def __init__(self, context: Context, moapi: MOAPI) -> None:
         self.context = context
         self.user_context = context["user_context"]
         self.ldap_connection: Connection = self.user_context["ldap_connection"]
         self.settings: Settings = self.user_context["settings"]
         self.ldapapi = LDAPAPI(self.settings, self.ldap_connection)
+        self.moapi = moapi
 
         from .usernames import get_username_generator_class
 
@@ -50,11 +50,6 @@ class DataLoader:
             self,
             self.ldap_connection,
         )
-
-    # TODO: Construct this in main.py and pass it into dataloader
-    @cached_property
-    def moapi(self) -> MOAPI:
-        return MOAPI(self.settings, self.graphql_client)
 
     @property
     def graphql_client(self) -> GraphQLClient:
