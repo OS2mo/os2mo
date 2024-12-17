@@ -44,7 +44,6 @@ from .ldap_amqp import ldap2mo_router
 from .ldap_event_generator import LDAPEventGenerator
 from .ldap_event_generator import ldap_event_router
 from .routes import construct_router
-from .usernames import get_username_generator_class
 
 logger = structlog.stdlib.get_logger()
 
@@ -365,17 +364,6 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     logger.info("Initializing dataloader")
     dataloader = DataLoader(fastramqpi.get_context())
     fastramqpi.add_context(dataloader=dataloader)
-
-    logger.info("Initializing username generator")
-    username_generator_class = get_username_generator_class(
-        settings.conversion_mapping.username_generator.objectClass
-    )
-    username_generator = username_generator_class(
-        settings,
-        dataloader,
-        ldap_connection,
-    )
-    fastramqpi.add_context(username_generator=username_generator)
 
     fastramqpi.add_lifespan_manager(
         initialize_converters(fastramqpi, settings, dataloader), 1250
