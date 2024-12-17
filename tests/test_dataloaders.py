@@ -18,7 +18,6 @@ from uuid import uuid4
 
 import pytest
 from fastapi.encoders import jsonable_encoder
-from fastramqpi.context import Context
 from freezegun import freeze_time
 from httpx import Response
 from ldap3.core.exceptions import LDAPInvalidValueError
@@ -150,11 +149,8 @@ def sync_tool() -> AsyncMock:
 @pytest.fixture
 def dataloader(
     ldap_connection: MagicMock,
-    legacy_graphql_session: AsyncMock,
     graphql_client: AsyncMock,
     settings: Settings,
-    converter: MagicMock,
-    sync_tool: AsyncMock,
     username_generator: MagicMock,
 ) -> DataLoader:
     """Fixture to construct a dataloaders object using fixture mocks.
@@ -162,17 +158,9 @@ def dataloader(
     Yields:
         Dataloaders with mocked clients.
     """
-    context: Context = {
-        "legacy_graphql_session": legacy_graphql_session,
-        "graphql_client": graphql_client,
-        "user_context": {
-            "settings": settings,
-            "ldap_connection": ldap_connection,
-            "converter": converter,
-            "sync_tool": sync_tool,
-        },
-    }
-    dataloader = DataLoader(context, settings, MOAPI(settings, graphql_client))
+    dataloader = DataLoader(
+        settings, MOAPI(settings, graphql_client), LDAPAPI(settings, ldap_connection)
+    )
     dataloader.username_generator = username_generator
     return dataloader
 
@@ -181,7 +169,6 @@ def dataloader(
 def graphql_mock(dataloader, respx_mock) -> Iterator[GraphQLMocker]:
     graphql_client = GraphQLClient("http://example.com/graphql")
     dataloader.moapi.graphql_client = graphql_client
-    dataloader.context["graphql_client"] = graphql_client
 
     yield GraphQLMocker(respx_mock)
 
@@ -256,7 +243,7 @@ async def test_upload_ldap_object_invalid_value(
     ldap_connection: MagicMock,
     dataloader: DataLoader,
 ) -> None:
-    dataloader.ldap_connection.get_response.return_value = (
+    dataloader.ldapapi.ldap_connection.get_response.return_value = (
         [],
         {"type": "test", "description": "compareFalse"},
     )
@@ -292,7 +279,7 @@ async def test_modify_ldap_object_invalid_ou(
     settings = Settings()
 
     dataloader.settings = settings
-    dataloader.ldapapi = LDAPAPI(settings, dataloader.ldap_connection)
+    dataloader.ldapapi = LDAPAPI(settings, dataloader.ldapapi.ldap_connection)
 
     dn = "UID=abk,OU=os2mo,O=magenta,DC=magenta,DC=dk"
     with capture_logs() as cap_logs:
@@ -1111,7 +1098,7 @@ async def test_load_ldap_attribute_values(dataloader: DataLoader):
         return_value=responses,
     ):
         settings = dataloader.settings
-        ldap_connection = dataloader.ldap_connection
+        ldap_connection = dataloader.ldapapi.ldap_connection
         values = await load_ldap_attribute_values(settings, ldap_connection, "foo")
         assert "1" in values
         assert "2" in values

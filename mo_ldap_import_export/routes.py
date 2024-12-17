@@ -433,10 +433,12 @@ async def load_ldap_cpr_object(
         "search_filter": f"(&({object_class_filter})({cpr_filter}))",
         "attributes": list(set(attributes)),
     }
-    search_results = await object_search(searchParameters, dataloader.ldap_connection)
+    search_results = await object_search(
+        searchParameters, dataloader.ldapapi.ldap_connection
+    )
     # TODO: Asyncio gather this
     ldap_objects: list[LdapObject] = [
-        await make_ldap_object(search_result, dataloader.ldap_connection)
+        await make_ldap_object(search_result, dataloader.ldapapi.ldap_connection)
         for search_result in search_results
     ]
     dns = [obj.dn for obj in ldap_objects]

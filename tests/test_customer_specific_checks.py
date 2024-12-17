@@ -3,6 +3,7 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 from typing import Any
+from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from uuid import uuid4
 
@@ -16,6 +17,7 @@ from mo_ldap_import_export.depends import GraphQLClient
 from mo_ldap_import_export.depends import Settings
 from mo_ldap_import_export.exceptions import IgnoreChanges
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
+from mo_ldap_import_export.ldapapi import LDAPAPI
 from mo_ldap_import_export.moapi import MOAPI
 from tests.graphql_mocker import GraphQLMocker
 
@@ -80,7 +82,11 @@ async def test_check_it_user(graphql_mock: GraphQLMocker) -> None:
     settings = Settings()
     context["user_context"]["settings"] = settings
 
-    dataloader = DataLoader(context, settings, MOAPI(settings, graphql_client))  # type: ignore
+    ldap_connection = AsyncMock()
+
+    dataloader = DataLoader(
+        settings, MOAPI(settings, graphql_client), LDAPAPI(settings, ldap_connection)
+    )  # type: ignore
     export_checks = ExportChecks(dataloader)
 
     route1 = graphql_mock.query("read_itsystem_uuid")

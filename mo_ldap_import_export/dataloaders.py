@@ -7,8 +7,6 @@ from contextlib import suppress
 from uuid import UUID
 
 import structlog
-from fastramqpi.context import Context
-from ldap3 import Connection
 from more_itertools import one
 from more_itertools import partition
 
@@ -29,12 +27,9 @@ logger = structlog.stdlib.get_logger()
 
 
 class DataLoader:
-    def __init__(self, context: Context, settings: Settings, moapi: MOAPI) -> None:
-        self.context = context
-        self.user_context = context["user_context"]
-        self.ldap_connection: Connection = self.user_context["ldap_connection"]
+    def __init__(self, settings: Settings, moapi: MOAPI, ldapapi: LDAPAPI) -> None:
         self.settings = settings
-        self.ldapapi = LDAPAPI(self.settings, self.ldap_connection)
+        self.ldapapi = ldapapi
         self.moapi = moapi
 
         from .usernames import get_username_generator_class
@@ -46,7 +41,7 @@ class DataLoader:
         self.username_generator = username_generator_class(
             self.settings,
             self,
-            self.ldap_connection,
+            self.ldapapi.ldap_connection,
         )
 
     async def find_mo_employee_uuid_via_cpr_number(self, dn: str) -> set[EmployeeUUID]:
