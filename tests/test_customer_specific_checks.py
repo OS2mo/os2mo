@@ -80,7 +80,7 @@ async def test_check_it_user(graphql_mock: GraphQLMocker) -> None:
     settings = Settings()
     context["user_context"]["settings"] = settings
 
-    dataloader = DataLoader(context, MOAPI(settings, graphql_client))  # type: ignore
+    dataloader = DataLoader(context, settings, MOAPI(settings, graphql_client))  # type: ignore
     export_checks = ExportChecks(dataloader)
 
     route1 = graphql_mock.query("read_itsystem_uuid")

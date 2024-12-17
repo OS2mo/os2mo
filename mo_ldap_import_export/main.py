@@ -291,7 +291,7 @@ async def lifespan(
         moapi = MOAPI(settings, graphql_client)
 
         logger.info("Initializing dataloader")
-        dataloader = DataLoader(fastramqpi.get_context(), moapi)
+        dataloader = DataLoader(fastramqpi.get_context(), settings, moapi)
         fastramqpi.add_context(dataloader=dataloader)
 
         logger.info("Initializing Import/Export checks")

@@ -172,7 +172,7 @@ def dataloader(
             "sync_tool": sync_tool,
         },
     }
-    dataloader = DataLoader(context, MOAPI(settings, graphql_client))
+    dataloader = DataLoader(context, settings, MOAPI(settings, graphql_client))
     dataloader.username_generator = username_generator
     return dataloader
 
