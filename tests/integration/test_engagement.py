@@ -53,6 +53,7 @@ from mo_ldap_import_export.utils import mo_today
                         "_mapper_": "{{ obj.org_unit }}",
                         # carLicense is arbitrarily chosen as an enabled/disabled marker
                         "_terminate_": "{{ now()|mo_datestring if ldap.carLicense == 'EXPIRED' else '' }}",
+                        "uuid": "{{ get_engagement_uuid({'org_unit': {'uuids': [ldap.departmentNumber]}, 'employee': {'uuids': [employee_uuid]}}) }}",
                         "user_key": "{{ ldap.title }}",
                         "person": "{{ employee_uuid }}",
                         "org_unit": "{{ ldap.departmentNumber }}",

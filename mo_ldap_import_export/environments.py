@@ -19,6 +19,8 @@ from jinja2 import UndefinedError
 from jinja2.utils import missing
 from more_itertools import flatten
 from more_itertools import one
+from more_itertools import only
+from pydantic import parse_obj_as
 
 from mo_ldap_import_export.moapi import MOAPI
 from mo_ldap_import_export.moapi import extract_current_or_latest_validity
@@ -416,6 +418,33 @@ async def generate_username(
     return cast(str, await dataloader.username_generator.generate_username(employee))
 
 
+async def get_address_uuid(
+    graphql_client: GraphQLClient, filter: dict[str, Any]
+) -> UUID | None:
+    address_filter = parse_obj_as(AddressFilter, filter)
+    result = await graphql_client.read_address_uuid(address_filter)
+    obj = only(result.objects)
+    return obj.uuid if obj else None
+
+
+async def get_ituser_uuid(
+    graphql_client: GraphQLClient, filter: dict[str, Any]
+) -> UUID | None:
+    ituser_filter = parse_obj_as(ITUserFilter, filter)
+    result = await graphql_client.read_ituser_uuid(ituser_filter)
+    obj = only(result.objects)
+    return obj.uuid if obj else None
+
+
+async def get_engagement_uuid(
+    graphql_client: GraphQLClient, filter: dict[str, Any]
+) -> UUID | None:
+    engagement_filter = parse_obj_as(EngagementFilter, filter)
+    result = await graphql_client.read_engagement_uuid(engagement_filter)
+    obj = only(result.objects)
+    return obj.uuid if obj else None
+
+
 def skip_if_none(obj: T | None) -> T:
     if obj is None:
         raise SkipObject("Object is None")
@@ -457,6 +486,9 @@ def construct_globals_dict(
         "create_mo_it_user": partial(create_mo_it_user, moapi),
         "generate_username": partial(generate_username, dataloader),
         "skip_if_none": skip_if_none,
+        "get_address_uuid": partial(get_address_uuid, graphql_client),
+        "get_ituser_uuid": partial(get_ituser_uuid, graphql_client),
+        "get_engagement_uuid": partial(get_engagement_uuid, graphql_client),
     }
 
 

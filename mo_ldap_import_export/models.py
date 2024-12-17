@@ -129,3 +129,9 @@ class JobTitleFromADToMO(StrictBaseModel):
 
 
 MOBase = Address | Employee | Engagement | ITUser | JobTitleFromADToMO
+
+
+class Termination(StrictBaseModel):
+    mo_class: type[MOBase]
+    uuid: UUID
+    at: datetime

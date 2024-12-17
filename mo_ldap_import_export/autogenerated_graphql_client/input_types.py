@@ -42,6 +42,7 @@ class AddressFilter(BaseModel):
     engagement: Optional["EngagementFilter"] = None
     engagements: list[UUID] | None = None
     ituser: Optional["ITUserFilter"] = None
+    visibility: Optional["ClassFilter"] = None
 
 
 class AddressRegistrationFilter(BaseModel):
@@ -254,6 +255,7 @@ class EmployeesBoundAddressFilter(BaseModel):
     engagement: Optional["EngagementFilter"] = None
     engagements: list[UUID] | None = None
     ituser: Optional["ITUserFilter"] = None
+    visibility: Optional["ClassFilter"] = None
 
 
 class EmployeesBoundAssociationFilter(BaseModel):
@@ -295,6 +297,7 @@ class EmployeesBoundITUserFilter(BaseModel):
     itsystem: Optional["ITSystemFilter"] = None
     itsystem_uuids: list[UUID] | None = None
     engagement: Optional["EngagementFilter"] = None
+    external_ids: list[str] | None = None
 
 
 class EmployeesBoundLeaveFilter(BaseModel):
@@ -513,6 +516,7 @@ class ITSystemUpdateInput(BaseModel):
 
 class ITUserCreateInput(BaseModel):
     uuid: UUID | None = None
+    external_id: str | None = None
     primary: UUID | None = None
     person: UUID | None = None
     org_unit: UUID | None = None
@@ -536,6 +540,7 @@ class ITUserFilter(BaseModel):
     itsystem: Optional["ITSystemFilter"] = None
     itsystem_uuids: list[UUID] | None = None
     engagement: Optional["EngagementFilter"] = None
+    external_ids: list[str] | None = None
 
 
 class ITUserRegistrationFilter(BaseModel):
@@ -552,6 +557,7 @@ class ITUserTerminateInput(BaseModel):
 
 class ITUserUpdateInput(BaseModel):
     uuid: UUID
+    external_id: str | None = None
     primary: UUID | None = None
     person: UUID | None = None
     org_unit: UUID | None = None
@@ -577,6 +583,7 @@ class ItuserBoundAddressFilter(BaseModel):
     address_type_user_keys: list[str] | None = None
     engagement: Optional["EngagementFilter"] = None
     engagements: list[UUID] | None = None
+    visibility: Optional["ClassFilter"] = None
 
 
 class ItuserBoundRoleBindingFilter(BaseModel):
@@ -739,6 +746,7 @@ class OrgUnitsboundaddressfilter(BaseModel):
     engagement: Optional["EngagementFilter"] = None
     engagements: list[UUID] | None = None
     ituser: Optional["ITUserFilter"] = None
+    visibility: Optional["ClassFilter"] = None
 
 
 class OrgUnitsboundassociationfilter(BaseModel):
@@ -780,6 +788,7 @@ class OrgUnitsboundituserfilter(BaseModel):
     itsystem: Optional["ITSystemFilter"] = None
     itsystem_uuids: list[UUID] | None = None
     engagement: Optional["EngagementFilter"] = None
+    external_ids: list[str] | None = None
 
 
 class OrgUnitsboundklefilter(BaseModel):
@@ -839,6 +848,8 @@ class OrganisationUnitFilter(BaseModel):
     hierarchy: Optional["ClassFilter"] = None
     hierarchies: list[UUID] | None = None
     subtree: Optional["OrganisationUnitFilter"]
+    descendant: Optional["OrganisationUnitFilter"]
+    ancestor: Optional["OrganisationUnitFilter"]
     engagement: Optional["EngagementFilter"] = None
 
 
@@ -941,6 +952,8 @@ class ParentsBoundOrganisationUnitFilter(BaseModel):
     hierarchy: Optional["ClassFilter"] = None
     hierarchies: list[UUID] | None = None
     subtree: Optional["OrganisationUnitFilter"]
+    descendant: Optional["OrganisationUnitFilter"]
+    ancestor: Optional["OrganisationUnitFilter"]
     engagement: Optional["EngagementFilter"] = None
 
 
@@ -1084,6 +1097,7 @@ class UuidsBoundITUserFilter(BaseModel):
     itsystem: Optional["ITSystemFilter"] = None
     itsystem_uuids: list[UUID] | None = None
     engagement: Optional["EngagementFilter"] = None
+    external_ids: list[str] | None = None
 
 
 class UuidsBoundLeaveFilter(BaseModel):
@@ -1109,6 +1123,8 @@ class UuidsBoundOrganisationUnitFilter(BaseModel):
     hierarchy: Optional["ClassFilter"] = None
     hierarchies: list[UUID] | None = None
     subtree: Optional["OrganisationUnitFilter"]
+    descendant: Optional["OrganisationUnitFilter"]
+    ancestor: Optional["OrganisationUnitFilter"]
     engagement: Optional["EngagementFilter"] = None
 
 

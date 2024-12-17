@@ -42,7 +42,9 @@ from .models import Address
 from .models import Employee
 from .models import Engagement
 from .models import ITUser
+from .models import JobTitleFromADToMO
 from .models import MOBase
+from .models import Termination
 from .types import EmployeeUUID
 from .types import OrgUnitUUID
 from .utils import bucketdict
@@ -230,9 +232,9 @@ class SyncTool:
 
     async def format_converted_objects(
         self,
-        converted_objects: Sequence[MOBase],
+        converted_objects: Sequence[MOBase | Termination],
         json_key: str,
-    ) -> list[tuple[MOBase, Verb]]:
+    ) -> list[tuple[MOBase | Termination, Verb]]:
         """
         for Address and Engagement objects:
             Loops through the objects, and sets the uuid if an existing matching object
@@ -248,6 +250,8 @@ class SyncTool:
         objects_in_mo: Sequence[MOBase]
 
         # Load addresses already in MO
+        if issubclass(mo_class, Termination):
+            return [(obj, Verb.TERMINATE) for obj in converted_objects]
         if issubclass(mo_class, Address):
             converted_objects = cast(Sequence[Address], converted_objects)
 
@@ -633,24 +637,25 @@ class SyncTool:
             dn=dn,
         )
         if json_key == "Custom":
+            assert all(isinstance(obj, JobTitleFromADToMO) for obj in converted_objects)
+            custom_objects = cast(list[JobTitleFromADToMO], converted_objects)
+
             await asyncio.gather(
                 *[
                     obj.sync_to_mo(self.dataloader.moapi.graphql_client)
-                    for obj in converted_objects
+                    for obj in custom_objects
                 ]
             )
             return
 
-        converted_objects = await self.format_converted_objects(
-            converted_objects, json_key
-        )
-        if not converted_objects:  # pragma: no cover
+        operations = await self.format_converted_objects(converted_objects, json_key)
+        if not operations:  # pragma: no cover
             logger.info("No converted objects after formatting", dn=dn)
             return
 
         logger.info(
             "Importing objects",
-            converted_objects=converted_objects,
+            operations=operations,
             dn=dn,
         )
-        await self.dataloader.moapi.create_or_edit_mo_objects(converted_objects)
+        await self.dataloader.moapi.create_or_edit_mo_objects(operations)

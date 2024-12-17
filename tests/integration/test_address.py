@@ -46,6 +46,7 @@ from mo_ldap_import_export.utils import mo_today
                         "_mapper_": "{{ obj.address_type }}",
                         # carLicense is arbitrarily chosen as an enabled/disabled marker
                         "_terminate_": "{{ now()|mo_datestring if ldap.carLicense == 'EXPIRED' else '' }}",
+                        "uuid": "{{ get_address_uuid({'address_type': {'user_key': 'EmailEmployee'}, 'employee': {'uuids': [employee_uuid]}}) }}",
                         "value": "{{ ldap.mail }}",
                         "address_type": "{{ get_employee_address_type_uuid('EmailEmployee') }}",
                         "person": "{{ employee_uuid }}",
@@ -158,6 +159,7 @@ async def test_to_mo(
                         "_import_to_mo_": "true",
                         "_ldap_attributes_": ["mail"],
                         "_terminate_": "{{ now()|mo_datestring }}",
+                        "uuid": "{{ get_address_uuid({'address_type': {'user_key': 'EmailEmployee'}, 'employee': {'uuids': [employee_uuid]}}) }}",
                         "value": "{{ ldap.mail }}",
                         "address_type": "{{ get_employee_address_type_uuid('EmailEmployee') }}",
                         "person": "{{ employee_uuid }}",
@@ -293,7 +295,6 @@ async def test_to_ldap(
     await assert_address({"mail": []})
 
 
-@pytest.mark.xfail(reason="Terminating with missing data currently fails")
 @pytest.mark.integration_test
 @pytest.mark.envvar(
     {
@@ -315,6 +316,7 @@ async def test_to_ldap(
                         "_mapper_": "{{ obj.address_type }}",
                         # carLicense is arbitrarily chosen as an enabled/disabled marker
                         "_terminate_": "{{ now()|mo_datestring if ldap.carLicense == 'EXPIRED' else '' }}",
+                        "uuid": "{{ get_address_uuid({'address_type': {'user_key': 'EmailEmployee'}, 'employee': {'uuids': [employee_uuid]}}) }}",
                         "value": "{{ ldap.mail }}",
                         "address_type": "{{ get_employee_address_type_uuid('EmailEmployee') }}",
                         "person": "{{ employee_uuid }}",
