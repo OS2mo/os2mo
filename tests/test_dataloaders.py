@@ -1123,7 +1123,7 @@ async def test_create_mo_class(dataloader: DataLoader):
     uuid = uuid4()
     existing_class_uuid = uuid4()
 
-    moapi = MOAPI(dataloader.settings, dataloader.graphql_client)
+    moapi = MOAPI(dataloader.settings, dataloader.moapi.graphql_client)
 
     async def class_create(_) -> ClassCreateClassCreate:
         # Simulate creation time delay
@@ -1161,7 +1161,7 @@ async def test_create_mo_class(dataloader: DataLoader):
 async def test_create_mo_job_function(
     dataloader: DataLoader, graphql_mock: GraphQLMocker
 ) -> None:
-    moapi = MOAPI(dataloader.settings, dataloader.graphql_client)
+    moapi = MOAPI(dataloader.settings, dataloader.moapi.graphql_client)
 
     route1 = graphql_mock.query("read_class_uuid_by_facet_and_class_user_key")
     route1.result = {"classes": {"objects": []}}
