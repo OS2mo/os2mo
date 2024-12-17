@@ -4,7 +4,6 @@
 
 import asyncio
 from contextlib import suppress
-from typing import cast
 from uuid import UUID
 
 import structlog
@@ -53,14 +52,16 @@ class DataLoader:
 
     @property
     def graphql_client(self) -> GraphQLClient:
-        return cast(GraphQLClient, self.context["graphql_client"])
+        return self.moapi.graphql_client
 
     async def find_mo_employee_uuid_via_cpr_number(self, dn: str) -> set[EmployeeUUID]:
         cpr_number = await self.ldapapi.dn2cpr(dn)
         if cpr_number is None:
             return set()
 
-        result = await self.graphql_client.read_employee_uuid_by_cpr_number(cpr_number)
+        result = await self.moapi.graphql_client.read_employee_uuid_by_cpr_number(
+            cpr_number
+        )
         return {EmployeeUUID(employee.uuid) for employee in result.objects}
 
     async def find_mo_employee_uuid(self, dn: str) -> EmployeeUUID | None:

@@ -375,7 +375,7 @@ class AlleroedUserNameGenerator(UserNameGenerator):
         # Case we should never generate the username of the deleted user.
         # Ref: https://redmine.magenta-aps.dk/issues/57043
         itsystem_uuid = await self.dataloader.moapi.get_it_system_uuid("ADSAMA")
-        result = await self.dataloader.graphql_client.read_all_ituser_user_keys_by_itsystem_uuid(
+        result = await self.dataloader.moapi.graphql_client.read_all_ituser_user_keys_by_itsystem_uuid(
             UUID(itsystem_uuid)
         )
         # TODO: Keep this as a set and convert all operations to set operations
