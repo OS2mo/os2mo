@@ -184,3 +184,42 @@ async def test_load_it_user_no_it_user(context: Context, mo_person: UUID) -> Non
 
     events = [m["event"] for m in cap_logs]
     assert events == ["Could not find it-user"]
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+    }
+)
+@pytest.mark.usefixtures("test_client")
+async def test_load_itusers_multiple_disjoint_matches(
+    graphql_client: GraphQLClient,
+    context: Context,
+    mo_api: MOAPI,
+    mo_person: UUID,
+) -> None:
+    it_system_uuid = UUID(await mo_api.get_it_system_uuid("ADtitle"))
+
+    await graphql_client.ituser_create(
+        input=ITUserCreateInput(
+            user_key="User1",
+            itsystem=it_system_uuid,
+            person=mo_person,
+            validity={"from": "2001-02-03T04:05:06Z", "to": "2002-03-04T05:06:07Z"},
+        )
+    )
+    await graphql_client.ituser_create(
+        input=ITUserCreateInput(
+            user_key="User2",
+            itsystem=it_system_uuid,
+            person=mo_person,
+            validity={"from": "2003-04-05T06:07:08Z"},
+        )
+    )
+
+    dataloader = context["user_context"]["dataloader"]
+    result = await load_it_user(dataloader.moapi, mo_person, "ADtitle")
+    assert result is not None
+    assert result.user_key == "User2"
