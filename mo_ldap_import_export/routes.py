@@ -283,7 +283,7 @@ async def get_non_existing_unique_ldap_uuids(
 
     # Fetch all MO IT-users and extract all LDAP UUIDs
     all_it_users = await load_all_current_it_users(
-        dataloader.graphql_client, UUID(it_system_uuid)
+        dataloader.moapi.graphql_client, UUID(it_system_uuid)
     )
     it_user_map = {UUID(it_user["user_key"]): it_user for it_user in all_it_users}
     unique_ituser_ldap_uuids = set(it_user_map.keys())
@@ -642,7 +642,7 @@ def construct_router(settings: Settings) -> APIRouter:
         deleted = set()
         for entry in bad_itusers:
             ituser_uuid = entry["ituser_uuid"]
-            result = await dataloader.graphql_client.ituser_terminate(
+            result = await dataloader.moapi.graphql_client.ituser_terminate(
                 ITUserTerminateInput(uuid=UUID(ituser_uuid), to=at)
             )
             deleted.add(result.uuid)

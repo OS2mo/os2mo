@@ -361,7 +361,7 @@ async def test_load_mo_employee_no_validities(
 def mock_read_employee_uuid_by_cpr_number(
     dataloader: DataLoader, values: list[UUID]
 ) -> None:
-    dataloader.graphql_client.read_employee_uuid_by_cpr_number.return_value = (  # type: ignore
+    dataloader.moapi.graphql_client.read_employee_uuid_by_cpr_number.return_value = (  # type: ignore
         parse_obj_as(
             ReadEmployeeUuidByCprNumberEmployees,
             {"objects": [{"uuid": uuid} for uuid in values]},
@@ -372,7 +372,7 @@ def mock_read_employee_uuid_by_cpr_number(
 def mock_read_employee_uuid_by_ituser(
     dataloader: DataLoader, values: list[UUID]
 ) -> None:
-    dataloader.graphql_client.read_employee_uuid_by_ituser_user_key.return_value = (  # type: ignore
+    dataloader.moapi.graphql_client.read_employee_uuid_by_ituser_user_key.return_value = (  # type: ignore
         parse_obj_as(
             ReadEmployeeUuidByItuserUserKeyItusers,
             {"objects": [{"current": {"employee_uuid": uuid}} for uuid in values]},
@@ -1123,12 +1123,14 @@ async def test_create_mo_class(dataloader: DataLoader):
     uuid = uuid4()
     existing_class_uuid = uuid4()
 
+    moapi = MOAPI(dataloader.settings, dataloader.graphql_client)
+
     async def class_create(_) -> ClassCreateClassCreate:
         # Simulate creation time delay
         await asyncio.sleep(0.1)
         return ClassCreateClassCreate(uuid=uuid)
 
-    dataloader.graphql_client.class_create.side_effect = class_create  # type: ignore
+    moapi.graphql_client.class_create.side_effect = class_create  # type: ignore
 
     class_not_found_response = ReadClassUuidClasses(objects=[])
     class_exists_response = ReadClassUuidClasses(
@@ -1136,23 +1138,21 @@ async def test_create_mo_class(dataloader: DataLoader):
     )
 
     # Case1: The class does not exist yet
-    dataloader.graphql_client.read_class_uuid.return_value = class_not_found_response  # type: ignore
-    assert await dataloader.moapi.create_mo_class("", "", uuid4()) == uuid
+    moapi.graphql_client.read_class_uuid.return_value = class_not_found_response  # type: ignore
+    assert await moapi.create_mo_class("", "", uuid4()) == uuid
 
     # Case2: The class already exists
-    dataloader.graphql_client.read_class_uuid.return_value = class_exists_response  # type: ignore
-    assert (
-        await dataloader.moapi.create_mo_class("", "", uuid4()) == existing_class_uuid
-    )
+    moapi.graphql_client.read_class_uuid.return_value = class_exists_response  # type: ignore
+    assert await moapi.create_mo_class("", "", uuid4()) == existing_class_uuid
 
     # Case3: We call the function twice and the first one needs to wait for the second
-    dataloader.graphql_client.read_class_uuid.return_value = class_not_found_response  # type: ignore
+    moapi.graphql_client.read_class_uuid.return_value = class_not_found_response  # type: ignore
 
     # Because of the lock, only one instance can run at the time.
     t1 = time.time()
     await asyncio.gather(
-        dataloader.moapi.create_mo_class("n", "user_key", uuid4()),
-        dataloader.moapi.create_mo_class("n", "user_key", uuid4()),
+        moapi.create_mo_class("n", "user_key", uuid4()),
+        moapi.create_mo_class("n", "user_key", uuid4()),
     )
     t2 = time.time()
     assert (t2 - t1) > 0.2  # each task takes 0.1 second
@@ -1208,7 +1208,7 @@ async def test_load_mo_facet_uuid_multiple_facets(
 
 
 async def test_load_mo_facet_uuid_no_result(dataloader: DataLoader):
-    dataloader.graphql_client.read_facet_uuid.return_value = parse_obj_as(  # type: ignore
+    dataloader.moapi.graphql_client.read_facet_uuid.return_value = parse_obj_as(  # type: ignore
         ReadFacetUuidFacets, {"objects": []}
     )
     result = await dataloader.moapi.load_mo_facet_uuid("")
@@ -1295,7 +1295,9 @@ async def test_load_all_current_it_users_no_paged(
             "page_info": {"next_cursor": None},
         }
     }
-    results = await load_all_current_it_users(dataloader.graphql_client, itsystem1_uuid)
+    results = await load_all_current_it_users(
+        dataloader.moapi.graphql_client, itsystem1_uuid
+    )
     result = one(results)
     assert result["itsystem_uuid"] == str(itsystem1_uuid)
     assert result["user_key"] == "foo"
@@ -1352,7 +1354,9 @@ async def test_load_all_current_it_users_paged(
 
     route = graphql_mock.query("read_all_itusers")
     route.mock(side_effect=pager)
-    results = await load_all_current_it_users(dataloader.graphql_client, itsystem1_uuid)
+    results = await load_all_current_it_users(
+        dataloader.moapi.graphql_client, itsystem1_uuid
+    )
     assert len(results) == 2
 
     first, second = results
