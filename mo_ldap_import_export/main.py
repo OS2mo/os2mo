@@ -4,6 +4,7 @@
 
 import asyncio
 from collections.abc import AsyncIterator
+from contextlib import AsyncExitStack
 from contextlib import asynccontextmanager
 from typing import Annotated
 from typing import Any
@@ -269,37 +270,61 @@ async def open_ldap_connection(ldap_connection: Connection) -> AsyncIterator[Non
         yield
 
 
-# https://fastapi.tiangolo.com/advanced/events/
 @asynccontextmanager
-async def initialize_sync_tool(
-    fastramqpi: FastRAMQPI,
-    dataloader: DataLoader,
-    export_checks: ExportChecks,
-    import_checks: ImportChecks,
-    settings: Settings,
-    ldap_connection: Connection,
-) -> AsyncIterator[None]:
-    logger.info("Initializing Sync tool")
-    context = fastramqpi.get_context()
-    user_context = context["user_context"]
-    converter = user_context["converter"]
-    sync_tool = SyncTool(
-        dataloader, converter, export_checks, import_checks, settings, ldap_connection
-    )
-    fastramqpi.add_context(sync_tool=sync_tool)
-    yield
-
-
-@asynccontextmanager
-async def initialize_converters(
+async def lifespan(
     fastramqpi: FastRAMQPI,
     settings: Settings,
-    dataloader: DataLoader,
 ) -> AsyncIterator[None]:
-    logger.info("Initializing converters")
-    converter = LdapConverter(settings, dataloader)
-    fastramqpi.add_context(converter=converter)
-    yield
+    async with AsyncExitStack() as stack:
+        logger.info("Configuring LDAP connection")
+        ldap_connection = configure_ldap_connection(settings)
+        fastramqpi.add_context(ldap_connection=ldap_connection)
+        fastramqpi.add_healthcheck(name="LDAPConnection", healthcheck=ldap_healthcheck)
+        await stack.enter_async_context(open_ldap_connection(ldap_connection))
+
+        logger.info("Initializing dataloader")
+        dataloader = DataLoader(fastramqpi.get_context())
+        fastramqpi.add_context(dataloader=dataloader)
+
+        logger.info("Initializing Import/Export checks")
+        export_checks = ExportChecks(dataloader)
+        import_checks = ImportChecks()
+
+        logger.info("Initializing converters")
+        converter = LdapConverter(settings, dataloader)
+        fastramqpi.add_context(converter=converter)
+
+        logger.info("Initializing Sync tool")
+        sync_tool = SyncTool(
+            dataloader,
+            converter,
+            export_checks,
+            import_checks,
+            settings,
+            ldap_connection,
+        )
+        fastramqpi.add_context(sync_tool=sync_tool)
+
+        logger.info("Starting AMQP listener")
+        amqpsystem = fastramqpi.get_amqpsystem()
+        await stack.enter_async_context(amqpsystem)
+
+        logger.info("Initializing LDAP listener")
+        ldap_amqpsystem = configure_ldap_amqpsystem(fastramqpi, settings)
+        await stack.enter_async_context(ldap_amqpsystem)
+        if settings.listen_to_changes_in_ldap:
+            logger.info("Initializing LDAP event generator")
+            sessionmaker = fastramqpi.get_context()["sessionmaker"]
+            ldap_event_generator = LDAPEventGenerator(
+                sessionmaker, settings, ldap_amqpsystem, ldap_connection
+            )
+            fastramqpi.add_healthcheck(
+                name="LDAPEventGenerator", healthcheck=ldap_event_generator.healthcheck
+            )
+            await stack.enter_async_context(ldap_event_generator)
+
+        logger.info("Starting program")
+        yield
 
 
 def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
@@ -350,56 +375,8 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     # TODO: This separation should probably be in FastRAMQPI
     priority_set = fastramqpi._context["lifespan_managers"][1000]
     priority_set.remove(amqpsystem)
-    fastramqpi.add_lifespan_manager(amqpsystem, 2000)
 
-    logger.info("Configuring LDAP connection")
-    ldap_connection = configure_ldap_connection(settings)
-    fastramqpi.add_context(ldap_connection=ldap_connection)
-    fastramqpi.add_healthcheck(name="LDAPConnection", healthcheck=ldap_healthcheck)
-    fastramqpi.add_lifespan_manager(
-        open_ldap_connection(ldap_connection),  # type: ignore
-        1100,
-    )
-
-    logger.info("Initializing dataloader")
-    dataloader = DataLoader(fastramqpi.get_context())
-    fastramqpi.add_context(dataloader=dataloader)
-
-    fastramqpi.add_lifespan_manager(
-        initialize_converters(fastramqpi, settings, dataloader), 1250
-    )
-
-    logger.info("Initializing Import/Export checks")
-    export_checks = ExportChecks(dataloader)
-    import_checks = ImportChecks()
-
-    fastramqpi.add_lifespan_manager(
-        initialize_sync_tool(
-            fastramqpi,
-            dataloader,
-            export_checks,
-            import_checks,
-            settings,
-            ldap_connection,
-        ),
-        1350,
-    )
-
-    logger.info("Initializing LDAP listener")
-    ldap_amqpsystem = configure_ldap_amqpsystem(fastramqpi, settings)
-    # Needs to run after SyncTool
-    # TODO: Implement a dependency graph?
-    fastramqpi.add_lifespan_manager(ldap_amqpsystem, 2000)
-    if settings.listen_to_changes_in_ldap:
-        logger.info("Initializing LDAP event generator")
-        sessionmaker = fastramqpi.get_context()["sessionmaker"]
-        ldap_event_generator = LDAPEventGenerator(
-            sessionmaker, settings, ldap_amqpsystem, ldap_connection
-        )
-        fastramqpi.add_lifespan_manager(ldap_event_generator, 2050)
-        fastramqpi.add_healthcheck(
-            name="LDAPEventGenerator", healthcheck=ldap_event_generator.healthcheck
-        )
+    fastramqpi.add_lifespan_manager(lifespan(fastramqpi, settings), 2000)
 
     return fastramqpi
 
