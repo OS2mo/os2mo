@@ -172,14 +172,16 @@ def dataloader(
             "sync_tool": sync_tool,
         },
     }
-    dataloader = DataLoader(context)
+    dataloader = DataLoader(context, MOAPI(settings, graphql_client))
     dataloader.username_generator = username_generator
     return dataloader
 
 
 @pytest.fixture
 def graphql_mock(dataloader, respx_mock) -> Iterator[GraphQLMocker]:
-    dataloader.context["graphql_client"] = GraphQLClient("http://example.com/graphql")
+    graphql_client = GraphQLClient("http://example.com/graphql")
+    dataloader.moapi.graphql_client = graphql_client
+    dataloader.context["graphql_client"] = graphql_client
 
     yield GraphQLMocker(respx_mock)
 
