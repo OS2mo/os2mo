@@ -158,11 +158,12 @@ def dataloader(
     Yields:
         Dataloaders with mocked clients.
     """
-    dataloader = DataLoader(
-        settings, MOAPI(settings, graphql_client), LDAPAPI(settings, ldap_connection)
+    return DataLoader(
+        settings,
+        MOAPI(settings, graphql_client),
+        LDAPAPI(settings, ldap_connection),
+        username_generator,
     )
-    dataloader.username_generator = username_generator
-    return dataloader
 
 
 @pytest.fixture

@@ -9,8 +9,9 @@ from ldap3 import Connection
 from more_itertools import one
 from more_itertools import split_when
 
+from mo_ldap_import_export.moapi import MOAPI
+
 from .config import Settings
-from .dataloaders import DataLoader
 from .ldap import paged_search
 from .models import Employee
 from .utils import combine_dn_strings
@@ -30,12 +31,11 @@ class UserNameGenerator:
     def __init__(
         self,
         settings: Settings,
-        dataloader: DataLoader,
+        moapi: MOAPI,
         ldap_connection: Connection,
     ) -> None:
         self.settings = settings
-        # TODO: Eliminate dataloader dependency
-        self.dataloader = dataloader
+        self.moapi = moapi
         self.ldap_connection = ldap_connection
 
         self.char_replacement = (
@@ -374,9 +374,11 @@ class AlleroedUserNameGenerator(UserNameGenerator):
         # That MO generates a user, which is deleted from AD some years later. In that
         # Case we should never generate the username of the deleted user.
         # Ref: https://redmine.magenta-aps.dk/issues/57043
-        itsystem_uuid = await self.dataloader.moapi.get_it_system_uuid("ADSAMA")
-        result = await self.dataloader.moapi.graphql_client.read_all_ituser_user_keys_by_itsystem_uuid(
-            UUID(itsystem_uuid)
+        itsystem_uuid = await self.moapi.get_it_system_uuid("ADSAMA")
+        result = (
+            await self.moapi.graphql_client.read_all_ituser_user_keys_by_itsystem_uuid(
+                UUID(itsystem_uuid)
+            )
         )
         # TODO: Keep this as a set and convert all operations to set operations
         existing_usernames_in_mo = list(

@@ -524,22 +524,24 @@ async def sync_tool_and_context(
         },
         "graphql_client": graphql_client,
     }
+    moapi = MOAPI(settings, graphql_client)
+
+    username_generator = UserNameGenerator(
+        settings,
+        moapi,
+        ldap_connection,
+    )
+    context["user_context"]["username_generator"] = username_generator
+
     # Needs context, user_context, ldap_connection
     dataloader = DataLoader(
-        settings, MOAPI(settings, graphql_client), LDAPAPI(settings, ldap_connection)
+        settings, moapi, LDAPAPI(settings, ldap_connection), username_generator
     )
     context["user_context"]["dataloader"] = dataloader
 
     # Needs context, user_context, settings, raw_mapping, dataloader
     converter = LdapConverter(settings, dataloader)
     context["user_context"]["converter"] = converter
-
-    username_generator = UserNameGenerator(
-        settings,
-        dataloader,
-        ldap_connection,
-    )
-    context["user_context"]["username_generator"] = username_generator
 
     export_checks = ExportChecks(dataloader)
     import_checks = ImportChecks()
@@ -918,7 +920,7 @@ async def test_get_existing_values(sync_tool: SyncTool, context: Context) -> Non
     user_context = context["user_context"]
     username_generator = UserNameGenerator(
         user_context["settings"],
-        user_context["dataloader"],
+        user_context["dataloader"].moapi,
         user_context["ldap_connection"],
     )
 
@@ -937,7 +939,7 @@ async def test_get_existing_names(sync_tool: SyncTool, context: Context) -> None
     user_context = context["user_context"]
     username_generator = UserNameGenerator(
         user_context["settings"],
-        user_context["dataloader"],
+        user_context["dataloader"].moapi,
         user_context["ldap_connection"],
     )
 
