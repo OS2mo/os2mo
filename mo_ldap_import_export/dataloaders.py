@@ -29,11 +29,11 @@ logger = structlog.stdlib.get_logger()
 
 
 class DataLoader:
-    def __init__(self, context: Context, moapi: MOAPI) -> None:
+    def __init__(self, context: Context, settings: Settings, moapi: MOAPI) -> None:
         self.context = context
         self.user_context = context["user_context"]
         self.ldap_connection: Connection = self.user_context["ldap_connection"]
-        self.settings: Settings = self.user_context["settings"]
+        self.settings = settings
         self.ldapapi = LDAPAPI(self.settings, self.ldap_connection)
         self.moapi = moapi
 

@@ -524,7 +524,7 @@ async def sync_tool_and_context(
         "graphql_client": graphql_client,
     }
     # Needs context, user_context, ldap_connection
-    dataloader = DataLoader(context, MOAPI(settings, graphql_client))
+    dataloader = DataLoader(context, settings, MOAPI(settings, graphql_client))
     context["user_context"]["dataloader"] = dataloader
 
     # Needs context, user_context, settings, raw_mapping, dataloader
