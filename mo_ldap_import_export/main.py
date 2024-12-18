@@ -26,6 +26,7 @@ from fastramqpi.ramqp.utils import RequeueMessage
 from ldap3 import Connection
 from more_itertools import one
 
+from mo_ldap_import_export.ldapapi import LDAPAPI
 from mo_ldap_import_export.moapi import MOAPI
 
 from . import depends
@@ -290,8 +291,11 @@ async def lifespan(
         logger.info("Initializing MOAPI")
         moapi = MOAPI(settings, graphql_client)
 
+        logger.info("Initializing LDAPAPI")
+        ldapapi = LDAPAPI(settings, ldap_connection)
+
         logger.info("Initializing dataloader")
-        dataloader = DataLoader(fastramqpi.get_context(), settings, moapi)
+        dataloader = DataLoader(settings, moapi, ldapapi)
         fastramqpi.add_context(dataloader=dataloader)
 
         logger.info("Initializing Import/Export checks")
