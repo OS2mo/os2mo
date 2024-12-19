@@ -146,6 +146,11 @@ class AddressFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         description="ITUser filter limiting which entries are returned.",
     )
 
+    visibility: ClassFilter | None = strawberry.field(
+        default=None,
+        description="Visibility filter limiting which entries are returned.",
+    )
+
 
 @strawberry.input(description="Association filter.")
 class AssociationFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
