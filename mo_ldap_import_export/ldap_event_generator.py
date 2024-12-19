@@ -24,7 +24,6 @@ from fastapi import Body
 from fastramqpi.context import Context
 from fastramqpi.ramqp import AMQPSystem
 from ldap3 import Connection
-from ldap3.core.exceptions import LDAPNoSuchObjectResult
 from sqlalchemy import TIMESTAMP
 from sqlalchemy import Text
 from sqlalchemy import select
@@ -36,7 +35,7 @@ from sqlalchemy.orm import mapped_column
 from . import depends
 from .config import Settings
 from .database import Base
-from .ldap import ldap_search
+from .ldap import _paged_search
 from .ldap import ldapresponse2entries
 from .ldap_emit import publish_uuids
 from .utils import combine_dn_strings
@@ -160,20 +159,13 @@ async def _poll(
     #       a different value for the same entry, thus if we hit different domain
     #       controllers we may get duplicate (fine) and missed (not fine) events.
     search_filter = f"(modifyTimestamp>={datetime_to_ldap_timestamp(last_search_time)})"
-    search_parameters = {
-        "search_base": search_base,
-        "search_filter": search_filter,
-        "attributes": [ldap_unique_id_field],
-    }
 
-    try:
-        # NOTE: I think LDAP Searches can at most return 1000 responses, so generating
-        # events from far in the past, may overflow this limit leading to missing events.
-        # TODO: We should probably either paginate this, or check for the number of
-        # results and adjust the timestamp so we do not overflow the response limit.
-        response, _ = await ldap_search(ldap_connection, **search_parameters)
-    except LDAPNoSuchObjectResult:
-        return set()
+    response = await _paged_search(
+        ldap_connection,
+        {"search_filter": search_filter, "attributes": [ldap_unique_id_field]},
+        search_base,
+        mute=False,
+    )
 
     # Filter to only keep search results
     responses = ldapresponse2entries(response)

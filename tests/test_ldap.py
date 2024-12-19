@@ -586,7 +586,13 @@ async def test_poller(
         "type": "searchResEntry",
         "attributes": {settings.ldap_unique_id_field: str(uuid)},
     }
-    ldap_connection.get_response.return_value = [event], {"type": "test"}
+    ldap_connection.get_response.return_value = (
+        [event],
+        {
+            "type": "searchResEntry",
+            "description": "success",
+        },
+    )
 
     last_search_time = datetime.datetime.now(datetime.UTC)
     uuids = await _poll(
@@ -605,7 +611,13 @@ async def test_poller_no_uuid(
         "type": "searchResEntry",
         "attributes": {},
     }
-    ldap_connection.get_response.return_value = [event], {"type": "test"}
+    ldap_connection.get_response.return_value = (
+        [event],
+        {
+            "type": "searchResEntry",
+            "description": "success",
+        },
+    )
 
     last_search_time = datetime.datetime.now(datetime.UTC)
     with capture_logs() as cap_logs:
@@ -632,7 +644,13 @@ async def test_poller_no_uuid(
 async def test_poller_bad_result(
     load_settings_overrides: dict[str, str], ldap_connection: MagicMock, response: Any
 ) -> None:
-    ldap_connection.get_response.return_value = response, {"type": "test"}
+    ldap_connection.get_response.return_value = (
+        response,
+        {
+            "type": "searchResEntry",
+            "description": "success",
+        },
+    )
 
     ldap_amqpsystem = AsyncMock()
 
