@@ -10,13 +10,14 @@ import structlog
 from jinja2 import Environment
 from jinja2 import Template
 from ldap3.utils.ciDict import CaseInsensitiveDict
-from pydantic import Field
 
 from .config import Settings
 from .config import get_required_attributes
 from .dataloaders import DataLoader
 from .exceptions import IncorrectMapping
 from .ldap_classes import LdapObject
+from .models import MOBase
+from .models import Termination
 from .utils import delete_keys_from_dict
 from .utils import is_list
 from .utils import mo_today
@@ -110,7 +111,7 @@ class LdapConverter:
         ldap_object: LdapObject,
         json_key: str,
         employee_uuid: UUID,
-    ) -> Any:  # TODO: -> list[MOBase]
+    ) -> list[MOBase | Termination]:
         """
         uuid : UUID
             Uuid of the employee whom this object belongs to. If None: Generates a new
@@ -122,7 +123,7 @@ class LdapConverter:
         # values per field.
         number_of_entries = self.get_number_of_entries(ldap_object)
 
-        converted_objects = []
+        converted_objects: list[MOBase | Termination] = []
         for entry in range(number_of_entries):
             ldap_dict: CaseInsensitiveDict = CaseInsensitiveDict(
                 {
@@ -179,6 +180,24 @@ class LdapConverter:
             mo_class = self.settings.conversion_mapping.ldap_to_mo[
                 json_key
             ].as_mo_class()
+
+            if mo_dict.get("_terminate_"):
+                # TODO: Convert this to pydantic check
+                assert "uuid" in mo_dict, "UUID must be set if _terminate_ is set"
+                # Asked to terminate, but uuid template did not return an uuid, i.e.
+                # there was no object to actually terminate, so we just skip it.
+                if not mo_dict["uuid"]:
+                    logger.info("Requested termination with no UUID, skipping")
+                    continue
+                converted_objects.append(
+                    Termination(
+                        mo_class=mo_class,
+                        at=mo_dict["_terminate_"],
+                        uuid=mo_dict["uuid"],
+                    )
+                )
+                continue
+
             required_attributes = get_required_attributes(mo_class)
 
             # Load our validity default, if it is not set
@@ -215,23 +234,6 @@ class LdapConverter:
                     missing_attributes=missing_attributes,
                 )
                 continue
-
-            # If requested to terminate, we generate and return a termination subclass
-            # instead of the original class. This is to ensure we can forward the termination date,
-            # without having to modify the RAModel.
-            if "_terminate_" in mo_dict:
-                # TODO: Fix typing of mo_class to be MOBase instead of just type
-                class Termination(mo_class):  # type: ignore
-                    # TODO: we use alias because fields starting with underscore are
-                    # considered private by Pydantic. This entire hack should be
-                    # removed in favour of properly passing Verb.TERMINATE around.
-                    terminate_: str | None = Field(alias="_terminate_")
-
-                    class Config:
-                        allow_population_by_field_name = True
-
-                mo_dict["terminate_"] = mo_dict.pop("_terminate_")
-                mo_class = Termination
 
             try:
                 converted_objects.append(mo_class(**mo_dict))

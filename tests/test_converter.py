@@ -41,6 +41,9 @@ from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.moapi import MOAPI
+from mo_ldap_import_export.models import Address
+from mo_ldap_import_export.models import Employee
+from mo_ldap_import_export.models import Termination
 from mo_ldap_import_export.utils import MO_TZ
 from tests.graphql_mocker import GraphQLMocker
 
@@ -212,6 +215,7 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
         employee_uuid=employee_uuid,
     )
     employee = one(result)
+    assert isinstance(employee, Employee)
     assert employee.given_name == "Tester"
     assert employee.surname == "Testersen"
     assert employee.uuid == employee_uuid
@@ -226,6 +230,7 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
     )
     mail = result[0]
 
+    assert isinstance(mail, Address)
     assert mail.value == "foo@bar.dk"
     assert mail.person == employee_uuid
     start = mail.validity.dict()["start"].replace(tzinfo=None)
@@ -233,7 +238,7 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
     # Note: Date is always at midnight in MO
     assert start == datetime.datetime(2019, 1, 1, 0, 0, 0)
 
-    mail = await converter.from_ldap(
+    result = await converter.from_ldap(
         LdapObject(
             dn="",
             mail=[],
@@ -241,8 +246,7 @@ async def test_ldap_to_mo(converter: LdapConverter) -> None:
         "Email",
         employee_uuid=employee_uuid,
     )
-
-    assert not mail
+    assert not result
 
 
 async def test_ldap_to_mo_dict_error(converter: LdapConverter) -> None:
@@ -815,6 +819,7 @@ def test_check_import_and_export_flags(
         parse_obj_as(ConversionMapping, converter_mapping)
 
 
+@freeze_time("2020-01-01")
 async def test_ldap_to_mo_termination(
     monkeypatch: pytest.MonkeyPatch,
     converter_mapping: dict[str, Any],
@@ -834,6 +839,7 @@ async def test_ldap_to_mo_termination(
         employee_uuid=employee_uuid,
     )
     mail = one(result)
+    assert isinstance(mail, Address)
     assert not hasattr(mail, "terminate_")
     assert mail.value == "foo@bar.dk"
     assert mail.person == employee_uuid
@@ -842,6 +848,8 @@ async def test_ldap_to_mo_termination(
     converter_mapping["ldap_to_mo"]["Email"]["_terminate_"] = (
         "{{ now()|mo_datestring }}"
     )
+    address_uuid = uuid4()
+    converter_mapping["ldap_to_mo"]["Email"]["uuid"] = str(address_uuid)
     monkeypatch.setenv("CONVERSION_MAPPING", json.dumps(converter_mapping))
     settings = Settings()
     converter = LdapConverter(settings, dataloader)
@@ -856,9 +864,10 @@ async def test_ldap_to_mo_termination(
         employee_uuid=employee_uuid,
     )
     mail = one(result)
-    assert hasattr(mail, "terminate_")
-    assert mail.value == "foo@bar.dk"
-    assert mail.person == employee_uuid
+    assert isinstance(mail, Termination)
+    assert mail.mo_class == Address
+    assert mail.uuid == address_uuid
+    assert mail.at == datetime.datetime(2020, 1, 1, 0, 0)
 
 
 async def test_create_facet_class_no_facet() -> None:
@@ -881,6 +890,7 @@ async def test_ldap_to_mo_default_validity(converter: LdapConverter) -> None:
         employee_uuid=employee_uuid,
     )
     mail = one(result)
+    assert isinstance(mail, Address)
     assert mail.value == "foo@bar.dk"
     assert mail.person == employee_uuid
     assert mail.validity.dict() == {
@@ -917,5 +927,6 @@ async def test_ldap_to_mo_mapper(
         employee_uuid=employee_uuid,
     )
     mail = one(result)
+    assert isinstance(mail, Address)
     assert mail.value == "foo@bar.dk"
     assert mail.person == employee_uuid

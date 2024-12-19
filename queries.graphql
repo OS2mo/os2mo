@@ -623,3 +623,28 @@ query read_org_unit_ancestor_names($uuid: UUID!) {
     }
   }
 }
+
+query read_address_uuid($filter: AddressFilter!) {
+  addresses(filter: $filter) {
+    objects {
+      uuid
+    }
+  }
+}
+
+
+query read_ituser_uuid($filter: ITUserFilter!) {
+  itusers(filter: $filter) {
+    objects {
+      uuid
+    }
+  }
+}
+
+query read_engagement_uuid($filter: EngagementFilter!) {
+  engagements(filter: $filter) {
+    objects {
+      uuid
+    }
+  }
+}

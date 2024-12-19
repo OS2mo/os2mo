@@ -60,8 +60,10 @@ from mo_ldap_import_export.ldapapi import LDAPAPI
 from mo_ldap_import_export.moapi import MOAPI
 from mo_ldap_import_export.moapi import Verb
 from mo_ldap_import_export.moapi import extract_current_or_latest_validity
+from mo_ldap_import_export.models import Address
 from mo_ldap_import_export.models import Employee
 from mo_ldap_import_export.models import ITUser
+from mo_ldap_import_export.models import Termination
 from mo_ldap_import_export.routes import load_all_current_it_users
 from mo_ldap_import_export.routes import load_ldap_attribute_values
 from mo_ldap_import_export.routes import load_ldap_cpr_object
@@ -1519,14 +1521,22 @@ def test_extract_latest_object_empty() -> None:
 async def test_create_or_edit_mo_objects(dataloader: DataLoader) -> None:
     moapi = dataloader.moapi
 
-    # One object is created and another is edited.
-    create = MagicMock()
-    del create.terminate_
-
-    edit = MagicMock()
-    del edit.terminate_
-
-    terminate = MagicMock()
+    # One object is created and another is edited
+    person = uuid4()
+    address_type = uuid4()
+    create = Address(
+        value="foo",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+        person=person,
+    )
+    edit = Address(
+        value="bar",
+        address_type=address_type,
+        validity={"start": "2021-01-01T00:00:00"},
+        person=person,
+    )
+    terminate = Termination(mo_class=Address, uuid=uuid4(), at=datetime.datetime.now())
 
     objs = [(create, Verb.CREATE), (edit, Verb.EDIT), (terminate, Verb.TERMINATE)]
 

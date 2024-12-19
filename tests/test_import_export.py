@@ -19,6 +19,7 @@ from fastramqpi.ramqp.utils import RequeueMessage
 from freezegun import freeze_time
 from more_itertools import first
 from more_itertools import last
+from more_itertools import one
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.config import Settings
@@ -155,10 +156,12 @@ async def test_format_converted_engagement_objects(
         json_key,
     )
     assert len(operations) == 2
-    formatted_objects = [obj for obj, _ in operations]
-    assert last(formatted_objects).uuid == engagement_in_mo.uuid
-    assert last(formatted_objects).user_key == engagement1.user_key
-    assert first(formatted_objects) == engagement2
+    (e1, _), (e2, _) = operations
+    assert isinstance(e1, Engagement)
+    assert isinstance(e2, Engagement)
+    assert e2.uuid == engagement_in_mo.uuid
+    assert e2.user_key == engagement1.user_key
+    assert e1 == engagement2
 
 
 async def test_format_converted_engagement_duplicate(
@@ -492,11 +495,13 @@ async def test_format_converted_it_user_objects(
         "ITUser",
     )
 
-    formatted_user_keys = [f[0].user_key for f in formatted_objects]
+    assert len(formatted_objects) == 2  # was 1
+    formatted_user_keys = {
+        obj.user_key for obj, _ in formatted_objects if isinstance(obj, ITUser)
+    }
     # assert "Username1" not in formatted_user_keys
     assert "Username1" in formatted_user_keys
     assert "Username2" in formatted_user_keys
-    assert len(formatted_objects) == 2  # was 1
 
     # Simulate that a matching employee for this it user does not exist
     dataloader.moapi.load_mo_employee_it_users.side_effect = NoObjectsReturnedException(
@@ -573,8 +578,10 @@ async def test_format_converted_primary_engagement_objects(
     )
 
     assert len(formatted_objects) == 1
-    assert formatted_objects[0][0].primary is not None  # type: ignore
-    assert formatted_objects[0][0].user_key == "123"
+    obj, _ = one(formatted_objects)
+    assert isinstance(obj, Engagement)
+    assert obj.primary is not None  # type: ignore
+    assert obj.user_key == "123"
 
     # Simulate that a matching employee for this engagement does not exist
     dataloader.moapi.load_mo_employee_engagements.side_effect = (
@@ -760,17 +767,16 @@ async def test_import_jobtitlefromadtomo_objects(
         "Custom"
     }
 
-    converted_object = AsyncMock()
-
+    user_uuid = uuid4()
+    converted_object = JobTitleFromADToMO(
+        user=user_uuid,
+        job_function=uuid4(),
+    )
     converted_objects = [converted_object]
-
     formatted_objects = [
         (converted_object, Verb.CREATE) for converted_object in converted_objects
     ]
-
     converter.from_ldap.return_value = converted_objects
-
-    context["legacy_graphql_session"] = AsyncMock()
 
     with (
         patch(
@@ -780,7 +786,11 @@ async def test_import_jobtitlefromadtomo_objects(
         patch("mo_ldap_import_export.import_export.get_ldap_object"),
     ):
         await sync_tool.import_single_user(fake_dn)
-        converted_object.sync_to_mo.assert_called_once()
+
+    graphql_client_mock: AsyncMock = sync_tool.dataloader.moapi.graphql_client  # type: ignore
+    graphql_client_mock.read_engagements_by_employee_uuid.assert_called_once_with(
+        user_uuid
+    )
 
 
 async def test_publish_engagements_for_org_unit(dataloader: AsyncMock) -> None:
