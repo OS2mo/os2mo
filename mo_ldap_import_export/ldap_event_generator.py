@@ -167,6 +167,10 @@ async def _poll(
     }
 
     try:
+        # NOTE: I think LDAP Searches can at most return 1000 responses, so generating
+        # events from far in the past, may overflow this limit leading to missing events.
+        # TODO: We should probably either paginate this, or check for the number of
+        # results and adjust the timestamp so we do not overflow the response limit.
         response, _ = await ldap_search(ldap_connection, **search_parameters)
     except LDAPNoSuchObjectResult:
         return set()
@@ -275,11 +279,18 @@ def datetime_to_ldap_timestamp(dt: datetime) -> str:
     assert dt.tzinfo is not None
     # The LDAP Generalized Time ABNF requires century+year to be 4 digits.
     # However, strftime %Y only returns a single digit (1) for year 1.
+    # For more details see: RFC 4517 section 3.3.13.
+    # https://datatracker.ietf.org/doc/html/rfc4517#section-3.3.13
     # https://ldapwiki.com/wiki/Wiki.jsp?page=GeneralizedTime
     # NOTE: modifyTimestamp in LDAP only has second-level precision, so we
     # CANNOT include sub-second level precision in this timestamp, or we may
     # miss objects modified in the same second as the search.
-    return dt.strftime("%Y").rjust(4, "0") + dt.strftime("%m%d%H%M%S%z")
+    # NOTE: The ".0" in the below string is REQUIRED in Active Directory's
+    # implementation of Generalized-Time, even though it is OPTIONAL in the
+    # standard. This was discovered the hard way, as missing the ".0" results
+    # in missing events.
+    # See: https://learn.microsoft.com/en-us/windows/win32/adschema/s-string-generalized-time
+    return dt.strftime("%Y").rjust(4, "0") + dt.strftime("%m%d%H%M%S.0%z")
 
 
 ldap_event_router = APIRouter(prefix="/ldap_event_generator")
