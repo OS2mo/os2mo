@@ -113,6 +113,7 @@ def amqp_reject_on_failure(
             # This is raised if the import/export checks reject a message
             IgnoreChanges,
             ReadOnlyException,  # In case a feature is not enabled: Abort
+            InvalidCPR,  # We cannot lookup or sync users with invalid CPR numbers
         ) as e:
             logger.info(str(e))
             raise RejectMessage() from e
