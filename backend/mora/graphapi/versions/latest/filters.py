@@ -254,6 +254,17 @@ class ClassFilter(BaseFilter):
         ),
     )
 
+    # I guess this isn't completely correct, since `owner` on `class`, is not an object,
+    # but just a UUID. Should the filter only allow a string/UUID then?
+    owner: OwnerFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Owner filter limiting which entries are returned.
+            """
+        ),
+    )
+
     scope: list[str] | None = strawberry.field(
         default=None,
         description=gen_filter_string("Scope", "scope"),
