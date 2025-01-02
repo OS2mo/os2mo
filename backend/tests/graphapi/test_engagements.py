@@ -6,6 +6,7 @@ from unittest.mock import patch
 from uuid import UUID
 from uuid import uuid4
 
+import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
@@ -544,6 +545,7 @@ async def test_update_engagement_unit_test(
     update_engagement.assert_called_with(test_data)
 
 
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(

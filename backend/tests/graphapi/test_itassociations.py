@@ -263,6 +263,7 @@ async def test_update_itassociation_unit_test(
     update_itassociation.assert_called_with(test_data)
 
 
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("fixture_db")
 @pytest.mark.parametrize(
