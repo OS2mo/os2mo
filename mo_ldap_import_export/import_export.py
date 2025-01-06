@@ -242,6 +242,10 @@ class SyncTool:
         exit_stack.enter_context(bound_contextvars(uuid=str(uuid)))
         logger.info("Registered change in an employee")
 
+        if uuid in self.settings.mo_uuids_to_ignore:  # pragma: no cover
+            logger.warning("MO event ignored due to ignore-list")
+            return {}
+
         mo2ldap_template = self.settings.conversion_mapping.mo2ldap
         if not mo2ldap_template:
             logger.info("listen_to_changes_in_employees called without mapping")
