@@ -179,6 +179,9 @@ class SyncTool:
         parsed = json.loads(result)
         assert isinstance(parsed, dict)
         assert all(isinstance(key, str) for key in parsed)
+        # Convert None's to empty lists to avoid writing "None" in LDAP
+        # Whenever a None is templated out we empty the value in LDAP
+        parsed = {key: [] if value is None else value for key, value in parsed.items()}
         # TODO: force users to configure as list instead of implicitly
         # converting (very confusing).
         # assert all(isinstance(value, list) for value in parsed.values())

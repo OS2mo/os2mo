@@ -325,7 +325,6 @@ async def test_edit_existing_in_ldap(
     await assert_employee()
 
 
-@pytest.mark.xfail(reason="Reproducing production issue")
 @pytest.mark.integration_test
 @pytest.mark.envvar(
     {
@@ -377,7 +376,6 @@ async def test_none_handling_empty(
     assert hasattr(ldap_object, "carLicense") is False
 
 
-@pytest.mark.xfail(reason="Reproducing production issue")
 @pytest.mark.integration_test
 @pytest.mark.envvar(
     {
