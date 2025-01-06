@@ -41,7 +41,6 @@ async def test_cpr2uuids(
     assert "Unable to lookup invalid CPR number" in str(exc_info.value)
 
 
-@pytest.mark.xfail(reason="Reproducing production issue")
 @pytest.mark.integration_test
 @pytest.mark.envvar(
     {
