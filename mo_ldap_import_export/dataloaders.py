@@ -21,7 +21,6 @@ from .models import ITUser
 from .types import DN
 from .types import CPRNumber
 from .types import EmployeeUUID
-from .utils import mo_today
 
 logger = structlog.stdlib.get_logger()
 
@@ -222,37 +221,4 @@ class DataLoader:
         #       to do so, maybe we should simply not upload anything in that case.
         dn = await self.username_generator.generate_dn(employee)
         assert isinstance(dn, str)
-
-        # If the LDAP ITSystem exists, we want to create a binding to our newly
-        # generated (and created) DN, such that it can be correlated in the future.
-        #
-        # NOTE: This may not be executed if the program crashes after the above line,
-        #       thus the current code is not robust and may fail at any time.
-        #       The appropriate solution here is to ensure that generate_dn atomically
-        #       creates a link between the MO entity and the newly created LDAP entity,
-        #       such as by adding the MO UUID to the newly created LDAP entity.
-        if raw_it_system_uuid is not None:
-            logger.info(
-                "No ITUser found, creating one to correlate with DN",
-                employee_uuid=uuid,
-                dn=dn,
-            )
-            # Get its unique ldap uuid
-            # TODO: Get rid of this code and operate on EntityUUIDs thoughout
-            unique_uuid = await self.ldapapi.get_ldap_unique_ldap_uuid(dn)
-            logger.info(
-                "LDAP UUID found for DN",
-                employee_uuid=uuid,
-                dn=dn,
-                ldap_uuid=unique_uuid,
-            )
-            # Make a new it-user
-            it_user = ITUser(
-                user_key=str(unique_uuid),
-                itsystem=UUID(raw_it_system_uuid),
-                person=uuid,
-                validity={"start": mo_today()},
-            )
-            await self.moapi.create_ituser(it_user)
-
         return dn
