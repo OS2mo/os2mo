@@ -249,11 +249,10 @@ async def class_resolver(
         extend_user_keys(class_filter, filter.parent_user_keys)
         return await filter2uuids_func(class_resolver, info, class_filter)
 
-    async def _check_owner_descendants(info: Info, filter: ClassFilter):
-        org_unit_filter = OrganisationUnitFilter(
-            descendant=OrganisationUnitFilter(uuids=filter.owner.uuids)
-        )
-        query = await organisation_unit_resolver_query(info, org_unit_filter)
+    async def _resolve_org_unit_filter(
+        info: Info, filter: OrganisationUnitFilter
+    ) -> list[UUID]:
+        query = await organisation_unit_resolver_query(info, filter)
         session = info.context["session"]
         result = await session.scalars(query)
         return result.all()
@@ -282,16 +281,8 @@ async def class_resolver(
         )
     if filter.scope is not None:
         kwargs["omfang"] = to_similar(filter.scope)
-    if filter.owner is not None and filter.owner.uuids is not None:
-        # Somehow return class if `Class(owner=null)`
-        org_units = await _check_owner_descendants(info, filter)
-        if org_units:
-            kwargs["ejer"] = await filter2uuids_func(
-                organisation_unit_resolver,
-                info,
-                OrganisationUnitFilter(uuids=org_units),
-            )
-    return await generic_resolver(
+
+    classes = await generic_resolver(
         ClassRead,
         info=info,
         filter=filter,
@@ -299,6 +290,20 @@ async def class_resolver(
         cursor=cursor,
         **kwargs,
     )
+
+    if filter.owner is not None:
+        org_units = await _resolve_org_unit_filter(info, filter.owner)
+        if org_units:
+            classes = {
+                uuid: class_list
+                for uuid, class_list in classes.items()
+                if any(
+                    cls.owner in org_units
+                    or (filter.owner.include_none and cls.owner is None)
+                    for cls in class_list
+                )
+            }
+    return classes
 
 
 async def address_resolver(

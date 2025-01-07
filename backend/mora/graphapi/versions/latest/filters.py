@@ -254,9 +254,7 @@ class ClassFilter(BaseFilter):
         ),
     )
 
-    # I guess this isn't completely correct, since `owner` on `class`, is not an object,
-    # but just a UUID. Should the filter only allow a string/UUID then?
-    owner: OwnerFilter | None = strawberry.field(
+    owner: ClassOwnerFilter | None = strawberry.field(
         default=None,
         description=dedent(
             """\
@@ -801,6 +799,18 @@ class RoleBindingFilter(BaseFilter, OrganisationUnitFiltered):
         description=dedent(
             """\
             ITUser filter limiting which entries are returned.
+            """
+        ),
+    )
+
+
+@strawberry.input(description="Class owner filter")
+class ClassOwnerFilter(OrganisationUnitFilter):
+    include_none: bool = strawberry.field(
+        default=False,
+        description=dedent(
+            """\
+            Include classes with `owner=None`.
             """
         ),
     )
