@@ -8,6 +8,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 from typing import Literal
+from uuid import UUID
 
 import structlog
 import yaml
@@ -349,6 +350,16 @@ class Settings(BaseSettings):
 
     listen_to_changes_in_ldap: bool = Field(
         True, description="Whether to write to MO, when changes in LDAP are registered"
+    )
+
+    mo_uuids_to_ignore: set[UUID] = Field(
+        default_factory=set,
+        description="Set of MO UUIDs to ignore changes to",
+    )
+
+    ldap_uuids_to_ignore: set[UUID] = Field(
+        default_factory=set,
+        description="Set of LDAP UUIDs to ignore changes to",
     )
 
     add_objects_to_ldap: bool = Field(

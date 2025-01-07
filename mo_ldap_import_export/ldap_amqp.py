@@ -41,16 +41,18 @@ PayloadUUID = Annotated[UUID, Depends(get_payload_as_type(UUID))]
 @ldap2mo_router.post("/uuid")
 @http_reject_on_failure
 async def http_process_uuid(
+    settings: Settings,
     sync_tool: SyncTool,
     dataloader: DataLoader,
     converter: LdapConverter,
     uuid: Annotated[UUID, Body()],
 ) -> None:
-    await handle_uuid(sync_tool, dataloader, converter, uuid)
+    await handle_uuid(settings, sync_tool, dataloader, converter, uuid)
 
 
 @ldap_amqp_router.register("uuid")
 async def process_uuid(
+    settings: Settings,
     ldap_amqpsystem: LDAPAMQPSystem,
     sync_tool: SyncTool,
     dataloader: DataLoader,
@@ -59,7 +61,7 @@ async def process_uuid(
 ) -> None:
     try:
         await amqp_reject_on_failure(handle_uuid)(
-            sync_tool, dataloader, converter, uuid
+            settings, sync_tool, dataloader, converter, uuid
         )
     except RequeueMessage:  # pragma: no cover
         # NOTE: This is a hack to cycle messages because quorum queues do not work
@@ -68,6 +70,7 @@ async def process_uuid(
 
 
 async def handle_uuid(
+    settings: Settings,
     sync_tool: SyncTool,
     dataloader: DataLoader,
     converter: LdapConverter,
@@ -76,6 +79,11 @@ async def handle_uuid(
     # TODO: Sync from MO to LDAP to overwrite bad manual changes
 
     logger.info("Received LDAP AMQP event", uuid=uuid)
+
+    if uuid in settings.ldap_uuids_to_ignore:  # pragma: no cover
+        logger.warning("LDAP event ignored due to ignore-list", ldap_uuid=uuid)
+        return
+
     try:
         dn = await dataloader.ldapapi.get_ldap_dn(uuid)
     except NoObjectsReturnedException as exc:
