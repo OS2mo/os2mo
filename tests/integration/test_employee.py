@@ -442,12 +442,12 @@ async def test_none_handling_clearing(
     assert hasattr(ldap_object, "carLicense") is False
 
 
-@pytest.mark.xfail(reason="Reproducing production issue")
 @pytest.mark.integration_test
 @pytest.mark.envvar(
     {
         "LISTEN_TO_CHANGES_IN_MO": "False",
         "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "LDAP_IT_SYSTEM": "ADUUID",
         "CONVERSION_MAPPING": json.dumps(
             {
                 "mo2ldap": """

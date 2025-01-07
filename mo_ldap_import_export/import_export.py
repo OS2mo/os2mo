@@ -49,6 +49,7 @@ from .types import EmployeeUUID
 from .types import OrgUnitUUID
 from .utils import bucketdict
 from .utils import ensure_list
+from .utils import mo_today
 from .utils import star
 
 logger = structlog.stdlib.get_logger()
@@ -187,6 +188,44 @@ class SyncTool:
         # assert all(isinstance(value, list) for value in parsed.values())
         return {key: ensure_list(value) for key, value in parsed.items()}
 
+    async def create_ituser_link(self, uuid: EmployeeUUID, dn: DN) -> None:
+        # Check if we even dare create a DN
+        raw_it_system_uuid = await self.dataloader.moapi.get_ldap_it_system_uuid()
+        if raw_it_system_uuid is None:
+            return None
+
+        # If the LDAP ITSystem exists, we want to create a binding to our newly
+        # generated (and created) DN, such that it can be correlated in the future.
+        #
+        # NOTE: This may not be executed if the program crashes after creating the LDAP
+        #       account, but before creating this ituser link.
+        #       Thus the current code is not robust and may fail at any time.
+        #       The appropriate solution here is either to ensure that the LDAP account
+        #       and the ituser link are created atomically or to introduce a multi-stage
+        #       commit solution to the integration.
+        #       One practical solution may be to entirely eliminate the need for these
+        #       ituser links by allocating a field in LDAP for the MO UUID and using
+        #       that field to link MO and LDAP accounts together.
+        #       An alternative solution may involve writing a temporary dummy value to
+        #       LDAP on the initial create which can be detected later to ensure that
+        #       creation is completed even if the program crashes at an inopportune
+        #       time. - The risk of this approach is that we have bad values in LDAP,
+        #       which may be synchronized by other listeners on LDAP, and thus have
+        #       unforseen consequences.
+        logger.info("No ITUser found, creating one to correlate with DN", dn=dn)
+        # Get its unique ldap uuid
+        # TODO: Get rid of this code and operate on EntityUUIDs thoughout
+        unique_uuid = await self.dataloader.ldapapi.get_ldap_unique_ldap_uuid(dn)
+        logger.info("LDAP UUID found for DN", dn=dn, ldap_uuid=unique_uuid)
+        # Make a new it-user
+        it_user = ITUser(
+            user_key=str(unique_uuid),
+            itsystem=UUID(raw_it_system_uuid),
+            person=uuid,
+            validity={"start": mo_today()},
+        )
+        await self.dataloader.moapi.create_ituser(it_user)
+
     @with_exitstack
     async def listen_to_changes_in_employees(
         self,
@@ -226,6 +265,7 @@ class SyncTool:
 
         if create:
             await self.dataloader.ldapapi.add_ldap_object(best_dn, ldap_desired_state)
+            await self.create_ituser_link(uuid, best_dn)
         else:
             await self.dataloader.ldapapi.modify_ldap_object(
                 best_dn, ldap_desired_state
