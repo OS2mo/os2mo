@@ -335,6 +335,17 @@ class UserNameGenerator:
         name = given_name.split(" ")[:4] + [surname]
         return name
 
+    async def generate_common_name(self, employee: Employee) -> str:
+        name = self.generate_person_name(employee)
+        existing_common_names = await self._get_existing_common_names()
+        common_name = self._create_common_name(name, existing_common_names)
+        logger.info(
+            "Generated CommonName based on name",
+            name=name,
+            common_name=common_name,
+        )
+        return common_name
+
     async def generate_username(self, employee: Employee) -> str:
         existing_usernames = await self._get_existing_usernames()
         name = self.generate_person_name(employee)
@@ -351,15 +362,7 @@ class UserNameGenerator:
         Generates a LDAP DN (Distinguished Name) based on information from a MO Employee
         object.
         """
-        name = self.generate_person_name(employee)
-        existing_common_names = await self._get_existing_common_names()
-        common_name = self._create_common_name(name, existing_common_names)
-        logger.info(
-            "Generated CommonName based on name",
-            name=name,
-            common_name=common_name,
-        )
-
+        common_name = await self.generate_common_name(employee)
         dn = self._make_dn(common_name)
         return dn
 
