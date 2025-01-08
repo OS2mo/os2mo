@@ -373,8 +373,6 @@ class AlleroedUserNameGenerator(UserNameGenerator):
         assert self.settings.ldap_dialect == "AD"
 
     async def _get_existing_usernames(self):
-        ldap_usernames = await super()._get_existing_usernames()
-
         # "existing_usernames_in_mo" covers all usernames which MO has ever generated.
         # Because we never delete from MO's database; We just put end-dates on objects.
         #
@@ -393,6 +391,7 @@ class AlleroedUserNameGenerator(UserNameGenerator):
             {validity.user_key for obj in result.objects for validity in obj.validities}
         )
 
+        ldap_usernames = await super()._get_existing_usernames()
         return ldap_usernames + existing_usernames_in_mo
 
     def _name_fixer(self, name_parts: list[str]) -> list[str]:
