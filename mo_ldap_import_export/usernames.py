@@ -380,9 +380,9 @@ class AlleroedUserNameGenerator(UserNameGenerator):
         # Because we never delete from MO's database; We just put end-dates on objects.
         #
         # We need to block these usernames from being generated, because it is possible
-        # That MO generates a user, which is deleted from AD some years later. In that
-        # Case we should never generate the username of the deleted user.
-        # Ref: https://redmine.magenta-aps.dk/issues/57043
+        # that MO generates a user, which is deleted from AD some years later. In that
+        # case we should never generate the username of the deleted user.
+        # Reference: https://redmine.magenta-aps.dk/issues/57043
         itsystem_uuid = await self.moapi.get_it_system_uuid("ADSAMA")
         result = (
             await self.moapi.graphql_client.read_all_ituser_user_keys_by_itsystem_uuid(
@@ -399,7 +399,7 @@ class AlleroedUserNameGenerator(UserNameGenerator):
 
     def _name_fixer(self, name_parts: list[str]) -> list[str]:
         # Remove vowels from all but first name
-        # Follows guidelines from https://redmine.magenta-aps.dk/issues/56080
+        # Reference: https://redmine.magenta-aps.dk/issues/56080
         first_name, *lastnames = name_parts
         return [first_name] + [remove_vowels(n) for n in super()._name_fixer(lastnames)]
 
