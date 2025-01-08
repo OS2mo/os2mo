@@ -814,3 +814,110 @@ async def test_integration_scopes_filter(graphapi_post: GraphAPIPost) -> None:
             },
         ],
     )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("fixture_db")
+async def test_integration_class_owner_filter(graphapi_post: GraphAPIPost) -> None:
+    org_unit_type_facet_uuid = "fc917e7c-fc3b-47c2-8aa5-a0383342a280"
+
+    # Overordnet enhed
+    org_unit_overordnet_enhed = "2874e1dc-85e6-4269-823a-e1125484dfd3"
+    # Humanistisk fakultet - child of "Overordnet enhed"
+    org_unit_hum = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+
+    # Lønorganisation
+    org_unit_loen = "b1f69701-86d8-496e-a3f1-ccef18ac1958"
+
+    # Create
+    create_mutation = """
+        mutation Create(
+            $facet_uuid: UUID!,
+            $owner_uuid: UUID!,
+            $class_name: String!
+        ) {
+          class_create(
+            input: {
+                facet_uuid: $facet_uuid,
+                user_key: $class_name,
+                name: $class_name,
+                owner: $owner_uuid,
+                validity: {from: "2010-02-03"}
+            }
+          ) {
+            uuid
+          }
+        }
+    """
+    graphapi_post(
+        create_mutation,
+        {
+            "facet_uuid": org_unit_type_facet_uuid,
+            "owner_uuid": org_unit_overordnet_enhed,
+            "class_name": "class1",
+        },
+    )
+    graphapi_post(
+        create_mutation,
+        {
+            "facet_uuid": org_unit_type_facet_uuid,
+            "owner_uuid": org_unit_loen,
+            "class_name": "class2",
+        },
+    )
+
+    read_query = """
+        query OwnerClassQuery($facet_uuid: [UUID!], $org_unit_hum: [UUID!]) {
+            classes(filter: { facet: { uuids: $facet_uuid } }) {
+                objects {
+                    current {
+                        name
+                        uuid
+                    }
+                }
+            }
+            exclude_none: classes(
+                filter: {
+                    facet: { user_keys: "org_unit_type" }
+                    owner: { descendant: { uuids: $org_unit_hum }, include_none: false }
+                }
+            ) {
+                objects {
+                    current {
+                        name
+                        uuid
+                    }
+                }
+            }
+            include_none: classes(
+                filter: {
+                    facet: { user_keys: "org_unit_type" }
+                    owner: { descendant: { uuids: $org_unit_hum }, include_none: true }
+                }
+            ) {
+                objects {
+                    current {
+                        name
+                        uuid
+                    }
+                }
+            }
+        }
+
+    """
+    response = graphapi_post(
+        read_query,
+        variables={
+            "facet_uuid": org_unit_type_facet_uuid,
+            "org_unit_hum": org_unit_hum,
+        },
+    )
+    all_classes = len(response.data["classes"]["objects"])
+    exclude_none = len(response.data["exclude_none"]["objects"])
+    include_none = len(response.data["include_none"]["objects"])
+
+    # Expect to only return the class that has the owner "Overordnet enhed"
+    assert exclude_none == 1
+    # Expect to return all classes except the class that has the owner "Lønorganisation",
+    # since it's in a seperate tree to "Overordnet enhed"
+    assert include_none == all_classes - 1

@@ -249,6 +249,14 @@ async def class_resolver(
         extend_user_keys(class_filter, filter.parent_user_keys)
         return await filter2uuids_func(class_resolver, info, class_filter)
 
+    async def _resolve_org_unit_filter(
+        info: Info, filter: OrganisationUnitFilter
+    ) -> list[UUID]:
+        query = await organisation_unit_resolver_query(info, filter)
+        session = info.context["session"]
+        result = await session.scalars(query)
+        return result.all()
+
     if filter is None:
         filter = ClassFilter()
 
@@ -274,7 +282,7 @@ async def class_resolver(
     if filter.scope is not None:
         kwargs["omfang"] = to_similar(filter.scope)
 
-    return await generic_resolver(
+    classes = await generic_resolver(
         ClassRead,
         info=info,
         filter=filter,
@@ -282,6 +290,20 @@ async def class_resolver(
         cursor=cursor,
         **kwargs,
     )
+
+    if filter.owner is not None:
+        # This functionality exists, because it's impossible to filter `None` in LoRa.
+        org_units = await _resolve_org_unit_filter(info, filter.owner)
+        classes = {
+            uuid: class_list
+            for uuid, class_list in classes.items()
+            if any(
+                cls.owner in org_units
+                or (filter.owner.include_none and cls.owner is None)
+                for cls in class_list
+            )
+        }
+    return classes
 
 
 async def address_resolver(
