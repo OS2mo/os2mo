@@ -338,9 +338,15 @@ class UserNameGenerator:
         name = given_name.split(" ")[:4] + [surname]
         return name
 
-    async def generate_common_name(self, employee: Employee) -> str:
+    async def generate_common_name(
+        self, employee: Employee, current_common_name: str | None = None
+    ) -> str:
         name = self.generate_person_name(employee)
         existing_common_names = await self._get_existing_common_names()
+        # We have to discard the current common name, as we may otherwise generate a new
+        # common name due to a conflict with ourselves.
+        if current_common_name:
+            existing_common_names.discard(current_common_name.lower())
         common_name = self._create_common_name(name, existing_common_names)
         logger.info(
             "Generated CommonName based on name",
