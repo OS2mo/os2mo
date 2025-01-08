@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import re
 from collections.abc import Iterator
+from typing import Any
 from uuid import UUID
 
 import structlog
@@ -364,6 +365,10 @@ class UserNameGenerator:
 
 
 class AlleroedUserNameGenerator(UserNameGenerator):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        assert self.settings.ldap_dialect == "AD"
+
     async def _get_existing_usernames(self):
         ldap_usernames = await super()._get_existing_usernames()
 
@@ -391,6 +396,7 @@ class AlleroedUserNameGenerator(UserNameGenerator):
         existing_usernames = await self._get_existing_usernames()
         name = self.generate_person_name(employee)
         # Remove vowels from all but first name
+        # Follows guidelines from https://redmine.magenta-aps.dk/issues/56080
         name = [name[0]] + [remove_vowels(n) for n in self._name_fixer(name)[1:]]
         username = self._create_username(name, existing_usernames)
         logger.info(
@@ -399,27 +405,6 @@ class AlleroedUserNameGenerator(UserNameGenerator):
             username=username,
         )
         return username
-
-    async def generate_dn(self, employee: Employee) -> str:
-        """
-        Generates a LDAP DN (Distinguished Name) based on information from a MO Employee
-        object.
-
-        Follows guidelines from https://redmine.magenta-aps.dk/issues/56080
-        """
-        assert self.settings.ldap_dialect == "AD"
-
-        name = self.generate_person_name(employee)
-        existing_common_names = await self._get_existing_common_names()
-        common_name = self._create_common_name(name, existing_common_names)
-        logger.info(
-            "Generated CommonName based on name",
-            name=name,
-            common_name=common_name,
-        )
-
-        dn = self._make_dn(common_name)
-        return dn
 
 
 def get_username_generator_class(
