@@ -67,23 +67,25 @@ def context(
 
 
 @pytest.fixture
-def existing_usernames() -> list:
-    return ["nj", "ngc"]
+def existing_usernames() -> set[str]:
+    return {"nj", "ngc"}
 
 
 @pytest.fixture
-def existing_common_names() -> list:
-    return ["Nick Janssen", "Nick Janssen_2"]
+def existing_common_names() -> set[str]:
+    return {"Nick Janssen", "Nick Janssen_2"}
 
 
 @pytest.fixture
-def existing_user_principal_names() -> list:
-    return ["nj@magenta.dk", "ngc2@magenta.dk"]
+def existing_user_principal_names() -> set[str]:
+    return {"nj@magenta.dk", "ngc2@magenta.dk"}
 
 
 @pytest.fixture
 def existing_usernames_ldap(
-    existing_usernames, existing_common_names, existing_user_principal_names
+    existing_usernames: set[str],
+    existing_common_names: set[str],
+    existing_user_principal_names: set[str],
 ) -> list:
     existing_usernames_ldap = [
         {"attributes": {"cn": cn, "sAMAccountName": sam, "userPrincipalName": up}}
@@ -224,117 +226,137 @@ def alleroed_username_generator(
 
 async def test_get_existing_usernames(
     username_generator: UserNameGenerator,
-    existing_usernames: list,
-    existing_common_names: list,
+    existing_usernames: set[str],
+    existing_common_names: set[str],
 ):
     result = await username_generator.get_existing_values(["sAMAccountName", "cn"])
     assert result["sAMAccountName"] == existing_usernames
-    assert result["cn"] == [cn.lower() for cn in existing_common_names]
+    assert result["cn"] == {cn.lower() for cn in existing_common_names}
 
 
-def test_create_username(username_generator: UserNameGenerator):
-    # Regular user
-    username = username_generator._create_username(["Nick", "Janssen"], [])
-    assert username == "njans"
+@pytest.mark.parametrize(
+    "names,expected",
+    (
+        # Regular user
+        (["Nick", "Janssen"], "njans"),
+        # User with a funny character
+        (["Nick", "Jænssen"], "njaen"),
+        # User with a funny character which is not in the character replacement mapping
+        (["N1ck", "Janssen"], "njans"),
+        # User with a middle name
+        (["Nick", "Gerardus", "Janssen"], "ngjan"),
+        # User with two middle names
+        (["Nick", "Gerardus", "Cornelis", "Janssen"], "ngcja"),
+        # User with three middle names
+        (["Nick", "Gerardus", "Cornelis", "Optimus", "Janssen"], "ngcoj"),
+        # User with 4 middle names (only the first three are used)
+        (["Nick", "Gerardus", "Cornelis", "Optimus", "Prime", "Janssen"], "ngcoj"),
+    ),
+)
+def test_create_username(
+    username_generator: UserNameGenerator, names: list[str], expected: str
+) -> None:
+    username = username_generator._create_username(names, set())
+    assert username == expected
 
-    # User with a funny character
-    username = username_generator._create_username(["Nick", "Jænssen"], [])
-    assert username == "njaen"
 
-    # User with a funny character which is not in the character replacement mapping
-    username = username_generator._create_username(["N1ck", "Janssen"], [])
-    assert username == "njans"
+@pytest.mark.parametrize(
+    "names,existing,expected",
+    (
+        # Regular user, but njans is taken
+        (["Nick", "Janssen"], {"njans"}, "njans2"),
+        # User with a funny character, but njaen is taken
+        (["Nick", "Jænssen"], {"njaen"}, "njaen2"),
+    ),
+)
+def test_create_username_taken(
+    username_generator: UserNameGenerator,
+    names: list[str],
+    existing: set[str],
+    expected: str,
+) -> None:
+    username = username_generator._create_username(names, existing)
+    assert username == expected
 
-    # User with a middle name
-    username = username_generator._create_username(["Nick", "Gerardus", "Janssen"], [])
-    assert username == "ngjan"
 
-    # User with two middle names
-    username = username_generator._create_username(
-        ["Nick", "Gerardus", "Cornelis", "Janssen"], []
-    )
-    assert username == "ngcja"
-
-    # User with three middle names
-    username = username_generator._create_username(
-        ["Nick", "Gerardus", "Cornelis", "Optimus", "Janssen"], []
-    )
-    assert username == "ngcoj"
-
-    # User with 4 middle names (only the first three are used)
-    username = username_generator._create_username(
-        ["Nick", "Gerardus", "Cornelis", "Optimus", "Prime", "Janssen"], []
-    )
-    assert username == "ngcoj"
-
-    # Simulate case where 'njans' is taken
-    username = username_generator._create_username(["Nick", "Janssen"], ["njans"])
-    assert username == "njans2"
-
+def test_create_username_no_models_fit(username_generator: UserNameGenerator) -> None:
     # Simulate a case which fits none of the models (last name is too short)
     with pytest.raises(RuntimeError):
-        username_generator._create_username(["Nick", "Ja"], [])
+        username_generator._create_username(["Nick", "Ja"], set())
 
+
+def test_create_username_forbidden(username_generator: UserNameGenerator) -> None:
     # Simulate a case where a forbidden username is generated
     username = username_generator._create_username(
-        ["Harry", "Alexander", "Terpstra"], []
+        ["Harry", "Alexander", "Terpstra"], set()
     )
     assert username != "hater"
     assert username == "hterp"
 
 
-def test_create_common_name(username_generator: UserNameGenerator):
-    # Regular case
-    common_name = username_generator._create_common_name(["Nick", "Johnson"], [])
-    assert common_name == "Nick Johnson"
+@pytest.mark.parametrize(
+    "names,expected",
+    (
+        # Regular case
+        (["Nick", "Johnson"], "Nick Johnson"),
+        # Middle names are not used
+        (["Nick", "Gerardus", "Cornelis", "Johnson"], "Nick Gerardus Cornelis Johnson"),
+        # Users without a last name are supported
+        (["Nick", ""], "Nick"),
+        # If a name is over 64 characters, a middle name is removed.
+        (
+            ["Nick", "Gerardus", "Cornelis", "long name" * 20, "Johnson"],
+            "Nick Gerardus Cornelis Johnson",
+        ),
+        # If the name is still over 64 characters, another middle name is removed.
+        (
+            ["Nick", "Gerardus", "Cornelis", "long name" * 20, "Hansen", "Johnson"],
+            "Nick Gerardus Cornelis Johnson",
+        ),
+        # In the rare case that someone has a first or last name with over 64 characters,
+        # we cut off characters from his name
+        # Because AD does not allow common names with more than 64 characters
+        (["Nick" * 40, "Johnson"], ("Nick" * 40)[:60]),
+        (["Nick", "Johnson" * 40], ("Nick" + " " + "Johnson" * 40)[:60]),
+        (
+            ["Nick", "Gerardus", "Cornelis", "Johnson" * 40],
+            ("Nick" + " " + "Johnson" * 40)[:60],
+        ),
+    ),
+)
+def test_create_common_name(
+    username_generator: UserNameGenerator, names: list[str], expected: str
+) -> None:
+    common_name = username_generator._create_common_name(names, set())
+    assert common_name == expected
 
-    # When 'Nick Janssen' already exists and so does 'Nick Janssen_2'
-    common_name = username_generator._create_common_name(
-        ["Nick", "Janssen"], ["nick janssen", "nick janssen_2"]
-    )
-    assert common_name == "Nick Janssen_3"
 
-    # Middle names are not used
-    common_name = username_generator._create_common_name(
-        ["Nick", "Gerardus", "Cornelis", "Johnson"], []
-    )
-    assert common_name == "Nick Gerardus Cornelis Johnson"
+@pytest.mark.parametrize(
+    "names,existing,expected",
+    (
+        # Regular case, but Nick Johnson is taken
+        # TODO: Are common names actually case insensitive in LDAP / AD?
+        (["Nick", "Johnson"], {"nick johnson"}, "Nick Johnson_2"),
+        # Regualr case, but both 'Nick Janssen' and 'Nick Janssen_2' are taken
+        (["Nick", "Janssen"], {"nick janssen", "nick janssen_2"}, "Nick Janssen_3"),
+    ),
+)
+def test_create_common_name_taken(
+    username_generator: UserNameGenerator,
+    names: list[str],
+    existing: set[str],
+    expected: str,
+) -> None:
+    common_name = username_generator._create_common_name(names, existing)
+    assert common_name == expected
 
-    # Users without a last name are supported
-    common_name = username_generator._create_common_name(["Nick", ""], [])
-    assert common_name == "Nick"
 
+def test_create_common_name_exhausted(username_generator: UserNameGenerator) -> None:
     # Nick_1 until Nick_2000 exists - we cannot generate a username
     with pytest.raises(RuntimeError):
         username_generator._create_common_name(
-            ["Nick", ""], ["nick"] + [f"nick_{d}" for d in range(2000)]
+            ["Nick", ""], {"nick"} | {f"nick_{d}" for d in range(2000)}
         )
-
-    # If a name is over 64 characters, a middle name is removed.
-    common_name = username_generator._create_common_name(
-        ["Nick", "Gerardus", "Cornelis", "long name" * 20, "Johnson"], []
-    )
-    assert common_name == "Nick Gerardus Cornelis Johnson"
-
-    # If the name is still over 64 characters, another middle name is removed.
-    common_name = username_generator._create_common_name(
-        ["Nick", "Gerardus", "Cornelis", "long name" * 20, "Hansen", "Johnson"], []
-    )
-    assert common_name == "Nick Gerardus Cornelis Johnson"
-
-    # In the rare case that someone has a first or last name with over 64 characters,
-    # we cut off characters from his name
-    # Because AD does not allow common names with more than 64 characters
-    common_name = username_generator._create_common_name(["Nick" * 40, "Johnson"], [])
-    assert common_name == ("Nick" * 40)[:60]
-
-    common_name = username_generator._create_common_name(["Nick", "Johnson" * 40], [])
-    assert common_name == ("Nick" + " " + "Johnson" * 40)[:60]
-
-    common_name = username_generator._create_common_name(
-        ["Nick", "Gerardus", "Cornelis", "Johnson" * 40], []
-    )
-    assert common_name == ("Nick" + " " + "Johnson" * 40)[:60]
 
 
 async def test_generate_dn(

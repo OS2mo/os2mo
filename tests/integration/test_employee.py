@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import json
 from typing import Any
+from typing import cast
 from unittest.mock import ANY
 from uuid import UUID
 
@@ -27,6 +28,7 @@ from mo_ldap_import_export.ldap import ldap_modify
 from mo_ldap_import_export.ldap import ldap_search
 from mo_ldap_import_export.moapi import MOAPI
 from mo_ldap_import_export.utils import combine_dn_strings
+from mo_ldap_import_export.utils import mo_today
 
 
 @pytest.mark.integration_test
@@ -524,3 +526,107 @@ async def test_ituser_link(
     user = one(users.objects)
     user_key = one(user.validities).user_key
     assert user_key == ldap_uuid
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar(
+    {
+        "LISTEN_TO_CHANGES_IN_MO": "False",
+        "LISTEN_TO_CHANGES_IN_LDAP": "False",
+        "CONVERSION_MAPPING": json.dumps(
+            {
+                "mo2ldap": """
+                    {% set mo_employee = load_mo_employee(uuid, current_objects_only=False) %}
+                    {{
+                        {
+                            "employeeNumber": mo_employee.cpr_number,
+                            "uid": mo_employee.cpr_number,
+                            "cn": generate_common_name(uuid, dn),
+                            "sn": mo_employee.surname,
+                            "givenName": mo_employee.given_name,
+                            "displayName": mo_employee.nickname_given_name + " " + mo_employee.nickname_surname
+                        }|tojson
+                    }}
+                """,
+                "username_generator": {
+                    "objectClass": "UserNameGenerator",
+                    # TODO: why is this required?
+                    "combinations_to_try": ["FFFX", "LLLX"],
+                },
+            }
+        ),
+    }
+)
+async def test_generate_common_name(
+    test_client: AsyncClient,
+    graphql_client: GraphQLClient,
+    ldap_connection: Connection,
+    mo_person: UUID,
+    ldap_org: list[str],
+) -> None:
+    async def trigger_sync(uuid: UUID) -> None:
+        content = str(uuid)
+        headers = {"Content-Type": "text/plain"}
+        result = await test_client.post(
+            "/mo2ldap/person", content=content, headers=headers
+        )
+        assert result.status_code == 200
+
+    async def fetch_common_name(cpr_number: str) -> str:
+        # Fetch the LDAP UUID for the newly created LDAP user
+        response, _ = await ldap_search(
+            ldap_connection,
+            search_base=combine_dn_strings(ldap_org),
+            search_filter=f"(employeeNumber={cpr_number})",
+            attributes=["cn"],
+        )
+        employee = one(response)
+        return cast(str, one(employee["attributes"]["cn"]))
+
+    mo_person_cpr_number = "2108613133"
+
+    # Trigger a sync creating a user in LDAP
+    await trigger_sync(mo_person)
+    common_name = await fetch_common_name(mo_person_cpr_number)
+    assert common_name == "Aage Bach Klarskov"
+
+    # Trigger a sync again, updating the user in LDAP
+    # This should NOT yield an _2 name as we have the name already
+    await trigger_sync(mo_person)
+    common_name = await fetch_common_name(mo_person_cpr_number)
+    assert common_name == "Aage Bach Klarskov"
+
+    # Change the persons name, then trigger a sync again, updating the user in LDAP
+    # This should change the common name to the new name
+    await graphql_client.user_update(
+        EmployeeUpdateInput(
+            uuid=mo_person, surname="Klareng", validity={"from": mo_today()}
+        )
+    )
+    await trigger_sync(mo_person)
+    common_name = await fetch_common_name(mo_person_cpr_number)
+    assert common_name == "Aage Klareng"
+
+    # Create another person with the same name
+    mo_person_2_cpr_number = "0101700000"
+    r = await graphql_client.user_create(
+        input=EmployeeCreateInput(
+            given_name="Aage", surname="Klareng", cpr_number="0101700000"
+        )
+    )
+    mo_person_2 = r.uuid
+    await trigger_sync(mo_person_2)
+    common_name = await fetch_common_name(mo_person_2_cpr_number)
+    assert common_name == "Aage Klareng_2"
+
+    # Trigger a sync again, updating the user in LDAP
+    # This should yield the _2 name as that is what we already have
+    await trigger_sync(mo_person_2)
+    common_name = await fetch_common_name(mo_person_2_cpr_number)
+    assert common_name == "Aage Klareng_2"
+
+    # Trigger a sync again on the first person, updating the user in LDAP
+    # This should NOT yield an _2 name as we have the name already
+    await trigger_sync(mo_person)
+    common_name = await fetch_common_name(mo_person_cpr_number)
+    assert common_name == "Aage Klareng"

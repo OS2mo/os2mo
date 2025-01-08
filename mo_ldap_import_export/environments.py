@@ -22,6 +22,7 @@ from more_itertools import one
 from more_itertools import only
 from pydantic import parse_obj_as
 
+from mo_ldap_import_export.ldap import get_ldap_object
 from mo_ldap_import_export.moapi import MOAPI
 from mo_ldap_import_export.moapi import extract_current_or_latest_validity
 from mo_ldap_import_export.moapi import flatten_validities
@@ -43,6 +44,7 @@ from .dataloaders import DataLoader
 from .exceptions import NoObjectsReturnedException
 from .exceptions import SkipObject
 from .exceptions import UUIDNotFoundException
+from .types import DN
 from .types import EmployeeUUID
 from .utils import get_delete_flag
 from .utils import mo_today
@@ -418,6 +420,31 @@ async def generate_username(
     return cast(str, await dataloader.username_generator.generate_username(employee))
 
 
+async def generate_common_name(
+    dataloader: DataLoader,
+    employee_uuid: UUID,
+    dn: DN,
+) -> str:
+    # Fetch the current common name (if any)
+    ldap_connection = dataloader.ldapapi.ldap_connection
+    current_common_name = None
+    with suppress(NoObjectsReturnedException):
+        ldap_object = await get_ldap_object(ldap_connection, dn, ["cn"])
+        ldap_common_name = getattr(ldap_object, "cn", None)
+        if ldap_common_name is not None:
+            current_common_name = one(ldap_common_name)
+
+    employee = await dataloader.moapi.load_mo_employee(employee_uuid)
+    if employee is None:  # pragma: no cover
+        raise NoObjectsReturnedException(f"Unable to lookup employee: {employee_uuid}")
+    return cast(
+        str,
+        await dataloader.username_generator.generate_common_name(
+            employee, current_common_name
+        ),
+    )
+
+
 async def get_address_uuid(
     graphql_client: GraphQLClient, filter: dict[str, Any]
 ) -> UUID | None:
@@ -485,6 +512,7 @@ def construct_globals_dict(
         "load_mo_org_unit_address": partial(load_org_unit_address, moapi),
         "create_mo_it_user": partial(create_mo_it_user, moapi),
         "generate_username": partial(generate_username, dataloader),
+        "generate_common_name": partial(generate_common_name, dataloader),
         "skip_if_none": skip_if_none,
         "get_address_uuid": partial(get_address_uuid, graphql_client),
         "get_ituser_uuid": partial(get_ituser_uuid, graphql_client),

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import re
 from collections.abc import Iterator
+from typing import Any
 from uuid import UUID
 
 import structlog
@@ -49,7 +50,7 @@ class UserNameGenerator:
         )
         logger.info("Found forbidden usernames", count=len(self.forbidden_usernames))
 
-    async def get_existing_values(self, attributes: list[str]):
+    async def get_existing_values(self, attributes: list[str]) -> dict[str, set[Any]]:
         searchParameters = {
             "search_filter": "(objectclass=*)",
             "attributes": attributes,
@@ -64,14 +65,14 @@ class UserNameGenerator:
 
         output = {}
         for attribute in attributes:
-            values = []
+            values = set()
             for entry in search_result:
                 value = entry["attributes"][attribute]
                 if not value:
                     continue
                 if isinstance(value, list):
                     value = one(value)
-                values.append(value.lower())
+                values.add(value.lower())
             output[attribute] = values
         return output
 
@@ -194,7 +195,7 @@ class UserNameGenerator:
                 username += code2char(x, current_char)
         return username
 
-    def _create_username(self, name: list[str], existing_usernames: list[str]) -> str:
+    def _create_username(self, name: list[str], existing_usernames: set[str]) -> str:
         """
         Create a new username in accordance with the rules specified in the json file.
         The username will be the highest quality available and the value will be
@@ -244,10 +245,12 @@ class UserNameGenerator:
                 if existing(p_username):
                     continue
                 return p_username
+
+        # TODO: Return a more specific exception type
         raise RuntimeError("Failed to create user name.")
 
     def _create_common_name(
-        self, name: list[str], existing_common_names: list[str]
+        self, name: list[str], existing_common_names: set[str]
     ) -> str:
         """
         Create an LDAP-style common name (CN) based on first and last name
@@ -291,15 +294,16 @@ class UserNameGenerator:
                 continue
             return potential_name
 
+        # TODO: Return a more specific exception type
         raise RuntimeError("Failed to create common name")
 
-    async def _get_existing_common_names(self):
+    async def _get_existing_common_names(self) -> set[str]:
         # TODO: Consider if it is better to fetch all names or candidate names
         existing_values = await self.get_existing_values(["cn"])
         existing_common_names = existing_values["cn"]
         return existing_common_names
 
-    async def _get_existing_usernames(self):
+    async def _get_existing_usernames(self) -> set[str]:
         match self.settings.ldap_dialect:
             case "Standard":
                 login_fields = ["distinguishedName"]
@@ -315,11 +319,11 @@ class UserNameGenerator:
             case "Standard":
                 existing_usernames = existing_values["distinguishedName"]
             case "AD":
-                user_principal_names = [
+                user_principal_names = {
                     s.split("@")[0] for s in existing_values["userPrincipalName"]
-                ]
+                }
                 existing_usernames = (
-                    existing_values["sAMAccountName"] + user_principal_names
+                    existing_values["sAMAccountName"] | user_principal_names
                 )
             case _:  # pragma: no cover
                 raise AssertionError("Unknown LDAP dialect")
@@ -334,6 +338,23 @@ class UserNameGenerator:
         name = given_name.split(" ")[:4] + [surname]
         return name
 
+    async def generate_common_name(
+        self, employee: Employee, current_common_name: str | None = None
+    ) -> str:
+        name = self.generate_person_name(employee)
+        existing_common_names = await self._get_existing_common_names()
+        # We have to discard the current common name, as we may otherwise generate a new
+        # common name due to a conflict with ourselves.
+        if current_common_name:
+            existing_common_names.discard(current_common_name.lower())
+        common_name = self._create_common_name(name, existing_common_names)
+        logger.info(
+            "Generated CommonName based on name",
+            name=name,
+            common_name=common_name,
+        )
+        return common_name
+
     async def generate_username(self, employee: Employee) -> str:
         existing_usernames = await self._get_existing_usernames()
         name = self.generate_person_name(employee)
@@ -350,30 +371,24 @@ class UserNameGenerator:
         Generates a LDAP DN (Distinguished Name) based on information from a MO Employee
         object.
         """
-        name = self.generate_person_name(employee)
-        existing_common_names = await self._get_existing_common_names()
-        common_name = self._create_common_name(name, existing_common_names)
-        logger.info(
-            "Generated CommonName based on name",
-            name=name,
-            common_name=common_name,
-        )
-
+        common_name = await self.generate_common_name(employee)
         dn = self._make_dn(common_name)
         return dn
 
 
 class AlleroedUserNameGenerator(UserNameGenerator):
-    async def _get_existing_usernames(self):
-        ldap_usernames = await super()._get_existing_usernames()
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        assert self.settings.ldap_dialect == "AD"
 
+    async def _get_existing_usernames(self) -> set[str]:
         # "existing_usernames_in_mo" covers all usernames which MO has ever generated.
         # Because we never delete from MO's database; We just put end-dates on objects.
         #
         # We need to block these usernames from being generated, because it is possible
-        # That MO generates a user, which is deleted from AD some years later. In that
-        # Case we should never generate the username of the deleted user.
-        # Ref: https://redmine.magenta-aps.dk/issues/57043
+        # that MO generates a user, which is deleted from AD some years later. In that
+        # case we should never generate the username of the deleted user.
+        # Reference: https://redmine.magenta-aps.dk/issues/57043
         itsystem_uuid = await self.moapi.get_it_system_uuid("ADSAMA")
         result = (
             await self.moapi.graphql_client.read_all_ituser_user_keys_by_itsystem_uuid(
@@ -381,45 +396,18 @@ class AlleroedUserNameGenerator(UserNameGenerator):
             )
         )
         # TODO: Keep this as a set and convert all operations to set operations
-        existing_usernames_in_mo = list(
-            {validity.user_key for obj in result.objects for validity in obj.validities}
-        )
+        existing_usernames_in_mo = {
+            validity.user_key for obj in result.objects for validity in obj.validities
+        }
 
-        return ldap_usernames + existing_usernames_in_mo
+        ldap_usernames = await super()._get_existing_usernames()
+        return ldap_usernames | existing_usernames_in_mo
 
-    async def generate_username(self, employee: Employee) -> str:
-        existing_usernames = await self._get_existing_usernames()
-        name = self.generate_person_name(employee)
+    def _name_fixer(self, name_parts: list[str]) -> list[str]:
         # Remove vowels from all but first name
-        name = [name[0]] + [remove_vowels(n) for n in self._name_fixer(name)[1:]]
-        username = self._create_username(name, existing_usernames)
-        logger.info(
-            "Generated username based on name",
-            name=name,
-            username=username,
-        )
-        return username
-
-    async def generate_dn(self, employee: Employee) -> str:
-        """
-        Generates a LDAP DN (Distinguished Name) based on information from a MO Employee
-        object.
-
-        Follows guidelines from https://redmine.magenta-aps.dk/issues/56080
-        """
-        assert self.settings.ldap_dialect == "AD"
-
-        name = self.generate_person_name(employee)
-        existing_common_names = await self._get_existing_common_names()
-        common_name = self._create_common_name(name, existing_common_names)
-        logger.info(
-            "Generated CommonName based on name",
-            name=name,
-            common_name=common_name,
-        )
-
-        dn = self._make_dn(common_name)
-        return dn
+        # Reference: https://redmine.magenta-aps.dk/issues/56080
+        first_name, *lastnames = name_parts
+        return [first_name] + [remove_vowels(n) for n in super()._name_fixer(lastnames)]
 
 
 def get_username_generator_class(
