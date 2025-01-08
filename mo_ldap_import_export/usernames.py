@@ -294,6 +294,7 @@ class UserNameGenerator:
                 continue
             return potential_name
 
+        # TODO: Return a more specific exception type
         raise RuntimeError("Failed to create common name")
 
     async def _get_existing_common_names(self) -> set[str]:
