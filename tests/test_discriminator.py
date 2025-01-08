@@ -925,10 +925,10 @@ async def test_get_existing_values(sync_tool: SyncTool, context: Context) -> Non
     )
 
     result = await username_generator.get_existing_values(["sAMAccountName", "cn"])
-    assert result == {"cn": ["foo"], "sAMAccountName": []}
+    assert result == {"cn": {"foo"}, "sAMAccountName": set()}
 
     result = await username_generator.get_existing_values(["employeeID"])
-    assert result == {"employeeID": ["0101700001"]}
+    assert result == {"employeeID": {"0101700001"}}
 
 
 async def test_get_existing_names(sync_tool: SyncTool, context: Context) -> None:
@@ -944,7 +944,7 @@ async def test_get_existing_names(sync_tool: SyncTool, context: Context) -> None
     )
 
     result = await username_generator._get_existing_common_names()
-    assert result == ["foo"]
+    assert result == {"foo"}
 
 
 async def test_load_ldap_OUs(

@@ -50,7 +50,7 @@ class UserNameGenerator:
         )
         logger.info("Found forbidden usernames", count=len(self.forbidden_usernames))
 
-    async def get_existing_values(self, attributes: list[str]):
+    async def get_existing_values(self, attributes: list[str]) -> dict[str, set[Any]]:
         searchParameters = {
             "search_filter": "(objectclass=*)",
             "attributes": attributes,
@@ -65,14 +65,14 @@ class UserNameGenerator:
 
         output = {}
         for attribute in attributes:
-            values = []
+            values = set()
             for entry in search_result:
                 value = entry["attributes"][attribute]
                 if not value:
                     continue
                 if isinstance(value, list):
                     value = one(value)
-                values.append(value.lower())
+                values.add(value.lower())
             output[attribute] = values
         return output
 
@@ -195,7 +195,7 @@ class UserNameGenerator:
                 username += code2char(x, current_char)
         return username
 
-    def _create_username(self, name: list[str], existing_usernames: list[str]) -> str:
+    def _create_username(self, name: list[str], existing_usernames: set[str]) -> str:
         """
         Create a new username in accordance with the rules specified in the json file.
         The username will be the highest quality available and the value will be
@@ -248,7 +248,7 @@ class UserNameGenerator:
         raise RuntimeError("Failed to create user name.")
 
     def _create_common_name(
-        self, name: list[str], existing_common_names: list[str]
+        self, name: list[str], existing_common_names: set[str]
     ) -> str:
         """
         Create an LDAP-style common name (CN) based on first and last name
@@ -294,13 +294,13 @@ class UserNameGenerator:
 
         raise RuntimeError("Failed to create common name")
 
-    async def _get_existing_common_names(self):
+    async def _get_existing_common_names(self) -> set[str]:
         # TODO: Consider if it is better to fetch all names or candidate names
         existing_values = await self.get_existing_values(["cn"])
         existing_common_names = existing_values["cn"]
         return existing_common_names
 
-    async def _get_existing_usernames(self):
+    async def _get_existing_usernames(self) -> set[str]:
         match self.settings.ldap_dialect:
             case "Standard":
                 login_fields = ["distinguishedName"]
@@ -316,11 +316,11 @@ class UserNameGenerator:
             case "Standard":
                 existing_usernames = existing_values["distinguishedName"]
             case "AD":
-                user_principal_names = [
+                user_principal_names = {
                     s.split("@")[0] for s in existing_values["userPrincipalName"]
-                ]
+                }
                 existing_usernames = (
-                    existing_values["sAMAccountName"] + user_principal_names
+                    existing_values["sAMAccountName"] | user_principal_names
                 )
             case _:  # pragma: no cover
                 raise AssertionError("Unknown LDAP dialect")
@@ -372,7 +372,7 @@ class AlleroedUserNameGenerator(UserNameGenerator):
         super().__init__(*args, **kwargs)
         assert self.settings.ldap_dialect == "AD"
 
-    async def _get_existing_usernames(self):
+    async def _get_existing_usernames(self) -> set[str]:
         # "existing_usernames_in_mo" covers all usernames which MO has ever generated.
         # Because we never delete from MO's database; We just put end-dates on objects.
         #
@@ -387,12 +387,12 @@ class AlleroedUserNameGenerator(UserNameGenerator):
             )
         )
         # TODO: Keep this as a set and convert all operations to set operations
-        existing_usernames_in_mo = list(
-            {validity.user_key for obj in result.objects for validity in obj.validities}
-        )
+        existing_usernames_in_mo = {
+            validity.user_key for obj in result.objects for validity in obj.validities
+        }
 
         ldap_usernames = await super()._get_existing_usernames()
-        return ldap_usernames + existing_usernames_in_mo
+        return ldap_usernames | existing_usernames_in_mo
 
     def _name_fixer(self, name_parts: list[str]) -> list[str]:
         # Remove vowels from all but first name
