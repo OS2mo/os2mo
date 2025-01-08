@@ -392,19 +392,11 @@ class AlleroedUserNameGenerator(UserNameGenerator):
 
         return ldap_usernames + existing_usernames_in_mo
 
-    async def generate_username(self, employee: Employee) -> str:
-        existing_usernames = await self._get_existing_usernames()
-        name = self.generate_person_name(employee)
+    def _name_fixer(self, name_parts: list[str]) -> list[str]:
         # Remove vowels from all but first name
         # Follows guidelines from https://redmine.magenta-aps.dk/issues/56080
-        name = [name[0]] + [remove_vowels(n) for n in self._name_fixer(name)[1:]]
-        username = self._create_username(name, existing_usernames)
-        logger.info(
-            "Generated username based on name",
-            name=name,
-            username=username,
-        )
-        return username
+        first_name, *lastnames = name_parts
+        return [first_name] + [remove_vowels(n) for n in super()._name_fixer(lastnames)]
 
 
 def get_username_generator_class(
