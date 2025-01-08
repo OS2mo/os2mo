@@ -254,6 +254,15 @@ class ClassFilter(BaseFilter):
         ),
     )
 
+    owner: ClassOwnerFilter | None = strawberry.field(
+        default=None,
+        description=dedent(
+            """\
+            Owner filter limiting which entries are returned.
+            """
+        ),
+    )
+
     scope: list[str] | None = strawberry.field(
         default=None,
         description=gen_filter_string("Scope", "scope"),
@@ -790,6 +799,18 @@ class RoleBindingFilter(BaseFilter, OrganisationUnitFiltered):
         description=dedent(
             """\
             ITUser filter limiting which entries are returned.
+            """
+        ),
+    )
+
+
+@strawberry.input(description="Class owner filter")
+class ClassOwnerFilter(OrganisationUnitFilter):
+    include_none: bool = strawberry.field(
+        default=False,
+        description=dedent(
+            """\
+            Include classes with `owner=None`.
             """
         ),
     )
