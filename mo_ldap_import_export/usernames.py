@@ -245,6 +245,8 @@ class UserNameGenerator:
                 if existing(p_username):
                     continue
                 return p_username
+
+        # TODO: Return a more specific exception type
         raise RuntimeError("Failed to create user name.")
 
     def _create_common_name(

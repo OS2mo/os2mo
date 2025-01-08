@@ -234,51 +234,58 @@ async def test_get_existing_usernames(
     assert result["cn"] == {cn.lower() for cn in existing_common_names}
 
 
-def test_create_username(username_generator: UserNameGenerator):
-    # Regular user
-    username = username_generator._create_username(["Nick", "Janssen"], set())
-    assert username == "njans"
+@pytest.mark.parametrize(
+    "names,expected",
+    (
+        # Regular user
+        (["Nick", "Janssen"], "njans"),
+        # User with a funny character
+        (["Nick", "Jænssen"], "njaen"),
+        # User with a funny character which is not in the character replacement mapping
+        (["N1ck", "Janssen"], "njans"),
+        # User with a middle name
+        (["Nick", "Gerardus", "Janssen"], "ngjan"),
+        # User with two middle names
+        (["Nick", "Gerardus", "Cornelis", "Janssen"], "ngcja"),
+        # User with three middle names
+        (["Nick", "Gerardus", "Cornelis", "Optimus", "Janssen"], "ngcoj"),
+        # User with 4 middle names (only the first three are used)
+        (["Nick", "Gerardus", "Cornelis", "Optimus", "Prime", "Janssen"], "ngcoj"),
+    ),
+)
+def test_create_username(
+    username_generator: UserNameGenerator, names: list[str], expected: str
+) -> None:
+    username = username_generator._create_username(names, set())
+    assert username == expected
 
-    # User with a funny character
-    username = username_generator._create_username(["Nick", "Jænssen"], set())
-    assert username == "njaen"
 
-    # User with a funny character which is not in the character replacement mapping
-    username = username_generator._create_username(["N1ck", "Janssen"], set())
-    assert username == "njans"
+@pytest.mark.parametrize(
+    "names,existing,expected",
+    (
+        # Regular user, but njans is taken
+        (["Nick", "Janssen"], {"njans"}, "njans2"),
+        # User with a funny character, but njaen is taken
+        (["Nick", "Jænssen"], {"njaen"}, "njaen2"),
+    ),
+)
+def test_create_username_taken(
+    username_generator: UserNameGenerator,
+    names: list[str],
+    existing: set[str],
+    expected: str,
+) -> None:
+    username = username_generator._create_username(names, existing)
+    assert username == expected
 
-    # User with a middle name
-    username = username_generator._create_username(
-        ["Nick", "Gerardus", "Janssen"], set()
-    )
-    assert username == "ngjan"
 
-    # User with two middle names
-    username = username_generator._create_username(
-        ["Nick", "Gerardus", "Cornelis", "Janssen"], set()
-    )
-    assert username == "ngcja"
-
-    # User with three middle names
-    username = username_generator._create_username(
-        ["Nick", "Gerardus", "Cornelis", "Optimus", "Janssen"], set()
-    )
-    assert username == "ngcoj"
-
-    # User with 4 middle names (only the first three are used)
-    username = username_generator._create_username(
-        ["Nick", "Gerardus", "Cornelis", "Optimus", "Prime", "Janssen"], set()
-    )
-    assert username == "ngcoj"
-
-    # Simulate case where 'njans' is taken
-    username = username_generator._create_username(["Nick", "Janssen"], {"njans"})
-    assert username == "njans2"
-
+def test_create_username_no_models_fit(username_generator: UserNameGenerator) -> None:
     # Simulate a case which fits none of the models (last name is too short)
     with pytest.raises(RuntimeError):
         username_generator._create_username(["Nick", "Ja"], set())
 
+
+def test_create_username_forbidden(username_generator: UserNameGenerator) -> None:
     # Simulate a case where a forbidden username is generated
     username = username_generator._create_username(
         ["Harry", "Alexander", "Terpstra"], set()
