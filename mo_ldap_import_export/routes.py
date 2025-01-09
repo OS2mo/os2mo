@@ -39,6 +39,7 @@ from .converters import LdapConverter
 from .dataloaders import DataLoader
 from .exceptions import InvalidCPR
 from .exceptions import NoObjectsReturnedException
+from .ldap import apply_discriminator
 from .ldap import get_ldap_object
 from .ldap import make_ldap_object
 from .ldap import object_search
@@ -48,6 +49,7 @@ from .ldap_emit import publish_uuids
 from .types import DN
 from .types import CPRNumber
 from .utils import combine_dn_strings
+from .utils import ensure_list
 from .utils import extract_ou_from_dn
 
 logger = structlog.stdlib.get_logger()
@@ -762,5 +764,43 @@ def construct_router(settings: Settings) -> APIRouter:
                 settings, ldap_connection, attribute, search_base=search_base
             )
         )
+
+    # Transitory endpoint to support the SD integration away from the old AD integration
+    # TODO: Can be removed once SD no longer needs entryUUID for users in MO
+    @router.get("/SD", status_code=200, tags=["LDAP"])
+    async def load_sd_data(
+        settings: depends.Settings,
+        ldap_connection: depends.Connection,
+        dataloader: depends.DataLoader,
+        cpr_number: CPRNumber,
+    ) -> dict[str, str]:  # pragma: no cover
+        account_name = "uid"
+        # Handle ADs non-standard username field
+        if settings.ldap_dialect == "AD":
+            account_name = "sAMAccountName"
+        # Setting for UUID field to handle ADs non-standard entryUUID field
+        attributes = {settings.ldap_unique_id_field, account_name}
+
+        ldapapi = dataloader.ldapapi
+
+        dns = await ldapapi.cpr2dns(cpr_number)
+        if not dns:
+            logger.info("Found no DNs for cpr_number")
+            raise HTTPException(status_code=404, detail="No DNs found for CPR number")
+
+        best_dn = await apply_discriminator(settings, ldap_connection, dns)
+        if best_dn is None:
+            logger.info("No DNs survived discriminator")
+            raise HTTPException(status_code=404, detail="No DNs survived discriminator")
+
+        # Note: get_ldap_object handles ADs non-standard entryUUID lookup format
+        ldap_object = await get_ldap_object(ldap_connection, best_dn, list(attributes))
+        return {
+            "dn": ldap_object.dn,
+            # UUID parsed and then stringifed to handle ADs non-standard UUID formatting
+            "uuid": str(UUID(getattr(ldap_object, settings.ldap_unique_id_field))),
+            # Username list shenanigans to handle ADs non-standard list formatting
+            "username": one(ensure_list(getattr(ldap_object, account_name))),
+        }
 
     return router
