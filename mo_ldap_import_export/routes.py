@@ -48,6 +48,7 @@ from .ldap_classes import LdapObject
 from .ldap_emit import publish_uuids
 from .types import DN
 from .types import CPRNumber
+from .types import EmployeeUUID
 from .utils import combine_dn_strings
 from .utils import ensure_list
 from .utils import extract_ou_from_dn
@@ -784,6 +785,42 @@ def construct_router(settings: Settings) -> APIRouter:
         ldapapi = dataloader.ldapapi
 
         dns = await ldapapi.cpr2dns(cpr_number)
+        if not dns:
+            logger.info("Found no DNs for cpr_number")
+            raise HTTPException(status_code=404, detail="No DNs found for CPR number")
+
+        best_dn = await apply_discriminator(settings, ldap_connection, dns)
+        if best_dn is None:
+            logger.info("No DNs survived discriminator")
+            raise HTTPException(status_code=404, detail="No DNs survived discriminator")
+
+        # Note: get_ldap_object handles ADs non-standard entryUUID lookup format
+        ldap_object = await get_ldap_object(ldap_connection, best_dn, list(attributes))
+        return {
+            "dn": ldap_object.dn,
+            # UUID parsed and then stringifed to handle ADs non-standard UUID formatting
+            "uuid": str(UUID(getattr(ldap_object, settings.ldap_unique_id_field))),
+            # Username list shenanigans to handle ADs non-standard list formatting
+            "username": one(ensure_list(getattr(ldap_object, account_name))),
+        }
+
+    # Transitory endpoint to reimplementing cpr_uuid.py using this integration
+    # TODO: Can be removed once the cpr_uuid.py script is no longer needed
+    @router.get("/CPRUUID", status_code=200, tags=["LDAP"])
+    async def load_cpr_uuid_data(
+        settings: depends.Settings,
+        ldap_connection: depends.Connection,
+        dataloader: depends.DataLoader,
+        uuid: EmployeeUUID,
+    ) -> dict[str, str]:  # pragma: no cover
+        account_name = "uid"
+        # Handle ADs non-standard username field
+        if settings.ldap_dialect == "AD":
+            account_name = "sAMAccountName"
+        # Setting for UUID field to handle ADs non-standard entryUUID field
+        attributes = {settings.ldap_unique_id_field, account_name}
+
+        dns = await dataloader.find_mo_employee_dn(uuid)
         if not dns:
             logger.info("Found no DNs for cpr_number")
             raise HTTPException(status_code=404, detail="No DNs found for CPR number")
