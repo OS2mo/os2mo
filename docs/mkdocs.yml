@@ -39,6 +39,7 @@ nav:
       - integrations/omada.md
       - integrations/os2rollekatalog.md
       - integrations/plan2learn.md
+      - integrations/safetynet.md
       - SD:
         - integrations/sd-laes.md
         - integrations/sd-skriv.md
