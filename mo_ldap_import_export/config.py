@@ -111,9 +111,7 @@ class LDAP2MOMapping(MappingBaseModel):
         extra = Extra.allow
 
     objectClass: str
-    import_to_mo: Literal["true", "false", "manual_import_only"] = Field(
-        alias="_import_to_mo_"
-    )
+    import_to_mo: Literal["true", "false"] = Field(alias="_import_to_mo_")
     terminate: str | None = Field(
         alias="_terminate_", description="The date at which to terminate the object"
     )
@@ -128,21 +126,8 @@ class LDAP2MOMapping(MappingBaseModel):
         description="The attributes to fetch for LDAP, aka attributes available on the ldap object in templates",
     )
 
-    def import_to_mo_as_bool(self, manual_import: bool = False) -> bool:
-        """
-        Returns True, when we need to import this object. Otherwise False
-        """
-        import_flag = self.import_to_mo.lower()
-
-        match import_flag:
-            case "true":
-                return True
-            case "manual_import_only":
-                return manual_import
-            case "false":
-                return False
-            case _:  # pragma: no cover
-                raise AssertionError(f"Import flag = '{import_flag}' not recognized")
+    def import_to_mo_as_bool(self) -> bool:
+        return self.import_to_mo != "false"
 
     def as_mo_class(self) -> type[MOBase]:
         return import_class(self.objectClass)

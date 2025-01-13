@@ -530,16 +530,13 @@ class SyncTool:
 
     @wait_for_import_to_finish
     @with_exitstack
-    async def import_single_user(
-        self, dn: DN, exit_stack: ExitStack, manual_import: bool = False
-    ) -> None:
+    async def import_single_user(self, dn: DN, exit_stack: ExitStack) -> None:
         """Imports a single user from LDAP into MO.
 
         Args:
             dn: The DN that triggered our event changed in LDAP.
-            manual_import: Whether this import operation was manually triggered.
         """
-        exit_stack.enter_context(bound_contextvars(dn=dn, manual_import=manual_import))
+        exit_stack.enter_context(bound_contextvars(dn=dn))
 
         logger.info("Importing user")
 
@@ -559,7 +556,7 @@ class SyncTool:
             if (
                 ldap_to_mo
                 and "Employee" in ldap_to_mo
-                and ldap_to_mo["Employee"].import_to_mo_as_bool(manual_import)
+                and ldap_to_mo["Employee"].import_to_mo_as_bool()
             ):
                 create_employee = True
             if not create_employee:
@@ -622,7 +619,7 @@ class SyncTool:
             for json_key in json_keys
             if self.settings.conversion_mapping.ldap_to_mo[
                 json_key
-            ].import_to_mo_as_bool(manual_import)
+            ].import_to_mo_as_bool()
         }
         logger.info("Import to MO filtered", json_keys=json_keys)
 
