@@ -691,7 +691,7 @@ def test_check_uuid_refs_in_mo_objects(converter_mapping: dict[str, Any]) -> Non
     [
         ("True", True),
         ("False", True),
-        ("manual_import_only", True),
+        ("manual_import_only", False),
         ("manual_import", False),
         ("ldap_please_import", False),
         ("car_license_expired", False),
@@ -726,7 +726,7 @@ def test_import_to_mo_configuration(
         expected_strings = [
             "1 validation error for Settings",
             "conversion_mapping -> ldap_to_mo -> Employee -> _import_to_mo",
-            "unexpected value; permitted: 'true', 'false', 'manual_import_only'",
+            "unexpected value; permitted: 'true', 'false'",
             f"given={import_to_mo}",
         ]
         for expected in expected_strings:
@@ -735,20 +735,15 @@ def test_import_to_mo_configuration(
 
 @pytest.mark.usefixtures("minimal_valid_environmental_variables")
 @pytest.mark.parametrize(
-    "import_to_mo,manual_import,expected",
+    "import_to_mo,expected",
     [
-        ("True", False, True),
-        ("True", True, True),
-        ("False", False, False),
-        ("False", True, False),
-        ("manual_import_only", False, False),
-        ("manual_import_only", True, True),
+        ("True", True),
+        ("False", False),
     ],
 )
 def test_import_to_mo(
     monkeypatch: pytest.MonkeyPatch,
     import_to_mo: str,
-    manual_import: bool,
     expected: bool,
 ) -> None:
     monkeypatch.setenv(
@@ -772,9 +767,7 @@ def test_import_to_mo(
     assert settings.conversion_mapping.ldap_to_mo is not None
     employee_mapping = settings.conversion_mapping.ldap_to_mo["Employee"]
 
-    assert (
-        employee_mapping.import_to_mo_as_bool(manual_import=manual_import) is expected
-    )
+    assert employee_mapping.import_to_mo_as_bool() is expected
 
 
 @pytest.mark.parametrize(
