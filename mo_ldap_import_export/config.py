@@ -111,7 +111,7 @@ class LDAP2MOMapping(MappingBaseModel):
         extra = Extra.allow
 
     objectClass: str
-    import_to_mo: Literal["true", "false"] = Field(alias="_import_to_mo_")
+    import_to_mo: Literal["true", "edit_only", "false"] = Field(alias="_import_to_mo_")
     terminate: str | None = Field(
         alias="_terminate_", description="The date at which to terminate the object"
     )
@@ -126,15 +126,27 @@ class LDAP2MOMapping(MappingBaseModel):
         description="The attributes to fetch for LDAP, aka attributes available on the ldap object in templates",
     )
 
-    def import_to_mo_as_bool(self) -> bool:
-        return self.import_to_mo != "false"
-
     def as_mo_class(self) -> type[MOBase]:
         return import_class(self.objectClass)
 
     @validator("import_to_mo", pre=True)
     def lower_import_to_mo(cls, v: str) -> str:
         return v.lower()
+
+    @root_validator
+    def check_edit_only_set_for_employee(cls, values: dict[str, Any]) -> dict[str, Any]:
+        """Ensure that edit_only is only set on employees."""
+        if (
+            "import_to_mo" not in values
+            or not values["import_to_mo"]
+            or values["import_to_mo"] != "edit_only"
+        ):
+            return values
+
+        mo_class = import_class(values["objectClass"])
+        if mo_class is not Employee:
+            raise ValueError("Edit only is only supported for employees")
+        return values
 
     @root_validator
     def check_terminate_not_set_on_employee(

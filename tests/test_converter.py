@@ -726,48 +726,11 @@ def test_import_to_mo_configuration(
         expected_strings = [
             "1 validation error for Settings",
             "conversion_mapping -> ldap_to_mo -> Employee -> _import_to_mo",
-            "unexpected value; permitted: 'true', 'false'",
+            "unexpected value; permitted: 'true', 'edit_only', 'false'",
             f"given={import_to_mo}",
         ]
         for expected in expected_strings:
             assert expected in str(exc_info.value)
-
-
-@pytest.mark.usefixtures("minimal_valid_environmental_variables")
-@pytest.mark.parametrize(
-    "import_to_mo,expected",
-    [
-        ("True", True),
-        ("False", False),
-    ],
-)
-def test_import_to_mo(
-    monkeypatch: pytest.MonkeyPatch,
-    import_to_mo: str,
-    expected: bool,
-) -> None:
-    monkeypatch.setenv(
-        "CONVERSION_MAPPING",
-        json.dumps(
-            {
-                "ldap_to_mo": {
-                    "Employee": {
-                        "objectClass": "ramodels.mo.employee.Employee",
-                        "_import_to_mo_": import_to_mo,
-                        "_ldap_attributes_": [],
-                        "uuid": "{{ employee_uuid or '' }}",
-                    }
-                },
-                "username_generator": {"objectClass": "UserNameGenerator"},
-            }
-        ),
-    )
-
-    settings = Settings()
-    assert settings.conversion_mapping.ldap_to_mo is not None
-    employee_mapping = settings.conversion_mapping.ldap_to_mo["Employee"]
-
-    assert employee_mapping.import_to_mo_as_bool() is expected
 
 
 @pytest.mark.parametrize(
