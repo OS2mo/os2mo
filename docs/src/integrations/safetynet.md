@@ -21,7 +21,7 @@ udgangspunkt een gang i døgnet, men dette kan justeres efter behov.
      * Afdelingskode
      * Startdato
      * Slutdato
-     * LedersMedarbejdernummer
+     * Leders medarbejdernummer
      * Brugernavn
      * Titel
      * Faggruppe
@@ -50,6 +50,3 @@ udgangspunkt een gang i døgnet, men dette kan justeres efter behov.
      * Afdelingsnavn
      * Afdelingskode
      * Forældreafdelingskode
-
-Det er med forholdsvis små justeringer muligt at vælge en anden kombination af felter
-end de ovenfor nævnte, hvis dette skulle ønskes.
