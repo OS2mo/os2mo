@@ -352,13 +352,13 @@ class Settings(BaseSettings):
         True, description="Whether to write to MO, when changes in LDAP are registered"
     )
 
-    mo_uuids_to_ignore: set[UUID] = Field(
-        default_factory=set,
+    mo_uuids_to_ignore: list[UUID] = Field(
+        default_factory=list,
         description="Set of MO UUIDs to ignore changes to",
     )
 
-    ldap_uuids_to_ignore: set[UUID] = Field(
-        default_factory=set,
+    ldap_uuids_to_ignore: list[UUID] = Field(
+        default_factory=list,
         description="Set of LDAP UUIDs to ignore changes to",
     )
 
