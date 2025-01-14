@@ -384,3 +384,39 @@ async def test_mo2ldap_jinja_validator(
         with pytest.raises(ValidationError) as exc_info:
             Settings()
         assert "Unable to parse mo2ldap template" in str(exc_info.value)
+
+
+@pytest.mark.parametrize(
+    "object_class",
+    (
+        "ramodels.mo.details.address.Address",
+        "ramodels.mo.details.engagement.Engagement",
+        "ramodels.mo.details.it_system.ITUser",
+    ),
+)
+async def test_edit_only_validator(object_class: str) -> None:
+    with pytest.raises(ValidationError) as exc_info:
+        parse_obj_as(
+            LDAP2MOMapping,
+            {
+                "_import_to_mo_": "edit_only",
+                "_ldap_attributes_": [],
+                "objectClass": object_class,
+                "uuid": "",
+            },
+        )
+
+    assert "Edit only is only supported for employees" in str(exc_info.value)
+
+
+async def test_edit_only_validator_employee_ok() -> None:
+    result = parse_obj_as(
+        LDAP2MOMapping,
+        {
+            "_import_to_mo_": "edit_only",
+            "_ldap_attributes_": [],
+            "objectClass": "ramodels.mo.employee.Employee",
+            "uuid": "",
+        },
+    )
+    assert result.import_to_mo == "edit_only"
