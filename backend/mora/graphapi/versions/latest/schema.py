@@ -90,6 +90,8 @@ from mora.handler.reading import get_handler_for_type
 from mora.handler.reading import ReadingHandler
 from mora.service.address_handler import dar
 from mora.service.address_handler import multifield_text
+from mora.service.address_handler.base import AddressHandler
+from mora.service.address_handler.base import get_handler_for_scope
 from mora.service.facet import is_class_uuid_primary
 from mora.util import NEGATIVE_INFINITY
 from mora.util import now
@@ -598,6 +600,12 @@ class DARAddress(ResolvedAddress):
         return dar.open_street_map_href_from_dar_object(dar_response)
 
 
+async def _get_handler_object(root: AddressRead, info: Info) -> AddressHandler:
+    address_type = await Address.address_type(root=root, info=info)  # type: ignore[operator]
+    handler = get_handler_for_scope(address_type.scope)
+    return handler(root.value, root.visibility_uuid, root.value2)
+
+
 @strawberry.experimental.pydantic.type(
     model=AddressRead,
     description=dedent(
@@ -801,12 +809,12 @@ class Address:
         )
     )
     async def name(self, root: AddressRead, info: Info) -> str | None:
-        address_type = await Address.address_type(root=root, info=info)  # type: ignore[operator]
+        obj = await _get_handler_object(root, info)
 
-        if address_type.scope == "MULTIFIELD_TEXT":
+        if obj.scope == "MULTIFIELD_TEXT":
             return multifield_text.name(root.value, root.value2)
 
-        if address_type.scope == "DAR":
+        if obj.scope == "DAR":
             dar_loader = context["dar_loader"]
             address_object = await dar_loader.load(UUID(root.value))
             return dar.name_from_dar_object(address_object)
@@ -815,12 +823,12 @@ class Address:
 
     @strawberry.field
     async def resolve(self, root: AddressRead, info: Info) -> ResolvedAddress:
-        address_type = await Address.address_type(root=root, info=info)  # type: ignore[operator]
+        obj = await _get_handler_object(root, info)
 
-        if address_type.scope == "MULTIFIELD_TEXT":
+        if obj.scope == "MULTIFIELD_TEXT":
             return MultifieldAddress(value=root.value, value2=root.value2)  # type: ignore
 
-        if address_type.scope == "DAR":
+        if obj.scope == "DAR":
             return DARAddress(value=root.value)  # type: ignore
 
         return DefaultAddress(value=root.value)  # type: ignore
@@ -845,15 +853,15 @@ class Address:
         )
     )
     async def href(self, root: AddressRead, info: Info) -> str | None:
-        address_type = await Address.address_type(root=root, info=info)  # type: ignore[operator]
+        obj = await _get_handler_object(root, info)
 
-        if address_type.scope == "PHONE":
+        if obj.scope == "PHONE":
             return f"tel:{root.value}"
 
-        if address_type.scope == "EMAIL":
+        if obj.scope == "EMAIL":
             return f"mailto:{root.value}"
 
-        if address_type.scope == "DAR":
+        if obj.scope == "DAR":
             dar_loader = context["dar_loader"]
             address_object = await dar_loader.load(UUID(root.value))
             if address_object is None:
