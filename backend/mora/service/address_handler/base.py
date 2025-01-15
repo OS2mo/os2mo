@@ -185,7 +185,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         }
 
 
-def get_handler_for_scope(scope: str) -> AddressHandler:
+def get_handler_for_scope(scope: str) -> type[AddressHandler]:
     handler = ADDRESS_HANDLERS.get(scope)
     if not handler:
         raise exceptions.ErrorCodes.E_INVALID_INPUT(
