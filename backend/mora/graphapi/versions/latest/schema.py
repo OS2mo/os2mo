@@ -811,15 +811,13 @@ class Address:
     async def name(self, root: AddressRead, info: Info) -> str | None:
         obj = await _get_handler_object(root, info)
 
-        if obj.scope == "MULTIFIELD_TEXT":
-            return obj.name
-
+        # TODO: Use AddressHandler implementation?
         if obj.scope == "DAR":
             dar_loader = context["dar_loader"]
             address_object = await dar_loader.load(UUID(root.value))
             return dar.name_from_dar_object(address_object)
 
-        return root.value
+        return obj.name
 
     @strawberry.field
     async def resolve(self, root: AddressRead, info: Info) -> ResolvedAddress:
@@ -855,12 +853,7 @@ class Address:
     async def href(self, root: AddressRead, info: Info) -> str | None:
         obj = await _get_handler_object(root, info)
 
-        if obj.scope == "PHONE":
-            return obj.href
-
-        if obj.scope == "EMAIL":
-            return obj.href
-
+        # TODO: Use AddressHandler implementation?
         if obj.scope == "DAR":
             dar_loader = context["dar_loader"]
             address_object = await dar_loader.load(UUID(root.value))
@@ -868,7 +861,7 @@ class Address:
                 return None
             return dar.open_street_map_href_from_dar_object(address_object)
 
-        return None
+        return obj.href
 
     @strawberry.field(description="UUID of the entity")
     async def uuid(self, root: AddressRead) -> UUID:
@@ -962,8 +955,9 @@ class Address:
             """
         )
     )
-    async def value(self, root: AddressRead) -> str:
-        return root.value
+    async def value(self, root: AddressRead, info: Info) -> str:
+        obj = await _get_handler_object(root, info)
+        return obj.value
 
     @strawberry.field(
         description=dedent(
@@ -979,8 +973,9 @@ class Address:
             """
         )
     )
-    async def value2(self, root: AddressRead) -> str | None:
-        return root.value2
+    async def value2(self, root: AddressRead, info: Info) -> str | None:
+        obj = await _get_handler_object(root, info)
+        return obj.value2
 
     validity: Validity = strawberry.auto
 
