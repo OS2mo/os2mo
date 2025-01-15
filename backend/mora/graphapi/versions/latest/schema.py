@@ -601,8 +601,8 @@ class DARAddress(ResolvedAddress):
 
 
 async def _get_handler_object(root: AddressRead, info: Info) -> AddressHandler:
-    address_type = await Address.address_type(root=root, info=info)  # type: ignore[operator]
-    handler = get_handler_for_scope(address_type.scope)
+    scope = (await info.context["class_loader"].load(root.address_type_uuid))["scope"]
+    handler = get_handler_for_scope(scope)
     return handler(root.value, root.visibility_uuid, root.value2)
 
 
