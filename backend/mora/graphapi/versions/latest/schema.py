@@ -812,7 +812,7 @@ class Address:
         obj = await _get_handler_object(root, info)
 
         if obj.scope == "MULTIFIELD_TEXT":
-            return multifield_text.name(root.value, root.value2)
+            return obj.name
 
         if obj.scope == "DAR":
             dar_loader = context["dar_loader"]
@@ -856,10 +856,10 @@ class Address:
         obj = await _get_handler_object(root, info)
 
         if obj.scope == "PHONE":
-            return f"tel:{root.value}"
+            return obj.href
 
         if obj.scope == "EMAIL":
-            return f"mailto:{root.value}"
+            return obj.href
 
         if obj.scope == "DAR":
             dar_loader = context["dar_loader"]
