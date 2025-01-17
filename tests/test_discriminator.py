@@ -872,6 +872,18 @@ async def test_listen_to_changes_in_employees(
             "{{ value == 'bar' }}",
             "CN=bar",
         ),
+        (
+            "sn",
+            {"CN=foo": {"sn": "foo"}, "CN=bar": {"sn": "bar"}},
+            "{{ sn == 'foo'}}",
+            "CN=foo",
+        ),
+        (
+            "sn",
+            {"CN=foo": {"sn": "foo"}, "CN=bar": {"sn": "bar"}},
+            "{{ sn == 'bar' }}",
+            "CN=bar",
+        ),
         # Check SN substring
         (
             "sn",
@@ -879,11 +891,23 @@ async def test_listen_to_changes_in_employees(
             "{{ 'foo' in value }}",
             "CN=foo",
         ),
+        (
+            "sn",
+            {"CN=foo": {"sn": "something foo maybe"}, "CN=bar": {"sn": "bar"}},
+            "{{ 'foo' in sn }}",
+            "CN=foo",
+        ),
         # Check SN even
         (
             "sn",
             {"CN=foo": {"sn": "1"}, "CN=bar": {"sn": "3"}, "CN=baz": {"sn": "0"}},
             "{{ value|int % 2 == 0 }}",
+            "CN=baz",
+        ),
+        (
+            "sn",
+            {"CN=foo": {"sn": "1"}, "CN=bar": {"sn": "3"}, "CN=baz": {"sn": "0"}},
+            "{{ sn|int % 2 == 0 }}",
             "CN=baz",
         ),
     ],
