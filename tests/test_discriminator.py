@@ -854,11 +854,11 @@ async def test_listen_to_changes_in_employees(
     "field,dn_map,template,expected",
     [
         # Check no template matches
-        ("dn", {"CN=foo": {}, "CN=bar": {}}, "{{ False }}", None),
-        ("dn", {"CN=foo": {}, "CN=bar": {}}, "{{ PleaseHelpMe }}", None),
+        ("sn", {"CN=foo": {}, "CN=bar": {}}, "{{ False }}", None),
+        ("sn", {"CN=foo": {}, "CN=bar": {}}, "{{ PleaseHelpMe }}", None),
         # Check dn is specific value
-        ("dn", {"CN=foo": {}, "CN=bar": {}}, "{{ dn == 'CN=foo'}}", "CN=foo"),
-        ("dn", {"CN=foo": {}, "CN=bar": {}}, "{{ dn == 'CN=bar' }}", "CN=bar"),
+        ("sn", {"CN=foo": {}, "CN=bar": {}}, "{{ dn == 'CN=foo'}}", "CN=foo"),
+        ("sn", {"CN=foo": {}, "CN=bar": {}}, "{{ dn == 'CN=bar' }}", "CN=bar"),
         # Check SN value
         (
             "sn",

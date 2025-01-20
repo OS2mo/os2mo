@@ -513,7 +513,12 @@ class Settings(BaseSettings):
         discriminator_field = values["discriminator_field"]
         if discriminator_field is None:
             return values
-        values["discriminator_fields"] += [discriminator_field]
+        discriminator_fields = values["discriminator_fields"]
+        discriminator_fields.append(discriminator_field)
+        for key in ["dn", "value"]:
+            if key in discriminator_fields:
+                raise ValueError(f"Invalid field in DISCRIMINATOR_FIELD(S): '{key}'")
+
         return values
 
     discriminator_function: Literal["exclude", "include", "template", None] = Field(
