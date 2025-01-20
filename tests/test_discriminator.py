@@ -851,77 +851,124 @@ async def test_listen_to_changes_in_employees(
 
 
 @pytest.mark.parametrize(
-    "field,dn_map,template,expected",
+    "fields,dn_map,template,expected",
     [
+        # Single field
         # Check no template matches
-        ("sn", {"CN=foo": {}, "CN=bar": {}}, "{{ False }}", None),
-        ("sn", {"CN=foo": {}, "CN=bar": {}}, "{{ PleaseHelpMe }}", None),
+        (["sn"], {"CN=foo": {}, "CN=bar": {}}, "{{ False }}", None),
+        (["sn"], {"CN=foo": {}, "CN=bar": {}}, "{{ PleaseHelpMe }}", None),
         # Check dn is specific value
-        ("sn", {"CN=foo": {}, "CN=bar": {}}, "{{ dn == 'CN=foo'}}", "CN=foo"),
-        ("sn", {"CN=foo": {}, "CN=bar": {}}, "{{ dn == 'CN=bar' }}", "CN=bar"),
+        (["sn"], {"CN=foo": {}, "CN=bar": {}}, "{{ dn == 'CN=foo' }}", "CN=foo"),
+        (["sn"], {"CN=foo": {}, "CN=bar": {}}, "{{ dn == 'CN=bar' }}", "CN=bar"),
         # Check SN value
         (
-            "sn",
+            ["sn"],
             {"CN=foo": {"sn": "foo"}, "CN=bar": {"sn": "bar"}},
-            "{{ value == 'foo'}}",
+            "{{ value == 'foo' }}",
             "CN=foo",
         ),
         (
-            "sn",
+            ["sn"],
             {"CN=foo": {"sn": "foo"}, "CN=bar": {"sn": "bar"}},
             "{{ value == 'bar' }}",
             "CN=bar",
         ),
         (
-            "sn",
+            ["sn"],
             {"CN=foo": {"sn": "foo"}, "CN=bar": {"sn": "bar"}},
-            "{{ sn == 'foo'}}",
+            "{{ sn == 'foo' }}",
             "CN=foo",
         ),
         (
-            "sn",
+            ["sn"],
             {"CN=foo": {"sn": "foo"}, "CN=bar": {"sn": "bar"}},
             "{{ sn == 'bar' }}",
             "CN=bar",
         ),
         # Check SN substring
         (
-            "sn",
+            ["sn"],
             {"CN=foo": {"sn": "something foo maybe"}, "CN=bar": {"sn": "bar"}},
             "{{ 'foo' in value }}",
             "CN=foo",
         ),
         (
-            "sn",
+            ["sn"],
             {"CN=foo": {"sn": "something foo maybe"}, "CN=bar": {"sn": "bar"}},
             "{{ 'foo' in sn }}",
             "CN=foo",
         ),
         # Check SN even
         (
-            "sn",
+            ["sn"],
             {"CN=foo": {"sn": "1"}, "CN=bar": {"sn": "3"}, "CN=baz": {"sn": "0"}},
             "{{ value|int % 2 == 0 }}",
             "CN=baz",
         ),
         (
-            "sn",
+            ["sn"],
             {"CN=foo": {"sn": "1"}, "CN=bar": {"sn": "3"}, "CN=baz": {"sn": "0"}},
             "{{ sn|int % 2 == 0 }}",
             "CN=baz",
+        ),
+        # Multiple fields
+        # Check SN value
+        (
+            ["sn", "uid"],
+            {"CN=foo": {"sn": "foo"}, "CN=bar": {"sn": "bar"}},
+            "{{ value == 'foo' }}",
+            # This is `None` as value is not uniquely determined
+            None,
+        ),
+        (
+            ["sn", "uid"],
+            {"CN=foo": {"sn": "foo"}, "CN=bar": {"sn": "bar"}},
+            "{{ sn == 'foo' }}",
+            "CN=foo",
+        ),
+        (
+            ["sn", "uid"],
+            {"CN=foo": {"sn": "foo"}, "CN=bar": {"sn": "bar"}},
+            "{{ uid == 'foo' }}",
+            # This is `None` as `uid` is unset
+            None,
+        ),
+        (
+            ["sn", "uid"],
+            {"CN=foo": {"sn": "foo"}, "CN=bar": {"sn": "bar", "uid": "foo"}},
+            "{{ uid == 'foo' }}",
+            "CN=bar",
+        ),
+        (
+            ["sn", "uid"],
+            {
+                "CN=foo": {"sn": "foo", "uid": "bar"},
+                "CN=bar": {"sn": "bar", "uid": "foo"},
+            },
+            "{{ uid == 'bar' and sn == 'foo' }}",
+            "CN=foo",
+        ),
+        (
+            ["sn", "uid"],
+            {
+                "CN=foo": {"sn": "foo", "uid": "foo"},
+                "CN=bar": {"sn": "bar", "uid": "foo"},
+            },
+            "{{ uid == sn }}",
+            "CN=foo",
         ),
     ],
 )
 async def test_apply_discriminator_template(
     settings: Settings,
-    field: str,
+    fields: str,
     dn_map: dict[DN, dict[str, Any]],
     template: str,
     expected: DN | None,
 ) -> None:
     settings = settings.copy(
         update={
-            "discriminator_fields": [field],
+            "discriminator_fields": fields,
             "discriminator_function": "template",
             "discriminator_values": [template],
         }
