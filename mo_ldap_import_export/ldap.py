@@ -325,7 +325,12 @@ async def apply_discriminator(
 
     def ldapobject2discriminator(ldap_object: LdapObject) -> str | None:
         # The value can either be a string or a list
-        value = getattr(ldap_object, discriminator_field)
+        value = getattr(ldap_object, discriminator_field, None)
+        if value is None:
+            logger.debug(
+                "Discriminator value is None before unpacking", dn=ldap_object.dn
+            )
+            return None
         # TODO: Figure out when it is a string instead of a list
         #       Maybe it is an AD only thing?
         if isinstance(value, str):  # pragma: no cover
