@@ -324,24 +324,24 @@ async def test_apply_discriminator_no_config(
     [
         # Needs function and values
         {
-            "discriminator_field": "sn",
+            "discriminator_fields": ["sn"],
         },
         # Needs function
         {
-            "discriminator_field": "sn",
+            "discriminator_fields": ["sn"],
             "discriminator_values": ["__never_gonna_match__"],
         },
         # Needs values
-        {"discriminator_field": "sn", "discriminator_function": "exclude"},
+        {"discriminator_fields": ["sn"], "discriminator_function": "exclude"},
         # Cannot give empty values
         {
-            "discriminator_field": "sn",
+            "discriminator_fields": ["sn"],
             "discriminator_function": "exclude",
             "discriminator_values": [],
         },
         # Cannot give invalid function
         {
-            "discriminator_field": "sn",
+            "discriminator_fields": ["sn"],
             "discriminator_function": "__invalid__",
             "discriminator_values": ["__never_gonna_match__"],
         },
@@ -366,7 +366,7 @@ async def test_apply_discriminator_unknown_dn(
     """Test that apply_discriminator requeues on missing DNs."""
     settings = settings.copy(
         update={
-            "discriminator_field": "sn",
+            "discriminator_fields": ["sn"],
             "discriminator_function": "exclude",
             "discriminator_values": ["__never_gonna_match__"],
         }
@@ -408,7 +408,7 @@ async def test_apply_discriminator_exclude_one_user(
 
     settings = settings.copy(
         update={
-            "discriminator_field": "sn",
+            "discriminator_fields": ["sn"],
             "discriminator_function": discriminator_function,
             "discriminator_values": discriminator_values,
         }
@@ -441,7 +441,7 @@ async def test_apply_discriminator_exclude_none(
 
     settings = settings.copy(
         update={
-            "discriminator_field": "sn",
+            "discriminator_fields": ["sn"],
             "discriminator_function": discriminator_function,
             "discriminator_values": ["foo_sn"],
         }
@@ -478,7 +478,7 @@ async def test_apply_discriminator_missing_field(
     )
     settings = settings.copy(
         update={
-            "discriminator_field": "hkOS2MOSync",
+            "discriminator_fields": ["hkOS2MOSync"],
             "discriminator_function": discriminator_function,
             "discriminator_values": ["No"],
         }
@@ -897,7 +897,7 @@ async def test_apply_discriminator_template(
 ) -> None:
     settings = settings.copy(
         update={
-            "discriminator_field": field,
+            "discriminator_fields": [field],
             "discriminator_function": "template",
             "discriminator_values": [template],
         }

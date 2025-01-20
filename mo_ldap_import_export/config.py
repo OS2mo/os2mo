@@ -502,6 +502,19 @@ class Settings(BaseSettings):
     discriminator_field: str | None = Field(
         None, description="The field to look for discriminator values in"
     )
+    discriminator_fields: list[str] = Field(
+        [], description="The fields to provide to the discriminator template"
+    )
+
+    @root_validator
+    def combine_discriminator_fields(cls, values: dict[str, Any]) -> dict[str, Any]:
+        """Ensure that discriminator fields are combined."""
+        # No discriminator_field, nothing to combine
+        discriminator_field = values["discriminator_field"]
+        if discriminator_field is None:
+            return values
+        values["discriminator_fields"] += [discriminator_field]
+        return values
 
     discriminator_function: Literal["exclude", "include", "template", None] = Field(
         None,
@@ -516,7 +529,10 @@ class Settings(BaseSettings):
     def check_discriminator_settings(cls, values: dict[str, Any]) -> dict[str, Any]:
         """Ensure that discriminator function and values is set, if field is set."""
         # No discriminator_field, not required fields
-        if values["discriminator_field"] is None:
+        if (
+            values["discriminator_field"] is None
+            and values["discriminator_fields"] == []
+        ):
             return values
         # If our keys are not in values, a field validator failed, let it handle it
         if (

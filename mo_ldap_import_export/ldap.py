@@ -287,7 +287,8 @@ async def apply_discriminator(
     if not dns:
         return None
 
-    discriminator_field = settings.discriminator_field
+    discriminator_fields = settings.discriminator_fields
+    discriminator_field = one(discriminator_fields)
     # If discriminator is not configured, there can be only one user
     if discriminator_field is None:
         return one(dns)
