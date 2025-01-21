@@ -8,11 +8,14 @@ from collections.abc import Callable
 from uuid import UUID
 
 from fastapi import Depends
+from sqlalchemy.dialects.postgresql import insert
 from starlette_context import context
 from starlette_context import request_cycle_context
 
+from mora import depends
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import token_getter
+from mora.db import Actor
 from mora.log import canonical_log_context
 
 # This magical UUID was introduced into LoRas source code back in
@@ -26,6 +29,7 @@ _MIDDLEWARE_KEY = "authenticated_user"
 
 
 async def fetch_authenticated_user(
+    session: depends.Session,
     get_token: Callable[[], Awaitable[Token]] = Depends(token_getter),
 ) -> UUID | None:
     try:
@@ -36,6 +40,14 @@ async def fetch_authenticated_user(
         }
     except Exception:
         return None
+
+    # Ensure the actor is known and saved
+    await session.execute(
+        insert(Actor)
+        .values(actor=token.uuid, name=token.preferred_username)
+        .on_conflict_do_nothing()
+    )
+
     return token.uuid
 
 

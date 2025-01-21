@@ -17,6 +17,13 @@ from sqlalchemy.sql import func
 from ._common import Base
 
 
+class Actor(Base):
+    __tablename__ = "actor"
+
+    actor: Mapped[UUID] = mapped_column(Uuid, primary_key=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+
+
 class AuditLogOperation(Base):
     __tablename__ = "audit_log_operation"
 
