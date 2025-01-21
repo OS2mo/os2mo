@@ -12,8 +12,8 @@ from ..latest.mutators import uuid2response
 from ..latest.org_unit import update_org_unit
 from ..latest.permissions import IsAuthenticatedPermission
 from ..latest.permissions import gen_update_permission
+from ..latest.response import Response
 from ..latest.schema import OrganisationUnit
-from ..latest.schema import Response
 from ..v22.version import GraphQLVersion as NextGraphQLVersion
 
 
