@@ -657,7 +657,7 @@ async def organisation_unit_resolver_query(
     if filter.engagement is not None:
         # TODO: This should be reimplemented in SQL; #60285
         # NOTE: Local import to avoid cyclic references
-        from .schema import Response
+        from .response import Response
 
         engagement_uuids = await engagement_resolver(info, filter.engagement)
         engagement_responses = [
