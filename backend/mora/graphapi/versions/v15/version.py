@@ -17,8 +17,8 @@ from ..latest.models import FacetUpdate as LatestFacetUpdate
 from ..latest.permissions import gen_create_permission
 from ..latest.permissions import gen_update_permission
 from ..latest.permissions import IsAuthenticatedPermission
+from ..latest.response import Response
 from ..latest.schema import Facet
-from ..latest.schema import Response
 from ..v16.version import GraphQLVersion as NextGraphQLVersion
 
 

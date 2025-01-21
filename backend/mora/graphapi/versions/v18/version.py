@@ -16,10 +16,10 @@ from ..latest.models import ITSystemTerminate as LatestITSystemTerminate
 from ..latest.models import ValidityTerminate
 from ..latest.permissions import gen_terminate_permission
 from ..latest.permissions import IsAuthenticatedPermission
+from ..latest.response import Response
 from ..latest.schema import Class
 from ..latest.schema import Facet
 from ..latest.schema import ITSystem
-from ..latest.schema import Response
 from ..v19.version import GraphQLVersion as NextGraphQLVersion
 from mora.graphapi.gmodels.mo._shared import UUIDBase
 

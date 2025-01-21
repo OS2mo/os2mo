@@ -14,8 +14,8 @@ from ..latest.mutators import uuid2response
 from ..latest.permissions import gen_create_permission
 from ..latest.permissions import gen_update_permission
 from ..latest.permissions import IsAuthenticatedPermission
+from ..latest.response import Response
 from ..latest.schema import Class
-from ..latest.schema import Response
 from ..v17.version import GraphQLVersion as NextGraphQLVersion
 from mora.graphapi.shim import execute_graphql  # type: ignore
 

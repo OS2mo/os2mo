@@ -24,8 +24,8 @@ from ..latest.permissions import gen_update_permission
 from ..latest.permissions import IsAuthenticatedPermission
 from ..latest.query import to_paged_response
 from ..latest.resolvers import it_system_resolver as latest_it_system_resolver
+from ..latest.response import Response
 from ..latest.schema import ITSystem
-from ..latest.schema import Response
 from ..v15.version import GraphQLVersion as NextGraphQLVersion
 from mora.graphapi.gmodels.mo._shared import UUIDBase
 
