@@ -350,9 +350,9 @@ async def apply_discriminator(
     # NOTE: We assume that at most one such account exists.
     if settings.discriminator_function == "exclude":
         discriminator_values = [
-            "{{ value|string not in "
+            "{{ value is none or value|string not in "
             + str(discriminator_values)
-            + " or value is none }}"
+            + " }}"
         ]
 
     if settings.discriminator_function == "include":
