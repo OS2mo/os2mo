@@ -173,7 +173,7 @@ async def registration_filter(info: Info, filter: Any) -> None:
     if filter.registration is None:
         return
 
-    from .registration import registration_resolver
+    from .registration_resolver import registration_resolver
 
     uuids = await filter2uuids_func(
         registration_resolver,
