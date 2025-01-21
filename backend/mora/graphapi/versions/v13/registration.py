@@ -11,7 +11,7 @@ from strawberry.types import Info
 from ..latest.filters import gen_filter_table
 from ..latest.filters import RegistrationFilter
 from ..latest.registration import Registration
-from ..latest.registration import registration_resolver
+from ..latest.registration_resolver import registration_resolver
 from .resolvers import CursorType
 from .resolvers import FromDateFilterType
 from .resolvers import LimitType
