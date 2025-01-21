@@ -601,8 +601,30 @@ class DARAddress(ResolvedAddress):
 
 
 async def _get_handler_object(root: AddressRead, info: Info) -> AddressHandler:
-    address_type = await Address.address_type(root=root, info=info)  # type: ignore[operator]
-    handler = get_handler_for_scope(address_type.scope)
+    # This function assumes that scope never changes for a class
+    # If this assumption was to be broken, we would have to split the Address object on
+    # scope changes, or alternatively return the attributes (value, name, etc) as
+    # validities split on the scope changes, as different scopes imply different
+    # interpretation of the value data.
+    # TODO: Enforce this invariant during edits
+
+    # We access the class_loader directly here for performance reasons, such that we can
+    # set `start` and `end` explicitly on the LoadKey, `start` and `end` are used for
+    # grouping up tasks within the `load_mo` function used within `class_loader`
+    # DataLoader instance, thus having unique `start` and `end` values yield unique
+    # database queries, whereas having the same values yield a single database query.
+    # TODO: If the scope invariant was enforced on edits, we could simply load any
+    #       address_type class validity here, instead of loading all of them.
+    #       This would probably yield better performance than loading all validities,
+    #       but for now however we load all of them to check our invariant.
+    validities: list[ClassRead] = await info.context["class_loader"].load(
+        LoadKey(uuid=root.address_type_uuid, start=None, end=None)
+    )
+    scopes = {x.scope for x in validities}
+    scope = one(scopes)
+    # TODO: Consider whether it would be more sane to default to TEXT if scope is None
+    assert scope is not None
+    handler = get_handler_for_scope(scope)
     return handler(root.value, root.visibility_uuid, root.value2)
 
 
