@@ -15,6 +15,7 @@ from starlette_context import request_cycle_context
 
 from . import files
 from ._amqp import AMQPSubsystem
+from ._audit import Actor
 from ._audit import AuditLogOperation
 from ._audit import AuditLogRead
 from ._bruger import Bruger

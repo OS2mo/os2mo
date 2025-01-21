@@ -21,6 +21,8 @@ from mora.db import AuditLogRead as AuditLogRead
 
 from ..latest.filters import gen_filter_string
 from ..latest.filters import gen_filter_table
+from .actor import Actor
+from .actor import actor_uuid_to_actor
 from .paged import CursorType
 from .paged import LimitType
 from .resolvers import get_sqlalchemy_date_interval
@@ -119,6 +121,16 @@ class AuditLog:
         """
         )
     )
+
+    @strawberry.field(
+        description=dedent(
+            """\
+            Object for the actor (integration or user) who changed the data.
+            """
+        )
+    )
+    async def actor_object(self, root: "AuditLog", info: Info) -> Actor:
+        return await actor_uuid_to_actor(root.actor, info=info)
 
     # Name of the entity model
     model: AuditLogModel = strawberry.field(

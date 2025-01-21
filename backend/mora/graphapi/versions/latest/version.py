@@ -20,6 +20,9 @@ from mora.util import CPR
 
 from ..base import BaseGraphQLSchema
 from ..base import BaseGraphQLVersion
+from .actor import IntegrationActor
+from .actor import PersonActor
+from .actor import SpecialActor
 from .audit import get_audit_loaders
 from .dataloaders import get_loaders
 from .mutators import Mutation as LatestMutation
@@ -33,7 +36,14 @@ class LatestGraphQLSchema(BaseGraphQLSchema):
     query = LatestQuery
     mutation = LatestMutation
 
-    types = [DefaultAddress, DARAddress, MultifieldAddress]
+    types = [
+        DefaultAddress,
+        DARAddress,
+        MultifieldAddress,
+        IntegrationActor,
+        PersonActor,
+        SpecialActor,
+    ]
 
     scalar_overrides = {
         CPR: CPRType,

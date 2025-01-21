@@ -4,6 +4,7 @@
 
 from datetime import datetime
 from textwrap import dedent
+from typing import Annotated
 from typing import Any
 from typing import Generic
 from typing import TypeVar
@@ -34,13 +35,15 @@ from .models import ClassRead
 from .models import FacetRead
 from .models import RoleBindingRead
 from .permissions import IsAuthenticatedPermission
-from .registration import Registration
 from .registration_resolver import registration_resolver
 from .resolver_map import resolver_map
 from .seed_resolver import seed_resolver
 from .utils import uuid2list
 
 MOObject = TypeVar("MOObject")
+
+
+LazyRegistration = Annotated["Registration", strawberry.lazy(".registration")]  # type: ignore  # noqa: F821
 
 
 def model2name(model: Any) -> Any:
@@ -214,7 +217,7 @@ class Response(Generic[MOObject]):
         return await dataloader.load(LoadKey(root.uuid, start, end))
 
     # TODO: Implement using a dataloader
-    registrations: list[Registration] = strawberry.field(
+    registrations: list[LazyRegistration] = strawberry.field(
         description=dedent(
             """\
             Bitemporal state entrypoint.
