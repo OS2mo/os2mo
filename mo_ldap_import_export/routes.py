@@ -3,6 +3,7 @@
 """HTTP Endpoints."""
 
 import asyncio
+import json
 import re
 from collections.abc import AsyncIterator
 from collections.abc import Awaitable
@@ -529,6 +530,22 @@ def construct_router(settings: Settings) -> APIRouter:
         return encode_result(
             await get_ldap_object(ldap_connection, dn, ["*"], nest=nest)
         )
+
+    @router.get("/Inspect/mo2ldap/all", status_code=200, tags=["LDAP"])
+    async def mo2ldap_templating_all(
+        graphql_client: depends.GraphQLClient, sync_tool: depends.SyncTool
+    ) -> Any:
+        result = await graphql_client.read_person_uuid()
+        uuids = [person.uuid for person in result.objects]
+
+        mapping = {
+            uuid: await sync_tool.listen_to_changes_in_employees(uuid, dry_run=True)
+            for uuid in uuids
+        }
+        with open("/tmp/mo2ldap.json", "w") as fout:
+            json.dump(encode_result(mapping), fout)
+
+        return "OK"
 
     @router.get("/Inspect/mo2ldap/{uuid}", status_code=200, tags=["LDAP"])
     async def mo2ldap_templating(sync_tool: depends.SyncTool, uuid: UUID) -> Any:
