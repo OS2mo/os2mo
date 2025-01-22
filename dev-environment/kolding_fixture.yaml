@@ -37,7 +37,7 @@ CONVERSION_MAPPING:
         "title": mo_employee.user_key,
         "givenName": mo_employee.given_name,
         "sn": mo_employee.surname,
-        "entryUUID": mo_employee_it_user.user_key,
+        "entryUUID": mo_employee_it_user.user_key if mo_employee_it_user else [],
       }|tojson
     }}
   username_generator:
