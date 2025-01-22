@@ -51,6 +51,7 @@ def context(
     settings_mock: MagicMock,
 ) -> Context:
     settings_mock.discriminator_field = None
+    settings_mock.discriminator_fields = []
     ldap_connection = AsyncMock()
     context = Context(
         amqpsystem=AsyncMock(),

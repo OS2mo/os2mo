@@ -287,9 +287,9 @@ async def apply_discriminator(
     if not dns:
         return None
 
-    discriminator_field = settings.discriminator_field
+    discriminator_fields = settings.discriminator_fields
     # If discriminator is not configured, there can be only one user
-    if discriminator_field is None:
+    if not discriminator_fields:
         return one(dns)
 
     # These settings must be set for the function to work
@@ -304,9 +304,11 @@ async def apply_discriminator(
     #       that it is better to lookup DNs individually using the READ operation.
     #       See: https://stackoverflow.com/a/58834059
     try:
-        attributes = [discriminator_field]
         ldap_objects = await asyncio.gather(
-            *[get_ldap_object(ldap_connection, dn, attributes=attributes) for dn in dns]
+            *[
+                get_ldap_object(ldap_connection, dn, attributes=discriminator_fields)
+                for dn in dns
+            ]
         )
     except NoObjectsReturnedException as exc:
         # There could be multiple reasons why our DNs cannot be read.
@@ -322,9 +324,16 @@ async def apply_discriminator(
         # someone will look into the issue.
         raise RequeueMessage("Unable to lookup DN(s)") from exc
 
-    def ldapobject2discriminator(ldap_object: LdapObject) -> str | None:
+    def ldapobject2discriminator(
+        ldap_object: LdapObject, discriminator_field: str
+    ) -> str | None:
         # The value can either be a string or a list
-        value = getattr(ldap_object, discriminator_field)
+        value = getattr(ldap_object, discriminator_field, None)
+        if value is None:
+            logger.debug(
+                "Discriminator value is None before unpacking", dn=ldap_object.dn
+            )
+            return None
         # TODO: Figure out when it is a string instead of a list
         #       Maybe it is an AD only thing?
         if isinstance(value, str):  # pragma: no cover
@@ -337,8 +346,13 @@ async def apply_discriminator(
         assert isinstance(unpacked_value, str)
         return unpacked_value
 
-    mapping: dict[DN, str | None] = {
-        ldap_object.dn: ldapobject2discriminator(ldap_object)
+    mapping = {
+        ldap_object.dn: {
+            discriminator_field: ldapobject2discriminator(
+                ldap_object, discriminator_field
+            )
+            for discriminator_field in discriminator_fields
+        }
         for ldap_object in ldap_objects
     }
     assert dns == set(mapping.keys())
@@ -367,6 +381,11 @@ async def apply_discriminator(
             for dn_value in discriminator_values
         ]
 
+    def mapping2value(field_mapping: dict[str, str | None]) -> str | None:
+        if len(field_mapping) != 1:
+            return None
+        return one(field_mapping.values())
+
     assert settings.discriminator_function in ["exclude", "include", "template"]
     # If the discriminator_function is template, discriminator values will be a
     # prioritized list of jinja templates (first meaning most important), and we will
@@ -377,8 +396,13 @@ async def apply_discriminator(
         template = Template(discriminator)
         dns_passing_template = {
             dn
-            for dn, dn_value in mapping.items()
-            if template.render(dn=dn, value=dn_value).strip() == "True"
+            for dn in dns
+            if template.render(
+                dn=dn,
+                value=mapping2value(mapping[dn]),
+                **mapping[dn],
+            ).strip()
+            == "True"
         }
         if dns_passing_template:
             return one(

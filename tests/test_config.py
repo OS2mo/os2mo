@@ -420,3 +420,51 @@ async def test_edit_only_validator_employee_ok() -> None:
         },
     )
     assert result.import_to_mo == "edit_only"
+
+
+@pytest.mark.parametrize(
+    "field,fields",
+    [
+        (None, []),
+        (None, ["sn"]),
+        (None, ["sn", "cn"]),
+        ("sn", []),
+        ("sn", ["sn"]),
+        ("sn", ["cn"]),
+        ("sn", ["sn", "cn"]),
+    ],
+)
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+async def test_combine_discriminator_fields(
+    monkeypatch: pytest.MonkeyPatch,
+    field: str | None,
+    fields: list[str],
+) -> None:
+    monkeypatch.setenv("DISCRIMINATOR_FUNCTION", "include")
+    monkeypatch.setenv("DISCRIMINATOR_VALUES", '["test"]')
+    if field:
+        monkeypatch.setenv("DISCRIMINATOR_FIELD", field)
+    if fields:
+        monkeypatch.setenv("DISCRIMINATOR_FIELDS", json.dumps(fields))
+
+    settings = Settings()
+    assert settings.discriminator_field == field
+
+    if field:
+        assert settings.discriminator_fields == fields + [field]
+    else:
+        assert settings.discriminator_fields == fields
+
+
+@pytest.mark.parametrize("field", ["dn", "value"])
+@pytest.mark.usefixtures("minimal_valid_environmental_variables")
+async def test_disallowed_discriminator_fields(
+    monkeypatch: pytest.MonkeyPatch, field: str
+) -> None:
+    monkeypatch.setenv("DISCRIMINATOR_FUNCTION", "include")
+    monkeypatch.setenv("DISCRIMINATOR_VALUES", '["test"]')
+    monkeypatch.setenv("DISCRIMINATOR_FIELD", field)
+
+    with pytest.raises(ValueError) as exc_info:
+        Settings()
+    assert f"Invalid field in DISCRIMINATOR_FIELD(S): '{field}'" in str(exc_info.value)
