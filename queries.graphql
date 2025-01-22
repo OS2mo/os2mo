@@ -648,3 +648,11 @@ query read_engagement_uuid($filter: EngagementFilter!) {
     }
   }
 }
+
+query read_person_uuid($filter: EmployeeFilter) {
+  employees(filter: $filter) {
+    objects {
+      uuid
+    }
+  }
+}

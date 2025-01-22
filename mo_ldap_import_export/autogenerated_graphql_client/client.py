@@ -138,6 +138,8 @@ from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNames
 from .read_org_unit_ancestor_names import ReadOrgUnitAncestorNamesOrgUnits
 from .read_org_unit_name import ReadOrgUnitName
 from .read_org_unit_name import ReadOrgUnitNameOrgUnits
+from .read_person_uuid import ReadPersonUuid
+from .read_person_uuid import ReadPersonUuidEmployees
 from .set_job_title import SetJobTitle
 from .set_job_title import SetJobTitleEngagementUpdate
 from .user_create import UserCreate
@@ -1376,3 +1378,22 @@ class GraphQLClient(AsyncBaseClient):
         response = await self.execute(query=query, variables=variables)
         data = self.get_data(response)
         return ReadEngagementUuid.parse_obj(data).engagements
+
+    async def read_person_uuid(
+        self, filter: EmployeeFilter | None | UnsetType = UNSET
+    ) -> ReadPersonUuidEmployees:
+        query = gql(
+            """
+            query read_person_uuid($filter: EmployeeFilter) {
+              employees(filter: $filter) {
+                objects {
+                  uuid
+                }
+              }
+            }
+            """
+        )
+        variables: dict[str, object] = {"filter": filter}
+        response = await self.execute(query=query, variables=variables)
+        data = self.get_data(response)
+        return ReadPersonUuid.parse_obj(data).employees

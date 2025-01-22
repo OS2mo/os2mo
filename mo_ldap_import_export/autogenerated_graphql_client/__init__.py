@@ -375,6 +375,9 @@ from .read_org_unit_name import ReadOrgUnitName
 from .read_org_unit_name import ReadOrgUnitNameOrgUnits
 from .read_org_unit_name import ReadOrgUnitNameOrgUnitsObjects
 from .read_org_unit_name import ReadOrgUnitNameOrgUnitsObjectsCurrent
+from .read_person_uuid import ReadPersonUuid
+from .read_person_uuid import ReadPersonUuidEmployees
+from .read_person_uuid import ReadPersonUuidEmployeesObjects
 from .set_job_title import SetJobTitle
 from .set_job_title import SetJobTitleEngagementUpdate
 from .user_create import UserCreate
@@ -640,6 +643,9 @@ __all__ = [
     "ReadOrgUnitNameOrgUnits",
     "ReadOrgUnitNameOrgUnitsObjects",
     "ReadOrgUnitNameOrgUnitsObjectsCurrent",
+    "ReadPersonUuid",
+    "ReadPersonUuidEmployees",
+    "ReadPersonUuidEmployeesObjects",
     "RegistrationFilter",
     "RelatedUnitFilter",
     "RelatedUnitsUpdateInput",
