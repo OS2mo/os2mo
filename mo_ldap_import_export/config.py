@@ -470,14 +470,6 @@ class Settings(BaseSettings):
         description="Base URL for OS2mo.",
     )
 
-    default_org_unit_type: str = Field(
-        ..., description="Type to set onto imported organization units"
-    )
-
-    default_org_unit_level: str = Field(
-        ..., description="Level to set onto imported organization units"
-    )
-
     org_unit_path_string_separator: str = Field(
         "\\", description="separator for full paths to org units in LDAP"
     )
