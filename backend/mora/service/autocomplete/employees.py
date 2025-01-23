@@ -23,6 +23,7 @@ from mora.db import BrugerRelation
 from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionRelationKode
+from mora.graphapi.main import newest
 from mora.graphapi.shim import execute_graphql
 from mora.service.autocomplete.shared import get_at_date_sql
 from mora.service.autocomplete.shared import get_graphql_equivalent_by_uuid
@@ -65,8 +66,6 @@ async def search_employees(
 async def decorate_employee_search_result(
     settings: config.Settings, search_results: list[UUID], at: date | None
 ):
-    from mora.graphapi.versions.v14.version import GraphQLVersion
-
     graphql_vars = {"uuids": search_results}
     employee_decorate_query = """
         query EmployeeDecorate($uuids: [UUID!]) {
@@ -173,7 +172,7 @@ async def decorate_employee_search_result(
 
     response = await execute_graphql(
         employee_decorate_query,
-        graphql_version=GraphQLVersion,
+        graphql_version=newest,
         variable_values=jsonable_encoder(graphql_vars),
     )
     handle_gql_error(response)

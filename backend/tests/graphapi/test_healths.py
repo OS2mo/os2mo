@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from pytest import MonkeyPatch
 
+from mora.graphapi.main import newest
 from mora.graphapi.versions.latest.schema import Health
 
 
@@ -35,8 +36,7 @@ def test_health_pagination(graphapi_post):
                 }
             }
         """
-        response = graphapi_post(query, url="/graphql/v3")
-
+        response = graphapi_post(query, url=f"/graphql/v{newest}")
     healths = response.data["healths"]
 
     health_list = {v["identifier"] for v in healths["objects"]}
