@@ -38,6 +38,7 @@ from .exceptions import SkipObject
 from .ldap import apply_discriminator
 from .ldap import get_ldap_object
 from .moapi import Verb
+from .moapi import get_primary_engagement
 from .models import Address
 from .models import Employee
 from .models import Engagement
@@ -226,6 +227,41 @@ class SyncTool:
         )
         await self.dataloader.moapi.create_ituser(it_user)
 
+    async def may_create_user_given_orgunit_location(self, uuid: EmployeeUUID) -> bool:
+        create_user_trees = set(self.settings.create_user_trees)
+        # Empty set, means nothing to check, which means we will create
+        if not create_user_trees:
+            logger.debug("create_user_trees not configured, allowing create")
+            return True
+
+        primary_engagement_uuid = await get_primary_engagement(
+            self.dataloader.moapi.graphql_client, uuid
+        )
+        if primary_engagement_uuid is None:
+            logger.info(
+                "create_user_trees configured, but no primary engagement, skipping"
+            )
+            return False
+
+        fetched_engagement = await self.dataloader.moapi.load_mo_engagement(
+            primary_engagement_uuid
+        )
+        if fetched_engagement is None:
+            logger.info("create_user_trees engagement is not current")
+            return False
+
+        org_unit_uuid = fetched_engagement.org_unit
+        if org_unit_uuid in create_user_trees:
+            return True
+
+        # Converting ancestors to a set, as we do not care which ancestor is found
+        ancestors = set(
+            await self.dataloader.moapi.get_ancestors(OrgUnitUUID(org_unit_uuid))
+        )
+        # If any ancestor is overlapping with the create_user_trees UUIDs we match
+        overlap = create_user_trees.intersection(ancestors)
+        return bool(overlap)
+
     @with_exitstack
     async def listen_to_changes_in_employees(
         self,
@@ -249,6 +285,11 @@ class SyncTool:
         mo2ldap_template = self.settings.conversion_mapping.mo2ldap
         if not mo2ldap_template:
             logger.info("listen_to_changes_in_employees called without mapping")
+            return {}
+
+        is_ok = await self.may_create_user_given_orgunit_location(uuid)
+        if not is_ok:
+            logger.info("Primary engagement OU outside create_user_trees, skipping")
             return {}
 
         best_dn, create = await self._find_best_dn(uuid, dry_run=dry_run)
