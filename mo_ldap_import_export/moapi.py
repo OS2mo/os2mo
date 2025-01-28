@@ -845,3 +845,10 @@ class MOAPI:
             )
             raise InvalidCPR("Unable to lookup invalid CPR number") from multi_error
         return {EmployeeUUID(employee.uuid) for employee in result.objects}
+
+    async def get_ancestors(self, uuid: OrgUnitUUID) -> list[OrgUnitUUID]:
+        results = await self.graphql_client.read_org_unit_ancestors(uuid)
+        result = one(results.objects).current
+        assert result is not None
+        ancestors = [OrgUnitUUID(ancestor.uuid) for ancestor in result.ancestors]
+        return ancestors
