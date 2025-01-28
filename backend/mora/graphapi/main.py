@@ -16,23 +16,6 @@ from structlog.stdlib import get_logger
 logger = get_logger()
 
 graphql_versions = [
-    # TODO: remove ...
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    13,
-    14,
-    15,
-    16,
-    # TODO: ... remove
     17,
     18,
     19,
