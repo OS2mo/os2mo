@@ -12,11 +12,34 @@ from fastapi import status
 from fastapi.responses import JSONResponse
 from fastapi.responses import RedirectResponse
 from more_itertools import first
+from more_itertools import last
 from structlog.stdlib import get_logger
 
 logger = get_logger()
 
-newest = 22
+versions = [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+]
 
 
 @cache
@@ -32,18 +55,18 @@ def load_graphql_version(version_number: int) -> APIRouter:
     Returns:
         A FastAPI APIRouter for the given GraphQL version.
     """
-    assert version_number >= 1
-    assert version_number <= newest
+    assert version_number in versions
 
     version = importlib.import_module(
         f"mora.graphapi.versions.v{version_number}.version"
     ).GraphQLVersion
     # TODO: Add deprecation header as per the decision log (link/successor)
+    newest = last(versions)
     router = version.get_router(is_latest=version_number is newest)
     return router
 
 
-def setup_graphql(app: FastAPI, min_version: int) -> None:
+def setup_graphql(app: FastAPI) -> None:
     """Setup our GraphQL endpoints on FastAPI.
 
     Note:
@@ -51,17 +74,15 @@ def setup_graphql(app: FastAPI, min_version: int) -> None:
 
     Args:
         app: The FastAPI to load GraphQL endpoints on.
-        min_version: The minimum version of GraphQL to support.
     """
+    oldest = first(versions)
+    newest = last(versions)
 
     @app.get("/graphql")
     @app.get("/graphql/")
     async def redirect_to_latest_graphiql() -> RedirectResponse:
         """Redirect unversioned GraphiQL so developers can pin to the newest version."""
         return RedirectResponse(f"/graphql/v{newest}")
-
-    versions = range(min_version, newest)
-    oldest = first(versions)
 
     imported: set[int] = set()
     version_regex = re.compile(r"/graphql/v(\d+)")
