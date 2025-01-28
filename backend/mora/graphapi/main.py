@@ -11,12 +11,36 @@ from fastapi import Request
 from fastapi import status
 from fastapi.responses import JSONResponse
 from fastapi.responses import RedirectResponse
-from more_itertools import first
 from structlog.stdlib import get_logger
 
 logger = get_logger()
 
-newest = 22
+graphql_versions = [
+    # TODO: remove ...
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    # TODO: ... remove
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+]
+latest_graphql_version = max(graphql_versions)
 
 
 @cache
@@ -32,18 +56,17 @@ def load_graphql_version(version_number: int) -> APIRouter:
     Returns:
         A FastAPI APIRouter for the given GraphQL version.
     """
-    assert version_number >= 1
-    assert version_number <= newest
+    assert version_number in graphql_versions
 
     version = importlib.import_module(
         f"mora.graphapi.versions.v{version_number}.version"
     ).GraphQLVersion
     # TODO: Add deprecation header as per the decision log (link/successor)
-    router = version.get_router(is_latest=version_number is newest)
+    router = version.get_router(is_latest=version_number is latest_graphql_version)
     return router
 
 
-def setup_graphql(app: FastAPI, min_version: int) -> None:
+def setup_graphql(app: FastAPI) -> None:
     """Setup our GraphQL endpoints on FastAPI.
 
     Note:
@@ -51,17 +74,13 @@ def setup_graphql(app: FastAPI, min_version: int) -> None:
 
     Args:
         app: The FastAPI to load GraphQL endpoints on.
-        min_version: The minimum version of GraphQL to support.
     """
 
     @app.get("/graphql")
     @app.get("/graphql/")
     async def redirect_to_latest_graphiql() -> RedirectResponse:
         """Redirect unversioned GraphiQL so developers can pin to the newest version."""
-        return RedirectResponse(f"/graphql/v{newest}")
-
-    versions = range(min_version, newest)
-    oldest = first(versions)
+        return RedirectResponse(f"/graphql/v{latest_graphql_version}")
 
     imported: set[int] = set()
     version_regex = re.compile(r"/graphql/v(\d+)")
@@ -76,15 +95,8 @@ def setup_graphql(app: FastAPI, min_version: int) -> None:
         if version_number in imported:
             return await call_next(request)
 
-        # Removed GraphQL versions send 410
-        if 0 < version_number < oldest:
-            return JSONResponse(
-                status_code=status.HTTP_410_GONE,
-                content={"message": "Removed GraphQL version"},
-            )
-
         # Non-existent GraphQL versions send 404
-        if version_number <= 0 or version_number > newest:
+        if version_number not in graphql_versions:
             return JSONResponse(
                 status_code=status.HTTP_404_NOT_FOUND,
                 content={"message": "No such GraphQL version"},

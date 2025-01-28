@@ -49,7 +49,7 @@ from mora.auth.keycloak.oidc import Token
 from mora.auth.keycloak.oidc import token_getter
 from mora.config import get_settings
 from mora.graphapi.gmodels.mo import Validity as GValidity
-from mora.graphapi.main import newest as newest_graphql_version
+from mora.graphapi.main import latest_graphql_version
 from mora.graphapi.versions.latest.permissions import ALL_PERMISSIONS
 from mora.mapping import ADMIN
 from mora.service.org import ConfiguredOrganisation
@@ -333,7 +333,7 @@ def fastapi_admin_test_app(monkeypatch, sessionmakermaker) -> FastAPI:
 
 @pytest.fixture(scope="session")
 def latest_graphql_url() -> str:
-    return f"/graphql/v{newest_graphql_version}"
+    return f"/graphql/v{latest_graphql_version}"
 
 
 @pytest.fixture
