@@ -11,7 +11,6 @@ from fastapi import Request
 from fastapi import status
 from fastapi.responses import JSONResponse
 from fastapi.responses import RedirectResponse
-from more_itertools import first
 from structlog.stdlib import get_logger
 
 logger = get_logger()
@@ -43,7 +42,7 @@ def load_graphql_version(version_number: int) -> APIRouter:
     return router
 
 
-def setup_graphql(app: FastAPI, min_version: int) -> None:
+def setup_graphql(app: FastAPI) -> None:
     """Setup our GraphQL endpoints on FastAPI.
 
     Note:
@@ -51,7 +50,6 @@ def setup_graphql(app: FastAPI, min_version: int) -> None:
 
     Args:
         app: The FastAPI to load GraphQL endpoints on.
-        min_version: The minimum version of GraphQL to support.
     """
 
     @app.get("/graphql")
@@ -60,8 +58,7 @@ def setup_graphql(app: FastAPI, min_version: int) -> None:
         """Redirect unversioned GraphiQL so developers can pin to the newest version."""
         return RedirectResponse(f"/graphql/v{newest}")
 
-    versions = range(min_version, newest)
-    oldest = first(versions)
+    oldest = 17
 
     imported: set[int] = set()
     version_regex = re.compile(r"/graphql/v(\d+)")
