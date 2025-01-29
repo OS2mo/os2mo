@@ -254,6 +254,9 @@ def test_query_is_primary_multiple_on_same_person(graphapi_post: GraphAPIPost) -
         # Job function filter
         ({"job_function": {"uuids": "ca76a441-6226-404f-88a9-31e02e420e52"}}, 1),
         ({"job_function": {"uuids": "2874e1dc-85e6-4269-823a-e1125484dfd3"}}, 0),
+        # engagement type filter
+        ({"engagement_type": {"uuids": "06f95678-166a-455a-a2ab-121a8d92ea23"}}, 3),
+        ({"engagement_type": {"uuids": "2874e1dc-85e6-4269-823a-e1125484dfd3"}}, 0),
         (
             {
                 "job_function": {
